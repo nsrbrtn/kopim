@@ -1,0 +1,48 @@
+# This file configures the analyzer for static analysis of Dart code.
+# It checks for errors, warnings, and lints in IDEs or via `flutter analyze`.
+
+# Include recommended lints for Flutter apps, packages, and plugins.
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  # Stricter analysis for better code quality.
+  errors:
+    # Treat missing required parameters as errors.
+    missing_required_param: error
+    # Enforce null safety strictly.
+    invalid_null_aware_operator: error
+    # Ignore or adjust diagnostics if needed (e.g., for legacy code).
+    unnecessary_null_comparison: ignore  # Diagnostic: Suppress if not fixing in code.
+    unused_import: warning  # Diagnostic: Warn on unused imports.
+
+linter:
+  rules:
+    # Core Flutter best practices (already in flutter.yaml, but overridden if needed).
+    prefer_const_constructors: true  # For UI micro-optimization: Use const where possible.
+    prefer_const_declarations: true  # Immutable constants for entities/states.
+    prefer_final_locals: true  # Encourage immutability in variables (for Freezed models).
+    prefer_final_fields: true  # For domain entities and use cases.
+
+    # Type safety for Clean Architecture and Drift/Firestore.
+    avoid_dynamic_calls: true  # Prevent dynamic calls; ensure typed repositories.
+    always_declare_return_types: true  # For use cases and repositories.
+    avoid_null_checks_in_equality_operators: true  # Replacement for unnecessary_null_comparison: Avoid redundant null checks.
+
+    # Code generation and Freezed/Json support.
+    require_trailing_commas: true  # Better for code gen (Freezed, JsonSerializable).
+    hash_and_equals: true  # For Equatable in models.
+
+    # Performance and UI optimization (Riverpod, minimize rebuilds).
+    avoid_unnecessary_containers: true  # Break UI into small components.
+    use_key_in_widget_constructors: true  # For efficient widget trees.
+    avoid_slow_async_io: false  # Allow for Drift/Firestore sync, but monitor.
+
+    # Logging and production readiness.
+    avoid_print: true  # Use logger instead for local logging.
+    diagnostic_describe_all_properties: true  # Better widget tests (fix in code if warned).
+
+    # Testing and architecture.
+    always_specify_types: true  # For DI with Riverpod/GetIt.
+    prefer_single_quotes: true  # Consistent style (dart format).
+    sort_constructors_first: true  # Clean code structure.
+
