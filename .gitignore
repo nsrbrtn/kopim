@@ -173,3 +173,4 @@ app.*.map.json
 !.idea/dictionaries/
 !.idea/runConfigurations/
 !google-services.json  # Раскомментируйте, если нужно коммитить (без secrets)
+/firebase.json

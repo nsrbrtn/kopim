@@ -1,51 +1,69 @@
 name: kopim
-description: Современное финансовое приложение с оффлайн-режимом и синхронизацией.
+description: Современное финансовое приложение с поддержкой офлайн-режима и синхронизацией.
 publish_to: 'none'
 version: 1.0.0+1
 
 environment:
-  sdk: '>=3.9.2 <4.0.0'  # Совместимо с вашей Dart версией
-  flutter: '>=3.35.3'    # Ваша Flutter версия
+  sdk: '>=3.5.3 <4.0.0'
 
 dependencies:
   flutter:
     sdk: flutter
-  flutter_localizations:  # Для встроенной локализации Flutter
-    sdk: flutter
-  intl: ^0.20.2  # Для i18n и форматирования дат/валют (локализация)
 
-  # State Management и DI
-  flutter_riverpod: ^3.0.0  # Основной для глобального/локального состояния
+  # State management
+  riverpod: ^3.0.0
 
-  # Immutable модели
+  # Immutable models
   freezed_annotation: ^3.1.0
   json_annotation: ^4.9.0
-  equatable: ^2.0.7  # Для сравнения сущностей
+  equatable: ^2.0.7
 
-  # База данных и оффлайн
-  drift: ^2.20.0  # Локальное хранилище с типобезопасными запросами
-  sqlite3_flutter_libs: ^0.5.24  # Для Desktop/Web поддержки Drift
+  # Database (Drift for offline-first)
+  drift: ^2.28.2
+  sqlite3_flutter_libs: ^0.5.39
+  path_provider: ^2.1.5
 
-  # Firebase для auth, sync, аналитики
-  firebase_core: ^3.5.0
-  cloud_firestore: ^5.4.0  # Удаленное хранилище
-  firebase_auth: ^5.3.0  # Аутентификация (Google, Email)
-  firebase_analytics: ^11.3.0
-  firebase_crashlytics: ^4.2.0
+  # Firebase (auth, sync, analytics)
+  firebase_core: ^4.1.1
+  cloud_firestore: ^6.0.2
+  firebase_auth: ^6.1.0
+  google_sign_in: ^7.2.0
+  firebase_analytics: ^12.0.2
+  firebase_crashlytics: ^5.0.2
 
-  # Мониторинг и логи
-  sentry_flutter: ^9.6.0  # Дополнительный мониторинг ошибок
-  logger: ^2.4.0  # Локальное логирование
+  # Logging and monitoring
+  sentry_flutter: ^9.6.0
+  logger: ^2.6.1
+
+  # Utils
+  intl: ^0.20.2
+
+  # Analytics UI (charts) - merged, use syncfusion as advanced alternative
+  syncfusion_flutter_charts: ^31.1.21  # Instead of fl_chart for richer features
+
+  # Additional from user
+  go_router: ^16.2.4
+  synquill: ^0.6.0
+  connectivity_plus: ^7.0.0
+  workmanager: ^0.9.0+3
+  flutter_local_notifications: ^19.4.2
+  google_generative_ai: ^0.4.7
 
 dev_dependencies:
   flutter_test:
-    sdk: flutter  # Для widget/integration тестов
-  build_runner: ^2.4.12  # Code gen для freezed и drift
-  freezed: ^3.1.0
-  drift_dev: ^2.20.0
-  mockito: ^5.5.0  # Для unit-тестов репозиториев/use cases
-  json_serializable: ^6.8.0  # Для json с freezed
-  flutter_lints: ^3.0.0
+    sdk: flutter
+
+  # Build tools
+  freezed: ^3.2.3
+  build_runner: ^2.4.14
+  drift_dev: ^2.28.3
+  riverpod_generator: ^3.0.0  # Added for Riverpod code-gen
+
+  # Testing
+  mockito: ^5.5.0
+
+  # Lints
+  flutter_lints: ^6.0.0
 
 flutter:
   uses-material-design: true
