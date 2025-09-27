@@ -1,0 +1,15 @@
+targets:
+  $default:
+    builders:
+      drift_dev:
+        options:
+          databases:
+            app_database: lib/core/data/database.dart
+          # Включает генерацию companions для data classes (по умолчанию true)
+          data_class_to_companions: true
+          # Генерирует конструктор для подключения (если нужно)
+          generate_connect_constructor: true
+          # Другие опции: см. https://drift.simonbinder.eu/generation_options/
+          # Например, для SQL-анализа или named constructors
+          test_dir: test/drift/  # Для тестов миграций
+          schema_dir: drift_schemas/  # Для schema файлов (diffs)
