@@ -1,3 +1,4 @@
+// lib/core/data/database.dart
 import 'dart:io';
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
@@ -16,7 +17,7 @@ class Accounts extends Table {
 }
 
 // Основная БД (расширяй таблицами для других фич: transactions, categories и т.д.)
-@DriftDatabase(tables: [Accounts])
+@DriftDatabase(tables: <Type>[Accounts])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 

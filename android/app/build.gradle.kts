@@ -1,3 +1,4 @@
+// android/app/build.gradle.kts
 plugins {
     id("com.android.application")
     // START: FlutterFire Configuration
@@ -15,16 +16,17 @@ android {
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_1_8  // Для совместимости с desugaring
+        targetCompatibility = JavaVersion.VERSION_1_8  // Для совместимости с desugaring
+        isCoreLibraryDesugaringEnabled = true  // Исправлено: добавлен префикс "is" для KTS
     }
 
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_11.toString()
+        jvmTarget = "1.8"  // Для Kotlin compatibility с Java 8
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
+        // TODO: Specify your own unique Application ID[](https://developer.android.com/studio/build/application-id.html).
         applicationId = "qmodo.ru.kopim"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
@@ -45,4 +47,11 @@ android {
 
 flutter {
     source = "../.."
+}
+
+dependencies {
+    // Desugaring библиотека (версия для AGP 8.x+)
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")  // Необходима для desugaring
+
+    // ... (остальные зависимости, если есть)
 }
