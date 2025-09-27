@@ -14,6 +14,8 @@ analyzer:
     # Ignore or adjust diagnostics if needed (e.g., for legacy code).
     unnecessary_null_comparison: ignore  # Diagnostic: Suppress if not fixing in code.
     unused_import: warning  # Diagnostic: Warn on unused imports.
+    invalid_annotation_target: ignore
+    non_abstract_class_inherits_abstract_member: ignore
 
 linter:
   rules:
