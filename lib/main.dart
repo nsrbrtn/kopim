@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart'; // Для ProviderScope
 import 'package:kopim/l10n/app_localizations.dart'; // Генерируется из l10n
 import 'firebase_options.dart'; // Генерированный из flutterfire configure
 import 'core/config/app_config.dart'; // Создайте этот файл для providers (locale, theme, auth)
+import 'core/di/injectors.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -41,7 +42,8 @@ class MyApp extends ConsumerWidget { // Используем ConsumerWidget дл
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // Чтение locale из provider (в app_config.dart определите appLocaleProvider)
-    final Locale appLocale = ref.watch(appLocaleProvider); // Пример: из core/config/app_config.dart
+    final Locale appLocale = ref.watch(appLocaleProvider);
+    ref.watch(syncServiceProvider); // Пример: из core/config/app_config.dart
 
     return MaterialApp(
       title: 'Kopim',

@@ -3,74 +3,111 @@ import 'dart:io';
 
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 
-part 'database.g.dart';  // Для сгенерированного кода (DAO, queries, companions)
+part 'database.g.dart';
 
-// Таблица Accounts (локальное хранилище для счетов, immutable для оффлайн-операций и sync)
+@DataClassName('AccountRow')
 class Accounts extends Table {
-  TextColumn get id => text().withLength(min: 1, max: 50)();  // UUID как строка для sync с Firebase
+  TextColumn get id => text().withLength(min: 1, max: 50)();
   TextColumn get name => text().withLength(min: 1, max: 100)();
   RealColumn get balance => real()();
-  TextColumn get currency => text().withLength(min: 3, max: 3)();  // ISO код, напр. 'USD'
-  TextColumn get type => text().withLength(min: 1, max: 50)();  // 'savings', 'credit' и т.д.
+  TextColumn get currency => text().withLength(min: 3, max: 3)();
+  TextColumn get type => text().withLength(min: 1, max: 50)();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  BoolColumn get isDeleted => boolean().withDefault(const Constant(false))();
 
   @override
-  Set<Column> get primaryKey => <Column<Object>>{id};  // Явный primary key для UUID (без auto-increment)
+  Set<Column<Object>> get primaryKey => {id};
 }
 
-// Таблица Transactions (локальное хранилище для транзакций, с foreign keys для связей, immutable)
+@DataClassName('CategoryRow')
+class Categories extends Table {
+  TextColumn get id => text().withLength(min: 1, max: 50)();
+  TextColumn get name => text().withLength(min: 1, max: 100)();
+  TextColumn get type => text().withLength(min: 1, max: 50)();
+  TextColumn get icon => text().nullable()();
+  TextColumn get color => text().nullable()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  BoolColumn get isDeleted => boolean().withDefault(const Constant(false))();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
+@DataClassName('TransactionRow')
 class Transactions extends Table {
-  TextColumn get id => text().withLength(min: 1, max: 50)();  // UUID для sync
-  TextColumn get accountId => text().references(Accounts, #id, onDelete: KeyAction.cascade)();  // Foreign key к Accounts (cascade delete для целостности)
-  TextColumn get categoryId => text().references(Categories, #id, onDelete: KeyAction.setNull).nullable()();  // Foreign key к Categories (nullable, set null on delete)
+  TextColumn get id => text().withLength(min: 1, max: 50)();
+  TextColumn get accountId =>
+      text().references(Accounts, #id, onDelete: KeyAction.cascade)();
+  TextColumn get categoryId => text()
+      .references(Categories, #id, onDelete: KeyAction.setNull)
+      .nullable()();
   RealColumn get amount => real()();
   DateTimeColumn get date => dateTime()();
-  TextColumn get note => text().nullable()();  // Исправлено: добавлен () для завершенияビルдера (TextColumn вместо ColumnBuilder)
-  TextColumn get type => text().withLength(min: 1, max: 50)();  // 'income', 'expense' и т.д.
+  TextColumn get note => text().nullable()();
+  TextColumn get type => text().withLength(min: 1, max: 50)();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  BoolColumn get isDeleted => boolean().withDefault(const Constant(false))();
 
   @override
-  Set<Column> get primaryKey => <Column<Object>>{id};  // Явный primary key для UUID
+  Set<Column<Object>> get primaryKey => {id};
 }
 
-// Таблица Categories (локальное хранилище для категорий, immutable для оффлайн-операций и sync)
-class Categories extends Table {
-  TextColumn get id => text().withLength(min: 1, max: 50)();  // UUID для sync
-  TextColumn get name => text().withLength(min: 1, max: 100)();
-  TextColumn get type => text().withLength(min: 1, max: 50)();  // 'income', 'expense' и т.д.
-  TextColumn get icon => text().nullable()();  // Исправлено: добавлен () для завершенияビルдера (TextColumn вместо ColumnBuilder)
-  TextColumn get color => text().nullable()();  // Исправлено: добавлен () для завершения билдера (TextColumn вместо ColumnBuilder)
-
-  @override
-  Set<Column> get primaryKey => <Column<Object>>{id};  // Явный primary key для UUID
+@DataClassName('OutboxEntryRow')
+class OutboxEntries extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get entityType => text().withLength(min: 1, max: 50)();
+  TextColumn get entityId => text().withLength(min: 1, max: 50)();
+  TextColumn get operation => text().withLength(min: 1, max: 20)();
+  TextColumn get payload => text()();
+  TextColumn get status => text().withDefault(const Constant('pending'))();
+  IntColumn get attemptCount => integer().withDefault(const Constant(0))();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get sentAt => dateTime().nullable()();
+  TextColumn get lastError => text().nullable()();
 }
 
-// Основная БД (расширяй таблицами для других фич: budgets, recurring и т.д.)
-@DriftDatabase(tables: <Type>[Accounts, Transactions, Categories])
+@DriftDatabase(tables: [Accounts, Categories, Transactions, OutboxEntries])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
+  AppDatabase.connect(DatabaseConnection connection) : super(connection);
+
   @override
-  int get schemaVersion => 1;  // Начальная версия схемы (увеличивай при миграциях для оффлайн-миграций)
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
     onCreate: (Migrator m) async {
-      await m.createAll();  // Создаёт таблицы при первом запуске (offline-first init)
+      await m.createAll();
     },
     onUpgrade: (Migrator m, int from, int to) async {
-      // Для будущих миграций: используй drift_dev generate для auto-diff и добавь логику здесь (например, m.addColumn, m.alterTable)
-      // Пример: if (from < 2) { await m.addColumn(accounts, accounts.newColumn); }
+      if (from < 2) {
+        await m.createTable(outboxEntries);
+        await m.addColumn(accounts, accounts.createdAt);
+        await m.addColumn(accounts, accounts.updatedAt);
+        await m.addColumn(accounts, accounts.isDeleted);
+        await m.addColumn(categories, categories.createdAt);
+        await m.addColumn(categories, categories.updatedAt);
+        await m.addColumn(categories, categories.isDeleted);
+        await m.addColumn(transactions, transactions.createdAt);
+        await m.addColumn(transactions, transactions.updatedAt);
+        await m.addColumn(transactions, transactions.isDeleted);
+      }
     },
   );
 }
 
-// Соединение (lazy для оффлайн, файл в app documents, типобезопасно для мультиплатформенности)
 LazyDatabase _openConnection() {
   return LazyDatabase(() async {
-    final Directory dbFolder = await getApplicationDocumentsDirectory();
-    final File file = File(p.join(dbFolder.path, 'kopim.db'));  // Имя БД для проекта
-    return NativeDatabase.createInBackground(file);  // Фоновая инициализация для UI-оптимизации
+    final directory = await getApplicationDocumentsDirectory();
+    final file = File(p.join(directory.path, 'kopim.db'));
+    return NativeDatabase.createInBackground(file);
   });
 }
