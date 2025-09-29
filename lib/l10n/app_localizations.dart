@@ -97,6 +97,108 @@ abstract class AppLocalizations {
     Locale('en'),
     Locale('ru'),
   ];
+
+  /// Title for the profile screen app bar
+  ///
+  /// In en, this message translates to:
+  /// **'Profile'**
+  String get profileTitle;
+
+  /// Shown when user must sign in to access profile
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to manage your profile.'**
+  String get profileSignInPrompt;
+
+  /// Section header for account information
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get profileSectionAccount;
+
+  /// Label for the profile name input
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get profileNameLabel;
+
+  /// Label for the currency selector
+  ///
+  /// In en, this message translates to:
+  /// **'Default currency'**
+  String get profileCurrencyLabel;
+
+  /// Label for the locale selector
+  ///
+  /// In en, this message translates to:
+  /// **'Preferred locale'**
+  String get profileLocaleLabel;
+
+  /// Shown when profile loading failed
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load profile: {error}'**
+  String profileLoadError(String error);
+
+  /// Label for the save button on profile form
+  ///
+  /// In en, this message translates to:
+  /// **'Save changes'**
+  String get profileSaveCta;
+
+  /// Main heading on the sign-in screen
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome to Kopim'**
+  String get signInTitle;
+
+  /// Subtitle explaining the benefit of signing in
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to sync your finances across devices.'**
+  String get signInSubtitle;
+
+  /// Label for email field
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get signInEmailLabel;
+
+  /// Label for password field
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get signInPasswordLabel;
+
+  /// Primary call to action button for email/password sign-in
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in'**
+  String get signInSubmitCta;
+
+  /// Button label for Google sign in
+  ///
+  /// In en, this message translates to:
+  /// **'Continue with Google'**
+  String get signInGoogleCta;
+
+  /// Fallback message when sign in fails
+  ///
+  /// In en, this message translates to:
+  /// **'Could not sign in. Please try again.'**
+  String get signInError;
+
+  /// Accessibility label when a sign in request is in progress
+  ///
+  /// In en, this message translates to:
+  /// **'Signing in...'**
+  String get signInLoading;
+
+  /// Message shown when connectivity provider reports offline state
+  ///
+  /// In en, this message translates to:
+  /// **'You appear to be offline. We will sync your data once you reconnect.'**
+  String get signInOfflineNotice;
 }
 
 class _AppLocalizationsDelegate

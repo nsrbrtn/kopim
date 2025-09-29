@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:kopim/features/profile/domain/entities/profile.dart';
 
+/// Firestore access for the `/users/{uid}/profile/profile` profile document.
 class ProfileRemoteDataSource {
   ProfileRemoteDataSource(this._firestore);
 

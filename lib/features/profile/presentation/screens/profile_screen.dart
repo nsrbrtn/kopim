@@ -9,40 +9,33 @@ import 'package:kopim/features/profile/presentation/controllers/profile_controll
 import 'package:kopim/features/profile/presentation/controllers/profile_form_controller.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
+/// Responsive screen that exposes profile editing backed by Riverpod state.
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final AppLocalizations strings = AppLocalizations.of(context)!;
     final ThemeData theme = ref.watch(appThemeProvider);
     final AsyncValue<AuthUser?> authState = ref.watch(authControllerProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Profile')),
+      appBar: AppBar(title: Text(strings.profileTitle)),
       body: authState.when(
         loading: () => const _CenteredProgress(),
         error: (Object error, StackTrace? stackTrace) =>
             _ErrorView(message: error.toString()),
         data: (AuthUser? user) {
           if (user == null) {
-            return const _ErrorView(
-              message: 'Please sign in to manage your profile.',
-            );
+            return _ErrorView(message: strings.profileSignInPrompt);
           }
 
           final AsyncValue<Profile?> profileAsync = ref.watch(
             profileControllerProvider(user.uid),
           );
-          final Profile? profile = profileAsync.asData?.value;
           final ProfileFormParams params = ProfileFormParams(
             uid: user.uid,
-            profile: profile,
-          );
-          final ProfileFormState formState = ref.watch(
-            profileFormControllerProvider(params),
-          );
-          final ProfileFormController formController = ref.read(
-            profileFormControllerProvider(params).notifier,
+            profile: profileAsync.asData?.value,
           );
 
           return LayoutBuilder(
@@ -57,8 +50,7 @@ class ProfileScreen extends ConsumerWidget {
                     padding: const EdgeInsets.all(24),
                     child: _ProfileForm(
                       theme: theme,
-                      formState: formState,
-                      formController: formController,
+                      params: params,
                       profileAsync: profileAsync,
                     ),
                   ),
@@ -75,51 +67,85 @@ class ProfileScreen extends ConsumerWidget {
 class _ProfileForm extends ConsumerWidget {
   const _ProfileForm({
     required this.theme,
-    required this.formState,
-    required this.formController,
+    required this.params,
     required this.profileAsync,
   });
 
   final ThemeData theme;
-  final ProfileFormState formState;
-  final ProfileFormController formController;
+  final ProfileFormParams params;
   final AsyncValue<Profile?> profileAsync;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final AppLocalizations strings = AppLocalizations.of(context)!;
+    final ProfileFormControllerProvider profileFormProvider =
+        profileFormControllerProvider(params);
+
+    final String name = ref.watch(
+      profileFormProvider.select((ProfileFormState state) => state.name),
+    );
+    final ProfileCurrency currency = ref.watch(
+      profileFormProvider.select((ProfileFormState state) => state.currency),
+    );
+    final String locale = ref.watch(
+      profileFormProvider.select((ProfileFormState state) => state.locale),
+    );
+    final bool isSaving = ref.watch(
+      profileFormProvider.select((ProfileFormState state) => state.isSaving),
+    );
+    final bool hasChanges = ref.watch(
+      profileFormProvider.select((ProfileFormState state) => state.hasChanges),
+    );
+    final String? errorMessage = ref.watch(
+      profileFormProvider.select(
+        (ProfileFormState state) => state.errorMessage,
+      ),
+    );
+    final Profile? initialProfile = ref.watch(
+      profileFormProvider.select(
+        (ProfileFormState state) => state.initialProfile,
+      ),
+    );
+
+    final ProfileFormController formController = ref.read(
+      profileFormProvider.notifier,
+    );
+
     final List<String> locales = AppLocalizations.supportedLocales
         .map((Locale locale) => locale.toLanguageTag())
         .toList(growable: false);
 
+    final int initialKey =
+        initialProfile?.updatedAt.millisecondsSinceEpoch ?? 0;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
-        const _SectionHeader(title: 'Account'),
+        _SectionHeader(title: strings.profileSectionAccount),
         const SizedBox(height: 16),
         TextFormField(
-          key: ValueKey<String>(
-            'name-${formState.initialProfile?.updatedAt.millisecondsSinceEpoch ?? 0}',
-          ),
-          initialValue: formState.name,
+          key: ValueKey<String>('name-$initialKey'),
+          initialValue: name,
           onChanged: formController.updateName,
-          decoration: const InputDecoration(
-            labelText: 'Display Name',
-            border: OutlineInputBorder(),
+          decoration: InputDecoration(
+            labelText: strings.profileNameLabel,
+            border: const OutlineInputBorder(),
           ),
           textInputAction: TextInputAction.next,
         ),
         const SizedBox(height: 16),
         DropdownButtonFormField<ProfileCurrency>(
-          initialValue: formState.currency,
-          decoration: const InputDecoration(
-            labelText: 'Currency',
-            border: OutlineInputBorder(),
+          key: ValueKey<String>('currency-$initialKey-${currency.name}'),
+          initialValue: currency,
+          decoration: InputDecoration(
+            labelText: strings.profileCurrencyLabel,
+            border: const OutlineInputBorder(),
           ),
           items: ProfileCurrency.values
               .map(
-                (ProfileCurrency currency) => DropdownMenuItem<ProfileCurrency>(
-                  value: currency,
-                  child: Text(currency.name.toUpperCase()),
+                (ProfileCurrency value) => DropdownMenuItem<ProfileCurrency>(
+                  value: value,
+                  child: Text(value.name.toUpperCase()),
                 ),
               )
               .toList(growable: false),
@@ -131,10 +157,11 @@ class _ProfileForm extends ConsumerWidget {
         ),
         const SizedBox(height: 16),
         DropdownButtonFormField<String>(
-          initialValue: formState.locale,
-          decoration: const InputDecoration(
-            labelText: 'Language',
-            border: OutlineInputBorder(),
+          key: ValueKey<String>('locale-$initialKey-$locale'),
+          initialValue: locale,
+          decoration: InputDecoration(
+            labelText: strings.profileLocaleLabel,
+            border: const OutlineInputBorder(),
           ),
           items: locales
               .map(
@@ -153,16 +180,16 @@ class _ProfileForm extends ConsumerWidget {
         if (profileAsync.hasError) ...<Widget>[
           const SizedBox(height: 12),
           Text(
-            'Failed to load profile: ${profileAsync.error}',
+            strings.profileLoadError(profileAsync.error.toString()),
             style: theme.textTheme.bodySmall?.copyWith(
               color: theme.colorScheme.error,
             ),
           ),
         ],
-        if (formState.errorMessage != null) ...<Widget>[
+        if (errorMessage != null) ...<Widget>[
           const SizedBox(height: 12),
           Text(
-            formState.errorMessage!,
+            errorMessage,
             style: theme.textTheme.bodySmall?.copyWith(
               color: theme.colorScheme.error,
             ),
@@ -172,17 +199,17 @@ class _ProfileForm extends ConsumerWidget {
         Row(
           children: <Widget>[
             ElevatedButton.icon(
-              onPressed: !formState.isSaving && formState.hasChanges
+              onPressed: !isSaving && hasChanges
                   ? () => formController.submit()
                   : null,
-              icon: formState.isSaving
+              icon: isSaving
                   ? const SizedBox(
                       width: 16,
                       height: 16,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
                   : const Icon(Icons.save),
-              label: const Text('Save Changes'),
+              label: Text(strings.profileSaveCta),
             ),
             const SizedBox(width: 16),
             if (profileAsync.isLoading) const _CenteredProgress(size: 20),
@@ -197,13 +224,7 @@ class _ProfileForm extends ConsumerWidget {
     super.debugFillProperties(properties);
     properties
       ..add(DiagnosticsProperty<ThemeData>('theme', theme))
-      ..add(DiagnosticsProperty<ProfileFormState>('formState', formState))
-      ..add(
-        DiagnosticsProperty<ProfileFormController>(
-          'formController',
-          formController,
-        ),
-      )
+      ..add(DiagnosticsProperty<ProfileFormParams>('params', params))
       ..add(
         DiagnosticsProperty<AsyncValue<Profile?>>('profileAsync', profileAsync),
       );

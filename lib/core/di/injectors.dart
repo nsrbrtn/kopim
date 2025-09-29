@@ -119,8 +119,10 @@ ProfileRepository profileRepository(Ref ref) => ProfileRepositoryImpl(
 );
 
 @riverpod
-UpdateProfileUseCase updateProfileUseCase(Ref ref) =>
-    UpdateProfileUseCaseImpl(ref.watch(profileRepositoryProvider));
+UpdateProfileUseCase updateProfileUseCase(Ref ref) => UpdateProfileUseCaseImpl(
+  repository: ref.watch(profileRepositoryProvider),
+  analyticsService: ref.watch(analyticsServiceProvider),
+);
 
 @riverpod
 SyncService syncService(Ref ref) {

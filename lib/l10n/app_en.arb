@@ -1,0 +1,76 @@
+﻿{
+  "@@locale": "en",
+  "profileTitle": "Profile",
+  "@profileTitle": {
+    "description": "Title for the profile screen app bar"
+  },
+  "profileSignInPrompt": "Sign in to manage your profile.",
+  "@profileSignInPrompt": {
+    "description": "Shown when user must sign in to access profile"
+  },
+  "profileSectionAccount": "Account",
+  "@profileSectionAccount": {
+    "description": "Section header for account information"
+  },
+  "profileNameLabel": "Name",
+  "@profileNameLabel": {
+    "description": "Label for the profile name input"
+  },
+  "profileCurrencyLabel": "Default currency",
+  "@profileCurrencyLabel": {
+    "description": "Label for the currency selector"
+  },
+  "profileLocaleLabel": "Preferred locale",
+  "@profileLocaleLabel": {
+    "description": "Label for the locale selector"
+  },
+  "profileLoadError": "Unable to load profile: {error}",
+  "@profileLoadError": {
+    "description": "Shown when profile loading failed",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "profileSaveCta": "Save changes",
+  "@profileSaveCta": {
+    "description": "Label for the save button on profile form"
+  },
+  "signInTitle": "Welcome to Kopim",
+  "@signInTitle": {
+    "description": "Main heading on the sign-in screen"
+  },
+  "signInSubtitle": "Sign in to sync your finances across devices.",
+  "@signInSubtitle": {
+    "description": "Subtitle explaining the benefit of signing in"
+  },
+  "signInEmailLabel": "Email",
+  "@signInEmailLabel": {
+    "description": "Label for email field"
+  },
+  "signInPasswordLabel": "Password",
+  "@signInPasswordLabel": {
+    "description": "Label for password field"
+  },
+  "signInSubmitCta": "Sign in",
+  "@signInSubmitCta": {
+    "description": "Primary call to action button for email/password sign-in"
+  },
+  "signInGoogleCta": "Continue with Google",
+  "@signInGoogleCta": {
+    "description": "Button label for Google sign in"
+  },
+  "signInError": "Could not sign in. Please try again.",
+  "@signInError": {
+    "description": "Fallback message when sign in fails"
+  },
+  "signInLoading": "Signing in...",
+  "@signInLoading": {
+    "description": "Accessibility label when a sign in request is in progress"
+  },
+  "signInOfflineNotice": "You appear to be offline. We will sync your data once you reconnect.",
+  "@signInOfflineNotice": {
+    "description": "Message shown when connectivity provider reports offline state"
+  }
+}

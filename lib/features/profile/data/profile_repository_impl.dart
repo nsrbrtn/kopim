@@ -7,6 +7,8 @@ import 'package:kopim/features/profile/data/remote/profile_remote_data_source.da
 import 'package:kopim/features/profile/domain/entities/profile.dart';
 import 'package:kopim/features/profile/domain/repositories/profile_repository.dart';
 
+/// Offline-first repository that persists profile data to Drift and schedules
+/// remote synchronization through the outbox queue.
 class ProfileRepositoryImpl implements ProfileRepository {
   ProfileRepositoryImpl({
     required db.AppDatabase database,
@@ -62,6 +64,7 @@ class ProfileRepositoryImpl implements ProfileRepository {
     return toPersist;
   }
 
+  /// Produces the JSON payload stored in the outbox for later sync dispatch.
   Map<String, dynamic> _mapPayload(Profile profile) {
     return <String, dynamic>{
       'uid': profile.uid,

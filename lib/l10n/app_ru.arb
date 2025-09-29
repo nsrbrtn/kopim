@@ -1,0 +1,76 @@
+﻿{
+  "@@locale": "ru",
+  "profileTitle": "Профиль",
+  "@profileTitle": {
+    "description": "Заголовок экрана профиля"
+  },
+  "profileSignInPrompt": "Войдите, чтобы управлять профилем.",
+  "@profileSignInPrompt": {
+    "description": "Сообщение, когда пользователю нужно войти"
+  },
+  "profileSectionAccount": "Учетная запись",
+  "@profileSectionAccount": {
+    "description": "Заголовок блока с учетной записью"
+  },
+  "profileNameLabel": "Имя",
+  "@profileNameLabel": {
+    "description": "Подпись к полю имени"
+  },
+  "profileCurrencyLabel": "Валюта по умолчанию",
+  "@profileCurrencyLabel": {
+    "description": "Подпись к выбору валюты"
+  },
+  "profileLocaleLabel": "Предпочитаемый язык",
+  "@profileLocaleLabel": {
+    "description": "Подпись к выбору языка"
+  },
+  "profileLoadError": "Не удалось загрузить профиль: {error}",
+  "@profileLoadError": {
+    "description": "Сообщение об ошибке при загрузке профиля",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "profileSaveCta": "Сохранить изменения",
+  "@profileSaveCta": {
+    "description": "Кнопка сохранения профиля"
+  },
+  "signInTitle": "Добро пожаловать в Kopim",
+  "@signInTitle": {
+    "description": "Заголовок экрана входа"
+  },
+  "signInSubtitle": "Войдите, чтобы синхронизировать финансы на всех устройствах.",
+  "@signInSubtitle": {
+    "description": "Подзаголовок экрана входа"
+  },
+  "signInEmailLabel": "Email",
+  "@signInEmailLabel": {
+    "description": "Подпись к полю email"
+  },
+  "signInPasswordLabel": "Пароль",
+  "@signInPasswordLabel": {
+    "description": "Подпись к полю пароля"
+  },
+  "signInSubmitCta": "Войти",
+  "@signInSubmitCta": {
+    "description": "Кнопка входа"
+  },
+  "signInGoogleCta": "Продолжить с Google",
+  "@signInGoogleCta": {
+    "description": "Кнопка входа через Google"
+  },
+  "signInError": "Не удалось выполнить вход. Попробуйте еще раз.",
+  "@signInError": {
+    "description": "Резервное сообщение об ошибке входа"
+  },
+  "signInLoading": "Выполняется вход...",
+  "@signInLoading": {
+    "description": "Подпись при выполнении входа"
+  },
+  "signInOfflineNotice": "Похоже, что вы офлайн. Мы синхронизируем данные, как только подключитесь.",
+  "@signInOfflineNotice": {
+    "description": "Сообщение при отсутствии сети"
+  }
+}

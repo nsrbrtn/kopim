@@ -9,6 +9,7 @@ import 'core/config/app_config.dart';
 import 'core/di/injectors.dart';
 import 'features/profile/presentation/controllers/auth_controller.dart';
 import 'features/profile/presentation/screens/profile_screen.dart';
+import 'features/profile/presentation/screens/sign_in_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -41,7 +42,10 @@ class MyApp extends ConsumerWidget {
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: authState.when(
-        data: (_) => const ProfileScreen(),
+        data: (AuthUser? user) =>
+            user == null
+                ? const SignInScreen()
+                : const ProfileScreen(),
         loading: () =>
             const Scaffold(body: Center(child: CircularProgressIndicator())),
         error: (Object error, _) => Scaffold(
@@ -56,3 +60,5 @@ class MyApp extends ConsumerWidget {
     );
   }
 }
+
+
