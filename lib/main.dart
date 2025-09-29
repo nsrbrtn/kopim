@@ -8,8 +8,11 @@ import 'firebase_options.dart';
 import 'core/config/app_config.dart';
 import 'core/di/injectors.dart';
 import 'features/profile/presentation/controllers/auth_controller.dart';
+import 'features/analytics/presentation/analytics_screen.dart';
+import 'features/home/presentation/screens/home_screen.dart';
 import 'features/profile/presentation/screens/profile_screen.dart';
 import 'features/profile/presentation/screens/sign_in_screen.dart';
+import 'features/transactions/presentation/add_transaction_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -41,11 +44,16 @@ class MyApp extends ConsumerWidget {
       locale: appLocale,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
+      routes: <String, WidgetBuilder>{
+        HomeScreen.routeName: (_) => const HomeScreen(),
+        AnalyticsScreen.routeName: (_) => const AnalyticsScreen(),
+        AddTransactionScreen.routeName: (_) => const AddTransactionScreen(),
+        ProfileScreen.routeName: (_) => const ProfileScreen(),
+      },
       home: authState.when(
-        data: (AuthUser? user) =>
-            user == null
-                ? const SignInScreen()
-                : const ProfileScreen(),
+        data: (AuthUser? user) => user == null
+            ? const SignInScreen()
+            : const HomeScreen(),
         loading: () =>
             const Scaffold(body: Center(child: CircularProgressIndicator())),
         error: (Object error, _) => Scaffold(

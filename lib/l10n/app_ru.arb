@@ -72,5 +72,119 @@
   "signInOfflineNotice": "Похоже, что вы офлайн. Мы синхронизируем данные, как только подключитесь.",
   "@signInOfflineNotice": {
     "description": "Сообщение при отсутствии сети"
+  },
+  "homeTitle": "Домашний экран",
+  "@homeTitle": {
+    "description": "Заголовок домашнего экрана"
+  },
+  "homeTotalBalance": "Суммарный баланс: {amount}",
+  "@homeTotalBalance": {
+    "description": "Заголовок AppBar с суммарным балансом",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "homeAuthError": "Ошибка авторизации: {error}",
+  "@homeAuthError": {
+    "description": "Сообщение при ошибке авторизации",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "homeAccountsSection": "Счета",
+  "@homeAccountsSection": {
+    "description": "Заголовок списка счетов"
+  },
+  "homeAccountsEmpty": "Счета еще не добавлены. Создайте первый счет, чтобы отслеживать баланс.",
+  "@homeAccountsEmpty": {
+    "description": "Сообщение пустого состояния для счетов"
+  },
+  "homeAccountsError": "Не удалось загрузить счета: {error}",
+  "@homeAccountsError": {
+    "description": "Ошибка загрузки счетов",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "homeAccountType": "Тип: {type}",
+  "@homeAccountType": {
+    "description": "Подпись с типом счета",
+    "placeholders": {
+      "type": {
+        "type": "String"
+      }
+    }
+  },
+  "homeTransactionsSection": "Последние транзакции",
+  "@homeTransactionsSection": {
+    "description": "Заголовок списка транзакций"
+  },
+  "homeTransactionsEmpty": "Транзакций пока нет.",
+  "@homeTransactionsEmpty": {
+    "description": "Сообщение пустого состояния для транзакций"
+  },
+  "homeTransactionsError": "Не удалось загрузить транзакции: {error}",
+  "@homeTransactionsError": {
+    "description": "Ошибка загрузки транзакций",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "homeTransactionsUncategorized": "Без категории",
+  "@homeTransactionsUncategorized": {
+    "description": "Подпись при отсутствии категории"
+  },
+  "homeTransactionsCategory": "Категория: {category}",
+  "@homeTransactionsCategory": {
+    "description": "Подпись для категории транзакции",
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
+  },
+  "homeTransactionSymbolPositive": "+",
+  "@homeTransactionSymbolPositive": {
+    "description": "Символ доходной транзакции"
+  },
+  "homeTransactionSymbolNegative": "-",
+  "@homeTransactionSymbolNegative": {
+    "description": "Символ расходной транзакции"
+  },
+  "homeNavHome": "Главная",
+  "@homeNavHome": {
+    "description": "Подпись для навигации на главный экран"
+  },
+  "homeNavAnalytics": "Аналитика",
+  "@homeNavAnalytics": {
+    "description": "Подпись для раздела аналитики"
+  },
+  "homeNavSettings": "Настройки",
+  "@homeNavSettings": {
+    "description": "Подпись для раздела настроек"
+  },
+  "analyticsTitle": "Аналитика",
+  "@analyticsTitle": {
+    "description": "Заголовок экрана аналитики"
+  },
+  "analyticsComingSoon": "Скоро здесь появится подробная аналитика.",
+  "@analyticsComingSoon": {
+    "description": "Заглушка для экрана аналитики"
+  },
+  "addTransactionTitle": "Новая транзакция",
+  "@addTransactionTitle": {
+    "description": "Заголовок экрана добавления транзакции"
+  },
+  "addTransactionComingSoon": "Создание транзакции скоро будет доступно.",
+  "@addTransactionComingSoon": {
+    "description": "Заглушка для экрана добавления транзакции"
   }
 }

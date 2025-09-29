@@ -72,5 +72,119 @@
   "signInOfflineNotice": "You appear to be offline. We will sync your data once you reconnect.",
   "@signInOfflineNotice": {
     "description": "Message shown when connectivity provider reports offline state"
+  },
+  "homeTitle": "Home",
+  "@homeTitle": {
+    "description": "Title for the home screen"
+  },
+  "homeTotalBalance": "Total balance: {amount}",
+  "@homeTotalBalance": {
+    "description": "App bar title showing the aggregated balance",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "homeAuthError": "Authentication error: {error}",
+  "@homeAuthError": {
+    "description": "Shown when auth controller returns an error",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "homeAccountsSection": "Accounts",
+  "@homeAccountsSection": {
+    "description": "Section header for the accounts list"
+  },
+  "homeAccountsEmpty": "No accounts yet. Add your first account to track balance.",
+  "@homeAccountsEmpty": {
+    "description": "Empty state for accounts list"
+  },
+  "homeAccountsError": "Unable to load accounts: {error}",
+  "@homeAccountsError": {
+    "description": "Error shown when accounts stream fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "homeAccountType": "Type: {type}",
+  "@homeAccountType": {
+    "description": "Label describing the account type",
+    "placeholders": {
+      "type": {
+        "type": "String"
+      }
+    }
+  },
+  "homeTransactionsSection": "Recent transactions",
+  "@homeTransactionsSection": {
+    "description": "Section header for transactions list"
+  },
+  "homeTransactionsEmpty": "No transactions recorded yet.",
+  "@homeTransactionsEmpty": {
+    "description": "Empty state for transactions list"
+  },
+  "homeTransactionsError": "Unable to load transactions: {error}",
+  "@homeTransactionsError": {
+    "description": "Error shown when transactions stream fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "homeTransactionsUncategorized": "Uncategorized",
+  "@homeTransactionsUncategorized": {
+    "description": "Fallback text when a transaction has no category"
+  },
+  "homeTransactionsCategory": "Category: {category}",
+  "@homeTransactionsCategory": {
+    "description": "Label for a transaction category",
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
+  },
+  "homeTransactionSymbolPositive": "+",
+  "@homeTransactionSymbolPositive": {
+    "description": "Symbol prefix for positive (income) transactions"
+  },
+  "homeTransactionSymbolNegative": "-",
+  "@homeTransactionSymbolNegative": {
+    "description": "Symbol prefix for negative (expense) transactions"
+  },
+  "homeNavHome": "Home",
+  "@homeNavHome": {
+    "description": "Bottom navigation label for home"
+  },
+  "homeNavAnalytics": "Analytics",
+  "@homeNavAnalytics": {
+    "description": "Bottom navigation label for analytics"
+  },
+  "homeNavSettings": "Settings",
+  "@homeNavSettings": {
+    "description": "Bottom navigation label for settings"
+  },
+  "analyticsTitle": "Analytics",
+  "@analyticsTitle": {
+    "description": "Title for analytics screen"
+  },
+  "analyticsComingSoon": "Detailed analytics are coming soon.",
+  "@analyticsComingSoon": {
+    "description": "Placeholder message for analytics screen"
+  },
+  "addTransactionTitle": "Add transaction",
+  "@addTransactionTitle": {
+    "description": "Title for add transaction screen"
+  },
+  "addTransactionComingSoon": "Transaction creation will be available shortly.",
+  "@addTransactionComingSoon": {
+    "description": "Placeholder message for add transaction screen"
   }
 }

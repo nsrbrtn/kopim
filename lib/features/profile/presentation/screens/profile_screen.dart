@@ -13,6 +13,8 @@ import 'package:kopim/l10n/app_localizations.dart';
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
 
+  static const String routeName = '/settings';
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final AppLocalizations strings = AppLocalizations.of(context)!;

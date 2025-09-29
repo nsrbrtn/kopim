@@ -199,6 +199,132 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'You appear to be offline. We will sync your data once you reconnect.'**
   String get signInOfflineNotice;
+
+  /// Title for the home screen
+  ///
+  /// In en, this message translates to:
+  /// **'Home'**
+  String get homeTitle;
+
+  /// App bar title showing the aggregated balance
+  ///
+  /// In en, this message translates to:
+  /// **'Total balance: {amount}'**
+  String homeTotalBalance(String amount);
+
+  /// Shown when auth controller returns an error
+  ///
+  /// In en, this message translates to:
+  /// **'Authentication error: {error}'**
+  String homeAuthError(String error);
+
+  /// Section header for the accounts list
+  ///
+  /// In en, this message translates to:
+  /// **'Accounts'**
+  String get homeAccountsSection;
+
+  /// Empty state for accounts list
+  ///
+  /// In en, this message translates to:
+  /// **'No accounts yet. Add your first account to track balance.'**
+  String get homeAccountsEmpty;
+
+  /// Error shown when accounts stream fails
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load accounts: {error}'**
+  String homeAccountsError(String error);
+
+  /// Label describing the account type
+  ///
+  /// In en, this message translates to:
+  /// **'Type: {type}'**
+  String homeAccountType(String type);
+
+  /// Section header for transactions list
+  ///
+  /// In en, this message translates to:
+  /// **'Recent transactions'**
+  String get homeTransactionsSection;
+
+  /// Empty state for transactions list
+  ///
+  /// In en, this message translates to:
+  /// **'No transactions recorded yet.'**
+  String get homeTransactionsEmpty;
+
+  /// Error shown when transactions stream fails
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load transactions: {error}'**
+  String homeTransactionsError(String error);
+
+  /// Fallback text when a transaction has no category
+  ///
+  /// In en, this message translates to:
+  /// **'Uncategorized'**
+  String get homeTransactionsUncategorized;
+
+  /// Label for a transaction category
+  ///
+  /// In en, this message translates to:
+  /// **'Category: {category}'**
+  String homeTransactionsCategory(String category);
+
+  /// Symbol prefix for positive (income) transactions
+  ///
+  /// In en, this message translates to:
+  /// **'+'**
+  String get homeTransactionSymbolPositive;
+
+  /// Symbol prefix for negative (expense) transactions
+  ///
+  /// In en, this message translates to:
+  /// **'-'**
+  String get homeTransactionSymbolNegative;
+
+  /// Bottom navigation label for home
+  ///
+  /// In en, this message translates to:
+  /// **'Home'**
+  String get homeNavHome;
+
+  /// Bottom navigation label for analytics
+  ///
+  /// In en, this message translates to:
+  /// **'Analytics'**
+  String get homeNavAnalytics;
+
+  /// Bottom navigation label for settings
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get homeNavSettings;
+
+  /// Title for analytics screen
+  ///
+  /// In en, this message translates to:
+  /// **'Analytics'**
+  String get analyticsTitle;
+
+  /// Placeholder message for analytics screen
+  ///
+  /// In en, this message translates to:
+  /// **'Detailed analytics are coming soon.'**
+  String get analyticsComingSoon;
+
+  /// Title for add transaction screen
+  ///
+  /// In en, this message translates to:
+  /// **'Add transaction'**
+  String get addTransactionTitle;
+
+  /// Placeholder message for add transaction screen
+  ///
+  /// In en, this message translates to:
+  /// **'Transaction creation will be available shortly.'**
+  String get addTransactionComingSoon;
 }
 
 class _AppLocalizationsDelegate

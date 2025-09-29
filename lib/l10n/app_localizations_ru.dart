@@ -62,4 +62,81 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get signInOfflineNotice =>
       'Похоже, что вы офлайн. Мы синхронизируем данные, как только подключитесь.';
+
+  @override
+  String get homeTitle => 'Домашний экран';
+
+  @override
+  String homeTotalBalance(String amount) {
+    return 'Суммарный баланс: $amount';
+  }
+
+  @override
+  String homeAuthError(String error) {
+    return 'Ошибка авторизации: $error';
+  }
+
+  @override
+  String get homeAccountsSection => 'Счета';
+
+  @override
+  String get homeAccountsEmpty =>
+      'Счета еще не добавлены. Создайте первый счет, чтобы отслеживать баланс.';
+
+  @override
+  String homeAccountsError(String error) {
+    return 'Не удалось загрузить счета: $error';
+  }
+
+  @override
+  String homeAccountType(String type) {
+    return 'Тип: $type';
+  }
+
+  @override
+  String get homeTransactionsSection => 'Последние транзакции';
+
+  @override
+  String get homeTransactionsEmpty => 'Транзакций пока нет.';
+
+  @override
+  String homeTransactionsError(String error) {
+    return 'Не удалось загрузить транзакции: $error';
+  }
+
+  @override
+  String get homeTransactionsUncategorized => 'Без категории';
+
+  @override
+  String homeTransactionsCategory(String category) {
+    return 'Категория: $category';
+  }
+
+  @override
+  String get homeTransactionSymbolPositive => '+';
+
+  @override
+  String get homeTransactionSymbolNegative => '-';
+
+  @override
+  String get homeNavHome => 'Главная';
+
+  @override
+  String get homeNavAnalytics => 'Аналитика';
+
+  @override
+  String get homeNavSettings => 'Настройки';
+
+  @override
+  String get analyticsTitle => 'Аналитика';
+
+  @override
+  String get analyticsComingSoon => 'Скоро здесь появится подробная аналитика.';
+
+  @override
+  String get addTransactionTitle => 'Новая транзакция';
+
+  @override
+  String get addTransactionComingSoon =>
+      'Создание транзакции скоро будет доступно.';
 }

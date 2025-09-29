@@ -61,4 +61,81 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get signInOfflineNotice =>
       'You appear to be offline. We will sync your data once you reconnect.';
+
+  @override
+  String get homeTitle => 'Home';
+
+  @override
+  String homeTotalBalance(String amount) {
+    return 'Total balance: $amount';
+  }
+
+  @override
+  String homeAuthError(String error) {
+    return 'Authentication error: $error';
+  }
+
+  @override
+  String get homeAccountsSection => 'Accounts';
+
+  @override
+  String get homeAccountsEmpty =>
+      'No accounts yet. Add your first account to track balance.';
+
+  @override
+  String homeAccountsError(String error) {
+    return 'Unable to load accounts: $error';
+  }
+
+  @override
+  String homeAccountType(String type) {
+    return 'Type: $type';
+  }
+
+  @override
+  String get homeTransactionsSection => 'Recent transactions';
+
+  @override
+  String get homeTransactionsEmpty => 'No transactions recorded yet.';
+
+  @override
+  String homeTransactionsError(String error) {
+    return 'Unable to load transactions: $error';
+  }
+
+  @override
+  String get homeTransactionsUncategorized => 'Uncategorized';
+
+  @override
+  String homeTransactionsCategory(String category) {
+    return 'Category: $category';
+  }
+
+  @override
+  String get homeTransactionSymbolPositive => '+';
+
+  @override
+  String get homeTransactionSymbolNegative => '-';
+
+  @override
+  String get homeNavHome => 'Home';
+
+  @override
+  String get homeNavAnalytics => 'Analytics';
+
+  @override
+  String get homeNavSettings => 'Settings';
+
+  @override
+  String get analyticsTitle => 'Analytics';
+
+  @override
+  String get analyticsComingSoon => 'Detailed analytics are coming soon.';
+
+  @override
+  String get addTransactionTitle => 'Add transaction';
+
+  @override
+  String get addTransactionComingSoon =>
+      'Transaction creation will be available shortly.';
 }
