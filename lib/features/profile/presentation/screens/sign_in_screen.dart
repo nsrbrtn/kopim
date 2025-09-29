@@ -37,6 +37,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
   late final TextEditingController _passwordController;
   late final FocusNode _emailFocusNode;
   late final FocusNode _passwordFocusNode;
+  ProviderSubscription<SignInFormState>? _signInFormSubscription;
 
   @override
   void initState() {
@@ -57,7 +58,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
       controller.updatePassword(_passwordController.text);
     });
 
-    ref.listen<SignInFormState>(
+    _signInFormSubscription = ref.listenManual<SignInFormState>(
       signInFormControllerProvider,
       (SignInFormState? previous, SignInFormState next) {
         if (previous?.isSubmitting == true && !next.isSubmitting) {
@@ -74,6 +75,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
 
   @override
   void dispose() {
+    _signInFormSubscription?.close();
     _emailController.dispose();
     _passwordController.dispose();
     _emailFocusNode.dispose();
