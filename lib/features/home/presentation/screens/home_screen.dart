@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -22,7 +23,7 @@ class HomeScreen extends ConsumerWidget {
     final AppLocalizations strings = AppLocalizations.of(context)!;
     final AsyncValue<AuthUser?> authState = ref.watch(authControllerProvider);
     final AsyncValue<List<TransactionEntity>> transactionsAsync = ref.watch(
-      homeRecentTransactionsProvider,
+      homeRecentTransactionsProvider(),
     );
     final AsyncValue<List<AccountEntity>> accountsAsync = ref.watch(
       homeAccountsProvider,
@@ -156,6 +157,14 @@ class _AccountsList extends StatelessWidget {
   final AppLocalizations strings;
 
   @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties
+      ..add(IntProperty('accountCount', accounts.length))
+      ..add(StringProperty('localeName', strings.localeName));
+  }
+
+  @override
   Widget build(BuildContext context) {
     if (accounts.isEmpty) {
       return _EmptyMessage(message: strings.homeAccountsEmpty);
@@ -196,6 +205,14 @@ class _TransactionsList extends StatelessWidget {
   final List<TransactionEntity> transactions;
   final String localeName;
   final AppLocalizations strings;
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties
+      ..add(IntProperty('transactionCount', transactions.length))
+      ..add(StringProperty('localeName', localeName));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -257,6 +274,12 @@ class _SectionHeader extends StatelessWidget {
   final String title;
 
   @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(StringProperty('title', title));
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Text(title, style: Theme.of(context).textTheme.titleLarge);
   }
@@ -266,6 +289,12 @@ class _EmptyMessage extends StatelessWidget {
   const _EmptyMessage({required this.message});
 
   final String message;
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(StringProperty('message', message));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -280,6 +309,12 @@ class _ErrorMessage extends StatelessWidget {
   const _ErrorMessage({required this.message});
 
   final String message;
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(StringProperty('message', message));
+  }
 
   @override
   Widget build(BuildContext context) {

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/accounts/domain/repositories/account_repository.dart';
 import 'package:kopim/features/accounts/domain/use_cases/watch_accounts_use_case.dart';
@@ -17,11 +18,12 @@ void main() {
     late ProviderContainer container;
 
     setUp(() {
-      accountsController = StreamController<List<AccountEntity>>();
-      transactionsController = StreamController<List<TransactionEntity>>();
+      accountsController = StreamController<List<AccountEntity>>.broadcast();
+      transactionsController =
+          StreamController<List<TransactionEntity>>.broadcast();
 
       container = ProviderContainer(
-        overrides: <Override>[
+        overrides: [
           watchAccountsUseCaseProvider.overrideWithValue(
             WatchAccountsUseCase(
               _InMemoryAccountRepository(accountsController.stream),
@@ -48,43 +50,64 @@ void main() {
         _account('2'),
       ];
 
-      final Future<List<AccountEntity>> result =
-          container.read(homeAccountsProvider.stream).first;
+      final completer = Completer<List<AccountEntity>>();
+      final subscription = container.listen(homeAccountsProvider, (
+        previous,
+        next,
+      ) {
+        next.whenData((accounts) {
+          if (!completer.isCompleted) {
+            completer.complete(accounts);
+          }
+        });
+      }, fireImmediately: true);
+      addTearDown(subscription.close);
 
       accountsController.add(expectedAccounts);
 
-      expect(await result, expectedAccounts);
+      expect(await completer.future, expectedAccounts);
     });
 
-    test('homeRecentTransactionsProvider forwards the limit to the use case',
-        () async {
-      final List<TransactionEntity> expectedTransactions =
-          <TransactionEntity>[_transaction('1'), _transaction('2')];
-      final _RecordingWatchRecentTransactionsUseCase recordingUseCase =
-          _RecordingWatchRecentTransactionsUseCase(
-        transactionsController.stream,
-      );
+    test(
+      'homeRecentTransactionsProvider forwards the limit to the use case',
+      () async {
+        final List<TransactionEntity> expectedTransactions =
+            <TransactionEntity>[_transaction('1'), _transaction('2')];
+        final _RecordingWatchRecentTransactionsUseCase recordingUseCase =
+            _RecordingWatchRecentTransactionsUseCase(
+              transactionsController.stream,
+            );
 
-      final ProviderContainer scopedContainer = ProviderContainer(
-        parent: container,
-        overrides: <Override>[
-          watchRecentTransactionsUseCaseProvider.overrideWithValue(
-            recordingUseCase,
-          ),
-        ],
-      );
+        final ProviderContainer scopedContainer = ProviderContainer(
+          overrides: [
+            watchRecentTransactionsUseCaseProvider.overrideWithValue(
+              recordingUseCase,
+            ),
+          ],
+        );
 
-      addTearDown(scopedContainer.dispose);
+        addTearDown(scopedContainer.dispose);
 
-      final Future<List<TransactionEntity>> result = scopedContainer
-          .read(homeRecentTransactionsProvider(limit: 7).stream)
-          .first;
+        final completer = Completer<List<TransactionEntity>>();
+        final subscription = scopedContainer.listen(
+          homeRecentTransactionsProvider(limit: 7),
+          (previous, next) {
+            next.whenData((transactions) {
+              if (!completer.isCompleted) {
+                completer.complete(transactions);
+              }
+            });
+          },
+          fireImmediately: true,
+        );
+        addTearDown(subscription.close);
 
-      transactionsController.add(expectedTransactions);
+        transactionsController.add(expectedTransactions);
 
-      expect(await result, expectedTransactions);
-      expect(recordingUseCase.lastLimit, 7);
-    });
+        expect(await completer.future, expectedTransactions);
+        expect(recordingUseCase.lastLimit, 7);
+      },
+    );
   });
 }
 
@@ -177,8 +200,8 @@ class _InMemoryTransactionRepository implements TransactionRepository {
 class _RecordingWatchRecentTransactionsUseCase
     extends WatchRecentTransactionsUseCase {
   _RecordingWatchRecentTransactionsUseCase(this._stream)
-      : lastLimit = null,
-        super(_DummyTransactionRepository());
+    : lastLimit = null,
+      super(_DummyTransactionRepository());
 
   final Stream<List<TransactionEntity>> _stream;
   int? lastLimit;
