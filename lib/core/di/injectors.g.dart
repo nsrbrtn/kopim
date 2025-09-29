@@ -1,0 +1,1167 @@
+// GENERATED CODE - DO NOT MODIFY BY HAND
+
+part of 'injectors.dart';
+
+// **************************************************************************
+// RiverpodGenerator
+// **************************************************************************
+
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
+
+@ProviderFor(loggerService)
+const loggerServiceProvider = LoggerServiceProvider._();
+
+final class LoggerServiceProvider
+    extends $FunctionalProvider<LoggerService, LoggerService, LoggerService>
+    with $Provider<LoggerService> {
+  const LoggerServiceProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'loggerServiceProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$loggerServiceHash();
+
+  @$internal
+  @override
+  $ProviderElement<LoggerService> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  LoggerService create(Ref ref) {
+    return loggerService(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(LoggerService value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<LoggerService>(value),
+    );
+  }
+}
+
+String _$loggerServiceHash() => r'2c6dbe326747f3ecf81511ea71202cb7c7a10dfd';
+
+@ProviderFor(analyticsService)
+const analyticsServiceProvider = AnalyticsServiceProvider._();
+
+final class AnalyticsServiceProvider
+    extends
+        $FunctionalProvider<
+          AnalyticsService,
+          AnalyticsService,
+          AnalyticsService
+        >
+    with $Provider<AnalyticsService> {
+  const AnalyticsServiceProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'analyticsServiceProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$analyticsServiceHash();
+
+  @$internal
+  @override
+  $ProviderElement<AnalyticsService> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  AnalyticsService create(Ref ref) {
+    return analyticsService(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(AnalyticsService value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<AnalyticsService>(value),
+    );
+  }
+}
+
+String _$analyticsServiceHash() => r'4928fb3ed712b41230dcf79231ab61cb4da3f83d';
+
+@ProviderFor(firestore)
+const firestoreProvider = FirestoreProvider._();
+
+final class FirestoreProvider
+    extends
+        $FunctionalProvider<
+          FirebaseFirestore,
+          FirebaseFirestore,
+          FirebaseFirestore
+        >
+    with $Provider<FirebaseFirestore> {
+  const FirestoreProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'firestoreProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$firestoreHash();
+
+  @$internal
+  @override
+  $ProviderElement<FirebaseFirestore> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  FirebaseFirestore create(Ref ref) {
+    return firestore(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(FirebaseFirestore value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<FirebaseFirestore>(value),
+    );
+  }
+}
+
+String _$firestoreHash() => r'597b1a9eb96f2fae51f5b578f4b5debe4f6d30c6';
+
+@ProviderFor(firebaseAuth)
+const firebaseAuthProvider = FirebaseAuthProvider._();
+
+final class FirebaseAuthProvider
+    extends $FunctionalProvider<FirebaseAuth, FirebaseAuth, FirebaseAuth>
+    with $Provider<FirebaseAuth> {
+  const FirebaseAuthProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'firebaseAuthProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$firebaseAuthHash();
+
+  @$internal
+  @override
+  $ProviderElement<FirebaseAuth> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  FirebaseAuth create(Ref ref) {
+    return firebaseAuth(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(FirebaseAuth value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<FirebaseAuth>(value),
+    );
+  }
+}
+
+String _$firebaseAuthHash() => r'8f84097cccd00af817397c1715c5f537399ba780';
+
+@ProviderFor(googleSignIn)
+const googleSignInProvider = GoogleSignInProvider._();
+
+final class GoogleSignInProvider
+    extends $FunctionalProvider<GoogleSignIn, GoogleSignIn, GoogleSignIn>
+    with $Provider<GoogleSignIn> {
+  const GoogleSignInProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'googleSignInProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$googleSignInHash();
+
+  @$internal
+  @override
+  $ProviderElement<GoogleSignIn> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  GoogleSignIn create(Ref ref) {
+    return googleSignIn(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(GoogleSignIn value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<GoogleSignIn>(value),
+    );
+  }
+}
+
+String _$googleSignInHash() => r'16cf38da6ba66b02462d5ad518f809a45382089f';
+
+@ProviderFor(connectivity)
+const connectivityProvider = ConnectivityProvider._();
+
+final class ConnectivityProvider
+    extends $FunctionalProvider<Connectivity, Connectivity, Connectivity>
+    with $Provider<Connectivity> {
+  const ConnectivityProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'connectivityProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$connectivityHash();
+
+  @$internal
+  @override
+  $ProviderElement<Connectivity> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  Connectivity create(Ref ref) {
+    return connectivity(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(Connectivity value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<Connectivity>(value),
+    );
+  }
+}
+
+String _$connectivityHash() => r'dbbaa751fbd9afcb3ec3c33a3b00257f5fe5682c';
+
+@ProviderFor(appDatabase)
+const appDatabaseProvider = AppDatabaseProvider._();
+
+final class AppDatabaseProvider
+    extends $FunctionalProvider<AppDatabase, AppDatabase, AppDatabase>
+    with $Provider<AppDatabase> {
+  const AppDatabaseProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'appDatabaseProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$appDatabaseHash();
+
+  @$internal
+  @override
+  $ProviderElement<AppDatabase> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  AppDatabase create(Ref ref) {
+    return appDatabase(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(AppDatabase value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<AppDatabase>(value),
+    );
+  }
+}
+
+String _$appDatabaseHash() => r'd45cc0b6c7795466b6a12d864805fefa097f39cd';
+
+@ProviderFor(outboxDao)
+const outboxDaoProvider = OutboxDaoProvider._();
+
+final class OutboxDaoProvider
+    extends $FunctionalProvider<OutboxDao, OutboxDao, OutboxDao>
+    with $Provider<OutboxDao> {
+  const OutboxDaoProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'outboxDaoProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$outboxDaoHash();
+
+  @$internal
+  @override
+  $ProviderElement<OutboxDao> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  OutboxDao create(Ref ref) {
+    return outboxDao(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(OutboxDao value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<OutboxDao>(value),
+    );
+  }
+}
+
+String _$outboxDaoHash() => r'c134f94b8f94f536107cb7b8dd8fc6a853733b6a';
+
+@ProviderFor(accountDao)
+const accountDaoProvider = AccountDaoProvider._();
+
+final class AccountDaoProvider
+    extends $FunctionalProvider<AccountDao, AccountDao, AccountDao>
+    with $Provider<AccountDao> {
+  const AccountDaoProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'accountDaoProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$accountDaoHash();
+
+  @$internal
+  @override
+  $ProviderElement<AccountDao> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  AccountDao create(Ref ref) {
+    return accountDao(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(AccountDao value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<AccountDao>(value),
+    );
+  }
+}
+
+String _$accountDaoHash() => r'41cf905611cf13a5f91d7f114db19c474eb63ef2';
+
+@ProviderFor(categoryDao)
+const categoryDaoProvider = CategoryDaoProvider._();
+
+final class CategoryDaoProvider
+    extends $FunctionalProvider<CategoryDao, CategoryDao, CategoryDao>
+    with $Provider<CategoryDao> {
+  const CategoryDaoProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'categoryDaoProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$categoryDaoHash();
+
+  @$internal
+  @override
+  $ProviderElement<CategoryDao> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  CategoryDao create(Ref ref) {
+    return categoryDao(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(CategoryDao value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<CategoryDao>(value),
+    );
+  }
+}
+
+String _$categoryDaoHash() => r'95fc41600613b8ff1335794effd4b71fca511838';
+
+@ProviderFor(transactionDao)
+const transactionDaoProvider = TransactionDaoProvider._();
+
+final class TransactionDaoProvider
+    extends $FunctionalProvider<TransactionDao, TransactionDao, TransactionDao>
+    with $Provider<TransactionDao> {
+  const TransactionDaoProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'transactionDaoProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$transactionDaoHash();
+
+  @$internal
+  @override
+  $ProviderElement<TransactionDao> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  TransactionDao create(Ref ref) {
+    return transactionDao(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(TransactionDao value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<TransactionDao>(value),
+    );
+  }
+}
+
+String _$transactionDaoHash() => r'6dd75d3118f0e2e23be1b05fe5ebcee148e69f7f';
+
+@ProviderFor(profileDao)
+const profileDaoProvider = ProfileDaoProvider._();
+
+final class ProfileDaoProvider
+    extends $FunctionalProvider<ProfileDao, ProfileDao, ProfileDao>
+    with $Provider<ProfileDao> {
+  const ProfileDaoProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'profileDaoProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$profileDaoHash();
+
+  @$internal
+  @override
+  $ProviderElement<ProfileDao> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  ProfileDao create(Ref ref) {
+    return profileDao(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(ProfileDao value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<ProfileDao>(value),
+    );
+  }
+}
+
+String _$profileDaoHash() => r'c4fb55deddb24b0dabbb189a18f0e68e259be21c';
+
+@ProviderFor(accountRemoteDataSource)
+const accountRemoteDataSourceProvider = AccountRemoteDataSourceProvider._();
+
+final class AccountRemoteDataSourceProvider
+    extends
+        $FunctionalProvider<
+          AccountRemoteDataSource,
+          AccountRemoteDataSource,
+          AccountRemoteDataSource
+        >
+    with $Provider<AccountRemoteDataSource> {
+  const AccountRemoteDataSourceProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'accountRemoteDataSourceProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$accountRemoteDataSourceHash();
+
+  @$internal
+  @override
+  $ProviderElement<AccountRemoteDataSource> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  AccountRemoteDataSource create(Ref ref) {
+    return accountRemoteDataSource(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(AccountRemoteDataSource value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<AccountRemoteDataSource>(value),
+    );
+  }
+}
+
+String _$accountRemoteDataSourceHash() =>
+    r'b1ef9061f7f65a0d694f0a2f070d12f13502eb74';
+
+@ProviderFor(categoryRemoteDataSource)
+const categoryRemoteDataSourceProvider = CategoryRemoteDataSourceProvider._();
+
+final class CategoryRemoteDataSourceProvider
+    extends
+        $FunctionalProvider<
+          CategoryRemoteDataSource,
+          CategoryRemoteDataSource,
+          CategoryRemoteDataSource
+        >
+    with $Provider<CategoryRemoteDataSource> {
+  const CategoryRemoteDataSourceProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'categoryRemoteDataSourceProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$categoryRemoteDataSourceHash();
+
+  @$internal
+  @override
+  $ProviderElement<CategoryRemoteDataSource> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  CategoryRemoteDataSource create(Ref ref) {
+    return categoryRemoteDataSource(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(CategoryRemoteDataSource value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<CategoryRemoteDataSource>(value),
+    );
+  }
+}
+
+String _$categoryRemoteDataSourceHash() =>
+    r'41e23c7c2518c2346671ee5662564b7559ddd941';
+
+@ProviderFor(transactionRemoteDataSource)
+const transactionRemoteDataSourceProvider =
+    TransactionRemoteDataSourceProvider._();
+
+final class TransactionRemoteDataSourceProvider
+    extends
+        $FunctionalProvider<
+          TransactionRemoteDataSource,
+          TransactionRemoteDataSource,
+          TransactionRemoteDataSource
+        >
+    with $Provider<TransactionRemoteDataSource> {
+  const TransactionRemoteDataSourceProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'transactionRemoteDataSourceProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$transactionRemoteDataSourceHash();
+
+  @$internal
+  @override
+  $ProviderElement<TransactionRemoteDataSource> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  TransactionRemoteDataSource create(Ref ref) {
+    return transactionRemoteDataSource(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(TransactionRemoteDataSource value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<TransactionRemoteDataSource>(value),
+    );
+  }
+}
+
+String _$transactionRemoteDataSourceHash() =>
+    r'65d50f41155fa5905bd52f7ce1d39e2868b94004';
+
+@ProviderFor(profileRemoteDataSource)
+const profileRemoteDataSourceProvider = ProfileRemoteDataSourceProvider._();
+
+final class ProfileRemoteDataSourceProvider
+    extends
+        $FunctionalProvider<
+          ProfileRemoteDataSource,
+          ProfileRemoteDataSource,
+          ProfileRemoteDataSource
+        >
+    with $Provider<ProfileRemoteDataSource> {
+  const ProfileRemoteDataSourceProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'profileRemoteDataSourceProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$profileRemoteDataSourceHash();
+
+  @$internal
+  @override
+  $ProviderElement<ProfileRemoteDataSource> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  ProfileRemoteDataSource create(Ref ref) {
+    return profileRemoteDataSource(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(ProfileRemoteDataSource value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<ProfileRemoteDataSource>(value),
+    );
+  }
+}
+
+String _$profileRemoteDataSourceHash() =>
+    r'45baf2527988bcc7389803c7cea36c9fa578effb';
+
+@ProviderFor(accountRepository)
+const accountRepositoryProvider = AccountRepositoryProvider._();
+
+final class AccountRepositoryProvider
+    extends
+        $FunctionalProvider<
+          AccountRepository,
+          AccountRepository,
+          AccountRepository
+        >
+    with $Provider<AccountRepository> {
+  const AccountRepositoryProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'accountRepositoryProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$accountRepositoryHash();
+
+  @$internal
+  @override
+  $ProviderElement<AccountRepository> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  AccountRepository create(Ref ref) {
+    return accountRepository(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(AccountRepository value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<AccountRepository>(value),
+    );
+  }
+}
+
+String _$accountRepositoryHash() => r'35504303f5e7045ab7c337f1041ee01cffb06875';
+
+@ProviderFor(watchAccountsUseCase)
+const watchAccountsUseCaseProvider = WatchAccountsUseCaseProvider._();
+
+final class WatchAccountsUseCaseProvider
+    extends
+        $FunctionalProvider<
+          WatchAccountsUseCase,
+          WatchAccountsUseCase,
+          WatchAccountsUseCase
+        >
+    with $Provider<WatchAccountsUseCase> {
+  const WatchAccountsUseCaseProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'watchAccountsUseCaseProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$watchAccountsUseCaseHash();
+
+  @$internal
+  @override
+  $ProviderElement<WatchAccountsUseCase> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  WatchAccountsUseCase create(Ref ref) {
+    return watchAccountsUseCase(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(WatchAccountsUseCase value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<WatchAccountsUseCase>(value),
+    );
+  }
+}
+
+String _$watchAccountsUseCaseHash() =>
+    r'1e591c8756219ebead3e51c5a37138b7013df854';
+
+@ProviderFor(categoryRepository)
+const categoryRepositoryProvider = CategoryRepositoryProvider._();
+
+final class CategoryRepositoryProvider
+    extends
+        $FunctionalProvider<
+          CategoryRepository,
+          CategoryRepository,
+          CategoryRepository
+        >
+    with $Provider<CategoryRepository> {
+  const CategoryRepositoryProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'categoryRepositoryProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$categoryRepositoryHash();
+
+  @$internal
+  @override
+  $ProviderElement<CategoryRepository> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  CategoryRepository create(Ref ref) {
+    return categoryRepository(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(CategoryRepository value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<CategoryRepository>(value),
+    );
+  }
+}
+
+String _$categoryRepositoryHash() =>
+    r'ea2f9b89aa4534b1f6d340901c364a0ba4a14e19';
+
+@ProviderFor(transactionRepository)
+const transactionRepositoryProvider = TransactionRepositoryProvider._();
+
+final class TransactionRepositoryProvider
+    extends
+        $FunctionalProvider<
+          TransactionRepository,
+          TransactionRepository,
+          TransactionRepository
+        >
+    with $Provider<TransactionRepository> {
+  const TransactionRepositoryProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'transactionRepositoryProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$transactionRepositoryHash();
+
+  @$internal
+  @override
+  $ProviderElement<TransactionRepository> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  TransactionRepository create(Ref ref) {
+    return transactionRepository(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(TransactionRepository value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<TransactionRepository>(value),
+    );
+  }
+}
+
+String _$transactionRepositoryHash() =>
+    r'3799c3525d6954f2ece515445c06171d0fba71ef';
+
+@ProviderFor(watchRecentTransactionsUseCase)
+const watchRecentTransactionsUseCaseProvider =
+    WatchRecentTransactionsUseCaseProvider._();
+
+final class WatchRecentTransactionsUseCaseProvider
+    extends
+        $FunctionalProvider<
+          WatchRecentTransactionsUseCase,
+          WatchRecentTransactionsUseCase,
+          WatchRecentTransactionsUseCase
+        >
+    with $Provider<WatchRecentTransactionsUseCase> {
+  const WatchRecentTransactionsUseCaseProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'watchRecentTransactionsUseCaseProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$watchRecentTransactionsUseCaseHash();
+
+  @$internal
+  @override
+  $ProviderElement<WatchRecentTransactionsUseCase> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  WatchRecentTransactionsUseCase create(Ref ref) {
+    return watchRecentTransactionsUseCase(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(WatchRecentTransactionsUseCase value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<WatchRecentTransactionsUseCase>(
+        value,
+      ),
+    );
+  }
+}
+
+String _$watchRecentTransactionsUseCaseHash() =>
+    r'b8f01a6912efa1d95b04dd015e398b978beee58e';
+
+@ProviderFor(profileRepository)
+const profileRepositoryProvider = ProfileRepositoryProvider._();
+
+final class ProfileRepositoryProvider
+    extends
+        $FunctionalProvider<
+          ProfileRepository,
+          ProfileRepository,
+          ProfileRepository
+        >
+    with $Provider<ProfileRepository> {
+  const ProfileRepositoryProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'profileRepositoryProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$profileRepositoryHash();
+
+  @$internal
+  @override
+  $ProviderElement<ProfileRepository> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  ProfileRepository create(Ref ref) {
+    return profileRepository(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(ProfileRepository value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<ProfileRepository>(value),
+    );
+  }
+}
+
+String _$profileRepositoryHash() => r'50349dac8ba8e300957ef12232c08d9febe5ec97';
+
+@ProviderFor(updateProfileUseCase)
+const updateProfileUseCaseProvider = UpdateProfileUseCaseProvider._();
+
+final class UpdateProfileUseCaseProvider
+    extends
+        $FunctionalProvider<
+          UpdateProfileUseCase,
+          UpdateProfileUseCase,
+          UpdateProfileUseCase
+        >
+    with $Provider<UpdateProfileUseCase> {
+  const UpdateProfileUseCaseProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'updateProfileUseCaseProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$updateProfileUseCaseHash();
+
+  @$internal
+  @override
+  $ProviderElement<UpdateProfileUseCase> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  UpdateProfileUseCase create(Ref ref) {
+    return updateProfileUseCase(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(UpdateProfileUseCase value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<UpdateProfileUseCase>(value),
+    );
+  }
+}
+
+String _$updateProfileUseCaseHash() =>
+    r'9a588af407d61e02f7c35d5e0ec46c115704d472';
+
+@ProviderFor(syncService)
+const syncServiceProvider = SyncServiceProvider._();
+
+final class SyncServiceProvider
+    extends $FunctionalProvider<SyncService, SyncService, SyncService>
+    with $Provider<SyncService> {
+  const SyncServiceProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'syncServiceProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$syncServiceHash();
+
+  @$internal
+  @override
+  $ProviderElement<SyncService> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  SyncService create(Ref ref) {
+    return syncService(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(SyncService value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<SyncService>(value),
+    );
+  }
+}
+
+String _$syncServiceHash() => r'3b1f8d33016de3a04b4396c8857479d15fdb495a';
+
+@ProviderFor(authRepository)
+const authRepositoryProvider = AuthRepositoryProvider._();
+
+final class AuthRepositoryProvider
+    extends $FunctionalProvider<AuthRepository, AuthRepository, AuthRepository>
+    with $Provider<AuthRepository> {
+  const AuthRepositoryProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'authRepositoryProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$authRepositoryHash();
+
+  @$internal
+  @override
+  $ProviderElement<AuthRepository> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  AuthRepository create(Ref ref) {
+    return authRepository(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(AuthRepository value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<AuthRepository>(value),
+    );
+  }
+}
+
+String _$authRepositoryHash() => r'7e797d65e0d39b813e59519dbc4634a54af22860';
+
+@ProviderFor(authSyncService)
+const authSyncServiceProvider = AuthSyncServiceProvider._();
+
+final class AuthSyncServiceProvider
+    extends
+        $FunctionalProvider<AuthSyncService, AuthSyncService, AuthSyncService>
+    with $Provider<AuthSyncService> {
+  const AuthSyncServiceProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'authSyncServiceProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$authSyncServiceHash();
+
+  @$internal
+  @override
+  $ProviderElement<AuthSyncService> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  AuthSyncService create(Ref ref) {
+    return authSyncService(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(AuthSyncService value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<AuthSyncService>(value),
+    );
+  }
+}
+
+String _$authSyncServiceHash() => r'a53d963aa290c2c23d1410c64da95d4089173caa';

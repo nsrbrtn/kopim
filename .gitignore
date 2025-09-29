@@ -65,10 +65,7 @@ unlinked_spec.ds
 packages/**/pubspec.lock  # Для submодулей, но для app коммитите pubspec.lock
 
 # Generated files from tools (Freezed, JsonSerializable, Build Runner)
-*.g.dart
-*.g.part.dart
-*.freezed.dart
-*.drift.dart  # Для Drift generated DAO
+
 
 # Drift/DB related (локальные файлы БД, миграции не коммитим)
 *.db
