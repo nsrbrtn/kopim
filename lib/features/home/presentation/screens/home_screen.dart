@@ -21,10 +21,12 @@ class HomeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final AppLocalizations strings = AppLocalizations.of(context)!;
     final AsyncValue<AuthUser?> authState = ref.watch(authControllerProvider);
-    final AsyncValue<List<TransactionEntity>> transactionsAsync =
-        ref.watch(homeRecentTransactionsProvider);
-    final AsyncValue<List<AccountEntity>> accountsAsync =
-        ref.watch(homeAccountsProvider);
+    final AsyncValue<List<TransactionEntity>> transactionsAsync = ref.watch(
+      homeRecentTransactionsProvider,
+    );
+    final AsyncValue<List<AccountEntity>> accountsAsync = ref.watch(
+      homeAccountsProvider,
+    );
     final double totalBalance = ref.watch(homeTotalBalanceProvider);
     final bool isWideLayout = MediaQuery.of(context).size.width >= 720;
     final NumberFormat currencyFormat = NumberFormat.simpleCurrency(
@@ -36,9 +38,7 @@ class HomeScreen extends ConsumerWidget {
         if (accounts.isEmpty) {
           return strings.homeTitle;
         }
-        return strings.homeTotalBalance(
-          currencyFormat.format(totalBalance),
-        );
+        return strings.homeTotalBalance(currencyFormat.format(totalBalance));
       },
       orElse: () => strings.homeTitle,
     );
@@ -85,10 +85,10 @@ class HomeScreen extends ConsumerWidget {
                     transactionsAsync.when(
                       data: (List<TransactionEntity> transactions) =>
                           _TransactionsList(
-                        transactions: transactions,
-                        localeName: strings.localeName,
-                        strings: strings,
-                      ),
+                            transactions: transactions,
+                            localeName: strings.localeName,
+                            strings: strings,
+                          ),
                       loading: () => const Center(
                         child: Padding(
                           padding: EdgeInsets.symmetric(vertical: 24),
@@ -96,8 +96,9 @@ class HomeScreen extends ConsumerWidget {
                         ),
                       ),
                       error: (Object error, _) => _ErrorMessage(
-                        message:
-                            strings.homeTransactionsError(error.toString()),
+                        message: strings.homeTransactionsError(
+                          error.toString(),
+                        ),
                       ),
                     ),
                   ],
@@ -149,10 +150,7 @@ class HomeScreen extends ConsumerWidget {
 }
 
 class _AccountsList extends StatelessWidget {
-  const _AccountsList({
-    required this.accounts,
-    required this.strings,
-  });
+  const _AccountsList({required this.accounts, required this.strings});
 
   final List<AccountEntity> accounts;
   final AppLocalizations strings;
@@ -260,10 +258,7 @@ class _SectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      title,
-      style: Theme.of(context).textTheme.titleLarge,
-    );
+    return Text(title, style: Theme.of(context).textTheme.titleLarge);
   }
 }
 
@@ -276,12 +271,7 @@ class _EmptyMessage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 16),
-      child: Center(
-        child: Text(
-          message,
-          textAlign: TextAlign.center,
-        ),
-      ),
+      child: Center(child: Text(message, textAlign: TextAlign.center)),
     );
   }
 }
@@ -298,10 +288,9 @@ class _ErrorMessage extends StatelessWidget {
       child: Center(
         child: Text(
           message,
-          style: Theme.of(context)
-              .textTheme
-              .bodyMedium
-              ?.copyWith(color: Theme.of(context).colorScheme.error),
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            color: Theme.of(context).colorScheme.error,
+          ),
           textAlign: TextAlign.center,
         ),
       ),
