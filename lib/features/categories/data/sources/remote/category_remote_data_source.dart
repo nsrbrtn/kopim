@@ -10,20 +10,57 @@ class CategoryRemoteDataSource {
     return _firestore.collection('users').doc(userId).collection('categories');
   }
 
+  DocumentReference<Map<String, dynamic>> _doc(String userId, String id) {
+    return _collection(userId).doc(id);
+  }
+
   Future<void> upsert(String userId, Category category) async {
-    await _collection(userId)
-        .doc(category.id)
-        .set(_mapCategory(category), SetOptions(merge: true));
+    await _doc(
+      userId,
+      category.id,
+    ).set(mapCategory(category), SetOptions(merge: true));
   }
 
   Future<void> delete(String userId, Category category) async {
-    await _collection(userId)
-        .doc(category.id)
-        .set(_mapCategory(category.copyWith(isDeleted: true)), SetOptions(merge: true));
+    await _doc(userId, category.id).set(
+      mapCategory(category.copyWith(isDeleted: true)),
+      SetOptions(merge: true),
+    );
   }
 
-  Map<String, dynamic> _mapCategory(Category category) {
-    return {
+  void upsertInTransaction(
+    Transaction transaction,
+    String userId,
+    Category category,
+  ) {
+    transaction.set(
+      _doc(userId, category.id),
+      mapCategory(category),
+      SetOptions(merge: true),
+    );
+  }
+
+  void deleteInTransaction(
+    Transaction transaction,
+    String userId,
+    Category category,
+  ) {
+    transaction.set(
+      _doc(userId, category.id),
+      mapCategory(category.copyWith(isDeleted: true)),
+      SetOptions(merge: true),
+    );
+  }
+
+  Future<List<Category>> fetchAll(String userId) async {
+    final QuerySnapshot<Map<String, dynamic>> snapshot = await _collection(
+      userId,
+    ).get();
+    return snapshot.docs.map(_fromDocument).toList();
+  }
+
+  Map<String, dynamic> mapCategory(Category category) {
+    return <String, dynamic>{
       'id': category.id,
       'name': category.name,
       'type': category.type,
@@ -32,6 +69,30 @@ class CategoryRemoteDataSource {
       'createdAt': Timestamp.fromDate(category.createdAt.toUtc()),
       'updatedAt': Timestamp.fromDate(category.updatedAt.toUtc()),
       'isDeleted': category.isDeleted,
-    }..removeWhere((key, value) => value == null);
+    }..removeWhere((String key, Object? value) => value == null);
+  }
+
+  Category _fromDocument(QueryDocumentSnapshot<Map<String, dynamic>> doc) {
+    final Map<String, dynamic> data = doc.data();
+    return Category(
+      id: data['id'] as String? ?? doc.id,
+      name: data['name'] as String? ?? '',
+      type: data['type'] as String? ?? 'unknown',
+      icon: data['icon'] as String?,
+      color: data['color'] as String?,
+      createdAt: _parseTimestamp(data['createdAt']),
+      updatedAt: _parseTimestamp(data['updatedAt']),
+      isDeleted: data['isDeleted'] as bool? ?? false,
+    );
+  }
+
+  DateTime _parseTimestamp(dynamic value) {
+    if (value is Timestamp) {
+      return value.toDate().toUtc();
+    }
+    if (value is DateTime) {
+      return value.toUtc();
+    }
+    return DateTime.now().toUtc();
   }
 }

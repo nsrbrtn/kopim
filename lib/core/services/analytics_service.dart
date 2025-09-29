@@ -7,7 +7,10 @@ class AnalyticsService {
   final FirebaseCrashlytics _crashlytics = FirebaseCrashlytics.instance;
 
   Future<void> logEvent(String name, [Map<String, dynamic>? params]) async {
-    await _analytics.logEvent(name: name, parameters: params?.cast<String, Object>());  // Cast для совместимости
+    await _analytics.logEvent(
+      name: name,
+      parameters: params?.cast<String, Object>(),
+    ); // Cast для совместимости
     await Sentry.captureMessage('Event: $name');
   }
 

@@ -8,19 +8,28 @@ class CategoryDao {
   final db.AppDatabase _db;
 
   Stream<List<db.CategoryRow>> watchActiveCategories() {
-    final query = _db.select(_db.categories)
-      ..where((tbl) => tbl.isDeleted.equals(false));
+    final SimpleSelectStatement<db.$CategoriesTable, db.CategoryRow> query =
+        _db.select(_db.categories)
+          ..where((db.$CategoriesTable tbl) => tbl.isDeleted.equals(false));
     return query.watch();
   }
 
   Future<List<db.CategoryRow>> getActiveCategories() {
-    final query = _db.select(_db.categories)
-      ..where((tbl) => tbl.isDeleted.equals(false));
+    final SimpleSelectStatement<db.$CategoriesTable, db.CategoryRow> query =
+        _db.select(_db.categories)
+          ..where((db.$CategoriesTable tbl) => tbl.isDeleted.equals(false));
     return query.get();
   }
 
+  Future<List<Category>> getAllCategories() async {
+    final List<db.CategoryRow> rows = await _db.select(_db.categories).get();
+    return rows.map(_mapRowToEntity).toList();
+  }
+
   Future<db.CategoryRow?> findById(String id) {
-    final query = _db.select(_db.categories)..where((tbl) => tbl.id.equals(id));
+    final SimpleSelectStatement<db.$CategoriesTable, db.CategoryRow> query =
+        _db.select(_db.categories)
+          ..where((db.$CategoriesTable tbl) => tbl.id.equals(id));
     return query.getSingleOrNull();
   }
 
@@ -32,7 +41,7 @@ class CategoryDao {
 
   Future<void> upsertAll(List<Category> categories) async {
     if (categories.isEmpty) return;
-    await _db.batch((batch) {
+    await _db.batch((Batch batch) {
       batch.insertAllOnConflictUpdate(
         _db.categories,
         categories.map(_mapToCompanion).toList(),
@@ -41,24 +50,39 @@ class CategoryDao {
   }
 
   Future<void> markDeleted(String id, DateTime deletedAt) async {
-    await (_db.update(_db.categories)..where((tbl) => tbl.id.equals(id))).write(
+    await (_db.update(
+      _db.categories,
+    )..where((db.$CategoriesTable tbl) => tbl.id.equals(id))).write(
       db.CategoriesCompanion(
-        isDeleted: const Value(true),
-        updatedAt: Value(deletedAt),
+        isDeleted: const Value<bool>(true),
+        updatedAt: Value<DateTime>(deletedAt),
       ),
     );
   }
 
   db.CategoriesCompanion _mapToCompanion(Category category) {
     return db.CategoriesCompanion(
-      id: Value(category.id),
-      name: Value(category.name),
-      type: Value(category.type),
-      icon: Value(category.icon),
-      color: Value(category.color),
-      createdAt: Value(category.createdAt),
-      updatedAt: Value(category.updatedAt),
-      isDeleted: Value(category.isDeleted),
+      id: Value<String>(category.id),
+      name: Value<String>(category.name),
+      type: Value<String>(category.type),
+      icon: Value<String?>(category.icon),
+      color: Value<String?>(category.color),
+      createdAt: Value<DateTime>(category.createdAt),
+      updatedAt: Value<DateTime>(category.updatedAt),
+      isDeleted: Value<bool>(category.isDeleted),
+    );
+  }
+
+  Category _mapRowToEntity(db.CategoryRow row) {
+    return Category(
+      id: row.id,
+      name: row.name,
+      type: row.type,
+      icon: row.icon,
+      color: row.color,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+      isDeleted: row.isDeleted,
     );
   }
 }

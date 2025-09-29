@@ -8,20 +8,30 @@ class TransactionDao {
   final db.AppDatabase _db;
 
   Stream<List<db.TransactionRow>> watchActiveTransactions() {
-    final query = _db.select(_db.transactions)
-      ..where((tbl) => tbl.isDeleted.equals(false));
+    final SimpleSelectStatement<db.$TransactionsTable, db.TransactionRow>
+    query = _db.select(_db.transactions)
+      ..where((db.$TransactionsTable tbl) => tbl.isDeleted.equals(false));
     return query.watch();
   }
 
   Future<List<db.TransactionRow>> getActiveTransactions() {
-    final query = _db.select(_db.transactions)
-      ..where((tbl) => tbl.isDeleted.equals(false));
+    final SimpleSelectStatement<db.$TransactionsTable, db.TransactionRow>
+    query = _db.select(_db.transactions)
+      ..where((db.$TransactionsTable tbl) => tbl.isDeleted.equals(false));
     return query.get();
   }
 
+  Future<List<TransactionEntity>> getAllTransactions() async {
+    final List<db.TransactionRow> rows = await _db
+        .select(_db.transactions)
+        .get();
+    return rows.map(_mapRowToEntity).toList();
+  }
+
   Future<db.TransactionRow?> findById(String id) {
-    final query = _db.select(_db.transactions)
-      ..where((tbl) => tbl.id.equals(id));
+    final SimpleSelectStatement<db.$TransactionsTable, db.TransactionRow>
+    query = _db.select(_db.transactions)
+      ..where((db.$TransactionsTable tbl) => tbl.id.equals(id));
     return query.getSingleOrNull();
   }
 
@@ -33,7 +43,7 @@ class TransactionDao {
 
   Future<void> upsertAll(List<TransactionEntity> transactions) async {
     if (transactions.isEmpty) return;
-    await _db.batch((batch) {
+    await _db.batch((Batch batch) {
       batch.insertAllOnConflictUpdate(
         _db.transactions,
         transactions.map(_mapToCompanion).toList(),
@@ -44,26 +54,41 @@ class TransactionDao {
   Future<void> markDeleted(String id, DateTime deletedAt) async {
     await (_db.update(
       _db.transactions,
-    )..where((tbl) => tbl.id.equals(id))).write(
+    )..where((db.$TransactionsTable tbl) => tbl.id.equals(id))).write(
       db.TransactionsCompanion(
-        isDeleted: const Value(true),
-        updatedAt: Value(deletedAt),
+        isDeleted: const Value<bool>(true),
+        updatedAt: Value<DateTime>(deletedAt),
       ),
     );
   }
 
   db.TransactionsCompanion _mapToCompanion(TransactionEntity transaction) {
     return db.TransactionsCompanion(
-      id: Value(transaction.id),
-      accountId: Value(transaction.accountId),
-      categoryId: Value(transaction.categoryId),
-      amount: Value(transaction.amount),
-      date: Value(transaction.date),
-      note: Value(transaction.note),
-      type: Value(transaction.type),
-      createdAt: Value(transaction.createdAt),
-      updatedAt: Value(transaction.updatedAt),
-      isDeleted: Value(transaction.isDeleted),
+      id: Value<String>(transaction.id),
+      accountId: Value<String>(transaction.accountId),
+      categoryId: Value<String?>(transaction.categoryId),
+      amount: Value<double>(transaction.amount),
+      date: Value<DateTime>(transaction.date),
+      note: Value<String?>(transaction.note),
+      type: Value<String>(transaction.type),
+      createdAt: Value<DateTime>(transaction.createdAt),
+      updatedAt: Value<DateTime>(transaction.updatedAt),
+      isDeleted: Value<bool>(transaction.isDeleted),
+    );
+  }
+
+  TransactionEntity _mapRowToEntity(db.TransactionRow row) {
+    return TransactionEntity(
+      id: row.id,
+      accountId: row.accountId,
+      categoryId: row.categoryId,
+      amount: row.amount,
+      date: row.date,
+      note: row.note,
+      type: row.type,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+      isDeleted: row.isDeleted,
     );
   }
 }

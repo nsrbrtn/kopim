@@ -22,27 +22,28 @@ class CategoryRepositoryImpl implements CategoryRepository {
   @override
   Stream<List<Category>> watchCategories() {
     return _categoryDao.watchActiveCategories().map(
-      (rows) => rows.map(_mapToDomain).toList(growable: false),
+      (List<db.CategoryRow> rows) =>
+          rows.map(_mapToDomain).toList(growable: false),
     );
   }
 
   @override
   Future<List<Category>> loadCategories() async {
-    final rows = await _categoryDao.getActiveCategories();
+    final List<db.CategoryRow> rows = await _categoryDao.getActiveCategories();
     return rows.map(_mapToDomain).toList(growable: false);
   }
 
   @override
   Future<Category?> findById(String id) async {
-    final row = await _categoryDao.findById(id);
+    final db.CategoryRow? row = await _categoryDao.findById(id);
     if (row == null) return null;
     return _mapToDomain(row);
   }
 
   @override
   Future<void> upsert(Category category) async {
-    final now = DateTime.now();
-    final toPersist = category.copyWith(updatedAt: now);
+    final DateTime now = DateTime.now();
+    final Category toPersist = category.copyWith(updatedAt: now);
     await _database.transaction(() async {
       await _categoryDao.upsert(toPersist);
       await _outboxDao.enqueue(
@@ -56,12 +57,12 @@ class CategoryRepositoryImpl implements CategoryRepository {
 
   @override
   Future<void> softDelete(String id) async {
-    final now = DateTime.now();
+    final DateTime now = DateTime.now();
     await _database.transaction(() async {
       await _categoryDao.markDeleted(id, now);
-      final row = await _categoryDao.findById(id);
+      final db.CategoryRow? row = await _categoryDao.findById(id);
       if (row == null) return;
-      final payload = _mapCategoryPayload(
+      final Map<String, dynamic> payload = _mapCategoryPayload(
         _mapToDomain(row).copyWith(isDeleted: true, updatedAt: now),
       );
       await _outboxDao.enqueue(
@@ -74,7 +75,7 @@ class CategoryRepositoryImpl implements CategoryRepository {
   }
 
   Map<String, dynamic> _mapCategoryPayload(Category category) {
-    final json = category.toJson();
+    final Map<String, dynamic> json = category.toJson();
     json['createdAt'] = category.createdAt.toIso8601String();
     json['updatedAt'] = category.updatedAt.toIso8601String();
     return json;

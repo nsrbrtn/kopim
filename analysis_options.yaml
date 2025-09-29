@@ -5,6 +5,8 @@
 include: package:flutter_lints/flutter.yaml
 
 analyzer:
+  exclude:
+    - '**/*.g.dart'
   # Stricter analysis for better code quality.
   errors:
     # Treat missing required parameters as errors.
@@ -47,4 +49,5 @@ linter:
     always_specify_types: true  # For DI with Riverpod/GetIt.
     prefer_single_quotes: true  # Consistent style (dart format).
     sort_constructors_first: true  # Clean code structure.
+
 

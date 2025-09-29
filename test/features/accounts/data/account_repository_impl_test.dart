@@ -28,8 +28,8 @@ void main() {
     await database.close();
   });
 
-  AccountEntity _buildAccount({bool isDeleted = false}) {
-    final now = DateTime.utc(2024, 1, 1);
+  AccountEntity buildAccount({bool isDeleted = false}) {
+    final DateTime now = DateTime.utc(2024, 1, 1);
     return AccountEntity(
       id: 'acc-1',
       name: 'Main',
@@ -43,39 +43,49 @@ void main() {
   }
 
   test('upsert persists account locally and enqueues outbox entry', () async {
-    final account = _buildAccount();
+    final AccountEntity account = buildAccount();
 
     await repository.upsert(account);
 
-    final rows = await database.select(database.accounts).get();
+    final List<db.AccountRow> rows = await database
+        .select(database.accounts)
+        .get();
     expect(rows, hasLength(1));
     expect(rows.single.name, 'Main');
     expect(rows.single.isDeleted, isFalse);
 
-    final outboxRows = await database.select(database.outboxEntries).get();
+    final List<db.OutboxEntryRow> outboxRows = await database
+        .select(database.outboxEntries)
+        .get();
     expect(outboxRows, hasLength(1));
-    final outbox = outboxRows.single;
+    final db.OutboxEntryRow outbox = outboxRows.single;
     expect(outbox.entityType, 'account');
     expect(outbox.operation, OutboxOperation.upsert.name);
-    final payload = jsonDecode(outbox.payload) as Map<String, dynamic>;
+    final Map<String, dynamic> payload =
+        jsonDecode(outbox.payload) as Map<String, dynamic>;
     expect(payload['id'], 'acc-1');
     expect(payload['isDeleted'], false);
   });
 
   test('softDelete marks record and enqueues delete event', () async {
-    final account = _buildAccount();
+    final AccountEntity account = buildAccount();
     await repository.upsert(account);
 
     await repository.softDelete(account.id);
 
-    final stored = await database.select(database.accounts).getSingle();
+    final db.AccountRow stored = await database
+        .select(database.accounts)
+        .getSingle();
     expect(stored.isDeleted, isTrue);
 
-    final outboxRows = await database.select(database.outboxEntries).get();
+    final List<db.OutboxEntryRow> outboxRows = await database
+        .select(database.outboxEntries)
+        .get();
     expect(outboxRows.length, 2);
-    final deleteEntry = outboxRows.last;
+    final db.OutboxEntryRow deleteEntry = outboxRows.last;
     expect(deleteEntry.operation, OutboxOperation.delete.name);
-    final payload = jsonDecode(deleteEntry.payload) as Map<String, dynamic>;
+    final Map<String, dynamic> payload =
+        jsonDecode(deleteEntry.payload) as Map<String, dynamic>;
     expect(payload['isDeleted'], true);
   });
 }

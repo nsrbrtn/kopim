@@ -22,27 +22,29 @@ class TransactionRepositoryImpl implements TransactionRepository {
   @override
   Stream<List<TransactionEntity>> watchTransactions() {
     return _transactionDao.watchActiveTransactions().map(
-      (rows) => rows.map(_mapToDomain).toList(growable: false),
+      (List<db.TransactionRow> rows) =>
+          rows.map(_mapToDomain).toList(growable: false),
     );
   }
 
   @override
   Future<List<TransactionEntity>> loadTransactions() async {
-    final rows = await _transactionDao.getActiveTransactions();
+    final List<db.TransactionRow> rows = await _transactionDao
+        .getActiveTransactions();
     return rows.map(_mapToDomain).toList(growable: false);
   }
 
   @override
   Future<TransactionEntity?> findById(String id) async {
-    final row = await _transactionDao.findById(id);
+    final db.TransactionRow? row = await _transactionDao.findById(id);
     if (row == null) return null;
     return _mapToDomain(row);
   }
 
   @override
   Future<void> upsert(TransactionEntity transaction) async {
-    final now = DateTime.now();
-    final toPersist = transaction.copyWith(updatedAt: now);
+    final DateTime now = DateTime.now();
+    final TransactionEntity toPersist = transaction.copyWith(updatedAt: now);
     await _database.transaction(() async {
       await _transactionDao.upsert(toPersist);
       await _outboxDao.enqueue(
@@ -56,12 +58,12 @@ class TransactionRepositoryImpl implements TransactionRepository {
 
   @override
   Future<void> softDelete(String id) async {
-    final now = DateTime.now();
+    final DateTime now = DateTime.now();
     await _database.transaction(() async {
       await _transactionDao.markDeleted(id, now);
-      final row = await _transactionDao.findById(id);
+      final db.TransactionRow? row = await _transactionDao.findById(id);
       if (row == null) return;
-      final payload = _mapTransactionPayload(
+      final Map<String, dynamic> payload = _mapTransactionPayload(
         _mapToDomain(row).copyWith(isDeleted: true, updatedAt: now),
       );
       await _outboxDao.enqueue(
@@ -74,7 +76,7 @@ class TransactionRepositoryImpl implements TransactionRepository {
   }
 
   Map<String, dynamic> _mapTransactionPayload(TransactionEntity transaction) {
-    final json = transaction.toJson();
+    final Map<String, dynamic> json = transaction.toJson();
     json['createdAt'] = transaction.createdAt.toIso8601String();
     json['updatedAt'] = transaction.updatedAt.toIso8601String();
     json['date'] = transaction.date.toIso8601String();

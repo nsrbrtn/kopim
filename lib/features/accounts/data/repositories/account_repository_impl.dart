@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:kopim/core/data/database.dart' as db;
 import 'package:kopim/core/data/outbox/outbox_dao.dart';
@@ -25,27 +24,28 @@ class AccountRepositoryImpl implements AccountRepository {
   @override
   Stream<List<AccountEntity>> watchAccounts() {
     return _accountDao.watchActiveAccounts().map(
-      (rows) => rows.map(_mapToDomain).toList(growable: false),
+      (List<db.AccountRow> rows) =>
+          rows.map(_mapToDomain).toList(growable: false),
     );
   }
 
   @override
   Future<List<AccountEntity>> loadAccounts() async {
-    final rows = await _accountDao.getActiveAccounts();
+    final List<db.AccountRow> rows = await _accountDao.getActiveAccounts();
     return rows.map(_mapToDomain).toList(growable: false);
   }
 
   @override
   Future<AccountEntity?> findById(String id) async {
-    final row = await _accountDao.findById(id);
+    final db.AccountRow? row = await _accountDao.findById(id);
     if (row == null) return null;
     return _mapToDomain(row);
   }
 
   @override
   Future<void> upsert(AccountEntity account) async {
-    final now = DateTime.now();
-    final toPersist = account.copyWith(updatedAt: now);
+    final DateTime now = DateTime.now();
+    final AccountEntity toPersist = account.copyWith(updatedAt: now);
     await _database.transaction(() async {
       await _accountDao.upsert(toPersist);
       await _outboxDao.enqueue(
@@ -59,12 +59,12 @@ class AccountRepositoryImpl implements AccountRepository {
 
   @override
   Future<void> softDelete(String id) async {
-    final now = DateTime.now();
+    final DateTime now = DateTime.now();
     await _database.transaction(() async {
       await _accountDao.markDeleted(id, now);
-      final row = await _accountDao.findById(id);
+      final db.AccountRow? row = await _accountDao.findById(id);
       if (row == null) return;
-      final payload = _mapAccountPayload(
+      final Map<String, dynamic> payload = _mapAccountPayload(
         _mapToDomain(row).copyWith(isDeleted: true, updatedAt: now),
       );
       await _outboxDao.enqueue(
@@ -77,7 +77,7 @@ class AccountRepositoryImpl implements AccountRepository {
   }
 
   Map<String, dynamic> _mapAccountPayload(AccountEntity account) {
-    final json = account.toJson();
+    final Map<String, dynamic> json = account.toJson();
     json['updatedAt'] = account.updatedAt.toIso8601String();
     json['createdAt'] = account.createdAt.toIso8601String();
     return json;

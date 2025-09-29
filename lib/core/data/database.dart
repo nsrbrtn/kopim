@@ -17,10 +17,11 @@ class Accounts extends Table {
   TextColumn get type => text().withLength(min: 1, max: 50)();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
-  BoolColumn get isDeleted => boolean().withDefault(const Constant(false))();
+  BoolColumn get isDeleted =>
+      boolean().withDefault(const Constant<bool>(false))();
 
   @override
-  Set<Column<Object>> get primaryKey => {id};
+  Set<Column<Object>> get primaryKey => <Column<Object>>{id};
 }
 
 @DataClassName('CategoryRow')
@@ -32,10 +33,11 @@ class Categories extends Table {
   TextColumn get color => text().nullable()();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
-  BoolColumn get isDeleted => boolean().withDefault(const Constant(false))();
+  BoolColumn get isDeleted =>
+      boolean().withDefault(const Constant<bool>(false))();
 
   @override
-  Set<Column<Object>> get primaryKey => {id};
+  Set<Column<Object>> get primaryKey => <Column<Object>>{id};
 }
 
 @DataClassName('TransactionRow')
@@ -52,10 +54,11 @@ class Transactions extends Table {
   TextColumn get type => text().withLength(min: 1, max: 50)();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
-  BoolColumn get isDeleted => boolean().withDefault(const Constant(false))();
+  BoolColumn get isDeleted =>
+      boolean().withDefault(const Constant<bool>(false))();
 
   @override
-  Set<Column<Object>> get primaryKey => {id};
+  Set<Column<Object>> get primaryKey => <Column<Object>>{id};
 }
 
 @DataClassName('OutboxEntryRow')
@@ -65,22 +68,37 @@ class OutboxEntries extends Table {
   TextColumn get entityId => text().withLength(min: 1, max: 50)();
   TextColumn get operation => text().withLength(min: 1, max: 20)();
   TextColumn get payload => text()();
-  TextColumn get status => text().withDefault(const Constant('pending'))();
-  IntColumn get attemptCount => integer().withDefault(const Constant(0))();
+  TextColumn get status =>
+      text().withDefault(const Constant<String>('pending'))();
+  IntColumn get attemptCount => integer().withDefault(const Constant<int>(0))();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get sentAt => dateTime().nullable()();
   TextColumn get lastError => text().nullable()();
 }
 
-@DriftDatabase(tables: [Accounts, Categories, Transactions, OutboxEntries])
+@DataClassName('ProfileRow')
+class Profiles extends Table {
+  TextColumn get uid => text().withLength(min: 1, max: 64)();
+  TextColumn get name => text().withLength(min: 0, max: 120).nullable()();
+  TextColumn get currency => text().withLength(min: 3, max: 3).nullable()();
+  TextColumn get locale => text().withLength(min: 2, max: 10).nullable()();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column<Object>> get primaryKey => <Column<Object>>{uid};
+}
+
+@DriftDatabase(
+  tables: <Type>[Accounts, Categories, Transactions, OutboxEntries, Profiles],
+)
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
-  AppDatabase.connect(DatabaseConnection connection) : super(connection);
+  AppDatabase.connect(DatabaseConnection super.connection);
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -100,14 +118,17 @@ class AppDatabase extends _$AppDatabase {
         await m.addColumn(transactions, transactions.updatedAt);
         await m.addColumn(transactions, transactions.isDeleted);
       }
+      if (from < 3) {
+        await m.createTable(profiles);
+      }
     },
   );
 }
 
 LazyDatabase _openConnection() {
   return LazyDatabase(() async {
-    final directory = await getApplicationDocumentsDirectory();
-    final file = File(p.join(directory.path, 'kopim.db'));
+    final Directory directory = await getApplicationDocumentsDirectory();
+    final File file = File(p.join(directory.path, 'kopim.db'));
     return NativeDatabase.createInBackground(file);
   });
 }

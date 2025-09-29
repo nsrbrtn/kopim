@@ -9,6 +9,8 @@ import 'package:kopim/features/accounts/data/sources/remote/account_remote_data_
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/categories/data/sources/remote/category_remote_data_source.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
+import 'package:kopim/features/profile/data/remote/profile_remote_data_source.dart';
+import 'package:kopim/features/profile/domain/entities/profile.dart';
 import 'package:kopim/features/transactions/data/sources/remote/transaction_remote_data_source.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 
@@ -18,12 +20,14 @@ class SyncService {
     required AccountRemoteDataSource accountRemoteDataSource,
     required CategoryRemoteDataSource categoryRemoteDataSource,
     required TransactionRemoteDataSource transactionRemoteDataSource,
+    required ProfileRemoteDataSource profileRemoteDataSource,
     FirebaseAuth? firebaseAuth,
     Connectivity? connectivity,
   }) : _outboxDao = outboxDao,
        _accountRemoteDataSource = accountRemoteDataSource,
        _categoryRemoteDataSource = categoryRemoteDataSource,
        _transactionRemoteDataSource = transactionRemoteDataSource,
+       _profileRemoteDataSource = profileRemoteDataSource,
        _auth = firebaseAuth ?? FirebaseAuth.instance,
        _connectivity = connectivity ?? Connectivity();
 
@@ -31,6 +35,7 @@ class SyncService {
   final AccountRemoteDataSource _accountRemoteDataSource;
   final CategoryRemoteDataSource _categoryRemoteDataSource;
   final TransactionRemoteDataSource _transactionRemoteDataSource;
+  final ProfileRemoteDataSource _profileRemoteDataSource;
   final FirebaseAuth _auth;
   final Connectivity _connectivity;
 
@@ -48,7 +53,9 @@ class SyncService {
     _connectivitySubscription = _connectivity.onConnectivityChanged.listen(
       _handleConnectivity,
     );
-    _outboxSubscription = _outboxDao.watchPending().listen((entries) {
+    _outboxSubscription = _outboxDao.watchPending().listen((
+      List<db.OutboxEntryRow> entries,
+    ) {
       if (entries.isNotEmpty) {
         scheduleMicrotask(syncPending);
       }
@@ -62,15 +69,16 @@ class SyncService {
 
   Future<void> syncPending() async {
     if (_isSyncing || !_isOnline) return;
-    final user = _auth.currentUser;
+    final User? user = _auth.currentUser;
     if (user == null) return;
 
     _isSyncing = true;
     try {
-      final pendingEntries = await _outboxDao.fetchPending(limit: 100);
+      final List<db.OutboxEntryRow> pendingEntries = await _outboxDao
+          .fetchPending(limit: 100);
       if (pendingEntries.isEmpty) return;
 
-      for (final entry in pendingEntries) {
+      for (final db.OutboxEntryRow entry in pendingEntries) {
         await _syncEntry(user.uid, entry);
       }
 
@@ -81,23 +89,31 @@ class SyncService {
   }
 
   Future<void> _syncEntry(String userId, db.OutboxEntryRow entry) async {
-    final prepared = await _outboxDao.prepareForSend(entry);
+    final db.OutboxEntryRow prepared = await _outboxDao.prepareForSend(entry);
     try {
-      final payload = _outboxDao.decodePayload(prepared);
-      final operation = OutboxOperation.values.byName(prepared.operation);
+      final Map<String, dynamic> payload = _outboxDao.decodePayload(prepared);
+      final OutboxOperation operation = OutboxOperation.values.byName(
+        prepared.operation,
+      );
 
       switch (prepared.entityType) {
         case 'account':
-          final account = AccountEntity.fromJson(payload);
+          final AccountEntity account = AccountEntity.fromJson(payload);
           await _dispatchAccount(userId, account, operation);
           break;
         case 'category':
-          final category = Category.fromJson(payload);
+          final Category category = Category.fromJson(payload);
           await _dispatchCategory(userId, category, operation);
           break;
         case 'transaction':
-          final transaction = TransactionEntity.fromJson(payload);
+          final TransactionEntity transaction = TransactionEntity.fromJson(
+            payload,
+          );
           await _dispatchTransaction(userId, transaction, operation);
+          break;
+        case 'profile':
+          final Profile profile = Profile.fromJson(payload);
+          await _dispatchProfile(userId, profile, operation);
           break;
         default:
           throw UnsupportedError(
@@ -167,11 +183,23 @@ class SyncService {
     );
   }
 
+  Future<void> _dispatchProfile(
+    String userId,
+    Profile profile,
+    OutboxOperation operation,
+  ) {
+    if (operation == OutboxOperation.delete) {
+      // Profiles currently support only upsert semantics.
+      return Future<void>.value();
+    }
+    return _profileRemoteDataSource.upsert(userId, profile);
+  }
+
   Future<void> _handleConnectivity(List<ConnectivityResult> results) async {
-    final isNowOnline = results.any(
-      (result) => result != ConnectivityResult.none,
+    final bool isNowOnline = results.any(
+      (ConnectivityResult result) => result != ConnectivityResult.none,
     );
-    final changed = isNowOnline != _isOnline;
+    final bool changed = isNowOnline != _isOnline;
     _isOnline = isNowOnline;
     if (_isOnline && changed) {
       await syncPending();
