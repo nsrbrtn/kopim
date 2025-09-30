@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:riverpod/riverpod.dart' as rp;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:kopim/core/data/database.dart';
 import 'package:kopim/core/data/outbox/outbox_dao.dart';
@@ -21,6 +22,7 @@ import 'package:kopim/features/categories/data/repositories/category_repository_
 import 'package:kopim/features/categories/data/sources/local/category_dao.dart';
 import 'package:kopim/features/categories/data/sources/remote/category_remote_data_source.dart';
 import 'package:kopim/features/categories/domain/repositories/category_repository.dart';
+import 'package:kopim/features/categories/domain/use_cases/watch_categories_use_case.dart';
 import 'package:kopim/features/profile/data/auth_repository_impl.dart';
 import 'package:kopim/features/profile/data/local/profile_dao.dart';
 import 'package:kopim/features/profile/data/profile_repository_impl.dart';
@@ -34,8 +36,9 @@ import 'package:kopim/features/transactions/data/repositories/transaction_reposi
 import 'package:kopim/features/transactions/data/sources/local/transaction_dao.dart';
 import 'package:kopim/features/transactions/data/sources/remote/transaction_remote_data_source.dart';
 import 'package:kopim/features/transactions/domain/repositories/transaction_repository.dart';
-import 'package:uuid/uuid.dart';
 
+import 'package:kopim/features/transactions/domain/use_cases/add_transaction_use_case.dart';
+import 'package:uuid/uuid.dart';
 import 'package:kopim/features/transactions/domain/use_cases/watch_recent_transactions_use_case.dart';
 
 part 'injectors.g.dart';
@@ -118,6 +121,11 @@ CategoryRepository categoryRepository(Ref ref) => CategoryRepositoryImpl(
   outboxDao: ref.watch(outboxDaoProvider),
 );
 
+final rp.Provider<WatchCategoriesUseCase> watchCategoriesUseCaseProvider =
+    rp.Provider<WatchCategoriesUseCase>((rp.Ref ref) {
+  return WatchCategoriesUseCase(ref.watch(categoryRepositoryProvider));
+});
+
 @riverpod
 TransactionRepository transactionRepository(Ref ref) =>
     TransactionRepositoryImpl(
@@ -125,6 +133,14 @@ TransactionRepository transactionRepository(Ref ref) =>
       transactionDao: ref.watch(transactionDaoProvider),
       outboxDao: ref.watch(outboxDaoProvider),
     );
+
+final rp.Provider<AddTransactionUseCase> addTransactionUseCaseProvider =
+    rp.Provider<AddTransactionUseCase>((rp.Ref ref) {
+  return AddTransactionUseCase(
+    transactionRepository: ref.watch(transactionRepositoryProvider),
+    accountRepository: ref.watch(accountRepositoryProvider),
+  );
+});
 
 @riverpod
 WatchRecentTransactionsUseCase watchRecentTransactionsUseCase(Ref ref) =>

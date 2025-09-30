@@ -120,8 +120,17 @@ class HomeScreen extends ConsumerWidget {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () =>
-            Navigator.of(context).pushNamed(AddTransactionScreen.routeName),
+        onPressed: () async {
+          final bool? created = await Navigator.of(context)
+              .pushNamed<bool>(AddTransactionScreen.routeName);
+          if (created == true && context.mounted) {
+            ScaffoldMessenger.of(context)
+              ..hideCurrentSnackBar()
+              ..showSnackBar(
+                SnackBar(content: Text(strings.addTransactionSuccess)),
+              );
+          }
+        },
         child: const Icon(Icons.add),
       ),
       bottomNavigationBar: BottomNavigationBar(

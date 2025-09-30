@@ -187,6 +187,97 @@
   "@addTransactionComingSoon": {
     "description": "Placeholder message for add transaction screen"
   },
+
+  "addTransactionAccountLabel": "Account",
+  "@addTransactionAccountLabel": {
+    "description": "Label for account selector on add transaction form"
+  },
+  "addTransactionAccountRequired": "Please choose an account",
+  "@addTransactionAccountRequired": {
+    "description": "Validation message when no account is selected"
+  },
+  "addTransactionAccountsError": "Unable to load accounts: {error}",
+  "@addTransactionAccountsError": {
+    "description": "Error message shown when account stream fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "addTransactionNoAccounts": "Create an account first to add transactions.",
+  "@addTransactionNoAccounts": {
+    "description": "Message shown when there are no accounts available"
+  },
+  "addTransactionAmountLabel": "Amount",
+  "@addTransactionAmountLabel": {
+    "description": "Label for transaction amount field"
+  },
+  "addTransactionAmountHint": "0.00",
+  "@addTransactionAmountHint": {
+    "description": "Hint text for transaction amount field"
+  },
+  "addTransactionAmountInvalid": "Enter a valid amount greater than zero",
+  "@addTransactionAmountInvalid": {
+    "description": "Validation message for invalid transaction amount"
+  },
+  "addTransactionTypeLabel": "Type",
+  "@addTransactionTypeLabel": {
+    "description": "Label for transaction type selector"
+  },
+  "addTransactionTypeExpense": "Expense",
+  "@addTransactionTypeExpense": {
+    "description": "Label for selecting expense type"
+  },
+  "addTransactionTypeIncome": "Income",
+  "@addTransactionTypeIncome": {
+    "description": "Label for selecting income type"
+  },
+  "addTransactionCategoryLabel": "Category",
+  "@addTransactionCategoryLabel": {
+    "description": "Label for category selector"
+  },
+  "addTransactionCategoryNone": "No category",
+  "@addTransactionCategoryNone": {
+    "description": "Option label when no category is selected"
+  },
+  "addTransactionCategoriesLoading": "Loading categories…",
+  "@addTransactionCategoriesLoading": {
+    "description": "Helper text while categories are loading"
+  },
+  "addTransactionCategoriesError": "Unable to load categories: {error}",
+  "@addTransactionCategoriesError": {
+    "description": "Error shown when categories stream fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "addTransactionDateLabel": "Date",
+  "@addTransactionDateLabel": {
+    "description": "Label for the date picker"
+  },
+  "addTransactionNoteLabel": "Note",
+  "@addTransactionNoteLabel": {
+    "description": "Label for optional note field"
+  },
+  "addTransactionSubmit": "Save transaction",
+  "@addTransactionSubmit": {
+    "description": "Button label for saving a transaction"
+  },
+  "addTransactionAccountMissingError": "Selected account is no longer available.",
+  "@addTransactionAccountMissingError": {
+    "description": "Error when the selected account was deleted"
+  },
+  "addTransactionUnknownError": "Unable to save the transaction. Try again.",
+  "@addTransactionUnknownError": {
+    "description": "Generic error when saving a transaction fails"
+  },
+  "addTransactionSuccess": "Transaction saved",
+  "@addTransactionSuccess": {
+    "description": "Confirmation message shown after creating a transaction"
+
   "homeAccountsAddTooltip": "Add account",
   "@homeAccountsAddTooltip": {
     "description": "Tooltip for the add account button on the home screen"
@@ -238,5 +329,6 @@
   "addAccountTypeBank": "Bank account",
   "@addAccountTypeBank": {
     "description": "Option label for bank accounts"
+
   }
 }
