@@ -117,7 +117,7 @@ AccountEntity _account(String id) {
     id: id,
     name: 'Account $id',
     balance: 0,
-    currency: 'USD',
+    currency: 'RUB',
     type: 'cash',
     createdAt: now,
     updatedAt: now,

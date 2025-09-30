@@ -83,7 +83,7 @@ void main() {
         .set(<String, dynamic>{
           'uid': uid,
           'name': 'Bob',
-          'currency': 'USD',
+          'currency': 'RUB',
           'locale': 'en',
           'updatedAt': Timestamp.fromDate(DateTime.utc(2024, 1, 1)),
         });

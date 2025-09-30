@@ -42,7 +42,7 @@ class ProfileFormState {
         Profile(
           uid: uid,
           name: '',
-          currency: ProfileCurrency.usd,
+          currency: ProfileCurrency.rub,
           locale: 'en',
           updatedAt: DateTime.fromMillisecondsSinceEpoch(0),
         );
@@ -70,7 +70,7 @@ class ProfileFormState {
         Profile(
           uid: uid,
           name: '',
-          currency: ProfileCurrency.usd,
+          currency: ProfileCurrency.rub,
           locale: 'en',
           updatedAt: DateTime.fromMillisecondsSinceEpoch(0),
         );

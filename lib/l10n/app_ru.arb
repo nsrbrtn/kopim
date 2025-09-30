@@ -186,5 +186,57 @@
   "addTransactionComingSoon": "Создание транзакции скоро будет доступно.",
   "@addTransactionComingSoon": {
     "description": "Заглушка для экрана добавления транзакции"
+  },
+  "homeAccountsAddTooltip": "Добавить счёт",
+  "@homeAccountsAddTooltip": {
+    "description": "Тултип для кнопки добавления счёта на домашнем экране"
+  },
+  "addAccountTitle": "Добавление счёта",
+  "@addAccountTitle": {
+    "description": "Заголовок экрана создания счёта"
+  },
+  "addAccountNameLabel": "Название счёта",
+  "@addAccountNameLabel": {
+    "description": "Подпись поля ввода названия счёта"
+  },
+  "addAccountBalanceLabel": "Начальный баланс",
+  "@addAccountBalanceLabel": {
+    "description": "Подпись поля начального баланса"
+  },
+  "addAccountCurrencyLabel": "Валюта",
+  "@addAccountCurrencyLabel": {
+    "description": "Подпись выбора валюты"
+  },
+  "addAccountTypeLabel": "Тип счёта",
+  "@addAccountTypeLabel": {
+    "description": "Подпись выбора типа счёта"
+  },
+  "addAccountSaveCta": "Сохранить",
+  "@addAccountSaveCta": {
+    "description": "Основная кнопка сохранения счёта"
+  },
+  "addAccountNameRequired": "Введите название счёта.",
+  "@addAccountNameRequired": {
+    "description": "Сообщение валидации пустого названия"
+  },
+  "addAccountBalanceInvalid": "Введите корректную сумму.",
+  "@addAccountBalanceInvalid": {
+    "description": "Сообщение валидации некорректного баланса"
+  },
+  "addAccountError": "Не удалось сохранить счёт. Повторите попытку.",
+  "@addAccountError": {
+    "description": "Общее сообщение об ошибке при сохранении счёта"
+  },
+  "addAccountTypeCash": "Наличные",
+  "@addAccountTypeCash": {
+    "description": "Вариант типа счёта для наличных"
+  },
+  "addAccountTypeCard": "Карта",
+  "@addAccountTypeCard": {
+    "description": "Вариант типа счёта для карты"
+  },
+  "addAccountTypeBank": "Банковский счёт",
+  "@addAccountTypeBank": {
+    "description": "Вариант типа счёта для банковского счёта"
   }
 }

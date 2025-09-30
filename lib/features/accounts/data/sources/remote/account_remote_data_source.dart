@@ -78,7 +78,7 @@ class AccountRemoteDataSource {
       id: data['id'] as String? ?? doc.id,
       name: data['name'] as String? ?? '',
       balance: (data['balance'] as num?)?.toDouble() ?? 0,
-      currency: data['currency'] as String? ?? 'USD',
+      currency: data['currency'] as String? ?? 'RUB',
       type: data['type'] as String? ?? 'unknown',
       createdAt: _parseTimestamp(data['createdAt']),
       updatedAt: _parseTimestamp(data['updatedAt']),

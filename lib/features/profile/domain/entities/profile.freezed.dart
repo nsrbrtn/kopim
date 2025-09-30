@@ -213,7 +213,7 @@ return $default(_that.uid,_that.name,_that.currency,_that.locale,_that.updatedAt
 @JsonSerializable()
 
 class _Profile extends Profile {
-  const _Profile({required this.uid, this.name = '', this.currency = ProfileCurrency.usd, this.locale = 'en', required this.updatedAt}): super._();
+  const _Profile({required this.uid, this.name = '', this.currency = ProfileCurrency.rub, this.locale = 'en', required this.updatedAt}): super._();
   factory _Profile.fromJson(Map<String, dynamic> json) => _$ProfileFromJson(json);
 
 @override final  String uid;

@@ -266,6 +266,46 @@ final class ConnectivityProvider
 
 String _$connectivityHash() => r'dbbaa751fbd9afcb3ec3c33a3b00257f5fe5682c';
 
+@ProviderFor(uuidGenerator)
+const uuidGeneratorProvider = UuidGeneratorProvider._();
+
+final class UuidGeneratorProvider extends $FunctionalProvider<Uuid, Uuid, Uuid>
+    with $Provider<Uuid> {
+  const UuidGeneratorProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'uuidGeneratorProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$uuidGeneratorHash();
+
+  @$internal
+  @override
+  $ProviderElement<Uuid> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  Uuid create(Ref ref) {
+    return uuidGenerator(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(Uuid value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<Uuid>(value),
+    );
+  }
+}
+
+String _$uuidGeneratorHash() => r'037307e88c8a89227ac8c8e7d971ffd877d0cb60';
+
 @ProviderFor(appDatabase)
 const appDatabaseProvider = AppDatabaseProvider._();
 
@@ -751,6 +791,53 @@ final class AccountRepositoryProvider
 }
 
 String _$accountRepositoryHash() => r'35504303f5e7045ab7c337f1041ee01cffb06875';
+
+@ProviderFor(addAccountUseCase)
+const addAccountUseCaseProvider = AddAccountUseCaseProvider._();
+
+final class AddAccountUseCaseProvider
+    extends
+        $FunctionalProvider<
+          AddAccountUseCase,
+          AddAccountUseCase,
+          AddAccountUseCase
+        >
+    with $Provider<AddAccountUseCase> {
+  const AddAccountUseCaseProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'addAccountUseCaseProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$addAccountUseCaseHash();
+
+  @$internal
+  @override
+  $ProviderElement<AddAccountUseCase> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  AddAccountUseCase create(Ref ref) {
+    return addAccountUseCase(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(AddAccountUseCase value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<AddAccountUseCase>(value),
+    );
+  }
+}
+
+String _$addAccountUseCaseHash() => r'fa2b2563af599e8d07f320da1891e100d7ae6293';
 
 @ProviderFor(watchAccountsUseCase)
 const watchAccountsUseCaseProvider = WatchAccountsUseCaseProvider._();

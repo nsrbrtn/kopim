@@ -3,7 +3,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 part 'profile.freezed.dart';
 part 'profile.g.dart';
 
-enum ProfileCurrency { usd, eur, uah, kzt, gel }
+enum ProfileCurrency { rub, usd, eur, uah, kzt, gel }
 
 @freezed
 abstract class Profile with _$Profile {
@@ -12,7 +12,7 @@ abstract class Profile with _$Profile {
   const factory Profile({
     required String uid,
     @Default('') String name,
-    @Default(ProfileCurrency.usd) ProfileCurrency currency,
+    @Default(ProfileCurrency.rub) ProfileCurrency currency,
     @Default('en') String locale,
     required DateTime updatedAt,
   }) = _Profile;
