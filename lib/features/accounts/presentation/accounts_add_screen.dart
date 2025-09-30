@@ -117,7 +117,7 @@ class _AddAccountScreenState extends ConsumerState<AddAccountScreen> {
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
-                value: state.currency,
+                initialValue: state.currency,
                 decoration: InputDecoration(
                   labelText: strings.addAccountCurrencyLabel,
                 ),
@@ -139,7 +139,7 @@ class _AddAccountScreenState extends ConsumerState<AddAccountScreen> {
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
-                value: state.type,
+                initialValue: state.type,
                 decoration: InputDecoration(
                   labelText: strings.addAccountTypeLabel,
                 ),

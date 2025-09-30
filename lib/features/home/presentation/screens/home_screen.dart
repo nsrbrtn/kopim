@@ -222,6 +222,7 @@ class _TransactionsList extends StatelessWidget {
     properties
       ..add(IntProperty('transactionCount', transactions.length))
       ..add(StringProperty('localeName', localeName));
+      properties.add(DiagnosticsProperty<AppLocalizations>('strings', strings));
   }
 
   @override
