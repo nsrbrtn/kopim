@@ -141,15 +141,15 @@ class AppLocalizationsRu extends AppLocalizations {
       'Создание транзакции скоро будет доступно.';
 
   @override
-
   String get addTransactionAccountLabel => 'Счёт';
 
   @override
   String get addTransactionAccountRequired => 'Выберите счёт';
 
   @override
-  String addTransactionAccountsError(String error) =>
-      'Не удалось загрузить счета: $error';
+  String addTransactionAccountsError(String error) {
+    return 'Не удалось загрузить счета: $error';
+  }
 
   @override
   String get addTransactionNoAccounts =>
@@ -183,8 +183,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get addTransactionCategoriesLoading => 'Загружаем категории…';
 
   @override
-  String addTransactionCategoriesError(String error) =>
-      'Не удалось загрузить категории: $error';
+  String addTransactionCategoriesError(String error) {
+    return 'Не удалось загрузить категории: $error';
+  }
 
   @override
   String get addTransactionDateLabel => 'Дата';
@@ -206,6 +207,7 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get addTransactionSuccess => 'Транзакция сохранена';
 
+  @override
   String get homeAccountsAddTooltip => 'Добавить счёт';
 
   @override
@@ -243,5 +245,4 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get addAccountTypeBank => 'Банковский счёт';
-
 }

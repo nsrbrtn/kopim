@@ -5,6 +5,9 @@ import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/transactions/domain/entities/add_transaction_request.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
 import 'package:kopim/features/transactions/domain/use_cases/add_transaction_use_case.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+part 'add_transaction_controller.g.dart';
 
 class AddTransactionState {
   const AddTransactionState({
@@ -86,13 +89,12 @@ final addTransactionCategoriesProvider =
     StreamProvider.autoDispose<List<Category>>((Ref ref) {
   return ref.watch(watchCategoriesUseCaseProvider).call();
 });
-
 final addTransactionControllerProvider =
-    AutoDisposeNotifierProvider<AddTransactionController, AddTransactionState>(
+NotifierProvider.autoDispose<AddTransactionController, AddTransactionState>(
   AddTransactionController.new,
 );
-
-class AddTransactionController extends AutoDisposeNotifier<AddTransactionState> {
+@riverpod
+class AddTransactionController extends _$AddTransactionController {
   @override
   AddTransactionState build() => const AddTransactionState();
 

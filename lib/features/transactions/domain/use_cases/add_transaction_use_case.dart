@@ -15,7 +15,7 @@ class AddTransactionUseCase {
   })  : _transactionRepository = transactionRepository,
         _accountRepository = accountRepository,
         _generateId = idGenerator ?? () => const Uuid().v4(),
-        _clock = clock ?? DateTime.now;
+        _clock = clock ?? () => DateTime.now();
 
   final TransactionRepository _transactionRepository;
   final AccountRepository _accountRepository;

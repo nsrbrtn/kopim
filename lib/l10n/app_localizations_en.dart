@@ -140,15 +140,15 @@ class AppLocalizationsEn extends AppLocalizations {
       'Transaction creation will be available shortly.';
 
   @override
-
   String get addTransactionAccountLabel => 'Account';
 
   @override
   String get addTransactionAccountRequired => 'Please choose an account';
 
   @override
-  String addTransactionAccountsError(String error) =>
-      'Unable to load accounts: $error';
+  String addTransactionAccountsError(String error) {
+    return 'Unable to load accounts: $error';
+  }
 
   @override
   String get addTransactionNoAccounts =>
@@ -183,8 +183,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addTransactionCategoriesLoading => 'Loading categories…';
 
   @override
-  String addTransactionCategoriesError(String error) =>
-      'Unable to load categories: $error';
+  String addTransactionCategoriesError(String error) {
+    return 'Unable to load categories: $error';
+  }
 
   @override
   String get addTransactionDateLabel => 'Date';
@@ -206,6 +207,7 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get addTransactionSuccess => 'Transaction saved';
 
+  @override
   String get homeAccountsAddTooltip => 'Add account';
 
   @override
@@ -243,5 +245,4 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get addAccountTypeBank => 'Bank account';
-
 }

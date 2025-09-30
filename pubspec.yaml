@@ -42,7 +42,7 @@ dependencies:
 
   # Utils
   intl: ^0.20.2
-  uuid: ^4.4.2
+
 
   # Analytics UI (charts) - merged, use syncfusion as advanced alternative
   syncfusion_flutter_charts: ^31.1.21  # Instead of fl_chart for richer features

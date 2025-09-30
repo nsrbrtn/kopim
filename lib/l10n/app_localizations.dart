@@ -326,7 +326,6 @@ abstract class AppLocalizations {
   /// **'Transaction creation will be available shortly.'**
   String get addTransactionComingSoon;
 
-
   /// Label for account selector on add transaction form
   ///
   /// In en, this message translates to:
@@ -524,7 +523,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Bank account'**
   String get addAccountTypeBank;
-
 }
 
 class _AppLocalizationsDelegate

@@ -277,7 +277,7 @@
   "addTransactionSuccess": "Транзакция сохранена",
   "@addTransactionSuccess": {
     "description": "Сообщение об успешном сохранении"
-
+  },
   "homeAccountsAddTooltip": "Добавить счёт",
   "@homeAccountsAddTooltip": {
     "description": "Тултип для кнопки добавления счёта на домашнем экране"

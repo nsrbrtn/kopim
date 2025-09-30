@@ -277,7 +277,7 @@
   "addTransactionSuccess": "Transaction saved",
   "@addTransactionSuccess": {
     "description": "Confirmation message shown after creating a transaction"
-
+  },
   "homeAccountsAddTooltip": "Add account",
   "@homeAccountsAddTooltip": {
     "description": "Tooltip for the add account button on the home screen"
