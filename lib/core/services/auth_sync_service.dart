@@ -89,7 +89,7 @@ class AuthSyncService {
 
     final Map<String, dynamic> syncContext = <String, dynamic>{
       'userId': user.uid,
-      'upgradedFromAnonymous': upgradingFromAnonymous,
+      'upgradedFromAnonymous': upgradingFromAnonymous ? 1 : 0,
     };
 
     await _analyticsService.logEvent('auth_sync_start', syncContext);
