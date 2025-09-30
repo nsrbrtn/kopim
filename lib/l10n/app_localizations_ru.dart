@@ -141,6 +141,7 @@ class AppLocalizationsRu extends AppLocalizations {
       'Создание транзакции скоро будет доступно.';
 
   @override
+
   String get addTransactionAccountLabel => 'Счёт';
 
   @override
@@ -204,4 +205,43 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get addTransactionSuccess => 'Транзакция сохранена';
+
+  String get homeAccountsAddTooltip => 'Добавить счёт';
+
+  @override
+  String get addAccountTitle => 'Добавление счёта';
+
+  @override
+  String get addAccountNameLabel => 'Название счёта';
+
+  @override
+  String get addAccountBalanceLabel => 'Начальный баланс';
+
+  @override
+  String get addAccountCurrencyLabel => 'Валюта';
+
+  @override
+  String get addAccountTypeLabel => 'Тип счёта';
+
+  @override
+  String get addAccountSaveCta => 'Сохранить';
+
+  @override
+  String get addAccountNameRequired => 'Введите название счёта.';
+
+  @override
+  String get addAccountBalanceInvalid => 'Введите корректную сумму.';
+
+  @override
+  String get addAccountError => 'Не удалось сохранить счёт. Повторите попытку.';
+
+  @override
+  String get addAccountTypeCash => 'Наличные';
+
+  @override
+  String get addAccountTypeCard => 'Карта';
+
+  @override
+  String get addAccountTypeBank => 'Банковский счёт';
+
 }

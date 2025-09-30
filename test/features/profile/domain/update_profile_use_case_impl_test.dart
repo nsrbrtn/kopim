@@ -27,7 +27,7 @@ void main() {
       Profile(
         uid: 'fallback',
         name: '',
-        currency: ProfileCurrency.usd,
+        currency: ProfileCurrency.rub,
         locale: 'en',
         updatedAt: DateTime.utc(2024, 1, 1),
       ),

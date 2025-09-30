@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
+import 'package:kopim/features/accounts/presentation/accounts_add_screen.dart';
 import 'package:kopim/features/home/presentation/controllers/home_providers.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
 import 'package:kopim/features/profile/presentation/controllers/auth_controller.dart';
@@ -65,7 +66,16 @@ class HomeScreen extends ConsumerWidget {
                 return ListView(
                   padding: padding,
                   children: <Widget>[
-                    _SectionHeader(title: strings.homeAccountsSection),
+                    _SectionHeader(
+                      title: strings.homeAccountsSection,
+                      action: IconButton(
+                        icon: const Icon(Icons.add),
+                        tooltip: strings.homeAccountsAddTooltip,
+                        onPressed: () => Navigator.of(
+                          context,
+                        ).pushNamed(AddAccountScreen.routeName),
+                      ),
+                    ),
                     const SizedBox(height: 12),
                     accountsAsync.when(
                       data: (List<AccountEntity> accounts) =>
@@ -221,6 +231,7 @@ class _TransactionsList extends StatelessWidget {
     properties
       ..add(IntProperty('transactionCount', transactions.length))
       ..add(StringProperty('localeName', localeName));
+      properties.add(DiagnosticsProperty<AppLocalizations>('strings', strings));
   }
 
   @override
@@ -278,19 +289,33 @@ class _TransactionsList extends StatelessWidget {
 }
 
 class _SectionHeader extends StatelessWidget {
-  const _SectionHeader({required this.title});
+  const _SectionHeader({required this.title, this.action});
 
   final String title;
+  final Widget? action;
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
-    properties.add(StringProperty('title', title));
+    properties
+      ..add(StringProperty('title', title))
+      ..add(DiagnosticsProperty<Widget>('action', action, defaultValue: null));
   }
 
   @override
   Widget build(BuildContext context) {
-    return Text(title, style: Theme.of(context).textTheme.titleLarge);
+    final TextStyle? style = Theme.of(context).textTheme.titleLarge;
+    if (action == null) {
+      return Text(title, style: style);
+    }
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: <Widget>[
+        Expanded(child: Text(title, style: style)),
+        const SizedBox(width: 8),
+        action!,
+      ],
+    );
   }
 }
 

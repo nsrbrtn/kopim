@@ -16,7 +16,7 @@ void main() {
   final Profile profile = Profile(
     uid: uid,
     name: 'Initial',
-    currency: ProfileCurrency.usd,
+    currency: ProfileCurrency.rub,
     locale: 'en',
     updatedAt: DateTime.utc(2024, 1, 1),
   );
@@ -30,7 +30,7 @@ void main() {
       Profile(
         uid: 'fallback',
         name: '',
-        currency: ProfileCurrency.usd,
+        currency: ProfileCurrency.rub,
         locale: 'en',
         updatedAt: DateTime.fromMillisecondsSinceEpoch(0),
       ),
@@ -56,7 +56,7 @@ void main() {
     );
 
     expect(state.name, equals('Initial'));
-    expect(state.currency, equals(ProfileCurrency.usd));
+    expect(state.currency, equals(ProfileCurrency.rub));
     expect(state.locale, equals('en'));
     expect(state.hasChanges, isFalse);
   });

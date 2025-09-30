@@ -61,11 +61,11 @@ class ProfileRemoteDataSource {
   }
 
   ProfileCurrency _parseCurrency(String? raw) {
-    if (raw == null) return ProfileCurrency.usd;
+    if (raw == null) return ProfileCurrency.rub;
     final String upper = raw.toUpperCase();
     return ProfileCurrency.values.firstWhere(
       (ProfileCurrency value) => value.name.toUpperCase() == upper,
-      orElse: () => ProfileCurrency.usd,
+      orElse: () => ProfileCurrency.rub,
     );
   }
 

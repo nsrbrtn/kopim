@@ -56,12 +56,12 @@ class ProfileDao {
 
   ProfileCurrency _parseCurrency(String? value) {
     if (value == null) {
-      return ProfileCurrency.usd;
+      return ProfileCurrency.rub;
     }
     final ProfileCurrency match = ProfileCurrency.values.firstWhere(
       (ProfileCurrency currency) =>
           currency.name.toUpperCase() == value.toUpperCase(),
-      orElse: () => ProfileCurrency.usd,
+      orElse: () => ProfileCurrency.rub,
     );
     return match;
   }

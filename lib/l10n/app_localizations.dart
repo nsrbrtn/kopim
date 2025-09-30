@@ -326,6 +326,7 @@ abstract class AppLocalizations {
   /// **'Transaction creation will be available shortly.'**
   String get addTransactionComingSoon;
 
+
   /// Label for account selector on add transaction form
   ///
   /// In en, this message translates to:
@@ -445,6 +446,85 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Transaction saved'**
   String get addTransactionSuccess;
+
+  /// Tooltip for the add account button on the home screen
+  ///
+  /// In en, this message translates to:
+  /// **'Add account'**
+  String get homeAccountsAddTooltip;
+
+  /// Title for the add account screen
+  ///
+  /// In en, this message translates to:
+  /// **'Add account'**
+  String get addAccountTitle;
+
+  /// Label for the account name input field
+  ///
+  /// In en, this message translates to:
+  /// **'Account name'**
+  String get addAccountNameLabel;
+
+  /// Label for the starting balance input field
+  ///
+  /// In en, this message translates to:
+  /// **'Starting balance'**
+  String get addAccountBalanceLabel;
+
+  /// Label for the currency selector
+  ///
+  /// In en, this message translates to:
+  /// **'Currency'**
+  String get addAccountCurrencyLabel;
+
+  /// Label for the account type selector
+  ///
+  /// In en, this message translates to:
+  /// **'Account type'**
+  String get addAccountTypeLabel;
+
+  /// Primary action button label for saving an account
+  ///
+  /// In en, this message translates to:
+  /// **'Save account'**
+  String get addAccountSaveCta;
+
+  /// Validation error shown when the account name is empty
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter the account name.'**
+  String get addAccountNameRequired;
+
+  /// Validation error shown when the balance input cannot be parsed
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid amount.'**
+  String get addAccountBalanceInvalid;
+
+  /// Generic error shown when the add account request fails
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save account. Please try again.'**
+  String get addAccountError;
+
+  /// Option label for cash accounts
+  ///
+  /// In en, this message translates to:
+  /// **'Cash'**
+  String get addAccountTypeCash;
+
+  /// Option label for card accounts
+  ///
+  /// In en, this message translates to:
+  /// **'Card'**
+  String get addAccountTypeCard;
+
+  /// Option label for bank accounts
+  ///
+  /// In en, this message translates to:
+  /// **'Bank account'**
+  String get addAccountTypeBank;
+
 }
 
 class _AppLocalizationsDelegate

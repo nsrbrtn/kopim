@@ -187,6 +187,7 @@
   "@addTransactionComingSoon": {
     "description": "Placeholder message for add transaction screen"
   },
+
   "addTransactionAccountLabel": "Account",
   "@addTransactionAccountLabel": {
     "description": "Label for account selector on add transaction form"
@@ -276,5 +277,58 @@
   "addTransactionSuccess": "Transaction saved",
   "@addTransactionSuccess": {
     "description": "Confirmation message shown after creating a transaction"
+
+  "homeAccountsAddTooltip": "Add account",
+  "@homeAccountsAddTooltip": {
+    "description": "Tooltip for the add account button on the home screen"
+  },
+  "addAccountTitle": "Add account",
+  "@addAccountTitle": {
+    "description": "Title for the add account screen"
+  },
+  "addAccountNameLabel": "Account name",
+  "@addAccountNameLabel": {
+    "description": "Label for the account name input field"
+  },
+  "addAccountBalanceLabel": "Starting balance",
+  "@addAccountBalanceLabel": {
+    "description": "Label for the starting balance input field"
+  },
+  "addAccountCurrencyLabel": "Currency",
+  "@addAccountCurrencyLabel": {
+    "description": "Label for the currency selector"
+  },
+  "addAccountTypeLabel": "Account type",
+  "@addAccountTypeLabel": {
+    "description": "Label for the account type selector"
+  },
+  "addAccountSaveCta": "Save account",
+  "@addAccountSaveCta": {
+    "description": "Primary action button label for saving an account"
+  },
+  "addAccountNameRequired": "Please enter the account name.",
+  "@addAccountNameRequired": {
+    "description": "Validation error shown when the account name is empty"
+  },
+  "addAccountBalanceInvalid": "Enter a valid amount.",
+  "@addAccountBalanceInvalid": {
+    "description": "Validation error shown when the balance input cannot be parsed"
+  },
+  "addAccountError": "Could not save account. Please try again.",
+  "@addAccountError": {
+    "description": "Generic error shown when the add account request fails"
+  },
+  "addAccountTypeCash": "Cash",
+  "@addAccountTypeCash": {
+    "description": "Option label for cash accounts"
+  },
+  "addAccountTypeCard": "Card",
+  "@addAccountTypeCard": {
+    "description": "Option label for card accounts"
+  },
+  "addAccountTypeBank": "Bank account",
+  "@addAccountTypeBank": {
+    "description": "Option label for bank accounts"
+
   }
 }

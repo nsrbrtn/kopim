@@ -140,6 +140,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Transaction creation will be available shortly.';
 
   @override
+
   String get addTransactionAccountLabel => 'Account';
 
   @override
@@ -204,4 +205,43 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get addTransactionSuccess => 'Transaction saved';
+
+  String get homeAccountsAddTooltip => 'Add account';
+
+  @override
+  String get addAccountTitle => 'Add account';
+
+  @override
+  String get addAccountNameLabel => 'Account name';
+
+  @override
+  String get addAccountBalanceLabel => 'Starting balance';
+
+  @override
+  String get addAccountCurrencyLabel => 'Currency';
+
+  @override
+  String get addAccountTypeLabel => 'Account type';
+
+  @override
+  String get addAccountSaveCta => 'Save account';
+
+  @override
+  String get addAccountNameRequired => 'Please enter the account name.';
+
+  @override
+  String get addAccountBalanceInvalid => 'Enter a valid amount.';
+
+  @override
+  String get addAccountError => 'Could not save account. Please try again.';
+
+  @override
+  String get addAccountTypeCash => 'Cash';
+
+  @override
+  String get addAccountTypeCard => 'Card';
+
+  @override
+  String get addAccountTypeBank => 'Bank account';
+
 }
