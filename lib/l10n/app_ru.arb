@@ -186,5 +186,95 @@
   "addTransactionComingSoon": "Создание транзакции скоро будет доступно.",
   "@addTransactionComingSoon": {
     "description": "Заглушка для экрана добавления транзакции"
+  },
+  "addTransactionAccountLabel": "Счёт",
+  "@addTransactionAccountLabel": {
+    "description": "Подпись поля выбора счёта"
+  },
+  "addTransactionAccountRequired": "Выберите счёт",
+  "@addTransactionAccountRequired": {
+    "description": "Сообщение валидации при отсутствии счёта"
+  },
+  "addTransactionAccountsError": "Не удалось загрузить счета: {error}",
+  "@addTransactionAccountsError": {
+    "description": "Сообщение об ошибке при загрузке счетов",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "addTransactionNoAccounts": "Сначала создайте счёт, чтобы добавить транзакцию.",
+  "@addTransactionNoAccounts": {
+    "description": "Сообщение, если нет доступных счетов"
+  },
+  "addTransactionAmountLabel": "Сумма",
+  "@addTransactionAmountLabel": {
+    "description": "Подпись поля суммы"
+  },
+  "addTransactionAmountHint": "0,00",
+  "@addTransactionAmountHint": {
+    "description": "Подсказка в поле суммы"
+  },
+  "addTransactionAmountInvalid": "Введите сумму больше нуля",
+  "@addTransactionAmountInvalid": {
+    "description": "Сообщение об ошибке суммы"
+  },
+  "addTransactionTypeLabel": "Тип",
+  "@addTransactionTypeLabel": {
+    "description": "Подпись выбора типа"
+  },
+  "addTransactionTypeExpense": "Расход",
+  "@addTransactionTypeExpense": {
+    "description": "Подпись варианта расход"
+  },
+  "addTransactionTypeIncome": "Доход",
+  "@addTransactionTypeIncome": {
+    "description": "Подпись варианта доход"
+  },
+  "addTransactionCategoryLabel": "Категория",
+  "@addTransactionCategoryLabel": {
+    "description": "Подпись выбора категории"
+  },
+  "addTransactionCategoryNone": "Без категории",
+  "@addTransactionCategoryNone": {
+    "description": "Вариант без категории"
+  },
+  "addTransactionCategoriesLoading": "Загружаем категории…",
+  "@addTransactionCategoriesLoading": {
+    "description": "Текст во время загрузки категорий"
+  },
+  "addTransactionCategoriesError": "Не удалось загрузить категории: {error}",
+  "@addTransactionCategoriesError": {
+    "description": "Ошибка загрузки категорий",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "addTransactionDateLabel": "Дата",
+  "@addTransactionDateLabel": {
+    "description": "Подпись выбора даты"
+  },
+  "addTransactionNoteLabel": "Заметка",
+  "@addTransactionNoteLabel": {
+    "description": "Подпись поля заметки"
+  },
+  "addTransactionSubmit": "Сохранить",
+  "@addTransactionSubmit": {
+    "description": "Кнопка сохранения транзакции"
+  },
+  "addTransactionAccountMissingError": "Выбранный счёт больше не доступен.",
+  "@addTransactionAccountMissingError": {
+    "description": "Ошибка, если счёт удалён"
+  },
+  "addTransactionUnknownError": "Не удалось сохранить транзакцию. Попробуйте ещё раз.",
+  "@addTransactionUnknownError": {
+    "description": "Общее сообщение об ошибке сохранения"
+  },
+  "addTransactionSuccess": "Транзакция сохранена",
+  "@addTransactionSuccess": {
+    "description": "Сообщение об успешном сохранении"
   }
 }

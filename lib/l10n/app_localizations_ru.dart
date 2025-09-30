@@ -139,4 +139,69 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get addTransactionComingSoon =>
       'Создание транзакции скоро будет доступно.';
+
+  @override
+  String get addTransactionAccountLabel => 'Счёт';
+
+  @override
+  String get addTransactionAccountRequired => 'Выберите счёт';
+
+  @override
+  String addTransactionAccountsError(String error) =>
+      'Не удалось загрузить счета: $error';
+
+  @override
+  String get addTransactionNoAccounts =>
+      'Сначала создайте счёт, чтобы добавить транзакцию.';
+
+  @override
+  String get addTransactionAmountLabel => 'Сумма';
+
+  @override
+  String get addTransactionAmountHint => '0,00';
+
+  @override
+  String get addTransactionAmountInvalid => 'Введите сумму больше нуля';
+
+  @override
+  String get addTransactionTypeLabel => 'Тип';
+
+  @override
+  String get addTransactionTypeExpense => 'Расход';
+
+  @override
+  String get addTransactionTypeIncome => 'Доход';
+
+  @override
+  String get addTransactionCategoryLabel => 'Категория';
+
+  @override
+  String get addTransactionCategoryNone => 'Без категории';
+
+  @override
+  String get addTransactionCategoriesLoading => 'Загружаем категории…';
+
+  @override
+  String addTransactionCategoriesError(String error) =>
+      'Не удалось загрузить категории: $error';
+
+  @override
+  String get addTransactionDateLabel => 'Дата';
+
+  @override
+  String get addTransactionNoteLabel => 'Заметка';
+
+  @override
+  String get addTransactionSubmit => 'Сохранить';
+
+  @override
+  String get addTransactionAccountMissingError =>
+      'Выбранный счёт больше не доступен.';
+
+  @override
+  String get addTransactionUnknownError =>
+      'Не удалось сохранить транзакцию. Попробуйте ещё раз.';
+
+  @override
+  String get addTransactionSuccess => 'Транзакция сохранена';
 }

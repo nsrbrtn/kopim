@@ -325,6 +325,126 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Transaction creation will be available shortly.'**
   String get addTransactionComingSoon;
+
+  /// Label for account selector on add transaction form
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get addTransactionAccountLabel;
+
+  /// Validation message when no account is selected
+  ///
+  /// In en, this message translates to:
+  /// **'Please choose an account'**
+  String get addTransactionAccountRequired;
+
+  /// Error message shown when account stream fails
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load accounts: {error}'**
+  String addTransactionAccountsError(String error);
+
+  /// Message shown when there are no accounts available
+  ///
+  /// In en, this message translates to:
+  /// **'Create an account first to add transactions.'**
+  String get addTransactionNoAccounts;
+
+  /// Label for transaction amount field
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get addTransactionAmountLabel;
+
+  /// Hint text for transaction amount field
+  ///
+  /// In en, this message translates to:
+  /// **'0.00'**
+  String get addTransactionAmountHint;
+
+  /// Validation message for invalid transaction amount
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid amount greater than zero'**
+  String get addTransactionAmountInvalid;
+
+  /// Label for transaction type selector
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get addTransactionTypeLabel;
+
+  /// Label for selecting expense type
+  ///
+  /// In en, this message translates to:
+  /// **'Expense'**
+  String get addTransactionTypeExpense;
+
+  /// Label for selecting income type
+  ///
+  /// In en, this message translates to:
+  /// **'Income'**
+  String get addTransactionTypeIncome;
+
+  /// Label for category selector
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get addTransactionCategoryLabel;
+
+  /// Option label when no category is selected
+  ///
+  /// In en, this message translates to:
+  /// **'No category'**
+  String get addTransactionCategoryNone;
+
+  /// Helper text while categories are loading
+  ///
+  /// In en, this message translates to:
+  /// **'Loading categories…'**
+  String get addTransactionCategoriesLoading;
+
+  /// Error shown when categories stream fails
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load categories: {error}'**
+  String addTransactionCategoriesError(String error);
+
+  /// Label for the date picker
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get addTransactionDateLabel;
+
+  /// Label for optional note field
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get addTransactionNoteLabel;
+
+  /// Button label for saving a transaction
+  ///
+  /// In en, this message translates to:
+  /// **'Save transaction'**
+  String get addTransactionSubmit;
+
+  /// Error when the selected account was deleted
+  ///
+  /// In en, this message translates to:
+  /// **'Selected account is no longer available.'**
+  String get addTransactionAccountMissingError;
+
+  /// Generic error when saving a transaction fails
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to save the transaction. Try again.'**
+  String get addTransactionUnknownError;
+
+  /// Confirmation message shown after creating a transaction
+  ///
+  /// In en, this message translates to:
+  /// **'Transaction saved'**
+  String get addTransactionSuccess;
 }
 
 class _AppLocalizationsDelegate

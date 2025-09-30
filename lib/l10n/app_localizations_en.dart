@@ -138,4 +138,70 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get addTransactionComingSoon =>
       'Transaction creation will be available shortly.';
+
+  @override
+  String get addTransactionAccountLabel => 'Account';
+
+  @override
+  String get addTransactionAccountRequired => 'Please choose an account';
+
+  @override
+  String addTransactionAccountsError(String error) =>
+      'Unable to load accounts: $error';
+
+  @override
+  String get addTransactionNoAccounts =>
+      'Create an account first to add transactions.';
+
+  @override
+  String get addTransactionAmountLabel => 'Amount';
+
+  @override
+  String get addTransactionAmountHint => '0.00';
+
+  @override
+  String get addTransactionAmountInvalid =>
+      'Enter a valid amount greater than zero';
+
+  @override
+  String get addTransactionTypeLabel => 'Type';
+
+  @override
+  String get addTransactionTypeExpense => 'Expense';
+
+  @override
+  String get addTransactionTypeIncome => 'Income';
+
+  @override
+  String get addTransactionCategoryLabel => 'Category';
+
+  @override
+  String get addTransactionCategoryNone => 'No category';
+
+  @override
+  String get addTransactionCategoriesLoading => 'Loading categories…';
+
+  @override
+  String addTransactionCategoriesError(String error) =>
+      'Unable to load categories: $error';
+
+  @override
+  String get addTransactionDateLabel => 'Date';
+
+  @override
+  String get addTransactionNoteLabel => 'Note';
+
+  @override
+  String get addTransactionSubmit => 'Save transaction';
+
+  @override
+  String get addTransactionAccountMissingError =>
+      'Selected account is no longer available.';
+
+  @override
+  String get addTransactionUnknownError =>
+      'Unable to save the transaction. Try again.';
+
+  @override
+  String get addTransactionSuccess => 'Transaction saved';
 }
