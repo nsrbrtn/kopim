@@ -15,7 +15,7 @@ abstract class AddAccountFormState with _$AddAccountFormState {
   const factory AddAccountFormState({
     @Default('') String name,
     @Default('') String balanceInput,
-    @Default('USD') String currency,
+    @Default('RUB') String currency,
     @Default('cash') String type,
     @Default(false) bool isSaving,
     @Default(false) bool submissionSuccess,

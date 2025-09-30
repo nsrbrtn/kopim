@@ -16,13 +16,14 @@ android {
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8  // Для совместимости с desugaring
-        targetCompatibility = JavaVersion.VERSION_1_8  // Для совместимости с desugaring
+        sourceCompatibility = JavaVersion.VERSION_11  // Для совместимости с desugaring
+        targetCompatibility = JavaVersion.VERSION_11  // Для совместимости с desugaring
         isCoreLibraryDesugaringEnabled = true  // Исправлено: добавлен префикс "is" для KTS
+
     }
 
     kotlinOptions {
-        jvmTarget = "1.8"  // Для Kotlin compatibility с Java 8
+        jvmTarget = "11"  // Для Kotlin compatibility с Java 8
     }
 
     defaultConfig {

@@ -25,6 +25,7 @@ Map<String, dynamic> _$ProfileToJson(_Profile instance) => <String, dynamic>{
 };
 
 const _$ProfileCurrencyEnumMap = {
+  ProfileCurrency.rub: 'rub',
   ProfileCurrency.usd: 'usd',
   ProfileCurrency.eur: 'eur',
   ProfileCurrency.uah: 'uah',

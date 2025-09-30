@@ -214,7 +214,7 @@ return $default(_that.name,_that.balanceInput,_that.currency,_that.type,_that.is
 
 
 class _AddAccountFormState extends AddAccountFormState {
-  const _AddAccountFormState({this.name = '', this.balanceInput = '', this.currency = 'USD', this.type = 'cash', this.isSaving = false, this.submissionSuccess = false, this.nameError, this.balanceError, this.errorMessage}): super._();
+  const _AddAccountFormState({this.name = '', this.balanceInput = '', this.currency = 'RUB', this.type = 'cash', this.isSaving = false, this.submissionSuccess = false, this.nameError, this.balanceError, this.errorMessage}): super._();
   
 
 @override@JsonKey() final  String name;
