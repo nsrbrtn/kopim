@@ -6,14 +6,14 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 class PhosphorIconPickerLabels {
   const PhosphorIconPickerLabels({
     required this.title,
-    required this.clearButtonLabel,
+
     required this.emptyStateLabel,
     required this.styleLabels,
     required this.groupLabels,
   });
 
   final String title;
-  final String clearButtonLabel;
+
   final String emptyStateLabel;
   final Map<PhosphorIconStyle, String> styleLabels;
   final Map<String, String> groupLabels;
@@ -205,9 +205,7 @@ class _PhosphorIconPickerSheetState extends State<_PhosphorIconPickerSheet>
     Navigator.of(context).pop(descriptor);
   }
 
-  void _clearSelection() {
-    Navigator.of(context).pop(null);
-  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -233,11 +231,8 @@ class _PhosphorIconPickerSheetState extends State<_PhosphorIconPickerSheet>
                         style: theme.textTheme.titleLarge,
                       ),
                     ),
-                    TextButton.icon(
-                      onPressed: _clearSelection,
-                      icon: const Icon(Icons.block),
-                      label: Text(widget.labels.clearButtonLabel),
-                    ),
+
+
                   ],
                 ),
                 const SizedBox(height: 16),

@@ -266,7 +266,7 @@ abstract class AppLocalizations {
   /// **'Clear selection'**
   String get manageCategoriesIconClear;
 
-  /// Empty state shown when the selected icon group has no entries
+  /// Empty state shown when the selected icon group has no items
   ///
   /// In en, this message translates to:
   /// **'No icons available.'**

@@ -450,7 +450,6 @@ class _CategoryEditorSheet extends ConsumerWidget {
 
     final PhosphorIconPickerLabels pickerLabels = PhosphorIconPickerLabels(
       title: strings.manageCategoriesIconPickerTitle,
-      clearButtonLabel: strings.manageCategoriesIconClear,
       emptyStateLabel: strings.manageCategoriesIconEmpty,
       styleLabels: <PhosphorIconStyle, String>{
         PhosphorIconStyle.thin: strings.manageCategoriesIconStyleThin,
