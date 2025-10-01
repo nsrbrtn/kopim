@@ -401,7 +401,7 @@ abstract class AppLocalizations {
   /// Confirmation message shown before deleting a category
   ///
   /// In en, this message translates to:
-  /// **'Are you sure you want to delete the category "{name}"? All subcategories will also be removed.'**
+  /// **'Are you sure you want to delete the category \"{name}\"? All subcategories will also be removed.'**
   String manageCategoriesDeleteConfirmMessage(String name);
 
   /// Snackbar message shown when a category is deleted

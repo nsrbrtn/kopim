@@ -166,7 +166,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String manageCategoriesDeleteConfirmMessage(String name) {
-    return 'Are you sure you want to delete the category "$name"? All subcategories will also be removed.';
+    return 'Are you sure you want to delete the category \"$name\"? All subcategories will also be removed.';
   }
 
   @override
