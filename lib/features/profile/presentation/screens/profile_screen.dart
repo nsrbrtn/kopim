@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kopim/core/config/app_config.dart';
+import 'package:kopim/features/app_shell/presentation/models/navigation_tab_content.dart';
 import 'package:kopim/features/categories/presentation/screens/manage_categories_screen.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
 import 'package:kopim/features/profile/domain/entities/profile.dart';
@@ -18,13 +19,29 @@ class ProfileScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final AppLocalizations strings = AppLocalizations.of(context)!;
-    final ThemeData theme = ref.watch(appThemeProvider);
-    final AsyncValue<AuthUser?> authState = ref.watch(authControllerProvider);
-
+    final NavigationTabContent content = buildProfileTabContent(context, ref);
     return Scaffold(
-      appBar: AppBar(title: Text(strings.profileTitle)),
-      body: authState.when(
+      appBar: content.appBarBuilder?.call(context, ref),
+      body: content.bodyBuilder(context, ref),
+      floatingActionButton:
+          content.floatingActionButtonBuilder?.call(context, ref),
+    );
+  }
+}
+
+NavigationTabContent buildProfileTabContent(
+  BuildContext context,
+  WidgetRef ref,
+) {
+  return NavigationTabContent(
+    appBarBuilder: (BuildContext context, WidgetRef ref) =>
+        AppBar(title: Text(AppLocalizations.of(context)!.profileTitle)),
+    bodyBuilder: (BuildContext context, WidgetRef ref) {
+      final AppLocalizations strings = AppLocalizations.of(context)!;
+      final ThemeData theme = ref.watch(appThemeProvider);
+      final AsyncValue<AuthUser?> authState = ref.watch(authControllerProvider);
+
+      return authState.when(
         loading: () => const _CenteredProgress(),
         error: (Object error, StackTrace? stackTrace) =>
             _ErrorView(message: error.toString()),
@@ -61,9 +78,9 @@ class ProfileScreen extends ConsumerWidget {
             },
           );
         },
-      ),
-    );
-  }
+      );
+    },
+  );
 }
 
 class _ProfileForm extends ConsumerWidget {

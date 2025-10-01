@@ -4,168 +4,167 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/accounts/presentation/accounts_add_screen.dart';
-import 'package:kopim/features/home/presentation/controllers/home_providers.dart';
+import 'package:kopim/features/app_shell/presentation/models/navigation_tab_content.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
 import 'package:kopim/features/profile/presentation/controllers/auth_controller.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
+import 'package:kopim/features/transactions/presentation/add_transaction_screen.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
-import 'package:kopim/features/analytics/presentation/analytics_screen.dart';
-import 'package:kopim/features/profile/presentation/screens/profile_screen.dart';
-import 'package:kopim/features/transactions/presentation/add_transaction_screen.dart';
+import '../controllers/home_providers.dart';
 
-class HomeScreen extends ConsumerWidget {
-  const HomeScreen({super.key});
+NavigationTabContent buildHomeTabContent(BuildContext context, WidgetRef ref) {
+  final AppLocalizations strings = AppLocalizations.of(context)!;
+  final AsyncValue<AuthUser?> authState = ref.watch(authControllerProvider);
+  final AsyncValue<List<TransactionEntity>> transactionsAsync =
+      ref.watch(homeRecentTransactionsProvider());
+  final AsyncValue<List<AccountEntity>> accountsAsync =
+      ref.watch(homeAccountsProvider);
+  final double totalBalance = ref.watch(homeTotalBalanceProvider);
+  final bool isWideLayout = MediaQuery.of(context).size.width >= 720;
+  final NumberFormat currencyFormat = NumberFormat.simpleCurrency(
+    locale: strings.localeName,
+  );
 
-  static const String routeName = '/home';
+  final String appBarTitle = accountsAsync.maybeWhen(
+    data: (List<AccountEntity> accounts) {
+      if (accounts.isEmpty) {
+        return strings.homeTitle;
+      }
+      return strings.homeTotalBalance(currencyFormat.format(totalBalance));
+    },
+    orElse: () => strings.homeTitle,
+  );
+
+  return NavigationTabContent(
+    appBarBuilder: (BuildContext context, WidgetRef ref) =>
+        AppBar(title: Text(appBarTitle)),
+    bodyBuilder: (BuildContext context, WidgetRef ref) => SafeArea(
+      child: _HomeBody(
+        authState: authState,
+        transactionsAsync: transactionsAsync,
+        accountsAsync: accountsAsync,
+        strings: strings,
+        isWideLayout: isWideLayout,
+      ),
+    ),
+    floatingActionButtonBuilder: (BuildContext context, WidgetRef ref) =>
+        _AddTransactionButton(strings: strings),
+  );
+}
+
+class _HomeBody extends StatelessWidget {
+  const _HomeBody({
+    required this.authState,
+    required this.transactionsAsync,
+    required this.accountsAsync,
+    required this.strings,
+    required this.isWideLayout,
+  });
+
+  final AsyncValue<AuthUser?> authState;
+  final AsyncValue<List<TransactionEntity>> transactionsAsync;
+  final AsyncValue<List<AccountEntity>> accountsAsync;
+  final AppLocalizations strings;
+  final bool isWideLayout;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final AppLocalizations strings = AppLocalizations.of(context)!;
-    final AsyncValue<AuthUser?> authState = ref.watch(authControllerProvider);
-    final AsyncValue<List<TransactionEntity>> transactionsAsync =
-    ref.watch(homeRecentTransactionsProvider());
-    final AsyncValue<List<AccountEntity>> accountsAsync =
-    ref.watch(homeAccountsProvider);
-    final double totalBalance = ref.watch(homeTotalBalanceProvider);
-    final bool isWideLayout = MediaQuery.of(context).size.width >= 720;
-    final NumberFormat currencyFormat = NumberFormat.simpleCurrency(
-      locale: strings.localeName,
-    );
-
-    final String appBarTitle = accountsAsync.maybeWhen(
-      data: (List<AccountEntity> accounts) {
-        if (accounts.isEmpty) {
-          return strings.homeTitle;
-        }
-        return strings.homeTotalBalance(currencyFormat.format(totalBalance));
-      },
-      orElse: () => strings.homeTitle,
-    );
-
-    return Scaffold(
-      appBar: AppBar(title: Text(appBarTitle)),
-      body: SafeArea(
-        child: authState.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (Object error, _) => Center(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Text(strings.homeAuthError(error.toString())),
-            ),
-          ),
-          data: (_) {
-            return LayoutBuilder(
-              builder: (BuildContext context, BoxConstraints constraints) {
-                final EdgeInsets padding = EdgeInsets.symmetric(
-                  horizontal: isWideLayout ? constraints.maxWidth * 0.1 : 16,
-                  vertical: 16,
-                );
-                return ListView(
-                  padding: padding,
-                  children: <Widget>[
-                    _SectionHeader(
-                      title: strings.homeAccountsSection,
-                      action: IconButton(
-                        icon: const Icon(Icons.add),
-                        tooltip: strings.homeAccountsAddTooltip,
-                        onPressed: () => Navigator.of(context)
-                            .pushNamed(AddAccountScreen.routeName),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    accountsAsync.when(
-                      data: (List<AccountEntity> accounts) =>
-                          _AccountsList(accounts: accounts, strings: strings),
-                      loading: () => const Center(
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(vertical: 24),
-                          child: CircularProgressIndicator(),
-                        ),
-                      ),
-                      error: (Object error, _) => _ErrorMessage(
-                        message: strings.homeAccountsError(error.toString()),
-                      ),
-                    ),
-                    const SizedBox(height: 32),
-                    _SectionHeader(title: strings.homeTransactionsSection),
-                    const SizedBox(height: 12),
-                    transactionsAsync.when(
-                      data: (List<TransactionEntity> transactions) =>
-                          _TransactionsList(
-                            transactions: transactions,
-                            localeName: strings.localeName,
-                            strings: strings,
-                          ),
-                      loading: () => const Center(
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(vertical: 24),
-                          child: CircularProgressIndicator(),
-                        ),
-                      ),
-                      error: (Object error, _) => _ErrorMessage(
-                        message: strings.homeTransactionsError(
-                          error.toString(),
-                        ),
-                      ),
-                    ),
-                  ],
-                );
-              },
-            );
-          },
+  Widget build(BuildContext context) {
+    return authState.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (Object error, _) => Center(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Text(strings.homeAuthError(error.toString())),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          // ВАЖНО: строго типизируем Route<bool>
-          final bool? created = await Navigator.of(context).push<bool>(
-            MaterialPageRoute<bool>(
-              builder: (_) => const AddTransactionScreen(),
-            ),
-          );
-          if (created == true && context.mounted) {
-            ScaffoldMessenger.of(context)
-              ..hideCurrentSnackBar()
-              ..showSnackBar(
-                SnackBar(content: Text(strings.addTransactionSuccess)),
-              );
-          }
-        },
-        child: const Icon(Icons.add),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 0,
-        onTap: (int index) {
-          switch (index) {
-            case 0:
-              return;
-            case 1:
-              Navigator.of(context).pushNamed(AnalyticsScreen.routeName);
-              break;
-            case 2:
-              Navigator.of(context).pushNamed(ProfileScreen.routeName);
-              break;
-          }
-        },
-        items: <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.home_outlined),
-            activeIcon: const Icon(Icons.home),
-            label: strings.homeNavHome,
+      data: (_) {
+        return LayoutBuilder(
+          builder: (BuildContext context, BoxConstraints constraints) {
+            final EdgeInsets padding = EdgeInsets.symmetric(
+              horizontal: isWideLayout ? constraints.maxWidth * 0.1 : 16,
+              vertical: 16,
+            );
+            return ListView(
+              padding: padding,
+              children: <Widget>[
+                _SectionHeader(
+                  title: strings.homeAccountsSection,
+                  action: IconButton(
+                    icon: const Icon(Icons.add),
+                    tooltip: strings.homeAccountsAddTooltip,
+                    onPressed: () => Navigator.of(context)
+                        .pushNamed(AddAccountScreen.routeName),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                accountsAsync.when(
+                  data: (List<AccountEntity> accounts) =>
+                      _AccountsList(accounts: accounts, strings: strings),
+                  loading: () => const Center(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(vertical: 24),
+                      child: CircularProgressIndicator(),
+                    ),
+                  ),
+                  error: (Object error, _) => _ErrorMessage(
+                    message: strings.homeAccountsError(error.toString()),
+                  ),
+                ),
+                const SizedBox(height: 32),
+                _SectionHeader(title: strings.homeTransactionsSection),
+                const SizedBox(height: 12),
+                transactionsAsync.when(
+                  data: (List<TransactionEntity> transactions) =>
+                      _TransactionsList(
+                        transactions: transactions,
+                        localeName: strings.localeName,
+                        strings: strings,
+                      ),
+                  loading: () => const Center(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(vertical: 24),
+                      child: CircularProgressIndicator(),
+                    ),
+                  ),
+                  error: (Object error, _) => _ErrorMessage(
+                    message: strings.homeTransactionsError(
+                      error.toString(),
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+}
+
+class _AddTransactionButton extends StatelessWidget {
+  const _AddTransactionButton({required this.strings});
+
+  final AppLocalizations strings;
+
+  @override
+  Widget build(BuildContext context) {
+    return FloatingActionButton(
+      onPressed: () async {
+        final bool? created = await Navigator.of(context).push<bool>(
+          MaterialPageRoute<bool>(
+            builder: (_) => const AddTransactionScreen(),
           ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.show_chart_outlined),
-            activeIcon: const Icon(Icons.show_chart),
-            label: strings.homeNavAnalytics,
-          ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.settings_outlined),
-            activeIcon: const Icon(Icons.settings),
-            label: strings.homeNavSettings,
-          ),
-        ],
-      ),
+        );
+        if (created == true && context.mounted) {
+          ScaffoldMessenger.of(context)
+            ..hideCurrentSnackBar()
+            ..showSnackBar(
+              SnackBar(content: Text(strings.addTransactionSuccess)),
+            );
+        }
+      },
+      child: const Icon(Icons.add),
     );
   }
 }
@@ -320,26 +319,6 @@ class _SectionHeader extends StatelessWidget {
   }
 }
 
-class _EmptyMessage extends StatelessWidget {
-  const _EmptyMessage({required this.message});
-
-  final String message;
-
-  @override
-  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
-    super.debugFillProperties(properties);
-    properties.add(StringProperty('message', message));
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16),
-      child: Center(child: Text(message, textAlign: TextAlign.center)),
-    );
-  }
-}
-
 class _ErrorMessage extends StatelessWidget {
   const _ErrorMessage({required this.message});
 
@@ -353,16 +332,33 @@ class _ErrorMessage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final TextStyle? style = Theme.of(context).textTheme.bodyMedium?.copyWith(
+          color: Theme.of(context).colorScheme.error,
+        );
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 16),
       child: Center(
         child: Text(
           message,
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            color: Theme.of(context).colorScheme.error,
-          ),
+          style: style,
           textAlign: TextAlign.center,
         ),
+      ),
+    );
+  }
+}
+
+class _EmptyMessage extends StatelessWidget {
+  const _EmptyMessage({required this.message});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 24),
+        child: Text(message, textAlign: TextAlign.center),
       ),
     );
   }

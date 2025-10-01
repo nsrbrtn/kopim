@@ -10,7 +10,7 @@ import 'core/di/injectors.dart';
 import 'features/profile/presentation/controllers/auth_controller.dart';
 import 'features/analytics/presentation/analytics_screen.dart';
 import 'features/accounts/presentation/accounts_add_screen.dart';
-import 'features/home/presentation/screens/home_screen.dart';
+import 'features/app_shell/presentation/widgets/main_navigation_shell.dart';
 import 'features/categories/presentation/screens/manage_categories_screen.dart';
 import 'features/profile/presentation/screens/profile_screen.dart';
 import 'features/profile/presentation/screens/sign_in_screen.dart';
@@ -47,7 +47,7 @@ class MyApp extends ConsumerWidget {
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       routes: <String, WidgetBuilder>{
-        HomeScreen.routeName: (_) => const HomeScreen(),
+        MainNavigationShell.routeName: (_) => const MainNavigationShell(),
         AnalyticsScreen.routeName: (_) => const AnalyticsScreen(),
         AddAccountScreen.routeName: (_) => const AddAccountScreen(),
         AddTransactionScreen.routeName: (_) => const AddTransactionScreen(),
@@ -56,7 +56,7 @@ class MyApp extends ConsumerWidget {
       },
       home: authState.when(
         data: (AuthUser? user) =>
-            user == null ? const SignInScreen() : const HomeScreen(),
+            user == null ? const SignInScreen() : const MainNavigationShell(),
         loading: () =>
             const Scaffold(body: Center(child: CircularProgressIndicator())),
         error: (Object error, _) => Scaffold(
