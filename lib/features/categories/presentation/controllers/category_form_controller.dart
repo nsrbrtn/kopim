@@ -156,8 +156,8 @@ class CategoryFormController extends _$CategoryFormController {
     state = state.copyWith(icon: value, isSuccess: false);
   }
 
-  void updateColor(String value) {
-    state = state.copyWith(color: value, isSuccess: false);
+  void updateColor(String? value) {
+    state = state.copyWith(color: value ?? '', isSuccess: false);
   }
 
   void updateParent(String? value) {

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart'
+    show ColorLabelType, ColorPicker;
 import 'package:kopim/core/domain/icons/phosphor_icon_descriptor.dart';
+import 'package:kopim/core/utils/helpers.dart';
 import 'package:kopim/core/widgets/phosphor_icon_picker.dart';
 import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
@@ -249,7 +252,7 @@ class _CategoryNodeCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Category category = node.category;
-    final Color? color = _parseHexColor(category.color);
+    final Color? color = parseHexColor(category.color);
     final IconData? iconData = resolvePhosphorIconData(category.icon);
     final List<String> metadata = _buildMetadata(category, strings);
 
@@ -317,7 +320,7 @@ class _SubcategoryTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final Category category = node.category;
     final IconData? iconData = resolvePhosphorIconData(category.icon);
-    final Color? color = _parseHexColor(category.color);
+    final Color? color = parseHexColor(category.color);
     final List<String> metadata = _buildMetadata(category, strings);
     return ListTile(
       leading: _CategoryIcon(iconData: iconData, backgroundColor: color),
@@ -447,6 +450,10 @@ class _CategoryEditorSheet extends ConsumerWidget {
     final String iconSubtitle = state.icon?.isNotEmpty == true
         ? '${state.icon!.style.name} · ${state.icon!.name}'
         : strings.manageCategoriesIconNone;
+    final Color? selectedColor = parseHexColor(state.color);
+    final String colorSubtitle = selectedColor != null
+        ? colorToHex(selectedColor)!
+        : strings.manageCategoriesColorNone;
 
     final PhosphorIconPickerLabels pickerLabels = PhosphorIconPickerLabels(
       title: strings.manageCategoriesIconPickerTitle,
@@ -479,6 +486,49 @@ class _CategoryEditorSheet extends ConsumerWidget {
         ];
 
     final EdgeInsets viewInsets = MediaQuery.of(context).viewInsets;
+
+    Future<void> selectColor() async {
+      Color draftColor = selectedColor ?? theme.colorScheme.primary;
+      final Color? pickedColor = await showDialog<Color>(
+        context: context,
+        builder: (BuildContext dialogContext) {
+          return AlertDialog(
+            title: Text(strings.manageCategoriesColorPickerTitle),
+            content: StatefulBuilder(
+              builder: (BuildContext context, StateSetter setState) {
+                return ColorPicker(
+                  pickerColor: draftColor,
+                  onColorChanged: (Color color) {
+                    setState(() => draftColor = color);
+                  },
+                  enableAlpha: false,
+                  displayThumbColor: true,
+                  labelTypes: const <ColorLabelType>[],
+                  pickerAreaBorderRadius: const BorderRadius.all(Radius.circular(12)),
+                );
+              },
+            ),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(),
+                child: Text(strings.dialogCancel),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.of(dialogContext).pop(draftColor),
+                child: Text(strings.dialogConfirm),
+              ),
+            ],
+          );
+        },
+      );
+
+        if (pickedColor != null) {
+          final String? hex = colorToHex(pickedColor);
+          if (hex != null) {
+            controller.updateColor(hex);
+          }
+        }
+    }
 
     return Padding(
       padding: EdgeInsets.only(bottom: viewInsets.bottom),
@@ -577,16 +627,37 @@ class _CategoryEditorSheet extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 16),
-            TextFormField(
-              key: ValueKey<String>(
-                'category-color-${state.id}-${state.updatedAt.millisecondsSinceEpoch}',
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: CircleAvatar(
+                backgroundColor:
+                    selectedColor ?? theme.colorScheme.surfaceVariant,
+                child: selectedColor == null
+                    ? Icon(
+                        Icons.palette_outlined,
+                        color: theme.colorScheme.onSurfaceVariant,
+                      )
+                    : null,
               ),
-              initialValue: state.color,
-              decoration: InputDecoration(
-                labelText: strings.manageCategoriesColorLabel,
+              title: Text(strings.manageCategoriesColorLabel),
+              subtitle: Text(colorSubtitle),
+              onTap: selectColor,
+              trailing: Wrap(
+                spacing: 8,
+                children: <Widget>[
+                  if (selectedColor != null)
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      tooltip: strings.manageCategoriesColorClear,
+                      onPressed: () => controller.updateColor(null),
+                    ),
+                  IconButton(
+                    icon: const Icon(Icons.color_lens_outlined),
+                    tooltip: strings.manageCategoriesColorSelect,
+                    onPressed: selectColor,
+                  ),
+                ],
               ),
-              textInputAction: TextInputAction.done,
-              onChanged: controller.updateColor,
             ),
             const SizedBox(height: 24),
             FilledButton.icon(
@@ -624,24 +695,12 @@ List<String> _buildMetadata(Category category, AppLocalizations strings) {
       ? strings.manageCategoriesTypeIncome
       : strings.manageCategoriesTypeExpense;
   metadata.add(typeLabel);
-  if (category.color != null && category.color!.isNotEmpty) {
-    metadata.add('${strings.manageCategoriesColorLabel}: ${category.color!}');
+  final String? resolvedColor = colorToHex(parseHexColor(category.color));
+  if (resolvedColor != null && resolvedColor.isNotEmpty) {
+    metadata.add('${strings.manageCategoriesColorLabel}: $resolvedColor');
   }
   if (category.icon?.isNotEmpty == true) {
     metadata.add(category.icon!.name);
   }
   return metadata;
-}
-
-Color? _parseHexColor(String? value) {
-  if (value == null || value.trim().isEmpty) {
-    return null;
-  }
-  final String sanitized = value.replaceFirst('#', '');
-  final String hex = sanitized.length == 6 ? 'FF$sanitized' : sanitized;
-  try {
-    return Color(int.parse(hex, radix: 16));
-  } catch (_) {
-    return null;
-  }
 }

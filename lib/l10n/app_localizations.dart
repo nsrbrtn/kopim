@@ -164,6 +164,12 @@ abstract class AppLocalizations {
   /// **'Cancel'**
   String get dialogCancel;
 
+  /// Generic confirmation button label
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get dialogConfirm;
+
   /// Label for the dropdown that selects a parent category
   ///
   /// In en, this message translates to:
@@ -317,8 +323,32 @@ abstract class AppLocalizations {
   /// Label for the optional color input
   ///
   /// In en, this message translates to:
-  /// **'Color hex (optional)'**
+  /// **'Color (optional)'**
   String get manageCategoriesColorLabel;
+
+  /// Subtitle shown when no color has been selected
+  ///
+  /// In en, this message translates to:
+  /// **'No color selected'**
+  String get manageCategoriesColorNone;
+
+  /// Tooltip for the action that opens the color picker
+  ///
+  /// In en, this message translates to:
+  /// **'Choose color'**
+  String get manageCategoriesColorSelect;
+
+  /// Tooltip for the action that clears the selected color
+  ///
+  /// In en, this message translates to:
+  /// **'Clear color'**
+  String get manageCategoriesColorClear;
+
+  /// Title for the dialog that lets the user choose a category color
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a category color'**
+  String get manageCategoriesColorPickerTitle;
 
   /// Button label for saving a category
   ///
@@ -499,24 +529,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Uncategorized'**
   String get homeTransactionsUncategorized;
-
-  /// Label for a transaction category
-  ///
-  /// In en, this message translates to:
-  /// **'Category: {category}'**
-  String homeTransactionsCategory(String category);
-
-  /// Symbol prefix for positive (income) transactions
-  ///
-  /// In en, this message translates to:
-  /// **'+'**
-  String get homeTransactionSymbolPositive;
-
-  /// Symbol prefix for negative (expense) transactions
-  ///
-  /// In en, this message translates to:
-  /// **'-'**
-  String get homeTransactionSymbolNegative;
 
   /// Bottom navigation label for home
   ///

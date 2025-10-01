@@ -1,5 +1,6 @@
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
+import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -18,6 +19,11 @@ Stream<List<TransactionEntity>> homeRecentTransactions(
   int limit = kDefaultRecentTransactionsLimit,
 }) {
   return ref.watch(watchRecentTransactionsUseCaseProvider).call(limit: limit);
+}
+
+@riverpod
+Stream<List<Category>> homeCategories(Ref ref) {
+  return ref.watch(watchCategoriesUseCaseProvider).call();
 }
 
 @riverpod

@@ -130,6 +130,47 @@ final class HomeRecentTransactionsFamily extends $Family
   String toString() => r'homeRecentTransactionsProvider';
 }
 
+@ProviderFor(homeCategories)
+const homeCategoriesProvider = HomeCategoriesProvider._();
+
+final class HomeCategoriesProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<Category>>,
+          List<Category>,
+          Stream<List<Category>>
+        >
+    with
+        $FutureModifier<List<Category>>,
+        $StreamProvider<List<Category>> {
+  const HomeCategoriesProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'homeCategoriesProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$homeCategoriesHash();
+
+  @$internal
+  @override
+  $StreamProviderElement<List<Category>> $createElement(
+    $ProviderPointer pointer,
+  ) => $StreamProviderElement(pointer);
+
+  @override
+  Stream<List<Category>> create(Ref ref) {
+    return homeCategories(ref);
+  }
+}
+
+String _$homeCategoriesHash() => r'3f6a0b9d9276cb448f1d5bf4ed9b589e08e9f8f0';
+
 @ProviderFor(homeTotalBalance)
 const homeTotalBalanceProvider = HomeTotalBalanceProvider._();
 
