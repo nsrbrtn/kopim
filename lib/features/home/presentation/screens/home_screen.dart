@@ -23,12 +23,10 @@ class HomeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final AppLocalizations strings = AppLocalizations.of(context)!;
     final AsyncValue<AuthUser?> authState = ref.watch(authControllerProvider);
-    final AsyncValue<List<TransactionEntity>> transactionsAsync = ref.watch(
-      homeRecentTransactionsProvider(),
-    );
-    final AsyncValue<List<AccountEntity>> accountsAsync = ref.watch(
-      homeAccountsProvider,
-    );
+    final AsyncValue<List<TransactionEntity>> transactionsAsync =
+    ref.watch(homeRecentTransactionsProvider());
+    final AsyncValue<List<AccountEntity>> accountsAsync =
+    ref.watch(homeAccountsProvider);
     final double totalBalance = ref.watch(homeTotalBalanceProvider);
     final bool isWideLayout = MediaQuery.of(context).size.width >= 720;
     final NumberFormat currencyFormat = NumberFormat.simpleCurrency(
@@ -71,9 +69,8 @@ class HomeScreen extends ConsumerWidget {
                       action: IconButton(
                         icon: const Icon(Icons.add),
                         tooltip: strings.homeAccountsAddTooltip,
-                        onPressed: () => Navigator.of(
-                          context,
-                        ).pushNamed(AddAccountScreen.routeName),
+                        onPressed: () => Navigator.of(context)
+                            .pushNamed(AddAccountScreen.routeName),
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -121,8 +118,12 @@ class HomeScreen extends ConsumerWidget {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          final bool? created = await Navigator.of(context)
-              .pushNamed<bool>(AddTransactionScreen.routeName);
+          // ВАЖНО: строго типизируем Route<bool>
+          final bool? created = await Navigator.of(context).push<bool>(
+            MaterialPageRoute(
+              builder: (_) => const AddTransactionScreen(),
+            ),
+          );
           if (created == true && context.mounted) {
             ScaffoldMessenger.of(context)
               ..hideCurrentSnackBar()
@@ -231,7 +232,7 @@ class _TransactionsList extends StatelessWidget {
     properties
       ..add(IntProperty('transactionCount', transactions.length))
       ..add(StringProperty('localeName', localeName));
-      properties.add(DiagnosticsProperty<AppLocalizations>('strings', strings));
+    properties.add(DiagnosticsProperty<AppLocalizations>('strings', strings));
   }
 
   @override

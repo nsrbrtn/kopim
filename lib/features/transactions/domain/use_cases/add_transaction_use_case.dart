@@ -12,10 +12,14 @@ class AddTransactionUseCase {
     required AccountRepository accountRepository,
     String Function()? idGenerator,
     DateTime Function()? clock,
-  })  : _transactionRepository = transactionRepository,
-        _accountRepository = accountRepository,
-        _generateId = idGenerator ?? () => const Uuid().v4(),
-        _clock = clock ?? () => DateTime.now();
+  }) : _transactionRepository = transactionRepository,
+       _accountRepository = accountRepository,
+       _generateId = idGenerator ?? _defaultIdGenerator,
+       _clock = clock ?? _defaultClock;
+
+  static String _defaultIdGenerator() => const Uuid().v4();
+
+  static DateTime _defaultClock() => DateTime.now();
 
   final TransactionRepository _transactionRepository;
   final AccountRepository _accountRepository;
@@ -23,8 +27,9 @@ class AddTransactionUseCase {
   final DateTime Function() _clock;
 
   Future<void> call(AddTransactionRequest request) async {
-    final AccountEntity? account =
-        await _accountRepository.findById(request.accountId);
+    final AccountEntity? account = await _accountRepository.findById(
+      request.accountId,
+    );
     if (account == null) {
       throw StateError('Account not found for id ${request.accountId}');
     }
@@ -38,9 +43,7 @@ class AddTransactionUseCase {
       categoryId: request.categoryId,
       amount: amount,
       date: request.date,
-      note: request.note?.trim().isEmpty ?? true
-          ? null
-          : request.note!.trim(),
+      note: request.note?.trim().isEmpty ?? true ? null : request.note!.trim(),
       type: type.storageValue,
       createdAt: now,
       updatedAt: now,

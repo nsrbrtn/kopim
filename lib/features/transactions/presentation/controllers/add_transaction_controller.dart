@@ -89,10 +89,7 @@ final addTransactionCategoriesProvider =
     StreamProvider.autoDispose<List<Category>>((Ref ref) {
   return ref.watch(watchCategoriesUseCaseProvider).call();
 });
-final addTransactionControllerProvider =
-NotifierProvider.autoDispose<AddTransactionController, AddTransactionState>(
-  AddTransactionController.new,
-);
+
 @riverpod
 class AddTransactionController extends _$AddTransactionController {
   @override
