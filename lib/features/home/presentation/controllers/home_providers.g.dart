@@ -209,3 +209,56 @@ final class HomeTotalBalanceProvider
 }
 
 String _$homeTotalBalanceHash() => r'8c73907b65d1cfbc591a7aa884386c33a149bb90';
+
+@ProviderFor(homeAccountMonthlySummaries)
+const homeAccountMonthlySummariesProvider =
+    HomeAccountMonthlySummariesProvider._();
+
+final class HomeAccountMonthlySummariesProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<Map<String, HomeAccountMonthlySummary>>,
+          AsyncValue<Map<String, HomeAccountMonthlySummary>>,
+          AsyncValue<Map<String, HomeAccountMonthlySummary>>
+        >
+    with $Provider<AsyncValue<Map<String, HomeAccountMonthlySummary>>> {
+  const HomeAccountMonthlySummariesProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'homeAccountMonthlySummariesProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$homeAccountMonthlySummariesHash();
+
+  @$internal
+  @override
+  $ProviderElement<AsyncValue<Map<String, HomeAccountMonthlySummary>>>
+  $createElement($ProviderPointer pointer) => $ProviderElement(pointer);
+
+  @override
+  AsyncValue<Map<String, HomeAccountMonthlySummary>> create(Ref ref) {
+    return homeAccountMonthlySummaries(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(
+    AsyncValue<Map<String, HomeAccountMonthlySummary>> value,
+  ) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride:
+          $SyncValueProvider<
+            AsyncValue<Map<String, HomeAccountMonthlySummary>>
+          >(value),
+    );
+  }
+}
+
+String _$homeAccountMonthlySummariesHash() =>
+    r'52e12225d2d10dd284fc74428aeebbe2640e425e';

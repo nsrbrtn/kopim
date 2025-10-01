@@ -353,6 +353,34 @@
       }
     }
   },
+  "homeAccountMonthlyIncomeLabel": "Income this month",
+  "@homeAccountMonthlyIncomeLabel": {
+    "description": "Label for monthly income shown on the home screen account card"
+  },
+  "homeAccountMonthlyExpenseLabel": "Expense this month",
+  "@homeAccountMonthlyExpenseLabel": {
+    "description": "Label for monthly expenses shown on the home screen account card"
+  },
+  "homeTransactionsTodayLabel": "Today",
+  "@homeTransactionsTodayLabel": {
+    "description": "Section header label for transactions happening today"
+  },
+  "accountTypeCash": "Cash",
+  "@accountTypeCash": {
+    "description": "Localized name for the cash account type"
+  },
+  "accountTypeCard": "Card",
+  "@accountTypeCard": {
+    "description": "Localized name for the card account type"
+  },
+  "accountTypeBank": "Bank account",
+  "@accountTypeBank": {
+    "description": "Localized name for the bank account type"
+  },
+  "accountTypeOther": "Other",
+  "@accountTypeOther": {
+    "description": "Fallback label when account type is unknown"
+  },
   "homeTransactionsSection": "Recent transactions",
   "@homeTransactionsSection": {
     "description": "Section header for transactions list"
