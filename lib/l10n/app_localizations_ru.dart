@@ -46,6 +46,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get dialogCancel => 'Отмена';
 
   @override
+  String get dialogConfirm => 'Готово';
+
+  @override
   String get manageCategoriesParentLabel => 'Родительская категория';
 
   @override
@@ -125,6 +128,18 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get manageCategoriesColorLabel => 'Цвет (необязательно)';
+
+  @override
+  String get manageCategoriesColorNone => 'Цвет не выбран';
+
+  @override
+  String get manageCategoriesColorSelect => 'Выбрать цвет';
+
+  @override
+  String get manageCategoriesColorClear => 'Очистить цвет';
+
+  @override
+  String get manageCategoriesColorPickerTitle => 'Выберите цвет категории';
 
   @override
   String get manageCategoriesSaveCta => 'Сохранить категорию';
@@ -234,16 +249,6 @@ class AppLocalizationsRu extends AppLocalizations {
   String get homeTransactionsUncategorized => 'Без категории';
 
   @override
-  String homeTransactionsCategory(String category) {
-    return 'Категория: $category';
-  }
-
-  @override
-  String get homeTransactionSymbolPositive => '+';
-
-  @override
-  String get homeTransactionSymbolNegative => '-';
-
   @override
   String get homeNavHome => 'Главная';
 

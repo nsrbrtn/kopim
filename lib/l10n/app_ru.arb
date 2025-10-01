@@ -41,6 +41,10 @@
   "@dialogCancel": {
     "description": "Подпись кнопки отмены в диалогах"
   },
+  "dialogConfirm": "Готово",
+  "@dialogConfirm": {
+    "description": "Подпись кнопки подтверждения в диалогах"
+  },
   "manageCategoriesParentLabel": "Родительская категория",
   "@manageCategoriesParentLabel": {
     "description": "Подпись выпадающего списка выбора родительской категории"
@@ -149,6 +153,22 @@
   "manageCategoriesColorLabel": "Цвет (необязательно)",
   "@manageCategoriesColorLabel": {
     "description": "Подпись поля цвета"
+  },
+  "manageCategoriesColorNone": "Цвет не выбран",
+  "@manageCategoriesColorNone": {
+    "description": "Подпись, когда цвет категории не выбран"
+  },
+  "manageCategoriesColorSelect": "Выбрать цвет",
+  "@manageCategoriesColorSelect": {
+    "description": "Подсказка для действия выбора цвета"
+  },
+  "manageCategoriesColorClear": "Очистить цвет",
+  "@manageCategoriesColorClear": {
+    "description": "Подсказка для действия очистки выбранного цвета"
+  },
+  "manageCategoriesColorPickerTitle": "Выберите цвет категории",
+  "@manageCategoriesColorPickerTitle": {
+    "description": "Заголовок диалога выбора цвета"
   },
   "manageCategoriesSaveCta": "Сохранить категорию",
   "@manageCategoriesSaveCta": {
@@ -307,23 +327,6 @@
   "homeTransactionsUncategorized": "Без категории",
   "@homeTransactionsUncategorized": {
     "description": "Подпись при отсутствии категории"
-  },
-  "homeTransactionsCategory": "Категория: {category}",
-  "@homeTransactionsCategory": {
-    "description": "Подпись для категории транзакции",
-    "placeholders": {
-      "category": {
-        "type": "String"
-      }
-    }
-  },
-  "homeTransactionSymbolPositive": "+",
-  "@homeTransactionSymbolPositive": {
-    "description": "Символ доходной транзакции"
-  },
-  "homeTransactionSymbolNegative": "-",
-  "@homeTransactionSymbolNegative": {
-    "description": "Символ расходной транзакции"
   },
   "homeNavHome": "Главная",
   "@homeNavHome": {
