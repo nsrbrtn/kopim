@@ -21,21 +21,9 @@
   "@manageCategoriesAddAction": {
     "description": "Tooltip for the button that starts creating a new category"
   },
-  "manageCategoriesCreateRootAction": "Create parent category",
-  "@manageCategoriesCreateRootAction": {
-    "description": "Action label to create a top-level category from the manage categories menu"
-  },
   "manageCategoriesCreateSubAction": "Create subcategory",
   "@manageCategoriesCreateSubAction": {
     "description": "Action label to create a subcategory from the manage categories menu"
-  },
-  "manageCategoriesCreateSubDisabled": "Add a parent category first to create subcategories.",
-  "@manageCategoriesCreateSubDisabled": {
-    "description": "Helper text shown when user cannot create subcategory because there are no parents"
-  },
-  "manageCategoriesSelectParentTitle": "Select parent category",
-  "@manageCategoriesSelectParentTitle": {
-    "description": "Dialog title prompting the user to select a parent category"
   },
   "dialogCancel": "Cancel",
   "@dialogCancel": {
@@ -122,17 +110,13 @@
   "@manageCategoriesIconPickerTitle": {
     "description": "Title for the bottom sheet that lists available icons"
   },
-  "manageCategoriesIconSearchHint": "Search icons",
-  "@manageCategoriesIconSearchHint": {
-    "description": "Placeholder text for the icon search field"
-  },
   "manageCategoriesIconClear": "Clear selection",
   "@manageCategoriesIconClear": {
     "description": "Label for the button that clears the selected icon"
   },
-  "manageCategoriesIconEmpty": "No icons match your search.",
+  "manageCategoriesIconEmpty": "No icons available.",
   "@manageCategoriesIconEmpty": {
-    "description": "Empty state when icon search returns no results"
+    "description": "Empty state shown when the selected icon group has no items"
   },
   "manageCategoriesIconStyleThin": "Thin",
   "@manageCategoriesIconStyleThin": {
@@ -153,6 +137,30 @@
   "manageCategoriesIconStyleFill": "Fill",
   "@manageCategoriesIconStyleFill": {
     "description": "Label for the fill icon style filter"
+  },
+  "manageCategoriesIconGroupFinance": "Finance & work",
+  "@manageCategoriesIconGroupFinance": {
+    "description": "Tab label for finance-related icons"
+  },
+  "manageCategoriesIconGroupShopping": "Shopping & clothing",
+  "@manageCategoriesIconGroupShopping": {
+    "description": "Tab label for shopping and clothing icons"
+  },
+  "manageCategoriesIconGroupFood": "Food & dining",
+  "@manageCategoriesIconGroupFood": {
+    "description": "Tab label for food-related icons"
+  },
+  "manageCategoriesIconGroupTransport": "Transport & travel",
+  "@manageCategoriesIconGroupTransport": {
+    "description": "Tab label for transport icons"
+  },
+  "manageCategoriesIconGroupHome": "Home & utilities",
+  "@manageCategoriesIconGroupHome": {
+    "description": "Tab label for home and utility icons"
+  },
+  "manageCategoriesIconGroupLeisure": "Leisure & sports",
+  "@manageCategoriesIconGroupLeisure": {
+    "description": "Tab label for leisure icons"
   },
   "manageCategoriesColorLabel": "Color",
   "@manageCategoriesColorLabel": {

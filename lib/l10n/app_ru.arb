@@ -21,21 +21,9 @@
   "@manageCategoriesAddAction": {
     "description": "Подсказка к кнопке добавления новой категории"
   },
-  "manageCategoriesCreateRootAction": "Создать категорию верхнего уровня",
-  "@manageCategoriesCreateRootAction": {
-    "description": "Подпись действия создания родительской категории в меню управления"
-  },
   "manageCategoriesCreateSubAction": "Создать подкатегорию",
   "@manageCategoriesCreateSubAction": {
     "description": "Подпись действия создания подкатегории в меню управления"
-  },
-  "manageCategoriesCreateSubDisabled": "Сначала добавьте родительскую категорию, чтобы создать подкатегории.",
-  "@manageCategoriesCreateSubDisabled": {
-    "description": "Подсказка, когда невозможно создать подкатегорию без родителя"
-  },
-  "manageCategoriesSelectParentTitle": "Выберите родительскую категорию",
-  "@manageCategoriesSelectParentTitle": {
-    "description": "Заголовок диалога выбора родительской категории"
   },
   "dialogCancel": "Отмена",
   "@dialogCancel": {
@@ -122,17 +110,13 @@
   "@manageCategoriesIconPickerTitle": {
     "description": "Заголовок листа с выбором иконок"
   },
-  "manageCategoriesIconSearchHint": "Поиск иконки",
-  "@manageCategoriesIconSearchHint": {
-    "description": "Подпись поля поиска иконок"
-  },
   "manageCategoriesIconClear": "Очистить выбор",
   "@manageCategoriesIconClear": {
     "description": "Подпись кнопки очистки выбранной иконки"
   },
-  "manageCategoriesIconEmpty": "Подходящих иконок не найдено.",
+  "manageCategoriesIconEmpty": "Доступные иконки отсутствуют.",
   "@manageCategoriesIconEmpty": {
-    "description": "Сообщение пустого состояния поиска иконок"
+    "description": "Сообщение пустого состояния при отсутствии иконок"
   },
   "manageCategoriesIconStyleThin": "Тонкая",
   "@manageCategoriesIconStyleThin": {
@@ -153,6 +137,30 @@
   "manageCategoriesIconStyleFill": "Заливка",
   "@manageCategoriesIconStyleFill": {
     "description": "Подпись фильтра заливного стиля"
+  },
+  "manageCategoriesIconGroupFinance": "Финансы и работа",
+  "@manageCategoriesIconGroupFinance": {
+    "description": "Название вкладки с иконками финансов"
+  },
+  "manageCategoriesIconGroupShopping": "Покупки и одежда",
+  "@manageCategoriesIconGroupShopping": {
+    "description": "Название вкладки с иконками для покупок и одежды"
+  },
+  "manageCategoriesIconGroupFood": "Еда и кафе",
+  "@manageCategoriesIconGroupFood": {
+    "description": "Название вкладки с иконками питания"
+  },
+  "manageCategoriesIconGroupTransport": "Транспорт и поездки",
+  "@manageCategoriesIconGroupTransport": {
+    "description": "Название вкладки с иконками транспорта"
+  },
+  "manageCategoriesIconGroupHome": "Дом и быт",
+  "@manageCategoriesIconGroupHome": {
+    "description": "Название вкладки с иконками для дома"
+  },
+  "manageCategoriesIconGroupLeisure": "Развлечения и спорт",
+  "@manageCategoriesIconGroupLeisure": {
+    "description": "Название вкладки с иконками досуга"
   },
   "manageCategoriesColorLabel": "Цвет",
   "@manageCategoriesColorLabel": {

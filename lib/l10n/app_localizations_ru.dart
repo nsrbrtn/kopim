@@ -28,19 +28,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get manageCategoriesAddAction => 'Добавить категорию';
 
   @override
-  String get manageCategoriesCreateRootAction =>
-      'Создать категорию верхнего уровня';
-
-  @override
   String get manageCategoriesCreateSubAction => 'Создать подкатегорию';
-
-  @override
-  String get manageCategoriesCreateSubDisabled =>
-      'Сначала добавьте родительскую категорию, чтобы создать подкатегории.';
-
-  @override
-  String get manageCategoriesSelectParentTitle =>
-      'Выберите родительскую категорию';
 
   @override
   String get dialogCancel => 'Отмена';
@@ -106,13 +94,10 @@ class AppLocalizationsRu extends AppLocalizations {
   String get manageCategoriesIconPickerTitle => 'Выбор иконки категории';
 
   @override
-  String get manageCategoriesIconSearchHint => 'Поиск иконки';
-
-  @override
   String get manageCategoriesIconClear => 'Очистить выбор';
 
   @override
-  String get manageCategoriesIconEmpty => 'Подходящих иконок не найдено.';
+  String get manageCategoriesIconEmpty => 'Доступные иконки отсутствуют.';
 
   @override
   String get manageCategoriesIconStyleThin => 'Тонкая';
@@ -128,6 +113,24 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get manageCategoriesIconStyleFill => 'Заливка';
+
+  @override
+  String get manageCategoriesIconGroupFinance => 'Финансы и работа';
+
+  @override
+  String get manageCategoriesIconGroupShopping => 'Покупки и одежда';
+
+  @override
+  String get manageCategoriesIconGroupFood => 'Еда и кафе';
+
+  @override
+  String get manageCategoriesIconGroupTransport => 'Транспорт и поездки';
+
+  @override
+  String get manageCategoriesIconGroupHome => 'Дом и быт';
+
+  @override
+  String get manageCategoriesIconGroupLeisure => 'Развлечения и спорт';
 
   @override
   String get manageCategoriesColorLabel => 'Цвет';
