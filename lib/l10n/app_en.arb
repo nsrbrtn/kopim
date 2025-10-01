@@ -102,13 +102,17 @@
   "@manageCategoriesTypeIncome": {
     "description": "Label for income category type"
   },
-  "manageCategoriesIconLabel": "Icon (optional)",
+  "manageCategoriesIconLabel": "Icon",
   "@manageCategoriesIconLabel": {
-    "description": "Label for the optional icon input"
+    "description": "Label for the icon input"
   },
   "manageCategoriesIconNone": "No icon selected",
   "@manageCategoriesIconNone": {
     "description": "Subtitle shown when no icon has been selected"
+  },
+  "manageCategoriesIconSelected": "Icon selected",
+  "@manageCategoriesIconSelected": {
+    "description": "Subtitle shown when an icon has been selected"
   },
   "manageCategoriesIconSelect": "Choose icon",
   "@manageCategoriesIconSelect": {
@@ -150,13 +154,17 @@
   "@manageCategoriesIconStyleFill": {
     "description": "Label for the fill icon style filter"
   },
-  "manageCategoriesColorLabel": "Color (optional)",
+  "manageCategoriesColorLabel": "Color",
   "@manageCategoriesColorLabel": {
-    "description": "Label for the optional color input"
+    "description": "Label for the color input"
   },
   "manageCategoriesColorNone": "No color selected",
   "@manageCategoriesColorNone": {
     "description": "Subtitle shown when no color has been selected"
+  },
+  "manageCategoriesColorSelected": "Color selected",
+  "@manageCategoriesColorSelected": {
+    "description": "Subtitle shown when a color has been selected"
   },
   "manageCategoriesColorSelect": "Choose color",
   "@manageCategoriesColorSelect": {
@@ -190,6 +198,36 @@
   "manageCategoriesSuccessUpdate": "Category updated successfully.",
   "@manageCategoriesSuccessUpdate": {
     "description": "Snackbar message shown when a category is updated"
+  },
+  "manageCategoriesDeleteAction": "Delete",
+  "@manageCategoriesDeleteAction": {
+    "description": "Label for the delete category action"
+  },
+  "manageCategoriesDeleteConfirmTitle": "Delete category",
+  "@manageCategoriesDeleteConfirmTitle": {
+    "description": "Title for the delete category confirmation dialog"
+  },
+  "manageCategoriesDeleteConfirmMessage": "Are you sure you want to delete the category \"{name}\"? All subcategories will also be removed.",
+  "@manageCategoriesDeleteConfirmMessage": {
+    "description": "Confirmation message shown before deleting a category",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "manageCategoriesDeleteSuccess": "Category deleted successfully.",
+  "@manageCategoriesDeleteSuccess": {
+    "description": "Snackbar message shown when a category is deleted"
+  },
+  "manageCategoriesDeleteError": "Unable to delete category: {error}",
+  "@manageCategoriesDeleteError": {
+    "description": "Error message shown when deleting a category fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
   },
   "@profileSectionAccount": {
     "description": "Section header for account information"

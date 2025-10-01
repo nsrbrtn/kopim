@@ -88,10 +88,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get manageCategoriesTypeIncome => 'Income';
 
   @override
-  String get manageCategoriesIconLabel => 'Icon (optional)';
+  String get manageCategoriesIconLabel => 'Icon';
 
   @override
   String get manageCategoriesIconNone => 'No icon selected';
+
+  @override
+  String get manageCategoriesIconSelected => 'Icon selected';
 
   @override
   String get manageCategoriesIconSelect => 'Choose icon';
@@ -124,10 +127,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get manageCategoriesIconStyleFill => 'Fill';
 
   @override
-  String get manageCategoriesColorLabel => 'Color (optional)';
+  String get manageCategoriesColorLabel => 'Color';
 
   @override
   String get manageCategoriesColorNone => 'No color selected';
+
+  @override
+  String get manageCategoriesColorSelected => 'Color selected';
 
   @override
   String get manageCategoriesColorSelect => 'Choose color';
@@ -151,6 +157,25 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get manageCategoriesSuccessUpdate => 'Category updated successfully.';
+
+  @override
+  String get manageCategoriesDeleteAction => 'Delete';
+
+  @override
+  String get manageCategoriesDeleteConfirmTitle => 'Delete category';
+
+  @override
+  String manageCategoriesDeleteConfirmMessage(String name) {
+    return 'Are you sure you want to delete the category "$name"? All subcategories will also be removed.';
+  }
+
+  @override
+  String get manageCategoriesDeleteSuccess => 'Category deleted successfully.';
+
+  @override
+  String manageCategoriesDeleteError(String error) {
+    return 'Unable to delete category: $error';
+  }
 
   @override
   String get profileNameLabel => 'Name';

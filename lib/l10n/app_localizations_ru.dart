@@ -91,10 +91,13 @@ class AppLocalizationsRu extends AppLocalizations {
   String get manageCategoriesTypeIncome => 'Доход';
 
   @override
-  String get manageCategoriesIconLabel => 'Иконка (необязательно)';
+  String get manageCategoriesIconLabel => 'Иконка';
 
   @override
   String get manageCategoriesIconNone => 'Иконка не выбрана';
+
+  @override
+  String get manageCategoriesIconSelected => 'Иконка выбрана';
 
   @override
   String get manageCategoriesIconSelect => 'Выбрать иконку';
@@ -127,10 +130,13 @@ class AppLocalizationsRu extends AppLocalizations {
   String get manageCategoriesIconStyleFill => 'Заливка';
 
   @override
-  String get manageCategoriesColorLabel => 'Цвет (необязательно)';
+  String get manageCategoriesColorLabel => 'Цвет';
 
   @override
   String get manageCategoriesColorNone => 'Цвет не выбран';
+
+  @override
+  String get manageCategoriesColorSelected => 'Цвет выбран';
 
   @override
   String get manageCategoriesColorSelect => 'Выбрать цвет';
@@ -154,6 +160,25 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get manageCategoriesSuccessUpdate => 'Категория обновлена.';
+
+  @override
+  String get manageCategoriesDeleteAction => 'Удалить';
+
+  @override
+  String get manageCategoriesDeleteConfirmTitle => 'Удалить категорию';
+
+  @override
+  String manageCategoriesDeleteConfirmMessage(String name) {
+    return 'Вы действительно хотите удалить категорию «$name»? Все подкатегории также будут удалены.';
+  }
+
+  @override
+  String get manageCategoriesDeleteSuccess => 'Категория удалена.';
+
+  @override
+  String manageCategoriesDeleteError(String error) {
+    return 'Не удалось удалить категорию: $error';
+  }
 
   @override
   String get profileNameLabel => 'Имя';
