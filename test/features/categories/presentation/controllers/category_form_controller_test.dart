@@ -6,7 +6,6 @@ import 'package:kopim/features/categories/domain/use_cases/save_category_use_cas
 import 'package:kopim/features/categories/presentation/controllers/category_form_controller.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:riverpod/riverpod.dart';
-import 'package:riverpod/src/framework.dart';
 import 'package:uuid/uuid.dart';
 
 class _MockSaveCategoryUseCase extends Mock implements SaveCategoryUseCase {}
@@ -44,7 +43,8 @@ void main() {
     mockUuid = _MockUuid();
     when(() => mockUuid.v4()).thenReturn('uuid-123');
     container = ProviderContainer(
-      overrides: <Override>[
+      // ignore: always_specify_types, the Override type is internal to riverpod
+      overrides: [
         saveCategoryUseCaseProvider.overrideWithValue(mockUseCase),
         uuidGeneratorProvider.overrideWithValue(mockUuid),
       ],

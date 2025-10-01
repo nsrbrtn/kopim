@@ -127,7 +127,7 @@ class _TransactionForm extends ConsumerWidget {
         padding: const EdgeInsets.all(24),
         children: <Widget>[
           DropdownButtonFormField<String>(
-            value: selectedAccountId,
+            initialValue: selectedAccountId,
             decoration: InputDecoration(
               labelText: strings.addTransactionAccountLabel,
             ),
@@ -204,7 +204,7 @@ class _TransactionForm extends ConsumerWidget {
           ),
           const SizedBox(height: 16),
           DropdownButtonFormField<String>(
-            value: state.categoryId ?? '',
+            initialValue: state.categoryId ?? '',
             decoration: InputDecoration(
               labelText: strings.addTransactionCategoryLabel,
             ),

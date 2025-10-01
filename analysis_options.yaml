@@ -43,7 +43,6 @@ linter:
 
     # Logging and production readiness.
     avoid_print: true  # Use logger instead for local logging.
-    diagnostic_describe_all_properties: true  # Better widget tests (fix in code if warned).
 
     # Testing and architecture.
     always_specify_types: true  # For DI with Riverpod/GetIt.

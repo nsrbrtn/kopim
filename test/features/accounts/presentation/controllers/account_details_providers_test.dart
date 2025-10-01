@@ -58,6 +58,7 @@ void main() {
       ];
 
       final ProviderContainer container = ProviderContainer(
+        // ignore: always_specify_types, the Override type is internal to riverpod
         overrides: [
           accountTransactionsProvider.overrideWith((Ref ref, String id) {
             expect(id, accountId);
@@ -110,6 +111,7 @@ void main() {
       ];
 
       final ProviderContainer container = ProviderContainer(
+        // ignore: always_specify_types, the Override type is internal to riverpod
         overrides: [
           accountTransactionsProvider.overrideWith((Ref ref, String id) {
             expect(id, accountId);

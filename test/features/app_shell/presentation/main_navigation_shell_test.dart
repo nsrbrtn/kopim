@@ -21,7 +21,6 @@ import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/repositories/transaction_repository.dart';
 import 'package:kopim/features/transactions/domain/use_cases/watch_recent_transactions_use_case.dart';
 import 'package:kopim/l10n/app_localizations.dart';
-import 'package:riverpod/src/framework.dart';
 
 class _FakeAuthController extends AuthController {
   _FakeAuthController(this._user);
@@ -128,13 +127,16 @@ void main() {
         );
 
     return ProviderScope(
-      overrides: <Override>[
+      // ignore: always_specify_types, the Override type is internal to riverpod
+      overrides: [
         authControllerProvider.overrideWith(
           () => _FakeAuthController(anonymousUser),
         ),
         watchAccountsUseCaseProvider.overrideWithValue(
           WatchAccountsUseCase(
-            _StreamAccountRepository(Stream.value(<AccountEntity>[account])),
+            _StreamAccountRepository(
+              Stream<List<AccountEntity>>.value(<AccountEntity>[account]),
+            ),
           ),
         ),
         transactionRepositoryProvider.overrideWithValue(transactionRepository),

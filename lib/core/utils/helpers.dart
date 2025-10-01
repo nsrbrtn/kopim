@@ -20,9 +20,8 @@ String? colorToHex(
 }) {
   if (color == null) return null;
 
-  final int value = includeAlpha
-      ? color.toARGB32()
-      : (color.red << 16) | (color.green << 8) | color.blue;
+  final int argbValue = color.toARGB32();
+  final int value = includeAlpha ? argbValue : (argbValue & 0x00FFFFFF);
 
   final String buffer = value
       .toRadixString(16)

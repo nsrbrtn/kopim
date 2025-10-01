@@ -15,14 +15,12 @@ void main() {
   setUp(() {
     deleteUseCase = _MockDeleteTransactionUseCase();
     container = ProviderContainer(
+      // ignore: always_specify_types, the Override type is internal to riverpod
       overrides: [
         deleteTransactionUseCaseProvider.overrideWithValue(deleteUseCase),
       ],
     );
-  });
-
-  tearDown(() {
-    container.dispose();
+    addTearDown(container.dispose);
   });
 
   test('deleteTransaction updates state on success', () async {
