@@ -41,6 +41,10 @@
   "@dialogCancel": {
     "description": "Generic cancel button label"
   },
+  "dialogConfirm": "Confirm",
+  "@dialogConfirm": {
+    "description": "Generic confirmation button label"
+  },
   "manageCategoriesParentLabel": "Parent category",
   "@manageCategoriesParentLabel": {
     "description": "Label for the dropdown that selects a parent category"
@@ -146,9 +150,25 @@
   "@manageCategoriesIconStyleFill": {
     "description": "Label for the fill icon style filter"
   },
-  "manageCategoriesColorLabel": "Color hex (optional)",
+  "manageCategoriesColorLabel": "Color (optional)",
   "@manageCategoriesColorLabel": {
     "description": "Label for the optional color input"
+  },
+  "manageCategoriesColorNone": "No color selected",
+  "@manageCategoriesColorNone": {
+    "description": "Subtitle shown when no color has been selected"
+  },
+  "manageCategoriesColorSelect": "Choose color",
+  "@manageCategoriesColorSelect": {
+    "description": "Tooltip for the action that opens the color picker"
+  },
+  "manageCategoriesColorClear": "Clear color",
+  "@manageCategoriesColorClear": {
+    "description": "Tooltip for the action that clears the selected color"
+  },
+  "manageCategoriesColorPickerTitle": "Pick a category color",
+  "@manageCategoriesColorPickerTitle": {
+    "description": "Title for the dialog that lets the user choose a category color"
   },
   "manageCategoriesSaveCta": "Save category",
   "@manageCategoriesSaveCta": {
@@ -307,23 +327,6 @@
   "homeTransactionsUncategorized": "Uncategorized",
   "@homeTransactionsUncategorized": {
     "description": "Fallback text when a transaction has no category"
-  },
-  "homeTransactionsCategory": "Category: {category}",
-  "@homeTransactionsCategory": {
-    "description": "Label for a transaction category",
-    "placeholders": {
-      "category": {
-        "type": "String"
-      }
-    }
-  },
-  "homeTransactionSymbolPositive": "+",
-  "@homeTransactionSymbolPositive": {
-    "description": "Symbol prefix for positive (income) transactions"
-  },
-  "homeTransactionSymbolNegative": "-",
-  "@homeTransactionSymbolNegative": {
-    "description": "Symbol prefix for negative (expense) transactions"
   },
   "homeNavHome": "Home",
   "@homeNavHome": {

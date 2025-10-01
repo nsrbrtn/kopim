@@ -43,6 +43,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dialogCancel => 'Cancel';
 
   @override
+  String get dialogConfirm => 'Confirm';
+
+  @override
   String get manageCategoriesParentLabel => 'Parent category';
 
   @override
@@ -121,7 +124,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get manageCategoriesIconStyleFill => 'Fill';
 
   @override
-  String get manageCategoriesColorLabel => 'Color hex (optional)';
+  String get manageCategoriesColorLabel => 'Color (optional)';
+
+  @override
+  String get manageCategoriesColorNone => 'No color selected';
+
+  @override
+  String get manageCategoriesColorSelect => 'Choose color';
+
+  @override
+  String get manageCategoriesColorClear => 'Clear color';
+
+  @override
+  String get manageCategoriesColorPickerTitle => 'Pick a category color';
 
   @override
   String get manageCategoriesSaveCta => 'Save category';
@@ -230,16 +245,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeTransactionsUncategorized => 'Uncategorized';
 
   @override
-  String homeTransactionsCategory(String category) {
-    return 'Category: $category';
-  }
-
-  @override
-  String get homeTransactionSymbolPositive => '+';
-
-  @override
-  String get homeTransactionSymbolNegative => '-';
-
   @override
   String get homeNavHome => 'Home';
 
