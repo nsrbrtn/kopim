@@ -4,7 +4,7 @@
   "@profileTitle": {
     "description": "Title for the profile screen app bar"
   },
-  "profileSignInPrompt": "Sign in to manage your profile.",
+  "profileSignInPrompt": "Please sign in to manage your profile.",
   "@profileSignInPrompt": {
     "description": "Shown when user must sign in to access profile"
   },
@@ -17,9 +17,83 @@
   "@profileManageCategoriesTitle": {
     "description": "Title for the category management screen"
   },
-  "profileManageCategoriesPlaceholder": "Category management will be available soon.",
-  "@profileManageCategoriesPlaceholder": {
-    "description": "Temporary placeholder text displayed on the category management screen"
+  "manageCategoriesAddAction": "Add category",
+  "@manageCategoriesAddAction": {
+    "description": "Tooltip for the button that starts creating a new category"
+  },
+  "manageCategoriesEditAction": "Edit",
+  "@manageCategoriesEditAction": {
+    "description": "Tooltip for the button that edits an existing category"
+  },
+  "manageCategoriesEmpty": "No categories yet. Create one to get started.",
+  "@manageCategoriesEmpty": {
+    "description": "Empty state message when there are no categories"
+  },
+  "manageCategoriesListError": "Unable to load categories: {error}",
+  "@manageCategoriesListError": {
+    "description": "Error message shown when categories stream fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "manageCategoriesCreateTitle": "New category",
+  "@manageCategoriesCreateTitle": {
+    "description": "Title for the sheet used to create a new category"
+  },
+  "manageCategoriesEditTitle": "Edit category",
+  "@manageCategoriesEditTitle": {
+    "description": "Title for the sheet used to edit an existing category"
+  },
+  "manageCategoriesNameLabel": "Name",
+  "@manageCategoriesNameLabel": {
+    "description": "Label for the category name field"
+  },
+  "manageCategoriesNameRequired": "Please enter a name.",
+  "@manageCategoriesNameRequired": {
+    "description": "Validation error when the category name is empty"
+  },
+  "manageCategoriesTypeLabel": "Type",
+  "@manageCategoriesTypeLabel": {
+    "description": "Label for the category type selector"
+  },
+  "manageCategoriesTypeExpense": "Expense",
+  "@manageCategoriesTypeExpense": {
+    "description": "Label for expense category type"
+  },
+  "manageCategoriesTypeIncome": "Income",
+  "@manageCategoriesTypeIncome": {
+    "description": "Label for income category type"
+  },
+  "manageCategoriesIconLabel": "Icon (optional)",
+  "@manageCategoriesIconLabel": {
+    "description": "Label for the optional icon input"
+  },
+  "manageCategoriesColorLabel": "Color hex (optional)",
+  "@manageCategoriesColorLabel": {
+    "description": "Label for the optional color input"
+  },
+  "manageCategoriesSaveCta": "Save category",
+  "@manageCategoriesSaveCta": {
+    "description": "Button label for saving a category"
+  },
+  "manageCategoriesSaveError": "Unable to save category: {error}",
+  "@manageCategoriesSaveError": {
+    "description": "Error message shown when saving a category fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "manageCategoriesSuccessCreate": "Category created successfully.",
+  "@manageCategoriesSuccessCreate": {
+    "description": "Snackbar message shown when a category is created"
+  },
+  "manageCategoriesSuccessUpdate": "Category updated successfully.",
+  "@manageCategoriesSuccessUpdate": {
+    "description": "Snackbar message shown when a category is updated"
   },
   "@profileSectionAccount": {
     "description": "Section header for account information"
@@ -48,6 +122,10 @@
   "profileSaveCta": "Save changes",
   "@profileSaveCta": {
     "description": "Label for the save button on profile form"
+  },
+  "profileSignOutCta": "Sign out",
+  "@profileSignOutCta": {
+    "description": "Button label to sign out from the profile settings"
   },
   "signInTitle": "Welcome to Kopim",
   "@signInTitle": {

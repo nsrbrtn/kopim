@@ -4,7 +4,7 @@
   "@profileTitle": {
     "description": "Заголовок экрана профиля"
   },
-  "profileSignInPrompt": "Войдите, чтобы управлять профилем.",
+  "profileSignInPrompt": "Пожалуйста, войдите, чтобы управлять профилем.",
   "@profileSignInPrompt": {
     "description": "Сообщение, когда пользователю нужно войти"
   },
@@ -17,9 +17,83 @@
   "@profileManageCategoriesTitle": {
     "description": "Заголовок экрана управления категориями"
   },
-  "profileManageCategoriesPlaceholder": "Создание и редактирование категорий скоро будет доступно.",
-  "@profileManageCategoriesPlaceholder": {
-    "description": "Временный текст-заглушка на экране управления категориями"
+  "manageCategoriesAddAction": "Добавить категорию",
+  "@manageCategoriesAddAction": {
+    "description": "Подсказка к кнопке добавления новой категории"
+  },
+  "manageCategoriesEditAction": "Редактировать",
+  "@manageCategoriesEditAction": {
+    "description": "Подсказка к кнопке редактирования категории"
+  },
+  "manageCategoriesEmpty": "Категории пока не созданы. Добавьте первую.",
+  "@manageCategoriesEmpty": {
+    "description": "Сообщение пустого состояния списка категорий"
+  },
+  "manageCategoriesListError": "Не удалось загрузить категории: {error}",
+  "@manageCategoriesListError": {
+    "description": "Сообщение об ошибке при загрузке категорий",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "manageCategoriesCreateTitle": "Новая категория",
+  "@manageCategoriesCreateTitle": {
+    "description": "Заголовок формы создания категории"
+  },
+  "manageCategoriesEditTitle": "Редактирование категории",
+  "@manageCategoriesEditTitle": {
+    "description": "Заголовок формы редактирования категории"
+  },
+  "manageCategoriesNameLabel": "Название",
+  "@manageCategoriesNameLabel": {
+    "description": "Подпись поля названия категории"
+  },
+  "manageCategoriesNameRequired": "Введите название.",
+  "@manageCategoriesNameRequired": {
+    "description": "Ошибка валидации при пустом названии категории"
+  },
+  "manageCategoriesTypeLabel": "Тип",
+  "@manageCategoriesTypeLabel": {
+    "description": "Подпись селектора типа категории"
+  },
+  "manageCategoriesTypeExpense": "Расход",
+  "@manageCategoriesTypeExpense": {
+    "description": "Подпись типа категории для расходов"
+  },
+  "manageCategoriesTypeIncome": "Доход",
+  "@manageCategoriesTypeIncome": {
+    "description": "Подпись типа категории для доходов"
+  },
+  "manageCategoriesIconLabel": "Иконка (необязательно)",
+  "@manageCategoriesIconLabel": {
+    "description": "Подпись поля иконки"
+  },
+  "manageCategoriesColorLabel": "Цвет (необязательно)",
+  "@manageCategoriesColorLabel": {
+    "description": "Подпись поля цвета"
+  },
+  "manageCategoriesSaveCta": "Сохранить категорию",
+  "@manageCategoriesSaveCta": {
+    "description": "Подпись кнопки сохранения категории"
+  },
+  "manageCategoriesSaveError": "Не удалось сохранить категорию: {error}",
+  "@manageCategoriesSaveError": {
+    "description": "Сообщение об ошибке при сохранении категории",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "manageCategoriesSuccessCreate": "Категория успешно создана.",
+  "@manageCategoriesSuccessCreate": {
+    "description": "Сообщение после успешного создания категории"
+  },
+  "manageCategoriesSuccessUpdate": "Категория обновлена.",
+  "@manageCategoriesSuccessUpdate": {
+    "description": "Сообщение после успешного обновления категории"
   },
   "@profileSectionAccount": {
     "description": "Заголовок блока с учетной записью"
@@ -48,6 +122,10 @@
   "profileSaveCta": "Сохранить изменения",
   "@profileSaveCta": {
     "description": "Кнопка сохранения профиля"
+  },
+  "profileSignOutCta": "Выйти из аккаунта",
+  "@profileSignOutCta": {
+    "description": "Подпись кнопки выхода из профиля"
   },
   "signInTitle": "Добро пожаловать в Kopim",
   "@signInTitle": {

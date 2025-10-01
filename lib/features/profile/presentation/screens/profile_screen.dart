@@ -43,9 +43,8 @@ class ProfileScreen extends ConsumerWidget {
 
           return LayoutBuilder(
             builder: (BuildContext context, BoxConstraints constraints) {
-              final double maxWidth = constraints.maxWidth >= 600
-                  ? 520.0
-                  : double.infinity;
+              final double maxWidth =
+                  constraints.maxWidth >= 600 ? 520.0 : double.infinity;
               return Center(
                 child: ConstrainedBox(
                   constraints: BoxConstraints(maxWidth: maxWidth),
@@ -202,30 +201,38 @@ class _ProfileForm extends ConsumerWidget {
                   ),
                 ),
               ],
+              const SizedBox(height: 24),
+              Row(
+                children: <Widget>[
+                  ElevatedButton.icon(
+                    onPressed: !isSaving && hasChanges
+                        ? () => formController.submit()
+                        : null,
+                    icon: isSaving
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.save),
+                    label: Text(strings.profileSaveCta),
+                  ),
+                  const SizedBox(width: 16),
+                  if (profileAsync.isLoading) const _CenteredProgress(size: 20),
+                ],
+              ),
+              const SizedBox(height: 16),
+              TextButton.icon(
+                onPressed: () {
+                  ref.read(authControllerProvider.notifier).signOut();
+                },
+                icon: const Icon(Icons.logout),
+                label: Text(strings.profileSignOutCta),
+              ),
             ],
           ),
         ),
         const SizedBox(height: 24),
-        Row(
-          children: <Widget>[
-            ElevatedButton.icon(
-              onPressed: !isSaving && hasChanges
-                  ? () => formController.submit()
-                  : null,
-              icon: isSaving
-                  ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.save),
-              label: Text(strings.profileSaveCta),
-            ),
-            const SizedBox(width: 16),
-            if (profileAsync.isLoading) const _CenteredProgress(size: 20),
-          ],
-        ),
-        const SizedBox(height: 16),
         OutlinedButton.icon(
           onPressed: () {
             Navigator.of(context).pushNamed(ManageCategoriesScreen.routeName);
