@@ -128,7 +128,11 @@ abstract class AppLocalizations {
   /// **'Manage categories'**
   String get profileManageCategoriesTitle;
 
+
   /// Tooltip for the button that starts creating a new category
+
+  /// Temporary placeholder text displayed on the category management screen
+
   ///
   /// In en, this message translates to:
   /// **'Add category'**
