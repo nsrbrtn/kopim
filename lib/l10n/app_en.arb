@@ -544,6 +544,170 @@
   "addAccountTypeBank": "Bank account",
   "@addAccountTypeBank": {
     "description": "Option label for bank accounts"
-
+  },
+  "accountDetailsTitle": "Account details",
+  "@accountDetailsTitle": {
+    "description": "Title for the account details screen"
+  },
+  "accountDetailsEditTooltip": "Edit account",
+  "@accountDetailsEditTooltip": {
+    "description": "Tooltip for the settings icon on the account details screen"
+  },
+  "accountDetailsError": "Unable to load account: {error}",
+  "@accountDetailsError": {
+    "description": "Error shown when loading the account fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "accountDetailsMissing": "This account is no longer available.",
+  "@accountDetailsMissing": {
+    "description": "Shown when the requested account cannot be found"
+  },
+  "accountDetailsSummaryError": "Unable to load summary: {error}",
+  "@accountDetailsSummaryError": {
+    "description": "Error shown when computing income/expense summary fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "accountDetailsCategoriesError": "Unable to load categories: {error}",
+  "@accountDetailsCategoriesError": {
+    "description": "Error shown when category stream fails on the account details screen",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "accountDetailsTransactionsError": "Unable to load transactions: {error}",
+  "@accountDetailsTransactionsError": {
+    "description": "Error shown when account transactions fail to load",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "accountDetailsTransactionsEmpty": "No transactions for this account yet.",
+  "@accountDetailsTransactionsEmpty": {
+    "description": "Empty state shown when the account has no transactions"
+  },
+  "accountDetailsBalanceLabel": "Balance: {balance}",
+  "@accountDetailsBalanceLabel": {
+    "description": "Label showing the current balance",
+    "placeholders": {
+      "balance": {
+        "type": "String"
+      }
+    }
+  },
+  "accountDetailsIncomeLabel": "Total income",
+  "@accountDetailsIncomeLabel": {
+    "description": "Label for the total income value"
+  },
+  "accountDetailsExpenseLabel": "Total expenses",
+  "@accountDetailsExpenseLabel": {
+    "description": "Label for the total expense value"
+  },
+  "accountDetailsFiltersTitle": "Filters",
+  "@accountDetailsFiltersTitle": {
+    "description": "Section title for the filter card"
+  },
+  "accountDetailsFiltersClear": "Clear filters",
+  "@accountDetailsFiltersClear": {
+    "description": "Button label that clears all active filters"
+  },
+  "accountDetailsFiltersDateAny": "Any dates",
+  "@accountDetailsFiltersDateAny": {
+    "description": "Label shown when no date range filter is applied"
+  },
+  "accountDetailsFiltersDateValue": "{start} – {end}",
+  "@accountDetailsFiltersDateValue": {
+    "description": "Label showing the selected date range",
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "accountDetailsFiltersTypeLabel": "Type",
+  "@accountDetailsFiltersTypeLabel": {
+    "description": "Label for the type dropdown filter"
+  },
+  "accountDetailsFiltersTypeAll": "All types",
+  "@accountDetailsFiltersTypeAll": {
+    "description": "Dropdown option for no type filter"
+  },
+  "accountDetailsFiltersTypeIncome": "Income",
+  "@accountDetailsFiltersTypeIncome": {
+    "description": "Dropdown option to filter income transactions"
+  },
+  "accountDetailsFiltersTypeExpense": "Expense",
+  "@accountDetailsFiltersTypeExpense": {
+    "description": "Dropdown option to filter expense transactions"
+  },
+  "accountDetailsFiltersCategoryLabel": "Category",
+  "@accountDetailsFiltersCategoryLabel": {
+    "description": "Label for the category dropdown"
+  },
+  "accountDetailsFiltersCategoryAll": "All categories",
+  "@accountDetailsFiltersCategoryAll": {
+    "description": "Dropdown option for no category filter"
+  },
+  "accountDetailsTransactionsUncategorized": "Uncategorized",
+  "@accountDetailsTransactionsUncategorized": {
+    "description": "Label for transactions without a category"
+  },
+  "accountDetailsTypeIncome": "Income",
+  "@accountDetailsTypeIncome": {
+    "description": "Label for income transaction type"
+  },
+  "accountDetailsTypeExpense": "Expense",
+  "@accountDetailsTypeExpense": {
+    "description": "Label for expense transaction type"
+  },
+  "editAccountTitle": "Edit account",
+  "@editAccountTitle": {
+    "description": "Title for the edit account screen"
+  },
+  "editAccountNameLabel": "Account name",
+  "@editAccountNameLabel": {
+    "description": "Label for the account name field on edit screen"
+  },
+  "editAccountBalanceLabel": "Balance",
+  "@editAccountBalanceLabel": {
+    "description": "Label for the balance field on edit screen"
+  },
+  "editAccountCurrencyLabel": "Currency",
+  "@editAccountCurrencyLabel": {
+    "description": "Label for the currency dropdown on edit screen"
+  },
+  "editAccountTypeLabel": "Account type",
+  "@editAccountTypeLabel": {
+    "description": "Label for the account type row on edit screen"
+  },
+  "editAccountSaveCta": "Save changes",
+  "@editAccountSaveCta": {
+    "description": "Button label for saving account edits"
+  },
+  "editAccountNameRequired": "Please enter the account name.",
+  "@editAccountNameRequired": {
+    "description": "Validation message when the account name is empty"
+  },
+  "editAccountBalanceInvalid": "Enter a valid amount.",
+  "@editAccountBalanceInvalid": {
+    "description": "Validation message when the balance is invalid"
+  },
+  "editAccountGenericError": "Could not update account. Please try again.",
+  "@editAccountGenericError": {
+    "description": "Generic error shown when updating the account fails"
   }
 }

@@ -9,7 +9,9 @@ import 'core/config/app_config.dart';
 import 'core/di/injectors.dart';
 import 'features/profile/presentation/controllers/auth_controller.dart';
 import 'features/analytics/presentation/analytics_screen.dart';
+import 'features/accounts/presentation/account_details_screen.dart';
 import 'features/accounts/presentation/accounts_add_screen.dart';
+import 'features/accounts/presentation/edit_account_screen.dart';
 import 'features/app_shell/presentation/widgets/main_navigation_shell.dart';
 import 'features/categories/presentation/screens/manage_categories_screen.dart';
 import 'features/profile/presentation/screens/profile_screen.dart';
@@ -50,6 +52,20 @@ class MyApp extends ConsumerWidget {
         MainNavigationShell.routeName: (_) => const MainNavigationShell(),
         AnalyticsScreen.routeName: (_) => const AnalyticsScreen(),
         AddAccountScreen.routeName: (_) => const AddAccountScreen(),
+        AccountDetailsScreen.routeName: (BuildContext context) {
+          final Object? args = ModalRoute.of(context)?.settings.arguments;
+          if (args is! AccountDetailsScreenArgs) {
+            throw ArgumentError('AccountDetailsScreenArgs expected');
+          }
+          return AccountDetailsScreen(accountId: args.accountId);
+        },
+        EditAccountScreen.routeName: (BuildContext context) {
+          final Object? args = ModalRoute.of(context)?.settings.arguments;
+          if (args is! EditAccountScreenArgs) {
+            throw ArgumentError('EditAccountScreenArgs expected');
+          }
+          return EditAccountScreen(account: args.account);
+        },
         AddTransactionScreen.routeName: (_) => const AddTransactionScreen(),
         ProfileScreen.routeName: (_) => const ProfileScreen(),
         ManageCategoriesScreen.routeName: (_) => const ManageCategoriesScreen(),

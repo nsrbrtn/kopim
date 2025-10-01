@@ -402,4 +402,117 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get addAccountTypeBank => 'Bank account';
+
+  @override
+  String get accountDetailsTitle => 'Account details';
+
+  @override
+  String get accountDetailsEditTooltip => 'Edit account';
+
+  @override
+  String accountDetailsError(String error) {
+    return 'Unable to load account: $error';
+  }
+
+  @override
+  String get accountDetailsMissing => 'This account is no longer available.';
+
+  @override
+  String accountDetailsSummaryError(String error) {
+    return 'Unable to load summary: $error';
+  }
+
+  @override
+  String accountDetailsCategoriesError(String error) {
+    return 'Unable to load categories: $error';
+  }
+
+  @override
+  String accountDetailsTransactionsError(String error) {
+    return 'Unable to load transactions: $error';
+  }
+
+  @override
+  String get accountDetailsTransactionsEmpty =>
+      'No transactions for this account yet.';
+
+  @override
+  String accountDetailsBalanceLabel(String balance) {
+    return 'Balance: $balance';
+  }
+
+  @override
+  String get accountDetailsIncomeLabel => 'Total income';
+
+  @override
+  String get accountDetailsExpenseLabel => 'Total expenses';
+
+  @override
+  String get accountDetailsFiltersTitle => 'Filters';
+
+  @override
+  String get accountDetailsFiltersClear => 'Clear filters';
+
+  @override
+  String get accountDetailsFiltersDateAny => 'Any dates';
+
+  @override
+  String accountDetailsFiltersDateValue(String start, String end) {
+    return '$start – $end';
+  }
+
+  @override
+  String get accountDetailsFiltersTypeLabel => 'Type';
+
+  @override
+  String get accountDetailsFiltersTypeAll => 'All types';
+
+  @override
+  String get accountDetailsFiltersTypeIncome => 'Income';
+
+  @override
+  String get accountDetailsFiltersTypeExpense => 'Expense';
+
+  @override
+  String get accountDetailsFiltersCategoryLabel => 'Category';
+
+  @override
+  String get accountDetailsFiltersCategoryAll => 'All categories';
+
+  @override
+  String get accountDetailsTransactionsUncategorized => 'Uncategorized';
+
+  @override
+  String get accountDetailsTypeIncome => 'Income';
+
+  @override
+  String get accountDetailsTypeExpense => 'Expense';
+
+  @override
+  String get editAccountTitle => 'Edit account';
+
+  @override
+  String get editAccountNameLabel => 'Account name';
+
+  @override
+  String get editAccountBalanceLabel => 'Balance';
+
+  @override
+  String get editAccountCurrencyLabel => 'Currency';
+
+  @override
+  String get editAccountTypeLabel => 'Account type';
+
+  @override
+  String get editAccountSaveCta => 'Save changes';
+
+  @override
+  String get editAccountNameRequired => 'Please enter the account name.';
+
+  @override
+  String get editAccountBalanceInvalid => 'Enter a valid amount.';
+
+  @override
+  String get editAccountGenericError =>
+      'Could not update account. Please try again.';
 }
