@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart'
+    show ColorLabelType, ColorPicker;
+
 import 'package:kopim/core/domain/icons/phosphor_icon_descriptor.dart';
 import 'package:kopim/core/utils/helpers.dart';
 import 'package:kopim/core/widgets/phosphor_icon_picker.dart';
@@ -521,9 +523,13 @@ class _CategoryEditorSheet extends ConsumerWidget {
         },
       );
 
-      if (pickedColor != null) {
-        controller.updateColor(colorToHex(pickedColor));
-      }
+
+        if (pickedColor != null) {
+          final String? hex = colorToHex(pickedColor);
+          if (hex != null) {
+            controller.updateColor(hex);
+          }
+        }
     }
 
     return Padding(
