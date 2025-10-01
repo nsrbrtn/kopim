@@ -22,11 +22,11 @@ Stream<List<TransactionEntity>> homeRecentTransactions(
 
 @riverpod
 double homeTotalBalance(Ref ref) {
-  final accountsAsync = ref.watch(homeAccountsProvider);
+  final AsyncValue<List<AccountEntity>> accountsAsync = ref.watch(homeAccountsProvider);
 
   return accountsAsync.maybeWhen(
-    data: (accounts) =>
-        accounts.fold<double>(0, (sum, account) => sum + account.balance),
+    data: (List<AccountEntity> accounts) =>
+        accounts.fold<double>(0, (double sum, AccountEntity account) => sum + account.balance),
     orElse: () => 0,
   );
 }

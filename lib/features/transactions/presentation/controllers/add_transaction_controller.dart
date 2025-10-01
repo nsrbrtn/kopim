@@ -80,12 +80,12 @@ class AddTransactionState {
 
 enum AddTransactionError { accountMissing, unknown }
 
-final addTransactionAccountsProvider =
+final StreamProvider<List<AccountEntity>> addTransactionAccountsProvider =
     StreamProvider.autoDispose<List<AccountEntity>>((Ref ref) {
   return ref.watch(watchAccountsUseCaseProvider).call();
 });
 
-final addTransactionCategoriesProvider =
+final StreamProvider<List<Category>> addTransactionCategoriesProvider =
     StreamProvider.autoDispose<List<Category>>((Ref ref) {
   return ref.watch(watchCategoriesUseCaseProvider).call();
 });

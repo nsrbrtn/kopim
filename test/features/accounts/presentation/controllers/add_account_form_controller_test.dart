@@ -4,7 +4,7 @@ import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/accounts/domain/use_cases/add_account_use_case.dart';
 import 'package:kopim/features/accounts/presentation/controllers/add_account_form_controller.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:riverpod/riverpod.dart';
+import 'package:riverpod/src/framework.dart';
 import 'package:uuid/uuid.dart';
 
 class _MockAddAccountUseCase extends Mock implements AddAccountUseCase {}
@@ -41,7 +41,7 @@ void main() {
     mockUuid = _MockUuid();
     when(() => mockUuid.v4()).thenReturn('uuid-123');
     container = ProviderContainer(
-      overrides: [
+      overrides: <Override>[
         addAccountUseCaseProvider.overrideWithValue(mockUseCase),
         uuidGeneratorProvider.overrideWithValue(mockUuid),
       ],

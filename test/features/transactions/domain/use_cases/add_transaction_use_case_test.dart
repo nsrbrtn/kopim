@@ -57,7 +57,7 @@ void main() {
     );
   });
 
-  AccountEntity _account({double balance = 100}) {
+  AccountEntity account0({double balance = 100}) {
     final DateTime createdAt = DateTime.utc(2023, 1, 1);
     return AccountEntity(
       id: 'acc-1',
@@ -71,7 +71,7 @@ void main() {
   }
 
   test('saves expense transaction and decreases account balance', () async {
-    final AccountEntity account = _account(balance: 200);
+    final AccountEntity account = account0(balance: 200);
     when(() => accountRepository.findById(account.id))
         .thenAnswer((_) async => account);
     when(() => transactionRepository.upsert(any()))
@@ -109,7 +109,7 @@ void main() {
   });
 
   test('saves income transaction and increases account balance', () async {
-    final AccountEntity account = _account(balance: 80);
+    final AccountEntity account = account0(balance: 80);
     when(() => accountRepository.findById(account.id))
         .thenAnswer((_) async => account);
     when(() => transactionRepository.upsert(any()))

@@ -10,6 +10,7 @@ import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/repositories/transaction_repository.dart';
 import 'package:kopim/features/transactions/domain/use_cases/watch_recent_transactions_use_case.dart';
 import 'package:riverpod/riverpod.dart';
+import 'package:riverpod/src/framework.dart';
 
 void main() {
   group('Home providers', () {
@@ -23,7 +24,7 @@ void main() {
           StreamController<List<TransactionEntity>>.broadcast();
 
       container = ProviderContainer(
-        overrides: [
+        overrides: <Override>[
           watchAccountsUseCaseProvider.overrideWithValue(
             WatchAccountsUseCase(
               _InMemoryAccountRepository(accountsController.stream),
@@ -50,12 +51,12 @@ void main() {
         _account('2'),
       ];
 
-      final completer = Completer<List<AccountEntity>>();
-      final subscription = container.listen(homeAccountsProvider, (
-        previous,
-        next,
+      final Completer<List<AccountEntity>> completer = Completer<List<AccountEntity>>();
+      final ProviderSubscription<AsyncValue<List<AccountEntity>>> subscription = container.listen(homeAccountsProvider, (
+        AsyncValue<List<AccountEntity>>? previous,
+        AsyncValue<List<AccountEntity>> next,
       ) {
-        next.whenData((accounts) {
+        next.whenData((List<AccountEntity> accounts) {
           if (!completer.isCompleted) {
             completer.complete(accounts);
           }
@@ -79,7 +80,7 @@ void main() {
             );
 
         final ProviderContainer scopedContainer = ProviderContainer(
-          overrides: [
+          overrides: <Override>[
             watchRecentTransactionsUseCaseProvider.overrideWithValue(
               recordingUseCase,
             ),
@@ -88,11 +89,11 @@ void main() {
 
         addTearDown(scopedContainer.dispose);
 
-        final completer = Completer<List<TransactionEntity>>();
-        final subscription = scopedContainer.listen(
+        final Completer<List<TransactionEntity>> completer = Completer<List<TransactionEntity>>();
+        final ProviderSubscription<AsyncValue<List<TransactionEntity>>> subscription = scopedContainer.listen(
           homeRecentTransactionsProvider(limit: 7),
-          (previous, next) {
-            next.whenData((transactions) {
+          (AsyncValue<List<TransactionEntity>>? previous, AsyncValue<List<TransactionEntity>> next) {
+            next.whenData((List<TransactionEntity> transactions) {
               if (!completer.isCompleted) {
                 completer.complete(transactions);
               }
