@@ -198,7 +198,8 @@ class _CategoryTreeList extends StatelessWidget {
           onDeleteCategory: onDeleteCategory,
         );
       },
-      separatorBuilder: (_, __) => const SizedBox(height: 12),
+      separatorBuilder: (BuildContext context, int index) =>
+          const SizedBox(height: 12),
     );
   }
 }
@@ -346,13 +347,13 @@ class _CategoryIcon extends StatelessWidget {
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
     final Color avatarBackground =
-        backgroundColor ?? theme.colorScheme.surfaceVariant;
+        backgroundColor ?? theme.colorScheme.surfaceContainerHighest;
     final Color avatarForeground = backgroundColor != null
         ? (ThemeData.estimateBrightnessForColor(avatarBackground) ==
                   Brightness.dark
               ? Colors.white
               : Colors.black87)
-        : theme.colorScheme.onSurfaceVariant;
+        : theme.colorScheme.onSurface;
 
     return CircleAvatar(
       backgroundColor: avatarBackground,
@@ -550,7 +551,7 @@ class _CategoryEditorSheet extends ConsumerWidget {
             ListTile(
               contentPadding: EdgeInsets.zero,
               leading: CircleAvatar(
-                backgroundColor: theme.colorScheme.surfaceVariant,
+                backgroundColor: theme.colorScheme.surfaceContainerHighest,
                 child: iconData != null
                     ? Icon(iconData)
                     : const Icon(Icons.category_outlined),
@@ -592,11 +593,11 @@ class _CategoryEditorSheet extends ConsumerWidget {
               leading: CircleAvatar(
                 key: const ValueKey<String>('category-color-preview'),
                 backgroundColor:
-                    selectedColor ?? theme.colorScheme.surfaceVariant,
+                    selectedColor ?? theme.colorScheme.surfaceContainerHighest,
                 child: selectedColor == null
                     ? Icon(
                         Icons.palette_outlined,
-                        color: theme.colorScheme.onSurfaceVariant,
+                        color: theme.colorScheme.onSurface,
                       )
                     : null,
               ),
@@ -704,7 +705,7 @@ class _CategoryColorPickerDialogState
                 .entries
                 .map((MapEntry<int, Color> entry) {
                   final Color color = entry.value;
-                  final bool isSelected = _draftColor?.value == color.value;
+                  final bool isSelected = _draftColor == color;
                   return InkResponse(
                     key: ValueKey<String>('category-color-${entry.key}'),
                     radius: 24,

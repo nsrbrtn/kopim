@@ -250,11 +250,12 @@ class _CategoryBreakdownTile extends StatelessWidget {
               children: <Widget>[
                 CircleAvatar(
                   radius: 18,
-                  backgroundColor: color ?? theme.colorScheme.surfaceVariant,
+                  backgroundColor:
+                      color ?? theme.colorScheme.surfaceContainerHighest,
                   child: color == null
                       ? Icon(
                           Icons.category_outlined,
-                          color: theme.colorScheme.onSurfaceVariant,
+                          color: theme.colorScheme.onSurface,
                         )
                       : null,
                 ),
@@ -269,7 +270,7 @@ class _CategoryBreakdownTile extends StatelessWidget {
             const SizedBox(height: 12),
             LinearProgressIndicator(
               value: normalizedValue,
-              backgroundColor: theme.colorScheme.surfaceVariant,
+              backgroundColor: theme.colorScheme.surfaceContainerHighest,
               valueColor: AlwaysStoppedAnimation<Color>(resolvedColor),
             ),
             const SizedBox(height: 12),

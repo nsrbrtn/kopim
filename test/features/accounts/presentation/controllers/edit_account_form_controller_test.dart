@@ -14,6 +14,7 @@ void main() {
       final _RecordingAccountRepository repository =
           _RecordingAccountRepository();
       final ProviderContainer container = ProviderContainer(
+        // ignore: always_specify_types, the Override type is internal to riverpod
         overrides: [
           addAccountUseCaseProvider.overrideWithValue(
             AddAccountUseCase(repository),
@@ -62,6 +63,7 @@ void main() {
 
     test('validates empty name and invalid balance', () async {
       final ProviderContainer container = ProviderContainer(
+        // ignore: always_specify_types, the Override type is internal to riverpod
         overrides: [
           addAccountUseCaseProvider.overrideWithValue(
             AddAccountUseCase(_RecordingAccountRepository()),

@@ -388,7 +388,7 @@ class _AccountTransactionsFilterPanel extends ConsumerWidget {
         ),
         const SizedBox(height: 12),
         DropdownButtonFormField<String>(
-          value: filter.categoryId ?? '',
+          initialValue: filter.categoryId ?? '',
           decoration: InputDecoration(
             labelText: strings.accountDetailsFiltersCategoryLabel,
           ),

@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:kopim/features/analytics/domain/models/analytics_category_breakdown.dart';
 import 'package:kopim/features/analytics/domain/models/analytics_overview.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
@@ -19,11 +21,11 @@ class WatchMonthlyAnalyticsUseCase {
       List<TransactionEntity> transactions,
     ) {
       if (transactions.isEmpty) {
-        return AnalyticsOverview(
+        return const AnalyticsOverview(
           totalIncome: 0,
           totalExpense: 0,
           netBalance: 0,
-          topExpenseCategories: const <AnalyticsCategoryBreakdown>[],
+          topExpenseCategories: <AnalyticsCategoryBreakdown>[],
         );
       }
 
@@ -60,9 +62,7 @@ class WatchMonthlyAnalyticsUseCase {
 
       final int effectiveLimit = topCategoriesLimit <= 0
           ? sortedExpenses.length
-          : topCategoriesLimit > sortedExpenses.length
-          ? sortedExpenses.length
-          : topCategoriesLimit;
+          : math.min(topCategoriesLimit, sortedExpenses.length);
 
       final Iterable<AnalyticsCategoryBreakdown> topExpenses = sortedExpenses
           .take(effectiveLimit)

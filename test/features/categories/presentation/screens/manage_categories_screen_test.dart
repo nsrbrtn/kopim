@@ -12,7 +12,6 @@ import 'package:kopim/l10n/app_localizations.dart';
 class _StubSaveCategoryUseCase implements SaveCategoryUseCase {
   @override
   Future<void> call(Category category) async {}
-
 }
 
 void main() {
@@ -83,7 +82,7 @@ void main() {
 
         await tester.pumpWidget(
           ProviderScope(
-            // ignore: always_specify_types
+            // ignore: always_specify_types, the Override type is internal to riverpod
             overrides: [
               manageCategoryTreeProvider.overrideWith(
                 (Ref ref) => Stream<List<CategoryTreeNode>>.value(
@@ -94,9 +93,11 @@ void main() {
                 (Ref ref) => _StubSaveCategoryUseCase(),
               ),
             ],
-            child: MaterialApp(
+            // ignore: unnecessary_const
+            child: const MaterialApp(
               localizationsDelegates: AppLocalizations.localizationsDelegates,
               supportedLocales: AppLocalizations.supportedLocales,
+              // ignore: unnecessary_const
               home: const ManageCategoriesScreen(),
             ),
           ),
@@ -129,7 +130,6 @@ void main() {
         expect(preview.backgroundColor, equals(const Color(0xFFDBF227)));
       },
     );
-
 
     testWidgets('renders contrasting icon color for dark backgrounds', (
       WidgetTester tester,
@@ -220,10 +220,7 @@ void main() {
       final CircleAvatar avatar = tester.widget<CircleAvatar>(
         find.byType(CircleAvatar).first,
       );
-      expect(
-        avatar.foregroundColor,
-        equals(theme.colorScheme.onSurfaceVariant),
-      );
+      expect(avatar.foregroundColor, equals(theme.colorScheme.onSurface));
     });
   });
 }

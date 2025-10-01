@@ -345,7 +345,7 @@ class _StyleSelector extends StatelessWidget {
               label: Text(label),
               selected: isSelected,
               onSelected: (_) => onSelected(style),
-              selectedColor: theme.colorScheme.primary.withOpacity(0.12),
+              selectedColor: theme.colorScheme.primary.withValues(alpha: 0.12),
             );
           })
           .toList(growable: false),
@@ -371,9 +371,9 @@ class _IconGridTile extends StatelessWidget {
     final ThemeData theme = Theme.of(context);
     final Color borderColor = isSelected
         ? theme.colorScheme.primary
-        : theme.dividerColor.withOpacity(0.2);
+        : theme.dividerColor.withValues(alpha: 0.2);
     final Color background = isSelected
-        ? theme.colorScheme.primary.withOpacity(0.08)
+        ? theme.colorScheme.primary.withValues(alpha: 0.08)
         : theme.colorScheme.surface;
     return InkWell(
       borderRadius: BorderRadius.circular(12),

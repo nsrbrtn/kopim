@@ -45,15 +45,13 @@ void main() {
     addUseCase = _MockAddTransactionUseCase();
     updateUseCase = _MockUpdateTransactionUseCase();
     container = ProviderContainer(
+      // ignore: always_specify_types, the Override type is internal to riverpod
       overrides: [
         addTransactionUseCaseProvider.overrideWithValue(addUseCase),
         updateTransactionUseCaseProvider.overrideWithValue(updateUseCase),
       ],
     );
-  });
-
-  tearDown(() {
-    container.dispose();
+    addTearDown(container.dispose);
   });
 
   test('initial state uses provided defaults', () {
