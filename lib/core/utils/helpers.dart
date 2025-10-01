@@ -31,6 +31,7 @@ String? colorToHex(
 }) {
   if (color == null) {
     return null;
+
   }
   final int value = includeAlpha ? color.value : color.value & 0x00FFFFFF;
   final String buffer = value.toRadixString(16).padLeft(includeAlpha ? 8 : 6, '0');

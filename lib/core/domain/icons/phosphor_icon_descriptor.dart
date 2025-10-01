@@ -23,6 +23,9 @@ extension PhosphorIconStyleX on PhosphorIconStyle {
 
 @freezed
 abstract class PhosphorIconDescriptor with _$PhosphorIconDescriptor {
+
+  factory PhosphorIconDescriptor.fromJson(Map<String, Object?> json) =>
+      _$PhosphorIconDescriptorFromJson(json);
   const factory PhosphorIconDescriptor({
     required String name,
     @Default(PhosphorIconStyle.regular) PhosphorIconStyle style,
@@ -35,7 +38,4 @@ abstract class PhosphorIconDescriptor with _$PhosphorIconDescriptor {
   bool get isEmpty => name.isEmpty;
 
   bool get isNotEmpty => name.isNotEmpty;
-
-  factory PhosphorIconDescriptor.fromJson(Map<String, Object?> json) =>
-      _$PhosphorIconDescriptorFromJson(json);
 }

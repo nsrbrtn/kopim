@@ -324,7 +324,7 @@ class _TransactionsList extends StatelessWidget {
             isThreeLine: note != null && note.isNotEmpty,
             leading: CircleAvatar(
               backgroundColor:
-                  categoryColor ?? theme.colorScheme.surfaceVariant,
+                  categoryColor ?? theme.colorScheme.surfaceContainerHighest,
               foregroundColor: avatarIconColor,
               child: categoryIcon != null
                   ? Icon(categoryIcon)
