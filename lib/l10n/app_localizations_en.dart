@@ -311,6 +311,37 @@ class AppLocalizationsEn extends AppLocalizations {
   String get analyticsComingSoon => 'Detailed analytics are coming soon.';
 
   @override
+  String get analyticsCurrentMonthTitle => 'Current month overview';
+
+  @override
+  String get analyticsSummaryIncomeLabel => 'Income';
+
+  @override
+  String get analyticsSummaryExpenseLabel => 'Expenses';
+
+  @override
+  String get analyticsSummaryNetLabel => 'Net';
+
+  @override
+  String get analyticsTopCategoriesTitle => 'Top expense categories';
+
+  @override
+  String get analyticsTopCategoriesEmpty =>
+      'Not enough expense data to show category trends yet.';
+
+  @override
+  String get analyticsCategoryUncategorized => 'Uncategorized';
+
+  @override
+  String get analyticsEmptyState =>
+      'No analytics available for the current month yet.';
+
+  @override
+  String analyticsLoadError(String error) {
+    return 'Unable to load analytics: $error';
+  }
+
+  @override
   String get addTransactionTitle => 'Add transaction';
 
   @override
@@ -367,6 +398,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get addTransactionDateLabel => 'Date';
+
+  @override
+  String get addTransactionTimeLabel => 'Time';
 
   @override
   String get addTransactionNoteLabel => 'Note';

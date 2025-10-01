@@ -31,8 +31,8 @@ void main() {
       expect(sections.length, 2);
       expect(sections.first.title, 'Сегодня');
       expect(sections.first.transactions, <TransactionEntity>[
-        firstToday,
         secondToday,
+        firstToday,
       ]);
       expect(sections.last.transactions, <TransactionEntity>[previousDay]);
     });

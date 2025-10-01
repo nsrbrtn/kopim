@@ -83,7 +83,7 @@ Future<bool> deleteTransactionWithFeedback({
 
 Widget buildDeleteBackground(Color color) {
   return Container(
-    margin: const EdgeInsets.symmetric(vertical: 8),
+    margin: const EdgeInsets.symmetric(vertical: 6),
     decoration: BoxDecoration(
       color: color,
       borderRadius: const BorderRadius.all(Radius.circular(12)),

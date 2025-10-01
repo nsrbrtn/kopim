@@ -297,7 +297,7 @@ class _AccountsListState extends State<_AccountsList> {
         return Column(
           children: <Widget>[
             SizedBox(
-              height: 240,
+              height: 160,
               child: PageView.builder(
                 controller: _pageController,
                 physics: const BouncingScrollPhysics(),
@@ -318,9 +318,11 @@ class _AccountsListState extends State<_AccountsList> {
                       const HomeAccountMonthlySummary(income: 0, expense: 0);
 
                   return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    padding: const EdgeInsets.symmetric(horizontal: 6),
                     child: Card(
+                      elevation: 0,
                       clipBehavior: Clip.antiAlias,
+                      surfaceTintColor: Colors.transparent,
                       child: InkWell(
                         onTap: () {
                           Navigator.of(context).pushNamed(
@@ -367,7 +369,7 @@ class _AccountsListState extends State<_AccountsList> {
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 16),
+                              const SizedBox(height: 12),
                               Row(
                                 children: <Widget>[
                                   Expanded(
@@ -557,6 +559,8 @@ class _TransactionsList extends ConsumerWidget {
                   : Colors.black87)
             : theme.colorScheme.onSurfaceVariant;
 
+        final DateFormat timeFormat = DateFormat.Hm(localeName);
+
         return Dismissible(
           key: ValueKey<String>(transaction.id),
           direction: DismissDirection.endToStart,
@@ -570,7 +574,9 @@ class _TransactionsList extends ConsumerWidget {
             );
           },
           child: Card(
-            margin: const EdgeInsets.symmetric(vertical: 8),
+            margin: const EdgeInsets.symmetric(vertical: 6),
+            elevation: 0,
+            surfaceTintColor: Colors.transparent,
             child: InkWell(
               borderRadius: const BorderRadius.all(Radius.circular(12)),
               onTap: () => showTransactionEditorSheet(
@@ -599,8 +605,21 @@ class _TransactionsList extends ConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
                           Text(categoryName, style: theme.textTheme.bodyMedium),
+                          const SizedBox(height: 4),
+                          Text(
+                            timeFormat.format(transaction.date),
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
                           if (note != null && note.isNotEmpty)
-                            Text(note, style: theme.textTheme.bodySmall),
+                            Padding(
+                              padding: const EdgeInsets.only(top: 4),
+                              child: Text(
+                                note,
+                                style: theme.textTheme.bodySmall,
+                              ),
+                            ),
                         ],
                       ),
                     ),

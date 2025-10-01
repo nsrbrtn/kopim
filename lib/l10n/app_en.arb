@@ -422,6 +422,47 @@
   "@analyticsComingSoon": {
     "description": "Placeholder message for analytics screen"
   },
+  "analyticsCurrentMonthTitle": "Current month overview",
+  "@analyticsCurrentMonthTitle": {
+    "description": "Heading for the monthly analytics summary"
+  },
+  "analyticsSummaryIncomeLabel": "Income",
+  "@analyticsSummaryIncomeLabel": {
+    "description": "Label for total income in analytics summary"
+  },
+  "analyticsSummaryExpenseLabel": "Expenses",
+  "@analyticsSummaryExpenseLabel": {
+    "description": "Label for total expenses in analytics summary"
+  },
+  "analyticsSummaryNetLabel": "Net",
+  "@analyticsSummaryNetLabel": {
+    "description": "Label for net balance in analytics summary"
+  },
+  "analyticsTopCategoriesTitle": "Top expense categories",
+  "@analyticsTopCategoriesTitle": {
+    "description": "Heading for the list of top expense categories"
+  },
+  "analyticsTopCategoriesEmpty": "Not enough expense data to show category trends yet.",
+  "@analyticsTopCategoriesEmpty": {
+    "description": "Message displayed when there are no expense categories to show"
+  },
+  "analyticsCategoryUncategorized": "Uncategorized",
+  "@analyticsCategoryUncategorized": {
+    "description": "Label for expenses without a category"
+  },
+  "analyticsEmptyState": "No analytics available for the current month yet.",
+  "@analyticsEmptyState": {
+    "description": "Message shown when there are no transactions to analyse"
+  },
+  "analyticsLoadError": "Unable to load analytics: {error}",
+  "@analyticsLoadError": {
+    "description": "Error shown when analytics stream fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "addTransactionTitle": "Add transaction",
   "@addTransactionTitle": {
     "description": "Title for add transaction screen"
@@ -500,6 +541,10 @@
   "addTransactionDateLabel": "Date",
   "@addTransactionDateLabel": {
     "description": "Label for the date picker"
+  },
+  "addTransactionTimeLabel": "Time",
+  "@addTransactionTimeLabel": {
+    "description": "Label for the time picker"
   },
   "addTransactionNoteLabel": "Note",
   "@addTransactionNoteLabel": {

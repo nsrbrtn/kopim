@@ -60,7 +60,7 @@ final class TransactionFormControllerProvider
 }
 
 String _$transactionFormControllerHash() =>
-    r'df12b1a373d950879079809d99f24957fe8c77b2';
+    r'33427ddc29c4fa366d15a4dfc36123689855f089';
 
 final class TransactionFormControllerFamily extends $Family
     with

@@ -246,6 +246,8 @@ class _TransactionForm extends ConsumerWidget {
           const SizedBox(height: 16),
           _DatePickerField(state: state, formArgs: formArgs),
           const SizedBox(height: 16),
+          _TimePickerField(state: state, formArgs: formArgs),
+          const SizedBox(height: 16),
           TextFormField(
             initialValue: state.note,
             maxLines: 3,
@@ -322,6 +324,41 @@ class _DatePickerField extends ConsumerWidget {
                   initial.minute,
                 ),
               );
+        }
+      },
+    );
+  }
+}
+
+class _TimePickerField extends ConsumerWidget {
+  const _TimePickerField({required this.state, required this.formArgs});
+
+  final TransactionFormState state;
+  final TransactionFormArgs formArgs;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final AppLocalizations strings = AppLocalizations.of(context)!;
+    final TimeOfDay selectedTime = TimeOfDay.fromDateTime(state.date);
+    final MaterialLocalizations localizations = MaterialLocalizations.of(
+      context,
+    );
+
+    return ListTile(
+      contentPadding: EdgeInsets.zero,
+      leading: const Icon(Icons.schedule),
+      title: Text(strings.addTransactionTimeLabel),
+      subtitle: Text(localizations.formatTimeOfDay(selectedTime)),
+      onTap: () async {
+        final TimeOfDay? picked = await showTimePicker(
+          context: context,
+          initialTime: selectedTime,
+          initialEntryMode: TimePickerEntryMode.input,
+        );
+        if (picked != null) {
+          ref
+              .read(transactionFormControllerProvider(formArgs).notifier)
+              .updateTime(hour: picked.hour, minute: picked.minute);
         }
       },
     );

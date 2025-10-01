@@ -7,6 +7,7 @@ import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/accounts/domain/repositories/account_repository.dart';
 import 'package:kopim/features/accounts/domain/use_cases/watch_accounts_use_case.dart';
+import 'package:kopim/features/analytics/domain/use_cases/watch_monthly_analytics_use_case.dart';
 import 'package:kopim/features/app_shell/presentation/widgets/main_navigation_shell.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/categories/domain/entities/category_tree_node.dart';
@@ -121,6 +122,11 @@ void main() {
   const AuthUser? anonymousUser = null;
 
   ProviderScope buildShell(Widget child) {
+    final _StreamTransactionRepository transactionRepository =
+        _StreamTransactionRepository(
+          Stream<List<TransactionEntity>>.value(const <TransactionEntity>[]),
+        );
+
     return ProviderScope(
       overrides: <Override>[
         authControllerProvider.overrideWith(
@@ -131,13 +137,13 @@ void main() {
             _StreamAccountRepository(Stream.value(<AccountEntity>[account])),
           ),
         ),
+        transactionRepositoryProvider.overrideWithValue(transactionRepository),
         watchRecentTransactionsUseCaseProvider.overrideWithValue(
-          WatchRecentTransactionsUseCase(
-            _StreamTransactionRepository(
-              Stream<List<TransactionEntity>>.value(
-                const <TransactionEntity>[],
-              ),
-            ),
+          WatchRecentTransactionsUseCase(transactionRepository),
+        ),
+        watchMonthlyAnalyticsUseCaseProvider.overrideWithValue(
+          WatchMonthlyAnalyticsUseCase(
+            transactionRepository: transactionRepository,
           ),
         ),
         watchCategoriesUseCaseProvider.overrideWithValue(

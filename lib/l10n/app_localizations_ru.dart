@@ -313,6 +313,37 @@ class AppLocalizationsRu extends AppLocalizations {
   String get analyticsComingSoon => 'Скоро здесь появится подробная аналитика.';
 
   @override
+  String get analyticsCurrentMonthTitle => 'Текущий месяц';
+
+  @override
+  String get analyticsSummaryIncomeLabel => 'Доходы';
+
+  @override
+  String get analyticsSummaryExpenseLabel => 'Расходы';
+
+  @override
+  String get analyticsSummaryNetLabel => 'Баланс';
+
+  @override
+  String get analyticsTopCategoriesTitle => 'Топ категорий расходов';
+
+  @override
+  String get analyticsTopCategoriesEmpty =>
+      'Недостаточно данных о расходах для анализа.';
+
+  @override
+  String get analyticsCategoryUncategorized => 'Без категории';
+
+  @override
+  String get analyticsEmptyState =>
+      'За текущий месяц пока нет данных для аналитики.';
+
+  @override
+  String analyticsLoadError(String error) {
+    return 'Не удалось загрузить аналитику: $error';
+  }
+
+  @override
   String get addTransactionTitle => 'Новая транзакция';
 
   @override
@@ -368,6 +399,9 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get addTransactionDateLabel => 'Дата';
+
+  @override
+  String get addTransactionTimeLabel => 'Время';
 
   @override
   String get addTransactionNoteLabel => 'Заметка';

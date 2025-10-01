@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_colorpicker/flutter_colorpicker.dart'
-    show ColorLabelType, ColorPicker;
-
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/core/domain/icons/phosphor_icon_descriptor.dart';
 import 'package:kopim/core/utils/helpers.dart';
@@ -12,6 +9,7 @@ import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/categories/domain/entities/category_tree_node.dart';
 import 'package:kopim/features/categories/presentation/controllers/categories_list_controller.dart';
 import 'package:kopim/features/categories/presentation/controllers/category_form_controller.dart';
+import 'package:kopim/features/categories/presentation/utils/category_color_palette.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -467,7 +465,7 @@ class _CategoryEditorSheet extends ConsumerWidget {
     final EdgeInsets viewInsets = MediaQuery.of(context).viewInsets;
 
     Future<void> selectColor() async {
-      Color draftColor = selectedColor ?? theme.colorScheme.primary;
+      Color? draftColor = selectedColor;
       final Color? pickedColor = await showDialog<Color>(
         context: context,
         builder: (BuildContext dialogContext) {
@@ -475,16 +473,46 @@ class _CategoryEditorSheet extends ConsumerWidget {
             title: Text(strings.manageCategoriesColorPickerTitle),
             content: StatefulBuilder(
               builder: (BuildContext context, StateSetter setState) {
-                return ColorPicker(
-                  pickerColor: draftColor,
-                  onColorChanged: (Color color) {
-                    setState(() => draftColor = color);
-                  },
-                  enableAlpha: false,
-                  displayThumbColor: true,
-                  labelTypes: const <ColorLabelType>[],
-                  pickerAreaBorderRadius: const BorderRadius.all(
-                    Radius.circular(12),
+                return SizedBox(
+                  width: double.maxFinite,
+                  child: SingleChildScrollView(
+                    child: Wrap(
+                      spacing: 12,
+                      runSpacing: 12,
+                      children: kCategoryPastelPalette
+                          .map((Color color) {
+                            final bool isSelected =
+                                draftColor?.value == color.value;
+                            return GestureDetector(
+                              onTap: () => setState(() => draftColor = color),
+                              child: Container(
+                                width: 40,
+                                height: 40,
+                                decoration: BoxDecoration(
+                                  color: color,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: isSelected
+                                        ? theme.colorScheme.primary
+                                        : Colors.transparent,
+                                    width: 3,
+                                  ),
+                                  boxShadow: isSelected
+                                      ? <BoxShadow>[
+                                          BoxShadow(
+                                            color: theme.colorScheme.primary
+                                                .withOpacity(0.24),
+                                            blurRadius: 8,
+                                            offset: const Offset(0, 2),
+                                          ),
+                                        ]
+                                      : const <BoxShadow>[],
+                                ),
+                              ),
+                            );
+                          })
+                          .toList(growable: false),
+                    ),
                   ),
                 );
               },
@@ -495,7 +523,9 @@ class _CategoryEditorSheet extends ConsumerWidget {
                 child: Text(strings.dialogCancel),
               ),
               FilledButton(
-                onPressed: () => Navigator.of(dialogContext).pop(draftColor),
+                onPressed: draftColor == null
+                    ? null
+                    : () => Navigator.of(dialogContext).pop(draftColor),
                 child: Text(strings.dialogConfirm),
               ),
             ],
