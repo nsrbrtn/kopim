@@ -22,6 +22,7 @@ import 'package:kopim/features/categories/data/repositories/category_repository_
 import 'package:kopim/features/categories/data/sources/local/category_dao.dart';
 import 'package:kopim/features/categories/data/sources/remote/category_remote_data_source.dart';
 import 'package:kopim/features/categories/domain/repositories/category_repository.dart';
+import 'package:kopim/features/categories/domain/use_cases/save_category_use_case.dart';
 import 'package:kopim/features/categories/domain/use_cases/watch_categories_use_case.dart';
 import 'package:kopim/features/profile/data/auth_repository_impl.dart';
 import 'package:kopim/features/profile/data/local/profile_dao.dart';
@@ -101,10 +102,10 @@ ProfileRemoteDataSource profileRemoteDataSource(Ref ref) =>
 
 @riverpod
 AccountRepository accountRepository(Ref ref) => AccountRepositoryImpl(
-  database: ref.watch(appDatabaseProvider),
-  accountDao: ref.watch(accountDaoProvider),
-  outboxDao: ref.watch(outboxDaoProvider),
-);
+      database: ref.watch(appDatabaseProvider),
+      accountDao: ref.watch(accountDaoProvider),
+      outboxDao: ref.watch(outboxDaoProvider),
+    );
 
 @riverpod
 AddAccountUseCase addAccountUseCase(Ref ref) =>
@@ -116,10 +117,14 @@ WatchAccountsUseCase watchAccountsUseCase(Ref ref) =>
 
 @riverpod
 CategoryRepository categoryRepository(Ref ref) => CategoryRepositoryImpl(
-  database: ref.watch(appDatabaseProvider),
-  categoryDao: ref.watch(categoryDaoProvider),
-  outboxDao: ref.watch(outboxDaoProvider),
-);
+      database: ref.watch(appDatabaseProvider),
+      categoryDao: ref.watch(categoryDaoProvider),
+      outboxDao: ref.watch(outboxDaoProvider),
+    );
+
+@riverpod
+SaveCategoryUseCase saveCategoryUseCase(Ref ref) =>
+    SaveCategoryUseCase(ref.watch(categoryRepositoryProvider));
 
 final rp.Provider<WatchCategoriesUseCase> watchCategoriesUseCaseProvider =
     rp.Provider<WatchCategoriesUseCase>((rp.Ref ref) {
@@ -148,17 +153,17 @@ WatchRecentTransactionsUseCase watchRecentTransactionsUseCase(Ref ref) =>
 
 @riverpod
 ProfileRepository profileRepository(Ref ref) => ProfileRepositoryImpl(
-  database: ref.watch(appDatabaseProvider),
-  profileDao: ref.watch(profileDaoProvider),
-  remoteDataSource: ref.watch(profileRemoteDataSourceProvider),
-  outboxDao: ref.watch(outboxDaoProvider),
-);
+      database: ref.watch(appDatabaseProvider),
+      profileDao: ref.watch(profileDaoProvider),
+      remoteDataSource: ref.watch(profileRemoteDataSourceProvider),
+      outboxDao: ref.watch(outboxDaoProvider),
+    );
 
 @riverpod
 UpdateProfileUseCase updateProfileUseCase(Ref ref) => UpdateProfileUseCaseImpl(
-  repository: ref.watch(profileRepositoryProvider),
-  analyticsService: ref.watch(analyticsServiceProvider),
-);
+      repository: ref.watch(profileRepositoryProvider),
+      analyticsService: ref.watch(analyticsServiceProvider),
+    );
 
 @riverpod
 SyncService syncService(Ref ref) {
@@ -178,25 +183,26 @@ SyncService syncService(Ref ref) {
 
 @riverpod
 AuthRepository authRepository(Ref ref) => AuthRepositoryImpl(
-  firebaseAuth: ref.watch(firebaseAuthProvider),
-  googleSignIn: ref.watch(googleSignInProvider),
-  loggerService: ref.watch(loggerServiceProvider),
-  analyticsService: ref.watch(analyticsServiceProvider),
-);
+      firebaseAuth: ref.watch(firebaseAuthProvider),
+      googleSignIn: ref.watch(googleSignInProvider),
+      loggerService: ref.watch(loggerServiceProvider),
+      analyticsService: ref.watch(analyticsServiceProvider),
+    );
 
 @riverpod
 AuthSyncService authSyncService(Ref ref) => AuthSyncService(
-  database: ref.watch(appDatabaseProvider),
-  outboxDao: ref.watch(outboxDaoProvider),
-  accountDao: ref.watch(accountDaoProvider),
-  categoryDao: ref.watch(categoryDaoProvider),
-  transactionDao: ref.watch(transactionDaoProvider),
-  profileDao: ref.watch(profileDaoProvider),
-  accountRemoteDataSource: ref.watch(accountRemoteDataSourceProvider),
-  categoryRemoteDataSource: ref.watch(categoryRemoteDataSourceProvider),
-  transactionRemoteDataSource: ref.watch(transactionRemoteDataSourceProvider),
-  profileRemoteDataSource: ref.watch(profileRemoteDataSourceProvider),
-  firestore: ref.watch(firestoreProvider),
-  loggerService: ref.watch(loggerServiceProvider),
-  analyticsService: ref.watch(analyticsServiceProvider),
-);
+      database: ref.watch(appDatabaseProvider),
+      outboxDao: ref.watch(outboxDaoProvider),
+      accountDao: ref.watch(accountDaoProvider),
+      categoryDao: ref.watch(categoryDaoProvider),
+      transactionDao: ref.watch(transactionDaoProvider),
+      profileDao: ref.watch(profileDaoProvider),
+      accountRemoteDataSource: ref.watch(accountRemoteDataSourceProvider),
+      categoryRemoteDataSource: ref.watch(categoryRemoteDataSourceProvider),
+      transactionRemoteDataSource:
+          ref.watch(transactionRemoteDataSourceProvider),
+      profileRemoteDataSource: ref.watch(profileRemoteDataSourceProvider),
+      firestore: ref.watch(firestoreProvider),
+      loggerService: ref.watch(loggerServiceProvider),
+      analyticsService: ref.watch(analyticsServiceProvider),
+    );

@@ -935,6 +935,54 @@ final class CategoryRepositoryProvider
 String _$categoryRepositoryHash() =>
     r'ea2f9b89aa4534b1f6d340901c364a0ba4a14e19';
 
+@ProviderFor(saveCategoryUseCase)
+const saveCategoryUseCaseProvider = SaveCategoryUseCaseProvider._();
+
+final class SaveCategoryUseCaseProvider
+    extends
+        $FunctionalProvider<
+          SaveCategoryUseCase,
+          SaveCategoryUseCase,
+          SaveCategoryUseCase
+        >
+    with $Provider<SaveCategoryUseCase> {
+  const SaveCategoryUseCaseProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'saveCategoryUseCaseProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$saveCategoryUseCaseHash();
+
+  @$internal
+  @override
+  $ProviderElement<SaveCategoryUseCase> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  SaveCategoryUseCase create(Ref ref) {
+    return saveCategoryUseCase(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(SaveCategoryUseCase value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<SaveCategoryUseCase>(value),
+    );
+  }
+}
+
+String _$saveCategoryUseCaseHash() =>
+    r'c9df54f4aa3bfc8cf852a4007a254d499e0b60b9';
+
 @ProviderFor(transactionRepository)
 const transactionRepositoryProvider = TransactionRepositoryProvider._();
 

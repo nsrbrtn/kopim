@@ -12,7 +12,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileTitle => 'Profile';
 
   @override
-  String get profileSignInPrompt => 'Sign in to manage your profile.';
+  String get profileSignInPrompt => 'Please sign in to manage your profile.';
 
   @override
   String get profileSectionAccount => 'Account';
@@ -24,8 +24,60 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileManageCategoriesTitle => 'Manage categories';
 
   @override
-  String get profileManageCategoriesPlaceholder =>
-      'Category management will be available soon.';
+  String get manageCategoriesAddAction => 'Add category';
+
+  @override
+  String get manageCategoriesEditAction => 'Edit';
+
+  @override
+  String get manageCategoriesEmpty =>
+      'No categories yet. Create one to get started.';
+
+  @override
+  String manageCategoriesListError(String error) {
+    return 'Unable to load categories: $error';
+  }
+
+  @override
+  String get manageCategoriesCreateTitle => 'New category';
+
+  @override
+  String get manageCategoriesEditTitle => 'Edit category';
+
+  @override
+  String get manageCategoriesNameLabel => 'Name';
+
+  @override
+  String get manageCategoriesNameRequired => 'Please enter a name.';
+
+  @override
+  String get manageCategoriesTypeLabel => 'Type';
+
+  @override
+  String get manageCategoriesTypeExpense => 'Expense';
+
+  @override
+  String get manageCategoriesTypeIncome => 'Income';
+
+  @override
+  String get manageCategoriesIconLabel => 'Icon (optional)';
+
+  @override
+  String get manageCategoriesColorLabel => 'Color hex (optional)';
+
+  @override
+  String get manageCategoriesSaveCta => 'Save category';
+
+  @override
+  String manageCategoriesSaveError(String error) {
+    return 'Unable to save category: $error';
+  }
+
+  @override
+  String get manageCategoriesSuccessCreate => 'Category created successfully.';
+
+  @override
+  String get manageCategoriesSuccessUpdate => 'Category updated successfully.';
 
   @override
   String get profileNameLabel => 'Name';
@@ -43,6 +95,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get profileSaveCta => 'Save changes';
+
+  @override
+  String get profileSignOutCta => 'Sign out';
 
   @override
   String get signInTitle => 'Welcome to Kopim';

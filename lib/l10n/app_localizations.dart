@@ -107,7 +107,7 @@ abstract class AppLocalizations {
   /// Shown when user must sign in to access profile
   ///
   /// In en, this message translates to:
-  /// **'Sign in to manage your profile.'**
+  /// **'Please sign in to manage your profile.'**
   String get profileSignInPrompt;
 
   /// Section header for account information
@@ -128,11 +128,111 @@ abstract class AppLocalizations {
   /// **'Manage categories'**
   String get profileManageCategoriesTitle;
 
+
+  /// Tooltip for the button that starts creating a new category
+
   /// Temporary placeholder text displayed on the category management screen
+
   ///
   /// In en, this message translates to:
-  /// **'Category management will be available soon.'**
-  String get profileManageCategoriesPlaceholder;
+  /// **'Add category'**
+  String get manageCategoriesAddAction;
+
+  /// Tooltip for the button that edits an existing category
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get manageCategoriesEditAction;
+
+  /// Empty state message when there are no categories
+  ///
+  /// In en, this message translates to:
+  /// **'No categories yet. Create one to get started.'**
+  String get manageCategoriesEmpty;
+
+  /// Error message shown when categories stream fails
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load categories: {error}'**
+  String manageCategoriesListError(String error);
+
+  /// Title for the sheet used to create a new category
+  ///
+  /// In en, this message translates to:
+  /// **'New category'**
+  String get manageCategoriesCreateTitle;
+
+  /// Title for the sheet used to edit an existing category
+  ///
+  /// In en, this message translates to:
+  /// **'Edit category'**
+  String get manageCategoriesEditTitle;
+
+  /// Label for the category name field
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get manageCategoriesNameLabel;
+
+  /// Validation error when the category name is empty
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a name.'**
+  String get manageCategoriesNameRequired;
+
+  /// Label for the category type selector
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get manageCategoriesTypeLabel;
+
+  /// Label for expense category type
+  ///
+  /// In en, this message translates to:
+  /// **'Expense'**
+  String get manageCategoriesTypeExpense;
+
+  /// Label for income category type
+  ///
+  /// In en, this message translates to:
+  /// **'Income'**
+  String get manageCategoriesTypeIncome;
+
+  /// Label for the optional icon input
+  ///
+  /// In en, this message translates to:
+  /// **'Icon (optional)'**
+  String get manageCategoriesIconLabel;
+
+  /// Label for the optional color input
+  ///
+  /// In en, this message translates to:
+  /// **'Color hex (optional)'**
+  String get manageCategoriesColorLabel;
+
+  /// Button label for saving a category
+  ///
+  /// In en, this message translates to:
+  /// **'Save category'**
+  String get manageCategoriesSaveCta;
+
+  /// Error message shown when saving a category fails
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to save category: {error}'**
+  String manageCategoriesSaveError(String error);
+
+  /// Snackbar message shown when a category is created
+  ///
+  /// In en, this message translates to:
+  /// **'Category created successfully.'**
+  String get manageCategoriesSuccessCreate;
+
+  /// Snackbar message shown when a category is updated
+  ///
+  /// In en, this message translates to:
+  /// **'Category updated successfully.'**
+  String get manageCategoriesSuccessUpdate;
 
   /// Label for the profile name input
   ///
@@ -163,6 +263,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Save changes'**
   String get profileSaveCta;
+
+  /// Button label to sign out from the profile settings
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out'**
+  String get profileSignOutCta;
 
   /// Main heading on the sign-in screen
   ///

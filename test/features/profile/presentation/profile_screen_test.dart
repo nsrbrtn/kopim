@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kopim/core/di/injectors.dart';
+import 'package:kopim/features/categories/domain/entities/category.dart';
+import 'package:kopim/features/categories/presentation/controllers/categories_list_controller.dart';
 import 'package:kopim/features/categories/presentation/screens/manage_categories_screen.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
 import 'package:kopim/features/profile/domain/entities/profile.dart';
@@ -25,6 +27,22 @@ class _FakeAuthController extends AuthController {
 
   @override
   FutureOr<AuthUser?> build() => _user;
+}
+
+class _SignOutSpyAuthController extends AuthController {
+  _SignOutSpyAuthController(this._user, this._onSignOut);
+
+  final AuthUser? _user;
+  final VoidCallback _onSignOut;
+
+  @override
+  FutureOr<AuthUser?> build() => _user;
+
+  @override
+  Future<void> signOut() async {
+    _onSignOut();
+    state = const AsyncValue<AuthUser?>.data(null);
+  }
 }
 
 class _FakeProfileController extends ProfileController {
@@ -70,6 +88,9 @@ void main() {
           updateProfileUseCaseProvider.overrideWith(
             (Ref ref) => _StubUpdateProfileUseCase(),
           ),
+          manageCategoriesListProvider.overrideWith(
+            (Ref ref) => Stream<List<Category>>.value(const <Category>[]),
+          ),
         ],
         child: const MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -108,6 +129,9 @@ void main() {
           updateProfileUseCaseProvider.overrideWith(
             (Ref ref) => _StubUpdateProfileUseCase(),
           ),
+          manageCategoriesListProvider.overrideWith(
+            (Ref ref) => Stream<List<Category>>.value(const <Category>[]),
+          ),
         ],
         child: const MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -126,7 +150,9 @@ void main() {
     WidgetTester tester,
   ) async {
     final List<Route<dynamic>> pushedRoutes = <Route<dynamic>>[];
-    final NavigatorObserver observer = _RecordingNavigatorObserver(pushedRoutes);
+    final NavigatorObserver observer = _RecordingNavigatorObserver(
+      pushedRoutes,
+    );
 
     await tester.pumpWidget(
       ProviderScope(
@@ -140,6 +166,9 @@ void main() {
           ).overrideWith(() => _FakeProfileController(hydratedProfile)),
           updateProfileUseCaseProvider.overrideWith(
             (Ref ref) => _StubUpdateProfileUseCase(),
+          ),
+          manageCategoriesListProvider.overrideWith(
+            (Ref ref) => Stream<List<Category>>.value(const <Category>[]),
           ),
         ],
         child: MaterialApp(
@@ -168,6 +197,50 @@ void main() {
       contains(ManageCategoriesScreen.routeName),
     );
     expect(find.byType(ManageCategoriesScreen), findsOneWidget);
+  });
+
+  testWidgets('sign out button triggers auth controller sign out', (
+    WidgetTester tester,
+  ) async {
+    bool didSignOut = false;
+
+    await tester.pumpWidget(
+      ProviderScope(
+        // ignore: always_specify_types
+        overrides: [
+          authControllerProvider.overrideWith(
+            () => _SignOutSpyAuthController(
+              signedInUser,
+              () => didSignOut = true,
+            ),
+          ),
+          profileControllerProvider(
+            signedInUser.uid,
+          ).overrideWith(() => _FakeProfileController(hydratedProfile)),
+          updateProfileUseCaseProvider.overrideWith(
+            (Ref ref) => _StubUpdateProfileUseCase(),
+          ),
+          manageCategoriesListProvider.overrideWith(
+            (Ref ref) => Stream<List<Category>>.value(const <Category>[]),
+          ),
+        ],
+        child: const MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: ProfileScreen(),
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Account'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Sign out'));
+    await tester.pump();
+
+    expect(didSignOut, isTrue);
   });
 }
 

@@ -12,7 +12,8 @@ class AppLocalizationsRu extends AppLocalizations {
   String get profileTitle => 'Профиль';
 
   @override
-  String get profileSignInPrompt => 'Войдите, чтобы управлять профилем.';
+  String get profileSignInPrompt =>
+      'Пожалуйста, войдите, чтобы управлять профилем.';
 
   @override
   String get profileSectionAccount => 'Учетная запись';
@@ -24,8 +25,60 @@ class AppLocalizationsRu extends AppLocalizations {
   String get profileManageCategoriesTitle => 'Управление категориями';
 
   @override
-  String get profileManageCategoriesPlaceholder =>
-      'Создание и редактирование категорий скоро будет доступно.';
+  String get manageCategoriesAddAction => 'Добавить категорию';
+
+  @override
+  String get manageCategoriesEditAction => 'Редактировать';
+
+  @override
+  String get manageCategoriesEmpty =>
+      'Категории пока не созданы. Добавьте первую.';
+
+  @override
+  String manageCategoriesListError(String error) {
+    return 'Не удалось загрузить категории: $error';
+  }
+
+  @override
+  String get manageCategoriesCreateTitle => 'Новая категория';
+
+  @override
+  String get manageCategoriesEditTitle => 'Редактирование категории';
+
+  @override
+  String get manageCategoriesNameLabel => 'Название';
+
+  @override
+  String get manageCategoriesNameRequired => 'Введите название.';
+
+  @override
+  String get manageCategoriesTypeLabel => 'Тип';
+
+  @override
+  String get manageCategoriesTypeExpense => 'Расход';
+
+  @override
+  String get manageCategoriesTypeIncome => 'Доход';
+
+  @override
+  String get manageCategoriesIconLabel => 'Иконка (необязательно)';
+
+  @override
+  String get manageCategoriesColorLabel => 'Цвет (необязательно)';
+
+  @override
+  String get manageCategoriesSaveCta => 'Сохранить категорию';
+
+  @override
+  String manageCategoriesSaveError(String error) {
+    return 'Не удалось сохранить категорию: $error';
+  }
+
+  @override
+  String get manageCategoriesSuccessCreate => 'Категория успешно создана.';
+
+  @override
+  String get manageCategoriesSuccessUpdate => 'Категория обновлена.';
 
   @override
   String get profileNameLabel => 'Имя';
@@ -43,6 +96,9 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get profileSaveCta => 'Сохранить изменения';
+
+  @override
+  String get profileSignOutCta => 'Выйти из аккаунта';
 
   @override
   String get signInTitle => 'Добро пожаловать в Kopim';
