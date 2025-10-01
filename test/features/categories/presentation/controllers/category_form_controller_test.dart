@@ -60,9 +60,7 @@ void main() {
     );
     controller.updateName('  Groceries  ');
     controller.updateType('income');
-    controller.updateIcon(
-      const PhosphorIconDescriptor(name: 'airplane'),
-    );
+    controller.updateIcon(const PhosphorIconDescriptor(name: 'airplane'));
     controller.updateColor('#FFA500');
 
     await controller.submit();
@@ -170,9 +168,7 @@ void main() {
     );
 
     controller.updateParent(parent.id);
-    controller.updateIcon(
-      const PhosphorIconDescriptor(name: 'airplane'),
-    );
+    controller.updateIcon(const PhosphorIconDescriptor(name: 'airplane'));
     controller.updateIcon(null);
     controller.updateName('Electricity');
 

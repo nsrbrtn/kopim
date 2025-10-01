@@ -3,10 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'navigation_tab_content.dart';
 
-typedef NavigationTabContentBuilder = NavigationTabContent Function(
-  BuildContext context,
-  WidgetRef ref,
-);
+typedef NavigationTabContentBuilder =
+    NavigationTabContent Function(BuildContext context, WidgetRef ref);
 
 typedef NavigationTabLabelBuilder = String Function(BuildContext context);
 

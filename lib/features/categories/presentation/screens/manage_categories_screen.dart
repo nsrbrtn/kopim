@@ -157,18 +157,14 @@ Future<void> _confirmDeleteCategory(
     messenger
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        SnackBar(
-          content: Text(strings.manageCategoriesDeleteSuccess),
-        ),
+        SnackBar(content: Text(strings.manageCategoriesDeleteSuccess)),
       );
   } catch (error) {
     messenger
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
-          content: Text(
-            strings.manageCategoriesDeleteError(error.toString()),
-          ),
+          content: Text(strings.manageCategoriesDeleteError(error.toString())),
         ),
       );
   }
@@ -487,7 +483,9 @@ class _CategoryEditorSheet extends ConsumerWidget {
                   enableAlpha: false,
                   displayThumbColor: true,
                   labelTypes: const <ColorLabelType>[],
-                  pickerAreaBorderRadius: const BorderRadius.all(Radius.circular(12)),
+                  pickerAreaBorderRadius: const BorderRadius.all(
+                    Radius.circular(12),
+                  ),
                 );
               },
             ),
@@ -505,13 +503,12 @@ class _CategoryEditorSheet extends ConsumerWidget {
         },
       );
 
-
-        if (pickedColor != null) {
-          final String? hex = colorToHex(pickedColor);
-          if (hex != null) {
-            controller.updateColor(hex);
-          }
+      if (pickedColor != null) {
+        final String? hex = colorToHex(pickedColor);
+        if (hex != null) {
+          controller.updateColor(hex);
         }
+      }
     }
 
     return Padding(

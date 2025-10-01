@@ -517,6 +517,22 @@
   "@addTransactionUnknownError": {
     "description": "Generic error when saving a transaction fails"
   },
+  "transactionFormMissingError": "The transaction could not be found. Refresh and try again.",
+  "@transactionFormMissingError": {
+    "description": "Shown when the transaction being edited is missing from the local store"
+  },
+  "editTransactionSubmit": "Save changes",
+  "@editTransactionSubmit": {
+    "description": "Label for the submit button when editing a transaction"
+  },
+  "transactionDeleteSuccess": "Transaction deleted.",
+  "@transactionDeleteSuccess": {
+    "description": "Shown when a transaction is deleted successfully"
+  },
+  "transactionDeleteError": "Unable to delete the transaction.",
+  "@transactionDeleteError": {
+    "description": "Shown when deleting a transaction fails"
+  },
   "addTransactionSuccess": "Transaction saved",
   "@addTransactionSuccess": {
     "description": "Confirmation message shown after creating a transaction"
@@ -646,13 +662,25 @@
   "@accountDetailsFiltersTitle": {
     "description": "Section title for the filter card"
   },
+  "accountDetailsFiltersButtonActive": "Filters (active)",
+  "@accountDetailsFiltersButtonActive": {
+    "description": "Label for the filters button when filters are active"
+  },
   "accountDetailsFiltersClear": "Clear filters",
   "@accountDetailsFiltersClear": {
     "description": "Button label that clears all active filters"
   },
+  "accountDetailsFiltersDateLabel": "Date",
+  "@accountDetailsFiltersDateLabel": {
+    "description": "Label for the date range filter"
+  },
   "accountDetailsFiltersDateAny": "Any dates",
   "@accountDetailsFiltersDateAny": {
     "description": "Label shown when no date range filter is applied"
+  },
+  "accountDetailsFiltersDateClear": "Clear date range",
+  "@accountDetailsFiltersDateClear": {
+    "description": "Tooltip for the action that clears the date range filter"
   },
   "accountDetailsFiltersDateValue": "{start} – {end}",
   "@accountDetailsFiltersDateValue": {

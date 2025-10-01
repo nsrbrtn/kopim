@@ -7,33 +7,32 @@ import 'package:kopim/l10n/app_localizations.dart';
 
 import '../models/navigation_tab_config.dart';
 
-
 final Provider<List<NavigationTabConfig>> mainNavigationTabsProvider =
     Provider<List<NavigationTabConfig>>((Ref ref) {
-  return <NavigationTabConfig>[
-    NavigationTabConfig(
-      id: 'home',
-      icon: Icons.home_outlined,
-      activeIcon: Icons.home,
-      labelBuilder: (BuildContext context) =>
-          AppLocalizations.of(context)!.homeNavHome,
-      contentBuilder: buildHomeTabContent,
-    ),
-    NavigationTabConfig(
-      id: 'analytics',
-      icon: Icons.show_chart_outlined,
-      activeIcon: Icons.show_chart,
-      labelBuilder: (BuildContext context) =>
-          AppLocalizations.of(context)!.homeNavAnalytics,
-      contentBuilder: buildAnalyticsTabContent,
-    ),
-    NavigationTabConfig(
-      id: 'settings',
-      icon: Icons.settings_outlined,
-      activeIcon: Icons.settings,
-      labelBuilder: (BuildContext context) =>
-          AppLocalizations.of(context)!.homeNavSettings,
-      contentBuilder: buildProfileTabContent,
-    ),
-  ];
-});
+      return <NavigationTabConfig>[
+        NavigationTabConfig(
+          id: 'home',
+          icon: Icons.home_outlined,
+          activeIcon: Icons.home,
+          labelBuilder: (BuildContext context) =>
+              AppLocalizations.of(context)!.homeNavHome,
+          contentBuilder: buildHomeTabContent,
+        ),
+        NavigationTabConfig(
+          id: 'analytics',
+          icon: Icons.show_chart_outlined,
+          activeIcon: Icons.show_chart,
+          labelBuilder: (BuildContext context) =>
+              AppLocalizations.of(context)!.homeNavAnalytics,
+          contentBuilder: buildAnalyticsTabContent,
+        ),
+        NavigationTabConfig(
+          id: 'settings',
+          icon: Icons.settings_outlined,
+          activeIcon: Icons.settings,
+          labelBuilder: (BuildContext context) =>
+              AppLocalizations.of(context)!.homeNavSettings,
+          contentBuilder: buildProfileTabContent,
+        ),
+      ];
+    });

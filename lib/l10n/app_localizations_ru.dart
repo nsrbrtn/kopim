@@ -384,6 +384,19 @@ class AppLocalizationsRu extends AppLocalizations {
       'Не удалось сохранить транзакцию. Попробуйте ещё раз.';
 
   @override
+  String get transactionFormMissingError =>
+      'Не удалось найти транзакцию. Обновите данные и попробуйте снова.';
+
+  @override
+  String get editTransactionSubmit => 'Сохранить изменения';
+
+  @override
+  String get transactionDeleteSuccess => 'Транзакция удалена.';
+
+  @override
+  String get transactionDeleteError => 'Не удалось удалить транзакцию.';
+
+  @override
   String get addTransactionSuccess => 'Транзакция сохранена';
 
   @override
@@ -473,10 +486,19 @@ class AppLocalizationsRu extends AppLocalizations {
   String get accountDetailsFiltersTitle => 'Фильтры';
 
   @override
+  String get accountDetailsFiltersButtonActive => 'Фильтры (активны)';
+
+  @override
   String get accountDetailsFiltersClear => 'Сбросить фильтры';
 
   @override
+  String get accountDetailsFiltersDateLabel => 'Дата';
+
+  @override
   String get accountDetailsFiltersDateAny => 'Любые даты';
+
+  @override
+  String get accountDetailsFiltersDateClear => 'Очистить диапазон';
 
   @override
   String accountDetailsFiltersDateValue(String start, String end) {

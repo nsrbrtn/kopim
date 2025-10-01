@@ -782,6 +782,30 @@ abstract class AppLocalizations {
   /// **'Unable to save the transaction. Try again.'**
   String get addTransactionUnknownError;
 
+  /// Shown when the transaction being edited is missing from the local store
+  ///
+  /// In en, this message translates to:
+  /// **'The transaction could not be found. Refresh and try again.'**
+  String get transactionFormMissingError;
+
+  /// Label for the submit button when editing a transaction
+  ///
+  /// In en, this message translates to:
+  /// **'Save changes'**
+  String get editTransactionSubmit;
+
+  /// Shown when a transaction is deleted successfully
+  ///
+  /// In en, this message translates to:
+  /// **'Transaction deleted.'**
+  String get transactionDeleteSuccess;
+
+  /// Shown when deleting a transaction fails
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to delete the transaction.'**
+  String get transactionDeleteError;
+
   /// Confirmation message shown after creating a transaction
   ///
   /// In en, this message translates to:
@@ -938,17 +962,35 @@ abstract class AppLocalizations {
   /// **'Filters'**
   String get accountDetailsFiltersTitle;
 
+  /// Label for the filters button when filters are active
+  ///
+  /// In en, this message translates to:
+  /// **'Filters (active)'**
+  String get accountDetailsFiltersButtonActive;
+
   /// Button label that clears all active filters
   ///
   /// In en, this message translates to:
   /// **'Clear filters'**
   String get accountDetailsFiltersClear;
 
+  /// Label for the date range filter
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get accountDetailsFiltersDateLabel;
+
   /// Label shown when no date range filter is applied
   ///
   /// In en, this message translates to:
   /// **'Any dates'**
   String get accountDetailsFiltersDateAny;
+
+  /// Tooltip for the action that clears the date range filter
+  ///
+  /// In en, this message translates to:
+  /// **'Clear date range'**
+  String get accountDetailsFiltersDateClear;
 
   /// Label showing the selected date range
   ///

@@ -21,38 +21,43 @@ void main() {
       await controller.close();
     });
 
-    test('returns most recent transactions limited to requested size', () async {
-      final List<TransactionEntity> seedTransactions = List<TransactionEntity>.generate(
-        60,
-        (int index) => TransactionEntity(
-          id: 't$index',
-          accountId: 'a1',
-          categoryId: 'c$index',
-          amount: 10.0 + index,
-          date: DateTime(2024, 1, 1).add(Duration(days: index)),
-          note: 'note $index',
-          type: index.isEven ? 'income' : 'expense',
-          createdAt: DateTime(2024, 1, 1),
-          updatedAt: DateTime(2024, 1, 1),
-        ),
-      );
+    test(
+      'returns most recent transactions limited to requested size',
+      () async {
+        final List<TransactionEntity> seedTransactions =
+            List<TransactionEntity>.generate(
+              60,
+              (int index) => TransactionEntity(
+                id: 't$index',
+                accountId: 'a1',
+                categoryId: 'c$index',
+                amount: 10.0 + index,
+                date: DateTime(2024, 1, 1).add(Duration(days: index)),
+                note: 'note $index',
+                type: index.isEven ? 'income' : 'expense',
+                createdAt: DateTime(2024, 1, 1),
+                updatedAt: DateTime(2024, 1, 1),
+              ),
+            );
 
-      final List<List<TransactionEntity>> emissions = <List<TransactionEntity>>[];
-      final StreamSubscription<List<TransactionEntity>> subscription =
-          useCase(limit: 50).listen(emissions.add);
+        final List<List<TransactionEntity>> emissions =
+            <List<TransactionEntity>>[];
+        final StreamSubscription<List<TransactionEntity>> subscription =
+            useCase(limit: 50).listen(emissions.add);
 
-      controller.add(seedTransactions);
-      await Future<void>.delayed(Duration.zero);
+        controller.add(seedTransactions);
+        await Future<void>.delayed(Duration.zero);
 
-      expect(emissions, hasLength(1));
-      final List<TransactionEntity> result = emissions.first;
-      expect(result, hasLength(50));
-      expect(result.first.id, 't59');
-      expect(result.last.id, 't10');
-      expect(result.first.date.isAfter(result.last.date), isTrue);
+        expect(emissions, hasLength(1));
+        final List<TransactionEntity> result = emissions.first;
+        expect(result, hasLength(50));
+        expect(result.first.id, 't59');
+        expect(result.last.id, 't10');
+        expect(result.first.date.isAfter(result.last.date), isTrue);
 
-      await subscription.cancel();
-    });
+        await subscription.cancel();
+      },
+    );
   });
 }
 

@@ -5,7 +5,7 @@ import 'package:kopim/features/accounts/domain/usecases/watch_accounts_use_case.
 /// Default implementation that proxies to the local repository stream.
 class WatchAccountsUseCaseImpl implements WatchAccountsUseCase {
   WatchAccountsUseCaseImpl({required AccountRepository repository})
-      : _repository = repository;
+    : _repository = repository;
 
   final AccountRepository _repository;
 

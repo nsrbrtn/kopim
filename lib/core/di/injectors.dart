@@ -41,6 +41,8 @@ import 'package:kopim/features/transactions/data/sources/remote/transaction_remo
 import 'package:kopim/features/transactions/domain/repositories/transaction_repository.dart';
 
 import 'package:kopim/features/transactions/domain/use_cases/add_transaction_use_case.dart';
+import 'package:kopim/features/transactions/domain/use_cases/delete_transaction_use_case.dart';
+import 'package:kopim/features/transactions/domain/use_cases/update_transaction_use_case.dart';
 import 'package:uuid/uuid.dart';
 import 'package:kopim/features/transactions/domain/use_cases/watch_account_transactions_use_case.dart';
 import 'package:kopim/features/transactions/domain/use_cases/watch_recent_transactions_use_case.dart';
@@ -154,6 +156,22 @@ TransactionRepository transactionRepository(Ref ref) =>
 final rp.Provider<AddTransactionUseCase> addTransactionUseCaseProvider =
     rp.Provider<AddTransactionUseCase>((rp.Ref ref) {
       return AddTransactionUseCase(
+        transactionRepository: ref.watch(transactionRepositoryProvider),
+        accountRepository: ref.watch(accountRepositoryProvider),
+      );
+    });
+
+final rp.Provider<UpdateTransactionUseCase> updateTransactionUseCaseProvider =
+    rp.Provider<UpdateTransactionUseCase>((rp.Ref ref) {
+      return UpdateTransactionUseCase(
+        transactionRepository: ref.watch(transactionRepositoryProvider),
+        accountRepository: ref.watch(accountRepositoryProvider),
+      );
+    });
+
+final rp.Provider<DeleteTransactionUseCase> deleteTransactionUseCaseProvider =
+    rp.Provider<DeleteTransactionUseCase>((rp.Ref ref) {
+      return DeleteTransactionUseCase(
         transactionRepository: ref.watch(transactionRepositoryProvider),
         accountRepository: ref.watch(accountRepositoryProvider),
       );

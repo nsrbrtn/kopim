@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
@@ -11,19 +11,20 @@ bool _isOffline(List<ConnectivityResult> results) {
   if (results.isEmpty) {
     return true;
   }
-  return results.every((ConnectivityResult result) =>
-      result == ConnectivityResult.none);
+  return results.every(
+    (ConnectivityResult result) => result == ConnectivityResult.none,
+  );
 }
 
 final StreamProvider<bool> _signInOfflineProvider =
     StreamProvider.autoDispose<bool>((Ref ref) async* {
-  final Connectivity connectivity = ref.watch(connectivityProvider);
-  final List<ConnectivityResult> initial =
-      await connectivity.checkConnectivity();
-  yield _isOffline(initial);
+      final Connectivity connectivity = ref.watch(connectivityProvider);
+      final List<ConnectivityResult> initial = await connectivity
+          .checkConnectivity();
+      yield _isOffline(initial);
 
-  yield* connectivity.onConnectivityChanged.map(_isOffline);
-});
+      yield* connectivity.onConnectivityChanged.map(_isOffline);
+    });
 
 class SignInScreen extends ConsumerStatefulWidget {
   const SignInScreen({super.key});
@@ -42,10 +43,10 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
   @override
   void initState() {
     super.initState();
-    final SignInFormController controller =
-        ref.read(signInFormControllerProvider.notifier);
-    final SignInFormState initialState =
-        ref.read(signInFormControllerProvider);
+    final SignInFormController controller = ref.read(
+      signInFormControllerProvider.notifier,
+    );
+    final SignInFormState initialState = ref.read(signInFormControllerProvider);
     _emailController = TextEditingController(text: initialState.email);
     _passwordController = TextEditingController(text: initialState.password);
     _emailFocusNode = FocusNode();
@@ -87,8 +88,9 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
   Widget build(BuildContext context) {
     final AppLocalizations strings = AppLocalizations.of(context)!;
     final SignInFormState formState = ref.watch(signInFormControllerProvider);
-    final SignInFormController controller =
-        ref.read(signInFormControllerProvider.notifier);
+    final SignInFormController controller = ref.read(
+      signInFormControllerProvider.notifier,
+    );
     final AsyncValue<bool> isOffline = ref.watch(_signInOfflineProvider);
     final ThemeData theme = Theme.of(context);
 
@@ -156,7 +158,8 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                           )
                         : const SizedBox.shrink(),
                     loading: () => const SizedBox.shrink(),
-                    error: (Object error, StackTrace stackTrace) => const SizedBox.shrink(),
+                    error: (Object error, StackTrace stackTrace) =>
+                        const SizedBox.shrink(),
                   ),
                   if (formState.errorMessage != null) ...<Widget>[
                     Text(
@@ -180,7 +183,9 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                               const SizedBox(
                                 width: 18,
                                 height: 18,
-                                child: CircularProgressIndicator(strokeWidth: 2),
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
                               ),
                               const SizedBox(width: 12),
                               Text(strings.signInLoading),

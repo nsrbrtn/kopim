@@ -205,8 +205,6 @@ class _PhosphorIconPickerSheetState extends State<_PhosphorIconPickerSheet>
     Navigator.of(context).pop(descriptor);
   }
 
-
-
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
@@ -231,8 +229,6 @@ class _PhosphorIconPickerSheetState extends State<_PhosphorIconPickerSheet>
                         style: theme.textTheme.titleLarge,
                       ),
                     ),
-
-
                   ],
                 ),
                 const SizedBox(height: 16),
@@ -304,9 +300,11 @@ class _PhosphorIconPickerSheetState extends State<_PhosphorIconPickerSheet>
               name: name,
               style: _selectedStyle,
             );
-            final PhosphorIconData? iconData =
-                resolvePhosphorIconData(descriptor);
-            final bool isCurrent = widget.initial != null &&
+            final PhosphorIconData? iconData = resolvePhosphorIconData(
+              descriptor,
+            );
+            final bool isCurrent =
+                widget.initial != null &&
                 widget.initial!.name == name &&
                 widget.initial!.style == _selectedStyle;
             return _IconGridTile(
