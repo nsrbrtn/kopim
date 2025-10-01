@@ -6,9 +6,9 @@ import 'package:kopim/features/profile/presentation/screens/profile_screen.dart'
 import 'package:kopim/l10n/app_localizations.dart';
 
 import '../models/navigation_tab_config.dart';
-import '../models/navigation_tab_content.dart';
 
-final mainNavigationTabsProvider =
+
+final Provider<List<NavigationTabConfig>> mainNavigationTabsProvider =
     Provider<List<NavigationTabConfig>>((Ref ref) {
   return <NavigationTabConfig>[
     NavigationTabConfig(

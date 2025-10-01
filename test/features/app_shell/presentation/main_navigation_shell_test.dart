@@ -18,6 +18,7 @@ import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/repositories/transaction_repository.dart';
 import 'package:kopim/features/transactions/domain/use_cases/watch_recent_transactions_use_case.dart';
 import 'package:kopim/l10n/app_localizations.dart';
+import 'package:riverpod/src/framework.dart';
 
 class _FakeAuthController extends AuthController {
   _FakeAuthController(this._user);
@@ -109,9 +110,9 @@ void main() {
 
   const AuthUser? anonymousUser = null;
 
-  ProviderScope _buildShell(Widget child) {
+  ProviderScope buildShell(Widget child) {
     return ProviderScope(
-      overrides: [
+      overrides: <Override>[
         authControllerProvider.overrideWith(
           () => _FakeAuthController(anonymousUser),
         ),
@@ -146,7 +147,7 @@ void main() {
     WidgetTester tester,
   ) async {
     await tester.pumpWidget(
-      _buildShell(
+      buildShell(
         const MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
@@ -173,7 +174,7 @@ void main() {
     WidgetTester tester,
   ) async {
     await tester.pumpWidget(
-      _buildShell(
+      buildShell(
         const MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,

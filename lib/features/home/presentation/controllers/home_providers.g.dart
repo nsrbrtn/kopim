@@ -169,4 +169,4 @@ final class HomeTotalBalanceProvider
   }
 }
 
-String _$homeTotalBalanceHash() => r'c6a00af9a6272891c7407d6185862dd185dad896';
+String _$homeTotalBalanceHash() => r'8c73907b65d1cfbc591a7aa884386c33a149bb90';
