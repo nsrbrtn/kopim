@@ -489,75 +489,13 @@ class _CategoryEditorSheet extends ConsumerWidget {
     final EdgeInsets viewInsets = MediaQuery.of(context).viewInsets;
 
     Future<void> selectColor() async {
-      Color? draftColor = selectedColor;
-      final Color? pickedColor = await showDialog<Color>(
+      final String? hex = await _showCategoryColorPickerDialog(
         context: context,
-        builder: (BuildContext dialogContext) {
-          return StatefulBuilder(
-            builder: (BuildContext context, StateSetter setState) {
-              return AlertDialog(
-                title: Text(strings.manageCategoriesColorPickerTitle),
-                content: SizedBox(
-                  width: double.maxFinite,
-                  child: SingleChildScrollView(
-                    child: Wrap(
-                      spacing: 12,
-                      runSpacing: 12,
-                      children: kCategoryPastelPalette
-                          .asMap()
-                          .entries
-                          .map((MapEntry<int, Color> entry) {
-                            final Color color = entry.value;
-                            final bool isSelected =
-                                draftColor?.value == color.value;
-                            return GestureDetector(
-                              key: ValueKey<String>(
-                                'category-color-${entry.key}',
-                              ),
-                              onTap: () => setState(() => draftColor = color),
-                              child: Container(
-                                width: 40,
-                                height: 40,
-                                decoration: BoxDecoration(
-                                  color: color,
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color: isSelected
-                                        ? theme.colorScheme.primary
-                                        : Colors.transparent,
-                                    width: 3,
-                                  ),
-                                ),
-                              ),
-                            );
-                          })
-                          .toList(growable: false),
-                    ),
-                  ),
-                ),
-                actions: <Widget>[
-                  TextButton(
-                    onPressed: () => Navigator.of(dialogContext).pop(),
-                    child: Text(strings.dialogCancel),
-                  ),
-                  FilledButton(
-                    onPressed: draftColor == null
-                        ? null
-                        : () => Navigator.of(dialogContext).pop(draftColor),
-                    child: Text(strings.dialogConfirm),
-                  ),
-                ],
-              );
-            },
-          );
-        },
+        strings: strings,
+        initialColor: selectedColor,
       );
-
-      if (pickedColor != null) {
-        final String? hex = colorToHex(pickedColor);
-        if (hex != null) {
-          controller.updateColor(hex);
-        }
+      if (hex != null) {
+        controller.updateColor(hex);
       }
     }
 
@@ -652,6 +590,7 @@ class _CategoryEditorSheet extends ConsumerWidget {
             ListTile(
               contentPadding: EdgeInsets.zero,
               leading: CircleAvatar(
+                key: const ValueKey<String>('category-color-preview'),
                 backgroundColor:
                     selectedColor ?? theme.colorScheme.surfaceVariant,
                 child: selectedColor == null
@@ -707,6 +646,102 @@ class _CategoryEditorSheet extends ConsumerWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+Future<String?> _showCategoryColorPickerDialog({
+  required BuildContext context,
+  required AppLocalizations strings,
+  Color? initialColor,
+}) {
+  return showDialog<String>(
+    context: context,
+    useRootNavigator: false,
+    builder: (BuildContext dialogContext) {
+      return _CategoryColorPickerDialog(
+        initialColor: initialColor,
+        strings: strings,
+      );
+    },
+  );
+}
+
+class _CategoryColorPickerDialog extends StatefulWidget {
+  const _CategoryColorPickerDialog({this.initialColor, required this.strings});
+
+  final Color? initialColor;
+  final AppLocalizations strings;
+
+  @override
+  State<_CategoryColorPickerDialog> createState() =>
+      _CategoryColorPickerDialogState();
+}
+
+class _CategoryColorPickerDialogState
+    extends State<_CategoryColorPickerDialog> {
+  Color? _draftColor;
+
+  @override
+  void initState() {
+    super.initState();
+    _draftColor = widget.initialColor;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    return AlertDialog(
+      title: Text(widget.strings.manageCategoriesColorPickerTitle),
+      content: SizedBox(
+        width: double.maxFinite,
+        child: SingleChildScrollView(
+          child: Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            children: kCategoryPastelPalette
+                .asMap()
+                .entries
+                .map((MapEntry<int, Color> entry) {
+                  final Color color = entry.value;
+                  final bool isSelected = _draftColor?.value == color.value;
+                  return InkResponse(
+                    key: ValueKey<String>('category-color-${entry.key}'),
+                    radius: 24,
+                    onTap: () => setState(() => _draftColor = color),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 150),
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: color,
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: isSelected
+                              ? theme.colorScheme.primary
+                              : Colors.transparent,
+                          width: 3,
+                        ),
+                      ),
+                    ),
+                  );
+                })
+                .toList(growable: false),
+          ),
+        ),
+      ),
+      actions: <Widget>[
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(widget.strings.dialogCancel),
+        ),
+        FilledButton(
+          onPressed: _draftColor == null
+              ? null
+              : () => Navigator.of(context).pop(colorToHex(_draftColor!)!),
+          child: Text(widget.strings.dialogConfirm),
+        ),
+      ],
     );
   }
 }

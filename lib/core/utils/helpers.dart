@@ -22,7 +22,7 @@ String? colorToHex(
 
   final int value = includeAlpha
       ? color.toARGB32()
-      : (color.r.toInt() << 16) | (color.g.toInt() << 8) | color.b.toInt();
+      : (color.red << 16) | (color.green << 8) | color.blue;
 
   final String buffer = value
       .toRadixString(16)

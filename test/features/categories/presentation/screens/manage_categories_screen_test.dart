@@ -11,7 +11,8 @@ import 'package:kopim/l10n/app_localizations.dart';
 
 class _StubSaveCategoryUseCase implements SaveCategoryUseCase {
   @override
-  Future<Category> call(Category category) async => category;
+  Future<void> call(Category category) async {}
+
 }
 
 void main() {
@@ -65,6 +66,70 @@ void main() {
       confirmButton = tester.widget<FilledButton>(confirmFinder);
       expect(confirmButton.onPressed, isNotNull);
     });
+
+    testWidgets(
+      'updates color preview after confirming a new swatch while editing',
+      (WidgetTester tester) async {
+        final CategoryTreeNode node = CategoryTreeNode(
+          category: Category(
+            id: 'c1',
+            name: 'Food',
+            type: 'expense',
+            color: '#D6D58E',
+            createdAt: DateTime.utc(2024),
+            updatedAt: DateTime.utc(2024),
+          ),
+        );
+
+        await tester.pumpWidget(
+          ProviderScope(
+            // ignore: always_specify_types
+            overrides: [
+              manageCategoryTreeProvider.overrideWith(
+                (Ref ref) => Stream<List<CategoryTreeNode>>.value(
+                  <CategoryTreeNode>[node],
+                ),
+              ),
+              saveCategoryUseCaseProvider.overrideWith(
+                (Ref ref) => _StubSaveCategoryUseCase(),
+              ),
+            ],
+            child: MaterialApp(
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              home: const ManageCategoriesScreen(),
+            ),
+          ),
+        );
+
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.byIcon(Icons.edit_outlined));
+        await tester.pumpAndSettle();
+
+        CircleAvatar preview = tester.widget<CircleAvatar>(
+          find.byKey(const ValueKey<String>('category-color-preview')),
+        );
+        expect(preview.backgroundColor, equals(const Color(0xFFD6D58E)));
+
+        await tester.tap(find.byTooltip('Choose color'));
+        await tester.pumpAndSettle();
+
+        await tester.tap(
+          find.byKey(const ValueKey<String>('category-color-1')),
+        );
+        await tester.pump();
+
+        await tester.tap(find.widgetWithText(FilledButton, 'Confirm'));
+        await tester.pumpAndSettle();
+
+        preview = tester.widget<CircleAvatar>(
+          find.byKey(const ValueKey<String>('category-color-preview')),
+        );
+        expect(preview.backgroundColor, equals(const Color(0xFFDBF227)));
+      },
+    );
+
 
     testWidgets('renders contrasting icon color for dark backgrounds', (
       WidgetTester tester,
