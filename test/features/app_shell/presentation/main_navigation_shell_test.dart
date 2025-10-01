@@ -9,8 +9,10 @@ import 'package:kopim/features/accounts/domain/repositories/account_repository.d
 import 'package:kopim/features/accounts/domain/use_cases/watch_accounts_use_case.dart';
 import 'package:kopim/features/app_shell/presentation/widgets/main_navigation_shell.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
+import 'package:kopim/features/categories/domain/entities/category_tree_node.dart';
 import 'package:kopim/features/categories/domain/repositories/category_repository.dart';
 import 'package:kopim/features/categories/domain/use_cases/watch_categories_use_case.dart';
+import 'package:kopim/features/categories/domain/use_cases/watch_category_tree_use_case.dart';
 import 'package:kopim/features/categories/presentation/controllers/categories_list_controller.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
 import 'package:kopim/features/profile/presentation/controllers/auth_controller.dart';
@@ -82,10 +84,18 @@ class _StreamCategoryRepository implements CategoryRepository {
   Stream<List<Category>> watchCategories() => _stream;
 
   @override
+  Stream<List<CategoryTreeNode>> watchCategoryTree() =>
+      Stream<List<CategoryTreeNode>>.value(const <CategoryTreeNode>[]);
+
+  @override
   Future<Category?> findById(String id) => throw UnimplementedError();
 
   @override
   Future<List<Category>> loadCategories() => throw UnimplementedError();
+
+  @override
+  Future<List<CategoryTreeNode>> loadCategoryTree() =>
+      throw UnimplementedError();
 
   @override
   Future<void> softDelete(String id) => throw UnimplementedError();
@@ -135,8 +145,17 @@ void main() {
             ),
           ),
         ),
-        manageCategoriesListProvider.overrideWith(
-          (Ref ref) => Stream<List<Category>>.value(const <Category>[]),
+        watchCategoryTreeUseCaseProvider.overrideWithValue(
+          WatchCategoryTreeUseCase(
+            _StreamCategoryRepository(
+              Stream<List<Category>>.value(const <Category>[]),
+            ),
+          ),
+        ),
+        manageCategoryTreeProvider.overrideWith(
+          (Ref ref) => Stream<List<CategoryTreeNode>>.value(
+            const <CategoryTreeNode>[],
+          ),
         ),
       ],
       child: child,

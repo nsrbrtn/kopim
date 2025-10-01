@@ -21,6 +21,38 @@
   "@manageCategoriesAddAction": {
     "description": "Tooltip for the button that starts creating a new category"
   },
+  "manageCategoriesCreateRootAction": "Create parent category",
+  "@manageCategoriesCreateRootAction": {
+    "description": "Action label to create a top-level category from the manage categories menu"
+  },
+  "manageCategoriesCreateSubAction": "Create subcategory",
+  "@manageCategoriesCreateSubAction": {
+    "description": "Action label to create a subcategory from the manage categories menu"
+  },
+  "manageCategoriesCreateSubDisabled": "Add a parent category first to create subcategories.",
+  "@manageCategoriesCreateSubDisabled": {
+    "description": "Helper text shown when user cannot create subcategory because there are no parents"
+  },
+  "manageCategoriesSelectParentTitle": "Select parent category",
+  "@manageCategoriesSelectParentTitle": {
+    "description": "Dialog title prompting the user to select a parent category"
+  },
+  "dialogCancel": "Cancel",
+  "@dialogCancel": {
+    "description": "Generic cancel button label"
+  },
+  "manageCategoriesParentLabel": "Parent category",
+  "@manageCategoriesParentLabel": {
+    "description": "Label for the dropdown that selects a parent category"
+  },
+  "manageCategoriesParentNone": "No parent",
+  "@manageCategoriesParentNone": {
+    "description": "Dropdown option representing no parent category"
+  },
+  "manageCategoriesNoSubcategories": "No subcategories yet",
+  "@manageCategoriesNoSubcategories": {
+    "description": "Placeholder text shown when a category has no subcategories"
+  },
   "manageCategoriesEditAction": "Edit",
   "@manageCategoriesEditAction": {
     "description": "Tooltip for the button that edits an existing category"
@@ -69,6 +101,50 @@
   "manageCategoriesIconLabel": "Icon (optional)",
   "@manageCategoriesIconLabel": {
     "description": "Label for the optional icon input"
+  },
+  "manageCategoriesIconNone": "No icon selected",
+  "@manageCategoriesIconNone": {
+    "description": "Subtitle shown when no icon has been selected"
+  },
+  "manageCategoriesIconSelect": "Choose icon",
+  "@manageCategoriesIconSelect": {
+    "description": "Tooltip for the action that opens the icon picker"
+  },
+  "manageCategoriesIconPickerTitle": "Pick a category icon",
+  "@manageCategoriesIconPickerTitle": {
+    "description": "Title for the bottom sheet that lists available icons"
+  },
+  "manageCategoriesIconSearchHint": "Search icons",
+  "@manageCategoriesIconSearchHint": {
+    "description": "Placeholder text for the icon search field"
+  },
+  "manageCategoriesIconClear": "Clear selection",
+  "@manageCategoriesIconClear": {
+    "description": "Label for the button that clears the selected icon"
+  },
+  "manageCategoriesIconEmpty": "No icons match your search.",
+  "@manageCategoriesIconEmpty": {
+    "description": "Empty state when icon search returns no results"
+  },
+  "manageCategoriesIconStyleThin": "Thin",
+  "@manageCategoriesIconStyleThin": {
+    "description": "Label for the thin icon style filter"
+  },
+  "manageCategoriesIconStyleLight": "Light",
+  "@manageCategoriesIconStyleLight": {
+    "description": "Label for the light icon style filter"
+  },
+  "manageCategoriesIconStyleRegular": "Regular",
+  "@manageCategoriesIconStyleRegular": {
+    "description": "Label for the regular icon style filter"
+  },
+  "manageCategoriesIconStyleBold": "Bold",
+  "@manageCategoriesIconStyleBold": {
+    "description": "Label for the bold icon style filter"
+  },
+  "manageCategoriesIconStyleFill": "Fill",
+  "@manageCategoriesIconStyleFill": {
+    "description": "Label for the fill icon style filter"
   },
   "manageCategoriesColorLabel": "Color hex (optional)",
   "@manageCategoriesColorLabel": {

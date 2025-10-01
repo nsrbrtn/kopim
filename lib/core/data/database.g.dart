@@ -578,6 +578,28 @@ class $CategoriesTable extends Categories
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _iconStyleMeta = const VerificationMeta(
+    'iconStyle',
+  );
+  @override
+  late final GeneratedColumn<String> iconStyle = GeneratedColumn<String>(
+    'icon_style',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _iconNameMeta = const VerificationMeta(
+    'iconName',
+  );
+  @override
+  late final GeneratedColumn<String> iconName = GeneratedColumn<String>(
+    'icon_name',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _colorMeta = const VerificationMeta('color');
   @override
   late final GeneratedColumn<String> color = GeneratedColumn<String>(
@@ -586,6 +608,18 @@ class $CategoriesTable extends Categories
     true,
     type: DriftSqlType.string,
     requiredDuringInsert: false,
+  );
+  static const VerificationMeta _parentIdMeta = const VerificationMeta(
+    'parentId',
+  );
+  @override
+  late final GeneratedColumn<String> parentId = GeneratedColumn<String>(
+    'parent_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: 'REFERENCES categories(id) ON DELETE SET NULL',
   );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
@@ -632,7 +666,10 @@ class $CategoriesTable extends Categories
     name,
     type,
     icon,
+    iconStyle,
+    iconName,
     color,
+    parentId,
     createdAt,
     updatedAt,
     isDeleted,
@@ -676,10 +713,28 @@ class $CategoriesTable extends Categories
         icon.isAcceptableOrUnknown(data['icon']!, _iconMeta),
       );
     }
+    if (data.containsKey('icon_style')) {
+      context.handle(
+        _iconStyleMeta,
+        iconStyle.isAcceptableOrUnknown(data['icon_style']!, _iconStyleMeta),
+      );
+    }
+    if (data.containsKey('icon_name')) {
+      context.handle(
+        _iconNameMeta,
+        iconName.isAcceptableOrUnknown(data['icon_name']!, _iconNameMeta),
+      );
+    }
     if (data.containsKey('color')) {
       context.handle(
         _colorMeta,
         color.isAcceptableOrUnknown(data['color']!, _colorMeta),
+      );
+    }
+    if (data.containsKey('parent_id')) {
+      context.handle(
+        _parentIdMeta,
+        parentId.isAcceptableOrUnknown(data['parent_id']!, _parentIdMeta),
       );
     }
     if (data.containsKey('created_at')) {
@@ -725,9 +780,21 @@ class $CategoriesTable extends Categories
         DriftSqlType.string,
         data['${effectivePrefix}icon'],
       ),
+      iconStyle: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}icon_style'],
+      ),
+      iconName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}icon_name'],
+      ),
       color: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}color'],
+      ),
+      parentId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}parent_id'],
       ),
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
@@ -755,7 +822,10 @@ class CategoryRow extends DataClass implements Insertable<CategoryRow> {
   final String name;
   final String type;
   final String? icon;
+  final String? iconStyle;
+  final String? iconName;
   final String? color;
+  final String? parentId;
   final DateTime createdAt;
   final DateTime updatedAt;
   final bool isDeleted;
@@ -764,7 +834,10 @@ class CategoryRow extends DataClass implements Insertable<CategoryRow> {
     required this.name,
     required this.type,
     this.icon,
+    this.iconStyle,
+    this.iconName,
     this.color,
+    this.parentId,
     required this.createdAt,
     required this.updatedAt,
     required this.isDeleted,
@@ -778,8 +851,17 @@ class CategoryRow extends DataClass implements Insertable<CategoryRow> {
     if (!nullToAbsent || icon != null) {
       map['icon'] = Variable<String>(icon);
     }
+    if (!nullToAbsent || iconStyle != null) {
+      map['icon_style'] = Variable<String>(iconStyle);
+    }
+    if (!nullToAbsent || iconName != null) {
+      map['icon_name'] = Variable<String>(iconName);
+    }
     if (!nullToAbsent || color != null) {
       map['color'] = Variable<String>(color);
+    }
+    if (!nullToAbsent || parentId != null) {
+      map['parent_id'] = Variable<String>(parentId);
     }
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
@@ -793,9 +875,18 @@ class CategoryRow extends DataClass implements Insertable<CategoryRow> {
       name: Value(name),
       type: Value(type),
       icon: icon == null && nullToAbsent ? const Value.absent() : Value(icon),
+      iconStyle: iconStyle == null && nullToAbsent
+          ? const Value.absent()
+          : Value(iconStyle),
+      iconName: iconName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(iconName),
       color: color == null && nullToAbsent
           ? const Value.absent()
           : Value(color),
+      parentId: parentId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(parentId),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
       isDeleted: Value(isDeleted),
@@ -812,7 +903,10 @@ class CategoryRow extends DataClass implements Insertable<CategoryRow> {
       name: serializer.fromJson<String>(json['name']),
       type: serializer.fromJson<String>(json['type']),
       icon: serializer.fromJson<String?>(json['icon']),
+      iconStyle: serializer.fromJson<String?>(json['iconStyle']),
+      iconName: serializer.fromJson<String?>(json['iconName']),
       color: serializer.fromJson<String?>(json['color']),
+      parentId: serializer.fromJson<String?>(json['parentId']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       isDeleted: serializer.fromJson<bool>(json['isDeleted']),
@@ -826,7 +920,10 @@ class CategoryRow extends DataClass implements Insertable<CategoryRow> {
       'name': serializer.toJson<String>(name),
       'type': serializer.toJson<String>(type),
       'icon': serializer.toJson<String?>(icon),
+      'iconStyle': serializer.toJson<String?>(iconStyle),
+      'iconName': serializer.toJson<String?>(iconName),
       'color': serializer.toJson<String?>(color),
+      'parentId': serializer.toJson<String?>(parentId),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'isDeleted': serializer.toJson<bool>(isDeleted),
@@ -838,7 +935,10 @@ class CategoryRow extends DataClass implements Insertable<CategoryRow> {
     String? name,
     String? type,
     Value<String?> icon = const Value.absent(),
+    Value<String?> iconStyle = const Value.absent(),
+    Value<String?> iconName = const Value.absent(),
     Value<String?> color = const Value.absent(),
+    Value<String?> parentId = const Value.absent(),
     DateTime? createdAt,
     DateTime? updatedAt,
     bool? isDeleted,
@@ -847,7 +947,10 @@ class CategoryRow extends DataClass implements Insertable<CategoryRow> {
     name: name ?? this.name,
     type: type ?? this.type,
     icon: icon.present ? icon.value : this.icon,
+    iconStyle: iconStyle.present ? iconStyle.value : this.iconStyle,
+    iconName: iconName.present ? iconName.value : this.iconName,
     color: color.present ? color.value : this.color,
+    parentId: parentId.present ? parentId.value : this.parentId,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
     isDeleted: isDeleted ?? this.isDeleted,
@@ -858,7 +961,10 @@ class CategoryRow extends DataClass implements Insertable<CategoryRow> {
       name: data.name.present ? data.name.value : this.name,
       type: data.type.present ? data.type.value : this.type,
       icon: data.icon.present ? data.icon.value : this.icon,
+      iconStyle: data.iconStyle.present ? data.iconStyle.value : this.iconStyle,
+      iconName: data.iconName.present ? data.iconName.value : this.iconName,
       color: data.color.present ? data.color.value : this.color,
+      parentId: data.parentId.present ? data.parentId.value : this.parentId,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       isDeleted: data.isDeleted.present ? data.isDeleted.value : this.isDeleted,
@@ -872,7 +978,10 @@ class CategoryRow extends DataClass implements Insertable<CategoryRow> {
           ..write('name: $name, ')
           ..write('type: $type, ')
           ..write('icon: $icon, ')
+          ..write('iconStyle: $iconStyle, ')
+          ..write('iconName: $iconName, ')
           ..write('color: $color, ')
+          ..write('parentId: $parentId, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('isDeleted: $isDeleted')
@@ -881,8 +990,19 @@ class CategoryRow extends DataClass implements Insertable<CategoryRow> {
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, name, type, icon, color, createdAt, updatedAt, isDeleted);
+  int get hashCode => Object.hash(
+    id,
+    name,
+    type,
+    icon,
+    iconStyle,
+    iconName,
+    color,
+    parentId,
+    createdAt,
+    updatedAt,
+    isDeleted,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -891,7 +1011,10 @@ class CategoryRow extends DataClass implements Insertable<CategoryRow> {
           other.name == this.name &&
           other.type == this.type &&
           other.icon == this.icon &&
+          other.iconStyle == this.iconStyle &&
+          other.iconName == this.iconName &&
           other.color == this.color &&
+          other.parentId == this.parentId &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
           other.isDeleted == this.isDeleted);
@@ -902,7 +1025,10 @@ class CategoriesCompanion extends UpdateCompanion<CategoryRow> {
   final Value<String> name;
   final Value<String> type;
   final Value<String?> icon;
+  final Value<String?> iconStyle;
+  final Value<String?> iconName;
   final Value<String?> color;
+  final Value<String?> parentId;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<bool> isDeleted;
@@ -912,7 +1038,10 @@ class CategoriesCompanion extends UpdateCompanion<CategoryRow> {
     this.name = const Value.absent(),
     this.type = const Value.absent(),
     this.icon = const Value.absent(),
+    this.iconStyle = const Value.absent(),
+    this.iconName = const Value.absent(),
     this.color = const Value.absent(),
+    this.parentId = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.isDeleted = const Value.absent(),
@@ -923,7 +1052,10 @@ class CategoriesCompanion extends UpdateCompanion<CategoryRow> {
     required String name,
     required String type,
     this.icon = const Value.absent(),
+    this.iconStyle = const Value.absent(),
+    this.iconName = const Value.absent(),
     this.color = const Value.absent(),
+    this.parentId = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.isDeleted = const Value.absent(),
@@ -936,7 +1068,10 @@ class CategoriesCompanion extends UpdateCompanion<CategoryRow> {
     Expression<String>? name,
     Expression<String>? type,
     Expression<String>? icon,
+    Expression<String>? iconStyle,
+    Expression<String>? iconName,
     Expression<String>? color,
+    Expression<String>? parentId,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<bool>? isDeleted,
@@ -947,7 +1082,10 @@ class CategoriesCompanion extends UpdateCompanion<CategoryRow> {
       if (name != null) 'name': name,
       if (type != null) 'type': type,
       if (icon != null) 'icon': icon,
+      if (iconStyle != null) 'icon_style': iconStyle,
+      if (iconName != null) 'icon_name': iconName,
       if (color != null) 'color': color,
+      if (parentId != null) 'parent_id': parentId,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (isDeleted != null) 'is_deleted': isDeleted,
@@ -960,7 +1098,10 @@ class CategoriesCompanion extends UpdateCompanion<CategoryRow> {
     Value<String>? name,
     Value<String>? type,
     Value<String?>? icon,
+    Value<String?>? iconStyle,
+    Value<String?>? iconName,
     Value<String?>? color,
+    Value<String?>? parentId,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
     Value<bool>? isDeleted,
@@ -971,7 +1112,10 @@ class CategoriesCompanion extends UpdateCompanion<CategoryRow> {
       name: name ?? this.name,
       type: type ?? this.type,
       icon: icon ?? this.icon,
+      iconStyle: iconStyle ?? this.iconStyle,
+      iconName: iconName ?? this.iconName,
       color: color ?? this.color,
+      parentId: parentId ?? this.parentId,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       isDeleted: isDeleted ?? this.isDeleted,
@@ -994,8 +1138,17 @@ class CategoriesCompanion extends UpdateCompanion<CategoryRow> {
     if (icon.present) {
       map['icon'] = Variable<String>(icon.value);
     }
+    if (iconStyle.present) {
+      map['icon_style'] = Variable<String>(iconStyle.value);
+    }
+    if (iconName.present) {
+      map['icon_name'] = Variable<String>(iconName.value);
+    }
     if (color.present) {
       map['color'] = Variable<String>(color.value);
+    }
+    if (parentId.present) {
+      map['parent_id'] = Variable<String>(parentId.value);
     }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
@@ -1019,7 +1172,10 @@ class CategoriesCompanion extends UpdateCompanion<CategoryRow> {
           ..write('name: $name, ')
           ..write('type: $type, ')
           ..write('icon: $icon, ')
+          ..write('iconStyle: $iconStyle, ')
+          ..write('iconName: $iconName, ')
           ..write('color: $color, ')
+          ..write('parentId: $parentId, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('isDeleted: $isDeleted, ')
@@ -3074,7 +3230,10 @@ typedef $$CategoriesTableCreateCompanionBuilder =
       required String name,
       required String type,
       Value<String?> icon,
+      Value<String?> iconStyle,
+      Value<String?> iconName,
       Value<String?> color,
+      Value<String?> parentId,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<bool> isDeleted,
@@ -3086,7 +3245,10 @@ typedef $$CategoriesTableUpdateCompanionBuilder =
       Value<String> name,
       Value<String> type,
       Value<String?> icon,
+      Value<String?> iconStyle,
+      Value<String?> iconName,
       Value<String?> color,
+      Value<String?> parentId,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<bool> isDeleted,
@@ -3148,8 +3310,23 @@ class $$CategoriesTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<String> get iconStyle => $composableBuilder(
+    column: $table.iconStyle,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get iconName => $composableBuilder(
+    column: $table.iconName,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<String> get color => $composableBuilder(
     column: $table.color,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get parentId => $composableBuilder(
+    column: $table.parentId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -3223,8 +3400,23 @@ class $$CategoriesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get iconStyle => $composableBuilder(
+    column: $table.iconStyle,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get iconName => $composableBuilder(
+    column: $table.iconName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get color => $composableBuilder(
     column: $table.color,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get parentId => $composableBuilder(
+    column: $table.parentId,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -3265,8 +3457,17 @@ class $$CategoriesTableAnnotationComposer
   GeneratedColumn<String> get icon =>
       $composableBuilder(column: $table.icon, builder: (column) => column);
 
+  GeneratedColumn<String> get iconStyle =>
+      $composableBuilder(column: $table.iconStyle, builder: (column) => column);
+
+  GeneratedColumn<String> get iconName =>
+      $composableBuilder(column: $table.iconName, builder: (column) => column);
+
   GeneratedColumn<String> get color =>
       $composableBuilder(column: $table.color, builder: (column) => column);
+
+  GeneratedColumn<String> get parentId =>
+      $composableBuilder(column: $table.parentId, builder: (column) => column);
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
@@ -3335,7 +3536,10 @@ class $$CategoriesTableTableManager
                 Value<String> name = const Value.absent(),
                 Value<String> type = const Value.absent(),
                 Value<String?> icon = const Value.absent(),
+                Value<String?> iconStyle = const Value.absent(),
+                Value<String?> iconName = const Value.absent(),
                 Value<String?> color = const Value.absent(),
+                Value<String?> parentId = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<bool> isDeleted = const Value.absent(),
@@ -3345,7 +3549,10 @@ class $$CategoriesTableTableManager
                 name: name,
                 type: type,
                 icon: icon,
+                iconStyle: iconStyle,
+                iconName: iconName,
                 color: color,
+                parentId: parentId,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 isDeleted: isDeleted,
@@ -3357,7 +3564,10 @@ class $$CategoriesTableTableManager
                 required String name,
                 required String type,
                 Value<String?> icon = const Value.absent(),
+                Value<String?> iconStyle = const Value.absent(),
+                Value<String?> iconName = const Value.absent(),
                 Value<String?> color = const Value.absent(),
+                Value<String?> parentId = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<bool> isDeleted = const Value.absent(),
@@ -3367,7 +3577,10 @@ class $$CategoriesTableTableManager
                 name: name,
                 type: type,
                 icon: icon,
+                iconStyle: iconStyle,
+                iconName: iconName,
                 color: color,
+                parentId: parentId,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 isDeleted: isDeleted,

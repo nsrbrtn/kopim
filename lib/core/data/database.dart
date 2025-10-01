@@ -30,7 +30,12 @@ class Categories extends Table {
   TextColumn get name => text().withLength(min: 1, max: 100)();
   TextColumn get type => text().withLength(min: 1, max: 50)();
   TextColumn get icon => text().nullable()();
+  TextColumn get iconStyle => text().nullable()();
+  TextColumn get iconName => text().nullable()();
   TextColumn get color => text().nullable()();
+  TextColumn get parentId => text().nullable().customConstraint(
+    'REFERENCES categories(id) ON DELETE SET NULL',
+  )();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
   BoolColumn get isDeleted =>
@@ -98,7 +103,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.connect(DatabaseConnection super.connection);
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -120,6 +125,17 @@ class AppDatabase extends _$AppDatabase {
       }
       if (from < 3) {
         await m.createTable(profiles);
+      }
+      if (from < 4) {
+        await m.addColumn(categories, categories.iconStyle);
+        await m.addColumn(categories, categories.iconName);
+        await m.addColumn(categories, categories.parentId);
+        await m.database.customStatement(
+          "UPDATE categories SET icon_name = icon WHERE icon_name IS NULL AND icon IS NOT NULL AND icon != ''",
+        );
+        await m.database.customStatement(
+          "UPDATE categories SET icon_style = 'regular' WHERE icon_name IS NOT NULL AND (icon_style IS NULL OR icon_style = '')",
+        );
       }
     },
   );

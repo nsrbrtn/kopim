@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:kopim/core/domain/icons/phosphor_icon_descriptor.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
 
 class CategoryRemoteDataSource {
@@ -64,8 +65,12 @@ class CategoryRemoteDataSource {
       'id': category.id,
       'name': category.name,
       'type': category.type,
-      'icon': category.icon,
+      'icon': category.icon?.name,
+      'iconName': category.icon?.name,
+      'iconStyle': category.icon?.style.label,
+      'iconDescriptor': category.icon?.toJson(),
       'color': category.color,
+      'parentId': category.parentId,
       'createdAt': Timestamp.fromDate(category.createdAt.toUtc()),
       'updatedAt': Timestamp.fromDate(category.updatedAt.toUtc()),
       'isDeleted': category.isDeleted,
@@ -74,12 +79,26 @@ class CategoryRemoteDataSource {
 
   Category _fromDocument(QueryDocumentSnapshot<Map<String, dynamic>> doc) {
     final Map<String, dynamic> data = doc.data();
+    PhosphorIconDescriptor? descriptor;
+    final Object? iconDescriptorRaw = data['iconDescriptor'];
+    if (iconDescriptorRaw is Map<String, Object?>) {
+      descriptor = PhosphorIconDescriptor.fromJson(iconDescriptorRaw);
+    } else {
+      final String? iconName = (data['iconName'] ?? data['icon']) as String?;
+      if (iconName != null && iconName.isNotEmpty) {
+        descriptor = PhosphorIconDescriptor(
+          name: iconName,
+          style: PhosphorIconStyleX.fromName(data['iconStyle'] as String?),
+        );
+      }
+    }
     return Category(
       id: data['id'] as String? ?? doc.id,
       name: data['name'] as String? ?? '',
       type: data['type'] as String? ?? 'unknown',
-      icon: data['icon'] as String?,
+      icon: descriptor,
       color: data['color'] as String?,
+      parentId: data['parentId'] as String?,
       createdAt: _parseTimestamp(data['createdAt']),
       updatedAt: _parseTimestamp(data['updatedAt']),
       isDeleted: data['isDeleted'] as bool? ?? false,

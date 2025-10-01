@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kopim/core/di/injectors.dart';
-import 'package:kopim/features/categories/domain/entities/category.dart';
+import 'package:kopim/features/categories/domain/entities/category_tree_node.dart';
 import 'package:kopim/features/categories/presentation/controllers/categories_list_controller.dart';
 import 'package:kopim/features/categories/presentation/screens/manage_categories_screen.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
@@ -88,8 +88,10 @@ void main() {
           updateProfileUseCaseProvider.overrideWith(
             (Ref ref) => _StubUpdateProfileUseCase(),
           ),
-          manageCategoriesListProvider.overrideWith(
-            (Ref ref) => Stream<List<Category>>.value(const <Category>[]),
+          manageCategoryTreeProvider.overrideWith(
+            (Ref ref) => Stream<List<CategoryTreeNode>>.value(
+              const <CategoryTreeNode>[],
+            ),
           ),
         ],
         child: const MaterialApp(
@@ -129,8 +131,10 @@ void main() {
           updateProfileUseCaseProvider.overrideWith(
             (Ref ref) => _StubUpdateProfileUseCase(),
           ),
-          manageCategoriesListProvider.overrideWith(
-            (Ref ref) => Stream<List<Category>>.value(const <Category>[]),
+          manageCategoryTreeProvider.overrideWith(
+            (Ref ref) => Stream<List<CategoryTreeNode>>.value(
+              const <CategoryTreeNode>[],
+            ),
           ),
         ],
         child: const MaterialApp(
@@ -167,8 +171,10 @@ void main() {
           updateProfileUseCaseProvider.overrideWith(
             (Ref ref) => _StubUpdateProfileUseCase(),
           ),
-          manageCategoriesListProvider.overrideWith(
-            (Ref ref) => Stream<List<Category>>.value(const <Category>[]),
+          manageCategoryTreeProvider.overrideWith(
+            (Ref ref) => Stream<List<CategoryTreeNode>>.value(
+              const <CategoryTreeNode>[],
+            ),
           ),
         ],
         child: MaterialApp(
@@ -220,8 +226,10 @@ void main() {
           updateProfileUseCaseProvider.overrideWith(
             (Ref ref) => _StubUpdateProfileUseCase(),
           ),
-          manageCategoriesListProvider.overrideWith(
-            (Ref ref) => Stream<List<Category>>.value(const <Category>[]),
+          manageCategoryTreeProvider.overrideWith(
+            (Ref ref) => Stream<List<CategoryTreeNode>>.value(
+              const <CategoryTreeNode>[],
+            ),
           ),
         ],
         child: const MaterialApp(
