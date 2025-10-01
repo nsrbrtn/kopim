@@ -656,6 +656,60 @@ abstract class AppLocalizations {
   /// **'Detailed analytics are coming soon.'**
   String get analyticsComingSoon;
 
+  /// Heading for the monthly analytics summary
+  ///
+  /// In en, this message translates to:
+  /// **'Current month overview'**
+  String get analyticsCurrentMonthTitle;
+
+  /// Label for total income in analytics summary
+  ///
+  /// In en, this message translates to:
+  /// **'Income'**
+  String get analyticsSummaryIncomeLabel;
+
+  /// Label for total expenses in analytics summary
+  ///
+  /// In en, this message translates to:
+  /// **'Expenses'**
+  String get analyticsSummaryExpenseLabel;
+
+  /// Label for net balance in analytics summary
+  ///
+  /// In en, this message translates to:
+  /// **'Net'**
+  String get analyticsSummaryNetLabel;
+
+  /// Heading for the list of top expense categories
+  ///
+  /// In en, this message translates to:
+  /// **'Top expense categories'**
+  String get analyticsTopCategoriesTitle;
+
+  /// Message displayed when there are no expense categories to show
+  ///
+  /// In en, this message translates to:
+  /// **'Not enough expense data to show category trends yet.'**
+  String get analyticsTopCategoriesEmpty;
+
+  /// Label for expenses without a category
+  ///
+  /// In en, this message translates to:
+  /// **'Uncategorized'**
+  String get analyticsCategoryUncategorized;
+
+  /// Message shown when there are no transactions to analyse
+  ///
+  /// In en, this message translates to:
+  /// **'No analytics available for the current month yet.'**
+  String get analyticsEmptyState;
+
+  /// Error shown when analytics stream fails
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load analytics: {error}'**
+  String analyticsLoadError(String error);
+
   /// Title for add transaction screen
   ///
   /// In en, this message translates to:
@@ -757,6 +811,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Date'**
   String get addTransactionDateLabel;
+
+  /// Label for the time picker
+  ///
+  /// In en, this message translates to:
+  /// **'Time'**
+  String get addTransactionTimeLabel;
 
   /// Label for optional note field
   ///

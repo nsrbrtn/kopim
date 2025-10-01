@@ -231,6 +231,8 @@ class _AccountSummaryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
     return Card(
+      elevation: 0,
+      surfaceTintColor: Colors.transparent,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -470,7 +472,9 @@ class _AccountTransactionTile extends ConsumerWidget {
         );
       },
       child: Card(
-        margin: const EdgeInsets.symmetric(vertical: 8),
+        margin: const EdgeInsets.symmetric(vertical: 6),
+        elevation: 0,
+        surfaceTintColor: Colors.transparent,
         child: InkWell(
           borderRadius: const BorderRadius.all(Radius.circular(12)),
           onTap: () => showTransactionEditorSheet(
@@ -505,8 +509,11 @@ class _AccountTransactionTile extends ConsumerWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        dateFormat.format(transaction.date),
-                        style: theme.textTheme.bodySmall,
+                        '${dateFormat.format(transaction.date)} · '
+                        '${DateFormat.Hm(strings.localeName).format(transaction.date)}',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
                       ),
                       if (transaction.note != null &&
                           transaction.note!.isNotEmpty)

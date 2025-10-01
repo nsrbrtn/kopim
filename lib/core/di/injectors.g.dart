@@ -1181,6 +1181,55 @@ final class WatchRecentTransactionsUseCaseProvider
 String _$watchRecentTransactionsUseCaseHash() =>
     r'b8f01a6912efa1d95b04dd015e398b978beee58e';
 
+@ProviderFor(watchMonthlyAnalyticsUseCase)
+const watchMonthlyAnalyticsUseCaseProvider =
+    WatchMonthlyAnalyticsUseCaseProvider._();
+
+final class WatchMonthlyAnalyticsUseCaseProvider
+    extends
+        $FunctionalProvider<
+          WatchMonthlyAnalyticsUseCase,
+          WatchMonthlyAnalyticsUseCase,
+          WatchMonthlyAnalyticsUseCase
+        >
+    with $Provider<WatchMonthlyAnalyticsUseCase> {
+  const WatchMonthlyAnalyticsUseCaseProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'watchMonthlyAnalyticsUseCaseProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$watchMonthlyAnalyticsUseCaseHash();
+
+  @$internal
+  @override
+  $ProviderElement<WatchMonthlyAnalyticsUseCase> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  WatchMonthlyAnalyticsUseCase create(Ref ref) {
+    return watchMonthlyAnalyticsUseCase(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(WatchMonthlyAnalyticsUseCase value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<WatchMonthlyAnalyticsUseCase>(value),
+    );
+  }
+}
+
+String _$watchMonthlyAnalyticsUseCaseHash() =>
+    r'f1d7c52a9a4fc256b1bd3ae0fff4e7e8666f58e9';
+
 @ProviderFor(profileRepository)
 const profileRepositoryProvider = ProfileRepositoryProvider._();
 

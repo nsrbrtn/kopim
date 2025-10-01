@@ -171,6 +171,13 @@ class TransactionFormController extends _$TransactionFormController {
     state = state.copyWith(selectedDate: date);
   }
 
+  void updateTime({required int hour, required int minute}) {
+    final DateTime base = state.date;
+    state = state.copyWith(
+      selectedDate: DateTime(base.year, base.month, base.day, hour, minute),
+    );
+  }
+
   void acknowledgeSuccess() {
     if (state.isSuccess) {
       state = state.copyWith(isSuccess: false);
@@ -206,7 +213,7 @@ class TransactionFormController extends _$TransactionFormController {
                 ? null
                 : state.categoryId,
             amount: state.parsedAmount!,
-            date: state.selectedDate ?? initial.date,
+            date: state.date,
             note: state.note,
             type: state.type,
           ),
@@ -222,7 +229,7 @@ class TransactionFormController extends _$TransactionFormController {
                 ? null
                 : state.categoryId,
             amount: state.parsedAmount!,
-            date: state.selectedDate ?? DateTime.now(),
+            date: state.date,
             note: state.note,
             type: state.type,
           ),

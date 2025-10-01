@@ -18,6 +18,7 @@ import 'package:kopim/features/accounts/data/sources/remote/account_remote_data_
 import 'package:kopim/features/accounts/domain/repositories/account_repository.dart';
 import 'package:kopim/features/accounts/domain/use_cases/add_account_use_case.dart';
 import 'package:kopim/features/accounts/domain/use_cases/watch_accounts_use_case.dart';
+import 'package:kopim/features/analytics/domain/use_cases/watch_monthly_analytics_use_case.dart';
 import 'package:kopim/features/categories/data/repositories/category_repository_impl.dart';
 import 'package:kopim/features/categories/data/sources/local/category_dao.dart';
 import 'package:kopim/features/categories/data/sources/remote/category_remote_data_source.dart';
@@ -184,6 +185,12 @@ WatchAccountTransactionsUseCase watchAccountTransactionsUseCase(Ref ref) =>
 @riverpod
 WatchRecentTransactionsUseCase watchRecentTransactionsUseCase(Ref ref) =>
     WatchRecentTransactionsUseCase(ref.watch(transactionRepositoryProvider));
+
+@riverpod
+WatchMonthlyAnalyticsUseCase watchMonthlyAnalyticsUseCase(Ref ref) =>
+    WatchMonthlyAnalyticsUseCase(
+      transactionRepository: ref.watch(transactionRepositoryProvider),
+    );
 
 @riverpod
 ProfileRepository profileRepository(Ref ref) => ProfileRepositoryImpl(

@@ -422,6 +422,47 @@
   "@analyticsComingSoon": {
     "description": "Заглушка для экрана аналитики"
   },
+  "analyticsCurrentMonthTitle": "Текущий месяц",
+  "@analyticsCurrentMonthTitle": {
+    "description": "Заголовок блока с итогами за месяц"
+  },
+  "analyticsSummaryIncomeLabel": "Доходы",
+  "@analyticsSummaryIncomeLabel": {
+    "description": "Подпись суммы доходов"
+  },
+  "analyticsSummaryExpenseLabel": "Расходы",
+  "@analyticsSummaryExpenseLabel": {
+    "description": "Подпись суммы расходов"
+  },
+  "analyticsSummaryNetLabel": "Баланс",
+  "@analyticsSummaryNetLabel": {
+    "description": "Подпись чистого результата"
+  },
+  "analyticsTopCategoriesTitle": "Топ категорий расходов",
+  "@analyticsTopCategoriesTitle": {
+    "description": "Заголовок списка категорий"
+  },
+  "analyticsTopCategoriesEmpty": "Недостаточно данных о расходах для анализа.",
+  "@analyticsTopCategoriesEmpty": {
+    "description": "Сообщение при отсутствии категорий"
+  },
+  "analyticsCategoryUncategorized": "Без категории",
+  "@analyticsCategoryUncategorized": {
+    "description": "Подпись для неразмеченных расходов"
+  },
+  "analyticsEmptyState": "За текущий месяц пока нет данных для аналитики.",
+  "@analyticsEmptyState": {
+    "description": "Сообщение при отсутствии транзакций"
+  },
+  "analyticsLoadError": "Не удалось загрузить аналитику: {error}",
+  "@analyticsLoadError": {
+    "description": "Ошибка загрузки аналитики",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "addTransactionTitle": "Новая транзакция",
   "@addTransactionTitle": {
     "description": "Заголовок экрана добавления транзакции"
@@ -500,6 +541,10 @@
   "addTransactionDateLabel": "Дата",
   "@addTransactionDateLabel": {
     "description": "Подпись выбора даты"
+  },
+  "addTransactionTimeLabel": "Время",
+  "@addTransactionTimeLabel": {
+    "description": "Подпись выбора времени"
   },
   "addTransactionNoteLabel": "Заметка",
   "@addTransactionNoteLabel": {

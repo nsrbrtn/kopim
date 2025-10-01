@@ -43,6 +43,11 @@ List<TransactionListSection> groupTransactionsByDay({
   final DateFormat dateFormat = DateFormat.MMMMd(localeName);
 
   for (final DateTime date in sortedDates) {
+    final List<TransactionEntity> sortedTransactions =
+        List<TransactionEntity>.from(grouped[date]!)..sort(
+          (TransactionEntity a, TransactionEntity b) =>
+              b.date.compareTo(a.date),
+        );
     final String title = date == normalizedToday
         ? todayLabel
         : toBeginningOfSentenceCase(dateFormat.format(date)) ??
@@ -50,7 +55,7 @@ List<TransactionListSection> groupTransactionsByDay({
     sections.add(
       TransactionListSection(
         title: title,
-        transactions: List<TransactionEntity>.unmodifiable(grouped[date]!),
+        transactions: List<TransactionEntity>.unmodifiable(sortedTransactions),
       ),
     );
   }
