@@ -42,14 +42,3 @@ String formatPhosphorIconName(String name) {
   return buffer.toString().toLowerCase();
 }
 
-List<String> filterPhosphorIconNames(String query) {
-  if (query.trim().isEmpty) {
-    return phosphorIconNames;
-  }
-  final String normalized = query.trim().toLowerCase();
-  final List<String> matches = phosphorIconNames
-      .where((String name) => name.toLowerCase().contains(normalized))
-      .toList(growable: false);
-  matches.sort((String a, String b) => a.compareTo(b));
-  return matches;
-}

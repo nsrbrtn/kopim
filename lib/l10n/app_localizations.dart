@@ -134,29 +134,11 @@ abstract class AppLocalizations {
   /// **'Add category'**
   String get manageCategoriesAddAction;
 
-  /// Action label to create a top-level category from the manage categories menu
-  ///
-  /// In en, this message translates to:
-  /// **'Create parent category'**
-  String get manageCategoriesCreateRootAction;
-
   /// Action label to create a subcategory from the manage categories menu
   ///
   /// In en, this message translates to:
   /// **'Create subcategory'**
   String get manageCategoriesCreateSubAction;
-
-  /// Helper text shown when user cannot create subcategory because there are no parents
-  ///
-  /// In en, this message translates to:
-  /// **'Add a parent category first to create subcategories.'**
-  String get manageCategoriesCreateSubDisabled;
-
-  /// Dialog title prompting the user to select a parent category
-  ///
-  /// In en, this message translates to:
-  /// **'Select parent category'**
-  String get manageCategoriesSelectParentTitle;
 
   /// Generic cancel button label
   ///
@@ -278,22 +260,16 @@ abstract class AppLocalizations {
   /// **'Pick a category icon'**
   String get manageCategoriesIconPickerTitle;
 
-  /// Placeholder text for the icon search field
-  ///
-  /// In en, this message translates to:
-  /// **'Search icons'**
-  String get manageCategoriesIconSearchHint;
-
   /// Label for the button that clears the selected icon
   ///
   /// In en, this message translates to:
   /// **'Clear selection'**
   String get manageCategoriesIconClear;
 
-  /// Empty state when icon search returns no results
+  /// Empty state shown when the selected icon group has no entries
   ///
   /// In en, this message translates to:
-  /// **'No icons match your search.'**
+  /// **'No icons available.'**
   String get manageCategoriesIconEmpty;
 
   /// Label for the thin icon style filter
@@ -325,6 +301,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Fill'**
   String get manageCategoriesIconStyleFill;
+
+  /// Tab label for finance-related icons
+  ///
+  /// In en, this message translates to:
+  /// **'Finance & work'**
+  String get manageCategoriesIconGroupFinance;
+
+  /// Tab label for shopping and clothing icons
+  ///
+  /// In en, this message translates to:
+  /// **'Shopping & clothing'**
+  String get manageCategoriesIconGroupShopping;
+
+  /// Tab label for food-related icons
+  ///
+  /// In en, this message translates to:
+  /// **'Food & dining'**
+  String get manageCategoriesIconGroupFood;
+
+  /// Tab label for transport icons
+  ///
+  /// In en, this message translates to:
+  /// **'Transport & travel'**
+  String get manageCategoriesIconGroupTransport;
+
+  /// Tab label for home and utility icons
+  ///
+  /// In en, this message translates to:
+  /// **'Home & utilities'**
+  String get manageCategoriesIconGroupHome;
+
+  /// Tab label for leisure icons
+  ///
+  /// In en, this message translates to:
+  /// **'Leisure & sports'**
+  String get manageCategoriesIconGroupLeisure;
 
   /// Label for the color input
   ///

@@ -36,7 +36,12 @@ class ManageCategoriesScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: Text(strings.profileManageCategoriesTitle)),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => _showCreateMenu(context, ref, strings, rootCategories),
+        onPressed: () => _showCategoryEditor(
+          context,
+          ref,
+          strings: strings,
+          parents: rootCategories,
+        ),
         tooltip: strings.manageCategoriesAddAction,
         child: const Icon(Icons.add),
       ),
@@ -81,104 +86,6 @@ class ManageCategoriesScreen extends ConsumerWidget {
       ),
     );
   }
-}
-
-Future<void> _showCreateMenu(
-  BuildContext context,
-  WidgetRef ref,
-  AppLocalizations strings,
-  List<Category> parents,
-) async {
-  final ThemeData theme = Theme.of(context);
-  final String? selection = await showModalBottomSheet<String>(
-    context: context,
-    useSafeArea: true,
-    builder: (BuildContext context) {
-      return SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            ListTile(
-              leading: const Icon(Icons.category_outlined),
-              title: Text(strings.manageCategoriesCreateRootAction),
-              onTap: () => Navigator.of(context).pop('root'),
-            ),
-            ListTile(
-              leading: const Icon(Icons.subdirectory_arrow_right),
-              title: Text(strings.manageCategoriesCreateSubAction),
-              enabled: parents.isNotEmpty,
-              subtitle: parents.isEmpty
-                  ? Text(
-                      strings.manageCategoriesCreateSubDisabled,
-                      style: theme.textTheme.bodySmall,
-                    )
-                  : null,
-              onTap: parents.isEmpty
-                  ? null
-                  : () => Navigator.of(context).pop('sub'),
-            ),
-            const SizedBox(height: 12),
-          ],
-        ),
-      );
-    },
-  );
-
-  if (selection == 'root') {
-    await _showCategoryEditor(context, ref, strings: strings, parents: parents);
-    return;
-  }
-  if (selection == 'sub' && parents.isNotEmpty) {
-    final Category? parent = await _selectParentCategory(
-      context,
-      strings,
-      parents,
-    );
-    if (parent != null) {
-      await _showCategoryEditor(
-        context,
-        ref,
-        strings: strings,
-        parents: parents,
-        defaultParentId: parent.id,
-      );
-    }
-  }
-}
-
-Future<Category?> _selectParentCategory(
-  BuildContext context,
-  AppLocalizations strings,
-  List<Category> parents,
-) async {
-  return showDialog<Category>(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: Text(strings.manageCategoriesSelectParentTitle),
-        content: ConstrainedBox(
-          constraints: const BoxConstraints(maxHeight: 320),
-          child: ListView.builder(
-            itemCount: parents.length,
-            itemBuilder: (BuildContext context, int index) {
-              final Category category = parents[index];
-              return ListTile(
-                leading: const Icon(Icons.folder_outlined),
-                title: Text(category.name),
-                onTap: () => Navigator.of(context).pop(category),
-              );
-            },
-          ),
-        ),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(strings.dialogCancel),
-          ),
-        ],
-      );
-    },
-  );
 }
 
 Future<void> _showCategoryEditor(
@@ -543,7 +450,6 @@ class _CategoryEditorSheet extends ConsumerWidget {
 
     final PhosphorIconPickerLabels pickerLabels = PhosphorIconPickerLabels(
       title: strings.manageCategoriesIconPickerTitle,
-      searchPlaceholder: strings.manageCategoriesIconSearchHint,
       clearButtonLabel: strings.manageCategoriesIconClear,
       emptyStateLabel: strings.manageCategoriesIconEmpty,
       styleLabels: <PhosphorIconStyle, String>{
@@ -552,6 +458,14 @@ class _CategoryEditorSheet extends ConsumerWidget {
         PhosphorIconStyle.regular: strings.manageCategoriesIconStyleRegular,
         PhosphorIconStyle.bold: strings.manageCategoriesIconStyleBold,
         PhosphorIconStyle.fill: strings.manageCategoriesIconStyleFill,
+      },
+      groupLabels: <String, String>{
+        'finance': strings.manageCategoriesIconGroupFinance,
+        'shopping': strings.manageCategoriesIconGroupShopping,
+        'food': strings.manageCategoriesIconGroupFood,
+        'transport': strings.manageCategoriesIconGroupTransport,
+        'home': strings.manageCategoriesIconGroupHome,
+        'leisure': strings.manageCategoriesIconGroupLeisure,
       },
     );
 
@@ -669,7 +583,7 @@ class _CategoryEditorSheet extends ConsumerWidget {
                       onPressed: () => controller.updateIcon(null),
                     ),
                   IconButton(
-                    icon: const Icon(Icons.search),
+                    icon: const Icon(Icons.grid_view),
                     tooltip: strings.manageCategoriesIconSelect,
                     onPressed: () async {
                       final PhosphorIconDescriptor? selection =

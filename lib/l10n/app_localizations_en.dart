@@ -27,17 +27,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get manageCategoriesAddAction => 'Add category';
 
   @override
-  String get manageCategoriesCreateRootAction => 'Create parent category';
-
-  @override
   String get manageCategoriesCreateSubAction => 'Create subcategory';
-
-  @override
-  String get manageCategoriesCreateSubDisabled =>
-      'Add a parent category first to create subcategories.';
-
-  @override
-  String get manageCategoriesSelectParentTitle => 'Select parent category';
 
   @override
   String get dialogCancel => 'Cancel';
@@ -103,13 +93,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get manageCategoriesIconPickerTitle => 'Pick a category icon';
 
   @override
-  String get manageCategoriesIconSearchHint => 'Search icons';
-
-  @override
   String get manageCategoriesIconClear => 'Clear selection';
 
   @override
-  String get manageCategoriesIconEmpty => 'No icons match your search.';
+  String get manageCategoriesIconEmpty => 'No icons available.';
 
   @override
   String get manageCategoriesIconStyleThin => 'Thin';
@@ -125,6 +112,24 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get manageCategoriesIconStyleFill => 'Fill';
+
+  @override
+  String get manageCategoriesIconGroupFinance => 'Finance & work';
+
+  @override
+  String get manageCategoriesIconGroupShopping => 'Shopping & clothing';
+
+  @override
+  String get manageCategoriesIconGroupFood => 'Food & dining';
+
+  @override
+  String get manageCategoriesIconGroupTransport => 'Transport & travel';
+
+  @override
+  String get manageCategoriesIconGroupHome => 'Home & utilities';
+
+  @override
+  String get manageCategoriesIconGroupLeisure => 'Leisure & sports';
 
   @override
   String get manageCategoriesColorLabel => 'Color';
