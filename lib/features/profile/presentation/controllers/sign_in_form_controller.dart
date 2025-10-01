@@ -41,24 +41,27 @@ class SignInFormController extends _$SignInFormController {
   }
 
   Future<void> submit() async {
-    if (!state.canSubmit) {
-      return;
-    }
+    if (!state.canSubmit) return;
+
     state = state.copyWith(isSubmitting: true, errorMessage: null);
     try {
       await ref.read(authControllerProvider.notifier).signIn(
-            SignInRequest.email(
-              email: state.email.trim(),
-              password: state.password,
-            ),
-          );
+        SignInRequest.email(
+          email: state.email.trim(),
+          password: state.password,
+        ),
+      );
+
+      if (!ref.mounted) return; // провайдер уже уничтожен
       state = state.copyWith(isSubmitting: false);
     } on AuthFailure catch (error) {
+      if (!ref.mounted) return;
       state = state.copyWith(
         isSubmitting: false,
         errorMessage: error.message,
       );
     } catch (_) {
+      if (!ref.mounted) return;
       state = state.copyWith(
         isSubmitting: false,
         errorMessage: AuthFailure.unknown().message,
@@ -72,13 +75,17 @@ class SignInFormController extends _$SignInFormController {
       await ref
           .read(authControllerProvider.notifier)
           .signIn(const SignInRequest.google());
+
+      if (!ref.mounted) return;
       state = state.copyWith(isSubmitting: false);
     } on AuthFailure catch (error) {
+      if (!ref.mounted) return;
       state = state.copyWith(
         isSubmitting: false,
         errorMessage: error.message,
       );
     } catch (_) {
+      if (!ref.mounted) return;
       state = state.copyWith(
         isSubmitting: false,
         errorMessage: AuthFailure.unknown().message,
