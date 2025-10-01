@@ -186,7 +186,7 @@ class _CategoryTreeList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView.separated(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       itemCount: tree.length,
       itemBuilder: (BuildContext context, int index) {
         final CategoryTreeNode node = tree[index];
@@ -226,12 +226,25 @@ class _CategoryNodeCard extends StatelessWidget {
     final List<String> metadata = _buildMetadata(category, strings);
 
     return Card(
+      margin: EdgeInsets.zero,
+      elevation: 0,
+      surfaceTintColor: Colors.transparent,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: ExpansionTile(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide.none,
+        ),
+        collapsedShape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide.none,
+        ),
+        tilePadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
         leading: _CategoryIcon(iconData: iconData, backgroundColor: color),
         title: Text(category.name),
         subtitle: Text(metadata.join(' · ')),
         childrenPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
+          horizontal: 12,
           vertical: 8,
         ),
         trailing: Wrap(
@@ -300,6 +313,7 @@ class _SubcategoryTile extends StatelessWidget {
     final Color? color = parseHexColor(category.color);
     final List<String> metadata = _buildMetadata(category, strings);
     return ListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 8),
       leading: _CategoryIcon(iconData: iconData, backgroundColor: color),
       title: Text(category.name),
       subtitle: Text(metadata.join(' · ')),
@@ -330,9 +344,19 @@ class _CategoryIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final Color avatarBackground =
+        backgroundColor ?? theme.colorScheme.surfaceVariant;
+    final Color avatarForeground = backgroundColor != null
+        ? (ThemeData.estimateBrightnessForColor(avatarBackground) ==
+                  Brightness.dark
+              ? Colors.white
+              : Colors.black87)
+        : theme.colorScheme.onSurfaceVariant;
+
     return CircleAvatar(
-      backgroundColor:
-          backgroundColor ?? Theme.of(context).colorScheme.surfaceVariant,
+      backgroundColor: avatarBackground,
+      foregroundColor: avatarForeground,
       child: iconData != null
           ? Icon(iconData)
           : const Icon(Icons.category_outlined),
@@ -465,79 +489,13 @@ class _CategoryEditorSheet extends ConsumerWidget {
     final EdgeInsets viewInsets = MediaQuery.of(context).viewInsets;
 
     Future<void> selectColor() async {
-      Color? draftColor = selectedColor;
-      final Color? pickedColor = await showDialog<Color>(
+      final String? hex = await _showCategoryColorPickerDialog(
         context: context,
-        builder: (BuildContext dialogContext) {
-          return AlertDialog(
-            title: Text(strings.manageCategoriesColorPickerTitle),
-            content: StatefulBuilder(
-              builder: (BuildContext context, StateSetter setState) {
-                return SizedBox(
-                  width: double.maxFinite,
-                  child: SingleChildScrollView(
-                    child: Wrap(
-                      spacing: 12,
-                      runSpacing: 12,
-                      children: kCategoryPastelPalette
-                          .map((Color color) {
-                            final bool isSelected =
-                                draftColor?.value == color.value;
-                            return GestureDetector(
-                              onTap: () => setState(() => draftColor = color),
-                              child: Container(
-                                width: 40,
-                                height: 40,
-                                decoration: BoxDecoration(
-                                  color: color,
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color: isSelected
-                                        ? theme.colorScheme.primary
-                                        : Colors.transparent,
-                                    width: 3,
-                                  ),
-                                  boxShadow: isSelected
-                                      ? <BoxShadow>[
-                                          BoxShadow(
-                                            color: theme.colorScheme.primary
-                                                .withOpacity(0.24),
-                                            blurRadius: 8,
-                                            offset: const Offset(0, 2),
-                                          ),
-                                        ]
-                                      : const <BoxShadow>[],
-                                ),
-                              ),
-                            );
-                          })
-                          .toList(growable: false),
-                    ),
-                  ),
-                );
-              },
-            ),
-            actions: <Widget>[
-              TextButton(
-                onPressed: () => Navigator.of(dialogContext).pop(),
-                child: Text(strings.dialogCancel),
-              ),
-              FilledButton(
-                onPressed: draftColor == null
-                    ? null
-                    : () => Navigator.of(dialogContext).pop(draftColor),
-                child: Text(strings.dialogConfirm),
-              ),
-            ],
-          );
-        },
+        strings: strings,
+        initialColor: selectedColor,
       );
-
-      if (pickedColor != null) {
-        final String? hex = colorToHex(pickedColor);
-        if (hex != null) {
-          controller.updateColor(hex);
-        }
+      if (hex != null) {
+        controller.updateColor(hex);
       }
     }
 
@@ -632,6 +590,7 @@ class _CategoryEditorSheet extends ConsumerWidget {
             ListTile(
               contentPadding: EdgeInsets.zero,
               leading: CircleAvatar(
+                key: const ValueKey<String>('category-color-preview'),
                 backgroundColor:
                     selectedColor ?? theme.colorScheme.surfaceVariant,
                 child: selectedColor == null
@@ -687,6 +646,102 @@ class _CategoryEditorSheet extends ConsumerWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+Future<String?> _showCategoryColorPickerDialog({
+  required BuildContext context,
+  required AppLocalizations strings,
+  Color? initialColor,
+}) {
+  return showDialog<String>(
+    context: context,
+    useRootNavigator: false,
+    builder: (BuildContext dialogContext) {
+      return _CategoryColorPickerDialog(
+        initialColor: initialColor,
+        strings: strings,
+      );
+    },
+  );
+}
+
+class _CategoryColorPickerDialog extends StatefulWidget {
+  const _CategoryColorPickerDialog({this.initialColor, required this.strings});
+
+  final Color? initialColor;
+  final AppLocalizations strings;
+
+  @override
+  State<_CategoryColorPickerDialog> createState() =>
+      _CategoryColorPickerDialogState();
+}
+
+class _CategoryColorPickerDialogState
+    extends State<_CategoryColorPickerDialog> {
+  Color? _draftColor;
+
+  @override
+  void initState() {
+    super.initState();
+    _draftColor = widget.initialColor;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    return AlertDialog(
+      title: Text(widget.strings.manageCategoriesColorPickerTitle),
+      content: SizedBox(
+        width: double.maxFinite,
+        child: SingleChildScrollView(
+          child: Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            children: kCategoryPastelPalette
+                .asMap()
+                .entries
+                .map((MapEntry<int, Color> entry) {
+                  final Color color = entry.value;
+                  final bool isSelected = _draftColor?.value == color.value;
+                  return InkResponse(
+                    key: ValueKey<String>('category-color-${entry.key}'),
+                    radius: 24,
+                    onTap: () => setState(() => _draftColor = color),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 150),
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: color,
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: isSelected
+                              ? theme.colorScheme.primary
+                              : Colors.transparent,
+                          width: 3,
+                        ),
+                      ),
+                    ),
+                  );
+                })
+                .toList(growable: false),
+          ),
+        ),
+      ),
+      actions: <Widget>[
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(widget.strings.dialogCancel),
+        ),
+        FilledButton(
+          onPressed: _draftColor == null
+              ? null
+              : () => Navigator.of(context).pop(colorToHex(_draftColor!)!),
+          child: Text(widget.strings.dialogConfirm),
+        ),
+      ],
     );
   }
 }
