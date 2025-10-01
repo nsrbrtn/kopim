@@ -266,7 +266,7 @@ abstract class AppLocalizations {
   /// **'Clear selection'**
   String get manageCategoriesIconClear;
 
-  /// Empty state shown when the selected icon group has no entries
+  /// Empty state shown when the selected icon group has no items
   ///
   /// In en, this message translates to:
   /// **'No icons available.'**
@@ -823,6 +823,204 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Bank account'**
   String get addAccountTypeBank;
+
+  /// Title for the account details screen
+  ///
+  /// In en, this message translates to:
+  /// **'Account details'**
+  String get accountDetailsTitle;
+
+  /// Tooltip for the settings icon on the account details screen
+  ///
+  /// In en, this message translates to:
+  /// **'Edit account'**
+  String get accountDetailsEditTooltip;
+
+  /// Error shown when loading the account fails
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load account: {error}'**
+  String accountDetailsError(String error);
+
+  /// Shown when the requested account cannot be found
+  ///
+  /// In en, this message translates to:
+  /// **'This account is no longer available.'**
+  String get accountDetailsMissing;
+
+  /// Error shown when computing income/expense summary fails
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load summary: {error}'**
+  String accountDetailsSummaryError(String error);
+
+  /// Error shown when category stream fails on the account details screen
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load categories: {error}'**
+  String accountDetailsCategoriesError(String error);
+
+  /// Error shown when account transactions fail to load
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load transactions: {error}'**
+  String accountDetailsTransactionsError(String error);
+
+  /// Empty state shown when the account has no transactions
+  ///
+  /// In en, this message translates to:
+  /// **'No transactions for this account yet.'**
+  String get accountDetailsTransactionsEmpty;
+
+  /// Label showing the current balance
+  ///
+  /// In en, this message translates to:
+  /// **'Balance: {balance}'**
+  String accountDetailsBalanceLabel(String balance);
+
+  /// Label for the total income value
+  ///
+  /// In en, this message translates to:
+  /// **'Total income'**
+  String get accountDetailsIncomeLabel;
+
+  /// Label for the total expense value
+  ///
+  /// In en, this message translates to:
+  /// **'Total expenses'**
+  String get accountDetailsExpenseLabel;
+
+  /// Section title for the filter card
+  ///
+  /// In en, this message translates to:
+  /// **'Filters'**
+  String get accountDetailsFiltersTitle;
+
+  /// Button label that clears all active filters
+  ///
+  /// In en, this message translates to:
+  /// **'Clear filters'**
+  String get accountDetailsFiltersClear;
+
+  /// Label shown when no date range filter is applied
+  ///
+  /// In en, this message translates to:
+  /// **'Any dates'**
+  String get accountDetailsFiltersDateAny;
+
+  /// Label showing the selected date range
+  ///
+  /// In en, this message translates to:
+  /// **'{start} – {end}'**
+  String accountDetailsFiltersDateValue(String start, String end);
+
+  /// Label for the type dropdown filter
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get accountDetailsFiltersTypeLabel;
+
+  /// Dropdown option for no type filter
+  ///
+  /// In en, this message translates to:
+  /// **'All types'**
+  String get accountDetailsFiltersTypeAll;
+
+  /// Dropdown option to filter income transactions
+  ///
+  /// In en, this message translates to:
+  /// **'Income'**
+  String get accountDetailsFiltersTypeIncome;
+
+  /// Dropdown option to filter expense transactions
+  ///
+  /// In en, this message translates to:
+  /// **'Expense'**
+  String get accountDetailsFiltersTypeExpense;
+
+  /// Label for the category dropdown
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get accountDetailsFiltersCategoryLabel;
+
+  /// Dropdown option for no category filter
+  ///
+  /// In en, this message translates to:
+  /// **'All categories'**
+  String get accountDetailsFiltersCategoryAll;
+
+  /// Label for transactions without a category
+  ///
+  /// In en, this message translates to:
+  /// **'Uncategorized'**
+  String get accountDetailsTransactionsUncategorized;
+
+  /// Label for income transaction type
+  ///
+  /// In en, this message translates to:
+  /// **'Income'**
+  String get accountDetailsTypeIncome;
+
+  /// Label for expense transaction type
+  ///
+  /// In en, this message translates to:
+  /// **'Expense'**
+  String get accountDetailsTypeExpense;
+
+  /// Title for the edit account screen
+  ///
+  /// In en, this message translates to:
+  /// **'Edit account'**
+  String get editAccountTitle;
+
+  /// Label for the account name field on edit screen
+  ///
+  /// In en, this message translates to:
+  /// **'Account name'**
+  String get editAccountNameLabel;
+
+  /// Label for the balance field on edit screen
+  ///
+  /// In en, this message translates to:
+  /// **'Balance'**
+  String get editAccountBalanceLabel;
+
+  /// Label for the currency dropdown on edit screen
+  ///
+  /// In en, this message translates to:
+  /// **'Currency'**
+  String get editAccountCurrencyLabel;
+
+  /// Label for the account type row on edit screen
+  ///
+  /// In en, this message translates to:
+  /// **'Account type'**
+  String get editAccountTypeLabel;
+
+  /// Button label for saving account edits
+  ///
+  /// In en, this message translates to:
+  /// **'Save changes'**
+  String get editAccountSaveCta;
+
+  /// Validation message when the account name is empty
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter the account name.'**
+  String get editAccountNameRequired;
+
+  /// Validation message when the balance is invalid
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid amount.'**
+  String get editAccountBalanceInvalid;
+
+  /// Generic error shown when updating the account fails
+  ///
+  /// In en, this message translates to:
+  /// **'Could not update account. Please try again.'**
+  String get editAccountGenericError;
 }
 
 class _AppLocalizationsDelegate

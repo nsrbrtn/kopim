@@ -403,4 +403,117 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get addAccountTypeBank => 'Банковский счёт';
+
+  @override
+  String get accountDetailsTitle => 'Счёт';
+
+  @override
+  String get accountDetailsEditTooltip => 'Настройки счёта';
+
+  @override
+  String accountDetailsError(String error) {
+    return 'Не удалось загрузить счёт: $error';
+  }
+
+  @override
+  String get accountDetailsMissing => 'Счёт не найден или был удалён.';
+
+  @override
+  String accountDetailsSummaryError(String error) {
+    return 'Не удалось загрузить сводку: $error';
+  }
+
+  @override
+  String accountDetailsCategoriesError(String error) {
+    return 'Не удалось загрузить категории: $error';
+  }
+
+  @override
+  String accountDetailsTransactionsError(String error) {
+    return 'Не удалось загрузить транзакции: $error';
+  }
+
+  @override
+  String get accountDetailsTransactionsEmpty =>
+      'Для этого счёта ещё нет транзакций.';
+
+  @override
+  String accountDetailsBalanceLabel(String balance) {
+    return 'Баланс: $balance';
+  }
+
+  @override
+  String get accountDetailsIncomeLabel => 'Доходы';
+
+  @override
+  String get accountDetailsExpenseLabel => 'Расходы';
+
+  @override
+  String get accountDetailsFiltersTitle => 'Фильтры';
+
+  @override
+  String get accountDetailsFiltersClear => 'Сбросить фильтры';
+
+  @override
+  String get accountDetailsFiltersDateAny => 'Любые даты';
+
+  @override
+  String accountDetailsFiltersDateValue(String start, String end) {
+    return '$start — $end';
+  }
+
+  @override
+  String get accountDetailsFiltersTypeLabel => 'Тип';
+
+  @override
+  String get accountDetailsFiltersTypeAll => 'Все типы';
+
+  @override
+  String get accountDetailsFiltersTypeIncome => 'Доход';
+
+  @override
+  String get accountDetailsFiltersTypeExpense => 'Расход';
+
+  @override
+  String get accountDetailsFiltersCategoryLabel => 'Категория';
+
+  @override
+  String get accountDetailsFiltersCategoryAll => 'Все категории';
+
+  @override
+  String get accountDetailsTransactionsUncategorized => 'Без категории';
+
+  @override
+  String get accountDetailsTypeIncome => 'Доход';
+
+  @override
+  String get accountDetailsTypeExpense => 'Расход';
+
+  @override
+  String get editAccountTitle => 'Редактирование счёта';
+
+  @override
+  String get editAccountNameLabel => 'Название счёта';
+
+  @override
+  String get editAccountBalanceLabel => 'Баланс';
+
+  @override
+  String get editAccountCurrencyLabel => 'Валюта';
+
+  @override
+  String get editAccountTypeLabel => 'Тип счёта';
+
+  @override
+  String get editAccountSaveCta => 'Сохранить изменения';
+
+  @override
+  String get editAccountNameRequired => 'Введите название счёта.';
+
+  @override
+  String get editAccountBalanceInvalid => 'Введите корректную сумму.';
+
+  @override
+  String get editAccountGenericError =>
+      'Не удалось обновить счёт. Повторите попытку.';
 }

@@ -4,28 +4,27 @@ import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/accounts/domain/use_cases/add_account_use_case.dart';
 import 'package:kopim/features/accounts/presentation/controllers/account_balance_parser.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:uuid/uuid.dart';
 
-part 'add_account_form_controller.freezed.dart';
-part 'add_account_form_controller.g.dart';
+part 'edit_account_form_controller.freezed.dart';
+part 'edit_account_form_controller.g.dart';
 
-enum AddAccountFieldError { emptyName, invalidBalance }
+enum EditAccountFieldError { emptyName, invalidBalance }
 
 @freezed
-abstract class AddAccountFormState with _$AddAccountFormState {
-  const factory AddAccountFormState({
-    @Default('') String name,
-    @Default('') String balanceInput,
-    @Default('RUB') String currency,
-    @Default('cash') String type,
+abstract class EditAccountFormState with _$EditAccountFormState {
+  const factory EditAccountFormState({
+    required AccountEntity original,
+    required String name,
+    required String balanceInput,
+    required String currency,
     @Default(false) bool isSaving,
     @Default(false) bool submissionSuccess,
-    AddAccountFieldError? nameError,
-    AddAccountFieldError? balanceError,
+    EditAccountFieldError? nameError,
+    EditAccountFieldError? balanceError,
     String? errorMessage,
-  }) = _AddAccountFormState;
+  }) = _EditAccountFormState;
 
-  const AddAccountFormState._();
+  const EditAccountFormState._();
 
   double? get parsedBalance => parseBalanceInput(balanceInput);
 
@@ -38,15 +37,18 @@ abstract class AddAccountFormState with _$AddAccountFormState {
 }
 
 @riverpod
-class AddAccountFormController extends _$AddAccountFormController {
+class EditAccountFormController extends _$EditAccountFormController {
   late final AddAccountUseCase _addAccountUseCase;
-  late final Uuid _uuid;
 
   @override
-  AddAccountFormState build() {
+  EditAccountFormState build(AccountEntity account) {
     _addAccountUseCase = ref.watch(addAccountUseCaseProvider);
-    _uuid = ref.watch(uuidGeneratorProvider);
-    return const AddAccountFormState();
+    return EditAccountFormState(
+      original: account,
+      name: account.name,
+      balanceInput: account.balance.toStringAsFixed(2),
+      currency: account.currency,
+    );
   }
 
   void updateName(String value) {
@@ -68,15 +70,11 @@ class AddAccountFormController extends _$AddAccountFormController {
   }
 
   void updateCurrency(String value) {
-    state = state.copyWith(currency: value, submissionSuccess: false);
-  }
-
-  void updateType(String value) {
-    state = state.copyWith(type: value, submissionSuccess: false);
-  }
-
-  void resetForm() {
-    state = const AddAccountFormState();
+    state = state.copyWith(
+      currency: value,
+      submissionSuccess: false,
+      errorMessage: null,
+    );
   }
 
   void clearSubmissionFlag() {
@@ -91,15 +89,15 @@ class AddAccountFormController extends _$AddAccountFormController {
     }
 
     final String trimmedName = state.name.trim();
-    AddAccountFieldError? nameError;
+    EditAccountFieldError? nameError;
     if (trimmedName.isEmpty) {
-      nameError = AddAccountFieldError.emptyName;
+      nameError = EditAccountFieldError.emptyName;
     }
 
     final double? balance = parseBalanceInput(state.balanceInput);
-    AddAccountFieldError? balanceError;
+    EditAccountFieldError? balanceError;
     if (balance == null) {
-      balanceError = AddAccountFieldError.invalidBalance;
+      balanceError = EditAccountFieldError.invalidBalance;
     }
 
     if (nameError != null || balanceError != null) {
@@ -113,29 +111,26 @@ class AddAccountFormController extends _$AddAccountFormController {
 
     state = state.copyWith(
       isSaving: true,
-      errorMessage: null,
       nameError: null,
       balanceError: null,
+      errorMessage: null,
       submissionSuccess: false,
     );
 
-    final DateTime now = DateTime.now().toUtc();
-    final AccountEntity account = AccountEntity(
-      id: _uuid.v4(),
+    final DateTime updatedAt = DateTime.now().toUtc();
+    final AccountEntity updatedAccount = state.original.copyWith(
       name: trimmedName,
       balance: balance!,
       currency: state.currency,
-      type: state.type,
-      createdAt: now,
-      updatedAt: now,
+      updatedAt: updatedAt,
     );
 
     try {
-      await _addAccountUseCase(account);
+      await _addAccountUseCase(updatedAccount);
       state = state.copyWith(
         isSaving: false,
-        name: '',
-        balanceInput: '',
+        original: updatedAccount,
+        balanceInput: balance.toStringAsFixed(2),
         submissionSuccess: true,
       );
     } catch (error) {

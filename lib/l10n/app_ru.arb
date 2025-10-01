@@ -544,6 +544,170 @@
   "addAccountTypeBank": "Банковский счёт",
   "@addAccountTypeBank": {
     "description": "Вариант типа счёта для банковского счёта"
-
+  },
+  "accountDetailsTitle": "Счёт",
+  "@accountDetailsTitle": {
+    "description": "Заголовок экрана деталей счёта"
+  },
+  "accountDetailsEditTooltip": "Настройки счёта",
+  "@accountDetailsEditTooltip": {
+    "description": "Подсказка для кнопки настройки на экране счёта"
+  },
+  "accountDetailsError": "Не удалось загрузить счёт: {error}",
+  "@accountDetailsError": {
+    "description": "Сообщение об ошибке загрузки счёта",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "accountDetailsMissing": "Счёт не найден или был удалён.",
+  "@accountDetailsMissing": {
+    "description": "Сообщение, если счёт недоступен"
+  },
+  "accountDetailsSummaryError": "Не удалось загрузить сводку: {error}",
+  "@accountDetailsSummaryError": {
+    "description": "Сообщение об ошибке расчёта сводных данных",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "accountDetailsCategoriesError": "Не удалось загрузить категории: {error}",
+  "@accountDetailsCategoriesError": {
+    "description": "Сообщение об ошибке загрузки категорий",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "accountDetailsTransactionsError": "Не удалось загрузить транзакции: {error}",
+  "@accountDetailsTransactionsError": {
+    "description": "Сообщение об ошибке загрузки транзакций",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "accountDetailsTransactionsEmpty": "Для этого счёта ещё нет транзакций.",
+  "@accountDetailsTransactionsEmpty": {
+    "description": "Пустое состояние списка транзакций"
+  },
+  "accountDetailsBalanceLabel": "Баланс: {balance}",
+  "@accountDetailsBalanceLabel": {
+    "description": "Подпись текущего баланса",
+    "placeholders": {
+      "balance": {
+        "type": "String"
+      }
+    }
+  },
+  "accountDetailsIncomeLabel": "Доходы",
+  "@accountDetailsIncomeLabel": {
+    "description": "Подпись суммы доходов"
+  },
+  "accountDetailsExpenseLabel": "Расходы",
+  "@accountDetailsExpenseLabel": {
+    "description": "Подпись суммы расходов"
+  },
+  "accountDetailsFiltersTitle": "Фильтры",
+  "@accountDetailsFiltersTitle": {
+    "description": "Заголовок блока фильтров"
+  },
+  "accountDetailsFiltersClear": "Сбросить фильтры",
+  "@accountDetailsFiltersClear": {
+    "description": "Кнопка сброса всех фильтров"
+  },
+  "accountDetailsFiltersDateAny": "Любые даты",
+  "@accountDetailsFiltersDateAny": {
+    "description": "Подпись при отсутствии фильтра по датам"
+  },
+  "accountDetailsFiltersDateValue": "{start} — {end}",
+  "@accountDetailsFiltersDateValue": {
+    "description": "Формат отображения выбранного диапазона дат",
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "accountDetailsFiltersTypeLabel": "Тип",
+  "@accountDetailsFiltersTypeLabel": {
+    "description": "Подпись выпадающего списка по типу"
+  },
+  "accountDetailsFiltersTypeAll": "Все типы",
+  "@accountDetailsFiltersTypeAll": {
+    "description": "Опция отключения фильтра по типу"
+  },
+  "accountDetailsFiltersTypeIncome": "Доход",
+  "@accountDetailsFiltersTypeIncome": {
+    "description": "Опция фильтрации доходов"
+  },
+  "accountDetailsFiltersTypeExpense": "Расход",
+  "@accountDetailsFiltersTypeExpense": {
+    "description": "Опция фильтрации расходов"
+  },
+  "accountDetailsFiltersCategoryLabel": "Категория",
+  "@accountDetailsFiltersCategoryLabel": {
+    "description": "Подпись выпадающего списка категорий"
+  },
+  "accountDetailsFiltersCategoryAll": "Все категории",
+  "@accountDetailsFiltersCategoryAll": {
+    "description": "Опция отключения фильтра по категории"
+  },
+  "accountDetailsTransactionsUncategorized": "Без категории",
+  "@accountDetailsTransactionsUncategorized": {
+    "description": "Подпись для транзакций без категории"
+  },
+  "accountDetailsTypeIncome": "Доход",
+  "@accountDetailsTypeIncome": {
+    "description": "Подпись типа транзакции доход"
+  },
+  "accountDetailsTypeExpense": "Расход",
+  "@accountDetailsTypeExpense": {
+    "description": "Подпись типа транзакции расход"
+  },
+  "editAccountTitle": "Редактирование счёта",
+  "@editAccountTitle": {
+    "description": "Заголовок экрана редактирования счёта"
+  },
+  "editAccountNameLabel": "Название счёта",
+  "@editAccountNameLabel": {
+    "description": "Подпись поля названия счёта"
+  },
+  "editAccountBalanceLabel": "Баланс",
+  "@editAccountBalanceLabel": {
+    "description": "Подпись поля баланса на экране редактирования"
+  },
+  "editAccountCurrencyLabel": "Валюта",
+  "@editAccountCurrencyLabel": {
+    "description": "Подпись выбора валюты при редактировании"
+  },
+  "editAccountTypeLabel": "Тип счёта",
+  "@editAccountTypeLabel": {
+    "description": "Подпись строки с типом счёта"
+  },
+  "editAccountSaveCta": "Сохранить изменения",
+  "@editAccountSaveCta": {
+    "description": "Кнопка сохранения изменений"
+  },
+  "editAccountNameRequired": "Введите название счёта.",
+  "@editAccountNameRequired": {
+    "description": "Сообщение об ошибке пустого названия"
+  },
+  "editAccountBalanceInvalid": "Введите корректную сумму.",
+  "@editAccountBalanceInvalid": {
+    "description": "Сообщение об ошибке неверного баланса"
+  },
+  "editAccountGenericError": "Не удалось обновить счёт. Повторите попытку.",
+  "@editAccountGenericError": {
+    "description": "Общее сообщение об ошибке при обновлении счёта"
   }
 }
