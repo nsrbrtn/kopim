@@ -42,6 +42,7 @@ import 'package:kopim/features/transactions/domain/repositories/transaction_repo
 
 import 'package:kopim/features/transactions/domain/use_cases/add_transaction_use_case.dart';
 import 'package:uuid/uuid.dart';
+import 'package:kopim/features/transactions/domain/use_cases/watch_account_transactions_use_case.dart';
 import 'package:kopim/features/transactions/domain/use_cases/watch_recent_transactions_use_case.dart';
 
 part 'injectors.g.dart';
@@ -157,6 +158,10 @@ final rp.Provider<AddTransactionUseCase> addTransactionUseCaseProvider =
         accountRepository: ref.watch(accountRepositoryProvider),
       );
     });
+
+@riverpod
+WatchAccountTransactionsUseCase watchAccountTransactionsUseCase(Ref ref) =>
+    WatchAccountTransactionsUseCase(ref.watch(transactionRepositoryProvider));
 
 @riverpod
 WatchRecentTransactionsUseCase watchRecentTransactionsUseCase(Ref ref) =>

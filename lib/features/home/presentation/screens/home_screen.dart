@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
+import 'package:kopim/features/accounts/presentation/account_details_screen.dart';
 import 'package:kopim/features/accounts/presentation/accounts_add_screen.dart';
 import 'package:kopim/features/app_shell/presentation/models/navigation_tab_content.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
@@ -21,12 +22,15 @@ import '../controllers/home_providers.dart';
 NavigationTabContent buildHomeTabContent(BuildContext context, WidgetRef ref) {
   final AppLocalizations strings = AppLocalizations.of(context)!;
   final AsyncValue<AuthUser?> authState = ref.watch(authControllerProvider);
-  final AsyncValue<List<TransactionEntity>> transactionsAsync =
-  ref.watch(homeRecentTransactionsProvider());
-  final AsyncValue<List<AccountEntity>> accountsAsync =
-  ref.watch(homeAccountsProvider);
-  final AsyncValue<List<Category>> categoriesAsync =
-  ref.watch(homeCategoriesProvider);
+  final AsyncValue<List<TransactionEntity>> transactionsAsync = ref.watch(
+    homeRecentTransactionsProvider(),
+  );
+  final AsyncValue<List<AccountEntity>> accountsAsync = ref.watch(
+    homeAccountsProvider,
+  );
+  final AsyncValue<List<Category>> categoriesAsync = ref.watch(
+    homeCategoriesProvider,
+  );
   final double totalBalance = ref.watch(homeTotalBalanceProvider);
   final bool isWideLayout = MediaQuery.of(context).size.width >= 720;
   final NumberFormat currencyFormat = NumberFormat.simpleCurrency(
@@ -103,8 +107,9 @@ class _HomeBody extends StatelessWidget {
                   action: IconButton(
                     icon: const Icon(Icons.add),
                     tooltip: strings.homeAccountsAddTooltip,
-                    onPressed: () => Navigator.of(context)
-                        .pushNamed(AddAccountScreen.routeName),
+                    onPressed: () => Navigator.of(
+                      context,
+                    ).pushNamed(AddAccountScreen.routeName),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -149,7 +154,9 @@ class _HomeBody extends StatelessWidget {
                         ),
                       ),
                       error: (Object error, _) => _ErrorMessage(
-                        message: strings.homeTransactionsError(error.toString()),
+                        message: strings.homeTransactionsError(
+                          error.toString(),
+                        ),
                       ),
                     );
                   },
@@ -160,9 +167,7 @@ class _HomeBody extends StatelessWidget {
                     ),
                   ),
                   error: (Object error, _) => _ErrorMessage(
-                    message: strings.homeTransactionsError(
-                      error.toString(),
-                    ),
+                    message: strings.homeTransactionsError(error.toString()),
                   ),
                 ),
               ],
@@ -184,9 +189,7 @@ class _AddTransactionButton extends StatelessWidget {
     return FloatingActionButton(
       onPressed: () async {
         final bool? created = await Navigator.of(context).push<bool>(
-          MaterialPageRoute<bool>(
-            builder: (_) => const AddTransactionScreen(),
-          ),
+          MaterialPageRoute<bool>(builder: (_) => const AddTransactionScreen()),
         );
         if (created == true && context.mounted) {
           ScaffoldMessenger.of(context)
@@ -231,6 +234,12 @@ class _AccountsList extends StatelessWidget {
             title: Text(account.name),
             subtitle: Text(strings.homeAccountType(account.type)),
             trailing: Text(format.format(account.balance)),
+            onTap: () {
+              Navigator.of(context).pushNamed(
+                AccountDetailsScreen.routeName,
+                arguments: AccountDetailsScreenArgs(accountId: account.id),
+              );
+            },
           ),
         );
       },
@@ -274,7 +283,8 @@ class _TransactionsList extends StatelessWidget {
             : accountsById[transaction.accountId];
         final NumberFormat format = NumberFormat.currency(
           locale: localeName,
-          symbol: account?.currency.toUpperCase() ??
+          symbol:
+              account?.currency.toUpperCase() ??
               NumberFormat.simpleCurrency(locale: localeName).currencySymbol,
         );
         final String amountText = format.format(transaction.amount.abs());
@@ -283,17 +293,19 @@ class _TransactionsList extends StatelessWidget {
             : categoriesById[transaction.categoryId!];
         final String categoryName =
             category?.name ?? strings.homeTransactionsUncategorized;
-        final PhosphorIconData? categoryIcon =
-        resolvePhosphorIconData(category?.icon);
+        final PhosphorIconData? categoryIcon = resolvePhosphorIconData(
+          category?.icon,
+        );
         final Color? categoryColor = parseHexColor(category?.color);
         final String? note = transaction.note;
-        final Color amountColor =
-        isExpense ? theme.colorScheme.error : theme.colorScheme.primary;
+        final Color amountColor = isExpense
+            ? theme.colorScheme.error
+            : theme.colorScheme.primary;
         final Color avatarIconColor = categoryColor != null
             ? (ThemeData.estimateBrightnessForColor(categoryColor) ==
-            Brightness.dark
-            ? Colors.white
-            : Colors.black87)
+                      Brightness.dark
+                  ? Colors.white
+                  : Colors.black87)
             : theme.colorScheme.onSurfaceVariant;
 
         return Card(
@@ -306,7 +318,8 @@ class _TransactionsList extends StatelessWidget {
                 // Иконка слева
                 CircleAvatar(
                   backgroundColor:
-                  categoryColor ?? theme.colorScheme.surfaceContainerHighest,
+                      categoryColor ??
+                      theme.colorScheme.surfaceContainerHighest,
                   foregroundColor: avatarIconColor,
                   child: categoryIcon != null
                       ? Icon(categoryIcon)
@@ -319,15 +332,9 @@ class _TransactionsList extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        categoryName,
-                        style: theme.textTheme.bodyMedium,
-                      ),
+                      Text(categoryName, style: theme.textTheme.bodyMedium),
                       if (note != null && note.isNotEmpty)
-                        Text(
-                          note,
-                          style: theme.textTheme.bodySmall,
-                        ),
+                        Text(note, style: theme.textTheme.bodySmall),
                     ],
                   ),
                 ),
@@ -338,14 +345,12 @@ class _TransactionsList extends StatelessWidget {
                   children: [
                     Text(
                       amountText,
-                      style: theme.textTheme.titleMedium
-                          ?.copyWith(color: amountColor),
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color: amountColor,
+                      ),
                     ),
                     if (account != null)
-                      Text(
-                        account.name,
-                        style: theme.textTheme.bodySmall,
-                      ),
+                      Text(account.name, style: theme.textTheme.bodySmall),
                   ],
                 ),
               ],
@@ -393,11 +398,7 @@ class _ErrorMessage extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 16),
       child: Center(
-        child: Text(
-          message,
-          style: style,
-          textAlign: TextAlign.center,
-        ),
+        child: Text(message, style: style, textAlign: TextAlign.center),
       ),
     );
   }

@@ -983,7 +983,6 @@ final class SaveCategoryUseCaseProvider
 String _$saveCategoryUseCaseHash() =>
     r'c9df54f4aa3bfc8cf852a4007a254d499e0b60b9';
 
-
 @ProviderFor(deleteCategoryUseCase)
 const deleteCategoryUseCaseProvider = DeleteCategoryUseCaseProvider._();
 
@@ -1030,7 +1029,7 @@ final class DeleteCategoryUseCaseProvider
 }
 
 String _$deleteCategoryUseCaseHash() =>
-    r'f82c2ef624c4c0a4f98e77c4fa64b45d67a3eabc';
+    r'35134c5968610d737615af311aef0bb6b72cefb8';
 
 @ProviderFor(transactionRepository)
 const transactionRepositoryProvider = TransactionRepositoryProvider._();
@@ -1079,6 +1078,57 @@ final class TransactionRepositoryProvider
 
 String _$transactionRepositoryHash() =>
     r'3799c3525d6954f2ece515445c06171d0fba71ef';
+
+@ProviderFor(watchAccountTransactionsUseCase)
+const watchAccountTransactionsUseCaseProvider =
+    WatchAccountTransactionsUseCaseProvider._();
+
+final class WatchAccountTransactionsUseCaseProvider
+    extends
+        $FunctionalProvider<
+          WatchAccountTransactionsUseCase,
+          WatchAccountTransactionsUseCase,
+          WatchAccountTransactionsUseCase
+        >
+    with $Provider<WatchAccountTransactionsUseCase> {
+  const WatchAccountTransactionsUseCaseProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'watchAccountTransactionsUseCaseProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$watchAccountTransactionsUseCaseHash();
+
+  @$internal
+  @override
+  $ProviderElement<WatchAccountTransactionsUseCase> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  WatchAccountTransactionsUseCase create(Ref ref) {
+    return watchAccountTransactionsUseCase(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(WatchAccountTransactionsUseCase value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<WatchAccountTransactionsUseCase>(
+        value,
+      ),
+    );
+  }
+}
+
+String _$watchAccountTransactionsUseCaseHash() =>
+    r'9bfa7fea3e97b0a6baf894f5a30912f8e5582211';
 
 @ProviderFor(watchRecentTransactionsUseCase)
 const watchRecentTransactionsUseCaseProvider =
