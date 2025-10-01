@@ -263,6 +263,27 @@ class AppLocalizationsRu extends AppLocalizations {
   }
 
   @override
+  String get homeAccountMonthlyIncomeLabel => 'Доход за месяц';
+
+  @override
+  String get homeAccountMonthlyExpenseLabel => 'Расход за месяц';
+
+  @override
+  String get homeTransactionsTodayLabel => 'Сегодня';
+
+  @override
+  String get accountTypeCash => 'Наличные';
+
+  @override
+  String get accountTypeCard => 'Карта';
+
+  @override
+  String get accountTypeBank => 'Банковский счёт';
+
+  @override
+  String get accountTypeOther => 'Другое';
+
+  @override
   String get homeTransactionsSection => 'Последние транзакции';
 
   @override

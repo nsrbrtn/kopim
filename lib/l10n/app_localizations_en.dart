@@ -261,6 +261,27 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get homeAccountMonthlyIncomeLabel => 'Income this month';
+
+  @override
+  String get homeAccountMonthlyExpenseLabel => 'Expense this month';
+
+  @override
+  String get homeTransactionsTodayLabel => 'Today';
+
+  @override
+  String get accountTypeCash => 'Cash';
+
+  @override
+  String get accountTypeCard => 'Card';
+
+  @override
+  String get accountTypeBank => 'Bank account';
+
+  @override
+  String get accountTypeOther => 'Other';
+
+  @override
   String get homeTransactionsSection => 'Recent transactions';
 
   @override

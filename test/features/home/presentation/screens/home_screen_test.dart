@@ -5,11 +5,12 @@ import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/accounts/domain/repositories/account_repository.dart';
 import 'package:kopim/features/accounts/domain/use_cases/watch_accounts_use_case.dart';
+import 'package:kopim/features/home/domain/models/home_account_monthly_summary.dart';
 import 'package:kopim/features/home/presentation/controllers/home_providers.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/repositories/transaction_repository.dart';
 import 'package:kopim/features/transactions/domain/use_cases/watch_recent_transactions_use_case.dart';
-import 'package:riverpod/riverpod.dart';
+import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
 import 'package:riverpod/src/framework.dart';
 
 void main() {
@@ -51,17 +52,19 @@ void main() {
         _account('2'),
       ];
 
-      final Completer<List<AccountEntity>> completer = Completer<List<AccountEntity>>();
-      final ProviderSubscription<AsyncValue<List<AccountEntity>>> subscription = container.listen(homeAccountsProvider, (
-        AsyncValue<List<AccountEntity>>? previous,
-        AsyncValue<List<AccountEntity>> next,
-      ) {
-        next.whenData((List<AccountEntity> accounts) {
-          if (!completer.isCompleted) {
-            completer.complete(accounts);
-          }
-        });
-      }, fireImmediately: true);
+      final Completer<List<AccountEntity>> completer =
+          Completer<List<AccountEntity>>();
+      final ProviderSubscription<AsyncValue<List<AccountEntity>>> subscription =
+          container.listen(homeAccountsProvider, (
+            AsyncValue<List<AccountEntity>>? previous,
+            AsyncValue<List<AccountEntity>> next,
+          ) {
+            next.whenData((List<AccountEntity> accounts) {
+              if (!completer.isCompleted) {
+                completer.complete(accounts);
+              }
+            });
+          }, fireImmediately: true);
       addTearDown(subscription.close);
 
       accountsController.add(expectedAccounts);
@@ -89,24 +92,97 @@ void main() {
 
         addTearDown(scopedContainer.dispose);
 
-        final Completer<List<TransactionEntity>> completer = Completer<List<TransactionEntity>>();
-        final ProviderSubscription<AsyncValue<List<TransactionEntity>>> subscription = scopedContainer.listen(
-          homeRecentTransactionsProvider(limit: 7),
-          (AsyncValue<List<TransactionEntity>>? previous, AsyncValue<List<TransactionEntity>> next) {
-            next.whenData((List<TransactionEntity> transactions) {
-              if (!completer.isCompleted) {
-                completer.complete(transactions);
-              }
-            });
-          },
-          fireImmediately: true,
-        );
+        final Completer<List<TransactionEntity>> completer =
+            Completer<List<TransactionEntity>>();
+        final ProviderSubscription<AsyncValue<List<TransactionEntity>>>
+        subscription = scopedContainer
+            .listen(homeRecentTransactionsProvider(limit: 7), (
+              AsyncValue<List<TransactionEntity>>? previous,
+              AsyncValue<List<TransactionEntity>> next,
+            ) {
+              next.whenData((List<TransactionEntity> transactions) {
+                if (!completer.isCompleted) {
+                  completer.complete(transactions);
+                }
+              });
+            }, fireImmediately: true);
         addTearDown(subscription.close);
 
         transactionsController.add(expectedTransactions);
 
         expect(await completer.future, expectedTransactions);
         expect(recordingUseCase.lastLimit, 7);
+      },
+    );
+
+    test(
+      'homeAccountMonthlySummariesProvider aggregates current month income and expenses',
+      () async {
+        final DateTime now = DateTime.now();
+        final TransactionEntity incomeTransaction = _transaction('income')
+            .copyWith(
+              accountId: 'account-1',
+              amount: 120,
+              type: TransactionType.income.storageValue,
+              date: now,
+            );
+        final TransactionEntity expenseTransaction = _transaction('expense')
+            .copyWith(
+              accountId: 'account-1',
+              amount: 45,
+              type: TransactionType.expense.storageValue,
+              date: now.subtract(const Duration(hours: 1)),
+            );
+        final TransactionEntity otherAccountTransaction = _transaction('other')
+            .copyWith(
+              accountId: 'account-2',
+              amount: 75,
+              type: TransactionType.expense.storageValue,
+              date: now,
+            );
+        final TransactionEntity previousMonthTransaction = _transaction('past')
+            .copyWith(
+              accountId: 'account-1',
+              amount: 999,
+              type: TransactionType.income.storageValue,
+              date: DateTime(now.year, now.month - 1, 15),
+            );
+
+        final Completer<Map<String, HomeAccountMonthlySummary>> completer =
+            Completer<Map<String, HomeAccountMonthlySummary>>();
+        final ProviderSubscription<
+          AsyncValue<Map<String, HomeAccountMonthlySummary>>
+        >
+        subscription = container.listen(homeAccountMonthlySummariesProvider, (
+          AsyncValue<Map<String, HomeAccountMonthlySummary>>? previous,
+          AsyncValue<Map<String, HomeAccountMonthlySummary>> next,
+        ) {
+          next.whenData((Map<String, HomeAccountMonthlySummary> summaries) {
+            if (!completer.isCompleted) {
+              completer.complete(summaries);
+            }
+          });
+        }, fireImmediately: true);
+        addTearDown(subscription.close);
+
+        transactionsController.add(<TransactionEntity>[
+          incomeTransaction,
+          expenseTransaction,
+          otherAccountTransaction,
+          previousMonthTransaction,
+        ]);
+
+        final Map<String, HomeAccountMonthlySummary> summaries =
+            await completer.future;
+        expect(
+          summaries['account-1'],
+          const HomeAccountMonthlySummary(income: 120, expense: 45),
+        );
+        expect(
+          summaries['account-2'],
+          const HomeAccountMonthlySummary(income: 0, expense: 75),
+        );
+        expect(summaries.containsKey('account-3'), isFalse);
       },
     );
   });

@@ -560,6 +560,48 @@ abstract class AppLocalizations {
   /// **'Type: {type}'**
   String homeAccountType(String type);
 
+  /// Label for monthly income shown on the home screen account card
+  ///
+  /// In en, this message translates to:
+  /// **'Income this month'**
+  String get homeAccountMonthlyIncomeLabel;
+
+  /// Label for monthly expenses shown on the home screen account card
+  ///
+  /// In en, this message translates to:
+  /// **'Expense this month'**
+  String get homeAccountMonthlyExpenseLabel;
+
+  /// Section header label for transactions happening today
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get homeTransactionsTodayLabel;
+
+  /// Localized name for the cash account type
+  ///
+  /// In en, this message translates to:
+  /// **'Cash'**
+  String get accountTypeCash;
+
+  /// Localized name for the card account type
+  ///
+  /// In en, this message translates to:
+  /// **'Card'**
+  String get accountTypeCard;
+
+  /// Localized name for the bank account type
+  ///
+  /// In en, this message translates to:
+  /// **'Bank account'**
+  String get accountTypeBank;
+
+  /// Fallback label when account type is unknown
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get accountTypeOther;
+
   /// Section header for transactions list
   ///
   /// In en, this message translates to:

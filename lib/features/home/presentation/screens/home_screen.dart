@@ -7,12 +7,15 @@ import 'package:kopim/features/accounts/presentation/account_details_screen.dart
 import 'package:kopim/features/accounts/presentation/accounts_add_screen.dart';
 import 'package:kopim/features/app_shell/presentation/models/navigation_tab_content.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
+import 'package:kopim/features/home/domain/models/home_account_monthly_summary.dart';
+import 'package:kopim/features/home/presentation/utils/transaction_grouping.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
 import 'package:kopim/features/profile/presentation/controllers/auth_controller.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/presentation/add_transaction_screen.dart';
+import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 import 'package:kopim/core/utils/helpers.dart';
 import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
@@ -28,6 +31,8 @@ NavigationTabContent buildHomeTabContent(BuildContext context, WidgetRef ref) {
   final AsyncValue<List<AccountEntity>> accountsAsync = ref.watch(
     homeAccountsProvider,
   );
+  final AsyncValue<Map<String, HomeAccountMonthlySummary>>
+  accountSummariesAsync = ref.watch(homeAccountMonthlySummariesProvider);
   final AsyncValue<List<Category>> categoriesAsync = ref.watch(
     homeCategoriesProvider,
   );
@@ -58,6 +63,7 @@ NavigationTabContent buildHomeTabContent(BuildContext context, WidgetRef ref) {
         categoriesAsync: categoriesAsync,
         strings: strings,
         isWideLayout: isWideLayout,
+        accountSummariesAsync: accountSummariesAsync,
       ),
     ),
     floatingActionButtonBuilder: (BuildContext context, WidgetRef ref) =>
@@ -73,6 +79,7 @@ class _HomeBody extends StatelessWidget {
     required this.categoriesAsync,
     required this.strings,
     required this.isWideLayout,
+    required this.accountSummariesAsync,
   });
 
   final AsyncValue<AuthUser?> authState;
@@ -81,6 +88,8 @@ class _HomeBody extends StatelessWidget {
   final AsyncValue<List<Category>> categoriesAsync;
   final AppLocalizations strings;
   final bool isWideLayout;
+  final AsyncValue<Map<String, HomeAccountMonthlySummary>>
+  accountSummariesAsync;
 
   @override
   Widget build(BuildContext context) {
@@ -114,8 +123,13 @@ class _HomeBody extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
                 accountsAsync.when(
-                  data: (List<AccountEntity> accounts) =>
-                      _AccountsList(accounts: accounts, strings: strings),
+                  data: (List<AccountEntity> accounts) => _AccountsList(
+                    accounts: accounts,
+                    strings: strings,
+                    monthlySummaries:
+                        accountSummariesAsync.asData?.value ??
+                        const <String, HomeAccountMonthlySummary>{},
+                  ),
                   loading: () => const Center(
                     child: Padding(
                       padding: EdgeInsets.symmetric(vertical: 24),
@@ -205,10 +219,15 @@ class _AddTransactionButton extends StatelessWidget {
 }
 
 class _AccountsList extends StatelessWidget {
-  const _AccountsList({required this.accounts, required this.strings});
+  const _AccountsList({
+    required this.accounts,
+    required this.strings,
+    required this.monthlySummaries,
+  });
 
   final List<AccountEntity> accounts;
   final AppLocalizations strings;
+  final Map<String, HomeAccountMonthlySummary> monthlySummaries;
 
   @override
   Widget build(BuildContext context) {
@@ -216,6 +235,7 @@ class _AccountsList extends StatelessWidget {
       return _EmptyMessage(message: strings.homeAccountsEmpty);
     }
 
+    final ThemeData theme = Theme.of(context);
     final String localeName = strings.localeName;
 
     return ListView.builder(
@@ -224,25 +244,125 @@ class _AccountsList extends StatelessWidget {
       itemCount: accounts.length,
       itemBuilder: (BuildContext context, int index) {
         final AccountEntity account = accounts[index];
-        final NumberFormat format = NumberFormat.currency(
+        final NumberFormat currencyFormat = NumberFormat.currency(
           locale: localeName,
           symbol: account.currency.toUpperCase(),
         );
+        final HomeAccountMonthlySummary summary =
+            monthlySummaries[account.id] ??
+            const HomeAccountMonthlySummary(income: 0, expense: 0);
+
         return Card(
           margin: const EdgeInsets.symmetric(vertical: 8),
-          child: ListTile(
-            title: Text(account.name),
-            subtitle: Text(strings.homeAccountType(account.type)),
-            trailing: Text(format.format(account.balance)),
+          child: InkWell(
+            borderRadius: const BorderRadius.all(Radius.circular(12)),
             onTap: () {
               Navigator.of(context).pushNamed(
                 AccountDetailsScreen.routeName,
                 arguments: AccountDetailsScreenArgs(accountId: account.id),
               );
             },
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Text(
+                              account.name,
+                              style: theme.textTheme.titleMedium,
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              _resolveAccountTypeLabel(strings, account.type),
+                              style: theme.textTheme.bodySmall,
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        currencyFormat.format(account.balance),
+                        textAlign: TextAlign.right,
+                        style: theme.textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: <Widget>[
+                      Expanded(
+                        child: _AccountMonthlyValue(
+                          label: strings.homeAccountMonthlyIncomeLabel,
+                          value: currencyFormat.format(summary.income),
+                          valueColor: theme.colorScheme.primary,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: _AccountMonthlyValue(
+                          label: strings.homeAccountMonthlyExpenseLabel,
+                          value: currencyFormat.format(summary.expense),
+                          valueColor: theme.colorScheme.error,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
           ),
         );
       },
+    );
+  }
+}
+
+String _resolveAccountTypeLabel(AppLocalizations strings, String type) {
+  switch (type.toLowerCase()) {
+    case 'cash':
+      return strings.accountTypeCash;
+    case 'card':
+      return strings.accountTypeCard;
+    case 'bank':
+      return strings.accountTypeBank;
+    default:
+      return strings.accountTypeOther;
+  }
+}
+
+class _AccountMonthlyValue extends StatelessWidget {
+  const _AccountMonthlyValue({
+    required this.label,
+    required this.value,
+    required this.valueColor,
+  });
+
+  final String label;
+  final String value;
+  final Color valueColor;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Text(label, style: theme.textTheme.bodySmall),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: theme.textTheme.titleMedium?.copyWith(color: valueColor),
+        ),
+      ],
     );
   }
 }
@@ -269,18 +389,36 @@ class _TransactionsList extends StatelessWidget {
     }
 
     final ThemeData theme = Theme.of(context);
+    final List<TransactionListSection> sections = groupTransactionsByDay(
+      transactions: transactions,
+      today: DateTime.now(),
+      localeName: localeName,
+      todayLabel: strings.homeTransactionsTodayLabel,
+    );
+    final List<Object> items = <Object>[];
+    for (final TransactionListSection section in sections) {
+      items
+        ..add(section.title)
+        ..addAll(section.transactions);
+    }
 
     return ListView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      itemCount: transactions.length,
+      itemCount: items.length,
       itemBuilder: (BuildContext context, int index) {
-        final TransactionEntity transaction = transactions[index];
-        final String transactionType = transaction.type.toLowerCase();
-        final bool isExpense = transactionType.contains('expense');
-        final AccountEntity? account = transaction.accountId == null
-            ? null
-            : accountsById[transaction.accountId];
+        final Object item = items[index];
+        if (item is String) {
+          return Padding(
+            padding: EdgeInsets.only(top: index == 0 ? 0 : 24, bottom: 8),
+            child: Text(item, style: theme.textTheme.titleMedium),
+          );
+        }
+
+        final TransactionEntity transaction = item as TransactionEntity;
+        final bool isExpense =
+            transaction.type == TransactionType.expense.storageValue;
+        final AccountEntity? account = accountsById[transaction.accountId];
         final NumberFormat format = NumberFormat.currency(
           locale: localeName,
           symbol:
@@ -315,7 +453,6 @@ class _TransactionsList extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Иконка слева
                 CircleAvatar(
                   backgroundColor:
                       categoryColor ??
@@ -326,8 +463,6 @@ class _TransactionsList extends StatelessWidget {
                       : const Icon(Icons.category_outlined),
                 ),
                 const SizedBox(width: 12),
-
-                // Центр: категория + комментарий
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -338,8 +473,6 @@ class _TransactionsList extends StatelessWidget {
                     ],
                   ),
                 ),
-
-                // Справа: сумма и счёт
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
