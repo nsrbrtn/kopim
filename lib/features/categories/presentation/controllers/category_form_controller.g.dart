@@ -60,7 +60,7 @@ final class CategoryFormControllerProvider
 }
 
 String _$categoryFormControllerHash() =>
-    r'5bffa4826d1abb1862f6b7d73c45338d3ca4f3dd';
+    r'e80b4d8c9cb61d370e1c86007802c61a42163ad3';
 
 final class CategoryFormControllerFamily extends $Family
     with

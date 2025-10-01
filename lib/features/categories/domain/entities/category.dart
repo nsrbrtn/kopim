@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:kopim/core/domain/icons/phosphor_icon_descriptor.dart';
 
 part 'category.freezed.dart';
 part 'category.g.dart';
@@ -11,8 +12,9 @@ abstract class Category with _$Category {
     required String id,
     required String name,
     required String type,
-    String? icon,
+    PhosphorIconDescriptor? icon,
     String? color,
+    String? parentId,
     required DateTime createdAt,
     required DateTime updatedAt,
     @Default(false) bool isDeleted,

@@ -134,6 +134,54 @@ abstract class AppLocalizations {
   /// **'Add category'**
   String get manageCategoriesAddAction;
 
+  /// Action label to create a top-level category from the manage categories menu
+  ///
+  /// In en, this message translates to:
+  /// **'Create parent category'**
+  String get manageCategoriesCreateRootAction;
+
+  /// Action label to create a subcategory from the manage categories menu
+  ///
+  /// In en, this message translates to:
+  /// **'Create subcategory'**
+  String get manageCategoriesCreateSubAction;
+
+  /// Helper text shown when user cannot create subcategory because there are no parents
+  ///
+  /// In en, this message translates to:
+  /// **'Add a parent category first to create subcategories.'**
+  String get manageCategoriesCreateSubDisabled;
+
+  /// Dialog title prompting the user to select a parent category
+  ///
+  /// In en, this message translates to:
+  /// **'Select parent category'**
+  String get manageCategoriesSelectParentTitle;
+
+  /// Generic cancel button label
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get dialogCancel;
+
+  /// Label for the dropdown that selects a parent category
+  ///
+  /// In en, this message translates to:
+  /// **'Parent category'**
+  String get manageCategoriesParentLabel;
+
+  /// Dropdown option representing no parent category
+  ///
+  /// In en, this message translates to:
+  /// **'No parent'**
+  String get manageCategoriesParentNone;
+
+  /// Placeholder text shown when a category has no subcategories
+  ///
+  /// In en, this message translates to:
+  /// **'No subcategories yet'**
+  String get manageCategoriesNoSubcategories;
+
   /// Tooltip for the button that edits an existing category
   ///
   /// In en, this message translates to:
@@ -199,6 +247,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Icon (optional)'**
   String get manageCategoriesIconLabel;
+
+  /// Subtitle shown when no icon has been selected
+  ///
+  /// In en, this message translates to:
+  /// **'No icon selected'**
+  String get manageCategoriesIconNone;
+
+  /// Tooltip for the action that opens the icon picker
+  ///
+  /// In en, this message translates to:
+  /// **'Choose icon'**
+  String get manageCategoriesIconSelect;
+
+  /// Title for the bottom sheet that lists available icons
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a category icon'**
+  String get manageCategoriesIconPickerTitle;
+
+  /// Placeholder text for the icon search field
+  ///
+  /// In en, this message translates to:
+  /// **'Search icons'**
+  String get manageCategoriesIconSearchHint;
+
+  /// Label for the button that clears the selected icon
+  ///
+  /// In en, this message translates to:
+  /// **'Clear selection'**
+  String get manageCategoriesIconClear;
+
+  /// Empty state when icon search returns no results
+  ///
+  /// In en, this message translates to:
+  /// **'No icons match your search.'**
+  String get manageCategoriesIconEmpty;
+
+  /// Label for the thin icon style filter
+  ///
+  /// In en, this message translates to:
+  /// **'Thin'**
+  String get manageCategoriesIconStyleThin;
+
+  /// Label for the light icon style filter
+  ///
+  /// In en, this message translates to:
+  /// **'Light'**
+  String get manageCategoriesIconStyleLight;
+
+  /// Label for the regular icon style filter
+  ///
+  /// In en, this message translates to:
+  /// **'Regular'**
+  String get manageCategoriesIconStyleRegular;
+
+  /// Label for the bold icon style filter
+  ///
+  /// In en, this message translates to:
+  /// **'Bold'**
+  String get manageCategoriesIconStyleBold;
+
+  /// Label for the fill icon style filter
+  ///
+  /// In en, this message translates to:
+  /// **'Fill'**
+  String get manageCategoriesIconStyleFill;
 
   /// Label for the optional color input
   ///

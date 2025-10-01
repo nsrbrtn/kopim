@@ -28,6 +28,33 @@ class AppLocalizationsRu extends AppLocalizations {
   String get manageCategoriesAddAction => 'Добавить категорию';
 
   @override
+  String get manageCategoriesCreateRootAction =>
+      'Создать категорию верхнего уровня';
+
+  @override
+  String get manageCategoriesCreateSubAction => 'Создать подкатегорию';
+
+  @override
+  String get manageCategoriesCreateSubDisabled =>
+      'Сначала добавьте родительскую категорию, чтобы создать подкатегории.';
+
+  @override
+  String get manageCategoriesSelectParentTitle =>
+      'Выберите родительскую категорию';
+
+  @override
+  String get dialogCancel => 'Отмена';
+
+  @override
+  String get manageCategoriesParentLabel => 'Родительская категория';
+
+  @override
+  String get manageCategoriesParentNone => 'Без родителя';
+
+  @override
+  String get manageCategoriesNoSubcategories => 'Подкатегорий пока нет';
+
+  @override
   String get manageCategoriesEditAction => 'Редактировать';
 
   @override
@@ -62,6 +89,39 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get manageCategoriesIconLabel => 'Иконка (необязательно)';
+
+  @override
+  String get manageCategoriesIconNone => 'Иконка не выбрана';
+
+  @override
+  String get manageCategoriesIconSelect => 'Выбрать иконку';
+
+  @override
+  String get manageCategoriesIconPickerTitle => 'Выбор иконки категории';
+
+  @override
+  String get manageCategoriesIconSearchHint => 'Поиск иконки';
+
+  @override
+  String get manageCategoriesIconClear => 'Очистить выбор';
+
+  @override
+  String get manageCategoriesIconEmpty => 'Подходящих иконок не найдено.';
+
+  @override
+  String get manageCategoriesIconStyleThin => 'Тонкая';
+
+  @override
+  String get manageCategoriesIconStyleLight => 'Легкая';
+
+  @override
+  String get manageCategoriesIconStyleRegular => 'Обычная';
+
+  @override
+  String get manageCategoriesIconStyleBold => 'Жирная';
+
+  @override
+  String get manageCategoriesIconStyleFill => 'Заливка';
 
   @override
   String get manageCategoriesColorLabel => 'Цвет (необязательно)';

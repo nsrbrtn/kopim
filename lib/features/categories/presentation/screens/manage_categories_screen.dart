@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:kopim/core/domain/icons/phosphor_icon_descriptor.dart';
+import 'package:kopim/core/widgets/phosphor_icon_picker.dart';
+import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
+import 'package:kopim/features/categories/domain/entities/category_tree_node.dart';
 import 'package:kopim/features/categories/presentation/controllers/categories_list_controller.dart';
 import 'package:kopim/features/categories/presentation/controllers/category_form_controller.dart';
 import 'package:kopim/l10n/app_localizations.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
-/// Screen that exposes category creation and editing flows.
 class ManageCategoriesScreen extends ConsumerWidget {
   const ManageCategoriesScreen({super.key});
 
@@ -14,29 +18,48 @@ class ManageCategoriesScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final AppLocalizations strings = AppLocalizations.of(context)!;
-    final AsyncValue<List<Category>> categoriesAsync = ref.watch(
-      manageCategoriesListProvider,
+    final AsyncValue<List<CategoryTreeNode>> treeAsync = ref.watch(
+      manageCategoryTreeProvider,
     );
+
+    final List<CategoryTreeNode> tree =
+        treeAsync.asData?.value ?? const <CategoryTreeNode>[];
+    final List<Category> rootCategories = tree
+        .map((CategoryTreeNode node) => node.category)
+        .toList();
 
     return Scaffold(
       appBar: AppBar(title: Text(strings.profileManageCategoriesTitle)),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => _showCategoryEditor(context, ref),
+        onPressed: () => _showCreateMenu(context, ref, strings, rootCategories),
         tooltip: strings.manageCategoriesAddAction,
         child: const Icon(Icons.add),
       ),
       body: SafeArea(
-        child: categoriesAsync.when(
-          data: (List<Category> categories) {
-            if (categories.isEmpty) {
+        child: treeAsync.when(
+          data: (List<CategoryTreeNode> nodes) {
+            if (nodes.isEmpty) {
               return _EmptyCategoriesView(
                 message: strings.manageCategoriesEmpty,
               );
             }
-            return _CategoriesList(
-              categories: categories,
-              onEdit: (Category category) =>
-                  _showCategoryEditor(context, ref, category: category),
+            return _CategoryTreeList(
+              tree: nodes,
+              strings: strings,
+              onEditCategory: (Category category) => _showCategoryEditor(
+                context,
+                ref,
+                strings: strings,
+                parents: rootCategories,
+                category: category,
+              ),
+              onAddSubcategory: (Category parent) => _showCategoryEditor(
+                context,
+                ref,
+                strings: strings,
+                parents: rootCategories,
+                defaultParentId: parent.id,
+              ),
             );
           },
           error: (Object error, StackTrace? stackTrace) => _ErrorView(
@@ -49,22 +72,126 @@ class ManageCategoriesScreen extends ConsumerWidget {
   }
 }
 
+Future<void> _showCreateMenu(
+  BuildContext context,
+  WidgetRef ref,
+  AppLocalizations strings,
+  List<Category> parents,
+) async {
+  final ThemeData theme = Theme.of(context);
+  final String? selection = await showModalBottomSheet<String>(
+    context: context,
+    useSafeArea: true,
+    builder: (BuildContext context) {
+      return SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            ListTile(
+              leading: const Icon(Icons.category_outlined),
+              title: Text(strings.manageCategoriesCreateRootAction),
+              onTap: () => Navigator.of(context).pop('root'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.subdirectory_arrow_right),
+              title: Text(strings.manageCategoriesCreateSubAction),
+              enabled: parents.isNotEmpty,
+              subtitle: parents.isEmpty
+                  ? Text(
+                      strings.manageCategoriesCreateSubDisabled,
+                      style: theme.textTheme.bodySmall,
+                    )
+                  : null,
+              onTap: parents.isEmpty
+                  ? null
+                  : () => Navigator.of(context).pop('sub'),
+            ),
+            const SizedBox(height: 12),
+          ],
+        ),
+      );
+    },
+  );
+
+  if (selection == 'root') {
+    await _showCategoryEditor(context, ref, strings: strings, parents: parents);
+    return;
+  }
+  if (selection == 'sub' && parents.isNotEmpty) {
+    final Category? parent = await _selectParentCategory(
+      context,
+      strings,
+      parents,
+    );
+    if (parent != null) {
+      await _showCategoryEditor(
+        context,
+        ref,
+        strings: strings,
+        parents: parents,
+        defaultParentId: parent.id,
+      );
+    }
+  }
+}
+
+Future<Category?> _selectParentCategory(
+  BuildContext context,
+  AppLocalizations strings,
+  List<Category> parents,
+) async {
+  return showDialog<Category>(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text(strings.manageCategoriesSelectParentTitle),
+        content: ConstrainedBox(
+          constraints: const BoxConstraints(maxHeight: 320),
+          child: ListView.builder(
+            itemCount: parents.length,
+            itemBuilder: (BuildContext context, int index) {
+              final Category category = parents[index];
+              return ListTile(
+                leading: const Icon(Icons.folder_outlined),
+                title: Text(category.name),
+                onTap: () => Navigator.of(context).pop(category),
+              );
+            },
+          ),
+        ),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(strings.dialogCancel),
+          ),
+        ],
+      );
+    },
+  );
+}
+
 Future<void> _showCategoryEditor(
   BuildContext context,
   WidgetRef ref, {
+  required AppLocalizations strings,
+  required List<Category> parents,
   Category? category,
+  String? defaultParentId,
 }) async {
   final bool? didSave = await showModalBottomSheet<bool>(
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
     builder: (BuildContext context) {
-      return _CategoryEditorSheet(category: category);
+      return _CategoryEditorSheet(
+        category: category,
+        parents: parents,
+        defaultParentId: defaultParentId,
+      );
     },
   );
 
   if (didSave == true && context.mounted) {
-    final AppLocalizations strings = AppLocalizations.of(context)!;
     final String message = category == null
         ? strings.manageCategoriesSuccessCreate
         : strings.manageCategoriesSuccessUpdate;
@@ -74,44 +201,151 @@ Future<void> _showCategoryEditor(
   }
 }
 
-class _CategoriesList extends StatelessWidget {
-  const _CategoriesList({required this.categories, required this.onEdit});
+class _CategoryTreeList extends StatelessWidget {
+  const _CategoryTreeList({
+    required this.tree,
+    required this.strings,
+    required this.onEditCategory,
+    required this.onAddSubcategory,
+  });
 
-  final List<Category> categories;
+  final List<CategoryTreeNode> tree;
+  final AppLocalizations strings;
+  final ValueChanged<Category> onEditCategory;
+  final ValueChanged<Category> onAddSubcategory;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.separated(
+      padding: const EdgeInsets.all(16),
+      itemCount: tree.length,
+      itemBuilder: (BuildContext context, int index) {
+        final CategoryTreeNode node = tree[index];
+        return _CategoryNodeCard(
+          node: node,
+          strings: strings,
+          onEditCategory: onEditCategory,
+          onAddSubcategory: onAddSubcategory,
+        );
+      },
+      separatorBuilder: (_, __) => const SizedBox(height: 12),
+    );
+  }
+}
+
+class _CategoryNodeCard extends StatelessWidget {
+  const _CategoryNodeCard({
+    required this.node,
+    required this.strings,
+    required this.onEditCategory,
+    required this.onAddSubcategory,
+  });
+
+  final CategoryTreeNode node;
+  final AppLocalizations strings;
+  final ValueChanged<Category> onEditCategory;
+  final ValueChanged<Category> onAddSubcategory;
+
+  @override
+  Widget build(BuildContext context) {
+    final Category category = node.category;
+    final Color? color = _parseHexColor(category.color);
+    final IconData? iconData = resolvePhosphorIconData(category.icon);
+    final List<String> metadata = _buildMetadata(category, strings);
+
+    return Card(
+      child: ExpansionTile(
+        leading: _CategoryIcon(iconData: iconData, backgroundColor: color),
+        title: Text(category.name),
+        subtitle: Text(metadata.join(' · ')),
+        childrenPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 8,
+        ),
+        trailing: Wrap(
+          spacing: 4,
+          children: <Widget>[
+            IconButton(
+              icon: const Icon(Icons.add),
+              tooltip: strings.manageCategoriesCreateSubAction,
+              onPressed: () => onAddSubcategory(category),
+            ),
+            IconButton(
+              icon: const Icon(Icons.edit_outlined),
+              tooltip: strings.manageCategoriesEditAction,
+              onPressed: () => onEditCategory(category),
+            ),
+          ],
+        ),
+        children: node.children.isEmpty
+            ? <Widget>[
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    strings.manageCategoriesNoSubcategories,
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                ),
+                const SizedBox(height: 8),
+              ]
+            : node.children
+                  .map(
+                    (CategoryTreeNode child) => _SubcategoryTile(
+                      node: child,
+                      strings: strings,
+                      onEdit: onEditCategory,
+                    ),
+                  )
+                  .toList(growable: false),
+      ),
+    );
+  }
+}
+
+class _SubcategoryTile extends StatelessWidget {
+  const _SubcategoryTile({
+    required this.node,
+    required this.strings,
+    required this.onEdit,
+  });
+
+  final CategoryTreeNode node;
+  final AppLocalizations strings;
   final ValueChanged<Category> onEdit;
 
   @override
   Widget build(BuildContext context) {
-    final AppLocalizations strings = AppLocalizations.of(context)!;
+    final Category category = node.category;
+    final IconData? iconData = resolvePhosphorIconData(category.icon);
+    final Color? color = _parseHexColor(category.color);
+    final List<String> metadata = _buildMetadata(category, strings);
+    return ListTile(
+      leading: _CategoryIcon(iconData: iconData, backgroundColor: color),
+      title: Text(category.name),
+      subtitle: Text(metadata.join(' · ')),
+      trailing: IconButton(
+        icon: const Icon(Icons.edit_outlined),
+        tooltip: strings.manageCategoriesEditAction,
+        onPressed: () => onEdit(category),
+      ),
+    );
+  }
+}
 
-    return ListView.separated(
-      padding: const EdgeInsets.all(16),
-      itemCount: categories.length,
-      itemBuilder: (BuildContext context, int index) {
-        final Category category = categories[index];
-        final String typeLabel = category.type.toLowerCase() == 'income'
-            ? strings.manageCategoriesTypeIncome
-            : strings.manageCategoriesTypeExpense;
-        final List<String> metadata = <String>[typeLabel];
-        if (category.icon != null && category.icon!.isNotEmpty) {
-          metadata.add(category.icon!);
-        }
-        if (category.color != null && category.color!.isNotEmpty) {
-          metadata.add(category.color!);
-        }
-        return Card(
-          child: ListTile(
-            title: Text(category.name),
-            subtitle: Text(metadata.join(' · ')),
-            trailing: IconButton(
-              icon: const Icon(Icons.edit_outlined),
-              tooltip: strings.manageCategoriesEditAction,
-              onPressed: () => onEdit(category),
-            ),
-          ),
-        );
-      },
-      separatorBuilder: (_, _) => const SizedBox(height: 12),
+class _CategoryIcon extends StatelessWidget {
+  const _CategoryIcon({this.iconData, this.backgroundColor});
+
+  final IconData? iconData;
+  final Color? backgroundColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return CircleAvatar(
+      backgroundColor:
+          backgroundColor ?? Theme.of(context).colorScheme.surfaceVariant,
+      child: iconData != null
+          ? Icon(iconData)
+          : const Icon(Icons.category_outlined),
     );
   }
 }
@@ -157,14 +391,24 @@ class _ErrorView extends StatelessWidget {
 }
 
 class _CategoryEditorSheet extends ConsumerWidget {
-  const _CategoryEditorSheet({this.category});
+  const _CategoryEditorSheet({
+    this.category,
+    required this.parents,
+    this.defaultParentId,
+  });
 
   final Category? category;
+  final List<Category> parents;
+  final String? defaultParentId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final AppLocalizations strings = AppLocalizations.of(context)!;
-    final CategoryFormParams params = CategoryFormParams(initial: category);
+    final CategoryFormParams params = CategoryFormParams(
+      initial: category,
+      parents: parents,
+      defaultParentId: defaultParentId,
+    );
     ref.listen<CategoryFormState>(categoryFormControllerProvider(params), (
       CategoryFormState? previous,
       CategoryFormState next,
@@ -199,6 +443,40 @@ class _CategoryEditorSheet extends ConsumerWidget {
     final String title = category == null
         ? strings.manageCategoriesCreateTitle
         : strings.manageCategoriesEditTitle;
+    final PhosphorIconData? iconData = resolvePhosphorIconData(state.icon);
+    final String iconSubtitle = state.icon?.isNotEmpty == true
+        ? '${state.icon!.style.name} · ${state.icon!.name}'
+        : strings.manageCategoriesIconNone;
+
+    final PhosphorIconPickerLabels pickerLabels = PhosphorIconPickerLabels(
+      title: strings.manageCategoriesIconPickerTitle,
+      searchPlaceholder: strings.manageCategoriesIconSearchHint,
+      clearButtonLabel: strings.manageCategoriesIconClear,
+      emptyStateLabel: strings.manageCategoriesIconEmpty,
+      styleLabels: <PhosphorIconStyle, String>{
+        PhosphorIconStyle.thin: strings.manageCategoriesIconStyleThin,
+        PhosphorIconStyle.light: strings.manageCategoriesIconStyleLight,
+        PhosphorIconStyle.regular: strings.manageCategoriesIconStyleRegular,
+        PhosphorIconStyle.bold: strings.manageCategoriesIconStyleBold,
+        PhosphorIconStyle.fill: strings.manageCategoriesIconStyleFill,
+      },
+    );
+
+    final List<DropdownMenuItem<String?>> parentItems =
+        <DropdownMenuItem<String?>>[
+          DropdownMenuItem<String?>(
+            value: null,
+            child: Text(strings.manageCategoriesParentNone),
+          ),
+          ...state.availableParents
+              .where((Category parent) => parent.id != state.id)
+              .map(
+                (Category parent) => DropdownMenuItem<String?>(
+                  value: parent.id,
+                  child: Text(parent.name),
+                ),
+              ),
+        ];
 
     final EdgeInsets viewInsets = MediaQuery.of(context).viewInsets;
 
@@ -250,16 +528,53 @@ class _CategoryEditorSheet extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 16),
-            TextFormField(
-              key: ValueKey<String>(
-                'category-icon-${state.id}-${state.updatedAt.millisecondsSinceEpoch}',
-              ),
-              initialValue: state.icon,
+            DropdownButtonFormField<String?>(
+              value: state.parentId,
+              items: parentItems,
               decoration: InputDecoration(
-                labelText: strings.manageCategoriesIconLabel,
+                labelText: strings.manageCategoriesParentLabel,
               ),
-              textInputAction: TextInputAction.next,
-              onChanged: controller.updateIcon,
+              onChanged: controller.updateParent,
+            ),
+            const SizedBox(height: 16),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: CircleAvatar(
+                backgroundColor: theme.colorScheme.surfaceVariant,
+                child: iconData != null
+                    ? Icon(iconData)
+                    : const Icon(Icons.category_outlined),
+              ),
+              title: Text(strings.manageCategoriesIconLabel),
+              subtitle: Text(iconSubtitle),
+              trailing: Wrap(
+                spacing: 8,
+                children: <Widget>[
+                  if (state.icon?.isNotEmpty == true)
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      tooltip: strings.manageCategoriesIconClear,
+                      onPressed: () => controller.updateIcon(null),
+                    ),
+                  IconButton(
+                    icon: const Icon(Icons.search),
+                    tooltip: strings.manageCategoriesIconSelect,
+                    onPressed: () async {
+                      final PhosphorIconDescriptor? selection =
+                          await showPhosphorIconPicker(
+                            context: context,
+                            labels: pickerLabels,
+                            initial: state.icon,
+                          );
+                      if (selection != null) {
+                        controller.updateIcon(
+                          selection.isEmpty ? null : selection,
+                        );
+                      }
+                    },
+                  ),
+                ],
+              ),
             ),
             const SizedBox(height: 16),
             TextFormField(
@@ -300,5 +615,33 @@ class _CategoryEditorSheet extends ConsumerWidget {
         ),
       ),
     );
+  }
+}
+
+List<String> _buildMetadata(Category category, AppLocalizations strings) {
+  final List<String> metadata = <String>[];
+  final String typeLabel = category.type.toLowerCase() == 'income'
+      ? strings.manageCategoriesTypeIncome
+      : strings.manageCategoriesTypeExpense;
+  metadata.add(typeLabel);
+  if (category.color != null && category.color!.isNotEmpty) {
+    metadata.add('${strings.manageCategoriesColorLabel}: ${category.color!}');
+  }
+  if (category.icon?.isNotEmpty == true) {
+    metadata.add(category.icon!.name);
+  }
+  return metadata;
+}
+
+Color? _parseHexColor(String? value) {
+  if (value == null || value.trim().isEmpty) {
+    return null;
+  }
+  final String sanitized = value.replaceFirst('#', '');
+  final String hex = sanitized.length == 6 ? 'FF$sanitized' : sanitized;
+  try {
+    return Color(int.parse(hex, radix: 16));
+  } catch (_) {
+    return null;
   }
 }

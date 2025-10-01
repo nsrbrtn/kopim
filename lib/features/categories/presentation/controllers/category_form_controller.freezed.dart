@@ -12,9 +12,9 @@ part of 'category_form_controller.dart';
 // dart format off
 T _$identity<T>(T value) => value;
 /// @nodoc
-mixin _$CategoryFormState {
+mixin _$CategoryFormState implements DiagnosticableTreeMixin {
 
- String get id; String get name; String get type; String get icon; String get color; DateTime get createdAt; DateTime get updatedAt; Category? get initialCategory; bool get isSaving; bool get isSuccess; String? get errorMessage; bool get showValidationError; bool get isNew;
+ String get id; String get name; String get type; PhosphorIconDescriptor? get icon; String get color; String? get parentId; String? get initialParentId; List<Category> get availableParents; DateTime get createdAt; DateTime get updatedAt; Category? get initialCategory; bool get isSaving; bool get isSuccess; String? get errorMessage; bool get showValidationError; bool get isNew;
 /// Create a copy of CategoryFormState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -22,19 +22,25 @@ mixin _$CategoryFormState {
 $CategoryFormStateCopyWith<CategoryFormState> get copyWith => _$CategoryFormStateCopyWithImpl<CategoryFormState>(this as CategoryFormState, _$identity);
 
 
+@override
+void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+  properties
+    ..add(DiagnosticsProperty('type', 'CategoryFormState'))
+    ..add(DiagnosticsProperty('id', id))..add(DiagnosticsProperty('name', name))..add(DiagnosticsProperty('type', type))..add(DiagnosticsProperty('icon', icon))..add(DiagnosticsProperty('color', color))..add(DiagnosticsProperty('parentId', parentId))..add(DiagnosticsProperty('initialParentId', initialParentId))..add(DiagnosticsProperty('availableParents', availableParents))..add(DiagnosticsProperty('createdAt', createdAt))..add(DiagnosticsProperty('updatedAt', updatedAt))..add(DiagnosticsProperty('initialCategory', initialCategory))..add(DiagnosticsProperty('isSaving', isSaving))..add(DiagnosticsProperty('isSuccess', isSuccess))..add(DiagnosticsProperty('errorMessage', errorMessage))..add(DiagnosticsProperty('showValidationError', showValidationError))..add(DiagnosticsProperty('isNew', isNew));
+}
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CategoryFormState&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.type, type) || other.type == type)&&(identical(other.icon, icon) || other.icon == icon)&&(identical(other.color, color) || other.color == color)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.initialCategory, initialCategory) || other.initialCategory == initialCategory)&&(identical(other.isSaving, isSaving) || other.isSaving == isSaving)&&(identical(other.isSuccess, isSuccess) || other.isSuccess == isSuccess)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage)&&(identical(other.showValidationError, showValidationError) || other.showValidationError == showValidationError)&&(identical(other.isNew, isNew) || other.isNew == isNew));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CategoryFormState&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.type, type) || other.type == type)&&(identical(other.icon, icon) || other.icon == icon)&&(identical(other.color, color) || other.color == color)&&(identical(other.parentId, parentId) || other.parentId == parentId)&&(identical(other.initialParentId, initialParentId) || other.initialParentId == initialParentId)&&const DeepCollectionEquality().equals(other.availableParents, availableParents)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&const DeepCollectionEquality().equals(other.initialCategory, initialCategory)&&(identical(other.isSaving, isSaving) || other.isSaving == isSaving)&&(identical(other.isSuccess, isSuccess) || other.isSuccess == isSuccess)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage)&&(identical(other.showValidationError, showValidationError) || other.showValidationError == showValidationError)&&(identical(other.isNew, isNew) || other.isNew == isNew));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,name,type,icon,color,createdAt,updatedAt,initialCategory,isSaving,isSuccess,errorMessage,showValidationError,isNew);
+int get hashCode => Object.hash(runtimeType,id,name,type,icon,color,parentId,initialParentId,const DeepCollectionEquality().hash(availableParents),createdAt,updatedAt,const DeepCollectionEquality().hash(initialCategory),isSaving,isSuccess,errorMessage,showValidationError,isNew);
 
 @override
-String toString() {
-  return 'CategoryFormState(id: $id, name: $name, type: $type, icon: $icon, color: $color, createdAt: $createdAt, updatedAt: $updatedAt, initialCategory: $initialCategory, isSaving: $isSaving, isSuccess: $isSuccess, errorMessage: $errorMessage, showValidationError: $showValidationError, isNew: $isNew)';
+String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
+  return 'CategoryFormState(id: $id, name: $name, type: $type, icon: $icon, color: $color, parentId: $parentId, initialParentId: $initialParentId, availableParents: $availableParents, createdAt: $createdAt, updatedAt: $updatedAt, initialCategory: $initialCategory, isSaving: $isSaving, isSuccess: $isSuccess, errorMessage: $errorMessage, showValidationError: $showValidationError, isNew: $isNew)';
 }
 
 
@@ -45,11 +51,11 @@ abstract mixin class $CategoryFormStateCopyWith<$Res>  {
   factory $CategoryFormStateCopyWith(CategoryFormState value, $Res Function(CategoryFormState) _then) = _$CategoryFormStateCopyWithImpl;
 @useResult
 $Res call({
- String id, String name, String type, String icon, String color, DateTime createdAt, DateTime updatedAt, Category? initialCategory, bool isSaving, bool isSuccess, String? errorMessage, bool showValidationError, bool isNew
+ String id, String name, String type, PhosphorIconDescriptor? icon, String color, String? parentId, String? initialParentId, List<Category> availableParents, DateTime createdAt, DateTime updatedAt, Category? initialCategory, bool isSaving, bool isSuccess, String? errorMessage, bool showValidationError, bool isNew
 });
 
 
-$CategoryCopyWith<$Res>? get initialCategory;
+$PhosphorIconDescriptorCopyWith<$Res>? get icon;
 
 }
 /// @nodoc
@@ -62,16 +68,19 @@ class _$CategoryFormStateCopyWithImpl<$Res>
 
 /// Create a copy of CategoryFormState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? type = null,Object? icon = null,Object? color = null,Object? createdAt = null,Object? updatedAt = null,Object? initialCategory = freezed,Object? isSaving = null,Object? isSuccess = null,Object? errorMessage = freezed,Object? showValidationError = null,Object? isNew = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? type = null,Object? icon = freezed,Object? color = null,Object? parentId = freezed,Object? initialParentId = freezed,Object? availableParents = null,Object? createdAt = null,Object? updatedAt = null,Object? initialCategory = freezed,Object? isSaving = null,Object? isSuccess = null,Object? errorMessage = freezed,Object? showValidationError = null,Object? isNew = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
-as String,icon: null == icon ? _self.icon : icon // ignore: cast_nullable_to_non_nullable
-as String,color: null == color ? _self.color : color // ignore: cast_nullable_to_non_nullable
-as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as String,icon: freezed == icon ? _self.icon : icon // ignore: cast_nullable_to_non_nullable
+as PhosphorIconDescriptor?,color: null == color ? _self.color : color // ignore: cast_nullable_to_non_nullable
+as String,parentId: freezed == parentId ? _self.parentId : parentId // ignore: cast_nullable_to_non_nullable
+as String?,initialParentId: freezed == initialParentId ? _self.initialParentId : initialParentId // ignore: cast_nullable_to_non_nullable
+as String?,availableParents: null == availableParents ? _self.availableParents! : availableParents // ignore: cast_nullable_to_non_nullable
+as List<Category>,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
-as DateTime,initialCategory: freezed == initialCategory ? _self.initialCategory : initialCategory // ignore: cast_nullable_to_non_nullable
+as DateTime,initialCategory: freezed == initialCategory ? _self.initialCategory! : initialCategory // ignore: cast_nullable_to_non_nullable
 as Category?,isSaving: null == isSaving ? _self.isSaving : isSaving // ignore: cast_nullable_to_non_nullable
 as bool,isSuccess: null == isSuccess ? _self.isSuccess : isSuccess // ignore: cast_nullable_to_non_nullable
 as bool,errorMessage: freezed == errorMessage ? _self.errorMessage : errorMessage // ignore: cast_nullable_to_non_nullable
@@ -84,13 +93,13 @@ as bool,
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
-$CategoryCopyWith<$Res>? get initialCategory {
-    if (_self.initialCategory == null) {
+$PhosphorIconDescriptorCopyWith<$Res>? get icon {
+    if (_self.icon == null) {
     return null;
   }
 
-  return $CategoryCopyWith<$Res>(_self.initialCategory!, (value) {
-    return _then(_self.copyWith(initialCategory: value));
+  return $PhosphorIconDescriptorCopyWith<$Res>(_self.icon!, (value) {
+    return _then(_self.copyWith(icon: value));
   });
 }
 }
@@ -174,10 +183,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  String type,  String icon,  String color,  DateTime createdAt,  DateTime updatedAt,  Category? initialCategory,  bool isSaving,  bool isSuccess,  String? errorMessage,  bool showValidationError,  bool isNew)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  String type,  PhosphorIconDescriptor? icon,  String color,  String? parentId,  String? initialParentId,  List<Category> availableParents,  DateTime createdAt,  DateTime updatedAt,  Category? initialCategory,  bool isSaving,  bool isSuccess,  String? errorMessage,  bool showValidationError,  bool isNew)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _CategoryFormState() when $default != null:
-return $default(_that.id,_that.name,_that.type,_that.icon,_that.color,_that.createdAt,_that.updatedAt,_that.initialCategory,_that.isSaving,_that.isSuccess,_that.errorMessage,_that.showValidationError,_that.isNew);case _:
+return $default(_that.id,_that.name,_that.type,_that.icon,_that.color,_that.parentId,_that.initialParentId,_that.availableParents,_that.createdAt,_that.updatedAt,_that.initialCategory,_that.isSaving,_that.isSuccess,_that.errorMessage,_that.showValidationError,_that.isNew);case _:
   return orElse();
 
 }
@@ -195,10 +204,10 @@ return $default(_that.id,_that.name,_that.type,_that.icon,_that.color,_that.crea
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  String type,  String icon,  String color,  DateTime createdAt,  DateTime updatedAt,  Category? initialCategory,  bool isSaving,  bool isSuccess,  String? errorMessage,  bool showValidationError,  bool isNew)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  String type,  PhosphorIconDescriptor? icon,  String color,  String? parentId,  String? initialParentId,  List<Category> availableParents,  DateTime createdAt,  DateTime updatedAt,  Category? initialCategory,  bool isSaving,  bool isSuccess,  String? errorMessage,  bool showValidationError,  bool isNew)  $default,) {final _that = this;
 switch (_that) {
 case _CategoryFormState():
-return $default(_that.id,_that.name,_that.type,_that.icon,_that.color,_that.createdAt,_that.updatedAt,_that.initialCategory,_that.isSaving,_that.isSuccess,_that.errorMessage,_that.showValidationError,_that.isNew);case _:
+return $default(_that.id,_that.name,_that.type,_that.icon,_that.color,_that.parentId,_that.initialParentId,_that.availableParents,_that.createdAt,_that.updatedAt,_that.initialCategory,_that.isSaving,_that.isSuccess,_that.errorMessage,_that.showValidationError,_that.isNew);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -215,10 +224,10 @@ return $default(_that.id,_that.name,_that.type,_that.icon,_that.color,_that.crea
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  String type,  String icon,  String color,  DateTime createdAt,  DateTime updatedAt,  Category? initialCategory,  bool isSaving,  bool isSuccess,  String? errorMessage,  bool showValidationError,  bool isNew)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  String type,  PhosphorIconDescriptor? icon,  String color,  String? parentId,  String? initialParentId,  List<Category> availableParents,  DateTime createdAt,  DateTime updatedAt,  Category? initialCategory,  bool isSaving,  bool isSuccess,  String? errorMessage,  bool showValidationError,  bool isNew)?  $default,) {final _that = this;
 switch (_that) {
 case _CategoryFormState() when $default != null:
-return $default(_that.id,_that.name,_that.type,_that.icon,_that.color,_that.createdAt,_that.updatedAt,_that.initialCategory,_that.isSaving,_that.isSuccess,_that.errorMessage,_that.showValidationError,_that.isNew);case _:
+return $default(_that.id,_that.name,_that.type,_that.icon,_that.color,_that.parentId,_that.initialParentId,_that.availableParents,_that.createdAt,_that.updatedAt,_that.initialCategory,_that.isSaving,_that.isSuccess,_that.errorMessage,_that.showValidationError,_that.isNew);case _:
   return null;
 
 }
@@ -229,15 +238,24 @@ return $default(_that.id,_that.name,_that.type,_that.icon,_that.color,_that.crea
 /// @nodoc
 
 
-class _CategoryFormState extends CategoryFormState {
-  const _CategoryFormState({required this.id, required this.name, required this.type, this.icon = '', this.color = '', required this.createdAt, required this.updatedAt, this.initialCategory, this.isSaving = false, this.isSuccess = false, this.errorMessage, this.showValidationError = false, this.isNew = false}): super._();
+class _CategoryFormState extends CategoryFormState with DiagnosticableTreeMixin {
+  const _CategoryFormState({required this.id, required this.name, required this.type, this.icon, this.color = '', this.parentId, this.initialParentId, final  List<Category> availableParents = const <Category>[], required this.createdAt, required this.updatedAt, this.initialCategory, this.isSaving = false, this.isSuccess = false, this.errorMessage, this.showValidationError = false, this.isNew = false}): _availableParents = availableParents,super._();
   
 
 @override final  String id;
 @override final  String name;
 @override final  String type;
-@override@JsonKey() final  String icon;
+@override final  PhosphorIconDescriptor? icon;
 @override@JsonKey() final  String color;
+@override final  String? parentId;
+@override final  String? initialParentId;
+ final  List<Category> _availableParents;
+@override@JsonKey() List<Category> get availableParents {
+  if (_availableParents is EqualUnmodifiableListView) return _availableParents;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_availableParents);
+}
+
 @override final  DateTime createdAt;
 @override final  DateTime updatedAt;
 @override final  Category? initialCategory;
@@ -254,19 +272,25 @@ class _CategoryFormState extends CategoryFormState {
 _$CategoryFormStateCopyWith<_CategoryFormState> get copyWith => __$CategoryFormStateCopyWithImpl<_CategoryFormState>(this, _$identity);
 
 
+@override
+void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+  properties
+    ..add(DiagnosticsProperty('type', 'CategoryFormState'))
+    ..add(DiagnosticsProperty('id', id))..add(DiagnosticsProperty('name', name))..add(DiagnosticsProperty('type', type))..add(DiagnosticsProperty('icon', icon))..add(DiagnosticsProperty('color', color))..add(DiagnosticsProperty('parentId', parentId))..add(DiagnosticsProperty('initialParentId', initialParentId))..add(DiagnosticsProperty('availableParents', availableParents))..add(DiagnosticsProperty('createdAt', createdAt))..add(DiagnosticsProperty('updatedAt', updatedAt))..add(DiagnosticsProperty('initialCategory', initialCategory))..add(DiagnosticsProperty('isSaving', isSaving))..add(DiagnosticsProperty('isSuccess', isSuccess))..add(DiagnosticsProperty('errorMessage', errorMessage))..add(DiagnosticsProperty('showValidationError', showValidationError))..add(DiagnosticsProperty('isNew', isNew));
+}
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CategoryFormState&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.type, type) || other.type == type)&&(identical(other.icon, icon) || other.icon == icon)&&(identical(other.color, color) || other.color == color)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.initialCategory, initialCategory) || other.initialCategory == initialCategory)&&(identical(other.isSaving, isSaving) || other.isSaving == isSaving)&&(identical(other.isSuccess, isSuccess) || other.isSuccess == isSuccess)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage)&&(identical(other.showValidationError, showValidationError) || other.showValidationError == showValidationError)&&(identical(other.isNew, isNew) || other.isNew == isNew));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CategoryFormState&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.type, type) || other.type == type)&&(identical(other.icon, icon) || other.icon == icon)&&(identical(other.color, color) || other.color == color)&&(identical(other.parentId, parentId) || other.parentId == parentId)&&(identical(other.initialParentId, initialParentId) || other.initialParentId == initialParentId)&&const DeepCollectionEquality().equals(other._availableParents, _availableParents)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&const DeepCollectionEquality().equals(other.initialCategory, initialCategory)&&(identical(other.isSaving, isSaving) || other.isSaving == isSaving)&&(identical(other.isSuccess, isSuccess) || other.isSuccess == isSuccess)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage)&&(identical(other.showValidationError, showValidationError) || other.showValidationError == showValidationError)&&(identical(other.isNew, isNew) || other.isNew == isNew));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,name,type,icon,color,createdAt,updatedAt,initialCategory,isSaving,isSuccess,errorMessage,showValidationError,isNew);
+int get hashCode => Object.hash(runtimeType,id,name,type,icon,color,parentId,initialParentId,const DeepCollectionEquality().hash(_availableParents),createdAt,updatedAt,const DeepCollectionEquality().hash(initialCategory),isSaving,isSuccess,errorMessage,showValidationError,isNew);
 
 @override
-String toString() {
-  return 'CategoryFormState(id: $id, name: $name, type: $type, icon: $icon, color: $color, createdAt: $createdAt, updatedAt: $updatedAt, initialCategory: $initialCategory, isSaving: $isSaving, isSuccess: $isSuccess, errorMessage: $errorMessage, showValidationError: $showValidationError, isNew: $isNew)';
+String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
+  return 'CategoryFormState(id: $id, name: $name, type: $type, icon: $icon, color: $color, parentId: $parentId, initialParentId: $initialParentId, availableParents: $availableParents, createdAt: $createdAt, updatedAt: $updatedAt, initialCategory: $initialCategory, isSaving: $isSaving, isSuccess: $isSuccess, errorMessage: $errorMessage, showValidationError: $showValidationError, isNew: $isNew)';
 }
 
 
@@ -277,11 +301,11 @@ abstract mixin class _$CategoryFormStateCopyWith<$Res> implements $CategoryFormS
   factory _$CategoryFormStateCopyWith(_CategoryFormState value, $Res Function(_CategoryFormState) _then) = __$CategoryFormStateCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String name, String type, String icon, String color, DateTime createdAt, DateTime updatedAt, Category? initialCategory, bool isSaving, bool isSuccess, String? errorMessage, bool showValidationError, bool isNew
+ String id, String name, String type, PhosphorIconDescriptor? icon, String color, String? parentId, String? initialParentId, List<Category> availableParents, DateTime createdAt, DateTime updatedAt, Category? initialCategory, bool isSaving, bool isSuccess, String? errorMessage, bool showValidationError, bool isNew
 });
 
 
-@override $CategoryCopyWith<$Res>? get initialCategory;
+@override $PhosphorIconDescriptorCopyWith<$Res>? get icon;
 
 }
 /// @nodoc
@@ -294,14 +318,17 @@ class __$CategoryFormStateCopyWithImpl<$Res>
 
 /// Create a copy of CategoryFormState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? type = null,Object? icon = null,Object? color = null,Object? createdAt = null,Object? updatedAt = null,Object? initialCategory = freezed,Object? isSaving = null,Object? isSuccess = null,Object? errorMessage = freezed,Object? showValidationError = null,Object? isNew = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? type = null,Object? icon = freezed,Object? color = null,Object? parentId = freezed,Object? initialParentId = freezed,Object? availableParents = null,Object? createdAt = null,Object? updatedAt = null,Object? initialCategory = freezed,Object? isSaving = null,Object? isSuccess = null,Object? errorMessage = freezed,Object? showValidationError = null,Object? isNew = null,}) {
   return _then(_CategoryFormState(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
-as String,icon: null == icon ? _self.icon : icon // ignore: cast_nullable_to_non_nullable
-as String,color: null == color ? _self.color : color // ignore: cast_nullable_to_non_nullable
-as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as String,icon: freezed == icon ? _self.icon : icon // ignore: cast_nullable_to_non_nullable
+as PhosphorIconDescriptor?,color: null == color ? _self.color : color // ignore: cast_nullable_to_non_nullable
+as String,parentId: freezed == parentId ? _self.parentId : parentId // ignore: cast_nullable_to_non_nullable
+as String?,initialParentId: freezed == initialParentId ? _self.initialParentId : initialParentId // ignore: cast_nullable_to_non_nullable
+as String?,availableParents: null == availableParents ? _self._availableParents : availableParents // ignore: cast_nullable_to_non_nullable
+as List<Category>,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,initialCategory: freezed == initialCategory ? _self.initialCategory : initialCategory // ignore: cast_nullable_to_non_nullable
 as Category?,isSaving: null == isSaving ? _self.isSaving : isSaving // ignore: cast_nullable_to_non_nullable
@@ -317,13 +344,13 @@ as bool,
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
-$CategoryCopyWith<$Res>? get initialCategory {
-    if (_self.initialCategory == null) {
+$PhosphorIconDescriptorCopyWith<$Res>? get icon {
+    if (_self.icon == null) {
     return null;
   }
 
-  return $CategoryCopyWith<$Res>(_self.initialCategory!, (value) {
-    return _then(_self.copyWith(initialCategory: value));
+  return $PhosphorIconDescriptorCopyWith<$Res>(_self.icon!, (value) {
+    return _then(_self.copyWith(icon: value));
   });
 }
 }

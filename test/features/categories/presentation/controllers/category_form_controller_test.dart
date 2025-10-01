@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kopim/core/di/injectors.dart';
+import 'package:kopim/core/domain/icons/phosphor_icon_descriptor.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/categories/domain/use_cases/save_category_use_case.dart';
 import 'package:kopim/features/categories/presentation/controllers/category_form_controller.dart';
@@ -23,6 +24,7 @@ Category _fallbackCategory() {
     type: 'expense',
     icon: null,
     color: null,
+    parentId: null,
     createdAt: timestamp,
     updatedAt: timestamp,
   );
@@ -58,7 +60,9 @@ void main() {
     );
     controller.updateName('  Groceries  ');
     controller.updateType('income');
-    controller.updateIcon('shopping_bag');
+    controller.updateIcon(
+      const PhosphorIconDescriptor(name: 'airplane'),
+    );
     controller.updateColor('#FFA500');
 
     await controller.submit();
@@ -70,7 +74,9 @@ void main() {
     expect(captured.id, 'uuid-123');
     expect(captured.name, 'Groceries');
     expect(captured.type, 'income');
-    expect(captured.icon, 'shopping_bag');
+    expect(captured.icon?.name, 'airplane');
+    expect(captured.icon?.style, PhosphorIconStyle.regular);
+    expect(captured.parentId, isNull);
     expect(captured.color, '#FFA500');
     expect(captured.createdAt.isUtc, isTrue);
     expect(captured.updatedAt.isUtc, isTrue);
@@ -92,8 +98,9 @@ void main() {
       id: 'existing',
       name: 'Rent',
       type: 'expense',
-      icon: 'home',
+      icon: const PhosphorIconDescriptor(name: 'house'),
       color: '#FF0000',
+      parentId: null,
       createdAt: createdAt,
       updatedAt: createdAt,
     );
@@ -140,5 +147,42 @@ void main() {
     expect(state.nameHasError, isTrue);
     expect(state.isSuccess, isFalse);
     verifyNever(() => mockUseCase.call(any()));
+  });
+
+  test('submit includes selected parent id and clears icon', () async {
+    when(() => mockUseCase.call(any())).thenAnswer((Invocation _) async {});
+
+    final Category parent = Category(
+      id: 'parent-1',
+      name: 'Utilities',
+      type: 'expense',
+      icon: const PhosphorIconDescriptor(name: 'plug'),
+      color: null,
+      parentId: null,
+      createdAt: DateTime.utc(2024, 1, 1),
+      updatedAt: DateTime.utc(2024, 1, 1),
+    );
+
+    final CategoryFormController controller = container.read(
+      categoryFormControllerProvider(
+        CategoryFormParams(parents: <Category>[parent]),
+      ).notifier,
+    );
+
+    controller.updateParent(parent.id);
+    controller.updateIcon(
+      const PhosphorIconDescriptor(name: 'airplane'),
+    );
+    controller.updateIcon(null);
+    controller.updateName('Electricity');
+
+    await controller.submit();
+
+    final Category captured = verify(
+      () => mockUseCase.call(captureAny<Category>()),
+    ).captured.single;
+
+    expect(captured.parentId, parent.id);
+    expect(captured.icon, isNull);
   });
 }

@@ -21,6 +21,38 @@
   "@manageCategoriesAddAction": {
     "description": "Подсказка к кнопке добавления новой категории"
   },
+  "manageCategoriesCreateRootAction": "Создать категорию верхнего уровня",
+  "@manageCategoriesCreateRootAction": {
+    "description": "Подпись действия создания родительской категории в меню управления"
+  },
+  "manageCategoriesCreateSubAction": "Создать подкатегорию",
+  "@manageCategoriesCreateSubAction": {
+    "description": "Подпись действия создания подкатегории в меню управления"
+  },
+  "manageCategoriesCreateSubDisabled": "Сначала добавьте родительскую категорию, чтобы создать подкатегории.",
+  "@manageCategoriesCreateSubDisabled": {
+    "description": "Подсказка, когда невозможно создать подкатегорию без родителя"
+  },
+  "manageCategoriesSelectParentTitle": "Выберите родительскую категорию",
+  "@manageCategoriesSelectParentTitle": {
+    "description": "Заголовок диалога выбора родительской категории"
+  },
+  "dialogCancel": "Отмена",
+  "@dialogCancel": {
+    "description": "Подпись кнопки отмены в диалогах"
+  },
+  "manageCategoriesParentLabel": "Родительская категория",
+  "@manageCategoriesParentLabel": {
+    "description": "Подпись выпадающего списка выбора родительской категории"
+  },
+  "manageCategoriesParentNone": "Без родителя",
+  "@manageCategoriesParentNone": {
+    "description": "Вариант выбора отсутствия родителя"
+  },
+  "manageCategoriesNoSubcategories": "Подкатегорий пока нет",
+  "@manageCategoriesNoSubcategories": {
+    "description": "Текст-заглушка, когда у категории нет подкатегорий"
+  },
   "manageCategoriesEditAction": "Редактировать",
   "@manageCategoriesEditAction": {
     "description": "Подсказка к кнопке редактирования категории"
@@ -69,6 +101,50 @@
   "manageCategoriesIconLabel": "Иконка (необязательно)",
   "@manageCategoriesIconLabel": {
     "description": "Подпись поля иконки"
+  },
+  "manageCategoriesIconNone": "Иконка не выбрана",
+  "@manageCategoriesIconNone": {
+    "description": "Подпись, когда иконка не выбрана"
+  },
+  "manageCategoriesIconSelect": "Выбрать иконку",
+  "@manageCategoriesIconSelect": {
+    "description": "Подсказка к кнопке открытия выбора иконок"
+  },
+  "manageCategoriesIconPickerTitle": "Выбор иконки категории",
+  "@manageCategoriesIconPickerTitle": {
+    "description": "Заголовок листа с выбором иконок"
+  },
+  "manageCategoriesIconSearchHint": "Поиск иконки",
+  "@manageCategoriesIconSearchHint": {
+    "description": "Подпись поля поиска иконок"
+  },
+  "manageCategoriesIconClear": "Очистить выбор",
+  "@manageCategoriesIconClear": {
+    "description": "Подпись кнопки очистки выбранной иконки"
+  },
+  "manageCategoriesIconEmpty": "Подходящих иконок не найдено.",
+  "@manageCategoriesIconEmpty": {
+    "description": "Сообщение пустого состояния поиска иконок"
+  },
+  "manageCategoriesIconStyleThin": "Тонкая",
+  "@manageCategoriesIconStyleThin": {
+    "description": "Подпись фильтра тонкого стиля"
+  },
+  "manageCategoriesIconStyleLight": "Легкая",
+  "@manageCategoriesIconStyleLight": {
+    "description": "Подпись фильтра легкого стиля"
+  },
+  "manageCategoriesIconStyleRegular": "Обычная",
+  "@manageCategoriesIconStyleRegular": {
+    "description": "Подпись фильтра стандартного стиля"
+  },
+  "manageCategoriesIconStyleBold": "Жирная",
+  "@manageCategoriesIconStyleBold": {
+    "description": "Подпись фильтра жирного стиля"
+  },
+  "manageCategoriesIconStyleFill": "Заливка",
+  "@manageCategoriesIconStyleFill": {
+    "description": "Подпись фильтра заливного стиля"
   },
   "manageCategoriesColorLabel": "Цвет (необязательно)",
   "@manageCategoriesColorLabel": {
