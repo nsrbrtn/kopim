@@ -22,11 +22,11 @@ NavigationTabContent buildHomeTabContent(BuildContext context, WidgetRef ref) {
   final AppLocalizations strings = AppLocalizations.of(context)!;
   final AsyncValue<AuthUser?> authState = ref.watch(authControllerProvider);
   final AsyncValue<List<TransactionEntity>> transactionsAsync =
-      ref.watch(homeRecentTransactionsProvider());
+  ref.watch(homeRecentTransactionsProvider());
   final AsyncValue<List<AccountEntity>> accountsAsync =
-      ref.watch(homeAccountsProvider);
+  ref.watch(homeAccountsProvider);
   final AsyncValue<List<Category>> categoriesAsync =
-      ref.watch(homeCategoriesProvider);
+  ref.watch(homeCategoriesProvider);
   final double totalBalance = ref.watch(homeTotalBalanceProvider);
   final bool isWideLayout = MediaQuery.of(context).size.width >= 720;
   final NumberFormat currencyFormat = NumberFormat.simpleCurrency(
@@ -208,14 +208,6 @@ class _AccountsList extends StatelessWidget {
   final AppLocalizations strings;
 
   @override
-  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
-    super.debugFillProperties(properties);
-    properties
-      ..add(IntProperty('accountCount', accounts.length))
-      ..add(StringProperty('localeName', strings.localeName));
-  }
-
-  @override
   Widget build(BuildContext context) {
     if (accounts.isEmpty) {
       return _EmptyMessage(message: strings.homeAccountsEmpty);
@@ -262,23 +254,12 @@ class _TransactionsList extends StatelessWidget {
   final Map<String, Category> categoriesById;
 
   @override
-  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
-    super.debugFillProperties(properties);
-    properties
-      ..add(IntProperty('transactionCount', transactions.length))
-      ..add(StringProperty('localeName', localeName))
-      ..add(IntProperty('accountCount', accountsById.length))
-      ..add(IntProperty('categoryCount', categoriesById.length));
-    properties.add(DiagnosticsProperty<AppLocalizations>('strings', strings));
-  }
-
-  @override
   Widget build(BuildContext context) {
     if (transactions.isEmpty) {
       return _EmptyMessage(message: strings.homeTransactionsEmpty);
     }
 
-    final DateFormat dateFormat = DateFormat.yMMMd(localeName);
+    final ThemeData theme = Theme.of(context);
 
     return ListView.builder(
       shrinkWrap: true,
@@ -297,60 +278,76 @@ class _TransactionsList extends StatelessWidget {
               NumberFormat.simpleCurrency(locale: localeName).currencySymbol,
         );
         final String amountText = format.format(transaction.amount.abs());
-        final String dateText = dateFormat.format(transaction.date);
         final Category? category = transaction.categoryId == null
             ? null
             : categoriesById[transaction.categoryId!];
-        final String categoryName = category?.name ??
-            strings.homeTransactionsUncategorized;
+        final String categoryName =
+            category?.name ?? strings.homeTransactionsUncategorized;
         final PhosphorIconData? categoryIcon =
-            resolvePhosphorIconData(category?.icon);
+        resolvePhosphorIconData(category?.icon);
         final Color? categoryColor = parseHexColor(category?.color);
         final String? note = transaction.note;
-        final ThemeData theme = Theme.of(context);
-        final Color amountColor = isExpense
-            ? theme.colorScheme.error
-            : theme.colorScheme.primary;
+        final Color amountColor =
+        isExpense ? theme.colorScheme.error : theme.colorScheme.primary;
         final Color avatarIconColor = categoryColor != null
             ? (ThemeData.estimateBrightnessForColor(categoryColor) ==
-                    Brightness.dark
-                ? Colors.white
-                : Colors.black87)
+            Brightness.dark
+            ? Colors.white
+            : Colors.black87)
             : theme.colorScheme.onSurfaceVariant;
 
         return Card(
           margin: const EdgeInsets.symmetric(vertical: 8),
-          child: ListTile(
-            isThreeLine: note != null && note.isNotEmpty,
-            leading: CircleAvatar(
-              backgroundColor:
-                  categoryColor ?? theme.colorScheme.surfaceContainerHighest,
-              foregroundColor: avatarIconColor,
-              child: categoryIcon != null
-                  ? Icon(categoryIcon)
-                  : const Icon(Icons.category_outlined),
-            ),
-            title: Text(
-              amountText,
-              style: theme.textTheme.titleMedium?.copyWith(color: amountColor),
-            ),
-            subtitle: Column(
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                Text(
-                  categoryName,
-                  style: theme.textTheme.bodyMedium,
+              children: [
+                // Иконка слева
+                CircleAvatar(
+                  backgroundColor:
+                  categoryColor ?? theme.colorScheme.surfaceContainerHighest,
+                  foregroundColor: avatarIconColor,
+                  child: categoryIcon != null
+                      ? Icon(categoryIcon)
+                      : const Icon(Icons.category_outlined),
                 ),
-                Text(
-                  dateText,
-                  style: theme.textTheme.bodySmall,
-                ),
-                if (note != null && note.isNotEmpty)
-                  Text(
-                    note,
-                    style: theme.textTheme.bodySmall,
+                const SizedBox(width: 12),
+
+                // Центр: категория + комментарий
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        categoryName,
+                        style: theme.textTheme.bodyMedium,
+                      ),
+                      if (note != null && note.isNotEmpty)
+                        Text(
+                          note,
+                          style: theme.textTheme.bodySmall,
+                        ),
+                    ],
                   ),
+                ),
+
+                // Справа: сумма и счёт
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      amountText,
+                      style: theme.textTheme.titleMedium
+                          ?.copyWith(color: amountColor),
+                    ),
+                    if (account != null)
+                      Text(
+                        account.name,
+                        style: theme.textTheme.bodySmall,
+                      ),
+                  ],
+                ),
               ],
             ),
           ),
@@ -367,14 +364,6 @@ class _SectionHeader extends StatelessWidget {
   final Widget? action;
 
   @override
-  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
-    super.debugFillProperties(properties);
-    properties
-      ..add(StringProperty('title', title))
-      ..add(DiagnosticsProperty<Widget>('action', action, defaultValue: null));
-  }
-
-  @override
   Widget build(BuildContext context) {
     final TextStyle? style = Theme.of(context).textTheme.titleLarge;
     if (action == null) {
@@ -385,7 +374,7 @@ class _SectionHeader extends StatelessWidget {
       children: <Widget>[
         Expanded(child: Text(title, style: style)),
         const SizedBox(width: 8),
-        ?action,
+        action!,
       ],
     );
   }
@@ -397,16 +386,10 @@ class _ErrorMessage extends StatelessWidget {
   final String message;
 
   @override
-  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
-    super.debugFillProperties(properties);
-    properties.add(StringProperty('message', message));
-  }
-
-  @override
   Widget build(BuildContext context) {
     final TextStyle? style = Theme.of(context).textTheme.bodyMedium?.copyWith(
-          color: Theme.of(context).colorScheme.error,
-        );
+      color: Theme.of(context).colorScheme.error,
+    );
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 16),
       child: Center(
