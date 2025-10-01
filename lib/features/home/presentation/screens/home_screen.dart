@@ -5,11 +5,14 @@ import 'package:intl/intl.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/accounts/presentation/accounts_add_screen.dart';
 import 'package:kopim/features/app_shell/presentation/models/navigation_tab_content.dart';
+import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
 import 'package:kopim/features/profile/presentation/controllers/auth_controller.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/presentation/add_transaction_screen.dart';
 import 'package:kopim/l10n/app_localizations.dart';
+import 'package:kopim/core/utils/helpers.dart';
+import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
 
 import '../controllers/home_providers.dart';
 
@@ -20,6 +23,8 @@ NavigationTabContent buildHomeTabContent(BuildContext context, WidgetRef ref) {
       ref.watch(homeRecentTransactionsProvider());
   final AsyncValue<List<AccountEntity>> accountsAsync =
       ref.watch(homeAccountsProvider);
+  final AsyncValue<List<Category>> categoriesAsync =
+      ref.watch(homeCategoriesProvider);
   final double totalBalance = ref.watch(homeTotalBalanceProvider);
   final bool isWideLayout = MediaQuery.of(context).size.width >= 720;
   final NumberFormat currencyFormat = NumberFormat.simpleCurrency(
@@ -44,6 +49,7 @@ NavigationTabContent buildHomeTabContent(BuildContext context, WidgetRef ref) {
         authState: authState,
         transactionsAsync: transactionsAsync,
         accountsAsync: accountsAsync,
+        categoriesAsync: categoriesAsync,
         strings: strings,
         isWideLayout: isWideLayout,
       ),
@@ -58,6 +64,7 @@ class _HomeBody extends StatelessWidget {
     required this.authState,
     required this.transactionsAsync,
     required this.accountsAsync,
+    required this.categoriesAsync,
     required this.strings,
     required this.isWideLayout,
   });
@@ -65,6 +72,7 @@ class _HomeBody extends StatelessWidget {
   final AsyncValue<AuthUser?> authState;
   final AsyncValue<List<TransactionEntity>> transactionsAsync;
   final AsyncValue<List<AccountEntity>> accountsAsync;
+  final AsyncValue<List<Category>> categoriesAsync;
   final AppLocalizations strings;
   final bool isWideLayout;
 
@@ -115,12 +123,34 @@ class _HomeBody extends StatelessWidget {
                 _SectionHeader(title: strings.homeTransactionsSection),
                 const SizedBox(height: 12),
                 transactionsAsync.when(
-                  data: (List<TransactionEntity> transactions) =>
-                      _TransactionsList(
+                  data: (List<TransactionEntity> transactions) {
+                    final List<AccountEntity> accounts =
+                        accountsAsync.asData?.value ?? const <AccountEntity>[];
+                    return categoriesAsync.when(
+                      data: (List<Category> categories) => _TransactionsList(
                         transactions: transactions,
                         localeName: strings.localeName,
                         strings: strings,
+                        accountsById: {
+                          for (final AccountEntity account in accounts)
+                            account.id: account,
+                        },
+                        categoriesById: {
+                          for (final Category category in categories)
+                            category.id: category,
+                        },
                       ),
+                      loading: () => const Center(
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(vertical: 24),
+                          child: CircularProgressIndicator(),
+                        ),
+                      ),
+                      error: (Object error, _) => _ErrorMessage(
+                        message: strings.homeTransactionsError(error.toString()),
+                      ),
+                    );
+                  },
                   loading: () => const Center(
                     child: Padding(
                       padding: EdgeInsets.symmetric(vertical: 24),
@@ -219,18 +249,24 @@ class _TransactionsList extends StatelessWidget {
     required this.transactions,
     required this.localeName,
     required this.strings,
+    required this.accountsById,
+    required this.categoriesById,
   });
 
   final List<TransactionEntity> transactions;
   final String localeName;
   final AppLocalizations strings;
+  final Map<String, AccountEntity> accountsById;
+  final Map<String, Category> categoriesById;
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
     properties
       ..add(IntProperty('transactionCount', transactions.length))
-      ..add(StringProperty('localeName', localeName));
+      ..add(StringProperty('localeName', localeName))
+      ..add(IntProperty('accountCount', accountsById.length))
+      ..add(IntProperty('categoryCount', categoriesById.length));
     properties.add(DiagnosticsProperty<AppLocalizations>('strings', strings));
   }
 
@@ -249,36 +285,70 @@ class _TransactionsList extends StatelessWidget {
       itemBuilder: (BuildContext context, int index) {
         final TransactionEntity transaction = transactions[index];
         final String transactionType = transaction.type.toLowerCase();
-        final bool isIncome = transactionType.contains('income');
         final bool isExpense = transactionType.contains('expense');
+        final AccountEntity? account = transaction.accountId == null
+            ? null
+            : accountsById[transaction.accountId!];
         final NumberFormat format = NumberFormat.currency(
           locale: localeName,
-          symbol: isIncome
-              ? strings.homeTransactionSymbolPositive
-              : strings.homeTransactionSymbolNegative,
+          symbol: account?.currency.toUpperCase() ??
+              NumberFormat.simpleCurrency(locale: localeName).currencySymbol,
         );
         final String amountText = format.format(transaction.amount.abs());
         final String dateText = dateFormat.format(transaction.date);
-        final String categoryText = transaction.categoryId == null
-            ? strings.homeTransactionsUncategorized
-            : strings.homeTransactionsCategory(transaction.categoryId!);
+        final Category? category = transaction.categoryId == null
+            ? null
+            : categoriesById[transaction.categoryId!];
+        final String categoryName = category?.name ??
+            strings.homeTransactionsUncategorized;
+        final PhosphorIconData? categoryIcon =
+            resolvePhosphorIconData(category?.icon);
+        final Color? categoryColor = parseHexColor(category?.color);
         final String? note = transaction.note;
+        final ThemeData theme = Theme.of(context);
+        final Color amountColor = isExpense
+            ? theme.colorScheme.error
+            : theme.colorScheme.primary;
+        final Color avatarIconColor = categoryColor != null
+            ? (ThemeData.estimateBrightnessForColor(categoryColor) ==
+                    Brightness.dark
+                ? Colors.white
+                : Colors.black87)
+            : theme.colorScheme.onSurfaceVariant;
 
         return Card(
           margin: const EdgeInsets.symmetric(vertical: 8),
           child: ListTile(
-            leading: Icon(
-              isExpense ? Icons.arrow_downward : Icons.arrow_upward,
-              color: isExpense ? Colors.redAccent : Colors.green,
+            isThreeLine: note != null && note.isNotEmpty,
+            leading: CircleAvatar(
+              backgroundColor:
+                  categoryColor ?? theme.colorScheme.surfaceVariant,
+              foregroundColor: avatarIconColor,
+              child: categoryIcon != null
+                  ? Icon(categoryIcon)
+                  : const Icon(Icons.category_outlined),
             ),
-            title: Text(amountText),
+            title: Text(
+              amountText,
+              style: theme.textTheme.titleMedium?.copyWith(color: amountColor),
+            ),
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: <Widget>[
-                Text(dateText),
-                Text(categoryText),
+                Text(
+                  categoryName,
+                  style: theme.textTheme.bodyMedium,
+                ),
+                Text(
+                  dateText,
+                  style: theme.textTheme.bodySmall,
+                ),
                 if (note != null && note.isNotEmpty)
-                  Text(note, style: Theme.of(context).textTheme.bodySmall),
+                  Text(
+                    note,
+                    style: theme.textTheme.bodySmall,
+                  ),
               ],
             ),
           ),
