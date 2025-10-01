@@ -9,6 +9,18 @@
     "description": "Сообщение, когда пользователю нужно войти"
   },
   "profileSectionAccount": "Учетная запись",
+  "profileManageCategoriesCta": "Управлять категориями",
+  "@profileManageCategoriesCta": {
+    "description": "Подпись кнопки, открывающей экран управления категориями из настроек профиля"
+  },
+  "profileManageCategoriesTitle": "Управление категориями",
+  "@profileManageCategoriesTitle": {
+    "description": "Заголовок экрана управления категориями"
+  },
+  "profileManageCategoriesPlaceholder": "Создание и редактирование категорий скоро будет доступно.",
+  "@profileManageCategoriesPlaceholder": {
+    "description": "Временный текст-заглушка на экране управления категориями"
+  },
   "@profileSectionAccount": {
     "description": "Заголовок блока с учетной записью"
   },
