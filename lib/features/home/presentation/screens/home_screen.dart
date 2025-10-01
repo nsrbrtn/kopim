@@ -120,7 +120,7 @@ class HomeScreen extends ConsumerWidget {
         onPressed: () async {
           // ВАЖНО: строго типизируем Route<bool>
           final bool? created = await Navigator.of(context).push<bool>(
-            MaterialPageRoute(
+            MaterialPageRoute<bool>(
               builder: (_) => const AddTransactionScreen(),
             ),
           );
