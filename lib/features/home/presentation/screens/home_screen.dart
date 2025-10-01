@@ -290,7 +290,7 @@ class _TransactionsList extends StatelessWidget {
         final bool isExpense = transactionType.contains('expense');
         final AccountEntity? account = transaction.accountId == null
             ? null
-            : accountsById[transaction.accountId!];
+            : accountsById[transaction.accountId];
         final NumberFormat format = NumberFormat.currency(
           locale: localeName,
           symbol: account?.currency.toUpperCase() ??
@@ -385,7 +385,7 @@ class _SectionHeader extends StatelessWidget {
       children: <Widget>[
         Expanded(child: Text(title, style: style)),
         const SizedBox(width: 8),
-        action,
+        ?action,
       ],
     );
   }

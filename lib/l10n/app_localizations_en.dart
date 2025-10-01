@@ -245,7 +245,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeTransactionsUncategorized => 'Uncategorized';
 
   @override
-  @override
   String get homeNavHome => 'Home';
 
   @override

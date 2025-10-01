@@ -140,9 +140,7 @@ final class HomeCategoriesProvider
           List<Category>,
           Stream<List<Category>>
         >
-    with
-        $FutureModifier<List<Category>>,
-        $StreamProvider<List<Category>> {
+    with $FutureModifier<List<Category>>, $StreamProvider<List<Category>> {
   const HomeCategoriesProvider._()
     : super(
         from: null,
@@ -169,7 +167,7 @@ final class HomeCategoriesProvider
   }
 }
 
-String _$homeCategoriesHash() => r'3f6a0b9d9276cb448f1d5bf4ed9b589e08e9f8f0';
+String _$homeCategoriesHash() => r'8489f218304563096d7997f846877f8ab2a5c725';
 
 @ProviderFor(homeTotalBalance)
 const homeTotalBalanceProvider = HomeTotalBalanceProvider._();

@@ -31,12 +31,12 @@ void debugFillProperties(DiagnosticPropertiesBuilder properties) {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CategoryFormState&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.type, type) || other.type == type)&&(identical(other.icon, icon) || other.icon == icon)&&(identical(other.color, color) || other.color == color)&&(identical(other.parentId, parentId) || other.parentId == parentId)&&(identical(other.initialParentId, initialParentId) || other.initialParentId == initialParentId)&&const DeepCollectionEquality().equals(other.availableParents, availableParents)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&const DeepCollectionEquality().equals(other.initialCategory, initialCategory)&&(identical(other.isSaving, isSaving) || other.isSaving == isSaving)&&(identical(other.isSuccess, isSuccess) || other.isSuccess == isSuccess)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage)&&(identical(other.showValidationError, showValidationError) || other.showValidationError == showValidationError)&&(identical(other.isNew, isNew) || other.isNew == isNew));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CategoryFormState&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.type, type) || other.type == type)&&(identical(other.icon, icon) || other.icon == icon)&&(identical(other.color, color) || other.color == color)&&(identical(other.parentId, parentId) || other.parentId == parentId)&&(identical(other.initialParentId, initialParentId) || other.initialParentId == initialParentId)&&const DeepCollectionEquality().equals(other.availableParents, availableParents)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.initialCategory, initialCategory) || other.initialCategory == initialCategory)&&(identical(other.isSaving, isSaving) || other.isSaving == isSaving)&&(identical(other.isSuccess, isSuccess) || other.isSuccess == isSuccess)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage)&&(identical(other.showValidationError, showValidationError) || other.showValidationError == showValidationError)&&(identical(other.isNew, isNew) || other.isNew == isNew));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,name,type,icon,color,parentId,initialParentId,const DeepCollectionEquality().hash(availableParents),createdAt,updatedAt,const DeepCollectionEquality().hash(initialCategory),isSaving,isSuccess,errorMessage,showValidationError,isNew);
+int get hashCode => Object.hash(runtimeType,id,name,type,icon,color,parentId,initialParentId,const DeepCollectionEquality().hash(availableParents),createdAt,updatedAt,initialCategory,isSaving,isSuccess,errorMessage,showValidationError,isNew);
 
 @override
 String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
@@ -55,7 +55,7 @@ $Res call({
 });
 
 
-$PhosphorIconDescriptorCopyWith<$Res>? get icon;
+$PhosphorIconDescriptorCopyWith<$Res>? get icon;$CategoryCopyWith<$Res>? get initialCategory;
 
 }
 /// @nodoc
@@ -77,10 +77,10 @@ as String,icon: freezed == icon ? _self.icon : icon // ignore: cast_nullable_to_
 as PhosphorIconDescriptor?,color: null == color ? _self.color : color // ignore: cast_nullable_to_non_nullable
 as String,parentId: freezed == parentId ? _self.parentId : parentId // ignore: cast_nullable_to_non_nullable
 as String?,initialParentId: freezed == initialParentId ? _self.initialParentId : initialParentId // ignore: cast_nullable_to_non_nullable
-as String?,availableParents: null == availableParents ? _self.availableParents! : availableParents // ignore: cast_nullable_to_non_nullable
+as String?,availableParents: null == availableParents ? _self.availableParents : availableParents // ignore: cast_nullable_to_non_nullable
 as List<Category>,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
-as DateTime,initialCategory: freezed == initialCategory ? _self.initialCategory! : initialCategory // ignore: cast_nullable_to_non_nullable
+as DateTime,initialCategory: freezed == initialCategory ? _self.initialCategory : initialCategory // ignore: cast_nullable_to_non_nullable
 as Category?,isSaving: null == isSaving ? _self.isSaving : isSaving // ignore: cast_nullable_to_non_nullable
 as bool,isSuccess: null == isSuccess ? _self.isSuccess : isSuccess // ignore: cast_nullable_to_non_nullable
 as bool,errorMessage: freezed == errorMessage ? _self.errorMessage : errorMessage // ignore: cast_nullable_to_non_nullable
@@ -100,6 +100,18 @@ $PhosphorIconDescriptorCopyWith<$Res>? get icon {
 
   return $PhosphorIconDescriptorCopyWith<$Res>(_self.icon!, (value) {
     return _then(_self.copyWith(icon: value));
+  });
+}/// Create a copy of CategoryFormState
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$CategoryCopyWith<$Res>? get initialCategory {
+    if (_self.initialCategory == null) {
+    return null;
+  }
+
+  return $CategoryCopyWith<$Res>(_self.initialCategory!, (value) {
+    return _then(_self.copyWith(initialCategory: value));
   });
 }
 }
@@ -281,12 +293,12 @@ void debugFillProperties(DiagnosticPropertiesBuilder properties) {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CategoryFormState&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.type, type) || other.type == type)&&(identical(other.icon, icon) || other.icon == icon)&&(identical(other.color, color) || other.color == color)&&(identical(other.parentId, parentId) || other.parentId == parentId)&&(identical(other.initialParentId, initialParentId) || other.initialParentId == initialParentId)&&const DeepCollectionEquality().equals(other._availableParents, _availableParents)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&const DeepCollectionEquality().equals(other.initialCategory, initialCategory)&&(identical(other.isSaving, isSaving) || other.isSaving == isSaving)&&(identical(other.isSuccess, isSuccess) || other.isSuccess == isSuccess)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage)&&(identical(other.showValidationError, showValidationError) || other.showValidationError == showValidationError)&&(identical(other.isNew, isNew) || other.isNew == isNew));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CategoryFormState&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.type, type) || other.type == type)&&(identical(other.icon, icon) || other.icon == icon)&&(identical(other.color, color) || other.color == color)&&(identical(other.parentId, parentId) || other.parentId == parentId)&&(identical(other.initialParentId, initialParentId) || other.initialParentId == initialParentId)&&const DeepCollectionEquality().equals(other._availableParents, _availableParents)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.initialCategory, initialCategory) || other.initialCategory == initialCategory)&&(identical(other.isSaving, isSaving) || other.isSaving == isSaving)&&(identical(other.isSuccess, isSuccess) || other.isSuccess == isSuccess)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage)&&(identical(other.showValidationError, showValidationError) || other.showValidationError == showValidationError)&&(identical(other.isNew, isNew) || other.isNew == isNew));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,name,type,icon,color,parentId,initialParentId,const DeepCollectionEquality().hash(_availableParents),createdAt,updatedAt,const DeepCollectionEquality().hash(initialCategory),isSaving,isSuccess,errorMessage,showValidationError,isNew);
+int get hashCode => Object.hash(runtimeType,id,name,type,icon,color,parentId,initialParentId,const DeepCollectionEquality().hash(_availableParents),createdAt,updatedAt,initialCategory,isSaving,isSuccess,errorMessage,showValidationError,isNew);
 
 @override
 String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
@@ -305,7 +317,7 @@ $Res call({
 });
 
 
-@override $PhosphorIconDescriptorCopyWith<$Res>? get icon;
+@override $PhosphorIconDescriptorCopyWith<$Res>? get icon;@override $CategoryCopyWith<$Res>? get initialCategory;
 
 }
 /// @nodoc
@@ -351,6 +363,18 @@ $PhosphorIconDescriptorCopyWith<$Res>? get icon {
 
   return $PhosphorIconDescriptorCopyWith<$Res>(_self.icon!, (value) {
     return _then(_self.copyWith(icon: value));
+  });
+}/// Create a copy of CategoryFormState
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$CategoryCopyWith<$Res>? get initialCategory {
+    if (_self.initialCategory == null) {
+    return null;
+  }
+
+  return $CategoryCopyWith<$Res>(_self.initialCategory!, (value) {
+    return _then(_self.copyWith(initialCategory: value));
   });
 }
 }

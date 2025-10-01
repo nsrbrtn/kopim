@@ -249,7 +249,6 @@ class AppLocalizationsRu extends AppLocalizations {
   String get homeTransactionsUncategorized => 'Без категории';
 
   @override
-  @override
   String get homeNavHome => 'Главная';
 
   @override
