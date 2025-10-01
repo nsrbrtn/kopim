@@ -116,6 +116,24 @@ abstract class AppLocalizations {
   /// **'Account'**
   String get profileSectionAccount;
 
+  /// Button label that navigates to category management
+  ///
+  /// In en, this message translates to:
+  /// **'Manage categories'**
+  String get profileManageCategoriesCta;
+
+  /// Title for the category management screen
+  ///
+  /// In en, this message translates to:
+  /// **'Manage categories'**
+  String get profileManageCategoriesTitle;
+
+  /// Placeholder text while category management is under construction
+  ///
+  /// In en, this message translates to:
+  /// **'Category management will be available soon.'**
+  String get profileManageCategoriesPlaceholder;
+
   /// Label for the profile name input
   ///
   /// In en, this message translates to:

@@ -9,6 +9,18 @@
     "description": "Shown when user must sign in to access profile"
   },
   "profileSectionAccount": "Account",
+  "profileManageCategoriesCta": "Manage categories",
+  "@profileManageCategoriesCta": {
+    "description": "Button label that opens the category management screen from the profile settings"
+  },
+  "profileManageCategoriesTitle": "Manage categories",
+  "@profileManageCategoriesTitle": {
+    "description": "Title for the category management screen"
+  },
+  "profileManageCategoriesPlaceholder": "Category management will be available soon.",
+  "@profileManageCategoriesPlaceholder": {
+    "description": "Temporary placeholder text displayed on the category management screen"
+  },
   "@profileSectionAccount": {
     "description": "Section header for account information"
   },

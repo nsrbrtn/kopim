@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kopim/core/config/app_config.dart';
+import 'package:kopim/features/categories/presentation/screens/manage_categories_screen.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
 import 'package:kopim/features/profile/domain/entities/profile.dart';
 import 'package:kopim/features/profile/presentation/controllers/auth_controller.dart';
@@ -123,80 +124,87 @@ class _ProfileForm extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
-        _SectionHeader(title: strings.profileSectionAccount),
-        const SizedBox(height: 16),
-        TextFormField(
-          key: ValueKey<String>('name-$initialKey'),
-          initialValue: name,
-          onChanged: formController.updateName,
-          decoration: InputDecoration(
-            labelText: strings.profileNameLabel,
-            border: const OutlineInputBorder(),
-          ),
-          textInputAction: TextInputAction.next,
-        ),
-        const SizedBox(height: 16),
-        DropdownButtonFormField<ProfileCurrency>(
-          key: ValueKey<String>('currency-$initialKey-${currency.name}'),
-          initialValue: currency,
-          decoration: InputDecoration(
-            labelText: strings.profileCurrencyLabel,
-            border: const OutlineInputBorder(),
-          ),
-          items: ProfileCurrency.values
-              .map(
-                (ProfileCurrency value) => DropdownMenuItem<ProfileCurrency>(
-                  value: value,
-                  child: Text(value.name.toUpperCase()),
+        _CollapsibleSection(
+          title: strings.profileSectionAccount,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              TextFormField(
+                key: ValueKey<String>('name-$initialKey'),
+                initialValue: name,
+                onChanged: formController.updateName,
+                decoration: InputDecoration(
+                  labelText: strings.profileNameLabel,
+                  border: const OutlineInputBorder(),
                 ),
-              )
-              .toList(growable: false),
-          onChanged: (ProfileCurrency? value) {
-            if (value != null) {
-              formController.updateCurrency(value);
-            }
-          },
-        ),
-        const SizedBox(height: 16),
-        DropdownButtonFormField<String>(
-          key: ValueKey<String>('locale-$initialKey-$locale'),
-          initialValue: locale,
-          decoration: InputDecoration(
-            labelText: strings.profileLocaleLabel,
-            border: const OutlineInputBorder(),
-          ),
-          items: locales
-              .map(
-                (String code) => DropdownMenuItem<String>(
-                  value: code,
-                  child: Text(code.toUpperCase()),
+                textInputAction: TextInputAction.next,
+              ),
+              const SizedBox(height: 16),
+              DropdownButtonFormField<ProfileCurrency>(
+                key: ValueKey<String>('currency-$initialKey-${currency.name}'),
+                initialValue: currency,
+                decoration: InputDecoration(
+                  labelText: strings.profileCurrencyLabel,
+                  border: const OutlineInputBorder(),
                 ),
-              )
-              .toList(growable: false),
-          onChanged: (String? value) {
-            if (value != null) {
-              formController.updateLocale(value);
-            }
-          },
+                items: ProfileCurrency.values
+                    .map(
+                      (ProfileCurrency value) =>
+                          DropdownMenuItem<ProfileCurrency>(
+                        value: value,
+                        child: Text(value.name.toUpperCase()),
+                      ),
+                    )
+                    .toList(growable: false),
+                onChanged: (ProfileCurrency? value) {
+                  if (value != null) {
+                    formController.updateCurrency(value);
+                  }
+                },
+              ),
+              const SizedBox(height: 16),
+              DropdownButtonFormField<String>(
+                key: ValueKey<String>('locale-$initialKey-$locale'),
+                initialValue: locale,
+                decoration: InputDecoration(
+                  labelText: strings.profileLocaleLabel,
+                  border: const OutlineInputBorder(),
+                ),
+                items: locales
+                    .map(
+                      (String code) => DropdownMenuItem<String>(
+                        value: code,
+                        child: Text(code.toUpperCase()),
+                      ),
+                    )
+                    .toList(growable: false),
+                onChanged: (String? value) {
+                  if (value != null) {
+                    formController.updateLocale(value);
+                  }
+                },
+              ),
+              if (profileAsync.hasError) ...<Widget>[
+                const SizedBox(height: 12),
+                Text(
+                  strings.profileLoadError(profileAsync.error.toString()),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.error,
+                  ),
+                ),
+              ],
+              if (errorMessage != null) ...<Widget>[
+                const SizedBox(height: 12),
+                Text(
+                  errorMessage,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.error,
+                  ),
+                ),
+              ],
+            ],
+          ),
         ),
-        if (profileAsync.hasError) ...<Widget>[
-          const SizedBox(height: 12),
-          Text(
-            strings.profileLoadError(profileAsync.error.toString()),
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.error,
-            ),
-          ),
-        ],
-        if (errorMessage != null) ...<Widget>[
-          const SizedBox(height: 12),
-          Text(
-            errorMessage,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.error,
-            ),
-          ),
-        ],
         const SizedBox(height: 24),
         Row(
           children: <Widget>[
@@ -217,6 +225,14 @@ class _ProfileForm extends ConsumerWidget {
             if (profileAsync.isLoading) const _CenteredProgress(size: 20),
           ],
         ),
+        const SizedBox(height: 16),
+        OutlinedButton.icon(
+          onPressed: () {
+            Navigator.of(context).pushNamed(ManageCategoriesScreen.routeName);
+          },
+          icon: const Icon(Icons.category_outlined),
+          label: Text(strings.profileManageCategoriesCta),
+        ),
       ],
     );
   }
@@ -233,20 +249,37 @@ class _ProfileForm extends ConsumerWidget {
   }
 }
 
-class _SectionHeader extends StatelessWidget {
-  const _SectionHeader({required this.title});
+class _CollapsibleSection extends StatelessWidget {
+  const _CollapsibleSection({
+    required this.title,
+    required this.child,
+  });
 
   final String title;
+  final Widget child;
 
   @override
   Widget build(BuildContext context) {
-    return Text(title, style: Theme.of(context).textTheme.titleLarge);
+    final ThemeData theme = Theme.of(context);
+    return Card(
+      margin: EdgeInsets.zero,
+      child: Theme(
+        data: theme.copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          tilePadding: const EdgeInsets.symmetric(horizontal: 16),
+          childrenPadding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+          title: Text(title, style: theme.textTheme.titleMedium),
+          children: <Widget>[child],
+        ),
+      ),
+    );
   }
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
     properties.add(StringProperty('title', title));
+    properties.add(DiagnosticsProperty<Widget>('child', child));
   }
 }
 

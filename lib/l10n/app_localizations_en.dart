@@ -18,6 +18,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileSectionAccount => 'Account';
 
   @override
+  String get profileManageCategoriesCta => 'Manage categories';
+
+  @override
+  String get profileManageCategoriesTitle => 'Manage categories';
+
+  @override
+  String get profileManageCategoriesPlaceholder =>
+      'Category management will be available soon.';
+
+  @override
   String get profileNameLabel => 'Name';
 
   @override

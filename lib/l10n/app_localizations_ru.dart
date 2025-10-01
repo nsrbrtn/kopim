@@ -18,6 +18,16 @@ class AppLocalizationsRu extends AppLocalizations {
   String get profileSectionAccount => 'Учетная запись';
 
   @override
+  String get profileManageCategoriesCta => 'Управлять категориями';
+
+  @override
+  String get profileManageCategoriesTitle => 'Управление категориями';
+
+  @override
+  String get profileManageCategoriesPlaceholder =>
+      'Создание и редактирование категорий скоро будет доступно.';
+
+  @override
   String get profileNameLabel => 'Имя';
 
   @override

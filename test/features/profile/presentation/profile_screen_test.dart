@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kopim/core/di/injectors.dart';
+import 'package:kopim/features/categories/presentation/screens/manage_categories_screen.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
 import 'package:kopim/features/profile/domain/entities/profile.dart';
 import 'package:kopim/features/profile/domain/usecases/update_profile_use_case.dart';
@@ -81,6 +82,10 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Profile'), findsOneWidget);
+    expect(find.text('Account'), findsOneWidget);
+
+    await tester.tap(find.text('Account'));
+    await tester.pumpAndSettle();
 
     final TextFormField nameField = tester.widget<TextFormField>(
       find.byType(TextFormField),
@@ -89,6 +94,7 @@ void main() {
 
     expect(find.text('EUR'), findsWidgets);
     expect(find.text('EN'), findsWidgets);
+    expect(find.text('Manage categories'), findsOneWidget);
   });
 
   testWidgets('shows sign-in prompt when user is absent', (
@@ -115,4 +121,64 @@ void main() {
 
     expect(find.text('Please sign in to manage your profile.'), findsOneWidget);
   });
+
+  testWidgets('tapping manage categories button opens categories screen', (
+    WidgetTester tester,
+  ) async {
+    final List<Route<dynamic>> pushedRoutes = <Route<dynamic>>[];
+    final NavigatorObserver observer = _RecordingNavigatorObserver(pushedRoutes);
+
+    await tester.pumpWidget(
+      ProviderScope(
+        // ignore: always_specify_types
+        overrides: [
+          authControllerProvider.overrideWith(
+            () => _FakeAuthController(signedInUser),
+          ),
+          profileControllerProvider(
+            signedInUser.uid,
+          ).overrideWith(() => _FakeProfileController(hydratedProfile)),
+          updateProfileUseCaseProvider.overrideWith(
+            (Ref ref) => _StubUpdateProfileUseCase(),
+          ),
+        ],
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: const ProfileScreen(),
+          routes: <String, WidgetBuilder>{
+            ManageCategoriesScreen.routeName: (_) =>
+                const ManageCategoriesScreen(),
+          },
+          navigatorObservers: <NavigatorObserver>[observer],
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Account'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Manage categories'));
+    await tester.pumpAndSettle();
+
+    expect(
+      pushedRoutes.map((Route<dynamic> route) => route.settings.name),
+      contains(ManageCategoriesScreen.routeName),
+    );
+    expect(find.byType(ManageCategoriesScreen), findsOneWidget);
+  });
+}
+
+class _RecordingNavigatorObserver extends NavigatorObserver {
+  _RecordingNavigatorObserver(this.pushedRoutes);
+
+  final List<Route<dynamic>> pushedRoutes;
+
+  @override
+  void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    pushedRoutes.add(route);
+    super.didPush(route, previousRoute);
+  }
 }
