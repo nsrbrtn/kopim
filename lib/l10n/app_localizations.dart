@@ -248,10 +248,10 @@ abstract class AppLocalizations {
   /// **'Income'**
   String get manageCategoriesTypeIncome;
 
-  /// Label for the optional icon input
+  /// Label for the icon input
   ///
   /// In en, this message translates to:
-  /// **'Icon (optional)'**
+  /// **'Icon'**
   String get manageCategoriesIconLabel;
 
   /// Subtitle shown when no icon has been selected
@@ -259,6 +259,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No icon selected'**
   String get manageCategoriesIconNone;
+
+  /// Subtitle shown when an icon has been selected
+  ///
+  /// In en, this message translates to:
+  /// **'Icon selected'**
+  String get manageCategoriesIconSelected;
 
   /// Tooltip for the action that opens the icon picker
   ///
@@ -320,10 +326,10 @@ abstract class AppLocalizations {
   /// **'Fill'**
   String get manageCategoriesIconStyleFill;
 
-  /// Label for the optional color input
+  /// Label for the color input
   ///
   /// In en, this message translates to:
-  /// **'Color (optional)'**
+  /// **'Color'**
   String get manageCategoriesColorLabel;
 
   /// Subtitle shown when no color has been selected
@@ -331,6 +337,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No color selected'**
   String get manageCategoriesColorNone;
+
+  /// Subtitle shown when a color has been selected
+  ///
+  /// In en, this message translates to:
+  /// **'Color selected'**
+  String get manageCategoriesColorSelected;
 
   /// Tooltip for the action that opens the color picker
   ///
@@ -373,6 +385,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Category updated successfully.'**
   String get manageCategoriesSuccessUpdate;
+
+  /// Label for the delete category action
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get manageCategoriesDeleteAction;
+
+  /// Title for the delete category confirmation dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Delete category'**
+  String get manageCategoriesDeleteConfirmTitle;
+
+  /// Confirmation message shown before deleting a category
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete the category "{name}"? All subcategories will also be removed.'**
+  String manageCategoriesDeleteConfirmMessage(String name);
+
+  /// Snackbar message shown when a category is deleted
+  ///
+  /// In en, this message translates to:
+  /// **'Category deleted successfully.'**
+  String get manageCategoriesDeleteSuccess;
+
+  /// Error message shown when deleting a category fails
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to delete category: {error}'**
+  String manageCategoriesDeleteError(String error);
 
   /// Label for the profile name input
   ///

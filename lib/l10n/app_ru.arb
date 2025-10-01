@@ -102,13 +102,17 @@
   "@manageCategoriesTypeIncome": {
     "description": "Подпись типа категории для доходов"
   },
-  "manageCategoriesIconLabel": "Иконка (необязательно)",
+  "manageCategoriesIconLabel": "Иконка",
   "@manageCategoriesIconLabel": {
     "description": "Подпись поля иконки"
   },
   "manageCategoriesIconNone": "Иконка не выбрана",
   "@manageCategoriesIconNone": {
     "description": "Подпись, когда иконка не выбрана"
+  },
+  "manageCategoriesIconSelected": "Иконка выбрана",
+  "@manageCategoriesIconSelected": {
+    "description": "Подпись, когда иконка выбрана"
   },
   "manageCategoriesIconSelect": "Выбрать иконку",
   "@manageCategoriesIconSelect": {
@@ -150,13 +154,17 @@
   "@manageCategoriesIconStyleFill": {
     "description": "Подпись фильтра заливного стиля"
   },
-  "manageCategoriesColorLabel": "Цвет (необязательно)",
+  "manageCategoriesColorLabel": "Цвет",
   "@manageCategoriesColorLabel": {
     "description": "Подпись поля цвета"
   },
   "manageCategoriesColorNone": "Цвет не выбран",
   "@manageCategoriesColorNone": {
     "description": "Подпись, когда цвет категории не выбран"
+  },
+  "manageCategoriesColorSelected": "Цвет выбран",
+  "@manageCategoriesColorSelected": {
+    "description": "Подпись, когда цвет выбран"
   },
   "manageCategoriesColorSelect": "Выбрать цвет",
   "@manageCategoriesColorSelect": {
@@ -190,6 +198,36 @@
   "manageCategoriesSuccessUpdate": "Категория обновлена.",
   "@manageCategoriesSuccessUpdate": {
     "description": "Сообщение после успешного обновления категории"
+  },
+  "manageCategoriesDeleteAction": "Удалить",
+  "@manageCategoriesDeleteAction": {
+    "description": "Подпись для действия удаления категории"
+  },
+  "manageCategoriesDeleteConfirmTitle": "Удалить категорию",
+  "@manageCategoriesDeleteConfirmTitle": {
+    "description": "Заголовок диалога подтверждения удаления категории"
+  },
+  "manageCategoriesDeleteConfirmMessage": "Вы действительно хотите удалить категорию «{name}»? Все подкатегории также будут удалены.",
+  "@manageCategoriesDeleteConfirmMessage": {
+    "description": "Сообщение подтверждения перед удалением категории",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "manageCategoriesDeleteSuccess": "Категория удалена.",
+  "@manageCategoriesDeleteSuccess": {
+    "description": "Сообщение после успешного удаления категории"
+  },
+  "manageCategoriesDeleteError": "Не удалось удалить категорию: {error}",
+  "@manageCategoriesDeleteError": {
+    "description": "Сообщение об ошибке при удалении категории",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
   },
   "@profileSectionAccount": {
     "description": "Заголовок блока с учетной записью"

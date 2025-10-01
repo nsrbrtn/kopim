@@ -22,6 +22,7 @@ import 'package:kopim/features/categories/data/repositories/category_repository_
 import 'package:kopim/features/categories/data/sources/local/category_dao.dart';
 import 'package:kopim/features/categories/data/sources/remote/category_remote_data_source.dart';
 import 'package:kopim/features/categories/domain/repositories/category_repository.dart';
+import 'package:kopim/features/categories/domain/use_cases/delete_category_use_case.dart';
 import 'package:kopim/features/categories/domain/use_cases/save_category_use_case.dart';
 import 'package:kopim/features/categories/domain/use_cases/watch_categories_use_case.dart';
 import 'package:kopim/features/categories/domain/use_cases/watch_category_tree_use_case.dart';
@@ -126,6 +127,10 @@ CategoryRepository categoryRepository(Ref ref) => CategoryRepositoryImpl(
 @riverpod
 SaveCategoryUseCase saveCategoryUseCase(Ref ref) =>
     SaveCategoryUseCase(ref.watch(categoryRepositoryProvider));
+
+@riverpod
+DeleteCategoryUseCase deleteCategoryUseCase(Ref ref) =>
+    DeleteCategoryUseCase(ref.watch(categoryRepositoryProvider));
 
 final rp.Provider<WatchCategoriesUseCase> watchCategoriesUseCaseProvider =
     rp.Provider<WatchCategoriesUseCase>((rp.Ref ref) {

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart'
     show ColorLabelType, ColorPicker;
 
+import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/core/domain/icons/phosphor_icon_descriptor.dart';
 import 'package:kopim/core/utils/helpers.dart';
 import 'package:kopim/core/widgets/phosphor_icon_picker.dart';
@@ -63,6 +64,12 @@ class ManageCategoriesScreen extends ConsumerWidget {
                 strings: strings,
                 parents: rootCategories,
                 defaultParentId: parent.id,
+              ),
+              onDeleteCategory: (Category category) => _confirmDeleteCategory(
+                context,
+                ref,
+                strings: strings,
+                category: category,
               ),
             );
           },
@@ -205,18 +212,75 @@ Future<void> _showCategoryEditor(
   }
 }
 
+Future<void> _confirmDeleteCategory(
+  BuildContext context,
+  WidgetRef ref, {
+  required AppLocalizations strings,
+  required Category category,
+}) async {
+  final bool? shouldDelete = await showDialog<bool>(
+    context: context,
+    builder: (BuildContext dialogContext) {
+      return AlertDialog(
+        title: Text(strings.manageCategoriesDeleteConfirmTitle),
+        content: Text(
+          strings.manageCategoriesDeleteConfirmMessage(category.name),
+        ),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(strings.dialogCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(strings.manageCategoriesDeleteAction),
+          ),
+        ],
+      );
+    },
+  );
+
+  if (shouldDelete != true || !context.mounted) {
+    return;
+  }
+
+  final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
+  try {
+    await ref.read(deleteCategoryUseCaseProvider)(category.id);
+    messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(strings.manageCategoriesDeleteSuccess),
+        ),
+      );
+  } catch (error) {
+    messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(
+            strings.manageCategoriesDeleteError(error.toString()),
+          ),
+        ),
+      );
+  }
+}
+
 class _CategoryTreeList extends StatelessWidget {
   const _CategoryTreeList({
     required this.tree,
     required this.strings,
     required this.onEditCategory,
     required this.onAddSubcategory,
+    required this.onDeleteCategory,
   });
 
   final List<CategoryTreeNode> tree;
   final AppLocalizations strings;
   final ValueChanged<Category> onEditCategory;
   final ValueChanged<Category> onAddSubcategory;
+  final ValueChanged<Category> onDeleteCategory;
 
   @override
   Widget build(BuildContext context) {
@@ -230,6 +294,7 @@ class _CategoryTreeList extends StatelessWidget {
           strings: strings,
           onEditCategory: onEditCategory,
           onAddSubcategory: onAddSubcategory,
+          onDeleteCategory: onDeleteCategory,
         );
       },
       separatorBuilder: (_, __) => const SizedBox(height: 12),
@@ -243,12 +308,14 @@ class _CategoryNodeCard extends StatelessWidget {
     required this.strings,
     required this.onEditCategory,
     required this.onAddSubcategory,
+    required this.onDeleteCategory,
   });
 
   final CategoryTreeNode node;
   final AppLocalizations strings;
   final ValueChanged<Category> onEditCategory;
   final ValueChanged<Category> onAddSubcategory;
+  final ValueChanged<Category> onDeleteCategory;
 
   @override
   Widget build(BuildContext context) {
@@ -279,6 +346,11 @@ class _CategoryNodeCard extends StatelessWidget {
               tooltip: strings.manageCategoriesEditAction,
               onPressed: () => onEditCategory(category),
             ),
+            IconButton(
+              icon: const Icon(Icons.delete_outline),
+              tooltip: strings.manageCategoriesDeleteAction,
+              onPressed: () => onDeleteCategory(category),
+            ),
           ],
         ),
         children: node.children.isEmpty
@@ -298,6 +370,7 @@ class _CategoryNodeCard extends StatelessWidget {
                       node: child,
                       strings: strings,
                       onEdit: onEditCategory,
+                      onDelete: onDeleteCategory,
                     ),
                   )
                   .toList(growable: false),
@@ -311,11 +384,13 @@ class _SubcategoryTile extends StatelessWidget {
     required this.node,
     required this.strings,
     required this.onEdit,
+    required this.onDelete,
   });
 
   final CategoryTreeNode node;
   final AppLocalizations strings;
   final ValueChanged<Category> onEdit;
+  final ValueChanged<Category> onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -327,10 +402,20 @@ class _SubcategoryTile extends StatelessWidget {
       leading: _CategoryIcon(iconData: iconData, backgroundColor: color),
       title: Text(category.name),
       subtitle: Text(metadata.join(' · ')),
-      trailing: IconButton(
-        icon: const Icon(Icons.edit_outlined),
-        tooltip: strings.manageCategoriesEditAction,
-        onPressed: () => onEdit(category),
+      trailing: Wrap(
+        spacing: 4,
+        children: <Widget>[
+          IconButton(
+            icon: const Icon(Icons.edit_outlined),
+            tooltip: strings.manageCategoriesEditAction,
+            onPressed: () => onEdit(category),
+          ),
+          IconButton(
+            icon: const Icon(Icons.delete_outline),
+            tooltip: strings.manageCategoriesDeleteAction,
+            onPressed: () => onDelete(category),
+          ),
+        ],
       ),
     );
   }
@@ -449,11 +534,11 @@ class _CategoryEditorSheet extends ConsumerWidget {
         : strings.manageCategoriesEditTitle;
     final PhosphorIconData? iconData = resolvePhosphorIconData(state.icon);
     final String iconSubtitle = state.icon?.isNotEmpty == true
-        ? '${state.icon!.style.name} · ${state.icon!.name}'
+        ? strings.manageCategoriesIconSelected
         : strings.manageCategoriesIconNone;
     final Color? selectedColor = parseHexColor(state.color);
     final String colorSubtitle = selectedColor != null
-        ? colorToHex(selectedColor)!
+        ? strings.manageCategoriesColorSelected
         : strings.manageCategoriesColorNone;
 
     final PhosphorIconPickerLabels pickerLabels = PhosphorIconPickerLabels(
@@ -469,22 +554,6 @@ class _CategoryEditorSheet extends ConsumerWidget {
         PhosphorIconStyle.fill: strings.manageCategoriesIconStyleFill,
       },
     );
-
-    final List<DropdownMenuItem<String?>> parentItems =
-        <DropdownMenuItem<String?>>[
-          DropdownMenuItem<String?>(
-            value: null,
-            child: Text(strings.manageCategoriesParentNone),
-          ),
-          ...state.availableParents
-              .where((Category parent) => parent.id != state.id)
-              .map(
-                (Category parent) => DropdownMenuItem<String?>(
-                  value: parent.id,
-                  child: Text(parent.name),
-                ),
-              ),
-        ];
 
     final EdgeInsets viewInsets = MediaQuery.of(context).viewInsets;
 
@@ -578,15 +647,6 @@ class _CategoryEditorSheet extends ConsumerWidget {
                   controller.updateType(values.first);
                 },
               ),
-            ),
-            const SizedBox(height: 16),
-            DropdownButtonFormField<String?>(
-              value: state.parentId,
-              items: parentItems,
-              decoration: InputDecoration(
-                labelText: strings.manageCategoriesParentLabel,
-              ),
-              onChanged: controller.updateParent,
             ),
             const SizedBox(height: 16),
             ListTile(
@@ -697,12 +757,5 @@ List<String> _buildMetadata(Category category, AppLocalizations strings) {
       ? strings.manageCategoriesTypeIncome
       : strings.manageCategoriesTypeExpense;
   metadata.add(typeLabel);
-  final String? resolvedColor = colorToHex(parseHexColor(category.color));
-  if (resolvedColor != null && resolvedColor.isNotEmpty) {
-    metadata.add('${strings.manageCategoriesColorLabel}: $resolvedColor');
-  }
-  if (category.icon?.isNotEmpty == true) {
-    metadata.add(category.icon!.name);
-  }
   return metadata;
 }
