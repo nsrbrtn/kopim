@@ -12,6 +12,7 @@ import 'package:kopim/l10n/app_localizations.dart';
 class _StubSaveCategoryUseCase implements SaveCategoryUseCase {
   @override
   Future<void> call(Category category) async {}
+
 }
 
 void main() {
@@ -128,6 +129,7 @@ void main() {
         expect(preview.backgroundColor, equals(const Color(0xFFDBF227)));
       },
     );
+
 
     testWidgets('renders contrasting icon color for dark backgrounds', (
       WidgetTester tester,
