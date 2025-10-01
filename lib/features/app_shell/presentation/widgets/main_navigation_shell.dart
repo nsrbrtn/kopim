@@ -13,18 +13,22 @@ class MainNavigationShell extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final List<NavigationTabConfig> tabs =
-        ref.watch(mainNavigationTabsProvider);
+    final List<NavigationTabConfig> tabs = ref.watch(
+      mainNavigationTabsProvider,
+    );
     final int currentIndex = ref.watch(mainNavigationControllerProvider);
     final List<NavigationTabContent> contents = <NavigationTabContent>[
       for (final NavigationTabConfig config in tabs)
         config.contentBuilder(context, ref),
     ];
     final NavigationTabContent activeContent = contents[currentIndex];
-    final PreferredSizeWidget? appBar =
-        activeContent.appBarBuilder?.call(context, ref);
-    final Widget? floatingActionButton =
-        activeContent.floatingActionButtonBuilder?.call(context, ref);
+    final PreferredSizeWidget? appBar = activeContent.appBarBuilder?.call(
+      context,
+      ref,
+    );
+    final Widget? floatingActionButton = activeContent
+        .floatingActionButtonBuilder
+        ?.call(context, ref);
 
     return Scaffold(
       appBar: appBar,

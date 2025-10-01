@@ -13,7 +13,8 @@ class MainNavigationController extends Notifier<int> {
   }
 }
 
-final NotifierProvider<MainNavigationController, int> mainNavigationControllerProvider =
-NotifierProvider<MainNavigationController, int>(
-  MainNavigationController.new,
-);
+final NotifierProvider<MainNavigationController, int>
+mainNavigationControllerProvider =
+    NotifierProvider<MainNavigationController, int>(
+      MainNavigationController.new,
+    );

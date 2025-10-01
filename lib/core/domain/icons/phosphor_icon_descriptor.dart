@@ -23,7 +23,6 @@ extension PhosphorIconStyleX on PhosphorIconStyle {
 
 @freezed
 abstract class PhosphorIconDescriptor with _$PhosphorIconDescriptor {
-
   factory PhosphorIconDescriptor.fromJson(Map<String, Object?> json) =>
       _$PhosphorIconDescriptorFromJson(json);
   const factory PhosphorIconDescriptor({

@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart' hide Category;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -16,6 +15,7 @@ import 'package:kopim/features/profile/presentation/controllers/auth_controller.
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/presentation/add_transaction_screen.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
+import 'package:kopim/features/transactions/presentation/widgets/transaction_editor.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 import 'package:kopim/core/utils/helpers.dart';
 import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
@@ -152,11 +152,11 @@ class _HomeBody extends StatelessWidget {
                         transactions: transactions,
                         localeName: strings.localeName,
                         strings: strings,
-                        accountsById: {
+                        accountsById: <String, AccountEntity>{
                           for (final AccountEntity account in accounts)
                             account.id: account,
                         },
-                        categoriesById: {
+                        categoriesById: <String, Category>{
                           for (final Category category in categories)
                             category.id: category,
                         },
@@ -218,7 +218,7 @@ class _AddTransactionButton extends StatelessWidget {
   }
 }
 
-class _AccountsList extends StatelessWidget {
+class _AccountsList extends StatefulWidget {
   const _AccountsList({
     required this.accounts,
     required this.strings,
@@ -230,96 +230,207 @@ class _AccountsList extends StatelessWidget {
   final Map<String, HomeAccountMonthlySummary> monthlySummaries;
 
   @override
+  State<_AccountsList> createState() => _AccountsListState();
+}
+
+class _AccountsListState extends State<_AccountsList> {
+  late PageController _pageController;
+  late double _viewportFraction;
+  int _currentPage = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _viewportFraction = 0.85;
+    _pageController = PageController(viewportFraction: _viewportFraction);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  void _updateViewportFraction(double fraction) {
+    if ((_viewportFraction - fraction).abs() < 0.001) {
+      return;
+    }
+    final int initialPage = _pageController.hasClients
+        ? _pageController.page?.round().clamp(0, widget.accounts.length - 1) ??
+              0
+        : _currentPage.clamp(0, widget.accounts.length - 1);
+    final PageController oldController = _pageController;
+    final PageController newController = PageController(
+      viewportFraction: fraction,
+      initialPage: initialPage,
+    );
+    setState(() {
+      _viewportFraction = fraction;
+      _pageController = newController;
+      _currentPage = initialPage;
+    });
+    oldController.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    if (accounts.isEmpty) {
-      return _EmptyMessage(message: strings.homeAccountsEmpty);
+    if (widget.accounts.isEmpty) {
+      return _EmptyMessage(message: widget.strings.homeAccountsEmpty);
     }
 
     final ThemeData theme = Theme.of(context);
-    final String localeName = strings.localeName;
+    final String localeName = widget.strings.localeName;
 
-    return ListView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: accounts.length,
-      itemBuilder: (BuildContext context, int index) {
-        final AccountEntity account = accounts[index];
-        final NumberFormat currencyFormat = NumberFormat.currency(
-          locale: localeName,
-          symbol: account.currency.toUpperCase(),
-        );
-        final HomeAccountMonthlySummary summary =
-            monthlySummaries[account.id] ??
-            const HomeAccountMonthlySummary(income: 0, expense: 0);
+    return LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints constraints) {
+        final bool isWide = constraints.maxWidth >= 720;
+        final double targetFraction = widget.accounts.length == 1
+            ? 0.95
+            : (isWide ? 0.45 : 0.85);
+        if ((_viewportFraction - targetFraction).abs() > 0.001) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!mounted) return;
+            _updateViewportFraction(targetFraction);
+          });
+        }
 
-        return Card(
-          margin: const EdgeInsets.symmetric(vertical: 8),
-          child: InkWell(
-            borderRadius: const BorderRadius.all(Radius.circular(12)),
-            onTap: () {
-              Navigator.of(context).pushNamed(
-                AccountDetailsScreen.routeName,
-                arguments: AccountDetailsScreenArgs(accountId: account.id),
-              );
-            },
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            Text(
-                              account.name,
-                              style: theme.textTheme.titleMedium,
+        return Column(
+          children: <Widget>[
+            SizedBox(
+              height: 240,
+              child: PageView.builder(
+                controller: _pageController,
+                physics: const BouncingScrollPhysics(),
+                itemCount: widget.accounts.length,
+                onPageChanged: (int index) {
+                  setState(() {
+                    _currentPage = index;
+                  });
+                },
+                itemBuilder: (BuildContext context, int index) {
+                  final AccountEntity account = widget.accounts[index];
+                  final NumberFormat currencyFormat = NumberFormat.currency(
+                    locale: localeName,
+                    symbol: account.currency.toUpperCase(),
+                  );
+                  final HomeAccountMonthlySummary summary =
+                      widget.monthlySummaries[account.id] ??
+                      const HomeAccountMonthlySummary(income: 0, expense: 0);
+
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    child: Card(
+                      clipBehavior: Clip.antiAlias,
+                      child: InkWell(
+                        onTap: () {
+                          Navigator.of(context).pushNamed(
+                            AccountDetailsScreen.routeName,
+                            arguments: AccountDetailsScreenArgs(
+                              accountId: account.id,
                             ),
-                            const SizedBox(height: 4),
-                            Text(
-                              _resolveAccountTypeLabel(strings, account.type),
-                              style: theme.textTheme.bodySmall,
-                            ),
-                          ],
+                          );
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: <Widget>[
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: <Widget>[
+                                        Text(
+                                          account.name,
+                                          style: theme.textTheme.titleMedium,
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          _resolveAccountTypeLabel(
+                                            widget.strings,
+                                            account.type,
+                                          ),
+                                          style: theme.textTheme.bodySmall,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Text(
+                                    currencyFormat.format(account.balance),
+                                    textAlign: TextAlign.right,
+                                    style: theme.textTheme.headlineSmall
+                                        ?.copyWith(fontWeight: FontWeight.w600),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 16),
+                              Row(
+                                children: <Widget>[
+                                  Expanded(
+                                    child: _AccountMonthlyValue(
+                                      label: widget
+                                          .strings
+                                          .homeAccountMonthlyIncomeLabel,
+                                      value: currencyFormat.format(
+                                        summary.income,
+                                      ),
+                                      valueColor: theme.colorScheme.primary,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: _AccountMonthlyValue(
+                                      label: widget
+                                          .strings
+                                          .homeAccountMonthlyExpenseLabel,
+                                      value: currencyFormat.format(
+                                        summary.expense,
+                                      ),
+                                      valueColor: theme.colorScheme.error,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                      const SizedBox(width: 12),
-                      Text(
-                        currencyFormat.format(account.balance),
-                        textAlign: TextAlign.right,
-                        style: theme.textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: <Widget>[
-                      Expanded(
-                        child: _AccountMonthlyValue(
-                          label: strings.homeAccountMonthlyIncomeLabel,
-                          value: currencyFormat.format(summary.income),
-                          valueColor: theme.colorScheme.primary,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: _AccountMonthlyValue(
-                          label: strings.homeAccountMonthlyExpenseLabel,
-                          value: currencyFormat.format(summary.expense),
-                          valueColor: theme.colorScheme.error,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+                    ),
+                  );
+                },
               ),
             ),
-          ),
+            if (widget.accounts.length > 1)
+              Padding(
+                padding: const EdgeInsets.only(top: 12),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List<Widget>.generate(widget.accounts.length, (
+                    int index,
+                  ) {
+                    final bool isActive = index == _currentPage;
+                    return AnimatedContainer(
+                      duration: const Duration(milliseconds: 250),
+                      margin: const EdgeInsets.symmetric(horizontal: 4),
+                      height: 8,
+                      width: isActive ? 24 : 8,
+                      decoration: BoxDecoration(
+                        color: isActive
+                            ? theme.colorScheme.primary
+                            : theme.colorScheme.outlineVariant,
+                        borderRadius: const BorderRadius.all(
+                          Radius.circular(4),
+                        ),
+                      ),
+                    );
+                  }),
+                ),
+              ),
+          ],
         );
       },
     );
@@ -367,7 +478,7 @@ class _AccountMonthlyValue extends StatelessWidget {
   }
 }
 
-class _TransactionsList extends StatelessWidget {
+class _TransactionsList extends ConsumerWidget {
   const _TransactionsList({
     required this.transactions,
     required this.localeName,
@@ -383,7 +494,7 @@ class _TransactionsList extends StatelessWidget {
   final Map<String, Category> categoriesById;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     if (transactions.isEmpty) {
       return _EmptyMessage(message: strings.homeTransactionsEmpty);
     }
@@ -446,47 +557,69 @@ class _TransactionsList extends StatelessWidget {
                   : Colors.black87)
             : theme.colorScheme.onSurfaceVariant;
 
-        return Card(
-          margin: const EdgeInsets.symmetric(vertical: 8),
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CircleAvatar(
-                  backgroundColor:
-                      categoryColor ??
-                      theme.colorScheme.surfaceContainerHighest,
-                  foregroundColor: avatarIconColor,
-                  child: categoryIcon != null
-                      ? Icon(categoryIcon)
-                      : const Icon(Icons.category_outlined),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(categoryName, style: theme.textTheme.bodyMedium),
-                      if (note != null && note.isNotEmpty)
-                        Text(note, style: theme.textTheme.bodySmall),
-                    ],
-                  ),
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      amountText,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        color: amountColor,
+        return Dismissible(
+          key: ValueKey<String>(transaction.id),
+          direction: DismissDirection.endToStart,
+          background: buildDeleteBackground(theme.colorScheme.error),
+          confirmDismiss: (DismissDirection direction) async {
+            return deleteTransactionWithFeedback(
+              context: context,
+              ref: ref,
+              transactionId: transaction.id,
+              strings: strings,
+            );
+          },
+          child: Card(
+            margin: const EdgeInsets.symmetric(vertical: 8),
+            child: InkWell(
+              borderRadius: const BorderRadius.all(Radius.circular(12)),
+              onTap: () => showTransactionEditorSheet(
+                context: context,
+                ref: ref,
+                transaction: transaction,
+                submitLabel: strings.editTransactionSubmit,
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    CircleAvatar(
+                      backgroundColor:
+                          categoryColor ??
+                          theme.colorScheme.surfaceContainerHighest,
+                      foregroundColor: avatarIconColor,
+                      child: categoryIcon != null
+                          ? Icon(categoryIcon)
+                          : const Icon(Icons.category_outlined),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Text(categoryName, style: theme.textTheme.bodyMedium),
+                          if (note != null && note.isNotEmpty)
+                            Text(note, style: theme.textTheme.bodySmall),
+                        ],
                       ),
                     ),
-                    if (account != null)
-                      Text(account.name, style: theme.textTheme.bodySmall),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: <Widget>[
+                        Text(
+                          amountText,
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            color: amountColor,
+                          ),
+                        ),
+                        if (account != null)
+                          Text(account.name, style: theme.textTheme.bodySmall),
+                      ],
+                    ),
                   ],
                 ),
-              ],
+              ),
             ),
           ),
         );

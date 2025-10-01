@@ -1,4 +1,4 @@
-﻿import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
 import 'package:kopim/features/profile/domain/entities/sign_in_request.dart';
 import 'package:kopim/features/profile/domain/failures/auth_failure.dart';
@@ -30,8 +30,9 @@ void main() {
       final ProviderContainer container = ProviderContainer();
       addTearDown(container.dispose);
 
-      final SignInFormState state =
-          container.read(signInFormControllerProvider);
+      final SignInFormState state = container.read(
+        signInFormControllerProvider,
+      );
 
       expect(state.email, isEmpty);
       expect(state.password, isEmpty);
@@ -43,47 +44,57 @@ void main() {
       final ProviderContainer container = ProviderContainer();
       addTearDown(container.dispose);
 
-      final SignInFormController controller =
-          container.read(signInFormControllerProvider.notifier);
+      final SignInFormController controller = container.read(
+        signInFormControllerProvider.notifier,
+      );
 
       controller.updateEmail('user@example.com');
       controller.updatePassword('secret123');
 
-      final SignInFormState state =
-          container.read(signInFormControllerProvider);
+      final SignInFormState state = container.read(
+        signInFormControllerProvider,
+      );
 
       expect(state.email, 'user@example.com');
       expect(state.password, 'secret123');
       expect(state.canSubmit, isTrue);
     });
 
-    test('submit delegates to auth controller and clears error on success', () async {
-      final _TestAuthController testAuthController = _TestAuthController();
-      final ProviderContainer container = ProviderContainer(
-        // ignore: always_specify_types
-        overrides: [
-          authControllerProvider.overrideWith(() => testAuthController),
-        ],
-      );
-      addTearDown(container.dispose);
+    test(
+      'submit delegates to auth controller and clears error on success',
+      () async {
+        final _TestAuthController testAuthController = _TestAuthController();
+        final ProviderContainer container = ProviderContainer(
+          // ignore: always_specify_types
+          overrides: [
+            authControllerProvider.overrideWith(() => testAuthController),
+          ],
+        );
+        addTearDown(container.dispose);
 
-      final SignInFormController controller =
-          container.read(signInFormControllerProvider.notifier);
+        final SignInFormController controller = container.read(
+          signInFormControllerProvider.notifier,
+        );
 
-      controller.updateEmail('user@example.com');
-      controller.updatePassword('secret123');
+        controller.updateEmail('user@example.com');
+        controller.updatePassword('secret123');
 
-      await controller.submit();
+        await controller.submit();
 
-      expect(
-        testAuthController.lastRequest,
-        const SignInRequest.email(email: 'user@example.com', password: 'secret123'),
-      );
-      final SignInFormState state =
-          container.read(signInFormControllerProvider);
-      expect(state.isSubmitting, isFalse);
-      expect(state.errorMessage, isNull);
-    });
+        expect(
+          testAuthController.lastRequest,
+          const SignInRequest.email(
+            email: 'user@example.com',
+            password: 'secret123',
+          ),
+        );
+        final SignInFormState state = container.read(
+          signInFormControllerProvider,
+        );
+        expect(state.isSubmitting, isFalse);
+        expect(state.errorMessage, isNull);
+      },
+    );
 
     test('submit surfaces auth failure message', () async {
       final _TestAuthController testAuthController = _TestAuthController();
@@ -95,19 +106,23 @@ void main() {
       );
       addTearDown(container.dispose);
 
-      final SignInFormController controller =
-          container.read(signInFormControllerProvider.notifier);
+      final SignInFormController controller = container.read(
+        signInFormControllerProvider.notifier,
+      );
 
       controller.updateEmail('user@example.com');
       controller.updatePassword('secret123');
 
-      testAuthController.failure =
-          const AuthFailure(code: 'invalid', message: 'Invalid credentials');
+      testAuthController.failure = const AuthFailure(
+        code: 'invalid',
+        message: 'Invalid credentials',
+      );
 
       await controller.submit();
 
-      final SignInFormState state =
-          container.read(signInFormControllerProvider);
+      final SignInFormState state = container.read(
+        signInFormControllerProvider,
+      );
       expect(state.isSubmitting, isFalse);
       expect(state.errorMessage, 'Invalid credentials');
     });
@@ -122,14 +137,16 @@ void main() {
       );
       addTearDown(container.dispose);
 
-      final SignInFormController controller =
-          container.read(signInFormControllerProvider.notifier);
+      final SignInFormController controller = container.read(
+        signInFormControllerProvider.notifier,
+      );
 
       await controller.signInWithGoogle();
 
       expect(testAuthController.lastRequest, const SignInRequest.google());
-      final SignInFormState state =
-          container.read(signInFormControllerProvider);
+      final SignInFormState state = container.read(
+        signInFormControllerProvider,
+      );
       expect(state.isSubmitting, isFalse);
     });
   });

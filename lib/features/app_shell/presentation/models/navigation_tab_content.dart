@@ -10,8 +10,8 @@ class NavigationTabContent {
   });
 
   final PreferredSizeWidget? Function(BuildContext context, WidgetRef ref)?
-      appBarBuilder;
+  appBarBuilder;
   final Widget Function(BuildContext context, WidgetRef ref) bodyBuilder;
   final Widget? Function(BuildContext context, WidgetRef ref)?
-      floatingActionButtonBuilder;
+  floatingActionButtonBuilder;
 }

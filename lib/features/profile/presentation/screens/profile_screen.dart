@@ -23,8 +23,10 @@ class ProfileScreen extends ConsumerWidget {
     return Scaffold(
       appBar: content.appBarBuilder?.call(context, ref),
       body: content.bodyBuilder(context, ref),
-      floatingActionButton:
-          content.floatingActionButtonBuilder?.call(context, ref),
+      floatingActionButton: content.floatingActionButtonBuilder?.call(
+        context,
+        ref,
+      ),
     );
   }
 }
@@ -60,8 +62,9 @@ NavigationTabContent buildProfileTabContent(
 
           return LayoutBuilder(
             builder: (BuildContext context, BoxConstraints constraints) {
-              final double maxWidth =
-                  constraints.maxWidth >= 600 ? 520.0 : double.infinity;
+              final double maxWidth = constraints.maxWidth >= 600
+                  ? 520.0
+                  : double.infinity;
               return Center(
                 child: ConstrainedBox(
                   constraints: BoxConstraints(maxWidth: maxWidth),
@@ -167,9 +170,9 @@ class _ProfileForm extends ConsumerWidget {
                     .map(
                       (ProfileCurrency value) =>
                           DropdownMenuItem<ProfileCurrency>(
-                        value: value,
-                        child: Text(value.name.toUpperCase()),
-                      ),
+                            value: value,
+                            child: Text(value.name.toUpperCase()),
+                          ),
                     )
                     .toList(growable: false),
                 onChanged: (ProfileCurrency? value) {
@@ -274,10 +277,7 @@ class _ProfileForm extends ConsumerWidget {
 }
 
 class _CollapsibleSection extends StatelessWidget {
-  const _CollapsibleSection({
-    required this.title,
-    required this.child,
-  });
+  const _CollapsibleSection({required this.title, required this.child});
 
   final String title;
   final Widget child;

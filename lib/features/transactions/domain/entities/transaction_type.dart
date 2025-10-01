@@ -1,7 +1,4 @@
-enum TransactionType {
-  expense,
-  income,
-}
+enum TransactionType { expense, income }
 
 extension TransactionTypeX on TransactionType {
   String get storageValue => name;

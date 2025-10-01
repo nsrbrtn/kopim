@@ -41,4 +41,3 @@ String formatPhosphorIconName(String name) {
   }
   return buffer.toString().toLowerCase();
 }
-

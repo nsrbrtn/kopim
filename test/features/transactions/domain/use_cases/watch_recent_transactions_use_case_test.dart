@@ -29,18 +29,13 @@ void main() {
         _transaction('c', base),
       ];
 
-      final Future<List<TransactionEntity>> result =
-          useCase.call(limit: 2).first;
+      final Future<List<TransactionEntity>> result = useCase
+          .call(limit: 2)
+          .first;
 
       controller.add(unsorted);
 
-      expect(
-        await result,
-        <TransactionEntity>[
-          unsorted[1],
-          unsorted[0],
-        ],
-      );
+      expect(await result, <TransactionEntity>[unsorted[1], unsorted[0]]);
     });
 
     test('returns all transactions when limit is zero or negative', () async {
@@ -51,19 +46,17 @@ void main() {
         _transaction('3', base.add(const Duration(days: 1))),
       ];
 
-      final Future<List<TransactionEntity>> result =
-          useCase.call(limit: 0).first;
+      final Future<List<TransactionEntity>> result = useCase
+          .call(limit: 0)
+          .first;
 
       controller.add(unsorted);
 
-      expect(
-        await result,
-        <TransactionEntity>[
-          unsorted[1],
-          unsorted[2],
-          unsorted[0],
-        ],
-      );
+      expect(await result, <TransactionEntity>[
+        unsorted[1],
+        unsorted[2],
+        unsorted[0],
+      ]);
     });
   });
 }

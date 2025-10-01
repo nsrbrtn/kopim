@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:kopim/features/profile/domain/entities/sign_in_request.dart';
@@ -45,21 +45,20 @@ class SignInFormController extends _$SignInFormController {
 
     state = state.copyWith(isSubmitting: true, errorMessage: null);
     try {
-      await ref.read(authControllerProvider.notifier).signIn(
-        SignInRequest.email(
-          email: state.email.trim(),
-          password: state.password,
-        ),
-      );
+      await ref
+          .read(authControllerProvider.notifier)
+          .signIn(
+            SignInRequest.email(
+              email: state.email.trim(),
+              password: state.password,
+            ),
+          );
 
       if (!ref.mounted) return; // провайдер уже уничтожен
       state = state.copyWith(isSubmitting: false);
     } on AuthFailure catch (error) {
       if (!ref.mounted) return;
-      state = state.copyWith(
-        isSubmitting: false,
-        errorMessage: error.message,
-      );
+      state = state.copyWith(isSubmitting: false, errorMessage: error.message);
     } catch (_) {
       if (!ref.mounted) return;
       state = state.copyWith(
@@ -80,10 +79,7 @@ class SignInFormController extends _$SignInFormController {
       state = state.copyWith(isSubmitting: false);
     } on AuthFailure catch (error) {
       if (!ref.mounted) return;
-      state = state.copyWith(
-        isSubmitting: false,
-        errorMessage: error.message,
-      );
+      state = state.copyWith(isSubmitting: false, errorMessage: error.message);
     } catch (_) {
       if (!ref.mounted) return;
       state = state.copyWith(

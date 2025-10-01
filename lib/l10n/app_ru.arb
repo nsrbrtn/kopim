@@ -517,6 +517,22 @@
   "@addTransactionUnknownError": {
     "description": "Общее сообщение об ошибке сохранения"
   },
+  "transactionFormMissingError": "Не удалось найти транзакцию. Обновите данные и попробуйте снова.",
+  "@transactionFormMissingError": {
+    "description": "Сообщение при попытке редактировать отсутствующую транзакцию"
+  },
+  "editTransactionSubmit": "Сохранить изменения",
+  "@editTransactionSubmit": {
+    "description": "Подпись кнопки сохранения при редактировании транзакции"
+  },
+  "transactionDeleteSuccess": "Транзакция удалена.",
+  "@transactionDeleteSuccess": {
+    "description": "Сообщение об успешном удалении транзакции"
+  },
+  "transactionDeleteError": "Не удалось удалить транзакцию.",
+  "@transactionDeleteError": {
+    "description": "Сообщение об ошибке при удалении транзакции"
+  },
   "addTransactionSuccess": "Транзакция сохранена",
   "@addTransactionSuccess": {
     "description": "Сообщение об успешном сохранении"
@@ -646,13 +662,25 @@
   "@accountDetailsFiltersTitle": {
     "description": "Заголовок блока фильтров"
   },
+  "accountDetailsFiltersButtonActive": "Фильтры (активны)",
+  "@accountDetailsFiltersButtonActive": {
+    "description": "Подпись кнопки фильтров, когда есть активные фильтры"
+  },
   "accountDetailsFiltersClear": "Сбросить фильтры",
   "@accountDetailsFiltersClear": {
     "description": "Кнопка сброса всех фильтров"
   },
+  "accountDetailsFiltersDateLabel": "Дата",
+  "@accountDetailsFiltersDateLabel": {
+    "description": "Подпись фильтра диапазона дат"
+  },
   "accountDetailsFiltersDateAny": "Любые даты",
   "@accountDetailsFiltersDateAny": {
     "description": "Подпись при отсутствии фильтра по датам"
+  },
+  "accountDetailsFiltersDateClear": "Очистить диапазон",
+  "@accountDetailsFiltersDateClear": {
+    "description": "Подсказка для очистки фильтра по датам"
   },
   "accountDetailsFiltersDateValue": "{start} — {end}",
   "@accountDetailsFiltersDateValue": {

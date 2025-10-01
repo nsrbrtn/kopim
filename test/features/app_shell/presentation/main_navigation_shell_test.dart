@@ -134,7 +134,9 @@ void main() {
         watchRecentTransactionsUseCaseProvider.overrideWithValue(
           WatchRecentTransactionsUseCase(
             _StreamTransactionRepository(
-              Stream<List<TransactionEntity>>.value(const <TransactionEntity>[]),
+              Stream<List<TransactionEntity>>.value(
+                const <TransactionEntity>[],
+              ),
             ),
           ),
         ),
@@ -153,9 +155,8 @@ void main() {
           ),
         ),
         manageCategoryTreeProvider.overrideWith(
-          (Ref ref) => Stream<List<CategoryTreeNode>>.value(
-            const <CategoryTreeNode>[],
-          ),
+          (Ref ref) =>
+              Stream<List<CategoryTreeNode>>.value(const <CategoryTreeNode>[]),
         ),
       ],
       child: child,
@@ -209,9 +210,8 @@ void main() {
 
     navigator.push(
       MaterialPageRoute<void>(
-        builder: (BuildContext context) => const Scaffold(
-          body: Center(child: Text('Child screen')),
-        ),
+        builder: (BuildContext context) =>
+            const Scaffold(body: Center(child: Text('Child screen'))),
       ),
     );
 

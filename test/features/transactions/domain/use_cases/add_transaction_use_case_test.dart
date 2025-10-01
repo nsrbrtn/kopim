@@ -72,10 +72,10 @@ void main() {
 
   test('saves expense transaction and decreases account balance', () async {
     final AccountEntity account = account0(balance: 200);
-    when(() => accountRepository.findById(account.id))
-        .thenAnswer((_) async => account);
-    when(() => transactionRepository.upsert(any()))
-        .thenAnswer((_) async {});
+    when(
+      () => accountRepository.findById(account.id),
+    ).thenAnswer((_) async => account);
+    when(() => transactionRepository.upsert(any())).thenAnswer((_) async {});
     when(() => accountRepository.upsert(any())).thenAnswer((_) async {});
 
     final AddTransactionRequest request = AddTransactionRequest(
@@ -89,9 +89,8 @@ void main() {
     await useCase(request);
 
     final TransactionEntity transaction =
-        verify(() => transactionRepository.upsert(captureAny()))
-            .captured
-            .single as TransactionEntity;
+        verify(() => transactionRepository.upsert(captureAny())).captured.single
+            as TransactionEntity;
     expect(transaction.id, 'generated-id');
     expect(transaction.accountId, account.id);
     expect(transaction.amount, 50);
@@ -101,19 +100,18 @@ void main() {
     expect(transaction.updatedAt, fixedNow.toUtc());
 
     final AccountEntity updatedAccount =
-        verify(() => accountRepository.upsert(captureAny()))
-            .captured
-            .single as AccountEntity;
+        verify(() => accountRepository.upsert(captureAny())).captured.single
+            as AccountEntity;
     expect(updatedAccount.balance, closeTo(150, 1e-9));
     expect(updatedAccount.updatedAt, fixedNow.toUtc());
   });
 
   test('saves income transaction and increases account balance', () async {
     final AccountEntity account = account0(balance: 80);
-    when(() => accountRepository.findById(account.id))
-        .thenAnswer((_) async => account);
-    when(() => transactionRepository.upsert(any()))
-        .thenAnswer((_) async {});
+    when(
+      () => accountRepository.findById(account.id),
+    ).thenAnswer((_) async => account);
+    when(() => transactionRepository.upsert(any())).thenAnswer((_) async {});
     when(() => accountRepository.upsert(any())).thenAnswer((_) async {});
 
     final AddTransactionRequest request = AddTransactionRequest(
@@ -127,15 +125,15 @@ void main() {
     await useCase(request);
 
     final AccountEntity updatedAccount =
-        verify(() => accountRepository.upsert(captureAny()))
-            .captured
-            .single as AccountEntity;
+        verify(() => accountRepository.upsert(captureAny())).captured.single
+            as AccountEntity;
     expect(updatedAccount.balance, closeTo(100, 1e-9));
   });
 
   test('throws StateError when account is missing', () async {
-    when(() => accountRepository.findById('missing'))
-        .thenAnswer((_) async => null);
+    when(
+      () => accountRepository.findById('missing'),
+    ).thenAnswer((_) async => null);
 
     final AddTransactionRequest request = AddTransactionRequest(
       accountId: 'missing',

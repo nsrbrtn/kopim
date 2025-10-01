@@ -383,6 +383,19 @@ class AppLocalizationsEn extends AppLocalizations {
       'Unable to save the transaction. Try again.';
 
   @override
+  String get transactionFormMissingError =>
+      'The transaction could not be found. Refresh and try again.';
+
+  @override
+  String get editTransactionSubmit => 'Save changes';
+
+  @override
+  String get transactionDeleteSuccess => 'Transaction deleted.';
+
+  @override
+  String get transactionDeleteError => 'Unable to delete the transaction.';
+
+  @override
   String get addTransactionSuccess => 'Transaction saved';
 
   @override
@@ -472,10 +485,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get accountDetailsFiltersTitle => 'Filters';
 
   @override
+  String get accountDetailsFiltersButtonActive => 'Filters (active)';
+
+  @override
   String get accountDetailsFiltersClear => 'Clear filters';
 
   @override
+  String get accountDetailsFiltersDateLabel => 'Date';
+
+  @override
   String get accountDetailsFiltersDateAny => 'Any dates';
+
+  @override
+  String get accountDetailsFiltersDateClear => 'Clear date range';
 
   @override
   String accountDetailsFiltersDateValue(String start, String end) {

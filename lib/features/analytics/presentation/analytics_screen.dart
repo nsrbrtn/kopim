@@ -14,8 +14,10 @@ class AnalyticsScreen extends ConsumerWidget {
     return Scaffold(
       appBar: content.appBarBuilder?.call(context, ref),
       body: content.bodyBuilder(context, ref),
-      floatingActionButton:
-          content.floatingActionButtonBuilder?.call(context, ref),
+      floatingActionButton: content.floatingActionButtonBuilder?.call(
+        context,
+        ref,
+      ),
     );
   }
 }
@@ -31,10 +33,7 @@ NavigationTabContent buildAnalyticsTabContent(
     bodyBuilder: (BuildContext context, WidgetRef ref) => Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
-        child: Text(
-          strings.analyticsComingSoon,
-          textAlign: TextAlign.center,
-        ),
+        child: Text(strings.analyticsComingSoon, textAlign: TextAlign.center),
       ),
     ),
   );

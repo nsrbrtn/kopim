@@ -14,18 +14,19 @@ Color? parseHexColor(String? value) {
 }
 
 String? colorToHex(
-    Color? color, {
-      bool leadingHashSign = true,
-      bool includeAlpha = false,
-    }) {
+  Color? color, {
+  bool leadingHashSign = true,
+  bool includeAlpha = false,
+}) {
   if (color == null) return null;
 
   final int value = includeAlpha
       ? color.toARGB32()
       : (color.r.toInt() << 16) | (color.g.toInt() << 8) | color.b.toInt();
 
-  final String buffer =
-  value.toRadixString(16).padLeft(includeAlpha ? 8 : 6, '0');
+  final String buffer = value
+      .toRadixString(16)
+      .padLeft(includeAlpha ? 8 : 6, '0');
 
   return leadingHashSign ? '#${buffer.toUpperCase()}' : buffer.toUpperCase();
 }
