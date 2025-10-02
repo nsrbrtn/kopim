@@ -13,6 +13,10 @@
   "@profileManageCategoriesCta": {
     "description": "Подпись кнопки, открывающей экран управления категориями из настроек профиля"
   },
+  "profileRecurringTransactionsCta": "Повторяющиеся операции",
+  "@profileRecurringTransactionsCta": {
+    "description": "Подпись кнопки, открывающей экран повторяющихся операций из настроек профиля"
+  },
   "profileManageCategoriesTitle": "Управление категориями",
   "@profileManageCategoriesTitle": {
     "description": "Заголовок экрана управления категориями"
@@ -268,6 +272,14 @@
   "profileSignOutCta": "Выйти из аккаунта",
   "@profileSignOutCta": {
     "description": "Подпись кнопки выхода из профиля"
+  },
+  "recurringTransactionsTitle": "Повторяющиеся операции",
+  "@recurringTransactionsTitle": {
+    "description": "Заголовок экрана повторяющихся операций"
+  },
+  "recurringTransactionsEmpty": "Пока нет повторяющихся операций. Создайте правило, чтобы автоматизировать движение средств.",
+  "@recurringTransactionsEmpty": {
+    "description": "Сообщение-заглушка, когда нет настроенных повторяющихся операций"
   },
   "signInTitle": "Добро пожаловать в Kopim",
   "@signInTitle": {
@@ -573,6 +585,14 @@
   "transactionDeleteSuccess": "Транзакция удалена.",
   "@transactionDeleteSuccess": {
     "description": "Сообщение об успешном удалении транзакции"
+  },
+  "transactionDeleteConfirmTitle": "Удалить операцию",
+  "@transactionDeleteConfirmTitle": {
+    "description": "Заголовок диалога подтверждения удаления операции"
+  },
+  "transactionDeleteConfirmMessage": "Вы уверены, что хотите удалить эту операцию? Действие нельзя отменить.",
+  "@transactionDeleteConfirmMessage": {
+    "description": "Текст, который спрашивает подтверждение удаления операции"
   },
   "transactionDeleteError": "Не удалось удалить транзакцию.",
   "@transactionDeleteError": {

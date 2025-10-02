@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kopim/core/config/app_config.dart';
 import 'package:kopim/features/app_shell/presentation/models/navigation_tab_content.dart';
 import 'package:kopim/features/categories/presentation/screens/manage_categories_screen.dart';
+import 'package:kopim/features/recurring_transactions/presentation/screens/recurring_transactions_screen.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
 import 'package:kopim/features/profile/domain/entities/profile.dart';
 import 'package:kopim/features/profile/presentation/controllers/auth_controller.dart';
@@ -259,6 +260,16 @@ class _ProfileForm extends ConsumerWidget {
           },
           icon: const Icon(Icons.category_outlined),
           label: Text(strings.profileManageCategoriesCta),
+        ),
+        const SizedBox(height: 12),
+        OutlinedButton.icon(
+          onPressed: () {
+            Navigator.of(
+              context,
+            ).pushNamed(RecurringTransactionsScreen.routeName);
+          },
+          icon: const Icon(Icons.repeat),
+          label: Text(strings.profileRecurringTransactionsCta),
         ),
       ],
     );

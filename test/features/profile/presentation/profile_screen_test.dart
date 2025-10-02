@@ -13,6 +13,7 @@ import 'package:kopim/features/profile/domain/usecases/update_profile_use_case.d
 import 'package:kopim/features/profile/presentation/controllers/auth_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/profile_controller.dart';
 import 'package:kopim/features/profile/presentation/screens/profile_screen.dart';
+import 'package:kopim/features/recurring_transactions/presentation/screens/recurring_transactions_screen.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
 class _StubUpdateProfileUseCase implements UpdateProfileUseCase {
@@ -118,6 +119,7 @@ void main() {
     expect(find.text('EUR'), findsWidgets);
     expect(find.text('EN'), findsWidgets);
     expect(find.text('Manage categories'), findsOneWidget);
+    expect(find.text('Recurring transactions'), findsOneWidget);
   });
 
   testWidgets('shows sign-in prompt when user is absent', (
@@ -184,6 +186,8 @@ void main() {
           routes: <String, WidgetBuilder>{
             ManageCategoriesScreen.routeName: (_) =>
                 const ManageCategoriesScreen(),
+            RecurringTransactionsScreen.routeName: (_) =>
+                const RecurringTransactionsScreen(),
           },
           navigatorObservers: <NavigatorObserver>[observer],
         ),
@@ -204,6 +208,65 @@ void main() {
     );
     expect(find.byType(ManageCategoriesScreen), findsOneWidget);
   });
+
+  testWidgets(
+    'tapping recurring transactions button opens recurring transactions screen',
+    (WidgetTester tester) async {
+      final List<Route<dynamic>> pushedRoutes = <Route<dynamic>>[];
+      final NavigatorObserver observer = _RecordingNavigatorObserver(
+        pushedRoutes,
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          // ignore: always_specify_types
+          overrides: [
+            authControllerProvider.overrideWith(
+              () => _FakeAuthController(signedInUser),
+            ),
+            profileControllerProvider(
+              signedInUser.uid,
+            ).overrideWith(() => _FakeProfileController(hydratedProfile)),
+            updateProfileUseCaseProvider.overrideWith(
+              (Ref ref) => _StubUpdateProfileUseCase(),
+            ),
+            manageCategoryTreeProvider.overrideWith(
+              (Ref ref) => Stream<List<CategoryTreeNode>>.value(
+                const <CategoryTreeNode>[],
+              ),
+            ),
+          ],
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: const ProfileScreen(),
+            routes: <String, WidgetBuilder>{
+              ManageCategoriesScreen.routeName: (_) =>
+                  const ManageCategoriesScreen(),
+              RecurringTransactionsScreen.routeName: (_) =>
+                  const RecurringTransactionsScreen(),
+            },
+            navigatorObservers: <NavigatorObserver>[observer],
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Account'));
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.text('Recurring transactions'));
+      await tester.tap(find.text('Recurring transactions'));
+      await tester.pumpAndSettle();
+
+      expect(
+        pushedRoutes.map((Route<dynamic> route) => route.settings.name),
+        contains(RecurringTransactionsScreen.routeName),
+      );
+      expect(find.byType(RecurringTransactionsScreen), findsOneWidget);
+    },
+  );
 
   testWidgets('sign out button triggers auth controller sign out', (
     WidgetTester tester,

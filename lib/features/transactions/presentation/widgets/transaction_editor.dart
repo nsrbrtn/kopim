@@ -51,6 +51,30 @@ Future<bool> deleteTransactionWithFeedback({
   required String transactionId,
   required AppLocalizations strings,
 }) async {
+  final bool? confirmed = await showDialog<bool>(
+    context: context,
+    builder: (BuildContext dialogContext) {
+      return AlertDialog(
+        title: Text(strings.transactionDeleteConfirmTitle),
+        content: Text(strings.transactionDeleteConfirmMessage),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(strings.dialogCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(strings.dialogConfirm),
+          ),
+        ],
+      );
+    },
+  );
+
+  if (confirmed != true || !context.mounted) {
+    return false;
+  }
+
   final bool deleted = await ref
       .read(transactionActionsControllerProvider.notifier)
       .deleteTransaction(transactionId);

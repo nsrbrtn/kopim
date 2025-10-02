@@ -122,6 +122,12 @@ abstract class AppLocalizations {
   /// **'Manage categories'**
   String get profileManageCategoriesCta;
 
+  /// Button label that opens the recurring transactions screen from the profile settings
+  ///
+  /// In en, this message translates to:
+  /// **'Recurring transactions'**
+  String get profileRecurringTransactionsCta;
+
   /// Title for the category management screen
   ///
   /// In en, this message translates to:
@@ -463,6 +469,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sign out'**
   String get profileSignOutCta;
+
+  /// Title for the recurring transactions screen
+  ///
+  /// In en, this message translates to:
+  /// **'Recurring transactions'**
+  String get recurringTransactionsTitle;
+
+  /// Placeholder shown when there are no recurring transactions configured
+  ///
+  /// In en, this message translates to:
+  /// **'No recurring transactions yet. Create one to automate your cash flow.'**
+  String get recurringTransactionsEmpty;
 
   /// Main heading on the sign-in screen
   ///
@@ -859,6 +877,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Transaction deleted.'**
   String get transactionDeleteSuccess;
+
+  /// Title for the transaction deletion confirmation dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Delete transaction'**
+  String get transactionDeleteConfirmTitle;
+
+  /// Message shown when asking the user to confirm deleting a transaction
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete this transaction? This action cannot be undone.'**
+  String get transactionDeleteConfirmMessage;
 
   /// Shown when deleting a transaction fails
   ///
