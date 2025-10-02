@@ -22,6 +22,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get profileManageCategoriesCta => 'Управлять категориями';
 
   @override
+  String get profileRecurringTransactionsCta => 'Повторяющиеся операции';
+
+  @override
   String get profileManageCategoriesTitle => 'Управление категориями';
 
   @override
@@ -202,6 +205,13 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get profileSignOutCta => 'Выйти из аккаунта';
+
+  @override
+  String get recurringTransactionsTitle => 'Повторяющиеся операции';
+
+  @override
+  String get recurringTransactionsEmpty =>
+      'Пока нет повторяющихся операций. Создайте правило, чтобы автоматизировать движение средств.';
 
   @override
   String get signInTitle => 'Добро пожаловать в Kopim';
@@ -426,6 +436,13 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get transactionDeleteSuccess => 'Транзакция удалена.';
+
+  @override
+  String get transactionDeleteConfirmTitle => 'Удалить операцию';
+
+  @override
+  String get transactionDeleteConfirmMessage =>
+      'Вы уверены, что хотите удалить эту операцию? Действие нельзя отменить.';
 
   @override
   String get transactionDeleteError => 'Не удалось удалить транзакцию.';

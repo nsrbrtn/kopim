@@ -21,6 +21,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileManageCategoriesCta => 'Manage categories';
 
   @override
+  String get profileRecurringTransactionsCta => 'Recurring transactions';
+
+  @override
   String get profileManageCategoriesTitle => 'Manage categories';
 
   @override
@@ -201,6 +204,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get profileSignOutCta => 'Sign out';
+
+  @override
+  String get recurringTransactionsTitle => 'Recurring transactions';
+
+  @override
+  String get recurringTransactionsEmpty =>
+      'No recurring transactions yet. Create one to automate your cash flow.';
 
   @override
   String get signInTitle => 'Welcome to Kopim';
@@ -425,6 +435,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get transactionDeleteSuccess => 'Transaction deleted.';
+
+  @override
+  String get transactionDeleteConfirmTitle => 'Delete transaction';
+
+  @override
+  String get transactionDeleteConfirmMessage =>
+      'Are you sure you want to delete this transaction? This action cannot be undone.';
 
   @override
   String get transactionDeleteError => 'Unable to delete the transaction.';

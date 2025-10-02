@@ -116,6 +116,47 @@ void main() {
     );
 
     test(
+      'homeRecentTransactionsProvider uses the default limit when omitted',
+      () async {
+        final StreamController<List<TransactionEntity>> controller =
+            StreamController<List<TransactionEntity>>.broadcast();
+        addTearDown(controller.close);
+
+        final _RecordingWatchRecentTransactionsUseCase recordingUseCase =
+            _RecordingWatchRecentTransactionsUseCase(controller.stream);
+
+        final ProviderContainer scopedContainer = ProviderContainer(
+          overrides: <Override>[
+            watchRecentTransactionsUseCaseProvider.overrideWithValue(
+              recordingUseCase,
+            ),
+          ],
+        );
+        addTearDown(scopedContainer.dispose);
+
+        final Completer<List<TransactionEntity>> completer =
+            Completer<List<TransactionEntity>>();
+        final ProviderSubscription<AsyncValue<List<TransactionEntity>>>
+        subscription = scopedContainer.listen(homeRecentTransactionsProvider(), (
+          AsyncValue<List<TransactionEntity>>? previous,
+          AsyncValue<List<TransactionEntity>> next,
+        ) {
+          next.whenData((List<TransactionEntity> transactions) {
+            if (!completer.isCompleted) {
+              completer.complete(transactions);
+            }
+          });
+        }, fireImmediately: true);
+        addTearDown(subscription.close);
+
+        controller.add(<TransactionEntity>[_transaction('a')]);
+
+        await completer.future;
+        expect(recordingUseCase.lastLimit, kDefaultRecentTransactionsLimit);
+      },
+    );
+
+    test(
       'homeAccountMonthlySummariesProvider aggregates current month income and expenses',
       () async {
         final DateTime now = DateTime.now();
@@ -284,7 +325,9 @@ class _RecordingWatchRecentTransactionsUseCase
   int? lastLimit;
 
   @override
-  Stream<List<TransactionEntity>> call({int limit = 5}) {
+  Stream<List<TransactionEntity>> call({
+    int limit = kDefaultRecentTransactionsLimit,
+  }) {
     lastLimit = limit;
     return _stream;
   }

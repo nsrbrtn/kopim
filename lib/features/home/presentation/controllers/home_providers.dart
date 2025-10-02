@@ -9,7 +9,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'home_providers.g.dart';
 
-const int kDefaultRecentTransactionsLimit = 5;
+const int kDefaultRecentTransactionsLimit = 30;
 
 @riverpod
 Stream<List<AccountEntity>> homeAccounts(Ref ref) {
