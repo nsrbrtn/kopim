@@ -30,6 +30,37 @@ Stream<List<Category>> homeCategories(Ref ref) {
 }
 
 @riverpod
+TransactionEntity? homeTransactionById(Ref ref, String id) {
+  return ref
+      .watch(homeRecentTransactionsProvider())
+      .maybeWhen(
+        data: (List<TransactionEntity> transactions) =>
+            _findTransactionById(transactions, id),
+        orElse: () => null,
+      );
+}
+
+@riverpod
+AccountEntity? homeAccountById(Ref ref, String id) {
+  return ref
+      .watch(homeAccountsProvider)
+      .maybeWhen(
+        data: (List<AccountEntity> accounts) => _findAccountById(accounts, id),
+        orElse: () => null,
+      );
+}
+
+@riverpod
+Category? homeCategoryById(Ref ref, String id) {
+  return ref
+      .watch(homeCategoriesProvider)
+      .maybeWhen(
+        data: (List<Category> categories) => _findCategoryById(categories, id),
+        orElse: () => null,
+      );
+}
+
+@riverpod
 double homeTotalBalance(Ref ref) {
   final AsyncValue<List<AccountEntity>> accountsAsync = ref.watch(
     homeAccountsProvider,
@@ -104,4 +135,34 @@ Map<String, HomeAccountMonthlySummary> computeCurrentMonthSummaries({
           ),
         ),
   );
+}
+
+TransactionEntity? _findTransactionById(
+  List<TransactionEntity> transactions,
+  String id,
+) {
+  for (final TransactionEntity transaction in transactions) {
+    if (transaction.id == id) {
+      return transaction;
+    }
+  }
+  return null;
+}
+
+AccountEntity? _findAccountById(List<AccountEntity> accounts, String id) {
+  for (final AccountEntity account in accounts) {
+    if (account.id == id) {
+      return account;
+    }
+  }
+  return null;
+}
+
+Category? _findCategoryById(List<Category> categories, String id) {
+  for (final Category category in categories) {
+    if (category.id == id) {
+      return category;
+    }
+  }
+  return null;
 }
