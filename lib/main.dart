@@ -1,13 +1,10 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
-import 'package:kopim/features/recurring_transactions/data/services/recurring_work_scheduler.dart';
 import 'package:kopim/l10n/app_localizations.dart';
-import 'firebase_options.dart';
 import 'core/config/app_config.dart';
 import 'core/di/injectors.dart';
+import 'core/application/app_startup_controller.dart';
 import 'features/profile/presentation/controllers/auth_controller.dart';
 import 'features/analytics/presentation/analytics_screen.dart';
 import 'features/accounts/presentation/account_details_screen.dart';
@@ -22,16 +19,6 @@ import 'features/recurring_transactions/presentation/screens/recurring_transacti
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-
-  final FirebaseFirestore firestore = FirebaseFirestore.instance;
-
-  const Settings settings = Settings(
-    persistenceEnabled: true,
-    cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
-  );
-  firestore.settings = settings;
-
   runApp(const ProviderScope(child: MyApp()));
 }
 
@@ -46,23 +33,17 @@ class _MyAppState extends ConsumerState<MyApp> {
   @override
   void initState() {
     super.initState();
-    Future<void>.microtask(() async {
-      final RecurringWorkScheduler scheduler = ref.read(
-        recurringWorkSchedulerProvider,
-      );
-      await scheduler.initialize();
-      await scheduler.scheduleDailyWindowGeneration();
-      await scheduler.scheduleMaintenance();
-      await scheduler.scheduleDuePostings();
-      await ref.read(recurringWindowServiceProvider).rebuildWindow();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(appStartupControllerProvider.notifier).initialize();
     });
   }
 
   @override
   Widget build(BuildContext context) {
     final Locale appLocale = ref.watch(appLocaleProvider);
-    ref.watch(syncServiceProvider);
-    final AsyncValue<AuthUser?> authState = ref.watch(authControllerProvider);
+    final AsyncValue<void> startupState = ref.watch(
+      appStartupControllerProvider,
+    );
 
     return MaterialApp(
       title: 'Kopim',
@@ -94,18 +75,71 @@ class _MyAppState extends ConsumerState<MyApp> {
         RecurringTransactionsScreen.routeName: (_) =>
             const RecurringTransactionsScreen(),
       },
-      home: authState.when(
-        data: (AuthUser? user) =>
-            user == null ? const SignInScreen() : const MainNavigationShell(),
-        loading: () =>
-            const Scaffold(body: Center(child: CircularProgressIndicator())),
-        error: (Object error, _) => Scaffold(
-          body: Center(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Text('Authentication error: $error'),
-            ),
+      home: startupState.when(
+        data: (_) => _AppHome(authState: ref.watch(authControllerProvider)),
+        loading: () => const _StartupPlaceholder(),
+        error: (Object error, StackTrace stackTrace) =>
+            _StartupErrorView(error: error),
+      ),
+    );
+  }
+}
+
+class _AppHome extends ConsumerWidget {
+  const _AppHome({required this.authState});
+
+  final AsyncValue<AuthUser?> authState;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(syncServiceProvider);
+
+    return authState.when(
+      data: (AuthUser? user) =>
+          user == null ? const SignInScreen() : const MainNavigationShell(),
+      loading: () =>
+          const Scaffold(body: Center(child: CircularProgressIndicator())),
+      error: (Object error, _) => Scaffold(
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text('Authentication error: $error'),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _StartupPlaceholder extends StatelessWidget {
+  const _StartupPlaceholder();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Scaffold(
+      body: Center(
+        child: SizedBox(
+          width: 72,
+          height: 72,
+          child: CircularProgressIndicator(),
+        ),
+      ),
+    );
+  }
+}
+
+class _StartupErrorView extends StatelessWidget {
+  const _StartupErrorView({required this.error});
+
+  final Object error;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Text('Startup error: $error'),
         ),
       ),
     );

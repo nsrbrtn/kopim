@@ -33,9 +33,6 @@ NavigationTabContent buildHomeTabContent(BuildContext context, WidgetRef ref) {
   );
   final AsyncValue<Map<String, HomeAccountMonthlySummary>>
   accountSummariesAsync = ref.watch(homeAccountMonthlySummariesProvider);
-  final AsyncValue<List<Category>> categoriesAsync = ref.watch(
-    homeCategoriesProvider,
-  );
   final double totalBalance = ref.watch(homeTotalBalanceProvider);
   final bool isWideLayout = MediaQuery.of(context).size.width >= 720;
   final NumberFormat currencyFormat = NumberFormat.simpleCurrency(
@@ -60,7 +57,6 @@ NavigationTabContent buildHomeTabContent(BuildContext context, WidgetRef ref) {
         authState: authState,
         transactionsAsync: transactionsAsync,
         accountsAsync: accountsAsync,
-        categoriesAsync: categoriesAsync,
         strings: strings,
         isWideLayout: isWideLayout,
         accountSummariesAsync: accountSummariesAsync,
@@ -76,7 +72,6 @@ class _HomeBody extends StatelessWidget {
     required this.authState,
     required this.transactionsAsync,
     required this.accountsAsync,
-    required this.categoriesAsync,
     required this.strings,
     required this.isWideLayout,
     required this.accountSummariesAsync,
@@ -85,7 +80,6 @@ class _HomeBody extends StatelessWidget {
   final AsyncValue<AuthUser?> authState;
   final AsyncValue<List<TransactionEntity>> transactionsAsync;
   final AsyncValue<List<AccountEntity>> accountsAsync;
-  final AsyncValue<List<Category>> categoriesAsync;
   final AppLocalizations strings;
   final bool isWideLayout;
   final AsyncValue<Map<String, HomeAccountMonthlySummary>>
@@ -130,12 +124,7 @@ class _HomeBody extends StatelessWidget {
                         accountSummariesAsync.asData?.value ??
                         const <String, HomeAccountMonthlySummary>{},
                   ),
-                  loading: () => const Center(
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(vertical: 24),
-                      child: CircularProgressIndicator(),
-                    ),
-                  ),
+                  loading: () => const _TransactionsSkeletonList(),
                   error: (Object error, _) => _ErrorMessage(
                     message: strings.homeAccountsError(error.toString()),
                   ),
@@ -144,36 +133,12 @@ class _HomeBody extends StatelessWidget {
                 _SectionHeader(title: strings.homeTransactionsSection),
                 const SizedBox(height: 12),
                 transactionsAsync.when(
-                  data: (List<TransactionEntity> transactions) {
-                    final List<AccountEntity> accounts =
-                        accountsAsync.asData?.value ?? const <AccountEntity>[];
-                    return categoriesAsync.when(
-                      data: (List<Category> categories) => _TransactionsList(
+                  data: (List<TransactionEntity> transactions) =>
+                      _TransactionsList(
                         transactions: transactions,
                         localeName: strings.localeName,
                         strings: strings,
-                        accountsById: <String, AccountEntity>{
-                          for (final AccountEntity account in accounts)
-                            account.id: account,
-                        },
-                        categoriesById: <String, Category>{
-                          for (final Category category in categories)
-                            category.id: category,
-                        },
                       ),
-                      loading: () => const Center(
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(vertical: 24),
-                          child: CircularProgressIndicator(),
-                        ),
-                      ),
-                      error: (Object error, _) => _ErrorMessage(
-                        message: strings.homeTransactionsError(
-                          error.toString(),
-                        ),
-                      ),
-                    );
-                  },
                   loading: () => const Center(
                     child: Padding(
                       padding: EdgeInsets.symmetric(vertical: 24),
@@ -485,15 +450,11 @@ class _TransactionsList extends ConsumerWidget {
     required this.transactions,
     required this.localeName,
     required this.strings,
-    required this.accountsById,
-    required this.categoriesById,
   });
 
   final List<TransactionEntity> transactions;
   final String localeName;
   final AppLocalizations strings;
-  final Map<String, AccountEntity> accountsById;
-  final Map<String, Category> categoriesById;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -501,148 +462,345 @@ class _TransactionsList extends ConsumerWidget {
       return _EmptyMessage(message: strings.homeTransactionsEmpty);
     }
 
-    final ThemeData theme = Theme.of(context);
     final List<TransactionListSection> sections = groupTransactionsByDay(
       transactions: transactions,
       today: DateTime.now(),
       localeName: localeName,
       todayLabel: strings.homeTransactionsTodayLabel,
     );
-    final List<Object> items = <Object>[];
+
+    final List<_TransactionListEntry> entries = <_TransactionListEntry>[];
     for (final TransactionListSection section in sections) {
-      items
-        ..add(section.title)
-        ..addAll(section.transactions);
+      for (int i = 0; i < section.transactions.length; i++) {
+        entries.add(
+          _TransactionListEntry(
+            transactionId: section.transactions[i].id,
+            headerTitle: i == 0 ? section.title : null,
+          ),
+        );
+      }
     }
 
     return ListView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      itemCount: items.length,
+      itemExtent: _TransactionListItem.extent,
+      itemCount: entries.length,
       itemBuilder: (BuildContext context, int index) {
-        final Object item = items[index];
-        if (item is String) {
-          return Padding(
-            padding: EdgeInsets.only(top: index == 0 ? 0 : 24, bottom: 8),
-            child: Text(item, style: theme.textTheme.titleMedium),
+        final _TransactionListEntry entry = entries[index];
+        return _TransactionListItem(
+          entry: entry,
+          localeName: localeName,
+          strings: strings,
+        );
+      },
+    );
+  }
+}
+
+class _TransactionListEntry {
+  const _TransactionListEntry({required this.transactionId, this.headerTitle});
+
+  final String transactionId;
+  final String? headerTitle;
+}
+
+class _TransactionListItem extends ConsumerWidget {
+  const _TransactionListItem({
+    required this.entry,
+    required this.localeName,
+    required this.strings,
+  });
+
+  static const double extent = 120;
+
+  final _TransactionListEntry entry;
+  final String localeName;
+  final AppLocalizations strings;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final bool hasTransaction = ref.watch(
+      homeTransactionByIdProvider(
+        entry.transactionId,
+      ).select((TransactionEntity? tx) => tx != null),
+    );
+
+    if (!hasTransaction) {
+      return const _TransactionTileSkeleton();
+    }
+
+    final String? accountId = ref.watch(
+      homeTransactionByIdProvider(
+        entry.transactionId,
+      ).select((TransactionEntity? tx) => tx?.accountId),
+    );
+    final String? categoryId = ref.watch(
+      homeTransactionByIdProvider(
+        entry.transactionId,
+      ).select((TransactionEntity? tx) => tx?.categoryId),
+    );
+    final double? amount = ref.watch(
+      homeTransactionByIdProvider(
+        entry.transactionId,
+      ).select((TransactionEntity? tx) => tx?.amount),
+    );
+    final DateTime? date = ref.watch(
+      homeTransactionByIdProvider(
+        entry.transactionId,
+      ).select((TransactionEntity? tx) => tx?.date),
+    );
+    final String? note = ref.watch(
+      homeTransactionByIdProvider(
+        entry.transactionId,
+      ).select((TransactionEntity? tx) => tx?.note),
+    );
+    final String? type = ref.watch(
+      homeTransactionByIdProvider(
+        entry.transactionId,
+      ).select((TransactionEntity? tx) => tx?.type),
+    );
+
+    if (amount == null || date == null || type == null || accountId == null) {
+      return const _TransactionTileSkeleton();
+    }
+
+    final String? accountName = ref.watch(
+      homeAccountByIdProvider(
+        accountId,
+      ).select((AccountEntity? account) => account?.name),
+    );
+    final String? accountCurrency = ref.watch(
+      homeAccountByIdProvider(
+        accountId,
+      ).select((AccountEntity? account) => account?.currency),
+    );
+    final String currencySymbol = accountCurrency != null
+        ? accountCurrency.toUpperCase()
+        : _TransactionFormatters.fallbackCurrencySymbol(localeName);
+    final NumberFormat moneyFormat = _TransactionFormatters.currency(
+      localeName,
+      currencySymbol,
+    );
+
+    final Category? category = categoryId == null
+        ? null
+        : ref.watch(
+            homeCategoryByIdProvider(categoryId).select((Category? cat) => cat),
           );
-        }
+    final String categoryName =
+        category?.name ?? strings.homeTransactionsUncategorized;
+    final PhosphorIconData? categoryIcon = resolvePhosphorIconData(
+      category?.icon,
+    );
+    final Color? categoryColor = parseHexColor(category?.color);
+    final Color avatarIconColor = categoryColor != null
+        ? (ThemeData.estimateBrightnessForColor(categoryColor) ==
+                  Brightness.dark
+              ? Colors.white
+              : Colors.black87)
+        : Theme.of(context).colorScheme.onSurfaceVariant;
 
-        final TransactionEntity transaction = item as TransactionEntity;
-        final bool isExpense =
-            transaction.type == TransactionType.expense.storageValue;
-        final AccountEntity? account = accountsById[transaction.accountId];
-        final NumberFormat format = NumberFormat.currency(
-          locale: localeName,
-          symbol:
-              account?.currency.toUpperCase() ??
-              NumberFormat.simpleCurrency(locale: localeName).currencySymbol,
+    final bool isExpense = type == TransactionType.expense.storageValue;
+    final Color amountColor = isExpense
+        ? Theme.of(context).colorScheme.error
+        : Theme.of(context).colorScheme.primary;
+
+    final DateFormat timeFormat = _TransactionFormatters.time(localeName);
+
+    return Dismissible(
+      key: ValueKey<String>(entry.transactionId),
+      direction: DismissDirection.endToStart,
+      background: buildDeleteBackground(Theme.of(context).colorScheme.error),
+      confirmDismiss: (DismissDirection direction) async {
+        return deleteTransactionWithFeedback(
+          context: context,
+          ref: ref,
+          transactionId: entry.transactionId,
+          strings: strings,
         );
-        final String amountText = format.format(transaction.amount.abs());
-        final Category? category = transaction.categoryId == null
-            ? null
-            : categoriesById[transaction.categoryId!];
-        final String categoryName =
-            category?.name ?? strings.homeTransactionsUncategorized;
-        final PhosphorIconData? categoryIcon = resolvePhosphorIconData(
-          category?.icon,
-        );
-        final Color? categoryColor = parseHexColor(category?.color);
-        final String? note = transaction.note;
-        final Color amountColor = isExpense
-            ? theme.colorScheme.error
-            : theme.colorScheme.primary;
-        final Color avatarIconColor = categoryColor != null
-            ? (ThemeData.estimateBrightnessForColor(categoryColor) ==
-                      Brightness.dark
-                  ? Colors.white
-                  : Colors.black87)
-            : theme.colorScheme.onSurfaceVariant;
-
-        final DateFormat timeFormat = DateFormat.Hm(localeName);
-
-        return Dismissible(
-          key: ValueKey<String>(transaction.id),
-          direction: DismissDirection.endToStart,
-          background: buildDeleteBackground(theme.colorScheme.error),
-          confirmDismiss: (DismissDirection direction) async {
-            return deleteTransactionWithFeedback(
-              context: context,
-              ref: ref,
-              transactionId: transaction.id,
-              strings: strings,
-            );
-          },
-          child: Card(
-            margin: const EdgeInsets.symmetric(vertical: 6),
-            elevation: 0,
-            surfaceTintColor: Colors.transparent,
-            child: InkWell(
-              borderRadius: const BorderRadius.all(Radius.circular(12)),
-              onTap: () => showTransactionEditorSheet(
+      },
+      child: RepaintBoundary(
+        child: Card(
+          margin: const EdgeInsets.symmetric(vertical: 6),
+          elevation: 0,
+          surfaceTintColor: Colors.transparent,
+          child: InkWell(
+            borderRadius: const BorderRadius.all(Radius.circular(12)),
+            onTap: () {
+              final TransactionEntity transaction = ref.read(
+                homeTransactionByIdProvider(entry.transactionId),
+              )!;
+              showTransactionEditorSheet(
                 context: context,
                 ref: ref,
                 transaction: transaction,
                 submitLabel: strings.editTransactionSubmit,
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    CircleAvatar(
-                      backgroundColor:
-                          categoryColor ??
-                          theme.colorScheme.surfaceContainerHighest,
-                      foregroundColor: avatarIconColor,
-                      child: categoryIcon != null
-                          ? Icon(categoryIcon)
-                          : const Icon(Icons.category_outlined),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          Text(categoryName, style: theme.textTheme.bodyMedium),
-                          const SizedBox(height: 4),
-                          Text(
-                            timeFormat.format(transaction.date),
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                          if (note != null && note.isNotEmpty)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 4),
-                              child: Text(
-                                note,
-                                style: theme.textTheme.bodySmall,
-                              ),
-                            ),
-                        ],
+              );
+            },
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  if (entry.headerTitle != null)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Text(
+                        entry.headerTitle!,
+                        style: Theme.of(context).textTheme.titleMedium,
                       ),
                     ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
+                  Expanded(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
-                        Text(
-                          amountText,
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            color: amountColor,
+                        CircleAvatar(
+                          backgroundColor:
+                              categoryColor ??
+                              Theme.of(
+                                context,
+                              ).colorScheme.surfaceContainerHighest,
+                          foregroundColor: avatarIconColor,
+                          child: categoryIcon != null
+                              ? Icon(categoryIcon)
+                              : const Icon(Icons.category_outlined),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                              Text(
+                                categoryName,
+                                style: Theme.of(context).textTheme.bodyMedium,
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                timeFormat.format(date),
+                                style: Theme.of(context).textTheme.bodySmall
+                                    ?.copyWith(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onSurfaceVariant,
+                                    ),
+                              ),
+                              if (note != null && note.isNotEmpty)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 4),
+                                  child: Text(
+                                    note,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.bodySmall,
+                                  ),
+                                ),
+                            ],
                           ),
                         ),
-                        if (account != null)
-                          Text(account.name, style: theme.textTheme.bodySmall),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: <Widget>[
+                            Text(
+                              moneyFormat.format(amount.abs()),
+                              style: Theme.of(context).textTheme.titleMedium
+                                  ?.copyWith(color: amountColor),
+                            ),
+                            if (accountName != null)
+                              Text(
+                                accountName,
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
+                          ],
+                        ),
                       ],
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _TransactionFormatters {
+  static final Map<String, DateFormat> _timeCache = <String, DateFormat>{};
+  static final Map<String, NumberFormat> _currencyCache =
+      <String, NumberFormat>{};
+  static final Map<String, String> _fallbackSymbols = <String, String>{};
+
+  static DateFormat time(String locale) {
+    return _timeCache.putIfAbsent(locale, () => DateFormat.Hm(locale));
+  }
+
+  static NumberFormat currency(String locale, String symbol) {
+    final String cacheKey = '$locale|$symbol';
+    return _currencyCache.putIfAbsent(
+      cacheKey,
+      () => NumberFormat.currency(locale: locale, symbol: symbol),
+    );
+  }
+
+  static String fallbackCurrencySymbol(String locale) {
+    return _fallbackSymbols.putIfAbsent(
+      locale,
+      () => NumberFormat.simpleCurrency(locale: locale).currencySymbol,
+    );
+  }
+}
+
+class _TransactionTileSkeleton extends StatelessWidget {
+  const _TransactionTileSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Padding(
+      padding: EdgeInsets.symmetric(vertical: 6),
+      child: _SkeletonContainer(),
+    );
+  }
+}
+
+class _TransactionsSkeletonList extends StatelessWidget {
+  const _TransactionsSkeletonList();
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: 6,
+      itemBuilder: (BuildContext context, int index) {
+        return const Padding(
+          padding: EdgeInsets.symmetric(vertical: 6),
+          child: _SkeletonContainer(),
         );
       },
+    );
+  }
+}
+
+class _SkeletonContainer extends StatelessWidget {
+  const _SkeletonContainer();
+
+  static const double _height = _TransactionListItem.extent - 12;
+
+  @override
+  Widget build(BuildContext context) {
+    final Color base = Theme.of(context).colorScheme.surfaceContainerHighest;
+    return Container(
+      height: _height,
+      decoration: BoxDecoration(
+        color: base.withValues(alpha: 0.5),
+        borderRadius: const BorderRadius.all(Radius.circular(12)),
+      ),
     );
   }
 }

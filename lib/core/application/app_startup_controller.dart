@@ -1,0 +1,85 @@
+import 'dart:async';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/widgets.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+import 'package:kopim/core/di/injectors.dart';
+import 'package:kopim/features/recurring_transactions/data/services/recurring_work_scheduler.dart';
+import 'package:kopim/firebase_options.dart';
+
+part 'app_startup_controller.g.dart';
+
+typedef AppStartupResult = AsyncValue<void>;
+
+@riverpod
+class AppStartupController extends _$AppStartupController {
+  Completer<void>? _initializationCompleter;
+
+  @override
+  AppStartupResult build() {
+    return const AsyncValue<void>.loading();
+  }
+
+  Future<void> initialize() async {
+    if (_initializationCompleter != null) {
+      await _initializationCompleter!.future;
+      return;
+    }
+
+    final Completer<void> completer = Completer<void>();
+    _initializationCompleter = completer;
+
+    state = const AsyncValue<void>.loading();
+
+    try {
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
+
+      final FirebaseFirestore firestore = ref.read(firestoreProvider);
+      firestore.settings = const Settings(
+        persistenceEnabled: true,
+        cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
+      );
+
+      unawaited(_initializeBackgroundServices());
+      state = const AsyncValue<void>.data(null);
+      completer.complete();
+    } catch (error, stackTrace) {
+      state = AsyncValue<void>.error(error, stackTrace);
+      completer
+        ..completeError(error, stackTrace)
+        ..future.ignore();
+    }
+  }
+
+  Future<void> _initializeBackgroundServices() async {
+    await Future.wait<void>(<Future<void>>[_warmUpRecurringWorkScheduler()]);
+  }
+
+  Future<void> _warmUpRecurringWorkScheduler() async {
+    try {
+      final RecurringWorkScheduler scheduler = ref.read(
+        recurringWorkSchedulerProvider,
+      );
+      await scheduler.initialize();
+      await scheduler.scheduleDailyWindowGeneration();
+      await scheduler.scheduleMaintenance();
+      await scheduler.scheduleDuePostings();
+      await ref.read(recurringWindowServiceProvider).rebuildWindow();
+    } catch (error, stackTrace) {
+      FlutterError.reportError(
+        FlutterErrorDetails(
+          exception: error,
+          stack: stackTrace,
+          library: 'app_startup_controller',
+          context: ErrorDescription(
+            'while warming up background recurring transaction services',
+          ),
+        ),
+      );
+    }
+  }
+}

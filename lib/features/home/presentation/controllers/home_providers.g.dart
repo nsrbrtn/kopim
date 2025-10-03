@@ -169,6 +169,244 @@ final class HomeCategoriesProvider
 
 String _$homeCategoriesHash() => r'8489f218304563096d7997f846877f8ab2a5c725';
 
+@ProviderFor(homeTransactionById)
+const homeTransactionByIdProvider = HomeTransactionByIdFamily._();
+
+final class HomeTransactionByIdProvider
+    extends
+        $FunctionalProvider<
+          TransactionEntity?,
+          TransactionEntity?,
+          TransactionEntity?
+        >
+    with $Provider<TransactionEntity?> {
+  const HomeTransactionByIdProvider._({
+    required HomeTransactionByIdFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'homeTransactionByIdProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$homeTransactionByIdHash();
+
+  @override
+  String toString() {
+    return r'homeTransactionByIdProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $ProviderElement<TransactionEntity?> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  TransactionEntity? create(Ref ref) {
+    final argument = this.argument as String;
+    return homeTransactionById(ref, argument);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(TransactionEntity? value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<TransactionEntity?>(value),
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is HomeTransactionByIdProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$homeTransactionByIdHash() =>
+    r'9efc903a793463e1044ee4dcee3130d3c1d62ca1';
+
+final class HomeTransactionByIdFamily extends $Family
+    with $FunctionalFamilyOverride<TransactionEntity?, String> {
+  const HomeTransactionByIdFamily._()
+    : super(
+        retry: null,
+        name: r'homeTransactionByIdProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  HomeTransactionByIdProvider call(String id) =>
+      HomeTransactionByIdProvider._(argument: id, from: this);
+
+  @override
+  String toString() => r'homeTransactionByIdProvider';
+}
+
+@ProviderFor(homeAccountById)
+const homeAccountByIdProvider = HomeAccountByIdFamily._();
+
+final class HomeAccountByIdProvider
+    extends $FunctionalProvider<AccountEntity?, AccountEntity?, AccountEntity?>
+    with $Provider<AccountEntity?> {
+  const HomeAccountByIdProvider._({
+    required HomeAccountByIdFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'homeAccountByIdProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$homeAccountByIdHash();
+
+  @override
+  String toString() {
+    return r'homeAccountByIdProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $ProviderElement<AccountEntity?> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  AccountEntity? create(Ref ref) {
+    final argument = this.argument as String;
+    return homeAccountById(ref, argument);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(AccountEntity? value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<AccountEntity?>(value),
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is HomeAccountByIdProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$homeAccountByIdHash() => r'66dfb92d476fa8869ebbfadfbca272c3b8d7695d';
+
+final class HomeAccountByIdFamily extends $Family
+    with $FunctionalFamilyOverride<AccountEntity?, String> {
+  const HomeAccountByIdFamily._()
+    : super(
+        retry: null,
+        name: r'homeAccountByIdProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  HomeAccountByIdProvider call(String id) =>
+      HomeAccountByIdProvider._(argument: id, from: this);
+
+  @override
+  String toString() => r'homeAccountByIdProvider';
+}
+
+@ProviderFor(homeCategoryById)
+const homeCategoryByIdProvider = HomeCategoryByIdFamily._();
+
+final class HomeCategoryByIdProvider
+    extends $FunctionalProvider<Category?, Category?, Category?>
+    with $Provider<Category?> {
+  const HomeCategoryByIdProvider._({
+    required HomeCategoryByIdFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'homeCategoryByIdProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$homeCategoryByIdHash();
+
+  @override
+  String toString() {
+    return r'homeCategoryByIdProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $ProviderElement<Category?> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  Category? create(Ref ref) {
+    final argument = this.argument as String;
+    return homeCategoryById(ref, argument);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(Category? value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<Category?>(value),
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is HomeCategoryByIdProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$homeCategoryByIdHash() => r'e6df1590b2cce5e948b66cec8bee0c9fcbdc5036';
+
+final class HomeCategoryByIdFamily extends $Family
+    with $FunctionalFamilyOverride<Category?, String> {
+  const HomeCategoryByIdFamily._()
+    : super(
+        retry: null,
+        name: r'homeCategoryByIdProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  HomeCategoryByIdProvider call(String id) =>
+      HomeCategoryByIdProvider._(argument: id, from: this);
+
+  @override
+  String toString() => r'homeCategoryByIdProvider';
+}
+
 @ProviderFor(homeTotalBalance)
 const homeTotalBalanceProvider = HomeTotalBalanceProvider._();
 
