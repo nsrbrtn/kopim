@@ -107,6 +107,13 @@ class RecurringRules extends Table {
   TextColumn get rrule => text()();
   DateTimeColumn get endAt => dateTime().nullable()();
   TextColumn get notes => text().nullable()();
+  IntColumn get dayOfMonth => integer().withDefault(const Constant<int>(1))();
+  IntColumn get applyAtLocalHour =>
+      integer().withDefault(const Constant<int>(0))();
+  IntColumn get applyAtLocalMinute =>
+      integer().withDefault(const Constant<int>(1))();
+  DateTimeColumn get lastRunAt => dateTime().nullable()();
+  DateTimeColumn get nextDueLocalDate => dateTime().nullable()();
   BoolColumn get isActive =>
       boolean().withDefault(const Constant<bool>(true))();
   BoolColumn get autoPost =>
@@ -120,6 +127,21 @@ class RecurringRules extends Table {
 
   @override
   Set<Column<Object>> get primaryKey => <Column<Object>>{id};
+}
+
+@DataClassName('RecurringRuleExecutionRow')
+class RecurringRuleExecutions extends Table {
+  TextColumn get occurrenceId => text().withLength(min: 1, max: 120)();
+  TextColumn get ruleId =>
+      text().references(RecurringRules, #id, onDelete: KeyAction.cascade)();
+  DateTimeColumn get localDate => dateTime()();
+  DateTimeColumn get appliedAt => dateTime()();
+  TextColumn get transactionId => text().nullable()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column<Object>> get primaryKey => <Column<Object>>{occurrenceId};
 }
 
 @DataClassName('RecurringOccurrenceRow')
@@ -157,6 +179,7 @@ class JobQueue extends Table {
     Profiles,
     RecurringRules,
     RecurringOccurrences,
+    RecurringRuleExecutions,
     JobQueue,
   ],
 )
@@ -166,7 +189,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.connect(DatabaseConnection super.connection);
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -217,6 +240,31 @@ class AppDatabase extends _$AppDatabase {
             'CREATE INDEX IF NOT EXISTS recurring_occurrences_rule_due_idx '
                 'ON recurring_occurrences(rule_id, due_at)',
           ),
+        );
+      }
+      if (from < 6) {
+        await m.addColumn(recurringRules, recurringRules.dayOfMonth);
+        await m.addColumn(recurringRules, recurringRules.applyAtLocalHour);
+        await m.addColumn(recurringRules, recurringRules.applyAtLocalMinute);
+        await m.addColumn(recurringRules, recurringRules.lastRunAt);
+        await m.addColumn(recurringRules, recurringRules.nextDueLocalDate);
+        await m.createTable(recurringRuleExecutions);
+        await m.createIndex(
+          Index(
+            'recurring_rule_executions_rule_local_date_idx',
+            'CREATE UNIQUE INDEX IF NOT EXISTS '
+                'recurring_rule_executions_rule_local_date_idx '
+                'ON recurring_rule_executions(rule_id, local_date)',
+          ),
+        );
+        await m.database.customStatement(
+          'UPDATE recurring_rules SET day_of_month = '
+          "CAST(strftime('%d', start_at) AS INTEGER), apply_at_local_hour = 0, apply_at_local_minute = 1 "
+          'WHERE day_of_month IS NULL',
+        );
+        await m.database.customStatement(
+          'UPDATE recurring_rules SET next_due_local_date = '
+          "CASE WHEN next_due_local_date IS NULL THEN datetime(strftime('%Y-%m-%d', start_at) || ' 00:01:00') ELSE next_due_local_date END",
         );
       }
     },

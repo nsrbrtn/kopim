@@ -27,6 +27,13 @@ abstract class RecurringTransactionsRepository {
   });
   Future<List<RecurringOccurrence>> getDueOccurrences(DateTime forDate);
 
+  Future<bool> applyRuleOccurrence({
+    required RecurringRule rule,
+    required String occurrenceId,
+    required DateTime occurrenceLocalDate,
+    required Future<String?> Function() postTransaction,
+  });
+
   Future<void> enqueueJob({
     required String type,
     required String payload,

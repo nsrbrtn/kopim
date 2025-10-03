@@ -646,6 +646,54 @@ final class RecurringOccurrenceDaoProvider
 String _$recurringOccurrenceDaoHash() =>
     r'396b8cbeb1142f8c5ecaba5af6c8d40f7a98a99c';
 
+@ProviderFor(recurringRuleExecutionDao)
+const recurringRuleExecutionDaoProvider = RecurringRuleExecutionDaoProvider._();
+
+final class RecurringRuleExecutionDaoProvider
+    extends
+        $FunctionalProvider<
+          RecurringRuleExecutionDao,
+          RecurringRuleExecutionDao,
+          RecurringRuleExecutionDao
+        >
+    with $Provider<RecurringRuleExecutionDao> {
+  const RecurringRuleExecutionDaoProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'recurringRuleExecutionDaoProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$recurringRuleExecutionDaoHash();
+
+  @$internal
+  @override
+  $ProviderElement<RecurringRuleExecutionDao> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  RecurringRuleExecutionDao create(Ref ref) {
+    return recurringRuleExecutionDao(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(RecurringRuleExecutionDao value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<RecurringRuleExecutionDao>(value),
+    );
+  }
+}
+
+String _$recurringRuleExecutionDaoHash() =>
+    r'b9b0bc1c54eb4be3a2826559d9023a16fec60b69';
+
 @ProviderFor(jobQueueDao)
 const jobQueueDaoProvider = JobQueueDaoProvider._();
 
@@ -1452,7 +1500,7 @@ final class RecurringTransactionsRepositoryProvider
 }
 
 String _$recurringTransactionsRepositoryHash() =>
-    r'a537392d0484d7b3922a92f905ced3e6a3cbb7ec';
+    r'c9e78997c2dc5aac0bdab4afb0ededd86e277639';
 
 @ProviderFor(watchAccountTransactionsUseCase)
 const watchAccountTransactionsUseCaseProvider =

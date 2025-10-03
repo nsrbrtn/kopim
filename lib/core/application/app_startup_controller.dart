@@ -67,7 +67,7 @@ class AppStartupController extends _$AppStartupController {
       await scheduler.initialize();
       await scheduler.scheduleDailyWindowGeneration();
       await scheduler.scheduleMaintenance();
-      await scheduler.scheduleDuePostings();
+      await scheduler.scheduleApplyRecurringRules();
       await ref.read(recurringWindowServiceProvider).rebuildWindow();
     } catch (error, stackTrace) {
       FlutterError.reportError(
