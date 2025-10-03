@@ -6,8 +6,8 @@ import 'package:kopim/features/accounts/presentation/account_details_screen.dart
 import 'package:kopim/features/accounts/presentation/accounts_add_screen.dart';
 import 'package:kopim/features/app_shell/presentation/models/navigation_tab_content.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
+import 'package:kopim/features/home/domain/models/day_section.dart';
 import 'package:kopim/features/home/domain/models/home_account_monthly_summary.dart';
-import 'package:kopim/features/home/presentation/utils/transaction_grouping.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
@@ -25,41 +25,27 @@ import '../controllers/home_providers.dart';
 NavigationTabContent buildHomeTabContent(BuildContext context, WidgetRef ref) {
   final AppLocalizations strings = AppLocalizations.of(context)!;
   final AsyncValue<AuthUser?> authState = ref.watch(authControllerProvider);
-  final AsyncValue<List<TransactionEntity>> transactionsAsync = ref.watch(
-    homeRecentTransactionsProvider(),
-  );
   final AsyncValue<List<AccountEntity>> accountsAsync = ref.watch(
     homeAccountsProvider,
   );
   final AsyncValue<Map<String, HomeAccountMonthlySummary>>
   accountSummariesAsync = ref.watch(homeAccountMonthlySummariesProvider);
-  final double totalBalance = ref.watch(homeTotalBalanceProvider);
+  final AsyncValue<List<DaySection>> groupedTransactionsAsync = ref.watch(
+    homeGroupedTransactionsProvider,
+  );
   final bool isWideLayout = MediaQuery.of(context).size.width >= 720;
-  final NumberFormat currencyFormat = NumberFormat.simpleCurrency(
-    locale: strings.localeName,
-  );
-
-  final String appBarTitle = accountsAsync.maybeWhen(
-    data: (List<AccountEntity> accounts) {
-      if (accounts.isEmpty) {
-        return strings.homeTitle;
-      }
-      return strings.homeTotalBalance(currencyFormat.format(totalBalance));
-    },
-    orElse: () => strings.homeTitle,
-  );
 
   return NavigationTabContent(
     appBarBuilder: (BuildContext context, WidgetRef ref) =>
-        AppBar(title: Text(appBarTitle)),
+        AppBar(title: Text(strings.homeTitle)),
     bodyBuilder: (BuildContext context, WidgetRef ref) => SafeArea(
       child: _HomeBody(
         authState: authState,
-        transactionsAsync: transactionsAsync,
         accountsAsync: accountsAsync,
         strings: strings,
         isWideLayout: isWideLayout,
         accountSummariesAsync: accountSummariesAsync,
+        groupedTransactionsAsync: groupedTransactionsAsync,
       ),
     ),
     floatingActionButtonBuilder: (BuildContext context, WidgetRef ref) =>
@@ -70,20 +56,20 @@ NavigationTabContent buildHomeTabContent(BuildContext context, WidgetRef ref) {
 class _HomeBody extends StatelessWidget {
   const _HomeBody({
     required this.authState,
-    required this.transactionsAsync,
     required this.accountsAsync,
     required this.strings,
     required this.isWideLayout,
     required this.accountSummariesAsync,
+    required this.groupedTransactionsAsync,
   });
 
   final AsyncValue<AuthUser?> authState;
-  final AsyncValue<List<TransactionEntity>> transactionsAsync;
   final AsyncValue<List<AccountEntity>> accountsAsync;
   final AppLocalizations strings;
   final bool isWideLayout;
   final AsyncValue<Map<String, HomeAccountMonthlySummary>>
   accountSummariesAsync;
+  final AsyncValue<List<DaySection>> groupedTransactionsAsync;
 
   @override
   Widget build(BuildContext context) {
@@ -98,56 +84,104 @@ class _HomeBody extends StatelessWidget {
       data: (_) {
         return LayoutBuilder(
           builder: (BuildContext context, BoxConstraints constraints) {
-            final EdgeInsets padding = EdgeInsets.symmetric(
-              horizontal: isWideLayout ? constraints.maxWidth * 0.1 : 16,
-              vertical: 16,
+            final double horizontalPadding = isWideLayout
+                ? constraints.maxWidth * 0.1
+                : 16;
+            final EdgeInsets accountsPadding = EdgeInsets.fromLTRB(
+              horizontalPadding,
+              16,
+              horizontalPadding,
+              0,
             );
-            return ListView(
-              padding: padding,
-              children: <Widget>[
-                _SectionHeader(
-                  title: strings.homeAccountsSection,
-                  action: IconButton(
-                    icon: const Icon(Icons.add),
-                    tooltip: strings.homeAccountsAddTooltip,
-                    onPressed: () => Navigator.of(
-                      context,
-                    ).pushNamed(AddAccountScreen.routeName),
+            final EdgeInsets transactionsHeaderPadding = EdgeInsets.fromLTRB(
+              horizontalPadding,
+              32,
+              horizontalPadding,
+              12,
+            );
+            final EdgeInsets transactionsContentPadding = EdgeInsets.fromLTRB(
+              horizontalPadding,
+              0,
+              horizontalPadding,
+              16,
+            );
+
+            final Widget accountsSection = accountsAsync.when(
+              data: (List<AccountEntity> accounts) => _AccountsList(
+                accounts: accounts,
+                strings: strings,
+                monthlySummaries:
+                    accountSummariesAsync.asData?.value ??
+                    const <String, HomeAccountMonthlySummary>{},
+              ),
+              loading: () => const _TransactionsSkeletonList(),
+              error: (Object error, _) => _ErrorMessage(
+                message: strings.homeAccountsError(error.toString()),
+              ),
+            );
+
+            final Widget transactionsSliver = groupedTransactionsAsync.when(
+              data: (List<DaySection> sections) {
+                if (sections.isEmpty) {
+                  return SliverToBoxAdapter(
+                    child: _EmptyMessage(
+                      message: strings.homeTransactionsEmpty,
+                    ),
+                  );
+                }
+                return _TransactionsSliver(
+                  sections: sections,
+                  localeName: strings.localeName,
+                  strings: strings,
+                );
+              },
+              loading: () => const SliverToBoxAdapter(
+                child: Center(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(vertical: 24),
+                    child: CircularProgressIndicator(),
                   ),
                 ),
-                const SizedBox(height: 12),
-                accountsAsync.when(
-                  data: (List<AccountEntity> accounts) => _AccountsList(
-                    accounts: accounts,
-                    strings: strings,
-                    monthlySummaries:
-                        accountSummariesAsync.asData?.value ??
-                        const <String, HomeAccountMonthlySummary>{},
-                  ),
-                  loading: () => const _TransactionsSkeletonList(),
-                  error: (Object error, _) => _ErrorMessage(
-                    message: strings.homeAccountsError(error.toString()),
-                  ),
+              ),
+              error: (Object error, _) => SliverToBoxAdapter(
+                child: _ErrorMessage(
+                  message: strings.homeTransactionsError(error.toString()),
                 ),
-                const SizedBox(height: 32),
-                _SectionHeader(title: strings.homeTransactionsSection),
-                const SizedBox(height: 12),
-                transactionsAsync.when(
-                  data: (List<TransactionEntity> transactions) =>
-                      _TransactionsList(
-                        transactions: transactions,
-                        localeName: strings.localeName,
-                        strings: strings,
+              ),
+            );
+
+            return CustomScrollView(
+              slivers: <Widget>[
+                SliverPadding(
+                  padding: accountsPadding,
+                  sliver: SliverList(
+                    delegate: SliverChildListDelegate(<Widget>[
+                      _SectionHeader(
+                        title: strings.homeAccountsSection,
+                        action: IconButton(
+                          icon: const Icon(Icons.add),
+                          tooltip: strings.homeAccountsAddTooltip,
+                          onPressed: () => Navigator.of(
+                            context,
+                          ).pushNamed(AddAccountScreen.routeName),
+                        ),
                       ),
-                  loading: () => const Center(
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(vertical: 24),
-                      child: CircularProgressIndicator(),
+                      const SizedBox(height: 12),
+                      accountsSection,
+                    ]),
+                  ),
+                ),
+                SliverPadding(
+                  padding: transactionsHeaderPadding,
+                  sliver: SliverToBoxAdapter(
+                    child: _SectionHeader(
+                      title: strings.homeTransactionsSection,
                     ),
                   ),
-                  error: (Object error, _) => _ErrorMessage(
-                    message: strings.homeTransactionsError(error.toString()),
-                  ),
+                ),
+                SliverPadding(
+                  padding: transactionsContentPadding,
+                  sliver: transactionsSliver,
                 ),
               ],
             );
@@ -445,76 +479,115 @@ class _AccountMonthlyValue extends StatelessWidget {
   }
 }
 
-class _TransactionsList extends ConsumerWidget {
-  const _TransactionsList({
-    required this.transactions,
+class _TransactionsSliver extends StatelessWidget {
+  const _TransactionsSliver({
+    required this.sections,
     required this.localeName,
     required this.strings,
   });
 
-  final List<TransactionEntity> transactions;
+  final List<DaySection> sections;
   final String localeName;
   final AppLocalizations strings;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    if (transactions.isEmpty) {
-      return _EmptyMessage(message: strings.homeTransactionsEmpty);
-    }
-
-    final List<TransactionListSection> sections = groupTransactionsByDay(
-      transactions: transactions,
-      today: DateTime.now(),
-      localeName: localeName,
-      todayLabel: strings.homeTransactionsTodayLabel,
+  Widget build(BuildContext context) {
+    final DateTime today = DateUtils.dateOnly(DateTime.now());
+    final DateTime yesterday = DateUtils.dateOnly(
+      today.subtract(const Duration(days: 1)),
+    );
+    final DateFormat headerFormat = _TransactionFormatters.dayHeader(
+      localeName,
     );
 
-    final List<_TransactionListEntry> entries = <_TransactionListEntry>[];
-    for (final TransactionListSection section in sections) {
-      for (int i = 0; i < section.transactions.length; i++) {
-        entries.add(
-          _TransactionListEntry(
-            transactionId: section.transactions[i].id,
-            headerTitle: i == 0 ? section.title : null,
-          ),
-        );
+    final List<_TransactionSliverEntry> entries = <_TransactionSliverEntry>[];
+    for (final DaySection section in sections) {
+      final String title = _formatSectionTitle(
+        date: section.date,
+        today: today,
+        yesterday: yesterday,
+        dateFormat: headerFormat,
+        strings: strings,
+      );
+      entries.add(_TransactionHeaderEntry(title: title));
+      for (final TransactionEntity transaction in section.transactions) {
+        entries.add(_TransactionItemEntry(transactionId: transaction.id));
       }
     }
 
-    return ListView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemExtent: _TransactionListItem.extent,
-      itemCount: entries.length,
-      itemBuilder: (BuildContext context, int index) {
-        final _TransactionListEntry entry = entries[index];
-        return _TransactionListItem(
-          entry: entry,
-          localeName: localeName,
-          strings: strings,
-        );
-      },
+    return SliverList(
+      delegate: SliverChildBuilderDelegate(
+        (BuildContext context, int index) {
+          final _TransactionSliverEntry entry = entries[index];
+          if (entry is _TransactionHeaderEntry) {
+            return Padding(
+              padding: EdgeInsets.only(top: index == 0 ? 0 : 24, bottom: 8),
+              child: Text(
+                entry.title,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+            );
+          }
+          if (entry is _TransactionItemEntry) {
+            return _TransactionListItem(
+              transactionId: entry.transactionId,
+              localeName: localeName,
+              strings: strings,
+            );
+          }
+          return const SizedBox.shrink();
+        },
+        childCount: entries.length,
+        addAutomaticKeepAlives: false,
+        addRepaintBoundaries: true,
+      ),
     );
   }
 }
 
-class _TransactionListEntry {
-  const _TransactionListEntry({required this.transactionId, this.headerTitle});
+sealed class _TransactionSliverEntry {
+  const _TransactionSliverEntry();
+}
+
+class _TransactionHeaderEntry extends _TransactionSliverEntry {
+  const _TransactionHeaderEntry({required this.title});
+
+  final String title;
+}
+
+class _TransactionItemEntry extends _TransactionSliverEntry {
+  const _TransactionItemEntry({required this.transactionId});
 
   final String transactionId;
-  final String? headerTitle;
+}
+
+String _formatSectionTitle({
+  required DateTime date,
+  required DateTime today,
+  required DateTime yesterday,
+  required DateFormat dateFormat,
+  required AppLocalizations strings,
+}) {
+  if (date.isAtSameMomentAs(today)) {
+    return strings.homeTransactionsTodayLabel;
+  }
+  if (date.isAtSameMomentAs(yesterday)) {
+    return strings.homeTransactionsYesterdayLabel;
+  }
+  final String formatted = dateFormat.format(date);
+  return toBeginningOfSentenceCase(formatted) ?? formatted;
 }
 
 class _TransactionListItem extends ConsumerWidget {
   const _TransactionListItem({
-    required this.entry,
+    required this.transactionId,
     required this.localeName,
     required this.strings,
   });
 
   static const double extent = 120;
 
-  final _TransactionListEntry entry;
+  final String transactionId;
   final String localeName;
   final AppLocalizations strings;
 
@@ -522,7 +595,7 @@ class _TransactionListItem extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final bool hasTransaction = ref.watch(
       homeTransactionByIdProvider(
-        entry.transactionId,
+        transactionId,
       ).select((TransactionEntity? tx) => tx != null),
     );
 
@@ -532,32 +605,32 @@ class _TransactionListItem extends ConsumerWidget {
 
     final String? accountId = ref.watch(
       homeTransactionByIdProvider(
-        entry.transactionId,
+        transactionId,
       ).select((TransactionEntity? tx) => tx?.accountId),
     );
     final String? categoryId = ref.watch(
       homeTransactionByIdProvider(
-        entry.transactionId,
+        transactionId,
       ).select((TransactionEntity? tx) => tx?.categoryId),
     );
     final double? amount = ref.watch(
       homeTransactionByIdProvider(
-        entry.transactionId,
+        transactionId,
       ).select((TransactionEntity? tx) => tx?.amount),
     );
     final DateTime? date = ref.watch(
       homeTransactionByIdProvider(
-        entry.transactionId,
+        transactionId,
       ).select((TransactionEntity? tx) => tx?.date),
     );
     final String? note = ref.watch(
       homeTransactionByIdProvider(
-        entry.transactionId,
+        transactionId,
       ).select((TransactionEntity? tx) => tx?.note),
     );
     final String? type = ref.watch(
       homeTransactionByIdProvider(
-        entry.transactionId,
+        transactionId,
       ).select((TransactionEntity? tx) => tx?.type),
     );
 
@@ -609,14 +682,14 @@ class _TransactionListItem extends ConsumerWidget {
     final DateFormat timeFormat = _TransactionFormatters.time(localeName);
 
     return Dismissible(
-      key: ValueKey<String>(entry.transactionId),
+      key: ValueKey<String>(transactionId),
       direction: DismissDirection.endToStart,
       background: buildDeleteBackground(Theme.of(context).colorScheme.error),
       confirmDismiss: (DismissDirection direction) async {
         return deleteTransactionWithFeedback(
           context: context,
           ref: ref,
-          transactionId: entry.transactionId,
+          transactionId: transactionId,
           strings: strings,
         );
       },
@@ -628,9 +701,12 @@ class _TransactionListItem extends ConsumerWidget {
           child: InkWell(
             borderRadius: const BorderRadius.all(Radius.circular(12)),
             onTap: () {
-              final TransactionEntity transaction = ref.read(
-                homeTransactionByIdProvider(entry.transactionId),
-              )!;
+              final TransactionEntity? transaction = ref.read(
+                homeTransactionByIdProvider(transactionId),
+              );
+              if (transaction == null) {
+                return;
+              }
               showTransactionEditorSheet(
                 context: context,
                 ref: ref,
@@ -640,85 +716,67 @@ class _TransactionListItem extends ConsumerWidget {
             },
             child: Padding(
               padding: const EdgeInsets.all(12),
-              child: Column(
+              child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  if (entry.headerTitle != null)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: Text(
-                        entry.headerTitle!,
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                    ),
+                  CircleAvatar(
+                    backgroundColor:
+                        categoryColor ??
+                        Theme.of(context).colorScheme.surfaceContainerHighest,
+                    foregroundColor: avatarIconColor,
+                    child: categoryIcon != null
+                        ? Icon(categoryIcon)
+                        : const Icon(Icons.category_outlined),
+                  ),
+                  const SizedBox(width: 12),
                   Expanded(
-                    child: Row(
+                    child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: <Widget>[
-                        CircleAvatar(
-                          backgroundColor:
-                              categoryColor ??
-                              Theme.of(
-                                context,
-                              ).colorScheme.surfaceContainerHighest,
-                          foregroundColor: avatarIconColor,
-                          child: categoryIcon != null
-                              ? Icon(categoryIcon)
-                              : const Icon(Icons.category_outlined),
+                        Text(
+                          categoryName,
+                          style: Theme.of(context).textTheme.bodyMedium,
                         ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: <Widget>[
-                              Text(
-                                categoryName,
-                                style: Theme.of(context).textTheme.bodyMedium,
+                        const SizedBox(height: 4),
+                        Text(
+                          timeFormat.format(date),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
                               ),
-                              const SizedBox(height: 4),
-                              Text(
-                                timeFormat.format(date),
-                                style: Theme.of(context).textTheme.bodySmall
-                                    ?.copyWith(
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.onSurfaceVariant,
-                                    ),
-                              ),
-                              if (note != null && note.isNotEmpty)
-                                Padding(
-                                  padding: const EdgeInsets.only(top: 4),
-                                  child: Text(
-                                    note,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.bodySmall,
-                                  ),
-                                ),
-                            ],
-                          ),
                         ),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: <Widget>[
-                            Text(
-                              moneyFormat.format(amount.abs()),
-                              style: Theme.of(context).textTheme.titleMedium
-                                  ?.copyWith(color: amountColor),
+                        if (note != null && note.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 4),
+                            child: Text(
+                              note,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context).textTheme.bodySmall,
                             ),
-                            if (accountName != null)
-                              Text(
-                                accountName,
-                                style: Theme.of(context).textTheme.bodySmall,
-                              ),
-                          ],
-                        ),
+                          ),
                       ],
                     ),
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      Text(
+                        moneyFormat.format(amount.abs()),
+                        style: Theme.of(
+                          context,
+                        ).textTheme.titleMedium?.copyWith(color: amountColor),
+                      ),
+                      if (accountName != null)
+                        Text(
+                          accountName,
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                    ],
                   ),
                 ],
               ),
@@ -735,9 +793,14 @@ class _TransactionFormatters {
   static final Map<String, NumberFormat> _currencyCache =
       <String, NumberFormat>{};
   static final Map<String, String> _fallbackSymbols = <String, String>{};
+  static final Map<String, DateFormat> _dayHeaderCache = <String, DateFormat>{};
 
   static DateFormat time(String locale) {
     return _timeCache.putIfAbsent(locale, () => DateFormat.Hm(locale));
+  }
+
+  static DateFormat dayHeader(String locale) {
+    return _dayHeaderCache.putIfAbsent(locale, () => DateFormat.yMMMMd(locale));
   }
 
   static NumberFormat currency(String locale, String symbol) {

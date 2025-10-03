@@ -42,7 +42,7 @@ NavigationTabContent buildAnalyticsTabContent(
         AppBar(title: Text(strings.analyticsTitle)),
     bodyBuilder: (BuildContext context, WidgetRef ref) {
       final AsyncValue<AnalyticsOverview> overviewAsync = ref.watch(
-        analyticsOverviewProvider(topCategoriesLimit: 6),
+        analyticsFilteredStatsProvider(topCategoriesLimit: 6),
       );
       final AsyncValue<List<Category>> categoriesAsync = ref.watch(
         analyticsCategoriesProvider,
@@ -54,61 +54,108 @@ NavigationTabContent buildAnalyticsTabContent(
         analyticsFilterControllerProvider,
       );
 
-      if (overviewAsync.isLoading ||
-          categoriesAsync.isLoading ||
-          accountsAsync.isLoading) {
-        return const Center(child: CircularProgressIndicator());
-      }
-
-      final Object? overviewError = overviewAsync.error;
-      final Object? categoriesError = categoriesAsync.error;
-      final Object? accountsError = accountsAsync.error;
-      if (overviewError != null ||
-          categoriesError != null ||
-          accountsError != null) {
-        final Object? error = overviewError ?? categoriesError ?? accountsError;
-        return _AnalyticsError(message: error.toString(), strings: strings);
-      }
-
-      final AnalyticsOverview? overview = overviewAsync.value;
       final List<Category> categories =
           categoriesAsync.value ?? const <Category>[];
       final List<AccountEntity> accounts =
           accountsAsync.value ?? const <AccountEntity>[];
+      final bool isLoading =
+          overviewAsync.isLoading ||
+          categoriesAsync.isLoading ||
+          accountsAsync.isLoading;
+      final Object? error =
+          overviewAsync.error ?? categoriesAsync.error ?? accountsAsync.error;
+      final AnalyticsOverview? overview = overviewAsync.value;
 
-      if (overview == null ||
-          (overview.totalIncome == 0 && overview.totalExpense == 0)) {
-        return _AnalyticsEmpty(strings: strings);
-      }
+      final Size size = MediaQuery.of(context).size;
+      final double horizontalPadding = size.width >= 960
+          ? size.width * 0.15
+          : 24;
+      final double filterHeight = _resolveFilterHeight(size.width);
 
-      return _AnalyticsContent(
-        overview: overview,
-        categories: categories,
-        accounts: accounts,
-        filterState: filterState,
-        strings: strings,
+      return SafeArea(
+        child: CustomScrollView(
+          slivers: <Widget>[
+            SliverPersistentHeader(
+              pinned: true,
+              delegate: _AnalyticsFilterHeaderDelegate(
+                minExtentValue: filterHeight,
+                maxExtentValue: filterHeight,
+                horizontalPadding: horizontalPadding,
+                builder: (bool overlaps) => Card(
+                  margin: EdgeInsets.zero,
+                  elevation: overlaps ? 2 : 0,
+                  surfaceTintColor: Colors.transparent,
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(12)),
+                  ),
+                  clipBehavior: Clip.antiAlias,
+                  child: _AnalyticsFilterBar(
+                    filterState: filterState,
+                    accounts: accounts,
+                    categories: categories,
+                    strings: strings,
+                  ),
+                ),
+              ),
+            ),
+            if (isLoading)
+              const SliverFillRemaining(
+                hasScrollBody: false,
+                child: Center(child: CircularProgressIndicator()),
+              )
+            else if (error != null)
+              SliverFillRemaining(
+                hasScrollBody: false,
+                child: _AnalyticsError(
+                  message: error.toString(),
+                  strings: strings,
+                ),
+              )
+            else if (overview == null ||
+                (overview.totalIncome == 0 && overview.totalExpense == 0))
+              SliverFillRemaining(
+                hasScrollBody: false,
+                child: _AnalyticsEmpty(strings: strings),
+              )
+            else
+              SliverPadding(
+                padding: EdgeInsets.fromLTRB(
+                  horizontalPadding,
+                  24,
+                  horizontalPadding,
+                  32,
+                ),
+                sliver: SliverToBoxAdapter(
+                  child: _AnalyticsContent(
+                    overview: overview,
+                    categories: categories,
+                    filterState: filterState,
+                    strings: strings,
+                  ),
+                ),
+              ),
+          ],
+        ),
       );
     },
   );
 }
 
-class _AnalyticsContent extends ConsumerWidget {
+class _AnalyticsContent extends StatelessWidget {
   const _AnalyticsContent({
     required this.overview,
     required this.categories,
-    required this.accounts,
     required this.filterState,
     required this.strings,
   });
 
   final AnalyticsOverview overview;
   final List<Category> categories;
-  final List<AccountEntity> accounts;
   final AnalyticsFilterState filterState;
   final AppLocalizations strings;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
     final NumberFormat currencyFormat = NumberFormat.simpleCurrency(
       locale: strings.localeName,
@@ -126,49 +173,39 @@ class _AnalyticsContent extends ConsumerWidget {
         ? startLabel
         : strings.analyticsFilterDateValue(startLabel, endLabel);
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Text(
+          strings.analyticsOverviewRangeTitle(rangeLabel),
+          style: theme.textTheme.titleLarge,
+        ),
+        const SizedBox(height: 24),
+        _AnalyticsSummaryFrame(
+          overview: overview,
+          currencyFormat: currencyFormat,
+          strings: strings,
+        ),
+        const SizedBox(height: 24),
+        Text(
+          strings.analyticsTopCategoriesTitle,
+          style: theme.textTheme.titleMedium,
+        ),
+        const SizedBox(height: 12),
+        if (overview.topExpenseCategories.isEmpty || totalExpense == 0)
           Text(
-            strings.analyticsOverviewRangeTitle(rangeLabel),
-            style: theme.textTheme.titleLarge,
-          ),
-          const SizedBox(height: 16),
-          _AnalyticsFilterBar(
-            filterState: filterState,
-            accounts: accounts,
-            categories: categories,
-            strings: strings,
-          ),
-          const SizedBox(height: 24),
-          _AnalyticsSummaryFrame(
-            overview: overview,
+            strings.analyticsTopCategoriesEmpty,
+            style: theme.textTheme.bodyMedium,
+          )
+        else
+          _TopCategoriesSection(
+            breakdowns: overview.topExpenseCategories,
+            categoriesById: categoriesById,
+            totalExpense: totalExpense,
             currencyFormat: currencyFormat,
             strings: strings,
           ),
-          const SizedBox(height: 24),
-          Text(
-            strings.analyticsTopCategoriesTitle,
-            style: theme.textTheme.titleMedium,
-          ),
-          const SizedBox(height: 12),
-          if (overview.topExpenseCategories.isEmpty || totalExpense == 0)
-            Text(
-              strings.analyticsTopCategoriesEmpty,
-              style: theme.textTheme.bodyMedium,
-            )
-          else
-            _TopCategoriesSection(
-              breakdowns: overview.topExpenseCategories,
-              categoriesById: categoriesById,
-              totalExpense: totalExpense,
-              currencyFormat: currencyFormat,
-              strings: strings,
-            ),
-        ],
-      ),
+      ],
     );
   }
 }
@@ -343,101 +380,158 @@ class _AnalyticsFilterBar extends ConsumerWidget {
         ? startText
         : strings.analyticsFilterDateValue(startText, endText);
 
-    return Card(
-      elevation: 0,
-      surfaceTintColor: Colors.transparent,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Wrap(
-          spacing: 16,
-          runSpacing: 16,
-          crossAxisAlignment: WrapCrossAlignment.center,
-          children: <Widget>[
-            FilledButton.tonal(
-              onPressed: () async {
-                final DateTimeRange? result = await showDateRangePicker(
-                  context: context,
-                  initialDateRange: filterState.dateRange,
-                  firstDate: DateTime(2000),
-                  lastDate: DateTime(DateTime.now().year + 10, 12, 31),
-                  locale: Locale(strings.localeName),
-                );
-                if (result == null) {
-                  return;
-                }
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Wrap(
+        spacing: 16,
+        runSpacing: 16,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: <Widget>[
+          FilledButton.tonal(
+            onPressed: () async {
+              final DateTimeRange? result = await showDateRangePicker(
+                context: context,
+                initialDateRange: filterState.dateRange,
+                firstDate: DateTime(2000),
+                lastDate: DateTime(DateTime.now().year + 10, 12, 31),
+                locale: Locale(strings.localeName),
+              );
+              if (result == null) {
+                return;
+              }
+              ref
+                  .read(analyticsFilterControllerProvider.notifier)
+                  .updateDateRange(result);
+            },
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                const Icon(Icons.calendar_today_outlined, size: 18),
+                const SizedBox(width: 8),
+                Text('${strings.analyticsFilterDateLabel}: $dateValue'),
+              ],
+            ),
+          ),
+          SizedBox(
+            width: 240,
+            child: DropdownMenu<String?>(
+              initialSelection: filterState.accountId,
+              label: Text(strings.analyticsFilterAccountLabel),
+              inputDecorationTheme: const InputDecorationTheme(
+                border: OutlineInputBorder(),
+                isDense: true,
+              ),
+              dropdownMenuEntries: <DropdownMenuEntry<String?>>[
+                DropdownMenuEntry<String?>(
+                  value: null,
+                  label: strings.analyticsFilterAccountAll,
+                ),
+                ...accounts.map((AccountEntity account) {
+                  return DropdownMenuEntry<String?>(
+                    value: account.id,
+                    label: account.name,
+                  );
+                }),
+              ],
+              onSelected: (String? value) {
                 ref
                     .read(analyticsFilterControllerProvider.notifier)
-                    .updateDateRange(result);
+                    .updateAccount(value);
               },
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  const Icon(Icons.calendar_today_outlined, size: 18),
-                  const SizedBox(width: 8),
-                  Text('${strings.analyticsFilterDateLabel}: $dateValue'),
-                ],
-              ),
             ),
-            SizedBox(
-              width: 240,
-              child: DropdownMenu<String?>(
-                initialSelection: filterState.accountId,
-                label: Text(strings.analyticsFilterAccountLabel),
-                inputDecorationTheme: const InputDecorationTheme(
-                  border: OutlineInputBorder(),
-                  isDense: true,
+          ),
+          SizedBox(
+            width: 240,
+            child: DropdownMenu<String?>(
+              initialSelection: filterState.categoryId,
+              label: Text(strings.analyticsFilterCategoryLabel),
+              inputDecorationTheme: const InputDecorationTheme(
+                border: OutlineInputBorder(),
+                isDense: true,
+              ),
+              dropdownMenuEntries: <DropdownMenuEntry<String?>>[
+                DropdownMenuEntry<String?>(
+                  value: null,
+                  label: strings.analyticsFilterCategoryAll,
                 ),
-                dropdownMenuEntries: <DropdownMenuEntry<String?>>[
-                  DropdownMenuEntry<String?>(
-                    value: null,
-                    label: strings.analyticsFilterAccountAll,
-                  ),
-                  ...accounts.map((AccountEntity account) {
-                    return DropdownMenuEntry<String?>(
-                      value: account.id,
-                      label: account.name,
-                    );
-                  }),
-                ],
-                onSelected: (String? value) {
-                  ref
-                      .read(analyticsFilterControllerProvider.notifier)
-                      .updateAccount(value);
-                },
-              ),
+                ...categories.map((Category category) {
+                  return DropdownMenuEntry<String?>(
+                    value: category.id,
+                    label: category.name,
+                  );
+                }),
+              ],
+              onSelected: (String? value) {
+                ref
+                    .read(analyticsFilterControllerProvider.notifier)
+                    .updateCategory(value);
+              },
             ),
-            SizedBox(
-              width: 240,
-              child: DropdownMenu<String?>(
-                initialSelection: filterState.categoryId,
-                label: Text(strings.analyticsFilterCategoryLabel),
-                inputDecorationTheme: const InputDecorationTheme(
-                  border: OutlineInputBorder(),
-                  isDense: true,
-                ),
-                dropdownMenuEntries: <DropdownMenuEntry<String?>>[
-                  DropdownMenuEntry<String?>(
-                    value: null,
-                    label: strings.analyticsFilterCategoryAll,
-                  ),
-                  ...categories.map((Category category) {
-                    return DropdownMenuEntry<String?>(
-                      value: category.id,
-                      label: category.name,
-                    );
-                  }),
-                ],
-                onSelected: (String? value) {
-                  ref
-                      .read(analyticsFilterControllerProvider.notifier)
-                      .updateCategory(value);
-                },
-              ),
-            ),
-          ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+double _resolveFilterHeight(double width) {
+  if (width >= 960) {
+    return 148;
+  }
+  if (width >= 640) {
+    return 212;
+  }
+  return 268;
+}
+
+class _AnalyticsFilterHeaderDelegate extends SliverPersistentHeaderDelegate {
+  const _AnalyticsFilterHeaderDelegate({
+    required this.minExtentValue,
+    required this.maxExtentValue,
+    required this.horizontalPadding,
+    required this.builder,
+  });
+
+  final double minExtentValue;
+  final double maxExtentValue;
+  final double horizontalPadding;
+  final Widget Function(bool overlapsContent) builder;
+
+  @override
+  double get minExtent => minExtentValue;
+
+  @override
+  double get maxExtent => maxExtentValue;
+
+  @override
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
+    final ThemeData theme = Theme.of(context);
+    return Container(
+      color: theme.colorScheme.surface,
+      child: Align(
+        alignment: Alignment.topCenter,
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(
+            horizontalPadding,
+            12,
+            horizontalPadding,
+            12,
+          ),
+          child: builder(overlapsContent),
         ),
       ),
     );
+  }
+
+  @override
+  bool shouldRebuild(_AnalyticsFilterHeaderDelegate oldDelegate) {
+    return minExtentValue != oldDelegate.minExtentValue ||
+        maxExtentValue != oldDelegate.maxExtentValue ||
+        horizontalPadding != oldDelegate.horizontalPadding;
   }
 }
 

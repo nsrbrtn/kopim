@@ -9,10 +9,52 @@ part of 'analytics_providers.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 
-@ProviderFor(analyticsOverview)
-const analyticsOverviewProvider = AnalyticsOverviewFamily._();
+@ProviderFor(analyticsFilters)
+const analyticsFiltersProvider = AnalyticsFiltersProvider._();
 
-final class AnalyticsOverviewProvider
+final class AnalyticsFiltersProvider
+    extends
+        $FunctionalProvider<AnalyticsFilter, AnalyticsFilter, AnalyticsFilter>
+    with $Provider<AnalyticsFilter> {
+  const AnalyticsFiltersProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'analyticsFiltersProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$analyticsFiltersHash();
+
+  @$internal
+  @override
+  $ProviderElement<AnalyticsFilter> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  AnalyticsFilter create(Ref ref) {
+    return analyticsFilters(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(AnalyticsFilter value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<AnalyticsFilter>(value),
+    );
+  }
+}
+
+String _$analyticsFiltersHash() => r'1b1542c9cc14ed5ec7b0e02f9b4f57636fa2166b';
+
+@ProviderFor(analyticsFilteredStats)
+const analyticsFilteredStatsProvider = AnalyticsFilteredStatsFamily._();
+
+final class AnalyticsFilteredStatsProvider
     extends
         $FunctionalProvider<
           AsyncValue<AnalyticsOverview>,
@@ -22,23 +64,23 @@ final class AnalyticsOverviewProvider
     with
         $FutureModifier<AnalyticsOverview>,
         $StreamProvider<AnalyticsOverview> {
-  const AnalyticsOverviewProvider._({
-    required AnalyticsOverviewFamily super.from,
+  const AnalyticsFilteredStatsProvider._({
+    required AnalyticsFilteredStatsFamily super.from,
     required int super.argument,
   }) : super(
          retry: null,
-         name: r'analyticsOverviewProvider',
+         name: r'analyticsFilteredStatsProvider',
          isAutoDispose: true,
          dependencies: null,
          $allTransitiveDependencies: null,
        );
 
   @override
-  String debugGetCreateSourceHash() => _$analyticsOverviewHash();
+  String debugGetCreateSourceHash() => _$analyticsFilteredStatsHash();
 
   @override
   String toString() {
-    return r'analyticsOverviewProvider'
+    return r'analyticsFilteredStatsProvider'
         ''
         '($argument)';
   }
@@ -52,12 +94,13 @@ final class AnalyticsOverviewProvider
   @override
   Stream<AnalyticsOverview> create(Ref ref) {
     final argument = this.argument as int;
-    return analyticsOverview(ref, topCategoriesLimit: argument);
+    return analyticsFilteredStats(ref, topCategoriesLimit: argument);
   }
 
   @override
   bool operator ==(Object other) {
-    return other is AnalyticsOverviewProvider && other.argument == argument;
+    return other is AnalyticsFilteredStatsProvider &&
+        other.argument == argument;
   }
 
   @override
@@ -66,24 +109,28 @@ final class AnalyticsOverviewProvider
   }
 }
 
-String _$analyticsOverviewHash() => r'f12f5f64d9b276c96d20180901258f80940cfa37';
+String _$analyticsFilteredStatsHash() =>
+    r'db4114088c1539b41668d451b916797b72376d61';
 
-final class AnalyticsOverviewFamily extends $Family
+final class AnalyticsFilteredStatsFamily extends $Family
     with $FunctionalFamilyOverride<Stream<AnalyticsOverview>, int> {
-  const AnalyticsOverviewFamily._()
+  const AnalyticsFilteredStatsFamily._()
     : super(
         retry: null,
-        name: r'analyticsOverviewProvider',
+        name: r'analyticsFilteredStatsProvider',
         dependencies: null,
         $allTransitiveDependencies: null,
         isAutoDispose: true,
       );
 
-  AnalyticsOverviewProvider call({int topCategoriesLimit = 5}) =>
-      AnalyticsOverviewProvider._(argument: topCategoriesLimit, from: this);
+  AnalyticsFilteredStatsProvider call({int topCategoriesLimit = 5}) =>
+      AnalyticsFilteredStatsProvider._(
+        argument: topCategoriesLimit,
+        from: this,
+      );
 
   @override
-  String toString() => r'analyticsOverviewProvider';
+  String toString() => r'analyticsFilteredStatsProvider';
 }
 
 @ProviderFor(analyticsCategories)

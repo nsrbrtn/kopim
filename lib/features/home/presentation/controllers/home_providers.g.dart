@@ -407,46 +407,53 @@ final class HomeCategoryByIdFamily extends $Family
   String toString() => r'homeCategoryByIdProvider';
 }
 
-@ProviderFor(homeTotalBalance)
-const homeTotalBalanceProvider = HomeTotalBalanceProvider._();
+@ProviderFor(homeGroupedTransactions)
+const homeGroupedTransactionsProvider = HomeGroupedTransactionsProvider._();
 
-final class HomeTotalBalanceProvider
-    extends $FunctionalProvider<double, double, double>
-    with $Provider<double> {
-  const HomeTotalBalanceProvider._()
+final class HomeGroupedTransactionsProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<DaySection>>,
+          AsyncValue<List<DaySection>>,
+          AsyncValue<List<DaySection>>
+        >
+    with $Provider<AsyncValue<List<DaySection>>> {
+  const HomeGroupedTransactionsProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
-        name: r'homeTotalBalanceProvider',
+        name: r'homeGroupedTransactionsProvider',
         isAutoDispose: true,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
 
   @override
-  String debugGetCreateSourceHash() => _$homeTotalBalanceHash();
+  String debugGetCreateSourceHash() => _$homeGroupedTransactionsHash();
 
   @$internal
   @override
-  $ProviderElement<double> $createElement($ProviderPointer pointer) =>
-      $ProviderElement(pointer);
+  $ProviderElement<AsyncValue<List<DaySection>>> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
 
   @override
-  double create(Ref ref) {
-    return homeTotalBalance(ref);
+  AsyncValue<List<DaySection>> create(Ref ref) {
+    return homeGroupedTransactions(ref);
   }
 
   /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(double value) {
+  Override overrideWithValue(AsyncValue<List<DaySection>> value) {
     return $ProviderOverride(
       origin: this,
-      providerOverride: $SyncValueProvider<double>(value),
+      providerOverride: $SyncValueProvider<AsyncValue<List<DaySection>>>(value),
     );
   }
 }
 
-String _$homeTotalBalanceHash() => r'8c73907b65d1cfbc591a7aa884386c33a149bb90';
+String _$homeGroupedTransactionsHash() =>
+    r'57e99e692effe5a35974908c34eff0a5b58ecb4d';
 
 @ProviderFor(homeAccountMonthlySummaries)
 const homeAccountMonthlySummariesProvider =
