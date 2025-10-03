@@ -5,6 +5,7 @@ import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/features/recurring_transactions/domain/entities/recurring_occurrence.dart';
 import 'package:kopim/features/recurring_transactions/domain/entities/recurring_rule.dart';
 import 'package:kopim/features/recurring_transactions/presentation/controllers/recurring_transactions_providers.dart';
+import 'package:kopim/features/recurring_transactions/presentation/models/recurring_rule_form_result.dart';
 import 'package:kopim/features/recurring_transactions/presentation/screens/add_recurring_rule_screen.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
@@ -50,6 +51,8 @@ class RecurringTransactionsScreen extends ConsumerWidget {
                         .read(toggleRecurringRuleUseCaseProvider)
                         .call(id: rule.id, isActive: value);
                   },
+                  onEdit: () => _onEditRulePressed(context, rule),
+                  onDelete: () => _onDeleteRulePressed(context, ref, rule),
                 );
               },
               separatorBuilder: (BuildContext context, int _) =>
@@ -106,11 +109,10 @@ class RecurringTransactionsScreen extends ConsumerWidget {
   }
 
   Future<void> _onAddRulePressed(BuildContext context) async {
-    final Object? result = await Navigator.of(
+    final RecurringRuleFormResult? result = await Navigator.of(
       context,
-    ).pushNamed(AddRecurringRuleScreen.routeName);
-    final bool? created = result as bool?;
-    if (created == true && context.mounted) {
+    ).pushNamed<RecurringRuleFormResult>(AddRecurringRuleScreen.routeName);
+    if (result == RecurringRuleFormResult.created && context.mounted) {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
@@ -122,6 +124,76 @@ class RecurringTransactionsScreen extends ConsumerWidget {
         );
     }
   }
+
+  Future<void> _onEditRulePressed(
+    BuildContext context,
+    RecurringRule rule,
+  ) async {
+    final RecurringRuleFormResult? result = await Navigator.of(context).push(
+      MaterialPageRoute<RecurringRuleFormResult>(
+        builder: (_) => AddRecurringRuleScreen(initialRule: rule),
+      ),
+    );
+    if (result == RecurringRuleFormResult.updated && context.mounted) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context)!.editRecurringRuleSuccess,
+            ),
+          ),
+        );
+    }
+  }
+
+  Future<void> _onDeleteRulePressed(
+    BuildContext context,
+    WidgetRef ref,
+    RecurringRule rule,
+  ) async {
+    final AppLocalizations strings = AppLocalizations.of(context)!;
+    final bool? shouldDelete = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: Text(strings.recurringTransactionsDeleteDialogTitle),
+          content: Text(strings.recurringTransactionsDeleteConfirmation),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: Text(strings.dialogCancel),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: Text(strings.dialogConfirm),
+            ),
+          ],
+        );
+      },
+    );
+    if (shouldDelete != true) {
+      return;
+    }
+    try {
+      await ref.read(deleteRecurringRuleUseCaseProvider).call(rule.id);
+      if (!context.mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(content: Text(strings.recurringTransactionsDeleteSuccess)),
+        );
+    } catch (error) {
+      if (!context.mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(content: Text(strings.genericErrorMessage)));
+    }
+  }
 }
 
 class _RecurringRuleTile extends StatelessWidget {
@@ -129,11 +201,15 @@ class _RecurringRuleTile extends StatelessWidget {
     required this.rule,
     required this.nextOccurrence,
     required this.onToggle,
+    required this.onEdit,
+    required this.onDelete,
   });
 
   final RecurringRule rule;
   final RecurringOccurrence? nextOccurrence;
   final ValueChanged<bool> onToggle;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -148,11 +224,45 @@ class _RecurringRuleTile extends StatelessWidget {
       child: ListTile(
         title: Text(rule.title),
         subtitle: Text(subtitle),
-        trailing: Switch(value: rule.isActive, onChanged: onToggle),
+        onTap: onEdit,
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Switch(value: rule.isActive, onChanged: onToggle),
+            const SizedBox(width: 8),
+            PopupMenuButton<_RecurringRuleTileAction>(
+              onSelected: (_RecurringRuleTileAction action) {
+                switch (action) {
+                  case _RecurringRuleTileAction.edit:
+                    onEdit();
+                    break;
+                  case _RecurringRuleTileAction.delete:
+                    onDelete();
+                    break;
+                }
+              },
+              itemBuilder: (BuildContext context) {
+                final AppLocalizations strings = AppLocalizations.of(context)!;
+                return <PopupMenuEntry<_RecurringRuleTileAction>>[
+                  PopupMenuItem<_RecurringRuleTileAction>(
+                    value: _RecurringRuleTileAction.edit,
+                    child: Text(strings.recurringTransactionsEditAction),
+                  ),
+                  PopupMenuItem<_RecurringRuleTileAction>(
+                    value: _RecurringRuleTileAction.delete,
+                    child: Text(strings.recurringTransactionsDeleteAction),
+                  ),
+                ];
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
 }
+
+enum _RecurringRuleTileAction { edit, delete }
 
 class _EmptyState extends StatelessWidget {
   const _EmptyState({required this.message});

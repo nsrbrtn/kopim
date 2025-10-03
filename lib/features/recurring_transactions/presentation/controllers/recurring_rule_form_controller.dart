@@ -23,6 +23,7 @@ abstract class RecurringRuleFormState with _$RecurringRuleFormState {
     @Default('') String title,
     @Default('') String amountInput,
     AccountEntity? account,
+    String? accountId,
     @Default(TransactionType.expense) TransactionType type,
     required DateTime startDate,
     @Default(0) int applyHour,
@@ -30,6 +31,8 @@ abstract class RecurringRuleFormState with _$RecurringRuleFormState {
     @Default(false) bool autoPost,
     @Default(false) bool isSubmitting,
     @Default(false) bool submissionSuccess,
+    @Default(false) bool isEditing,
+    RecurringRule? initialRule,
     RecurringRuleTitleError? titleError,
     RecurringRuleAmountError? amountError,
     RecurringRuleAccountError? accountError,
@@ -53,9 +56,33 @@ class RecurringRuleFormController extends _$RecurringRuleFormController {
   late final Uuid _uuid;
 
   @override
-  RecurringRuleFormState build() {
+  RecurringRuleFormState build({RecurringRule? initialRule}) {
     _saveRecurringRuleUseCase = ref.watch(saveRecurringRuleUseCaseProvider);
     _uuid = ref.watch(uuidGeneratorProvider);
+    if (initialRule != null) {
+      final DateTime referenceLocalDateTime =
+          (initialRule.nextDueLocalDate ?? initialRule.startAt).toLocal();
+      final double absoluteAmount = initialRule.amount.abs();
+      final TransactionType initialType = initialRule.amount >= 0
+          ? TransactionType.expense
+          : TransactionType.income;
+      return RecurringRuleFormState(
+        title: initialRule.title,
+        amountInput: _formatAmountInput(absoluteAmount),
+        accountId: initialRule.accountId,
+        type: initialType,
+        startDate: DateTime(
+          referenceLocalDateTime.year,
+          referenceLocalDateTime.month,
+          referenceLocalDateTime.day,
+        ),
+        applyHour: initialRule.applyAtLocalHour,
+        applyMinute: initialRule.applyAtLocalMinute,
+        autoPost: initialRule.autoPost,
+        isEditing: true,
+        initialRule: initialRule,
+      );
+    }
     final DateTime now = DateTime.now();
     return RecurringRuleFormState(
       startDate: DateTime(now.year, now.month, now.day),
@@ -85,6 +112,7 @@ class RecurringRuleFormController extends _$RecurringRuleFormController {
   void updateAccount(AccountEntity? account) {
     state = state.copyWith(
       account: account,
+      accountId: account?.id,
       accountError: null,
       submissionSuccess: false,
       generalErrorMessage: null,
@@ -175,32 +203,56 @@ class RecurringRuleFormController extends _$RecurringRuleFormController {
         ? parsedAmount!
         : -parsedAmount!;
     final DateTime now = DateTime.now().toUtc();
-    final RecurringRule rule = RecurringRule(
-      id: _uuid.v4(),
-      title: trimmedTitle,
-      accountId: account!.id,
-      amount: amount,
-      currency: account.currency,
-      startAt: startAtUtc,
-      timezone: 'UTC',
-      rrule: 'FREQ=MONTHLY;INTERVAL=1;BYMONTHDAY=${startDate.day}',
-      notes: null,
-      dayOfMonth: startDate.day,
-      applyAtLocalHour: state.applyHour,
-      applyAtLocalMinute: state.applyMinute,
-      lastRunAt: null,
-      nextDueLocalDate: startDateTimeLocal,
-      isActive: true,
-      autoPost: state.autoPost,
-      reminderMinutesBefore: null,
-      shortMonthPolicy: RecurringRuleShortMonthPolicy.clipToLastDay,
-      createdAt: now,
-      updatedAt: now,
-    );
+    final RecurringRule? existingRule = state.initialRule;
+    final RecurringRule rule;
+    if (existingRule == null) {
+      rule = RecurringRule(
+        id: _uuid.v4(),
+        title: trimmedTitle,
+        accountId: account!.id,
+        amount: amount,
+        currency: account.currency,
+        startAt: startAtUtc,
+        timezone: 'UTC',
+        rrule: 'FREQ=MONTHLY;INTERVAL=1;BYMONTHDAY=${startDate.day}',
+        notes: null,
+        dayOfMonth: startDate.day,
+        applyAtLocalHour: state.applyHour,
+        applyAtLocalMinute: state.applyMinute,
+        lastRunAt: null,
+        nextDueLocalDate: startDateTimeLocal,
+        isActive: true,
+        autoPost: state.autoPost,
+        reminderMinutesBefore: null,
+        shortMonthPolicy: RecurringRuleShortMonthPolicy.clipToLastDay,
+        createdAt: now,
+        updatedAt: now,
+      );
+    } else {
+      rule = existingRule.copyWith(
+        title: trimmedTitle,
+        accountId: account!.id,
+        amount: amount,
+        currency: account.currency,
+        startAt: startAtUtc,
+        rrule: 'FREQ=MONTHLY;INTERVAL=1;BYMONTHDAY=${startDate.day}',
+        dayOfMonth: startDate.day,
+        applyAtLocalHour: state.applyHour,
+        applyAtLocalMinute: state.applyMinute,
+        nextDueLocalDate: startDateTimeLocal,
+        autoPost: state.autoPost,
+        updatedAt: now,
+      );
+    }
 
     try {
       await _saveRecurringRuleUseCase(rule);
-      state = state.copyWith(isSubmitting: false, submissionSuccess: true);
+      state = state.copyWith(
+        isSubmitting: false,
+        submissionSuccess: true,
+        initialRule: rule,
+        isEditing: existingRule != null,
+      );
     } catch (error) {
       state = state.copyWith(
         isSubmitting: false,
@@ -217,6 +269,21 @@ class RecurringRuleFormController extends _$RecurringRuleFormController {
       return null;
     }
     return value;
+  }
+
+  String _formatAmountInput(double value) {
+    final String formatted = value.toStringAsFixed(2);
+    if (!formatted.contains('.')) {
+      return formatted;
+    }
+    String trimmed = formatted;
+    while (trimmed.endsWith('0')) {
+      trimmed = trimmed.substring(0, trimmed.length - 1);
+    }
+    if (trimmed.endsWith('.')) {
+      trimmed = trimmed.substring(0, trimmed.length - 1);
+    }
+    return trimmed;
   }
 }
 

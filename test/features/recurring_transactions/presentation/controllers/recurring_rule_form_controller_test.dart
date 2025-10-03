@@ -78,8 +78,10 @@ void main() {
   test('submit sends recurring rule to use case and marks success', () async {
     when(() => mockUseCase.call(any())).thenAnswer((_) async {});
 
+    final RecurringRuleFormControllerProvider provider =
+        recurringRuleFormControllerProvider(initialRule: null);
     final RecurringRuleFormController controller = container.read(
-      recurringRuleFormControllerProvider.notifier,
+      provider.notifier,
     );
     final AccountEntity account = _buildAccount();
     controller.updateAccount(account);
@@ -111,17 +113,18 @@ void main() {
     expect(captured.createdAt.isUtc, isTrue);
     expect(captured.updatedAt.isUtc, isTrue);
 
-    final RecurringRuleFormState state = container.read(
-      recurringRuleFormControllerProvider,
-    );
+    final RecurringRuleFormState state = container.read(provider);
     expect(state.submissionSuccess, isTrue);
     expect(state.isSubmitting, isFalse);
     expect(state.generalErrorMessage, isNull);
+    expect(state.isEditing, isFalse);
   });
 
   test('submit validates fields before calling use case', () async {
+    final RecurringRuleFormControllerProvider provider =
+        recurringRuleFormControllerProvider(initialRule: null);
     final RecurringRuleFormController controller = container.read(
-      recurringRuleFormControllerProvider.notifier,
+      provider.notifier,
     );
     controller.updateTitle('  ');
     controller.updateAmount('abc');
@@ -129,9 +132,7 @@ void main() {
 
     await controller.submit();
 
-    final RecurringRuleFormState state = container.read(
-      recurringRuleFormControllerProvider,
-    );
+    final RecurringRuleFormState state = container.read(provider);
     expect(state.titleError, RecurringRuleTitleError.empty);
     expect(state.amountError, RecurringRuleAmountError.invalid);
     expect(state.accountError, RecurringRuleAccountError.missing);
@@ -143,8 +144,10 @@ void main() {
       throw Exception('failed');
     });
 
+    final RecurringRuleFormControllerProvider provider =
+        recurringRuleFormControllerProvider(initialRule: null);
     final RecurringRuleFormController controller = container.read(
-      recurringRuleFormControllerProvider.notifier,
+      provider.notifier,
     );
     controller.updateAccount(_buildAccount());
     controller.updateTitle('Аренда');
@@ -152,12 +155,52 @@ void main() {
 
     await controller.submit();
 
-    final RecurringRuleFormState state = container.read(
-      recurringRuleFormControllerProvider,
-    );
+    final RecurringRuleFormState state = container.read(provider);
     expect(state.submissionSuccess, isFalse);
     expect(state.isSubmitting, isFalse);
     expect(state.generalErrorMessage, contains('failed'));
     verify(() => mockUseCase.call(any())).called(1);
+  });
+
+  test('submit updates existing rule when editing', () async {
+    when(() => mockUseCase.call(any())).thenAnswer((_) async {});
+
+    final RecurringRule existingRule = _fallbackRule();
+    final RecurringRuleFormControllerProvider provider =
+        recurringRuleFormControllerProvider(initialRule: existingRule);
+    final RecurringRuleFormController controller = container.read(
+      provider.notifier,
+    );
+    final AccountEntity account = _buildAccount().copyWith(id: 'account-2');
+    controller.updateAccount(account);
+    controller.updateTitle('Аренда жилья');
+    controller.updateAmount('750.5');
+    controller.updateType(TransactionType.expense);
+    controller.updateStartDate(DateTime(2024, 2, 5));
+    controller.updateTime(hour: 8, minute: 45);
+    controller.updateAutoPost(true);
+
+    await controller.submit();
+
+    final RecurringRule captured =
+        verify(() => mockUseCase.call(captureAny())).captured.single
+            as RecurringRule;
+    expect(captured.id, existingRule.id);
+    expect(captured.title, 'Аренда жилья');
+    expect(captured.accountId, account.id);
+    expect(captured.currency, account.currency);
+    expect(captured.amount, 750.5);
+    expect(captured.dayOfMonth, 5);
+    expect(captured.applyAtLocalHour, 8);
+    expect(captured.applyAtLocalMinute, 45);
+    expect(captured.autoPost, isTrue);
+    expect(captured.createdAt, existingRule.createdAt);
+    expect(captured.updatedAt.isAfter(existingRule.updatedAt), isTrue);
+
+    final RecurringRuleFormState state = container.read(provider);
+    expect(state.submissionSuccess, isTrue);
+    expect(state.isSubmitting, isFalse);
+    expect(state.isEditing, isTrue);
+    expect(state.initialRule?.id, existingRule.id);
   });
 }
