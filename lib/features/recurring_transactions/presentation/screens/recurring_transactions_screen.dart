@@ -5,6 +5,7 @@ import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/features/recurring_transactions/domain/entities/recurring_occurrence.dart';
 import 'package:kopim/features/recurring_transactions/domain/entities/recurring_rule.dart';
 import 'package:kopim/features/recurring_transactions/presentation/controllers/recurring_transactions_providers.dart';
+import 'package:kopim/features/recurring_transactions/presentation/screens/add_recurring_rule_screen.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
 /// Entry point screen that will host recurring transaction management.
@@ -62,7 +63,7 @@ class RecurringTransactionsScreen extends ConsumerWidget {
             Center(child: Text(strings.genericErrorMessage)),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => _showComingSoon(context),
+        onPressed: () => _onAddRulePressed(context),
         child: const Icon(Icons.add),
       ),
     );
@@ -104,10 +105,21 @@ class RecurringTransactionsScreen extends ConsumerWidget {
     return map;
   }
 
-  void _showComingSoon(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(AppLocalizations.of(context)!.commonComingSoon)),
-    );
+  Future<void> _onAddRulePressed(BuildContext context) async {
+    final bool? created = await Navigator.of(
+      context,
+    ).pushNamed<bool>(AddRecurringRuleScreen.routeName);
+    if (created == true && context.mounted) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context)!.addRecurringRuleSuccess,
+            ),
+          ),
+        );
+    }
   }
 }
 

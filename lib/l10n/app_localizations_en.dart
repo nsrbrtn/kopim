@@ -219,6 +219,58 @@ class AppLocalizationsEn extends AppLocalizations {
   String get recurringTransactionsNoUpcoming => 'No upcoming occurrences';
 
   @override
+  String get addRecurringRuleTitle => 'New recurring transaction';
+
+  @override
+  String get addRecurringRuleNameLabel => 'Title';
+
+  @override
+  String get addRecurringRuleTitleRequired => 'Enter a title';
+
+  @override
+  String get addRecurringRuleAmountLabel => 'Amount';
+
+  @override
+  String get addRecurringRuleAmountHint => '0.00';
+
+  @override
+  String get addRecurringRuleAmountInvalid => 'Enter a valid positive amount';
+
+  @override
+  String get addRecurringRuleAccountLabel => 'Account';
+
+  @override
+  String get addRecurringRuleAccountRequired => 'Select an account';
+
+  @override
+  String get addRecurringRuleTypeLabel => 'Type';
+
+  @override
+  String get addRecurringRuleTypeExpense => 'Expense';
+
+  @override
+  String get addRecurringRuleTypeIncome => 'Income';
+
+  @override
+  String get addRecurringRuleStartDateLabel => 'Start date';
+
+  @override
+  String get addRecurringRuleStartTimeLabel => 'Execution time';
+
+  @override
+  String get addRecurringRuleAutoPostLabel => 'Post automatically';
+
+  @override
+  String get addRecurringRuleSubmit => 'Save rule';
+
+  @override
+  String get addRecurringRuleNoAccounts =>
+      'Add an account before creating a recurring rule.';
+
+  @override
+  String get addRecurringRuleSuccess => 'Recurring transaction saved';
+
+  @override
   String get commonComingSoon => 'Coming soon';
 
   @override

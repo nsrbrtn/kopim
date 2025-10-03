@@ -289,6 +289,74 @@
   "@recurringTransactionsNoUpcoming": {
     "description": "Shown when a recurring rule has no future occurrences"
   },
+  "addRecurringRuleTitle": "New recurring transaction",
+  "@addRecurringRuleTitle": {
+    "description": "Title for the add recurring rule screen"
+  },
+  "addRecurringRuleNameLabel": "Title",
+  "@addRecurringRuleNameLabel": {
+    "description": "Label for the recurring rule title field"
+  },
+  "addRecurringRuleTitleRequired": "Enter a title",
+  "@addRecurringRuleTitleRequired": {
+    "description": "Validation error when title is empty"
+  },
+  "addRecurringRuleAmountLabel": "Amount",
+  "@addRecurringRuleAmountLabel": {
+    "description": "Label for the recurring rule amount field"
+  },
+  "addRecurringRuleAmountHint": "0.00",
+  "@addRecurringRuleAmountHint": {
+    "description": "Hint for the recurring rule amount field"
+  },
+  "addRecurringRuleAmountInvalid": "Enter a valid positive amount",
+  "@addRecurringRuleAmountInvalid": {
+    "description": "Validation error when amount is invalid"
+  },
+  "addRecurringRuleAccountLabel": "Account",
+  "@addRecurringRuleAccountLabel": {
+    "description": "Label for the account dropdown"
+  },
+  "addRecurringRuleAccountRequired": "Select an account",
+  "@addRecurringRuleAccountRequired": {
+    "description": "Validation error when no account selected"
+  },
+  "addRecurringRuleTypeLabel": "Type",
+  "@addRecurringRuleTypeLabel": {
+    "description": "Label for the transaction type selector"
+  },
+  "addRecurringRuleTypeExpense": "Expense",
+  "@addRecurringRuleTypeExpense": {
+    "description": "Label for expense option"
+  },
+  "addRecurringRuleTypeIncome": "Income",
+  "@addRecurringRuleTypeIncome": {
+    "description": "Label for income option"
+  },
+  "addRecurringRuleStartDateLabel": "Start date",
+  "@addRecurringRuleStartDateLabel": {
+    "description": "Label for the start date picker"
+  },
+  "addRecurringRuleStartTimeLabel": "Execution time",
+  "@addRecurringRuleStartTimeLabel": {
+    "description": "Label for the time picker"
+  },
+  "addRecurringRuleAutoPostLabel": "Post automatically",
+  "@addRecurringRuleAutoPostLabel": {
+    "description": "Label for the auto-post toggle"
+  },
+  "addRecurringRuleSubmit": "Save rule",
+  "@addRecurringRuleSubmit": {
+    "description": "Label for the submit button"
+  },
+  "addRecurringRuleNoAccounts": "Add an account before creating a recurring rule.",
+  "@addRecurringRuleNoAccounts": {
+    "description": "Message shown when there are no accounts"
+  },
+  "addRecurringRuleSuccess": "Recurring transaction saved",
+  "@addRecurringRuleSuccess": {
+    "description": "Snackbar message when recurring rule saved"
+  },
   "commonComingSoon": "Coming soon",
   "@commonComingSoon": {
     "description": "Generic copy when a feature is not yet available"

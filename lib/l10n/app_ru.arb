@@ -289,6 +289,74 @@
   "@recurringTransactionsNoUpcoming": {
     "description": "Shown when a recurring rule has no future occurrences"
   },
+  "addRecurringRuleTitle": "Новая повторяющаяся операция",
+  "@addRecurringRuleTitle": {
+    "description": "Заголовок экрана создания повторяющейся операции"
+  },
+  "addRecurringRuleNameLabel": "Название",
+  "@addRecurringRuleNameLabel": {
+    "description": "Подпись поля ввода названия повторяющегося правила"
+  },
+  "addRecurringRuleTitleRequired": "Введите название",
+  "@addRecurringRuleTitleRequired": {
+    "description": "Сообщение об ошибке, если название не заполнено"
+  },
+  "addRecurringRuleAmountLabel": "Сумма",
+  "@addRecurringRuleAmountLabel": {
+    "description": "Подпись поля ввода суммы"
+  },
+  "addRecurringRuleAmountHint": "0,00",
+  "@addRecurringRuleAmountHint": {
+    "description": "Подсказка для поля суммы"
+  },
+  "addRecurringRuleAmountInvalid": "Введите положительную сумму",
+  "@addRecurringRuleAmountInvalid": {
+    "description": "Сообщение об ошибке, если сумма некорректна"
+  },
+  "addRecurringRuleAccountLabel": "Счёт",
+  "@addRecurringRuleAccountLabel": {
+    "description": "Подпись выпадающего списка со счетами"
+  },
+  "addRecurringRuleAccountRequired": "Выберите счёт",
+  "@addRecurringRuleAccountRequired": {
+    "description": "Сообщение об ошибке, если счёт не выбран"
+  },
+  "addRecurringRuleTypeLabel": "Тип",
+  "@addRecurringRuleTypeLabel": {
+    "description": "Подпись выбора типа операции"
+  },
+  "addRecurringRuleTypeExpense": "Расход",
+  "@addRecurringRuleTypeExpense": {
+    "description": "Подпись варианта расхода"
+  },
+  "addRecurringRuleTypeIncome": "Доход",
+  "@addRecurringRuleTypeIncome": {
+    "description": "Подпись варианта дохода"
+  },
+  "addRecurringRuleStartDateLabel": "Дата начала",
+  "@addRecurringRuleStartDateLabel": {
+    "description": "Подпись выбора даты"
+  },
+  "addRecurringRuleStartTimeLabel": "Время выполнения",
+  "@addRecurringRuleStartTimeLabel": {
+    "description": "Подпись выбора времени"
+  },
+  "addRecurringRuleAutoPostLabel": "Проводить автоматически",
+  "@addRecurringRuleAutoPostLabel": {
+    "description": "Подпись переключателя автопроведения"
+  },
+  "addRecurringRuleSubmit": "Сохранить правило",
+  "@addRecurringRuleSubmit": {
+    "description": "Подпись кнопки сохранения повторяющегося правила"
+  },
+  "addRecurringRuleNoAccounts": "Сначала добавьте счёт, чтобы создать повторяющееся правило.",
+  "@addRecurringRuleNoAccounts": {
+    "description": "Сообщение, когда нет доступных счетов"
+  },
+  "addRecurringRuleSuccess": "Повторяющаяся операция сохранена",
+  "@addRecurringRuleSuccess": {
+    "description": "Сообщение об успешном создании повторяющейся операции"
+  },
   "commonComingSoon": "Скоро появится",
   "@commonComingSoon": {
     "description": "Generic copy when a feature is not yet available"
