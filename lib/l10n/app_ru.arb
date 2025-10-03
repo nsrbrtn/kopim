@@ -478,9 +478,50 @@
   "@analyticsCategoryUncategorized": {
     "description": "Подпись для неразмеченных расходов"
   },
-  "analyticsEmptyState": "За текущий месяц пока нет данных для аналитики.",
+  "analyticsOverviewRangeTitle": "Обзор за {range}",
+  "@analyticsOverviewRangeTitle": {
+    "description": "Заголовок аналитики с учётом выбранного периода",
+    "placeholders": {
+      "range": {
+        "type": "String"
+      }
+    }
+  },
+  "analyticsFilterDateLabel": "Дата",
+  "@analyticsFilterDateLabel": {
+    "description": "Подпись кнопки выбора периода"
+  },
+  "analyticsFilterDateValue": "{start} – {end}",
+  "@analyticsFilterDateValue": {
+    "description": "Формат отображения выбранного периода",
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "analyticsFilterAccountLabel": "Счёт",
+  "@analyticsFilterAccountLabel": {
+    "description": "Подпись фильтра по счёту"
+  },
+  "analyticsFilterAccountAll": "Все счета",
+  "@analyticsFilterAccountAll": {
+    "description": "Опция выбора всех счетов"
+  },
+  "analyticsFilterCategoryLabel": "Категория",
+  "@analyticsFilterCategoryLabel": {
+    "description": "Подпись фильтра по категории"
+  },
+  "analyticsFilterCategoryAll": "Все категории",
+  "@analyticsFilterCategoryAll": {
+    "description": "Опция выбора всех категорий"
+  },
+  "analyticsEmptyState": "Для выбранных фильтров пока нет данных.",
   "@analyticsEmptyState": {
-    "description": "Сообщение при отсутствии транзакций"
+    "description": "Сообщение при отсутствии транзакций под выбранные фильтры"
   },
   "analyticsLoadError": "Не удалось загрузить аналитику: {error}",
   "@analyticsLoadError": {

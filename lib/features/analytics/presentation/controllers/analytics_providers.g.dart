@@ -66,7 +66,7 @@ final class AnalyticsOverviewProvider
   }
 }
 
-String _$analyticsOverviewHash() => r'f445da9ec62abe6be2b31a26a7cb5814454f40d6';
+String _$analyticsOverviewHash() => r'f12f5f64d9b276c96d20180901258f80940cfa37';
 
 final class AnalyticsOverviewFamily extends $Family
     with $FunctionalFamilyOverride<Stream<AnalyticsOverview>, int> {
@@ -125,3 +125,44 @@ final class AnalyticsCategoriesProvider
 
 String _$analyticsCategoriesHash() =>
     r'a0481679265a41e2ab35b1ae879ce50cf957fce3';
+
+@ProviderFor(analyticsAccounts)
+const analyticsAccountsProvider = AnalyticsAccountsProvider._();
+
+final class AnalyticsAccountsProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<AccountEntity>>,
+          List<AccountEntity>,
+          Stream<List<AccountEntity>>
+        >
+    with
+        $FutureModifier<List<AccountEntity>>,
+        $StreamProvider<List<AccountEntity>> {
+  const AnalyticsAccountsProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'analyticsAccountsProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$analyticsAccountsHash();
+
+  @$internal
+  @override
+  $StreamProviderElement<List<AccountEntity>> $createElement(
+    $ProviderPointer pointer,
+  ) => $StreamProviderElement(pointer);
+
+  @override
+  Stream<List<AccountEntity>> create(Ref ref) {
+    return analyticsAccounts(ref);
+  }
+}
+
+String _$analyticsAccountsHash() => r'd78d4d75ea71704dc5d8fd42a64919cb59824340';

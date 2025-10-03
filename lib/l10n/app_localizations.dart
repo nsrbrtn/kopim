@@ -740,10 +740,52 @@ abstract class AppLocalizations {
   /// **'Uncategorized'**
   String get analyticsCategoryUncategorized;
 
-  /// Message shown when there are no transactions to analyse
+  /// Heading for analytics overview showing selected range
   ///
   /// In en, this message translates to:
-  /// **'No analytics available for the current month yet.'**
+  /// **'Overview for {range}'**
+  String analyticsOverviewRangeTitle(String range);
+
+  /// Label for the analytics date filter button
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get analyticsFilterDateLabel;
+
+  /// Formatted range used for analytics date filter
+  ///
+  /// In en, this message translates to:
+  /// **'{start} – {end}'**
+  String analyticsFilterDateValue(String start, String end);
+
+  /// Label for the analytics account filter
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get analyticsFilterAccountLabel;
+
+  /// Option for selecting all accounts in analytics filters
+  ///
+  /// In en, this message translates to:
+  /// **'All accounts'**
+  String get analyticsFilterAccountAll;
+
+  /// Label for the analytics category filter
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get analyticsFilterCategoryLabel;
+
+  /// Option for selecting all categories in analytics filters
+  ///
+  /// In en, this message translates to:
+  /// **'All categories'**
+  String get analyticsFilterCategoryAll;
+
+  /// Message shown when there are no transactions matching selected filters
+  ///
+  /// In en, this message translates to:
+  /// **'No analytics available for the selected filters yet.'**
   String get analyticsEmptyState;
 
   /// Error shown when analytics stream fails

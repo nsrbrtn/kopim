@@ -357,8 +357,32 @@ class AppLocalizationsRu extends AppLocalizations {
   String get analyticsCategoryUncategorized => 'Без категории';
 
   @override
-  String get analyticsEmptyState =>
-      'За текущий месяц пока нет данных для аналитики.';
+  String analyticsOverviewRangeTitle(String range) {
+    return 'Обзор за $range';
+  }
+
+  @override
+  String get analyticsFilterDateLabel => 'Дата';
+
+  @override
+  String analyticsFilterDateValue(String start, String end) {
+    return '$start – $end';
+  }
+
+  @override
+  String get analyticsFilterAccountLabel => 'Счёт';
+
+  @override
+  String get analyticsFilterAccountAll => 'Все счета';
+
+  @override
+  String get analyticsFilterCategoryLabel => 'Категория';
+
+  @override
+  String get analyticsFilterCategoryAll => 'Все категории';
+
+  @override
+  String get analyticsEmptyState => 'Для выбранных фильтров пока нет данных.';
 
   @override
   String analyticsLoadError(String error) {

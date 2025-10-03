@@ -478,9 +478,50 @@
   "@analyticsCategoryUncategorized": {
     "description": "Label for expenses without a category"
   },
-  "analyticsEmptyState": "No analytics available for the current month yet.",
+  "analyticsOverviewRangeTitle": "Overview for {range}",
+  "@analyticsOverviewRangeTitle": {
+    "description": "Heading for analytics overview showing selected range",
+    "placeholders": {
+      "range": {
+        "type": "String"
+      }
+    }
+  },
+  "analyticsFilterDateLabel": "Date",
+  "@analyticsFilterDateLabel": {
+    "description": "Label for the analytics date filter button"
+  },
+  "analyticsFilterDateValue": "{start} – {end}",
+  "@analyticsFilterDateValue": {
+    "description": "Formatted range used for analytics date filter",
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "analyticsFilterAccountLabel": "Account",
+  "@analyticsFilterAccountLabel": {
+    "description": "Label for the analytics account filter"
+  },
+  "analyticsFilterAccountAll": "All accounts",
+  "@analyticsFilterAccountAll": {
+    "description": "Option for selecting all accounts in analytics filters"
+  },
+  "analyticsFilterCategoryLabel": "Category",
+  "@analyticsFilterCategoryLabel": {
+    "description": "Label for the analytics category filter"
+  },
+  "analyticsFilterCategoryAll": "All categories",
+  "@analyticsFilterCategoryAll": {
+    "description": "Option for selecting all categories in analytics filters"
+  },
+  "analyticsEmptyState": "No analytics available for the selected filters yet.",
   "@analyticsEmptyState": {
-    "description": "Message shown when there are no transactions to analyse"
+    "description": "Message shown when there are no transactions matching selected filters"
   },
   "analyticsLoadError": "Unable to load analytics: {error}",
   "@analyticsLoadError": {

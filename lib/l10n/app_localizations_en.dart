@@ -356,8 +356,33 @@ class AppLocalizationsEn extends AppLocalizations {
   String get analyticsCategoryUncategorized => 'Uncategorized';
 
   @override
+  String analyticsOverviewRangeTitle(String range) {
+    return 'Overview for $range';
+  }
+
+  @override
+  String get analyticsFilterDateLabel => 'Date';
+
+  @override
+  String analyticsFilterDateValue(String start, String end) {
+    return '$start – $end';
+  }
+
+  @override
+  String get analyticsFilterAccountLabel => 'Account';
+
+  @override
+  String get analyticsFilterAccountAll => 'All accounts';
+
+  @override
+  String get analyticsFilterCategoryLabel => 'Category';
+
+  @override
+  String get analyticsFilterCategoryAll => 'All categories';
+
+  @override
   String get analyticsEmptyState =>
-      'No analytics available for the current month yet.';
+      'No analytics available for the selected filters yet.';
 
   @override
   String analyticsLoadError(String error) {
