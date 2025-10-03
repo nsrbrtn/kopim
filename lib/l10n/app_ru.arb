@@ -281,6 +281,22 @@
   "@recurringTransactionsEmpty": {
     "description": "Сообщение-заглушка, когда нет настроенных повторяющихся операций"
   },
+  "recurringTransactionsNextDue": "Ближайшая дата",
+  "@recurringTransactionsNextDue": {
+    "description": "Label prefix for the next due date of a recurring rule"
+  },
+  "recurringTransactionsNoUpcoming": "Нет предстоящих операций",
+  "@recurringTransactionsNoUpcoming": {
+    "description": "Shown when a recurring rule has no future occurrences"
+  },
+  "commonComingSoon": "Скоро появится",
+  "@commonComingSoon": {
+    "description": "Generic copy when a feature is not yet available"
+  },
+  "genericErrorMessage": "Что-то пошло не так. Попробуйте позже.",
+  "@genericErrorMessage": {
+    "description": "Fallback error message for unexpected failures"
+  },
   "signInTitle": "Добро пожаловать в Kopim",
   "@signInTitle": {
     "description": "Заголовок экрана входа"

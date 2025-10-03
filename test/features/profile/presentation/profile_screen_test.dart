@@ -13,6 +13,10 @@ import 'package:kopim/features/profile/domain/usecases/update_profile_use_case.d
 import 'package:kopim/features/profile/presentation/controllers/auth_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/profile_controller.dart';
 import 'package:kopim/features/profile/presentation/screens/profile_screen.dart';
+import 'package:kopim/features/recurring_transactions/domain/entities/recurring_job.dart';
+import 'package:kopim/features/recurring_transactions/domain/entities/recurring_occurrence.dart';
+import 'package:kopim/features/recurring_transactions/domain/entities/recurring_rule.dart';
+import 'package:kopim/features/recurring_transactions/domain/repositories/recurring_transactions_repository.dart';
 import 'package:kopim/features/recurring_transactions/presentation/screens/recurring_transactions_screen.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
@@ -55,6 +59,76 @@ class _FakeProfileController extends ProfileController {
   FutureOr<Profile?> build(String uid) => _profile;
 }
 
+class _StubRecurringTransactionsRepository
+    implements RecurringTransactionsRepository {
+  const _StubRecurringTransactionsRepository();
+
+  @override
+  Future<void> deleteRule(String id) => throw UnimplementedError();
+
+  @override
+  Future<void> enqueueJob({
+    required String type,
+    required String payload,
+    required DateTime runAt,
+  }) => throw UnimplementedError();
+
+  @override
+  Future<List<RecurringRule>> getAllRules({bool activeOnly = false}) =>
+      Future<List<RecurringRule>>.value(const <RecurringRule>[]);
+
+  @override
+  Future<List<RecurringOccurrence>> getDueOccurrences(DateTime forDate) =>
+      Future<List<RecurringOccurrence>>.value(const <RecurringOccurrence>[]);
+
+  @override
+  Future<RecurringRule?> getRuleById(String id) =>
+      Future<RecurringRule?>.value(null);
+
+  @override
+  Future<void> markJobAttempt(int jobId, {String? error}) =>
+      throw UnimplementedError();
+
+  @override
+  Future<void> saveOccurrences(
+    Iterable<RecurringOccurrence> occurrences, {
+    bool replaceExisting = false,
+  }) => throw UnimplementedError();
+
+  @override
+  Future<void> toggleRule({required String id, required bool isActive}) =>
+      throw UnimplementedError();
+
+  @override
+  Future<void> upsertRule(RecurringRule rule, {bool regenerateWindow = true}) =>
+      throw UnimplementedError();
+
+  @override
+  Future<void> updateOccurrenceStatus(
+    String occurrenceId,
+    RecurringOccurrenceStatus status, {
+    String? postedTxId,
+  }) => throw UnimplementedError();
+
+  @override
+  Stream<List<RecurringJob>> watchPendingJobs() =>
+      Stream<List<RecurringJob>>.value(const <RecurringJob>[]);
+
+  @override
+  Stream<List<RecurringOccurrence>> watchRuleOccurrences(String ruleId) =>
+      Stream<List<RecurringOccurrence>>.value(const <RecurringOccurrence>[]);
+
+  @override
+  Stream<List<RecurringRule>> watchRules() =>
+      Stream<List<RecurringRule>>.value(const <RecurringRule>[]);
+
+  @override
+  Stream<List<RecurringOccurrence>> watchUpcomingOccurrences({
+    required DateTime from,
+    required DateTime to,
+  }) => Stream<List<RecurringOccurrence>>.value(const <RecurringOccurrence>[]);
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -93,6 +167,9 @@ void main() {
             (Ref ref) => Stream<List<CategoryTreeNode>>.value(
               const <CategoryTreeNode>[],
             ),
+          ),
+          recurringTransactionsRepositoryProvider.overrideWithValue(
+            const _StubRecurringTransactionsRepository(),
           ),
         ],
         child: const MaterialApp(
@@ -138,6 +215,9 @@ void main() {
               const <CategoryTreeNode>[],
             ),
           ),
+          recurringTransactionsRepositoryProvider.overrideWithValue(
+            const _StubRecurringTransactionsRepository(),
+          ),
         ],
         child: const MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -177,6 +257,9 @@ void main() {
             (Ref ref) => Stream<List<CategoryTreeNode>>.value(
               const <CategoryTreeNode>[],
             ),
+          ),
+          recurringTransactionsRepositoryProvider.overrideWithValue(
+            const _StubRecurringTransactionsRepository(),
           ),
         ],
         child: MaterialApp(
@@ -234,6 +317,9 @@ void main() {
               (Ref ref) => Stream<List<CategoryTreeNode>>.value(
                 const <CategoryTreeNode>[],
               ),
+            ),
+            recurringTransactionsRepositoryProvider.overrideWithValue(
+              const _StubRecurringTransactionsRepository(),
             ),
           ],
           child: MaterialApp(
@@ -293,6 +379,9 @@ void main() {
             (Ref ref) => Stream<List<CategoryTreeNode>>.value(
               const <CategoryTreeNode>[],
             ),
+          ),
+          recurringTransactionsRepositoryProvider.overrideWithValue(
+            const _StubRecurringTransactionsRepository(),
           ),
         ],
         child: const MaterialApp(

@@ -214,6 +214,18 @@ class AppLocalizationsRu extends AppLocalizations {
       'Пока нет повторяющихся операций. Создайте правило, чтобы автоматизировать движение средств.';
 
   @override
+  String get recurringTransactionsNextDue => 'Ближайшая дата';
+
+  @override
+  String get recurringTransactionsNoUpcoming => 'Нет предстоящих операций';
+
+  @override
+  String get commonComingSoon => 'Скоро появится';
+
+  @override
+  String get genericErrorMessage => 'Что-то пошло не так. Попробуйте позже.';
+
+  @override
   String get signInTitle => 'Добро пожаловать в Kopim';
 
   @override

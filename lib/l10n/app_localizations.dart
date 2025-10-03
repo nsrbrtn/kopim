@@ -482,6 +482,30 @@ abstract class AppLocalizations {
   /// **'No recurring transactions yet. Create one to automate your cash flow.'**
   String get recurringTransactionsEmpty;
 
+  /// Label prefix for the next due date of a recurring rule
+  ///
+  /// In en, this message translates to:
+  /// **'Next due'**
+  String get recurringTransactionsNextDue;
+
+  /// Shown when a recurring rule has no future occurrences
+  ///
+  /// In en, this message translates to:
+  /// **'No upcoming occurrences'**
+  String get recurringTransactionsNoUpcoming;
+
+  /// Generic copy when a feature is not yet available
+  ///
+  /// In en, this message translates to:
+  /// **'Coming soon'**
+  String get commonComingSoon;
+
+  /// Fallback error message for unexpected failures
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong. Please try again later.'**
+  String get genericErrorMessage;
+
   /// Main heading on the sign-in screen
   ///
   /// In en, this message translates to:

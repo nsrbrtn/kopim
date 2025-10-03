@@ -137,16 +137,17 @@ void main() {
         final Completer<List<TransactionEntity>> completer =
             Completer<List<TransactionEntity>>();
         final ProviderSubscription<AsyncValue<List<TransactionEntity>>>
-        subscription = scopedContainer.listen(homeRecentTransactionsProvider(), (
-          AsyncValue<List<TransactionEntity>>? previous,
-          AsyncValue<List<TransactionEntity>> next,
-        ) {
-          next.whenData((List<TransactionEntity> transactions) {
-            if (!completer.isCompleted) {
-              completer.complete(transactions);
-            }
-          });
-        }, fireImmediately: true);
+        subscription = scopedContainer
+            .listen(homeRecentTransactionsProvider(), (
+              AsyncValue<List<TransactionEntity>>? previous,
+              AsyncValue<List<TransactionEntity>> next,
+            ) {
+              next.whenData((List<TransactionEntity> transactions) {
+                if (!completer.isCompleted) {
+                  completer.complete(transactions);
+                }
+              });
+            }, fireImmediately: true);
         addTearDown(subscription.close);
 
         controller.add(<TransactionEntity>[_transaction('a')]);
