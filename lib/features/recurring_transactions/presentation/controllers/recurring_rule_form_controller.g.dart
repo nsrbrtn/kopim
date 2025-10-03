@@ -11,24 +11,31 @@ part of 'recurring_rule_form_controller.dart';
 
 @ProviderFor(RecurringRuleFormController)
 const recurringRuleFormControllerProvider =
-    RecurringRuleFormControllerProvider._();
+    RecurringRuleFormControllerFamily._();
 
 final class RecurringRuleFormControllerProvider
     extends
         $NotifierProvider<RecurringRuleFormController, RecurringRuleFormState> {
-  const RecurringRuleFormControllerProvider._()
-    : super(
-        from: null,
-        argument: null,
-        retry: null,
-        name: r'recurringRuleFormControllerProvider',
-        isAutoDispose: true,
-        dependencies: null,
-        $allTransitiveDependencies: null,
-      );
+  const RecurringRuleFormControllerProvider._({
+    required RecurringRuleFormControllerFamily super.from,
+    required RecurringRule? super.argument,
+  }) : super(
+         retry: null,
+         name: r'recurringRuleFormControllerProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
 
   @override
   String debugGetCreateSourceHash() => _$recurringRuleFormControllerHash();
+
+  @override
+  String toString() {
+    return r'recurringRuleFormControllerProvider'
+        ''
+        '($argument)';
+  }
 
   @$internal
   @override
@@ -41,18 +48,57 @@ final class RecurringRuleFormControllerProvider
       providerOverride: $SyncValueProvider<RecurringRuleFormState>(value),
     );
   }
+
+  @override
+  bool operator ==(Object other) {
+    return other is RecurringRuleFormControllerProvider &&
+        other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
 }
 
 String _$recurringRuleFormControllerHash() =>
-    r'921d9cbc31c55689e68333dc0e6b550d368d35c5';
+    r'91991deff6ae628cf5abd2f4ba525e4888dadf6e';
+
+final class RecurringRuleFormControllerFamily extends $Family
+    with
+        $ClassFamilyOverride<
+          RecurringRuleFormController,
+          RecurringRuleFormState,
+          RecurringRuleFormState,
+          RecurringRuleFormState,
+          RecurringRule?
+        > {
+  const RecurringRuleFormControllerFamily._()
+    : super(
+        retry: null,
+        name: r'recurringRuleFormControllerProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  RecurringRuleFormControllerProvider call({RecurringRule? initialRule}) =>
+      RecurringRuleFormControllerProvider._(argument: initialRule, from: this);
+
+  @override
+  String toString() => r'recurringRuleFormControllerProvider';
+}
 
 abstract class _$RecurringRuleFormController
     extends $Notifier<RecurringRuleFormState> {
-  RecurringRuleFormState build();
+  late final _$args = ref.$arg as RecurringRule?;
+  RecurringRule? get initialRule => _$args;
+
+  RecurringRuleFormState build({RecurringRule? initialRule});
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build();
+    final created = build(initialRule: _$args);
     final ref =
         this.ref as $Ref<RecurringRuleFormState, RecurringRuleFormState>;
     final element =

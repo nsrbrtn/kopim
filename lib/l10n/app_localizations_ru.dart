@@ -220,7 +220,26 @@ class AppLocalizationsRu extends AppLocalizations {
   String get recurringTransactionsNoUpcoming => 'Нет предстоящих операций';
 
   @override
+  String get recurringTransactionsEditAction => 'Редактировать';
+
+  @override
+  String get recurringTransactionsDeleteAction => 'Удалить';
+
+  @override
+  String get recurringTransactionsDeleteDialogTitle => 'Удалить правило';
+
+  @override
+  String get recurringTransactionsDeleteConfirmation =>
+      'Вы уверены, что хотите удалить это правило повторяющейся операции? Это действие нельзя отменить.';
+
+  @override
+  String get recurringTransactionsDeleteSuccess => 'Правило удалено.';
+
+  @override
   String get addRecurringRuleTitle => 'Новая повторяющаяся операция';
+
+  @override
+  String get editRecurringRuleTitle => 'Редактирование повторяющейся операции';
 
   @override
   String get addRecurringRuleNameLabel => 'Название';
@@ -265,11 +284,17 @@ class AppLocalizationsRu extends AppLocalizations {
   String get addRecurringRuleSubmit => 'Сохранить правило';
 
   @override
+  String get editRecurringRuleSubmit => 'Сохранить изменения';
+
+  @override
   String get addRecurringRuleNoAccounts =>
       'Сначала добавьте счёт, чтобы создать повторяющееся правило.';
 
   @override
   String get addRecurringRuleSuccess => 'Повторяющаяся операция сохранена';
+
+  @override
+  String get editRecurringRuleSuccess => 'Правило обновлено.';
 
   @override
   String get commonComingSoon => 'Скоро появится';

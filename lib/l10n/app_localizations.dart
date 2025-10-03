@@ -494,11 +494,47 @@ abstract class AppLocalizations {
   /// **'No upcoming occurrences'**
   String get recurringTransactionsNoUpcoming;
 
+  /// Popup menu action to edit a recurring rule
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get recurringTransactionsEditAction;
+
+  /// Popup menu action to delete a recurring rule
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get recurringTransactionsDeleteAction;
+
+  /// Title for the dialog confirming deletion of a recurring rule
+  ///
+  /// In en, this message translates to:
+  /// **'Delete recurring rule'**
+  String get recurringTransactionsDeleteDialogTitle;
+
+  /// Confirmation message shown before deleting a recurring rule
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete this recurring rule? This action cannot be undone.'**
+  String get recurringTransactionsDeleteConfirmation;
+
+  /// Snackbar message after deleting a recurring rule
+  ///
+  /// In en, this message translates to:
+  /// **'Recurring rule deleted.'**
+  String get recurringTransactionsDeleteSuccess;
+
   /// Title for the add recurring rule screen
   ///
   /// In en, this message translates to:
   /// **'New recurring transaction'**
   String get addRecurringRuleTitle;
+
+  /// Title for the edit recurring rule screen
+  ///
+  /// In en, this message translates to:
+  /// **'Edit recurring transaction'**
+  String get editRecurringRuleTitle;
 
   /// Label for the recurring rule title field
   ///
@@ -584,6 +620,12 @@ abstract class AppLocalizations {
   /// **'Save rule'**
   String get addRecurringRuleSubmit;
 
+  /// Label for the submit button when editing a recurring rule
+  ///
+  /// In en, this message translates to:
+  /// **'Save changes'**
+  String get editRecurringRuleSubmit;
+
   /// Message shown when there are no accounts
   ///
   /// In en, this message translates to:
@@ -595,6 +637,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Recurring transaction saved'**
   String get addRecurringRuleSuccess;
+
+  /// Snackbar message when a recurring rule is edited
+  ///
+  /// In en, this message translates to:
+  /// **'Recurring rule updated.'**
+  String get editRecurringRuleSuccess;
 
   /// Generic copy when a feature is not yet available
   ///

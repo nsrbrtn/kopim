@@ -289,9 +289,33 @@
   "@recurringTransactionsNoUpcoming": {
     "description": "Shown when a recurring rule has no future occurrences"
   },
+  "recurringTransactionsEditAction": "Редактировать",
+  "@recurringTransactionsEditAction": {
+    "description": "Popup menu action to edit a recurring rule"
+  },
+  "recurringTransactionsDeleteAction": "Удалить",
+  "@recurringTransactionsDeleteAction": {
+    "description": "Popup menu action to delete a recurring rule"
+  },
+  "recurringTransactionsDeleteDialogTitle": "Удалить правило",
+  "@recurringTransactionsDeleteDialogTitle": {
+    "description": "Title for the dialog confirming deletion of a recurring rule"
+  },
+  "recurringTransactionsDeleteConfirmation": "Вы уверены, что хотите удалить это правило повторяющейся операции? Это действие нельзя отменить.",
+  "@recurringTransactionsDeleteConfirmation": {
+    "description": "Confirmation message shown before deleting a recurring rule"
+  },
+  "recurringTransactionsDeleteSuccess": "Правило удалено.",
+  "@recurringTransactionsDeleteSuccess": {
+    "description": "Snackbar message after deleting a recurring rule"
+  },
   "addRecurringRuleTitle": "Новая повторяющаяся операция",
   "@addRecurringRuleTitle": {
     "description": "Заголовок экрана создания повторяющейся операции"
+  },
+  "editRecurringRuleTitle": "Редактирование повторяющейся операции",
+  "@editRecurringRuleTitle": {
+    "description": "Title for the edit recurring rule screen"
   },
   "addRecurringRuleNameLabel": "Название",
   "@addRecurringRuleNameLabel": {
@@ -349,6 +373,10 @@
   "@addRecurringRuleSubmit": {
     "description": "Подпись кнопки сохранения повторяющегося правила"
   },
+  "editRecurringRuleSubmit": "Сохранить изменения",
+  "@editRecurringRuleSubmit": {
+    "description": "Label for the submit button when editing a recurring rule"
+  },
   "addRecurringRuleNoAccounts": "Сначала добавьте счёт, чтобы создать повторяющееся правило.",
   "@addRecurringRuleNoAccounts": {
     "description": "Сообщение, когда нет доступных счетов"
@@ -356,6 +384,10 @@
   "addRecurringRuleSuccess": "Повторяющаяся операция сохранена",
   "@addRecurringRuleSuccess": {
     "description": "Сообщение об успешном создании повторяющейся операции"
+  },
+  "editRecurringRuleSuccess": "Правило обновлено.",
+  "@editRecurringRuleSuccess": {
+    "description": "Snackbar message when a recurring rule is edited"
   },
   "commonComingSoon": "Скоро появится",
   "@commonComingSoon": {

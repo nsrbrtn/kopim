@@ -219,7 +219,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String get recurringTransactionsNoUpcoming => 'No upcoming occurrences';
 
   @override
+  String get recurringTransactionsEditAction => 'Edit';
+
+  @override
+  String get recurringTransactionsDeleteAction => 'Delete';
+
+  @override
+  String get recurringTransactionsDeleteDialogTitle => 'Delete recurring rule';
+
+  @override
+  String get recurringTransactionsDeleteConfirmation =>
+      'Are you sure you want to delete this recurring rule? This action cannot be undone.';
+
+  @override
+  String get recurringTransactionsDeleteSuccess => 'Recurring rule deleted.';
+
+  @override
   String get addRecurringRuleTitle => 'New recurring transaction';
+
+  @override
+  String get editRecurringRuleTitle => 'Edit recurring transaction';
 
   @override
   String get addRecurringRuleNameLabel => 'Title';
@@ -264,11 +283,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addRecurringRuleSubmit => 'Save rule';
 
   @override
+  String get editRecurringRuleSubmit => 'Save changes';
+
+  @override
   String get addRecurringRuleNoAccounts =>
       'Add an account before creating a recurring rule.';
 
   @override
   String get addRecurringRuleSuccess => 'Recurring transaction saved';
+
+  @override
+  String get editRecurringRuleSuccess => 'Recurring rule updated.';
 
   @override
   String get commonComingSoon => 'Coming soon';

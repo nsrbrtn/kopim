@@ -289,9 +289,33 @@
   "@recurringTransactionsNoUpcoming": {
     "description": "Shown when a recurring rule has no future occurrences"
   },
+  "recurringTransactionsEditAction": "Edit",
+  "@recurringTransactionsEditAction": {
+    "description": "Popup menu action to edit a recurring rule"
+  },
+  "recurringTransactionsDeleteAction": "Delete",
+  "@recurringTransactionsDeleteAction": {
+    "description": "Popup menu action to delete a recurring rule"
+  },
+  "recurringTransactionsDeleteDialogTitle": "Delete recurring rule",
+  "@recurringTransactionsDeleteDialogTitle": {
+    "description": "Title for the dialog confirming deletion of a recurring rule"
+  },
+  "recurringTransactionsDeleteConfirmation": "Are you sure you want to delete this recurring rule? This action cannot be undone.",
+  "@recurringTransactionsDeleteConfirmation": {
+    "description": "Confirmation message shown before deleting a recurring rule"
+  },
+  "recurringTransactionsDeleteSuccess": "Recurring rule deleted.",
+  "@recurringTransactionsDeleteSuccess": {
+    "description": "Snackbar message after deleting a recurring rule"
+  },
   "addRecurringRuleTitle": "New recurring transaction",
   "@addRecurringRuleTitle": {
     "description": "Title for the add recurring rule screen"
+  },
+  "editRecurringRuleTitle": "Edit recurring transaction",
+  "@editRecurringRuleTitle": {
+    "description": "Title for the edit recurring rule screen"
   },
   "addRecurringRuleNameLabel": "Title",
   "@addRecurringRuleNameLabel": {
@@ -349,6 +373,10 @@
   "@addRecurringRuleSubmit": {
     "description": "Label for the submit button"
   },
+  "editRecurringRuleSubmit": "Save changes",
+  "@editRecurringRuleSubmit": {
+    "description": "Label for the submit button when editing a recurring rule"
+  },
   "addRecurringRuleNoAccounts": "Add an account before creating a recurring rule.",
   "@addRecurringRuleNoAccounts": {
     "description": "Message shown when there are no accounts"
@@ -356,6 +384,10 @@
   "addRecurringRuleSuccess": "Recurring transaction saved",
   "@addRecurringRuleSuccess": {
     "description": "Snackbar message when recurring rule saved"
+  },
+  "editRecurringRuleSuccess": "Recurring rule updated.",
+  "@editRecurringRuleSuccess": {
+    "description": "Snackbar message when a recurring rule is edited"
   },
   "commonComingSoon": "Coming soon",
   "@commonComingSoon": {

@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
+import 'package:kopim/features/recurring_transactions/domain/entities/recurring_rule.dart';
 import 'package:kopim/features/recurring_transactions/presentation/controllers/recurring_rule_form_controller.dart';
+import 'package:kopim/features/recurring_transactions/presentation/models/recurring_rule_form_result.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
@@ -11,31 +13,34 @@ class RecurringRuleFormView extends ConsumerWidget {
     super.key,
     required this.formKey,
     required this.onSuccess,
+    this.initialRule,
   });
 
   final GlobalKey<FormState> formKey;
-  final VoidCallback onSuccess;
+  final ValueChanged<RecurringRuleFormResult> onSuccess;
+  final RecurringRule? initialRule;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final AppLocalizations strings = AppLocalizations.of(context)!;
-    final RecurringRuleFormState state = ref.watch(
-      recurringRuleFormControllerProvider,
-    );
+    final RecurringRuleFormControllerProvider provider =
+        recurringRuleFormControllerProvider(initialRule: initialRule);
+    final RecurringRuleFormState state = ref.watch(provider);
     final AsyncValue<List<AccountEntity>> accountsAsync = ref.watch(
       recurringRuleAccountsProvider,
     );
 
-    ref.listen<RecurringRuleFormState>(recurringRuleFormControllerProvider, (
+    ref.listen<RecurringRuleFormState>(provider, (
       RecurringRuleFormState? previous,
       RecurringRuleFormState next,
     ) {
       if (next.submissionSuccess && previous?.submissionSuccess != true) {
-        ref
-            .read(recurringRuleFormControllerProvider.notifier)
-            .acknowledgeSuccess();
+        ref.read(provider.notifier).acknowledgeSuccess();
         if (context.mounted) {
-          onSuccess();
+          final RecurringRuleFormResult result = next.isEditing
+              ? RecurringRuleFormResult.updated
+              : RecurringRuleFormResult.created;
+          onSuccess(result);
         }
       } else if (next.generalErrorMessage != null &&
           next.generalErrorMessage != previous?.generalErrorMessage &&
@@ -55,15 +60,25 @@ class RecurringRuleFormView extends ConsumerWidget {
         }
         if (state.account == null) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
+            AccountEntity? selected;
+            if (state.accountId != null) {
+              for (final AccountEntity account in accounts) {
+                if (account.id == state.accountId) {
+                  selected = account;
+                  break;
+                }
+              }
+            }
             ref
-                .read(recurringRuleFormControllerProvider.notifier)
-                .updateAccount(accounts.first);
+                .read(provider.notifier)
+                .updateAccount(selected ?? accounts.first);
           });
         }
         return _RecurringRuleForm(
           formKey: formKey,
           state: state,
           accounts: accounts,
+          initialRule: initialRule,
         );
       },
     );
@@ -75,11 +90,13 @@ class _RecurringRuleForm extends ConsumerWidget {
     required this.formKey,
     required this.state,
     required this.accounts,
+    required this.initialRule,
   });
 
   final GlobalKey<FormState> formKey;
   final RecurringRuleFormState state;
   final List<AccountEntity> accounts;
+  final RecurringRule? initialRule;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -102,7 +119,11 @@ class _RecurringRuleForm extends ConsumerWidget {
                   : strings.addRecurringRuleTitleRequired,
             ),
             onChanged: ref
-                .read(recurringRuleFormControllerProvider.notifier)
+                .read(
+                  recurringRuleFormControllerProvider(
+                    initialRule: initialRule,
+                  ).notifier,
+                )
                 .updateTitle,
             textInputAction: TextInputAction.next,
           ),
@@ -121,7 +142,11 @@ class _RecurringRuleForm extends ConsumerWidget {
                   : strings.addRecurringRuleAmountInvalid,
             ),
             onChanged: ref
-                .read(recurringRuleFormControllerProvider.notifier)
+                .read(
+                  recurringRuleFormControllerProvider(
+                    initialRule: initialRule,
+                  ).notifier,
+                )
                 .updateAmount,
           ),
           const SizedBox(height: 16),
@@ -154,7 +179,11 @@ class _RecurringRuleForm extends ConsumerWidget {
                                 (AccountEntity item) => item.id == value,
                               );
                         ref
-                            .read(recurringRuleFormControllerProvider.notifier)
+                            .read(
+                              recurringRuleFormControllerProvider(
+                                initialRule: initialRule,
+                              ).notifier,
+                            )
                             .updateAccount(account);
                       },
               ),
@@ -180,7 +209,11 @@ class _RecurringRuleForm extends ConsumerWidget {
               onSelectionChanged: (Set<TransactionType> values) {
                 if (values.isEmpty) return;
                 ref
-                    .read(recurringRuleFormControllerProvider.notifier)
+                    .read(
+                      recurringRuleFormControllerProvider(
+                        initialRule: initialRule,
+                      ).notifier,
+                    )
                     .updateType(values.first);
               },
             ),
@@ -200,7 +233,11 @@ class _RecurringRuleForm extends ConsumerWidget {
               );
               if (selected != null && context.mounted) {
                 ref
-                    .read(recurringRuleFormControllerProvider.notifier)
+                    .read(
+                      recurringRuleFormControllerProvider(
+                        initialRule: initialRule,
+                      ).notifier,
+                    )
                     .updateStartDate(selected);
               }
             },
@@ -229,7 +266,11 @@ class _RecurringRuleForm extends ConsumerWidget {
               );
               if (picked != null && context.mounted) {
                 ref
-                    .read(recurringRuleFormControllerProvider.notifier)
+                    .read(
+                      recurringRuleFormControllerProvider(
+                        initialRule: initialRule,
+                      ).notifier,
+                    )
                     .updateTime(hour: picked.hour, minute: picked.minute);
               }
             },
@@ -242,7 +283,11 @@ class _RecurringRuleForm extends ConsumerWidget {
             onChanged: state.isSubmitting
                 ? null
                 : ref
-                      .read(recurringRuleFormControllerProvider.notifier)
+                      .read(
+                        recurringRuleFormControllerProvider(
+                          initialRule: initialRule,
+                        ).notifier,
+                      )
                       .updateAutoPost,
           ),
           const SizedBox(height: 24),
@@ -252,7 +297,11 @@ class _RecurringRuleForm extends ConsumerWidget {
                 : () {
                     FocusScope.of(context).unfocus();
                     ref
-                        .read(recurringRuleFormControllerProvider.notifier)
+                        .read(
+                          recurringRuleFormControllerProvider(
+                            initialRule: initialRule,
+                          ).notifier,
+                        )
                         .submit();
                   },
             child: state.isSubmitting
@@ -261,7 +310,11 @@ class _RecurringRuleForm extends ConsumerWidget {
                     height: 20,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
-                : Text(strings.addRecurringRuleSubmit),
+                : Text(
+                    state.isEditing
+                        ? strings.editRecurringRuleSubmit
+                        : strings.addRecurringRuleSubmit,
+                  ),
           ),
         ],
       ),
