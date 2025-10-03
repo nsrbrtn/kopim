@@ -3,9 +3,11 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:riverpod/riverpod.dart' as rp;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:workmanager/workmanager.dart';
 import 'package:kopim/core/data/database.dart';
 import 'package:kopim/core/data/outbox/outbox_dao.dart';
 import 'package:kopim/core/services/analytics_service.dart';
@@ -47,6 +49,21 @@ import 'package:kopim/features/transactions/domain/use_cases/update_transaction_
 import 'package:uuid/uuid.dart';
 import 'package:kopim/features/transactions/domain/use_cases/watch_account_transactions_use_case.dart';
 import 'package:kopim/features/transactions/domain/use_cases/watch_recent_transactions_use_case.dart';
+import 'package:kopim/features/recurring_transactions/data/repositories/recurring_transactions_repository_impl.dart';
+import 'package:kopim/features/recurring_transactions/data/services/recurring_notification_service.dart';
+import 'package:kopim/features/recurring_transactions/data/services/recurring_window_service.dart';
+import 'package:kopim/features/recurring_transactions/data/services/recurring_work_scheduler.dart';
+import 'package:kopim/features/recurring_transactions/data/sources/local/job_queue_dao.dart';
+import 'package:kopim/features/recurring_transactions/data/sources/local/recurring_occurrence_dao.dart';
+import 'package:kopim/features/recurring_transactions/data/sources/local/recurring_rule_dao.dart';
+import 'package:kopim/features/recurring_transactions/domain/repositories/recurring_transactions_repository.dart';
+import 'package:kopim/features/recurring_transactions/domain/services/recurring_rule_engine.dart';
+import 'package:kopim/features/recurring_transactions/domain/use_cases/delete_recurring_rule_use_case.dart';
+import 'package:kopim/features/recurring_transactions/domain/use_cases/regenerate_rule_window_use_case.dart';
+import 'package:kopim/features/recurring_transactions/domain/use_cases/save_recurring_rule_use_case.dart';
+import 'package:kopim/features/recurring_transactions/domain/use_cases/toggle_recurring_rule_use_case.dart';
+import 'package:kopim/features/recurring_transactions/domain/use_cases/watch_recurring_rules_use_case.dart';
+import 'package:kopim/features/recurring_transactions/domain/use_cases/watch_upcoming_occurrences_use_case.dart';
 
 part 'injectors.g.dart';
 
@@ -91,6 +108,27 @@ TransactionDao transactionDao(Ref ref) =>
 ProfileDao profileDao(Ref ref) => ProfileDao(ref.watch(appDatabaseProvider));
 
 @riverpod
+RecurringRuleDao recurringRuleDao(Ref ref) =>
+    RecurringRuleDao(ref.watch(appDatabaseProvider));
+
+@riverpod
+RecurringOccurrenceDao recurringOccurrenceDao(Ref ref) =>
+    RecurringOccurrenceDao(ref.watch(appDatabaseProvider));
+
+@riverpod
+JobQueueDao jobQueueDao(Ref ref) => JobQueueDao(ref.watch(appDatabaseProvider));
+
+@riverpod
+FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin(Ref ref) =>
+    FlutterLocalNotificationsPlugin();
+
+@riverpod
+Workmanager workmanager(Ref ref) => Workmanager();
+
+@riverpod
+RecurringRuleEngine recurringRuleEngine(Ref ref) => RecurringRuleEngine();
+
+@riverpod
 AccountRemoteDataSource accountRemoteDataSource(Ref ref) =>
     AccountRemoteDataSource(ref.watch(firestoreProvider));
 
@@ -105,6 +143,12 @@ TransactionRemoteDataSource transactionRemoteDataSource(Ref ref) =>
 @riverpod
 ProfileRemoteDataSource profileRemoteDataSource(Ref ref) =>
     ProfileRemoteDataSource(ref.watch(firestoreProvider));
+
+@riverpod
+RecurringNotificationService recurringNotificationService(Ref ref) =>
+    RecurringNotificationService(
+      ref.watch(flutterLocalNotificationsPluginProvider),
+    );
 
 @riverpod
 AccountRepository accountRepository(Ref ref) => AccountRepositoryImpl(
@@ -154,6 +198,15 @@ TransactionRepository transactionRepository(Ref ref) =>
       outboxDao: ref.watch(outboxDaoProvider),
     );
 
+@riverpod
+RecurringTransactionsRepository recurringTransactionsRepository(Ref ref) =>
+    RecurringTransactionsRepositoryImpl(
+      ruleDao: ref.watch(recurringRuleDaoProvider),
+      occurrenceDao: ref.watch(recurringOccurrenceDaoProvider),
+      jobQueueDao: ref.watch(jobQueueDaoProvider),
+      database: ref.watch(appDatabaseProvider),
+    );
+
 final rp.Provider<AddTransactionUseCase> addTransactionUseCaseProvider =
     rp.Provider<AddTransactionUseCase>((rp.Ref ref) {
       return AddTransactionUseCase(
@@ -190,6 +243,58 @@ WatchRecentTransactionsUseCase watchRecentTransactionsUseCase(Ref ref) =>
 WatchMonthlyAnalyticsUseCase watchMonthlyAnalyticsUseCase(Ref ref) =>
     WatchMonthlyAnalyticsUseCase(
       transactionRepository: ref.watch(transactionRepositoryProvider),
+    );
+
+@riverpod
+WatchRecurringRulesUseCase watchRecurringRulesUseCase(Ref ref) =>
+    WatchRecurringRulesUseCase(
+      ref.watch(recurringTransactionsRepositoryProvider),
+    );
+
+@riverpod
+WatchUpcomingOccurrencesUseCase watchUpcomingOccurrencesUseCase(Ref ref) =>
+    WatchUpcomingOccurrencesUseCase(
+      ref.watch(recurringTransactionsRepositoryProvider),
+    );
+
+@riverpod
+SaveRecurringRuleUseCase saveRecurringRuleUseCase(Ref ref) =>
+    SaveRecurringRuleUseCase(
+      ref.watch(recurringTransactionsRepositoryProvider),
+    );
+
+@riverpod
+DeleteRecurringRuleUseCase deleteRecurringRuleUseCase(Ref ref) =>
+    DeleteRecurringRuleUseCase(
+      ref.watch(recurringTransactionsRepositoryProvider),
+    );
+
+@riverpod
+ToggleRecurringRuleUseCase toggleRecurringRuleUseCase(Ref ref) =>
+    ToggleRecurringRuleUseCase(
+      ref.watch(recurringTransactionsRepositoryProvider),
+    );
+
+@riverpod
+RegenerateRuleWindowUseCase regenerateRuleWindowUseCase(Ref ref) =>
+    RegenerateRuleWindowUseCase(
+      ref.watch(recurringTransactionsRepositoryProvider),
+      ref.watch(recurringRuleEngineProvider),
+    );
+
+@riverpod
+RecurringWindowService recurringWindowService(Ref ref) =>
+    RecurringWindowService(
+      repository: ref.watch(recurringTransactionsRepositoryProvider),
+      engine: ref.watch(recurringRuleEngineProvider),
+      notificationService: ref.watch(recurringNotificationServiceProvider),
+    );
+
+@riverpod
+RecurringWorkScheduler recurringWorkScheduler(Ref ref) =>
+    RecurringWorkScheduler(
+      workmanager: ref.watch(workmanagerProvider),
+      logger: ref.watch(loggerServiceProvider),
     );
 
 @riverpod

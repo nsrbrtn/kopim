@@ -94,8 +94,71 @@ class Profiles extends Table {
   Set<Column<Object>> get primaryKey => <Column<Object>>{uid};
 }
 
+@DataClassName('RecurringRuleRow')
+class RecurringRules extends Table {
+  TextColumn get id => text().withLength(min: 1, max: 50)();
+  TextColumn get title => text().withLength(min: 1, max: 120)();
+  TextColumn get accountId =>
+      text().references(Accounts, #id, onDelete: KeyAction.cascade)();
+  RealColumn get amount => real()();
+  TextColumn get currency => text().withLength(min: 3, max: 3)();
+  DateTimeColumn get startAt => dateTime()();
+  TextColumn get timezone => text().withLength(min: 1, max: 60)();
+  TextColumn get rrule => text()();
+  DateTimeColumn get endAt => dateTime().nullable()();
+  TextColumn get notes => text().nullable()();
+  BoolColumn get isActive =>
+      boolean().withDefault(const Constant<bool>(true))();
+  BoolColumn get autoPost =>
+      boolean().withDefault(const Constant<bool>(false))();
+  IntColumn get reminderMinutesBefore => integer().nullable()();
+  TextColumn get shortMonthPolicy => text()
+      .withLength(min: 1, max: 32)
+      .withDefault(const Constant<String>('clip_to_last_day'))();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column<Object>> get primaryKey => <Column<Object>>{id};
+}
+
+@DataClassName('RecurringOccurrenceRow')
+class RecurringOccurrences extends Table {
+  TextColumn get id => text().withLength(min: 1, max: 60)();
+  TextColumn get ruleId =>
+      text().references(RecurringRules, #id, onDelete: KeyAction.cascade)();
+  DateTimeColumn get dueAt => dateTime()();
+  TextColumn get status => text().withLength(min: 1, max: 16)();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  TextColumn get postedTxId => text().nullable()();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column<Object>> get primaryKey => <Column<Object>>{id};
+}
+
+@DataClassName('JobQueueRow')
+class JobQueue extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get type => text().withLength(min: 1, max: 80)();
+  TextColumn get payload => text()();
+  DateTimeColumn get runAt => dateTime()();
+  IntColumn get attempts => integer().withDefault(const Constant<int>(0))();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  TextColumn get lastError => text().nullable()();
+}
+
 @DriftDatabase(
-  tables: <Type>[Accounts, Categories, Transactions, OutboxEntries, Profiles],
+  tables: <Type>[
+    Accounts,
+    Categories,
+    Transactions,
+    OutboxEntries,
+    Profiles,
+    RecurringRules,
+    RecurringOccurrences,
+    JobQueue,
+  ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
@@ -103,12 +166,19 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.connect(DatabaseConnection super.connection);
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
     onCreate: (Migrator m) async {
       await m.createAll();
+      await m.createIndex(
+        Index(
+          'recurring_occurrences_rule_due_idx',
+          'CREATE INDEX IF NOT EXISTS recurring_occurrences_rule_due_idx '
+              'ON recurring_occurrences(rule_id, due_at)',
+        ),
+      );
     },
     onUpgrade: (Migrator m, int from, int to) async {
       if (from < 2) {
@@ -135,6 +205,18 @@ class AppDatabase extends _$AppDatabase {
         );
         await m.database.customStatement(
           "UPDATE categories SET icon_style = 'regular' WHERE icon_name IS NOT NULL AND (icon_style IS NULL OR icon_style = '')",
+        );
+      }
+      if (from < 5) {
+        await m.createTable(recurringRules);
+        await m.createTable(recurringOccurrences);
+        await m.createTable(jobQueue);
+        await m.createIndex(
+          Index(
+            'recurring_occurrences_rule_due_idx',
+            'CREATE INDEX IF NOT EXISTS recurring_occurrences_rule_due_idx '
+                'ON recurring_occurrences(rule_id, due_at)',
+          ),
         );
       }
     },

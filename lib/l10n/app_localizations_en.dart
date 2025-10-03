@@ -213,6 +213,19 @@ class AppLocalizationsEn extends AppLocalizations {
       'No recurring transactions yet. Create one to automate your cash flow.';
 
   @override
+  String get recurringTransactionsNextDue => 'Next due';
+
+  @override
+  String get recurringTransactionsNoUpcoming => 'No upcoming occurrences';
+
+  @override
+  String get commonComingSoon => 'Coming soon';
+
+  @override
+  String get genericErrorMessage =>
+      'Something went wrong. Please try again later.';
+
+  @override
   String get signInTitle => 'Welcome to Kopim';
 
   @override

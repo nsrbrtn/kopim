@@ -281,6 +281,22 @@
   "@recurringTransactionsEmpty": {
     "description": "Placeholder shown when there are no recurring transactions configured"
   },
+  "recurringTransactionsNextDue": "Next due",
+  "@recurringTransactionsNextDue": {
+    "description": "Label prefix for the next due date of a recurring rule"
+  },
+  "recurringTransactionsNoUpcoming": "No upcoming occurrences",
+  "@recurringTransactionsNoUpcoming": {
+    "description": "Shown when a recurring rule has no future occurrences"
+  },
+  "commonComingSoon": "Coming soon",
+  "@commonComingSoon": {
+    "description": "Generic copy when a feature is not yet available"
+  },
+  "genericErrorMessage": "Something went wrong. Please try again later.",
+  "@genericErrorMessage": {
+    "description": "Fallback error message for unexpected failures"
+  },
   "signInTitle": "Welcome to Kopim",
   "@signInTitle": {
     "description": "Main heading on the sign-in screen"

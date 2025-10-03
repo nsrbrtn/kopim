@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
+import 'package:kopim/features/recurring_transactions/data/services/recurring_work_scheduler.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 import 'firebase_options.dart';
 import 'core/config/app_config.dart';
@@ -34,11 +35,31 @@ Future<void> main() async {
   runApp(const ProviderScope(child: MyApp()));
 }
 
-class MyApp extends ConsumerWidget {
+class MyApp extends ConsumerStatefulWidget {
   const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends ConsumerState<MyApp> {
+  @override
+  void initState() {
+    super.initState();
+    Future<void>.microtask(() async {
+      final RecurringWorkScheduler scheduler = ref.read(
+        recurringWorkSchedulerProvider,
+      );
+      await scheduler.initialize();
+      await scheduler.scheduleDailyWindowGeneration();
+      await scheduler.scheduleMaintenance();
+      await scheduler.scheduleDuePostings();
+      await ref.read(recurringWindowServiceProvider).rebuildWindow();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final Locale appLocale = ref.watch(appLocaleProvider);
     ref.watch(syncServiceProvider);
     final AsyncValue<AuthUser?> authState = ref.watch(authControllerProvider);

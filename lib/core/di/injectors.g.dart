@@ -552,6 +552,281 @@ final class ProfileDaoProvider
 
 String _$profileDaoHash() => r'c4fb55deddb24b0dabbb189a18f0e68e259be21c';
 
+@ProviderFor(recurringRuleDao)
+const recurringRuleDaoProvider = RecurringRuleDaoProvider._();
+
+final class RecurringRuleDaoProvider
+    extends
+        $FunctionalProvider<
+          RecurringRuleDao,
+          RecurringRuleDao,
+          RecurringRuleDao
+        >
+    with $Provider<RecurringRuleDao> {
+  const RecurringRuleDaoProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'recurringRuleDaoProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$recurringRuleDaoHash();
+
+  @$internal
+  @override
+  $ProviderElement<RecurringRuleDao> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  RecurringRuleDao create(Ref ref) {
+    return recurringRuleDao(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(RecurringRuleDao value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<RecurringRuleDao>(value),
+    );
+  }
+}
+
+String _$recurringRuleDaoHash() => r'83f2440661655833dfdecc3692fa2232037927b2';
+
+@ProviderFor(recurringOccurrenceDao)
+const recurringOccurrenceDaoProvider = RecurringOccurrenceDaoProvider._();
+
+final class RecurringOccurrenceDaoProvider
+    extends
+        $FunctionalProvider<
+          RecurringOccurrenceDao,
+          RecurringOccurrenceDao,
+          RecurringOccurrenceDao
+        >
+    with $Provider<RecurringOccurrenceDao> {
+  const RecurringOccurrenceDaoProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'recurringOccurrenceDaoProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$recurringOccurrenceDaoHash();
+
+  @$internal
+  @override
+  $ProviderElement<RecurringOccurrenceDao> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  RecurringOccurrenceDao create(Ref ref) {
+    return recurringOccurrenceDao(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(RecurringOccurrenceDao value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<RecurringOccurrenceDao>(value),
+    );
+  }
+}
+
+String _$recurringOccurrenceDaoHash() =>
+    r'396b8cbeb1142f8c5ecaba5af6c8d40f7a98a99c';
+
+@ProviderFor(jobQueueDao)
+const jobQueueDaoProvider = JobQueueDaoProvider._();
+
+final class JobQueueDaoProvider
+    extends $FunctionalProvider<JobQueueDao, JobQueueDao, JobQueueDao>
+    with $Provider<JobQueueDao> {
+  const JobQueueDaoProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'jobQueueDaoProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$jobQueueDaoHash();
+
+  @$internal
+  @override
+  $ProviderElement<JobQueueDao> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  JobQueueDao create(Ref ref) {
+    return jobQueueDao(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(JobQueueDao value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<JobQueueDao>(value),
+    );
+  }
+}
+
+String _$jobQueueDaoHash() => r'8c93af9c3b09afed591a9c33c68b501b7878a2c9';
+
+@ProviderFor(flutterLocalNotificationsPlugin)
+const flutterLocalNotificationsPluginProvider =
+    FlutterLocalNotificationsPluginProvider._();
+
+final class FlutterLocalNotificationsPluginProvider
+    extends
+        $FunctionalProvider<
+          FlutterLocalNotificationsPlugin,
+          FlutterLocalNotificationsPlugin,
+          FlutterLocalNotificationsPlugin
+        >
+    with $Provider<FlutterLocalNotificationsPlugin> {
+  const FlutterLocalNotificationsPluginProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'flutterLocalNotificationsPluginProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$flutterLocalNotificationsPluginHash();
+
+  @$internal
+  @override
+  $ProviderElement<FlutterLocalNotificationsPlugin> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  FlutterLocalNotificationsPlugin create(Ref ref) {
+    return flutterLocalNotificationsPlugin(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(FlutterLocalNotificationsPlugin value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<FlutterLocalNotificationsPlugin>(
+        value,
+      ),
+    );
+  }
+}
+
+String _$flutterLocalNotificationsPluginHash() =>
+    r'270976c2447345deefd91efb7ccfc64878e707f4';
+
+@ProviderFor(workmanager)
+const workmanagerProvider = WorkmanagerProvider._();
+
+final class WorkmanagerProvider
+    extends $FunctionalProvider<Workmanager, Workmanager, Workmanager>
+    with $Provider<Workmanager> {
+  const WorkmanagerProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'workmanagerProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$workmanagerHash();
+
+  @$internal
+  @override
+  $ProviderElement<Workmanager> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  Workmanager create(Ref ref) {
+    return workmanager(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(Workmanager value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<Workmanager>(value),
+    );
+  }
+}
+
+String _$workmanagerHash() => r'884c489ccf3eeb94f5d425cc7ab546b9bf48747e';
+
+@ProviderFor(recurringRuleEngine)
+const recurringRuleEngineProvider = RecurringRuleEngineProvider._();
+
+final class RecurringRuleEngineProvider
+    extends
+        $FunctionalProvider<
+          RecurringRuleEngine,
+          RecurringRuleEngine,
+          RecurringRuleEngine
+        >
+    with $Provider<RecurringRuleEngine> {
+  const RecurringRuleEngineProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'recurringRuleEngineProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$recurringRuleEngineHash();
+
+  @$internal
+  @override
+  $ProviderElement<RecurringRuleEngine> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  RecurringRuleEngine create(Ref ref) {
+    return recurringRuleEngine(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(RecurringRuleEngine value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<RecurringRuleEngine>(value),
+    );
+  }
+}
+
+String _$recurringRuleEngineHash() =>
+    r'94d207ac7439ca6dcb8f24b9d37a5644705d6c6a';
+
 @ProviderFor(accountRemoteDataSource)
 const accountRemoteDataSourceProvider = AccountRemoteDataSourceProvider._();
 
@@ -744,6 +1019,55 @@ final class ProfileRemoteDataSourceProvider
 
 String _$profileRemoteDataSourceHash() =>
     r'45baf2527988bcc7389803c7cea36c9fa578effb';
+
+@ProviderFor(recurringNotificationService)
+const recurringNotificationServiceProvider =
+    RecurringNotificationServiceProvider._();
+
+final class RecurringNotificationServiceProvider
+    extends
+        $FunctionalProvider<
+          RecurringNotificationService,
+          RecurringNotificationService,
+          RecurringNotificationService
+        >
+    with $Provider<RecurringNotificationService> {
+  const RecurringNotificationServiceProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'recurringNotificationServiceProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$recurringNotificationServiceHash();
+
+  @$internal
+  @override
+  $ProviderElement<RecurringNotificationService> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  RecurringNotificationService create(Ref ref) {
+    return recurringNotificationService(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(RecurringNotificationService value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<RecurringNotificationService>(value),
+    );
+  }
+}
+
+String _$recurringNotificationServiceHash() =>
+    r'9c3e7734b39e24acdb8e7b72c6414d5a29ec3564';
 
 @ProviderFor(accountRepository)
 const accountRepositoryProvider = AccountRepositoryProvider._();
@@ -1079,6 +1403,57 @@ final class TransactionRepositoryProvider
 String _$transactionRepositoryHash() =>
     r'3799c3525d6954f2ece515445c06171d0fba71ef';
 
+@ProviderFor(recurringTransactionsRepository)
+const recurringTransactionsRepositoryProvider =
+    RecurringTransactionsRepositoryProvider._();
+
+final class RecurringTransactionsRepositoryProvider
+    extends
+        $FunctionalProvider<
+          RecurringTransactionsRepository,
+          RecurringTransactionsRepository,
+          RecurringTransactionsRepository
+        >
+    with $Provider<RecurringTransactionsRepository> {
+  const RecurringTransactionsRepositoryProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'recurringTransactionsRepositoryProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$recurringTransactionsRepositoryHash();
+
+  @$internal
+  @override
+  $ProviderElement<RecurringTransactionsRepository> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  RecurringTransactionsRepository create(Ref ref) {
+    return recurringTransactionsRepository(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(RecurringTransactionsRepository value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<RecurringTransactionsRepository>(
+        value,
+      ),
+    );
+  }
+}
+
+String _$recurringTransactionsRepositoryHash() =>
+    r'a537392d0484d7b3922a92f905ced3e6a3cbb7ec';
+
 @ProviderFor(watchAccountTransactionsUseCase)
 const watchAccountTransactionsUseCaseProvider =
     WatchAccountTransactionsUseCaseProvider._();
@@ -1229,6 +1604,397 @@ final class WatchMonthlyAnalyticsUseCaseProvider
 
 String _$watchMonthlyAnalyticsUseCaseHash() =>
     r'f1d7c52a9a4fc256b1bd3ae0fff4e7e8666f58e9';
+
+@ProviderFor(watchRecurringRulesUseCase)
+const watchRecurringRulesUseCaseProvider =
+    WatchRecurringRulesUseCaseProvider._();
+
+final class WatchRecurringRulesUseCaseProvider
+    extends
+        $FunctionalProvider<
+          WatchRecurringRulesUseCase,
+          WatchRecurringRulesUseCase,
+          WatchRecurringRulesUseCase
+        >
+    with $Provider<WatchRecurringRulesUseCase> {
+  const WatchRecurringRulesUseCaseProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'watchRecurringRulesUseCaseProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$watchRecurringRulesUseCaseHash();
+
+  @$internal
+  @override
+  $ProviderElement<WatchRecurringRulesUseCase> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  WatchRecurringRulesUseCase create(Ref ref) {
+    return watchRecurringRulesUseCase(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(WatchRecurringRulesUseCase value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<WatchRecurringRulesUseCase>(value),
+    );
+  }
+}
+
+String _$watchRecurringRulesUseCaseHash() =>
+    r'9cb754ec24ae0c6d8f780d6ebee2f1541b3a42a6';
+
+@ProviderFor(watchUpcomingOccurrencesUseCase)
+const watchUpcomingOccurrencesUseCaseProvider =
+    WatchUpcomingOccurrencesUseCaseProvider._();
+
+final class WatchUpcomingOccurrencesUseCaseProvider
+    extends
+        $FunctionalProvider<
+          WatchUpcomingOccurrencesUseCase,
+          WatchUpcomingOccurrencesUseCase,
+          WatchUpcomingOccurrencesUseCase
+        >
+    with $Provider<WatchUpcomingOccurrencesUseCase> {
+  const WatchUpcomingOccurrencesUseCaseProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'watchUpcomingOccurrencesUseCaseProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$watchUpcomingOccurrencesUseCaseHash();
+
+  @$internal
+  @override
+  $ProviderElement<WatchUpcomingOccurrencesUseCase> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  WatchUpcomingOccurrencesUseCase create(Ref ref) {
+    return watchUpcomingOccurrencesUseCase(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(WatchUpcomingOccurrencesUseCase value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<WatchUpcomingOccurrencesUseCase>(
+        value,
+      ),
+    );
+  }
+}
+
+String _$watchUpcomingOccurrencesUseCaseHash() =>
+    r'19f730a003788f792fb58d296f233536fdba9da7';
+
+@ProviderFor(saveRecurringRuleUseCase)
+const saveRecurringRuleUseCaseProvider = SaveRecurringRuleUseCaseProvider._();
+
+final class SaveRecurringRuleUseCaseProvider
+    extends
+        $FunctionalProvider<
+          SaveRecurringRuleUseCase,
+          SaveRecurringRuleUseCase,
+          SaveRecurringRuleUseCase
+        >
+    with $Provider<SaveRecurringRuleUseCase> {
+  const SaveRecurringRuleUseCaseProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'saveRecurringRuleUseCaseProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$saveRecurringRuleUseCaseHash();
+
+  @$internal
+  @override
+  $ProviderElement<SaveRecurringRuleUseCase> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  SaveRecurringRuleUseCase create(Ref ref) {
+    return saveRecurringRuleUseCase(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(SaveRecurringRuleUseCase value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<SaveRecurringRuleUseCase>(value),
+    );
+  }
+}
+
+String _$saveRecurringRuleUseCaseHash() =>
+    r'31453a9183048468b64f4a5241ff547c50fcb185';
+
+@ProviderFor(deleteRecurringRuleUseCase)
+const deleteRecurringRuleUseCaseProvider =
+    DeleteRecurringRuleUseCaseProvider._();
+
+final class DeleteRecurringRuleUseCaseProvider
+    extends
+        $FunctionalProvider<
+          DeleteRecurringRuleUseCase,
+          DeleteRecurringRuleUseCase,
+          DeleteRecurringRuleUseCase
+        >
+    with $Provider<DeleteRecurringRuleUseCase> {
+  const DeleteRecurringRuleUseCaseProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'deleteRecurringRuleUseCaseProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$deleteRecurringRuleUseCaseHash();
+
+  @$internal
+  @override
+  $ProviderElement<DeleteRecurringRuleUseCase> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  DeleteRecurringRuleUseCase create(Ref ref) {
+    return deleteRecurringRuleUseCase(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(DeleteRecurringRuleUseCase value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<DeleteRecurringRuleUseCase>(value),
+    );
+  }
+}
+
+String _$deleteRecurringRuleUseCaseHash() =>
+    r'f0e6197890075b16f2babaaafa0340dbed2309d5';
+
+@ProviderFor(toggleRecurringRuleUseCase)
+const toggleRecurringRuleUseCaseProvider =
+    ToggleRecurringRuleUseCaseProvider._();
+
+final class ToggleRecurringRuleUseCaseProvider
+    extends
+        $FunctionalProvider<
+          ToggleRecurringRuleUseCase,
+          ToggleRecurringRuleUseCase,
+          ToggleRecurringRuleUseCase
+        >
+    with $Provider<ToggleRecurringRuleUseCase> {
+  const ToggleRecurringRuleUseCaseProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'toggleRecurringRuleUseCaseProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$toggleRecurringRuleUseCaseHash();
+
+  @$internal
+  @override
+  $ProviderElement<ToggleRecurringRuleUseCase> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  ToggleRecurringRuleUseCase create(Ref ref) {
+    return toggleRecurringRuleUseCase(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(ToggleRecurringRuleUseCase value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<ToggleRecurringRuleUseCase>(value),
+    );
+  }
+}
+
+String _$toggleRecurringRuleUseCaseHash() =>
+    r'e5f319d11a98dcc7e78da1c2f27a5dbc635a9b82';
+
+@ProviderFor(regenerateRuleWindowUseCase)
+const regenerateRuleWindowUseCaseProvider =
+    RegenerateRuleWindowUseCaseProvider._();
+
+final class RegenerateRuleWindowUseCaseProvider
+    extends
+        $FunctionalProvider<
+          RegenerateRuleWindowUseCase,
+          RegenerateRuleWindowUseCase,
+          RegenerateRuleWindowUseCase
+        >
+    with $Provider<RegenerateRuleWindowUseCase> {
+  const RegenerateRuleWindowUseCaseProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'regenerateRuleWindowUseCaseProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$regenerateRuleWindowUseCaseHash();
+
+  @$internal
+  @override
+  $ProviderElement<RegenerateRuleWindowUseCase> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  RegenerateRuleWindowUseCase create(Ref ref) {
+    return regenerateRuleWindowUseCase(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(RegenerateRuleWindowUseCase value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<RegenerateRuleWindowUseCase>(value),
+    );
+  }
+}
+
+String _$regenerateRuleWindowUseCaseHash() =>
+    r'b2d6210dffdbeeb1d866fcf550d576a5cdb0d6aa';
+
+@ProviderFor(recurringWindowService)
+const recurringWindowServiceProvider = RecurringWindowServiceProvider._();
+
+final class RecurringWindowServiceProvider
+    extends
+        $FunctionalProvider<
+          RecurringWindowService,
+          RecurringWindowService,
+          RecurringWindowService
+        >
+    with $Provider<RecurringWindowService> {
+  const RecurringWindowServiceProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'recurringWindowServiceProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$recurringWindowServiceHash();
+
+  @$internal
+  @override
+  $ProviderElement<RecurringWindowService> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  RecurringWindowService create(Ref ref) {
+    return recurringWindowService(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(RecurringWindowService value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<RecurringWindowService>(value),
+    );
+  }
+}
+
+String _$recurringWindowServiceHash() =>
+    r'66de8c0084f13ae4fb53f7a45cc0135d21c42738';
+
+@ProviderFor(recurringWorkScheduler)
+const recurringWorkSchedulerProvider = RecurringWorkSchedulerProvider._();
+
+final class RecurringWorkSchedulerProvider
+    extends
+        $FunctionalProvider<
+          RecurringWorkScheduler,
+          RecurringWorkScheduler,
+          RecurringWorkScheduler
+        >
+    with $Provider<RecurringWorkScheduler> {
+  const RecurringWorkSchedulerProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'recurringWorkSchedulerProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$recurringWorkSchedulerHash();
+
+  @$internal
+  @override
+  $ProviderElement<RecurringWorkScheduler> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  RecurringWorkScheduler create(Ref ref) {
+    return recurringWorkScheduler(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(RecurringWorkScheduler value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<RecurringWorkScheduler>(value),
+    );
+  }
+}
+
+String _$recurringWorkSchedulerHash() =>
+    r'd74ce3d07b58943fffafbe929e3577de776b45bd';
 
 @ProviderFor(profileRepository)
 const profileRepositoryProvider = ProfileRepositoryProvider._();
