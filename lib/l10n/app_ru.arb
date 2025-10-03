@@ -393,6 +393,10 @@
   "@homeTransactionsTodayLabel": {
     "description": "Заголовок группы транзакций за сегодняшний день"
   },
+  "homeTransactionsYesterdayLabel": "Вчера",
+  "@homeTransactionsYesterdayLabel": {
+    "description": "Заголовок группы транзакций за вчерашний день"
+  },
   "accountTypeCash": "Наличные",
   "@accountTypeCash": {
     "description": "Название типа счёта — наличные"

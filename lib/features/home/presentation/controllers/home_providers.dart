@@ -2,7 +2,9 @@ import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
+import 'package:kopim/features/home/domain/models/day_section.dart';
 import 'package:kopim/features/home/domain/models/home_account_monthly_summary.dart';
+import 'package:kopim/features/home/domain/use_cases/group_transactions_by_day_use_case.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -61,17 +63,17 @@ Category? homeCategoryById(Ref ref, String id) {
 }
 
 @riverpod
-double homeTotalBalance(Ref ref) {
-  final AsyncValue<List<AccountEntity>> accountsAsync = ref.watch(
-    homeAccountsProvider,
+AsyncValue<List<DaySection>> homeGroupedTransactions(Ref ref) {
+  final GroupTransactionsByDayUseCase useCase = ref.watch(
+    groupTransactionsByDayUseCaseProvider,
+  );
+  final AsyncValue<List<TransactionEntity>> transactionsAsync = ref.watch(
+    homeRecentTransactionsProvider(),
   );
 
-  return accountsAsync.maybeWhen(
-    data: (List<AccountEntity> accounts) => accounts.fold<double>(
-      0,
-      (double sum, AccountEntity account) => sum + account.balance,
-    ),
-    orElse: () => 0,
+  return transactionsAsync.whenData(
+    (List<TransactionEntity> transactions) =>
+        useCase(transactions: transactions),
   );
 }
 

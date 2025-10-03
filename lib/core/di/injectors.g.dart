@@ -1605,6 +1605,57 @@ final class WatchMonthlyAnalyticsUseCaseProvider
 String _$watchMonthlyAnalyticsUseCaseHash() =>
     r'f1d7c52a9a4fc256b1bd3ae0fff4e7e8666f58e9';
 
+@ProviderFor(groupTransactionsByDayUseCase)
+const groupTransactionsByDayUseCaseProvider =
+    GroupTransactionsByDayUseCaseProvider._();
+
+final class GroupTransactionsByDayUseCaseProvider
+    extends
+        $FunctionalProvider<
+          GroupTransactionsByDayUseCase,
+          GroupTransactionsByDayUseCase,
+          GroupTransactionsByDayUseCase
+        >
+    with $Provider<GroupTransactionsByDayUseCase> {
+  const GroupTransactionsByDayUseCaseProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'groupTransactionsByDayUseCaseProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$groupTransactionsByDayUseCaseHash();
+
+  @$internal
+  @override
+  $ProviderElement<GroupTransactionsByDayUseCase> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  GroupTransactionsByDayUseCase create(Ref ref) {
+    return groupTransactionsByDayUseCase(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(GroupTransactionsByDayUseCase value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<GroupTransactionsByDayUseCase>(
+        value,
+      ),
+    );
+  }
+}
+
+String _$groupTransactionsByDayUseCaseHash() =>
+    r'7a51339f0bbe69d564577c72d1f5eb9c846f63aa';
+
 @ProviderFor(watchRecurringRulesUseCase)
 const watchRecurringRulesUseCaseProvider =
     WatchRecurringRulesUseCaseProvider._();

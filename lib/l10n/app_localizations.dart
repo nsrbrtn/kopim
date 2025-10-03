@@ -620,6 +620,12 @@ abstract class AppLocalizations {
   /// **'Today'**
   String get homeTransactionsTodayLabel;
 
+  /// Section header label for transactions happening yesterday
+  ///
+  /// In en, this message translates to:
+  /// **'Yesterday'**
+  String get homeTransactionsYesterdayLabel;
+
   /// Localized name for the cash account type
   ///
   /// In en, this message translates to:

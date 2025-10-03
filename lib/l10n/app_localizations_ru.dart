@@ -294,6 +294,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get homeTransactionsTodayLabel => 'Сегодня';
 
   @override
+  String get homeTransactionsYesterdayLabel => 'Вчера';
+
+  @override
   String get accountTypeCash => 'Наличные';
 
   @override

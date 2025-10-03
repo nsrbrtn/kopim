@@ -293,6 +293,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeTransactionsTodayLabel => 'Today';
 
   @override
+  String get homeTransactionsYesterdayLabel => 'Yesterday';
+
+  @override
   String get accountTypeCash => 'Cash';
 
   @override
