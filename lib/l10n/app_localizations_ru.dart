@@ -220,6 +220,58 @@ class AppLocalizationsRu extends AppLocalizations {
   String get recurringTransactionsNoUpcoming => 'Нет предстоящих операций';
 
   @override
+  String get addRecurringRuleTitle => 'Новая повторяющаяся операция';
+
+  @override
+  String get addRecurringRuleNameLabel => 'Название';
+
+  @override
+  String get addRecurringRuleTitleRequired => 'Введите название';
+
+  @override
+  String get addRecurringRuleAmountLabel => 'Сумма';
+
+  @override
+  String get addRecurringRuleAmountHint => '0,00';
+
+  @override
+  String get addRecurringRuleAmountInvalid => 'Введите положительную сумму';
+
+  @override
+  String get addRecurringRuleAccountLabel => 'Счёт';
+
+  @override
+  String get addRecurringRuleAccountRequired => 'Выберите счёт';
+
+  @override
+  String get addRecurringRuleTypeLabel => 'Тип';
+
+  @override
+  String get addRecurringRuleTypeExpense => 'Расход';
+
+  @override
+  String get addRecurringRuleTypeIncome => 'Доход';
+
+  @override
+  String get addRecurringRuleStartDateLabel => 'Дата начала';
+
+  @override
+  String get addRecurringRuleStartTimeLabel => 'Время выполнения';
+
+  @override
+  String get addRecurringRuleAutoPostLabel => 'Проводить автоматически';
+
+  @override
+  String get addRecurringRuleSubmit => 'Сохранить правило';
+
+  @override
+  String get addRecurringRuleNoAccounts =>
+      'Сначала добавьте счёт, чтобы создать повторяющееся правило.';
+
+  @override
+  String get addRecurringRuleSuccess => 'Повторяющаяся операция сохранена';
+
+  @override
   String get commonComingSoon => 'Скоро появится';
 
   @override

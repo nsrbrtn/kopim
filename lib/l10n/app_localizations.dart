@@ -494,6 +494,108 @@ abstract class AppLocalizations {
   /// **'No upcoming occurrences'**
   String get recurringTransactionsNoUpcoming;
 
+  /// Title for the add recurring rule screen
+  ///
+  /// In en, this message translates to:
+  /// **'New recurring transaction'**
+  String get addRecurringRuleTitle;
+
+  /// Label for the recurring rule title field
+  ///
+  /// In en, this message translates to:
+  /// **'Title'**
+  String get addRecurringRuleNameLabel;
+
+  /// Validation error when title is empty
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a title'**
+  String get addRecurringRuleTitleRequired;
+
+  /// Label for the recurring rule amount field
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get addRecurringRuleAmountLabel;
+
+  /// Hint for the recurring rule amount field
+  ///
+  /// In en, this message translates to:
+  /// **'0.00'**
+  String get addRecurringRuleAmountHint;
+
+  /// Validation error when amount is invalid
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid positive amount'**
+  String get addRecurringRuleAmountInvalid;
+
+  /// Label for the account dropdown
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get addRecurringRuleAccountLabel;
+
+  /// Validation error when no account selected
+  ///
+  /// In en, this message translates to:
+  /// **'Select an account'**
+  String get addRecurringRuleAccountRequired;
+
+  /// Label for the transaction type selector
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get addRecurringRuleTypeLabel;
+
+  /// Label for expense option
+  ///
+  /// In en, this message translates to:
+  /// **'Expense'**
+  String get addRecurringRuleTypeExpense;
+
+  /// Label for income option
+  ///
+  /// In en, this message translates to:
+  /// **'Income'**
+  String get addRecurringRuleTypeIncome;
+
+  /// Label for the start date picker
+  ///
+  /// In en, this message translates to:
+  /// **'Start date'**
+  String get addRecurringRuleStartDateLabel;
+
+  /// Label for the time picker
+  ///
+  /// In en, this message translates to:
+  /// **'Execution time'**
+  String get addRecurringRuleStartTimeLabel;
+
+  /// Label for the auto-post toggle
+  ///
+  /// In en, this message translates to:
+  /// **'Post automatically'**
+  String get addRecurringRuleAutoPostLabel;
+
+  /// Label for the submit button
+  ///
+  /// In en, this message translates to:
+  /// **'Save rule'**
+  String get addRecurringRuleSubmit;
+
+  /// Message shown when there are no accounts
+  ///
+  /// In en, this message translates to:
+  /// **'Add an account before creating a recurring rule.'**
+  String get addRecurringRuleNoAccounts;
+
+  /// Snackbar message when recurring rule saved
+  ///
+  /// In en, this message translates to:
+  /// **'Recurring transaction saved'**
+  String get addRecurringRuleSuccess;
+
   /// Generic copy when a feature is not yet available
   ///
   /// In en, this message translates to:
