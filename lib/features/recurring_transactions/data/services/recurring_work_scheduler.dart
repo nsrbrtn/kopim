@@ -14,14 +14,14 @@ import 'package:kopim/features/recurring_transactions/data/services/recurring_wi
 import 'package:kopim/features/recurring_transactions/data/sources/local/job_queue_dao.dart';
 import 'package:kopim/features/recurring_transactions/data/sources/local/recurring_occurrence_dao.dart';
 import 'package:kopim/features/recurring_transactions/data/sources/local/recurring_rule_dao.dart';
-import 'package:kopim/features/recurring_transactions/domain/entities/recurring_occurrence.dart';
-import 'package:kopim/features/recurring_transactions/domain/entities/recurring_rule.dart';
+import 'package:kopim/features/recurring_transactions/data/sources/local/recurring_rule_execution_dao.dart';
 import 'package:kopim/features/recurring_transactions/domain/repositories/recurring_transactions_repository.dart';
 import 'package:kopim/features/recurring_transactions/domain/services/recurring_rule_engine.dart';
+import 'package:kopim/features/recurring_transactions/domain/services/recurring_rule_scheduler.dart';
+import 'package:kopim/features/recurring_transactions/domain/use_cases/apply_recurring_rules_use_case.dart';
 import 'package:kopim/features/transactions/data/repositories/transaction_repository_impl.dart';
 import 'package:kopim/features/transactions/data/sources/local/transaction_dao.dart';
 import 'package:kopim/features/transactions/domain/entities/add_transaction_request.dart';
-import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
 import 'package:kopim/features/transactions/domain/repositories/transaction_repository.dart';
 import 'package:kopim/features/transactions/domain/use_cases/add_transaction_use_case.dart';
 import 'package:uuid/uuid.dart';
@@ -29,8 +29,7 @@ import 'package:workmanager/workmanager.dart';
 
 const String kRecurringTaskGenerateWindow = 'recurring_generate_window';
 const String kRecurringTaskMaintainWindow = 'recurring_window_maintenance';
-const String kRecurringTaskPostDueOccurrences =
-    'recurring_post_due_occurrences';
+const String kRecurringTaskApplyRules = 'apply_recurring_rules';
 
 void recurringWorkDispatcher() {
   Workmanager().executeTask((
@@ -57,8 +56,8 @@ void recurringWorkDispatcher() {
         case kRecurringTaskMaintainWindow:
           await windowService.rebuildWindow();
           break;
-        case kRecurringTaskPostDueOccurrences:
-          await _postDueOccurrences(
+        case kRecurringTaskApplyRules:
+          await _applyRecurringRules(
             repository: repository,
             database: database,
             logger: logger,
@@ -119,17 +118,20 @@ class RecurringWorkScheduler {
     _logger.logInfo('Scheduled recurring window maintenance');
   }
 
-  Future<void> scheduleDuePostings() async {
+  Future<void> scheduleApplyRecurringRules() async {
+    final Duration initialDelay = _timeUntilNextApplyRun();
     await _workmanager.registerPeriodicTask(
-      kRecurringTaskPostDueOccurrences,
-      kRecurringTaskPostDueOccurrences,
+      kRecurringTaskApplyRules,
+      kRecurringTaskApplyRules,
       frequency: const Duration(hours: 24),
-      initialDelay: const Duration(hours: 1),
+      initialDelay: initialDelay,
       backoffPolicy: BackoffPolicy.exponential,
       backoffPolicyDelay: const Duration(minutes: 15),
       constraints: Constraints(networkType: NetworkType.notRequired),
     );
-    _logger.logInfo('Scheduled daily auto-posting job');
+    _logger.logInfo(
+      'Scheduled recurring rule application in ${initialDelay.inMinutes} minutes',
+    );
   }
 
   Duration _timeUntilNextSixAm() {
@@ -140,31 +142,39 @@ class RecurringWorkScheduler {
     }
     return next.difference(now);
   }
+
+  Duration _timeUntilNextApplyRun() {
+    final DateTime now = DateTime.now();
+    DateTime next = DateTime(now.year, now.month, now.day, 0, 1);
+    if (!next.isAfter(now)) {
+      final DateTime tomorrow = now.add(const Duration(days: 1));
+      next = DateTime(tomorrow.year, tomorrow.month, tomorrow.day, 0, 1);
+    }
+    return next.difference(now);
+  }
 }
 
 RecurringTransactionsRepository _buildRepository(AppDatabase database) {
   final RecurringRuleDao ruleDao = RecurringRuleDao(database);
   final RecurringOccurrenceDao occurrenceDao = RecurringOccurrenceDao(database);
+  final RecurringRuleExecutionDao executionDao = RecurringRuleExecutionDao(
+    database,
+  );
   final JobQueueDao jobQueueDao = JobQueueDao(database);
   return RecurringTransactionsRepositoryImpl(
     ruleDao: ruleDao,
     occurrenceDao: occurrenceDao,
+    executionDao: executionDao,
     jobQueueDao: jobQueueDao,
     database: database,
   );
 }
 
-Future<void> _postDueOccurrences({
+Future<void> _applyRecurringRules({
   required RecurringTransactionsRepository repository,
   required AppDatabase database,
   required LoggerService logger,
 }) async {
-  final DateTime today = DateTime.now();
-  final List<RecurringOccurrence> dueOccurrences = await repository
-      .getDueOccurrences(today);
-  if (dueOccurrences.isEmpty) {
-    return;
-  }
   final OutboxDao outboxDao = OutboxDao(database);
   final AccountDao accountDao = AccountDao(database);
   final TransactionDao transactionDao = TransactionDao(database);
@@ -189,37 +199,21 @@ Future<void> _postDueOccurrences({
     },
     clock: () => DateTime.now().toUtc(),
   );
-  for (final RecurringOccurrence occurrence in dueOccurrences) {
-    final RecurringRule? rule = await repository.getRuleById(occurrence.ruleId);
-    if (rule == null || !rule.autoPost) {
-      continue;
-    }
-    final TransactionType type = rule.amount >= 0
-        ? TransactionType.expense
-        : TransactionType.income;
-    final AddTransactionRequest request = AddTransactionRequest(
-      accountId: rule.accountId,
-      amount: rule.amount.abs(),
-      date: occurrence.dueAt,
-      note: rule.notes,
-      type: type,
-    );
-    try {
-      lastGeneratedId = null;
-      await addTransaction(request);
-      await repository.updateOccurrenceStatus(
-        occurrence.id,
-        RecurringOccurrenceStatus.posted,
-        postedTxId: lastGeneratedId,
-      );
-    } catch (error, stackTrace) {
-      logger.logError(
-        'Failed to auto-post occurrence ${occurrence.id}: $error\n$stackTrace',
-      );
-      await repository.updateOccurrenceStatus(
-        occurrence.id,
-        RecurringOccurrenceStatus.failed,
-      );
-    }
+  Future<String?> postTransaction(AddTransactionRequest request) async {
+    lastGeneratedId = null;
+    await addTransaction(request);
+    return lastGeneratedId;
   }
+
+  final ApplyRecurringRulesUseCase applyRules = ApplyRecurringRulesUseCase(
+    repository: repository,
+    postTransaction: postTransaction,
+    scheduler: const RecurringRuleScheduler(),
+    clock: () => DateTime.now(),
+  );
+
+  final ApplyRecurringRulesResult result = await applyRules();
+  logger.logInfo(
+    'Recurring rules applied: ${result.applied} new, ${result.skipped} skipped',
+  );
 }

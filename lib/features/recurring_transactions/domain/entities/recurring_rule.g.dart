@@ -20,6 +20,15 @@ _RecurringRule _$RecurringRuleFromJson(Map<String, dynamic> json) =>
       timezone: json['timezone'] as String,
       rrule: json['rrule'] as String,
       notes: json['notes'] as String?,
+      dayOfMonth: (json['dayOfMonth'] as num?)?.toInt() ?? 1,
+      applyAtLocalHour: (json['applyAtLocalHour'] as num?)?.toInt() ?? 0,
+      applyAtLocalMinute: (json['applyAtLocalMinute'] as num?)?.toInt() ?? 1,
+      lastRunAt: json['lastRunAt'] == null
+          ? null
+          : DateTime.parse(json['lastRunAt'] as String),
+      nextDueLocalDate: json['nextDueLocalDate'] == null
+          ? null
+          : DateTime.parse(json['nextDueLocalDate'] as String),
       isActive: json['isActive'] as bool? ?? true,
       autoPost: json['autoPost'] as bool? ?? false,
       reminderMinutesBefore: (json['reminderMinutesBefore'] as num?)?.toInt(),
@@ -45,6 +54,11 @@ Map<String, dynamic> _$RecurringRuleToJson(_RecurringRule instance) =>
       'timezone': instance.timezone,
       'rrule': instance.rrule,
       'notes': instance.notes,
+      'dayOfMonth': instance.dayOfMonth,
+      'applyAtLocalHour': instance.applyAtLocalHour,
+      'applyAtLocalMinute': instance.applyAtLocalMinute,
+      'lastRunAt': instance.lastRunAt?.toIso8601String(),
+      'nextDueLocalDate': instance.nextDueLocalDate?.toIso8601String(),
       'isActive': instance.isActive,
       'autoPost': instance.autoPost,
       'reminderMinutesBefore': instance.reminderMinutesBefore,

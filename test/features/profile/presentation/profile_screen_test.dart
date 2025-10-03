@@ -86,6 +86,14 @@ class _StubRecurringTransactionsRepository
       Future<RecurringRule?>.value(null);
 
   @override
+  Future<bool> applyRuleOccurrence({
+    required RecurringRule rule,
+    required String occurrenceId,
+    required DateTime occurrenceLocalDate,
+    required Future<String?> Function() postTransaction,
+  }) => Future<bool>.value(false);
+
+  @override
   Future<void> markJobAttempt(int jobId, {String? error}) =>
       throw UnimplementedError();
 

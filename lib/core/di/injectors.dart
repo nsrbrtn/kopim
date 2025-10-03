@@ -57,6 +57,7 @@ import 'package:kopim/features/recurring_transactions/data/services/recurring_wo
 import 'package:kopim/features/recurring_transactions/data/sources/local/job_queue_dao.dart';
 import 'package:kopim/features/recurring_transactions/data/sources/local/recurring_occurrence_dao.dart';
 import 'package:kopim/features/recurring_transactions/data/sources/local/recurring_rule_dao.dart';
+import 'package:kopim/features/recurring_transactions/data/sources/local/recurring_rule_execution_dao.dart';
 import 'package:kopim/features/recurring_transactions/domain/repositories/recurring_transactions_repository.dart';
 import 'package:kopim/features/recurring_transactions/domain/services/recurring_rule_engine.dart';
 import 'package:kopim/features/recurring_transactions/domain/use_cases/delete_recurring_rule_use_case.dart';
@@ -115,6 +116,10 @@ RecurringRuleDao recurringRuleDao(Ref ref) =>
 @riverpod
 RecurringOccurrenceDao recurringOccurrenceDao(Ref ref) =>
     RecurringOccurrenceDao(ref.watch(appDatabaseProvider));
+
+@riverpod
+RecurringRuleExecutionDao recurringRuleExecutionDao(Ref ref) =>
+    RecurringRuleExecutionDao(ref.watch(appDatabaseProvider));
 
 @riverpod
 JobQueueDao jobQueueDao(Ref ref) => JobQueueDao(ref.watch(appDatabaseProvider));
@@ -204,6 +209,7 @@ RecurringTransactionsRepository recurringTransactionsRepository(Ref ref) =>
     RecurringTransactionsRepositoryImpl(
       ruleDao: ref.watch(recurringRuleDaoProvider),
       occurrenceDao: ref.watch(recurringOccurrenceDaoProvider),
+      executionDao: ref.watch(recurringRuleExecutionDaoProvider),
       jobQueueDao: ref.watch(jobQueueDaoProvider),
       database: ref.watch(appDatabaseProvider),
     );

@@ -1,5 +1,6 @@
 import 'package:kopim/features/recurring_transactions/data/sources/local/job_queue_dao.dart';
 import 'package:kopim/features/recurring_transactions/data/sources/local/recurring_occurrence_dao.dart';
+import 'package:kopim/features/recurring_transactions/data/sources/local/recurring_rule_execution_dao.dart';
 import 'package:kopim/features/recurring_transactions/data/sources/local/recurring_rule_dao.dart';
 import 'package:kopim/features/recurring_transactions/domain/entities/recurring_job.dart';
 import 'package:kopim/features/recurring_transactions/domain/entities/recurring_occurrence.dart';
@@ -12,15 +13,18 @@ class RecurringTransactionsRepositoryImpl
   RecurringTransactionsRepositoryImpl({
     required RecurringRuleDao ruleDao,
     required RecurringOccurrenceDao occurrenceDao,
+    required RecurringRuleExecutionDao executionDao,
     required JobQueueDao jobQueueDao,
     required db.AppDatabase database,
   }) : _ruleDao = ruleDao,
        _occurrenceDao = occurrenceDao,
+       _executionDao = executionDao,
        _jobQueueDao = jobQueueDao,
        _database = database;
 
   final RecurringRuleDao _ruleDao;
   final RecurringOccurrenceDao _occurrenceDao;
+  final RecurringRuleExecutionDao _executionDao;
   final JobQueueDao _jobQueueDao;
   final db.AppDatabase _database;
 
@@ -132,6 +136,31 @@ class RecurringTransactionsRepositoryImpl
   }
 
   @override
+  Future<bool> applyRuleOccurrence({
+    required RecurringRule rule,
+    required String occurrenceId,
+    required DateTime occurrenceLocalDate,
+    required Future<String?> Function() postTransaction,
+  }) {
+    return _database.transaction(() async {
+      final db.RecurringRuleExecutionRow? existing = await _executionDao
+          .findById(occurrenceId);
+      if (existing != null) {
+        return false;
+      }
+      final String? transactionId = await postTransaction();
+      await _executionDao.insertExecution(
+        occurrenceId: occurrenceId,
+        ruleId: rule.id,
+        localDate: occurrenceLocalDate,
+        appliedAt: DateTime.now().toUtc(),
+        transactionId: transactionId,
+      );
+      return true;
+    });
+  }
+
+  @override
   Future<void> enqueueJob({
     required String type,
     required String payload,
@@ -164,6 +193,11 @@ class RecurringTransactionsRepositoryImpl
       rrule: row.rrule,
       endAt: row.endAt?.toUtc(),
       notes: row.notes,
+      dayOfMonth: row.dayOfMonth,
+      applyAtLocalHour: row.applyAtLocalHour,
+      applyAtLocalMinute: row.applyAtLocalMinute,
+      lastRunAt: row.lastRunAt?.toLocal(),
+      nextDueLocalDate: row.nextDueLocalDate?.toLocal(),
       isActive: row.isActive,
       autoPost: row.autoPost,
       reminderMinutesBefore: row.reminderMinutesBefore,
