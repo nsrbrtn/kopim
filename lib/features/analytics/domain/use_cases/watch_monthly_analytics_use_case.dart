@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:kopim/features/analytics/domain/models/analytics_category_breakdown.dart';
+import 'package:kopim/features/analytics/domain/models/analytics_filter.dart';
 import 'package:kopim/features/analytics/domain/models/analytics_overview.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
@@ -16,6 +17,7 @@ class WatchMonthlyAnalyticsUseCase {
   Stream<AnalyticsOverview> call({
     DateTime? reference,
     int topCategoriesLimit = 5,
+    AnalyticsFilter? filter,
   }) {
     return _transactionRepository.watchTransactions().map((
       List<TransactionEntity> transactions,
@@ -29,17 +31,28 @@ class WatchMonthlyAnalyticsUseCase {
         );
       }
 
-      final DateTime now = reference ?? DateTime.now();
-      final DateTime monthStart = DateTime(now.year, now.month);
-      final DateTime monthEnd = DateTime(now.year, now.month + 1);
+      final AnalyticsFilter effectiveFilter =
+          filter ?? AnalyticsFilter.monthly(reference: reference);
+      final DateTime start = effectiveFilter.start;
+      final DateTime end = effectiveFilter.end;
 
       double totalIncome = 0;
       double totalExpense = 0;
       final Map<String?, double> expenseByCategory = <String?, double>{};
 
       for (final TransactionEntity transaction in transactions) {
-        if (transaction.date.isBefore(monthStart) ||
-            !transaction.date.isBefore(monthEnd)) {
+        if (transaction.date.isBefore(start) ||
+            !transaction.date.isBefore(end)) {
+          continue;
+        }
+
+        if (effectiveFilter.accountId != null &&
+            transaction.accountId != effectiveFilter.accountId) {
+          continue;
+        }
+
+        if (effectiveFilter.categoryId != null &&
+            transaction.categoryId != effectiveFilter.categoryId) {
           continue;
         }
 
