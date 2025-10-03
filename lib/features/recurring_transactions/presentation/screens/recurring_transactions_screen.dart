@@ -106,9 +106,10 @@ class RecurringTransactionsScreen extends ConsumerWidget {
   }
 
   Future<void> _onAddRulePressed(BuildContext context) async {
-    final bool? created = await Navigator.of(
+    final Object? result = await Navigator.of(
       context,
-    ).pushNamed<bool>(AddRecurringRuleScreen.routeName);
+    ).pushNamed(AddRecurringRuleScreen.routeName);
+    final bool? created = result as bool?;
     if (created == true && context.mounted) {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
