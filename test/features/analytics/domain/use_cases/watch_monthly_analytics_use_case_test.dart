@@ -32,6 +32,7 @@ void main() {
       expect(overview.totalExpense, 0);
       expect(overview.netBalance, 0);
       expect(overview.topExpenseCategories, isEmpty);
+      expect(overview.topIncomeCategories, isEmpty);
     });
 
     test('applies date range filter', () async {
@@ -77,6 +78,9 @@ void main() {
       expect(overview.topExpenseCategories, hasLength(1));
       expect(overview.topExpenseCategories.first.categoryId, 'cat-food');
       expect(overview.topExpenseCategories.first.amount, 40);
+      expect(overview.topIncomeCategories, hasLength(1));
+      expect(overview.topIncomeCategories.first.categoryId, 'cat-ent');
+      expect(overview.topIncomeCategories.first.amount, 120);
     });
 
     test('filters by account and category', () async {
@@ -132,6 +136,9 @@ void main() {
       expect(overview.topExpenseCategories, hasLength(1));
       expect(overview.topExpenseCategories.first.categoryId, 'cat-ent');
       expect(overview.topExpenseCategories.first.amount, 30);
+      expect(overview.topIncomeCategories, hasLength(1));
+      expect(overview.topIncomeCategories.first.categoryId, 'cat-ent');
+      expect(overview.topIncomeCategories.first.amount, 150);
     });
   });
 }

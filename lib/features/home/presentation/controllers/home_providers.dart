@@ -1,10 +1,14 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/home/domain/models/day_section.dart';
 import 'package:kopim/features/home/domain/models/home_account_monthly_summary.dart';
+import 'package:kopim/features/home/domain/models/upcoming_payment.dart';
 import 'package:kopim/features/home/domain/use_cases/group_transactions_by_day_use_case.dart';
+import 'package:kopim/features/home/domain/use_cases/watch_upcoming_payments_use_case.dart';
+import 'package:kopim/features/recurring_transactions/domain/entities/recurring_rule.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -58,6 +62,32 @@ Category? homeCategoryById(Ref ref, String id) {
       .watch(homeCategoriesProvider)
       .maybeWhen(
         data: (List<Category> categories) => _findCategoryById(categories, id),
+        orElse: () => null,
+      );
+}
+
+@riverpod
+Stream<List<RecurringRule>> homeRecurringRules(Ref ref) {
+  return ref.watch(watchRecurringRulesUseCaseProvider).call();
+}
+
+@riverpod
+Stream<List<UpcomingPayment>> homeUpcomingPayments(Ref ref) {
+  final WatchUpcomingPaymentsUseCase useCase = ref.watch(
+    watchUpcomingPaymentsUseCaseProvider,
+  );
+  final DateTime now = DateTime.now();
+  final DateTime end = now.add(const Duration(days: 30));
+  return useCase(from: now, to: end);
+}
+
+@riverpod
+RecurringRule? homeRecurringRuleById(Ref ref, String id) {
+  return ref
+      .watch(homeRecurringRulesProvider)
+      .maybeWhen(
+        data: (List<RecurringRule> rules) =>
+            rules.firstWhereOrNull((RecurringRule rule) => rule.id == id),
         orElse: () => null,
       );
 }

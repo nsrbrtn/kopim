@@ -15,8 +15,11 @@ import 'package:kopim/features/categories/domain/repositories/category_repositor
 import 'package:kopim/features/categories/domain/use_cases/watch_categories_use_case.dart';
 import 'package:kopim/features/categories/domain/use_cases/watch_category_tree_use_case.dart';
 import 'package:kopim/features/categories/presentation/controllers/categories_list_controller.dart';
+import 'package:kopim/features/home/presentation/controllers/home_providers.dart';
+import 'package:kopim/features/home/domain/models/upcoming_payment.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
 import 'package:kopim/features/profile/presentation/controllers/auth_controller.dart';
+import 'package:kopim/features/recurring_transactions/domain/entities/recurring_rule.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/repositories/transaction_repository.dart';
 import 'package:kopim/features/transactions/domain/use_cases/watch_recent_transactions_use_case.dart';
@@ -119,6 +122,7 @@ void main() {
   );
 
   const AuthUser? anonymousUser = null;
+  final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
   ProviderScope buildShell(Widget child) {
     final _StreamTransactionRepository transactionRepository =
@@ -166,6 +170,14 @@ void main() {
           (Ref ref) =>
               Stream<List<CategoryTreeNode>>.value(const <CategoryTreeNode>[]),
         ),
+        homeRecurringRulesProvider.overrideWith(
+          (Ref ref) =>
+              Stream<List<RecurringRule>>.value(const <RecurringRule>[]),
+        ),
+        homeUpcomingPaymentsProvider.overrideWith(
+          (Ref ref) =>
+              Stream<List<UpcomingPayment>>.value(const <UpcomingPayment>[]),
+        ),
       ],
       child: child,
     );
@@ -176,25 +188,38 @@ void main() {
   ) async {
     await tester.pumpWidget(
       buildShell(
-        const MaterialApp(
+        MaterialApp(
+          navigatorKey: navigatorKey,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: MainNavigationShell(),
+          home: const MainNavigationShell(),
         ),
       ),
     );
 
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 16),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 2),
+    );
 
     final Finder bottomNavFinder = find.byType(BottomNavigationBar);
     expect(bottomNavFinder, findsOneWidget);
 
     await tester.tap(find.text('Analytics'));
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 16),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 2),
+    );
     expect(bottomNavFinder, findsOneWidget);
 
     await tester.tap(find.text('Settings'));
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 16),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 2),
+    );
     expect(bottomNavFinder, findsOneWidget);
   });
 
@@ -203,32 +228,42 @@ void main() {
   ) async {
     await tester.pumpWidget(
       buildShell(
-        const MaterialApp(
+        MaterialApp(
+          navigatorKey: navigatorKey,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: MainNavigationShell(),
+          home: const MainNavigationShell(),
         ),
       ),
     );
 
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 16),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 2),
+    );
 
-    final NavigatorState navigator =
-        tester.state(find.byType(Navigator)) as NavigatorState;
-
-    navigator.push(
+    navigatorKey.currentState!.push(
       MaterialPageRoute<void>(
         builder: (BuildContext context) =>
             const Scaffold(body: Center(child: Text('Child screen'))),
       ),
     );
 
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 16),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 2),
+    );
 
     expect(find.byType(BottomNavigationBar), findsNothing);
 
-    navigator.pop();
-    await tester.pumpAndSettle();
+    navigatorKey.currentState!.pop();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 16),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 2),
+    );
 
     expect(find.byType(BottomNavigationBar), findsOneWidget);
   });

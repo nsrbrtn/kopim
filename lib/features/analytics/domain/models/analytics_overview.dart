@@ -12,5 +12,6 @@ abstract class AnalyticsOverview with _$AnalyticsOverview {
     required double totalExpense,
     required double netBalance,
     required List<AnalyticsCategoryBreakdown> topExpenseCategories,
+    required List<AnalyticsCategoryBreakdown> topIncomeCategories,
   }) = _AnalyticsOverview;
 }

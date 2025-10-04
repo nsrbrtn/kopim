@@ -8,6 +8,7 @@ import 'package:kopim/features/app_shell/presentation/models/navigation_tab_cont
 import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/home/domain/models/day_section.dart';
 import 'package:kopim/features/home/domain/models/home_account_monthly_summary.dart';
+import 'package:kopim/features/home/domain/models/upcoming_payment.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
@@ -16,6 +17,8 @@ import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/presentation/add_transaction_screen.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
 import 'package:kopim/features/transactions/presentation/widgets/transaction_editor.dart';
+import 'package:kopim/features/recurring_transactions/domain/entities/recurring_rule.dart';
+import 'package:kopim/features/recurring_transactions/presentation/screens/add_recurring_rule_screen.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 import 'package:kopim/core/utils/helpers.dart';
 import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
@@ -33,6 +36,9 @@ NavigationTabContent buildHomeTabContent(BuildContext context, WidgetRef ref) {
   final AsyncValue<List<DaySection>> groupedTransactionsAsync = ref.watch(
     homeGroupedTransactionsProvider,
   );
+  final AsyncValue<List<UpcomingPayment>> upcomingPaymentsAsync = ref.watch(
+    homeUpcomingPaymentsProvider,
+  );
   final bool isWideLayout = MediaQuery.of(context).size.width >= 720;
 
   return NavigationTabContent(
@@ -46,6 +52,7 @@ NavigationTabContent buildHomeTabContent(BuildContext context, WidgetRef ref) {
         isWideLayout: isWideLayout,
         accountSummariesAsync: accountSummariesAsync,
         groupedTransactionsAsync: groupedTransactionsAsync,
+        upcomingPaymentsAsync: upcomingPaymentsAsync,
       ),
     ),
     floatingActionButtonBuilder: (BuildContext context, WidgetRef ref) =>
@@ -61,6 +68,7 @@ class _HomeBody extends StatelessWidget {
     required this.isWideLayout,
     required this.accountSummariesAsync,
     required this.groupedTransactionsAsync,
+    required this.upcomingPaymentsAsync,
   });
 
   final AsyncValue<AuthUser?> authState;
@@ -70,6 +78,7 @@ class _HomeBody extends StatelessWidget {
   final AsyncValue<Map<String, HomeAccountMonthlySummary>>
   accountSummariesAsync;
   final AsyncValue<List<DaySection>> groupedTransactionsAsync;
+  final AsyncValue<List<UpcomingPayment>> upcomingPaymentsAsync;
 
   @override
   Widget build(BuildContext context) {
@@ -150,6 +159,30 @@ class _HomeBody extends StatelessWidget {
               ),
             );
 
+            final Widget upcomingPaymentsSliver = upcomingPaymentsAsync.when(
+              data: (List<UpcomingPayment> payments) {
+                return SliverToBoxAdapter(
+                  child: _UpcomingPaymentsCard(
+                    payments: payments,
+                    strings: strings,
+                  ),
+                );
+              },
+              loading: () => const SliverToBoxAdapter(
+                child: Center(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(vertical: 16),
+                    child: CircularProgressIndicator(),
+                  ),
+                ),
+              ),
+              error: (Object error, _) => SliverToBoxAdapter(
+                child: _ErrorMessage(
+                  message: strings.homeUpcomingPaymentsError(error.toString()),
+                ),
+              ),
+            );
+
             return CustomScrollView(
               slivers: <Widget>[
                 SliverPadding(
@@ -170,6 +203,15 @@ class _HomeBody extends StatelessWidget {
                       accountsSection,
                     ]),
                   ),
+                ),
+                SliverPadding(
+                  padding: EdgeInsets.fromLTRB(
+                    horizontalPadding,
+                    24,
+                    horizontalPadding,
+                    0,
+                  ),
+                  sliver: upcomingPaymentsSliver,
                 ),
                 SliverPadding(
                   padding: transactionsHeaderPadding,
@@ -561,6 +603,217 @@ class _TransactionItemEntry extends _TransactionSliverEntry {
   final String transactionId;
 }
 
+class _UpcomingPaymentsCard extends StatelessWidget {
+  const _UpcomingPaymentsCard({required this.payments, required this.strings});
+
+  final List<UpcomingPayment> payments;
+  final AppLocalizations strings;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final DateFormat headerFormat = DateFormat.MMMd(strings.localeName);
+    final DateTime? nearest = payments.isEmpty ? null : payments.first.dueDate;
+    final String subtitle = nearest == null
+        ? strings.homeUpcomingPaymentsEmptyHeader
+        : strings.homeUpcomingPaymentsNextDate(headerFormat.format(nearest));
+    final int count = payments.length;
+
+    final List<Widget> children = payments.isEmpty
+        ? <Widget>[
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+              child: Text(
+                strings.homeUpcomingPaymentsEmpty,
+                style: theme.textTheme.bodyMedium,
+              ),
+            ),
+          ]
+        : ListTile.divideTiles(
+            context: context,
+            tiles: payments.map(
+              (UpcomingPayment payment) =>
+                  _UpcomingPaymentTile(payment: payment, strings: strings),
+            ),
+          ).toList(growable: false);
+
+    return Card(
+      elevation: 0,
+      surfaceTintColor: Colors.transparent,
+      child: ExpansionTile(
+        initiallyExpanded: false,
+        tilePadding: const EdgeInsets.symmetric(horizontal: 16),
+        childrenPadding: EdgeInsets.zero,
+        leading: Icon(
+          Icons.event_repeat_outlined,
+          color: theme.colorScheme.primary,
+        ),
+        title: Row(
+          children: <Widget>[
+            Expanded(
+              child: Text(
+                strings.homeUpcomingPaymentsTitle,
+                style: theme.textTheme.titleMedium,
+              ),
+            ),
+            const SizedBox(width: 12),
+            _CountBadge(
+              count: count,
+              semanticLabel: strings.homeUpcomingPaymentsCountSemantics(count),
+            ),
+          ],
+        ),
+        subtitle: Padding(
+          padding: const EdgeInsets.only(top: 4),
+          child: Text(
+            subtitle,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ),
+        children: children,
+      ),
+    );
+  }
+}
+
+class _UpcomingPaymentTile extends ConsumerWidget {
+  const _UpcomingPaymentTile({required this.payment, required this.strings});
+
+  final UpcomingPayment payment;
+  final AppLocalizations strings;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final Category? category = ref.watch(
+      homeCategoryByIdProvider(
+        payment.categoryId,
+      ).select((Category? value) => value),
+    );
+    final AccountEntity? account = ref.watch(
+      homeAccountByIdProvider(
+        payment.accountId,
+      ).select((AccountEntity? value) => value),
+    );
+
+    final ThemeData theme = Theme.of(context);
+    final PhosphorIconData? iconData = resolvePhosphorIconData(category?.icon);
+    final Color? categoryColor = parseHexColor(category?.color);
+    final Color foreground = categoryColor == null
+        ? theme.colorScheme.onSurfaceVariant
+        : ThemeData.estimateBrightnessForColor(categoryColor) == Brightness.dark
+        ? Colors.white
+        : Colors.black87;
+    final NumberFormat moneyFormat = NumberFormat.currency(
+      locale: strings.localeName,
+      symbol: payment.currency.toUpperCase(),
+    );
+    final Color amountColor = payment.isExpense
+        ? theme.colorScheme.error
+        : theme.colorScheme.primary;
+    final DateFormat dateFormat = DateFormat.yMMMd(strings.localeName);
+
+    return ListTile(
+      dense: true,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      leading: CircleAvatar(
+        backgroundColor:
+            categoryColor ?? theme.colorScheme.surfaceContainerHighest,
+        foregroundColor: foreground,
+        child: iconData != null
+            ? Icon(iconData)
+            : const Icon(Icons.category_outlined),
+      ),
+      title: Text(payment.title, style: theme.textTheme.bodyMedium),
+      subtitle: Text(
+        strings.homeUpcomingPaymentsDueDate(dateFormat.format(payment.dueDate)),
+        style: theme.textTheme.bodySmall,
+      ),
+      trailing: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: <Widget>[
+          Text(
+            moneyFormat.format(payment.absoluteAmount),
+            style: theme.textTheme.titleSmall?.copyWith(
+              color: amountColor,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          if (account?.name != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text(account!.name, style: theme.textTheme.bodySmall),
+            ),
+        ],
+      ),
+      onTap: () async {
+        final RecurringRule? rule = ref.read(
+          homeRecurringRuleByIdProvider(payment.ruleId),
+        );
+        if (rule == null) {
+          if (!context.mounted) {
+            return;
+          }
+          ScaffoldMessenger.of(context)
+            ..hideCurrentSnackBar()
+            ..showSnackBar(
+              SnackBar(content: Text(strings.homeUpcomingPaymentsMissingRule)),
+            );
+          return;
+        }
+        if (!context.mounted) {
+          return;
+        }
+        await Navigator.of(context).push<RecurringRule?>(
+          MaterialPageRoute<RecurringRule?>(
+            builder: (_) => AddRecurringRuleScreen(initialRule: rule),
+            settings: const RouteSettings(
+              name: AddRecurringRuleScreen.routeName,
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _CountBadge extends StatelessWidget {
+  const _CountBadge({required this.count, this.semanticLabel});
+
+  final int count;
+  final String? semanticLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final Widget badge = Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: count == 0
+            ? theme.colorScheme.surfaceContainerHighest
+            : theme.colorScheme.primary,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        count.toString(),
+        style: theme.textTheme.labelSmall?.copyWith(
+          color: count == 0
+              ? theme.colorScheme.onSurface
+              : theme.colorScheme.onPrimary,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+
+    if (semanticLabel == null) {
+      return badge;
+    }
+    return Semantics(label: semanticLabel, child: badge);
+  }
+}
+
 String _formatSectionTitle({
   required DateTime date,
   required DateTime today,
@@ -679,7 +932,9 @@ class _TransactionListItem extends ConsumerWidget {
         ? Theme.of(context).colorScheme.error
         : Theme.of(context).colorScheme.primary;
 
-    final DateFormat timeFormat = _TransactionFormatters.time(localeName);
+    final DateFormat transactionDateFormat = _TransactionFormatters.date(
+      localeName,
+    );
 
     return Dismissible(
       key: ValueKey<String>(transactionId),
@@ -740,7 +995,7 @@ class _TransactionListItem extends ConsumerWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          timeFormat.format(date),
+                          transactionDateFormat.format(date),
                           style: Theme.of(context).textTheme.bodySmall
                               ?.copyWith(
                                 color: Theme.of(
@@ -789,14 +1044,14 @@ class _TransactionListItem extends ConsumerWidget {
 }
 
 class _TransactionFormatters {
-  static final Map<String, DateFormat> _timeCache = <String, DateFormat>{};
+  static final Map<String, DateFormat> _dateCache = <String, DateFormat>{};
   static final Map<String, NumberFormat> _currencyCache =
       <String, NumberFormat>{};
   static final Map<String, String> _fallbackSymbols = <String, String>{};
   static final Map<String, DateFormat> _dayHeaderCache = <String, DateFormat>{};
 
-  static DateFormat time(String locale) {
-    return _timeCache.putIfAbsent(locale, () => DateFormat.Hm(locale));
+  static DateFormat date(String locale) {
+    return _dateCache.putIfAbsent(locale, () => DateFormat.yMMMd(locale));
   }
 
   static DateFormat dayHeader(String locale) {

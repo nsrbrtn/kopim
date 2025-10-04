@@ -554,6 +554,58 @@
   "@homeTransactionsUncategorized": {
     "description": "Подпись при отсутствии категории"
   },
+  "homeUpcomingPaymentsTitle": "Ближайшие платежи",
+  "@homeUpcomingPaymentsTitle": {
+    "description": "Заголовок виджета с ближайшими платежами"
+  },
+  "homeUpcomingPaymentsEmpty": "Здесь пока ничего нет.",
+  "@homeUpcomingPaymentsEmpty": {
+    "description": "Состояние, когда ближайших платежей нет"
+  },
+  "homeUpcomingPaymentsEmptyHeader": "Нет ближайших платежей",
+  "@homeUpcomingPaymentsEmptyHeader": {
+    "description": "Подзаголовок, когда платежей нет"
+  },
+  "homeUpcomingPaymentsNextDate": "Ближайшая дата: {date}",
+  "@homeUpcomingPaymentsNextDate": {
+    "description": "Подзаголовок с ближайшей датой платежа",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "homeUpcomingPaymentsError": "Не удалось загрузить ближайшие платежи: {error}",
+  "@homeUpcomingPaymentsError": {
+    "description": "Ошибка загрузки ближайших платежей",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "homeUpcomingPaymentsMissingRule": "Правило повторений больше не доступно.",
+  "@homeUpcomingPaymentsMissingRule": {
+    "description": "Сообщение, когда правило повторений отсутствует"
+  },
+  "homeUpcomingPaymentsDueDate": "Срок {date}",
+  "@homeUpcomingPaymentsDueDate": {
+    "description": "Подпись для строки ближайшего платежа",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "homeUpcomingPaymentsCountSemantics": "{count, plural, =0 {Нет запланированных платежей} one {# запланированный платеж} few {# запланированных платежа} many {# запланированных платежей} other {# запланированных платежей}}",
+  "@homeUpcomingPaymentsCountSemantics": {
+    "description": "Подпись для бейджа количества ближайших платежей",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "homeNavHome": "Главная",
   "@homeNavHome": {
     "description": "Подпись для навигации на главный экран"
@@ -590,13 +642,21 @@
   "@analyticsSummaryNetLabel": {
     "description": "Подпись чистого результата"
   },
-  "analyticsTopCategoriesTitle": "Топ категорий расходов",
+  "analyticsTopCategoriesTitle": "Топ категорий",
   "@analyticsTopCategoriesTitle": {
     "description": "Заголовок списка категорий"
   },
-  "analyticsTopCategoriesEmpty": "Недостаточно данных о расходах для анализа.",
+  "analyticsTopCategoriesExpensesTab": "Расходы",
+  "@analyticsTopCategoriesExpensesTab": {
+    "description": "Подпись вкладки с категориями расходов"
+  },
+  "analyticsTopCategoriesIncomeTab": "Доходы",
+  "@analyticsTopCategoriesIncomeTab": {
+    "description": "Подпись вкладки с категориями доходов"
+  },
+  "analyticsTopCategoriesEmpty": "Недостаточно данных для анализа категорий.",
   "@analyticsTopCategoriesEmpty": {
-    "description": "Сообщение при отсутствии категорий"
+    "description": "Сообщение при отсутствии данных для категорий"
   },
   "analyticsCategoryUncategorized": "Без категории",
   "@analyticsCategoryUncategorized": {
@@ -608,6 +668,19 @@
     "placeholders": {
       "range": {
         "type": "String"
+      }
+    }
+  },
+  "analyticsFiltersButtonLabel": "Фильтры",
+  "@analyticsFiltersButtonLabel": {
+    "description": "Подпись раскрывающегося блока фильтров"
+  },
+  "analyticsFiltersBadgeSemantics": "{count, plural, =0 {Нет активных фильтров} one {# активный фильтр} few {# активных фильтра} many {# активных фильтров} other {# активных фильтров}}",
+  "@analyticsFiltersBadgeSemantics": {
+    "description": "Подпись для бейджа количества активных фильтров",
+    "placeholders": {
+      "count": {
+        "type": "int"
       }
     }
   },

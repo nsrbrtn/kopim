@@ -22,6 +22,7 @@ class MainNavigationShell extends ConsumerWidget {
         config.contentBuilder(context, ref),
     ];
     final NavigationTabContent activeContent = contents[currentIndex];
+    final bool isCurrentRoute = ModalRoute.of(context)?.isCurrent ?? true;
     final PreferredSizeWidget? appBar = activeContent.appBarBuilder?.call(
       context,
       ref,
@@ -40,19 +41,22 @@ class MainNavigationShell extends ConsumerWidget {
         ],
       ),
       floatingActionButton: floatingActionButton,
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: currentIndex,
-        onTap: (int index) =>
-            ref.read(mainNavigationControllerProvider.notifier).setIndex(index),
-        items: <BottomNavigationBarItem>[
-          for (final NavigationTabConfig config in tabs)
-            BottomNavigationBarItem(
-              icon: Icon(config.icon),
-              activeIcon: Icon(config.activeIcon),
-              label: config.labelBuilder(context),
-            ),
-        ],
-      ),
+      bottomNavigationBar: isCurrentRoute
+          ? BottomNavigationBar(
+              currentIndex: currentIndex,
+              onTap: (int index) => ref
+                  .read(mainNavigationControllerProvider.notifier)
+                  .setIndex(index),
+              items: <BottomNavigationBarItem>[
+                for (final NavigationTabConfig config in tabs)
+                  BottomNavigationBarItem(
+                    icon: Icon(config.icon),
+                    activeIcon: Icon(config.activeIcon),
+                    label: config.labelBuilder(context),
+                  ),
+              ],
+            )
+          : null,
     );
   }
 }

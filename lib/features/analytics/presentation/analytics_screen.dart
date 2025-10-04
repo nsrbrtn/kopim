@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -42,7 +43,7 @@ NavigationTabContent buildAnalyticsTabContent(
         AppBar(title: Text(strings.analyticsTitle)),
     bodyBuilder: (BuildContext context, WidgetRef ref) {
       final AsyncValue<AnalyticsOverview> overviewAsync = ref.watch(
-        analyticsFilteredStatsProvider(topCategoriesLimit: 6),
+        analyticsFilteredStatsProvider(topCategoriesLimit: 5),
       );
       final AsyncValue<List<Category>> categoriesAsync = ref.watch(
         analyticsCategoriesProvider,
@@ -70,31 +71,23 @@ NavigationTabContent buildAnalyticsTabContent(
       final double horizontalPadding = size.width >= 960
           ? size.width * 0.15
           : 24;
-      final double filterHeight = _resolveFilterHeight(size.width);
 
       return SafeArea(
         child: CustomScrollView(
           slivers: <Widget>[
-            SliverPersistentHeader(
-              pinned: true,
-              delegate: _AnalyticsFilterHeaderDelegate(
-                minExtentValue: filterHeight,
-                maxExtentValue: filterHeight,
-                horizontalPadding: horizontalPadding,
-                builder: (bool overlaps) => Card(
-                  margin: EdgeInsets.zero,
-                  elevation: overlaps ? 2 : 0,
-                  surfaceTintColor: Colors.transparent,
-                  shape: const RoundedRectangleBorder(
-                    borderRadius: BorderRadius.all(Radius.circular(12)),
-                  ),
-                  clipBehavior: Clip.antiAlias,
-                  child: _AnalyticsFilterBar(
-                    filterState: filterState,
-                    accounts: accounts,
-                    categories: categories,
-                    strings: strings,
-                  ),
+            SliverPadding(
+              padding: EdgeInsets.fromLTRB(
+                horizontalPadding,
+                16,
+                horizontalPadding,
+                0,
+              ),
+              sliver: SliverToBoxAdapter(
+                child: _AnalyticsFiltersCard(
+                  filterState: filterState,
+                  accounts: accounts,
+                  categories: categories,
+                  strings: strings,
                 ),
               ),
             ),
@@ -164,6 +157,7 @@ class _AnalyticsContent extends StatelessWidget {
       for (final Category category in categories) category.id: category,
     };
     final double totalExpense = overview.totalExpense;
+    final double totalIncome = overview.totalIncome;
     final DateFormat dateRangeFormat = DateFormat.yMMMMd(strings.localeName);
     final String startLabel = dateRangeFormat.format(
       filterState.dateRange.start,
@@ -192,16 +186,19 @@ class _AnalyticsContent extends StatelessWidget {
           style: theme.textTheme.titleMedium,
         ),
         const SizedBox(height: 12),
-        if (overview.topExpenseCategories.isEmpty || totalExpense == 0)
+        if ((overview.topExpenseCategories.isEmpty || totalExpense == 0) &&
+            (overview.topIncomeCategories.isEmpty || totalIncome == 0))
           Text(
             strings.analyticsTopCategoriesEmpty,
             style: theme.textTheme.bodyMedium,
           )
         else
-          _TopCategoriesSection(
-            breakdowns: overview.topExpenseCategories,
+          _TopCategoriesPager(
+            expenseBreakdowns: overview.topExpenseCategories,
+            incomeBreakdowns: overview.topIncomeCategories,
             categoriesById: categoriesById,
             totalExpense: totalExpense,
+            totalIncome: totalIncome,
             currencyFormat: currencyFormat,
             strings: strings,
           ),
@@ -380,92 +377,162 @@ class _AnalyticsFilterBar extends ConsumerWidget {
         ? startText
         : strings.analyticsFilterDateValue(startText, endText);
 
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Wrap(
-        spacing: 16,
-        runSpacing: 16,
-        crossAxisAlignment: WrapCrossAlignment.center,
-        children: <Widget>[
-          FilledButton.tonal(
-            onPressed: () async {
-              final DateTimeRange? result = await showDateRangePicker(
-                context: context,
-                initialDateRange: filterState.dateRange,
-                firstDate: DateTime(2000),
-                lastDate: DateTime(DateTime.now().year + 10, 12, 31),
-                locale: Locale(strings.localeName),
-              );
-              if (result == null) {
-                return;
-              }
+    return Wrap(
+      spacing: 16,
+      runSpacing: 16,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: <Widget>[
+        FilledButton.tonal(
+          onPressed: () async {
+            final DateTimeRange? result = await showDateRangePicker(
+              context: context,
+              initialDateRange: filterState.dateRange,
+              firstDate: DateTime(2000),
+              lastDate: DateTime(DateTime.now().year + 10, 12, 31),
+              locale: Locale(strings.localeName),
+            );
+            if (result == null) {
+              return;
+            }
+            ref
+                .read(analyticsFilterControllerProvider.notifier)
+                .updateDateRange(result);
+          },
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              const Icon(Icons.calendar_today_outlined, size: 18),
+              const SizedBox(width: 8),
+              Text('${strings.analyticsFilterDateLabel}: $dateValue'),
+            ],
+          ),
+        ),
+        SizedBox(
+          width: 240,
+          child: DropdownMenu<String?>(
+            initialSelection: filterState.accountId,
+            label: Text(strings.analyticsFilterAccountLabel),
+            inputDecorationTheme: const InputDecorationTheme(
+              border: OutlineInputBorder(),
+              isDense: true,
+            ),
+            dropdownMenuEntries: <DropdownMenuEntry<String?>>[
+              DropdownMenuEntry<String?>(
+                value: null,
+                label: strings.analyticsFilterAccountAll,
+              ),
+              ...accounts.map((AccountEntity account) {
+                return DropdownMenuEntry<String?>(
+                  value: account.id,
+                  label: account.name,
+                );
+              }),
+            ],
+            onSelected: (String? value) {
               ref
                   .read(analyticsFilterControllerProvider.notifier)
-                  .updateDateRange(result);
+                  .updateAccount(value);
             },
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                const Icon(Icons.calendar_today_outlined, size: 18),
-                const SizedBox(width: 8),
-                Text('${strings.analyticsFilterDateLabel}: $dateValue'),
-              ],
+          ),
+        ),
+        SizedBox(
+          width: 240,
+          child: DropdownMenu<String?>(
+            initialSelection: filterState.categoryId,
+            label: Text(strings.analyticsFilterCategoryLabel),
+            inputDecorationTheme: const InputDecorationTheme(
+              border: OutlineInputBorder(),
+              isDense: true,
+            ),
+            dropdownMenuEntries: <DropdownMenuEntry<String?>>[
+              DropdownMenuEntry<String?>(
+                value: null,
+                label: strings.analyticsFilterCategoryAll,
+              ),
+              ...categories.map((Category category) {
+                return DropdownMenuEntry<String?>(
+                  value: category.id,
+                  label: category.name,
+                );
+              }),
+            ],
+            onSelected: (String? value) {
+              ref
+                  .read(analyticsFilterControllerProvider.notifier)
+                  .updateCategory(value);
+            },
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _AnalyticsFiltersCard extends StatelessWidget {
+  const _AnalyticsFiltersCard({
+    required this.filterState,
+    required this.accounts,
+    required this.categories,
+    required this.strings,
+  });
+
+  final AnalyticsFilterState filterState;
+  final List<AccountEntity> accounts;
+  final List<Category> categories;
+  final AppLocalizations strings;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final DateFormat dateFormat = DateFormat.yMMMd(strings.localeName);
+    final String startText = dateFormat.format(filterState.dateRange.start);
+    final String endText = dateFormat.format(filterState.dateRange.end);
+    final String dateValue = startText == endText
+        ? startText
+        : strings.analyticsFilterDateValue(startText, endText);
+    final int activeCount = _resolveActiveFiltersCount(filterState);
+
+    return Card(
+      elevation: 0,
+      surfaceTintColor: Colors.transparent,
+      child: ExpansionTile(
+        initiallyExpanded: false,
+        tilePadding: const EdgeInsets.symmetric(horizontal: 16),
+        leading: Icon(Icons.filter_list, color: theme.colorScheme.primary),
+        title: Row(
+          children: <Widget>[
+            Expanded(
+              child: Text(
+                strings.analyticsFiltersButtonLabel,
+                style: theme.textTheme.titleMedium,
+              ),
+            ),
+            const SizedBox(width: 12),
+            _FilterBadge(
+              count: activeCount,
+              semanticsLabel: strings.analyticsFiltersBadgeSemantics(
+                activeCount,
+              ),
+            ),
+          ],
+        ),
+        subtitle: Padding(
+          padding: const EdgeInsets.only(top: 4),
+          child: Text(
+            dateValue,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
             ),
           ),
-          SizedBox(
-            width: 240,
-            child: DropdownMenu<String?>(
-              initialSelection: filterState.accountId,
-              label: Text(strings.analyticsFilterAccountLabel),
-              inputDecorationTheme: const InputDecorationTheme(
-                border: OutlineInputBorder(),
-                isDense: true,
-              ),
-              dropdownMenuEntries: <DropdownMenuEntry<String?>>[
-                DropdownMenuEntry<String?>(
-                  value: null,
-                  label: strings.analyticsFilterAccountAll,
-                ),
-                ...accounts.map((AccountEntity account) {
-                  return DropdownMenuEntry<String?>(
-                    value: account.id,
-                    label: account.name,
-                  );
-                }),
-              ],
-              onSelected: (String? value) {
-                ref
-                    .read(analyticsFilterControllerProvider.notifier)
-                    .updateAccount(value);
-              },
-            ),
-          ),
-          SizedBox(
-            width: 240,
-            child: DropdownMenu<String?>(
-              initialSelection: filterState.categoryId,
-              label: Text(strings.analyticsFilterCategoryLabel),
-              inputDecorationTheme: const InputDecorationTheme(
-                border: OutlineInputBorder(),
-                isDense: true,
-              ),
-              dropdownMenuEntries: <DropdownMenuEntry<String?>>[
-                DropdownMenuEntry<String?>(
-                  value: null,
-                  label: strings.analyticsFilterCategoryAll,
-                ),
-                ...categories.map((Category category) {
-                  return DropdownMenuEntry<String?>(
-                    value: category.id,
-                    label: category.name,
-                  );
-                }),
-              ],
-              onSelected: (String? value) {
-                ref
-                    .read(analyticsFilterControllerProvider.notifier)
-                    .updateCategory(value);
-              },
+        ),
+        children: <Widget>[
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            child: _AnalyticsFilterBar(
+              filterState: filterState,
+              accounts: accounts,
+              categories: categories,
+              strings: strings,
             ),
           ),
         ],
@@ -474,86 +541,205 @@ class _AnalyticsFilterBar extends ConsumerWidget {
   }
 }
 
-double _resolveFilterHeight(double width) {
-  if (width >= 960) {
-    return 148;
+int _resolveActiveFiltersCount(AnalyticsFilterState state) {
+  final AnalyticsFilterState initial = AnalyticsFilterState.initial();
+  int count = 0;
+  if (state.accountId != null) {
+    count++;
   }
-  if (width >= 640) {
-    return 212;
+  if (state.categoryId != null) {
+    count++;
   }
-  return 268;
+  if (state.dateRange != initial.dateRange) {
+    count++;
+  }
+  return count;
 }
 
-class _AnalyticsFilterHeaderDelegate extends SliverPersistentHeaderDelegate {
-  const _AnalyticsFilterHeaderDelegate({
-    required this.minExtentValue,
-    required this.maxExtentValue,
-    required this.horizontalPadding,
-    required this.builder,
+class _FilterBadge extends StatelessWidget {
+  const _FilterBadge({required this.count, this.semanticsLabel});
+
+  final int count;
+  final String? semanticsLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final bool hasActive = count > 0;
+    final Widget badge = Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: hasActive
+            ? theme.colorScheme.primary
+            : theme.colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        count.toString(),
+        style: theme.textTheme.labelSmall?.copyWith(
+          color: hasActive
+              ? theme.colorScheme.onPrimary
+              : theme.colorScheme.onSurfaceVariant,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+
+    if (semanticsLabel == null) {
+      return badge;
+    }
+    return Semantics(label: semanticsLabel, child: badge);
+  }
+}
+
+class _TopCategoriesPager extends StatefulWidget {
+  const _TopCategoriesPager({
+    required this.expenseBreakdowns,
+    required this.incomeBreakdowns,
+    required this.categoriesById,
+    required this.totalExpense,
+    required this.totalIncome,
+    required this.currencyFormat,
+    required this.strings,
   });
 
-  final double minExtentValue;
-  final double maxExtentValue;
-  final double horizontalPadding;
-  final Widget Function(bool overlapsContent) builder;
+  final List<AnalyticsCategoryBreakdown> expenseBreakdowns;
+  final List<AnalyticsCategoryBreakdown> incomeBreakdowns;
+  final Map<String, Category> categoriesById;
+  final double totalExpense;
+  final double totalIncome;
+  final NumberFormat currencyFormat;
+  final AppLocalizations strings;
 
   @override
-  double get minExtent => minExtentValue;
+  State<_TopCategoriesPager> createState() => _TopCategoriesPagerState();
+}
+
+class _TopCategoriesPagerState extends State<_TopCategoriesPager> {
+  late final PageController _controller;
+  int _pageIndex = 0;
 
   @override
-  double get maxExtent => maxExtentValue;
+  void initState() {
+    super.initState();
+    _controller = PageController();
+  }
 
   @override
-  Widget build(
-    BuildContext context,
-    double shrinkOffset,
-    bool overlapsContent,
-  ) {
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
-    return Container(
-      color: theme.colorScheme.surface,
-      child: Align(
-        alignment: Alignment.topCenter,
-        child: Padding(
-          padding: EdgeInsets.fromLTRB(
-            horizontalPadding,
-            12,
-            horizontalPadding,
-            12,
-          ),
-          child: builder(overlapsContent),
+    final List<_CategoryChartItem> expenseItems = _mapBreakdowns(
+      widget.expenseBreakdowns,
+      widget.categoriesById,
+      widget.strings,
+      theme,
+    );
+    final List<_CategoryChartItem> incomeItems = _mapBreakdowns(
+      widget.incomeBreakdowns,
+      widget.categoriesById,
+      widget.strings,
+      theme,
+    );
+
+    final List<_TopCategoriesPageData> pages = <_TopCategoriesPageData>[
+      _TopCategoriesPageData(
+        label: widget.strings.analyticsTopCategoriesExpensesTab,
+        items: expenseItems,
+        total: widget.totalExpense,
+      ),
+      _TopCategoriesPageData(
+        label: widget.strings.analyticsTopCategoriesIncomeTab,
+        items: incomeItems,
+        total: widget.totalIncome,
+      ),
+    ];
+    final _TopCategoriesPageData currentPage = pages[_pageIndex];
+
+    return Card(
+      elevation: 0,
+      surfaceTintColor: Colors.transparent,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            SegmentedButton<int>(
+              segments: <ButtonSegment<int>>[
+                ButtonSegment<int>(
+                  value: 0,
+                  label: Text(widget.strings.analyticsTopCategoriesExpensesTab),
+                ),
+                ButtonSegment<int>(
+                  value: 1,
+                  label: Text(widget.strings.analyticsTopCategoriesIncomeTab),
+                ),
+              ],
+              selected: <int>{_pageIndex},
+              onSelectionChanged: (Set<int> selected) {
+                final int index = selected.first;
+                setState(() {
+                  _pageIndex = index;
+                });
+                _controller.animateToPage(
+                  index,
+                  duration: const Duration(milliseconds: 250),
+                  curve: Curves.easeInOut,
+                );
+              },
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              height: 220,
+              child: ScrollConfiguration(
+                behavior: ScrollConfiguration.of(context).copyWith(
+                  dragDevices: const <PointerDeviceKind>{
+                    PointerDeviceKind.touch,
+                    PointerDeviceKind.mouse,
+                    PointerDeviceKind.trackpad,
+                    PointerDeviceKind.stylus,
+                    PointerDeviceKind.unknown,
+                  },
+                ),
+                child: PageView(
+                  controller: _controller,
+                  onPageChanged: (int index) {
+                    setState(() {
+                      _pageIndex = index;
+                    });
+                  },
+                  children: pages
+                      .map(
+                        (_TopCategoriesPageData data) => _TopCategoriesPage(
+                          data: data,
+                          currencyFormat: widget.currencyFormat,
+                          strings: widget.strings,
+                        ),
+                      )
+                      .toList(growable: false),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            _TopCategoriesLegend(items: currentPage.items),
+          ],
         ),
       ),
     );
   }
 
-  @override
-  bool shouldRebuild(_AnalyticsFilterHeaderDelegate oldDelegate) {
-    return minExtentValue != oldDelegate.minExtentValue ||
-        maxExtentValue != oldDelegate.maxExtentValue ||
-        horizontalPadding != oldDelegate.horizontalPadding;
-  }
-}
-
-class _TopCategoriesSection extends StatelessWidget {
-  const _TopCategoriesSection({
-    required this.breakdowns,
-    required this.categoriesById,
-    required this.totalExpense,
-    required this.currencyFormat,
-    required this.strings,
-  });
-
-  final List<AnalyticsCategoryBreakdown> breakdowns;
-  final Map<String, Category> categoriesById;
-  final double totalExpense;
-  final NumberFormat currencyFormat;
-  final AppLocalizations strings;
-
-  @override
-  Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
-    final List<_CategoryChartItem> items = breakdowns
+  List<_CategoryChartItem> _mapBreakdowns(
+    List<AnalyticsCategoryBreakdown> breakdowns,
+    Map<String, Category> categoriesById,
+    AppLocalizations strings,
+    ThemeData theme,
+  ) {
+    return breakdowns
         .map((AnalyticsCategoryBreakdown breakdown) {
           final Category? category = breakdown.categoryId == null
               ? null
@@ -569,63 +755,109 @@ class _TopCategoriesSection extends StatelessWidget {
           );
         })
         .toList(growable: false);
+  }
+}
 
-    final double maxAmount = items.fold<double>(
-      0,
-      (double previousValue, _CategoryChartItem item) =>
-          math.max(previousValue, item.amount.abs()),
-    );
+class _TopCategoriesPageData {
+  const _TopCategoriesPageData({
+    required this.label,
+    required this.items,
+    required this.total,
+  });
 
-    return Card(
-      elevation: 0,
-      surfaceTintColor: Colors.transparent,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+  final String label;
+  final List<_CategoryChartItem> items;
+  final double total;
+}
+
+class _TopCategoriesPage extends StatelessWidget {
+  const _TopCategoriesPage({
+    required this.data,
+    required this.currencyFormat,
+    required this.strings,
+  });
+
+  final _TopCategoriesPageData data;
+  final NumberFormat currencyFormat;
+  final AppLocalizations strings;
+
+  @override
+  Widget build(BuildContext context) {
+    if (data.items.isEmpty || data.total <= 0) {
+      return Center(
+        child: Text(
+          strings.analyticsTopCategoriesEmpty,
+          style: Theme.of(context).textTheme.bodyMedium,
+          textAlign: TextAlign.center,
+        ),
+      );
+    }
+
+    return LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints constraints) {
+        final double chartHeight = math.max(constraints.maxHeight - 48, 80);
+        final double maxAmount = data.items.fold<double>(
+          0,
+          (double previousValue, _CategoryChartItem item) =>
+              math.max(previousValue, item.amount.abs()),
+        );
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            SizedBox(
-              height: 220,
-              child: LayoutBuilder(
-                builder: (BuildContext context, BoxConstraints constraints) {
-                  final double chartHeight = math.max(
-                    constraints.maxHeight - 48,
-                    80,
-                  );
-                  return Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: <Widget>[
-                      for (final _CategoryChartItem item in items)
-                        Expanded(
-                          child: _BarColumn(
-                            item: item,
-                            maxAmount: maxAmount,
-                            totalExpense: totalExpense,
-                            currencyFormat: currencyFormat,
-                            chartHeight: chartHeight,
-                          ),
-                        ),
-                    ],
-                  );
-                },
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                data.label,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
             ),
-            const SizedBox(height: 16),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: items
-                  .map(
-                    (_CategoryChartItem item) => _CategoryLegendChip(
-                      label: item.title,
-                      color: item.color,
+            const SizedBox(height: 12),
+            SizedBox(
+              height: chartHeight,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: <Widget>[
+                  for (final _CategoryChartItem item in data.items)
+                    Expanded(
+                      child: _BarColumn(
+                        item: item,
+                        maxAmount: maxAmount,
+                        totalValue: data.total,
+                        currencyFormat: currencyFormat,
+                        chartHeight: chartHeight,
+                      ),
                     ),
-                  )
-                  .toList(growable: false),
+                ],
+              ),
             ),
           ],
-        ),
-      ),
+        );
+      },
+    );
+  }
+}
+
+class _TopCategoriesLegend extends StatelessWidget {
+  const _TopCategoriesLegend({required this.items});
+
+  final List<_CategoryChartItem> items;
+
+  @override
+  Widget build(BuildContext context) {
+    if (items.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: items
+          .map(
+            (_CategoryChartItem item) =>
+                _CategoryLegendChip(label: item.title, color: item.color),
+          )
+          .toList(growable: false),
     );
   }
 }
@@ -634,14 +866,14 @@ class _BarColumn extends StatelessWidget {
   const _BarColumn({
     required this.item,
     required this.maxAmount,
-    required this.totalExpense,
+    required this.totalValue,
     required this.currencyFormat,
     required this.chartHeight,
   });
 
   final _CategoryChartItem item;
   final double maxAmount;
-  final double totalExpense;
+  final double totalValue;
   final NumberFormat currencyFormat;
   final double chartHeight;
 
@@ -651,10 +883,10 @@ class _BarColumn extends StatelessWidget {
     final double normalized = maxAmount == 0
         ? 0
         : (item.amount.abs() / maxAmount).clamp(0, 1);
-    final double barHeight = chartHeight * normalized;
-    final double percentage = totalExpense == 0
+    final double barHeight = (normalized * chartHeight).clamp(0, chartHeight);
+    final double percentage = totalValue == 0
         ? 0
-        : (item.amount / totalExpense * 100).clamp(0, 100);
+        : (item.amount / totalValue * 100).clamp(0, 100);
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.end,
@@ -718,7 +950,7 @@ class _CategoryLegendChip extends StatelessWidget {
       ),
       child: Text(
         label,
-        style: theme.textTheme.labelMedium?.copyWith(
+        style: theme.textTheme.bodySmall?.copyWith(
           color: textColor,
           fontWeight: FontWeight.w600,
         ),

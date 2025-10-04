@@ -416,6 +416,48 @@ class AppLocalizationsRu extends AppLocalizations {
   String get homeTransactionsUncategorized => 'Без категории';
 
   @override
+  String get homeUpcomingPaymentsTitle => 'Ближайшие платежи';
+
+  @override
+  String get homeUpcomingPaymentsEmpty => 'Здесь пока ничего нет.';
+
+  @override
+  String get homeUpcomingPaymentsEmptyHeader => 'Нет ближайших платежей';
+
+  @override
+  String homeUpcomingPaymentsNextDate(String date) {
+    return 'Ближайшая дата: $date';
+  }
+
+  @override
+  String homeUpcomingPaymentsError(String error) {
+    return 'Не удалось загрузить ближайшие платежи: $error';
+  }
+
+  @override
+  String get homeUpcomingPaymentsMissingRule =>
+      'Правило повторений больше не доступно.';
+
+  @override
+  String homeUpcomingPaymentsDueDate(String date) {
+    return 'Срок $date';
+  }
+
+  @override
+  String homeUpcomingPaymentsCountSemantics(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '# запланированных платежей',
+      many: '# запланированных платежей',
+      few: '# запланированных платежа',
+      one: '# запланированный платеж',
+      zero: 'Нет запланированных платежей',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get homeNavHome => 'Главная';
 
   @override
@@ -443,11 +485,17 @@ class AppLocalizationsRu extends AppLocalizations {
   String get analyticsSummaryNetLabel => 'Баланс';
 
   @override
-  String get analyticsTopCategoriesTitle => 'Топ категорий расходов';
+  String get analyticsTopCategoriesTitle => 'Топ категорий';
+
+  @override
+  String get analyticsTopCategoriesExpensesTab => 'Расходы';
+
+  @override
+  String get analyticsTopCategoriesIncomeTab => 'Доходы';
 
   @override
   String get analyticsTopCategoriesEmpty =>
-      'Недостаточно данных о расходах для анализа.';
+      'Недостаточно данных для анализа категорий.';
 
   @override
   String get analyticsCategoryUncategorized => 'Без категории';
@@ -455,6 +503,23 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String analyticsOverviewRangeTitle(String range) {
     return 'Обзор за $range';
+  }
+
+  @override
+  String get analyticsFiltersButtonLabel => 'Фильтры';
+
+  @override
+  String analyticsFiltersBadgeSemantics(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '# активных фильтров',
+      many: '# активных фильтров',
+      few: '# активных фильтра',
+      one: '# активный фильтр',
+      zero: 'Нет активных фильтров',
+    );
+    return '$_temp0';
   }
 
   @override
