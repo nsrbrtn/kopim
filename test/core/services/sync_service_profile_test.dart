@@ -12,6 +12,8 @@ import 'package:kopim/core/data/database.dart' as db;
 import 'package:kopim/core/data/outbox/outbox_dao.dart';
 import 'package:kopim/core/services/sync_service.dart';
 import 'package:kopim/features/accounts/data/sources/remote/account_remote_data_source.dart';
+import 'package:kopim/features/budgets/data/sources/remote/budget_instance_remote_data_source.dart';
+import 'package:kopim/features/budgets/data/sources/remote/budget_remote_data_source.dart';
 import 'package:kopim/features/categories/data/sources/remote/category_remote_data_source.dart';
 import 'package:kopim/features/profile/data/local/profile_dao.dart';
 import 'package:kopim/features/profile/data/profile_repository_impl.dart';
@@ -80,6 +82,8 @@ void main() {
       accountRemoteDataSource: AccountRemoteDataSource(firestore),
       categoryRemoteDataSource: CategoryRemoteDataSource(firestore),
       transactionRemoteDataSource: TransactionRemoteDataSource(firestore),
+      budgetRemoteDataSource: BudgetRemoteDataSource(firestore),
+      budgetInstanceRemoteDataSource: BudgetInstanceRemoteDataSource(firestore),
       profileRemoteDataSource: profileRemote,
       firebaseAuth: firebaseAuth,
       connectivity: connectivity,

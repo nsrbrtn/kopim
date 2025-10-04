@@ -1084,5 +1084,169 @@
   "editAccountGenericError": "Could not update account. Please try again.",
   "@editAccountGenericError": {
     "description": "Generic error shown when updating the account fails"
+  },
+  "homeNavBudgets": "Budgets",
+  "@homeNavBudgets": {
+    "description": "Label for the budgets tab in the bottom navigation"
+  },
+  "budgetsTitle": "Budgets",
+  "@budgetsTitle": {
+    "description": "Title for the budgets list screen"
+  },
+  "budgetsEmptyTitle": "No budgets yet",
+  "@budgetsEmptyTitle": {
+    "description": "Headline shown when the user has not created budgets"
+  },
+  "budgetsEmptyMessage": "Create your first budget to track spending and stay on target.",
+  "@budgetsEmptyMessage": {
+    "description": "Supporting copy for the empty budgets state"
+  },
+  "budgetsErrorTitle": "Couldn't load budgets",
+  "@budgetsErrorTitle": {
+    "description": "Error headline shown when budgets stream fails"
+  },
+  "budgetsSpentLabel": "Spent",
+  "@budgetsSpentLabel": {
+    "description": "Label for the spent amount metric on a budget card"
+  },
+  "budgetsLimitLabel": "Limit",
+  "@budgetsLimitLabel": {
+    "description": "Label for the budget limit metric"
+  },
+  "budgetsRemainingLabel": "Remaining",
+  "@budgetsRemainingLabel": {
+    "description": "Label for the remaining amount metric"
+  },
+  "budgetsExceededLabel": "Over",
+  "@budgetsExceededLabel": {
+    "description": "Label used when a budget is exceeded"
+  },
+  "budgetDetailTitle": "Budget details",
+  "@budgetDetailTitle": {
+    "description": "Title for the budget detail screen"
+  },
+  "budgetDeleteTitle": "Delete budget?",
+  "@budgetDeleteTitle": {
+    "description": "Title for the delete budget confirmation dialog"
+  },
+  "budgetDeleteMessage": "This budget and its history will be removed. This action cannot be undone.",
+  "@budgetDeleteMessage": {
+    "description": "Body text for the delete budget confirmation dialog"
+  },
+  "budgetPeriodLabel": "Period: {start} – {end}",
+  "@budgetPeriodLabel": {
+    "description": "Label describing the time range covered by a budget instance",
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "budgetTransactionsTitle": "Transactions",
+  "@budgetTransactionsTitle": {
+    "description": "Section title for transactions inside the budget detail screen"
+  },
+  "budgetTransactionsEmpty": "No transactions match this budget yet.",
+  "@budgetTransactionsEmpty": {
+    "description": "Message shown when no transactions are associated with the budget"
+  },
+  "budgetCreateTitle": "Create budget",
+  "@budgetCreateTitle": {
+    "description": "Title for the budget creation screen"
+  },
+  "budgetEditTitle": "Edit budget",
+  "@budgetEditTitle": {
+    "description": "Title for the budget editing screen"
+  },
+  "budgetTitleLabel": "Budget title",
+  "@budgetTitleLabel": {
+    "description": "Label for the budget title text field"
+  },
+  "budgetAmountLabel": "Limit amount",
+  "@budgetAmountLabel": {
+    "description": "Label for the budget amount input"
+  },
+  "budgetPeriodLabelShort": "Period",
+  "@budgetPeriodLabelShort": {
+    "description": "Label for the budget period dropdown"
+  },
+  "budgetScopeLabel": "Scope",
+  "@budgetScopeLabel": {
+    "description": "Label for the budget scope dropdown"
+  },
+  "budgetStartDateLabel": "Start date",
+  "@budgetStartDateLabel": {
+    "description": "Label for the start date picker"
+  },
+  "budgetEndDateLabel": "End date",
+  "@budgetEndDateLabel": {
+    "description": "Label for the end date picker"
+  },
+  "budgetCategoriesLabel": "Categories",
+  "@budgetCategoriesLabel": {
+    "description": "Label for the selected categories chips"
+  },
+  "budgetAccountsLabel": "Accounts",
+  "@budgetAccountsLabel": {
+    "description": "Label for the selected accounts chips"
+  },
+  "budgetPeriodMonthly": "Monthly",
+  "@budgetPeriodMonthly": {
+    "description": "Option label for monthly budgets"
+  },
+  "budgetPeriodWeekly": "Weekly",
+  "@budgetPeriodWeekly": {
+    "description": "Option label for weekly budgets"
+  },
+  "budgetPeriodCustom": "Custom range",
+  "@budgetPeriodCustom": {
+    "description": "Option label for custom budgets"
+  },
+  "budgetScopeAll": "All transactions",
+  "@budgetScopeAll": {
+    "description": "Option label for a budget covering all transactions"
+  },
+  "budgetScopeByCategory": "Selected categories",
+  "@budgetScopeByCategory": {
+    "description": "Option label for category-scoped budgets"
+  },
+  "budgetScopeByAccount": "Selected accounts",
+  "@budgetScopeByAccount": {
+    "description": "Option label for account-scoped budgets"
+  },
+  "budgetErrorInvalidAmount": "Enter a positive amount.",
+  "@budgetErrorInvalidAmount": {
+    "description": "Validation error shown when the amount is invalid"
+  },
+  "budgetErrorMissingTitle": "Enter a title for the budget.",
+  "@budgetErrorMissingTitle": {
+    "description": "Validation error shown when the title is missing"
+  },
+  "budgetNoEndDateLabel": "No end date",
+  "@budgetNoEndDateLabel": {
+    "description": "Placeholder shown when no end date is selected"
+  },
+  "editButtonLabel": "Edit",
+  "@editButtonLabel": {
+    "description": "Generic label for edit actions"
+  },
+  "deleteButtonLabel": "Delete",
+  "@deleteButtonLabel": {
+    "description": "Generic label for delete actions"
+  },
+  "cancelButtonLabel": "Cancel",
+  "@cancelButtonLabel": {
+    "description": "Generic label for cancel actions"
+  },
+  "saveButtonLabel": "Save",
+  "@saveButtonLabel": {
+    "description": "Generic label for save buttons"
+  },
+  "transactionDefaultTitle": "Transaction",
+  "@transactionDefaultTitle": {
+    "description": "Fallback title for transactions without a note"
   }
 }

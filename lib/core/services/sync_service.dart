@@ -7,6 +7,10 @@ import 'package:kopim/core/data/database.dart' as db;
 import 'package:kopim/core/data/outbox/outbox_dao.dart';
 import 'package:kopim/features/accounts/data/sources/remote/account_remote_data_source.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
+import 'package:kopim/features/budgets/data/sources/remote/budget_instance_remote_data_source.dart';
+import 'package:kopim/features/budgets/data/sources/remote/budget_remote_data_source.dart';
+import 'package:kopim/features/budgets/domain/entities/budget.dart';
+import 'package:kopim/features/budgets/domain/entities/budget_instance.dart';
 import 'package:kopim/features/categories/data/sources/remote/category_remote_data_source.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/profile/data/remote/profile_remote_data_source.dart';
@@ -21,6 +25,8 @@ class SyncService {
     required CategoryRemoteDataSource categoryRemoteDataSource,
     required TransactionRemoteDataSource transactionRemoteDataSource,
     required ProfileRemoteDataSource profileRemoteDataSource,
+    required BudgetRemoteDataSource budgetRemoteDataSource,
+    required BudgetInstanceRemoteDataSource budgetInstanceRemoteDataSource,
     FirebaseAuth? firebaseAuth,
     Connectivity? connectivity,
   }) : _outboxDao = outboxDao,
@@ -28,6 +34,8 @@ class SyncService {
        _categoryRemoteDataSource = categoryRemoteDataSource,
        _transactionRemoteDataSource = transactionRemoteDataSource,
        _profileRemoteDataSource = profileRemoteDataSource,
+       _budgetRemoteDataSource = budgetRemoteDataSource,
+       _budgetInstanceRemoteDataSource = budgetInstanceRemoteDataSource,
        _auth = firebaseAuth ?? FirebaseAuth.instance,
        _connectivity = connectivity ?? Connectivity();
 
@@ -36,6 +44,8 @@ class SyncService {
   final CategoryRemoteDataSource _categoryRemoteDataSource;
   final TransactionRemoteDataSource _transactionRemoteDataSource;
   final ProfileRemoteDataSource _profileRemoteDataSource;
+  final BudgetRemoteDataSource _budgetRemoteDataSource;
+  final BudgetInstanceRemoteDataSource _budgetInstanceRemoteDataSource;
   final FirebaseAuth _auth;
   final Connectivity _connectivity;
 
@@ -115,6 +125,14 @@ class SyncService {
           final Profile profile = Profile.fromJson(payload);
           await _dispatchProfile(userId, profile, operation);
           break;
+        case 'budget':
+          final Budget budget = Budget.fromJson(payload);
+          await _dispatchBudget(userId, budget, operation);
+          break;
+        case 'budget_instance':
+          final BudgetInstance instance = BudgetInstance.fromJson(payload);
+          await _dispatchBudgetInstance(userId, instance, operation);
+          break;
         default:
           throw UnsupportedError(
             'Unsupported entity type: ${prepared.entityType}',
@@ -193,6 +211,34 @@ class SyncService {
       return Future<void>.value();
     }
     return _profileRemoteDataSource.upsert(userId, profile);
+  }
+
+  Future<void> _dispatchBudget(
+    String userId,
+    Budget budget,
+    OutboxOperation operation,
+  ) {
+    if (operation == OutboxOperation.delete) {
+      return _budgetRemoteDataSource.delete(
+        userId,
+        budget.copyWith(isDeleted: true),
+      );
+    }
+    return _budgetRemoteDataSource.upsert(
+      userId,
+      budget.copyWith(isDeleted: false),
+    );
+  }
+
+  Future<void> _dispatchBudgetInstance(
+    String userId,
+    BudgetInstance instance,
+    OutboxOperation operation,
+  ) {
+    if (operation == OutboxOperation.delete) {
+      return _budgetInstanceRemoteDataSource.delete(userId, instance);
+    }
+    return _budgetInstanceRemoteDataSource.upsert(userId, instance);
   }
 
   Future<void> _handleConnectivity(List<ConnectivityResult> results) async {

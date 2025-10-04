@@ -9,6 +9,11 @@ import 'package:kopim/core/services/logger_service.dart';
 import 'package:kopim/features/accounts/data/sources/local/account_dao.dart';
 import 'package:kopim/features/accounts/data/sources/remote/account_remote_data_source.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
+import 'package:kopim/features/budgets/data/sources/local/budget_dao.dart';
+import 'package:kopim/features/budgets/data/sources/remote/budget_instance_remote_data_source.dart';
+import 'package:kopim/features/budgets/data/sources/remote/budget_remote_data_source.dart';
+import 'package:kopim/features/budgets/domain/entities/budget.dart';
+import 'package:kopim/features/budgets/domain/entities/budget_instance.dart';
 import 'package:kopim/features/categories/data/sources/local/category_dao.dart';
 import 'package:kopim/features/categories/data/sources/remote/category_remote_data_source.dart';
 import 'package:kopim/features/profile/data/local/profile_dao.dart';
@@ -28,9 +33,13 @@ class AuthSyncService {
     required AccountDao accountDao,
     required CategoryDao categoryDao,
     required TransactionDao transactionDao,
+    required BudgetDao budgetDao,
+    required BudgetInstanceDao budgetInstanceDao,
     required AccountRemoteDataSource accountRemoteDataSource,
     required CategoryRemoteDataSource categoryRemoteDataSource,
     required TransactionRemoteDataSource transactionRemoteDataSource,
+    required BudgetRemoteDataSource budgetRemoteDataSource,
+    required BudgetInstanceRemoteDataSource budgetInstanceRemoteDataSource,
     required ProfileDao profileDao,
     required ProfileRemoteDataSource profileRemoteDataSource,
     required FirebaseFirestore firestore,
@@ -41,10 +50,14 @@ class AuthSyncService {
        _accountDao = accountDao,
        _categoryDao = categoryDao,
        _transactionDao = transactionDao,
+       _budgetDao = budgetDao,
+       _budgetInstanceDao = budgetInstanceDao,
        _profileDao = profileDao,
        _accountRemoteDataSource = accountRemoteDataSource,
        _categoryRemoteDataSource = categoryRemoteDataSource,
        _transactionRemoteDataSource = transactionRemoteDataSource,
+       _budgetRemoteDataSource = budgetRemoteDataSource,
+       _budgetInstanceRemoteDataSource = budgetInstanceRemoteDataSource,
        _profileRemoteDataSource = profileRemoteDataSource,
        _firestore = firestore,
        _logger = loggerService,
@@ -57,9 +70,13 @@ class AuthSyncService {
   final AccountDao _accountDao;
   final CategoryDao _categoryDao;
   final TransactionDao _transactionDao;
+  final BudgetDao _budgetDao;
+  final BudgetInstanceDao _budgetInstanceDao;
   final AccountRemoteDataSource _accountRemoteDataSource;
   final CategoryRemoteDataSource _categoryRemoteDataSource;
   final TransactionRemoteDataSource _transactionRemoteDataSource;
+  final BudgetRemoteDataSource _budgetRemoteDataSource;
+  final BudgetInstanceRemoteDataSource _budgetInstanceRemoteDataSource;
   final ProfileDao _profileDao;
   final ProfileRemoteDataSource _profileRemoteDataSource;
   final FirebaseFirestore _firestore;
@@ -226,6 +243,38 @@ class AuthSyncService {
               profile,
             );
             break;
+          case 'budget':
+            final Budget budget = Budget.fromJson(payload);
+            if (operation == OutboxOperation.delete) {
+              _budgetRemoteDataSource.deleteInTransaction(
+                transaction,
+                userId,
+                budget,
+              );
+            } else {
+              _budgetRemoteDataSource.upsertInTransaction(
+                transaction,
+                userId,
+                budget,
+              );
+            }
+            break;
+          case 'budget_instance':
+            final BudgetInstance instance = BudgetInstance.fromJson(payload);
+            if (operation == OutboxOperation.delete) {
+              _budgetInstanceRemoteDataSource.deleteInTransaction(
+                transaction,
+                userId,
+                instance,
+              );
+            } else {
+              _budgetInstanceRemoteDataSource.upsertInTransaction(
+                transaction,
+                userId,
+                instance,
+              );
+            }
+            break;
           default:
             throw UnsupportedError(
               'Unsupported outbox entity type ${entry.entityType}',
@@ -240,12 +289,16 @@ class AuthSyncService {
       _accountRemoteDataSource.fetchAll(userId),
       _categoryRemoteDataSource.fetchAll(userId),
       _transactionRemoteDataSource.fetchAll(userId),
+      _budgetRemoteDataSource.fetchAll(userId),
+      _budgetInstanceRemoteDataSource.fetchAll(userId),
     ]);
     final Profile? profile = await _profileRemoteDataSource.fetch(userId);
     return _RemoteSnapshot(
       accounts: results[0] as List<AccountEntity>,
       categories: results[1] as List<Category>,
       transactions: results[2] as List<TransactionEntity>,
+      budgets: results[3] as List<Budget>,
+      budgetInstances: results[4] as List<BudgetInstance>,
       profile: profile,
     );
   }
@@ -270,6 +323,9 @@ class AuthSyncService {
           .getAllCategories();
       final List<TransactionEntity> localTransactions = await _transactionDao
           .getAllTransactions();
+      final List<Budget> localBudgets = await _budgetDao.getAllBudgets();
+      final List<BudgetInstance> localBudgetInstances = await _budgetInstanceDao
+          .getAllInstances();
 
       final List<AccountEntity> mergedAccounts = _mergeEntities<AccountEntity>(
         local: localAccounts,
@@ -290,10 +346,25 @@ class AuthSyncService {
             getId: (TransactionEntity entity) => entity.id,
             getUpdatedAt: (TransactionEntity entity) => entity.updatedAt,
           );
+      final List<Budget> mergedBudgets = _mergeEntities<Budget>(
+        local: localBudgets,
+        remote: remoteSnapshot.budgets,
+        getId: (Budget entity) => entity.id,
+        getUpdatedAt: (Budget entity) => entity.updatedAt,
+      );
+      final List<BudgetInstance> mergedBudgetInstances =
+          _mergeEntities<BudgetInstance>(
+            local: localBudgetInstances,
+            remote: remoteSnapshot.budgetInstances,
+            getId: (BudgetInstance entity) => entity.id,
+            getUpdatedAt: (BudgetInstance entity) => entity.updatedAt,
+          );
 
       await _accountDao.upsertAll(mergedAccounts);
       await _categoryDao.upsertAll(mergedCategories);
       await _transactionDao.upsertAll(mergedTransactions);
+      await _budgetDao.upsertAll(mergedBudgets);
+      await _budgetInstanceDao.upsertAll(mergedBudgetInstances);
 
       final Profile? profile = _mergeProfile(
         await _profileDao.getProfile(userId),
@@ -348,11 +419,15 @@ class _RemoteSnapshot {
     required this.accounts,
     required this.categories,
     required this.transactions,
+    required this.budgets,
+    required this.budgetInstances,
     required this.profile,
   });
 
   final List<AccountEntity> accounts;
   final List<Category> categories;
   final List<TransactionEntity> transactions;
+  final List<Budget> budgets;
+  final List<BudgetInstance> budgetInstances;
   final Profile? profile;
 }

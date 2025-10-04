@@ -804,4 +804,126 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get editAccountGenericError =>
       'Could not update account. Please try again.';
+
+  @override
+  String get homeNavBudgets => 'Budgets';
+
+  @override
+  String get budgetsTitle => 'Budgets';
+
+  @override
+  String get budgetsEmptyTitle => 'No budgets yet';
+
+  @override
+  String get budgetsEmptyMessage =>
+      'Create your first budget to track spending and stay on target.';
+
+  @override
+  String get budgetsErrorTitle => 'Couldn\'t load budgets';
+
+  @override
+  String get budgetsSpentLabel => 'Spent';
+
+  @override
+  String get budgetsLimitLabel => 'Limit';
+
+  @override
+  String get budgetsRemainingLabel => 'Remaining';
+
+  @override
+  String get budgetsExceededLabel => 'Over';
+
+  @override
+  String get budgetDetailTitle => 'Budget details';
+
+  @override
+  String get budgetDeleteTitle => 'Delete budget?';
+
+  @override
+  String get budgetDeleteMessage =>
+      'This budget and its history will be removed. This action cannot be undone.';
+
+  @override
+  String budgetPeriodLabel(String start, String end) {
+    return 'Period: $start – $end';
+  }
+
+  @override
+  String get budgetTransactionsTitle => 'Transactions';
+
+  @override
+  String get budgetTransactionsEmpty =>
+      'No transactions match this budget yet.';
+
+  @override
+  String get budgetCreateTitle => 'Create budget';
+
+  @override
+  String get budgetEditTitle => 'Edit budget';
+
+  @override
+  String get budgetTitleLabel => 'Budget title';
+
+  @override
+  String get budgetAmountLabel => 'Limit amount';
+
+  @override
+  String get budgetPeriodLabelShort => 'Period';
+
+  @override
+  String get budgetScopeLabel => 'Scope';
+
+  @override
+  String get budgetStartDateLabel => 'Start date';
+
+  @override
+  String get budgetEndDateLabel => 'End date';
+
+  @override
+  String get budgetCategoriesLabel => 'Categories';
+
+  @override
+  String get budgetAccountsLabel => 'Accounts';
+
+  @override
+  String get budgetPeriodMonthly => 'Monthly';
+
+  @override
+  String get budgetPeriodWeekly => 'Weekly';
+
+  @override
+  String get budgetPeriodCustom => 'Custom range';
+
+  @override
+  String get budgetScopeAll => 'All transactions';
+
+  @override
+  String get budgetScopeByCategory => 'Selected categories';
+
+  @override
+  String get budgetScopeByAccount => 'Selected accounts';
+
+  @override
+  String get budgetErrorInvalidAmount => 'Enter a positive amount.';
+
+  @override
+  String get budgetErrorMissingTitle => 'Enter a title for the budget.';
+
+  @override
+  String get budgetNoEndDateLabel => 'No end date';
+
+  @override
+  String get editButtonLabel => 'Edit';
+
+  @override
+  String get deleteButtonLabel => 'Delete';
+
+  @override
+  String get cancelButtonLabel => 'Cancel';
+
+  @override
+  String get saveButtonLabel => 'Save';
+
+  @override
+  String get transactionDefaultTitle => 'Transaction';
 }

@@ -9,6 +9,11 @@ import 'package:kopim/features/accounts/domain/repositories/account_repository.d
 import 'package:kopim/features/accounts/domain/use_cases/watch_accounts_use_case.dart';
 import 'package:kopim/features/analytics/domain/use_cases/watch_monthly_analytics_use_case.dart';
 import 'package:kopim/features/app_shell/presentation/widgets/main_navigation_shell.dart';
+import 'package:kopim/features/budgets/domain/entities/budget.dart';
+import 'package:kopim/features/budgets/domain/entities/budget_instance.dart';
+import 'package:kopim/features/budgets/domain/entities/budget_progress.dart';
+import 'package:kopim/features/budgets/domain/use_cases/compute_budget_progress_use_case.dart';
+import 'package:kopim/features/budgets/presentation/controllers/budgets_providers.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/categories/domain/entities/category_tree_node.dart';
 import 'package:kopim/features/categories/domain/repositories/category_repository.dart';
@@ -178,6 +183,39 @@ void main() {
           (Ref ref) =>
               Stream<List<UpcomingPayment>>.value(const <UpcomingPayment>[]),
         ),
+        budgetsStreamProvider.overrideWith(
+          (Ref ref) => Stream<List<Budget>>.value(const <Budget>[]),
+        ),
+        budgetTransactionsStreamProvider.overrideWith(
+          (Ref ref) => Stream<List<TransactionEntity>>.value(
+            const <TransactionEntity>[],
+          ),
+        ),
+        budgetAccountsStreamProvider.overrideWith(
+          (Ref ref) =>
+              Stream<List<AccountEntity>>.value(const <AccountEntity>[]),
+        ),
+        budgetCategoriesStreamProvider.overrideWith(
+          (Ref ref) => Stream<List<Category>>.value(const <Category>[]),
+        ),
+        computeBudgetProgressUseCaseProvider.overrideWithValue(
+          ComputeBudgetProgressUseCase(),
+        ),
+        budgetsWithProgressProvider.overrideWith(
+          (Ref ref) =>
+              const AsyncValue<List<BudgetProgress>>.data(<BudgetProgress>[]),
+        ),
+        budgetProgressByIdProvider.overrideWith(
+          (Ref ref, String _) => const AsyncValue<BudgetProgress>.loading(),
+        ),
+        budgetTransactionsByIdProvider.overrideWith(
+          (Ref ref, String _) => const AsyncValue<List<TransactionEntity>>.data(
+            <TransactionEntity>[],
+          ),
+        ),
+        budgetInstancesByBudgetProvider.overrideWith(
+          (Ref ref, String _) async => const <BudgetInstance>[],
+        ),
       ],
       child: child,
     );
@@ -197,29 +235,17 @@ void main() {
       ),
     );
 
-    await tester.pumpAndSettle(
-      const Duration(milliseconds: 16),
-      EnginePhase.sendSemanticsUpdate,
-      const Duration(seconds: 2),
-    );
+    await tester.pumpAndSettle();
 
     final Finder bottomNavFinder = find.byType(BottomNavigationBar);
     expect(bottomNavFinder, findsOneWidget);
 
     await tester.tap(find.text('Analytics'));
-    await tester.pumpAndSettle(
-      const Duration(milliseconds: 16),
-      EnginePhase.sendSemanticsUpdate,
-      const Duration(seconds: 2),
-    );
+    await tester.pumpAndSettle();
     expect(bottomNavFinder, findsOneWidget);
 
     await tester.tap(find.text('Settings'));
-    await tester.pumpAndSettle(
-      const Duration(milliseconds: 16),
-      EnginePhase.sendSemanticsUpdate,
-      const Duration(seconds: 2),
-    );
+    await tester.pumpAndSettle();
     expect(bottomNavFinder, findsOneWidget);
   });
 
@@ -237,11 +263,7 @@ void main() {
       ),
     );
 
-    await tester.pumpAndSettle(
-      const Duration(milliseconds: 16),
-      EnginePhase.sendSemanticsUpdate,
-      const Duration(seconds: 2),
-    );
+    await tester.pumpAndSettle();
 
     navigatorKey.currentState!.push(
       MaterialPageRoute<void>(
@@ -250,20 +272,12 @@ void main() {
       ),
     );
 
-    await tester.pumpAndSettle(
-      const Duration(milliseconds: 16),
-      EnginePhase.sendSemanticsUpdate,
-      const Duration(seconds: 2),
-    );
+    await tester.pumpAndSettle();
 
     expect(find.byType(BottomNavigationBar), findsNothing);
 
     navigatorKey.currentState!.pop();
-    await tester.pumpAndSettle(
-      const Duration(milliseconds: 16),
-      EnginePhase.sendSemanticsUpdate,
-      const Duration(seconds: 2),
-    );
+    await tester.pumpAndSettle();
 
     expect(find.byType(BottomNavigationBar), findsOneWidget);
   });

@@ -20,6 +20,16 @@ import 'package:kopim/features/accounts/data/sources/remote/account_remote_data_
 import 'package:kopim/features/accounts/domain/repositories/account_repository.dart';
 import 'package:kopim/features/accounts/domain/use_cases/add_account_use_case.dart';
 import 'package:kopim/features/accounts/domain/use_cases/watch_accounts_use_case.dart';
+import 'package:kopim/features/budgets/data/repositories/budget_repository_impl.dart';
+import 'package:kopim/features/budgets/data/sources/local/budget_dao.dart';
+import 'package:kopim/features/budgets/data/sources/remote/budget_instance_remote_data_source.dart';
+import 'package:kopim/features/budgets/data/sources/remote/budget_remote_data_source.dart';
+import 'package:kopim/features/budgets/domain/repositories/budget_repository.dart';
+import 'package:kopim/features/budgets/domain/services/budget_schedule.dart';
+import 'package:kopim/features/budgets/domain/use_cases/compute_budget_progress_use_case.dart';
+import 'package:kopim/features/budgets/domain/use_cases/delete_budget_use_case.dart';
+import 'package:kopim/features/budgets/domain/use_cases/save_budget_use_case.dart';
+import 'package:kopim/features/budgets/domain/use_cases/watch_budgets_use_case.dart';
 import 'package:kopim/features/analytics/domain/use_cases/watch_monthly_analytics_use_case.dart';
 import 'package:kopim/features/home/domain/use_cases/watch_upcoming_payments_use_case.dart';
 import 'package:kopim/features/categories/data/repositories/category_repository_impl.dart';
@@ -108,6 +118,13 @@ TransactionDao transactionDao(Ref ref) =>
     TransactionDao(ref.watch(appDatabaseProvider));
 
 @riverpod
+BudgetDao budgetDao(Ref ref) => BudgetDao(ref.watch(appDatabaseProvider));
+
+@riverpod
+BudgetInstanceDao budgetInstanceDao(Ref ref) =>
+    BudgetInstanceDao(ref.watch(appDatabaseProvider));
+
+@riverpod
 ProfileDao profileDao(Ref ref) => ProfileDao(ref.watch(appDatabaseProvider));
 
 @riverpod
@@ -136,6 +153,9 @@ Workmanager workmanager(Ref ref) => Workmanager();
 RecurringRuleEngine recurringRuleEngine(Ref ref) => RecurringRuleEngine();
 
 @riverpod
+BudgetSchedule budgetSchedule(Ref ref) => const BudgetSchedule();
+
+@riverpod
 AccountRemoteDataSource accountRemoteDataSource(Ref ref) =>
     AccountRemoteDataSource(ref.watch(firestoreProvider));
 
@@ -150,6 +170,14 @@ TransactionRemoteDataSource transactionRemoteDataSource(Ref ref) =>
 @riverpod
 ProfileRemoteDataSource profileRemoteDataSource(Ref ref) =>
     ProfileRemoteDataSource(ref.watch(firestoreProvider));
+
+@riverpod
+BudgetRemoteDataSource budgetRemoteDataSource(Ref ref) =>
+    BudgetRemoteDataSource(ref.watch(firestoreProvider));
+
+@riverpod
+BudgetInstanceRemoteDataSource budgetInstanceRemoteDataSource(Ref ref) =>
+    BudgetInstanceRemoteDataSource(ref.watch(firestoreProvider));
 
 @riverpod
 RecurringNotificationService recurringNotificationService(Ref ref) =>
@@ -171,6 +199,22 @@ AddAccountUseCase addAccountUseCase(Ref ref) =>
 @riverpod
 WatchAccountsUseCase watchAccountsUseCase(Ref ref) =>
     WatchAccountsUseCase(ref.watch(accountRepositoryProvider));
+
+@riverpod
+WatchBudgetsUseCase watchBudgetsUseCase(Ref ref) =>
+    WatchBudgetsUseCase(repository: ref.watch(budgetRepositoryProvider));
+
+@riverpod
+SaveBudgetUseCase saveBudgetUseCase(Ref ref) =>
+    SaveBudgetUseCase(repository: ref.watch(budgetRepositoryProvider));
+
+@riverpod
+DeleteBudgetUseCase deleteBudgetUseCase(Ref ref) =>
+    DeleteBudgetUseCase(repository: ref.watch(budgetRepositoryProvider));
+
+@riverpod
+ComputeBudgetProgressUseCase computeBudgetProgressUseCase(Ref ref) =>
+    ComputeBudgetProgressUseCase(schedule: ref.watch(budgetScheduleProvider));
 
 @riverpod
 CategoryRepository categoryRepository(Ref ref) => CategoryRepositoryImpl(
@@ -204,6 +248,14 @@ TransactionRepository transactionRepository(Ref ref) =>
       transactionDao: ref.watch(transactionDaoProvider),
       outboxDao: ref.watch(outboxDaoProvider),
     );
+
+@riverpod
+BudgetRepository budgetRepository(Ref ref) => BudgetRepositoryImpl(
+  database: ref.watch(appDatabaseProvider),
+  budgetDao: ref.watch(budgetDaoProvider),
+  budgetInstanceDao: ref.watch(budgetInstanceDaoProvider),
+  outboxDao: ref.watch(outboxDaoProvider),
+);
 
 @riverpod
 RecurringTransactionsRepository recurringTransactionsRepository(Ref ref) =>
@@ -337,6 +389,10 @@ SyncService syncService(Ref ref) {
     categoryRemoteDataSource: ref.watch(categoryRemoteDataSourceProvider),
     transactionRemoteDataSource: ref.watch(transactionRemoteDataSourceProvider),
     profileRemoteDataSource: ref.watch(profileRemoteDataSourceProvider),
+    budgetRemoteDataSource: ref.watch(budgetRemoteDataSourceProvider),
+    budgetInstanceRemoteDataSource: ref.watch(
+      budgetInstanceRemoteDataSourceProvider,
+    ),
     firebaseAuth: ref.watch(firebaseAuthProvider),
     connectivity: ref.watch(connectivityProvider),
   );
@@ -360,10 +416,16 @@ AuthSyncService authSyncService(Ref ref) => AuthSyncService(
   accountDao: ref.watch(accountDaoProvider),
   categoryDao: ref.watch(categoryDaoProvider),
   transactionDao: ref.watch(transactionDaoProvider),
+  budgetDao: ref.watch(budgetDaoProvider),
+  budgetInstanceDao: ref.watch(budgetInstanceDaoProvider),
   profileDao: ref.watch(profileDaoProvider),
   accountRemoteDataSource: ref.watch(accountRemoteDataSourceProvider),
   categoryRemoteDataSource: ref.watch(categoryRemoteDataSourceProvider),
   transactionRemoteDataSource: ref.watch(transactionRemoteDataSourceProvider),
+  budgetRemoteDataSource: ref.watch(budgetRemoteDataSourceProvider),
+  budgetInstanceRemoteDataSource: ref.watch(
+    budgetInstanceRemoteDataSourceProvider,
+  ),
   profileRemoteDataSource: ref.watch(profileRemoteDataSourceProvider),
   firestore: ref.watch(firestoreProvider),
   loggerService: ref.watch(loggerServiceProvider),

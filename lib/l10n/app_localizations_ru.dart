@@ -807,4 +807,126 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get editAccountGenericError =>
       'Не удалось обновить счёт. Повторите попытку.';
+
+  @override
+  String get homeNavBudgets => 'Бюджеты';
+
+  @override
+  String get budgetsTitle => 'Бюджеты';
+
+  @override
+  String get budgetsEmptyTitle => 'Пока нет бюджетов';
+
+  @override
+  String get budgetsEmptyMessage =>
+      'Создайте первый бюджет, чтобы контролировать расходы.';
+
+  @override
+  String get budgetsErrorTitle => 'Не удалось загрузить бюджеты';
+
+  @override
+  String get budgetsSpentLabel => 'Потрачено';
+
+  @override
+  String get budgetsLimitLabel => 'Лимит';
+
+  @override
+  String get budgetsRemainingLabel => 'Осталось';
+
+  @override
+  String get budgetsExceededLabel => 'Перерасход';
+
+  @override
+  String get budgetDetailTitle => 'Детали бюджета';
+
+  @override
+  String get budgetDeleteTitle => 'Удалить бюджет?';
+
+  @override
+  String get budgetDeleteMessage =>
+      'Бюджет и его история будут удалены. Отменить действие нельзя.';
+
+  @override
+  String budgetPeriodLabel(String start, String end) {
+    return 'Период: $start – $end';
+  }
+
+  @override
+  String get budgetTransactionsTitle => 'Транзакции';
+
+  @override
+  String get budgetTransactionsEmpty =>
+      'Для этого бюджета пока нет транзакций.';
+
+  @override
+  String get budgetCreateTitle => 'Новый бюджет';
+
+  @override
+  String get budgetEditTitle => 'Редактирование бюджета';
+
+  @override
+  String get budgetTitleLabel => 'Название бюджета';
+
+  @override
+  String get budgetAmountLabel => 'Сумма лимита';
+
+  @override
+  String get budgetPeriodLabelShort => 'Период';
+
+  @override
+  String get budgetScopeLabel => 'Область';
+
+  @override
+  String get budgetStartDateLabel => 'Дата начала';
+
+  @override
+  String get budgetEndDateLabel => 'Дата окончания';
+
+  @override
+  String get budgetCategoriesLabel => 'Категории';
+
+  @override
+  String get budgetAccountsLabel => 'Счета';
+
+  @override
+  String get budgetPeriodMonthly => 'Ежемесячно';
+
+  @override
+  String get budgetPeriodWeekly => 'Еженедельно';
+
+  @override
+  String get budgetPeriodCustom => 'Произвольный период';
+
+  @override
+  String get budgetScopeAll => 'Все транзакции';
+
+  @override
+  String get budgetScopeByCategory => 'Выбранные категории';
+
+  @override
+  String get budgetScopeByAccount => 'Выбранные счета';
+
+  @override
+  String get budgetErrorInvalidAmount => 'Введите положительную сумму.';
+
+  @override
+  String get budgetErrorMissingTitle => 'Введите название бюджета.';
+
+  @override
+  String get budgetNoEndDateLabel => 'Без даты окончания';
+
+  @override
+  String get editButtonLabel => 'Редактировать';
+
+  @override
+  String get deleteButtonLabel => 'Удалить';
+
+  @override
+  String get cancelButtonLabel => 'Отмена';
+
+  @override
+  String get saveButtonLabel => 'Сохранить';
+
+  @override
+  String get transactionDefaultTitle => 'Транзакция';
 }
