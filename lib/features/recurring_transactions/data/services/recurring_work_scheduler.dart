@@ -31,6 +31,7 @@ const String kRecurringTaskGenerateWindow = 'recurring_generate_window';
 const String kRecurringTaskMaintainWindow = 'recurring_window_maintenance';
 const String kRecurringTaskApplyRules = 'apply_recurring_rules';
 
+@pragma('vm:entry-point')
 void recurringWorkDispatcher() {
   Workmanager().executeTask((
     String task,
