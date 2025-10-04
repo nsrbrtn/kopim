@@ -11,6 +11,14 @@ import 'package:kopim/core/services/logger_service.dart';
 import 'package:kopim/features/accounts/data/sources/local/account_dao.dart';
 import 'package:kopim/features/accounts/data/sources/remote/account_remote_data_source.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
+import 'package:kopim/features/budgets/data/sources/local/budget_dao.dart';
+import 'package:kopim/features/budgets/data/sources/remote/budget_instance_remote_data_source.dart';
+import 'package:kopim/features/budgets/data/sources/remote/budget_remote_data_source.dart';
+import 'package:kopim/features/budgets/domain/entities/budget.dart';
+import 'package:kopim/features/budgets/domain/entities/budget_instance.dart';
+import 'package:kopim/features/budgets/domain/entities/budget_instance_status.dart';
+import 'package:kopim/features/budgets/domain/entities/budget_period.dart';
+import 'package:kopim/features/budgets/domain/entities/budget_scope.dart';
 import 'package:kopim/features/categories/data/sources/local/category_dao.dart';
 import 'package:kopim/features/categories/data/sources/remote/category_remote_data_source.dart';
 import 'package:kopim/features/profile/data/local/profile_dao.dart';
@@ -45,13 +53,19 @@ void main() {
   late AccountDao accountDao;
   late CategoryDao categoryDao;
   late TransactionDao transactionDao;
+  late BudgetDao budgetDao;
+  late BudgetInstanceDao budgetInstanceDao;
   late ProfileDao profileDao;
   late FirebaseFirestore firestore;
   late MockLoggerService logger;
   late MockAnalyticsService analytics;
+  late BudgetRemoteDataSource budgetRemote;
+  late BudgetInstanceRemoteDataSource budgetInstanceRemote;
 
   AuthSyncService buildService({
     AccountRemoteDataSource? accountRemoteDataSource,
+    BudgetRemoteDataSource? budgetRemoteDataSource,
+    BudgetInstanceRemoteDataSource? budgetInstanceRemoteDataSource,
   }) {
     return AuthSyncService(
       database: database,
@@ -59,11 +73,16 @@ void main() {
       accountDao: accountDao,
       categoryDao: categoryDao,
       transactionDao: transactionDao,
+      budgetDao: budgetDao,
+      budgetInstanceDao: budgetInstanceDao,
       profileDao: profileDao,
       accountRemoteDataSource:
           accountRemoteDataSource ?? AccountRemoteDataSource(firestore),
       categoryRemoteDataSource: CategoryRemoteDataSource(firestore),
       transactionRemoteDataSource: TransactionRemoteDataSource(firestore),
+      budgetRemoteDataSource: budgetRemoteDataSource ?? budgetRemote,
+      budgetInstanceRemoteDataSource:
+          budgetInstanceRemoteDataSource ?? budgetInstanceRemote,
       profileRemoteDataSource: ProfileRemoteDataSource(firestore),
       firestore: firestore,
       loggerService: logger,
@@ -84,10 +103,14 @@ void main() {
     accountDao = AccountDao(database);
     categoryDao = CategoryDao(database);
     transactionDao = TransactionDao(database);
+    budgetDao = BudgetDao(database);
+    budgetInstanceDao = BudgetInstanceDao(database);
     profileDao = ProfileDao(database);
     firestore = FakeFirebaseFirestore();
     logger = MockLoggerService();
     analytics = MockAnalyticsService();
+    budgetRemote = BudgetRemoteDataSource(firestore);
+    budgetInstanceRemote = BudgetInstanceRemoteDataSource(firestore);
 
     when(() => analytics.logEvent(any(), any())).thenAnswer((_) async {});
     when(() => analytics.reportError(any(), any())).thenReturn(null);
@@ -167,6 +190,74 @@ void main() {
           payload: profilePayload,
         );
 
+        final Budget localBudget = Budget(
+          id: 'budget-1',
+          title: 'Groceries',
+          period: BudgetPeriod.monthly,
+          startDate: DateTime.utc(2024, 1, 1, 0, 1),
+          endDate: null,
+          amount: 500,
+          scope: BudgetScope.all,
+          categories: const <String>[],
+          accounts: const <String>[],
+          createdAt: DateTime.utc(2024, 1, 1),
+          updatedAt: DateTime.utc(2024, 1, 2),
+        );
+
+        await outboxDao.enqueue(
+          entityType: 'budget',
+          entityId: localBudget.id,
+          operation: OutboxOperation.upsert,
+          payload: localBudget.toJson()
+            ..['startDate'] = localBudget.startDate.toIso8601String()
+            ..['endDate'] = localBudget.endDate?.toIso8601String()
+            ..['createdAt'] = localBudget.createdAt.toIso8601String()
+            ..['updatedAt'] = localBudget.updatedAt.toIso8601String(),
+        );
+
+        final Budget remoteBudget = Budget(
+          id: 'budget-remote',
+          title: 'Travel Remote',
+          period: BudgetPeriod.custom,
+          startDate: DateTime.utc(2023, 12, 1, 0, 1),
+          endDate: DateTime.utc(2023, 12, 31, 0, 1),
+          amount: 800,
+          scope: BudgetScope.all,
+          categories: const <String>[],
+          accounts: const <String>[],
+          createdAt: DateTime.utc(2023, 12, 1),
+          updatedAt: DateTime.utc(2024, 3, 1),
+        );
+
+        await budgetDao.upsert(
+          remoteBudget.copyWith(
+            title: 'Travel Local',
+            updatedAt: DateTime.utc(2024, 2, 1),
+          ),
+        );
+
+        final BudgetInstance remoteInstance = BudgetInstance(
+          id: 'budget-remote-2024-03',
+          budgetId: remoteBudget.id,
+          periodStart: DateTime.utc(2024, 3, 1, 0, 1),
+          periodEnd: DateTime.utc(2024, 4, 1, 0, 1),
+          amount: remoteBudget.amount,
+          spent: 150,
+          status: BudgetInstanceStatus.active,
+          createdAt: DateTime.utc(2024, 3, 1),
+          updatedAt: DateTime.utc(2024, 3, 5),
+        );
+
+        await budgetInstanceDao.upsert(
+          remoteInstance.copyWith(
+            spent: 60,
+            updatedAt: DateTime.utc(2024, 3, 3),
+          ),
+        );
+
+        await budgetRemote.upsert(userId, remoteBudget);
+        await budgetInstanceRemote.upsert(userId, remoteInstance);
+
         final AuthUser authUser = AuthUser(
           uid: userId,
           email: 'user@kopim.app',
@@ -212,6 +303,52 @@ void main() {
         expect(localProfile!.name, equals('Alice'));
         expect(localProfile.currency, equals(ProfileCurrency.eur));
         expect(localProfile.locale, equals('de'));
+
+        final List<Budget> storedBudgets = await budgetDao.getAllBudgets();
+        expect(
+          storedBudgets.map((Budget b) => b.id),
+          containsAll(<String>{localBudget.id, remoteBudget.id}),
+        );
+        final Budget mergedRemoteBudget = storedBudgets.firstWhere(
+          (Budget b) => b.id == remoteBudget.id,
+        );
+        expect(mergedRemoteBudget.title, equals(remoteBudget.title));
+        expect(
+          mergedRemoteBudget.updatedAt.isAtSameMomentAs(remoteBudget.updatedAt),
+          isTrue,
+        );
+
+        final Budget mergedLocalBudget = storedBudgets.firstWhere(
+          (Budget b) => b.id == localBudget.id,
+        );
+        expect(mergedLocalBudget.amount, equals(localBudget.amount));
+        expect(mergedLocalBudget.scope, equals(BudgetScope.all));
+
+        final List<BudgetInstance> storedInstances = await budgetInstanceDao
+            .getAllInstances();
+        expect(storedInstances, hasLength(1));
+        expect(storedInstances.single.spent, equals(remoteInstance.spent));
+        expect(
+          storedInstances.single.status,
+          equals(BudgetInstanceStatus.active),
+        );
+
+        final List<Budget> remoteBudgets = await budgetRemote.fetchAll(userId);
+        expect(remoteBudgets.map((Budget b) => b.id), contains(localBudget.id));
+        final Budget remoteStoredBudget = remoteBudgets.firstWhere(
+          (Budget b) => b.id == localBudget.id,
+        );
+        expect(
+          remoteStoredBudget.updatedAt.isAtSameMomentAs(localBudget.updatedAt),
+          isTrue,
+        );
+
+        final List<BudgetInstance> remoteInstances = await budgetInstanceRemote
+            .fetchAll(userId);
+        expect(
+          remoteInstances.map((BudgetInstance i) => i.id),
+          contains(remoteInstance.id),
+        );
 
         expect(await outboxDao.pendingCount(), equals(0));
 

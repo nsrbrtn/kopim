@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
+import 'package:kopim/core/data/converters/string_list_converter.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
@@ -161,6 +162,47 @@ class RecurringOccurrences extends Table {
   Set<Column<Object>> get primaryKey => <Column<Object>>{id};
 }
 
+@DataClassName('BudgetRow')
+class Budgets extends Table {
+  TextColumn get id => text().withLength(min: 1, max: 60)();
+  TextColumn get title => text().withLength(min: 1, max: 160)();
+  TextColumn get period => text().withLength(min: 1, max: 20)();
+  DateTimeColumn get startDate => dateTime()();
+  DateTimeColumn get endDate => dateTime().nullable()();
+  RealColumn get amount => real()();
+  TextColumn get scope => text().withLength(min: 1, max: 32)();
+  TextColumn get categories =>
+      text().map(const StringListConverter()).clientDefault(() => '[]')();
+  TextColumn get accounts =>
+      text().map(const StringListConverter()).clientDefault(() => '[]')();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  BoolColumn get isDeleted =>
+      boolean().withDefault(const Constant<bool>(false))();
+
+  @override
+  Set<Column<Object>> get primaryKey => <Column<Object>>{id};
+}
+
+@DataClassName('BudgetInstanceRow')
+class BudgetInstances extends Table {
+  TextColumn get id => text().withLength(min: 1, max: 80)();
+  TextColumn get budgetId =>
+      text().references(Budgets, #id, onDelete: KeyAction.cascade)();
+  DateTimeColumn get periodStart => dateTime()();
+  DateTimeColumn get periodEnd => dateTime()();
+  RealColumn get amount => real()();
+  RealColumn get spent => real().withDefault(const Constant<double>(0))();
+  TextColumn get status => text()
+      .withLength(min: 1, max: 20)
+      .withDefault(const Constant<String>('pending'))();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column<Object>> get primaryKey => <Column<Object>>{id};
+}
+
 @DataClassName('JobQueueRow')
 class JobQueue extends Table {
   IntColumn get id => integer().autoIncrement()();
@@ -183,6 +225,8 @@ class JobQueue extends Table {
     RecurringOccurrences,
     RecurringRuleExecutions,
     JobQueue,
+    Budgets,
+    BudgetInstances,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -191,7 +235,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.connect(DatabaseConnection super.connection);
 
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 8;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -202,6 +246,15 @@ class AppDatabase extends _$AppDatabase {
           'recurring_occurrences_rule_due_idx',
           'CREATE INDEX IF NOT EXISTS recurring_occurrences_rule_due_idx '
               'ON recurring_occurrences(rule_id, due_at)',
+        ),
+      );
+      await m.createTable(budgets);
+      await m.createTable(budgetInstances);
+      await m.createIndex(
+        Index(
+          'budget_instances_budget_period_idx',
+          'CREATE INDEX IF NOT EXISTS budget_instances_budget_period_idx '
+              'ON budget_instances(budget_id, period_start)',
         ),
       );
     },
@@ -298,6 +351,17 @@ class AppDatabase extends _$AppDatabase {
 
           await m.database.customStatement('PRAGMA foreign_key_check');
         });
+      }
+      if (from < 8) {
+        await m.createTable(budgets);
+        await m.createTable(budgetInstances);
+        await m.createIndex(
+          Index(
+            'budget_instances_budget_period_idx',
+            'CREATE INDEX IF NOT EXISTS budget_instances_budget_period_idx '
+                'ON budget_instances(budget_id, period_start)',
+          ),
+        );
       }
     },
   );

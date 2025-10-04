@@ -1084,5 +1084,169 @@
   "editAccountGenericError": "Не удалось обновить счёт. Повторите попытку.",
   "@editAccountGenericError": {
     "description": "Общее сообщение об ошибке при обновлении счёта"
+  },
+  "homeNavBudgets": "Бюджеты",
+  "@homeNavBudgets": {
+    "description": "Подпись вкладки бюджетов в нижней навигации"
+  },
+  "budgetsTitle": "Бюджеты",
+  "@budgetsTitle": {
+    "description": "Заголовок экрана списка бюджетов"
+  },
+  "budgetsEmptyTitle": "Пока нет бюджетов",
+  "@budgetsEmptyTitle": {
+    "description": "Заголовок пустого состояния списков бюджетов"
+  },
+  "budgetsEmptyMessage": "Создайте первый бюджет, чтобы контролировать расходы.",
+  "@budgetsEmptyMessage": {
+    "description": "Сообщение пустого состояния для экранов бюджетов"
+  },
+  "budgetsErrorTitle": "Не удалось загрузить бюджеты",
+  "@budgetsErrorTitle": {
+    "description": "Сообщение об ошибке при загрузке бюджетов"
+  },
+  "budgetsSpentLabel": "Потрачено",
+  "@budgetsSpentLabel": {
+    "description": "Подпись метрики потраченной суммы"
+  },
+  "budgetsLimitLabel": "Лимит",
+  "@budgetsLimitLabel": {
+    "description": "Подпись метрики лимита бюджета"
+  },
+  "budgetsRemainingLabel": "Осталось",
+  "@budgetsRemainingLabel": {
+    "description": "Подпись метрики оставшейся суммы"
+  },
+  "budgetsExceededLabel": "Перерасход",
+  "@budgetsExceededLabel": {
+    "description": "Подпись метрики при превышении бюджета"
+  },
+  "budgetDetailTitle": "Детали бюджета",
+  "@budgetDetailTitle": {
+    "description": "Заголовок экрана деталей бюджета"
+  },
+  "budgetDeleteTitle": "Удалить бюджет?",
+  "@budgetDeleteTitle": {
+    "description": "Заголовок диалога подтверждения удаления бюджета"
+  },
+  "budgetDeleteMessage": "Бюджет и его история будут удалены. Отменить действие нельзя.",
+  "@budgetDeleteMessage": {
+    "description": "Сообщение в диалоге удаления бюджета"
+  },
+  "budgetPeriodLabel": "Период: {start} – {end}",
+  "@budgetPeriodLabel": {
+    "description": "Подпись диапазона дат экземпляра бюджета",
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "budgetTransactionsTitle": "Транзакции",
+  "@budgetTransactionsTitle": {
+    "description": "Заголовок списка транзакций в деталях бюджета"
+  },
+  "budgetTransactionsEmpty": "Для этого бюджета пока нет транзакций.",
+  "@budgetTransactionsEmpty": {
+    "description": "Сообщение при отсутствии транзакций в бюджете"
+  },
+  "budgetCreateTitle": "Новый бюджет",
+  "@budgetCreateTitle": {
+    "description": "Заголовок экрана создания бюджета"
+  },
+  "budgetEditTitle": "Редактирование бюджета",
+  "@budgetEditTitle": {
+    "description": "Заголовок экрана редактирования бюджета"
+  },
+  "budgetTitleLabel": "Название бюджета",
+  "@budgetTitleLabel": {
+    "description": "Подпись поля названия бюджета"
+  },
+  "budgetAmountLabel": "Сумма лимита",
+  "@budgetAmountLabel": {
+    "description": "Подпись поля суммы бюджета"
+  },
+  "budgetPeriodLabelShort": "Период",
+  "@budgetPeriodLabelShort": {
+    "description": "Подпись выбора периода бюджета"
+  },
+  "budgetScopeLabel": "Область",
+  "@budgetScopeLabel": {
+    "description": "Подпись выбора области бюджета"
+  },
+  "budgetStartDateLabel": "Дата начала",
+  "@budgetStartDateLabel": {
+    "description": "Подпись выбора даты начала"
+  },
+  "budgetEndDateLabel": "Дата окончания",
+  "@budgetEndDateLabel": {
+    "description": "Подпись выбора даты окончания"
+  },
+  "budgetCategoriesLabel": "Категории",
+  "@budgetCategoriesLabel": {
+    "description": "Подпись списка выбранных категорий"
+  },
+  "budgetAccountsLabel": "Счета",
+  "@budgetAccountsLabel": {
+    "description": "Подпись списка выбранных счетов"
+  },
+  "budgetPeriodMonthly": "Ежемесячно",
+  "@budgetPeriodMonthly": {
+    "description": "Вариант для ежемесячного бюджета"
+  },
+  "budgetPeriodWeekly": "Еженедельно",
+  "@budgetPeriodWeekly": {
+    "description": "Вариант для еженедельного бюджета"
+  },
+  "budgetPeriodCustom": "Произвольный период",
+  "@budgetPeriodCustom": {
+    "description": "Вариант для пользовательского бюджета"
+  },
+  "budgetScopeAll": "Все транзакции",
+  "@budgetScopeAll": {
+    "description": "Вариант бюджета со всеми транзакциями"
+  },
+  "budgetScopeByCategory": "Выбранные категории",
+  "@budgetScopeByCategory": {
+    "description": "Вариант бюджета по категориям"
+  },
+  "budgetScopeByAccount": "Выбранные счета",
+  "@budgetScopeByAccount": {
+    "description": "Вариант бюджета по счетам"
+  },
+  "budgetErrorInvalidAmount": "Введите положительную сумму.",
+  "@budgetErrorInvalidAmount": {
+    "description": "Ошибка валидации при неверной сумме"
+  },
+  "budgetErrorMissingTitle": "Введите название бюджета.",
+  "@budgetErrorMissingTitle": {
+    "description": "Ошибка валидации при пустом названии"
+  },
+  "budgetNoEndDateLabel": "Без даты окончания",
+  "@budgetNoEndDateLabel": {
+    "description": "Подпись при отсутствии даты окончания"
+  },
+  "editButtonLabel": "Редактировать",
+  "@editButtonLabel": {
+    "description": "Общая подпись для действий редактирования"
+  },
+  "deleteButtonLabel": "Удалить",
+  "@deleteButtonLabel": {
+    "description": "Общая подпись для действий удаления"
+  },
+  "cancelButtonLabel": "Отмена",
+  "@cancelButtonLabel": {
+    "description": "Общая подпись кнопки отмены"
+  },
+  "saveButtonLabel": "Сохранить",
+  "@saveButtonLabel": {
+    "description": "Общая подпись кнопки сохранения"
+  },
+  "transactionDefaultTitle": "Транзакция",
+  "@transactionDefaultTitle": {
+    "description": "Резервный заголовок транзакции без примечания"
   }
 }

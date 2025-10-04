@@ -1519,6 +1519,240 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not update account. Please try again.'**
   String get editAccountGenericError;
+
+  /// Label for the budgets tab in the bottom navigation
+  ///
+  /// In en, this message translates to:
+  /// **'Budgets'**
+  String get homeNavBudgets;
+
+  /// Title for the budgets list screen
+  ///
+  /// In en, this message translates to:
+  /// **'Budgets'**
+  String get budgetsTitle;
+
+  /// Headline shown when the user has not created budgets
+  ///
+  /// In en, this message translates to:
+  /// **'No budgets yet'**
+  String get budgetsEmptyTitle;
+
+  /// Supporting copy for the empty budgets state
+  ///
+  /// In en, this message translates to:
+  /// **'Create your first budget to track spending and stay on target.'**
+  String get budgetsEmptyMessage;
+
+  /// Error headline shown when budgets stream fails
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load budgets'**
+  String get budgetsErrorTitle;
+
+  /// Label for the spent amount metric on a budget card
+  ///
+  /// In en, this message translates to:
+  /// **'Spent'**
+  String get budgetsSpentLabel;
+
+  /// Label for the budget limit metric
+  ///
+  /// In en, this message translates to:
+  /// **'Limit'**
+  String get budgetsLimitLabel;
+
+  /// Label for the remaining amount metric
+  ///
+  /// In en, this message translates to:
+  /// **'Remaining'**
+  String get budgetsRemainingLabel;
+
+  /// Label used when a budget is exceeded
+  ///
+  /// In en, this message translates to:
+  /// **'Over'**
+  String get budgetsExceededLabel;
+
+  /// Title for the budget detail screen
+  ///
+  /// In en, this message translates to:
+  /// **'Budget details'**
+  String get budgetDetailTitle;
+
+  /// Title for the delete budget confirmation dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Delete budget?'**
+  String get budgetDeleteTitle;
+
+  /// Body text for the delete budget confirmation dialog
+  ///
+  /// In en, this message translates to:
+  /// **'This budget and its history will be removed. This action cannot be undone.'**
+  String get budgetDeleteMessage;
+
+  /// Label describing the time range covered by a budget instance
+  ///
+  /// In en, this message translates to:
+  /// **'Period: {start} – {end}'**
+  String budgetPeriodLabel(String start, String end);
+
+  /// Section title for transactions inside the budget detail screen
+  ///
+  /// In en, this message translates to:
+  /// **'Transactions'**
+  String get budgetTransactionsTitle;
+
+  /// Message shown when no transactions are associated with the budget
+  ///
+  /// In en, this message translates to:
+  /// **'No transactions match this budget yet.'**
+  String get budgetTransactionsEmpty;
+
+  /// Title for the budget creation screen
+  ///
+  /// In en, this message translates to:
+  /// **'Create budget'**
+  String get budgetCreateTitle;
+
+  /// Title for the budget editing screen
+  ///
+  /// In en, this message translates to:
+  /// **'Edit budget'**
+  String get budgetEditTitle;
+
+  /// Label for the budget title text field
+  ///
+  /// In en, this message translates to:
+  /// **'Budget title'**
+  String get budgetTitleLabel;
+
+  /// Label for the budget amount input
+  ///
+  /// In en, this message translates to:
+  /// **'Limit amount'**
+  String get budgetAmountLabel;
+
+  /// Label for the budget period dropdown
+  ///
+  /// In en, this message translates to:
+  /// **'Period'**
+  String get budgetPeriodLabelShort;
+
+  /// Label for the budget scope dropdown
+  ///
+  /// In en, this message translates to:
+  /// **'Scope'**
+  String get budgetScopeLabel;
+
+  /// Label for the start date picker
+  ///
+  /// In en, this message translates to:
+  /// **'Start date'**
+  String get budgetStartDateLabel;
+
+  /// Label for the end date picker
+  ///
+  /// In en, this message translates to:
+  /// **'End date'**
+  String get budgetEndDateLabel;
+
+  /// Label for the selected categories chips
+  ///
+  /// In en, this message translates to:
+  /// **'Categories'**
+  String get budgetCategoriesLabel;
+
+  /// Label for the selected accounts chips
+  ///
+  /// In en, this message translates to:
+  /// **'Accounts'**
+  String get budgetAccountsLabel;
+
+  /// Option label for monthly budgets
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly'**
+  String get budgetPeriodMonthly;
+
+  /// Option label for weekly budgets
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly'**
+  String get budgetPeriodWeekly;
+
+  /// Option label for custom budgets
+  ///
+  /// In en, this message translates to:
+  /// **'Custom range'**
+  String get budgetPeriodCustom;
+
+  /// Option label for a budget covering all transactions
+  ///
+  /// In en, this message translates to:
+  /// **'All transactions'**
+  String get budgetScopeAll;
+
+  /// Option label for category-scoped budgets
+  ///
+  /// In en, this message translates to:
+  /// **'Selected categories'**
+  String get budgetScopeByCategory;
+
+  /// Option label for account-scoped budgets
+  ///
+  /// In en, this message translates to:
+  /// **'Selected accounts'**
+  String get budgetScopeByAccount;
+
+  /// Validation error shown when the amount is invalid
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a positive amount.'**
+  String get budgetErrorInvalidAmount;
+
+  /// Validation error shown when the title is missing
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a title for the budget.'**
+  String get budgetErrorMissingTitle;
+
+  /// Placeholder shown when no end date is selected
+  ///
+  /// In en, this message translates to:
+  /// **'No end date'**
+  String get budgetNoEndDateLabel;
+
+  /// Generic label for edit actions
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get editButtonLabel;
+
+  /// Generic label for delete actions
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get deleteButtonLabel;
+
+  /// Generic label for cancel actions
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get cancelButtonLabel;
+
+  /// Generic label for save buttons
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get saveButtonLabel;
+
+  /// Fallback title for transactions without a note
+  ///
+  /// In en, this message translates to:
+  /// **'Transaction'**
+  String get transactionDefaultTitle;
 }
 
 class _AppLocalizationsDelegate

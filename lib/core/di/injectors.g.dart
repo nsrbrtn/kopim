@@ -511,6 +511,94 @@ final class TransactionDaoProvider
 
 String _$transactionDaoHash() => r'6dd75d3118f0e2e23be1b05fe5ebcee148e69f7f';
 
+@ProviderFor(budgetDao)
+const budgetDaoProvider = BudgetDaoProvider._();
+
+final class BudgetDaoProvider
+    extends $FunctionalProvider<BudgetDao, BudgetDao, BudgetDao>
+    with $Provider<BudgetDao> {
+  const BudgetDaoProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'budgetDaoProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$budgetDaoHash();
+
+  @$internal
+  @override
+  $ProviderElement<BudgetDao> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  BudgetDao create(Ref ref) {
+    return budgetDao(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(BudgetDao value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<BudgetDao>(value),
+    );
+  }
+}
+
+String _$budgetDaoHash() => r'6d271f84e0c1c8337fc10b0be34145e244e5d8d5';
+
+@ProviderFor(budgetInstanceDao)
+const budgetInstanceDaoProvider = BudgetInstanceDaoProvider._();
+
+final class BudgetInstanceDaoProvider
+    extends
+        $FunctionalProvider<
+          BudgetInstanceDao,
+          BudgetInstanceDao,
+          BudgetInstanceDao
+        >
+    with $Provider<BudgetInstanceDao> {
+  const BudgetInstanceDaoProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'budgetInstanceDaoProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$budgetInstanceDaoHash();
+
+  @$internal
+  @override
+  $ProviderElement<BudgetInstanceDao> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  BudgetInstanceDao create(Ref ref) {
+    return budgetInstanceDao(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(BudgetInstanceDao value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<BudgetInstanceDao>(value),
+    );
+  }
+}
+
+String _$budgetInstanceDaoHash() => r'f2ff161d2210b373bff95923b0810a8acb8f09bb';
+
 @ProviderFor(profileDao)
 const profileDaoProvider = ProfileDaoProvider._();
 
@@ -875,6 +963,47 @@ final class RecurringRuleEngineProvider
 String _$recurringRuleEngineHash() =>
     r'94d207ac7439ca6dcb8f24b9d37a5644705d6c6a';
 
+@ProviderFor(budgetSchedule)
+const budgetScheduleProvider = BudgetScheduleProvider._();
+
+final class BudgetScheduleProvider
+    extends $FunctionalProvider<BudgetSchedule, BudgetSchedule, BudgetSchedule>
+    with $Provider<BudgetSchedule> {
+  const BudgetScheduleProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'budgetScheduleProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$budgetScheduleHash();
+
+  @$internal
+  @override
+  $ProviderElement<BudgetSchedule> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  BudgetSchedule create(Ref ref) {
+    return budgetSchedule(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(BudgetSchedule value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<BudgetSchedule>(value),
+    );
+  }
+}
+
+String _$budgetScheduleHash() => r'dd4e864d9533d6685fa5d4333c2cad4cef43b5d1';
+
 @ProviderFor(accountRemoteDataSource)
 const accountRemoteDataSourceProvider = AccountRemoteDataSourceProvider._();
 
@@ -1068,6 +1197,105 @@ final class ProfileRemoteDataSourceProvider
 String _$profileRemoteDataSourceHash() =>
     r'45baf2527988bcc7389803c7cea36c9fa578effb';
 
+@ProviderFor(budgetRemoteDataSource)
+const budgetRemoteDataSourceProvider = BudgetRemoteDataSourceProvider._();
+
+final class BudgetRemoteDataSourceProvider
+    extends
+        $FunctionalProvider<
+          BudgetRemoteDataSource,
+          BudgetRemoteDataSource,
+          BudgetRemoteDataSource
+        >
+    with $Provider<BudgetRemoteDataSource> {
+  const BudgetRemoteDataSourceProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'budgetRemoteDataSourceProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$budgetRemoteDataSourceHash();
+
+  @$internal
+  @override
+  $ProviderElement<BudgetRemoteDataSource> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  BudgetRemoteDataSource create(Ref ref) {
+    return budgetRemoteDataSource(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(BudgetRemoteDataSource value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<BudgetRemoteDataSource>(value),
+    );
+  }
+}
+
+String _$budgetRemoteDataSourceHash() =>
+    r'f2f3bcea8c010c92da9b9f1dc18eaf363350c1da';
+
+@ProviderFor(budgetInstanceRemoteDataSource)
+const budgetInstanceRemoteDataSourceProvider =
+    BudgetInstanceRemoteDataSourceProvider._();
+
+final class BudgetInstanceRemoteDataSourceProvider
+    extends
+        $FunctionalProvider<
+          BudgetInstanceRemoteDataSource,
+          BudgetInstanceRemoteDataSource,
+          BudgetInstanceRemoteDataSource
+        >
+    with $Provider<BudgetInstanceRemoteDataSource> {
+  const BudgetInstanceRemoteDataSourceProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'budgetInstanceRemoteDataSourceProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$budgetInstanceRemoteDataSourceHash();
+
+  @$internal
+  @override
+  $ProviderElement<BudgetInstanceRemoteDataSource> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  BudgetInstanceRemoteDataSource create(Ref ref) {
+    return budgetInstanceRemoteDataSource(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(BudgetInstanceRemoteDataSource value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<BudgetInstanceRemoteDataSource>(
+        value,
+      ),
+    );
+  }
+}
+
+String _$budgetInstanceRemoteDataSourceHash() =>
+    r'a020e9c9816dcaffaf93de641281dc389b6c4a5d';
+
 @ProviderFor(recurringNotificationService)
 const recurringNotificationServiceProvider =
     RecurringNotificationServiceProvider._();
@@ -1258,6 +1486,198 @@ final class WatchAccountsUseCaseProvider
 
 String _$watchAccountsUseCaseHash() =>
     r'1e591c8756219ebead3e51c5a37138b7013df854';
+
+@ProviderFor(watchBudgetsUseCase)
+const watchBudgetsUseCaseProvider = WatchBudgetsUseCaseProvider._();
+
+final class WatchBudgetsUseCaseProvider
+    extends
+        $FunctionalProvider<
+          WatchBudgetsUseCase,
+          WatchBudgetsUseCase,
+          WatchBudgetsUseCase
+        >
+    with $Provider<WatchBudgetsUseCase> {
+  const WatchBudgetsUseCaseProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'watchBudgetsUseCaseProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$watchBudgetsUseCaseHash();
+
+  @$internal
+  @override
+  $ProviderElement<WatchBudgetsUseCase> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  WatchBudgetsUseCase create(Ref ref) {
+    return watchBudgetsUseCase(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(WatchBudgetsUseCase value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<WatchBudgetsUseCase>(value),
+    );
+  }
+}
+
+String _$watchBudgetsUseCaseHash() =>
+    r'2f2b4e2b4764abb13a5d62a06dad6ac899d28210';
+
+@ProviderFor(saveBudgetUseCase)
+const saveBudgetUseCaseProvider = SaveBudgetUseCaseProvider._();
+
+final class SaveBudgetUseCaseProvider
+    extends
+        $FunctionalProvider<
+          SaveBudgetUseCase,
+          SaveBudgetUseCase,
+          SaveBudgetUseCase
+        >
+    with $Provider<SaveBudgetUseCase> {
+  const SaveBudgetUseCaseProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'saveBudgetUseCaseProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$saveBudgetUseCaseHash();
+
+  @$internal
+  @override
+  $ProviderElement<SaveBudgetUseCase> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  SaveBudgetUseCase create(Ref ref) {
+    return saveBudgetUseCase(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(SaveBudgetUseCase value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<SaveBudgetUseCase>(value),
+    );
+  }
+}
+
+String _$saveBudgetUseCaseHash() => r'2b1ace00122d33da63c69892fc13e82f1323385e';
+
+@ProviderFor(deleteBudgetUseCase)
+const deleteBudgetUseCaseProvider = DeleteBudgetUseCaseProvider._();
+
+final class DeleteBudgetUseCaseProvider
+    extends
+        $FunctionalProvider<
+          DeleteBudgetUseCase,
+          DeleteBudgetUseCase,
+          DeleteBudgetUseCase
+        >
+    with $Provider<DeleteBudgetUseCase> {
+  const DeleteBudgetUseCaseProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'deleteBudgetUseCaseProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$deleteBudgetUseCaseHash();
+
+  @$internal
+  @override
+  $ProviderElement<DeleteBudgetUseCase> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  DeleteBudgetUseCase create(Ref ref) {
+    return deleteBudgetUseCase(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(DeleteBudgetUseCase value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<DeleteBudgetUseCase>(value),
+    );
+  }
+}
+
+String _$deleteBudgetUseCaseHash() =>
+    r'a6fb7a342d2508fdd4b4cf21c9db445192eb25d2';
+
+@ProviderFor(computeBudgetProgressUseCase)
+const computeBudgetProgressUseCaseProvider =
+    ComputeBudgetProgressUseCaseProvider._();
+
+final class ComputeBudgetProgressUseCaseProvider
+    extends
+        $FunctionalProvider<
+          ComputeBudgetProgressUseCase,
+          ComputeBudgetProgressUseCase,
+          ComputeBudgetProgressUseCase
+        >
+    with $Provider<ComputeBudgetProgressUseCase> {
+  const ComputeBudgetProgressUseCaseProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'computeBudgetProgressUseCaseProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$computeBudgetProgressUseCaseHash();
+
+  @$internal
+  @override
+  $ProviderElement<ComputeBudgetProgressUseCase> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  ComputeBudgetProgressUseCase create(Ref ref) {
+    return computeBudgetProgressUseCase(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(ComputeBudgetProgressUseCase value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<ComputeBudgetProgressUseCase>(value),
+    );
+  }
+}
+
+String _$computeBudgetProgressUseCaseHash() =>
+    r'6e959206f2a50fea51f6fda1927229c34dbd7a52';
 
 @ProviderFor(categoryRepository)
 const categoryRepositoryProvider = CategoryRepositoryProvider._();
@@ -1450,6 +1870,52 @@ final class TransactionRepositoryProvider
 
 String _$transactionRepositoryHash() =>
     r'3799c3525d6954f2ece515445c06171d0fba71ef';
+
+@ProviderFor(budgetRepository)
+const budgetRepositoryProvider = BudgetRepositoryProvider._();
+
+final class BudgetRepositoryProvider
+    extends
+        $FunctionalProvider<
+          BudgetRepository,
+          BudgetRepository,
+          BudgetRepository
+        >
+    with $Provider<BudgetRepository> {
+  const BudgetRepositoryProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'budgetRepositoryProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$budgetRepositoryHash();
+
+  @$internal
+  @override
+  $ProviderElement<BudgetRepository> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  BudgetRepository create(Ref ref) {
+    return budgetRepository(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(BudgetRepository value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<BudgetRepository>(value),
+    );
+  }
+}
+
+String _$budgetRepositoryHash() => r'04bad8edb2ea732d9f98e0e2c0bbcf28348162f3';
 
 @ProviderFor(recurringTransactionsRepository)
 const recurringTransactionsRepositoryProvider =
@@ -2278,7 +2744,7 @@ final class SyncServiceProvider
   }
 }
 
-String _$syncServiceHash() => r'3b1f8d33016de3a04b4396c8857479d15fdb495a';
+String _$syncServiceHash() => r'f93c4ee941a1783d4a3b7054cdc10e857120af73';
 
 @ProviderFor(authRepository)
 const authRepositoryProvider = AuthRepositoryProvider._();
@@ -2361,4 +2827,4 @@ final class AuthSyncServiceProvider
   }
 }
 
-String _$authSyncServiceHash() => r'a53d963aa290c2c23d1410c64da95d4089173caa';
+String _$authSyncServiceHash() => r'4149ebf6b09190bad7171152e6de60fda970ada9';
