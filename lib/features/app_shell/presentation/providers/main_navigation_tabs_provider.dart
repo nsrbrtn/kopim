@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kopim/features/analytics/presentation/analytics_screen.dart';
 import 'package:kopim/features/budgets/presentation/budgets_screen.dart';
 import 'package:kopim/features/home/presentation/screens/home_screen.dart';
+import 'package:kopim/features/profile/presentation/screens/general_settings_screen.dart';
 import 'package:kopim/features/profile/presentation/screens/profile_screen.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
@@ -42,6 +43,9 @@ final Provider<List<NavigationTabConfig>> mainNavigationTabsProvider =
           labelBuilder: (BuildContext context) =>
               AppLocalizations.of(context)!.homeNavSettings,
           contentBuilder: buildProfileTabContent,
+          onSelected: (BuildContext context, WidgetRef ref) {
+            Navigator.of(context).pushNamed(GeneralSettingsScreen.routeName);
+          },
         ),
       ];
     });

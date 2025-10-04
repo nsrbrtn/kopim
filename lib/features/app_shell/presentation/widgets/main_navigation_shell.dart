@@ -44,9 +44,18 @@ class MainNavigationShell extends ConsumerWidget {
       bottomNavigationBar: isCurrentRoute
           ? BottomNavigationBar(
               currentIndex: currentIndex,
-              onTap: (int index) => ref
-                  .read(mainNavigationControllerProvider.notifier)
-                  .setIndex(index),
+              onTap: (int index) {
+                final NavigationTabConfig config = tabs[index];
+                final NavigationTabSelectionCallback? onSelected =
+                    config.onSelected;
+                if (onSelected != null) {
+                  onSelected(context, ref);
+                  return;
+                }
+                ref
+                    .read(mainNavigationControllerProvider.notifier)
+                    .setIndex(index);
+              },
               items: <BottomNavigationBarItem>[
                 for (final NavigationTabConfig config in tabs)
                   BottomNavigationBarItem(

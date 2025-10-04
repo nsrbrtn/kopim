@@ -213,6 +213,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileDarkModeDescription => 'Override the app theme.';
 
   @override
+  String get profileThemeHeader => 'Theme';
+
+  @override
+  String get profileThemeOptionSystem => 'System default';
+
+  @override
+  String get profileThemeOptionLight => 'Light';
+
+  @override
+  String get profileThemeOptionDark => 'Dark';
+
+  @override
+  String get profileThemeLightDescription => 'Use a bright interface.';
+
+  @override
+  String get profileThemeDarkDescription => 'Use a dimmed interface.';
+
+  @override
   String get profileDarkModeSystemCta => 'Use system setting';
 
   @override

@@ -6,6 +6,9 @@ import 'navigation_tab_content.dart';
 typedef NavigationTabContentBuilder =
     NavigationTabContent Function(BuildContext context, WidgetRef ref);
 
+typedef NavigationTabSelectionCallback =
+    void Function(BuildContext context, WidgetRef ref);
+
 typedef NavigationTabLabelBuilder = String Function(BuildContext context);
 
 class NavigationTabConfig {
@@ -15,6 +18,7 @@ class NavigationTabConfig {
     required this.activeIcon,
     required this.labelBuilder,
     required this.contentBuilder,
+    this.onSelected,
   });
 
   final String id;
@@ -22,4 +26,5 @@ class NavigationTabConfig {
   final IconData activeIcon;
   final NavigationTabLabelBuilder labelBuilder;
   final NavigationTabContentBuilder contentBuilder;
+  final NavigationTabSelectionCallback? onSelected;
 }

@@ -56,6 +56,9 @@ void main() {
 
     expect(controller.debugState, const AppThemeMode.light());
 
+    await tester.tap(find.text(strings.profileThemeHeader));
+    await tester.pumpAndSettle();
+
     await tester.tap(find.text(strings.profileDarkModeSystemCta));
     await tester.pump();
 
