@@ -419,7 +419,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get homeUpcomingPaymentsTitle => 'Ближайшие платежи';
 
   @override
-  String get homeUpcomingPaymentsEmpty => 'Здесь пока ничего нет.';
+  String get homeUpcomingPaymentsEmpty => 'Ничего нет.';
 
   @override
   String get homeUpcomingPaymentsEmptyHeader => 'Нет ближайших платежей';
