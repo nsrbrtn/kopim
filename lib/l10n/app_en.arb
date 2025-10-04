@@ -345,6 +345,14 @@
   "@addRecurringRuleAccountRequired": {
     "description": "Validation error when no account selected"
   },
+  "addRecurringRuleCategoryLabel": "Category",
+  "@addRecurringRuleCategoryLabel": {
+    "description": "Label for the category dropdown"
+  },
+  "addRecurringRuleCategoryRequired": "Select a category",
+  "@addRecurringRuleCategoryRequired": {
+    "description": "Validation error when no category selected"
+  },
   "addRecurringRuleTypeLabel": "Type",
   "@addRecurringRuleTypeLabel": {
     "description": "Label for the transaction type selector"
@@ -369,6 +377,14 @@
   "@addRecurringRuleAutoPostLabel": {
     "description": "Label for the auto-post toggle"
   },
+  "addRecurringRuleNextDuePreviewLabel": "Next due",
+  "@addRecurringRuleNextDuePreviewLabel": {
+    "description": "Label for the next due preview"
+  },
+  "addRecurringRuleNextDuePreviewUnknown": "—",
+  "@addRecurringRuleNextDuePreviewUnknown": {
+    "description": "Placeholder when next due preview is unavailable"
+  },
   "addRecurringRuleSubmit": "Save rule",
   "@addRecurringRuleSubmit": {
     "description": "Label for the submit button"
@@ -380,6 +396,10 @@
   "addRecurringRuleNoAccounts": "Add an account before creating a recurring rule.",
   "@addRecurringRuleNoAccounts": {
     "description": "Message shown when there are no accounts"
+  },
+  "addRecurringRuleNoCategories": "Add a category before creating a recurring rule.",
+  "@addRecurringRuleNoCategories": {
+    "description": "Message shown when there are no categories"
   },
   "addRecurringRuleSuccess": "Recurring transaction saved",
   "@addRecurringRuleSuccess": {

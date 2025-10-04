@@ -56,6 +56,7 @@ class RecurringRuleDao {
       id: Value<String>(rule.id),
       title: Value<String>(rule.title),
       accountId: Value<String>(rule.accountId),
+      categoryId: Value<String>(rule.categoryId),
       amount: Value<double>(rule.amount),
       currency: Value<String>(rule.currency),
       startAt: Value<DateTime>(rule.startAt.toUtc()),

@@ -2875,6 +2875,20 @@ class $RecurringRulesTable extends RecurringRules
       'REFERENCES accounts (id) ON DELETE CASCADE',
     ),
   );
+  static const VerificationMeta _categoryIdMeta = const VerificationMeta(
+    'categoryId',
+  );
+  @override
+  late final GeneratedColumn<String> categoryId = GeneratedColumn<String>(
+    'category_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES categories (id) ON DELETE CASCADE',
+    ),
+  );
   static const VerificationMeta _amountMeta = const VerificationMeta('amount');
   @override
   late final GeneratedColumn<double> amount = GeneratedColumn<double>(
@@ -3095,6 +3109,7 @@ class $RecurringRulesTable extends RecurringRules
     id,
     title,
     accountId,
+    categoryId,
     amount,
     currency,
     startAt,
@@ -3146,6 +3161,14 @@ class $RecurringRulesTable extends RecurringRules
       );
     } else if (isInserting) {
       context.missing(_accountIdMeta);
+    }
+    if (data.containsKey('category_id')) {
+      context.handle(
+        _categoryIdMeta,
+        categoryId.isAcceptableOrUnknown(data['category_id']!, _categoryIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_categoryIdMeta);
     }
     if (data.containsKey('amount')) {
       context.handle(
@@ -3304,6 +3327,10 @@ class $RecurringRulesTable extends RecurringRules
         DriftSqlType.string,
         data['${effectivePrefix}account_id'],
       )!,
+      categoryId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}category_id'],
+      )!,
       amount: attachedDatabase.typeMapping.read(
         DriftSqlType.double,
         data['${effectivePrefix}amount'],
@@ -3390,6 +3417,7 @@ class RecurringRuleRow extends DataClass
   final String id;
   final String title;
   final String accountId;
+  final String categoryId;
   final double amount;
   final String currency;
   final DateTime startAt;
@@ -3412,6 +3440,7 @@ class RecurringRuleRow extends DataClass
     required this.id,
     required this.title,
     required this.accountId,
+    required this.categoryId,
     required this.amount,
     required this.currency,
     required this.startAt,
@@ -3437,6 +3466,7 @@ class RecurringRuleRow extends DataClass
     map['id'] = Variable<String>(id);
     map['title'] = Variable<String>(title);
     map['account_id'] = Variable<String>(accountId);
+    map['category_id'] = Variable<String>(categoryId);
     map['amount'] = Variable<double>(amount);
     map['currency'] = Variable<String>(currency);
     map['start_at'] = Variable<DateTime>(startAt);
@@ -3473,6 +3503,7 @@ class RecurringRuleRow extends DataClass
       id: Value(id),
       title: Value(title),
       accountId: Value(accountId),
+      categoryId: Value(categoryId),
       amount: Value(amount),
       currency: Value(currency),
       startAt: Value(startAt),
@@ -3513,6 +3544,7 @@ class RecurringRuleRow extends DataClass
       id: serializer.fromJson<String>(json['id']),
       title: serializer.fromJson<String>(json['title']),
       accountId: serializer.fromJson<String>(json['accountId']),
+      categoryId: serializer.fromJson<String>(json['categoryId']),
       amount: serializer.fromJson<double>(json['amount']),
       currency: serializer.fromJson<String>(json['currency']),
       startAt: serializer.fromJson<DateTime>(json['startAt']),
@@ -3544,6 +3576,7 @@ class RecurringRuleRow extends DataClass
       'id': serializer.toJson<String>(id),
       'title': serializer.toJson<String>(title),
       'accountId': serializer.toJson<String>(accountId),
+      'categoryId': serializer.toJson<String>(categoryId),
       'amount': serializer.toJson<double>(amount),
       'currency': serializer.toJson<String>(currency),
       'startAt': serializer.toJson<DateTime>(startAt),
@@ -3569,6 +3602,7 @@ class RecurringRuleRow extends DataClass
     String? id,
     String? title,
     String? accountId,
+    String? categoryId,
     double? amount,
     String? currency,
     DateTime? startAt,
@@ -3591,6 +3625,7 @@ class RecurringRuleRow extends DataClass
     id: id ?? this.id,
     title: title ?? this.title,
     accountId: accountId ?? this.accountId,
+    categoryId: categoryId ?? this.categoryId,
     amount: amount ?? this.amount,
     currency: currency ?? this.currency,
     startAt: startAt ?? this.startAt,
@@ -3619,6 +3654,9 @@ class RecurringRuleRow extends DataClass
       id: data.id.present ? data.id.value : this.id,
       title: data.title.present ? data.title.value : this.title,
       accountId: data.accountId.present ? data.accountId.value : this.accountId,
+      categoryId: data.categoryId.present
+          ? data.categoryId.value
+          : this.categoryId,
       amount: data.amount.present ? data.amount.value : this.amount,
       currency: data.currency.present ? data.currency.value : this.currency,
       startAt: data.startAt.present ? data.startAt.value : this.startAt,
@@ -3658,6 +3696,7 @@ class RecurringRuleRow extends DataClass
           ..write('id: $id, ')
           ..write('title: $title, ')
           ..write('accountId: $accountId, ')
+          ..write('categoryId: $categoryId, ')
           ..write('amount: $amount, ')
           ..write('currency: $currency, ')
           ..write('startAt: $startAt, ')
@@ -3685,6 +3724,7 @@ class RecurringRuleRow extends DataClass
     id,
     title,
     accountId,
+    categoryId,
     amount,
     currency,
     startAt,
@@ -3711,6 +3751,7 @@ class RecurringRuleRow extends DataClass
           other.id == this.id &&
           other.title == this.title &&
           other.accountId == this.accountId &&
+          other.categoryId == this.categoryId &&
           other.amount == this.amount &&
           other.currency == this.currency &&
           other.startAt == this.startAt &&
@@ -3735,6 +3776,7 @@ class RecurringRulesCompanion extends UpdateCompanion<RecurringRuleRow> {
   final Value<String> id;
   final Value<String> title;
   final Value<String> accountId;
+  final Value<String> categoryId;
   final Value<double> amount;
   final Value<String> currency;
   final Value<DateTime> startAt;
@@ -3758,6 +3800,7 @@ class RecurringRulesCompanion extends UpdateCompanion<RecurringRuleRow> {
     this.id = const Value.absent(),
     this.title = const Value.absent(),
     this.accountId = const Value.absent(),
+    this.categoryId = const Value.absent(),
     this.amount = const Value.absent(),
     this.currency = const Value.absent(),
     this.startAt = const Value.absent(),
@@ -3782,6 +3825,7 @@ class RecurringRulesCompanion extends UpdateCompanion<RecurringRuleRow> {
     required String id,
     required String title,
     required String accountId,
+    required String categoryId,
     required double amount,
     required String currency,
     required DateTime startAt,
@@ -3804,6 +3848,7 @@ class RecurringRulesCompanion extends UpdateCompanion<RecurringRuleRow> {
   }) : id = Value(id),
        title = Value(title),
        accountId = Value(accountId),
+       categoryId = Value(categoryId),
        amount = Value(amount),
        currency = Value(currency),
        startAt = Value(startAt),
@@ -3813,6 +3858,7 @@ class RecurringRulesCompanion extends UpdateCompanion<RecurringRuleRow> {
     Expression<String>? id,
     Expression<String>? title,
     Expression<String>? accountId,
+    Expression<String>? categoryId,
     Expression<double>? amount,
     Expression<String>? currency,
     Expression<DateTime>? startAt,
@@ -3837,6 +3883,7 @@ class RecurringRulesCompanion extends UpdateCompanion<RecurringRuleRow> {
       if (id != null) 'id': id,
       if (title != null) 'title': title,
       if (accountId != null) 'account_id': accountId,
+      if (categoryId != null) 'category_id': categoryId,
       if (amount != null) 'amount': amount,
       if (currency != null) 'currency': currency,
       if (startAt != null) 'start_at': startAt,
@@ -3865,6 +3912,7 @@ class RecurringRulesCompanion extends UpdateCompanion<RecurringRuleRow> {
     Value<String>? id,
     Value<String>? title,
     Value<String>? accountId,
+    Value<String>? categoryId,
     Value<double>? amount,
     Value<String>? currency,
     Value<DateTime>? startAt,
@@ -3889,6 +3937,7 @@ class RecurringRulesCompanion extends UpdateCompanion<RecurringRuleRow> {
       id: id ?? this.id,
       title: title ?? this.title,
       accountId: accountId ?? this.accountId,
+      categoryId: categoryId ?? this.categoryId,
       amount: amount ?? this.amount,
       currency: currency ?? this.currency,
       startAt: startAt ?? this.startAt,
@@ -3923,6 +3972,9 @@ class RecurringRulesCompanion extends UpdateCompanion<RecurringRuleRow> {
     }
     if (accountId.present) {
       map['account_id'] = Variable<String>(accountId.value);
+    }
+    if (categoryId.present) {
+      map['category_id'] = Variable<String>(categoryId.value);
     }
     if (amount.present) {
       map['amount'] = Variable<double>(amount.value);
@@ -3992,6 +4044,7 @@ class RecurringRulesCompanion extends UpdateCompanion<RecurringRuleRow> {
           ..write('id: $id, ')
           ..write('title: $title, ')
           ..write('accountId: $accountId, ')
+          ..write('categoryId: $categoryId, ')
           ..write('amount: $amount, ')
           ..write('currency: $currency, ')
           ..write('startAt: $startAt, ')
@@ -5470,6 +5523,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     ),
     WritePropagation(
       on: TableUpdateQuery.onTableName(
+        'categories',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('recurring_rules', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
         'recurring_rules',
         limitUpdateKind: UpdateKind.delete,
       ),
@@ -6001,6 +6061,27 @@ final class $$CategoriesTableReferences
       manager.$state.copyWith(prefetchedData: cache),
     );
   }
+
+  static MultiTypedResultKey<$RecurringRulesTable, List<RecurringRuleRow>>
+  _recurringRulesRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.recurringRules,
+    aliasName: $_aliasNameGenerator(
+      db.categories.id,
+      db.recurringRules.categoryId,
+    ),
+  );
+
+  $$RecurringRulesTableProcessedTableManager get recurringRulesRefs {
+    final manager = $$RecurringRulesTableTableManager(
+      $_db,
+      $_db.recurringRules,
+    ).filter((f) => f.categoryId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_recurringRulesRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
 }
 
 class $$CategoriesTableFilterComposer
@@ -6083,6 +6164,31 @@ class $$CategoriesTableFilterComposer
           }) => $$TransactionsTableFilterComposer(
             $db: $db,
             $table: $db.transactions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> recurringRulesRefs(
+    Expression<bool> Function($$RecurringRulesTableFilterComposer f) f,
+  ) {
+    final $$RecurringRulesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.recurringRules,
+      getReferencedColumn: (t) => t.categoryId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$RecurringRulesTableFilterComposer(
+            $db: $db,
+            $table: $db.recurringRules,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -6224,6 +6330,31 @@ class $$CategoriesTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> recurringRulesRefs<T extends Object>(
+    Expression<T> Function($$RecurringRulesTableAnnotationComposer a) f,
+  ) {
+    final $$RecurringRulesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.recurringRules,
+      getReferencedColumn: (t) => t.categoryId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$RecurringRulesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.recurringRules,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$CategoriesTableTableManager
@@ -6239,7 +6370,10 @@ class $$CategoriesTableTableManager
           $$CategoriesTableUpdateCompanionBuilder,
           (CategoryRow, $$CategoriesTableReferences),
           CategoryRow,
-          PrefetchHooks Function({bool transactionsRefs})
+          PrefetchHooks Function({
+            bool transactionsRefs,
+            bool recurringRulesRefs,
+          })
         > {
   $$CategoriesTableTableManager(_$AppDatabase db, $CategoriesTable table)
     : super(
@@ -6316,36 +6450,63 @@ class $$CategoriesTableTableManager
                 ),
               )
               .toList(),
-          prefetchHooksCallback: ({transactionsRefs = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [if (transactionsRefs) db.transactions],
-              addJoins: null,
-              getPrefetchedDataCallback: (items) async {
-                return [
-                  if (transactionsRefs)
-                    await $_getPrefetchedData<
-                      CategoryRow,
-                      $CategoriesTable,
-                      TransactionRow
-                    >(
-                      currentTable: table,
-                      referencedTable: $$CategoriesTableReferences
-                          ._transactionsRefsTable(db),
-                      managerFromTypedResult: (p0) =>
-                          $$CategoriesTableReferences(
-                            db,
-                            table,
-                            p0,
-                          ).transactionsRefs,
-                      referencedItemsForCurrentItem: (item, referencedItems) =>
-                          referencedItems.where((e) => e.categoryId == item.id),
-                      typedResults: items,
-                    ),
-                ];
+          prefetchHooksCallback:
+              ({transactionsRefs = false, recurringRulesRefs = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (transactionsRefs) db.transactions,
+                    if (recurringRulesRefs) db.recurringRules,
+                  ],
+                  addJoins: null,
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (transactionsRefs)
+                        await $_getPrefetchedData<
+                          CategoryRow,
+                          $CategoriesTable,
+                          TransactionRow
+                        >(
+                          currentTable: table,
+                          referencedTable: $$CategoriesTableReferences
+                              ._transactionsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$CategoriesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).transactionsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.categoryId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (recurringRulesRefs)
+                        await $_getPrefetchedData<
+                          CategoryRow,
+                          $CategoriesTable,
+                          RecurringRuleRow
+                        >(
+                          currentTable: table,
+                          referencedTable: $$CategoriesTableReferences
+                              ._recurringRulesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$CategoriesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).recurringRulesRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.categoryId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
               },
-            );
-          },
         ),
       );
 }
@@ -6362,7 +6523,7 @@ typedef $$CategoriesTableProcessedTableManager =
       $$CategoriesTableUpdateCompanionBuilder,
       (CategoryRow, $$CategoriesTableReferences),
       CategoryRow,
-      PrefetchHooks Function({bool transactionsRefs})
+      PrefetchHooks Function({bool transactionsRefs, bool recurringRulesRefs})
     >;
 typedef $$TransactionsTableCreateCompanionBuilder =
     TransactionsCompanion Function({
@@ -7380,6 +7541,7 @@ typedef $$RecurringRulesTableCreateCompanionBuilder =
       required String id,
       required String title,
       required String accountId,
+      required String categoryId,
       required double amount,
       required String currency,
       required DateTime startAt,
@@ -7405,6 +7567,7 @@ typedef $$RecurringRulesTableUpdateCompanionBuilder =
       Value<String> id,
       Value<String> title,
       Value<String> accountId,
+      Value<String> categoryId,
       Value<double> amount,
       Value<String> currency,
       Value<DateTime> startAt,
@@ -7448,6 +7611,25 @@ final class $$RecurringRulesTableReferences
       $_db.accounts,
     ).filter((f) => f.id.sqlEquals($_column));
     final item = $_typedResult.readTableOrNull(_accountIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $CategoriesTable _categoryIdTable(_$AppDatabase db) =>
+      db.categories.createAlias(
+        $_aliasNameGenerator(db.recurringRules.categoryId, db.categories.id),
+      );
+
+  $$CategoriesTableProcessedTableManager get categoryId {
+    final $_column = $_itemColumn<String>('category_id')!;
+
+    final manager = $$CategoriesTableTableManager(
+      $_db,
+      $_db.categories,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_categoryIdTable($_db));
     if (item == null) return manager;
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: [item]),
@@ -7643,6 +7825,29 @@ class $$RecurringRulesTableFilterComposer
     return composer;
   }
 
+  $$CategoriesTableFilterComposer get categoryId {
+    final $$CategoriesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.categoryId,
+      referencedTable: $db.categories,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CategoriesTableFilterComposer(
+            $db: $db,
+            $table: $db.categories,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
   Expression<bool> recurringOccurrencesRefs(
     Expression<bool> Function($$RecurringOccurrencesTableFilterComposer f) f,
   ) {
@@ -7826,6 +8031,29 @@ class $$RecurringRulesTableOrderingComposer
     );
     return composer;
   }
+
+  $$CategoriesTableOrderingComposer get categoryId {
+    final $$CategoriesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.categoryId,
+      referencedTable: $db.categories,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CategoriesTableOrderingComposer(
+            $db: $db,
+            $table: $db.categories,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$RecurringRulesTableAnnotationComposer
@@ -7932,6 +8160,29 @@ class $$RecurringRulesTableAnnotationComposer
     return composer;
   }
 
+  $$CategoriesTableAnnotationComposer get categoryId {
+    final $$CategoriesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.categoryId,
+      referencedTable: $db.categories,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CategoriesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.categories,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
   Expression<T> recurringOccurrencesRefs<T extends Object>(
     Expression<T> Function($$RecurringOccurrencesTableAnnotationComposer a) f,
   ) {
@@ -8001,6 +8252,7 @@ class $$RecurringRulesTableTableManager
           RecurringRuleRow,
           PrefetchHooks Function({
             bool accountId,
+            bool categoryId,
             bool recurringOccurrencesRefs,
             bool recurringRuleExecutionsRefs,
           })
@@ -8023,6 +8275,7 @@ class $$RecurringRulesTableTableManager
                 Value<String> id = const Value.absent(),
                 Value<String> title = const Value.absent(),
                 Value<String> accountId = const Value.absent(),
+                Value<String> categoryId = const Value.absent(),
                 Value<double> amount = const Value.absent(),
                 Value<String> currency = const Value.absent(),
                 Value<DateTime> startAt = const Value.absent(),
@@ -8046,6 +8299,7 @@ class $$RecurringRulesTableTableManager
                 id: id,
                 title: title,
                 accountId: accountId,
+                categoryId: categoryId,
                 amount: amount,
                 currency: currency,
                 startAt: startAt,
@@ -8071,6 +8325,7 @@ class $$RecurringRulesTableTableManager
                 required String id,
                 required String title,
                 required String accountId,
+                required String categoryId,
                 required double amount,
                 required String currency,
                 required DateTime startAt,
@@ -8094,6 +8349,7 @@ class $$RecurringRulesTableTableManager
                 id: id,
                 title: title,
                 accountId: accountId,
+                categoryId: categoryId,
                 amount: amount,
                 currency: currency,
                 startAt: startAt,
@@ -8125,6 +8381,7 @@ class $$RecurringRulesTableTableManager
           prefetchHooksCallback:
               ({
                 accountId = false,
+                categoryId = false,
                 recurringOccurrencesRefs = false,
                 recurringRuleExecutionsRefs = false,
               }) {
@@ -8161,6 +8418,21 @@ class $$RecurringRulesTableTableManager
                                     referencedColumn:
                                         $$RecurringRulesTableReferences
                                             ._accountIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
+                        if (categoryId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.categoryId,
+                                    referencedTable:
+                                        $$RecurringRulesTableReferences
+                                            ._categoryIdTable(db),
+                                    referencedColumn:
+                                        $$RecurringRulesTableReferences
+                                            ._categoryIdTable(db)
                                             .id,
                                   )
                                   as T;
@@ -8234,6 +8506,7 @@ typedef $$RecurringRulesTableProcessedTableManager =
       RecurringRuleRow,
       PrefetchHooks Function({
         bool accountId,
+        bool categoryId,
         bool recurringOccurrencesRefs,
         bool recurringRuleExecutionsRefs,
       })

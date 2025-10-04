@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:kopim/core/di/injectors.dart';
-import 'package:kopim/features/recurring_transactions/domain/entities/recurring_occurrence.dart';
 import 'package:kopim/features/recurring_transactions/domain/entities/recurring_rule.dart';
 import 'package:kopim/features/recurring_transactions/presentation/controllers/recurring_transactions_providers.dart';
 import 'package:kopim/features/recurring_transactions/presentation/models/recurring_rule_form_result.dart';
 import 'package:kopim/features/recurring_transactions/presentation/screens/add_recurring_rule_screen.dart';
+import 'package:kopim/features/recurring_transactions/domain/services/recurring_rule_scheduler.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
 /// Entry point screen that will host recurring transaction management.
@@ -21,9 +21,8 @@ class RecurringTransactionsScreen extends ConsumerWidget {
     final AsyncValue<List<RecurringRule>> rulesAsync = ref.watch(
       recurringRulesProvider,
     );
-    final AsyncValue<List<RecurringOccurrence>> upcomingAsync = ref.watch(
-      upcomingRecurringOccurrencesProvider(),
-    );
+    const RecurringRuleScheduler scheduler = RecurringRuleScheduler();
+    final DateTime now = DateTime.now();
 
     return Scaffold(
       appBar: AppBar(title: Text(strings.recurringTransactionsTitle)),
@@ -32,8 +31,6 @@ class RecurringTransactionsScreen extends ConsumerWidget {
           if (rules.isEmpty) {
             return _EmptyState(message: strings.recurringTransactionsEmpty);
           }
-          final Map<String, RecurringOccurrence?> nextByRule =
-              _mapNextOccurrence(rules: rules, occurrencesAsync: upcomingAsync);
           return RefreshIndicator(
             onRefresh: () async {
               await ref.read(recurringWindowServiceProvider).rebuildWindow();
@@ -42,10 +39,14 @@ class RecurringTransactionsScreen extends ConsumerWidget {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
               itemBuilder: (BuildContext context, int index) {
                 final RecurringRule rule = rules[index];
-                final RecurringOccurrence? nextOccurrence = nextByRule[rule.id];
+                final DateTime? nextDue = _resolveNextDue(
+                  rule: rule,
+                  scheduler: scheduler,
+                  now: now,
+                );
                 return _RecurringRuleTile(
                   rule: rule,
-                  nextOccurrence: nextOccurrence,
+                  nextDue: nextDue,
                   onToggle: (bool value) async {
                     await ref
                         .read(toggleRecurringRuleUseCaseProvider)
@@ -72,40 +73,32 @@ class RecurringTransactionsScreen extends ConsumerWidget {
     );
   }
 
-  Map<String, RecurringOccurrence?> _mapNextOccurrence({
-    required List<RecurringRule> rules,
-    required AsyncValue<List<RecurringOccurrence>> occurrencesAsync,
+  DateTime? _resolveNextDue({
+    required RecurringRule rule,
+    required RecurringRuleScheduler scheduler,
+    required DateTime now,
   }) {
-    final Map<String, RecurringOccurrence?> map =
-        <String, RecurringOccurrence?>{};
-    final List<RecurringOccurrence>? occurrences = occurrencesAsync.value;
-    if (occurrences == null) {
-      for (final RecurringRule rule in rules) {
-        map[rule.id] = null;
+    final RecurringRuleScheduleResult schedule = scheduler.resolve(
+      rule: rule,
+      now: now,
+    );
+    final DateTime today = DateTime(now.year, now.month, now.day);
+    DateTime? candidate;
+    if (schedule.dueDates.isNotEmpty) {
+      final DateTime lastDue = schedule.dueDates.last;
+      if (!lastDue.isBefore(today)) {
+        candidate = lastDue;
       }
-      return map;
     }
-    final Map<String, List<RecurringOccurrence>> grouped =
-        <String, List<RecurringOccurrence>>{};
-    for (final RecurringOccurrence occurrence in occurrences) {
-      final List<RecurringOccurrence> list = grouped.putIfAbsent(
-        occurrence.ruleId,
-        () => <RecurringOccurrence>[],
-      );
-      list.add(occurrence);
+    candidate ??= schedule.nextDue;
+    if (candidate.isBefore(today)) {
+      return null;
     }
-    grouped.updateAll((String key, List<RecurringOccurrence> value) {
-      value.sort(
-        (RecurringOccurrence a, RecurringOccurrence b) =>
-            a.dueAt.compareTo(b.dueAt),
-      );
-      return value;
-    });
-    for (final RecurringRule rule in rules) {
-      final List<RecurringOccurrence>? list = grouped[rule.id];
-      map[rule.id] = list == null || list.isEmpty ? null : list.first;
+    final int daysAhead = candidate.difference(today).inDays;
+    if (daysAhead > 30) {
+      return null;
     }
-    return map;
+    return candidate;
   }
 
   Future<void> _onAddRulePressed(BuildContext context) async {
@@ -203,14 +196,14 @@ class RecurringTransactionsScreen extends ConsumerWidget {
 class _RecurringRuleTile extends StatelessWidget {
   const _RecurringRuleTile({
     required this.rule,
-    required this.nextOccurrence,
+    required this.nextDue,
     required this.onToggle,
     required this.onEdit,
     required this.onDelete,
   });
 
   final RecurringRule rule;
-  final RecurringOccurrence? nextOccurrence;
+  final DateTime? nextDue;
   final ValueChanged<bool> onToggle;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
@@ -218,10 +211,10 @@ class _RecurringRuleTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final DateFormat dateFormat = DateFormat.yMMMMd();
-    final String subtitle = nextOccurrence == null
+    final String subtitle = nextDue == null
         ? AppLocalizations.of(context)!.recurringTransactionsNoUpcoming
         : '${AppLocalizations.of(context)!.recurringTransactionsNextDue}: '
-              '${dateFormat.format(nextOccurrence!.dueAt.toLocal())}';
+              '${dateFormat.format(nextDue!.toLocal())}';
     return Material(
       elevation: 1,
       borderRadius: BorderRadius.circular(12),

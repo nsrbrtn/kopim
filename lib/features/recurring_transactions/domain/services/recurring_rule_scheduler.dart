@@ -63,26 +63,40 @@ class RecurringRuleScheduler {
   }) {
     final DateTime? stored = rule.nextDueLocalDate?.toLocal();
     if (stored != null) {
-      return DateTime(stored.year, stored.month, stored.day, hour, minute);
+      return _buildDueDate(
+        year: stored.year,
+        month: stored.month,
+        targetDay: targetDay,
+        hour: hour,
+        minute: minute,
+      );
     }
 
     final DateTime startLocal = rule.startAt.toLocal();
-    final DateTime candidate = _buildDueDate(
+    DateTime candidate = _buildDueDate(
       year: startLocal.year,
       month: startLocal.month,
       targetDay: targetDay,
       hour: hour,
       minute: minute,
     );
-    if (!candidate.isBefore(startLocal)) {
-      return candidate;
+    if (candidate.isBefore(
+      DateTime(
+        startLocal.year,
+        startLocal.month,
+        startLocal.day,
+        startLocal.hour,
+        startLocal.minute,
+      ),
+    )) {
+      candidate = _advanceMonth(
+        candidate,
+        targetDay: targetDay,
+        hour: hour,
+        minute: minute,
+      );
     }
-    return _advanceMonth(
-      candidate,
-      targetDay: targetDay,
-      hour: hour,
-      minute: minute,
-    );
+    return candidate;
   }
 
   DateTime _advanceMonth(

@@ -263,6 +263,12 @@ class AppLocalizationsRu extends AppLocalizations {
   String get addRecurringRuleAccountRequired => 'Выберите счёт';
 
   @override
+  String get addRecurringRuleCategoryLabel => 'Категория';
+
+  @override
+  String get addRecurringRuleCategoryRequired => 'Выберите категорию';
+
+  @override
   String get addRecurringRuleTypeLabel => 'Тип';
 
   @override
@@ -281,6 +287,12 @@ class AppLocalizationsRu extends AppLocalizations {
   String get addRecurringRuleAutoPostLabel => 'Проводить автоматически';
 
   @override
+  String get addRecurringRuleNextDuePreviewLabel => 'Ближайшая дата';
+
+  @override
+  String get addRecurringRuleNextDuePreviewUnknown => '—';
+
+  @override
   String get addRecurringRuleSubmit => 'Сохранить правило';
 
   @override
@@ -289,6 +301,10 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get addRecurringRuleNoAccounts =>
       'Сначала добавьте счёт, чтобы создать повторяющееся правило.';
+
+  @override
+  String get addRecurringRuleNoCategories =>
+      'Сначала добавьте категорию, чтобы создать повторяющееся правило.';
 
   @override
   String get addRecurringRuleSuccess => 'Повторяющаяся операция сохранена';

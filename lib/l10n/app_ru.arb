@@ -345,6 +345,14 @@
   "@addRecurringRuleAccountRequired": {
     "description": "Сообщение об ошибке, если счёт не выбран"
   },
+  "addRecurringRuleCategoryLabel": "Категория",
+  "@addRecurringRuleCategoryLabel": {
+    "description": "Подпись выпадающего списка с категориями"
+  },
+  "addRecurringRuleCategoryRequired": "Выберите категорию",
+  "@addRecurringRuleCategoryRequired": {
+    "description": "Сообщение об ошибке, если категория не выбрана"
+  },
   "addRecurringRuleTypeLabel": "Тип",
   "@addRecurringRuleTypeLabel": {
     "description": "Подпись выбора типа операции"
@@ -369,6 +377,14 @@
   "@addRecurringRuleAutoPostLabel": {
     "description": "Подпись переключателя автопроведения"
   },
+  "addRecurringRuleNextDuePreviewLabel": "Ближайшая дата",
+  "@addRecurringRuleNextDuePreviewLabel": {
+    "description": "Подпись предварительного просмотра следующей даты"
+  },
+  "addRecurringRuleNextDuePreviewUnknown": "—",
+  "@addRecurringRuleNextDuePreviewUnknown": {
+    "description": "Заглушка, когда невозможно рассчитать дату"
+  },
   "addRecurringRuleSubmit": "Сохранить правило",
   "@addRecurringRuleSubmit": {
     "description": "Подпись кнопки сохранения повторяющегося правила"
@@ -380,6 +396,10 @@
   "addRecurringRuleNoAccounts": "Сначала добавьте счёт, чтобы создать повторяющееся правило.",
   "@addRecurringRuleNoAccounts": {
     "description": "Сообщение, когда нет доступных счетов"
+  },
+  "addRecurringRuleNoCategories": "Сначала добавьте категорию, чтобы создать повторяющееся правило.",
+  "@addRecurringRuleNoCategories": {
+    "description": "Сообщение, когда нет доступных категорий"
   },
   "addRecurringRuleSuccess": "Повторяющаяся операция сохранена",
   "@addRecurringRuleSuccess": {

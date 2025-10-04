@@ -51,6 +51,15 @@ void main() {
             type: 'cash',
           ),
         );
+    await database
+        .into(database.categories)
+        .insert(
+          CategoriesCompanion.insert(
+            id: 'cat1',
+            name: 'Subscriptions',
+            type: 'expense',
+          ),
+        );
   });
 
   tearDown(() async {
@@ -65,10 +74,11 @@ void main() {
         id: 'rule1',
         title: 'Monthly subscription',
         accountId: 'acc1',
+        categoryId: 'cat1',
         amount: 50,
         currency: 'USD',
         startAt: DateTime(2024, 1, 31, 0, 1),
-        timezone: 'UTC',
+        timezone: 'Europe/Helsinki',
         rrule: 'FREQ=MONTHLY',
         notes: 'Test rule',
         autoPost: true,
@@ -136,6 +146,8 @@ void main() {
         transactions.first.date.toUtc(),
         DateTime(2024, 2, 29, 0, 1).toUtc(),
       );
+      expect(transactions.first.note, 'Автоплатеж "Monthly subscription"');
+      expect(transactions.first.categoryId, 'cat1');
 
       final AccountRow account = await database
           .select(database.accounts)
@@ -172,4 +184,50 @@ void main() {
       expect(transactionsAfterSecondRun, hasLength(1));
     },
   );
+
+  test('reminder mode rules не создают транзакции', () async {
+    final DateTime created = DateTime.utc(2024, 1, 1);
+    final RecurringRule rule = RecurringRule(
+      id: 'rule-reminder',
+      title: 'Напоминание об аренде',
+      accountId: 'acc1',
+      categoryId: 'cat1',
+      amount: 800,
+      currency: 'USD',
+      startAt: DateTime(2024, 3, 1, 0, 1),
+      timezone: 'Europe/Helsinki',
+      rrule: 'FREQ=MONTHLY;INTERVAL=1;BYMONTHDAY=1',
+      notes: null,
+      dayOfMonth: 1,
+      applyAtLocalHour: 0,
+      applyAtLocalMinute: 1,
+      lastRunAt: null,
+      nextDueLocalDate: DateTime(2024, 3, 1, 0, 1),
+      isActive: true,
+      autoPost: false,
+      reminderMinutesBefore: null,
+      shortMonthPolicy: RecurringRuleShortMonthPolicy.clipToLastDay,
+      createdAt: created,
+      updatedAt: created,
+    );
+    await repository.upsertRule(rule);
+
+    final ApplyRecurringRulesUseCase useCase = ApplyRecurringRulesUseCase(
+      repository: repository,
+      postTransaction: (_) async {
+        fail('Не должно создаваться транзакций для режима напоминания');
+      },
+      clock: () => DateTime(2024, 3, 1, 8, 0),
+    );
+
+    final ApplyRecurringRulesResult result = await useCase();
+
+    expect(result.applied, 0);
+    expect(result.skipped, 0);
+
+    final List<TransactionRow> transactions = await database
+        .select(database.transactions)
+        .get();
+    expect(transactions, isEmpty);
+  });
 }

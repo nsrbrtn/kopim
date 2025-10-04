@@ -24,6 +24,7 @@ abstract class RecurringRule with _$RecurringRule {
     required String id,
     required String title,
     required String accountId,
+    required String categoryId,
     required double amount,
     required String currency,
     required DateTime startAt,
