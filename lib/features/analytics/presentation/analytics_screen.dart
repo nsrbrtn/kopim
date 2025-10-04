@@ -34,9 +34,9 @@ class AnalyticsScreen extends ConsumerWidget {
 }
 
 NavigationTabContent buildAnalyticsTabContent(
-  BuildContext context,
-  WidgetRef ref,
-) {
+    BuildContext context,
+    WidgetRef ref,
+    ) {
   final AppLocalizations strings = AppLocalizations.of(context)!;
   return NavigationTabContent(
     appBarBuilder: (BuildContext context, WidgetRef ref) =>
@@ -61,8 +61,8 @@ NavigationTabContent buildAnalyticsTabContent(
           accountsAsync.value ?? const <AccountEntity>[];
       final bool isLoading =
           overviewAsync.isLoading ||
-          categoriesAsync.isLoading ||
-          accountsAsync.isLoading;
+              categoriesAsync.isLoading ||
+              accountsAsync.isLoading;
       final Object? error =
           overviewAsync.error ?? categoriesAsync.error ?? accountsAsync.error;
       final AnalyticsOverview? overview = overviewAsync.value;
@@ -105,28 +105,28 @@ NavigationTabContent buildAnalyticsTabContent(
                 ),
               )
             else if (overview == null ||
-                (overview.totalIncome == 0 && overview.totalExpense == 0))
-              SliverFillRemaining(
-                hasScrollBody: false,
-                child: _AnalyticsEmpty(strings: strings),
-              )
-            else
-              SliverPadding(
-                padding: EdgeInsets.fromLTRB(
-                  horizontalPadding,
-                  24,
-                  horizontalPadding,
-                  32,
-                ),
-                sliver: SliverToBoxAdapter(
-                  child: _AnalyticsContent(
-                    overview: overview,
-                    categories: categories,
-                    filterState: filterState,
-                    strings: strings,
+                  (overview.totalIncome == 0 && overview.totalExpense == 0))
+                SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: _AnalyticsEmpty(strings: strings),
+                )
+              else
+                SliverPadding(
+                  padding: EdgeInsets.fromLTRB(
+                    horizontalPadding,
+                    24,
+                    horizontalPadding,
+                    32,
+                  ),
+                  sliver: SliverToBoxAdapter(
+                    child: _AnalyticsContent(
+                      overview: overview,
+                      categories: categories,
+                      filterState: filterState,
+                      strings: strings,
+                    ),
                   ),
                 ),
-              ),
           ],
         ),
       );
@@ -254,9 +254,9 @@ class _AnalyticsSummaryFrame extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
                   for (
-                    int index = 0;
-                    index < entries.length;
-                    index++
+                  int index = 0;
+                  index < entries.length;
+                  index++
                   ) ...<Widget>[
                     _SummaryValue(
                       entry: entries[index],
@@ -277,9 +277,9 @@ class _AnalyticsSummaryFrame extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 for (
-                  int index = 0;
-                  index < entries.length;
-                  index++
+                int index = 0;
+                index < entries.length;
+                index++
                 ) ...<Widget>[
                   Expanded(
                     child: _SummaryValue(
@@ -716,11 +716,11 @@ class _TopCategoriesPagerState extends State<_TopCategoriesPager> {
                   children: pages
                       .map(
                         (_TopCategoriesPageData data) => _TopCategoriesPage(
-                          data: data,
-                          currencyFormat: widget.currencyFormat,
-                          strings: widget.strings,
-                        ),
-                      )
+                      data: data,
+                      currencyFormat: widget.currencyFormat,
+                      strings: widget.strings,
+                    ),
+                  )
                       .toList(growable: false),
                 ),
               ),
@@ -734,26 +734,26 @@ class _TopCategoriesPagerState extends State<_TopCategoriesPager> {
   }
 
   List<_CategoryChartItem> _mapBreakdowns(
-    List<AnalyticsCategoryBreakdown> breakdowns,
-    Map<String, Category> categoriesById,
-    AppLocalizations strings,
-    ThemeData theme,
-  ) {
+      List<AnalyticsCategoryBreakdown> breakdowns,
+      Map<String, Category> categoriesById,
+      AppLocalizations strings,
+      ThemeData theme,
+      ) {
     return breakdowns
         .map((AnalyticsCategoryBreakdown breakdown) {
-          final Category? category = breakdown.categoryId == null
-              ? null
-              : categoriesById[breakdown.categoryId!];
-          final Color color =
-              parseHexColor(category?.color) ?? theme.colorScheme.primary;
-          final String title =
-              category?.name ?? strings.analyticsCategoryUncategorized;
-          return _CategoryChartItem(
-            title: title,
-            amount: breakdown.amount,
-            color: color,
-          );
-        })
+      final Category? category = breakdown.categoryId == null
+          ? null
+          : categoriesById[breakdown.categoryId!];
+      final Color color =
+          parseHexColor(category?.color) ?? theme.colorScheme.primary;
+      final String title =
+          category?.name ?? strings.analyticsCategoryUncategorized;
+      return _CategoryChartItem(
+        title: title,
+        amount: breakdown.amount,
+        color: color,
+      );
+    })
         .toList(growable: false);
   }
 }
@@ -798,7 +798,7 @@ class _TopCategoriesPage extends StatelessWidget {
         final double chartHeight = math.max(constraints.maxHeight - 48, 80);
         final double maxAmount = data.items.fold<double>(
           0,
-          (double previousValue, _CategoryChartItem item) =>
+              (double previousValue, _CategoryChartItem item) =>
               math.max(previousValue, item.amount.abs()),
         );
         return Column(
@@ -854,8 +854,8 @@ class _TopCategoriesLegend extends StatelessWidget {
       children: items
           .map(
             (_CategoryChartItem item) =>
-                _CategoryLegendChip(label: item.title, color: item.color),
-          )
+            _CategoryLegendChip(label: item.title, color: item.color),
+      )
           .toList(growable: false),
     );
   }
