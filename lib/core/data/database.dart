@@ -270,19 +270,34 @@ class AppDatabase extends _$AppDatabase {
         );
       }
       if (from < 7) {
-        await m.addColumn(recurringRules, recurringRules.categoryId);
-        await m.database.customStatement(
-          'INSERT INTO categories (id, name, type) VALUES (\'recurring_default_expense\', \'Автоплатежи\', \'expense\') '
-          'ON CONFLICT(id) DO NOTHING',
-        );
-        await m.database.customStatement(
-          'INSERT INTO categories (id, name, type) VALUES (\'recurring_default_income\', \'Автоплатежи (доход)\', \'income\') '
-          'ON CONFLICT(id) DO NOTHING',
-        );
-        await m.database.customStatement(
-          'UPDATE recurring_rules SET category_id = CASE WHEN category_id IS NULL THEN CASE WHEN amount >= 0 THEN '
-          "'recurring_default_expense' ELSE 'recurring_default_income' END ELSE category_id END",
-        );
+        const String defaultExpenseCategoryId = 'recurring_default_expense';
+        const String defaultIncomeCategoryId = 'recurring_default_income';
+
+        await m.database.customStatement('PRAGMA foreign_keys = ON');
+        await m.database.transaction(() async {
+          await m.database.customStatement(
+            'INSERT INTO categories (id, name, type) VALUES (\'$defaultExpenseCategoryId\', \'Автоплатежи\', \'expense\') '
+            'ON CONFLICT(id) DO NOTHING',
+          );
+          await m.database.customStatement(
+            'INSERT INTO categories (id, name, type) VALUES (\'$defaultIncomeCategoryId\', \'Автоплатежи (доход)\', \'income\') '
+            'ON CONFLICT(id) DO NOTHING',
+          );
+
+          await m.alterTable(
+            TableMigration(
+              recurringRules,
+              newColumns: <GeneratedColumn<String>>[recurringRules.categoryId],
+              columnTransformer: <GeneratedColumn<String>, Expression<String>>{
+                recurringRules.categoryId: const CustomExpression<String>(
+                  "CASE WHEN amount >= 0 THEN '$defaultExpenseCategoryId' ELSE '$defaultIncomeCategoryId' END",
+                ),
+              },
+            ),
+          );
+
+          await m.database.customStatement('PRAGMA foreign_key_check');
+        });
       }
     },
   );
