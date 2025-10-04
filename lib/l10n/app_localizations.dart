@@ -854,6 +854,54 @@ abstract class AppLocalizations {
   /// **'Uncategorized'**
   String get homeTransactionsUncategorized;
 
+  /// Header for the upcoming payments widget
+  ///
+  /// In en, this message translates to:
+  /// **'Upcoming payments'**
+  String get homeUpcomingPaymentsTitle;
+
+  /// Empty state when there are no upcoming payments
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing here.'**
+  String get homeUpcomingPaymentsEmpty;
+
+  /// Subtitle shown when no upcoming payment is scheduled
+  ///
+  /// In en, this message translates to:
+  /// **'No upcoming payments'**
+  String get homeUpcomingPaymentsEmptyHeader;
+
+  /// Subtitle with the nearest upcoming payment date
+  ///
+  /// In en, this message translates to:
+  /// **'Next due: {date}'**
+  String homeUpcomingPaymentsNextDate(String date);
+
+  /// Error shown when loading upcoming payments fails
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load upcoming payments: {error}'**
+  String homeUpcomingPaymentsError(String error);
+
+  /// Snackbar message when the source recurring rule is missing
+  ///
+  /// In en, this message translates to:
+  /// **'This recurring rule is no longer available.'**
+  String get homeUpcomingPaymentsMissingRule;
+
+  /// Subtitle for individual upcoming payment entries
+  ///
+  /// In en, this message translates to:
+  /// **'Due {date}'**
+  String homeUpcomingPaymentsDueDate(String date);
+
+  /// Accessibility label for the upcoming payments badge
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0 {No scheduled payments} one {# upcoming payment} other {# upcoming payments}}'**
+  String homeUpcomingPaymentsCountSemantics(int count);
+
   /// Bottom navigation label for home
   ///
   /// In en, this message translates to:
@@ -908,16 +956,28 @@ abstract class AppLocalizations {
   /// **'Net'**
   String get analyticsSummaryNetLabel;
 
-  /// Heading for the list of top expense categories
+  /// Heading for the list of top categories
   ///
   /// In en, this message translates to:
-  /// **'Top expense categories'**
+  /// **'Top categories'**
   String get analyticsTopCategoriesTitle;
 
-  /// Message displayed when there are no expense categories to show
+  /// Tab label for expense categories
   ///
   /// In en, this message translates to:
-  /// **'Not enough expense data to show category trends yet.'**
+  /// **'Expenses'**
+  String get analyticsTopCategoriesExpensesTab;
+
+  /// Tab label for income categories
+  ///
+  /// In en, this message translates to:
+  /// **'Income'**
+  String get analyticsTopCategoriesIncomeTab;
+
+  /// Message displayed when there are no categories to show
+  ///
+  /// In en, this message translates to:
+  /// **'Not enough data to show category trends yet.'**
   String get analyticsTopCategoriesEmpty;
 
   /// Label for expenses without a category
@@ -931,6 +991,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Overview for {range}'**
   String analyticsOverviewRangeTitle(String range);
+
+  /// Label for the filters expansion tile
+  ///
+  /// In en, this message translates to:
+  /// **'Filters'**
+  String get analyticsFiltersButtonLabel;
+
+  /// Accessibility label for the filters badge
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0 {No active filters} one {# active filter} other {# active filters}}'**
+  String analyticsFiltersBadgeSemantics(int count);
 
   /// Label for the analytics date filter button
   ///

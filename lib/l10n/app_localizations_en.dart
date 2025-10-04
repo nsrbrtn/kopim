@@ -415,6 +415,46 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeTransactionsUncategorized => 'Uncategorized';
 
   @override
+  String get homeUpcomingPaymentsTitle => 'Upcoming payments';
+
+  @override
+  String get homeUpcomingPaymentsEmpty => 'Nothing here.';
+
+  @override
+  String get homeUpcomingPaymentsEmptyHeader => 'No upcoming payments';
+
+  @override
+  String homeUpcomingPaymentsNextDate(String date) {
+    return 'Next due: $date';
+  }
+
+  @override
+  String homeUpcomingPaymentsError(String error) {
+    return 'Couldn\'t load upcoming payments: $error';
+  }
+
+  @override
+  String get homeUpcomingPaymentsMissingRule =>
+      'This recurring rule is no longer available.';
+
+  @override
+  String homeUpcomingPaymentsDueDate(String date) {
+    return 'Due $date';
+  }
+
+  @override
+  String homeUpcomingPaymentsCountSemantics(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '# upcoming payments',
+      one: '# upcoming payment',
+      zero: 'No scheduled payments',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get homeNavHome => 'Home';
 
   @override
@@ -442,11 +482,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get analyticsSummaryNetLabel => 'Net';
 
   @override
-  String get analyticsTopCategoriesTitle => 'Top expense categories';
+  String get analyticsTopCategoriesTitle => 'Top categories';
+
+  @override
+  String get analyticsTopCategoriesExpensesTab => 'Expenses';
+
+  @override
+  String get analyticsTopCategoriesIncomeTab => 'Income';
 
   @override
   String get analyticsTopCategoriesEmpty =>
-      'Not enough expense data to show category trends yet.';
+      'Not enough data to show category trends yet.';
 
   @override
   String get analyticsCategoryUncategorized => 'Uncategorized';
@@ -454,6 +500,21 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String analyticsOverviewRangeTitle(String range) {
     return 'Overview for $range';
+  }
+
+  @override
+  String get analyticsFiltersButtonLabel => 'Filters';
+
+  @override
+  String analyticsFiltersBadgeSemantics(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '# active filters',
+      one: '# active filter',
+      zero: 'No active filters',
+    );
+    return '$_temp0';
   }
 
   @override

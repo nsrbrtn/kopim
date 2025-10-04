@@ -291,7 +291,7 @@ class _PhosphorIconPickerSheetState extends State<_PhosphorIconPickerSheet>
             crossAxisCount: crossAxisCount,
             crossAxisSpacing: 12,
             mainAxisSpacing: 12,
-            childAspectRatio: 0.8,
+            childAspectRatio: 1,
           ),
           itemCount: icons.length,
           itemBuilder: (BuildContext context, int index) {
@@ -375,36 +375,32 @@ class _IconGridTile extends StatelessWidget {
     final Color background = isSelected
         ? theme.colorScheme.primary.withValues(alpha: 0.08)
         : theme.colorScheme.surface;
-    return InkWell(
-      borderRadius: BorderRadius.circular(12),
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
-        decoration: BoxDecoration(
-          color: background,
+    final String label = formatPhosphorIconName(name);
+    return Tooltip(
+      message: label,
+      child: Semantics(
+        button: true,
+        label: label,
+        selected: isSelected,
+        child: InkWell(
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: borderColor),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Expanded(
+          onTap: onTap,
+          child: Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: background,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: borderColor),
+            ),
+            child: Center(
               child: FittedBox(
                 fit: BoxFit.scaleDown,
                 child: iconData != null
-                    ? Icon(iconData, size: 32)
-                    : const Icon(Icons.category_outlined, size: 32),
+                    ? Icon(iconData, size: 36)
+                    : const Icon(Icons.category_outlined, size: 36),
               ),
             ),
-            const SizedBox(height: 8),
-            Text(
-              formatPhosphorIconName(name),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.center,
-              style: theme.textTheme.bodySmall,
-            ),
-          ],
+          ),
         ),
       ),
     );

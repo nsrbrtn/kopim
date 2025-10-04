@@ -21,6 +21,7 @@ import 'package:kopim/features/accounts/domain/repositories/account_repository.d
 import 'package:kopim/features/accounts/domain/use_cases/add_account_use_case.dart';
 import 'package:kopim/features/accounts/domain/use_cases/watch_accounts_use_case.dart';
 import 'package:kopim/features/analytics/domain/use_cases/watch_monthly_analytics_use_case.dart';
+import 'package:kopim/features/home/domain/use_cases/watch_upcoming_payments_use_case.dart';
 import 'package:kopim/features/categories/data/repositories/category_repository_impl.dart';
 import 'package:kopim/features/categories/data/sources/local/category_dao.dart';
 import 'package:kopim/features/categories/data/sources/remote/category_remote_data_source.dart';
@@ -260,6 +261,12 @@ GroupTransactionsByDayUseCase groupTransactionsByDayUseCase(Ref ref) =>
 WatchRecurringRulesUseCase watchRecurringRulesUseCase(Ref ref) =>
     WatchRecurringRulesUseCase(
       ref.watch(recurringTransactionsRepositoryProvider),
+    );
+
+@riverpod
+WatchUpcomingPaymentsUseCase watchUpcomingPaymentsUseCase(Ref ref) =>
+    WatchUpcomingPaymentsUseCase(
+      recurringRepository: ref.watch(recurringTransactionsRepositoryProvider),
     );
 
 @riverpod

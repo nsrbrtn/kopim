@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$AnalyticsOverview {
 
- double get totalIncome; double get totalExpense; double get netBalance; List<AnalyticsCategoryBreakdown> get topExpenseCategories;
+ double get totalIncome; double get totalExpense; double get netBalance; List<AnalyticsCategoryBreakdown> get topExpenseCategories; List<AnalyticsCategoryBreakdown> get topIncomeCategories;
 /// Create a copy of AnalyticsOverview
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $AnalyticsOverviewCopyWith<AnalyticsOverview> get copyWith => _$AnalyticsOvervie
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AnalyticsOverview&&(identical(other.totalIncome, totalIncome) || other.totalIncome == totalIncome)&&(identical(other.totalExpense, totalExpense) || other.totalExpense == totalExpense)&&(identical(other.netBalance, netBalance) || other.netBalance == netBalance)&&const DeepCollectionEquality().equals(other.topExpenseCategories, topExpenseCategories));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AnalyticsOverview&&(identical(other.totalIncome, totalIncome) || other.totalIncome == totalIncome)&&(identical(other.totalExpense, totalExpense) || other.totalExpense == totalExpense)&&(identical(other.netBalance, netBalance) || other.netBalance == netBalance)&&const DeepCollectionEquality().equals(other.topExpenseCategories, topExpenseCategories)&&const DeepCollectionEquality().equals(other.topIncomeCategories, topIncomeCategories));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,totalIncome,totalExpense,netBalance,const DeepCollectionEquality().hash(topExpenseCategories));
+int get hashCode => Object.hash(runtimeType,totalIncome,totalExpense,netBalance,const DeepCollectionEquality().hash(topExpenseCategories),const DeepCollectionEquality().hash(topIncomeCategories));
 
 @override
 String toString() {
-  return 'AnalyticsOverview(totalIncome: $totalIncome, totalExpense: $totalExpense, netBalance: $netBalance, topExpenseCategories: $topExpenseCategories)';
+  return 'AnalyticsOverview(totalIncome: $totalIncome, totalExpense: $totalExpense, netBalance: $netBalance, topExpenseCategories: $topExpenseCategories, topIncomeCategories: $topIncomeCategories)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $AnalyticsOverviewCopyWith<$Res>  {
   factory $AnalyticsOverviewCopyWith(AnalyticsOverview value, $Res Function(AnalyticsOverview) _then) = _$AnalyticsOverviewCopyWithImpl;
 @useResult
 $Res call({
- double totalIncome, double totalExpense, double netBalance, List<AnalyticsCategoryBreakdown> topExpenseCategories
+ double totalIncome, double totalExpense, double netBalance, List<AnalyticsCategoryBreakdown> topExpenseCategories, List<AnalyticsCategoryBreakdown> topIncomeCategories
 });
 
 
@@ -62,12 +62,13 @@ class _$AnalyticsOverviewCopyWithImpl<$Res>
 
 /// Create a copy of AnalyticsOverview
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? totalIncome = null,Object? totalExpense = null,Object? netBalance = null,Object? topExpenseCategories = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? totalIncome = null,Object? totalExpense = null,Object? netBalance = null,Object? topExpenseCategories = null,Object? topIncomeCategories = null,}) {
   return _then(_self.copyWith(
 totalIncome: null == totalIncome ? _self.totalIncome : totalIncome // ignore: cast_nullable_to_non_nullable
 as double,totalExpense: null == totalExpense ? _self.totalExpense : totalExpense // ignore: cast_nullable_to_non_nullable
 as double,netBalance: null == netBalance ? _self.netBalance : netBalance // ignore: cast_nullable_to_non_nullable
 as double,topExpenseCategories: null == topExpenseCategories ? _self.topExpenseCategories : topExpenseCategories // ignore: cast_nullable_to_non_nullable
+as List<AnalyticsCategoryBreakdown>,topIncomeCategories: null == topIncomeCategories ? _self.topIncomeCategories : topIncomeCategories // ignore: cast_nullable_to_non_nullable
 as List<AnalyticsCategoryBreakdown>,
   ));
 }
@@ -153,10 +154,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( double totalIncome,  double totalExpense,  double netBalance,  List<AnalyticsCategoryBreakdown> topExpenseCategories)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( double totalIncome,  double totalExpense,  double netBalance,  List<AnalyticsCategoryBreakdown> topExpenseCategories,  List<AnalyticsCategoryBreakdown> topIncomeCategories)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _AnalyticsOverview() when $default != null:
-return $default(_that.totalIncome,_that.totalExpense,_that.netBalance,_that.topExpenseCategories);case _:
+return $default(_that.totalIncome,_that.totalExpense,_that.netBalance,_that.topExpenseCategories,_that.topIncomeCategories);case _:
   return orElse();
 
 }
@@ -174,10 +175,10 @@ return $default(_that.totalIncome,_that.totalExpense,_that.netBalance,_that.topE
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( double totalIncome,  double totalExpense,  double netBalance,  List<AnalyticsCategoryBreakdown> topExpenseCategories)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( double totalIncome,  double totalExpense,  double netBalance,  List<AnalyticsCategoryBreakdown> topExpenseCategories,  List<AnalyticsCategoryBreakdown> topIncomeCategories)  $default,) {final _that = this;
 switch (_that) {
 case _AnalyticsOverview():
-return $default(_that.totalIncome,_that.totalExpense,_that.netBalance,_that.topExpenseCategories);case _:
+return $default(_that.totalIncome,_that.totalExpense,_that.netBalance,_that.topExpenseCategories,_that.topIncomeCategories);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -194,10 +195,10 @@ return $default(_that.totalIncome,_that.totalExpense,_that.netBalance,_that.topE
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( double totalIncome,  double totalExpense,  double netBalance,  List<AnalyticsCategoryBreakdown> topExpenseCategories)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( double totalIncome,  double totalExpense,  double netBalance,  List<AnalyticsCategoryBreakdown> topExpenseCategories,  List<AnalyticsCategoryBreakdown> topIncomeCategories)?  $default,) {final _that = this;
 switch (_that) {
 case _AnalyticsOverview() when $default != null:
-return $default(_that.totalIncome,_that.totalExpense,_that.netBalance,_that.topExpenseCategories);case _:
+return $default(_that.totalIncome,_that.totalExpense,_that.netBalance,_that.topExpenseCategories,_that.topIncomeCategories);case _:
   return null;
 
 }
@@ -209,7 +210,7 @@ return $default(_that.totalIncome,_that.totalExpense,_that.netBalance,_that.topE
 
 
 class _AnalyticsOverview extends AnalyticsOverview {
-  const _AnalyticsOverview({required this.totalIncome, required this.totalExpense, required this.netBalance, required final  List<AnalyticsCategoryBreakdown> topExpenseCategories}): _topExpenseCategories = topExpenseCategories,super._();
+  const _AnalyticsOverview({required this.totalIncome, required this.totalExpense, required this.netBalance, required final  List<AnalyticsCategoryBreakdown> topExpenseCategories, required final  List<AnalyticsCategoryBreakdown> topIncomeCategories}): _topExpenseCategories = topExpenseCategories,_topIncomeCategories = topIncomeCategories,super._();
   
 
 @override final  double totalIncome;
@@ -220,6 +221,13 @@ class _AnalyticsOverview extends AnalyticsOverview {
   if (_topExpenseCategories is EqualUnmodifiableListView) return _topExpenseCategories;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_topExpenseCategories);
+}
+
+ final  List<AnalyticsCategoryBreakdown> _topIncomeCategories;
+@override List<AnalyticsCategoryBreakdown> get topIncomeCategories {
+  if (_topIncomeCategories is EqualUnmodifiableListView) return _topIncomeCategories;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_topIncomeCategories);
 }
 
 
@@ -233,16 +241,16 @@ _$AnalyticsOverviewCopyWith<_AnalyticsOverview> get copyWith => __$AnalyticsOver
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AnalyticsOverview&&(identical(other.totalIncome, totalIncome) || other.totalIncome == totalIncome)&&(identical(other.totalExpense, totalExpense) || other.totalExpense == totalExpense)&&(identical(other.netBalance, netBalance) || other.netBalance == netBalance)&&const DeepCollectionEquality().equals(other._topExpenseCategories, _topExpenseCategories));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AnalyticsOverview&&(identical(other.totalIncome, totalIncome) || other.totalIncome == totalIncome)&&(identical(other.totalExpense, totalExpense) || other.totalExpense == totalExpense)&&(identical(other.netBalance, netBalance) || other.netBalance == netBalance)&&const DeepCollectionEquality().equals(other._topExpenseCategories, _topExpenseCategories)&&const DeepCollectionEquality().equals(other._topIncomeCategories, _topIncomeCategories));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,totalIncome,totalExpense,netBalance,const DeepCollectionEquality().hash(_topExpenseCategories));
+int get hashCode => Object.hash(runtimeType,totalIncome,totalExpense,netBalance,const DeepCollectionEquality().hash(_topExpenseCategories),const DeepCollectionEquality().hash(_topIncomeCategories));
 
 @override
 String toString() {
-  return 'AnalyticsOverview(totalIncome: $totalIncome, totalExpense: $totalExpense, netBalance: $netBalance, topExpenseCategories: $topExpenseCategories)';
+  return 'AnalyticsOverview(totalIncome: $totalIncome, totalExpense: $totalExpense, netBalance: $netBalance, topExpenseCategories: $topExpenseCategories, topIncomeCategories: $topIncomeCategories)';
 }
 
 
@@ -253,7 +261,7 @@ abstract mixin class _$AnalyticsOverviewCopyWith<$Res> implements $AnalyticsOver
   factory _$AnalyticsOverviewCopyWith(_AnalyticsOverview value, $Res Function(_AnalyticsOverview) _then) = __$AnalyticsOverviewCopyWithImpl;
 @override @useResult
 $Res call({
- double totalIncome, double totalExpense, double netBalance, List<AnalyticsCategoryBreakdown> topExpenseCategories
+ double totalIncome, double totalExpense, double netBalance, List<AnalyticsCategoryBreakdown> topExpenseCategories, List<AnalyticsCategoryBreakdown> topIncomeCategories
 });
 
 
@@ -270,12 +278,13 @@ class __$AnalyticsOverviewCopyWithImpl<$Res>
 
 /// Create a copy of AnalyticsOverview
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? totalIncome = null,Object? totalExpense = null,Object? netBalance = null,Object? topExpenseCategories = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? totalIncome = null,Object? totalExpense = null,Object? netBalance = null,Object? topExpenseCategories = null,Object? topIncomeCategories = null,}) {
   return _then(_AnalyticsOverview(
 totalIncome: null == totalIncome ? _self.totalIncome : totalIncome // ignore: cast_nullable_to_non_nullable
 as double,totalExpense: null == totalExpense ? _self.totalExpense : totalExpense // ignore: cast_nullable_to_non_nullable
 as double,netBalance: null == netBalance ? _self.netBalance : netBalance // ignore: cast_nullable_to_non_nullable
 as double,topExpenseCategories: null == topExpenseCategories ? _self._topExpenseCategories : topExpenseCategories // ignore: cast_nullable_to_non_nullable
+as List<AnalyticsCategoryBreakdown>,topIncomeCategories: null == topIncomeCategories ? _self._topIncomeCategories : topIncomeCategories // ignore: cast_nullable_to_non_nullable
 as List<AnalyticsCategoryBreakdown>,
   ));
 }

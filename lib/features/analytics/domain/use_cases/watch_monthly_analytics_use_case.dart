@@ -28,6 +28,7 @@ class WatchMonthlyAnalyticsUseCase {
           totalExpense: 0,
           netBalance: 0,
           topExpenseCategories: <AnalyticsCategoryBreakdown>[],
+          topIncomeCategories: <AnalyticsCategoryBreakdown>[],
         );
       }
 
@@ -39,6 +40,7 @@ class WatchMonthlyAnalyticsUseCase {
       double totalIncome = 0;
       double totalExpense = 0;
       final Map<String?, double> expenseByCategory = <String?, double>{};
+      final Map<String?, double> incomeByCategory = <String?, double>{};
 
       for (final TransactionEntity transaction in transactions) {
         if (transaction.date.isBefore(start) ||
@@ -59,6 +61,9 @@ class WatchMonthlyAnalyticsUseCase {
         final double amount = transaction.amount.abs();
         if (transaction.type == TransactionType.income.storageValue) {
           totalIncome += amount;
+          final String? categoryKey = transaction.categoryId;
+          incomeByCategory[categoryKey] =
+              (incomeByCategory[categoryKey] ?? 0) + amount;
         } else if (transaction.type == TransactionType.expense.storageValue) {
           totalExpense += amount;
           final String? categoryKey = transaction.categoryId;
@@ -86,12 +91,30 @@ class WatchMonthlyAnalyticsUseCase {
             );
           });
 
+      final List<MapEntry<String?, double>> sortedIncomes =
+          incomeByCategory.entries.toList()
+            ..sort((MapEntry<String?, double> a, MapEntry<String?, double> b) {
+              return b.value.compareTo(a.value);
+            });
+
+      final Iterable<AnalyticsCategoryBreakdown> topIncomes = sortedIncomes
+          .take(effectiveLimit)
+          .map((MapEntry<String?, double> entry) {
+            return AnalyticsCategoryBreakdown(
+              categoryId: entry.key,
+              amount: entry.value,
+            );
+          });
+
       return AnalyticsOverview(
         totalIncome: totalIncome,
         totalExpense: totalExpense,
         netBalance: totalIncome - totalExpense,
         topExpenseCategories: List<AnalyticsCategoryBreakdown>.unmodifiable(
           topExpenses,
+        ),
+        topIncomeCategories: List<AnalyticsCategoryBreakdown>.unmodifiable(
+          topIncomes,
         ),
       );
     });

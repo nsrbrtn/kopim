@@ -554,6 +554,58 @@
   "@homeTransactionsUncategorized": {
     "description": "Fallback text when a transaction has no category"
   },
+  "homeUpcomingPaymentsTitle": "Upcoming payments",
+  "@homeUpcomingPaymentsTitle": {
+    "description": "Header for the upcoming payments widget"
+  },
+  "homeUpcomingPaymentsEmpty": "Nothing here.",
+  "@homeUpcomingPaymentsEmpty": {
+    "description": "Empty state when there are no upcoming payments"
+  },
+  "homeUpcomingPaymentsEmptyHeader": "No upcoming payments",
+  "@homeUpcomingPaymentsEmptyHeader": {
+    "description": "Subtitle shown when no upcoming payment is scheduled"
+  },
+  "homeUpcomingPaymentsNextDate": "Next due: {date}",
+  "@homeUpcomingPaymentsNextDate": {
+    "description": "Subtitle with the nearest upcoming payment date",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "homeUpcomingPaymentsError": "Couldn't load upcoming payments: {error}",
+  "@homeUpcomingPaymentsError": {
+    "description": "Error shown when loading upcoming payments fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "homeUpcomingPaymentsMissingRule": "This recurring rule is no longer available.",
+  "@homeUpcomingPaymentsMissingRule": {
+    "description": "Snackbar message when the source recurring rule is missing"
+  },
+  "homeUpcomingPaymentsDueDate": "Due {date}",
+  "@homeUpcomingPaymentsDueDate": {
+    "description": "Subtitle for individual upcoming payment entries",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "homeUpcomingPaymentsCountSemantics": "{count, plural, =0 {No scheduled payments} one {# upcoming payment} other {# upcoming payments}}",
+  "@homeUpcomingPaymentsCountSemantics": {
+    "description": "Accessibility label for the upcoming payments badge",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "homeNavHome": "Home",
   "@homeNavHome": {
     "description": "Bottom navigation label for home"
@@ -590,13 +642,21 @@
   "@analyticsSummaryNetLabel": {
     "description": "Label for net balance in analytics summary"
   },
-  "analyticsTopCategoriesTitle": "Top expense categories",
+  "analyticsTopCategoriesTitle": "Top categories",
   "@analyticsTopCategoriesTitle": {
-    "description": "Heading for the list of top expense categories"
+    "description": "Heading for the list of top categories"
   },
-  "analyticsTopCategoriesEmpty": "Not enough expense data to show category trends yet.",
+  "analyticsTopCategoriesExpensesTab": "Expenses",
+  "@analyticsTopCategoriesExpensesTab": {
+    "description": "Tab label for expense categories"
+  },
+  "analyticsTopCategoriesIncomeTab": "Income",
+  "@analyticsTopCategoriesIncomeTab": {
+    "description": "Tab label for income categories"
+  },
+  "analyticsTopCategoriesEmpty": "Not enough data to show category trends yet.",
   "@analyticsTopCategoriesEmpty": {
-    "description": "Message displayed when there are no expense categories to show"
+    "description": "Message displayed when there are no categories to show"
   },
   "analyticsCategoryUncategorized": "Uncategorized",
   "@analyticsCategoryUncategorized": {
@@ -608,6 +668,19 @@
     "placeholders": {
       "range": {
         "type": "String"
+      }
+    }
+  },
+  "analyticsFiltersButtonLabel": "Filters",
+  "@analyticsFiltersButtonLabel": {
+    "description": "Label for the filters expansion tile"
+  },
+  "analyticsFiltersBadgeSemantics": "{count, plural, =0 {No active filters} one {# active filter} other {# active filters}}",
+  "@analyticsFiltersBadgeSemantics": {
+    "description": "Accessibility label for the filters badge",
+    "placeholders": {
+      "count": {
+        "type": "int"
       }
     }
   },

@@ -1753,6 +1753,55 @@ final class WatchRecurringRulesUseCaseProvider
 String _$watchRecurringRulesUseCaseHash() =>
     r'9cb754ec24ae0c6d8f780d6ebee2f1541b3a42a6';
 
+@ProviderFor(watchUpcomingPaymentsUseCase)
+const watchUpcomingPaymentsUseCaseProvider =
+    WatchUpcomingPaymentsUseCaseProvider._();
+
+final class WatchUpcomingPaymentsUseCaseProvider
+    extends
+        $FunctionalProvider<
+          WatchUpcomingPaymentsUseCase,
+          WatchUpcomingPaymentsUseCase,
+          WatchUpcomingPaymentsUseCase
+        >
+    with $Provider<WatchUpcomingPaymentsUseCase> {
+  const WatchUpcomingPaymentsUseCaseProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'watchUpcomingPaymentsUseCaseProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$watchUpcomingPaymentsUseCaseHash();
+
+  @$internal
+  @override
+  $ProviderElement<WatchUpcomingPaymentsUseCase> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  WatchUpcomingPaymentsUseCase create(Ref ref) {
+    return watchUpcomingPaymentsUseCase(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(WatchUpcomingPaymentsUseCase value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<WatchUpcomingPaymentsUseCase>(value),
+    );
+  }
+}
+
+String _$watchUpcomingPaymentsUseCaseHash() =>
+    r'ad5834fc7c603e34c587e2c1ca8a56a454851bca';
+
 @ProviderFor(watchUpcomingOccurrencesUseCase)
 const watchUpcomingOccurrencesUseCaseProvider =
     WatchUpcomingOccurrencesUseCaseProvider._();
