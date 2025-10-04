@@ -209,6 +209,11 @@ class _TransactionForm extends ConsumerWidget {
                       .read(transactionProvider.notifier)
                       .updateType(values.first);
                 },
+                style: const ButtonStyle(
+                  side: WidgetStatePropertyAll<BorderSide>(
+                    BorderSide(style: BorderStyle.none),
+                  ),
+                ),
               ),
             ),
           ),
@@ -388,6 +393,12 @@ class _AmountFieldState extends ConsumerState<_AmountField> {
       decoration: InputDecoration(
         labelText: widget.strings.addTransactionAmountLabel,
         hintText: widget.strings.addTransactionAmountHint,
+        filled: true,
+        fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+        border: const OutlineInputBorder(
+          borderSide: BorderSide(style: BorderStyle.none),
+          borderRadius: BorderRadius.all(Radius.circular(12)),
+        ),
       ),
       onChanged: _handleChanged,
       onEditingComplete: () {

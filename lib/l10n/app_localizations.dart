@@ -122,6 +122,24 @@ abstract class AppLocalizations {
   /// **'Appearance'**
   String get profileAppearanceSection;
 
+  /// Title for the general settings screen
+  ///
+  /// In en, this message translates to:
+  /// **'General settings'**
+  String get profileGeneralSettingsTitle;
+
+  /// Tooltip for opening the general settings screen
+  ///
+  /// In en, this message translates to:
+  /// **'General settings'**
+  String get profileGeneralSettingsTooltip;
+
+  /// Section title for category and recurring actions on general settings
+  ///
+  /// In en, this message translates to:
+  /// **'Data management'**
+  String get profileGeneralSettingsManagementSection;
+
   /// Button label that opens the category management screen from the profile settings
   ///
   /// In en, this message translates to:

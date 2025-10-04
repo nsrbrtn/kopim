@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:kopim/features/app_shell/presentation/models/navigation_tab_content.dart';
+import 'package:kopim/features/profile/presentation/screens/general_settings_screen.dart';
 import 'package:kopim/features/profile/presentation/widgets/profile_management_body.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
@@ -30,8 +31,21 @@ NavigationTabContent buildProfileTabContent(
   WidgetRef ref,
 ) {
   return NavigationTabContent(
-    appBarBuilder: (BuildContext context, WidgetRef ref) =>
-        AppBar(title: Text(AppLocalizations.of(context)!.profileTitle)),
+    appBarBuilder: (BuildContext context, WidgetRef ref) {
+      final AppLocalizations strings = AppLocalizations.of(context)!;
+      return AppBar(
+        title: Text(strings.profileTitle),
+        actions: <Widget>[
+          IconButton(
+            tooltip: strings.profileGeneralSettingsTooltip,
+            icon: const Icon(Icons.tune),
+            onPressed: () {
+              Navigator.of(context).pushNamed(GeneralSettingsScreen.routeName);
+            },
+          ),
+        ],
+      );
+    },
     bodyBuilder: (BuildContext context, WidgetRef ref) =>
         const ProfileManagementBody(),
   );

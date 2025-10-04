@@ -383,7 +383,14 @@ class _AnalyticsFilterBar extends ConsumerWidget {
             children: <Widget>[
               const Icon(Icons.calendar_today_outlined, size: 18),
               const SizedBox(width: 8),
-              Text('${strings.analyticsFilterDateLabel}: $dateValue'),
+              Flexible(
+                child: Text(
+                  '${strings.analyticsFilterDateLabel}: $dateValue',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  softWrap: false,
+                ),
+              ),
             ],
           ),
         ),
@@ -664,6 +671,11 @@ class _TopCategoriesPagerState extends State<_TopCategoriesPager> {
                   curve: Curves.easeInOut,
                 );
               },
+              style: const ButtonStyle(
+                side: WidgetStatePropertyAll<BorderSide>(
+                  BorderSide(style: BorderStyle.none),
+                ),
+              ),
             ),
             const SizedBox(height: 16),
             SizedBox(

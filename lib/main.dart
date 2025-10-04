@@ -14,6 +14,7 @@ import 'features/accounts/presentation/accounts_add_screen.dart';
 import 'features/accounts/presentation/edit_account_screen.dart';
 import 'features/app_shell/presentation/widgets/main_navigation_shell.dart';
 import 'features/categories/presentation/screens/manage_categories_screen.dart';
+import 'features/profile/presentation/screens/general_settings_screen.dart';
 import 'features/profile/presentation/screens/profile_management_screen.dart';
 import 'features/profile/presentation/screens/profile_screen.dart';
 import 'features/profile/presentation/screens/sign_in_screen.dart';
@@ -81,6 +82,7 @@ class _MyAppState extends ConsumerState<MyApp> {
         },
         AddTransactionScreen.routeName: (_) => const AddTransactionScreen(),
         ProfileScreen.routeName: (_) => const ProfileScreen(),
+        GeneralSettingsScreen.routeName: (_) => const GeneralSettingsScreen(),
         ProfileManagementScreen.routeName: (_) =>
             const ProfileManagementScreen(),
         ManageCategoriesScreen.routeName: (_) => const ManageCategoriesScreen(),

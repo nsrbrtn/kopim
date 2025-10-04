@@ -22,6 +22,15 @@ class AppLocalizationsRu extends AppLocalizations {
   String get profileAppearanceSection => 'Внешний вид';
 
   @override
+  String get profileGeneralSettingsTitle => 'Общие настройки';
+
+  @override
+  String get profileGeneralSettingsTooltip => 'Общие настройки';
+
+  @override
+  String get profileGeneralSettingsManagementSection => 'Управление данными';
+
+  @override
   String get profileManageCategoriesCta => 'Управлять категориями';
 
   @override

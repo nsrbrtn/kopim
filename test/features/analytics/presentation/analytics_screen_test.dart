@@ -143,5 +143,189 @@ void main() {
         expect(find.text(currencyFormat.format(60)), findsWidgets);
       },
     );
+
+    testWidgets('date filter button handles narrow layouts without overflow', (
+      WidgetTester tester,
+    ) async {
+      final AnalyticsFilterState filterState = AnalyticsFilterState(
+        dateRange: DateTimeRange(
+          start: DateTime(2024, 10, 10),
+          end: DateTime(2024, 10, 21),
+        ),
+      );
+
+      const AnalyticsOverview overview = AnalyticsOverview(
+        totalIncome: 50.0,
+        totalExpense: 120.0,
+        netBalance: -70.0,
+        topExpenseCategories: <AnalyticsCategoryBreakdown>[
+          AnalyticsCategoryBreakdown(categoryId: 'food', amount: 80.0),
+        ],
+        topIncomeCategories: <AnalyticsCategoryBreakdown>[
+          AnalyticsCategoryBreakdown(categoryId: 'salary', amount: 50.0),
+        ],
+      );
+
+      final Category foodCategory = Category(
+        id: 'food',
+        name: 'Food',
+        type: 'expense',
+        color: '#FF9800',
+        icon: null,
+        parentId: null,
+        createdAt: DateTime(2023, 1, 1),
+        updatedAt: DateTime(2023, 1, 1),
+      );
+      final Category salaryCategory = Category(
+        id: 'salary',
+        name: 'Salary',
+        type: 'income',
+        color: '#4CAF50',
+        icon: null,
+        parentId: null,
+        createdAt: DateTime(2023, 1, 1),
+        updatedAt: DateTime(2023, 1, 1),
+      );
+
+      tester.view.physicalSize = const Size(320, 720);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: <Override>[
+            analyticsFilterControllerProvider.overrideWith(
+              () => _FakeAnalyticsFilterController(filterState),
+            ),
+            analyticsFilteredStatsProvider(topCategoriesLimit: 5).overrideWith(
+              (Ref ref) => Stream<AnalyticsOverview>.value(overview),
+            ),
+            analyticsCategoriesProvider.overrideWith(
+              (Ref ref) => Stream<List<Category>>.value(<Category>[
+                foodCategory,
+                salaryCategory,
+              ]),
+            ),
+            analyticsAccountsProvider.overrideWith(
+              (Ref ref) => Stream<List<AccountEntity>>.value(<AccountEntity>[
+                AccountEntity(
+                  id: 'acc',
+                  name: 'Main',
+                  balance: 0,
+                  currency: 'USD',
+                  type: 'checking',
+                  createdAt: DateTime(2023, 1, 1),
+                  updatedAt: DateTime(2023, 1, 1),
+                  isDeleted: false,
+                ),
+              ]),
+            ),
+          ],
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: AnalyticsScreen(),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('top categories segmented button renders without outline', (
+      WidgetTester tester,
+    ) async {
+      final AnalyticsFilterState filterState = AnalyticsFilterState(
+        dateRange: DateTimeRange(
+          start: DateTime(2024, 1, 1),
+          end: DateTime(2024, 1, 31),
+        ),
+      );
+
+      const AnalyticsOverview overview = AnalyticsOverview(
+        totalIncome: 80.0,
+        totalExpense: 120.0,
+        netBalance: -40.0,
+        topExpenseCategories: <AnalyticsCategoryBreakdown>[
+          AnalyticsCategoryBreakdown(categoryId: 'food', amount: 120.0),
+        ],
+        topIncomeCategories: <AnalyticsCategoryBreakdown>[
+          AnalyticsCategoryBreakdown(categoryId: 'salary', amount: 80.0),
+        ],
+      );
+
+      final Category foodCategory = Category(
+        id: 'food',
+        name: 'Food',
+        type: 'expense',
+        color: '#FF9800',
+        icon: null,
+        parentId: null,
+        createdAt: DateTime(2023, 1, 1),
+        updatedAt: DateTime(2023, 1, 1),
+      );
+      final Category salaryCategory = Category(
+        id: 'salary',
+        name: 'Salary',
+        type: 'income',
+        color: '#4CAF50',
+        icon: null,
+        parentId: null,
+        createdAt: DateTime(2023, 1, 1),
+        updatedAt: DateTime(2023, 1, 1),
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: <Override>[
+            analyticsFilterControllerProvider.overrideWith(
+              () => _FakeAnalyticsFilterController(filterState),
+            ),
+            analyticsFilteredStatsProvider(topCategoriesLimit: 5).overrideWith(
+              (Ref ref) => Stream<AnalyticsOverview>.value(overview),
+            ),
+            analyticsCategoriesProvider.overrideWith(
+              (Ref ref) => Stream<List<Category>>.value(<Category>[
+                foodCategory,
+                salaryCategory,
+              ]),
+            ),
+            analyticsAccountsProvider.overrideWith(
+              (Ref ref) => Stream<List<AccountEntity>>.value(<AccountEntity>[
+                AccountEntity(
+                  id: 'acc',
+                  name: 'Main',
+                  balance: 0,
+                  currency: 'USD',
+                  type: 'checking',
+                  createdAt: DateTime(2023, 1, 1),
+                  updatedAt: DateTime(2023, 1, 1),
+                  isDeleted: false,
+                ),
+              ]),
+            ),
+          ],
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: AnalyticsScreen(),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      final SegmentedButton<int> segmentedButton = tester
+          .widget<SegmentedButton<int>>(find.byType(SegmentedButton<int>));
+      final BorderSide? resolvedSide = segmentedButton.style?.side?.resolve(
+        <WidgetState>{},
+      );
+      expect(resolvedSide?.style, BorderStyle.none);
+    });
   });
 }
