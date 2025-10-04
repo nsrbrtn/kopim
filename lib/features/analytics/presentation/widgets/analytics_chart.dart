@@ -47,7 +47,7 @@ class AnalyticsDonutChart extends StatelessWidget {
           final double strokeWidth = math.max(size * 0.18, 12);
           final List<_DonutSegment> segments = _buildSegments();
           final double radius = size / 2;
-          final double labelRadius = math.max(radius - strokeWidth * 0.6, 0);
+          final double labelRadius = radius + strokeWidth * 0.4;
           final double alignmentFactor = radius == 0 ? 0 : labelRadius / radius;
 
           return Center(
@@ -55,6 +55,7 @@ class AnalyticsDonutChart extends StatelessWidget {
               width: size,
               height: size,
               child: Stack(
+                clipBehavior: Clip.none,
                 alignment: Alignment.center,
                 children: <Widget>[
                   CustomPaint(
@@ -73,7 +74,6 @@ class AnalyticsDonutChart extends StatelessWidget {
                       ),
                       child: _DonutPercentageLabel(
                         percentage: segment.percentage,
-                        color: segment.color,
                       ),
                     ),
                 ],
@@ -177,20 +177,16 @@ class _DonutChartPainter extends CustomPainter {
 }
 
 class _DonutPercentageLabel extends StatelessWidget {
-  const _DonutPercentageLabel({required this.percentage, required this.color});
+  const _DonutPercentageLabel({required this.percentage});
 
   final double percentage;
-  final Color color;
 
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
-    final Brightness brightness = ThemeData.estimateBrightnessForColor(color);
-    final Color textColor = brightness == Brightness.dark
-        ? Colors.white
-        : Colors.black.withValues(alpha: 0.87);
+    final Color textColor = theme.colorScheme.onSurface;
     final TextStyle style =
-        theme.textTheme.labelSmall?.copyWith(
+        theme.textTheme.labelMedium?.copyWith(
           color: textColor,
           fontWeight: FontWeight.w600,
         ) ??
@@ -200,6 +196,16 @@ class _DonutPercentageLabel extends StatelessWidget {
         ? '${percentage.round()}%'
         : '${percentage.toStringAsFixed(1)}%';
 
-    return Text(formatted, style: style);
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: theme.colorScheme.outlineVariant),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        child: Text(formatted, style: style),
+      ),
+    );
   }
 }

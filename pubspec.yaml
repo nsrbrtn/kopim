@@ -46,6 +46,7 @@ dependencies:
   flutter_colorpicker: ^1.0.3
   meta: ^1.16.0
   crypto: ^3.0.3
+  shared_preferences: ^2.3.2
 
 
   # Analytics UI (charts) - merged, use syncfusion as advanced alternative

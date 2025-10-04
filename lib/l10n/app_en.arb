@@ -9,6 +9,10 @@
     "description": "Shown when user must sign in to access profile"
   },
   "profileSectionAccount": "Account",
+  "profileAppearanceSection": "Appearance",
+  "@profileAppearanceSection": {
+    "description": "Section title for appearance settings in profile management"
+  },
   "profileManageCategoriesCta": "Manage categories",
   "@profileManageCategoriesCta": {
     "description": "Button label that opens the category management screen from the profile settings"
@@ -256,6 +260,22 @@
   "@profileLocaleLabel": {
     "description": "Label for the locale selector"
   },
+  "profileDarkModeLabel": "Dark mode",
+  "@profileDarkModeLabel": {
+    "description": "Label for the dark mode toggle in profile management"
+  },
+  "profileDarkModeDescription": "Override the app theme.",
+  "@profileDarkModeDescription": {
+    "description": "Subtitle explaining how the dark mode toggle behaves"
+  },
+  "profileDarkModeSystemCta": "Use system setting",
+  "@profileDarkModeSystemCta": {
+    "description": "Button label to restore system-controlled theme mode"
+  },
+  "profileDarkModeSystemActive": "Following system theme",
+  "@profileDarkModeSystemActive": {
+    "description": "Subtitle shown when the app follows the system theme"
+  },
   "profileLoadError": "Unable to load profile: {error}",
   "@profileLoadError": {
     "description": "Shown when profile loading failed",
@@ -456,6 +476,10 @@
   "homeTitle": "Home",
   "@homeTitle": {
     "description": "Title for the home screen"
+  },
+  "homeProfileTooltip": "Profile",
+  "@homeProfileTooltip": {
+    "description": "Tooltip for the profile action in the home app bar"
   },
   "homeTotalBalance": "Total balance: {amount}",
   "@homeTotalBalance": {

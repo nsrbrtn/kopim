@@ -11,6 +11,12 @@ ThemeData buildAppTheme({required Brightness brightness}) {
   return ThemeData(
     useMaterial3: true,
     colorScheme: colorScheme,
+    bottomNavigationBarTheme: BottomNavigationBarThemeData(
+      selectedIconTheme: IconThemeData(color: colorScheme.onSurface),
+      unselectedIconTheme: IconThemeData(color: colorScheme.onSurfaceVariant),
+      selectedItemColor: colorScheme.onSurface,
+      unselectedItemColor: colorScheme.onSurfaceVariant,
+    ),
     inputDecorationTheme: const InputDecorationTheme(
       border: InputBorder.none,
       enabledBorder: InputBorder.none,

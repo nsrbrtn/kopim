@@ -19,6 +19,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get profileSectionAccount => 'Учетная запись';
 
   @override
+  String get profileAppearanceSection => 'Внешний вид';
+
+  @override
   String get profileManageCategoriesCta => 'Управлять категориями';
 
   @override
@@ -196,6 +199,19 @@ class AppLocalizationsRu extends AppLocalizations {
   String get profileLocaleLabel => 'Предпочитаемый язык';
 
   @override
+  String get profileDarkModeLabel => 'Тёмная тема';
+
+  @override
+  String get profileDarkModeDescription =>
+      'Переключите, чтобы управлять темой приложения вручную.';
+
+  @override
+  String get profileDarkModeSystemCta => 'Использовать системную настройку';
+
+  @override
+  String get profileDarkModeSystemActive => 'Следуем системной теме';
+
+  @override
   String profileLoadError(String error) {
     return 'Не удалось загрузить профиль: $error';
   }
@@ -349,6 +365,9 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get homeTitle => 'Домашний экран';
+
+  @override
+  String get homeProfileTooltip => 'Профиль';
 
   @override
   String homeTotalBalance(String amount) {

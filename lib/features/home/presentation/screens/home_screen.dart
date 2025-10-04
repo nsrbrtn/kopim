@@ -22,6 +22,7 @@ import 'package:kopim/features/recurring_transactions/presentation/screens/add_r
 import 'package:kopim/l10n/app_localizations.dart';
 import 'package:kopim/core/utils/helpers.dart';
 import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
+import 'package:kopim/features/profile/presentation/screens/profile_management_screen.dart';
 
 import '../controllers/home_providers.dart';
 
@@ -42,8 +43,24 @@ NavigationTabContent buildHomeTabContent(BuildContext context, WidgetRef ref) {
   final bool isWideLayout = MediaQuery.of(context).size.width >= 720;
 
   return NavigationTabContent(
-    appBarBuilder: (BuildContext context, WidgetRef ref) =>
-        AppBar(title: Text(strings.homeTitle)),
+    appBarBuilder: (BuildContext context, WidgetRef ref) => AppBar(
+      title: Text(strings.homeTitle),
+      actions: <Widget>[
+        Semantics(
+          label: strings.homeProfileTooltip,
+          button: true,
+          child: IconButton(
+            icon: const Icon(Icons.account_circle_outlined),
+            tooltip: strings.homeProfileTooltip,
+            onPressed: () {
+              Navigator.of(
+                context,
+              ).pushNamed(ProfileManagementScreen.routeName);
+            },
+          ),
+        ),
+      ],
+    ),
     bodyBuilder: (BuildContext context, WidgetRef ref) => SafeArea(
       child: _HomeBody(
         authState: authState,

@@ -5,6 +5,8 @@ import 'package:kopim/l10n/app_localizations.dart';
 import 'core/config/app_config.dart';
 import 'core/di/injectors.dart';
 import 'core/application/app_startup_controller.dart';
+import 'core/theme/application/theme_mode_controller.dart';
+import 'core/theme/domain/app_theme_mode.dart';
 import 'features/profile/presentation/controllers/auth_controller.dart';
 import 'features/analytics/presentation/analytics_screen.dart';
 import 'features/accounts/presentation/account_details_screen.dart';
@@ -12,6 +14,7 @@ import 'features/accounts/presentation/accounts_add_screen.dart';
 import 'features/accounts/presentation/edit_account_screen.dart';
 import 'features/app_shell/presentation/widgets/main_navigation_shell.dart';
 import 'features/categories/presentation/screens/manage_categories_screen.dart';
+import 'features/profile/presentation/screens/profile_management_screen.dart';
 import 'features/profile/presentation/screens/profile_screen.dart';
 import 'features/profile/presentation/screens/sign_in_screen.dart';
 import 'features/transactions/presentation/add_transaction_screen.dart';
@@ -47,12 +50,14 @@ class _MyAppState extends ConsumerState<MyApp> {
     );
     final ThemeData lightTheme = ref.watch(appThemeProvider);
     final ThemeData darkTheme = ref.watch(appDarkThemeProvider);
+    final AppThemeMode appThemeMode = ref.watch(themeModeControllerProvider);
+    final ThemeMode themeMode = appThemeMode.toMaterialThemeMode();
 
     return MaterialApp(
       title: 'Kopim',
       theme: lightTheme,
       darkTheme: darkTheme,
-      themeMode: ThemeMode.system,
+      themeMode: themeMode,
       locale: appLocale,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
@@ -76,6 +81,8 @@ class _MyAppState extends ConsumerState<MyApp> {
         },
         AddTransactionScreen.routeName: (_) => const AddTransactionScreen(),
         ProfileScreen.routeName: (_) => const ProfileScreen(),
+        ProfileManagementScreen.routeName: (_) =>
+            const ProfileManagementScreen(),
         ManageCategoriesScreen.routeName: (_) => const ManageCategoriesScreen(),
         RecurringTransactionsScreen.routeName: (_) =>
             const RecurringTransactionsScreen(),
