@@ -61,10 +61,15 @@ void main() {
         ),
       ];
 
+      final DateTime from = DateTime.utc(2024, 10, 1);
+      final DateTime to = DateTime.utc(2024, 10, 31, 23, 59, 59);
+
       final List<UpcomingPayment> payments =
           WatchUpcomingPaymentsUseCase.mapToUpcomingPayments(
             occurrences: occurrences,
             rules: rules,
+            from: from,
+            to: to,
           );
 
       expect(payments, hasLength(2));
@@ -102,16 +107,63 @@ void main() {
         ),
       ];
 
+      final DateTime from = DateTime.utc(2024, 10, 1);
+      final DateTime to = DateTime.utc(2024, 11, 30, 23, 59, 59);
+
       final List<UpcomingPayment> payments =
           WatchUpcomingPaymentsUseCase.mapToUpcomingPayments(
             occurrences: occurrences,
             rules: rules,
+            from: from,
+            to: to,
           );
 
       expect(payments, hasLength(1));
       expect(payments.single.amount, -2500);
       expect(payments.single.currency, 'eur');
       expect(payments.single.isExpense, isFalse);
+    });
+
+    test('creates fallback payment when rule has upcoming local date', () {
+      final List<RecurringOccurrence> occurrences = <RecurringOccurrence>[];
+      final DateTime nextDueLocal = DateTime.utc(2024, 12, 5, 10).toLocal();
+
+      final List<RecurringRule> rules = <RecurringRule>[
+        RecurringRule(
+          id: 'r-fallback',
+          title: 'Insurance',
+          accountId: 'acc-3',
+          categoryId: 'cat-3',
+          amount: 120,
+          currency: 'usd',
+          startAt: DateTime.utc(2024, 1, 1),
+          timezone: 'UTC',
+          rrule: 'FREQ=MONTHLY',
+          createdAt: DateTime.utc(2024, 1, 1),
+          updatedAt: DateTime.utc(2024, 1, 1),
+          nextDueLocalDate: nextDueLocal,
+        ),
+      ];
+
+      final DateTime from = DateTime.utc(2024, 12, 1);
+      final DateTime to = DateTime.utc(2024, 12, 31, 23, 59, 59);
+
+      final List<UpcomingPayment> payments =
+          WatchUpcomingPaymentsUseCase.mapToUpcomingPayments(
+            occurrences: occurrences,
+            rules: rules,
+            from: from,
+            to: to,
+          );
+
+      expect(payments, hasLength(1));
+      final UpcomingPayment payment = payments.single;
+      expect(payment.ruleId, 'r-fallback');
+      expect(payment.dueDate.isAtSameMomentAs(nextDueLocal), isTrue);
+      expect(
+        payment.occurrenceId,
+        'r-fallback-${nextDueLocal.toUtc().toIso8601String()}',
+      );
     });
   });
 }

@@ -826,7 +826,6 @@ class _TopCategoriesPage extends StatelessWidget {
                         maxAmount: maxAmount,
                         totalValue: data.total,
                         currencyFormat: currencyFormat,
-                        chartHeight: chartHeight,
                       ),
                     ),
                 ],
@@ -868,14 +867,12 @@ class _BarColumn extends StatelessWidget {
     required this.maxAmount,
     required this.totalValue,
     required this.currencyFormat,
-    required this.chartHeight,
   });
 
   final _CategoryChartItem item;
   final double maxAmount;
   final double totalValue;
   final NumberFormat currencyFormat;
-  final double chartHeight;
 
   @override
   Widget build(BuildContext context) {
@@ -883,7 +880,6 @@ class _BarColumn extends StatelessWidget {
     final double normalized = maxAmount == 0
         ? 0
         : (item.amount.abs() / maxAmount).clamp(0, 1);
-    final double barHeight = (normalized * chartHeight).clamp(0, chartHeight);
     final double percentage = totalValue == 0
         ? 0
         : (item.amount / totalValue * 100).clamp(0, 100);
@@ -896,11 +892,19 @@ class _BarColumn extends StatelessWidget {
           style: theme.textTheme.bodySmall,
         ),
         const SizedBox(height: 8),
-        Container(
-          height: barHeight,
-          decoration: BoxDecoration(
-            color: item.color,
-            borderRadius: BorderRadius.circular(12),
+        Expanded(
+          child: Align(
+            alignment: Alignment.bottomCenter,
+            child: FractionallySizedBox(
+              heightFactor: normalized,
+              alignment: Alignment.bottomCenter,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: item.color,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
           ),
         ),
         const SizedBox(height: 8),

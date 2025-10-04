@@ -558,7 +558,7 @@
   "@homeUpcomingPaymentsTitle": {
     "description": "Заголовок виджета с ближайшими платежами"
   },
-  "homeUpcomingPaymentsEmpty": "Здесь пока ничего нет.",
+  "homeUpcomingPaymentsEmpty": "Ничего нет.",
   "@homeUpcomingPaymentsEmpty": {
     "description": "Состояние, когда ближайших платежей нет"
   },

@@ -871,11 +871,6 @@ class _TransactionListItem extends ConsumerWidget {
         transactionId,
       ).select((TransactionEntity? tx) => tx?.amount),
     );
-    final DateTime? date = ref.watch(
-      homeTransactionByIdProvider(
-        transactionId,
-      ).select((TransactionEntity? tx) => tx?.date),
-    );
     final String? note = ref.watch(
       homeTransactionByIdProvider(
         transactionId,
@@ -887,7 +882,7 @@ class _TransactionListItem extends ConsumerWidget {
       ).select((TransactionEntity? tx) => tx?.type),
     );
 
-    if (amount == null || date == null || type == null || accountId == null) {
+    if (amount == null || type == null || accountId == null) {
       return const _TransactionTileSkeleton();
     }
 
@@ -931,10 +926,6 @@ class _TransactionListItem extends ConsumerWidget {
     final Color amountColor = isExpense
         ? Theme.of(context).colorScheme.error
         : Theme.of(context).colorScheme.primary;
-
-    final DateFormat transactionDateFormat = _TransactionFormatters.date(
-      localeName,
-    );
 
     return Dismissible(
       key: ValueKey<String>(transactionId),
@@ -993,16 +984,6 @@ class _TransactionListItem extends ConsumerWidget {
                           categoryName,
                           style: Theme.of(context).textTheme.bodyMedium,
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          transactionDateFormat.format(date),
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onSurfaceVariant,
-                              ),
-                        ),
                         if (note != null && note.isNotEmpty)
                           Padding(
                             padding: const EdgeInsets.only(top: 4),
@@ -1044,15 +1025,10 @@ class _TransactionListItem extends ConsumerWidget {
 }
 
 class _TransactionFormatters {
-  static final Map<String, DateFormat> _dateCache = <String, DateFormat>{};
   static final Map<String, NumberFormat> _currencyCache =
       <String, NumberFormat>{};
   static final Map<String, String> _fallbackSymbols = <String, String>{};
   static final Map<String, DateFormat> _dayHeaderCache = <String, DateFormat>{};
-
-  static DateFormat date(String locale) {
-    return _dateCache.putIfAbsent(locale, () => DateFormat.yMMMd(locale));
-  }
 
   static DateFormat dayHeader(String locale) {
     return _dayHeaderCache.putIfAbsent(locale, () => DateFormat.yMMMMd(locale));
