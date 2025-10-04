@@ -21,6 +21,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileAppearanceSection => 'Appearance';
 
   @override
+  String get profileGeneralSettingsTitle => 'General settings';
+
+  @override
+  String get profileGeneralSettingsTooltip => 'General settings';
+
+  @override
+  String get profileGeneralSettingsManagementSection => 'Data management';
+
+  @override
   String get profileManageCategoriesCta => 'Manage categories';
 
   @override

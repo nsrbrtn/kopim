@@ -32,55 +32,60 @@ class AnalyticsDonutChart extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
-    return AspectRatio(
-      aspectRatio: 1,
-      child: LayoutBuilder(
-        builder: (BuildContext context, BoxConstraints constraints) {
-          final Size biggest = constraints.biggest;
-          double size = biggest.shortestSide;
-          if (!size.isFinite || size <= 0) {
-            size = biggest.longestSide;
-          }
-          if (!size.isFinite || size <= 0) {
-            size = 200;
-          }
-          final double strokeWidth = math.max(size * 0.18, 12);
-          final List<_DonutSegment> segments = _buildSegments();
-          final double radius = size / 2;
-          final double labelRadius = radius + strokeWidth * 0.4;
-          final double alignmentFactor = radius == 0 ? 0 : labelRadius / radius;
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: AspectRatio(
+        aspectRatio: 1,
+        child: LayoutBuilder(
+          builder: (BuildContext context, BoxConstraints constraints) {
+            final Size biggest = constraints.biggest;
+            double size = biggest.shortestSide;
+            if (!size.isFinite || size <= 0) {
+              size = biggest.longestSide;
+            }
+            if (!size.isFinite || size <= 0) {
+              size = 200;
+            }
+            final double strokeWidth = math.max(size * 0.18, 12);
+            final List<_DonutSegment> segments = _buildSegments();
+            final double radius = size / 2;
+            final double labelRadius = radius + strokeWidth * 0.4;
+            final double alignmentFactor = radius == 0
+                ? 0
+                : labelRadius / radius;
 
-          return Center(
-            child: SizedBox(
-              width: size,
-              height: size,
-              child: Stack(
-                clipBehavior: Clip.none,
-                alignment: Alignment.center,
-                children: <Widget>[
-                  CustomPaint(
-                    size: Size.square(size),
-                    painter: _DonutChartPainter(
-                      segments: segments,
-                      strokeWidth: strokeWidth,
-                      backgroundColor: backgroundColor,
-                    ),
-                  ),
-                  for (final _DonutSegment segment in segments)
-                    Align(
-                      alignment: Alignment(
-                        math.cos(segment.midAngle) * alignmentFactor,
-                        math.sin(segment.midAngle) * alignmentFactor,
-                      ),
-                      child: _DonutPercentageLabel(
-                        percentage: segment.percentage,
+            return Center(
+              child: SizedBox(
+                width: size,
+                height: size,
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  alignment: Alignment.center,
+                  children: <Widget>[
+                    CustomPaint(
+                      size: Size.square(size),
+                      painter: _DonutChartPainter(
+                        segments: segments,
+                        strokeWidth: strokeWidth,
+                        backgroundColor: backgroundColor,
                       ),
                     ),
-                ],
+                    for (final _DonutSegment segment in segments)
+                      Align(
+                        alignment: Alignment(
+                          math.cos(segment.midAngle) * alignmentFactor,
+                          math.sin(segment.midAngle) * alignmentFactor,
+                        ),
+                        child: _DonutPercentageLabel(
+                          percentage: segment.percentage,
+                        ),
+                      ),
+                  ],
+                ),
               ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }

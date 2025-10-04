@@ -6,18 +6,17 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/features/categories/domain/entities/category_tree_node.dart';
 import 'package:kopim/features/categories/presentation/controllers/categories_list_controller.dart';
-import 'package:kopim/features/categories/presentation/screens/manage_categories_screen.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
 import 'package:kopim/features/profile/domain/entities/profile.dart';
 import 'package:kopim/features/profile/domain/usecases/update_profile_use_case.dart';
 import 'package:kopim/features/profile/presentation/controllers/auth_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/profile_controller.dart';
+import 'package:kopim/features/profile/presentation/screens/general_settings_screen.dart';
 import 'package:kopim/features/profile/presentation/screens/profile_screen.dart';
 import 'package:kopim/features/recurring_transactions/domain/entities/recurring_job.dart';
 import 'package:kopim/features/recurring_transactions/domain/entities/recurring_occurrence.dart';
 import 'package:kopim/features/recurring_transactions/domain/entities/recurring_rule.dart';
 import 'package:kopim/features/recurring_transactions/domain/repositories/recurring_transactions_repository.dart';
-import 'package:kopim/features/recurring_transactions/presentation/screens/recurring_transactions_screen.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
 class _StubUpdateProfileUseCase implements UpdateProfileUseCase {
@@ -203,8 +202,8 @@ void main() {
 
     expect(find.text('EUR'), findsWidgets);
     expect(find.text('EN'), findsWidgets);
-    expect(find.text('Manage categories'), findsOneWidget);
-    expect(find.text('Recurring transactions'), findsOneWidget);
+    expect(find.text('Manage categories'), findsNothing);
+    expect(find.text('Recurring transactions'), findsNothing);
   });
 
   testWidgets('shows sign-in prompt when user is absent', (
@@ -240,7 +239,7 @@ void main() {
     expect(find.text('Please sign in to manage your profile.'), findsOneWidget);
   });
 
-  testWidgets('tapping manage categories button opens categories screen', (
+  testWidgets('opens general settings from app bar action', (
     WidgetTester tester,
   ) async {
     final List<Route<dynamic>> pushedRoutes = <Route<dynamic>>[];
@@ -275,10 +274,8 @@ void main() {
           supportedLocales: AppLocalizations.supportedLocales,
           home: const ProfileScreen(),
           routes: <String, WidgetBuilder>{
-            ManageCategoriesScreen.routeName: (_) =>
-                const ManageCategoriesScreen(),
-            RecurringTransactionsScreen.routeName: (_) =>
-                const RecurringTransactionsScreen(),
+            GeneralSettingsScreen.routeName: (_) =>
+                const GeneralSettingsScreen(),
           },
           navigatorObservers: <NavigatorObserver>[observer],
         ),
@@ -287,82 +284,18 @@ void main() {
 
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Account'));
-    await tester.pumpAndSettle();
+    final BuildContext context = tester.element(find.byType(ProfileScreen));
+    final AppLocalizations strings = AppLocalizations.of(context)!;
 
-    await tester.ensureVisible(find.text('Manage categories'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Manage categories'), warnIfMissed: false);
+    await tester.tap(find.byTooltip(strings.profileGeneralSettingsTooltip));
     await tester.pumpAndSettle();
 
     expect(
       pushedRoutes.map((Route<dynamic> route) => route.settings.name),
-      contains(ManageCategoriesScreen.routeName),
+      contains(GeneralSettingsScreen.routeName),
     );
-    expect(find.byType(ManageCategoriesScreen), findsOneWidget);
+    expect(find.byType(GeneralSettingsScreen), findsOneWidget);
   });
-
-  testWidgets(
-    'tapping recurring transactions button opens recurring transactions screen',
-    (WidgetTester tester) async {
-      final List<Route<dynamic>> pushedRoutes = <Route<dynamic>>[];
-      final NavigatorObserver observer = _RecordingNavigatorObserver(
-        pushedRoutes,
-      );
-
-      await tester.pumpWidget(
-        ProviderScope(
-          // ignore: always_specify_types
-          overrides: [
-            authControllerProvider.overrideWith(
-              () => _FakeAuthController(signedInUser),
-            ),
-            profileControllerProvider(
-              signedInUser.uid,
-            ).overrideWith(() => _FakeProfileController(hydratedProfile)),
-            updateProfileUseCaseProvider.overrideWith(
-              (Ref ref) => _StubUpdateProfileUseCase(),
-            ),
-            manageCategoryTreeProvider.overrideWith(
-              (Ref ref) => Stream<List<CategoryTreeNode>>.value(
-                const <CategoryTreeNode>[],
-              ),
-            ),
-            recurringTransactionsRepositoryProvider.overrideWithValue(
-              const _StubRecurringTransactionsRepository(),
-            ),
-          ],
-          child: MaterialApp(
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            home: const ProfileScreen(),
-            routes: <String, WidgetBuilder>{
-              ManageCategoriesScreen.routeName: (_) =>
-                  const ManageCategoriesScreen(),
-              RecurringTransactionsScreen.routeName: (_) =>
-                  const RecurringTransactionsScreen(),
-            },
-            navigatorObservers: <NavigatorObserver>[observer],
-          ),
-        ),
-      );
-
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.text('Account'));
-      await tester.pumpAndSettle();
-
-      await tester.ensureVisible(find.text('Recurring transactions'));
-      await tester.tap(find.text('Recurring transactions'));
-      await tester.pumpAndSettle();
-
-      expect(
-        pushedRoutes.map((Route<dynamic> route) => route.settings.name),
-        contains(RecurringTransactionsScreen.routeName),
-      );
-      expect(find.byType(RecurringTransactionsScreen), findsOneWidget);
-    },
-  );
 
   testWidgets('sign out button triggers auth controller sign out', (
     WidgetTester tester,

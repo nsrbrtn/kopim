@@ -13,6 +13,18 @@
   "@profileAppearanceSection": {
     "description": "Section title for appearance settings in profile management"
   },
+  "profileGeneralSettingsTitle": "General settings",
+  "@profileGeneralSettingsTitle": {
+    "description": "Title for the general settings screen"
+  },
+  "profileGeneralSettingsTooltip": "General settings",
+  "@profileGeneralSettingsTooltip": {
+    "description": "Tooltip for opening the general settings screen"
+  },
+  "profileGeneralSettingsManagementSection": "Data management",
+  "@profileGeneralSettingsManagementSection": {
+    "description": "Section title for category and recurring actions on general settings"
+  },
   "profileManageCategoriesCta": "Manage categories",
   "@profileManageCategoriesCta": {
     "description": "Button label that opens the category management screen from the profile settings"

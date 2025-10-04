@@ -13,6 +13,18 @@
   "@profileAppearanceSection": {
     "description": "Заголовок секции настроек внешнего вида на экране профиля"
   },
+  "profileGeneralSettingsTitle": "Общие настройки",
+  "@profileGeneralSettingsTitle": {
+    "description": "Заголовок экрана общих настроек"
+  },
+  "profileGeneralSettingsTooltip": "Общие настройки",
+  "@profileGeneralSettingsTooltip": {
+    "description": "Подсказка для перехода на экран общих настроек"
+  },
+  "profileGeneralSettingsManagementSection": "Управление данными",
+  "@profileGeneralSettingsManagementSection": {
+    "description": "Заголовок секции с действиями для категорий и повторяющихся операций"
+  },
   "profileManageCategoriesCta": "Управлять категориями",
   "@profileManageCategoriesCta": {
     "description": "Подпись кнопки, открывающей экран управления категориями из настроек профиля"

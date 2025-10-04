@@ -6,14 +6,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:kopim/core/theme/application/theme_mode_controller.dart';
 import 'package:kopim/core/theme/domain/app_theme_mode.dart';
-import 'package:kopim/features/categories/presentation/screens/manage_categories_screen.dart';
-import 'package:kopim/features/recurring_transactions/presentation/screens/recurring_transactions_screen.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
 import 'package:kopim/features/profile/domain/entities/profile.dart';
 import 'package:kopim/features/profile/presentation/controllers/auth_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/profile_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/profile_form_controller.dart';
 import 'package:kopim/l10n/app_localizations.dart';
+import 'package:kopim/features/profile/presentation/widgets/settings_button_theme.dart';
 
 class ProfileManagementBody extends ConsumerWidget {
   const ProfileManagementBody({super.key});
@@ -115,139 +114,127 @@ class _ProfileForm extends ConsumerWidget {
 
     final ThemeData theme = Theme.of(context);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: <Widget>[
-        _CollapsibleSection(
-          title: strings.profileSectionAccount,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: <Widget>[
-              TextFormField(
-                key: ValueKey<String>('name-$initialKey'),
-                initialValue: name,
-                onChanged: formController.updateName,
-                decoration: InputDecoration(
-                  labelText: strings.profileNameLabel,
-                  border: const OutlineInputBorder(),
-                ),
-                textInputAction: TextInputAction.next,
-              ),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<ProfileCurrency>(
-                key: ValueKey<String>('currency-$initialKey-${currency.name}'),
-                initialValue: currency,
-                decoration: InputDecoration(
-                  labelText: strings.profileCurrencyLabel,
-                  border: const OutlineInputBorder(),
-                ),
-                items: ProfileCurrency.values
-                    .map(
-                      (ProfileCurrency value) =>
-                          DropdownMenuItem<ProfileCurrency>(
-                            value: value,
-                            child: Text(value.name.toUpperCase()),
-                          ),
-                    )
-                    .toList(growable: false),
-                onChanged: (ProfileCurrency? value) {
-                  if (value != null) {
-                    formController.updateCurrency(value);
-                  }
-                },
-              ),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                key: ValueKey<String>('locale-$initialKey-$locale'),
-                initialValue: locale,
-                decoration: InputDecoration(
-                  labelText: strings.profileLocaleLabel,
-                  border: const OutlineInputBorder(),
-                ),
-                items: locales
-                    .map(
-                      (String code) => DropdownMenuItem<String>(
-                        value: code,
-                        child: Text(code.toUpperCase()),
-                      ),
-                    )
-                    .toList(growable: false),
-                onChanged: (String? value) {
-                  if (value != null) {
-                    formController.updateLocale(value);
-                  }
-                },
-              ),
-              if (profileAsync.hasError) ...<Widget>[
-                const SizedBox(height: 12),
-                Text(
-                  strings.profileLoadError(profileAsync.error.toString()),
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.error,
+    return Theme(
+      data: buildSettingsButtonTheme(theme),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          _CollapsibleSection(
+            title: strings.profileSectionAccount,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                TextFormField(
+                  key: ValueKey<String>('name-$initialKey'),
+                  initialValue: name,
+                  onChanged: formController.updateName,
+                  decoration: InputDecoration(
+                    labelText: strings.profileNameLabel,
+                    border: const OutlineInputBorder(),
                   ),
+                  textInputAction: TextInputAction.next,
                 ),
-              ],
-              if (errorMessage != null) ...<Widget>[
-                const SizedBox(height: 12),
-                Text(
-                  errorMessage,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.error,
+                const SizedBox(height: 16),
+                DropdownButtonFormField<ProfileCurrency>(
+                  key: ValueKey<String>(
+                    'currency-$initialKey-${currency.name}',
                   ),
+                  initialValue: currency,
+                  decoration: InputDecoration(
+                    labelText: strings.profileCurrencyLabel,
+                    border: const OutlineInputBorder(),
+                  ),
+                  items: ProfileCurrency.values
+                      .map(
+                        (ProfileCurrency value) =>
+                            DropdownMenuItem<ProfileCurrency>(
+                              value: value,
+                              child: Text(value.name.toUpperCase()),
+                            ),
+                      )
+                      .toList(growable: false),
+                  onChanged: (ProfileCurrency? value) {
+                    if (value != null) {
+                      formController.updateCurrency(value);
+                    }
+                  },
                 ),
-              ],
-              const SizedBox(height: 24),
-              Row(
-                children: <Widget>[
-                  ElevatedButton.icon(
-                    onPressed: !isSaving && hasChanges
-                        ? () => formController.submit()
-                        : null,
-                    icon: isSaving
-                        ? const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Icon(Icons.save),
-                    label: Text(strings.profileSaveCta),
+                const SizedBox(height: 16),
+                DropdownButtonFormField<String>(
+                  key: ValueKey<String>('locale-$initialKey-$locale'),
+                  initialValue: locale,
+                  decoration: InputDecoration(
+                    labelText: strings.profileLocaleLabel,
+                    border: const OutlineInputBorder(),
                   ),
-                  const SizedBox(width: 16),
-                  if (profileAsync.isLoading) const _CenteredProgress(size: 20),
+                  items: locales
+                      .map(
+                        (String code) => DropdownMenuItem<String>(
+                          value: code,
+                          child: Text(code.toUpperCase()),
+                        ),
+                      )
+                      .toList(growable: false),
+                  onChanged: (String? value) {
+                    if (value != null) {
+                      formController.updateLocale(value);
+                    }
+                  },
+                ),
+                if (profileAsync.hasError) ...<Widget>[
+                  const SizedBox(height: 12),
+                  Text(
+                    strings.profileLoadError(profileAsync.error.toString()),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.error,
+                    ),
+                  ),
                 ],
-              ),
-              const SizedBox(height: 16),
-              TextButton.icon(
-                onPressed: () {
-                  ref.read(authControllerProvider.notifier).signOut();
-                },
-                icon: const Icon(Icons.logout),
-                label: Text(strings.profileSignOutCta),
-              ),
-            ],
+                if (errorMessage != null) ...<Widget>[
+                  const SizedBox(height: 12),
+                  Text(
+                    errorMessage,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.error,
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 24),
+                Row(
+                  children: <Widget>[
+                    FilledButton.icon(
+                      onPressed: !isSaving && hasChanges
+                          ? () => formController.submit()
+                          : null,
+                      icon: isSaving
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.save),
+                      label: Text(strings.profileSaveCta),
+                    ),
+                    const SizedBox(width: 16),
+                    if (profileAsync.isLoading)
+                      const _CenteredProgress(size: 20),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                FilledButton.icon(
+                  onPressed: () {
+                    ref.read(authControllerProvider.notifier).signOut();
+                  },
+                  icon: const Icon(Icons.logout),
+                  label: Text(strings.profileSignOutCta),
+                ),
+              ],
+            ),
           ),
-        ),
-        const SizedBox(height: 24),
-        const ProfileThemePreferencesCard(),
-        const SizedBox(height: 24),
-        OutlinedButton.icon(
-          onPressed: () {
-            Navigator.of(context).pushNamed(ManageCategoriesScreen.routeName);
-          },
-          icon: const Icon(Icons.category_outlined),
-          label: Text(strings.profileManageCategoriesCta),
-        ),
-        const SizedBox(height: 12),
-        OutlinedButton.icon(
-          onPressed: () {
-            Navigator.of(
-              context,
-            ).pushNamed(RecurringTransactionsScreen.routeName);
-          },
-          icon: const Icon(Icons.repeat),
-          label: Text(strings.profileRecurringTransactionsCta),
-        ),
-      ],
+          const SizedBox(height: 24),
+          const ProfileThemePreferencesCard(),
+        ],
+      ),
     );
   }
 
@@ -310,7 +297,7 @@ class ProfileThemePreferencesCard extends ConsumerWidget {
             alignment: Alignment.centerRight,
             child: Padding(
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-              child: TextButton.icon(
+              child: FilledButton.icon(
                 onPressed: isSystem
                     ? null
                     : () => unawaited(
@@ -341,10 +328,13 @@ class _CollapsibleSection extends StatelessWidget {
       child: Theme(
         data: theme.copyWith(dividerColor: Colors.transparent),
         child: ExpansionTile(
+          key: PageStorageKey<String>('profile-section-$title'),
           tilePadding: const EdgeInsets.symmetric(horizontal: 16),
           childrenPadding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
           title: Text(title, style: theme.textTheme.titleMedium),
-          children: <Widget>[child],
+          children: <Widget>[
+            PageStorage(bucket: PageStorageBucket(), child: child),
+          ],
         ),
       ),
     );
