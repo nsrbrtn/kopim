@@ -9,6 +9,10 @@
     "description": "Сообщение, когда пользователю нужно войти"
   },
   "profileSectionAccount": "Учетная запись",
+  "profileAppearanceSection": "Внешний вид",
+  "@profileAppearanceSection": {
+    "description": "Заголовок секции настроек внешнего вида на экране профиля"
+  },
   "profileManageCategoriesCta": "Управлять категориями",
   "@profileManageCategoriesCta": {
     "description": "Подпись кнопки, открывающей экран управления категориями из настроек профиля"
@@ -256,6 +260,22 @@
   "@profileLocaleLabel": {
     "description": "Подпись к выбору языка"
   },
+  "profileDarkModeLabel": "Тёмная тема",
+  "@profileDarkModeLabel": {
+    "description": "Подпись переключателя тёмной темы в настройках профиля"
+  },
+  "profileDarkModeDescription": "Переключите, чтобы управлять темой приложения вручную.",
+  "@profileDarkModeDescription": {
+    "description": "Пояснение к переключателю тёмной темы"
+  },
+  "profileDarkModeSystemCta": "Использовать системную настройку",
+  "@profileDarkModeSystemCta": {
+    "description": "Кнопка возврата к системному режиму темы"
+  },
+  "profileDarkModeSystemActive": "Следуем системной теме",
+  "@profileDarkModeSystemActive": {
+    "description": "Подзаголовок, когда приложение следует системной теме"
+  },
   "profileLoadError": "Не удалось загрузить профиль: {error}",
   "@profileLoadError": {
     "description": "Сообщение об ошибке при загрузке профиля",
@@ -456,6 +476,10 @@
   "homeTitle": "Домашний экран",
   "@homeTitle": {
     "description": "Заголовок домашнего экрана"
+  },
+  "homeProfileTooltip": "Профиль",
+  "@homeProfileTooltip": {
+    "description": "Подсказка к кнопке профиля на главном экране"
   },
   "homeTotalBalance": "Суммарный баланс: {amount}",
   "@homeTotalBalance": {

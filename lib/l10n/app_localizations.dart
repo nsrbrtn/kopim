@@ -116,6 +116,12 @@ abstract class AppLocalizations {
   /// **'Account'**
   String get profileSectionAccount;
 
+  /// Section title for appearance settings in profile management
+  ///
+  /// In en, this message translates to:
+  /// **'Appearance'**
+  String get profileAppearanceSection;
+
   /// Button label that opens the category management screen from the profile settings
   ///
   /// In en, this message translates to:
@@ -452,6 +458,30 @@ abstract class AppLocalizations {
   /// **'Preferred locale'**
   String get profileLocaleLabel;
 
+  /// Label for the dark mode toggle in profile management
+  ///
+  /// In en, this message translates to:
+  /// **'Dark mode'**
+  String get profileDarkModeLabel;
+
+  /// Subtitle explaining how the dark mode toggle behaves
+  ///
+  /// In en, this message translates to:
+  /// **'Override the app theme.'**
+  String get profileDarkModeDescription;
+
+  /// Button label to restore system-controlled theme mode
+  ///
+  /// In en, this message translates to:
+  /// **'Use system setting'**
+  String get profileDarkModeSystemCta;
+
+  /// Subtitle shown when the app follows the system theme
+  ///
+  /// In en, this message translates to:
+  /// **'Following system theme'**
+  String get profileDarkModeSystemActive;
+
   /// Shown when profile loading failed
   ///
   /// In en, this message translates to:
@@ -745,6 +775,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Home'**
   String get homeTitle;
+
+  /// Tooltip for the profile action in the home app bar
+  ///
+  /// In en, this message translates to:
+  /// **'Profile'**
+  String get homeProfileTooltip;
 
   /// App bar title showing the aggregated balance
   ///

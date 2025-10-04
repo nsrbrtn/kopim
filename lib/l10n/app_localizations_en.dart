@@ -18,6 +18,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileSectionAccount => 'Account';
 
   @override
+  String get profileAppearanceSection => 'Appearance';
+
+  @override
   String get profileManageCategoriesCta => 'Manage categories';
 
   @override
@@ -195,6 +198,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileLocaleLabel => 'Preferred locale';
 
   @override
+  String get profileDarkModeLabel => 'Dark mode';
+
+  @override
+  String get profileDarkModeDescription => 'Override the app theme.';
+
+  @override
+  String get profileDarkModeSystemCta => 'Use system setting';
+
+  @override
+  String get profileDarkModeSystemActive => 'Following system theme';
+
+  @override
   String profileLoadError(String error) {
     return 'Unable to load profile: $error';
   }
@@ -348,6 +363,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeTitle => 'Home';
+
+  @override
+  String get homeProfileTooltip => 'Profile';
 
   @override
   String homeTotalBalance(String amount) {

@@ -290,7 +290,9 @@ void main() {
     await tester.tap(find.text('Account'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Manage categories'));
+    await tester.ensureVisible(find.text('Manage categories'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Manage categories'), warnIfMissed: false);
     await tester.pumpAndSettle();
 
     expect(
