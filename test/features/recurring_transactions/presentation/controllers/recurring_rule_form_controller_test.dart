@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
+import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/recurring_transactions/domain/entities/recurring_rule.dart';
 import 'package:kopim/features/recurring_transactions/domain/use_cases/save_recurring_rule_use_case.dart';
 import 'package:kopim/features/recurring_transactions/presentation/controllers/recurring_rule_form_controller.dart';
@@ -20,10 +21,11 @@ RecurringRule _fallbackRule() {
     id: 'id',
     title: 'title',
     accountId: 'account',
+    categoryId: 'category',
     amount: 10,
     currency: 'USD',
     startAt: now,
-    timezone: 'UTC',
+    timezone: 'Europe/Helsinki',
     rrule: 'FREQ=MONTHLY;BYMONTHDAY=1',
     notes: null,
     dayOfMonth: 1,
@@ -48,6 +50,17 @@ AccountEntity _buildAccount() {
     balance: 1000,
     currency: 'EUR',
     type: 'bank',
+    createdAt: now,
+    updatedAt: now,
+  );
+}
+
+Category _buildCategory({String type = 'expense'}) {
+  final DateTime now = DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
+  return Category(
+    id: 'category-1-$type',
+    name: 'Category',
+    type: type,
     createdAt: now,
     updatedAt: now,
   );
@@ -84,10 +97,12 @@ void main() {
       provider.notifier,
     );
     final AccountEntity account = _buildAccount();
+    final Category category = _buildCategory(type: 'income');
     controller.updateAccount(account);
     controller.updateTitle('  Зарплата ');
     controller.updateAmount('150');
     controller.updateType(TransactionType.income);
+    controller.updateCategory(category);
     controller.updateStartDate(DateTime(2024, 1, 15));
     controller.updateTime(hour: 10, minute: 30);
     controller.updateAutoPost(true);
@@ -101,6 +116,7 @@ void main() {
     expect(captured.id, 'uuid-1');
     expect(captured.title, 'Зарплата');
     expect(captured.accountId, account.id);
+    expect(captured.categoryId, category.id);
     expect(captured.currency, account.currency);
     expect(captured.amount, -150);
     expect(captured.autoPost, isTrue);
@@ -136,6 +152,7 @@ void main() {
     expect(state.titleError, RecurringRuleTitleError.empty);
     expect(state.amountError, RecurringRuleAmountError.invalid);
     expect(state.accountError, RecurringRuleAccountError.missing);
+    expect(state.categoryError, RecurringRuleCategoryError.missing);
     verifyNever(() => mockUseCase.call(any()));
   });
 
@@ -150,6 +167,7 @@ void main() {
       provider.notifier,
     );
     controller.updateAccount(_buildAccount());
+    controller.updateCategory(_buildCategory());
     controller.updateTitle('Аренда');
     controller.updateAmount('500');
 
@@ -172,10 +190,12 @@ void main() {
       provider.notifier,
     );
     final AccountEntity account = _buildAccount().copyWith(id: 'account-2');
+    final Category category = _buildCategory();
     controller.updateAccount(account);
     controller.updateTitle('Аренда жилья');
     controller.updateAmount('750.5');
     controller.updateType(TransactionType.expense);
+    controller.updateCategory(category);
     controller.updateStartDate(DateTime(2024, 2, 5));
     controller.updateTime(hour: 8, minute: 45);
     controller.updateAutoPost(true);
@@ -188,6 +208,7 @@ void main() {
     expect(captured.id, existingRule.id);
     expect(captured.title, 'Аренда жилья');
     expect(captured.accountId, account.id);
+    expect(captured.categoryId, category.id);
     expect(captured.currency, account.currency);
     expect(captured.amount, 750.5);
     expect(captured.dayOfMonth, 5);

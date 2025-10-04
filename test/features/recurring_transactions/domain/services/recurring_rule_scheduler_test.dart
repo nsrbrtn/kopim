@@ -13,10 +13,11 @@ RecurringRule buildRule({
     id: 'rule-1',
     title: 'Test',
     accountId: 'acc-1',
+    categoryId: 'cat-1',
     amount: 100,
     currency: 'USD',
     startAt: startAt,
-    timezone: 'UTC',
+    timezone: 'Europe/Helsinki',
     rrule: 'FREQ=MONTHLY',
     notes: 'Test',
     dayOfMonth: dayOfMonth,
@@ -95,5 +96,22 @@ void main() {
 
     expect(result.dueDates, equals(<DateTime>[DateTime(2024, 5, 15, 0, 1)]));
     expect(result.nextDue, DateTime(2024, 6, 15, 0, 1));
+  });
+
+  test('returns today as due when anchor is in the past', () {
+    final RecurringRule rule = buildRule(
+      startAt: DateTime(2024, 1, 20, 0, 1),
+      nextDue: DateTime(2024, 3, 20, 0, 1),
+      lastRunAt: DateTime(2024, 2, 20, 0, 1),
+      dayOfMonth: 20,
+    );
+
+    final RecurringRuleScheduleResult result = scheduler.resolve(
+      rule: rule,
+      now: DateTime(2024, 3, 20, 15, 30),
+    );
+
+    expect(result.dueDates, contains(DateTime(2024, 3, 20, 0, 1)));
+    expect(result.nextDue, DateTime(2024, 4, 20, 0, 1));
   });
 }

@@ -92,9 +92,10 @@ class ApplyRecurringRulesUseCase {
         : TransactionType.income;
     return AddTransactionRequest(
       accountId: rule.accountId,
+      categoryId: rule.categoryId,
       amount: rule.amount.abs(),
       date: due.toUtc(),
-      note: rule.notes,
+      note: 'Автоплатеж "${rule.title}"',
       type: type,
     );
   }

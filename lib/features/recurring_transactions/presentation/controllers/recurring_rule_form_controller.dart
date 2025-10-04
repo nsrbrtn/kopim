@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
+import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/recurring_transactions/domain/entities/recurring_rule.dart';
 import 'package:kopim/features/recurring_transactions/domain/use_cases/save_recurring_rule_use_case.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
@@ -17,6 +18,8 @@ enum RecurringRuleAmountError { invalid }
 
 enum RecurringRuleAccountError { missing }
 
+enum RecurringRuleCategoryError { missing }
+
 @freezed
 abstract class RecurringRuleFormState with _$RecurringRuleFormState {
   const factory RecurringRuleFormState({
@@ -24,6 +27,8 @@ abstract class RecurringRuleFormState with _$RecurringRuleFormState {
     @Default('') String amountInput,
     AccountEntity? account,
     String? accountId,
+    Category? category,
+    String? categoryId,
     @Default(TransactionType.expense) TransactionType type,
     required DateTime startDate,
     @Default(0) int applyHour,
@@ -36,6 +41,7 @@ abstract class RecurringRuleFormState with _$RecurringRuleFormState {
     RecurringRuleTitleError? titleError,
     RecurringRuleAmountError? amountError,
     RecurringRuleAccountError? accountError,
+    RecurringRuleCategoryError? categoryError,
     String? generalErrorMessage,
   }) = _RecurringRuleFormState;
 
@@ -70,6 +76,7 @@ class RecurringRuleFormController extends _$RecurringRuleFormController {
         title: initialRule.title,
         amountInput: _formatAmountInput(absoluteAmount),
         accountId: initialRule.accountId,
+        categoryId: initialRule.categoryId,
         type: initialType,
         startDate: DateTime(
           referenceLocalDateTime.year,
@@ -86,8 +93,9 @@ class RecurringRuleFormController extends _$RecurringRuleFormController {
     final DateTime now = DateTime.now();
     return RecurringRuleFormState(
       startDate: DateTime(now.year, now.month, now.day),
-      applyHour: now.hour,
-      applyMinute: now.minute,
+      applyHour: 0,
+      applyMinute: 1,
+      categoryId: null,
     );
   }
 
@@ -119,8 +127,24 @@ class RecurringRuleFormController extends _$RecurringRuleFormController {
     );
   }
 
+  void updateCategory(Category? category) {
+    state = state.copyWith(
+      category: category,
+      categoryId: category?.id,
+      categoryError: null,
+      submissionSuccess: false,
+      generalErrorMessage: null,
+    );
+  }
+
   void updateType(TransactionType type) {
-    state = state.copyWith(type: type, submissionSuccess: false);
+    state = state.copyWith(
+      type: type,
+      submissionSuccess: false,
+      category: null,
+      categoryId: null,
+      categoryError: null,
+    );
   }
 
   void updateStartDate(DateTime date) {
@@ -171,11 +195,21 @@ class RecurringRuleFormController extends _$RecurringRuleFormController {
       accountError = RecurringRuleAccountError.missing;
     }
 
-    if (titleError != null || amountError != null || accountError != null) {
+    final Category? category = state.category;
+    RecurringRuleCategoryError? categoryError;
+    if (category == null) {
+      categoryError = RecurringRuleCategoryError.missing;
+    }
+
+    if (titleError != null ||
+        amountError != null ||
+        accountError != null ||
+        categoryError != null) {
       state = state.copyWith(
         titleError: titleError,
         amountError: amountError,
         accountError: accountError,
+        categoryError: categoryError,
         submissionSuccess: false,
       );
       return;
@@ -210,10 +244,11 @@ class RecurringRuleFormController extends _$RecurringRuleFormController {
         id: _uuid.v4(),
         title: trimmedTitle,
         accountId: account!.id,
+        categoryId: category!.id,
         amount: amount,
         currency: account.currency,
         startAt: startAtUtc,
-        timezone: 'UTC',
+        timezone: 'Europe/Helsinki',
         rrule: 'FREQ=MONTHLY;INTERVAL=1;BYMONTHDAY=${startDate.day}',
         notes: null,
         dayOfMonth: startDate.day,
@@ -232,10 +267,12 @@ class RecurringRuleFormController extends _$RecurringRuleFormController {
       rule = existingRule.copyWith(
         title: trimmedTitle,
         accountId: account!.id,
+        categoryId: category!.id,
         amount: amount,
         currency: account.currency,
         startAt: startAtUtc,
         rrule: 'FREQ=MONTHLY;INTERVAL=1;BYMONTHDAY=${startDate.day}',
+        timezone: 'Europe/Helsinki',
         dayOfMonth: startDate.day,
         applyAtLocalHour: state.applyHour,
         applyAtLocalMinute: state.applyMinute,
@@ -290,4 +327,9 @@ class RecurringRuleFormController extends _$RecurringRuleFormController {
 final StreamProvider<List<AccountEntity>> recurringRuleAccountsProvider =
     StreamProvider.autoDispose<List<AccountEntity>>((Ref ref) {
       return ref.watch(watchAccountsUseCaseProvider).call();
+    });
+
+final StreamProvider<List<Category>> recurringRuleCategoriesProvider =
+    StreamProvider.autoDispose<List<Category>>((Ref ref) {
+      return ref.watch(watchCategoriesUseCaseProvider).call();
     });

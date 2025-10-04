@@ -578,6 +578,18 @@ abstract class AppLocalizations {
   /// **'Select an account'**
   String get addRecurringRuleAccountRequired;
 
+  /// Label for the category dropdown
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get addRecurringRuleCategoryLabel;
+
+  /// Validation error when no category selected
+  ///
+  /// In en, this message translates to:
+  /// **'Select a category'**
+  String get addRecurringRuleCategoryRequired;
+
   /// Label for the transaction type selector
   ///
   /// In en, this message translates to:
@@ -614,6 +626,18 @@ abstract class AppLocalizations {
   /// **'Post automatically'**
   String get addRecurringRuleAutoPostLabel;
 
+  /// Label for the next due preview
+  ///
+  /// In en, this message translates to:
+  /// **'Next due'**
+  String get addRecurringRuleNextDuePreviewLabel;
+
+  /// Placeholder when next due preview is unavailable
+  ///
+  /// In en, this message translates to:
+  /// **'—'**
+  String get addRecurringRuleNextDuePreviewUnknown;
+
   /// Label for the submit button
   ///
   /// In en, this message translates to:
@@ -631,6 +655,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add an account before creating a recurring rule.'**
   String get addRecurringRuleNoAccounts;
+
+  /// Message shown when there are no categories
+  ///
+  /// In en, this message translates to:
+  /// **'Add a category before creating a recurring rule.'**
+  String get addRecurringRuleNoCategories;
 
   /// Snackbar message when recurring rule saved
   ///

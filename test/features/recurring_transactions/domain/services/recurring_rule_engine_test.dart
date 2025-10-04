@@ -25,6 +25,7 @@ void main() {
       id: id,
       title: 'Rule $id',
       accountId: 'acc',
+      categoryId: 'cat',
       amount: 100,
       currency: 'USD',
       startAt: startAt,

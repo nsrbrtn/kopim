@@ -186,6 +186,7 @@ class RecurringTransactionsRepositoryImpl
       id: row.id,
       title: row.title,
       accountId: row.accountId,
+      categoryId: row.categoryId,
       amount: row.amount,
       currency: row.currency,
       startAt: row.startAt.toUtc(),

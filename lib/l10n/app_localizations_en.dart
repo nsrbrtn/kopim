@@ -262,6 +262,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addRecurringRuleAccountRequired => 'Select an account';
 
   @override
+  String get addRecurringRuleCategoryLabel => 'Category';
+
+  @override
+  String get addRecurringRuleCategoryRequired => 'Select a category';
+
+  @override
   String get addRecurringRuleTypeLabel => 'Type';
 
   @override
@@ -280,6 +286,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addRecurringRuleAutoPostLabel => 'Post automatically';
 
   @override
+  String get addRecurringRuleNextDuePreviewLabel => 'Next due';
+
+  @override
+  String get addRecurringRuleNextDuePreviewUnknown => '—';
+
+  @override
   String get addRecurringRuleSubmit => 'Save rule';
 
   @override
@@ -288,6 +300,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get addRecurringRuleNoAccounts =>
       'Add an account before creating a recurring rule.';
+
+  @override
+  String get addRecurringRuleNoCategories =>
+      'Add a category before creating a recurring rule.';
 
   @override
   String get addRecurringRuleSuccess => 'Recurring transaction saved';

@@ -100,6 +100,8 @@ class RecurringRules extends Table {
   TextColumn get title => text().withLength(min: 1, max: 120)();
   TextColumn get accountId =>
       text().references(Accounts, #id, onDelete: KeyAction.cascade)();
+  TextColumn get categoryId =>
+      text().references(Categories, #id, onDelete: KeyAction.cascade)();
   RealColumn get amount => real()();
   TextColumn get currency => text().withLength(min: 3, max: 3)();
   DateTimeColumn get startAt => dateTime()();
@@ -189,7 +191,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.connect(DatabaseConnection super.connection);
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -265,6 +267,21 @@ class AppDatabase extends _$AppDatabase {
         await m.database.customStatement(
           'UPDATE recurring_rules SET next_due_local_date = '
           "CASE WHEN next_due_local_date IS NULL THEN datetime(strftime('%Y-%m-%d', start_at) || ' 00:01:00') ELSE next_due_local_date END",
+        );
+      }
+      if (from < 7) {
+        await m.addColumn(recurringRules, recurringRules.categoryId);
+        await m.database.customStatement(
+          'INSERT INTO categories (id, name, type) VALUES (\'recurring_default_expense\', \'Автоплатежи\', \'expense\') '
+          'ON CONFLICT(id) DO NOTHING',
+        );
+        await m.database.customStatement(
+          'INSERT INTO categories (id, name, type) VALUES (\'recurring_default_income\', \'Автоплатежи (доход)\', \'income\') '
+          'ON CONFLICT(id) DO NOTHING',
+        );
+        await m.database.customStatement(
+          'UPDATE recurring_rules SET category_id = CASE WHEN category_id IS NULL THEN CASE WHEN amount >= 0 THEN '
+          "'recurring_default_expense' ELSE 'recurring_default_income' END ELSE category_id END",
         );
       }
     },
