@@ -280,6 +280,30 @@
   "@profileDarkModeDescription": {
     "description": "Subtitle explaining how the dark mode toggle behaves"
   },
+  "profileThemeHeader": "Theme",
+  "@profileThemeHeader": {
+    "description": "Title for the theme preferences section header"
+  },
+  "profileThemeOptionSystem": "System default",
+  "@profileThemeOptionSystem": {
+    "description": "Label for selecting the system-controlled theme mode"
+  },
+  "profileThemeOptionLight": "Light",
+  "@profileThemeOptionLight": {
+    "description": "Label for selecting the light theme mode"
+  },
+  "profileThemeOptionDark": "Dark",
+  "@profileThemeOptionDark": {
+    "description": "Label for selecting the dark theme mode"
+  },
+  "profileThemeLightDescription": "Use a bright interface.",
+  "@profileThemeLightDescription": {
+    "description": "Description shown for the light theme option"
+  },
+  "profileThemeDarkDescription": "Use a dimmed interface.",
+  "@profileThemeDarkDescription": {
+    "description": "Description shown for the dark theme option"
+  },
   "profileDarkModeSystemCta": "Use system setting",
   "@profileDarkModeSystemCta": {
     "description": "Button label to restore system-controlled theme mode"
