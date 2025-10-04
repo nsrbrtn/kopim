@@ -109,9 +109,12 @@ class RecurringTransactionsScreen extends ConsumerWidget {
   }
 
   Future<void> _onAddRulePressed(BuildContext context) async {
-    final RecurringRuleFormResult? result = await Navigator.of(
-      context,
-    ).pushNamed<RecurringRuleFormResult>(AddRecurringRuleScreen.routeName);
+    final RecurringRuleFormResult? result = await Navigator.of(context).push(
+      MaterialPageRoute<RecurringRuleFormResult>(
+        builder: (_) => const AddRecurringRuleScreen(),
+        settings: const RouteSettings(name: AddRecurringRuleScreen.routeName),
+      ),
+    );
     if (result == RecurringRuleFormResult.created && context.mounted) {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
@@ -132,6 +135,7 @@ class RecurringTransactionsScreen extends ConsumerWidget {
     final RecurringRuleFormResult? result = await Navigator.of(context).push(
       MaterialPageRoute<RecurringRuleFormResult>(
         builder: (_) => AddRecurringRuleScreen(initialRule: rule),
+        settings: const RouteSettings(name: AddRecurringRuleScreen.routeName),
       ),
     );
     if (result == RecurringRuleFormResult.updated && context.mounted) {
