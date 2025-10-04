@@ -24,11 +24,13 @@ import 'package:kopim/features/home/presentation/controllers/home_providers.dart
 import 'package:kopim/features/home/domain/models/upcoming_payment.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
 import 'package:kopim/features/profile/presentation/controllers/auth_controller.dart';
+import 'package:kopim/features/profile/presentation/screens/general_settings_screen.dart';
 import 'package:kopim/features/recurring_transactions/domain/entities/recurring_rule.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/repositories/transaction_repository.dart';
 import 'package:kopim/features/transactions/domain/use_cases/watch_recent_transactions_use_case.dart';
 import 'package:kopim/l10n/app_localizations.dart';
+import 'package:kopim/l10n/app_localizations_en.dart';
 
 class _FakeAuthController extends AuthController {
   _FakeAuthController(this._user);
@@ -230,6 +232,10 @@ void main() {
           navigatorKey: navigatorKey,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
+          routes: <String, WidgetBuilder>{
+            GeneralSettingsScreen.routeName: (_) =>
+                const GeneralSettingsScreen(),
+          },
           home: const MainNavigationShell(),
         ),
       ),
@@ -244,9 +250,45 @@ void main() {
     await tester.pumpAndSettle();
     expect(bottomNavFinder, findsOneWidget);
 
-    await tester.tap(find.text('Settings'));
+    await tester.tap(find.text('Budgets'));
     await tester.pumpAndSettle();
     expect(bottomNavFinder, findsOneWidget);
+  });
+
+  testWidgets('tapping settings tab opens general settings screen', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      buildShell(
+        MaterialApp(
+          navigatorKey: navigatorKey,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          routes: <String, WidgetBuilder>{
+            GeneralSettingsScreen.routeName: (_) =>
+                const GeneralSettingsScreen(),
+          },
+          home: const MainNavigationShell(),
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Settings'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(GeneralSettingsScreen), findsOneWidget);
+
+    final AppLocalizations strings = AppLocalizationsEn();
+
+    expect(find.text(strings.profileGeneralSettingsTitle), findsOneWidget);
+    expect(find.text(strings.profileManageCategoriesCta), findsOneWidget);
+
+    navigatorKey.currentState!.pop();
+    await tester.pumpAndSettle();
+
+    expect(find.byType(BottomNavigationBar), findsOneWidget);
   });
 
   testWidgets('hides bottom navigation when a secondary route is pushed', (
@@ -258,6 +300,10 @@ void main() {
           navigatorKey: navigatorKey,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
+          routes: <String, WidgetBuilder>{
+            GeneralSettingsScreen.routeName: (_) =>
+                const GeneralSettingsScreen(),
+          },
           home: const MainNavigationShell(),
         ),
       ),

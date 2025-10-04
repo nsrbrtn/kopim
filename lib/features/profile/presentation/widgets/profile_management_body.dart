@@ -249,69 +249,168 @@ class _ProfileForm extends ConsumerWidget {
   }
 }
 
-class ProfileThemePreferencesCard extends ConsumerWidget {
+class ProfileThemePreferencesCard extends ConsumerStatefulWidget {
   const ProfileThemePreferencesCard({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ProfileThemePreferencesCard> createState() =>
+      _ProfileThemePreferencesCardState();
+}
+
+class _ProfileThemePreferencesCardState
+    extends ConsumerState<ProfileThemePreferencesCard> {
+  bool _isExpanded = false;
+
+  @override
+  Widget build(BuildContext context) {
     final AppLocalizations strings = AppLocalizations.of(context)!;
     final AppThemeMode mode = ref.watch(themeModeControllerProvider);
     final ThemeModeController controller = ref.read(
       themeModeControllerProvider.notifier,
     );
-    final bool isDark = mode.maybeWhen(dark: () => true, orElse: () => false);
+    final ThemeData theme = Theme.of(context);
+    final Brightness brightness = theme.brightness;
+
     final bool isSystem = mode.maybeWhen(
       system: () => true,
       orElse: () => false,
     );
-    final ThemeData theme = Theme.of(context);
+    final bool isDarkPreferred = mode.maybeWhen(
+      dark: () => true,
+      system: () => brightness == Brightness.dark,
+      orElse: () => false,
+    );
 
-    final String subtitle = isSystem
-        ? strings.profileDarkModeSystemActive
-        : strings.profileDarkModeDescription;
+    final String subtitle = mode.when(
+      system: () => strings.profileDarkModeSystemActive,
+      light: () => strings.profileThemeLightDescription,
+      dark: () => strings.profileThemeDarkDescription,
+    );
+
+    final List<_ThemeModeOption> options = <_ThemeModeOption>[
+      _ThemeModeOption(
+        mode: const AppThemeMode.system(),
+        label: strings.profileThemeOptionSystem,
+        description: strings.profileDarkModeSystemActive,
+      ),
+      _ThemeModeOption(
+        mode: const AppThemeMode.light(),
+        label: strings.profileThemeOptionLight,
+        description: strings.profileThemeLightDescription,
+      ),
+      _ThemeModeOption(
+        mode: const AppThemeMode.dark(),
+        label: strings.profileThemeOptionDark,
+        description: strings.profileThemeDarkDescription,
+      ),
+    ];
+    final _ThemeModeOption activeOption = options.firstWhere(
+      (_ThemeModeOption option) => option.mode == mode,
+      orElse: () => options.first,
+    );
 
     return Card(
       margin: EdgeInsets.zero,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          ListTile(
-            title: Text(
-              strings.profileAppearanceSection,
-              style: theme.textTheme.titleMedium,
-            ),
-          ),
-          SwitchListTile.adaptive(
-            value: isDark,
-            onChanged: (bool value) {
-              final AppThemeMode newMode = value
-                  ? const AppThemeMode.dark()
-                  : const AppThemeMode.light();
-              unawaited(controller.setMode(newMode));
-            },
-            title: Text(strings.profileDarkModeLabel),
-            subtitle: Text(subtitle),
-            secondary: const Icon(Icons.dark_mode_outlined),
-          ),
-          Align(
-            alignment: Alignment.centerRight,
+          InkWell(
+            onTap: () => setState(() => _isExpanded = !_isExpanded),
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-              child: FilledButton.icon(
-                onPressed: isSystem
-                    ? null
-                    : () => unawaited(
-                        controller.setMode(const AppThemeMode.system()),
-                      ),
-                icon: const Icon(Icons.settings_backup_restore_outlined),
-                label: Text(strings.profileDarkModeSystemCta),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: <Widget>[
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Text(
+                          strings.profileThemeHeader,
+                          style: theme.textTheme.titleMedium,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(subtitle, style: theme.textTheme.bodySmall),
+                      ],
+                    ),
+                  ),
+                  Switch.adaptive(
+                    value: isDarkPreferred,
+                    onChanged: (bool value) {
+                      final AppThemeMode newMode = value
+                          ? const AppThemeMode.dark()
+                          : const AppThemeMode.light();
+                      unawaited(controller.setMode(newMode));
+                    },
+                  ),
+                  const SizedBox(width: 4),
+                  Icon(_isExpanded ? Icons.expand_less : Icons.expand_more),
+                ],
               ),
             ),
           ),
+          if (_isExpanded) const Divider(height: 1),
+          if (_isExpanded)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  SegmentedButton<AppThemeMode>(
+                    segments: <ButtonSegment<AppThemeMode>>[
+                      for (final _ThemeModeOption option in options)
+                        ButtonSegment<AppThemeMode>(
+                          value: option.mode,
+                          label: Text(option.label),
+                        ),
+                    ],
+                    selected: <AppThemeMode>{mode},
+                    showSelectedIcon: false,
+                    onSelectionChanged: (Set<AppThemeMode> selection) {
+                      if (selection.isEmpty) {
+                        return;
+                      }
+                      unawaited(controller.setMode(selection.first));
+                    },
+                  ),
+                  if (activeOption.description != null) ...<Widget>[
+                    const SizedBox(height: 12),
+                    Text(
+                      activeOption.description!,
+                      style: theme.textTheme.bodySmall,
+                    ),
+                  ],
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: FilledButton.icon(
+                      onPressed: isSystem
+                          ? null
+                          : () => unawaited(
+                              controller.setMode(const AppThemeMode.system()),
+                            ),
+                      icon: const Icon(Icons.settings_backup_restore_outlined),
+                      label: Text(strings.profileDarkModeSystemCta),
+                    ),
+                  ),
+                ],
+              ),
+            ),
         ],
       ),
     );
   }
+}
+
+class _ThemeModeOption {
+  const _ThemeModeOption({
+    required this.mode,
+    required this.label,
+    this.description,
+  });
+
+  final AppThemeMode mode;
+  final String label;
+  final String? description;
 }
 
 class _CollapsibleSection extends StatelessWidget {
