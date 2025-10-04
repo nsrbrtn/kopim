@@ -280,6 +280,30 @@
   "@profileDarkModeDescription": {
     "description": "Пояснение к переключателю тёмной темы"
   },
+  "profileThemeHeader": "Оформление",
+  "@profileThemeHeader": {
+    "description": "Заголовок секции настроек темы"
+  },
+  "profileThemeOptionSystem": "Системная",
+  "@profileThemeOptionSystem": {
+    "description": "Подпись варианта следовать системной теме"
+  },
+  "profileThemeOptionLight": "Светлая",
+  "@profileThemeOptionLight": {
+    "description": "Подпись варианта выбрать светлую тему"
+  },
+  "profileThemeOptionDark": "Тёмная",
+  "@profileThemeOptionDark": {
+    "description": "Подпись варианта выбрать тёмную тему"
+  },
+  "profileThemeLightDescription": "Использовать светлое оформление.",
+  "@profileThemeLightDescription": {
+    "description": "Описание варианта светлой темы"
+  },
+  "profileThemeDarkDescription": "Использовать тёмное оформление.",
+  "@profileThemeDarkDescription": {
+    "description": "Описание варианта тёмной темы"
+  },
   "profileDarkModeSystemCta": "Использовать системную настройку",
   "@profileDarkModeSystemCta": {
     "description": "Кнопка возврата к системному режиму темы"

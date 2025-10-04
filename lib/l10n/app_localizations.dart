@@ -488,6 +488,42 @@ abstract class AppLocalizations {
   /// **'Override the app theme.'**
   String get profileDarkModeDescription;
 
+  /// Title for the theme preferences section header
+  ///
+  /// In en, this message translates to:
+  /// **'Theme'**
+  String get profileThemeHeader;
+
+  /// Label for selecting the system-controlled theme mode
+  ///
+  /// In en, this message translates to:
+  /// **'System default'**
+  String get profileThemeOptionSystem;
+
+  /// Label for selecting the light theme mode
+  ///
+  /// In en, this message translates to:
+  /// **'Light'**
+  String get profileThemeOptionLight;
+
+  /// Label for selecting the dark theme mode
+  ///
+  /// In en, this message translates to:
+  /// **'Dark'**
+  String get profileThemeOptionDark;
+
+  /// Description shown for the light theme option
+  ///
+  /// In en, this message translates to:
+  /// **'Use a bright interface.'**
+  String get profileThemeLightDescription;
+
+  /// Description shown for the dark theme option
+  ///
+  /// In en, this message translates to:
+  /// **'Use a dimmed interface.'**
+  String get profileThemeDarkDescription;
+
   /// Button label to restore system-controlled theme mode
   ///
   /// In en, this message translates to:

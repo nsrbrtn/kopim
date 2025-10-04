@@ -215,6 +215,24 @@ class AppLocalizationsRu extends AppLocalizations {
       'Переключите, чтобы управлять темой приложения вручную.';
 
   @override
+  String get profileThemeHeader => 'Оформление';
+
+  @override
+  String get profileThemeOptionSystem => 'Системная';
+
+  @override
+  String get profileThemeOptionLight => 'Светлая';
+
+  @override
+  String get profileThemeOptionDark => 'Тёмная';
+
+  @override
+  String get profileThemeLightDescription => 'Использовать светлое оформление.';
+
+  @override
+  String get profileThemeDarkDescription => 'Использовать тёмное оформление.';
+
+  @override
   String get profileDarkModeSystemCta => 'Использовать системную настройку';
 
   @override

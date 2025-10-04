@@ -10,6 +10,29 @@ import 'package:kopim/features/transactions/domain/entities/transaction_type.dar
 import 'package:kopim/features/transactions/presentation/controllers/transaction_form_controller.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
+InputDecoration _transactionTextFieldDecoration(
+  BuildContext context, {
+  required String labelText,
+  String? hintText,
+}) {
+  final ThemeData theme = Theme.of(context);
+  const OutlineInputBorder border = OutlineInputBorder(
+    borderSide: BorderSide.none,
+    borderRadius: BorderRadius.all(Radius.circular(12)),
+  );
+
+  return InputDecoration(
+    labelText: labelText,
+    hintText: hintText,
+    filled: true,
+    fillColor: theme.colorScheme.surfaceContainerHighest,
+    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+    border: border,
+    enabledBorder: border,
+    focusedBorder: border,
+  );
+}
+
 class TransactionFormView extends ConsumerWidget {
   const TransactionFormView({
     super.key,
@@ -390,15 +413,10 @@ class _AmountFieldState extends ConsumerState<_AmountField> {
       inputFormatters: <TextInputFormatter>[
         FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
       ],
-      decoration: InputDecoration(
+      decoration: _transactionTextFieldDecoration(
+        context,
         labelText: widget.strings.addTransactionAmountLabel,
         hintText: widget.strings.addTransactionAmountHint,
-        filled: true,
-        fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
-        border: const OutlineInputBorder(
-          borderSide: BorderSide(style: BorderStyle.none),
-          borderRadius: BorderRadius.all(Radius.circular(12)),
-        ),
       ),
       onChanged: _handleChanged,
       onEditingComplete: () {
@@ -520,8 +538,12 @@ class _NoteField extends ConsumerWidget {
 
     return TextFormField(
       initialValue: note,
+      minLines: 3,
       maxLines: 3,
-      decoration: InputDecoration(labelText: strings.addTransactionNoteLabel),
+      decoration: _transactionTextFieldDecoration(
+        context,
+        labelText: strings.addTransactionNoteLabel,
+      ),
       onChanged: ref
           .read(transactionFormControllerProvider(formArgs).notifier)
           .updateNote,
