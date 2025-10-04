@@ -45,10 +45,14 @@ class _MyAppState extends ConsumerState<MyApp> {
     final AsyncValue<void> startupState = ref.watch(
       appStartupControllerProvider,
     );
+    final ThemeData lightTheme = ref.watch(appThemeProvider);
+    final ThemeData darkTheme = ref.watch(appDarkThemeProvider);
 
     return MaterialApp(
       title: 'Kopim',
-      theme: ThemeData(primarySwatch: Colors.blue),
+      theme: lightTheme,
+      darkTheme: darkTheme,
+      themeMode: ThemeMode.system,
       locale: appLocale,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
