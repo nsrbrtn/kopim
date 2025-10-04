@@ -1,4 +1,3 @@
-import 'dart:math' as math;
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -10,6 +9,7 @@ import 'package:kopim/features/analytics/domain/models/analytics_category_breakd
 import 'package:kopim/features/analytics/domain/models/analytics_overview.dart';
 import 'package:kopim/features/analytics/presentation/controllers/analytics_filter_controller.dart';
 import 'package:kopim/features/analytics/presentation/controllers/analytics_providers.dart';
+import 'package:kopim/features/analytics/presentation/widgets/analytics_chart.dart';
 import 'package:kopim/features/app_shell/presentation/models/navigation_tab_content.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/l10n/app_localizations.dart';
@@ -34,9 +34,9 @@ class AnalyticsScreen extends ConsumerWidget {
 }
 
 NavigationTabContent buildAnalyticsTabContent(
-    BuildContext context,
-    WidgetRef ref,
-    ) {
+  BuildContext context,
+  WidgetRef ref,
+) {
   final AppLocalizations strings = AppLocalizations.of(context)!;
   return NavigationTabContent(
     appBarBuilder: (BuildContext context, WidgetRef ref) =>
@@ -61,8 +61,8 @@ NavigationTabContent buildAnalyticsTabContent(
           accountsAsync.value ?? const <AccountEntity>[];
       final bool isLoading =
           overviewAsync.isLoading ||
-              categoriesAsync.isLoading ||
-              accountsAsync.isLoading;
+          categoriesAsync.isLoading ||
+          accountsAsync.isLoading;
       final Object? error =
           overviewAsync.error ?? categoriesAsync.error ?? accountsAsync.error;
       final AnalyticsOverview? overview = overviewAsync.value;
@@ -105,28 +105,28 @@ NavigationTabContent buildAnalyticsTabContent(
                 ),
               )
             else if (overview == null ||
-                  (overview.totalIncome == 0 && overview.totalExpense == 0))
-                SliverFillRemaining(
-                  hasScrollBody: false,
-                  child: _AnalyticsEmpty(strings: strings),
-                )
-              else
-                SliverPadding(
-                  padding: EdgeInsets.fromLTRB(
-                    horizontalPadding,
-                    24,
-                    horizontalPadding,
-                    32,
-                  ),
-                  sliver: SliverToBoxAdapter(
-                    child: _AnalyticsContent(
-                      overview: overview,
-                      categories: categories,
-                      filterState: filterState,
-                      strings: strings,
-                    ),
+                (overview.totalIncome == 0 && overview.totalExpense == 0))
+              SliverFillRemaining(
+                hasScrollBody: false,
+                child: _AnalyticsEmpty(strings: strings),
+              )
+            else
+              SliverPadding(
+                padding: EdgeInsets.fromLTRB(
+                  horizontalPadding,
+                  24,
+                  horizontalPadding,
+                  32,
+                ),
+                sliver: SliverToBoxAdapter(
+                  child: _AnalyticsContent(
+                    overview: overview,
+                    categories: categories,
+                    filterState: filterState,
+                    strings: strings,
                   ),
                 ),
+              ),
           ],
         ),
       );
@@ -248,57 +248,35 @@ class _AnalyticsSummaryFrame extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
         child: LayoutBuilder(
           builder: (BuildContext context, BoxConstraints constraints) {
-            final bool isCompact = constraints.maxWidth < 520;
-            if (isCompact) {
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: <Widget>[
-                  for (
-                  int index = 0;
-                  index < entries.length;
-                  index++
-                  ) ...<Widget>[
-                    _SummaryValue(
-                      entry: entries[index],
-                      currencyFormat: currencyFormat,
-                      textAlign: TextAlign.start,
-                    ),
-                    if (index < entries.length - 1)
-                      const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 12),
-                        child: Divider(height: 1),
-                      ),
-                  ],
-                ],
-              );
-            }
+            final TextStyle baseValueStyle =
+                theme.textTheme.headlineSmall ??
+                theme.textTheme.titleLarge ??
+                const TextStyle(fontSize: 24);
+            final double? baseFontSize = baseValueStyle.fontSize;
+            final TextStyle valueStyle = baseValueStyle.copyWith(
+              fontSize: baseFontSize != null
+                  ? baseFontSize * 0.8
+                  : baseFontSize,
+              height: 1.1,
+            );
 
             return Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 for (
-                int index = 0;
-                index < entries.length;
-                index++
+                  int index = 0;
+                  index < entries.length;
+                  index++
                 ) ...<Widget>[
                   Expanded(
                     child: _SummaryValue(
                       entry: entries[index],
                       currencyFormat: currencyFormat,
                       textAlign: TextAlign.center,
+                      valueStyle: valueStyle,
                     ),
                   ),
-                  if (index < entries.length - 1)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: SizedBox(
-                        height: 64,
-                        child: VerticalDivider(
-                          width: 1,
-                          color: theme.colorScheme.outlineVariant,
-                        ),
-                      ),
-                    ),
+                  if (index < entries.length - 1) const SizedBox(width: 16),
                 ],
               ],
             );
@@ -326,11 +304,13 @@ class _SummaryValue extends StatelessWidget {
     required this.entry,
     required this.currencyFormat,
     required this.textAlign,
+    required this.valueStyle,
   });
 
   final _SummaryEntry entry;
   final NumberFormat currencyFormat;
   final TextAlign textAlign;
+  final TextStyle valueStyle;
 
   @override
   Widget build(BuildContext context) {
@@ -345,7 +325,7 @@ class _SummaryValue extends StatelessWidget {
         Text(
           currencyFormat.format(entry.value),
           textAlign: textAlign,
-          style: theme.textTheme.headlineSmall?.copyWith(
+          style: valueStyle.copyWith(
             color: entry.color,
             fontWeight: FontWeight.w600,
           ),
@@ -412,10 +392,6 @@ class _AnalyticsFilterBar extends ConsumerWidget {
           child: DropdownMenu<String?>(
             initialSelection: filterState.accountId,
             label: Text(strings.analyticsFilterAccountLabel),
-            inputDecorationTheme: const InputDecorationTheme(
-              border: OutlineInputBorder(),
-              isDense: true,
-            ),
             dropdownMenuEntries: <DropdownMenuEntry<String?>>[
               DropdownMenuEntry<String?>(
                 value: null,
@@ -440,10 +416,6 @@ class _AnalyticsFilterBar extends ConsumerWidget {
           child: DropdownMenu<String?>(
             initialSelection: filterState.categoryId,
             label: Text(strings.analyticsFilterCategoryLabel),
-            inputDecorationTheme: const InputDecorationTheme(
-              border: OutlineInputBorder(),
-              isDense: true,
-            ),
             dropdownMenuEntries: <DropdownMenuEntry<String?>>[
               DropdownMenuEntry<String?>(
                 value: null,
@@ -634,13 +606,13 @@ class _TopCategoriesPagerState extends State<_TopCategoriesPager> {
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
-    final List<_CategoryChartItem> expenseItems = _mapBreakdowns(
+    final List<AnalyticsChartItem> expenseItems = _mapBreakdowns(
       widget.expenseBreakdowns,
       widget.categoriesById,
       widget.strings,
       theme,
     );
-    final List<_CategoryChartItem> incomeItems = _mapBreakdowns(
+    final List<AnalyticsChartItem> incomeItems = _mapBreakdowns(
       widget.incomeBreakdowns,
       widget.categoriesById,
       widget.strings,
@@ -716,44 +688,47 @@ class _TopCategoriesPagerState extends State<_TopCategoriesPager> {
                   children: pages
                       .map(
                         (_TopCategoriesPageData data) => _TopCategoriesPage(
-                      data: data,
-                      currencyFormat: widget.currencyFormat,
-                      strings: widget.strings,
-                    ),
-                  )
+                          data: data,
+                          currencyFormat: widget.currencyFormat,
+                          strings: widget.strings,
+                        ),
+                      )
                       .toList(growable: false),
                 ),
               ),
             ),
             const SizedBox(height: 16),
-            _TopCategoriesLegend(items: currentPage.items),
+            _TopCategoriesLegend(
+              items: currentPage.items,
+              currencyFormat: widget.currencyFormat,
+            ),
           ],
         ),
       ),
     );
   }
 
-  List<_CategoryChartItem> _mapBreakdowns(
-      List<AnalyticsCategoryBreakdown> breakdowns,
-      Map<String, Category> categoriesById,
-      AppLocalizations strings,
-      ThemeData theme,
-      ) {
+  List<AnalyticsChartItem> _mapBreakdowns(
+    List<AnalyticsCategoryBreakdown> breakdowns,
+    Map<String, Category> categoriesById,
+    AppLocalizations strings,
+    ThemeData theme,
+  ) {
     return breakdowns
         .map((AnalyticsCategoryBreakdown breakdown) {
-      final Category? category = breakdown.categoryId == null
-          ? null
-          : categoriesById[breakdown.categoryId!];
-      final Color color =
-          parseHexColor(category?.color) ?? theme.colorScheme.primary;
-      final String title =
-          category?.name ?? strings.analyticsCategoryUncategorized;
-      return _CategoryChartItem(
-        title: title,
-        amount: breakdown.amount,
-        color: color,
-      );
-    })
+          final Category? category = breakdown.categoryId == null
+              ? null
+              : categoriesById[breakdown.categoryId!];
+          final Color color =
+              parseHexColor(category?.color) ?? theme.colorScheme.primary;
+          final String title =
+              category?.name ?? strings.analyticsCategoryUncategorized;
+          return AnalyticsChartItem(
+            title: title,
+            amount: breakdown.amount,
+            color: color,
+          );
+        })
         .toList(growable: false);
   }
 }
@@ -766,7 +741,7 @@ class _TopCategoriesPageData {
   });
 
   final String label;
-  final List<_CategoryChartItem> items;
+  final List<AnalyticsChartItem> items;
   final double total;
 }
 
@@ -793,172 +768,84 @@ class _TopCategoriesPage extends StatelessWidget {
       );
     }
 
-    return LayoutBuilder(
-      builder: (BuildContext context, BoxConstraints constraints) {
-        final double chartHeight = math.max(constraints.maxHeight - 48, 80);
-        final double maxAmount = data.items.fold<double>(
-          0,
-              (double previousValue, _CategoryChartItem item) =>
-              math.max(previousValue, item.amount.abs()),
-        );
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                data.label,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            SizedBox(
-              height: chartHeight,
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: <Widget>[
-                  for (final _CategoryChartItem item in data.items)
-                    Expanded(
-                      child: _BarColumn(
-                        item: item,
-                        maxAmount: maxAmount,
-                        totalValue: data.total,
-                        currencyFormat: currencyFormat,
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-}
-
-class _TopCategoriesLegend extends StatelessWidget {
-  const _TopCategoriesLegend({required this.items});
-
-  final List<_CategoryChartItem> items;
-
-  @override
-  Widget build(BuildContext context) {
-    if (items.isEmpty) {
-      return const SizedBox.shrink();
-    }
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      children: items
-          .map(
-            (_CategoryChartItem item) =>
-            _CategoryLegendChip(label: item.title, color: item.color),
-      )
-          .toList(growable: false),
-    );
-  }
-}
-
-class _BarColumn extends StatelessWidget {
-  const _BarColumn({
-    required this.item,
-    required this.maxAmount,
-    required this.totalValue,
-    required this.currencyFormat,
-  });
-
-  final _CategoryChartItem item;
-  final double maxAmount;
-  final double totalValue;
-  final NumberFormat currencyFormat;
-
-  @override
-  Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
-    final double normalized = maxAmount == 0
-        ? 0
-        : (item.amount.abs() / maxAmount).clamp(0, 1);
-    final double percentage = totalValue == 0
-        ? 0
-        : (item.amount / totalValue * 100).clamp(0, 100);
+    final Color backgroundColor = theme.colorScheme.surfaceContainerHighest
+        .withValues(alpha: 0.32);
 
     return Column(
-      mainAxisAlignment: MainAxisAlignment.end,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
-        Text(
-          '${percentage.toStringAsFixed(0)}%',
-          style: theme.textTheme.bodySmall,
-        ),
-        const SizedBox(height: 8),
-        Expanded(
-          child: Align(
-            alignment: Alignment.bottomCenter,
-            child: FractionallySizedBox(
-              heightFactor: normalized,
-              alignment: Alignment.bottomCenter,
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  color: item.color,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: Text(
+            data.label,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
             ),
           ),
         ),
-        const SizedBox(height: 8),
-        Text(
-          currencyFormat.format(item.amount),
-          style: theme.textTheme.bodySmall?.copyWith(
-            fontWeight: FontWeight.w600,
+        const SizedBox(height: 12),
+        Expanded(
+          child: AnalyticsDonutChart(
+            items: data.items,
+            backgroundColor: backgroundColor,
           ),
-          textAlign: TextAlign.center,
         ),
       ],
     );
   }
 }
 
-class _CategoryChartItem {
-  const _CategoryChartItem({
-    required this.title,
-    required this.amount,
-    required this.color,
+class _TopCategoriesLegend extends StatelessWidget {
+  const _TopCategoriesLegend({
+    required this.items,
+    required this.currencyFormat,
   });
 
-  final String title;
-  final double amount;
-  final Color color;
-}
-
-class _CategoryLegendChip extends StatelessWidget {
-  const _CategoryLegendChip({required this.label, required this.color});
-
-  final String label;
-  final Color color;
+  final List<AnalyticsChartItem> items;
+  final NumberFormat currencyFormat;
 
   @override
   Widget build(BuildContext context) {
+    if (items.isEmpty) {
+      return const SizedBox.shrink();
+    }
     final ThemeData theme = Theme.of(context);
-    final Brightness brightness = ThemeData.estimateBrightnessForColor(color);
-    final Color textColor = brightness == Brightness.dark
-        ? Colors.white
-        : Colors.black.withValues(alpha: 0.87);
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Text(
-        label,
-        style: theme.textTheme.bodySmall?.copyWith(
-          color: textColor,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        for (final AnalyticsChartItem item in items)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 6),
+            child: Row(
+              children: <Widget>[
+                Container(
+                  width: 12,
+                  height: 12,
+                  decoration: BoxDecoration(
+                    color: item.color,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    item.title,
+                    style: theme.textTheme.bodyMedium,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Text(
+                  currencyFormat.format(item.amount),
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+      ],
     );
   }
 }
