@@ -510,7 +510,95 @@ class AppLocalizationsRu extends AppLocalizations {
   String get homeNavAnalytics => 'Аналитика';
 
   @override
+  String get homeNavSavings => 'Накопления';
+
+  @override
   String get homeNavSettings => 'Настройки';
+
+  @override
+  String get savingsTitle => 'Цели по накоплениям';
+
+  @override
+  String get savingsAddGoalTitle => 'Новая цель';
+
+  @override
+  String get savingsEditGoalTitle => 'Редактирование цели';
+
+  @override
+  String get savingsNameLabel => 'Название';
+
+  @override
+  String get savingsTargetLabel => 'Целевая сумма';
+
+  @override
+  String get savingsTargetHelper => 'Введите желаемую сумму';
+
+  @override
+  String get savingsNoteLabel => 'Заметка';
+
+  @override
+  String get savingsSaveGoalButton => 'Сохранить цель';
+
+  @override
+  String get savingsGoalSavedMessage => 'Цель сохранена';
+
+  @override
+  String get savingsAddGoalButton => 'Создать цель';
+
+  @override
+  String get savingsEmptyTitle => 'Создайте первую цель';
+
+  @override
+  String get savingsEmptyMessage =>
+      'Отслеживайте прогресс и сохраняйте мотивацию.';
+
+  @override
+  String get savingsErrorTitle => 'Не удалось загрузить цели';
+
+  @override
+  String get savingsRetryButton => 'Повторить попытку';
+
+  @override
+  String get savingsContributeAction => 'Пополнить';
+
+  @override
+  String get savingsEditAction => 'Редактировать';
+
+  @override
+  String get savingsArchiveAction => 'Архивировать';
+
+  @override
+  String savingsGoalArchivedMessage(String goal) => 'Цель «$goal» архивирована';
+
+  @override
+  String get savingsArchivedBadge => 'В архиве';
+
+  @override
+  String savingsRemainingLabel(String amount) => 'Осталось $amount';
+
+  @override
+  String get savingsShowArchivedToggle => 'Показывать архивные цели';
+
+  @override
+  String savingsContributeTitle(String goal) => 'Пополнение цели «$goal»';
+
+  @override
+  String get savingsAmountLabel => 'Сумма';
+
+  @override
+  String get savingsSourceAccountLabel => 'Счёт списания';
+
+  @override
+  String get savingsNoAccountOption => 'Без счёта';
+
+  @override
+  String get savingsContributionNoteLabel => 'Заметка (необязательно)';
+
+  @override
+  String get savingsSubmitContributionButton => 'Добавить пополнение';
+
+  @override
+  String get savingsContributionSuccess => 'Пополнение добавлено';
 
   @override
   String get analyticsTitle => 'Аналитика';

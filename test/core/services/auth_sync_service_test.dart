@@ -26,6 +26,8 @@ import 'package:kopim/features/profile/data/remote/profile_remote_data_source.da
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
 import 'package:kopim/features/profile/domain/entities/profile.dart';
 import 'package:kopim/features/profile/domain/failures/auth_failure.dart';
+import 'package:kopim/features/savings/data/sources/local/saving_goal_dao.dart';
+import 'package:kopim/features/savings/data/sources/remote/saving_goal_remote_data_source.dart';
 import 'package:kopim/features/transactions/data/sources/local/transaction_dao.dart';
 import 'package:kopim/features/transactions/data/sources/remote/transaction_remote_data_source.dart';
 import 'package:mocktail/mocktail.dart';
@@ -55,17 +57,20 @@ void main() {
   late TransactionDao transactionDao;
   late BudgetDao budgetDao;
   late BudgetInstanceDao budgetInstanceDao;
+  late SavingGoalDao savingGoalDao;
   late ProfileDao profileDao;
   late FirebaseFirestore firestore;
   late MockLoggerService logger;
   late MockAnalyticsService analytics;
   late BudgetRemoteDataSource budgetRemote;
   late BudgetInstanceRemoteDataSource budgetInstanceRemote;
+  late SavingGoalRemoteDataSource savingGoalRemote;
 
   AuthSyncService buildService({
     AccountRemoteDataSource? accountRemoteDataSource,
     BudgetRemoteDataSource? budgetRemoteDataSource,
     BudgetInstanceRemoteDataSource? budgetInstanceRemoteDataSource,
+    SavingGoalRemoteDataSource? savingGoalRemoteDataSource,
   }) {
     return AuthSyncService(
       database: database,
@@ -75,6 +80,7 @@ void main() {
       transactionDao: transactionDao,
       budgetDao: budgetDao,
       budgetInstanceDao: budgetInstanceDao,
+      savingGoalDao: savingGoalDao,
       profileDao: profileDao,
       accountRemoteDataSource:
           accountRemoteDataSource ?? AccountRemoteDataSource(firestore),
@@ -83,6 +89,8 @@ void main() {
       budgetRemoteDataSource: budgetRemoteDataSource ?? budgetRemote,
       budgetInstanceRemoteDataSource:
           budgetInstanceRemoteDataSource ?? budgetInstanceRemote,
+      savingGoalRemoteDataSource:
+          savingGoalRemoteDataSource ?? savingGoalRemote,
       profileRemoteDataSource: ProfileRemoteDataSource(firestore),
       firestore: firestore,
       loggerService: logger,
@@ -105,12 +113,14 @@ void main() {
     transactionDao = TransactionDao(database);
     budgetDao = BudgetDao(database);
     budgetInstanceDao = BudgetInstanceDao(database);
+    savingGoalDao = SavingGoalDao(database);
     profileDao = ProfileDao(database);
     firestore = FakeFirebaseFirestore();
     logger = MockLoggerService();
     analytics = MockAnalyticsService();
     budgetRemote = BudgetRemoteDataSource(firestore);
     budgetInstanceRemote = BudgetInstanceRemoteDataSource(firestore);
+    savingGoalRemote = SavingGoalRemoteDataSource(firestore);
 
     when(() => analytics.logEvent(any(), any())).thenAnswer((_) async {});
     when(() => analytics.reportError(any(), any())).thenReturn(null);

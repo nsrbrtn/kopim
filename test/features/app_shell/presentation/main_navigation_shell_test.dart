@@ -25,6 +25,11 @@ import 'package:kopim/features/home/domain/models/upcoming_payment.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
 import 'package:kopim/features/profile/presentation/controllers/auth_controller.dart';
 import 'package:kopim/features/profile/presentation/screens/general_settings_screen.dart';
+import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
+import 'package:kopim/features/savings/domain/repositories/saving_goal_repository.dart';
+import 'package:kopim/features/savings/domain/use_cases/archive_saving_goal_use_case.dart';
+import 'package:kopim/features/savings/domain/use_cases/get_saving_goals_use_case.dart';
+import 'package:kopim/features/savings/domain/use_cases/watch_saving_goals_use_case.dart';
 import 'package:kopim/features/recurring_transactions/domain/entities/recurring_rule.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/repositories/transaction_repository.dart';
@@ -114,6 +119,38 @@ class _StreamCategoryRepository implements CategoryRepository {
   Future<void> upsert(Category category) => throw UnimplementedError();
 }
 
+class _FakeSavingGoalRepository implements SavingGoalRepository {
+  const _FakeSavingGoalRepository();
+
+  @override
+  Future<void> addContribution({
+    required SavingGoal updatedGoal,
+    required int contributionAmount,
+    String? sourceAccountId,
+    String? contributionNote,
+  }) async {}
+
+  @override
+  Future<void> archive(String goalId, DateTime archivedAt) async {}
+
+  @override
+  Future<void> create(SavingGoal goal) async {}
+
+  @override
+  Future<SavingGoal?> findById(String id) async => null;
+
+  @override
+  Future<List<SavingGoal>> loadGoals({required bool includeArchived}) async =>
+      const <SavingGoal>[];
+
+  @override
+  Future<void> update(SavingGoal goal) async {}
+
+  @override
+  Stream<List<SavingGoal>> watchGoals({required bool includeArchived}) =>
+      Stream<List<SavingGoal>>.value(const <SavingGoal>[]);
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -136,6 +173,8 @@ void main() {
         _StreamTransactionRepository(
           Stream<List<TransactionEntity>>.value(const <TransactionEntity>[]),
         );
+    const _FakeSavingGoalRepository savingGoalRepository =
+        _FakeSavingGoalRepository();
 
     return ProviderScope(
       // ignore: always_specify_types, the Override type is internal to riverpod
@@ -202,6 +241,16 @@ void main() {
         ),
         computeBudgetProgressUseCaseProvider.overrideWithValue(
           ComputeBudgetProgressUseCase(),
+        ),
+        savingGoalRepositoryProvider.overrideWithValue(savingGoalRepository),
+        watchSavingGoalsUseCaseProvider.overrideWithValue(
+          WatchSavingGoalsUseCase(repository: savingGoalRepository),
+        ),
+        getSavingGoalsUseCaseProvider.overrideWithValue(
+          GetSavingGoalsUseCase(repository: savingGoalRepository),
+        ),
+        archiveSavingGoalUseCaseProvider.overrideWithValue(
+          ArchiveSavingGoalUseCase(repository: savingGoalRepository),
         ),
         budgetsWithProgressProvider.overrideWith(
           (Ref ref) =>

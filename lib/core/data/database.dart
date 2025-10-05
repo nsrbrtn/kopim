@@ -203,6 +203,23 @@ class BudgetInstances extends Table {
   Set<Column<Object>> get primaryKey => <Column<Object>>{id};
 }
 
+@DataClassName('SavingGoalRow')
+class SavingGoals extends Table {
+  TextColumn get id => text().withLength(min: 1, max: 50)();
+  TextColumn get userId => text().withLength(min: 1, max: 64)();
+  TextColumn get name => text().withLength(min: 1, max: 120)();
+  IntColumn get targetAmount => integer()();
+  IntColumn get currentAmount =>
+      integer().withDefault(const Constant<int>(0))();
+  TextColumn get note => text().nullable()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get archivedAt => dateTime().nullable()();
+
+  @override
+  Set<Column<Object>> get primaryKey => <Column<Object>>{id};
+}
+
 @DataClassName('JobQueueRow')
 class JobQueue extends Table {
   IntColumn get id => integer().autoIncrement()();
@@ -227,6 +244,7 @@ class JobQueue extends Table {
     JobQueue,
     Budgets,
     BudgetInstances,
+    SavingGoals,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -235,7 +253,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.connect(DatabaseConnection super.connection);
 
   @override
-  int get schemaVersion => 8;
+  int get schemaVersion => 9;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -255,6 +273,13 @@ class AppDatabase extends _$AppDatabase {
           'budget_instances_budget_period_idx',
           'CREATE INDEX IF NOT EXISTS budget_instances_budget_period_idx '
               'ON budget_instances(budget_id, period_start)',
+        ),
+      );
+      await m.createIndex(
+        Index(
+          'saving_goals_status_updated_idx',
+          'CREATE INDEX IF NOT EXISTS saving_goals_status_updated_idx '
+              'ON saving_goals(archived_at, updated_at DESC)',
         ),
       );
     },
@@ -360,6 +385,16 @@ class AppDatabase extends _$AppDatabase {
             'budget_instances_budget_period_idx',
             'CREATE INDEX IF NOT EXISTS budget_instances_budget_period_idx '
                 'ON budget_instances(budget_id, period_start)',
+          ),
+        );
+      }
+      if (from < 9) {
+        await m.createTable(savingGoals);
+        await m.createIndex(
+          Index(
+            'saving_goals_status_updated_idx',
+            'CREATE INDEX IF NOT EXISTS saving_goals_status_updated_idx '
+                'ON saving_goals(archived_at, updated_at DESC)',
           ),
         );
       }

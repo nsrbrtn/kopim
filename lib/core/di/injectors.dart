@@ -40,6 +40,16 @@ import 'package:kopim/features/categories/domain/use_cases/delete_category_use_c
 import 'package:kopim/features/categories/domain/use_cases/save_category_use_case.dart';
 import 'package:kopim/features/categories/domain/use_cases/watch_categories_use_case.dart';
 import 'package:kopim/features/categories/domain/use_cases/watch_category_tree_use_case.dart';
+import 'package:kopim/features/savings/data/repositories/saving_goal_repository_impl.dart';
+import 'package:kopim/features/savings/data/sources/local/saving_goal_dao.dart';
+import 'package:kopim/features/savings/data/sources/remote/saving_goal_remote_data_source.dart';
+import 'package:kopim/features/savings/domain/repositories/saving_goal_repository.dart';
+import 'package:kopim/features/savings/domain/use_cases/add_contribution_use_case.dart';
+import 'package:kopim/features/savings/domain/use_cases/archive_saving_goal_use_case.dart';
+import 'package:kopim/features/savings/domain/use_cases/create_saving_goal_use_case.dart';
+import 'package:kopim/features/savings/domain/use_cases/get_saving_goals_use_case.dart';
+import 'package:kopim/features/savings/domain/use_cases/update_saving_goal_use_case.dart';
+import 'package:kopim/features/savings/domain/use_cases/watch_saving_goals_use_case.dart';
 import 'package:kopim/features/profile/data/auth_repository_impl.dart';
 import 'package:kopim/features/profile/data/local/profile_dao.dart';
 import 'package:kopim/features/profile/data/profile_repository_impl.dart';
@@ -125,6 +135,10 @@ BudgetInstanceDao budgetInstanceDao(Ref ref) =>
     BudgetInstanceDao(ref.watch(appDatabaseProvider));
 
 @riverpod
+SavingGoalDao savingGoalDao(Ref ref) =>
+    SavingGoalDao(ref.watch(appDatabaseProvider));
+
+@riverpod
 ProfileDao profileDao(Ref ref) => ProfileDao(ref.watch(appDatabaseProvider));
 
 @riverpod
@@ -180,6 +194,10 @@ BudgetInstanceRemoteDataSource budgetInstanceRemoteDataSource(Ref ref) =>
     BudgetInstanceRemoteDataSource(ref.watch(firestoreProvider));
 
 @riverpod
+SavingGoalRemoteDataSource savingGoalRemoteDataSource(Ref ref) =>
+    SavingGoalRemoteDataSource(ref.watch(firestoreProvider));
+
+@riverpod
 RecurringNotificationService recurringNotificationService(Ref ref) =>
     RecurringNotificationService(
       ref.watch(flutterLocalNotificationsPluginProvider),
@@ -215,6 +233,43 @@ DeleteBudgetUseCase deleteBudgetUseCase(Ref ref) =>
 @riverpod
 ComputeBudgetProgressUseCase computeBudgetProgressUseCase(Ref ref) =>
     ComputeBudgetProgressUseCase(schedule: ref.watch(budgetScheduleProvider));
+
+@riverpod
+CreateSavingGoalUseCase createSavingGoalUseCase(Ref ref) =>
+    CreateSavingGoalUseCase(
+      repository: ref.watch(savingGoalRepositoryProvider),
+      authRepository: ref.watch(authRepositoryProvider),
+      uuidGenerator: ref.watch(uuidGeneratorProvider),
+    );
+
+@riverpod
+UpdateSavingGoalUseCase updateSavingGoalUseCase(Ref ref) =>
+    UpdateSavingGoalUseCase(
+      repository: ref.watch(savingGoalRepositoryProvider),
+    );
+
+@riverpod
+ArchiveSavingGoalUseCase archiveSavingGoalUseCase(Ref ref) =>
+    ArchiveSavingGoalUseCase(
+      repository: ref.watch(savingGoalRepositoryProvider),
+    );
+
+@riverpod
+WatchSavingGoalsUseCase watchSavingGoalsUseCase(Ref ref) =>
+    WatchSavingGoalsUseCase(
+      repository: ref.watch(savingGoalRepositoryProvider),
+    );
+
+@riverpod
+GetSavingGoalsUseCase getSavingGoalsUseCase(Ref ref) =>
+    GetSavingGoalsUseCase(repository: ref.watch(savingGoalRepositoryProvider));
+
+@riverpod
+AddContributionUseCase addContributionUseCase(Ref ref) =>
+    AddContributionUseCase(
+      repository: ref.watch(savingGoalRepositoryProvider),
+      addTransactionUseCase: ref.watch(addTransactionUseCaseProvider),
+    );
 
 @riverpod
 CategoryRepository categoryRepository(Ref ref) => CategoryRepositoryImpl(
@@ -255,6 +310,15 @@ BudgetRepository budgetRepository(Ref ref) => BudgetRepositoryImpl(
   budgetDao: ref.watch(budgetDaoProvider),
   budgetInstanceDao: ref.watch(budgetInstanceDaoProvider),
   outboxDao: ref.watch(outboxDaoProvider),
+);
+
+@riverpod
+SavingGoalRepository savingGoalRepository(Ref ref) => SavingGoalRepositoryImpl(
+  database: ref.watch(appDatabaseProvider),
+  savingGoalDao: ref.watch(savingGoalDaoProvider),
+  outboxDao: ref.watch(outboxDaoProvider),
+  analyticsService: ref.watch(analyticsServiceProvider),
+  loggerService: ref.watch(loggerServiceProvider),
 );
 
 @riverpod
@@ -393,6 +457,7 @@ SyncService syncService(Ref ref) {
     budgetInstanceRemoteDataSource: ref.watch(
       budgetInstanceRemoteDataSourceProvider,
     ),
+    savingGoalRemoteDataSource: ref.watch(savingGoalRemoteDataSourceProvider),
     firebaseAuth: ref.watch(firebaseAuthProvider),
     connectivity: ref.watch(connectivityProvider),
   );
@@ -418,6 +483,7 @@ AuthSyncService authSyncService(Ref ref) => AuthSyncService(
   transactionDao: ref.watch(transactionDaoProvider),
   budgetDao: ref.watch(budgetDaoProvider),
   budgetInstanceDao: ref.watch(budgetInstanceDaoProvider),
+  savingGoalDao: ref.watch(savingGoalDaoProvider),
   profileDao: ref.watch(profileDaoProvider),
   accountRemoteDataSource: ref.watch(accountRemoteDataSourceProvider),
   categoryRemoteDataSource: ref.watch(categoryRemoteDataSourceProvider),
@@ -426,6 +492,7 @@ AuthSyncService authSyncService(Ref ref) => AuthSyncService(
   budgetInstanceRemoteDataSource: ref.watch(
     budgetInstanceRemoteDataSourceProvider,
   ),
+  savingGoalRemoteDataSource: ref.watch(savingGoalRemoteDataSourceProvider),
   profileRemoteDataSource: ref.watch(profileRemoteDataSourceProvider),
   firestore: ref.watch(firestoreProvider),
   loggerService: ref.watch(loggerServiceProvider),
