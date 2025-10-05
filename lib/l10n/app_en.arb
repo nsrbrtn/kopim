@@ -497,6 +497,10 @@
   "@signInGoogleCta": {
     "description": "Button label for Google sign in"
   },
+  "signInOfflineCta": "Work offline",
+  "@signInOfflineCta": {
+    "description": "Button label for starting the app without an account"
+  },
   "signInError": "Could not sign in. Please try again.",
   "@signInError": {
     "description": "Fallback message when sign in fails"

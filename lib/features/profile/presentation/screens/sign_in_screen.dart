@@ -201,6 +201,14 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                     icon: const Icon(Icons.login),
                     label: Text(strings.signInGoogleCta),
                   ),
+                  const SizedBox(height: 12),
+                  TextButton.icon(
+                    onPressed: formState.isSubmitting
+                        ? null
+                        : () => controller.continueOffline(),
+                    icon: const Icon(Icons.wifi_off),
+                    label: Text(strings.signInOfflineCta),
+                  ),
                 ],
               ),
             ),
