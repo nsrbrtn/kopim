@@ -147,7 +147,7 @@ void main() {
               .getSingleOrNull();
       expect(txRow, isNotNull);
       expect(txRow!.amount, closeTo(-25.0, 1e-9));
-      expect(txRow.note, 'Savings: Emergency Fund — Initial boost');
+      expect(txRow.note, 'Накопление: Emergency Fund — Initial boost');
 
       final db.CategoryRow? category =
           await (database.select(database.categories)..where(
