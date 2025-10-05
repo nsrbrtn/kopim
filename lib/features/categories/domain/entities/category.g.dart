@@ -18,6 +18,7 @@ _Category _$CategoryFromJson(Map<String, dynamic> json) => _Category(
   createdAt: DateTime.parse(json['createdAt'] as String),
   updatedAt: DateTime.parse(json['updatedAt'] as String),
   isDeleted: json['isDeleted'] as bool? ?? false,
+  isSystem: json['isSystem'] as bool? ?? false,
 );
 
 Map<String, dynamic> _$CategoryToJson(_Category instance) => <String, dynamic>{
@@ -30,4 +31,5 @@ Map<String, dynamic> _$CategoryToJson(_Category instance) => <String, dynamic>{
   'createdAt': instance.createdAt.toIso8601String(),
   'updatedAt': instance.updatedAt.toIso8601String(),
   'isDeleted': instance.isDeleted,
+  'isSystem': instance.isSystem,
 };

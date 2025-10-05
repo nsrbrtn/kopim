@@ -41,6 +41,7 @@ class AddTransactionUseCase {
       id: _generateId(),
       accountId: request.accountId,
       categoryId: request.categoryId,
+      savingGoalId: request.savingGoalId,
       amount: amount,
       date: request.date,
       note: request.note?.trim().isEmpty ?? true ? null : request.note!.trim(),

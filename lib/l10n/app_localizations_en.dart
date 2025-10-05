@@ -512,91 +512,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeNavSettings => 'Settings';
 
   @override
-  String get savingsTitle => 'Savings goals';
-
-  @override
-  String get savingsAddGoalTitle => 'New goal';
-
-  @override
-  String get savingsEditGoalTitle => 'Edit goal';
-
-  @override
-  String get savingsNameLabel => 'Name';
-
-  @override
-  String get savingsTargetLabel => 'Target amount';
-
-  @override
-  String get savingsTargetHelper => 'Enter the desired total amount';
-
-  @override
-  String get savingsNoteLabel => 'Note';
-
-  @override
-  String get savingsSaveGoalButton => 'Save goal';
-
-  @override
-  String get savingsGoalSavedMessage => 'Goal saved';
-
-  @override
-  String get savingsAddGoalButton => 'Create goal';
-
-  @override
-  String get savingsEmptyTitle => 'Create your first savings goal';
-
-  @override
-  String get savingsEmptyMessage =>
-      'Track progress towards your targets and stay motivated.';
-
-  @override
-  String get savingsErrorTitle => 'Unable to load savings goals';
-
-  @override
-  String get savingsRetryButton => 'Try again';
-
-  @override
-  String get savingsContributeAction => 'Contribute';
-
-  @override
-  String get savingsEditAction => 'Edit';
-
-  @override
-  String get savingsArchiveAction => 'Archive';
-
-  @override
-  String savingsGoalArchivedMessage(String goal) => 'Goal "$goal" archived';
-
-  @override
-  String get savingsArchivedBadge => 'Archived';
-
-  @override
-  String savingsRemainingLabel(String amount) => 'Remaining $amount';
-
-  @override
-  String get savingsShowArchivedToggle => 'Show archived goals';
-
-  @override
-  String savingsContributeTitle(String goal) => 'Contribute to $goal';
-
-  @override
-  String get savingsAmountLabel => 'Amount';
-
-  @override
-  String get savingsSourceAccountLabel => 'Source account';
-
-  @override
-  String get savingsNoAccountOption => 'No account';
-
-  @override
-  String get savingsContributionNoteLabel => 'Note (optional)';
-
-  @override
-  String get savingsSubmitContributionButton => 'Add contribution';
-
-  @override
-  String get savingsContributionSuccess => 'Contribution added';
-
-  @override
   String get analyticsTitle => 'Analytics';
 
   @override
@@ -1056,6 +971,97 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get saveButtonLabel => 'Save';
+
+  @override
+  String get savingsTitle => 'Savings goals';
+
+  @override
+  String get savingsAddGoalTitle => 'New goal';
+
+  @override
+  String get savingsEditGoalTitle => 'Edit goal';
+
+  @override
+  String get savingsNameLabel => 'Name';
+
+  @override
+  String get savingsTargetLabel => 'Target amount';
+
+  @override
+  String get savingsTargetHelper => 'Enter the desired total amount';
+
+  @override
+  String get savingsNoteLabel => 'Note';
+
+  @override
+  String get savingsSaveGoalButton => 'Save goal';
+
+  @override
+  String get savingsGoalSavedMessage => 'Goal saved';
+
+  @override
+  String get savingsAddGoalButton => 'Create goal';
+
+  @override
+  String get savingsEmptyTitle => 'Create your first savings goal';
+
+  @override
+  String get savingsEmptyMessage =>
+      'Track progress towards your targets and stay motivated.';
+
+  @override
+  String get savingsErrorTitle => 'Unable to load savings goals';
+
+  @override
+  String get savingsRetryButton => 'Try again';
+
+  @override
+  String get savingsContributeAction => 'Contribute';
+
+  @override
+  String get savingsEditAction => 'Edit';
+
+  @override
+  String get savingsArchiveAction => 'Archive';
+
+  @override
+  String savingsGoalArchivedMessage(String goal) {
+    return 'Goal \"$goal\" archived';
+  }
+
+  @override
+  String get savingsArchivedBadge => 'Archived';
+
+  @override
+  String savingsRemainingLabel(String amount) {
+    return 'Remaining $amount';
+  }
+
+  @override
+  String get savingsShowArchivedToggle => 'Show archived goals';
+
+  @override
+  String savingsContributeTitle(String goal) {
+    return 'Contribute to $goal';
+  }
+
+  @override
+  String get savingsAmountLabel => 'Amount';
+
+  @override
+  String get savingsSourceAccountLabel => 'Source account';
+
+  @override
+  String get savingsNoAccountOption => 'No account';
+
+  @override
+  String get savingsContributionNoteLabel => 'Note (optional)';
+
+  @override
+  String get savingsSubmitContributionButton => 'Add contribution';
+
+  @override
+  String get savingsContributionSuccess => 'Contribution added';
 
   @override
   String get transactionDefaultTitle => 'Transaction';

@@ -41,6 +41,13 @@ class CreateSavingGoalUseCase {
     if (userId == null || userId.isEmpty) {
       throw StateError('Authenticated user required to create saving goal');
     }
+    final SavingGoal? existing = await _repository.findByName(
+      userId: userId,
+      name: trimmedName,
+    );
+    if (existing != null) {
+      throw StateError('Saving goal name already exists');
+    }
     final DateTime now = _clock().toUtc();
     final SavingGoal goal = SavingGoal(
       id: _uuid.v4(),

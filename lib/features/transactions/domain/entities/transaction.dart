@@ -11,6 +11,7 @@ abstract class TransactionEntity with _$TransactionEntity {
     required String id,
     required String accountId,
     String? categoryId,
+    String? savingGoalId,
     required double amount,
     required DateTime date,
     String? note,

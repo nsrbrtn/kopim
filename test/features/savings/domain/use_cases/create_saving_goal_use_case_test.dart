@@ -46,6 +46,12 @@ void main() {
     );
     when(() => repository.create(any())).thenAnswer((_) async {});
     when(
+      () => repository.findByName(
+        userId: any(named: 'userId'),
+        name: any(named: 'name'),
+      ),
+    ).thenAnswer((_) async => null);
+    when(
       () => authRepository.currentUser,
     ).thenReturn(const AuthUser(uid: 'user-1'));
   });
@@ -75,6 +81,19 @@ void main() {
       expect(persisted.note, 'Beach house');
     },
   );
+
+  test('throws when goal with same name exists for user', () async {
+    final SavingGoal existing = _dummyGoal();
+    when(
+      () => repository.findByName(userId: 'user-1', name: 'Vacation'),
+    ).thenAnswer((_) async => existing);
+
+    expect(
+      () => useCase(name: 'Vacation', target: Money.fromMinorUnits(2000)),
+      throwsStateError,
+    );
+    verifyNever(() => repository.create(any()));
+  });
 
   test('throws when target amount is not positive', () async {
     expect(

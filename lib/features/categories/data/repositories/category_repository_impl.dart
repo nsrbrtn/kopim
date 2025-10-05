@@ -112,6 +112,7 @@ class CategoryRepositoryImpl implements CategoryRepository {
     json['parentId'] = category.parentId;
     json['createdAt'] = category.createdAt.toIso8601String();
     json['updatedAt'] = category.updatedAt.toIso8601String();
+    json['isSystem'] = category.isSystem;
     return json;
   }
 
@@ -135,6 +136,7 @@ class CategoryRepositoryImpl implements CategoryRepository {
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
       isDeleted: row.isDeleted,
+      isSystem: row.isSystem,
     );
   }
 

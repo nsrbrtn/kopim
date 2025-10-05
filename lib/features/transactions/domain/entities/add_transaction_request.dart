@@ -4,6 +4,7 @@ class AddTransactionRequest {
   const AddTransactionRequest({
     required this.accountId,
     this.categoryId,
+    this.savingGoalId,
     required this.amount,
     required this.date,
     this.note,
@@ -12,6 +13,7 @@ class AddTransactionRequest {
 
   final String accountId;
   final String? categoryId;
+  final String? savingGoalId;
   final double amount;
   final DateTime date;
   final String? note;

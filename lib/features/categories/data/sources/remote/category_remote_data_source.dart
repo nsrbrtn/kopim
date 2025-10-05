@@ -74,6 +74,7 @@ class CategoryRemoteDataSource {
       'createdAt': Timestamp.fromDate(category.createdAt.toUtc()),
       'updatedAt': Timestamp.fromDate(category.updatedAt.toUtc()),
       'isDeleted': category.isDeleted,
+      'isSystem': category.isSystem,
     }..removeWhere((String key, Object? value) => value == null);
   }
 
@@ -102,6 +103,7 @@ class CategoryRemoteDataSource {
       createdAt: _parseTimestamp(data['createdAt']),
       updatedAt: _parseTimestamp(data['updatedAt']),
       isDeleted: data['isDeleted'] as bool? ?? false,
+      isSystem: data['isSystem'] as bool? ?? false,
     );
   }
 

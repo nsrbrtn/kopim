@@ -48,6 +48,22 @@ class SavingGoalDao {
     return _mapRowToEntity(row);
   }
 
+  Future<SavingGoal?> findByName({
+    required String userId,
+    required String name,
+  }) async {
+    final db.SavingGoalRow? row =
+        await (_db.select(_db.savingGoals)..where(
+              (db.$SavingGoalsTable tbl) =>
+                  tbl.userId.equals(userId) & tbl.name.equals(name),
+            ))
+            .getSingleOrNull();
+    if (row == null) {
+      return null;
+    }
+    return _mapRowToEntity(row);
+  }
+
   Future<void> upsert(SavingGoal goal) async {
     await _db
         .into(_db.savingGoals)

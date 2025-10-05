@@ -19,6 +19,8 @@ import 'package:kopim/features/recurring_transactions/domain/repositories/recurr
 import 'package:kopim/features/recurring_transactions/domain/services/recurring_rule_engine.dart';
 import 'package:kopim/features/recurring_transactions/domain/services/recurring_rule_scheduler.dart';
 import 'package:kopim/features/recurring_transactions/domain/use_cases/apply_recurring_rules_use_case.dart';
+import 'package:kopim/features/savings/data/sources/local/goal_contribution_dao.dart';
+import 'package:kopim/features/savings/data/sources/local/saving_goal_dao.dart';
 import 'package:kopim/features/transactions/data/repositories/transaction_repository_impl.dart';
 import 'package:kopim/features/transactions/data/sources/local/transaction_dao.dart';
 import 'package:kopim/features/transactions/domain/entities/add_transaction_request.dart';
@@ -179,6 +181,8 @@ Future<void> _applyRecurringRules({
   final OutboxDao outboxDao = OutboxDao(database);
   final AccountDao accountDao = AccountDao(database);
   final TransactionDao transactionDao = TransactionDao(database);
+  final SavingGoalDao savingGoalDao = SavingGoalDao(database);
+  final GoalContributionDao goalContributionDao = GoalContributionDao(database);
   final AccountRepository accountRepository = AccountRepositoryImpl(
     database: database,
     accountDao: accountDao,
@@ -187,6 +191,8 @@ Future<void> _applyRecurringRules({
   final TransactionRepository transactionRepository = TransactionRepositoryImpl(
     database: database,
     transactionDao: transactionDao,
+    savingGoalDao: savingGoalDao,
+    goalContributionDao: goalContributionDao,
     outboxDao: outboxDao,
   );
   String? lastGeneratedId;

@@ -123,12 +123,20 @@ class _FakeSavingGoalRepository implements SavingGoalRepository {
   const _FakeSavingGoalRepository();
 
   @override
-  Future<void> addContribution({
-    required SavingGoal updatedGoal,
-    required int contributionAmount,
+  Future<SavingGoal> addContribution({
+    required SavingGoal goal,
+    required int appliedDelta,
+    required int newCurrentAmount,
+    required DateTime contributedAt,
     String? sourceAccountId,
     String? contributionNote,
-  }) async {}
+  }) async => goal;
+
+  @override
+  Future<SavingGoal?> findByName({
+    required String userId,
+    required String name,
+  }) async => null;
 
   @override
   Future<void> archive(String goalId, DateTime archivedAt) async {}

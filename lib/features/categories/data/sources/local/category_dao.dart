@@ -42,6 +42,13 @@ class CategoryDao {
     return query.getSingleOrNull();
   }
 
+  Future<db.CategoryRow?> findByName(String name) {
+    final SimpleSelectStatement<db.$CategoriesTable, db.CategoryRow> query =
+        _db.select(_db.categories)
+          ..where((db.$CategoriesTable tbl) => tbl.name.equals(name));
+    return query.getSingleOrNull();
+  }
+
   Future<void> upsert(Category category) {
     return _db
         .into(_db.categories)
@@ -97,6 +104,7 @@ class CategoryDao {
       createdAt: Value<DateTime>(category.createdAt),
       updatedAt: Value<DateTime>(category.updatedAt),
       isDeleted: Value<bool>(category.isDeleted),
+      isSystem: Value<bool>(category.isSystem),
     );
   }
 
@@ -120,6 +128,7 @@ class CategoryDao {
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
       isDeleted: row.isDeleted,
+      isSystem: row.isSystem,
     );
   }
 }

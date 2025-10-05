@@ -640,6 +640,54 @@ final class SavingGoalDaoProvider
 
 String _$savingGoalDaoHash() => r'f486ee43a183e184c23f4137dcacb9c39c73aeb3';
 
+@ProviderFor(goalContributionDao)
+const goalContributionDaoProvider = GoalContributionDaoProvider._();
+
+final class GoalContributionDaoProvider
+    extends
+        $FunctionalProvider<
+          GoalContributionDao,
+          GoalContributionDao,
+          GoalContributionDao
+        >
+    with $Provider<GoalContributionDao> {
+  const GoalContributionDaoProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'goalContributionDaoProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$goalContributionDaoHash();
+
+  @$internal
+  @override
+  $ProviderElement<GoalContributionDao> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  GoalContributionDao create(Ref ref) {
+    return goalContributionDao(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(GoalContributionDao value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<GoalContributionDao>(value),
+    );
+  }
+}
+
+String _$goalContributionDaoHash() =>
+    r'360ff3a0bd79e0a04ada0feeb9648c00b2f8d97a';
+
 @ProviderFor(profileDao)
 const profileDaoProvider = ProfileDaoProvider._();
 
@@ -2055,7 +2103,7 @@ final class AddContributionUseCaseProvider
 }
 
 String _$addContributionUseCaseHash() =>
-    r'7be802062c76f10d1e5b2bf65b7f5098ebcd6203';
+    r'eb04b83c03ffbb85c98b350ed41b002e420d5f72';
 
 @ProviderFor(categoryRepository)
 const categoryRepositoryProvider = CategoryRepositoryProvider._();
@@ -2247,7 +2295,7 @@ final class TransactionRepositoryProvider
 }
 
 String _$transactionRepositoryHash() =>
-    r'3799c3525d6954f2ece515445c06171d0fba71ef';
+    r'a23af9866b0cd572389fc9dda4ec53ce1b09af6f';
 
 @ProviderFor(budgetRepository)
 const budgetRepositoryProvider = BudgetRepositoryProvider._();
@@ -2341,7 +2389,7 @@ final class SavingGoalRepositoryProvider
 }
 
 String _$savingGoalRepositoryHash() =>
-    r'bcf8e7f60badb0204c74e29f82777e7553571a95';
+    r'3e47a9500951bec20f156762d60e1075500bbd55';
 
 @ProviderFor(recurringTransactionsRepository)
 const recurringTransactionsRepositoryProvider =

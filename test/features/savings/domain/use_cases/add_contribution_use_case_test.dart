@@ -3,15 +3,9 @@ import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
 import 'package:kopim/features/savings/domain/repositories/saving_goal_repository.dart';
 import 'package:kopim/features/savings/domain/use_cases/add_contribution_use_case.dart';
 import 'package:kopim/features/savings/domain/value_objects/money.dart';
-import 'package:kopim/features/transactions/domain/entities/add_transaction_request.dart';
-import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
-import 'package:kopim/features/transactions/domain/use_cases/add_transaction_use_case.dart';
 import 'package:mocktail/mocktail.dart';
 
 class _MockSavingGoalRepository extends Mock implements SavingGoalRepository {}
-
-class _MockAddTransactionUseCase extends Mock
-    implements AddTransactionUseCase {}
 
 SavingGoal _buildGoal({
   int current = 0,
@@ -31,40 +25,40 @@ SavingGoal _buildGoal({
   );
 }
 
-AddTransactionRequest _dummyRequest() => AddTransactionRequest(
-  accountId: 'acc',
-  amount: 1,
-  date: DateTime.utc(2024),
-);
-
 void main() {
   late _MockSavingGoalRepository repository;
-  late _MockAddTransactionUseCase addTransactionUseCase;
   late AddContributionUseCase useCase;
   final DateTime fixedNow = DateTime.utc(2024, 7, 1, 9);
 
   setUpAll(() {
     registerFallbackValue(_buildGoal());
-    registerFallbackValue(_dummyRequest());
   });
 
   setUp(() {
     repository = _MockSavingGoalRepository();
-    addTransactionUseCase = _MockAddTransactionUseCase();
     useCase = AddContributionUseCase(
       repository: repository,
-      addTransactionUseCase: addTransactionUseCase,
       clock: () => fixedNow,
     );
-    when(() => addTransactionUseCase(any())).thenAnswer((_) async {});
     when(
       () => repository.addContribution(
-        updatedGoal: any(named: 'updatedGoal'),
-        contributionAmount: any(named: 'contributionAmount'),
+        goal: any(named: 'goal'),
+        appliedDelta: any(named: 'appliedDelta'),
+        newCurrentAmount: any(named: 'newCurrentAmount'),
+        contributedAt: any(named: 'contributedAt'),
         sourceAccountId: any(named: 'sourceAccountId'),
         contributionNote: any(named: 'contributionNote'),
       ),
-    ).thenAnswer((_) async {});
+    ).thenAnswer((Invocation invocation) async {
+      final SavingGoal goalArg = invocation.namedArguments[#goal] as SavingGoal;
+      final int newAmount = invocation.namedArguments[#newCurrentAmount] as int;
+      final DateTime contributedAt =
+          invocation.namedArguments[#contributedAt] as DateTime;
+      return goalArg.copyWith(
+        currentAmount: newAmount,
+        updatedAt: contributedAt,
+      );
+    });
   });
 
   test('adds contribution, caps at target and posts transaction', () async {
@@ -84,28 +78,17 @@ void main() {
 
     final VerificationResult repoCall = verify(
       () => repository.addContribution(
-        updatedGoal: captureAny(named: 'updatedGoal'),
-        contributionAmount: 200,
+        goal: captureAny(named: 'goal'),
+        appliedDelta: 200,
+        newCurrentAmount: 1000,
+        contributedAt: fixedNow,
         sourceAccountId: 'acc-1',
         contributionNote: 'Keep going',
       ),
     );
     repoCall.called(1);
     final SavingGoal persisted = repoCall.captured.single as SavingGoal;
-    expect(persisted.currentAmount, 1000);
-    expect(persisted.updatedAt, fixedNow);
-
-    final VerificationResult txCall = verify(
-      () => addTransactionUseCase(captureAny()),
-    );
-    txCall.called(1);
-    final AddTransactionRequest request =
-        txCall.captured.single as AddTransactionRequest;
-    expect(request.accountId, 'acc-1');
-    expect(request.categoryId, AddContributionUseCase.savingsCategoryId);
-    expect(request.amount, Money.fromMinorUnits(300).toDouble());
-    expect(request.note, 'Savings: Vacation — Keep going');
-    expect(request.type, TransactionType.expense);
+    expect(persisted.currentAmount, 800);
   });
 
   test('skips transaction when source account not provided', () async {
@@ -119,11 +102,12 @@ void main() {
     );
 
     expect(updated.currentAmount, 400);
-    verifyNever(() => addTransactionUseCase(any()));
     verify(
       () => repository.addContribution(
-        updatedGoal: any(named: 'updatedGoal'),
-        contributionAmount: 200,
+        goal: any(named: 'goal'),
+        appliedDelta: 200,
+        newCurrentAmount: 400,
+        contributedAt: fixedNow,
         sourceAccountId: null,
         contributionNote: null,
       ),
