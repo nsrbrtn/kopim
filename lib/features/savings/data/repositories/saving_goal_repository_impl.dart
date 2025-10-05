@@ -274,10 +274,10 @@ class SavingGoalRepositoryImpl implements SavingGoalRepository {
         });
     final String logNote =
         contributionNote != null && contributionNote.isNotEmpty
-        ? ' with note $contributionNote'
+        ? ' с заметкой $contributionNote'
         : '';
     _logger.logInfo(
-      'Contribution added to ${persisted.id} for $appliedDelta$logNote',
+      'Добавлен взнос в ${persisted.id} на сумму $appliedDelta$logNote',
     );
     return persisted;
   }
@@ -335,7 +335,7 @@ class SavingGoalRepositoryImpl implements SavingGoalRepository {
   }
 
   String _composeContributionNote(String goalName, String? note) {
-    final String base = 'Savings: $goalName';
+    final String base = 'Накопление: $goalName';
     if (note == null || note.isEmpty) {
       return base;
     }
