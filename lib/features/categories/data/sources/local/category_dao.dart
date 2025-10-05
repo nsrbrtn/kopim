@@ -57,11 +57,13 @@ class CategoryDao {
 
   Future<void> upsertAll(List<Category> categories) async {
     if (categories.isEmpty) return;
-    await _db.batch((Batch batch) {
-      batch.insertAllOnConflictUpdate(
-        _db.categories,
-        categories.map(_mapToCompanion).toList(),
-      );
+    await _db.transaction(() async {
+      await _db.batch((Batch batch) {
+        batch.insertAllOnConflictUpdate(
+          _db.categories,
+          categories.map(_mapToCompanion).toList(),
+        );
+      });
     });
   }
 

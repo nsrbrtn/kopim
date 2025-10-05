@@ -272,7 +272,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.connect(DatabaseConnection super.connection);
 
   @override
-  int get schemaVersion => 10;
+  int get schemaVersion => 11;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -320,6 +320,27 @@ class AppDatabase extends _$AppDatabase {
           'transactions_saving_goal_idx',
           'CREATE INDEX IF NOT EXISTS transactions_saving_goal_idx '
               'ON transactions(saving_goal_id)',
+        ),
+      );
+      await m.createIndex(
+        Index(
+          'transactions_date_account_category_idx',
+          'CREATE INDEX IF NOT EXISTS transactions_date_account_category_idx '
+              'ON transactions(date, account_id, category_id)',
+        ),
+      );
+      await m.createIndex(
+        Index(
+          'categories_type_idx',
+          'CREATE INDEX IF NOT EXISTS categories_type_idx '
+              'ON categories(type)',
+        ),
+      );
+      await m.createIndex(
+        Index(
+          'accounts_type_idx',
+          'CREATE INDEX IF NOT EXISTS accounts_type_idx '
+              'ON accounts(type)',
         ),
       );
     },
@@ -461,6 +482,29 @@ class AppDatabase extends _$AppDatabase {
             'transactions_saving_goal_idx',
             'CREATE INDEX IF NOT EXISTS transactions_saving_goal_idx '
                 'ON transactions(saving_goal_id)',
+          ),
+        );
+      }
+      if (from < 11) {
+        await m.createIndex(
+          Index(
+            'transactions_date_account_category_idx',
+            'CREATE INDEX IF NOT EXISTS transactions_date_account_category_idx '
+                'ON transactions(date, account_id, category_id)',
+          ),
+        );
+        await m.createIndex(
+          Index(
+            'categories_type_idx',
+            'CREATE INDEX IF NOT EXISTS categories_type_idx '
+                'ON categories(type)',
+          ),
+        );
+        await m.createIndex(
+          Index(
+            'accounts_type_idx',
+            'CREATE INDEX IF NOT EXISTS accounts_type_idx '
+                'ON accounts(type)',
           ),
         );
       }
