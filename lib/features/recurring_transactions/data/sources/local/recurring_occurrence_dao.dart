@@ -76,11 +76,13 @@ class RecurringOccurrenceDao {
 
   Future<void> upsertAll(Iterable<RecurringOccurrence> occurrences) async {
     if (occurrences.isEmpty) return;
-    await _database.batch((Batch batch) {
-      batch.insertAllOnConflictUpdate(
-        _database.recurringOccurrences,
-        occurrences.map(_mapToCompanion).toList(),
-      );
+    await _database.transaction(() async {
+      await _database.batch((Batch batch) {
+        batch.insertAllOnConflictUpdate(
+          _database.recurringOccurrences,
+          occurrences.map(_mapToCompanion).toList(),
+        );
+      });
     });
   }
 

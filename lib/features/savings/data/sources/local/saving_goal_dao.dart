@@ -72,11 +72,13 @@ class SavingGoalDao {
 
   Future<void> upsertAll(List<SavingGoal> goals) async {
     if (goals.isEmpty) return;
-    await _db.batch((Batch batch) {
-      batch.insertAllOnConflictUpdate(
-        _db.savingGoals,
-        goals.map(_mapToCompanion).toList(growable: false),
-      );
+    await _db.transaction(() async {
+      await _db.batch((Batch batch) {
+        batch.insertAllOnConflictUpdate(
+          _db.savingGoals,
+          goals.map(_mapToCompanion).toList(growable: false),
+        );
+      });
     });
   }
 

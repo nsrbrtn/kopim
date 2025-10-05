@@ -41,11 +41,13 @@ class AccountDao {
 
   Future<void> upsertAll(List<AccountEntity> accounts) async {
     if (accounts.isEmpty) return;
-    await _db.batch((Batch batch) {
-      batch.insertAllOnConflictUpdate(
-        _db.accounts,
-        accounts.map(_mapToCompanion).toList(),
-      );
+    await _db.transaction(() async {
+      await _db.batch((Batch batch) {
+        batch.insertAllOnConflictUpdate(
+          _db.accounts,
+          accounts.map(_mapToCompanion).toList(),
+        );
+      });
     });
   }
 

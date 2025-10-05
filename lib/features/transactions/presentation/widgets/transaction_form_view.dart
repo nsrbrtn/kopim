@@ -103,6 +103,8 @@ class TransactionFormView extends ConsumerWidget {
   }
 }
 
+typedef _FormSectionBuilder = Widget Function();
+
 class _TransactionForm extends ConsumerWidget {
   const _TransactionForm({
     required this.formKey,
@@ -123,45 +125,117 @@ class _TransactionForm extends ConsumerWidget {
     final AppLocalizations strings = AppLocalizations.of(context)!;
     final TransactionFormControllerProvider transactionProvider =
         transactionFormControllerProvider(formArgs);
-    final TransactionType type = ref.watch(
-      transactionProvider.select((TransactionFormState state) => state.type),
-    );
-    final String? selectedAccountId = ref.watch(
-      transactionProvider.select(
-        (TransactionFormState state) => state.accountId,
-      ),
-    );
-    final String? selectedCategoryId = ref.watch(
-      transactionProvider.select(
-        (TransactionFormState state) => state.categoryId,
-      ),
-    );
     final bool isSubmitting = ref.watch(
       transactionProvider.select(
         (TransactionFormState state) => state.isSubmitting,
       ),
     );
 
-    final List<Category> categories = categoriesAsync.maybeWhen(
-      data: (List<Category> data) => data,
-      orElse: () => const <Category>[],
-    );
-    final List<Category> filteredCategories = categories
-        .where(
-          (Category category) =>
-              category.type.toLowerCase() == type.storageValue,
-        )
-        .toList(growable: false);
+    final ThemeData theme = Theme.of(context);
 
-    final Map<String, NumberFormat> balanceFormatters =
-        <String, NumberFormat>{};
-    NumberFormat resolveBalanceFormat(String currency) {
-      final String upper = currency.toUpperCase();
-      return balanceFormatters.putIfAbsent(
-        upper,
-        () => NumberFormat.currency(locale: strings.localeName, symbol: upper),
-      );
-    }
+    final List<_FormSectionBuilder> sections = <_FormSectionBuilder>[
+      () => RepaintBoundary(
+        child: _AccountDropdownField(
+          key: const ValueKey<String>('transaction_account_field'),
+          accounts: accounts,
+          formArgs: formArgs,
+          strings: strings,
+        ),
+      ),
+      () => const SizedBox(height: 16),
+      () => RepaintBoundary(
+        child: _AmountField(formArgs: formArgs, strings: strings),
+      ),
+      () => const SizedBox(height: 16),
+      () => RepaintBoundary(
+        child: _TransactionTypeSelector(
+          key: const ValueKey<String>('transaction_type_selector'),
+          formArgs: formArgs,
+          strings: strings,
+        ),
+      ),
+      () => const SizedBox(height: 16),
+      () => RepaintBoundary(
+        child: _CategoryDropdownField(
+          key: const ValueKey<String>('transaction_category_field'),
+          categoriesAsync: categoriesAsync,
+          formArgs: formArgs,
+          strings: strings,
+        ),
+      ),
+      if (categoriesAsync.isLoading) () => const SizedBox(height: 8),
+      if (categoriesAsync.isLoading)
+        () => RepaintBoundary(
+          child: _CategoriesStatusMessage(
+            key: const ValueKey<String>('transaction_categories_loading'),
+            message: strings.addTransactionCategoriesLoading,
+          ),
+        ),
+      if (categoriesAsync.hasError) () => const SizedBox(height: 8),
+      if (categoriesAsync.hasError)
+        () => RepaintBoundary(
+          child: _CategoriesStatusMessage(
+            key: const ValueKey<String>('transaction_categories_error'),
+            message: strings.addTransactionCategoriesError(
+              categoriesAsync.error.toString(),
+            ),
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.error,
+            ),
+          ),
+        ),
+      () => const SizedBox(height: 16),
+      () => RepaintBoundary(child: _DatePickerField(formArgs: formArgs)),
+      () => const SizedBox(height: 16),
+      () => RepaintBoundary(child: _TimePickerField(formArgs: formArgs)),
+      () => const SizedBox(height: 16),
+      () => RepaintBoundary(child: _NoteField(formArgs: formArgs)),
+      () => const SizedBox(height: 24),
+      () => RepaintBoundary(
+        child: _SubmitButton(
+          key: const ValueKey<String>('transaction_submit_button'),
+          formArgs: formArgs,
+          formKey: formKey,
+          isSubmitting: isSubmitting,
+          submitLabel: submitLabel,
+        ),
+      ),
+    ];
+
+    return Form(
+      key: formKey,
+      child: ListView.builder(
+        padding: const EdgeInsets.all(24),
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+        cacheExtent: MediaQuery.sizeOf(context).height,
+        itemCount: sections.length,
+        itemBuilder: (BuildContext context, int index) => sections[index](),
+      ),
+    );
+  }
+}
+
+class _AccountDropdownField extends ConsumerWidget {
+  const _AccountDropdownField({
+    super.key,
+    required this.accounts,
+    required this.formArgs,
+    required this.strings,
+  });
+
+  final List<AccountEntity> accounts;
+  final TransactionFormArgs formArgs;
+  final AppLocalizations strings;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final TransactionFormControllerProvider transactionProvider =
+        transactionFormControllerProvider(formArgs);
+    final String? selectedAccountId = ref.watch(
+      transactionProvider.select(
+        (TransactionFormState state) => state.accountId,
+      ),
+    );
 
     final String? resolvedAccountId =
         selectedAccountId ?? (accounts.isNotEmpty ? accounts.first.id : null);
@@ -171,149 +245,218 @@ class _TransactionForm extends ConsumerWidget {
       });
     }
 
-    return Form(
-      key: formKey,
-      child: ListView(
-        padding: const EdgeInsets.all(24),
-        children: <Widget>[
-          RepaintBoundary(
-            child: DropdownButtonFormField<String>(
-              initialValue: resolvedAccountId,
-              decoration: InputDecoration(
-                labelText: strings.addTransactionAccountLabel,
+    final Map<String, NumberFormat> cache = <String, NumberFormat>{};
+
+    return DropdownButtonFormField<String>(
+      key: key,
+      initialValue: resolvedAccountId,
+      decoration: InputDecoration(
+        labelText: strings.addTransactionAccountLabel,
+      ),
+      items: accounts
+          .map(
+            (AccountEntity account) => DropdownMenuItem<String>(
+              value: account.id,
+              child: Text(
+                '${account.name} · '
+                '${_resolveFormatter(cache, account.currency, strings.localeName).format(account.balance)}',
               ),
-              items: accounts
-                  .map(
-                    (AccountEntity account) => DropdownMenuItem<String>(
-                      value: account.id,
-                      child: Text(
-                        '${account.name} · '
-                        '${resolveBalanceFormat(account.currency).format(account.balance)}',
-                      ),
-                    ),
-                  )
-                  .toList(growable: false),
-              onChanged: (String? value) {
-                ref.read(transactionProvider.notifier).updateAccount(value);
-              },
-              validator: (String? value) {
-                if (value == null || value.isEmpty) {
-                  return strings.addTransactionAccountRequired;
-                }
-                return null;
-              },
             ),
+          )
+          .toList(growable: false),
+      onChanged: (String? value) {
+        ref.read(transactionProvider.notifier).updateAccount(value);
+      },
+      validator: (String? value) {
+        if (value == null || value.isEmpty) {
+          return strings.addTransactionAccountRequired;
+        }
+        return null;
+      },
+    );
+  }
+
+  NumberFormat _resolveFormatter(
+    Map<String, NumberFormat> cache,
+    String currency,
+    String locale,
+  ) {
+    final String upper = currency.toUpperCase();
+    return cache.putIfAbsent(
+      upper,
+      () => NumberFormat.currency(locale: locale, symbol: upper),
+    );
+  }
+}
+
+class _TransactionTypeSelector extends ConsumerWidget {
+  const _TransactionTypeSelector({
+    super.key,
+    required this.formArgs,
+    required this.strings,
+  });
+
+  final TransactionFormArgs formArgs;
+  final AppLocalizations strings;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final TransactionFormControllerProvider transactionProvider =
+        transactionFormControllerProvider(formArgs);
+    final TransactionType type = ref.watch(
+      transactionProvider.select((TransactionFormState state) => state.type),
+    );
+
+    return InputDecorator(
+      decoration: InputDecoration(labelText: strings.addTransactionTypeLabel),
+      child: SegmentedButton<TransactionType>(
+        segments: <ButtonSegment<TransactionType>>[
+          ButtonSegment<TransactionType>(
+            value: TransactionType.expense,
+            label: Text(strings.addTransactionTypeExpense),
           ),
-          const SizedBox(height: 16),
-          _AmountField(formArgs: formArgs, strings: strings),
-          const SizedBox(height: 16),
-          RepaintBoundary(
-            child: InputDecorator(
-              decoration: InputDecoration(
-                labelText: strings.addTransactionTypeLabel,
-              ),
-              child: SegmentedButton<TransactionType>(
-                segments: <ButtonSegment<TransactionType>>[
-                  ButtonSegment<TransactionType>(
-                    value: TransactionType.expense,
-                    label: Text(strings.addTransactionTypeExpense),
-                  ),
-                  ButtonSegment<TransactionType>(
-                    value: TransactionType.income,
-                    label: Text(strings.addTransactionTypeIncome),
-                  ),
-                ],
-                selected: <TransactionType>{type},
-                onSelectionChanged: (Set<TransactionType> values) {
-                  if (values.isEmpty) {
-                    return;
-                  }
-                  ref
-                      .read(transactionProvider.notifier)
-                      .updateType(values.first);
-                },
-                style: const ButtonStyle(
-                  side: WidgetStatePropertyAll<BorderSide>(
-                    BorderSide(style: BorderStyle.none),
-                  ),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-          RepaintBoundary(
-            child: DropdownButtonFormField<String>(
-              initialValue: selectedCategoryId ?? '',
-              decoration: InputDecoration(
-                labelText: strings.addTransactionCategoryLabel,
-              ),
-              items: <DropdownMenuItem<String>>[
-                DropdownMenuItem<String>(
-                  value: '',
-                  child: Text(strings.addTransactionCategoryNone),
-                ),
-                ...filteredCategories.map(
-                  (Category category) => DropdownMenuItem<String>(
-                    value: category.id,
-                    child: Text(category.name),
-                  ),
-                ),
-              ],
-              onChanged: (String? value) {
-                ref.read(transactionProvider.notifier).updateCategory(value);
-              },
-            ),
-          ),
-          if (categoriesAsync.isLoading)
-            RepaintBoundary(
-              child: Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: Text(strings.addTransactionCategoriesLoading),
-              ),
-            ),
-          if (categoriesAsync.hasError)
-            RepaintBoundary(
-              child: Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: Text(
-                  strings.addTransactionCategoriesError(
-                    categoriesAsync.error.toString(),
-                  ),
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.error,
-                  ),
-                ),
-              ),
-            ),
-          const SizedBox(height: 16),
-          RepaintBoundary(child: _DatePickerField(formArgs: formArgs)),
-          const SizedBox(height: 16),
-          RepaintBoundary(child: _TimePickerField(formArgs: formArgs)),
-          const SizedBox(height: 16),
-          RepaintBoundary(child: _NoteField(formArgs: formArgs)),
-          const SizedBox(height: 24),
-          RepaintBoundary(
-            child: ElevatedButton.icon(
-              onPressed: isSubmitting
-                  ? null
-                  : () async {
-                      if (!(formKey.currentState?.validate() ?? false)) {
-                        return;
-                      }
-                      await ref.read(transactionProvider.notifier).submit();
-                    },
-              icon: isSubmitting
-                  ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.check),
-              label: Text(submitLabel),
-            ),
+          ButtonSegment<TransactionType>(
+            value: TransactionType.income,
+            label: Text(strings.addTransactionTypeIncome),
           ),
         ],
+        selected: <TransactionType>{type},
+        onSelectionChanged: (Set<TransactionType> values) {
+          if (values.isEmpty) {
+            return;
+          }
+          ref.read(transactionProvider.notifier).updateType(values.first);
+        },
+        style: const ButtonStyle(
+          side: WidgetStatePropertyAll<BorderSide>(
+            BorderSide(style: BorderStyle.none),
+          ),
+        ),
       ),
+    );
+  }
+}
+
+class _CategoryDropdownField extends ConsumerWidget {
+  const _CategoryDropdownField({
+    super.key,
+    required this.categoriesAsync,
+    required this.formArgs,
+    required this.strings,
+  });
+
+  final AsyncValue<List<Category>> categoriesAsync;
+  final TransactionFormArgs formArgs;
+  final AppLocalizations strings;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final TransactionFormControllerProvider transactionProvider =
+        transactionFormControllerProvider(formArgs);
+    final String? selectedCategoryId = ref.watch(
+      transactionProvider.select(
+        (TransactionFormState state) => state.categoryId,
+      ),
+    );
+    final TransactionType type = ref.watch(
+      transactionProvider.select((TransactionFormState state) => state.type),
+    );
+
+    final List<Category> categories = categoriesAsync.maybeWhen(
+      data: (List<Category> data) => data,
+      orElse: () => const <Category>[],
+    );
+
+    final List<Category> filteredCategories = categories
+        .where(
+          (Category category) =>
+              category.type.toLowerCase() == type.storageValue,
+        )
+        .toList(growable: false);
+
+    return DropdownButtonFormField<String>(
+      key: key,
+      initialValue: selectedCategoryId ?? '',
+      decoration: InputDecoration(
+        labelText: strings.addTransactionCategoryLabel,
+      ),
+      items: <DropdownMenuItem<String>>[
+        DropdownMenuItem<String>(
+          value: '',
+          child: Text(strings.addTransactionCategoryNone),
+        ),
+        ...filteredCategories.map(
+          (Category category) => DropdownMenuItem<String>(
+            value: category.id,
+            child: Text(category.name),
+          ),
+        ),
+      ],
+      onChanged: (String? value) {
+        ref.read(transactionProvider.notifier).updateCategory(value);
+      },
+    );
+  }
+}
+
+class _CategoriesStatusMessage extends StatelessWidget {
+  const _CategoriesStatusMessage({
+    super.key,
+    required this.message,
+    this.style,
+  });
+
+  final String message;
+  final TextStyle? style;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: Text(message, style: style),
+    );
+  }
+}
+
+class _SubmitButton extends ConsumerWidget {
+  const _SubmitButton({
+    super.key,
+    required this.formArgs,
+    required this.formKey,
+    required this.isSubmitting,
+    required this.submitLabel,
+  });
+
+  final TransactionFormArgs formArgs;
+  final GlobalKey<FormState> formKey;
+  final bool isSubmitting;
+  final String submitLabel;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final TransactionFormControllerProvider transactionProvider =
+        transactionFormControllerProvider(formArgs);
+    return ElevatedButton.icon(
+      key: key,
+      onPressed: isSubmitting
+          ? null
+          : () async {
+              if (!(formKey.currentState?.validate() ?? false)) {
+                return;
+              }
+              await ref.read(transactionProvider.notifier).submit();
+            },
+      icon: isSubmitting
+          ? SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                semanticsLabel: submitLabel,
+              ),
+            )
+          : const ExcludeSemantics(child: Icon(Icons.check)),
+      label: Text(submitLabel),
     );
   }
 }
@@ -454,7 +597,7 @@ class _DatePickerField extends ConsumerWidget {
 
     return ListTile(
       contentPadding: EdgeInsets.zero,
-      leading: const Icon(Icons.event),
+      leading: const ExcludeSemantics(child: Icon(Icons.event)),
       title: Text(strings.addTransactionDateLabel),
       subtitle: Text(dateFormat.format(selectedDate)),
       onTap: () async {
@@ -503,7 +646,7 @@ class _TimePickerField extends ConsumerWidget {
 
     return ListTile(
       contentPadding: EdgeInsets.zero,
-      leading: const Icon(Icons.schedule),
+      leading: const ExcludeSemantics(child: Icon(Icons.schedule)),
       title: Text(strings.addTransactionTimeLabel),
       subtitle: Text(localizations.formatTimeOfDay(selectedTime)),
       onTap: () async {
