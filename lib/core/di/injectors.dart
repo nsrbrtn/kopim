@@ -41,6 +41,7 @@ import 'package:kopim/features/categories/domain/use_cases/save_category_use_cas
 import 'package:kopim/features/categories/domain/use_cases/watch_categories_use_case.dart';
 import 'package:kopim/features/categories/domain/use_cases/watch_category_tree_use_case.dart';
 import 'package:kopim/features/savings/data/repositories/saving_goal_repository_impl.dart';
+import 'package:kopim/features/savings/data/sources/local/goal_contribution_dao.dart';
 import 'package:kopim/features/savings/data/sources/local/saving_goal_dao.dart';
 import 'package:kopim/features/savings/data/sources/remote/saving_goal_remote_data_source.dart';
 import 'package:kopim/features/savings/domain/repositories/saving_goal_repository.dart';
@@ -137,6 +138,10 @@ BudgetInstanceDao budgetInstanceDao(Ref ref) =>
 @riverpod
 SavingGoalDao savingGoalDao(Ref ref) =>
     SavingGoalDao(ref.watch(appDatabaseProvider));
+
+@riverpod
+GoalContributionDao goalContributionDao(Ref ref) =>
+    GoalContributionDao(ref.watch(appDatabaseProvider));
 
 @riverpod
 ProfileDao profileDao(Ref ref) => ProfileDao(ref.watch(appDatabaseProvider));
@@ -266,10 +271,7 @@ GetSavingGoalsUseCase getSavingGoalsUseCase(Ref ref) =>
 
 @riverpod
 AddContributionUseCase addContributionUseCase(Ref ref) =>
-    AddContributionUseCase(
-      repository: ref.watch(savingGoalRepositoryProvider),
-      addTransactionUseCase: ref.watch(addTransactionUseCaseProvider),
-    );
+    AddContributionUseCase(repository: ref.watch(savingGoalRepositoryProvider));
 
 @riverpod
 CategoryRepository categoryRepository(Ref ref) => CategoryRepositoryImpl(
@@ -301,6 +303,8 @@ TransactionRepository transactionRepository(Ref ref) =>
     TransactionRepositoryImpl(
       database: ref.watch(appDatabaseProvider),
       transactionDao: ref.watch(transactionDaoProvider),
+      savingGoalDao: ref.watch(savingGoalDaoProvider),
+      goalContributionDao: ref.watch(goalContributionDaoProvider),
       outboxDao: ref.watch(outboxDaoProvider),
     );
 
@@ -316,9 +320,14 @@ BudgetRepository budgetRepository(Ref ref) => BudgetRepositoryImpl(
 SavingGoalRepository savingGoalRepository(Ref ref) => SavingGoalRepositoryImpl(
   database: ref.watch(appDatabaseProvider),
   savingGoalDao: ref.watch(savingGoalDaoProvider),
+  categoryDao: ref.watch(categoryDaoProvider),
+  accountDao: ref.watch(accountDaoProvider),
+  transactionDao: ref.watch(transactionDaoProvider),
+  goalContributionDao: ref.watch(goalContributionDaoProvider),
   outboxDao: ref.watch(outboxDaoProvider),
   analyticsService: ref.watch(analyticsServiceProvider),
   loggerService: ref.watch(loggerServiceProvider),
+  uuidGenerator: ref.watch(uuidGeneratorProvider),
 );
 
 @riverpod

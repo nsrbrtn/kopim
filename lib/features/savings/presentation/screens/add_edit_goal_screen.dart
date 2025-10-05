@@ -6,6 +6,30 @@ import 'package:kopim/features/savings/presentation/controllers/edit_goal_contro
 import 'package:kopim/features/savings/presentation/controllers/edit_goal_state.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
+InputDecoration _goalFieldDecoration(
+  BuildContext context, {
+  required String label,
+  String? helper,
+  String? error,
+}) {
+  final ThemeData theme = Theme.of(context);
+  const OutlineInputBorder border = OutlineInputBorder(
+    borderRadius: BorderRadius.all(Radius.circular(12)),
+    borderSide: BorderSide.none,
+  );
+  return InputDecoration(
+    labelText: label,
+    helperText: helper,
+    errorText: error,
+    filled: true,
+    fillColor: theme.colorScheme.surfaceContainerHighest,
+    border: border,
+    enabledBorder: border,
+    focusedBorder: border,
+    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+  );
+}
+
 class AddEditGoalScreen extends ConsumerStatefulWidget {
   const AddEditGoalScreen({super.key, this.goal});
 
@@ -94,9 +118,10 @@ class _AddEditGoalScreenState extends ConsumerState<AddEditGoalScreen> {
               children: <Widget>[
                 TextFormField(
                   controller: _nameController,
-                  decoration: InputDecoration(
-                    labelText: strings.savingsNameLabel,
-                    errorText: state.nameError,
+                  decoration: _goalFieldDecoration(
+                    context,
+                    label: strings.savingsNameLabel,
+                    error: state.nameError,
                   ),
                   textInputAction: TextInputAction.next,
                   onChanged: (String value) => ref
@@ -106,10 +131,11 @@ class _AddEditGoalScreenState extends ConsumerState<AddEditGoalScreen> {
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _targetController,
-                  decoration: InputDecoration(
-                    labelText: strings.savingsTargetLabel,
-                    helperText: strings.savingsTargetHelper,
-                    errorText: state.targetError,
+                  decoration: _goalFieldDecoration(
+                    context,
+                    label: strings.savingsTargetLabel,
+                    helper: strings.savingsTargetHelper,
+                    error: state.targetError,
                   ),
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
@@ -122,8 +148,9 @@ class _AddEditGoalScreenState extends ConsumerState<AddEditGoalScreen> {
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _noteController,
-                  decoration: InputDecoration(
-                    labelText: strings.savingsNoteLabel,
+                  decoration: _goalFieldDecoration(
+                    context,
+                    label: strings.savingsNoteLabel,
                   ),
                   maxLines: 3,
                   onChanged: (String value) => ref

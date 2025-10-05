@@ -1010,174 +1010,6 @@ abstract class AppLocalizations {
   /// **'Savings'**
   String get homeNavSavings;
 
-  /// Title for the savings goals screen
-  ///
-  /// In en, this message translates to:
-  /// **'Savings goals'**
-  String get savingsTitle;
-
-  /// Title for the add savings goal screen
-  ///
-  /// In en, this message translates to:
-  /// **'New goal'**
-  String get savingsAddGoalTitle;
-
-  /// Title for the edit savings goal screen
-  ///
-  /// In en, this message translates to:
-  /// **'Edit goal'**
-  String get savingsEditGoalTitle;
-
-  /// Label for the savings goal name field
-  ///
-  /// In en, this message translates to:
-  /// **'Name'**
-  String get savingsNameLabel;
-
-  /// Label for the target amount field
-  ///
-  /// In en, this message translates to:
-  /// **'Target amount'**
-  String get savingsTargetLabel;
-
-  /// Helper text for the target amount field
-  ///
-  /// In en, this message translates to:
-  /// **'Enter the desired total amount'**
-  String get savingsTargetHelper;
-
-  /// Label for the optional goal note field
-  ///
-  /// In en, this message translates to:
-  /// **'Note'**
-  String get savingsNoteLabel;
-
-  /// Primary action button for saving goal forms
-  ///
-  /// In en, this message translates to:
-  /// **'Save goal'**
-  String get savingsSaveGoalButton;
-
-  /// Snackbar message after saving a goal
-  ///
-  /// In en, this message translates to:
-  /// **'Goal saved'**
-  String get savingsGoalSavedMessage;
-
-  /// Call to action button on the savings empty state
-  ///
-  /// In en, this message translates to:
-  /// **'Create goal'**
-  String get savingsAddGoalButton;
-
-  /// Headline for the empty savings state
-  ///
-  /// In en, this message translates to:
-  /// **'Create your first savings goal'**
-  String get savingsEmptyTitle;
-
-  /// Supporting text for the empty savings state
-  ///
-  /// In en, this message translates to:
-  /// **'Track progress towards your targets and stay motivated.'**
-  String get savingsEmptyMessage;
-
-  /// Title shown when savings goals fail to load
-  ///
-  /// In en, this message translates to:
-  /// **'Unable to load savings goals'**
-  String get savingsErrorTitle;
-
-  /// Retry button label on the savings error state
-  ///
-  /// In en, this message translates to:
-  /// **'Try again'**
-  String get savingsRetryButton;
-
-  /// Label for the contribute action button
-  ///
-  /// In en, this message translates to:
-  /// **'Contribute'**
-  String get savingsContributeAction;
-
-  /// Label for the edit action
-  ///
-  /// In en, this message translates to:
-  /// **'Edit'**
-  String get savingsEditAction;
-
-  /// Label for the archive action
-  ///
-  /// In en, this message translates to:
-  /// **'Archive'**
-  String get savingsArchiveAction;
-
-  /// Snackbar message after a goal has been archived
-  ///
-  /// In en, this message translates to:
-  /// **'Goal "{goal}" archived'**
-  String savingsGoalArchivedMessage(String goal);
-
-  /// Badge text for archived goals
-  ///
-  /// In en, this message translates to:
-  /// **'Archived'**
-  String get savingsArchivedBadge;
-
-  /// Text showing the remaining amount to reach the target
-  ///
-  /// In en, this message translates to:
-  /// **'Remaining {amount}'**
-  String savingsRemainingLabel(String amount);
-
-  /// Toggle label for showing archived goals
-  ///
-  /// In en, this message translates to:
-  /// **'Show archived goals'**
-  String get savingsShowArchivedToggle;
-
-  /// Title for the contribute screen
-  ///
-  /// In en, this message translates to:
-  /// **'Contribute to {goal}'**
-  String savingsContributeTitle(String goal);
-
-  /// Label for the contribution amount field
-  ///
-  /// In en, this message translates to:
-  /// **'Amount'**
-  String get savingsAmountLabel;
-
-  /// Label for the source account picker
-  ///
-  /// In en, this message translates to:
-  /// **'Source account'**
-  String get savingsSourceAccountLabel;
-
-  /// Option label when no account is selected
-  ///
-  /// In en, this message translates to:
-  /// **'No account'**
-  String get savingsNoAccountOption;
-
-  /// Label for the optional contribution note field
-  ///
-  /// In en, this message translates to:
-  /// **'Note (optional)'**
-  String get savingsContributionNoteLabel;
-
-  /// Primary action button on the contribute screen
-  ///
-  /// In en, this message translates to:
-  /// **'Add contribution'**
-  String get savingsSubmitContributionButton;
-
-  /// Snackbar message after a contribution succeeds
-  ///
-  /// In en, this message translates to:
-  /// **'Contribution added'**
-  String get savingsContributionSuccess;
-
   /// Bottom navigation label for settings
   ///
   /// In en, this message translates to:
@@ -2011,6 +1843,174 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Save'**
   String get saveButtonLabel;
+
+  /// Title for the savings goals screen
+  ///
+  /// In en, this message translates to:
+  /// **'Savings goals'**
+  String get savingsTitle;
+
+  /// Title for the add savings goal screen
+  ///
+  /// In en, this message translates to:
+  /// **'New goal'**
+  String get savingsAddGoalTitle;
+
+  /// Title for the edit savings goal screen
+  ///
+  /// In en, this message translates to:
+  /// **'Edit goal'**
+  String get savingsEditGoalTitle;
+
+  /// Label for the savings goal name field
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get savingsNameLabel;
+
+  /// Label for the target amount field
+  ///
+  /// In en, this message translates to:
+  /// **'Target amount'**
+  String get savingsTargetLabel;
+
+  /// Helper text for the target amount field
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the desired total amount'**
+  String get savingsTargetHelper;
+
+  /// Label for the optional goal note
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get savingsNoteLabel;
+
+  /// Primary action button for saving goal forms
+  ///
+  /// In en, this message translates to:
+  /// **'Save goal'**
+  String get savingsSaveGoalButton;
+
+  /// Snackbar message when a goal is saved
+  ///
+  /// In en, this message translates to:
+  /// **'Goal saved'**
+  String get savingsGoalSavedMessage;
+
+  /// Call to action button on the empty state
+  ///
+  /// In en, this message translates to:
+  /// **'Create goal'**
+  String get savingsAddGoalButton;
+
+  /// Headline for the empty savings state
+  ///
+  /// In en, this message translates to:
+  /// **'Create your first savings goal'**
+  String get savingsEmptyTitle;
+
+  /// Supporting text for the empty savings state
+  ///
+  /// In en, this message translates to:
+  /// **'Track progress towards your targets and stay motivated.'**
+  String get savingsEmptyMessage;
+
+  /// Title for the savings error state
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load savings goals'**
+  String get savingsErrorTitle;
+
+  /// Retry button label for savings error state
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get savingsRetryButton;
+
+  /// Label for contribute action button
+  ///
+  /// In en, this message translates to:
+  /// **'Contribute'**
+  String get savingsContributeAction;
+
+  /// Label for edit goal action
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get savingsEditAction;
+
+  /// Label for archive goal action
+  ///
+  /// In en, this message translates to:
+  /// **'Archive'**
+  String get savingsArchiveAction;
+
+  /// Snackbar message shown after archiving a savings goal
+  ///
+  /// In en, this message translates to:
+  /// **'Goal \"{goal}\" archived'**
+  String savingsGoalArchivedMessage(String goal);
+
+  /// Badge label for archived goals
+  ///
+  /// In en, this message translates to:
+  /// **'Archived'**
+  String get savingsArchivedBadge;
+
+  /// Text showing remaining amount to reach target
+  ///
+  /// In en, this message translates to:
+  /// **'Remaining {amount}'**
+  String savingsRemainingLabel(String amount);
+
+  /// Toggle label to show archived goals
+  ///
+  /// In en, this message translates to:
+  /// **'Show archived goals'**
+  String get savingsShowArchivedToggle;
+
+  /// Title for the contribute screen
+  ///
+  /// In en, this message translates to:
+  /// **'Contribute to {goal}'**
+  String savingsContributeTitle(String goal);
+
+  /// Label for contribution amount field
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get savingsAmountLabel;
+
+  /// Label for the contribution account picker
+  ///
+  /// In en, this message translates to:
+  /// **'Source account'**
+  String get savingsSourceAccountLabel;
+
+  /// Dropdown option when no account is selected
+  ///
+  /// In en, this message translates to:
+  /// **'No account'**
+  String get savingsNoAccountOption;
+
+  /// Label for the optional contribution note
+  ///
+  /// In en, this message translates to:
+  /// **'Note (optional)'**
+  String get savingsContributionNoteLabel;
+
+  /// Primary action button on contribute screen
+  ///
+  /// In en, this message translates to:
+  /// **'Add contribution'**
+  String get savingsSubmitContributionButton;
+
+  /// Snackbar after adding a contribution
+  ///
+  /// In en, this message translates to:
+  /// **'Contribution added'**
+  String get savingsContributionSuccess;
 
   /// Fallback title for transactions without a note
   ///

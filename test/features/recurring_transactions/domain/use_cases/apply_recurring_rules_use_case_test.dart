@@ -9,6 +9,8 @@ import 'package:kopim/core/data/outbox/outbox_dao.dart';
 import 'package:kopim/features/accounts/data/repositories/account_repository_impl.dart';
 import 'package:kopim/features/accounts/data/sources/local/account_dao.dart';
 import 'package:kopim/features/accounts/domain/repositories/account_repository.dart';
+import 'package:kopim/features/savings/data/sources/local/goal_contribution_dao.dart';
+import 'package:kopim/features/savings/data/sources/local/saving_goal_dao.dart';
 import 'package:kopim/features/recurring_transactions/data/repositories/recurring_transactions_repository_impl.dart';
 import 'package:kopim/features/recurring_transactions/data/sources/local/job_queue_dao.dart';
 import 'package:kopim/features/recurring_transactions/data/sources/local/recurring_occurrence_dao.dart';
@@ -95,6 +97,10 @@ void main() {
       final OutboxDao outboxDao = OutboxDao(database);
       final AccountDao accountDao = AccountDao(database);
       final TransactionDao transactionDao = TransactionDao(database);
+      final SavingGoalDao savingGoalDao = SavingGoalDao(database);
+      final GoalContributionDao goalContributionDao = GoalContributionDao(
+        database,
+      );
       final AccountRepository accountRepository = AccountRepositoryImpl(
         database: database,
         accountDao: accountDao,
@@ -104,6 +110,8 @@ void main() {
           TransactionRepositoryImpl(
             database: database,
             transactionDao: transactionDao,
+            savingGoalDao: savingGoalDao,
+            goalContributionDao: goalContributionDao,
             outboxDao: outboxDao,
           );
 

@@ -46,10 +46,8 @@ class SavingGoalCard extends StatelessWidget {
     return Card(
       elevation: 0,
       clipBehavior: Clip.antiAlias,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: theme.colorScheme.outlineVariant),
-      ),
+      color: theme.colorScheme.surfaceContainerHighest,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -114,7 +112,7 @@ class SavingGoalCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 12),
-                ElevatedButton.icon(
+                FilledButton.icon(
                   onPressed: onContribute,
                   icon: const Icon(Icons.savings_outlined),
                   label: Text(strings.savingsContributeAction),

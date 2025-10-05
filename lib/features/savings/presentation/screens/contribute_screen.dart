@@ -9,6 +9,28 @@ import 'package:kopim/features/savings/presentation/controllers/contribute_contr
 import 'package:kopim/features/savings/presentation/controllers/contribute_state.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
+InputDecoration _contributionFieldDecoration(
+  BuildContext context, {
+  required String label,
+  String? error,
+}) {
+  final ThemeData theme = Theme.of(context);
+  const OutlineInputBorder border = OutlineInputBorder(
+    borderRadius: BorderRadius.all(Radius.circular(12)),
+    borderSide: BorderSide.none,
+  );
+  return InputDecoration(
+    labelText: label,
+    errorText: error,
+    filled: true,
+    fillColor: theme.colorScheme.surfaceContainerHighest,
+    border: border,
+    enabledBorder: border,
+    focusedBorder: border,
+    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+  );
+}
+
 class ContributeScreen extends ConsumerStatefulWidget {
   const ContributeScreen({super.key, required this.goal});
 
@@ -110,11 +132,12 @@ class _ContributeScreenState extends ConsumerState<ContributeScreen> {
                 ),
               ),
               const SizedBox(height: 24),
-              TextField(
+              TextFormField(
                 controller: _amountController,
-                decoration: InputDecoration(
-                  labelText: strings.savingsAmountLabel,
-                  errorText: state.amountError,
+                decoration: _contributionFieldDecoration(
+                  context,
+                  label: strings.savingsAmountLabel,
+                  error: state.amountError,
                 ),
                 keyboardType: const TextInputType.numberWithOptions(
                   decimal: true,
@@ -126,8 +149,9 @@ class _ContributeScreenState extends ConsumerState<ContributeScreen> {
               const SizedBox(height: 16),
               DropdownButtonFormField<String?>(
                 initialValue: state.selectedAccountId,
-                decoration: InputDecoration(
-                  labelText: strings.savingsSourceAccountLabel,
+                decoration: _contributionFieldDecoration(
+                  context,
+                  label: strings.savingsSourceAccountLabel,
                 ),
                 items: <DropdownMenuItem<String?>>[
                   DropdownMenuItem<String?>(
@@ -146,10 +170,11 @@ class _ContributeScreenState extends ConsumerState<ContributeScreen> {
                     .selectAccount(value),
               ),
               const SizedBox(height: 16),
-              TextField(
+              TextFormField(
                 controller: _noteController,
-                decoration: InputDecoration(
-                  labelText: strings.savingsContributionNoteLabel,
+                decoration: _contributionFieldDecoration(
+                  context,
+                  label: strings.savingsContributionNoteLabel,
                 ),
                 maxLines: 3,
                 onChanged: (String value) => ref

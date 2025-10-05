@@ -42,7 +42,7 @@ final class SavingGoalsControllerProvider
 }
 
 String _$savingGoalsControllerHash() =>
-    r'4eb7b877971f9576458cebb9efcea4673502c608';
+    r'12e784ca48b137d0cd02b8a1cfd8b6831a0f8128';
 
 abstract class _$SavingGoalsController extends $Notifier<SavingGoalsState> {
   SavingGoalsState build();

@@ -20,7 +20,6 @@ class Accounts extends Table {
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
   BoolColumn get isDeleted =>
       boolean().withDefault(const Constant<bool>(false))();
-
   @override
   Set<Column<Object>> get primaryKey => <Column<Object>>{id};
 }
@@ -41,6 +40,8 @@ class Categories extends Table {
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
   BoolColumn get isDeleted =>
       boolean().withDefault(const Constant<bool>(false))();
+  BoolColumn get isSystem =>
+      boolean().withDefault(const Constant<bool>(false))();
 
   @override
   Set<Column<Object>> get primaryKey => <Column<Object>>{id};
@@ -58,6 +59,9 @@ class Transactions extends Table {
   DateTimeColumn get date => dateTime()();
   TextColumn get note => text().nullable()();
   TextColumn get type => text().withLength(min: 1, max: 50)();
+  TextColumn get savingGoalId => text().nullable().customConstraint(
+    'REFERENCES saving_goals(id) ON DELETE SET NULL',
+  )();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
   BoolColumn get isDeleted =>
@@ -220,6 +224,20 @@ class SavingGoals extends Table {
   Set<Column<Object>> get primaryKey => <Column<Object>>{id};
 }
 
+@DataClassName('GoalContributionRow')
+class GoalContributions extends Table {
+  TextColumn get id => text().withLength(min: 1, max: 50)();
+  TextColumn get goalId =>
+      text().references(SavingGoals, #id, onDelete: KeyAction.cascade)();
+  TextColumn get transactionId =>
+      text().references(Transactions, #id, onDelete: KeyAction.cascade)();
+  IntColumn get amount => integer()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column<Object>> get primaryKey => <Column<Object>>{id};
+}
+
 @DataClassName('JobQueueRow')
 class JobQueue extends Table {
   IntColumn get id => integer().autoIncrement()();
@@ -245,6 +263,7 @@ class JobQueue extends Table {
     Budgets,
     BudgetInstances,
     SavingGoals,
+    GoalContributions,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -253,7 +272,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.connect(DatabaseConnection super.connection);
 
   @override
-  int get schemaVersion => 9;
+  int get schemaVersion => 10;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -280,6 +299,27 @@ class AppDatabase extends _$AppDatabase {
           'saving_goals_status_updated_idx',
           'CREATE INDEX IF NOT EXISTS saving_goals_status_updated_idx '
               'ON saving_goals(archived_at, updated_at DESC)',
+        ),
+      );
+      await m.createIndex(
+        Index(
+          'categories_name_unique',
+          'CREATE UNIQUE INDEX IF NOT EXISTS categories_name_unique '
+              'ON categories(name)',
+        ),
+      );
+      await m.createIndex(
+        Index(
+          'goal_contributions_goal_idx',
+          'CREATE INDEX IF NOT EXISTS goal_contributions_goal_idx '
+              'ON goal_contributions(goal_id)',
+        ),
+      );
+      await m.createIndex(
+        Index(
+          'transactions_saving_goal_idx',
+          'CREATE INDEX IF NOT EXISTS transactions_saving_goal_idx '
+              'ON transactions(saving_goal_id)',
         ),
       );
     },
@@ -395,6 +435,32 @@ class AppDatabase extends _$AppDatabase {
             'saving_goals_status_updated_idx',
             'CREATE INDEX IF NOT EXISTS saving_goals_status_updated_idx '
                 'ON saving_goals(archived_at, updated_at DESC)',
+          ),
+        );
+      }
+      if (from < 10) {
+        await m.addColumn(categories, categories.isSystem);
+        await m.addColumn(transactions, transactions.savingGoalId);
+        await m.createTable(goalContributions);
+        await m.createIndex(
+          Index(
+            'categories_name_unique',
+            'CREATE UNIQUE INDEX IF NOT EXISTS categories_name_unique '
+                'ON categories(name)',
+          ),
+        );
+        await m.createIndex(
+          Index(
+            'goal_contributions_goal_idx',
+            'CREATE INDEX IF NOT EXISTS goal_contributions_goal_idx '
+                'ON goal_contributions(goal_id)',
+          ),
+        );
+        await m.createIndex(
+          Index(
+            'transactions_saving_goal_idx',
+            'CREATE INDEX IF NOT EXISTS transactions_saving_goal_idx '
+                'ON transactions(saving_goal_id)',
           ),
         );
       }
