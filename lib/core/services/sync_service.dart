@@ -13,6 +13,8 @@ import 'package:kopim/features/budgets/domain/entities/budget.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_instance.dart';
 import 'package:kopim/features/categories/data/sources/remote/category_remote_data_source.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
+import 'package:kopim/features/savings/data/sources/remote/saving_goal_remote_data_source.dart';
+import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
 import 'package:kopim/features/profile/data/remote/profile_remote_data_source.dart';
 import 'package:kopim/features/profile/domain/entities/profile.dart';
 import 'package:kopim/features/transactions/data/sources/remote/transaction_remote_data_source.dart';
@@ -27,6 +29,7 @@ class SyncService {
     required ProfileRemoteDataSource profileRemoteDataSource,
     required BudgetRemoteDataSource budgetRemoteDataSource,
     required BudgetInstanceRemoteDataSource budgetInstanceRemoteDataSource,
+    required SavingGoalRemoteDataSource savingGoalRemoteDataSource,
     FirebaseAuth? firebaseAuth,
     Connectivity? connectivity,
   }) : _outboxDao = outboxDao,
@@ -36,6 +39,7 @@ class SyncService {
        _profileRemoteDataSource = profileRemoteDataSource,
        _budgetRemoteDataSource = budgetRemoteDataSource,
        _budgetInstanceRemoteDataSource = budgetInstanceRemoteDataSource,
+       _savingGoalRemoteDataSource = savingGoalRemoteDataSource,
        _auth = firebaseAuth ?? FirebaseAuth.instance,
        _connectivity = connectivity ?? Connectivity();
 
@@ -46,6 +50,7 @@ class SyncService {
   final ProfileRemoteDataSource _profileRemoteDataSource;
   final BudgetRemoteDataSource _budgetRemoteDataSource;
   final BudgetInstanceRemoteDataSource _budgetInstanceRemoteDataSource;
+  final SavingGoalRemoteDataSource _savingGoalRemoteDataSource;
   final FirebaseAuth _auth;
   final Connectivity _connectivity;
 
@@ -132,6 +137,10 @@ class SyncService {
         case 'budget_instance':
           final BudgetInstance instance = BudgetInstance.fromJson(payload);
           await _dispatchBudgetInstance(userId, instance, operation);
+          break;
+        case 'saving_goal':
+          final SavingGoal goal = SavingGoal.fromJson(payload);
+          await _dispatchSavingGoal(userId, goal, operation);
           break;
         default:
           throw UnsupportedError(
@@ -239,6 +248,14 @@ class SyncService {
       return _budgetInstanceRemoteDataSource.delete(userId, instance);
     }
     return _budgetInstanceRemoteDataSource.upsert(userId, instance);
+  }
+
+  Future<void> _dispatchSavingGoal(
+    String userId,
+    SavingGoal goal,
+    OutboxOperation operation,
+  ) {
+    return _savingGoalRemoteDataSource.upsert(userId, goal);
   }
 
   Future<void> _handleConnectivity(List<ConnectivityResult> results) async {

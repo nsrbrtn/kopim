@@ -674,6 +674,10 @@
   "@homeNavAnalytics": {
     "description": "Подпись для раздела аналитики"
   },
+  "homeNavSavings": "Накопления",
+  "@homeNavSavings": {
+    "description": "Подпись для раздела накоплений"
+  },
   "homeNavSettings": "Настройки",
   "@homeNavSettings": {
     "description": "Подпись для раздела настроек"
@@ -1304,6 +1308,133 @@
   "saveButtonLabel": "Сохранить",
   "@saveButtonLabel": {
     "description": "Общая подпись кнопки сохранения"
+  },
+  "savingsTitle": "Цели по накоплениям",
+  "@savingsTitle": {
+    "description": "Заголовок экрана накоплений"
+  },
+  "savingsAddGoalTitle": "Новая цель",
+  "@savingsAddGoalTitle": {
+    "description": "Заголовок экрана создания цели"
+  },
+  "savingsEditGoalTitle": "Редактирование цели",
+  "@savingsEditGoalTitle": {
+    "description": "Заголовок экрана редактирования цели"
+  },
+  "savingsNameLabel": "Название",
+  "@savingsNameLabel": {
+    "description": "Подпись поля названия цели"
+  },
+  "savingsTargetLabel": "Целевая сумма",
+  "@savingsTargetLabel": {
+    "description": "Подпись поля целевой суммы"
+  },
+  "savingsTargetHelper": "Введите желаемую сумму",
+  "@savingsTargetHelper": {
+    "description": "Подсказка для поля целевой суммы"
+  },
+  "savingsNoteLabel": "Заметка",
+  "@savingsNoteLabel": {
+    "description": "Подпись поля заметки"
+  },
+  "savingsSaveGoalButton": "Сохранить цель",
+  "@savingsSaveGoalButton": {
+    "description": "Кнопка сохранения цели"
+  },
+  "savingsGoalSavedMessage": "Цель сохранена",
+  "@savingsGoalSavedMessage": {
+    "description": "Сообщение после успешного сохранения"
+  },
+  "savingsAddGoalButton": "Создать цель",
+  "@savingsAddGoalButton": {
+    "description": "Кнопка создания цели в пустом состоянии"
+  },
+  "savingsEmptyTitle": "Создайте первую цель",
+  "@savingsEmptyTitle": {
+    "description": "Заголовок пустого состояния накоплений"
+  },
+  "savingsEmptyMessage": "Отслеживайте прогресс и сохраняйте мотивацию.",
+  "@savingsEmptyMessage": {
+    "description": "Описание пустого состояния накоплений"
+  },
+  "savingsErrorTitle": "Не удалось загрузить цели",
+  "@savingsErrorTitle": {
+    "description": "Заголовок экрана ошибки накоплений"
+  },
+  "savingsRetryButton": "Повторить попытку",
+  "@savingsRetryButton": {
+    "description": "Кнопка повторной загрузки целей"
+  },
+  "savingsContributeAction": "Пополнить",
+  "@savingsContributeAction": {
+    "description": "Подпись действия пополнения"
+  },
+  "savingsEditAction": "Редактировать",
+  "@savingsEditAction": {
+    "description": "Подпись действия редактирования"
+  },
+  "savingsArchiveAction": "Архивировать",
+  "@savingsArchiveAction": {
+    "description": "Подпись действия архивирования"
+  },
+  "savingsGoalArchivedMessage": "Цель «{goal}» архивирована",
+  "@savingsGoalArchivedMessage": {
+    "description": "Сообщение после архивации цели",
+    "placeholders": {
+      "goal": {
+        "type": "String"
+      }
+    }
+  },
+  "savingsArchivedBadge": "В архиве",
+  "@savingsArchivedBadge": {
+    "description": "Бейдж для архивных целей"
+  },
+  "savingsRemainingLabel": "Осталось {amount}",
+  "@savingsRemainingLabel": {
+    "description": "Текст с оставшейся суммой",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "savingsShowArchivedToggle": "Показывать архивные цели",
+  "@savingsShowArchivedToggle": {
+    "description": "Переключатель отображения архивных целей"
+  },
+  "savingsContributeTitle": "Пополнение цели «{goal}»",
+  "@savingsContributeTitle": {
+    "description": "Заголовок экрана пополнения",
+    "placeholders": {
+      "goal": {
+        "type": "String"
+      }
+    }
+  },
+  "savingsAmountLabel": "Сумма",
+  "@savingsAmountLabel": {
+    "description": "Подпись поля суммы пополнения"
+  },
+  "savingsSourceAccountLabel": "Счёт списания",
+  "@savingsSourceAccountLabel": {
+    "description": "Подпись поля выбора счёта"
+  },
+  "savingsNoAccountOption": "Без счёта",
+  "@savingsNoAccountOption": {
+    "description": "Опция выбора без счёта"
+  },
+  "savingsContributionNoteLabel": "Заметка (необязательно)",
+  "@savingsContributionNoteLabel": {
+    "description": "Подпись поля заметки при пополнении"
+  },
+  "savingsSubmitContributionButton": "Добавить пополнение",
+  "@savingsSubmitContributionButton": {
+    "description": "Кнопка отправки пополнения"
+  },
+  "savingsContributionSuccess": "Пополнение добавлено",
+  "@savingsContributionSuccess": {
+    "description": "Сообщение после успешного пополнения"
   },
   "transactionDefaultTitle": "Транзакция",
   "@transactionDefaultTitle": {

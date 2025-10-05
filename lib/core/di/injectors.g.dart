@@ -599,6 +599,47 @@ final class BudgetInstanceDaoProvider
 
 String _$budgetInstanceDaoHash() => r'f2ff161d2210b373bff95923b0810a8acb8f09bb';
 
+@ProviderFor(savingGoalDao)
+const savingGoalDaoProvider = SavingGoalDaoProvider._();
+
+final class SavingGoalDaoProvider
+    extends $FunctionalProvider<SavingGoalDao, SavingGoalDao, SavingGoalDao>
+    with $Provider<SavingGoalDao> {
+  const SavingGoalDaoProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'savingGoalDaoProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$savingGoalDaoHash();
+
+  @$internal
+  @override
+  $ProviderElement<SavingGoalDao> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  SavingGoalDao create(Ref ref) {
+    return savingGoalDao(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(SavingGoalDao value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<SavingGoalDao>(value),
+    );
+  }
+}
+
+String _$savingGoalDaoHash() => r'f486ee43a183e184c23f4137dcacb9c39c73aeb3';
+
 @ProviderFor(profileDao)
 const profileDaoProvider = ProfileDaoProvider._();
 
@@ -1296,6 +1337,55 @@ final class BudgetInstanceRemoteDataSourceProvider
 String _$budgetInstanceRemoteDataSourceHash() =>
     r'a020e9c9816dcaffaf93de641281dc389b6c4a5d';
 
+@ProviderFor(savingGoalRemoteDataSource)
+const savingGoalRemoteDataSourceProvider =
+    SavingGoalRemoteDataSourceProvider._();
+
+final class SavingGoalRemoteDataSourceProvider
+    extends
+        $FunctionalProvider<
+          SavingGoalRemoteDataSource,
+          SavingGoalRemoteDataSource,
+          SavingGoalRemoteDataSource
+        >
+    with $Provider<SavingGoalRemoteDataSource> {
+  const SavingGoalRemoteDataSourceProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'savingGoalRemoteDataSourceProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$savingGoalRemoteDataSourceHash();
+
+  @$internal
+  @override
+  $ProviderElement<SavingGoalRemoteDataSource> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  SavingGoalRemoteDataSource create(Ref ref) {
+    return savingGoalRemoteDataSource(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(SavingGoalRemoteDataSource value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<SavingGoalRemoteDataSource>(value),
+    );
+  }
+}
+
+String _$savingGoalRemoteDataSourceHash() =>
+    r'f92bab57e5d731e4d387077ea0733f42a2a95f56';
+
 @ProviderFor(recurringNotificationService)
 const recurringNotificationServiceProvider =
     RecurringNotificationServiceProvider._();
@@ -1679,6 +1769,294 @@ final class ComputeBudgetProgressUseCaseProvider
 String _$computeBudgetProgressUseCaseHash() =>
     r'6e959206f2a50fea51f6fda1927229c34dbd7a52';
 
+@ProviderFor(createSavingGoalUseCase)
+const createSavingGoalUseCaseProvider = CreateSavingGoalUseCaseProvider._();
+
+final class CreateSavingGoalUseCaseProvider
+    extends
+        $FunctionalProvider<
+          CreateSavingGoalUseCase,
+          CreateSavingGoalUseCase,
+          CreateSavingGoalUseCase
+        >
+    with $Provider<CreateSavingGoalUseCase> {
+  const CreateSavingGoalUseCaseProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'createSavingGoalUseCaseProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$createSavingGoalUseCaseHash();
+
+  @$internal
+  @override
+  $ProviderElement<CreateSavingGoalUseCase> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  CreateSavingGoalUseCase create(Ref ref) {
+    return createSavingGoalUseCase(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(CreateSavingGoalUseCase value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<CreateSavingGoalUseCase>(value),
+    );
+  }
+}
+
+String _$createSavingGoalUseCaseHash() =>
+    r'93b8c9b44deaa81ac2b26ea4867d468b914b873c';
+
+@ProviderFor(updateSavingGoalUseCase)
+const updateSavingGoalUseCaseProvider = UpdateSavingGoalUseCaseProvider._();
+
+final class UpdateSavingGoalUseCaseProvider
+    extends
+        $FunctionalProvider<
+          UpdateSavingGoalUseCase,
+          UpdateSavingGoalUseCase,
+          UpdateSavingGoalUseCase
+        >
+    with $Provider<UpdateSavingGoalUseCase> {
+  const UpdateSavingGoalUseCaseProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'updateSavingGoalUseCaseProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$updateSavingGoalUseCaseHash();
+
+  @$internal
+  @override
+  $ProviderElement<UpdateSavingGoalUseCase> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  UpdateSavingGoalUseCase create(Ref ref) {
+    return updateSavingGoalUseCase(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(UpdateSavingGoalUseCase value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<UpdateSavingGoalUseCase>(value),
+    );
+  }
+}
+
+String _$updateSavingGoalUseCaseHash() =>
+    r'de5d5f148e8edf98f06505044d1a305474246201';
+
+@ProviderFor(archiveSavingGoalUseCase)
+const archiveSavingGoalUseCaseProvider = ArchiveSavingGoalUseCaseProvider._();
+
+final class ArchiveSavingGoalUseCaseProvider
+    extends
+        $FunctionalProvider<
+          ArchiveSavingGoalUseCase,
+          ArchiveSavingGoalUseCase,
+          ArchiveSavingGoalUseCase
+        >
+    with $Provider<ArchiveSavingGoalUseCase> {
+  const ArchiveSavingGoalUseCaseProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'archiveSavingGoalUseCaseProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$archiveSavingGoalUseCaseHash();
+
+  @$internal
+  @override
+  $ProviderElement<ArchiveSavingGoalUseCase> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  ArchiveSavingGoalUseCase create(Ref ref) {
+    return archiveSavingGoalUseCase(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(ArchiveSavingGoalUseCase value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<ArchiveSavingGoalUseCase>(value),
+    );
+  }
+}
+
+String _$archiveSavingGoalUseCaseHash() =>
+    r'4494b09894ee7b6685f603152b70c3107634882b';
+
+@ProviderFor(watchSavingGoalsUseCase)
+const watchSavingGoalsUseCaseProvider = WatchSavingGoalsUseCaseProvider._();
+
+final class WatchSavingGoalsUseCaseProvider
+    extends
+        $FunctionalProvider<
+          WatchSavingGoalsUseCase,
+          WatchSavingGoalsUseCase,
+          WatchSavingGoalsUseCase
+        >
+    with $Provider<WatchSavingGoalsUseCase> {
+  const WatchSavingGoalsUseCaseProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'watchSavingGoalsUseCaseProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$watchSavingGoalsUseCaseHash();
+
+  @$internal
+  @override
+  $ProviderElement<WatchSavingGoalsUseCase> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  WatchSavingGoalsUseCase create(Ref ref) {
+    return watchSavingGoalsUseCase(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(WatchSavingGoalsUseCase value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<WatchSavingGoalsUseCase>(value),
+    );
+  }
+}
+
+String _$watchSavingGoalsUseCaseHash() =>
+    r'4594ab8a779349cd0948384eb9c72b1beea27747';
+
+@ProviderFor(getSavingGoalsUseCase)
+const getSavingGoalsUseCaseProvider = GetSavingGoalsUseCaseProvider._();
+
+final class GetSavingGoalsUseCaseProvider
+    extends
+        $FunctionalProvider<
+          GetSavingGoalsUseCase,
+          GetSavingGoalsUseCase,
+          GetSavingGoalsUseCase
+        >
+    with $Provider<GetSavingGoalsUseCase> {
+  const GetSavingGoalsUseCaseProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'getSavingGoalsUseCaseProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$getSavingGoalsUseCaseHash();
+
+  @$internal
+  @override
+  $ProviderElement<GetSavingGoalsUseCase> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  GetSavingGoalsUseCase create(Ref ref) {
+    return getSavingGoalsUseCase(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(GetSavingGoalsUseCase value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<GetSavingGoalsUseCase>(value),
+    );
+  }
+}
+
+String _$getSavingGoalsUseCaseHash() =>
+    r'0525aead0101084b70819efc8b58306fd06bd938';
+
+@ProviderFor(addContributionUseCase)
+const addContributionUseCaseProvider = AddContributionUseCaseProvider._();
+
+final class AddContributionUseCaseProvider
+    extends
+        $FunctionalProvider<
+          AddContributionUseCase,
+          AddContributionUseCase,
+          AddContributionUseCase
+        >
+    with $Provider<AddContributionUseCase> {
+  const AddContributionUseCaseProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'addContributionUseCaseProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$addContributionUseCaseHash();
+
+  @$internal
+  @override
+  $ProviderElement<AddContributionUseCase> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  AddContributionUseCase create(Ref ref) {
+    return addContributionUseCase(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(AddContributionUseCase value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<AddContributionUseCase>(value),
+    );
+  }
+}
+
+String _$addContributionUseCaseHash() =>
+    r'7be802062c76f10d1e5b2bf65b7f5098ebcd6203';
+
 @ProviderFor(categoryRepository)
 const categoryRepositoryProvider = CategoryRepositoryProvider._();
 
@@ -1916,6 +2294,54 @@ final class BudgetRepositoryProvider
 }
 
 String _$budgetRepositoryHash() => r'04bad8edb2ea732d9f98e0e2c0bbcf28348162f3';
+
+@ProviderFor(savingGoalRepository)
+const savingGoalRepositoryProvider = SavingGoalRepositoryProvider._();
+
+final class SavingGoalRepositoryProvider
+    extends
+        $FunctionalProvider<
+          SavingGoalRepository,
+          SavingGoalRepository,
+          SavingGoalRepository
+        >
+    with $Provider<SavingGoalRepository> {
+  const SavingGoalRepositoryProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'savingGoalRepositoryProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$savingGoalRepositoryHash();
+
+  @$internal
+  @override
+  $ProviderElement<SavingGoalRepository> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  SavingGoalRepository create(Ref ref) {
+    return savingGoalRepository(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(SavingGoalRepository value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<SavingGoalRepository>(value),
+    );
+  }
+}
+
+String _$savingGoalRepositoryHash() =>
+    r'bcf8e7f60badb0204c74e29f82777e7553571a95';
 
 @ProviderFor(recurringTransactionsRepository)
 const recurringTransactionsRepositoryProvider =
@@ -2744,7 +3170,7 @@ final class SyncServiceProvider
   }
 }
 
-String _$syncServiceHash() => r'f93c4ee941a1783d4a3b7054cdc10e857120af73';
+String _$syncServiceHash() => r'03e0adb3546e049baa1e430740fe733bb166c2d6';
 
 @ProviderFor(authRepository)
 const authRepositoryProvider = AuthRepositoryProvider._();
@@ -2827,4 +3253,4 @@ final class AuthSyncServiceProvider
   }
 }
 
-String _$authSyncServiceHash() => r'4149ebf6b09190bad7171152e6de60fda970ada9';
+String _$authSyncServiceHash() => r'a78c5d5998ff4b896ab39a61219d85f92164ec35';

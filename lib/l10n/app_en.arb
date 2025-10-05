@@ -674,6 +674,10 @@
   "@homeNavAnalytics": {
     "description": "Bottom navigation label for analytics"
   },
+  "homeNavSavings": "Savings",
+  "@homeNavSavings": {
+    "description": "Bottom navigation label for savings"
+  },
   "homeNavSettings": "Settings",
   "@homeNavSettings": {
     "description": "Bottom navigation label for settings"
@@ -1304,6 +1308,133 @@
   "saveButtonLabel": "Save",
   "@saveButtonLabel": {
     "description": "Generic label for save buttons"
+  },
+  "savingsTitle": "Savings goals",
+  "@savingsTitle": {
+    "description": "Title for the savings goals screen"
+  },
+  "savingsAddGoalTitle": "New goal",
+  "@savingsAddGoalTitle": {
+    "description": "Title for the add savings goal screen"
+  },
+  "savingsEditGoalTitle": "Edit goal",
+  "@savingsEditGoalTitle": {
+    "description": "Title for the edit savings goal screen"
+  },
+  "savingsNameLabel": "Name",
+  "@savingsNameLabel": {
+    "description": "Label for the savings goal name field"
+  },
+  "savingsTargetLabel": "Target amount",
+  "@savingsTargetLabel": {
+    "description": "Label for the target amount field"
+  },
+  "savingsTargetHelper": "Enter the desired total amount",
+  "@savingsTargetHelper": {
+    "description": "Helper text for the target amount field"
+  },
+  "savingsNoteLabel": "Note",
+  "@savingsNoteLabel": {
+    "description": "Label for the optional goal note"
+  },
+  "savingsSaveGoalButton": "Save goal",
+  "@savingsSaveGoalButton": {
+    "description": "Primary action button for saving goal forms"
+  },
+  "savingsGoalSavedMessage": "Goal saved",
+  "@savingsGoalSavedMessage": {
+    "description": "Snackbar message when a goal is saved"
+  },
+  "savingsAddGoalButton": "Create goal",
+  "@savingsAddGoalButton": {
+    "description": "Call to action button on the empty state"
+  },
+  "savingsEmptyTitle": "Create your first savings goal",
+  "@savingsEmptyTitle": {
+    "description": "Headline for the empty savings state"
+  },
+  "savingsEmptyMessage": "Track progress towards your targets and stay motivated.",
+  "@savingsEmptyMessage": {
+    "description": "Supporting text for the empty savings state"
+  },
+  "savingsErrorTitle": "Unable to load savings goals",
+  "@savingsErrorTitle": {
+    "description": "Title for the savings error state"
+  },
+  "savingsRetryButton": "Try again",
+  "@savingsRetryButton": {
+    "description": "Retry button label for savings error state"
+  },
+  "savingsContributeAction": "Contribute",
+  "@savingsContributeAction": {
+    "description": "Label for contribute action button"
+  },
+  "savingsEditAction": "Edit",
+  "@savingsEditAction": {
+    "description": "Label for edit goal action"
+  },
+  "savingsArchiveAction": "Archive",
+  "@savingsArchiveAction": {
+    "description": "Label for archive goal action"
+  },
+  "savingsGoalArchivedMessage": "Goal \"{goal}\" archived",
+  "@savingsGoalArchivedMessage": {
+    "description": "Snackbar message shown after archiving a savings goal",
+    "placeholders": {
+      "goal": {
+        "type": "String"
+      }
+    }
+  },
+  "savingsArchivedBadge": "Archived",
+  "@savingsArchivedBadge": {
+    "description": "Badge label for archived goals"
+  },
+  "savingsRemainingLabel": "Remaining {amount}",
+  "@savingsRemainingLabel": {
+    "description": "Text showing remaining amount to reach target",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "savingsShowArchivedToggle": "Show archived goals",
+  "@savingsShowArchivedToggle": {
+    "description": "Toggle label to show archived goals"
+  },
+  "savingsContributeTitle": "Contribute to {goal}",
+  "@savingsContributeTitle": {
+    "description": "Title for the contribute screen",
+    "placeholders": {
+      "goal": {
+        "type": "String"
+      }
+    }
+  },
+  "savingsAmountLabel": "Amount",
+  "@savingsAmountLabel": {
+    "description": "Label for contribution amount field"
+  },
+  "savingsSourceAccountLabel": "Source account",
+  "@savingsSourceAccountLabel": {
+    "description": "Label for the contribution account picker"
+  },
+  "savingsNoAccountOption": "No account",
+  "@savingsNoAccountOption": {
+    "description": "Dropdown option when no account is selected"
+  },
+  "savingsContributionNoteLabel": "Note (optional)",
+  "@savingsContributionNoteLabel": {
+    "description": "Label for the optional contribution note"
+  },
+  "savingsSubmitContributionButton": "Add contribution",
+  "@savingsSubmitContributionButton": {
+    "description": "Primary action button on contribute screen"
+  },
+  "savingsContributionSuccess": "Contribution added",
+  "@savingsContributionSuccess": {
+    "description": "Snackbar after adding a contribution"
   },
   "transactionDefaultTitle": "Transaction",
   "@transactionDefaultTitle": {
