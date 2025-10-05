@@ -381,6 +381,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get signInGoogleCta => 'Продолжить с Google';
 
   @override
+  String get signInOfflineCta => 'Войти без учетной записи';
+
+  @override
   String get signInError => 'Не удалось выполнить вход. Попробуйте еще раз.';
 
   @override

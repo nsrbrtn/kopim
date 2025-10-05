@@ -806,6 +806,12 @@ abstract class AppLocalizations {
   /// **'Continue with Google'**
   String get signInGoogleCta;
 
+  /// Button label for starting the app without an account
+  ///
+  /// In en, this message translates to:
+  /// **'Work offline'**
+  String get signInOfflineCta;
+
   /// Fallback message when sign in fails
   ///
   /// In en, this message translates to:

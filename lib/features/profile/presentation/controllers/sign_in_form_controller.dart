@@ -89,6 +89,25 @@ class SignInFormController extends _$SignInFormController {
     }
   }
 
+  Future<void> continueOffline() async {
+    state = state.copyWith(isSubmitting: true, errorMessage: null);
+    try {
+      await ref.read(authControllerProvider.notifier).continueWithOfflineMode();
+
+      if (!ref.mounted) return;
+      state = state.copyWith(isSubmitting: false);
+    } on AuthFailure catch (error) {
+      if (!ref.mounted) return;
+      state = state.copyWith(isSubmitting: false, errorMessage: error.message);
+    } catch (_) {
+      if (!ref.mounted) return;
+      state = state.copyWith(
+        isSubmitting: false,
+        errorMessage: AuthFailure.unknown().message,
+      );
+    }
+  }
+
   void clearError() {
     if (state.errorMessage != null) {
       state = state.copyWith(errorMessage: null);

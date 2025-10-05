@@ -7,6 +7,7 @@ import 'package:kopim/core/services/auth_sync_service.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
 import 'package:kopim/features/profile/domain/entities/sign_in_request.dart';
 import 'package:kopim/features/profile/domain/entities/sign_up_request.dart';
+import 'package:kopim/features/profile/domain/failures/auth_failure.dart';
 import 'package:kopim/features/profile/domain/repositories/auth_repository.dart';
 import 'package:kopim/features/profile/presentation/controllers/auth_controller.dart';
 import 'package:mocktail/mocktail.dart';
@@ -21,6 +22,8 @@ class FakeAuthRepository implements AuthRepository {
 
   AuthUser? initialUser;
   bool signInAnonymouslyCalled = false;
+  Future<AuthUser> Function(SignInRequest request)? onSignIn;
+  Future<AuthUser> Function()? onAnonymousSignIn;
   final StreamController<AuthUser?> _controller =
       StreamController<AuthUser?>.broadcast();
 
@@ -31,8 +34,13 @@ class FakeAuthRepository implements AuthRepository {
   AuthUser? get currentUser => initialUser;
 
   @override
-  Future<AuthUser> signIn(SignInRequest request) =>
-      Future<AuthUser>.error(UnimplementedError());
+  Future<AuthUser> signIn(SignInRequest request) {
+    final Future<AuthUser> Function(SignInRequest request)? handler = onSignIn;
+    if (handler != null) {
+      return handler(request);
+    }
+    return Future<AuthUser>.error(UnimplementedError());
+  }
 
   @override
   Future<AuthUser> signUp(SignUpRequest request) =>
@@ -47,6 +55,10 @@ class FakeAuthRepository implements AuthRepository {
 
   @override
   Future<AuthUser> signInAnonymously() async {
+    final Future<AuthUser> Function()? handler = onAnonymousSignIn;
+    if (handler != null) {
+      return handler();
+    }
     signInAnonymouslyCalled = true;
     final AuthUser user = AuthUser.guest(createdAt: DateTime.utc(2024, 1, 1));
     initialUser = user;
@@ -122,4 +134,76 @@ void main() {
       expect(authRepository.signInAnonymouslyCalled, isTrue);
     },
   );
+
+  test('continueWithOfflineMode signs in anonymously on demand', () async {
+    final FakeAuthRepository localAuthRepository = FakeAuthRepository();
+    final MockConnectivity onlineConnectivity = MockConnectivity();
+
+    when(
+      () => onlineConnectivity.checkConnectivity(),
+    ).thenAnswer((_) async => <ConnectivityResult>[ConnectivityResult.wifi]);
+    when(
+      () => onlineConnectivity.onConnectivityChanged,
+    ).thenAnswer((_) => const Stream<List<ConnectivityResult>>.empty());
+
+    final ProviderContainer localContainer = ProviderContainer(
+      overrides: <Override>[
+        authRepositoryProvider.overrideWithValue(localAuthRepository),
+        connectivityProvider.overrideWithValue(onlineConnectivity),
+        authSyncServiceProvider.overrideWithValue(authSyncService),
+      ],
+    );
+
+    addTearDown(() {
+      localAuthRepository.dispose();
+      localContainer.dispose();
+    });
+
+    final AuthController controller = localContainer.read(
+      authControllerProvider.notifier,
+    );
+
+    final AuthUser? initialUser = await localContainer.read(
+      authControllerProvider.future,
+    );
+    expect(initialUser, isNull);
+    expect(localAuthRepository.signInAnonymouslyCalled, isFalse);
+
+    await controller.continueWithOfflineMode();
+
+    final AuthUser? offlineUser = localContainer
+        .read(authControllerProvider)
+        .value;
+    expect(localAuthRepository.signInAnonymouslyCalled, isTrue);
+    expect(offlineUser, isNotNull);
+    expect(offlineUser!.isAnonymous, isTrue);
+  });
+
+  test('signIn failure keeps previous state and rethrows', () async {
+    authRepository.onSignIn = (SignInRequest request) => Future<AuthUser>.error(
+      const AuthFailure(code: 'invalid-credentials', message: 'invalid'),
+    );
+
+    final AuthController controller = container.read(
+      authControllerProvider.notifier,
+    );
+
+    final AuthUser? user = await container.read(authControllerProvider.future);
+    expect(user, isNotNull);
+    expect(user!.isAnonymous, isTrue);
+
+    await expectLater(
+      controller.signIn(
+        const SignInRequest.email(
+          email: 'user@example.com',
+          password: 'pass123',
+        ),
+      ),
+      throwsA(isA<AuthFailure>()),
+    );
+
+    final AsyncValue<AuthUser?> state = container.read(authControllerProvider);
+    expect(state.hasError, isFalse);
+    expect(state.value, equals(user));
+  });
 }

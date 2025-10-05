@@ -379,6 +379,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get signInGoogleCta => 'Continue with Google';
 
   @override
+  String get signInOfflineCta => 'Work offline';
+
+  @override
   String get signInError => 'Could not sign in. Please try again.';
 
   @override

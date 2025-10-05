@@ -497,6 +497,10 @@
   "@signInGoogleCta": {
     "description": "Кнопка входа через Google"
   },
+  "signInOfflineCta": "Войти без учетной записи",
+  "@signInOfflineCta": {
+    "description": "Кнопка перехода в офлайн-режим без аккаунта"
+  },
   "signInError": "Не удалось выполнить вход. Попробуйте еще раз.",
   "@signInError": {
     "description": "Резервное сообщение об ошибке входа"

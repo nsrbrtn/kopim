@@ -63,8 +63,31 @@ class AuthController extends _$AuthController {
           .signIn(request);
       state = AsyncValue<AuthUser?>.data(user);
       await _syncOrThrow(user, previousUser);
-    } on AuthFailure catch (failure, stackTrace) {
-      state = AsyncValue<AuthUser?>.error(failure, stackTrace);
+    } on AuthFailure catch (failure) {
+      state = AsyncValue<AuthUser?>.data(previousUser);
+      ref
+          .read(loggerServiceProvider)
+          .logError('signIn failed: ${failure.message}', failure);
+      rethrow;
+    }
+  }
+
+  Future<void> continueWithOfflineMode() async {
+    final AuthUser? previousUser = state.value;
+    state = const AsyncValue<AuthUser?>.loading();
+    try {
+      final AuthUser user = await ref
+          .read(authRepositoryProvider)
+          .signInAnonymously();
+      state = AsyncValue<AuthUser?>.data(user);
+    } on AuthFailure catch (failure) {
+      state = AsyncValue<AuthUser?>.data(previousUser);
+      ref
+          .read(loggerServiceProvider)
+          .logError(
+            'continueWithOfflineMode failed: ${failure.message}',
+            failure,
+          );
       rethrow;
     }
   }
