@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:kopim/core/di/injectors.dart';
+import 'package:kopim/core/formatting/date_format_providers.dart';
 import 'package:kopim/features/recurring_transactions/domain/entities/recurring_rule.dart';
 import 'package:kopim/features/recurring_transactions/presentation/controllers/recurring_transactions_providers.dart';
 import 'package:kopim/features/recurring_transactions/presentation/models/recurring_rule_form_result.dart';
@@ -193,7 +194,7 @@ class RecurringTransactionsScreen extends ConsumerWidget {
   }
 }
 
-class _RecurringRuleTile extends StatelessWidget {
+class _RecurringRuleTile extends ConsumerWidget {
   const _RecurringRuleTile({
     required this.rule,
     required this.nextDue,
@@ -209,13 +210,17 @@ class _RecurringRuleTile extends StatelessWidget {
   final VoidCallback onDelete;
 
   @override
-  Widget build(BuildContext context) {
-    final DateFormat dateFormat = DateFormat.yMMMMd();
+  Widget build(BuildContext context, WidgetRef ref) {
+    final Locale locale = Localizations.localeOf(context);
+    final DateFormat dateFormat = ref.watch(
+      dateFormatProvider((locale: locale, format: AppDateFormat.longMonthDay)),
+    );
     final String subtitle = nextDue == null
         ? AppLocalizations.of(context)!.recurringTransactionsNoUpcoming
         : '${AppLocalizations.of(context)!.recurringTransactionsNextDue}: '
               '${dateFormat.format(nextDue!.toLocal())}';
     return Material(
+      key: ValueKey<String>(rule.id),
       elevation: 1,
       borderRadius: BorderRadius.circular(12),
       child: ListTile(
