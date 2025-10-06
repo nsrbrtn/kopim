@@ -82,6 +82,8 @@ flutter pub run build_runner build --delete-conflicting-outputs
 ### 3. Запустить приложение
 flutter run
 
+flutter build apk --release
+
 📦 CI/CD
 
 Автоматическая проверка стиля (flutter analyze, dart format)
