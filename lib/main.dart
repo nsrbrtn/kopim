@@ -107,11 +107,15 @@ class _AppHome extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    ref.watch(syncServiceProvider);
-
     return authState.when(
-      data: (AuthUser? user) =>
-          user == null ? const SignInScreen() : const MainNavigationShell(),
+      data: (AuthUser? user) {
+        if (user != null && !user.isGuest) {
+          ref.watch(syncServiceProvider);
+        }
+        return user == null
+            ? const SignInScreen()
+            : const MainNavigationShell();
+      },
       loading: () =>
           const Scaffold(body: Center(child: CircularProgressIndicator())),
       error: (Object error, _) => Scaffold(

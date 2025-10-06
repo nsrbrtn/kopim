@@ -789,6 +789,15 @@ class AppLocalizationsRu extends AppLocalizations {
   String get addAccountTypeBank => 'Банковский счёт';
 
   @override
+  String get addAccountTypeCustom => 'Другой тип';
+
+  @override
+  String get addAccountCustomTypeLabel => 'Собственный тип счёта';
+
+  @override
+  String get addAccountTypeRequired => 'Укажите тип счёта.';
+
+  @override
   String get accountDetailsTitle => 'Счёт';
 
   @override
@@ -898,6 +907,15 @@ class AppLocalizationsRu extends AppLocalizations {
   String get editAccountTypeLabel => 'Тип счёта';
 
   @override
+  String get editAccountTypeCustom => 'Другой тип';
+
+  @override
+  String get editAccountCustomTypeLabel => 'Собственный тип счёта';
+
+  @override
+  String get editAccountTypeRequired => 'Укажите тип счёта.';
+
+  @override
   String get editAccountSaveCta => 'Сохранить изменения';
 
   @override
@@ -909,6 +927,29 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get editAccountGenericError =>
       'Не удалось обновить счёт. Повторите попытку.';
+
+  @override
+  String get editAccountDeleteCta => 'Удалить счёт';
+
+  @override
+  String get editAccountDeleteLoading => 'Удаляем...';
+
+  @override
+  String get editAccountDeleteConfirmationTitle => 'Удалить счёт?';
+
+  @override
+  String get editAccountDeleteConfirmationMessage =>
+      'Счёт и связанные данные будут удалены. Это действие невозможно отменить.';
+
+  @override
+  String get editAccountDeleteConfirmationCancel => 'Отмена';
+
+  @override
+  String get editAccountDeleteConfirmationConfirm => 'Удалить';
+
+  @override
+  String get editAccountDeleteError =>
+      'Не удалось удалить счёт. Попробуйте ещё раз.';
 
   @override
   String get homeNavBudgets => 'Бюджеты';

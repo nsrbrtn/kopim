@@ -785,6 +785,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addAccountTypeBank => 'Bank account';
 
   @override
+  String get addAccountTypeCustom => 'Custom type';
+
+  @override
+  String get addAccountCustomTypeLabel => 'Custom account type';
+
+  @override
+  String get addAccountTypeRequired => 'Please specify the account type.';
+
+  @override
   String get accountDetailsTitle => 'Account details';
 
   @override
@@ -894,6 +903,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get editAccountTypeLabel => 'Account type';
 
   @override
+  String get editAccountTypeCustom => 'Custom type';
+
+  @override
+  String get editAccountCustomTypeLabel => 'Custom account type';
+
+  @override
+  String get editAccountTypeRequired => 'Please specify the account type.';
+
+  @override
   String get editAccountSaveCta => 'Save changes';
 
   @override
@@ -905,6 +923,29 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get editAccountGenericError =>
       'Could not update account. Please try again.';
+
+  @override
+  String get editAccountDeleteCta => 'Delete account';
+
+  @override
+  String get editAccountDeleteLoading => 'Deleting...';
+
+  @override
+  String get editAccountDeleteConfirmationTitle => 'Delete account?';
+
+  @override
+  String get editAccountDeleteConfirmationMessage =>
+      'This account and its data will be removed. This action cannot be undone.';
+
+  @override
+  String get editAccountDeleteConfirmationCancel => 'Cancel';
+
+  @override
+  String get editAccountDeleteConfirmationConfirm => 'Delete';
+
+  @override
+  String get editAccountDeleteError =>
+      'Failed to delete the account. Please try again.';
 
   @override
   String get homeNavBudgets => 'Budgets';

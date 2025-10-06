@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
 
@@ -16,12 +17,14 @@ class UpdateProfileAvatarRequest {
     required this.bytes,
     required this.contentType,
     required this.source,
+    this.storeOfflineOnly = false,
   });
 
   final String uid;
   final Uint8List bytes;
   final String contentType;
   final AvatarImageSource source;
+  final bool storeOfflineOnly;
 }
 
 class UpdateProfileAvatarUseCase {
@@ -49,12 +52,19 @@ class UpdateProfileAvatarUseCase {
       throw StateError('Profile not found for uid ${request.uid}');
     }
 
-    final Uint8List compressed = await _compress(request.bytes);
-    final String downloadUrl = await _avatarRepository.upload(
-      uid: request.uid,
-      data: compressed,
-      contentType: request.contentType,
-    );
+    final _CompressionResult compression = await _compress(request.bytes);
+    final Uint8List processedBytes = compression.bytes;
+    final String resolvedContentType = compression.convertedToJpeg
+        ? 'image/jpeg'
+        : request.contentType;
+
+    final String downloadUrl = request.storeOfflineOnly
+        ? _encodeAsDataUrl(processedBytes, resolvedContentType)
+        : await _avatarRepository.upload(
+            uid: request.uid,
+            data: processedBytes,
+            contentType: resolvedContentType,
+          );
 
     final Profile updated = existing.copyWith(
       photoUrl: downloadUrl,
@@ -64,20 +74,27 @@ class UpdateProfileAvatarUseCase {
 
     await _analyticsService.logEvent('avatar_updated', <String, Object?>{
       'source': request.source.name,
-      'size_kb': (compressed.lengthInBytes / 1024).round(),
+      'size_kb': (processedBytes.lengthInBytes / 1024).round(),
+      'mode': request.storeOfflineOnly ? 'offline' : 'remote',
     });
 
     return updated;
   }
 
-  Future<Uint8List> _compress(Uint8List data) async {
+  String _encodeAsDataUrl(Uint8List bytes, String contentType) {
+    final String base64Data = base64Encode(bytes);
+    final String mime = contentType.isEmpty ? 'image/jpeg' : contentType;
+    return 'data:$mime;base64,$base64Data';
+  }
+
+  Future<_CompressionResult> _compress(Uint8List data) async {
     if (data.lengthInBytes <= _maxBytes) {
-      return data;
+      return _CompressionResult(data);
     }
     final img.Image? decoded = img.decodeImage(data);
     if (decoded == null) {
       _logger.logError('Failed to decode avatar image for compression');
-      return data;
+      return _CompressionResult(data);
     }
     final int targetWidth = decoded.width > decoded.height
         ? _maxDimension
@@ -98,6 +115,16 @@ class UpdateProfileAvatarUseCase {
       quality -= 10;
       encoded = Uint8List.fromList(img.encodeJpg(resized, quality: quality));
     }
-    return encoded.lengthInBytes <= _maxBytes ? encoded : data;
+    if (encoded.lengthInBytes <= _maxBytes) {
+      return _CompressionResult(encoded, convertedToJpeg: true);
+    }
+    return _CompressionResult(data);
   }
+}
+
+class _CompressionResult {
+  const _CompressionResult(this.bytes, {this.convertedToJpeg = false});
+
+  final Uint8List bytes;
+  final bool convertedToJpeg;
 }

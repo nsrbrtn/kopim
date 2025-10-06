@@ -1059,6 +1059,18 @@
   "@addAccountTypeBank": {
     "description": "Вариант типа счёта для банковского счёта"
   },
+  "addAccountTypeCustom": "Другой тип",
+  "@addAccountTypeCustom": {
+    "description": "Вариант выбора пользовательского типа счёта"
+  },
+  "addAccountCustomTypeLabel": "Собственный тип счёта",
+  "@addAccountCustomTypeLabel": {
+    "description": "Подпись поля пользовательского типа счёта"
+  },
+  "addAccountTypeRequired": "Укажите тип счёта.",
+  "@addAccountTypeRequired": {
+    "description": "Сообщение валидации при отсутствии типа счёта"
+  },
   "accountDetailsTitle": "Счёт",
   "@accountDetailsTitle": {
     "description": "Заголовок экрана деталей счёта"
@@ -1220,6 +1232,18 @@
   "@editAccountTypeLabel": {
     "description": "Подпись строки с типом счёта"
   },
+  "editAccountTypeCustom": "Другой тип",
+  "@editAccountTypeCustom": {
+    "description": "Вариант выбора пользовательского типа счёта при редактировании"
+  },
+  "editAccountCustomTypeLabel": "Собственный тип счёта",
+  "@editAccountCustomTypeLabel": {
+    "description": "Подпись поля пользовательского типа счёта при редактировании"
+  },
+  "editAccountTypeRequired": "Укажите тип счёта.",
+  "@editAccountTypeRequired": {
+    "description": "Сообщение об ошибке при отсутствии типа счёта"
+  },
   "editAccountSaveCta": "Сохранить изменения",
   "@editAccountSaveCta": {
     "description": "Кнопка сохранения изменений"
@@ -1235,6 +1259,34 @@
   "editAccountGenericError": "Не удалось обновить счёт. Повторите попытку.",
   "@editAccountGenericError": {
     "description": "Общее сообщение об ошибке при обновлении счёта"
+  },
+  "editAccountDeleteCta": "Удалить счёт",
+  "@editAccountDeleteCta": {
+    "description": "Кнопка удаления счёта"
+  },
+  "editAccountDeleteLoading": "Удаляем...",
+  "@editAccountDeleteLoading": {
+    "description": "Подпись кнопки во время удаления счёта"
+  },
+  "editAccountDeleteConfirmationTitle": "Удалить счёт?",
+  "@editAccountDeleteConfirmationTitle": {
+    "description": "Заголовок диалога подтверждения удаления счёта"
+  },
+  "editAccountDeleteConfirmationMessage": "Счёт и связанные данные будут удалены. Это действие невозможно отменить.",
+  "@editAccountDeleteConfirmationMessage": {
+    "description": "Сообщение диалога подтверждения удаления счёта"
+  },
+  "editAccountDeleteConfirmationCancel": "Отмена",
+  "@editAccountDeleteConfirmationCancel": {
+    "description": "Подпись кнопки отмены в диалоге удаления счёта"
+  },
+  "editAccountDeleteConfirmationConfirm": "Удалить",
+  "@editAccountDeleteConfirmationConfirm": {
+    "description": "Подпись кнопки подтверждения удаления счёта"
+  },
+  "editAccountDeleteError": "Не удалось удалить счёт. Попробуйте ещё раз.",
+  "@editAccountDeleteError": {
+    "description": "Сообщение об ошибке при удалении счёта"
   },
   "homeNavBudgets": "Бюджеты",
   "@homeNavBudgets": {

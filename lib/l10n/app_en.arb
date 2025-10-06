@@ -1059,6 +1059,18 @@
   "@addAccountTypeBank": {
     "description": "Option label for bank accounts"
   },
+  "addAccountTypeCustom": "Custom type",
+  "@addAccountTypeCustom": {
+    "description": "Option label for custom account types"
+  },
+  "addAccountCustomTypeLabel": "Custom account type",
+  "@addAccountCustomTypeLabel": {
+    "description": "Label for the custom account type text field"
+  },
+  "addAccountTypeRequired": "Please specify the account type.",
+  "@addAccountTypeRequired": {
+    "description": "Validation error shown when the account type is missing"
+  },
   "accountDetailsTitle": "Account details",
   "@accountDetailsTitle": {
     "description": "Title for the account details screen"
@@ -1220,6 +1232,18 @@
   "@editAccountTypeLabel": {
     "description": "Label for the account type row on edit screen"
   },
+  "editAccountTypeCustom": "Custom type",
+  "@editAccountTypeCustom": {
+    "description": "Option label for selecting a custom account type"
+  },
+  "editAccountCustomTypeLabel": "Custom account type",
+  "@editAccountCustomTypeLabel": {
+    "description": "Label for the custom account type input"
+  },
+  "editAccountTypeRequired": "Please specify the account type.",
+  "@editAccountTypeRequired": {
+    "description": "Validation error when the account type is missing"
+  },
   "editAccountSaveCta": "Save changes",
   "@editAccountSaveCta": {
     "description": "Button label for saving account edits"
@@ -1235,6 +1259,34 @@
   "editAccountGenericError": "Could not update account. Please try again.",
   "@editAccountGenericError": {
     "description": "Generic error shown when updating the account fails"
+  },
+  "editAccountDeleteCta": "Delete account",
+  "@editAccountDeleteCta": {
+    "description": "Button label for deleting the account"
+  },
+  "editAccountDeleteLoading": "Deleting...",
+  "@editAccountDeleteLoading": {
+    "description": "Button label shown while the account is being deleted"
+  },
+  "editAccountDeleteConfirmationTitle": "Delete account?",
+  "@editAccountDeleteConfirmationTitle": {
+    "description": "Confirmation dialog title before deleting an account"
+  },
+  "editAccountDeleteConfirmationMessage": "This account and its data will be removed. This action cannot be undone.",
+  "@editAccountDeleteConfirmationMessage": {
+    "description": "Confirmation dialog message before deleting an account"
+  },
+  "editAccountDeleteConfirmationCancel": "Cancel",
+  "@editAccountDeleteConfirmationCancel": {
+    "description": "Cancel button label in the delete confirmation dialog"
+  },
+  "editAccountDeleteConfirmationConfirm": "Delete",
+  "@editAccountDeleteConfirmationConfirm": {
+    "description": "Confirm button label in the delete confirmation dialog"
+  },
+  "editAccountDeleteError": "Failed to delete the account. Please try again.",
+  "@editAccountDeleteError": {
+    "description": "Error message shown when deleting an account fails"
   },
   "homeNavBudgets": "Budgets",
   "@homeNavBudgets": {

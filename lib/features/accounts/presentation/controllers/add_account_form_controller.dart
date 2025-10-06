@@ -9,7 +9,7 @@ import 'package:uuid/uuid.dart';
 part 'add_account_form_controller.freezed.dart';
 part 'add_account_form_controller.g.dart';
 
-enum AddAccountFieldError { emptyName, invalidBalance }
+enum AddAccountFieldError { emptyName, invalidBalance, emptyType }
 
 @freezed
 abstract class AddAccountFormState with _$AddAccountFormState {
@@ -18,10 +18,13 @@ abstract class AddAccountFormState with _$AddAccountFormState {
     @Default('') String balanceInput,
     @Default('RUB') String currency,
     @Default('cash') String type,
+    @Default(false) bool useCustomType,
+    @Default('') String customType,
     @Default(false) bool isSaving,
     @Default(false) bool submissionSuccess,
     AddAccountFieldError? nameError,
     AddAccountFieldError? balanceError,
+    AddAccountFieldError? typeError,
     String? errorMessage,
   }) = _AddAccountFormState;
 
@@ -29,12 +32,22 @@ abstract class AddAccountFormState with _$AddAccountFormState {
 
   double? get parsedBalance => parseBalanceInput(balanceInput);
 
+  String? get resolvedType {
+    final String value = useCustomType ? customType.trim() : type.trim();
+    if (value.isEmpty) {
+      return null;
+    }
+    return value;
+  }
+
   bool get canSubmit =>
       !isSaving &&
       nameError == null &&
       balanceError == null &&
+      typeError == null &&
       name.trim().isNotEmpty &&
-      parsedBalance != null;
+      parsedBalance != null &&
+      resolvedType != null;
 }
 
 @riverpod
@@ -72,7 +85,28 @@ class AddAccountFormController extends _$AddAccountFormController {
   }
 
   void updateType(String value) {
-    state = state.copyWith(type: value, submissionSuccess: false);
+    state = state.copyWith(
+      type: value,
+      useCustomType: false,
+      submissionSuccess: false,
+      typeError: null,
+    );
+  }
+
+  void enableCustomType() {
+    state = state.copyWith(
+      useCustomType: true,
+      submissionSuccess: false,
+      typeError: null,
+    );
+  }
+
+  void updateCustomType(String value) {
+    state = state.copyWith(
+      customType: value,
+      submissionSuccess: false,
+      typeError: null,
+    );
   }
 
   void resetForm() {
@@ -116,16 +150,33 @@ class AddAccountFormController extends _$AddAccountFormController {
       errorMessage: null,
       nameError: null,
       balanceError: null,
+      typeError: null,
       submissionSuccess: false,
     );
 
     final DateTime now = DateTime.now().toUtc();
+    final String? resolvedType = state.resolvedType;
+    AddAccountFieldError? typeError;
+    if (resolvedType == null) {
+      typeError = AddAccountFieldError.emptyType;
+    }
+
+    if (nameError != null || balanceError != null || typeError != null) {
+      state = state.copyWith(
+        nameError: nameError,
+        balanceError: balanceError,
+        typeError: typeError,
+        submissionSuccess: false,
+      );
+      return;
+    }
+
     final AccountEntity account = AccountEntity(
       id: _uuid.v4(),
       name: trimmedName,
       balance: balance!,
       currency: state.currency,
-      type: state.type,
+      type: resolvedType!,
       createdAt: now,
       updatedAt: now,
     );
@@ -136,6 +187,9 @@ class AddAccountFormController extends _$AddAccountFormController {
         isSaving: false,
         name: '',
         balanceInput: '',
+        type: 'cash',
+        useCustomType: false,
+        customType: '',
         submissionSuccess: true,
       );
     } catch (error) {

@@ -200,11 +200,20 @@ class _AccountDetailsScreenState extends ConsumerState<AccountDetailsScreen> {
     );
   }
 
-  void _openEditScreen(BuildContext context, AccountEntity account) {
-    Navigator.of(context).pushNamed(
+  Future<void> _openEditScreen(
+    BuildContext context,
+    AccountEntity account,
+  ) async {
+    final Object? result = await Navigator.of(context).pushNamed(
       EditAccountScreen.routeName,
       arguments: EditAccountScreenArgs(account: account),
     );
+    if (!context.mounted) {
+      return;
+    }
+    if (result == AccountEditResult.deleted) {
+      Navigator.of(context).pop();
+    }
   }
 }
 

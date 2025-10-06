@@ -194,14 +194,6 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                         : Text(strings.signInSubmitCta),
                   ),
                   const SizedBox(height: 12),
-                  OutlinedButton.icon(
-                    onPressed: formState.isSubmitting
-                        ? null
-                        : () => controller.signInWithGoogle(),
-                    icon: const Icon(Icons.login),
-                    label: Text(strings.signInGoogleCta),
-                  ),
-                  const SizedBox(height: 12),
                   TextButton.icon(
                     onPressed: formState.isSubmitting
                         ? null
