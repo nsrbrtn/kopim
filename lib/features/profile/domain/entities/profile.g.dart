@@ -13,6 +13,7 @@ _Profile _$ProfileFromJson(Map<String, dynamic> json) => _Profile(
       $enumDecodeNullable(_$ProfileCurrencyEnumMap, json['currency']) ??
       ProfileCurrency.rub,
   locale: json['locale'] as String? ?? 'en',
+  photoUrl: json['photoUrl'] as String?,
   updatedAt: DateTime.parse(json['updatedAt'] as String),
 );
 
@@ -21,6 +22,7 @@ Map<String, dynamic> _$ProfileToJson(_Profile instance) => <String, dynamic>{
   'name': instance.name,
   'currency': _$ProfileCurrencyEnumMap[instance.currency]!,
   'locale': instance.locale,
+  'photoUrl': instance.photoUrl,
   'updatedAt': instance.updatedAt.toIso8601String(),
 };
 

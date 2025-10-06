@@ -225,6 +225,89 @@ final class GoogleSignInProvider
 
 String _$googleSignInHash() => r'16cf38da6ba66b02462d5ad518f809a45382089f';
 
+@ProviderFor(firebaseStorage)
+const firebaseStorageProvider = FirebaseStorageProvider._();
+
+final class FirebaseStorageProvider
+    extends
+        $FunctionalProvider<FirebaseStorage, FirebaseStorage, FirebaseStorage>
+    with $Provider<FirebaseStorage> {
+  const FirebaseStorageProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'firebaseStorageProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$firebaseStorageHash();
+
+  @$internal
+  @override
+  $ProviderElement<FirebaseStorage> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  FirebaseStorage create(Ref ref) {
+    return firebaseStorage(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(FirebaseStorage value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<FirebaseStorage>(value),
+    );
+  }
+}
+
+String _$firebaseStorageHash() => r'47903c48019f7dfa1ba82fa0a905885442d69f6b';
+
+@ProviderFor(levelPolicy)
+const levelPolicyProvider = LevelPolicyProvider._();
+
+final class LevelPolicyProvider
+    extends $FunctionalProvider<LevelPolicy, LevelPolicy, LevelPolicy>
+    with $Provider<LevelPolicy> {
+  const LevelPolicyProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'levelPolicyProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$levelPolicyHash();
+
+  @$internal
+  @override
+  $ProviderElement<LevelPolicy> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  LevelPolicy create(Ref ref) {
+    return levelPolicy(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(LevelPolicy value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<LevelPolicy>(value),
+    );
+  }
+}
+
+String _$levelPolicyHash() => r'cf33f35f707b67802f3c09b81ce189fa94a1620f';
+
 @ProviderFor(connectivity)
 const connectivityProvider = ConnectivityProvider._();
 
@@ -1285,6 +1368,103 @@ final class ProfileRemoteDataSourceProvider
 
 String _$profileRemoteDataSourceHash() =>
     r'45baf2527988bcc7389803c7cea36c9fa578effb';
+
+@ProviderFor(avatarRemoteDataSource)
+const avatarRemoteDataSourceProvider = AvatarRemoteDataSourceProvider._();
+
+final class AvatarRemoteDataSourceProvider
+    extends
+        $FunctionalProvider<
+          AvatarRemoteDataSource,
+          AvatarRemoteDataSource,
+          AvatarRemoteDataSource
+        >
+    with $Provider<AvatarRemoteDataSource> {
+  const AvatarRemoteDataSourceProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'avatarRemoteDataSourceProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$avatarRemoteDataSourceHash();
+
+  @$internal
+  @override
+  $ProviderElement<AvatarRemoteDataSource> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  AvatarRemoteDataSource create(Ref ref) {
+    return avatarRemoteDataSource(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(AvatarRemoteDataSource value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<AvatarRemoteDataSource>(value),
+    );
+  }
+}
+
+String _$avatarRemoteDataSourceHash() =>
+    r'62a0f450283b5803e52fe4159c8dc4586da8244c';
+
+@ProviderFor(userProgressRemoteDataSource)
+const userProgressRemoteDataSourceProvider =
+    UserProgressRemoteDataSourceProvider._();
+
+final class UserProgressRemoteDataSourceProvider
+    extends
+        $FunctionalProvider<
+          UserProgressRemoteDataSource,
+          UserProgressRemoteDataSource,
+          UserProgressRemoteDataSource
+        >
+    with $Provider<UserProgressRemoteDataSource> {
+  const UserProgressRemoteDataSourceProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'userProgressRemoteDataSourceProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$userProgressRemoteDataSourceHash();
+
+  @$internal
+  @override
+  $ProviderElement<UserProgressRemoteDataSource> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  UserProgressRemoteDataSource create(Ref ref) {
+    return userProgressRemoteDataSource(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(UserProgressRemoteDataSource value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<UserProgressRemoteDataSource>(value),
+    );
+  }
+}
+
+String _$userProgressRemoteDataSourceHash() =>
+    r'009e10b99822950953d87758f1fe3aa367ab63b4';
 
 @ProviderFor(budgetRemoteDataSource)
 const budgetRemoteDataSourceProvider = BudgetRemoteDataSourceProvider._();
@@ -3131,6 +3311,102 @@ final class ProfileRepositoryProvider
 
 String _$profileRepositoryHash() => r'50349dac8ba8e300957ef12232c08d9febe5ec97';
 
+@ProviderFor(profileAvatarRepository)
+const profileAvatarRepositoryProvider = ProfileAvatarRepositoryProvider._();
+
+final class ProfileAvatarRepositoryProvider
+    extends
+        $FunctionalProvider<
+          ProfileAvatarRepository,
+          ProfileAvatarRepository,
+          ProfileAvatarRepository
+        >
+    with $Provider<ProfileAvatarRepository> {
+  const ProfileAvatarRepositoryProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'profileAvatarRepositoryProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$profileAvatarRepositoryHash();
+
+  @$internal
+  @override
+  $ProviderElement<ProfileAvatarRepository> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  ProfileAvatarRepository create(Ref ref) {
+    return profileAvatarRepository(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(ProfileAvatarRepository value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<ProfileAvatarRepository>(value),
+    );
+  }
+}
+
+String _$profileAvatarRepositoryHash() =>
+    r'539f637f58f3297d5d3067de950ce44eabbf6a6f';
+
+@ProviderFor(userProgressRepository)
+const userProgressRepositoryProvider = UserProgressRepositoryProvider._();
+
+final class UserProgressRepositoryProvider
+    extends
+        $FunctionalProvider<
+          UserProgressRepository,
+          UserProgressRepository,
+          UserProgressRepository
+        >
+    with $Provider<UserProgressRepository> {
+  const UserProgressRepositoryProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'userProgressRepositoryProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$userProgressRepositoryHash();
+
+  @$internal
+  @override
+  $ProviderElement<UserProgressRepository> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  UserProgressRepository create(Ref ref) {
+    return userProgressRepository(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(UserProgressRepository value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<UserProgressRepository>(value),
+    );
+  }
+}
+
+String _$userProgressRepositoryHash() =>
+    r'27ecf4905dc13c7c3c31285e5b659c5eb236a8f8';
+
 @ProviderFor(updateProfileUseCase)
 const updateProfileUseCaseProvider = UpdateProfileUseCaseProvider._();
 
@@ -3178,6 +3454,202 @@ final class UpdateProfileUseCaseProvider
 
 String _$updateProfileUseCaseHash() =>
     r'9a588af407d61e02f7c35d5e0ec46c115704d472';
+
+@ProviderFor(recomputeUserProgressUseCase)
+const recomputeUserProgressUseCaseProvider =
+    RecomputeUserProgressUseCaseProvider._();
+
+final class RecomputeUserProgressUseCaseProvider
+    extends
+        $FunctionalProvider<
+          RecomputeUserProgressUseCase,
+          RecomputeUserProgressUseCase,
+          RecomputeUserProgressUseCase
+        >
+    with $Provider<RecomputeUserProgressUseCase> {
+  const RecomputeUserProgressUseCaseProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'recomputeUserProgressUseCaseProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$recomputeUserProgressUseCaseHash();
+
+  @$internal
+  @override
+  $ProviderElement<RecomputeUserProgressUseCase> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  RecomputeUserProgressUseCase create(Ref ref) {
+    return recomputeUserProgressUseCase(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(RecomputeUserProgressUseCase value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<RecomputeUserProgressUseCase>(value),
+    );
+  }
+}
+
+String _$recomputeUserProgressUseCaseHash() =>
+    r'06aa08489f3ca62c0f7ebbbb164167cca6256ef7';
+
+@ProviderFor(onTransactionCreatedUseCase)
+const onTransactionCreatedUseCaseProvider =
+    OnTransactionCreatedUseCaseProvider._();
+
+final class OnTransactionCreatedUseCaseProvider
+    extends
+        $FunctionalProvider<
+          OnTransactionCreatedUseCase,
+          OnTransactionCreatedUseCase,
+          OnTransactionCreatedUseCase
+        >
+    with $Provider<OnTransactionCreatedUseCase> {
+  const OnTransactionCreatedUseCaseProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'onTransactionCreatedUseCaseProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$onTransactionCreatedUseCaseHash();
+
+  @$internal
+  @override
+  $ProviderElement<OnTransactionCreatedUseCase> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  OnTransactionCreatedUseCase create(Ref ref) {
+    return onTransactionCreatedUseCase(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(OnTransactionCreatedUseCase value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<OnTransactionCreatedUseCase>(value),
+    );
+  }
+}
+
+String _$onTransactionCreatedUseCaseHash() =>
+    r'9fe7a7625113314739dcac82d957b6efdf695414';
+
+@ProviderFor(onTransactionDeletedUseCase)
+const onTransactionDeletedUseCaseProvider =
+    OnTransactionDeletedUseCaseProvider._();
+
+final class OnTransactionDeletedUseCaseProvider
+    extends
+        $FunctionalProvider<
+          OnTransactionDeletedUseCase,
+          OnTransactionDeletedUseCase,
+          OnTransactionDeletedUseCase
+        >
+    with $Provider<OnTransactionDeletedUseCase> {
+  const OnTransactionDeletedUseCaseProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'onTransactionDeletedUseCaseProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$onTransactionDeletedUseCaseHash();
+
+  @$internal
+  @override
+  $ProviderElement<OnTransactionDeletedUseCase> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  OnTransactionDeletedUseCase create(Ref ref) {
+    return onTransactionDeletedUseCase(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(OnTransactionDeletedUseCase value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<OnTransactionDeletedUseCase>(value),
+    );
+  }
+}
+
+String _$onTransactionDeletedUseCaseHash() =>
+    r'34dc92ca2db0124451716e5cd2aa0ab9525d96bf';
+
+@ProviderFor(updateProfileAvatarUseCase)
+const updateProfileAvatarUseCaseProvider =
+    UpdateProfileAvatarUseCaseProvider._();
+
+final class UpdateProfileAvatarUseCaseProvider
+    extends
+        $FunctionalProvider<
+          UpdateProfileAvatarUseCase,
+          UpdateProfileAvatarUseCase,
+          UpdateProfileAvatarUseCase
+        >
+    with $Provider<UpdateProfileAvatarUseCase> {
+  const UpdateProfileAvatarUseCaseProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'updateProfileAvatarUseCaseProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$updateProfileAvatarUseCaseHash();
+
+  @$internal
+  @override
+  $ProviderElement<UpdateProfileAvatarUseCase> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  UpdateProfileAvatarUseCase create(Ref ref) {
+    return updateProfileAvatarUseCase(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(UpdateProfileAvatarUseCase value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<UpdateProfileAvatarUseCase>(value),
+    );
+  }
+}
+
+String _$updateProfileAvatarUseCaseHash() =>
+    r'55cc74f78fefb1db555da7d3a03c91c4c53adc9f';
 
 @ProviderFor(syncService)
 const syncServiceProvider = SyncServiceProvider._();

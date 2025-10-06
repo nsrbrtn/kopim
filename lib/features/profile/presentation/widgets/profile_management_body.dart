@@ -8,11 +8,15 @@ import 'package:kopim/core/theme/application/theme_mode_controller.dart';
 import 'package:kopim/core/theme/domain/app_theme_mode.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
 import 'package:kopim/features/profile/domain/entities/profile.dart';
+import 'package:kopim/features/profile/domain/entities/user_progress.dart';
 import 'package:kopim/features/profile/presentation/controllers/auth_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/profile_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/profile_form_controller.dart';
+import 'package:kopim/features/profile/presentation/controllers/avatar_controller.dart';
+import 'package:kopim/features/profile/presentation/controllers/user_progress_controller.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 import 'package:kopim/features/profile/presentation/widgets/settings_button_theme.dart';
+import 'package:kopim/features/profile/presentation/widgets/profile_overview_card.dart';
 
 class ProfileManagementBody extends ConsumerWidget {
   const ProfileManagementBody({super.key});
@@ -34,6 +38,39 @@ class ProfileManagementBody extends ConsumerWidget {
         final AsyncValue<Profile?> profileAsync = ref.watch(
           profileControllerProvider(user.uid),
         );
+        final AsyncValue<UserProgress> progressAsync = ref.watch(
+          userProgressProvider(user.uid),
+        );
+        final AsyncValue<void> avatarState = ref.watch(
+          avatarControllerProvider,
+        );
+
+        ref.listen<AsyncValue<void>>(avatarControllerProvider, (
+          AsyncValue<void>? previous,
+          AsyncValue<void> next,
+        ) {
+          if (!context.mounted) {
+            return;
+          }
+          if (next.hasError) {
+            final String message = AppLocalizations.of(
+              context,
+            )!.profileAvatarUploadError;
+            ScaffoldMessenger.of(context)
+              ..hideCurrentSnackBar()
+              ..showSnackBar(SnackBar(content: Text(message)));
+            return;
+          }
+          if (previous?.isLoading == true && next.hasValue) {
+            final String message = AppLocalizations.of(
+              context,
+            )!.profileAvatarUploadSuccess;
+            ScaffoldMessenger.of(context)
+              ..hideCurrentSnackBar()
+              ..showSnackBar(SnackBar(content: Text(message)));
+          }
+        });
+
         final ProfileFormParams params = ProfileFormParams(
           uid: user.uid,
           profile: profileAsync.asData?.value,
@@ -52,6 +89,8 @@ class ProfileManagementBody extends ConsumerWidget {
                   child: _ProfileForm(
                     params: params,
                     profileAsync: profileAsync,
+                    progressAsync: progressAsync,
+                    avatarState: avatarState,
                   ),
                 ),
               ),
@@ -64,10 +103,17 @@ class ProfileManagementBody extends ConsumerWidget {
 }
 
 class _ProfileForm extends ConsumerWidget {
-  const _ProfileForm({required this.params, required this.profileAsync});
+  const _ProfileForm({
+    required this.params,
+    required this.profileAsync,
+    required this.progressAsync,
+    required this.avatarState,
+  });
 
   final ProfileFormParams params;
   final AsyncValue<Profile?> profileAsync;
+  final AsyncValue<UserProgress> progressAsync;
+  final AsyncValue<void> avatarState;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -114,11 +160,20 @@ class _ProfileForm extends ConsumerWidget {
 
     final ThemeData theme = Theme.of(context);
 
+    final Profile? currentProfile = profileAsync.value ?? params.profile;
+
     return Theme(
       data: buildSettingsButtonTheme(theme),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
+          ProfileOverviewCard(
+            profile: currentProfile,
+            progressAsync: progressAsync,
+            uid: params.uid,
+            avatarState: avatarState,
+          ),
+          const SizedBox(height: 24),
           _CollapsibleSection(
             title: strings.profileSectionAccount,
             child: Column(
@@ -430,6 +485,7 @@ class _CollapsibleSection extends StatelessWidget {
           key: PageStorageKey<String>('profile-section-$title'),
           tilePadding: const EdgeInsets.symmetric(horizontal: 16),
           childrenPadding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+          initiallyExpanded: true,
           title: Text(title, style: theme.textTheme.titleMedium),
           children: <Widget>[
             PageStorage(bucket: PageStorageBucket(), child: child),

@@ -61,6 +61,13 @@ class TransactionFormView extends ConsumerWidget {
       transactionFormControllerProvider(formArgs),
       (TransactionFormState? previous, TransactionFormState next) {
         if (next.isSuccess && previous?.isSuccess != next.isSuccess) {
+          if (formArgs.initialTransaction == null && context.mounted) {
+            ScaffoldMessenger.of(context)
+              ..hideCurrentSnackBar()
+              ..showSnackBar(
+                SnackBar(content: Text(strings.transactionXpGained)),
+              );
+          }
           ref
               .read(transactionFormControllerProvider(formArgs).notifier)
               .acknowledgeSuccess();

@@ -93,6 +93,7 @@ class Profiles extends Table {
   TextColumn get name => text().withLength(min: 0, max: 120).nullable()();
   TextColumn get currency => text().withLength(min: 3, max: 3).nullable()();
   TextColumn get locale => text().withLength(min: 2, max: 10).nullable()();
+  TextColumn get photoUrl => text().nullable()();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
 
   @override
@@ -272,7 +273,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.connect(DatabaseConnection super.connection);
 
   @override
-  int get schemaVersion => 11;
+  int get schemaVersion => 12;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -359,6 +360,9 @@ class AppDatabase extends _$AppDatabase {
       }
       if (from < 3) {
         await m.createTable(profiles);
+      }
+      if (from < 12) {
+        await m.addColumn(profiles, profiles.photoUrl);
       }
       if (from < 4) {
         await m.addColumn(categories, categories.iconStyle);

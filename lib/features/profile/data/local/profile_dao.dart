@@ -40,6 +40,7 @@ class ProfileDao {
       name: row.name ?? '',
       currency: _parseCurrency(row.currency),
       locale: row.locale ?? 'en',
+      photoUrl: row.photoUrl,
       updatedAt: row.updatedAt,
     );
   }
@@ -50,6 +51,7 @@ class ProfileDao {
       name: Value<String>(profile.name),
       currency: Value<String>(profile.currency.name.toUpperCase()),
       locale: Value<String>(profile.locale),
+      photoUrl: Value<String?>(profile.photoUrl),
       updatedAt: Value<DateTime>(profile.updatedAt),
     );
   }

@@ -3189,6 +3189,17 @@ class $ProfilesTable extends Profiles
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _photoUrlMeta = const VerificationMeta(
+    'photoUrl',
+  );
+  @override
+  late final GeneratedColumn<String> photoUrl = GeneratedColumn<String>(
+    'photo_url',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _updatedAtMeta = const VerificationMeta(
     'updatedAt',
   );
@@ -3207,6 +3218,7 @@ class $ProfilesTable extends Profiles
     name,
     currency,
     locale,
+    photoUrl,
     updatedAt,
   ];
   @override
@@ -3247,6 +3259,12 @@ class $ProfilesTable extends Profiles
         locale.isAcceptableOrUnknown(data['locale']!, _localeMeta),
       );
     }
+    if (data.containsKey('photo_url')) {
+      context.handle(
+        _photoUrlMeta,
+        photoUrl.isAcceptableOrUnknown(data['photo_url']!, _photoUrlMeta),
+      );
+    }
     if (data.containsKey('updated_at')) {
       context.handle(
         _updatedAtMeta,
@@ -3278,6 +3296,10 @@ class $ProfilesTable extends Profiles
         DriftSqlType.string,
         data['${effectivePrefix}locale'],
       ),
+      photoUrl: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}photo_url'],
+      ),
       updatedAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}updated_at'],
@@ -3296,12 +3318,14 @@ class ProfileRow extends DataClass implements Insertable<ProfileRow> {
   final String? name;
   final String? currency;
   final String? locale;
+  final String? photoUrl;
   final DateTime updatedAt;
   const ProfileRow({
     required this.uid,
     this.name,
     this.currency,
     this.locale,
+    this.photoUrl,
     required this.updatedAt,
   });
   @override
@@ -3317,6 +3341,9 @@ class ProfileRow extends DataClass implements Insertable<ProfileRow> {
     if (!nullToAbsent || locale != null) {
       map['locale'] = Variable<String>(locale);
     }
+    if (!nullToAbsent || photoUrl != null) {
+      map['photo_url'] = Variable<String>(photoUrl);
+    }
     map['updated_at'] = Variable<DateTime>(updatedAt);
     return map;
   }
@@ -3331,6 +3358,9 @@ class ProfileRow extends DataClass implements Insertable<ProfileRow> {
       locale: locale == null && nullToAbsent
           ? const Value.absent()
           : Value(locale),
+      photoUrl: photoUrl == null && nullToAbsent
+          ? const Value.absent()
+          : Value(photoUrl),
       updatedAt: Value(updatedAt),
     );
   }
@@ -3345,6 +3375,7 @@ class ProfileRow extends DataClass implements Insertable<ProfileRow> {
       name: serializer.fromJson<String?>(json['name']),
       currency: serializer.fromJson<String?>(json['currency']),
       locale: serializer.fromJson<String?>(json['locale']),
+      photoUrl: serializer.fromJson<String?>(json['photoUrl']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
   }
@@ -3356,6 +3387,7 @@ class ProfileRow extends DataClass implements Insertable<ProfileRow> {
       'name': serializer.toJson<String?>(name),
       'currency': serializer.toJson<String?>(currency),
       'locale': serializer.toJson<String?>(locale),
+      'photoUrl': serializer.toJson<String?>(photoUrl),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
   }
@@ -3365,12 +3397,14 @@ class ProfileRow extends DataClass implements Insertable<ProfileRow> {
     Value<String?> name = const Value.absent(),
     Value<String?> currency = const Value.absent(),
     Value<String?> locale = const Value.absent(),
+    Value<String?> photoUrl = const Value.absent(),
     DateTime? updatedAt,
   }) => ProfileRow(
     uid: uid ?? this.uid,
     name: name.present ? name.value : this.name,
     currency: currency.present ? currency.value : this.currency,
     locale: locale.present ? locale.value : this.locale,
+    photoUrl: photoUrl.present ? photoUrl.value : this.photoUrl,
     updatedAt: updatedAt ?? this.updatedAt,
   );
   ProfileRow copyWithCompanion(ProfilesCompanion data) {
@@ -3379,6 +3413,7 @@ class ProfileRow extends DataClass implements Insertable<ProfileRow> {
       name: data.name.present ? data.name.value : this.name,
       currency: data.currency.present ? data.currency.value : this.currency,
       locale: data.locale.present ? data.locale.value : this.locale,
+      photoUrl: data.photoUrl.present ? data.photoUrl.value : this.photoUrl,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
   }
@@ -3390,13 +3425,15 @@ class ProfileRow extends DataClass implements Insertable<ProfileRow> {
           ..write('name: $name, ')
           ..write('currency: $currency, ')
           ..write('locale: $locale, ')
+          ..write('photoUrl: $photoUrl, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(uid, name, currency, locale, updatedAt);
+  int get hashCode =>
+      Object.hash(uid, name, currency, locale, photoUrl, updatedAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -3405,6 +3442,7 @@ class ProfileRow extends DataClass implements Insertable<ProfileRow> {
           other.name == this.name &&
           other.currency == this.currency &&
           other.locale == this.locale &&
+          other.photoUrl == this.photoUrl &&
           other.updatedAt == this.updatedAt);
 }
 
@@ -3413,6 +3451,7 @@ class ProfilesCompanion extends UpdateCompanion<ProfileRow> {
   final Value<String?> name;
   final Value<String?> currency;
   final Value<String?> locale;
+  final Value<String?> photoUrl;
   final Value<DateTime> updatedAt;
   final Value<int> rowid;
   const ProfilesCompanion({
@@ -3420,6 +3459,7 @@ class ProfilesCompanion extends UpdateCompanion<ProfileRow> {
     this.name = const Value.absent(),
     this.currency = const Value.absent(),
     this.locale = const Value.absent(),
+    this.photoUrl = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -3428,6 +3468,7 @@ class ProfilesCompanion extends UpdateCompanion<ProfileRow> {
     this.name = const Value.absent(),
     this.currency = const Value.absent(),
     this.locale = const Value.absent(),
+    this.photoUrl = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : uid = Value(uid);
@@ -3436,6 +3477,7 @@ class ProfilesCompanion extends UpdateCompanion<ProfileRow> {
     Expression<String>? name,
     Expression<String>? currency,
     Expression<String>? locale,
+    Expression<String>? photoUrl,
     Expression<DateTime>? updatedAt,
     Expression<int>? rowid,
   }) {
@@ -3444,6 +3486,7 @@ class ProfilesCompanion extends UpdateCompanion<ProfileRow> {
       if (name != null) 'name': name,
       if (currency != null) 'currency': currency,
       if (locale != null) 'locale': locale,
+      if (photoUrl != null) 'photo_url': photoUrl,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (rowid != null) 'rowid': rowid,
     });
@@ -3454,6 +3497,7 @@ class ProfilesCompanion extends UpdateCompanion<ProfileRow> {
     Value<String?>? name,
     Value<String?>? currency,
     Value<String?>? locale,
+    Value<String?>? photoUrl,
     Value<DateTime>? updatedAt,
     Value<int>? rowid,
   }) {
@@ -3462,6 +3506,7 @@ class ProfilesCompanion extends UpdateCompanion<ProfileRow> {
       name: name ?? this.name,
       currency: currency ?? this.currency,
       locale: locale ?? this.locale,
+      photoUrl: photoUrl ?? this.photoUrl,
       updatedAt: updatedAt ?? this.updatedAt,
       rowid: rowid ?? this.rowid,
     );
@@ -3482,6 +3527,9 @@ class ProfilesCompanion extends UpdateCompanion<ProfileRow> {
     if (locale.present) {
       map['locale'] = Variable<String>(locale.value);
     }
+    if (photoUrl.present) {
+      map['photo_url'] = Variable<String>(photoUrl.value);
+    }
     if (updatedAt.present) {
       map['updated_at'] = Variable<DateTime>(updatedAt.value);
     }
@@ -3498,6 +3546,7 @@ class ProfilesCompanion extends UpdateCompanion<ProfileRow> {
           ..write('name: $name, ')
           ..write('currency: $currency, ')
           ..write('locale: $locale, ')
+          ..write('photoUrl: $photoUrl, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -10448,6 +10497,7 @@ typedef $$ProfilesTableCreateCompanionBuilder =
       Value<String?> name,
       Value<String?> currency,
       Value<String?> locale,
+      Value<String?> photoUrl,
       Value<DateTime> updatedAt,
       Value<int> rowid,
     });
@@ -10457,6 +10507,7 @@ typedef $$ProfilesTableUpdateCompanionBuilder =
       Value<String?> name,
       Value<String?> currency,
       Value<String?> locale,
+      Value<String?> photoUrl,
       Value<DateTime> updatedAt,
       Value<int> rowid,
     });
@@ -10487,6 +10538,11 @@ class $$ProfilesTableFilterComposer
 
   ColumnFilters<String> get locale => $composableBuilder(
     column: $table.locale,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get photoUrl => $composableBuilder(
+    column: $table.photoUrl,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -10525,6 +10581,11 @@ class $$ProfilesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get photoUrl => $composableBuilder(
+    column: $table.photoUrl,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
     builder: (column) => ColumnOrderings(column),
@@ -10551,6 +10612,9 @@ class $$ProfilesTableAnnotationComposer
 
   GeneratedColumn<String> get locale =>
       $composableBuilder(column: $table.locale, builder: (column) => column);
+
+  GeneratedColumn<String> get photoUrl =>
+      $composableBuilder(column: $table.photoUrl, builder: (column) => column);
 
   GeneratedColumn<DateTime> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
@@ -10591,6 +10655,7 @@ class $$ProfilesTableTableManager
                 Value<String?> name = const Value.absent(),
                 Value<String?> currency = const Value.absent(),
                 Value<String?> locale = const Value.absent(),
+                Value<String?> photoUrl = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ProfilesCompanion(
@@ -10598,6 +10663,7 @@ class $$ProfilesTableTableManager
                 name: name,
                 currency: currency,
                 locale: locale,
+                photoUrl: photoUrl,
                 updatedAt: updatedAt,
                 rowid: rowid,
               ),
@@ -10607,6 +10673,7 @@ class $$ProfilesTableTableManager
                 Value<String?> name = const Value.absent(),
                 Value<String?> currency = const Value.absent(),
                 Value<String?> locale = const Value.absent(),
+                Value<String?> photoUrl = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ProfilesCompanion.insert(
@@ -10614,6 +10681,7 @@ class $$ProfilesTableTableManager
                 name: name,
                 currency: currency,
                 locale: locale,
+                photoUrl: photoUrl,
                 updatedAt: updatedAt,
                 rowid: rowid,
               ),

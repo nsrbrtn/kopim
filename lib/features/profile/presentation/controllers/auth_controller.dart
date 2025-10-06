@@ -141,6 +141,7 @@ class AuthController extends _$AuthController {
     await ref
         .read(authSyncServiceProvider)
         .synchronizeOnLogin(user: user, previousUser: previousUser);
+    await ref.read(recomputeUserProgressUseCaseProvider)();
     _initialSyncTriggered = true;
   }
 

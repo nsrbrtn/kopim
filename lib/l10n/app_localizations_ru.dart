@@ -244,6 +244,53 @@ class AppLocalizationsRu extends AppLocalizations {
   }
 
   @override
+  String get profileUnnamed => 'Исследователь';
+
+  @override
+  String get profileChangeAvatar => 'Сменить аватар';
+
+  @override
+  String get profileChangeAvatarGallery => 'Выбрать из галереи';
+
+  @override
+  String get profileChangeAvatarCamera => 'Сделать фото';
+
+  @override
+  String get profileAvatarUploadError =>
+      'Не удалось обновить аватар. Попробуйте ещё раз.';
+
+  @override
+  String get profileAvatarUploadSuccess => 'Аватар обновлён';
+
+  @override
+  String profileLevelBadge(int level, String title) {
+    return 'Уровень $level — $title';
+  }
+
+  @override
+  String profileXp(int current, int next) {
+    return 'XP: $current / $next';
+  }
+
+  @override
+  String profileXpMax(int current) {
+    return 'XP: $current';
+  }
+
+  @override
+  String profileXpToNext(int count) {
+    return 'До следующего уровня: $count XP';
+  }
+
+  @override
+  String get profileLevelMaxReached => 'Вы достигли максимального ранга!';
+
+  @override
+  String profileProgressError(String error) {
+    return 'Не удалось загрузить прогресс: $error';
+  }
+
+  @override
   String get profileSaveCta => 'Сохранить изменения';
 
   @override
@@ -685,6 +732,9 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get transactionDeleteSuccess => 'Транзакция удалена.';
+
+  @override
+  String get transactionXpGained => '+1 XP';
 
   @override
   String get transactionDeleteConfirmTitle => 'Удалить операцию';

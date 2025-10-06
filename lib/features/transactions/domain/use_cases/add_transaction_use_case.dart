@@ -4,16 +4,19 @@ import 'package:kopim/features/transactions/domain/entities/add_transaction_requ
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
 import 'package:kopim/features/transactions/domain/repositories/transaction_repository.dart';
+import 'package:kopim/features/profile/domain/usecases/on_transaction_created_use_case.dart';
 import 'package:uuid/uuid.dart';
 
 class AddTransactionUseCase {
   AddTransactionUseCase({
     required TransactionRepository transactionRepository,
     required AccountRepository accountRepository,
+    OnTransactionCreatedUseCase? onTransactionCreatedUseCase,
     String Function()? idGenerator,
     DateTime Function()? clock,
   }) : _transactionRepository = transactionRepository,
        _accountRepository = accountRepository,
+       _onTransactionCreatedUseCase = onTransactionCreatedUseCase,
        _generateId = idGenerator ?? _defaultIdGenerator,
        _clock = clock ?? _defaultClock;
 
@@ -23,6 +26,7 @@ class AddTransactionUseCase {
 
   final TransactionRepository _transactionRepository;
   final AccountRepository _accountRepository;
+  final OnTransactionCreatedUseCase? _onTransactionCreatedUseCase;
   final String Function() _generateId;
   final DateTime Function() _clock;
 
@@ -58,5 +62,7 @@ class AddTransactionUseCase {
       updatedAt: now,
     );
     await _accountRepository.upsert(updatedAccount);
+
+    await _onTransactionCreatedUseCase?.call();
   }
 }

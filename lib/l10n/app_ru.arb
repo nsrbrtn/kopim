@@ -321,6 +321,85 @@
       }
     }
   },
+  "profileUnnamed": "Исследователь",
+  "@profileUnnamed": {
+    "description": "Имя по умолчанию, когда пользователь не указал своё"
+  },
+  "profileChangeAvatar": "Сменить аватар",
+  "@profileChangeAvatar": {
+    "description": "Пункт меню и кнопка для смены аватара"
+  },
+  "profileChangeAvatarGallery": "Выбрать из галереи",
+  "@profileChangeAvatarGallery": {
+    "description": "Действие для выбора аватара из галереи"
+  },
+  "profileChangeAvatarCamera": "Сделать фото",
+  "@profileChangeAvatarCamera": {
+    "description": "Действие для съёмки аватара на камеру"
+  },
+  "profileAvatarUploadError": "Не удалось обновить аватар. Попробуйте ещё раз.",
+  "@profileAvatarUploadError": {
+    "description": "Сообщение об ошибке при загрузке аватара"
+  },
+  "profileAvatarUploadSuccess": "Аватар обновлён",
+  "@profileAvatarUploadSuccess": {
+    "description": "Сообщение об успешном обновлении аватара"
+  },
+  "profileLevelBadge": "Уровень {level} — {title}",
+  "@profileLevelBadge": {
+    "description": "Надпись на бейдже с номером уровня и титулом",
+    "placeholders": {
+      "level": {
+        "type": "int"
+      },
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "profileXp": "XP: {current} / {next}",
+  "@profileXp": {
+    "description": "Подпись с текущим количеством XP и порогом следующего уровня",
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "next": {
+        "type": "int"
+      }
+    }
+  },
+  "profileXpMax": "XP: {current}",
+  "@profileXpMax": {
+    "description": "Подпись, когда достигнут максимальный уровень",
+    "placeholders": {
+      "current": {
+        "type": "int"
+      }
+    }
+  },
+  "profileXpToNext": "До следующего уровня: {count} XP",
+  "@profileXpToNext": {
+    "description": "Сообщение с оставшимся количеством XP до нового уровня",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "profileLevelMaxReached": "Вы достигли максимального ранга!",
+  "@profileLevelMaxReached": {
+    "description": "Подпись, когда пользователь на максимальном уровне"
+  },
+  "profileProgressError": "Не удалось загрузить прогресс: {error}",
+  "@profileProgressError": {
+    "description": "Сообщение об ошибке при загрузке прогресса",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "profileSaveCta": "Сохранить изменения",
   "@profileSaveCta": {
     "description": "Кнопка сохранения профиля"
@@ -907,6 +986,10 @@
   "transactionDeleteSuccess": "Транзакция удалена.",
   "@transactionDeleteSuccess": {
     "description": "Сообщение об успешном удалении транзакции"
+  },
+  "transactionXpGained": "+1 XP",
+  "@transactionXpGained": {
+    "description": "Тост после создания новой транзакции"
   },
   "transactionDeleteConfirmTitle": "Удалить операцию",
   "@transactionDeleteConfirmTitle": {
