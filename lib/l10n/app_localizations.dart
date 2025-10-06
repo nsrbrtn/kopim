@@ -1484,6 +1484,24 @@ abstract class AppLocalizations {
   /// **'Bank account'**
   String get addAccountTypeBank;
 
+  /// Option label for custom account types
+  ///
+  /// In en, this message translates to:
+  /// **'Custom type'**
+  String get addAccountTypeCustom;
+
+  /// Label for the custom account type text field
+  ///
+  /// In en, this message translates to:
+  /// **'Custom account type'**
+  String get addAccountCustomTypeLabel;
+
+  /// Validation error shown when the account type is missing
+  ///
+  /// In en, this message translates to:
+  /// **'Please specify the account type.'**
+  String get addAccountTypeRequired;
+
   /// Title for the account details screen
   ///
   /// In en, this message translates to:
@@ -1676,6 +1694,24 @@ abstract class AppLocalizations {
   /// **'Account type'**
   String get editAccountTypeLabel;
 
+  /// Option label for selecting a custom account type
+  ///
+  /// In en, this message translates to:
+  /// **'Custom type'**
+  String get editAccountTypeCustom;
+
+  /// Label for the custom account type input
+  ///
+  /// In en, this message translates to:
+  /// **'Custom account type'**
+  String get editAccountCustomTypeLabel;
+
+  /// Validation error when the account type is missing
+  ///
+  /// In en, this message translates to:
+  /// **'Please specify the account type.'**
+  String get editAccountTypeRequired;
+
   /// Button label for saving account edits
   ///
   /// In en, this message translates to:
@@ -1699,6 +1735,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not update account. Please try again.'**
   String get editAccountGenericError;
+
+  /// Button label for deleting the account
+  ///
+  /// In en, this message translates to:
+  /// **'Delete account'**
+  String get editAccountDeleteCta;
+
+  /// Button label shown while the account is being deleted
+  ///
+  /// In en, this message translates to:
+  /// **'Deleting...'**
+  String get editAccountDeleteLoading;
+
+  /// Confirmation dialog title before deleting an account
+  ///
+  /// In en, this message translates to:
+  /// **'Delete account?'**
+  String get editAccountDeleteConfirmationTitle;
+
+  /// Confirmation dialog message before deleting an account
+  ///
+  /// In en, this message translates to:
+  /// **'This account and its data will be removed. This action cannot be undone.'**
+  String get editAccountDeleteConfirmationMessage;
+
+  /// Cancel button label in the delete confirmation dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get editAccountDeleteConfirmationCancel;
+
+  /// Confirm button label in the delete confirmation dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get editAccountDeleteConfirmationConfirm;
+
+  /// Error message shown when deleting an account fails
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to delete the account. Please try again.'**
+  String get editAccountDeleteError;
 
   /// Label for the budgets tab in the bottom navigation
   ///

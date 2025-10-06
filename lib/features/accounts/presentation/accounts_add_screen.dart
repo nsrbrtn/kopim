@@ -15,6 +15,7 @@ class AddAccountScreen extends ConsumerStatefulWidget {
 class _AddAccountScreenState extends ConsumerState<AddAccountScreen> {
   late final TextEditingController _nameController;
   late final TextEditingController _balanceController;
+  late final TextEditingController _customTypeController;
 
   @override
   void initState() {
@@ -24,12 +25,14 @@ class _AddAccountScreenState extends ConsumerState<AddAccountScreen> {
     );
     _nameController = TextEditingController(text: state.name);
     _balanceController = TextEditingController(text: state.balanceInput);
+    _customTypeController = TextEditingController(text: state.customType);
   }
 
   @override
   void dispose() {
     _nameController.dispose();
     _balanceController.dispose();
+    _customTypeController.dispose();
     super.dispose();
   }
 
@@ -60,6 +63,13 @@ class _AddAccountScreenState extends ConsumerState<AddAccountScreen> {
           selection: TextSelection.collapsed(offset: next.balanceInput.length),
         );
       }
+      if (previous?.customType != next.customType &&
+          _customTypeController.text != next.customType) {
+        _customTypeController.value = _customTypeController.value.copyWith(
+          text: next.customType,
+          selection: TextSelection.collapsed(offset: next.customType.length),
+        );
+      }
       final bool submitted =
           previous?.submissionSuccess != true && next.submissionSuccess;
       if (submitted && mounted) {
@@ -74,8 +84,14 @@ class _AddAccountScreenState extends ConsumerState<AddAccountScreen> {
       'bank': strings.addAccountTypeBank,
     };
     const List<String> currencyOptions = <String>['USD', 'EUR', 'RUB'];
+    const String customTypeValue = '__custom__';
 
     final ThemeData theme = Theme.of(context);
+    final bool showTypeError =
+        state.typeError == AddAccountFieldError.emptyType;
+    final String? dropdownErrorText = showTypeError && !state.useCustomType
+        ? strings.addAccountTypeRequired
+        : null;
 
     return Scaffold(
       appBar: AppBar(title: Text(strings.addAccountTitle)),
@@ -139,27 +155,56 @@ class _AddAccountScreenState extends ConsumerState<AddAccountScreen> {
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
-                initialValue: state.type,
+                key: ValueKey<String>(
+                  'type-${state.useCustomType ? customTypeValue : state.type}',
+                ),
+                initialValue: state.useCustomType
+                    ? customTypeValue
+                    : state.type,
                 decoration: InputDecoration(
                   labelText: strings.addAccountTypeLabel,
+                  errorText: dropdownErrorText,
                 ),
-                items: accountTypeLabels.entries
-                    .map(
-                      (MapEntry<String, String> entry) =>
-                          DropdownMenuItem<String>(
-                            value: entry.key,
-                            child: Text(entry.value),
-                          ),
-                    )
-                    .toList(),
+                items: <DropdownMenuItem<String>>[
+                  ...accountTypeLabels.entries.map(
+                    (MapEntry<String, String> entry) =>
+                        DropdownMenuItem<String>(
+                          value: entry.key,
+                          child: Text(entry.value),
+                        ),
+                  ),
+                  DropdownMenuItem<String>(
+                    value: customTypeValue,
+                    child: Text(strings.addAccountTypeCustom),
+                  ),
+                ],
                 onChanged: state.isSaving
                     ? null
                     : (String? value) {
                         if (value != null) {
-                          controller.updateType(value);
+                          if (value == customTypeValue) {
+                            controller.enableCustomType();
+                          } else {
+                            controller.updateType(value);
+                          }
                         }
                       },
               ),
+              if (state.useCustomType) ...<Widget>[
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _customTypeController,
+                  decoration: InputDecoration(
+                    labelText: strings.addAccountCustomTypeLabel,
+                    errorText: showTypeError
+                        ? strings.addAccountTypeRequired
+                        : null,
+                  ),
+                  enabled: !state.isSaving,
+                  textCapitalization: TextCapitalization.sentences,
+                  onChanged: controller.updateCustomType,
+                ),
+              ],
               if (state.errorMessage != null) ...<Widget>[
                 const SizedBox(height: 24),
                 Text(

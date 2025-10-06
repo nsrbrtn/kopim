@@ -401,7 +401,7 @@ final class AppDatabaseProvider
         argument: null,
         retry: null,
         name: r'appDatabaseProvider',
-        isAutoDispose: true,
+        isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -428,7 +428,7 @@ final class AppDatabaseProvider
   }
 }
 
-String _$appDatabaseHash() => r'd45cc0b6c7795466b6a12d864805fefa097f39cd';
+String _$appDatabaseHash() => r'79fbc893ebdcc6adbd4c31ca4e8922a8f9832d4d';
 
 @ProviderFor(outboxDao)
 const outboxDaoProvider = OutboxDaoProvider._();
@@ -1756,6 +1756,54 @@ final class AddAccountUseCaseProvider
 }
 
 String _$addAccountUseCaseHash() => r'fa2b2563af599e8d07f320da1891e100d7ae6293';
+
+@ProviderFor(deleteAccountUseCase)
+const deleteAccountUseCaseProvider = DeleteAccountUseCaseProvider._();
+
+final class DeleteAccountUseCaseProvider
+    extends
+        $FunctionalProvider<
+          DeleteAccountUseCase,
+          DeleteAccountUseCase,
+          DeleteAccountUseCase
+        >
+    with $Provider<DeleteAccountUseCase> {
+  const DeleteAccountUseCaseProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'deleteAccountUseCaseProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$deleteAccountUseCaseHash();
+
+  @$internal
+  @override
+  $ProviderElement<DeleteAccountUseCase> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  DeleteAccountUseCase create(Ref ref) {
+    return deleteAccountUseCase(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(DeleteAccountUseCase value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<DeleteAccountUseCase>(value),
+    );
+  }
+}
+
+String _$deleteAccountUseCaseHash() =>
+    r'b2dc0b516807d5551b3e412819409a0f2a1b0604';
 
 @ProviderFor(watchAccountsUseCase)
 const watchAccountsUseCaseProvider = WatchAccountsUseCaseProvider._();

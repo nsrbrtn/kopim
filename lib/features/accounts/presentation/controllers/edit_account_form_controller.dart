@@ -8,7 +8,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'edit_account_form_controller.freezed.dart';
 part 'edit_account_form_controller.g.dart';
 
-enum EditAccountFieldError { emptyName, invalidBalance }
+enum EditAccountFieldError { emptyName, invalidBalance, emptyType }
 
 @freezed
 abstract class EditAccountFormState with _$EditAccountFormState {
@@ -17,10 +17,14 @@ abstract class EditAccountFormState with _$EditAccountFormState {
     required String name,
     required String balanceInput,
     required String currency,
+    required String type,
+    @Default(false) bool useCustomType,
+    @Default('') String customType,
     @Default(false) bool isSaving,
     @Default(false) bool submissionSuccess,
     EditAccountFieldError? nameError,
     EditAccountFieldError? balanceError,
+    EditAccountFieldError? typeError,
     String? errorMessage,
   }) = _EditAccountFormState;
 
@@ -28,26 +32,41 @@ abstract class EditAccountFormState with _$EditAccountFormState {
 
   double? get parsedBalance => parseBalanceInput(balanceInput);
 
+  String? get resolvedType {
+    final String value = useCustomType ? customType.trim() : type.trim();
+    if (value.isEmpty) {
+      return null;
+    }
+    return value;
+  }
+
   bool get canSubmit =>
       !isSaving &&
       nameError == null &&
       balanceError == null &&
+      typeError == null &&
       name.trim().isNotEmpty &&
-      parsedBalance != null;
+      parsedBalance != null &&
+      resolvedType != null;
 }
 
 @riverpod
 class EditAccountFormController extends _$EditAccountFormController {
   late final AddAccountUseCase _addAccountUseCase;
+  static const Set<String> _defaultTypes = <String>{'cash', 'card', 'bank'};
 
   @override
   EditAccountFormState build(AccountEntity account) {
     _addAccountUseCase = ref.watch(addAccountUseCaseProvider);
+    final bool useCustomType = !_defaultTypes.contains(account.type);
     return EditAccountFormState(
       original: account,
       name: account.name,
       balanceInput: account.balance.toStringAsFixed(2),
       currency: account.currency,
+      type: useCustomType ? 'cash' : account.type,
+      useCustomType: useCustomType,
+      customType: useCustomType ? account.type : '',
     );
   }
 
@@ -74,6 +93,34 @@ class EditAccountFormController extends _$EditAccountFormController {
       currency: value,
       submissionSuccess: false,
       errorMessage: null,
+    );
+  }
+
+  void updateType(String value) {
+    state = state.copyWith(
+      type: value,
+      useCustomType: false,
+      submissionSuccess: false,
+      errorMessage: null,
+      typeError: null,
+    );
+  }
+
+  void enableCustomType() {
+    state = state.copyWith(
+      useCustomType: true,
+      submissionSuccess: false,
+      errorMessage: null,
+      typeError: null,
+    );
+  }
+
+  void updateCustomType(String value) {
+    state = state.copyWith(
+      customType: value,
+      submissionSuccess: false,
+      errorMessage: null,
+      typeError: null,
     );
   }
 
@@ -113,24 +160,45 @@ class EditAccountFormController extends _$EditAccountFormController {
       isSaving: true,
       nameError: null,
       balanceError: null,
+      typeError: null,
       errorMessage: null,
       submissionSuccess: false,
     );
 
     final DateTime updatedAt = DateTime.now().toUtc();
+    final String? resolvedType = state.resolvedType;
+    EditAccountFieldError? typeError;
+    if (resolvedType == null) {
+      typeError = EditAccountFieldError.emptyType;
+    }
+
+    if (typeError != null) {
+      state = state.copyWith(
+        isSaving: false,
+        typeError: typeError,
+        submissionSuccess: false,
+      );
+      return;
+    }
+
     final AccountEntity updatedAccount = state.original.copyWith(
       name: trimmedName,
       balance: balance!,
       currency: state.currency,
+      type: resolvedType!,
       updatedAt: updatedAt,
     );
 
     try {
       await _addAccountUseCase(updatedAccount);
+      final bool updatedIsCustom = !_defaultTypes.contains(updatedAccount.type);
       state = state.copyWith(
         isSaving: false,
         original: updatedAccount,
         balanceInput: balance.toStringAsFixed(2),
+        type: updatedIsCustom ? state.type : updatedAccount.type,
+        useCustomType: updatedIsCustom,
+        customType: updatedIsCustom ? updatedAccount.type : '',
         submissionSuccess: true,
       );
     } catch (error) {

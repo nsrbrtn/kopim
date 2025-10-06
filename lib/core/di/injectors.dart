@@ -20,6 +20,7 @@ import 'package:kopim/features/accounts/data/sources/local/account_dao.dart';
 import 'package:kopim/features/accounts/data/sources/remote/account_remote_data_source.dart';
 import 'package:kopim/features/accounts/domain/repositories/account_repository.dart';
 import 'package:kopim/features/accounts/domain/use_cases/add_account_use_case.dart';
+import 'package:kopim/features/accounts/domain/use_cases/delete_account_use_case.dart';
 import 'package:kopim/features/accounts/domain/use_cases/watch_accounts_use_case.dart';
 import 'package:kopim/features/budgets/data/repositories/budget_repository_impl.dart';
 import 'package:kopim/features/budgets/data/sources/local/budget_dao.dart';
@@ -130,8 +131,12 @@ Connectivity connectivity(Ref ref) => Connectivity();
 @riverpod
 Uuid uuidGenerator(Ref ref) => const Uuid();
 
-@riverpod
-AppDatabase appDatabase(Ref ref) => AppDatabase();
+@Riverpod(keepAlive: true)
+AppDatabase appDatabase(Ref ref) {
+  final AppDatabase database = AppDatabase();
+  ref.onDispose(database.close);
+  return database;
+}
 
 @riverpod
 OutboxDao outboxDao(Ref ref) => OutboxDao(ref.watch(appDatabaseProvider));
@@ -244,6 +249,10 @@ AccountRepository accountRepository(Ref ref) => AccountRepositoryImpl(
 @riverpod
 AddAccountUseCase addAccountUseCase(Ref ref) =>
     AddAccountUseCase(ref.watch(accountRepositoryProvider));
+
+@riverpod
+DeleteAccountUseCase deleteAccountUseCase(Ref ref) =>
+    DeleteAccountUseCase(ref.watch(accountRepositoryProvider));
 
 @riverpod
 WatchAccountsUseCase watchAccountsUseCase(Ref ref) =>

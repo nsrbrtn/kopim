@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'dart:math' as math;
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -202,20 +204,21 @@ class _AvatarPreview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
+    final ImageProvider<Object>? imageProvider = _resolveImageProvider();
     return Stack(
       alignment: Alignment.center,
       children: <Widget>[
         CircleAvatar(
           radius: 36,
           backgroundColor: theme.colorScheme.surfaceContainerHighest,
-          backgroundImage: photoUrl != null ? NetworkImage(photoUrl!) : null,
-          onBackgroundImageError: photoUrl != null
+          backgroundImage: imageProvider,
+          onBackgroundImageError: imageProvider is NetworkImage
               ? (Object error, StackTrace? stackTrace) {
                   // Игнорируем сетевые ошибки и показываем плейсхолдер,
                   // чтобы офлайн-режим не приводил к падению виджета.
                 }
               : null,
-          child: photoUrl == null
+          child: imageProvider == null
               ? Icon(
                   Icons.person,
                   size: 32,
@@ -245,5 +248,26 @@ class _AvatarPreview extends StatelessWidget {
           ),
       ],
     );
+  }
+
+  ImageProvider<Object>? _resolveImageProvider() {
+    if (photoUrl == null || photoUrl!.isEmpty) {
+      return null;
+    }
+    final String value = photoUrl!;
+    if (value.startsWith('data:image/')) {
+      final int commaIndex = value.indexOf(',');
+      if (commaIndex == -1) {
+        return null;
+      }
+      final String encoded = value.substring(commaIndex + 1);
+      try {
+        final Uint8List bytes = base64Decode(encoded);
+        return MemoryImage(bytes);
+      } catch (_) {
+        return null;
+      }
+    }
+    return NetworkImage(value);
   }
 }

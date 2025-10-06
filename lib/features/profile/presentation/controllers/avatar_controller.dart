@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:typed_data';
 
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/features/profile/domain/usecases/update_profile_avatar_use_case.dart';
@@ -23,6 +24,14 @@ class AvatarController extends _$AvatarController {
   }) async {
     state = const AsyncValue<void>.loading();
     try {
+      final Connectivity connectivity = ref.read(connectivityProvider);
+      final List<ConnectivityResult> results = await connectivity
+          .checkConnectivity();
+      final bool isOffline = results.every(
+        (ConnectivityResult result) => result == ConnectivityResult.none,
+      );
+      final bool storeOfflineOnly = isOffline || uid.startsWith('guest-');
+
       final XFile? file = await _picker.pickImage(
         source: source == AvatarUploadSource.gallery
             ? ImageSource.gallery
@@ -49,6 +58,7 @@ class AvatarController extends _$AvatarController {
           source: source == AvatarUploadSource.gallery
               ? AvatarImageSource.gallery
               : AvatarImageSource.camera,
+          storeOfflineOnly: storeOfflineOnly,
         ),
       );
       state = const AsyncValue<void>.data(null);
