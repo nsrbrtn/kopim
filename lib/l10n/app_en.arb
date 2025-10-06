@@ -321,6 +321,85 @@
       }
     }
   },
+  "profileUnnamed": "Explorer",
+  "@profileUnnamed": {
+    "description": "Placeholder name when the user has not specified one"
+  },
+  "profileChangeAvatar": "Change avatar",
+  "@profileChangeAvatar": {
+    "description": "Menu item and button label for changing the avatar"
+  },
+  "profileChangeAvatarGallery": "Choose from gallery",
+  "@profileChangeAvatarGallery": {
+    "description": "Action label for selecting an avatar from the gallery"
+  },
+  "profileChangeAvatarCamera": "Take a photo",
+  "@profileChangeAvatarCamera": {
+    "description": "Action label for capturing an avatar with the camera"
+  },
+  "profileAvatarUploadError": "Couldn't update avatar. Please try again.",
+  "@profileAvatarUploadError": {
+    "description": "Snackbar shown when the avatar upload fails"
+  },
+  "profileAvatarUploadSuccess": "Avatar updated",
+  "@profileAvatarUploadSuccess": {
+    "description": "Snackbar shown when the avatar upload succeeds"
+  },
+  "profileLevelBadge": "Level {level} — {title}",
+  "@profileLevelBadge": {
+    "description": "Badge text combining the numeric level and the title",
+    "placeholders": {
+      "level": {
+        "type": "int"
+      },
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "profileXp": "XP: {current} / {next}",
+  "@profileXp": {
+    "description": "Label showing the current XP relative to the next threshold",
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "next": {
+        "type": "int"
+      }
+    }
+  },
+  "profileXpMax": "XP: {current}",
+  "@profileXpMax": {
+    "description": "Label when the user reached the highest level",
+    "placeholders": {
+      "current": {
+        "type": "int"
+      }
+    }
+  },
+  "profileXpToNext": "{count} XP to the next level",
+  "@profileXpToNext": {
+    "description": "Caption indicating remaining XP to reach the next level",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "profileLevelMaxReached": "You have reached the highest rank!",
+  "@profileLevelMaxReached": {
+    "description": "Caption shown when the user is at the highest level"
+  },
+  "profileProgressError": "Unable to load progress: {error}",
+  "@profileProgressError": {
+    "description": "Error message displayed when progress cannot be loaded",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "profileSaveCta": "Save changes",
   "@profileSaveCta": {
     "description": "Label for the save button on profile form"
@@ -907,6 +986,10 @@
   "transactionDeleteSuccess": "Transaction deleted.",
   "@transactionDeleteSuccess": {
     "description": "Shown when a transaction is deleted successfully"
+  },
+  "transactionXpGained": "+1 XP",
+  "@transactionXpGained": {
+    "description": "Snackbar text shown after creating a new transaction"
   },
   "transactionDeleteConfirmTitle": "Delete transaction",
   "@transactionDeleteConfirmTitle": {

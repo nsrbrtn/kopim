@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod/src/framework.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/features/categories/domain/entities/category_tree_node.dart';
@@ -159,8 +160,7 @@ void main() {
   ) async {
     await tester.pumpWidget(
       ProviderScope(
-        // ignore: always_specify_types
-        overrides: [
+        overrides: <Override>[
           authControllerProvider.overrideWith(
             () => _FakeAuthController(signedInUser),
           ),
@@ -211,8 +211,7 @@ void main() {
   ) async {
     await tester.pumpWidget(
       ProviderScope(
-        // ignore: always_specify_types
-        overrides: [
+        overrides: <Override>[
           authControllerProvider.overrideWith(() => _FakeAuthController(null)),
           updateProfileUseCaseProvider.overrideWith(
             (Ref ref) => _StubUpdateProfileUseCase(),
@@ -249,8 +248,7 @@ void main() {
 
     await tester.pumpWidget(
       ProviderScope(
-        // ignore: always_specify_types
-        overrides: [
+        overrides: <Override>[
           authControllerProvider.overrideWith(
             () => _FakeAuthController(signedInUser),
           ),
@@ -304,8 +302,7 @@ void main() {
 
     await tester.pumpWidget(
       ProviderScope(
-        // ignore: always_specify_types
-        overrides: [
+        overrides: <Override>[
           authControllerProvider.overrideWith(
             () => _SignOutSpyAuthController(
               signedInUser,
@@ -337,10 +334,13 @@ void main() {
 
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Account'));
-    await tester.pumpAndSettle();
+    final BuildContext context = tester.element(find.byType(ProfileScreen));
+    final AppLocalizations strings = AppLocalizations.of(context)!;
 
-    await tester.tap(find.text('Sign out'));
+    final Finder signOutButton = find.text(strings.profileSignOutCta);
+
+    await tester.ensureVisible(signOutButton);
+    await tester.tap(signOutButton, warnIfMissed: false);
     await tester.pump();
 
     expect(didSignOut, isTrue);

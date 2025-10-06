@@ -14,6 +14,7 @@ abstract class Profile with _$Profile {
     @Default('') String name,
     @Default(ProfileCurrency.rub) ProfileCurrency currency,
     @Default('en') String locale,
+    String? photoUrl,
     required DateTime updatedAt,
   }) = _Profile;
 

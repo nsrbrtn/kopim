@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Profile {
 
- String get uid; String get name; ProfileCurrency get currency; String get locale; DateTime get updatedAt;
+ String get uid; String get name; ProfileCurrency get currency; String get locale; String? get photoUrl; DateTime get updatedAt;
 /// Create a copy of Profile
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $ProfileCopyWith<Profile> get copyWith => _$ProfileCopyWithImpl<Profile>(this as
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Profile&&(identical(other.uid, uid) || other.uid == uid)&&(identical(other.name, name) || other.name == name)&&(identical(other.currency, currency) || other.currency == currency)&&(identical(other.locale, locale) || other.locale == locale)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Profile&&(identical(other.uid, uid) || other.uid == uid)&&(identical(other.name, name) || other.name == name)&&(identical(other.currency, currency) || other.currency == currency)&&(identical(other.locale, locale) || other.locale == locale)&&(identical(other.photoUrl, photoUrl) || other.photoUrl == photoUrl)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,uid,name,currency,locale,updatedAt);
+int get hashCode => Object.hash(runtimeType,uid,name,currency,locale,photoUrl,updatedAt);
 
 @override
 String toString() {
-  return 'Profile(uid: $uid, name: $name, currency: $currency, locale: $locale, updatedAt: $updatedAt)';
+  return 'Profile(uid: $uid, name: $name, currency: $currency, locale: $locale, photoUrl: $photoUrl, updatedAt: $updatedAt)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $ProfileCopyWith<$Res>  {
   factory $ProfileCopyWith(Profile value, $Res Function(Profile) _then) = _$ProfileCopyWithImpl;
 @useResult
 $Res call({
- String uid, String name, ProfileCurrency currency, String locale, DateTime updatedAt
+ String uid, String name, ProfileCurrency currency, String locale, String? photoUrl, DateTime updatedAt
 });
 
 
@@ -65,13 +65,14 @@ class _$ProfileCopyWithImpl<$Res>
 
 /// Create a copy of Profile
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? uid = null,Object? name = null,Object? currency = null,Object? locale = null,Object? updatedAt = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? uid = null,Object? name = null,Object? currency = null,Object? locale = null,Object? photoUrl = freezed,Object? updatedAt = null,}) {
   return _then(_self.copyWith(
 uid: null == uid ? _self.uid : uid // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,currency: null == currency ? _self.currency : currency // ignore: cast_nullable_to_non_nullable
 as ProfileCurrency,locale: null == locale ? _self.locale : locale // ignore: cast_nullable_to_non_nullable
-as String,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
+as String,photoUrl: freezed == photoUrl ? _self.photoUrl : photoUrl // ignore: cast_nullable_to_non_nullable
+as String?,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,
   ));
 }
@@ -157,10 +158,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String uid,  String name,  ProfileCurrency currency,  String locale,  DateTime updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String uid,  String name,  ProfileCurrency currency,  String locale,  String? photoUrl,  DateTime updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Profile() when $default != null:
-return $default(_that.uid,_that.name,_that.currency,_that.locale,_that.updatedAt);case _:
+return $default(_that.uid,_that.name,_that.currency,_that.locale,_that.photoUrl,_that.updatedAt);case _:
   return orElse();
 
 }
@@ -178,10 +179,10 @@ return $default(_that.uid,_that.name,_that.currency,_that.locale,_that.updatedAt
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String uid,  String name,  ProfileCurrency currency,  String locale,  DateTime updatedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String uid,  String name,  ProfileCurrency currency,  String locale,  String? photoUrl,  DateTime updatedAt)  $default,) {final _that = this;
 switch (_that) {
 case _Profile():
-return $default(_that.uid,_that.name,_that.currency,_that.locale,_that.updatedAt);case _:
+return $default(_that.uid,_that.name,_that.currency,_that.locale,_that.photoUrl,_that.updatedAt);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -198,10 +199,10 @@ return $default(_that.uid,_that.name,_that.currency,_that.locale,_that.updatedAt
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String uid,  String name,  ProfileCurrency currency,  String locale,  DateTime updatedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String uid,  String name,  ProfileCurrency currency,  String locale,  String? photoUrl,  DateTime updatedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _Profile() when $default != null:
-return $default(_that.uid,_that.name,_that.currency,_that.locale,_that.updatedAt);case _:
+return $default(_that.uid,_that.name,_that.currency,_that.locale,_that.photoUrl,_that.updatedAt);case _:
   return null;
 
 }
@@ -213,13 +214,14 @@ return $default(_that.uid,_that.name,_that.currency,_that.locale,_that.updatedAt
 @JsonSerializable()
 
 class _Profile extends Profile {
-  const _Profile({required this.uid, this.name = '', this.currency = ProfileCurrency.rub, this.locale = 'en', required this.updatedAt}): super._();
+  const _Profile({required this.uid, this.name = '', this.currency = ProfileCurrency.rub, this.locale = 'en', this.photoUrl, required this.updatedAt}): super._();
   factory _Profile.fromJson(Map<String, dynamic> json) => _$ProfileFromJson(json);
 
 @override final  String uid;
 @override@JsonKey() final  String name;
 @override@JsonKey() final  ProfileCurrency currency;
 @override@JsonKey() final  String locale;
+@override final  String? photoUrl;
 @override final  DateTime updatedAt;
 
 /// Create a copy of Profile
@@ -235,16 +237,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Profile&&(identical(other.uid, uid) || other.uid == uid)&&(identical(other.name, name) || other.name == name)&&(identical(other.currency, currency) || other.currency == currency)&&(identical(other.locale, locale) || other.locale == locale)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Profile&&(identical(other.uid, uid) || other.uid == uid)&&(identical(other.name, name) || other.name == name)&&(identical(other.currency, currency) || other.currency == currency)&&(identical(other.locale, locale) || other.locale == locale)&&(identical(other.photoUrl, photoUrl) || other.photoUrl == photoUrl)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,uid,name,currency,locale,updatedAt);
+int get hashCode => Object.hash(runtimeType,uid,name,currency,locale,photoUrl,updatedAt);
 
 @override
 String toString() {
-  return 'Profile(uid: $uid, name: $name, currency: $currency, locale: $locale, updatedAt: $updatedAt)';
+  return 'Profile(uid: $uid, name: $name, currency: $currency, locale: $locale, photoUrl: $photoUrl, updatedAt: $updatedAt)';
 }
 
 
@@ -255,7 +257,7 @@ abstract mixin class _$ProfileCopyWith<$Res> implements $ProfileCopyWith<$Res> {
   factory _$ProfileCopyWith(_Profile value, $Res Function(_Profile) _then) = __$ProfileCopyWithImpl;
 @override @useResult
 $Res call({
- String uid, String name, ProfileCurrency currency, String locale, DateTime updatedAt
+ String uid, String name, ProfileCurrency currency, String locale, String? photoUrl, DateTime updatedAt
 });
 
 
@@ -272,13 +274,14 @@ class __$ProfileCopyWithImpl<$Res>
 
 /// Create a copy of Profile
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? uid = null,Object? name = null,Object? currency = null,Object? locale = null,Object? updatedAt = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? uid = null,Object? name = null,Object? currency = null,Object? locale = null,Object? photoUrl = freezed,Object? updatedAt = null,}) {
   return _then(_Profile(
 uid: null == uid ? _self.uid : uid // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,currency: null == currency ? _self.currency : currency // ignore: cast_nullable_to_non_nullable
 as ProfileCurrency,locale: null == locale ? _self.locale : locale // ignore: cast_nullable_to_non_nullable
-as String,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
+as String,photoUrl: freezed == photoUrl ? _self.photoUrl : photoUrl // ignore: cast_nullable_to_non_nullable
+as String?,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,
   ));
 }

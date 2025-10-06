@@ -46,6 +46,7 @@ class ProfileRemoteDataSource {
       'name': profile.name,
       'currency': profile.currency.name.toUpperCase(),
       'locale': profile.locale,
+      'photoUrl': profile.photoUrl,
       'updatedAt': Timestamp.fromDate(profile.updatedAt.toUtc()),
     };
   }
@@ -56,6 +57,9 @@ class ProfileRemoteDataSource {
       name: (data['name'] as String?) ?? '',
       currency: _parseCurrency(data['currency'] as String?),
       locale: (data['locale'] as String?) ?? 'en',
+      photoUrl: (data['photoUrl'] as String?)?.trim().isEmpty ?? true
+          ? null
+          : (data['photoUrl'] as String).trim(),
       updatedAt: _parseTimestamp(data['updatedAt']),
     );
   }

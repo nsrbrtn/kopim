@@ -31,6 +31,7 @@ class ProfileFormState {
     required this.name,
     required this.currency,
     required this.locale,
+    this.photoUrl,
     required this.isSaving,
     this.errorMessage,
     this.initialProfile,
@@ -44,6 +45,7 @@ class ProfileFormState {
           name: '',
           currency: ProfileCurrency.rub,
           locale: 'en',
+          photoUrl: null,
           updatedAt: DateTime.fromMillisecondsSinceEpoch(0),
         );
     return ProfileFormState(
@@ -51,6 +53,7 @@ class ProfileFormState {
       name: base.name,
       currency: base.currency,
       locale: base.locale,
+      photoUrl: base.photoUrl,
       isSaving: false,
       initialProfile: base,
     );
@@ -60,6 +63,7 @@ class ProfileFormState {
   final String name;
   final ProfileCurrency currency;
   final String locale;
+  final String? photoUrl;
   final bool isSaving;
   final String? errorMessage;
   final Profile? initialProfile;
@@ -72,6 +76,7 @@ class ProfileFormState {
           name: '',
           currency: ProfileCurrency.rub,
           locale: 'en',
+          photoUrl: null,
           updatedAt: DateTime.fromMillisecondsSinceEpoch(0),
         );
     return name != base.name ||
@@ -83,6 +88,7 @@ class ProfileFormState {
     String? name,
     ProfileCurrency? currency,
     String? locale,
+    String? photoUrl,
     bool? isSaving,
     Profile? initialProfile,
     String? errorMessage,
@@ -93,6 +99,7 @@ class ProfileFormState {
       name: name ?? this.name,
       currency: currency ?? this.currency,
       locale: locale ?? this.locale,
+      photoUrl: photoUrl ?? this.photoUrl,
       isSaving: isSaving ?? this.isSaving,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
       initialProfile: initialProfile ?? this.initialProfile,
@@ -105,6 +112,7 @@ class ProfileFormState {
       name: name,
       currency: currency,
       locale: locale,
+      photoUrl: photoUrl,
       updatedAt: DateTime.now().toUtc(),
     );
   }

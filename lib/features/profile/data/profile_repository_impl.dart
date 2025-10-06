@@ -71,6 +71,7 @@ class ProfileRepositoryImpl implements ProfileRepository {
       'name': profile.name,
       'currency': profile.currency.name,
       'locale': profile.locale,
+      'photoUrl': profile.photoUrl,
       'updatedAt': profile.updatedAt.toIso8601String(),
     };
   }

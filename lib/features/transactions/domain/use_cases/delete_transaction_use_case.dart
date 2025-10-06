@@ -3,18 +3,22 @@ import 'package:kopim/features/accounts/domain/repositories/account_repository.d
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
 import 'package:kopim/features/transactions/domain/repositories/transaction_repository.dart';
+import 'package:kopim/features/profile/domain/usecases/on_transaction_deleted_use_case.dart';
 
 class DeleteTransactionUseCase {
   DeleteTransactionUseCase({
     required TransactionRepository transactionRepository,
     required AccountRepository accountRepository,
+    OnTransactionDeletedUseCase? onTransactionDeletedUseCase,
     DateTime Function()? clock,
   }) : _transactionRepository = transactionRepository,
        _accountRepository = accountRepository,
+       _onTransactionDeletedUseCase = onTransactionDeletedUseCase,
        _clock = clock ?? DateTime.now;
 
   final TransactionRepository _transactionRepository;
   final AccountRepository _accountRepository;
+  final OnTransactionDeletedUseCase? _onTransactionDeletedUseCase;
   final DateTime Function() _clock;
 
   Future<void> call(String transactionId) async {
@@ -44,6 +48,7 @@ class DeleteTransactionUseCase {
     await _accountRepository.upsert(updatedAccount);
 
     await _transactionRepository.softDelete(transactionId);
+    await _onTransactionDeletedUseCase?.call();
   }
 
   TransactionType _parseType(String raw) {

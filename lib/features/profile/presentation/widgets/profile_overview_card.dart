@@ -1,0 +1,249 @@
+import 'dart:math' as math;
+
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:kopim/core/di/injectors.dart';
+import 'package:kopim/features/profile/domain/entities/profile.dart';
+import 'package:kopim/features/profile/domain/entities/user_progress.dart';
+import 'package:kopim/features/profile/domain/policies/level_policy.dart';
+import 'package:kopim/l10n/app_localizations.dart';
+import 'package:kopim/features/profile/presentation/controllers/avatar_controller.dart';
+
+class ProfileOverviewCard extends ConsumerWidget {
+  const ProfileOverviewCard({
+    super.key,
+    required this.profile,
+    required this.progressAsync,
+    required this.uid,
+    required this.avatarState,
+  });
+
+  final Profile? profile;
+  final AsyncValue<UserProgress> progressAsync;
+  final String uid;
+  final AsyncValue<void> avatarState;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final AppLocalizations strings = AppLocalizations.of(context)!;
+    final ThemeData theme = Theme.of(context);
+    final bool isUploading = avatarState.isLoading;
+
+    final String displayName = (profile?.name.trim().isEmpty ?? true)
+        ? strings.profileUnnamed
+        : profile!.name.trim();
+
+    return Card(
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: <Widget>[
+                _AvatarPreview(
+                  photoUrl: profile?.photoUrl,
+                  isUploading: isUploading,
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text(displayName, style: theme.textTheme.titleMedium),
+                      const SizedBox(height: 4),
+                      progressAsync.when(
+                        data: (UserProgress progress) {
+                          final LevelPolicy policy = ref.read(
+                            levelPolicyProvider,
+                          );
+                          final int previousThreshold = policy
+                              .previousThreshold(progress.level);
+                          final int nextThreshold = progress.nextThreshold;
+                          final int xpToNext = math.max(
+                            0,
+                            nextThreshold - progress.totalTx,
+                          );
+                          final double ratio =
+                              nextThreshold == previousThreshold
+                              ? 1.0
+                              : ((progress.totalTx - previousThreshold) /
+                                        (nextThreshold - previousThreshold))
+                                    .clamp(0.0, 1.0);
+                          final String badgeLabel = strings.profileLevelBadge(
+                            progress.level,
+                            progress.title,
+                          );
+                          final String xpLabel =
+                              nextThreshold == progress.totalTx
+                              ? strings.profileXpMax(progress.totalTx)
+                              : strings.profileXp(
+                                  progress.totalTx,
+                                  nextThreshold,
+                                );
+
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              Chip(
+                                label: Text(badgeLabel),
+                                avatar: const Icon(Icons.emoji_events_outlined),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(xpLabel, style: theme.textTheme.bodyMedium),
+                              const SizedBox(height: 8),
+                              ClipRRect(
+                                borderRadius: const BorderRadius.all(
+                                  Radius.circular(12),
+                                ),
+                                child: LinearProgressIndicator(value: ratio),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                nextThreshold == progress.totalTx
+                                    ? strings.profileLevelMaxReached
+                                    : strings.profileXpToNext(xpToNext),
+                                style: theme.textTheme.bodySmall,
+                              ),
+                            ],
+                          );
+                        },
+                        loading: () => const Align(
+                          alignment: Alignment.centerLeft,
+                          child: SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        ),
+                        error: (Object error, StackTrace? stackTrace) => Text(
+                          strings.profileProgressError(error.toString()),
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.error,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              children: <Widget>[
+                FilledButton.tonalIcon(
+                  onPressed: () {
+                    _showAvatarSourceSheet(context, ref);
+                  },
+                  icon: const Icon(Icons.photo_camera_back_outlined),
+                  label: Text(strings.profileChangeAvatar),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showAvatarSourceSheet(BuildContext context, WidgetRef ref) {
+    final AppLocalizations strings = AppLocalizations.of(context)!;
+    showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (BuildContext sheetContext) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              ListTile(
+                leading: const Icon(Icons.photo_library_outlined),
+                title: Text(strings.profileChangeAvatarGallery),
+                onTap: () async {
+                  Navigator.of(sheetContext).pop();
+                  await ref
+                      .read(avatarControllerProvider.notifier)
+                      .changeAvatar(
+                        source: AvatarUploadSource.gallery,
+                        uid: uid,
+                      );
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_camera_outlined),
+                title: Text(strings.profileChangeAvatarCamera),
+                onTap: () async {
+                  Navigator.of(sheetContext).pop();
+                  await ref
+                      .read(avatarControllerProvider.notifier)
+                      .changeAvatar(
+                        source: AvatarUploadSource.camera,
+                        uid: uid,
+                      );
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _AvatarPreview extends StatelessWidget {
+  const _AvatarPreview({required this.photoUrl, required this.isUploading});
+
+  final String? photoUrl;
+  final bool isUploading;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    return Stack(
+      alignment: Alignment.center,
+      children: <Widget>[
+        CircleAvatar(
+          radius: 36,
+          backgroundColor: theme.colorScheme.surfaceContainerHighest,
+          backgroundImage: photoUrl != null ? NetworkImage(photoUrl!) : null,
+          onBackgroundImageError: photoUrl != null
+              ? (Object error, StackTrace? stackTrace) {
+                  // Игнорируем сетевые ошибки и показываем плейсхолдер,
+                  // чтобы офлайн-режим не приводил к падению виджета.
+                }
+              : null,
+          child: photoUrl == null
+              ? Icon(
+                  Icons.person,
+                  size: 32,
+                  color: theme.colorScheme.onSurfaceVariant,
+                )
+              : null,
+        ),
+        if (isUploading)
+          Container(
+            width: 72,
+            height: 72,
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surface.withValues(alpha: 0.6),
+              shape: BoxShape.circle,
+            ),
+            alignment: Alignment.center,
+            child: SizedBox(
+              width: 24,
+              height: 24,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  theme.colorScheme.primary,
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}

@@ -14,11 +14,31 @@ class TransactionDao {
     return query.watch();
   }
 
+  Stream<int> watchActiveCount() {
+    return _db
+        .customSelect(
+          'SELECT COUNT(*) AS count FROM transactions WHERE is_deleted = 0',
+          readsFrom: <TableInfo<dynamic, dynamic>>{_db.transactions},
+        )
+        .watchSingle()
+        .map((QueryRow row) => row.read<int>('count'));
+  }
+
   Future<List<db.TransactionRow>> getActiveTransactions() {
     final SimpleSelectStatement<db.$TransactionsTable, db.TransactionRow>
     query = _db.select(_db.transactions)
       ..where((db.$TransactionsTable tbl) => tbl.isDeleted.equals(false));
     return query.get();
+  }
+
+  Future<int> countActiveTransactions() async {
+    final QueryRow row = await _db
+        .customSelect(
+          'SELECT COUNT(*) AS count FROM transactions WHERE is_deleted = 0',
+          readsFrom: <TableInfo<dynamic, dynamic>>{_db.transactions},
+        )
+        .getSingle();
+    return row.read<int>('count');
   }
 
   Future<List<TransactionEntity>> getAllTransactions() async {

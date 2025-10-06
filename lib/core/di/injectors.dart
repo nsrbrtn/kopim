@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:riverpod/riverpod.dart' as rp;
@@ -53,9 +54,20 @@ import 'package:kopim/features/savings/domain/use_cases/update_saving_goal_use_c
 import 'package:kopim/features/savings/domain/use_cases/watch_saving_goals_use_case.dart';
 import 'package:kopim/features/profile/data/auth_repository_impl.dart';
 import 'package:kopim/features/profile/data/local/profile_dao.dart';
+import 'package:kopim/features/profile/data/profile_avatar_repository_impl.dart';
 import 'package:kopim/features/profile/data/profile_repository_impl.dart';
+import 'package:kopim/features/profile/data/remote/avatar_remote_data_source.dart';
 import 'package:kopim/features/profile/data/remote/profile_remote_data_source.dart';
+import 'package:kopim/features/profile/data/remote/user_progress_remote_data_source.dart';
+import 'package:kopim/features/profile/data/user_progress_repository_impl.dart';
 import 'package:kopim/features/profile/domain/repositories/profile_repository.dart';
+import 'package:kopim/features/profile/domain/policies/level_policy.dart';
+import 'package:kopim/features/profile/domain/repositories/profile_avatar_repository.dart';
+import 'package:kopim/features/profile/domain/repositories/user_progress_repository.dart';
+import 'package:kopim/features/profile/domain/usecases/on_transaction_created_use_case.dart';
+import 'package:kopim/features/profile/domain/usecases/on_transaction_deleted_use_case.dart';
+import 'package:kopim/features/profile/domain/usecases/recompute_user_progress_use_case.dart';
+import 'package:kopim/features/profile/domain/usecases/update_profile_avatar_use_case.dart';
 import 'package:kopim/features/profile/domain/usecases/update_profile_use_case.dart';
 import 'package:kopim/features/profile/domain/usecases/update_profile_use_case_impl.dart';
 
@@ -105,6 +117,12 @@ FirebaseAuth firebaseAuth(Ref ref) => FirebaseAuth.instance;
 
 @riverpod
 GoogleSignIn googleSignIn(Ref ref) => GoogleSignIn.instance;
+
+@riverpod
+FirebaseStorage firebaseStorage(Ref ref) => FirebaseStorage.instance;
+
+@riverpod
+LevelPolicy levelPolicy(Ref ref) => const SimpleLevelPolicy();
 
 @riverpod
 Connectivity connectivity(Ref ref) => Connectivity();
@@ -189,6 +207,14 @@ TransactionRemoteDataSource transactionRemoteDataSource(Ref ref) =>
 @riverpod
 ProfileRemoteDataSource profileRemoteDataSource(Ref ref) =>
     ProfileRemoteDataSource(ref.watch(firestoreProvider));
+
+@riverpod
+AvatarRemoteDataSource avatarRemoteDataSource(Ref ref) =>
+    AvatarRemoteDataSource(ref.watch(firebaseStorageProvider));
+
+@riverpod
+UserProgressRemoteDataSource userProgressRemoteDataSource(Ref ref) =>
+    UserProgressRemoteDataSource(ref.watch(firestoreProvider));
 
 @riverpod
 BudgetRemoteDataSource budgetRemoteDataSource(Ref ref) =>
@@ -345,6 +371,9 @@ final rp.Provider<AddTransactionUseCase> addTransactionUseCaseProvider =
       return AddTransactionUseCase(
         transactionRepository: ref.watch(transactionRepositoryProvider),
         accountRepository: ref.watch(accountRepositoryProvider),
+        onTransactionCreatedUseCase: ref.watch(
+          onTransactionCreatedUseCaseProvider,
+        ),
       );
     });
 
@@ -361,6 +390,9 @@ final rp.Provider<DeleteTransactionUseCase> deleteTransactionUseCaseProvider =
       return DeleteTransactionUseCase(
         transactionRepository: ref.watch(transactionRepositoryProvider),
         accountRepository: ref.watch(accountRepositoryProvider),
+        onTransactionDeletedUseCase: ref.watch(
+          onTransactionDeletedUseCaseProvider,
+        ),
       );
     });
 
@@ -449,10 +481,62 @@ ProfileRepository profileRepository(Ref ref) => ProfileRepositoryImpl(
 );
 
 @riverpod
+ProfileAvatarRepository profileAvatarRepository(Ref ref) =>
+    ProfileAvatarRepositoryImpl(
+      remoteDataSource: ref.watch(avatarRemoteDataSourceProvider),
+    );
+
+@riverpod
+UserProgressRepository userProgressRepository(Ref ref) {
+  final UserProgressRepositoryImpl repository = UserProgressRepositoryImpl(
+    transactionDao: ref.watch(transactionDaoProvider),
+    remoteDataSource: ref.watch(userProgressRemoteDataSourceProvider),
+  );
+  ref.onDispose(repository.dispose);
+  return repository;
+}
+
+@riverpod
 UpdateProfileUseCase updateProfileUseCase(Ref ref) => UpdateProfileUseCaseImpl(
   repository: ref.watch(profileRepositoryProvider),
   analyticsService: ref.watch(analyticsServiceProvider),
 );
+
+@riverpod
+RecomputeUserProgressUseCase recomputeUserProgressUseCase(Ref ref) =>
+    RecomputeUserProgressUseCase(
+      repository: ref.watch(userProgressRepositoryProvider),
+      levelPolicy: ref.watch(levelPolicyProvider),
+      authRepository: ref.watch(authRepositoryProvider),
+      loggerService: ref.watch(loggerServiceProvider),
+    );
+
+@riverpod
+OnTransactionCreatedUseCase onTransactionCreatedUseCase(Ref ref) =>
+    OnTransactionCreatedUseCase(
+      recomputeUserProgressUseCase: ref.watch(
+        recomputeUserProgressUseCaseProvider,
+      ),
+      levelPolicy: ref.watch(levelPolicyProvider),
+      analyticsService: ref.watch(analyticsServiceProvider),
+    );
+
+@riverpod
+OnTransactionDeletedUseCase onTransactionDeletedUseCase(Ref ref) =>
+    OnTransactionDeletedUseCase(
+      recomputeUserProgressUseCase: ref.watch(
+        recomputeUserProgressUseCaseProvider,
+      ),
+    );
+
+@riverpod
+UpdateProfileAvatarUseCase updateProfileAvatarUseCase(Ref ref) =>
+    UpdateProfileAvatarUseCase(
+      avatarRepository: ref.watch(profileAvatarRepositoryProvider),
+      profileRepository: ref.watch(profileRepositoryProvider),
+      analyticsService: ref.watch(analyticsServiceProvider),
+      loggerService: ref.watch(loggerServiceProvider),
+    );
 
 @riverpod
 SyncService syncService(Ref ref) {

@@ -242,6 +242,53 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get profileUnnamed => 'Explorer';
+
+  @override
+  String get profileChangeAvatar => 'Change avatar';
+
+  @override
+  String get profileChangeAvatarGallery => 'Choose from gallery';
+
+  @override
+  String get profileChangeAvatarCamera => 'Take a photo';
+
+  @override
+  String get profileAvatarUploadError =>
+      'Couldn\'t update avatar. Please try again.';
+
+  @override
+  String get profileAvatarUploadSuccess => 'Avatar updated';
+
+  @override
+  String profileLevelBadge(int level, String title) {
+    return 'Level $level — $title';
+  }
+
+  @override
+  String profileXp(int current, int next) {
+    return 'XP: $current / $next';
+  }
+
+  @override
+  String profileXpMax(int current) {
+    return 'XP: $current';
+  }
+
+  @override
+  String profileXpToNext(int count) {
+    return '$count XP to the next level';
+  }
+
+  @override
+  String get profileLevelMaxReached => 'You have reached the highest rank!';
+
+  @override
+  String profileProgressError(String error) {
+    return 'Unable to load progress: $error';
+  }
+
+  @override
   String get profileSaveCta => 'Save changes';
 
   @override
@@ -681,6 +728,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get transactionDeleteSuccess => 'Transaction deleted.';
+
+  @override
+  String get transactionXpGained => '+1 XP';
 
   @override
   String get transactionDeleteConfirmTitle => 'Delete transaction';

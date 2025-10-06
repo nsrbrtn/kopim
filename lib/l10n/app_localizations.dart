@@ -542,6 +542,78 @@ abstract class AppLocalizations {
   /// **'Unable to load profile: {error}'**
   String profileLoadError(String error);
 
+  /// Placeholder name when the user has not specified one
+  ///
+  /// In en, this message translates to:
+  /// **'Explorer'**
+  String get profileUnnamed;
+
+  /// Menu item and button label for changing the avatar
+  ///
+  /// In en, this message translates to:
+  /// **'Change avatar'**
+  String get profileChangeAvatar;
+
+  /// Action label for selecting an avatar from the gallery
+  ///
+  /// In en, this message translates to:
+  /// **'Choose from gallery'**
+  String get profileChangeAvatarGallery;
+
+  /// Action label for capturing an avatar with the camera
+  ///
+  /// In en, this message translates to:
+  /// **'Take a photo'**
+  String get profileChangeAvatarCamera;
+
+  /// Snackbar shown when the avatar upload fails
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t update avatar. Please try again.'**
+  String get profileAvatarUploadError;
+
+  /// Snackbar shown when the avatar upload succeeds
+  ///
+  /// In en, this message translates to:
+  /// **'Avatar updated'**
+  String get profileAvatarUploadSuccess;
+
+  /// Badge text combining the numeric level and the title
+  ///
+  /// In en, this message translates to:
+  /// **'Level {level} — {title}'**
+  String profileLevelBadge(int level, String title);
+
+  /// Label showing the current XP relative to the next threshold
+  ///
+  /// In en, this message translates to:
+  /// **'XP: {current} / {next}'**
+  String profileXp(int current, int next);
+
+  /// Label when the user reached the highest level
+  ///
+  /// In en, this message translates to:
+  /// **'XP: {current}'**
+  String profileXpMax(int current);
+
+  /// Caption indicating remaining XP to reach the next level
+  ///
+  /// In en, this message translates to:
+  /// **'{count} XP to the next level'**
+  String profileXpToNext(int count);
+
+  /// Caption shown when the user is at the highest level
+  ///
+  /// In en, this message translates to:
+  /// **'You have reached the highest rank!'**
+  String get profileLevelMaxReached;
+
+  /// Error message displayed when progress cannot be loaded
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load progress: {error}'**
+  String profileProgressError(String error);
+
   /// Label for the save button on profile form
   ///
   /// In en, this message translates to:
@@ -1303,6 +1375,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Transaction deleted.'**
   String get transactionDeleteSuccess;
+
+  /// Snackbar text shown after creating a new transaction
+  ///
+  /// In en, this message translates to:
+  /// **'+1 XP'**
+  String get transactionXpGained;
 
   /// Title for the transaction deletion confirmation dialog
   ///
