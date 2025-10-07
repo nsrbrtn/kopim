@@ -53,6 +53,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'Track a selected budget without leaving the home screen.';
 
   @override
+  String get settingsHomeRecurringTitle => 'Recurring widget';
+
+  @override
+  String get settingsHomeRecurringSubtitle =>
+      'Show upcoming recurring operations on the home screen.';
+
+  @override
   String get settingsHomeBudgetSelectedLabel => 'Selected budget';
 
   @override
@@ -572,6 +579,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeTransactionsSection => 'Recent transactions';
+
+  @override
+  String get homeTransactionsFilterAll => 'All';
+
+  @override
+  String get homeTransactionsFilterIncome => 'Income';
+
+  @override
+  String get homeTransactionsFilterExpense => 'Expenses';
+
+  @override
+  String get homeTransactionsSeeAll => 'All transactions';
 
   @override
   String get homeTransactionsEmpty => 'No transactions recorded yet.';
@@ -1265,4 +1284,43 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get transactionDefaultTitle => 'Transaction';
+
+  @override
+  String get allTransactionsTitle => 'All transactions';
+
+  @override
+  String get allTransactionsFiltersTitle => 'Transaction filters';
+
+  @override
+  String get allTransactionsFiltersDate => 'Period';
+
+  @override
+  String get allTransactionsFiltersDateAny => 'Any date';
+
+  @override
+  String get allTransactionsFiltersAccount => 'Account';
+
+  @override
+  String get allTransactionsFiltersAccountAny => 'All accounts';
+
+  @override
+  String get allTransactionsFiltersCategory => 'Category';
+
+  @override
+  String get allTransactionsFiltersCategoryAny => 'All categories';
+
+  @override
+  String get allTransactionsFiltersLoading => 'Loading…';
+
+  @override
+  String get allTransactionsFiltersClear => 'Reset filters';
+
+  @override
+  String get allTransactionsEmpty =>
+      'No transactions match the selected filters.';
+
+  @override
+  String allTransactionsError(String error) {
+    return 'Failed to load transactions: $error';
+  }
 }

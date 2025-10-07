@@ -500,6 +500,17 @@ class _CategoryEditorSheet extends ConsumerWidget {
       }
     }
 
+    Future<void> selectIcon() async {
+      final PhosphorIconDescriptor? selection = await showPhosphorIconPicker(
+        context: context,
+        labels: pickerLabels,
+        initial: state.icon,
+      );
+      if (selection != null) {
+        controller.updateIcon(selection.isEmpty ? null : selection);
+      }
+    }
+
     return Padding(
       padding: EdgeInsets.only(bottom: viewInsets.bottom),
       child: SingleChildScrollView(
@@ -558,6 +569,7 @@ class _CategoryEditorSheet extends ConsumerWidget {
               ),
               title: Text(strings.manageCategoriesIconLabel),
               subtitle: Text(iconSubtitle),
+              onTap: selectIcon,
               trailing: Wrap(
                 spacing: 8,
                 children: <Widget>[
@@ -570,19 +582,7 @@ class _CategoryEditorSheet extends ConsumerWidget {
                   IconButton(
                     icon: const Icon(Icons.grid_view),
                     tooltip: strings.manageCategoriesIconSelect,
-                    onPressed: () async {
-                      final PhosphorIconDescriptor? selection =
-                          await showPhosphorIconPicker(
-                            context: context,
-                            labels: pickerLabels,
-                            initial: state.icon,
-                          );
-                      if (selection != null) {
-                        controller.updateIcon(
-                          selection.isEmpty ? null : selection,
-                        );
-                      }
-                    },
+                    onPressed: selectIcon,
                   ),
                 ],
               ),

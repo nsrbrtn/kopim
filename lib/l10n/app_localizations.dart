@@ -182,6 +182,18 @@ abstract class AppLocalizations {
   /// **'Track a selected budget without leaving the home screen.'**
   String get settingsHomeBudgetSubtitle;
 
+  /// Toggle title for the recurring operations widget
+  ///
+  /// In en, this message translates to:
+  /// **'Recurring widget'**
+  String get settingsHomeRecurringTitle;
+
+  /// Helper text for the recurring operations widget toggle
+  ///
+  /// In en, this message translates to:
+  /// **'Show upcoming recurring operations on the home screen.'**
+  String get settingsHomeRecurringSubtitle;
+
   /// Title for the list tile showing the currently selected budget
   ///
   /// In en, this message translates to:
@@ -1129,6 +1141,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Recent transactions'**
   String get homeTransactionsSection;
+
+  /// Label for the all transactions filter on the home screen
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get homeTransactionsFilterAll;
+
+  /// Label for the income-only filter on the home screen
+  ///
+  /// In en, this message translates to:
+  /// **'Income'**
+  String get homeTransactionsFilterIncome;
+
+  /// Label for the expense-only filter on the home screen
+  ///
+  /// In en, this message translates to:
+  /// **'Expenses'**
+  String get homeTransactionsFilterExpense;
+
+  /// Button label that opens the all transactions screen
+  ///
+  /// In en, this message translates to:
+  /// **'All transactions'**
+  String get homeTransactionsSeeAll;
 
   /// Empty state for transactions list
   ///
@@ -2353,6 +2389,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Transaction'**
   String get transactionDefaultTitle;
+
+  /// Title for the screen listing all transactions
+  ///
+  /// In en, this message translates to:
+  /// **'All transactions'**
+  String get allTransactionsTitle;
+
+  /// Header for the collapsible filters panel
+  ///
+  /// In en, this message translates to:
+  /// **'Transaction filters'**
+  String get allTransactionsFiltersTitle;
+
+  /// Label for the date range picker
+  ///
+  /// In en, this message translates to:
+  /// **'Period'**
+  String get allTransactionsFiltersDate;
+
+  /// Helper text when no date range is selected
+  ///
+  /// In en, this message translates to:
+  /// **'Any date'**
+  String get allTransactionsFiltersDateAny;
+
+  /// Label for the account filter
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get allTransactionsFiltersAccount;
+
+  /// Helper text when no account is selected
+  ///
+  /// In en, this message translates to:
+  /// **'All accounts'**
+  String get allTransactionsFiltersAccountAny;
+
+  /// Label for the category filter
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get allTransactionsFiltersCategory;
+
+  /// Helper text when no category is selected
+  ///
+  /// In en, this message translates to:
+  /// **'All categories'**
+  String get allTransactionsFiltersCategoryAny;
+
+  /// Subtitle shown while filter data is loading
+  ///
+  /// In en, this message translates to:
+  /// **'Loading…'**
+  String get allTransactionsFiltersLoading;
+
+  /// Button label for clearing all filters
+  ///
+  /// In en, this message translates to:
+  /// **'Reset filters'**
+  String get allTransactionsFiltersClear;
+
+  /// Empty state message for the all transactions screen
+  ///
+  /// In en, this message translates to:
+  /// **'No transactions match the selected filters.'**
+  String get allTransactionsEmpty;
+
+  /// Error message shown when fetching transactions fails
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load transactions: {error}'**
+  String allTransactionsError(String error);
 }
 
 class _AppLocalizationsDelegate

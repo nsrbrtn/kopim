@@ -47,6 +47,7 @@ void main() {
     test('loads preferences on first read', () async {
       repository.stored = const HomeDashboardPreferences(
         showGamificationWidget: true,
+        showRecurringWidget: true,
       );
 
       final HomeDashboardPreferences result = await container.read(
@@ -54,6 +55,7 @@ void main() {
       );
 
       expect(result.showGamificationWidget, isTrue);
+      expect(result.showRecurringWidget, isTrue);
     });
 
     test('setShowGamification updates state and saves', () async {
@@ -68,6 +70,21 @@ void main() {
 
       expect(state?.showGamificationWidget, isTrue);
       expect(repository.lastSaved?.showGamificationWidget, isTrue);
+    });
+
+    test('setShowRecurring updates state and saves', () async {
+      await container.read(homeDashboardPreferencesControllerProvider.future);
+
+      await container
+          .read(homeDashboardPreferencesControllerProvider.notifier)
+          .setShowRecurring(true);
+
+      final HomeDashboardPreferences? state = container
+          .read(homeDashboardPreferencesControllerProvider)
+          .value;
+
+      expect(state?.showRecurringWidget, isTrue);
+      expect(repository.lastSaved?.showRecurringWidget, isTrue);
     });
 
     test(

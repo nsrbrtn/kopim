@@ -8,6 +8,7 @@ abstract class HomeDashboardPreferences with _$HomeDashboardPreferences {
   const factory HomeDashboardPreferences({
     @Default(false) bool showGamificationWidget,
     @Default(false) bool showBudgetWidget,
+    @Default(false) bool showRecurringWidget,
     String? budgetId,
   }) = _HomeDashboardPreferences;
 

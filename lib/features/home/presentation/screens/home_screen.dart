@@ -11,6 +11,7 @@ import 'package:kopim/features/home/domain/models/day_section.dart';
 import 'package:kopim/features/home/domain/models/home_account_monthly_summary.dart';
 import 'package:kopim/features/home/domain/models/upcoming_payment.dart';
 import 'package:kopim/features/home/presentation/controllers/home_dashboard_preferences_controller.dart';
+import 'package:kopim/features/home/presentation/controllers/home_transactions_filter_controller.dart';
 import 'package:kopim/features/home/presentation/widgets/home_budget_progress_card.dart';
 import 'package:kopim/features/home/presentation/widgets/home_gamification_card.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -22,12 +23,14 @@ import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/presentation/add_transaction_screen.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
 import 'package:kopim/features/transactions/presentation/widgets/transaction_editor.dart';
+import 'package:kopim/features/transactions/presentation/widgets/transaction_tile_formatters.dart';
 import 'package:kopim/features/recurring_transactions/domain/entities/recurring_rule.dart';
 import 'package:kopim/features/recurring_transactions/presentation/screens/add_recurring_rule_screen.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 import 'package:kopim/core/utils/helpers.dart';
 import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
 import 'package:kopim/features/profile/presentation/screens/profile_management_screen.dart';
+import 'package:kopim/features/transactions/presentation/screens/all_transactions_screen.dart';
 
 import '../controllers/home_providers.dart';
 
@@ -281,17 +284,19 @@ class _HomeBody extends StatelessWidget {
                 ),
               ),
             );
-            slivers.add(
-              SliverPadding(
-                padding: EdgeInsets.fromLTRB(
-                  horizontalPadding,
-                  24,
-                  horizontalPadding,
-                  0,
+            if (dashboardPreferences?.showRecurringWidget ?? false) {
+              slivers.add(
+                SliverPadding(
+                  padding: EdgeInsets.fromLTRB(
+                    horizontalPadding,
+                    24,
+                    horizontalPadding,
+                    0,
+                  ),
+                  sliver: upcomingPaymentsSliver,
                 ),
-                sliver: upcomingPaymentsSliver,
-              ),
-            );
+              );
+            }
             slivers.add(
               SliverPadding(
                 padding: transactionsHeaderPadding,
@@ -302,8 +307,44 @@ class _HomeBody extends StatelessWidget {
             );
             slivers.add(
               SliverPadding(
+                padding: EdgeInsets.fromLTRB(
+                  horizontalPadding,
+                  0,
+                  horizontalPadding,
+                  12,
+                ),
+                sliver: SliverToBoxAdapter(
+                  child: _TransactionsFilterBar(strings: strings),
+                ),
+              ),
+            );
+            slivers.add(
+              SliverPadding(
                 padding: transactionsContentPadding,
                 sliver: transactionsSliver,
+              ),
+            );
+            slivers.add(
+              SliverPadding(
+                padding: EdgeInsets.fromLTRB(
+                  horizontalPadding,
+                  0,
+                  horizontalPadding,
+                  24,
+                ),
+                sliver: SliverToBoxAdapter(
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: TextButton(
+                      onPressed: () {
+                        Navigator.of(
+                          context,
+                        ).pushNamed(AllTransactionsScreen.routeName);
+                      },
+                      child: Text(strings.homeTransactionsSeeAll),
+                    ),
+                  ),
+                ),
               ),
             );
 
@@ -619,7 +660,7 @@ class _TransactionsSliver extends StatelessWidget {
     final DateTime yesterday = DateUtils.dateOnly(
       today.subtract(const Duration(days: 1)),
     );
-    final DateFormat headerFormat = _TransactionFormatters.dayHeader(
+    final DateFormat headerFormat = TransactionTileFormatters.dayHeader(
       localeName,
     );
 
@@ -664,6 +705,62 @@ class _TransactionsSliver extends StatelessWidget {
         addAutomaticKeepAlives: false,
         addRepaintBoundaries: true,
       ),
+    );
+  }
+}
+
+class _TransactionsFilterBar extends ConsumerWidget {
+  const _TransactionsFilterBar({required this.strings});
+
+  final AppLocalizations strings;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final ThemeData theme = Theme.of(context);
+    final HomeTransactionsFilter selected = ref.watch(
+      homeTransactionsFilterControllerProvider,
+    );
+
+    TextButton buildFilterButton(HomeTransactionsFilter filter, String label) {
+      final bool isSelected = selected == filter;
+      final TextStyle baseStyle =
+          theme.textTheme.bodyMedium ?? const TextStyle(fontSize: 14);
+      final TextStyle style = baseStyle.copyWith(
+        fontWeight: isSelected ? FontWeight.w600 : baseStyle.fontWeight,
+        color: isSelected
+            ? theme.colorScheme.primary
+            : theme.colorScheme.onSurfaceVariant,
+      );
+      return TextButton(
+        onPressed: () => ref
+            .read(homeTransactionsFilterControllerProvider.notifier)
+            .update(filter),
+        style: TextButton.styleFrom(
+          padding: EdgeInsets.zero,
+          minimumSize: const Size(0, 0),
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        ),
+        child: Text(label, style: style),
+      );
+    }
+
+    return Row(
+      children: <Widget>[
+        buildFilterButton(
+          HomeTransactionsFilter.all,
+          strings.homeTransactionsFilterAll,
+        ),
+        const SizedBox(width: 16),
+        buildFilterButton(
+          HomeTransactionsFilter.income,
+          strings.homeTransactionsFilterIncome,
+        ),
+        const SizedBox(width: 16),
+        buildFilterButton(
+          HomeTransactionsFilter.expense,
+          strings.homeTransactionsFilterExpense,
+        ),
+      ],
     );
   }
 }
@@ -979,8 +1076,8 @@ class _TransactionListItem extends ConsumerWidget {
     );
     final String currencySymbol = accountCurrency != null
         ? accountCurrency.toUpperCase()
-        : _TransactionFormatters.fallbackCurrencySymbol(localeName);
-    final NumberFormat moneyFormat = _TransactionFormatters.currency(
+        : TransactionTileFormatters.fallbackCurrencySymbol(localeName);
+    final NumberFormat moneyFormat = TransactionTileFormatters.currency(
       localeName,
       currencySymbol,
     );
@@ -1101,32 +1198,6 @@ class _TransactionListItem extends ConsumerWidget {
           ),
         ),
       ),
-    );
-  }
-}
-
-class _TransactionFormatters {
-  static final Map<String, NumberFormat> _currencyCache =
-      <String, NumberFormat>{};
-  static final Map<String, String> _fallbackSymbols = <String, String>{};
-  static final Map<String, DateFormat> _dayHeaderCache = <String, DateFormat>{};
-
-  static DateFormat dayHeader(String locale) {
-    return _dayHeaderCache.putIfAbsent(locale, () => DateFormat.yMMMMd(locale));
-  }
-
-  static NumberFormat currency(String locale, String symbol) {
-    final String cacheKey = '$locale|$symbol';
-    return _currencyCache.putIfAbsent(
-      cacheKey,
-      () => NumberFormat.currency(locale: locale, symbol: symbol),
-    );
-  }
-
-  static String fallbackCurrencySymbol(String locale) {
-    return _fallbackSymbols.putIfAbsent(
-      locale,
-      () => NumberFormat.simpleCurrency(locale: locale).currencySymbol,
     );
   }
 }

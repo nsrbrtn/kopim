@@ -53,6 +53,14 @@
   "@settingsHomeBudgetSubtitle": {
     "description": "Подсказка к переключателю виджета бюджета"
   },
+  "settingsHomeRecurringTitle": "Виджет повторяющихся операций",
+  "@settingsHomeRecurringTitle": {
+    "description": "Подпись переключателя виджета повторяющихся операций"
+  },
+  "settingsHomeRecurringSubtitle": "Показывать ближайшие повторяющиеся операции на главном экране.",
+  "@settingsHomeRecurringSubtitle": {
+    "description": "Подсказка к переключателю виджета повторяющихся операций"
+  },
   "settingsHomeBudgetSelectedLabel": "Выбранный бюджет",
   "@settingsHomeBudgetSelectedLabel": {
     "description": "Заголовок элемента со статусом выбранного бюджета"
@@ -781,6 +789,22 @@
   "homeTransactionsSection": "Последние транзакции",
   "@homeTransactionsSection": {
     "description": "Заголовок списка транзакций"
+  },
+  "homeTransactionsFilterAll": "Все",
+  "@homeTransactionsFilterAll": {
+    "description": "Подпись фильтра всех транзакций на домашнем экране"
+  },
+  "homeTransactionsFilterIncome": "Доходы",
+  "@homeTransactionsFilterIncome": {
+    "description": "Подпись фильтра доходов на домашнем экране"
+  },
+  "homeTransactionsFilterExpense": "Расходы",
+  "@homeTransactionsFilterExpense": {
+    "description": "Подпись фильтра расходов на домашнем экране"
+  },
+  "homeTransactionsSeeAll": "Все транзакции",
+  "@homeTransactionsSeeAll": {
+    "description": "Подпись кнопки перехода ко всем транзакциям"
   },
   "homeTransactionsEmpty": "Транзакций пока нет.",
   "@homeTransactionsEmpty": {
@@ -1722,5 +1746,60 @@
   "transactionDefaultTitle": "Транзакция",
   "@transactionDefaultTitle": {
     "description": "Резервный заголовок транзакции без примечания"
+  },
+
+  "allTransactionsTitle": "Все транзакции",
+  "@allTransactionsTitle": {
+    "description": "Заголовок экрана со всеми транзакциями"
+  },
+  "allTransactionsFiltersTitle": "Настройка фильтров",
+  "@allTransactionsFiltersTitle": {
+    "description": "Заголовок сворачиваемой панели фильтров"
+  },
+  "allTransactionsFiltersDate": "Период",
+  "@allTransactionsFiltersDate": {
+    "description": "Подпись пункта выбора даты"
+  },
+  "allTransactionsFiltersDateAny": "Любая дата",
+  "@allTransactionsFiltersDateAny": {
+    "description": "Подсказка когда диапазон дат не выбран"
+  },
+  "allTransactionsFiltersAccount": "Счёт",
+  "@allTransactionsFiltersAccount": {
+    "description": "Подпись пункта выбора счёта"
+  },
+  "allTransactionsFiltersAccountAny": "Все счета",
+  "@allTransactionsFiltersAccountAny": {
+    "description": "Подсказка когда счёт не выбран"
+  },
+  "allTransactionsFiltersCategory": "Категория",
+  "@allTransactionsFiltersCategory": {
+    "description": "Подпись пункта выбора категории"
+  },
+  "allTransactionsFiltersCategoryAny": "Все категории",
+  "@allTransactionsFiltersCategoryAny": {
+    "description": "Подсказка когда категория не выбрана"
+  },
+  "allTransactionsFiltersLoading": "Загрузка…",
+  "@allTransactionsFiltersLoading": {
+    "description": "Подсказка при загрузке данных для фильтров"
+  },
+  "allTransactionsFiltersClear": "Сбросить фильтры",
+  "@allTransactionsFiltersClear": {
+    "description": "Подпись кнопки сброса фильтров"
+  },
+  "allTransactionsEmpty": "Транзакций по заданным условиям не найдено.",
+  "@allTransactionsEmpty": {
+    "description": "Сообщение пустого состояния экрана всех транзакций"
+  },
+  "allTransactionsError": "Не удалось загрузить транзакции: {error}",
+  "@allTransactionsError": {
+    "description": "Ошибка загрузки на экране всех транзакций",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
   }
+
 }

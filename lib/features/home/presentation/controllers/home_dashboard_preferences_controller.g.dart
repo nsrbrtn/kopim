@@ -41,7 +41,7 @@ final class HomeDashboardPreferencesControllerProvider
 }
 
 String _$homeDashboardPreferencesControllerHash() =>
-    r'01f60dfc6d328b865b8123ff3024213c2008ea2c';
+    r'de1525ec13d42d4b0459a7f0a7f56b005ff88e25';
 
 abstract class _$HomeDashboardPreferencesController
     extends $AsyncNotifier<HomeDashboardPreferences> {
