@@ -36,6 +36,53 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileRecurringTransactionsCta => 'Recurring transactions';
 
   @override
+  String get settingsHomeSectionTitle => 'Home screen';
+
+  @override
+  String get settingsHomeGamificationTitle => 'Gamification widget';
+
+  @override
+  String get settingsHomeGamificationSubtitle =>
+      'Show level progress on the home screen.';
+
+  @override
+  String get settingsHomeBudgetTitle => 'Budget widget';
+
+  @override
+  String get settingsHomeBudgetSubtitle =>
+      'Track a selected budget without leaving the home screen.';
+
+  @override
+  String get settingsHomeBudgetSelectedLabel => 'Selected budget';
+
+  @override
+  String get settingsHomeBudgetNoBudgets =>
+      'Create a budget to enable this widget.';
+
+  @override
+  String get settingsHomeBudgetSelectedNone => 'No budget selected';
+
+  @override
+  String settingsHomeBudgetError(String error) {
+    return 'Can\'t load budgets: $error';
+  }
+
+  @override
+  String get settingsHomeBudgetPickerTitle => 'Choose budget';
+
+  @override
+  String settingsHomeBudgetPickerSubtitle(String spent, String limit) {
+    return '$spent of $limit used';
+  }
+
+  @override
+  String get settingsHomeBudgetPickerHint =>
+      'You can also disable the widget in the list above.';
+
+  @override
+  String get settingsHomeBudgetPickerClear => 'Clear selection';
+
+  @override
   String get profileManageCategoriesTitle => 'Manage categories';
 
   @override
@@ -547,6 +594,37 @@ class AppLocalizationsEn extends AppLocalizations {
       zero: 'No scheduled payments',
     );
     return '$_temp0';
+  }
+
+  @override
+  String get homeGamificationTitle => 'Level progress';
+
+  @override
+  String get homeGamificationSubtitle =>
+      'Complete transactions to earn XP and unlock new levels.';
+
+  @override
+  String homeGamificationError(String error) {
+    return 'Can\'t load progress: $error';
+  }
+
+  @override
+  String get homeBudgetWidgetTitle => 'Budget overview';
+
+  @override
+  String get homeBudgetWidgetEmpty =>
+      'Select a budget in settings to track it here.';
+
+  @override
+  String get homeBudgetWidgetMissing =>
+      'The selected budget is no longer available.';
+
+  @override
+  String get homeBudgetWidgetConfigureCta => 'Open settings';
+
+  @override
+  String homeDashboardPreferencesError(String error) {
+    return 'Couldn\'t load home widgets: $error';
   }
 
   @override

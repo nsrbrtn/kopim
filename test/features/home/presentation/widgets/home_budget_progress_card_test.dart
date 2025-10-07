@@ -1,0 +1,120 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:kopim/features/budgets/domain/entities/budget.dart';
+import 'package:kopim/features/budgets/domain/entities/budget_instance.dart';
+import 'package:kopim/features/budgets/domain/entities/budget_instance_status.dart';
+import 'package:kopim/features/budgets/domain/entities/budget_period.dart';
+import 'package:kopim/features/budgets/domain/entities/budget_progress.dart';
+import 'package:kopim/features/budgets/domain/entities/budget_scope.dart';
+import 'package:kopim/features/budgets/presentation/controllers/budgets_providers.dart';
+import 'package:kopim/features/home/domain/entities/home_dashboard_preferences.dart';
+import 'package:kopim/features/home/presentation/widgets/home_budget_progress_card.dart';
+import 'package:kopim/l10n/app_localizations.dart';
+import 'package:riverpod/src/framework.dart' show Override;
+
+void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  group('HomeBudgetProgressCard', () {
+    final Budget budget = Budget(
+      id: 'budget-1',
+      title: 'Food',
+      period: BudgetPeriod.monthly,
+      startDate: DateTime(2024, 1, 1),
+      amount: 500,
+      scope: BudgetScope.all,
+      createdAt: DateTime(2024, 1, 1),
+      updatedAt: DateTime(2024, 1, 2),
+    );
+    final BudgetInstance instance = BudgetInstance(
+      id: 'instance-1',
+      budgetId: 'budget-1',
+      periodStart: DateTime(2024, 1, 1),
+      periodEnd: DateTime(2024, 1, 31),
+      amount: 500,
+      spent: 200,
+      status: BudgetInstanceStatus.active,
+      createdAt: DateTime(2024, 1, 1),
+      updatedAt: DateTime(2024, 1, 2),
+    );
+    final BudgetProgress progress = BudgetProgress(
+      budget: budget,
+      instance: instance,
+      spent: 200,
+      remaining: 300,
+      utilization: 0.4,
+      isExceeded: false,
+    );
+
+    testWidgets('renders selected budget progress', (
+      WidgetTester tester,
+    ) async {
+      final ProviderContainer container = ProviderContainer(
+        overrides: <Override>[
+          budgetProgressByIdProvider(
+            'budget-1',
+          ).overrideWithValue(AsyncValue<BudgetProgress>.data(progress)),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: HomeBudgetProgressCard(
+                preferences: const HomeDashboardPreferences(
+                  showBudgetWidget: true,
+                  budgetId: 'budget-1',
+                ),
+                onConfigure: () {},
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(find.text('Budget overview'), findsOneWidget);
+      expect(find.text('Food'), findsOneWidget);
+      expect(find.byType(LinearProgressIndicator), findsOneWidget);
+    });
+
+    testWidgets(
+      'invokes callback when configure button tapped for empty state',
+      (WidgetTester tester) async {
+        bool tapped = false;
+
+        await tester.pumpWidget(
+          MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: HomeBudgetProgressCard(
+                preferences: const HomeDashboardPreferences(
+                  showBudgetWidget: true,
+                  budgetId: null,
+                ),
+                onConfigure: () {
+                  tapped = true;
+                },
+              ),
+            ),
+          ),
+        );
+
+        await tester.tap(find.text('Open settings'));
+        await tester.pump();
+
+        expect(tapped, isTrue);
+      },
+    );
+  });
+}

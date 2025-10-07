@@ -20,6 +20,8 @@ import 'package:kopim/features/categories/domain/repositories/category_repositor
 import 'package:kopim/features/categories/domain/use_cases/watch_categories_use_case.dart';
 import 'package:kopim/features/categories/domain/use_cases/watch_category_tree_use_case.dart';
 import 'package:kopim/features/categories/presentation/controllers/categories_list_controller.dart';
+import 'package:kopim/features/home/domain/entities/home_dashboard_preferences.dart';
+import 'package:kopim/features/home/presentation/controllers/home_dashboard_preferences_controller.dart';
 import 'package:kopim/features/home/presentation/controllers/home_providers.dart';
 import 'package:kopim/features/home/domain/models/upcoming_payment.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
@@ -44,6 +46,16 @@ class _FakeAuthController extends AuthController {
 
   @override
   FutureOr<AuthUser?> build() => _user;
+}
+
+class _FakeHomeDashboardPreferencesController
+    extends HomeDashboardPreferencesController {
+  _FakeHomeDashboardPreferencesController();
+
+  @override
+  Future<HomeDashboardPreferences> build() async {
+    return const HomeDashboardPreferences();
+  }
 }
 
 class _StreamAccountRepository implements AccountRepository {
@@ -189,6 +201,9 @@ void main() {
       overrides: [
         authControllerProvider.overrideWith(
           () => _FakeAuthController(anonymousUser),
+        ),
+        homeDashboardPreferencesControllerProvider.overrideWith(
+          () => _FakeHomeDashboardPreferencesController(),
         ),
         watchAccountsUseCaseProvider.overrideWithValue(
           WatchAccountsUseCase(

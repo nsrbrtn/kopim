@@ -2571,6 +2571,58 @@ final class BudgetRepositoryProvider
 
 String _$budgetRepositoryHash() => r'04bad8edb2ea732d9f98e0e2c0bbcf28348162f3';
 
+@ProviderFor(homeDashboardPreferencesRepository)
+const homeDashboardPreferencesRepositoryProvider =
+    HomeDashboardPreferencesRepositoryProvider._();
+
+final class HomeDashboardPreferencesRepositoryProvider
+    extends
+        $FunctionalProvider<
+          HomeDashboardPreferencesRepository,
+          HomeDashboardPreferencesRepository,
+          HomeDashboardPreferencesRepository
+        >
+    with $Provider<HomeDashboardPreferencesRepository> {
+  const HomeDashboardPreferencesRepositoryProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'homeDashboardPreferencesRepositoryProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() =>
+      _$homeDashboardPreferencesRepositoryHash();
+
+  @$internal
+  @override
+  $ProviderElement<HomeDashboardPreferencesRepository> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  HomeDashboardPreferencesRepository create(Ref ref) {
+    return homeDashboardPreferencesRepository(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(HomeDashboardPreferencesRepository value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<HomeDashboardPreferencesRepository>(
+        value,
+      ),
+    );
+  }
+}
+
+String _$homeDashboardPreferencesRepositoryHash() =>
+    r'c155972af33f2c3b5f38f9d979afab318ef1300d';
+
 @ProviderFor(savingGoalRepository)
 const savingGoalRepositoryProvider = SavingGoalRepositoryProvider._();
 

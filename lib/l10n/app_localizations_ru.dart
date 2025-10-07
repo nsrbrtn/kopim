@@ -37,6 +37,53 @@ class AppLocalizationsRu extends AppLocalizations {
   String get profileRecurringTransactionsCta => 'Повторяющиеся операции';
 
   @override
+  String get settingsHomeSectionTitle => 'Домашний экран';
+
+  @override
+  String get settingsHomeGamificationTitle => 'Виджет геймификации';
+
+  @override
+  String get settingsHomeGamificationSubtitle =>
+      'Показывать прогресс уровня на главном экране.';
+
+  @override
+  String get settingsHomeBudgetTitle => 'Виджет бюджета';
+
+  @override
+  String get settingsHomeBudgetSubtitle =>
+      'Отслеживайте выбранный бюджет прямо на главном экране.';
+
+  @override
+  String get settingsHomeBudgetSelectedLabel => 'Выбранный бюджет';
+
+  @override
+  String get settingsHomeBudgetNoBudgets =>
+      'Создайте бюджет, чтобы включить виджет.';
+
+  @override
+  String get settingsHomeBudgetSelectedNone => 'Бюджет не выбран';
+
+  @override
+  String settingsHomeBudgetError(String error) {
+    return 'Не удалось загрузить бюджеты: $error';
+  }
+
+  @override
+  String get settingsHomeBudgetPickerTitle => 'Выберите бюджет';
+
+  @override
+  String settingsHomeBudgetPickerSubtitle(String spent, String limit) {
+    return 'Использовано $spent из $limit';
+  }
+
+  @override
+  String get settingsHomeBudgetPickerHint =>
+      'Виджет можно отключить переключателем выше.';
+
+  @override
+  String get settingsHomeBudgetPickerClear => 'Сбросить выбор';
+
+  @override
   String get profileManageCategoriesTitle => 'Управление категориями';
 
   @override
@@ -551,6 +598,36 @@ class AppLocalizationsRu extends AppLocalizations {
       zero: 'Нет запланированных платежей',
     );
     return '$_temp0';
+  }
+
+  @override
+  String get homeGamificationTitle => 'Прогресс уровня';
+
+  @override
+  String get homeGamificationSubtitle =>
+      'Совершайте операции, чтобы получать опыт и повышать уровень.';
+
+  @override
+  String homeGamificationError(String error) {
+    return 'Не удалось загрузить прогресс: $error';
+  }
+
+  @override
+  String get homeBudgetWidgetTitle => 'Сводка бюджета';
+
+  @override
+  String get homeBudgetWidgetEmpty =>
+      'Выберите бюджет в настройках, чтобы отслеживать его здесь.';
+
+  @override
+  String get homeBudgetWidgetMissing => 'Выбранный бюджет недоступен.';
+
+  @override
+  String get homeBudgetWidgetConfigureCta => 'Открыть настройки';
+
+  @override
+  String homeDashboardPreferencesError(String error) {
+    return 'Не удалось загрузить виджеты: $error';
   }
 
   @override
