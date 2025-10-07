@@ -33,6 +33,71 @@
   "@profileRecurringTransactionsCta": {
     "description": "Подпись кнопки, открывающей экран повторяющихся операций из настроек профиля"
   },
+  "settingsHomeSectionTitle": "Домашний экран",
+  "@settingsHomeSectionTitle": {
+    "description": "Заголовок секции настроек домашнего экрана"
+  },
+  "settingsHomeGamificationTitle": "Виджет геймификации",
+  "@settingsHomeGamificationTitle": {
+    "description": "Подпись переключателя виджета геймификации"
+  },
+  "settingsHomeGamificationSubtitle": "Показывать прогресс уровня на главном экране.",
+  "@settingsHomeGamificationSubtitle": {
+    "description": "Подсказка к переключателю виджета геймификации"
+  },
+  "settingsHomeBudgetTitle": "Виджет бюджета",
+  "@settingsHomeBudgetTitle": {
+    "description": "Подпись переключателя виджета бюджета"
+  },
+  "settingsHomeBudgetSubtitle": "Отслеживайте выбранный бюджет прямо на главном экране.",
+  "@settingsHomeBudgetSubtitle": {
+    "description": "Подсказка к переключателю виджета бюджета"
+  },
+  "settingsHomeBudgetSelectedLabel": "Выбранный бюджет",
+  "@settingsHomeBudgetSelectedLabel": {
+    "description": "Заголовок элемента со статусом выбранного бюджета"
+  },
+  "settingsHomeBudgetNoBudgets": "Создайте бюджет, чтобы включить виджет.",
+  "@settingsHomeBudgetNoBudgets": {
+    "description": "Сообщение, когда бюджетов ещё нет"
+  },
+  "settingsHomeBudgetSelectedNone": "Бюджет не выбран",
+  "@settingsHomeBudgetSelectedNone": {
+    "description": "Подпись, когда бюджет для виджета не выбран"
+  },
+  "settingsHomeBudgetError": "Не удалось загрузить бюджеты: {error}",
+  "@settingsHomeBudgetError": {
+    "description": "Ошибка при загрузке списка бюджетов",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsHomeBudgetPickerTitle": "Выберите бюджет",
+  "@settingsHomeBudgetPickerTitle": {
+    "description": "Заголовок нижнего листа выбора бюджета"
+  },
+  "settingsHomeBudgetPickerSubtitle": "Использовано {spent} из {limit}",
+  "@settingsHomeBudgetPickerSubtitle": {
+    "description": "Подпись с прогрессом бюджета в списке",
+    "placeholders": {
+      "spent": {
+        "type": "String"
+      },
+      "limit": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsHomeBudgetPickerHint": "Виджет можно отключить переключателем выше.",
+  "@settingsHomeBudgetPickerHint": {
+    "description": "Подсказка к действию сброса выбора"
+  },
+  "settingsHomeBudgetPickerClear": "Сбросить выбор",
+  "@settingsHomeBudgetPickerClear": {
+    "description": "Подпись действия очистки выбранного бюджета"
+  },
   "profileManageCategoriesTitle": "Управление категориями",
   "@profileManageCategoriesTitle": {
     "description": "Заголовок экрана управления категориями"
@@ -746,6 +811,48 @@
     "placeholders": {
       "count": {
         "type": "int"
+      }
+    }
+  },
+  "homeGamificationTitle": "Прогресс уровня",
+  "@homeGamificationTitle": {
+    "description": "Заголовок виджета геймификации на главном экране"
+  },
+  "homeGamificationSubtitle": "Совершайте операции, чтобы получать опыт и повышать уровень.",
+  "@homeGamificationSubtitle": {
+    "description": "Подзаголовок с пояснением, как набрать опыт"
+  },
+  "homeGamificationError": "Не удалось загрузить прогресс: {error}",
+  "@homeGamificationError": {
+    "description": "Ошибка загрузки данных геймификации",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "homeBudgetWidgetTitle": "Сводка бюджета",
+  "@homeBudgetWidgetTitle": {
+    "description": "Заголовок карточки выбранного бюджета"
+  },
+  "homeBudgetWidgetEmpty": "Выберите бюджет в настройках, чтобы отслеживать его здесь.",
+  "@homeBudgetWidgetEmpty": {
+    "description": "Сообщение, когда для виджета не выбран бюджет"
+  },
+  "homeBudgetWidgetMissing": "Выбранный бюджет недоступен.",
+  "@homeBudgetWidgetMissing": {
+    "description": "Ошибка, если сохранённый бюджет удалён"
+  },
+  "homeBudgetWidgetConfigureCta": "Открыть настройки",
+  "@homeBudgetWidgetConfigureCta": {
+    "description": "Кнопка для перехода в настройки виджета бюджета"
+  },
+  "homeDashboardPreferencesError": "Не удалось загрузить виджеты: {error}",
+  "@homeDashboardPreferencesError": {
+    "description": "Ошибка загрузки настроек домашнего экрана",
+    "placeholders": {
+      "error": {
+        "type": "String"
       }
     }
   },

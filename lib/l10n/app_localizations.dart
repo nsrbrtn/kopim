@@ -152,6 +152,84 @@ abstract class AppLocalizations {
   /// **'Recurring transactions'**
   String get profileRecurringTransactionsCta;
 
+  /// Section header for home screen configuration
+  ///
+  /// In en, this message translates to:
+  /// **'Home screen'**
+  String get settingsHomeSectionTitle;
+
+  /// Switch label for enabling the gamification widget
+  ///
+  /// In en, this message translates to:
+  /// **'Gamification widget'**
+  String get settingsHomeGamificationTitle;
+
+  /// Helper text for the gamification toggle
+  ///
+  /// In en, this message translates to:
+  /// **'Show level progress on the home screen.'**
+  String get settingsHomeGamificationSubtitle;
+
+  /// Switch label for enabling the budget widget
+  ///
+  /// In en, this message translates to:
+  /// **'Budget widget'**
+  String get settingsHomeBudgetTitle;
+
+  /// Helper text for the budget widget toggle
+  ///
+  /// In en, this message translates to:
+  /// **'Track a selected budget without leaving the home screen.'**
+  String get settingsHomeBudgetSubtitle;
+
+  /// Title for the list tile showing the currently selected budget
+  ///
+  /// In en, this message translates to:
+  /// **'Selected budget'**
+  String get settingsHomeBudgetSelectedLabel;
+
+  /// Message displayed when no budgets exist
+  ///
+  /// In en, this message translates to:
+  /// **'Create a budget to enable this widget.'**
+  String get settingsHomeBudgetNoBudgets;
+
+  /// Subtitle shown when no budget is selected
+  ///
+  /// In en, this message translates to:
+  /// **'No budget selected'**
+  String get settingsHomeBudgetSelectedNone;
+
+  /// Error displayed when the budgets stream fails
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t load budgets: {error}'**
+  String settingsHomeBudgetError(String error);
+
+  /// Title for the bottom sheet where the user selects a budget
+  ///
+  /// In en, this message translates to:
+  /// **'Choose budget'**
+  String get settingsHomeBudgetPickerTitle;
+
+  /// Subtitle summarizing budget usage in the picker
+  ///
+  /// In en, this message translates to:
+  /// **'{spent} of {limit} used'**
+  String settingsHomeBudgetPickerSubtitle(String spent, String limit);
+
+  /// Helper text shown under the clear selection action
+  ///
+  /// In en, this message translates to:
+  /// **'You can also disable the widget in the list above.'**
+  String get settingsHomeBudgetPickerHint;
+
+  /// Action label for removing the selected budget
+  ///
+  /// In en, this message translates to:
+  /// **'Clear selection'**
+  String get settingsHomeBudgetPickerClear;
+
   /// Title for the category management screen
   ///
   /// In en, this message translates to:
@@ -1069,6 +1147,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =0 {No scheduled payments} one {# upcoming payment} other {# upcoming payments}}'**
   String homeUpcomingPaymentsCountSemantics(int count);
+
+  /// Title for the gamification widget on the home screen
+  ///
+  /// In en, this message translates to:
+  /// **'Level progress'**
+  String get homeGamificationTitle;
+
+  /// Subtitle explaining how to gain experience
+  ///
+  /// In en, this message translates to:
+  /// **'Complete transactions to earn XP and unlock new levels.'**
+  String get homeGamificationSubtitle;
+
+  /// Error message shown when gamification data fails to load
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t load progress: {error}'**
+  String homeGamificationError(String error);
+
+  /// Title for the selected budget card on the home screen
+  ///
+  /// In en, this message translates to:
+  /// **'Budget overview'**
+  String get homeBudgetWidgetTitle;
+
+  /// Message shown when no budget is selected for the home widget
+  ///
+  /// In en, this message translates to:
+  /// **'Select a budget in settings to track it here.'**
+  String get homeBudgetWidgetEmpty;
+
+  /// Error shown when the configured budget was deleted
+  ///
+  /// In en, this message translates to:
+  /// **'The selected budget is no longer available.'**
+  String get homeBudgetWidgetMissing;
+
+  /// Button label that opens settings to configure the budget widget
+  ///
+  /// In en, this message translates to:
+  /// **'Open settings'**
+  String get homeBudgetWidgetConfigureCta;
+
+  /// Error shown when dashboard preferences fail to load
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load home widgets: {error}'**
+  String homeDashboardPreferencesError(String error);
 
   /// Bottom navigation label for home
   ///

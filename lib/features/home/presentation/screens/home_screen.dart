@@ -6,13 +6,18 @@ import 'package:kopim/features/accounts/presentation/account_details_screen.dart
 import 'package:kopim/features/accounts/presentation/accounts_add_screen.dart';
 import 'package:kopim/features/app_shell/presentation/models/navigation_tab_content.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
+import 'package:kopim/features/home/domain/entities/home_dashboard_preferences.dart';
 import 'package:kopim/features/home/domain/models/day_section.dart';
 import 'package:kopim/features/home/domain/models/home_account_monthly_summary.dart';
 import 'package:kopim/features/home/domain/models/upcoming_payment.dart';
+import 'package:kopim/features/home/presentation/controllers/home_dashboard_preferences_controller.dart';
+import 'package:kopim/features/home/presentation/widgets/home_budget_progress_card.dart';
+import 'package:kopim/features/home/presentation/widgets/home_gamification_card.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
 import 'package:kopim/features/profile/presentation/controllers/auth_controller.dart';
+import 'package:kopim/features/profile/presentation/screens/general_settings_screen.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/presentation/add_transaction_screen.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
@@ -40,6 +45,8 @@ NavigationTabContent buildHomeTabContent(BuildContext context, WidgetRef ref) {
   final AsyncValue<List<UpcomingPayment>> upcomingPaymentsAsync = ref.watch(
     homeUpcomingPaymentsProvider,
   );
+  final AsyncValue<HomeDashboardPreferences> dashboardPreferencesAsync = ref
+      .watch(homeDashboardPreferencesControllerProvider);
   final bool isWideLayout = MediaQuery.of(context).size.width >= 720;
 
   return NavigationTabContent(
@@ -70,6 +77,7 @@ NavigationTabContent buildHomeTabContent(BuildContext context, WidgetRef ref) {
         accountSummariesAsync: accountSummariesAsync,
         groupedTransactionsAsync: groupedTransactionsAsync,
         upcomingPaymentsAsync: upcomingPaymentsAsync,
+        dashboardPreferencesAsync: dashboardPreferencesAsync,
       ),
     ),
     floatingActionButtonBuilder: (BuildContext context, WidgetRef ref) =>
@@ -86,6 +94,7 @@ class _HomeBody extends StatelessWidget {
     required this.accountSummariesAsync,
     required this.groupedTransactionsAsync,
     required this.upcomingPaymentsAsync,
+    required this.dashboardPreferencesAsync,
   });
 
   final AsyncValue<AuthUser?> authState;
@@ -96,6 +105,7 @@ class _HomeBody extends StatelessWidget {
   accountSummariesAsync;
   final AsyncValue<List<DaySection>> groupedTransactionsAsync;
   final AsyncValue<List<UpcomingPayment>> upcomingPaymentsAsync;
+  final AsyncValue<HomeDashboardPreferences> dashboardPreferencesAsync;
 
   @override
   Widget build(BuildContext context) {
@@ -107,15 +117,65 @@ class _HomeBody extends StatelessWidget {
           child: Text(strings.homeAuthError(error.toString())),
         ),
       ),
-      data: (_) {
+      data: (AuthUser? user) {
         return LayoutBuilder(
           builder: (BuildContext context, BoxConstraints constraints) {
             final double horizontalPadding = isWideLayout
                 ? constraints.maxWidth * 0.1
                 : 16;
+            final HomeDashboardPreferences? dashboardPreferences =
+                dashboardPreferencesAsync.asData?.value;
+            final List<Widget> slivers = <Widget>[];
+            double nextTopPadding = 16;
+
+            void addBoxSection(Widget child) {
+              slivers.add(
+                SliverPadding(
+                  padding: EdgeInsets.fromLTRB(
+                    horizontalPadding,
+                    nextTopPadding,
+                    horizontalPadding,
+                    0,
+                  ),
+                  sliver: SliverToBoxAdapter(child: child),
+                ),
+              );
+              nextTopPadding = 24;
+            }
+
+            if (dashboardPreferencesAsync.hasError) {
+              addBoxSection(
+                _ErrorMessage(
+                  message: strings.homeDashboardPreferencesError(
+                    dashboardPreferencesAsync.error.toString(),
+                  ),
+                ),
+              );
+            }
+
+            if (dashboardPreferences != null &&
+                dashboardPreferences.showGamificationWidget &&
+                user != null) {
+              addBoxSection(HomeGamificationCard(userId: user.uid));
+            }
+
+            if (dashboardPreferences != null &&
+                dashboardPreferences.showBudgetWidget) {
+              addBoxSection(
+                HomeBudgetProgressCard(
+                  preferences: dashboardPreferences,
+                  onConfigure: () {
+                    Navigator.of(
+                      context,
+                    ).pushNamed(GeneralSettingsScreen.routeName);
+                  },
+                ),
+              );
+            }
+
             final EdgeInsets accountsPadding = EdgeInsets.fromLTRB(
               horizontalPadding,
-              16,
+              slivers.isEmpty ? 16 : 24,
               horizontalPadding,
               0,
             );
@@ -200,50 +260,54 @@ class _HomeBody extends StatelessWidget {
               ),
             );
 
-            return CustomScrollView(
-              slivers: <Widget>[
-                SliverPadding(
-                  padding: accountsPadding,
-                  sliver: SliverList(
-                    delegate: SliverChildListDelegate(<Widget>[
-                      _SectionHeader(
-                        title: strings.homeAccountsSection,
-                        action: IconButton(
-                          icon: const Icon(Icons.add),
-                          tooltip: strings.homeAccountsAddTooltip,
-                          onPressed: () => Navigator.of(
-                            context,
-                          ).pushNamed(AddAccountScreen.routeName),
-                        ),
+            slivers.add(
+              SliverPadding(
+                padding: accountsPadding,
+                sliver: SliverList(
+                  delegate: SliverChildListDelegate(<Widget>[
+                    _SectionHeader(
+                      title: strings.homeAccountsSection,
+                      action: IconButton(
+                        icon: const Icon(Icons.add),
+                        tooltip: strings.homeAccountsAddTooltip,
+                        onPressed: () => Navigator.of(
+                          context,
+                        ).pushNamed(AddAccountScreen.routeName),
                       ),
-                      const SizedBox(height: 12),
-                      accountsSection,
-                    ]),
-                  ),
-                ),
-                SliverPadding(
-                  padding: EdgeInsets.fromLTRB(
-                    horizontalPadding,
-                    24,
-                    horizontalPadding,
-                    0,
-                  ),
-                  sliver: upcomingPaymentsSliver,
-                ),
-                SliverPadding(
-                  padding: transactionsHeaderPadding,
-                  sliver: SliverToBoxAdapter(
-                    child: _SectionHeader(
-                      title: strings.homeTransactionsSection,
                     ),
-                  ),
+                    const SizedBox(height: 12),
+                    accountsSection,
+                  ]),
                 ),
-                SliverPadding(
-                  padding: transactionsContentPadding,
-                  sliver: transactionsSliver,
-                ),
-              ],
+              ),
             );
+            slivers.add(
+              SliverPadding(
+                padding: EdgeInsets.fromLTRB(
+                  horizontalPadding,
+                  24,
+                  horizontalPadding,
+                  0,
+                ),
+                sliver: upcomingPaymentsSliver,
+              ),
+            );
+            slivers.add(
+              SliverPadding(
+                padding: transactionsHeaderPadding,
+                sliver: SliverToBoxAdapter(
+                  child: _SectionHeader(title: strings.homeTransactionsSection),
+                ),
+              ),
+            );
+            slivers.add(
+              SliverPadding(
+                padding: transactionsContentPadding,
+                sliver: transactionsSliver,
+              ),
+            );
+
+            return CustomScrollView(slivers: slivers);
           },
         );
       },

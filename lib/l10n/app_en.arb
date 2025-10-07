@@ -33,6 +33,71 @@
   "@profileRecurringTransactionsCta": {
     "description": "Button label that opens the recurring transactions screen from the profile settings"
   },
+  "settingsHomeSectionTitle": "Home screen",
+  "@settingsHomeSectionTitle": {
+    "description": "Section header for home screen configuration"
+  },
+  "settingsHomeGamificationTitle": "Gamification widget",
+  "@settingsHomeGamificationTitle": {
+    "description": "Switch label for enabling the gamification widget"
+  },
+  "settingsHomeGamificationSubtitle": "Show level progress on the home screen.",
+  "@settingsHomeGamificationSubtitle": {
+    "description": "Helper text for the gamification toggle"
+  },
+  "settingsHomeBudgetTitle": "Budget widget",
+  "@settingsHomeBudgetTitle": {
+    "description": "Switch label for enabling the budget widget"
+  },
+  "settingsHomeBudgetSubtitle": "Track a selected budget without leaving the home screen.",
+  "@settingsHomeBudgetSubtitle": {
+    "description": "Helper text for the budget widget toggle"
+  },
+  "settingsHomeBudgetSelectedLabel": "Selected budget",
+  "@settingsHomeBudgetSelectedLabel": {
+    "description": "Title for the list tile showing the currently selected budget"
+  },
+  "settingsHomeBudgetNoBudgets": "Create a budget to enable this widget.",
+  "@settingsHomeBudgetNoBudgets": {
+    "description": "Message displayed when no budgets exist"
+  },
+  "settingsHomeBudgetSelectedNone": "No budget selected",
+  "@settingsHomeBudgetSelectedNone": {
+    "description": "Subtitle shown when no budget is selected"
+  },
+  "settingsHomeBudgetError": "Can't load budgets: {error}",
+  "@settingsHomeBudgetError": {
+    "description": "Error displayed when the budgets stream fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsHomeBudgetPickerTitle": "Choose budget",
+  "@settingsHomeBudgetPickerTitle": {
+    "description": "Title for the bottom sheet where the user selects a budget"
+  },
+  "settingsHomeBudgetPickerSubtitle": "{spent} of {limit} used",
+  "@settingsHomeBudgetPickerSubtitle": {
+    "description": "Subtitle summarizing budget usage in the picker",
+    "placeholders": {
+      "spent": {
+        "type": "String"
+      },
+      "limit": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsHomeBudgetPickerHint": "You can also disable the widget in the list above.",
+  "@settingsHomeBudgetPickerHint": {
+    "description": "Helper text shown under the clear selection action"
+  },
+  "settingsHomeBudgetPickerClear": "Clear selection",
+  "@settingsHomeBudgetPickerClear": {
+    "description": "Action label for removing the selected budget"
+  },
   "profileManageCategoriesTitle": "Manage categories",
   "@profileManageCategoriesTitle": {
     "description": "Title for the category management screen"
@@ -746,6 +811,48 @@
     "placeholders": {
       "count": {
         "type": "int"
+      }
+    }
+  },
+  "homeGamificationTitle": "Level progress",
+  "@homeGamificationTitle": {
+    "description": "Title for the gamification widget on the home screen"
+  },
+  "homeGamificationSubtitle": "Complete transactions to earn XP and unlock new levels.",
+  "@homeGamificationSubtitle": {
+    "description": "Subtitle explaining how to gain experience"
+  },
+  "homeGamificationError": "Can't load progress: {error}",
+  "@homeGamificationError": {
+    "description": "Error message shown when gamification data fails to load",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "homeBudgetWidgetTitle": "Budget overview",
+  "@homeBudgetWidgetTitle": {
+    "description": "Title for the selected budget card on the home screen"
+  },
+  "homeBudgetWidgetEmpty": "Select a budget in settings to track it here.",
+  "@homeBudgetWidgetEmpty": {
+    "description": "Message shown when no budget is selected for the home widget"
+  },
+  "homeBudgetWidgetMissing": "The selected budget is no longer available.",
+  "@homeBudgetWidgetMissing": {
+    "description": "Error shown when the configured budget was deleted"
+  },
+  "homeBudgetWidgetConfigureCta": "Open settings",
+  "@homeBudgetWidgetConfigureCta": {
+    "description": "Button label that opens settings to configure the budget widget"
+  },
+  "homeDashboardPreferencesError": "Couldn't load home widgets: {error}",
+  "@homeDashboardPreferencesError": {
+    "description": "Error shown when dashboard preferences fail to load",
+    "placeholders": {
+      "error": {
+        "type": "String"
       }
     }
   },

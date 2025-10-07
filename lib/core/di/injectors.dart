@@ -84,6 +84,8 @@ import 'package:kopim/features/transactions/domain/use_cases/update_transaction_
 import 'package:uuid/uuid.dart';
 import 'package:kopim/features/transactions/domain/use_cases/watch_account_transactions_use_case.dart';
 import 'package:kopim/features/transactions/domain/use_cases/watch_recent_transactions_use_case.dart';
+import 'package:kopim/features/home/data/repositories/home_dashboard_preferences_repository_impl.dart';
+import 'package:kopim/features/home/domain/repositories/home_dashboard_preferences_repository.dart';
 import 'package:kopim/features/home/domain/use_cases/group_transactions_by_day_use_case.dart';
 import 'package:kopim/features/recurring_transactions/data/repositories/recurring_transactions_repository_impl.dart';
 import 'package:kopim/features/recurring_transactions/data/services/recurring_notification_service.dart';
@@ -350,6 +352,11 @@ BudgetRepository budgetRepository(Ref ref) => BudgetRepositoryImpl(
   budgetInstanceDao: ref.watch(budgetInstanceDaoProvider),
   outboxDao: ref.watch(outboxDaoProvider),
 );
+
+@riverpod
+HomeDashboardPreferencesRepository homeDashboardPreferencesRepository(Ref ref) {
+  return HomeDashboardPreferencesRepositoryImpl();
+}
 
 @riverpod
 SavingGoalRepository savingGoalRepository(Ref ref) => SavingGoalRepositoryImpl(

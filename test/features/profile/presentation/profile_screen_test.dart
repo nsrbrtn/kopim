@@ -5,8 +5,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod/src/framework.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kopim/core/di/injectors.dart';
+import 'package:kopim/features/budgets/domain/entities/budget_progress.dart';
+import 'package:kopim/features/budgets/presentation/controllers/budgets_providers.dart';
 import 'package:kopim/features/categories/domain/entities/category_tree_node.dart';
 import 'package:kopim/features/categories/presentation/controllers/categories_list_controller.dart';
+import 'package:kopim/features/home/domain/entities/home_dashboard_preferences.dart';
+import 'package:kopim/features/home/presentation/controllers/home_dashboard_preferences_controller.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
 import 'package:kopim/features/profile/domain/entities/profile.dart';
 import 'package:kopim/features/profile/domain/usecases/update_profile_use_case.dart';
@@ -32,6 +36,16 @@ class _FakeAuthController extends AuthController {
 
   @override
   FutureOr<AuthUser?> build() => _user;
+}
+
+class _FakeHomeDashboardPreferencesController
+    extends HomeDashboardPreferencesController {
+  _FakeHomeDashboardPreferencesController();
+
+  @override
+  Future<HomeDashboardPreferences> build() async {
+    return const HomeDashboardPreferences();
+  }
 }
 
 class _SignOutSpyAuthController extends AuthController {
@@ -164,6 +178,13 @@ void main() {
           authControllerProvider.overrideWith(
             () => _FakeAuthController(signedInUser),
           ),
+          homeDashboardPreferencesControllerProvider.overrideWith(
+            () => _FakeHomeDashboardPreferencesController(),
+          ),
+          budgetsWithProgressProvider.overrideWith(
+            (Ref ref) =>
+                const AsyncValue<List<BudgetProgress>>.data(<BudgetProgress>[]),
+          ),
           profileControllerProvider(
             signedInUser.uid,
           ).overrideWith(() => _FakeProfileController(hydratedProfile)),
@@ -213,6 +234,13 @@ void main() {
       ProviderScope(
         overrides: <Override>[
           authControllerProvider.overrideWith(() => _FakeAuthController(null)),
+          homeDashboardPreferencesControllerProvider.overrideWith(
+            () => _FakeHomeDashboardPreferencesController(),
+          ),
+          budgetsWithProgressProvider.overrideWith(
+            (Ref ref) =>
+                const AsyncValue<List<BudgetProgress>>.data(<BudgetProgress>[]),
+          ),
           updateProfileUseCaseProvider.overrideWith(
             (Ref ref) => _StubUpdateProfileUseCase(),
           ),
@@ -251,6 +279,13 @@ void main() {
         overrides: <Override>[
           authControllerProvider.overrideWith(
             () => _FakeAuthController(signedInUser),
+          ),
+          homeDashboardPreferencesControllerProvider.overrideWith(
+            () => _FakeHomeDashboardPreferencesController(),
+          ),
+          budgetsWithProgressProvider.overrideWith(
+            (Ref ref) =>
+                const AsyncValue<List<BudgetProgress>>.data(<BudgetProgress>[]),
           ),
           profileControllerProvider(
             signedInUser.uid,
@@ -308,6 +343,13 @@ void main() {
               signedInUser,
               () => didSignOut = true,
             ),
+          ),
+          homeDashboardPreferencesControllerProvider.overrideWith(
+            () => _FakeHomeDashboardPreferencesController(),
+          ),
+          budgetsWithProgressProvider.overrideWith(
+            (Ref ref) =>
+                const AsyncValue<List<BudgetProgress>>.data(<BudgetProgress>[]),
           ),
           profileControllerProvider(
             signedInUser.uid,
