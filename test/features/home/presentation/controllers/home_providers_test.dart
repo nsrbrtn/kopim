@@ -5,11 +5,36 @@ import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
+import 'package:kopim/features/home/domain/models/day_section.dart';
 import 'package:kopim/features/home/presentation/controllers/home_providers.dart';
+import 'package:kopim/features/home/presentation/controllers/home_transactions_filter_controller.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
+import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
 import 'package:riverpod/riverpod.dart' as riverpod;
 
 void _noop<T>(T? previous, T next) {}
+
+Future<List<DaySection>> _readGroupedTransactions(
+  riverpod.ProviderContainer container,
+) async {
+  final Completer<List<DaySection>> completer = Completer<List<DaySection>>();
+  final riverpod.ProviderSubscription<riverpod.AsyncValue<List<DaySection>>>
+  subscription = container.listen(homeGroupedTransactionsProvider, (
+    riverpod.AsyncValue<List<DaySection>>? _,
+    riverpod.AsyncValue<List<DaySection>> next,
+  ) {
+    if (next.hasValue && !completer.isCompleted) {
+      completer.complete(next.value!);
+    } else if (next.hasError && !completer.isCompleted) {
+      completer.completeError(next.error!, next.stackTrace);
+    }
+  }, fireImmediately: true);
+  try {
+    return await completer.future;
+  } finally {
+    subscription.close();
+  }
+}
 
 void main() {
   group('homeTransactionByIdProvider', () {
@@ -152,6 +177,80 @@ void main() {
 
       await container.pump();
       expect(subscription.read(), category);
+    });
+  });
+
+  group('homeGroupedTransactionsProvider', () {
+    test('учитывает фильтр по типу транзакции', () async {
+      final TransactionEntity expense = TransactionEntity(
+        id: 'tx-expense',
+        accountId: 'acc-1',
+        categoryId: 'cat-1',
+        amount: -100,
+        date: DateTime(2024, 3, 1, 10, 0),
+        note: 'Expense',
+        type: TransactionType.expense.storageValue,
+        createdAt: DateTime(2024, 3, 1),
+        updatedAt: DateTime(2024, 3, 1),
+      );
+      final TransactionEntity income = TransactionEntity(
+        id: 'tx-income',
+        accountId: 'acc-1',
+        categoryId: 'cat-2',
+        amount: 200,
+        date: DateTime(2024, 3, 2, 9, 0),
+        note: 'Income',
+        type: TransactionType.income.storageValue,
+        createdAt: DateTime(2024, 3, 2),
+        updatedAt: DateTime(2024, 3, 2),
+      );
+
+      final overrides = [
+        homeRecentTransactionsProvider().overrideWith((
+          riverpod.Ref ref, {
+          int limit = kDefaultRecentTransactionsLimit,
+        }) {
+          return Stream<List<TransactionEntity>>.value(<TransactionEntity>[
+            expense,
+            income,
+          ]);
+        }),
+      ];
+
+      final riverpod.ProviderContainer container = riverpod.ProviderContainer(
+        overrides: overrides,
+      );
+      addTearDown(container.dispose);
+
+      final List<DaySection> allSections = await _readGroupedTransactions(
+        container,
+      );
+      final int totalAll = allSections
+          .map((DaySection section) => section.transactions.length)
+          .fold<int>(0, (int prev, int count) => prev + count);
+      expect(totalAll, 2);
+
+      container
+          .read(homeTransactionsFilterControllerProvider.notifier)
+          .update(HomeTransactionsFilter.income);
+      container.invalidate(homeGroupedTransactionsProvider);
+      final List<DaySection> incomeSections = await _readGroupedTransactions(
+        container,
+      );
+      final int totalIncome = incomeSections
+          .map((DaySection section) => section.transactions.length)
+          .fold<int>(0, (int prev, int count) => prev + count);
+
+      expect(totalIncome, 1);
+      expect(
+        incomeSections.every(
+          (DaySection section) => section.transactions.every(
+            (TransactionEntity tx) =>
+                tx.type == TransactionType.income.storageValue,
+          ),
+        ),
+        isTrue,
+      );
     });
   });
 }

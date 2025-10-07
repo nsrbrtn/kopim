@@ -19,6 +19,7 @@ import 'features/profile/presentation/screens/profile_management_screen.dart';
 import 'features/profile/presentation/screens/profile_screen.dart';
 import 'features/profile/presentation/screens/sign_in_screen.dart';
 import 'features/transactions/presentation/add_transaction_screen.dart';
+import 'features/transactions/presentation/screens/all_transactions_screen.dart';
 import 'features/recurring_transactions/presentation/screens/add_recurring_rule_screen.dart';
 import 'features/recurring_transactions/presentation/screens/recurring_transactions_screen.dart';
 
@@ -89,6 +90,7 @@ class _MyAppState extends ConsumerState<MyApp> {
         RecurringTransactionsScreen.routeName: (_) =>
             const RecurringTransactionsScreen(),
         AddRecurringRuleScreen.routeName: (_) => const AddRecurringRuleScreen(),
+        AllTransactionsScreen.routeName: (_) => const AllTransactionsScreen(),
       },
       home: startupState.when(
         data: (_) => _AppHome(authState: ref.watch(authControllerProvider)),

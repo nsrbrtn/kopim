@@ -35,6 +35,14 @@ class HomeDashboardPreferencesController
     await _persist(updated, previous: current);
   }
 
+  Future<void> setShowRecurring(bool value) async {
+    final HomeDashboardPreferences current = await future;
+    final HomeDashboardPreferences updated = current.copyWith(
+      showRecurringWidget: value,
+    );
+    await _persist(updated, previous: current);
+  }
+
   Future<void> setBudgetId(String? budgetId) async {
     final HomeDashboardPreferences current = await future;
     final HomeDashboardPreferences updated = current.copyWith(

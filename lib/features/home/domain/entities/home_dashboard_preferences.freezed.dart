@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$HomeDashboardPreferences {
 
- bool get showGamificationWidget; bool get showBudgetWidget; String? get budgetId;
+ bool get showGamificationWidget; bool get showBudgetWidget; bool get showRecurringWidget; String? get budgetId;
 /// Create a copy of HomeDashboardPreferences
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $HomeDashboardPreferencesCopyWith<HomeDashboardPreferences> get copyWith => _$Ho
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is HomeDashboardPreferences&&(identical(other.showGamificationWidget, showGamificationWidget) || other.showGamificationWidget == showGamificationWidget)&&(identical(other.showBudgetWidget, showBudgetWidget) || other.showBudgetWidget == showBudgetWidget)&&(identical(other.budgetId, budgetId) || other.budgetId == budgetId));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is HomeDashboardPreferences&&(identical(other.showGamificationWidget, showGamificationWidget) || other.showGamificationWidget == showGamificationWidget)&&(identical(other.showBudgetWidget, showBudgetWidget) || other.showBudgetWidget == showBudgetWidget)&&(identical(other.showRecurringWidget, showRecurringWidget) || other.showRecurringWidget == showRecurringWidget)&&(identical(other.budgetId, budgetId) || other.budgetId == budgetId));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,showGamificationWidget,showBudgetWidget,budgetId);
+int get hashCode => Object.hash(runtimeType,showGamificationWidget,showBudgetWidget,showRecurringWidget,budgetId);
 
 @override
 String toString() {
-  return 'HomeDashboardPreferences(showGamificationWidget: $showGamificationWidget, showBudgetWidget: $showBudgetWidget, budgetId: $budgetId)';
+  return 'HomeDashboardPreferences(showGamificationWidget: $showGamificationWidget, showBudgetWidget: $showBudgetWidget, showRecurringWidget: $showRecurringWidget, budgetId: $budgetId)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $HomeDashboardPreferencesCopyWith<$Res>  {
   factory $HomeDashboardPreferencesCopyWith(HomeDashboardPreferences value, $Res Function(HomeDashboardPreferences) _then) = _$HomeDashboardPreferencesCopyWithImpl;
 @useResult
 $Res call({
- bool showGamificationWidget, bool showBudgetWidget, String? budgetId
+ bool showGamificationWidget, bool showBudgetWidget, bool showRecurringWidget, String? budgetId
 });
 
 
@@ -65,10 +65,11 @@ class _$HomeDashboardPreferencesCopyWithImpl<$Res>
 
 /// Create a copy of HomeDashboardPreferences
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? showGamificationWidget = null,Object? showBudgetWidget = null,Object? budgetId = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? showGamificationWidget = null,Object? showBudgetWidget = null,Object? showRecurringWidget = null,Object? budgetId = freezed,}) {
   return _then(_self.copyWith(
 showGamificationWidget: null == showGamificationWidget ? _self.showGamificationWidget : showGamificationWidget // ignore: cast_nullable_to_non_nullable
 as bool,showBudgetWidget: null == showBudgetWidget ? _self.showBudgetWidget : showBudgetWidget // ignore: cast_nullable_to_non_nullable
+as bool,showRecurringWidget: null == showRecurringWidget ? _self.showRecurringWidget : showRecurringWidget // ignore: cast_nullable_to_non_nullable
 as bool,budgetId: freezed == budgetId ? _self.budgetId : budgetId // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
@@ -155,10 +156,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool showGamificationWidget,  bool showBudgetWidget,  String? budgetId)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool showGamificationWidget,  bool showBudgetWidget,  bool showRecurringWidget,  String? budgetId)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _HomeDashboardPreferences() when $default != null:
-return $default(_that.showGamificationWidget,_that.showBudgetWidget,_that.budgetId);case _:
+return $default(_that.showGamificationWidget,_that.showBudgetWidget,_that.showRecurringWidget,_that.budgetId);case _:
   return orElse();
 
 }
@@ -176,10 +177,10 @@ return $default(_that.showGamificationWidget,_that.showBudgetWidget,_that.budget
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool showGamificationWidget,  bool showBudgetWidget,  String? budgetId)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool showGamificationWidget,  bool showBudgetWidget,  bool showRecurringWidget,  String? budgetId)  $default,) {final _that = this;
 switch (_that) {
 case _HomeDashboardPreferences():
-return $default(_that.showGamificationWidget,_that.showBudgetWidget,_that.budgetId);case _:
+return $default(_that.showGamificationWidget,_that.showBudgetWidget,_that.showRecurringWidget,_that.budgetId);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -196,10 +197,10 @@ return $default(_that.showGamificationWidget,_that.showBudgetWidget,_that.budget
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool showGamificationWidget,  bool showBudgetWidget,  String? budgetId)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool showGamificationWidget,  bool showBudgetWidget,  bool showRecurringWidget,  String? budgetId)?  $default,) {final _that = this;
 switch (_that) {
 case _HomeDashboardPreferences() when $default != null:
-return $default(_that.showGamificationWidget,_that.showBudgetWidget,_that.budgetId);case _:
+return $default(_that.showGamificationWidget,_that.showBudgetWidget,_that.showRecurringWidget,_that.budgetId);case _:
   return null;
 
 }
@@ -211,11 +212,12 @@ return $default(_that.showGamificationWidget,_that.showBudgetWidget,_that.budget
 @JsonSerializable()
 
 class _HomeDashboardPreferences implements HomeDashboardPreferences {
-  const _HomeDashboardPreferences({this.showGamificationWidget = false, this.showBudgetWidget = false, this.budgetId});
+  const _HomeDashboardPreferences({this.showGamificationWidget = false, this.showBudgetWidget = false, this.showRecurringWidget = false, this.budgetId});
   factory _HomeDashboardPreferences.fromJson(Map<String, dynamic> json) => _$HomeDashboardPreferencesFromJson(json);
 
 @override@JsonKey() final  bool showGamificationWidget;
 @override@JsonKey() final  bool showBudgetWidget;
+@override@JsonKey() final  bool showRecurringWidget;
 @override final  String? budgetId;
 
 /// Create a copy of HomeDashboardPreferences
@@ -231,16 +233,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _HomeDashboardPreferences&&(identical(other.showGamificationWidget, showGamificationWidget) || other.showGamificationWidget == showGamificationWidget)&&(identical(other.showBudgetWidget, showBudgetWidget) || other.showBudgetWidget == showBudgetWidget)&&(identical(other.budgetId, budgetId) || other.budgetId == budgetId));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _HomeDashboardPreferences&&(identical(other.showGamificationWidget, showGamificationWidget) || other.showGamificationWidget == showGamificationWidget)&&(identical(other.showBudgetWidget, showBudgetWidget) || other.showBudgetWidget == showBudgetWidget)&&(identical(other.showRecurringWidget, showRecurringWidget) || other.showRecurringWidget == showRecurringWidget)&&(identical(other.budgetId, budgetId) || other.budgetId == budgetId));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,showGamificationWidget,showBudgetWidget,budgetId);
+int get hashCode => Object.hash(runtimeType,showGamificationWidget,showBudgetWidget,showRecurringWidget,budgetId);
 
 @override
 String toString() {
-  return 'HomeDashboardPreferences(showGamificationWidget: $showGamificationWidget, showBudgetWidget: $showBudgetWidget, budgetId: $budgetId)';
+  return 'HomeDashboardPreferences(showGamificationWidget: $showGamificationWidget, showBudgetWidget: $showBudgetWidget, showRecurringWidget: $showRecurringWidget, budgetId: $budgetId)';
 }
 
 
@@ -251,7 +253,7 @@ abstract mixin class _$HomeDashboardPreferencesCopyWith<$Res> implements $HomeDa
   factory _$HomeDashboardPreferencesCopyWith(_HomeDashboardPreferences value, $Res Function(_HomeDashboardPreferences) _then) = __$HomeDashboardPreferencesCopyWithImpl;
 @override @useResult
 $Res call({
- bool showGamificationWidget, bool showBudgetWidget, String? budgetId
+ bool showGamificationWidget, bool showBudgetWidget, bool showRecurringWidget, String? budgetId
 });
 
 
@@ -268,10 +270,11 @@ class __$HomeDashboardPreferencesCopyWithImpl<$Res>
 
 /// Create a copy of HomeDashboardPreferences
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? showGamificationWidget = null,Object? showBudgetWidget = null,Object? budgetId = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? showGamificationWidget = null,Object? showBudgetWidget = null,Object? showRecurringWidget = null,Object? budgetId = freezed,}) {
   return _then(_HomeDashboardPreferences(
 showGamificationWidget: null == showGamificationWidget ? _self.showGamificationWidget : showGamificationWidget // ignore: cast_nullable_to_non_nullable
 as bool,showBudgetWidget: null == showBudgetWidget ? _self.showBudgetWidget : showBudgetWidget // ignore: cast_nullable_to_non_nullable
+as bool,showRecurringWidget: null == showRecurringWidget ? _self.showRecurringWidget : showRecurringWidget // ignore: cast_nullable_to_non_nullable
 as bool,budgetId: freezed == budgetId ? _self.budgetId : budgetId // ignore: cast_nullable_to_non_nullable
 as String?,
   ));

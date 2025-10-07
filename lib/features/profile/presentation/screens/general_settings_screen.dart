@@ -63,6 +63,9 @@ class GeneralSettingsScreen extends ConsumerWidget {
                   onToggleBudget: (bool value) => ref
                       .read(homeDashboardPreferencesControllerProvider.notifier)
                       .setShowBudget(value),
+                  onToggleRecurring: (bool value) => ref
+                      .read(homeDashboardPreferencesControllerProvider.notifier)
+                      .setShowRecurring(value),
                   onSelectBudget: (List<BudgetProgress> budgets) async {
                     await _showBudgetSelector(
                       context: context,
@@ -116,6 +119,7 @@ class _HomeDashboardSettingsCard extends StatelessWidget {
     required this.budgetsAsync,
     required this.onToggleGamification,
     required this.onToggleBudget,
+    required this.onToggleRecurring,
     required this.onSelectBudget,
   });
 
@@ -124,6 +128,7 @@ class _HomeDashboardSettingsCard extends StatelessWidget {
   final AsyncValue<List<BudgetProgress>> budgetsAsync;
   final ValueChanged<bool> onToggleGamification;
   final ValueChanged<bool> onToggleBudget;
+  final ValueChanged<bool> onToggleRecurring;
   final ValueChanged<List<BudgetProgress>> onSelectBudget;
 
   @override
@@ -131,17 +136,17 @@ class _HomeDashboardSettingsCard extends StatelessWidget {
     final ThemeData theme = Theme.of(context);
     return Card(
       margin: EdgeInsets.zero,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: ExpansionTile(
+        tilePadding: const EdgeInsets.symmetric(horizontal: 16),
+        childrenPadding: EdgeInsets.zero,
+        leading: Icon(Icons.home_outlined, color: theme.colorScheme.primary),
+        title: Text(
+          strings.settingsHomeSectionTitle,
+          style: theme.textTheme.titleMedium,
+        ),
         children: <Widget>[
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-            child: Text(
-              strings.settingsHomeSectionTitle,
-              style: theme.textTheme.titleMedium,
-            ),
-          ),
           SwitchListTile.adaptive(
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16),
             value: preferences.showGamificationWidget,
             onChanged: onToggleGamification,
             title: Text(strings.settingsHomeGamificationTitle),
@@ -149,6 +154,7 @@ class _HomeDashboardSettingsCard extends StatelessWidget {
           ),
           const Divider(height: 0),
           SwitchListTile.adaptive(
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16),
             value: preferences.showBudgetWidget,
             onChanged: onToggleBudget,
             title: Text(strings.settingsHomeBudgetTitle),
@@ -159,6 +165,7 @@ class _HomeDashboardSettingsCard extends StatelessWidget {
               data: (List<BudgetProgress> budgets) {
                 if (budgets.isEmpty) {
                   return ListTile(
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                     leading: const Icon(Icons.pie_chart_outline),
                     title: Text(strings.settingsHomeBudgetSelectedLabel),
                     subtitle: Text(strings.settingsHomeBudgetNoBudgets),
@@ -170,6 +177,7 @@ class _HomeDashboardSettingsCard extends StatelessWidget {
                       progress.budget.id == preferences.budgetId,
                 );
                 return ListTile(
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                   leading: const Icon(Icons.pie_chart_outline),
                   title: Text(strings.settingsHomeBudgetSelectedLabel),
                   subtitle: Text(
@@ -190,6 +198,14 @@ class _HomeDashboardSettingsCard extends StatelessWidget {
                 enabled: false,
               ),
             ),
+          const Divider(height: 0),
+          SwitchListTile.adaptive(
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+            value: preferences.showRecurringWidget,
+            onChanged: onToggleRecurring,
+            title: Text(strings.settingsHomeRecurringTitle),
+            subtitle: Text(strings.settingsHomeRecurringSubtitle),
+          ),
         ],
       ),
     );

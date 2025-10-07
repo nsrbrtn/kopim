@@ -32,6 +32,7 @@ void main() {
       const HomeDashboardPreferences expected = HomeDashboardPreferences(
         showGamificationWidget: true,
         showBudgetWidget: true,
+        showRecurringWidget: true,
         budgetId: 'budget-1',
       );
 

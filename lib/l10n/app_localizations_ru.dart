@@ -54,6 +54,13 @@ class AppLocalizationsRu extends AppLocalizations {
       'Отслеживайте выбранный бюджет прямо на главном экране.';
 
   @override
+  String get settingsHomeRecurringTitle => 'Виджет повторяющихся операций';
+
+  @override
+  String get settingsHomeRecurringSubtitle =>
+      'Показывать ближайшие повторяющиеся операции на главном экране.';
+
+  @override
   String get settingsHomeBudgetSelectedLabel => 'Выбранный бюджет';
 
   @override
@@ -574,6 +581,18 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get homeTransactionsSection => 'Последние транзакции';
+
+  @override
+  String get homeTransactionsFilterAll => 'Все';
+
+  @override
+  String get homeTransactionsFilterIncome => 'Доходы';
+
+  @override
+  String get homeTransactionsFilterExpense => 'Расходы';
+
+  @override
+  String get homeTransactionsSeeAll => 'Все транзакции';
 
   @override
   String get homeTransactionsEmpty => 'Транзакций пока нет.';
@@ -1268,4 +1287,43 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get transactionDefaultTitle => 'Транзакция';
+
+  @override
+  String get allTransactionsTitle => 'Все транзакции';
+
+  @override
+  String get allTransactionsFiltersTitle => 'Настройка фильтров';
+
+  @override
+  String get allTransactionsFiltersDate => 'Период';
+
+  @override
+  String get allTransactionsFiltersDateAny => 'Любая дата';
+
+  @override
+  String get allTransactionsFiltersAccount => 'Счёт';
+
+  @override
+  String get allTransactionsFiltersAccountAny => 'Все счета';
+
+  @override
+  String get allTransactionsFiltersCategory => 'Категория';
+
+  @override
+  String get allTransactionsFiltersCategoryAny => 'Все категории';
+
+  @override
+  String get allTransactionsFiltersLoading => 'Загрузка…';
+
+  @override
+  String get allTransactionsFiltersClear => 'Сбросить фильтры';
+
+  @override
+  String get allTransactionsEmpty =>
+      'Транзакций по заданным условиям не найдено.';
+
+  @override
+  String allTransactionsError(String error) {
+    return 'Не удалось загрузить транзакции: $error';
+  }
 }

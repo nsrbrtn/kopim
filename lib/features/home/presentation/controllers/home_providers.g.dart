@@ -615,7 +615,7 @@ final class HomeGroupedTransactionsProvider
 }
 
 String _$homeGroupedTransactionsHash() =>
-    r'57e99e692effe5a35974908c34eff0a5b58ecb4d';
+    r'7f246cf20b77a3442fdced6c14a81c95cf54f9b6';
 
 @ProviderFor(homeAccountMonthlySummaries)
 const homeAccountMonthlySummariesProvider =

@@ -53,6 +53,14 @@
   "@settingsHomeBudgetSubtitle": {
     "description": "Helper text for the budget widget toggle"
   },
+  "settingsHomeRecurringTitle": "Recurring widget",
+  "@settingsHomeRecurringTitle": {
+    "description": "Toggle title for the recurring operations widget"
+  },
+  "settingsHomeRecurringSubtitle": "Show upcoming recurring operations on the home screen.",
+  "@settingsHomeRecurringSubtitle": {
+    "description": "Helper text for the recurring operations widget toggle"
+  },
   "settingsHomeBudgetSelectedLabel": "Selected budget",
   "@settingsHomeBudgetSelectedLabel": {
     "description": "Title for the list tile showing the currently selected budget"
@@ -781,6 +789,22 @@
   "homeTransactionsSection": "Recent transactions",
   "@homeTransactionsSection": {
     "description": "Section header for transactions list"
+  },
+  "homeTransactionsFilterAll": "All",
+  "@homeTransactionsFilterAll": {
+    "description": "Label for the all transactions filter on the home screen"
+  },
+  "homeTransactionsFilterIncome": "Income",
+  "@homeTransactionsFilterIncome": {
+    "description": "Label for the income-only filter on the home screen"
+  },
+  "homeTransactionsFilterExpense": "Expenses",
+  "@homeTransactionsFilterExpense": {
+    "description": "Label for the expense-only filter on the home screen"
+  },
+  "homeTransactionsSeeAll": "All transactions",
+  "@homeTransactionsSeeAll": {
+    "description": "Button label that opens the all transactions screen"
   },
   "homeTransactionsEmpty": "No transactions recorded yet.",
   "@homeTransactionsEmpty": {
@@ -1722,5 +1746,60 @@
   "transactionDefaultTitle": "Transaction",
   "@transactionDefaultTitle": {
     "description": "Fallback title for transactions without a note"
+  },
+
+  "allTransactionsTitle": "All transactions",
+  "@allTransactionsTitle": {
+    "description": "Title for the screen listing all transactions"
+  },
+  "allTransactionsFiltersTitle": "Transaction filters",
+  "@allTransactionsFiltersTitle": {
+    "description": "Header for the collapsible filters panel"
+  },
+  "allTransactionsFiltersDate": "Period",
+  "@allTransactionsFiltersDate": {
+    "description": "Label for the date range picker"
+  },
+  "allTransactionsFiltersDateAny": "Any date",
+  "@allTransactionsFiltersDateAny": {
+    "description": "Helper text when no date range is selected"
+  },
+  "allTransactionsFiltersAccount": "Account",
+  "@allTransactionsFiltersAccount": {
+    "description": "Label for the account filter"
+  },
+  "allTransactionsFiltersAccountAny": "All accounts",
+  "@allTransactionsFiltersAccountAny": {
+    "description": "Helper text when no account is selected"
+  },
+  "allTransactionsFiltersCategory": "Category",
+  "@allTransactionsFiltersCategory": {
+    "description": "Label for the category filter"
+  },
+  "allTransactionsFiltersCategoryAny": "All categories",
+  "@allTransactionsFiltersCategoryAny": {
+    "description": "Helper text when no category is selected"
+  },
+  "allTransactionsFiltersLoading": "Loading…",
+  "@allTransactionsFiltersLoading": {
+    "description": "Subtitle shown while filter data is loading"
+  },
+  "allTransactionsFiltersClear": "Reset filters",
+  "@allTransactionsFiltersClear": {
+    "description": "Button label for clearing all filters"
+  },
+  "allTransactionsEmpty": "No transactions match the selected filters.",
+  "@allTransactionsEmpty": {
+    "description": "Empty state message for the all transactions screen"
+  },
+  "allTransactionsError": "Failed to load transactions: {error}",
+  "@allTransactionsError": {
+    "description": "Error message shown when fetching transactions fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
   }
+
 }

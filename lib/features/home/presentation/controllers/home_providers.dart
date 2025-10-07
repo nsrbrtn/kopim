@@ -8,6 +8,7 @@ import 'package:kopim/features/home/domain/models/home_account_monthly_summary.d
 import 'package:kopim/features/home/domain/models/upcoming_payment.dart';
 import 'package:kopim/features/home/domain/use_cases/group_transactions_by_day_use_case.dart';
 import 'package:kopim/features/home/domain/use_cases/watch_upcoming_payments_use_case.dart';
+import 'package:kopim/features/home/presentation/controllers/home_transactions_filter_controller.dart';
 import 'package:kopim/features/recurring_transactions/domain/entities/recurring_rule.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
@@ -100,11 +101,17 @@ AsyncValue<List<DaySection>> homeGroupedTransactions(Ref ref) {
   final AsyncValue<List<TransactionEntity>> transactionsAsync = ref.watch(
     homeRecentTransactionsProvider(),
   );
-
-  return transactionsAsync.whenData(
-    (List<TransactionEntity> transactions) =>
-        useCase(transactions: transactions),
+  final HomeTransactionsFilter filter = ref.watch(
+    homeTransactionsFilterControllerProvider,
   );
+
+  return transactionsAsync.whenData((List<TransactionEntity> transactions) {
+    final List<TransactionEntity> filtered = _filterTransactionsByType(
+      transactions,
+      filter,
+    );
+    return useCase(transactions: filtered);
+  });
 }
 
 @riverpod
@@ -179,6 +186,21 @@ TransactionEntity? _findTransactionById(
     }
   }
   return null;
+}
+
+List<TransactionEntity> _filterTransactionsByType(
+  List<TransactionEntity> transactions,
+  HomeTransactionsFilter filter,
+) {
+  if (filter == HomeTransactionsFilter.all) {
+    return transactions;
+  }
+  final String targetType = filter == HomeTransactionsFilter.income
+      ? TransactionType.income.storageValue
+      : TransactionType.expense.storageValue;
+  return transactions
+      .where((TransactionEntity transaction) => transaction.type == targetType)
+      .toList(growable: false);
 }
 
 AccountEntity? _findAccountById(List<AccountEntity> accounts, String id) {
