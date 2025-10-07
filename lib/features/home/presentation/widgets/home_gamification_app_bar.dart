@@ -199,19 +199,32 @@ class _HomeProgressHeaderDelegate extends SliverPersistentHeaderDelegate {
       );
     }
 
-    return SizedBox.expand(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
-        child: Align(
-          alignment: Alignment.topLeft,
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 520),
-            child: Opacity(
-              key: const Key('homeGamification.progressOpacity'),
-              opacity: opacity,
-              child: Transform.translate(
-                offset: Offset(0, verticalOffset),
-                child: buildProgressSection(),
+    final double availableExtent = math.max(0.0, maxExtent - shrinkOffset);
+    final double heightFactor = availableExtent <= 0
+        ? 0.0
+        : (availableExtent / maxExtent).clamp(0.0, 1.0);
+
+    return ClipRect(
+      child: Align(
+        alignment: Alignment.topLeft,
+        heightFactor: heightFactor,
+        child: SizedBox(
+          height: maxExtent,
+          width: double.infinity,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+            child: Align(
+              alignment: Alignment.topLeft,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 520),
+                child: Opacity(
+                  key: const Key('homeGamification.progressOpacity'),
+                  opacity: opacity,
+                  child: Transform.translate(
+                    offset: Offset(0, verticalOffset),
+                    child: buildProgressSection(),
+                  ),
+                ),
               ),
             ),
           ),
