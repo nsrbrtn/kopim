@@ -54,7 +54,6 @@ NavigationTabContent buildHomeTabContent(BuildContext context, WidgetRef ref) {
 
   return NavigationTabContent(
     bodyBuilder: (BuildContext context, WidgetRef ref) => SafeArea(
-      top: false,
       child: _HomeBody(
         authState: authState,
         accountsAsync: accountsAsync,
