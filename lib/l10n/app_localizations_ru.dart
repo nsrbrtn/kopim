@@ -373,6 +373,34 @@ class AppLocalizationsRu extends AppLocalizations {
   String get recurringTransactionsDeleteSuccess => 'Правило удалено.';
 
   @override
+  String get recurringExactAlarmPromptTitle => 'Точный режим напоминаний';
+
+  @override
+  String get recurringExactAlarmPromptSubtitle =>
+      'Чтобы автосписания запускались ровно в 00:01 по локальному времени, разрешите приложению точные будильники в системном разделе \"Будильники и напоминания\".';
+
+  @override
+  String get recurringExactAlarmPromptCta => 'Открыть настройки';
+
+  @override
+  String get recurringExactAlarmEnabledTitle => 'Точный режим включён';
+
+  @override
+  String get recurringExactAlarmEnabledSubtitle =>
+      'Напоминания и автосписания выполнятся ровно по расписанию даже в режиме энергосбережения.';
+
+  @override
+  String get recurringExactAlarmErrorTitle => 'Не удалось проверить разрешение';
+
+  @override
+  String recurringExactAlarmErrorSubtitle(String error) {
+    return 'Повторите попытку: $error';
+  }
+
+  @override
+  String get recurringExactAlarmRetryCta => 'Повторить';
+
+  @override
   String get addRecurringRuleTitle => 'Новая повторяющаяся операция';
 
   @override

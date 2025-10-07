@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:kopim/core/di/injectors.dart';
@@ -8,6 +9,7 @@ import 'package:kopim/features/recurring_transactions/presentation/controllers/r
 import 'package:kopim/features/recurring_transactions/presentation/models/recurring_rule_form_result.dart';
 import 'package:kopim/features/recurring_transactions/presentation/screens/add_recurring_rule_screen.dart';
 import 'package:kopim/features/recurring_transactions/domain/services/recurring_rule_scheduler.dart';
+import 'package:kopim/features/recurring_transactions/presentation/controllers/exact_alarm_permission_controller.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
 /// Entry point screen that will host recurring transaction management.
@@ -32,20 +34,23 @@ class RecurringTransactionsScreen extends ConsumerWidget {
           if (rules.isEmpty) {
             return _EmptyState(message: strings.recurringTransactionsEmpty);
           }
-          return RefreshIndicator(
-            onRefresh: () async {
-              await ref.read(recurringWindowServiceProvider).rebuildWindow();
-            },
-            child: ListView.separated(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-              itemBuilder: (BuildContext context, int index) {
-                final RecurringRule rule = rules[index];
-                final DateTime? nextDue = _resolveNextDue(
-                  rule: rule,
-                  scheduler: scheduler,
-                  now: now,
-                );
-                return _RecurringRuleTile(
+          final bool isAndroid =
+              !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
+          final List<Widget> children = <Widget>[];
+          if (isAndroid) {
+            children.add(const _ExactAlarmPermissionCard());
+            children.add(const SizedBox(height: 16));
+          }
+          for (int index = 0; index < rules.length; index++) {
+            final RecurringRule rule = rules[index];
+            final DateTime? nextDue = _resolveNextDue(
+              rule: rule,
+              scheduler: scheduler,
+              now: now,
+            );
+            children
+              ..add(
+                _RecurringRuleTile(
                   rule: rule,
                   nextDue: nextDue,
                   onToggle: (bool value) async {
@@ -55,11 +60,20 @@ class RecurringTransactionsScreen extends ConsumerWidget {
                   },
                   onEdit: () => _onEditRulePressed(context, rule),
                   onDelete: () => _onDeleteRulePressed(context, ref, rule),
-                );
-              },
-              separatorBuilder: (BuildContext context, int _) =>
-                  const SizedBox(height: 12),
-              itemCount: rules.length,
+                ),
+              )
+              ..add(const SizedBox(height: 12));
+          }
+          if (children.isNotEmpty) {
+            children.removeLast();
+          }
+          return RefreshIndicator(
+            onRefresh: () async {
+              await ref.read(recurringWindowServiceProvider).rebuildWindow();
+            },
+            child: ListView(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+              children: children,
             ),
           );
         },
@@ -258,6 +272,108 @@ class _RecurringRuleTile extends ConsumerWidget {
               },
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ExactAlarmPermissionCard extends ConsumerWidget {
+  const _ExactAlarmPermissionCard();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final AppLocalizations strings = AppLocalizations.of(context)!;
+    final AsyncValue<bool> permissionAsync = ref.watch(
+      exactAlarmPermissionControllerProvider,
+    );
+
+    return permissionAsync.when(
+      data: (bool granted) {
+        if (granted) {
+          return Card(
+            child: ListTile(
+              leading: const Icon(Icons.alarm_on_outlined),
+              title: Text(strings.recurringExactAlarmEnabledTitle),
+              subtitle: Text(strings.recurringExactAlarmEnabledSubtitle),
+            ),
+          );
+        }
+        return Card(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Row(
+                  children: <Widget>[
+                    const Icon(Icons.alarm_add_outlined),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        strings.recurringExactAlarmPromptTitle,
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text(strings.recurringExactAlarmPromptSubtitle),
+                const SizedBox(height: 12),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: FilledButton(
+                    onPressed: () async {
+                      await ref
+                          .read(exactAlarmPermissionControllerProvider.notifier)
+                          .openSettings();
+                    },
+                    child: Text(strings.recurringExactAlarmPromptCta),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+      loading: () => const Card(
+        child: Padding(
+          padding: EdgeInsets.all(16),
+          child: Center(child: CircularProgressIndicator()),
+        ),
+      ),
+      error: (Object error, StackTrace _) => Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Row(
+                children: <Widget>[
+                  const Icon(Icons.error_outline),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      strings.recurringExactAlarmErrorTitle,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(strings.recurringExactAlarmErrorSubtitle(error.toString())),
+              const SizedBox(height: 12),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: OutlinedButton(
+                  onPressed: () => ref
+                      .read(exactAlarmPermissionControllerProvider.notifier)
+                      .refresh(),
+                  child: Text(strings.recurringExactAlarmRetryCta),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

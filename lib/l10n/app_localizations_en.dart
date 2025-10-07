@@ -371,6 +371,34 @@ class AppLocalizationsEn extends AppLocalizations {
   String get recurringTransactionsDeleteSuccess => 'Recurring rule deleted.';
 
   @override
+  String get recurringExactAlarmPromptTitle => 'Precise reminders';
+
+  @override
+  String get recurringExactAlarmPromptSubtitle =>
+      'To trigger auto-posting exactly at 00:01 local time, allow exact alarms for Kopim in Android system settings under \"Alarms & reminders\".';
+
+  @override
+  String get recurringExactAlarmPromptCta => 'Open settings';
+
+  @override
+  String get recurringExactAlarmEnabledTitle => 'Precise mode is active';
+
+  @override
+  String get recurringExactAlarmEnabledSubtitle =>
+      'Reminders and auto-posting will run exactly on schedule even in power saving modes.';
+
+  @override
+  String get recurringExactAlarmErrorTitle => 'Permission check failed';
+
+  @override
+  String recurringExactAlarmErrorSubtitle(String error) {
+    return 'Try again: $error';
+  }
+
+  @override
+  String get recurringExactAlarmRetryCta => 'Retry';
+
+  @override
   String get addRecurringRuleTitle => 'New recurring transaction';
 
   @override

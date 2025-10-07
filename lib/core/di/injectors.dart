@@ -14,6 +14,7 @@ import 'package:kopim/core/data/outbox/outbox_dao.dart';
 import 'package:kopim/core/services/analytics_service.dart';
 import 'package:kopim/core/services/logger_service.dart';
 import 'package:kopim/core/services/auth_sync_service.dart';
+import 'package:kopim/core/services/exact_alarm_permission_service.dart';
 import 'package:kopim/core/services/sync_service.dart';
 import 'package:kopim/features/accounts/data/repositories/account_repository_impl.dart';
 import 'package:kopim/features/accounts/data/sources/local/account_dao.dart';
@@ -487,6 +488,10 @@ RecurringWorkScheduler recurringWorkScheduler(Ref ref) =>
       workmanager: ref.watch(workmanagerProvider),
       logger: ref.watch(loggerServiceProvider),
     );
+
+@riverpod
+ExactAlarmPermissionService exactAlarmPermissionService(Ref ref) =>
+    ExactAlarmPermissionService();
 
 @riverpod
 ProfileRepository profileRepository(Ref ref) => ProfileRepositoryImpl(
