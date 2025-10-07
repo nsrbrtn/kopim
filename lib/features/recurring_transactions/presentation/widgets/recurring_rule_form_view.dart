@@ -196,6 +196,22 @@ class _RecurringRuleForm extends ConsumerWidget {
                 .updateAmount,
           ),
           const SizedBox(height: 16),
+          TextFormField(
+            initialValue: state.notes,
+            maxLines: 3,
+            decoration: InputDecoration(
+              labelText: strings.addRecurringRuleNoteLabel,
+              hintText: strings.addRecurringRuleNoteHint,
+            ),
+            onChanged: ref
+                .read(
+                  recurringRuleFormControllerProvider(
+                    initialRule: initialRule,
+                  ).notifier,
+                )
+                .updateNotes,
+          ),
+          const SizedBox(height: 16),
           InputDecorator(
             decoration: InputDecoration(
               labelText: strings.addRecurringRuleAccountLabel,

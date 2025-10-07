@@ -582,6 +582,14 @@
   "@addRecurringRuleAmountInvalid": {
     "description": "Validation error when amount is invalid"
   },
+  "addRecurringRuleNoteLabel": "Note",
+  "@addRecurringRuleNoteLabel": {
+    "description": "Label for the optional note field"
+  },
+  "addRecurringRuleNoteHint": "Optional comment",
+  "@addRecurringRuleNoteHint": {
+    "description": "Hint text for the optional note field"
+  },
   "addRecurringRuleAccountLabel": "Account",
   "@addRecurringRuleAccountLabel": {
     "description": "Label for the account dropdown"
@@ -903,6 +911,10 @@
   "homeBudgetWidgetMissing": "The selected budget is no longer available.",
   "@homeBudgetWidgetMissing": {
     "description": "Error shown when the configured budget was deleted"
+  },
+  "homeBudgetWidgetCategoriesEmpty": "No category breakdown yet.",
+  "@homeBudgetWidgetCategoriesEmpty": {
+    "description": "Message shown when there are no categories to display in the budget widget"
   },
   "homeBudgetWidgetConfigureCta": "Open settings",
   "@homeBudgetWidgetConfigureCta": {

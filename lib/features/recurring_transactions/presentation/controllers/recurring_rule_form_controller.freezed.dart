@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$RecurringRuleFormState {
 
- String get title; String get amountInput; AccountEntity? get account; String? get accountId; Category? get category; String? get categoryId; TransactionType get type; DateTime get startDate; int get applyHour; int get applyMinute; bool get autoPost; bool get isSubmitting; bool get submissionSuccess; bool get isEditing; RecurringRule? get initialRule; RecurringRuleTitleError? get titleError; RecurringRuleAmountError? get amountError; RecurringRuleAccountError? get accountError; RecurringRuleCategoryError? get categoryError; String? get generalErrorMessage;
+ String get title; String get amountInput; String get notes; AccountEntity? get account; String? get accountId; Category? get category; String? get categoryId; TransactionType get type; DateTime get startDate; int get applyHour; int get applyMinute; bool get autoPost; bool get isSubmitting; bool get submissionSuccess; bool get isEditing; RecurringRule? get initialRule; RecurringRuleTitleError? get titleError; RecurringRuleAmountError? get amountError; RecurringRuleAccountError? get accountError; RecurringRuleCategoryError? get categoryError; String? get generalErrorMessage;
 /// Create a copy of RecurringRuleFormState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $RecurringRuleFormStateCopyWith<RecurringRuleFormState> get copyWith => _$Recurr
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is RecurringRuleFormState&&(identical(other.title, title) || other.title == title)&&(identical(other.amountInput, amountInput) || other.amountInput == amountInput)&&(identical(other.account, account) || other.account == account)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.category, category) || other.category == category)&&(identical(other.categoryId, categoryId) || other.categoryId == categoryId)&&(identical(other.type, type) || other.type == type)&&(identical(other.startDate, startDate) || other.startDate == startDate)&&(identical(other.applyHour, applyHour) || other.applyHour == applyHour)&&(identical(other.applyMinute, applyMinute) || other.applyMinute == applyMinute)&&(identical(other.autoPost, autoPost) || other.autoPost == autoPost)&&(identical(other.isSubmitting, isSubmitting) || other.isSubmitting == isSubmitting)&&(identical(other.submissionSuccess, submissionSuccess) || other.submissionSuccess == submissionSuccess)&&(identical(other.isEditing, isEditing) || other.isEditing == isEditing)&&(identical(other.initialRule, initialRule) || other.initialRule == initialRule)&&(identical(other.titleError, titleError) || other.titleError == titleError)&&(identical(other.amountError, amountError) || other.amountError == amountError)&&(identical(other.accountError, accountError) || other.accountError == accountError)&&(identical(other.categoryError, categoryError) || other.categoryError == categoryError)&&(identical(other.generalErrorMessage, generalErrorMessage) || other.generalErrorMessage == generalErrorMessage));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is RecurringRuleFormState&&(identical(other.title, title) || other.title == title)&&(identical(other.amountInput, amountInput) || other.amountInput == amountInput)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.account, account) || other.account == account)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.category, category) || other.category == category)&&(identical(other.categoryId, categoryId) || other.categoryId == categoryId)&&(identical(other.type, type) || other.type == type)&&(identical(other.startDate, startDate) || other.startDate == startDate)&&(identical(other.applyHour, applyHour) || other.applyHour == applyHour)&&(identical(other.applyMinute, applyMinute) || other.applyMinute == applyMinute)&&(identical(other.autoPost, autoPost) || other.autoPost == autoPost)&&(identical(other.isSubmitting, isSubmitting) || other.isSubmitting == isSubmitting)&&(identical(other.submissionSuccess, submissionSuccess) || other.submissionSuccess == submissionSuccess)&&(identical(other.isEditing, isEditing) || other.isEditing == isEditing)&&(identical(other.initialRule, initialRule) || other.initialRule == initialRule)&&(identical(other.titleError, titleError) || other.titleError == titleError)&&(identical(other.amountError, amountError) || other.amountError == amountError)&&(identical(other.accountError, accountError) || other.accountError == accountError)&&(identical(other.categoryError, categoryError) || other.categoryError == categoryError)&&(identical(other.generalErrorMessage, generalErrorMessage) || other.generalErrorMessage == generalErrorMessage));
 }
 
 
 @override
-int get hashCode => Object.hashAll([runtimeType,title,amountInput,account,accountId,category,categoryId,type,startDate,applyHour,applyMinute,autoPost,isSubmitting,submissionSuccess,isEditing,initialRule,titleError,amountError,accountError,categoryError,generalErrorMessage]);
+int get hashCode => Object.hashAll([runtimeType,title,amountInput,notes,account,accountId,category,categoryId,type,startDate,applyHour,applyMinute,autoPost,isSubmitting,submissionSuccess,isEditing,initialRule,titleError,amountError,accountError,categoryError,generalErrorMessage]);
 
 @override
 String toString() {
-  return 'RecurringRuleFormState(title: $title, amountInput: $amountInput, account: $account, accountId: $accountId, category: $category, categoryId: $categoryId, type: $type, startDate: $startDate, applyHour: $applyHour, applyMinute: $applyMinute, autoPost: $autoPost, isSubmitting: $isSubmitting, submissionSuccess: $submissionSuccess, isEditing: $isEditing, initialRule: $initialRule, titleError: $titleError, amountError: $amountError, accountError: $accountError, categoryError: $categoryError, generalErrorMessage: $generalErrorMessage)';
+  return 'RecurringRuleFormState(title: $title, amountInput: $amountInput, notes: $notes, account: $account, accountId: $accountId, category: $category, categoryId: $categoryId, type: $type, startDate: $startDate, applyHour: $applyHour, applyMinute: $applyMinute, autoPost: $autoPost, isSubmitting: $isSubmitting, submissionSuccess: $submissionSuccess, isEditing: $isEditing, initialRule: $initialRule, titleError: $titleError, amountError: $amountError, accountError: $accountError, categoryError: $categoryError, generalErrorMessage: $generalErrorMessage)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $RecurringRuleFormStateCopyWith<$Res>  {
   factory $RecurringRuleFormStateCopyWith(RecurringRuleFormState value, $Res Function(RecurringRuleFormState) _then) = _$RecurringRuleFormStateCopyWithImpl;
 @useResult
 $Res call({
- String title, String amountInput, AccountEntity? account, String? accountId, Category? category, String? categoryId, TransactionType type, DateTime startDate, int applyHour, int applyMinute, bool autoPost, bool isSubmitting, bool submissionSuccess, bool isEditing, RecurringRule? initialRule, RecurringRuleTitleError? titleError, RecurringRuleAmountError? amountError, RecurringRuleAccountError? accountError, RecurringRuleCategoryError? categoryError, String? generalErrorMessage
+ String title, String amountInput, String notes, AccountEntity? account, String? accountId, Category? category, String? categoryId, TransactionType type, DateTime startDate, int applyHour, int applyMinute, bool autoPost, bool isSubmitting, bool submissionSuccess, bool isEditing, RecurringRule? initialRule, RecurringRuleTitleError? titleError, RecurringRuleAmountError? amountError, RecurringRuleAccountError? accountError, RecurringRuleCategoryError? categoryError, String? generalErrorMessage
 });
 
 
@@ -62,10 +62,11 @@ class _$RecurringRuleFormStateCopyWithImpl<$Res>
 
 /// Create a copy of RecurringRuleFormState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? title = null,Object? amountInput = null,Object? account = freezed,Object? accountId = freezed,Object? category = freezed,Object? categoryId = freezed,Object? type = null,Object? startDate = null,Object? applyHour = null,Object? applyMinute = null,Object? autoPost = null,Object? isSubmitting = null,Object? submissionSuccess = null,Object? isEditing = null,Object? initialRule = freezed,Object? titleError = freezed,Object? amountError = freezed,Object? accountError = freezed,Object? categoryError = freezed,Object? generalErrorMessage = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? title = null,Object? amountInput = null,Object? notes = null,Object? account = freezed,Object? accountId = freezed,Object? category = freezed,Object? categoryId = freezed,Object? type = null,Object? startDate = null,Object? applyHour = null,Object? applyMinute = null,Object? autoPost = null,Object? isSubmitting = null,Object? submissionSuccess = null,Object? isEditing = null,Object? initialRule = freezed,Object? titleError = freezed,Object? amountError = freezed,Object? accountError = freezed,Object? categoryError = freezed,Object? generalErrorMessage = freezed,}) {
   return _then(_self.copyWith(
 title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String,amountInput: null == amountInput ? _self.amountInput : amountInput // ignore: cast_nullable_to_non_nullable
+as String,notes: null == notes ? _self.notes : notes // ignore: cast_nullable_to_non_nullable
 as String,account: freezed == account ? _self.account : account // ignore: cast_nullable_to_non_nullable
 as AccountEntity?,accountId: freezed == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
 as String?,category: freezed == category ? _self.category : category // ignore: cast_nullable_to_non_nullable
@@ -205,10 +206,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String title,  String amountInput,  AccountEntity? account,  String? accountId,  Category? category,  String? categoryId,  TransactionType type,  DateTime startDate,  int applyHour,  int applyMinute,  bool autoPost,  bool isSubmitting,  bool submissionSuccess,  bool isEditing,  RecurringRule? initialRule,  RecurringRuleTitleError? titleError,  RecurringRuleAmountError? amountError,  RecurringRuleAccountError? accountError,  RecurringRuleCategoryError? categoryError,  String? generalErrorMessage)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String title,  String amountInput,  String notes,  AccountEntity? account,  String? accountId,  Category? category,  String? categoryId,  TransactionType type,  DateTime startDate,  int applyHour,  int applyMinute,  bool autoPost,  bool isSubmitting,  bool submissionSuccess,  bool isEditing,  RecurringRule? initialRule,  RecurringRuleTitleError? titleError,  RecurringRuleAmountError? amountError,  RecurringRuleAccountError? accountError,  RecurringRuleCategoryError? categoryError,  String? generalErrorMessage)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _RecurringRuleFormState() when $default != null:
-return $default(_that.title,_that.amountInput,_that.account,_that.accountId,_that.category,_that.categoryId,_that.type,_that.startDate,_that.applyHour,_that.applyMinute,_that.autoPost,_that.isSubmitting,_that.submissionSuccess,_that.isEditing,_that.initialRule,_that.titleError,_that.amountError,_that.accountError,_that.categoryError,_that.generalErrorMessage);case _:
+return $default(_that.title,_that.amountInput,_that.notes,_that.account,_that.accountId,_that.category,_that.categoryId,_that.type,_that.startDate,_that.applyHour,_that.applyMinute,_that.autoPost,_that.isSubmitting,_that.submissionSuccess,_that.isEditing,_that.initialRule,_that.titleError,_that.amountError,_that.accountError,_that.categoryError,_that.generalErrorMessage);case _:
   return orElse();
 
 }
@@ -226,10 +227,10 @@ return $default(_that.title,_that.amountInput,_that.account,_that.accountId,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String title,  String amountInput,  AccountEntity? account,  String? accountId,  Category? category,  String? categoryId,  TransactionType type,  DateTime startDate,  int applyHour,  int applyMinute,  bool autoPost,  bool isSubmitting,  bool submissionSuccess,  bool isEditing,  RecurringRule? initialRule,  RecurringRuleTitleError? titleError,  RecurringRuleAmountError? amountError,  RecurringRuleAccountError? accountError,  RecurringRuleCategoryError? categoryError,  String? generalErrorMessage)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String title,  String amountInput,  String notes,  AccountEntity? account,  String? accountId,  Category? category,  String? categoryId,  TransactionType type,  DateTime startDate,  int applyHour,  int applyMinute,  bool autoPost,  bool isSubmitting,  bool submissionSuccess,  bool isEditing,  RecurringRule? initialRule,  RecurringRuleTitleError? titleError,  RecurringRuleAmountError? amountError,  RecurringRuleAccountError? accountError,  RecurringRuleCategoryError? categoryError,  String? generalErrorMessage)  $default,) {final _that = this;
 switch (_that) {
 case _RecurringRuleFormState():
-return $default(_that.title,_that.amountInput,_that.account,_that.accountId,_that.category,_that.categoryId,_that.type,_that.startDate,_that.applyHour,_that.applyMinute,_that.autoPost,_that.isSubmitting,_that.submissionSuccess,_that.isEditing,_that.initialRule,_that.titleError,_that.amountError,_that.accountError,_that.categoryError,_that.generalErrorMessage);case _:
+return $default(_that.title,_that.amountInput,_that.notes,_that.account,_that.accountId,_that.category,_that.categoryId,_that.type,_that.startDate,_that.applyHour,_that.applyMinute,_that.autoPost,_that.isSubmitting,_that.submissionSuccess,_that.isEditing,_that.initialRule,_that.titleError,_that.amountError,_that.accountError,_that.categoryError,_that.generalErrorMessage);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -246,10 +247,10 @@ return $default(_that.title,_that.amountInput,_that.account,_that.accountId,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String title,  String amountInput,  AccountEntity? account,  String? accountId,  Category? category,  String? categoryId,  TransactionType type,  DateTime startDate,  int applyHour,  int applyMinute,  bool autoPost,  bool isSubmitting,  bool submissionSuccess,  bool isEditing,  RecurringRule? initialRule,  RecurringRuleTitleError? titleError,  RecurringRuleAmountError? amountError,  RecurringRuleAccountError? accountError,  RecurringRuleCategoryError? categoryError,  String? generalErrorMessage)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String title,  String amountInput,  String notes,  AccountEntity? account,  String? accountId,  Category? category,  String? categoryId,  TransactionType type,  DateTime startDate,  int applyHour,  int applyMinute,  bool autoPost,  bool isSubmitting,  bool submissionSuccess,  bool isEditing,  RecurringRule? initialRule,  RecurringRuleTitleError? titleError,  RecurringRuleAmountError? amountError,  RecurringRuleAccountError? accountError,  RecurringRuleCategoryError? categoryError,  String? generalErrorMessage)?  $default,) {final _that = this;
 switch (_that) {
 case _RecurringRuleFormState() when $default != null:
-return $default(_that.title,_that.amountInput,_that.account,_that.accountId,_that.category,_that.categoryId,_that.type,_that.startDate,_that.applyHour,_that.applyMinute,_that.autoPost,_that.isSubmitting,_that.submissionSuccess,_that.isEditing,_that.initialRule,_that.titleError,_that.amountError,_that.accountError,_that.categoryError,_that.generalErrorMessage);case _:
+return $default(_that.title,_that.amountInput,_that.notes,_that.account,_that.accountId,_that.category,_that.categoryId,_that.type,_that.startDate,_that.applyHour,_that.applyMinute,_that.autoPost,_that.isSubmitting,_that.submissionSuccess,_that.isEditing,_that.initialRule,_that.titleError,_that.amountError,_that.accountError,_that.categoryError,_that.generalErrorMessage);case _:
   return null;
 
 }
@@ -261,11 +262,12 @@ return $default(_that.title,_that.amountInput,_that.account,_that.accountId,_tha
 
 
 class _RecurringRuleFormState extends RecurringRuleFormState {
-  const _RecurringRuleFormState({this.title = '', this.amountInput = '', this.account, this.accountId, this.category, this.categoryId, this.type = TransactionType.expense, required this.startDate, this.applyHour = 0, this.applyMinute = 0, this.autoPost = false, this.isSubmitting = false, this.submissionSuccess = false, this.isEditing = false, this.initialRule, this.titleError, this.amountError, this.accountError, this.categoryError, this.generalErrorMessage}): super._();
+  const _RecurringRuleFormState({this.title = '', this.amountInput = '', this.notes = '', this.account, this.accountId, this.category, this.categoryId, this.type = TransactionType.expense, required this.startDate, this.applyHour = 0, this.applyMinute = 0, this.autoPost = false, this.isSubmitting = false, this.submissionSuccess = false, this.isEditing = false, this.initialRule, this.titleError, this.amountError, this.accountError, this.categoryError, this.generalErrorMessage}): super._();
   
 
 @override@JsonKey() final  String title;
 @override@JsonKey() final  String amountInput;
+@override@JsonKey() final  String notes;
 @override final  AccountEntity? account;
 @override final  String? accountId;
 @override final  Category? category;
@@ -295,16 +297,16 @@ _$RecurringRuleFormStateCopyWith<_RecurringRuleFormState> get copyWith => __$Rec
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _RecurringRuleFormState&&(identical(other.title, title) || other.title == title)&&(identical(other.amountInput, amountInput) || other.amountInput == amountInput)&&(identical(other.account, account) || other.account == account)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.category, category) || other.category == category)&&(identical(other.categoryId, categoryId) || other.categoryId == categoryId)&&(identical(other.type, type) || other.type == type)&&(identical(other.startDate, startDate) || other.startDate == startDate)&&(identical(other.applyHour, applyHour) || other.applyHour == applyHour)&&(identical(other.applyMinute, applyMinute) || other.applyMinute == applyMinute)&&(identical(other.autoPost, autoPost) || other.autoPost == autoPost)&&(identical(other.isSubmitting, isSubmitting) || other.isSubmitting == isSubmitting)&&(identical(other.submissionSuccess, submissionSuccess) || other.submissionSuccess == submissionSuccess)&&(identical(other.isEditing, isEditing) || other.isEditing == isEditing)&&(identical(other.initialRule, initialRule) || other.initialRule == initialRule)&&(identical(other.titleError, titleError) || other.titleError == titleError)&&(identical(other.amountError, amountError) || other.amountError == amountError)&&(identical(other.accountError, accountError) || other.accountError == accountError)&&(identical(other.categoryError, categoryError) || other.categoryError == categoryError)&&(identical(other.generalErrorMessage, generalErrorMessage) || other.generalErrorMessage == generalErrorMessage));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _RecurringRuleFormState&&(identical(other.title, title) || other.title == title)&&(identical(other.amountInput, amountInput) || other.amountInput == amountInput)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.account, account) || other.account == account)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.category, category) || other.category == category)&&(identical(other.categoryId, categoryId) || other.categoryId == categoryId)&&(identical(other.type, type) || other.type == type)&&(identical(other.startDate, startDate) || other.startDate == startDate)&&(identical(other.applyHour, applyHour) || other.applyHour == applyHour)&&(identical(other.applyMinute, applyMinute) || other.applyMinute == applyMinute)&&(identical(other.autoPost, autoPost) || other.autoPost == autoPost)&&(identical(other.isSubmitting, isSubmitting) || other.isSubmitting == isSubmitting)&&(identical(other.submissionSuccess, submissionSuccess) || other.submissionSuccess == submissionSuccess)&&(identical(other.isEditing, isEditing) || other.isEditing == isEditing)&&(identical(other.initialRule, initialRule) || other.initialRule == initialRule)&&(identical(other.titleError, titleError) || other.titleError == titleError)&&(identical(other.amountError, amountError) || other.amountError == amountError)&&(identical(other.accountError, accountError) || other.accountError == accountError)&&(identical(other.categoryError, categoryError) || other.categoryError == categoryError)&&(identical(other.generalErrorMessage, generalErrorMessage) || other.generalErrorMessage == generalErrorMessage));
 }
 
 
 @override
-int get hashCode => Object.hashAll([runtimeType,title,amountInput,account,accountId,category,categoryId,type,startDate,applyHour,applyMinute,autoPost,isSubmitting,submissionSuccess,isEditing,initialRule,titleError,amountError,accountError,categoryError,generalErrorMessage]);
+int get hashCode => Object.hashAll([runtimeType,title,amountInput,notes,account,accountId,category,categoryId,type,startDate,applyHour,applyMinute,autoPost,isSubmitting,submissionSuccess,isEditing,initialRule,titleError,amountError,accountError,categoryError,generalErrorMessage]);
 
 @override
 String toString() {
-  return 'RecurringRuleFormState(title: $title, amountInput: $amountInput, account: $account, accountId: $accountId, category: $category, categoryId: $categoryId, type: $type, startDate: $startDate, applyHour: $applyHour, applyMinute: $applyMinute, autoPost: $autoPost, isSubmitting: $isSubmitting, submissionSuccess: $submissionSuccess, isEditing: $isEditing, initialRule: $initialRule, titleError: $titleError, amountError: $amountError, accountError: $accountError, categoryError: $categoryError, generalErrorMessage: $generalErrorMessage)';
+  return 'RecurringRuleFormState(title: $title, amountInput: $amountInput, notes: $notes, account: $account, accountId: $accountId, category: $category, categoryId: $categoryId, type: $type, startDate: $startDate, applyHour: $applyHour, applyMinute: $applyMinute, autoPost: $autoPost, isSubmitting: $isSubmitting, submissionSuccess: $submissionSuccess, isEditing: $isEditing, initialRule: $initialRule, titleError: $titleError, amountError: $amountError, accountError: $accountError, categoryError: $categoryError, generalErrorMessage: $generalErrorMessage)';
 }
 
 
@@ -315,7 +317,7 @@ abstract mixin class _$RecurringRuleFormStateCopyWith<$Res> implements $Recurrin
   factory _$RecurringRuleFormStateCopyWith(_RecurringRuleFormState value, $Res Function(_RecurringRuleFormState) _then) = __$RecurringRuleFormStateCopyWithImpl;
 @override @useResult
 $Res call({
- String title, String amountInput, AccountEntity? account, String? accountId, Category? category, String? categoryId, TransactionType type, DateTime startDate, int applyHour, int applyMinute, bool autoPost, bool isSubmitting, bool submissionSuccess, bool isEditing, RecurringRule? initialRule, RecurringRuleTitleError? titleError, RecurringRuleAmountError? amountError, RecurringRuleAccountError? accountError, RecurringRuleCategoryError? categoryError, String? generalErrorMessage
+ String title, String amountInput, String notes, AccountEntity? account, String? accountId, Category? category, String? categoryId, TransactionType type, DateTime startDate, int applyHour, int applyMinute, bool autoPost, bool isSubmitting, bool submissionSuccess, bool isEditing, RecurringRule? initialRule, RecurringRuleTitleError? titleError, RecurringRuleAmountError? amountError, RecurringRuleAccountError? accountError, RecurringRuleCategoryError? categoryError, String? generalErrorMessage
 });
 
 
@@ -332,10 +334,11 @@ class __$RecurringRuleFormStateCopyWithImpl<$Res>
 
 /// Create a copy of RecurringRuleFormState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? title = null,Object? amountInput = null,Object? account = freezed,Object? accountId = freezed,Object? category = freezed,Object? categoryId = freezed,Object? type = null,Object? startDate = null,Object? applyHour = null,Object? applyMinute = null,Object? autoPost = null,Object? isSubmitting = null,Object? submissionSuccess = null,Object? isEditing = null,Object? initialRule = freezed,Object? titleError = freezed,Object? amountError = freezed,Object? accountError = freezed,Object? categoryError = freezed,Object? generalErrorMessage = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? title = null,Object? amountInput = null,Object? notes = null,Object? account = freezed,Object? accountId = freezed,Object? category = freezed,Object? categoryId = freezed,Object? type = null,Object? startDate = null,Object? applyHour = null,Object? applyMinute = null,Object? autoPost = null,Object? isSubmitting = null,Object? submissionSuccess = null,Object? isEditing = null,Object? initialRule = freezed,Object? titleError = freezed,Object? amountError = freezed,Object? accountError = freezed,Object? categoryError = freezed,Object? generalErrorMessage = freezed,}) {
   return _then(_RecurringRuleFormState(
 title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String,amountInput: null == amountInput ? _self.amountInput : amountInput // ignore: cast_nullable_to_non_nullable
+as String,notes: null == notes ? _self.notes : notes // ignore: cast_nullable_to_non_nullable
 as String,account: freezed == account ? _self.account : account // ignore: cast_nullable_to_non_nullable
 as AccountEntity?,accountId: freezed == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
 as String?,category: freezed == category ? _self.category : category // ignore: cast_nullable_to_non_nullable

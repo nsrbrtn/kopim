@@ -25,6 +25,7 @@ abstract class RecurringRuleFormState with _$RecurringRuleFormState {
   const factory RecurringRuleFormState({
     @Default('') String title,
     @Default('') String amountInput,
+    @Default('') String notes,
     AccountEntity? account,
     String? accountId,
     Category? category,
@@ -75,6 +76,7 @@ class RecurringRuleFormController extends _$RecurringRuleFormController {
       return RecurringRuleFormState(
         title: initialRule.title,
         amountInput: _formatAmountInput(absoluteAmount),
+        notes: initialRule.notes ?? '',
         accountId: initialRule.accountId,
         categoryId: initialRule.categoryId,
         type: initialType,
@@ -112,6 +114,14 @@ class RecurringRuleFormController extends _$RecurringRuleFormController {
     state = state.copyWith(
       amountInput: value,
       amountError: null,
+      submissionSuccess: false,
+      generalErrorMessage: null,
+    );
+  }
+
+  void updateNotes(String value) {
+    state = state.copyWith(
+      notes: value,
       submissionSuccess: false,
       generalErrorMessage: null,
     );
@@ -238,6 +248,8 @@ class RecurringRuleFormController extends _$RecurringRuleFormController {
         : -parsedAmount!;
     final DateTime now = DateTime.now().toUtc();
     final RecurringRule? existingRule = state.initialRule;
+    final String trimmedNotes = state.notes.trim();
+    final String? noteToPersist = trimmedNotes.isEmpty ? null : trimmedNotes;
     final RecurringRule rule;
     if (existingRule == null) {
       rule = RecurringRule(
@@ -250,7 +262,7 @@ class RecurringRuleFormController extends _$RecurringRuleFormController {
         startAt: startAtUtc,
         timezone: 'Europe/Helsinki',
         rrule: 'FREQ=MONTHLY;INTERVAL=1;BYMONTHDAY=${startDate.day}',
-        notes: null,
+        notes: noteToPersist,
         dayOfMonth: startDate.day,
         applyAtLocalHour: state.applyHour,
         applyAtLocalMinute: state.applyMinute,
@@ -279,6 +291,7 @@ class RecurringRuleFormController extends _$RecurringRuleFormController {
         nextDueLocalDate: startDateTimeLocal,
         autoPost: state.autoPost,
         updatedAt: now,
+        notes: noteToPersist,
       );
     }
 

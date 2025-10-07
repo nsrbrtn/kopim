@@ -8,8 +8,10 @@ import 'package:kopim/features/budgets/domain/entities/budget_period.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_progress.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_scope.dart';
 import 'package:kopim/features/budgets/presentation/controllers/budgets_providers.dart';
+import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/home/domain/entities/home_dashboard_preferences.dart';
 import 'package:kopim/features/home/presentation/widgets/home_budget_progress_card.dart';
+import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 import 'package:riverpod/src/framework.dart' show Override;
 
@@ -50,11 +52,37 @@ void main() {
     testWidgets('renders selected budget progress', (
       WidgetTester tester,
     ) async {
+      final Category groceries = Category(
+        id: 'cat-1',
+        name: 'Groceries',
+        type: 'expense',
+        color: '#FF0000',
+        createdAt: DateTime(2024, 1, 1),
+        updatedAt: DateTime(2024, 1, 1),
+      );
+      final TransactionEntity groceryTx = TransactionEntity(
+        id: 'tx-1',
+        accountId: 'acc-1',
+        categoryId: groceries.id,
+        amount: -120,
+        date: DateTime(2024, 1, 10),
+        type: 'expense',
+        createdAt: DateTime(2024, 1, 10),
+        updatedAt: DateTime(2024, 1, 10),
+      );
       final ProviderContainer container = ProviderContainer(
         overrides: <Override>[
           budgetProgressByIdProvider(
             'budget-1',
           ).overrideWithValue(AsyncValue<BudgetProgress>.data(progress)),
+          budgetCategoriesStreamProvider.overrideWith(
+            (Ref ref) => Stream<List<Category>>.value(<Category>[groceries]),
+          ),
+          budgetTransactionsByIdProvider('budget-1').overrideWithValue(
+            AsyncValue<List<TransactionEntity>>.data(<TransactionEntity>[
+              groceryTx,
+            ]),
+          ),
         ],
       );
       addTearDown(container.dispose);
@@ -79,11 +107,13 @@ void main() {
         ),
       );
 
-      await tester.pumpAndSettle();
+      await tester.pump();
 
       expect(find.text('Budget overview'), findsOneWidget);
       expect(find.text('Food'), findsOneWidget);
       expect(find.byType(LinearProgressIndicator), findsOneWidget);
+      expect(find.byType(Chip), findsWidgets);
+      expect(find.textContaining('%'), findsWidgets);
     });
 
     testWidgets(

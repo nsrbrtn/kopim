@@ -429,6 +429,12 @@ class AppLocalizationsRu extends AppLocalizations {
   String get addRecurringRuleAmountInvalid => 'Введите положительную сумму';
 
   @override
+  String get addRecurringRuleNoteLabel => 'Заметка';
+
+  @override
+  String get addRecurringRuleNoteHint => 'Например: напомнить себе';
+
+  @override
   String get addRecurringRuleAccountLabel => 'Счёт';
 
   @override
@@ -668,6 +674,10 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get homeBudgetWidgetMissing => 'Выбранный бюджет недоступен.';
+
+  @override
+  String get homeBudgetWidgetCategoriesEmpty =>
+      'Категорий для анализа пока нет.';
 
   @override
   String get homeBudgetWidgetConfigureCta => 'Открыть настройки';

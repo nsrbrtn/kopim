@@ -85,7 +85,7 @@ void main() {
       startAt: DateTime(2024, 1, 10, 0, 1),
       timezone: 'Europe/Helsinki',
       rrule: 'FREQ=MONTHLY;INTERVAL=1;BYMONTHDAY=10',
-      notes: null,
+      notes: 'Оплатить до 5-го',
       dayOfMonth: 10,
       applyAtLocalHour: 0,
       applyAtLocalMinute: 1,
@@ -167,6 +167,7 @@ void main() {
       recurringRuleFormControllerProvider(initialRule: initialRule),
     );
     expect(initialState.autoPost, isTrue);
+    expect(initialState.notes, 'Оплатить до 5-го');
     expect(find.textContaining(account.name), findsOneWidget);
     expect(find.text(category.name), findsOneWidget);
 
@@ -186,6 +187,7 @@ void main() {
             as RecurringRule;
     expect(captured.autoPost, isFalse);
     expect(captured.categoryId, category.id);
+    expect(captured.notes, 'Оплатить до 5-го');
     expect(result, RecurringRuleFormResult.updated);
   });
 }

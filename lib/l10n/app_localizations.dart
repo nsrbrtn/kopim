@@ -860,6 +860,18 @@ abstract class AppLocalizations {
   /// **'Enter a valid positive amount'**
   String get addRecurringRuleAmountInvalid;
 
+  /// Label for the optional note field
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get addRecurringRuleNoteLabel;
+
+  /// Hint for the optional note field
+  ///
+  /// In en, this message translates to:
+  /// **'Optional comment'**
+  String get addRecurringRuleNoteHint;
+
   /// Label for the account dropdown
   ///
   /// In en, this message translates to:
@@ -1267,6 +1279,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The selected budget is no longer available.'**
   String get homeBudgetWidgetMissing;
+
+  /// Message shown when there are no categories to display in the budget widget
+  ///
+  /// In en, this message translates to:
+  /// **'No category breakdown yet.'**
+  String get homeBudgetWidgetCategoriesEmpty;
 
   /// Button label that opens settings to configure the budget widget
   ///

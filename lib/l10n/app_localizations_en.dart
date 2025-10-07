@@ -427,6 +427,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addRecurringRuleAmountInvalid => 'Enter a valid positive amount';
 
   @override
+  String get addRecurringRuleNoteLabel => 'Note';
+
+  @override
+  String get addRecurringRuleNoteHint => 'Optional comment';
+
+  @override
   String get addRecurringRuleAccountLabel => 'Account';
 
   @override
@@ -665,6 +671,9 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get homeBudgetWidgetMissing =>
       'The selected budget is no longer available.';
+
+  @override
+  String get homeBudgetWidgetCategoriesEmpty => 'No category breakdown yet.';
 
   @override
   String get homeBudgetWidgetConfigureCta => 'Open settings';
