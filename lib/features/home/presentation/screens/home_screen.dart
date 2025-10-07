@@ -13,7 +13,7 @@ import 'package:kopim/features/home/domain/models/upcoming_payment.dart';
 import 'package:kopim/features/home/presentation/controllers/home_dashboard_preferences_controller.dart';
 import 'package:kopim/features/home/presentation/controllers/home_transactions_filter_controller.dart';
 import 'package:kopim/features/home/presentation/widgets/home_budget_progress_card.dart';
-import 'package:kopim/features/home/presentation/widgets/home_gamification_card.dart';
+import 'package:kopim/features/home/presentation/widgets/home_gamification_app_bar.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
@@ -53,25 +53,8 @@ NavigationTabContent buildHomeTabContent(BuildContext context, WidgetRef ref) {
   final bool isWideLayout = MediaQuery.of(context).size.width >= 720;
 
   return NavigationTabContent(
-    appBarBuilder: (BuildContext context, WidgetRef ref) => AppBar(
-      title: Text(strings.homeTitle),
-      actions: <Widget>[
-        Semantics(
-          label: strings.homeProfileTooltip,
-          button: true,
-          child: IconButton(
-            icon: const Icon(Icons.account_circle_outlined),
-            tooltip: strings.homeProfileTooltip,
-            onPressed: () {
-              Navigator.of(
-                context,
-              ).pushNamed(ProfileManagementScreen.routeName);
-            },
-          ),
-        ),
-      ],
-    ),
     bodyBuilder: (BuildContext context, WidgetRef ref) => SafeArea(
+      top: false,
       child: _HomeBody(
         authState: authState,
         accountsAsync: accountsAsync,
@@ -129,7 +112,17 @@ class _HomeBody extends StatelessWidget {
             final HomeDashboardPreferences? dashboardPreferences =
                 dashboardPreferencesAsync.asData?.value;
             final List<Widget> slivers = <Widget>[];
-            double nextTopPadding = 16;
+            final bool showGamificationHeader =
+                user != null &&
+                (dashboardPreferences?.showGamificationWidget ?? false);
+
+            if (showGamificationHeader) {
+              slivers.add(HomeGamificationAppBar(userId: user.uid));
+            } else {
+              slivers.add(_HomePinnedTitleAppBar(strings: strings));
+            }
+
+            double nextTopPadding = 24;
 
             void addBoxSection(Widget child) {
               slivers.add(
@@ -154,12 +147,6 @@ class _HomeBody extends StatelessWidget {
                   ),
                 ),
               );
-            }
-
-            if (dashboardPreferences != null &&
-                dashboardPreferences.showGamificationWidget &&
-                user != null) {
-              addBoxSection(HomeGamificationCard(userId: user.uid));
             }
 
             if (dashboardPreferences != null &&
@@ -352,6 +339,50 @@ class _HomeBody extends StatelessWidget {
           },
         );
       },
+    );
+  }
+}
+
+class _HomePinnedTitleAppBar extends StatelessWidget {
+  const _HomePinnedTitleAppBar({required this.strings});
+
+  final AppLocalizations strings;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+
+    return SliverAppBar(
+      automaticallyImplyLeading: false,
+      floating: false,
+      pinned: true,
+      snap: false,
+      elevation: 4,
+      backgroundColor: theme.colorScheme.surface,
+      surfaceTintColor: theme.colorScheme.surfaceTint,
+      titleSpacing: 20,
+      title: Text(
+        'Копим',
+        style: theme.textTheme.titleLarge?.copyWith(
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+      actions: <Widget>[
+        Semantics(
+          label: strings.homeProfileTooltip,
+          button: true,
+          child: IconButton(
+            tooltip: strings.homeProfileTooltip,
+            icon: const Icon(Icons.account_circle_outlined),
+            onPressed: () {
+              Navigator.of(
+                context,
+              ).pushNamed(ProfileManagementScreen.routeName);
+            },
+          ),
+        ),
+        const SizedBox(width: 8),
+      ],
     );
   }
 }
