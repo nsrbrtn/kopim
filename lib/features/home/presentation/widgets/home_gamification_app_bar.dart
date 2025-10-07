@@ -15,9 +15,8 @@ class HomeGamificationAppBar extends ConsumerWidget {
 
   final String userId;
 
-  static const double _collapsedHeight = 56;
-  static const double _expandedHeight = 130;
-  static const double _progressHeaderMaxExtent = 140;
+  static const double appBarHeight = 40;
+  static const double gamificationHeight = 80;
 
   static const List<String> _phrases = <String>[
     'Ты экономишь как супергерой!',
@@ -54,11 +53,11 @@ class HomeGamificationAppBar extends ConsumerWidget {
         SliverAppBar(
           automaticallyImplyLeading: false,
           floating: false,
-          pinned: true,
+          pinned: false,
           snap: false,
-          expandedHeight: topPadding + _expandedHeight,
-          collapsedHeight: topPadding + _collapsedHeight,
-          toolbarHeight: _collapsedHeight,
+          expandedHeight: topPadding + appBarHeight,
+          collapsedHeight: topPadding + appBarHeight,
+          toolbarHeight: appBarHeight,
           backgroundColor: theme.colorScheme.surface,
           surfaceTintColor: theme.colorScheme.surfaceTint,
           elevation: 4,
@@ -83,33 +82,18 @@ class HomeGamificationAppBar extends ConsumerWidget {
             ),
             const SizedBox(width: 8),
           ],
-          flexibleSpace: FlexibleSpaceBar(
-            collapseMode: CollapseMode.pin,
-            background: Padding(
-              padding: EdgeInsets.only(
-                top: topPadding + _collapsedHeight,
-                left: 20,
-                right: 20,
-                bottom: 16,
-              ),
-              child: Align(
-                alignment: Alignment.bottomLeft,
-                child: Text(
-                  headline,
-                  style: textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+        ),
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+          sliver: SliverToBoxAdapter(
+            child: SizedBox(
+              height: gamificationHeight,
+              child: _HomeGamificationCard(
+                progressAsync: progressAsync,
+                policy: policy,
+                headline: headline,
               ),
             ),
-          ),
-        ),
-        SliverPersistentHeader(
-          pinned: false,
-          delegate: _HomeProgressHeaderDelegate(
-            progressAsync: progressAsync,
-            policy: policy,
-            headline: headline,
           ),
         ),
       ],
@@ -117,8 +101,8 @@ class HomeGamificationAppBar extends ConsumerWidget {
   }
 }
 
-class _HomeProgressHeaderDelegate extends SliverPersistentHeaderDelegate {
-  _HomeProgressHeaderDelegate({
+class _HomeGamificationCard extends StatelessWidget {
+  const _HomeGamificationCard({
     required this.progressAsync,
     required this.policy,
     required this.headline,
@@ -129,101 +113,88 @@ class _HomeProgressHeaderDelegate extends SliverPersistentHeaderDelegate {
   final String headline;
 
   @override
-  double get minExtent => 0;
-
-  @override
-  double get maxExtent => HomeGamificationAppBar._progressHeaderMaxExtent;
-
-  @override
-  Widget build(
-    BuildContext context,
-    double shrinkOffset,
-    bool overlapsContent,
-  ) {
+  Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
-    final TextTheme textTheme = theme.textTheme;
     final AppLocalizations strings = AppLocalizations.of(context)!;
-    final double progress = (shrinkOffset / maxExtent).clamp(0.0, 1.0);
-    final double opacity = 1 - progress;
-    final double verticalOffset = 12 * progress;
+    final TextTheme textTheme = theme.textTheme;
 
-    Widget buildProgressSection() {
-      return progressAsync.when(
-        data: (UserProgress progress) {
-          final int previousThreshold = policy.previousThreshold(
-            progress.level,
-          );
-          final int nextThreshold = progress.nextThreshold;
-          final double ratio = nextThreshold == previousThreshold
-              ? 1.0
-              : ((progress.totalTx - previousThreshold) /
-                        (nextThreshold - previousThreshold))
-                    .clamp(0.0, 1.0);
-          final int xpToNext = math.max(0, nextThreshold - progress.totalTx);
-          final bool maxedOut = nextThreshold == progress.totalTx;
-
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              Text(
-                headline,
-                style: textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 12),
-              ClipRRect(
-                borderRadius: const BorderRadius.all(Radius.circular(12)),
-                child: LinearProgressIndicator(value: ratio, minHeight: 8),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                maxedOut
-                    ? strings.profileLevelMaxReached
-                    : strings.profileXpToNext(xpToNext),
-                style: textTheme.bodyMedium,
-              ),
-            ],
-          );
-        },
-        loading: () => const SizedBox(
-          width: 24,
-          height: 24,
-          child: CircularProgressIndicator(strokeWidth: 2),
-        ),
-        error: (Object error, _) => Text(
-          strings.homeGamificationError(error.toString()),
-          style: textTheme.bodySmall?.copyWith(color: theme.colorScheme.error),
-        ),
-      );
-    }
-
-    return SizedBox.expand(
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: theme.colorScheme.secondaryContainer,
+        borderRadius: const BorderRadius.all(Radius.circular(20)),
+        boxShadow: <BoxShadow>[
+          BoxShadow(
+            color: theme.shadowColor.withValues(alpha: 0.08),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         child: Align(
-          alignment: Alignment.topLeft,
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 520),
-            child: Opacity(
-              key: const Key('homeGamification.progressOpacity'),
-              opacity: opacity,
-              child: Transform.translate(
-                offset: Offset(0, verticalOffset),
-                child: buildProgressSection(),
+          alignment: Alignment.center,
+          child: progressAsync.when(
+            data: (UserProgress progress) {
+              final int previousThreshold = policy.previousThreshold(
+                progress.level,
+              );
+              final int nextThreshold = progress.nextThreshold;
+              final double ratio = nextThreshold == previousThreshold
+                  ? 1.0
+                  : ((progress.totalTx - previousThreshold) /
+                            (nextThreshold - previousThreshold))
+                        .clamp(0.0, 1.0);
+              final int xpToNext = math.max(
+                0,
+                nextThreshold - progress.totalTx,
+              );
+              final bool maxedOut = nextThreshold == progress.totalTx;
+
+              return Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text(
+                    headline,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  ClipRRect(
+                    borderRadius: const BorderRadius.all(Radius.circular(12)),
+                    child: LinearProgressIndicator(value: ratio, minHeight: 8),
+                  ),
+                  Text(
+                    maxedOut
+                        ? strings.profileLevelMaxReached
+                        : strings.profileXpToNext(xpToNext),
+                    style: textTheme.bodyMedium,
+                  ),
+                ],
+              );
+            },
+            loading: () => const Center(
+              child: SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            ),
+            error: (Object error, _) => Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                strings.homeGamificationError(error.toString()),
+                style: textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.error,
+                ),
               ),
             ),
           ),
         ),
       ),
     );
-  }
-
-  @override
-  bool shouldRebuild(covariant _HomeProgressHeaderDelegate oldDelegate) {
-    return progressAsync != oldDelegate.progressAsync ||
-        policy != oldDelegate.policy ||
-        headline != oldDelegate.headline;
   }
 }

@@ -66,14 +66,9 @@ void main() {
         find.byType(LinearProgressIndicator),
       );
       expect(indicator.value, closeTo(0.125, 0.001));
-
-      final Opacity expandedOpacity = tester.widget(
-        find.byKey(const Key('homeGamification.progressOpacity')),
-      );
-      expect(expandedOpacity.opacity, closeTo(1.0, 1e-3));
     });
 
-    testWidgets('collapses progress section when scrolled', (
+    testWidgets('uses fixed heights for app bar and gamification card', (
       WidgetTester tester,
     ) async {
       final UserProgress progress = UserProgress(
@@ -93,14 +88,18 @@ void main() {
         ],
       );
 
-      await tester.drag(find.byType(CustomScrollView), const Offset(0, -400));
-      await tester.pumpAndSettle();
-
-      expect(
-        find.byKey(const Key('homeGamification.progressOpacity')),
-        findsNothing,
+      final SliverAppBar appBar = tester.widget(
+        find.byType(SliverAppBar).first,
       );
-      expect(find.byType(LinearProgressIndicator), findsNothing);
+      expect(appBar.toolbarHeight, HomeGamificationAppBar.appBarHeight);
+
+      final Finder cardHeightFinder = find.byWidgetPredicate(
+        (Widget widget) =>
+            widget is SizedBox &&
+            widget.height == HomeGamificationAppBar.gamificationHeight,
+      );
+
+      expect(cardHeightFinder, findsOneWidget);
     });
 
     testWidgets('shows loading indicator while data loads', (

@@ -351,15 +351,19 @@ class _HomePinnedTitleAppBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
+    final double topPadding = MediaQuery.of(context).padding.top;
 
     return SliverAppBar(
       automaticallyImplyLeading: false,
       floating: false,
-      pinned: true,
+      pinned: false,
       snap: false,
       elevation: 4,
       backgroundColor: theme.colorScheme.surface,
       surfaceTintColor: theme.colorScheme.surfaceTint,
+      toolbarHeight: HomeGamificationAppBar.appBarHeight,
+      collapsedHeight: topPadding + HomeGamificationAppBar.appBarHeight,
+      expandedHeight: topPadding + HomeGamificationAppBar.appBarHeight,
       titleSpacing: 20,
       title: Text(
         'Копим',
