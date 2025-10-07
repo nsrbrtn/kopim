@@ -106,6 +106,7 @@ void main() {
     controller.updateStartDate(DateTime(2024, 1, 15));
     controller.updateTime(hour: 10, minute: 30);
     controller.updateAutoPost(true);
+    controller.updateNotes('  Для премии  ');
 
     await controller.submit();
 
@@ -128,6 +129,7 @@ void main() {
     expect(captured.nextDueLocalDate, DateTime(2024, 1, 15, 10, 30));
     expect(captured.createdAt.isUtc, isTrue);
     expect(captured.updatedAt.isUtc, isTrue);
+    expect(captured.notes, 'Для премии');
 
     final RecurringRuleFormState state = container.read(provider);
     expect(state.submissionSuccess, isTrue);
@@ -183,7 +185,9 @@ void main() {
   test('submit updates existing rule when editing', () async {
     when(() => mockUseCase.call(any())).thenAnswer((_) async {});
 
-    final RecurringRule existingRule = _fallbackRule();
+    final RecurringRule existingRule = _fallbackRule().copyWith(
+      notes: 'Предыдущая заметка',
+    );
     final RecurringRuleFormControllerProvider provider =
         recurringRuleFormControllerProvider(initialRule: existingRule);
     final RecurringRuleFormController controller = container.read(
@@ -199,6 +203,7 @@ void main() {
     controller.updateStartDate(DateTime(2024, 2, 5));
     controller.updateTime(hour: 8, minute: 45);
     controller.updateAutoPost(true);
+    controller.updateNotes('  Новая заметка  ');
 
     await controller.submit();
 
@@ -217,6 +222,7 @@ void main() {
     expect(captured.autoPost, isTrue);
     expect(captured.createdAt, existingRule.createdAt);
     expect(captured.updatedAt.isAfter(existingRule.updatedAt), isTrue);
+    expect(captured.notes, 'Новая заметка');
 
     final RecurringRuleFormState state = container.read(provider);
     expect(state.submissionSuccess, isTrue);

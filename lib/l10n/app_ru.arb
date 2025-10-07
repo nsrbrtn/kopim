@@ -582,6 +582,14 @@
   "@addRecurringRuleAmountInvalid": {
     "description": "Сообщение об ошибке, если сумма некорректна"
   },
+  "addRecurringRuleNoteLabel": "Заметка",
+  "@addRecurringRuleNoteLabel": {
+    "description": "Подпись поля для заметки"
+  },
+  "addRecurringRuleNoteHint": "Например: напомнить себе",
+  "@addRecurringRuleNoteHint": {
+    "description": "Подсказка для необязательной заметки"
+  },
   "addRecurringRuleAccountLabel": "Счёт",
   "@addRecurringRuleAccountLabel": {
     "description": "Подпись выпадающего списка со счетами"
@@ -903,6 +911,10 @@
   "homeBudgetWidgetMissing": "Выбранный бюджет недоступен.",
   "@homeBudgetWidgetMissing": {
     "description": "Ошибка, если сохранённый бюджет удалён"
+  },
+  "homeBudgetWidgetCategoriesEmpty": "Категорий для анализа пока нет.",
+  "@homeBudgetWidgetCategoriesEmpty": {
+    "description": "Сообщение, когда в сводке бюджета нет категорий"
   },
   "homeBudgetWidgetConfigureCta": "Открыть настройки",
   "@homeBudgetWidgetConfigureCta": {

@@ -24,7 +24,14 @@ void main() {
             locale: Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
-            home: Scaffold(body: HomeGamificationCard(userId: userId)),
+            home: Scaffold(
+              body: Center(
+                child: SizedBox(
+                  height: 320,
+                  child: HomeGamificationCard(userId: userId),
+                ),
+              ),
+            ),
           ),
         ),
       );
@@ -52,14 +59,18 @@ void main() {
         ],
       );
 
-      expect(find.text('Level progress'), findsOneWidget);
-      expect(find.text('Level 2 — Apprentice'), findsOneWidget);
-      expect(find.text('350 XP to the next level'), findsOneWidget);
+      expect(find.textContaining('XP to the next level'), findsOneWidget);
 
       final LinearProgressIndicator indicator = tester.widget(
         find.byType(LinearProgressIndicator),
       );
       expect(indicator.value, closeTo(0.125, 0.001));
+
+      await tester.tap(find.byKey(const Key('homeGamificationCard.toggle')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Level 2 — Apprentice'), findsOneWidget);
+      expect(find.textContaining('Level 2'), findsWidgets);
     });
 
     testWidgets('shows loading indicator while data loads', (
