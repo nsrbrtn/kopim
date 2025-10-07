@@ -758,6 +758,54 @@ abstract class AppLocalizations {
   /// **'Recurring rule deleted.'**
   String get recurringTransactionsDeleteSuccess;
 
+  /// Title for the exact alarm permission explanation card
+  ///
+  /// In en, this message translates to:
+  /// **'Precise reminders'**
+  String get recurringExactAlarmPromptTitle;
+
+  /// Body copy describing why exact alarm permission is needed
+  ///
+  /// In en, this message translates to:
+  /// **'To trigger auto-posting exactly at 00:01 local time, allow exact alarms for Kopim in Android system settings under \"Alarms & reminders\".'**
+  String get recurringExactAlarmPromptSubtitle;
+
+  /// Call-to-action button for opening the exact alarm settings screen
+  ///
+  /// In en, this message translates to:
+  /// **'Open settings'**
+  String get recurringExactAlarmPromptCta;
+
+  /// Title shown when the exact alarm permission is granted
+  ///
+  /// In en, this message translates to:
+  /// **'Precise mode is active'**
+  String get recurringExactAlarmEnabledTitle;
+
+  /// Subtitle shown when exact alarms are allowed
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders and auto-posting will run exactly on schedule even in power saving modes.'**
+  String get recurringExactAlarmEnabledSubtitle;
+
+  /// Error card title when the permission check throws
+  ///
+  /// In en, this message translates to:
+  /// **'Permission check failed'**
+  String get recurringExactAlarmErrorTitle;
+
+  /// Error subtitle with the thrown message
+  ///
+  /// In en, this message translates to:
+  /// **'Try again: {error}'**
+  String recurringExactAlarmErrorSubtitle(String error);
+
+  /// Retry button label for the error state of the exact alarm card
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get recurringExactAlarmRetryCta;
+
   /// Title for the add recurring rule screen
   ///
   /// In en, this message translates to:

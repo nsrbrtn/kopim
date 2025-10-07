@@ -509,6 +509,43 @@
   "@recurringTransactionsDeleteSuccess": {
     "description": "Snackbar message after deleting a recurring rule"
   },
+  "recurringExactAlarmPromptTitle": "Точный режим напоминаний",
+  "@recurringExactAlarmPromptTitle": {
+    "description": "Title for the exact alarm permission explanation card"
+  },
+  "recurringExactAlarmPromptSubtitle": "Чтобы автосписания запускались ровно в 00:01 по локальному времени, разрешите приложению точные будильники в системном разделе \"Будильники и напоминания\".",
+  "@recurringExactAlarmPromptSubtitle": {
+    "description": "Body copy describing why exact alarm permission is needed"
+  },
+  "recurringExactAlarmPromptCta": "Открыть настройки",
+  "@recurringExactAlarmPromptCta": {
+    "description": "Call-to-action button for opening the exact alarm settings screen"
+  },
+  "recurringExactAlarmEnabledTitle": "Точный режим включён",
+  "@recurringExactAlarmEnabledTitle": {
+    "description": "Title shown when the exact alarm permission is granted"
+  },
+  "recurringExactAlarmEnabledSubtitle": "Напоминания и автосписания выполнятся ровно по расписанию даже в режиме энергосбережения.",
+  "@recurringExactAlarmEnabledSubtitle": {
+    "description": "Subtitle shown when exact alarms are allowed"
+  },
+  "recurringExactAlarmErrorTitle": "Не удалось проверить разрешение",
+  "@recurringExactAlarmErrorTitle": {
+    "description": "Error card title when the permission check throws"
+  },
+  "recurringExactAlarmErrorSubtitle": "Повторите попытку: {error}",
+  "@recurringExactAlarmErrorSubtitle": {
+    "description": "Error subtitle with the thrown message",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "recurringExactAlarmRetryCta": "Повторить",
+  "@recurringExactAlarmRetryCta": {
+    "description": "Retry button label for the error state of the exact alarm card"
+  },
   "addRecurringRuleTitle": "Новая повторяющаяся операция",
   "@addRecurringRuleTitle": {
     "description": "Заголовок экрана создания повторяющейся операции"

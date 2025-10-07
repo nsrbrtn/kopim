@@ -3364,6 +3364,55 @@ final class RecurringWorkSchedulerProvider
 String _$recurringWorkSchedulerHash() =>
     r'd74ce3d07b58943fffafbe929e3577de776b45bd';
 
+@ProviderFor(exactAlarmPermissionService)
+const exactAlarmPermissionServiceProvider =
+    ExactAlarmPermissionServiceProvider._();
+
+final class ExactAlarmPermissionServiceProvider
+    extends
+        $FunctionalProvider<
+          ExactAlarmPermissionService,
+          ExactAlarmPermissionService,
+          ExactAlarmPermissionService
+        >
+    with $Provider<ExactAlarmPermissionService> {
+  const ExactAlarmPermissionServiceProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'exactAlarmPermissionServiceProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$exactAlarmPermissionServiceHash();
+
+  @$internal
+  @override
+  $ProviderElement<ExactAlarmPermissionService> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  ExactAlarmPermissionService create(Ref ref) {
+    return exactAlarmPermissionService(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(ExactAlarmPermissionService value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<ExactAlarmPermissionService>(value),
+    );
+  }
+}
+
+String _$exactAlarmPermissionServiceHash() =>
+    r'e8e6b22ef0ae997d27dfb94299d65f3c12ef94a1';
+
 @ProviderFor(profileRepository)
 const profileRepositoryProvider = ProfileRepositoryProvider._();
 

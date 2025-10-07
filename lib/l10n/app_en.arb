@@ -509,6 +509,43 @@
   "@recurringTransactionsDeleteSuccess": {
     "description": "Snackbar message after deleting a recurring rule"
   },
+  "recurringExactAlarmPromptTitle": "Precise reminders",
+  "@recurringExactAlarmPromptTitle": {
+    "description": "Title for the exact alarm permission explanation card"
+  },
+  "recurringExactAlarmPromptSubtitle": "To trigger auto-posting exactly at 00:01 local time, allow exact alarms for Kopim in Android system settings under \"Alarms & reminders\".",
+  "@recurringExactAlarmPromptSubtitle": {
+    "description": "Body copy describing why exact alarm permission is needed"
+  },
+  "recurringExactAlarmPromptCta": "Open settings",
+  "@recurringExactAlarmPromptCta": {
+    "description": "Call-to-action button for opening the exact alarm settings screen"
+  },
+  "recurringExactAlarmEnabledTitle": "Precise mode is active",
+  "@recurringExactAlarmEnabledTitle": {
+    "description": "Title shown when the exact alarm permission is granted"
+  },
+  "recurringExactAlarmEnabledSubtitle": "Reminders and auto-posting will run exactly on schedule even in power saving modes.",
+  "@recurringExactAlarmEnabledSubtitle": {
+    "description": "Subtitle shown when exact alarms are allowed"
+  },
+  "recurringExactAlarmErrorTitle": "Permission check failed",
+  "@recurringExactAlarmErrorTitle": {
+    "description": "Error card title when the permission check throws"
+  },
+  "recurringExactAlarmErrorSubtitle": "Try again: {error}",
+  "@recurringExactAlarmErrorSubtitle": {
+    "description": "Error subtitle with the thrown message",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "recurringExactAlarmRetryCta": "Retry",
+  "@recurringExactAlarmRetryCta": {
+    "description": "Retry button label for the error state of the exact alarm card"
+  },
   "addRecurringRuleTitle": "New recurring transaction",
   "@addRecurringRuleTitle": {
     "description": "Title for the add recurring rule screen"

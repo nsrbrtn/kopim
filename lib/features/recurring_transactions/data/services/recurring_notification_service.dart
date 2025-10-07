@@ -100,10 +100,9 @@ class RecurringNotificationService {
       }
       const NotificationDetails details = NotificationDetails(
         android: AndroidNotificationDetails(
-          'recurring_transactions',
-          'Recurring transactions',
-          channelDescription:
-              'Напоминания о предстоящих повторяющихся транзакциях',
+          'recurring_reminders',
+          'Напоминания о платежах',
+          channelDescription: 'Напоминания о платежах',
           category: AndroidNotificationCategory.reminder,
           importance: Importance.max,
           priority: Priority.high,
