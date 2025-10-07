@@ -15,7 +15,9 @@ class HomeGamificationAppBar extends ConsumerWidget {
 
   final String userId;
 
-  static const double _expandedHeight = 220;
+  static const double _collapsedHeight = 56;
+  static const double _expandedHeight = 130;
+  static const double _progressHeaderMaxExtent = 140;
 
   static const List<String> _phrases = <String>[
     'Ты экономишь как супергерой!',
@@ -42,14 +44,112 @@ class HomeGamificationAppBar extends ConsumerWidget {
     final AsyncValue<UserProgress> progressAsync = ref.watch(
       userProgressProvider(userId),
     );
+    final LevelPolicy policy = ref.read(levelPolicyProvider);
     final double topPadding = MediaQuery.of(context).padding.top;
     final TextTheme textTheme = theme.textTheme;
     final String headline = _phraseForDate(DateTime.now());
 
+    return SliverMainAxisGroup(
+      slivers: <Widget>[
+        SliverAppBar(
+          automaticallyImplyLeading: false,
+          floating: false,
+          pinned: true,
+          snap: false,
+          expandedHeight: topPadding + _expandedHeight,
+          collapsedHeight: topPadding + _collapsedHeight,
+          toolbarHeight: _collapsedHeight,
+          backgroundColor: theme.colorScheme.surface,
+          surfaceTintColor: theme.colorScheme.surfaceTint,
+          elevation: 4,
+          titleSpacing: 20,
+          title: Text(
+            'Копим',
+            style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+          ),
+          actions: <Widget>[
+            Semantics(
+              label: strings.homeProfileTooltip,
+              button: true,
+              child: IconButton(
+                tooltip: strings.homeProfileTooltip,
+                icon: const Icon(Icons.account_circle_outlined),
+                onPressed: () {
+                  Navigator.of(
+                    context,
+                  ).pushNamed(ProfileManagementScreen.routeName);
+                },
+              ),
+            ),
+            const SizedBox(width: 8),
+          ],
+          flexibleSpace: FlexibleSpaceBar(
+            collapseMode: CollapseMode.pin,
+            background: Padding(
+              padding: EdgeInsets.only(
+                top: topPadding + _collapsedHeight,
+                left: 20,
+                right: 20,
+                bottom: 16,
+              ),
+              child: Align(
+                alignment: Alignment.bottomLeft,
+                child: Text(
+                  headline,
+                  style: textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+        SliverPersistentHeader(
+          pinned: false,
+          delegate: _HomeProgressHeaderDelegate(
+            progressAsync: progressAsync,
+            policy: policy,
+            headline: headline,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _HomeProgressHeaderDelegate extends SliverPersistentHeaderDelegate {
+  _HomeProgressHeaderDelegate({
+    required this.progressAsync,
+    required this.policy,
+    required this.headline,
+  });
+
+  final AsyncValue<UserProgress> progressAsync;
+  final LevelPolicy policy;
+  final String headline;
+
+  @override
+  double get minExtent => 0;
+
+  @override
+  double get maxExtent => HomeGamificationAppBar._progressHeaderMaxExtent;
+
+  @override
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
+    final ThemeData theme = Theme.of(context);
+    final TextTheme textTheme = theme.textTheme;
+    final AppLocalizations strings = AppLocalizations.of(context)!;
+    final double progress = (shrinkOffset / maxExtent).clamp(0.0, 1.0);
+    final double opacity = 1 - progress;
+    final double verticalOffset = 12 * progress;
+
     Widget buildProgressSection() {
       return progressAsync.when(
         data: (UserProgress progress) {
-          final LevelPolicy policy = ref.read(levelPolicyProvider);
           final int previousThreshold = policy.previousThreshold(
             progress.level,
           );
@@ -99,80 +199,31 @@ class HomeGamificationAppBar extends ConsumerWidget {
       );
     }
 
-    return SliverAppBar(
-      automaticallyImplyLeading: false,
-      floating: false,
-      pinned: true,
-      snap: false,
-      expandedHeight: _expandedHeight,
-      collapsedHeight: kToolbarHeight + topPadding,
-      backgroundColor: theme.colorScheme.surface,
-      surfaceTintColor: theme.colorScheme.surfaceTint,
-      elevation: 4,
-      titleSpacing: 20,
-      title: Text(
-        'Копим',
-        style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
-      ),
-      actions: <Widget>[
-        Semantics(
-          label: strings.homeProfileTooltip,
-          button: true,
-          child: IconButton(
-            tooltip: strings.homeProfileTooltip,
-            icon: const Icon(Icons.account_circle_outlined),
-            onPressed: () {
-              Navigator.of(
-                context,
-              ).pushNamed(ProfileManagementScreen.routeName);
-            },
+    return SizedBox.expand(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+        child: Align(
+          alignment: Alignment.topLeft,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 520),
+            child: Opacity(
+              key: const Key('homeGamification.progressOpacity'),
+              opacity: opacity,
+              child: Transform.translate(
+                offset: Offset(0, verticalOffset),
+                child: buildProgressSection(),
+              ),
+            ),
           ),
         ),
-        const SizedBox(width: 8),
-      ],
-      flexibleSpace: LayoutBuilder(
-        builder: (BuildContext context, BoxConstraints constraints) {
-          final double maxHeight = constraints.biggest.height;
-          final double minHeight = kToolbarHeight + topPadding;
-          final double expansionFactor =
-              (maxHeight - minHeight) /
-              (HomeGamificationAppBar._expandedHeight - minHeight);
-          final double clamped = expansionFactor.clamp(0.0, 1.0);
-          final double opacity = Curves.easeInOut.transform(clamped);
-          final double verticalOffset = (1 - opacity) * 12;
-
-          return Stack(
-            fit: StackFit.expand,
-            children: <Widget>[
-              Padding(
-                padding: EdgeInsets.only(
-                  top: topPadding + kToolbarHeight,
-                  left: 20,
-                  right: 20,
-                  bottom: 16,
-                ),
-                child: ClipRect(
-                  child: Align(
-                    alignment: Alignment.bottomLeft,
-                    heightFactor: opacity == 0 ? 0.0 : opacity,
-                    child: Opacity(
-                      key: const Key('homeGamification.progressOpacity'),
-                      opacity: opacity,
-                      child: Transform.translate(
-                        offset: Offset(0, verticalOffset),
-                        child: ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 520),
-                          child: buildProgressSection(),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          );
-        },
       ),
     );
+  }
+
+  @override
+  bool shouldRebuild(covariant _HomeProgressHeaderDelegate oldDelegate) {
+    return progressAsync != oldDelegate.progressAsync ||
+        policy != oldDelegate.policy ||
+        headline != oldDelegate.headline;
   }
 }
