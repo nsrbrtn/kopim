@@ -96,10 +96,11 @@ void main() {
       await tester.drag(find.byType(CustomScrollView), const Offset(0, -400));
       await tester.pumpAndSettle();
 
-      final Opacity collapsedOpacity = tester.widget(
+      expect(
         find.byKey(const Key('homeGamification.progressOpacity')),
+        findsNothing,
       );
-      expect(collapsedOpacity.opacity, equals(0));
+      expect(find.byType(LinearProgressIndicator), findsNothing);
     });
 
     testWidgets('shows loading indicator while data loads', (
