@@ -10,6 +10,8 @@ import 'package:kopim/features/home/domain/use_cases/group_transactions_by_day_u
 import 'package:kopim/features/home/domain/use_cases/watch_upcoming_payments_use_case.dart';
 import 'package:kopim/features/home/presentation/controllers/home_transactions_filter_controller.dart';
 import 'package:kopim/features/recurring_transactions/domain/entities/recurring_rule.dart';
+import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
+import 'package:kopim/features/savings/domain/value_objects/goal_progress.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -80,6 +82,25 @@ Stream<List<UpcomingPayment>> homeUpcomingPayments(Ref ref) {
   final DateTime now = DateTime.now();
   final DateTime end = now.add(const Duration(days: 30));
   return useCase(from: now, to: end);
+}
+
+@riverpod
+Stream<List<SavingGoal>> homeSavingGoals(Ref ref) {
+  return ref
+      .watch(watchSavingGoalsUseCaseProvider)
+      .call(includeArchived: false);
+}
+
+@riverpod
+AsyncValue<List<GoalProgress>> homeSavingGoalProgress(Ref ref) {
+  return ref
+      .watch(homeSavingGoalsProvider)
+      .whenData(
+        (List<SavingGoal> goals) => goals
+            .where((SavingGoal goal) => !goal.isArchived)
+            .map(GoalProgress.fromGoal)
+            .toList(growable: false),
+      );
 }
 
 @riverpod

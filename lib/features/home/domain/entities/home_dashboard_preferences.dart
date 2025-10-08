@@ -9,6 +9,7 @@ abstract class HomeDashboardPreferences with _$HomeDashboardPreferences {
     @Default(false) bool showGamificationWidget,
     @Default(false) bool showBudgetWidget,
     @Default(false) bool showRecurringWidget,
+    @Default(false) bool showSavingsWidget,
     String? budgetId,
   }) = _HomeDashboardPreferences;
 

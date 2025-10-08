@@ -43,6 +43,14 @@ class HomeDashboardPreferencesController
     await _persist(updated, previous: current);
   }
 
+  Future<void> setShowSavings(bool value) async {
+    final HomeDashboardPreferences current = await future;
+    final HomeDashboardPreferences updated = current.copyWith(
+      showSavingsWidget: value,
+    );
+    await _persist(updated, previous: current);
+  }
+
   Future<void> setBudgetId(String? budgetId) async {
     final HomeDashboardPreferences current = await future;
     final HomeDashboardPreferences updated = current.copyWith(

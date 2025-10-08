@@ -61,6 +61,14 @@
   "@settingsHomeRecurringSubtitle": {
     "description": "Helper text for the recurring operations widget toggle"
   },
+  "settingsHomeSavingsTitle": "Savings widget",
+  "@settingsHomeSavingsTitle": {
+    "description": "Toggle title for enabling the savings widget on the home screen"
+  },
+  "settingsHomeSavingsSubtitle": "Keep track of your saving goals without leaving the home screen.",
+  "@settingsHomeSavingsSubtitle": {
+    "description": "Helper text for the savings widget toggle"
+  },
   "settingsHomeBudgetSelectedLabel": "Selected budget",
   "@settingsHomeBudgetSelectedLabel": {
     "description": "Title for the list tile showing the currently selected budget"
@@ -882,6 +890,18 @@
         "type": "int"
       }
     }
+  },
+  "homeSavingsWidgetTitle": "Saving goals",
+  "@homeSavingsWidgetTitle": {
+    "description": "Title for the savings overview widget on the home screen"
+  },
+  "homeSavingsWidgetEmpty": "Create your first goal to start tracking progress.",
+  "@homeSavingsWidgetEmpty": {
+    "description": "Empty state message for the savings widget"
+  },
+  "homeSavingsWidgetViewAll": "Open savings",
+  "@homeSavingsWidgetViewAll": {
+    "description": "CTA label that opens the savings screen from the home widget"
   },
   "homeGamificationTitle": "Level progress",
   "@homeGamificationTitle": {

@@ -491,6 +491,95 @@ final class HomeUpcomingPaymentsProvider
 String _$homeUpcomingPaymentsHash() =>
     r'ade3465651c1d76a203ad59f06a4f7fdf8e8b833';
 
+@ProviderFor(homeSavingGoals)
+const homeSavingGoalsProvider = HomeSavingGoalsProvider._();
+
+final class HomeSavingGoalsProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<SavingGoal>>,
+          List<SavingGoal>,
+          Stream<List<SavingGoal>>
+        >
+    with $FutureModifier<List<SavingGoal>>, $StreamProvider<List<SavingGoal>> {
+  const HomeSavingGoalsProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'homeSavingGoalsProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$homeSavingGoalsHash();
+
+  @$internal
+  @override
+  $StreamProviderElement<List<SavingGoal>> $createElement(
+    $ProviderPointer pointer,
+  ) => $StreamProviderElement(pointer);
+
+  @override
+  Stream<List<SavingGoal>> create(Ref ref) {
+    return homeSavingGoals(ref);
+  }
+}
+
+String _$homeSavingGoalsHash() => r'4030a8cc0b315618bd1f7976e56dbb3820a1cbc7';
+
+@ProviderFor(homeSavingGoalProgress)
+const homeSavingGoalProgressProvider = HomeSavingGoalProgressProvider._();
+
+final class HomeSavingGoalProgressProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<GoalProgress>>,
+          AsyncValue<List<GoalProgress>>,
+          AsyncValue<List<GoalProgress>>
+        >
+    with $Provider<AsyncValue<List<GoalProgress>>> {
+  const HomeSavingGoalProgressProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'homeSavingGoalProgressProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$homeSavingGoalProgressHash();
+
+  @$internal
+  @override
+  $ProviderElement<AsyncValue<List<GoalProgress>>> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  AsyncValue<List<GoalProgress>> create(Ref ref) {
+    return homeSavingGoalProgress(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(AsyncValue<List<GoalProgress>> value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<AsyncValue<List<GoalProgress>>>(
+        value,
+      ),
+    );
+  }
+}
+
+String _$homeSavingGoalProgressHash() =>
+    r'0ef1a4b8be63e03602f70f6fe70f7af1b5a76849';
+
 @ProviderFor(homeRecurringRuleById)
 const homeRecurringRuleByIdProvider = HomeRecurringRuleByIdFamily._();
 

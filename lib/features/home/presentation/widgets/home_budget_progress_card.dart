@@ -32,6 +32,7 @@ class HomeBudgetProgressCard extends ConsumerWidget {
     final String? budgetId = preferences.budgetId;
     if (budgetId == null) {
       return Card(
+        color: theme.colorScheme.surfaceContainerHigh,
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -45,7 +46,7 @@ class HomeBudgetProgressCard extends ConsumerWidget {
               Text(
                 strings.homeBudgetWidgetEmpty,
                 style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.72),
                 ),
               ),
               const SizedBox(height: 16),
@@ -71,6 +72,7 @@ class HomeBudgetProgressCard extends ConsumerWidget {
     );
 
     return Card(
+      color: theme.colorScheme.surfaceContainerHigh,
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: progressAsync.maybeWhen(
@@ -282,7 +284,7 @@ class _BudgetCategoriesBreakdown extends ConsumerWidget {
               return Text(
                 strings.homeBudgetWidgetCategoriesEmpty,
                 style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.72),
                 ),
               );
             }
@@ -366,7 +368,8 @@ class _BudgetCategoryChip extends StatelessWidget {
     final NumberFormat percentFormat = NumberFormat.decimalPattern(
       strings.localeName,
     );
-    final String percentText = '${percentFormat.format(breakdown.percent)}%';
+    final int roundedPercent = breakdown.percent.round();
+    final String percentText = '${percentFormat.format(roundedPercent)}%';
 
     return Chip(
       avatar: Icon(
@@ -378,7 +381,7 @@ class _BudgetCategoryChip extends StatelessWidget {
       backgroundColor: backgroundColor,
       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
       side: BorderSide.none,
-      labelPadding: const EdgeInsets.symmetric(horizontal: 8),
+      labelPadding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
       label: DefaultTextStyle.merge(
         style: theme.textTheme.labelLarge?.copyWith(
           color: foregroundColor,
@@ -390,7 +393,7 @@ class _BudgetCategoryChip extends StatelessWidget {
             Flexible(
               child: Text(category.name, overflow: TextOverflow.ellipsis),
             ),
-            const SizedBox(width: 4),
+            const SizedBox(width: 2),
             Text(percentText),
           ],
         ),
