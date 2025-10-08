@@ -26,6 +26,8 @@ import 'package:kopim/features/profile/data/remote/profile_remote_data_source.da
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
 import 'package:kopim/features/profile/domain/entities/profile.dart';
 import 'package:kopim/features/profile/domain/failures/auth_failure.dart';
+import 'package:kopim/features/recurring_transactions/data/sources/local/recurring_rule_dao.dart';
+import 'package:kopim/features/recurring_transactions/data/sources/remote/recurring_rule_remote_data_source.dart';
 import 'package:kopim/features/savings/data/sources/local/saving_goal_dao.dart';
 import 'package:kopim/features/savings/data/sources/remote/saving_goal_remote_data_source.dart';
 import 'package:kopim/features/transactions/data/sources/local/transaction_dao.dart';
@@ -58,6 +60,7 @@ void main() {
   late BudgetDao budgetDao;
   late BudgetInstanceDao budgetInstanceDao;
   late SavingGoalDao savingGoalDao;
+  late RecurringRuleDao recurringRuleDao;
   late ProfileDao profileDao;
   late FirebaseFirestore firestore;
   late MockLoggerService logger;
@@ -65,12 +68,14 @@ void main() {
   late BudgetRemoteDataSource budgetRemote;
   late BudgetInstanceRemoteDataSource budgetInstanceRemote;
   late SavingGoalRemoteDataSource savingGoalRemote;
+  late RecurringRuleRemoteDataSource recurringRuleRemote;
 
   AuthSyncService buildService({
     AccountRemoteDataSource? accountRemoteDataSource,
     BudgetRemoteDataSource? budgetRemoteDataSource,
     BudgetInstanceRemoteDataSource? budgetInstanceRemoteDataSource,
     SavingGoalRemoteDataSource? savingGoalRemoteDataSource,
+    RecurringRuleRemoteDataSource? recurringRuleRemoteDataSource,
   }) {
     return AuthSyncService(
       database: database,
@@ -81,6 +86,7 @@ void main() {
       budgetDao: budgetDao,
       budgetInstanceDao: budgetInstanceDao,
       savingGoalDao: savingGoalDao,
+      recurringRuleDao: recurringRuleDao,
       profileDao: profileDao,
       accountRemoteDataSource:
           accountRemoteDataSource ?? AccountRemoteDataSource(firestore),
@@ -91,6 +97,8 @@ void main() {
           budgetInstanceRemoteDataSource ?? budgetInstanceRemote,
       savingGoalRemoteDataSource:
           savingGoalRemoteDataSource ?? savingGoalRemote,
+      recurringRuleRemoteDataSource:
+          recurringRuleRemoteDataSource ?? recurringRuleRemote,
       profileRemoteDataSource: ProfileRemoteDataSource(firestore),
       firestore: firestore,
       loggerService: logger,
@@ -114,6 +122,7 @@ void main() {
     budgetDao = BudgetDao(database);
     budgetInstanceDao = BudgetInstanceDao(database);
     savingGoalDao = SavingGoalDao(database);
+    recurringRuleDao = RecurringRuleDao(database);
     profileDao = ProfileDao(database);
     firestore = FakeFirebaseFirestore();
     logger = MockLoggerService();
@@ -121,6 +130,7 @@ void main() {
     budgetRemote = BudgetRemoteDataSource(firestore);
     budgetInstanceRemote = BudgetInstanceRemoteDataSource(firestore);
     savingGoalRemote = SavingGoalRemoteDataSource(firestore);
+    recurringRuleRemote = RecurringRuleRemoteDataSource(firestore);
 
     when(() => analytics.logEvent(any(), any())).thenAnswer((_) async {});
     when(() => analytics.reportError(any(), any())).thenReturn(null);

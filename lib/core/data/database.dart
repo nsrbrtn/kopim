@@ -286,8 +286,6 @@ class AppDatabase extends _$AppDatabase {
               'ON recurring_occurrences(rule_id, due_at)',
         ),
       );
-      await m.createTable(budgets);
-      await m.createTable(budgetInstances);
       await m.createIndex(
         Index(
           'budget_instances_budget_period_idx',
@@ -403,9 +401,10 @@ class AppDatabase extends _$AppDatabase {
           ),
         );
         await m.database.customStatement(
-          'UPDATE recurring_rules SET day_of_month = '
-          "CAST(strftime('%d', start_at) AS INTEGER), apply_at_local_hour = 0, apply_at_local_minute = 1 "
-          'WHERE day_of_month IS NULL',
+          'UPDATE recurring_rules SET '
+          "day_of_month = CAST(strftime('%d', start_at) AS INTEGER), "
+          "apply_at_local_hour = CAST(strftime('%H', start_at) AS INTEGER), "
+          "apply_at_local_minute = CAST(strftime('%M', start_at) AS INTEGER)",
         );
         await m.database.customStatement(
           'UPDATE recurring_rules SET next_due_local_date = '

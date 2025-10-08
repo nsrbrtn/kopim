@@ -469,7 +469,66 @@ class AppLocalizationsRu extends AppLocalizations {
   String get addRecurringRuleStartTimeLabel => 'Время выполнения';
 
   @override
+  String get addRecurringRuleReminderLabel => 'Напоминание';
+
+  @override
+  String get addRecurringRuleReminderNone => 'Без напоминания';
+
+  @override
+  String get addRecurringRuleReminderAtTime => 'В момент платежа';
+
+  @override
+  String addRecurringRuleReminderMinutes(int minutes) {
+    String _temp0 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: 'За # минуты до',
+      many: 'За # минут до',
+      few: 'За # минуты до',
+      one: 'За # минуту до',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String addRecurringRuleReminderHours(int hours) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hours,
+      locale: localeName,
+      other: 'За # часа до',
+      many: 'За # часов до',
+      few: 'За # часа до',
+      one: 'За # час до',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String addRecurringRuleReminderDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'За # дня до',
+      many: 'За # дней до',
+      few: 'За # дня до',
+      one: 'За # день до',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get addRecurringRuleRemindOnceLabel => 'Только один раз';
+
+  @override
+  String get addRecurringRuleRemindOnceSubtitle =>
+      'Создать одно напоминание и не повторять автоматически.';
+
+  @override
   String get addRecurringRuleAutoPostLabel => 'Проводить автоматически';
+
+  @override
+  String get addRecurringRuleAutoPostDisabled =>
+      'Автопроведение недоступно для одноразовых напоминаний.';
 
   @override
   String get addRecurringRuleNextDuePreviewLabel => 'Ближайшая дата';
@@ -742,6 +801,9 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get analyticsTopCategoriesIncomeTab => 'Доходы';
+
+  @override
+  String get analyticsTopCategoriesOthers => 'Остальные';
 
   @override
   String get analyticsTopCategoriesEmpty =>

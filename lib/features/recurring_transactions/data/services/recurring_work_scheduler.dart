@@ -164,12 +164,14 @@ RecurringTransactionsRepository _buildRepository(AppDatabase database) {
     database,
   );
   final JobQueueDao jobQueueDao = JobQueueDao(database);
+  final OutboxDao outboxDao = OutboxDao(database);
   return RecurringTransactionsRepositoryImpl(
     ruleDao: ruleDao,
     occurrenceDao: occurrenceDao,
     executionDao: executionDao,
     jobQueueDao: jobQueueDao,
     database: database,
+    outboxDao: outboxDao,
   );
 }
 

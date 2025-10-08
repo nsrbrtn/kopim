@@ -96,6 +96,7 @@ import 'package:kopim/features/recurring_transactions/data/sources/local/job_que
 import 'package:kopim/features/recurring_transactions/data/sources/local/recurring_occurrence_dao.dart';
 import 'package:kopim/features/recurring_transactions/data/sources/local/recurring_rule_dao.dart';
 import 'package:kopim/features/recurring_transactions/data/sources/local/recurring_rule_execution_dao.dart';
+import 'package:kopim/features/recurring_transactions/data/sources/remote/recurring_rule_remote_data_source.dart';
 import 'package:kopim/features/recurring_transactions/domain/repositories/recurring_transactions_repository.dart';
 import 'package:kopim/features/recurring_transactions/domain/services/recurring_rule_engine.dart';
 import 'package:kopim/features/recurring_transactions/domain/use_cases/delete_recurring_rule_use_case.dart';
@@ -186,6 +187,10 @@ RecurringRuleExecutionDao recurringRuleExecutionDao(Ref ref) =>
 
 @riverpod
 JobQueueDao jobQueueDao(Ref ref) => JobQueueDao(ref.watch(appDatabaseProvider));
+
+@riverpod
+RecurringRuleRemoteDataSource recurringRuleRemoteDataSource(Ref ref) =>
+    RecurringRuleRemoteDataSource(ref.watch(firestoreProvider));
 
 @riverpod
 FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin(Ref ref) =>
@@ -381,6 +386,7 @@ RecurringTransactionsRepository recurringTransactionsRepository(Ref ref) =>
       executionDao: ref.watch(recurringRuleExecutionDaoProvider),
       jobQueueDao: ref.watch(jobQueueDaoProvider),
       database: ref.watch(appDatabaseProvider),
+      outboxDao: ref.watch(outboxDaoProvider),
     );
 
 final rp.Provider<AddTransactionUseCase> addTransactionUseCaseProvider =
@@ -572,6 +578,9 @@ SyncService syncService(Ref ref) {
       budgetInstanceRemoteDataSourceProvider,
     ),
     savingGoalRemoteDataSource: ref.watch(savingGoalRemoteDataSourceProvider),
+    recurringRuleRemoteDataSource: ref.watch(
+      recurringRuleRemoteDataSourceProvider,
+    ),
     firebaseAuth: ref.watch(firebaseAuthProvider),
     connectivity: ref.watch(connectivityProvider),
   );
@@ -598,6 +607,7 @@ AuthSyncService authSyncService(Ref ref) => AuthSyncService(
   budgetDao: ref.watch(budgetDaoProvider),
   budgetInstanceDao: ref.watch(budgetInstanceDaoProvider),
   savingGoalDao: ref.watch(savingGoalDaoProvider),
+  recurringRuleDao: ref.watch(recurringRuleDaoProvider),
   profileDao: ref.watch(profileDaoProvider),
   accountRemoteDataSource: ref.watch(accountRemoteDataSourceProvider),
   categoryRemoteDataSource: ref.watch(categoryRemoteDataSourceProvider),
@@ -607,6 +617,9 @@ AuthSyncService authSyncService(Ref ref) => AuthSyncService(
     budgetInstanceRemoteDataSourceProvider,
   ),
   savingGoalRemoteDataSource: ref.watch(savingGoalRemoteDataSourceProvider),
+  recurringRuleRemoteDataSource: ref.watch(
+    recurringRuleRemoteDataSourceProvider,
+  ),
   profileRemoteDataSource: ref.watch(profileRemoteDataSourceProvider),
   firestore: ref.watch(firestoreProvider),
   loggerService: ref.watch(loggerServiceProvider),

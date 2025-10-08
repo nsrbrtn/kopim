@@ -60,7 +60,7 @@ final class EditAccountFormControllerProvider
 }
 
 String _$editAccountFormControllerHash() =>
-    r'49b4dd242772dceed818fcfaa2162b506675c706';
+    r'68284568ca4261dda7a564c66925134ed7d226b7';
 
 final class EditAccountFormControllerFamily extends $Family
     with

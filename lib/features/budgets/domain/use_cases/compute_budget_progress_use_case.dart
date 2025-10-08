@@ -6,6 +6,7 @@ import 'package:kopim/features/budgets/domain/entities/budget_progress.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_scope.dart';
 import 'package:kopim/features/budgets/domain/services/budget_schedule.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
+import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
 
 class ComputeBudgetProgressUseCase {
   ComputeBudgetProgressUseCase({BudgetSchedule? schedule})
@@ -29,6 +30,9 @@ class ComputeBudgetProgressUseCase {
 
     double spent = 0;
     for (final TransactionEntity tx in scopedTransactions) {
+      if (tx.type == TransactionType.income.storageValue) {
+        continue;
+      }
       spent += tx.amount.abs();
     }
 

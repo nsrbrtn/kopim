@@ -21,10 +21,12 @@ class AnalyticsDonutChart extends StatelessWidget {
     super.key,
     required this.items,
     required this.backgroundColor,
+    this.totalAmount,
   });
 
   final List<AnalyticsChartItem> items;
   final Color backgroundColor;
+  final double? totalAmount;
 
   @override
   Widget build(BuildContext context) {
@@ -91,11 +93,12 @@ class AnalyticsDonutChart extends StatelessWidget {
   }
 
   List<_DonutSegment> _buildSegments() {
-    final double total = items.fold<double>(
+    final double rawTotal = items.fold<double>(
       0,
       (double previous, AnalyticsChartItem item) =>
           previous + item.absoluteAmount,
     );
+    final double total = totalAmount ?? rawTotal;
     if (total <= 0) {
       return <_DonutSegment>[];
     }
@@ -105,8 +108,12 @@ class AnalyticsDonutChart extends StatelessWidget {
       if (item.absoluteAmount <= 0) {
         continue;
       }
-      final double sweep = (item.absoluteAmount / total) * (2 * math.pi);
-      final double percentage = item.absoluteAmount / total * 100;
+      final double share = item.absoluteAmount / total;
+      if (share <= 0) {
+        continue;
+      }
+      final double sweep = share * (2 * math.pi);
+      final double percentage = share * 100;
       segments.add(
         _DonutSegment(
           color: item.color,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:kopim/core/utils/timezone_utils.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/recurring_transactions/domain/entities/recurring_rule.dart';
@@ -150,6 +151,18 @@ class _RecurringRuleForm extends ConsumerWidget {
     final String nextDueText = previewNextDue == null
         ? strings.addRecurringRuleNextDuePreviewUnknown
         : dateFormat.format(previewNextDue);
+    final RecurringRuleFormControllerProvider provider =
+        recurringRuleFormControllerProvider(initialRule: initialRule);
+    final List<_ReminderOption> reminderOptions = _buildReminderOptions(
+      strings,
+    );
+    final int? selectedReminder =
+        reminderOptions.any(
+          (_ReminderOption option) =>
+              option.value == state.reminderMinutesBefore,
+        )
+        ? state.reminderMinutesBefore
+        : reminderOptions.first.value;
 
     return Form(
       key: formKey,
@@ -164,13 +177,7 @@ class _RecurringRuleForm extends ConsumerWidget {
                   ? null
                   : strings.addRecurringRuleTitleRequired,
             ),
-            onChanged: ref
-                .read(
-                  recurringRuleFormControllerProvider(
-                    initialRule: initialRule,
-                  ).notifier,
-                )
-                .updateTitle,
+            onChanged: ref.read(provider.notifier).updateTitle,
             textInputAction: TextInputAction.next,
           ),
           const SizedBox(height: 16),
@@ -187,13 +194,7 @@ class _RecurringRuleForm extends ConsumerWidget {
                   ? null
                   : strings.addRecurringRuleAmountInvalid,
             ),
-            onChanged: ref
-                .read(
-                  recurringRuleFormControllerProvider(
-                    initialRule: initialRule,
-                  ).notifier,
-                )
-                .updateAmount,
+            onChanged: ref.read(provider.notifier).updateAmount,
           ),
           const SizedBox(height: 16),
           TextFormField(
@@ -203,13 +204,7 @@ class _RecurringRuleForm extends ConsumerWidget {
               labelText: strings.addRecurringRuleNoteLabel,
               hintText: strings.addRecurringRuleNoteHint,
             ),
-            onChanged: ref
-                .read(
-                  recurringRuleFormControllerProvider(
-                    initialRule: initialRule,
-                  ).notifier,
-                )
-                .updateNotes,
+            onChanged: ref.read(provider.notifier).updateNotes,
           ),
           const SizedBox(height: 16),
           InputDecorator(
@@ -240,13 +235,7 @@ class _RecurringRuleForm extends ConsumerWidget {
                             : accounts.firstWhere(
                                 (AccountEntity item) => item.id == value,
                               );
-                        ref
-                            .read(
-                              recurringRuleFormControllerProvider(
-                                initialRule: initialRule,
-                              ).notifier,
-                            )
-                            .updateAccount(account);
+                        ref.read(provider.notifier).updateAccount(account);
                       },
               ),
             ),
@@ -280,13 +269,7 @@ class _RecurringRuleForm extends ConsumerWidget {
                             : categories.firstWhere(
                                 (Category item) => item.id == value,
                               );
-                        ref
-                            .read(
-                              recurringRuleFormControllerProvider(
-                                initialRule: initialRule,
-                              ).notifier,
-                            )
-                            .updateCategory(category);
+                        ref.read(provider.notifier).updateCategory(category);
                       },
               ),
             ),
@@ -310,13 +293,7 @@ class _RecurringRuleForm extends ConsumerWidget {
               selected: <TransactionType>{state.type},
               onSelectionChanged: (Set<TransactionType> values) {
                 if (values.isEmpty) return;
-                ref
-                    .read(
-                      recurringRuleFormControllerProvider(
-                        initialRule: initialRule,
-                      ).notifier,
-                    )
-                    .updateType(values.first);
+                ref.read(provider.notifier).updateType(values.first);
               },
             ),
           ),
@@ -334,13 +311,7 @@ class _RecurringRuleForm extends ConsumerWidget {
                 lastDate: DateTime(2100),
               );
               if (selected != null && context.mounted) {
-                ref
-                    .read(
-                      recurringRuleFormControllerProvider(
-                        initialRule: initialRule,
-                      ).notifier,
-                    )
-                    .updateStartDate(selected);
+                ref.read(provider.notifier).updateStartDate(selected);
               }
             },
           ),
@@ -360,6 +331,38 @@ class _RecurringRuleForm extends ConsumerWidget {
             enabled: false,
           ),
           const SizedBox(height: 16),
+          DropdownMenu<int?>(
+            initialSelection: selectedReminder,
+            enabled: !state.isSubmitting,
+            label: Text(strings.addRecurringRuleReminderLabel),
+            dropdownMenuEntries: reminderOptions
+                .map(
+                  (_ReminderOption option) => DropdownMenuEntry<int?>(
+                    value: option.value,
+                    label: option.label,
+                  ),
+                )
+                .toList(growable: false),
+            onSelected: (int? value) {
+              if (state.isSubmitting) {
+                return;
+              }
+              ref.read(provider.notifier).updateReminder(value);
+            },
+          ),
+          const SizedBox(height: 16),
+          SwitchListTile.adaptive(
+            contentPadding: EdgeInsets.zero,
+            title: Text(strings.addRecurringRuleRemindOnceLabel),
+            subtitle: Text(strings.addRecurringRuleRemindOnceSubtitle),
+            value: state.remindOnce,
+            onChanged: state.isSubmitting
+                ? null
+                : (bool value) {
+                    ref.read(provider.notifier).updateRemindOnce(value);
+                  },
+          ),
+          const SizedBox(height: 16),
           Text(
             '${strings.addRecurringRuleNextDuePreviewLabel}: $nextDueText',
             style: Theme.of(context).textTheme.bodyMedium,
@@ -370,16 +373,18 @@ class _RecurringRuleForm extends ConsumerWidget {
             child: SwitchListTile.adaptive(
               contentPadding: EdgeInsets.zero,
               title: Text(strings.addRecurringRuleAutoPostLabel),
-              value: state.autoPost,
-              onChanged: state.isSubmitting
+              subtitle: state.remindOnce
+                  ? Text(
+                      strings.addRecurringRuleAutoPostDisabled,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    )
+                  : null,
+              value: state.remindOnce ? false : state.autoPost,
+              onChanged: state.isSubmitting || state.remindOnce
                   ? null
-                  : ref
-                        .read(
-                          recurringRuleFormControllerProvider(
-                            initialRule: initialRule,
-                          ).notifier,
-                        )
-                        .updateAutoPost,
+                  : ref.read(provider.notifier).updateAutoPost,
             ),
           ),
           const SizedBox(height: 24),
@@ -388,13 +393,7 @@ class _RecurringRuleForm extends ConsumerWidget {
                 ? null
                 : () {
                     FocusScope.of(context).unfocus();
-                    ref
-                        .read(
-                          recurringRuleFormControllerProvider(
-                            initialRule: initialRule,
-                          ).notifier,
-                        )
-                        .submit();
+                    ref.read(provider.notifier).submit();
                   },
             child: state.isSubmitting
                 ? const SizedBox(
@@ -414,6 +413,23 @@ class _RecurringRuleForm extends ConsumerWidget {
   }
 }
 
+class _ReminderOption {
+  const _ReminderOption(this.value, this.label);
+
+  final int? value;
+  final String label;
+}
+
+List<_ReminderOption> _buildReminderOptions(AppLocalizations strings) {
+  return <_ReminderOption>[
+    _ReminderOption(null, strings.addRecurringRuleReminderNone),
+    _ReminderOption(0, strings.addRecurringRuleReminderAtTime),
+    _ReminderOption(15, strings.addRecurringRuleReminderMinutes(15)),
+    _ReminderOption(60, strings.addRecurringRuleReminderHours(1)),
+    _ReminderOption(1440, strings.addRecurringRuleReminderDays(1)),
+  ];
+}
+
 DateTime? _resolvePreviewNextDue(RecurringRuleFormState state) {
   if (state.accountId == null || state.categoryId == null) {
     return null;
@@ -425,6 +441,13 @@ DateTime? _resolvePreviewNextDue(RecurringRuleFormState state) {
     state.applyHour,
     state.applyMinute,
   );
+  final DateTime startUtc = startLocal.toUtc();
+  final bool remindOnce = state.remindOnce;
+  final String timezoneId = resolveCurrentTimeZoneId();
+  final String rrule = remindOnce
+      ? 'FREQ=DAILY;COUNT=1'
+      : 'FREQ=MONTHLY;INTERVAL=1;BYMONTHDAY=${state.startDate.day}';
+  final bool autoPost = remindOnce ? false : state.autoPost;
   final RecurringRule rule = RecurringRule(
     id: 'preview',
     title: state.title.isEmpty ? 'preview' : state.title,
@@ -432,9 +455,10 @@ DateTime? _resolvePreviewNextDue(RecurringRuleFormState state) {
     categoryId: state.categoryId!,
     amount: state.type == TransactionType.expense ? 1 : -1,
     currency: state.account?.currency ?? 'EUR',
-    startAt: startLocal,
-    timezone: 'Europe/Helsinki',
-    rrule: 'FREQ=MONTHLY;INTERVAL=1;BYMONTHDAY=${state.startDate.day}',
+    startAt: startUtc,
+    endAt: remindOnce ? startUtc : null,
+    timezone: timezoneId,
+    rrule: rrule,
     notes: null,
     dayOfMonth: state.startDate.day,
     applyAtLocalHour: state.applyHour,
@@ -442,11 +466,11 @@ DateTime? _resolvePreviewNextDue(RecurringRuleFormState state) {
     lastRunAt: null,
     nextDueLocalDate: startLocal,
     isActive: true,
-    autoPost: state.autoPost,
-    reminderMinutesBefore: null,
+    autoPost: autoPost,
+    reminderMinutesBefore: state.reminderMinutesBefore,
     shortMonthPolicy: RecurringRuleShortMonthPolicy.clipToLastDay,
-    createdAt: DateTime.now(),
-    updatedAt: DateTime.now(),
+    createdAt: DateTime.now().toUtc(),
+    updatedAt: DateTime.now().toUtc(),
   );
   final RecurringRuleScheduleResult result = const RecurringRuleScheduler()
       .resolve(rule: rule, now: DateTime.now());

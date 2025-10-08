@@ -2,6 +2,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/accounts/domain/use_cases/add_account_use_case.dart';
+import 'package:kopim/features/accounts/domain/utils/account_type_utils.dart';
 import 'package:kopim/features/accounts/presentation/controllers/account_balance_parser.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:uuid/uuid.dart';
@@ -37,7 +38,11 @@ abstract class AddAccountFormState with _$AddAccountFormState {
     if (value.isEmpty) {
       return null;
     }
-    return value;
+    final String normalized = normalizeAccountType(value);
+    if (normalized.isEmpty) {
+      return null;
+    }
+    return normalized;
   }
 
   bool get canSubmit =>

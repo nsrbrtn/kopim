@@ -29,17 +29,20 @@ import 'package:uuid/uuid.dart';
 void main() {
   late AppDatabase database;
   late RecurringTransactionsRepository repository;
+  late OutboxDao outboxDao;
 
   setUp(() async {
     database = AppDatabase.connect(
       drift.DatabaseConnection(NativeDatabase.memory()),
     );
+    outboxDao = OutboxDao(database);
     repository = RecurringTransactionsRepositoryImpl(
       ruleDao: RecurringRuleDao(database),
       occurrenceDao: RecurringOccurrenceDao(database),
       executionDao: RecurringRuleExecutionDao(database),
       jobQueueDao: JobQueueDao(database),
       database: database,
+      outboxDao: outboxDao,
     );
 
     await database
@@ -94,7 +97,6 @@ void main() {
       );
       await repository.upsertRule(rule);
 
-      final OutboxDao outboxDao = OutboxDao(database);
       final AccountDao accountDao = AccountDao(database);
       final TransactionDao transactionDao = TransactionDao(database);
       final SavingGoalDao savingGoalDao = SavingGoalDao(database);

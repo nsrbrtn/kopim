@@ -58,13 +58,22 @@ class UpdateProfileAvatarUseCase {
         ? 'image/jpeg'
         : request.contentType;
 
-    final String downloadUrl = request.storeOfflineOnly
-        ? _encodeAsDataUrl(processedBytes, resolvedContentType)
-        : await _avatarRepository.upload(
-            uid: request.uid,
-            data: processedBytes,
-            contentType: resolvedContentType,
-          );
+    String downloadUrl;
+    if (request.storeOfflineOnly) {
+      downloadUrl = _encodeAsDataUrl(processedBytes, resolvedContentType);
+    } else {
+      try {
+        downloadUrl = await _avatarRepository.upload(
+          uid: request.uid,
+          data: processedBytes,
+          contentType: resolvedContentType,
+        );
+      } catch (error, stackTrace) {
+        _logger.logError('Failed to upload avatar: $error');
+        _logger.logError(stackTrace.toString());
+        downloadUrl = _encodeAsDataUrl(processedBytes, resolvedContentType);
+      }
+    }
 
     final Profile updated = existing.copyWith(
       photoUrl: downloadUrl,

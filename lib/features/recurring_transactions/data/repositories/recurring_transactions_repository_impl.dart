@@ -1,3 +1,4 @@
+import 'package:kopim/core/data/outbox/outbox_dao.dart';
 import 'package:kopim/features/recurring_transactions/data/sources/local/job_queue_dao.dart';
 import 'package:kopim/features/recurring_transactions/data/sources/local/recurring_occurrence_dao.dart';
 import 'package:kopim/features/recurring_transactions/data/sources/local/recurring_rule_execution_dao.dart';
@@ -16,17 +17,21 @@ class RecurringTransactionsRepositoryImpl
     required RecurringRuleExecutionDao executionDao,
     required JobQueueDao jobQueueDao,
     required db.AppDatabase database,
+    required OutboxDao outboxDao,
   }) : _ruleDao = ruleDao,
        _occurrenceDao = occurrenceDao,
        _executionDao = executionDao,
        _jobQueueDao = jobQueueDao,
-       _database = database;
+       _database = database,
+       _outboxDao = outboxDao;
 
   final RecurringRuleDao _ruleDao;
   final RecurringOccurrenceDao _occurrenceDao;
   final RecurringRuleExecutionDao _executionDao;
   final JobQueueDao _jobQueueDao;
   final db.AppDatabase _database;
+  final OutboxDao _outboxDao;
+  static const String _ruleEntityType = 'recurring_rule';
 
   @override
   Stream<List<RecurringRule>> watchRules() {
@@ -75,28 +80,62 @@ class RecurringTransactionsRepositoryImpl
   }
 
   @override
-  Future<void> upsertRule(RecurringRule rule, {bool regenerateWindow = true}) {
+  Future<void> upsertRule(
+    RecurringRule rule, {
+    bool regenerateWindow = true,
+  }) async {
     final DateTime now = DateTime.now().toUtc();
-    return _ruleDao.upsert(
-      rule.copyWith(createdAt: rule.createdAt.toUtc(), updatedAt: now),
+    final RecurringRule normalized = rule.copyWith(
+      startAt: rule.startAt.toUtc(),
+      endAt: rule.endAt?.toUtc(),
+      nextDueLocalDate: rule.nextDueLocalDate?.toUtc(),
+      lastRunAt: rule.lastRunAt?.toUtc(),
+      createdAt: rule.createdAt.toUtc(),
+      updatedAt: now,
     );
+    await _database.transaction(() async {
+      await _ruleDao.upsert(normalized);
+      await _outboxDao.enqueue(
+        entityType: _ruleEntityType,
+        entityId: normalized.id,
+        operation: OutboxOperation.upsert,
+        payload: _mapRulePayload(normalized),
+      );
+    });
   }
 
   @override
   Future<void> deleteRule(String id) async {
     await _database.transaction(() async {
+      final db.RecurringRuleRow? existing = await _ruleDao.findById(id);
       await _occurrenceDao.deleteForRule(id);
       await _ruleDao.deleteById(id);
+      if (existing != null) {
+        await _outboxDao.enqueue(
+          entityType: _ruleEntityType,
+          entityId: id,
+          operation: OutboxOperation.delete,
+          payload: _mapRulePayload(_mapRuleRowToEntity(existing)),
+        );
+      }
     });
   }
 
   @override
-  Future<void> toggleRule({required String id, required bool isActive}) {
-    return _ruleDao.toggle(
-      id: id,
-      isActive: isActive,
-      updatedAt: DateTime.now().toUtc(),
-    );
+  Future<void> toggleRule({required String id, required bool isActive}) async {
+    final DateTime now = DateTime.now().toUtc();
+    await _database.transaction(() async {
+      await _ruleDao.toggle(id: id, isActive: isActive, updatedAt: now);
+      final db.RecurringRuleRow? updated = await _ruleDao.findById(id);
+      if (updated != null) {
+        await _outboxDao.enqueue(
+          entityType: _ruleEntityType,
+          entityId: id,
+          operation: OutboxOperation.upsert,
+          payload: _mapRulePayload(_mapRuleRowToEntity(updated)),
+        );
+      }
+    });
   }
 
   @override
@@ -232,5 +271,16 @@ class RecurringTransactionsRepositoryImpl
       lastError: row.lastError,
       createdAt: row.createdAt.toUtc(),
     );
+  }
+
+  Map<String, dynamic> _mapRulePayload(RecurringRule rule) {
+    final Map<String, dynamic> json = rule.toJson();
+    json['startAt'] = rule.startAt.toIso8601String();
+    json['endAt'] = rule.endAt?.toIso8601String();
+    json['nextDueLocalDate'] = rule.nextDueLocalDate?.toIso8601String();
+    json['lastRunAt'] = rule.lastRunAt?.toIso8601String();
+    json['createdAt'] = rule.createdAt.toIso8601String();
+    json['updatedAt'] = rule.updatedAt.toIso8601String();
+    return json;
   }
 }

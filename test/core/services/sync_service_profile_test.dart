@@ -19,6 +19,7 @@ import 'package:kopim/features/profile/data/local/profile_dao.dart';
 import 'package:kopim/features/profile/data/profile_repository_impl.dart';
 import 'package:kopim/features/profile/data/remote/profile_remote_data_source.dart';
 import 'package:kopim/features/profile/domain/entities/profile.dart';
+import 'package:kopim/features/recurring_transactions/data/sources/remote/recurring_rule_remote_data_source.dart';
 import 'package:kopim/features/savings/data/sources/remote/saving_goal_remote_data_source.dart';
 import 'package:kopim/features/transactions/data/sources/remote/transaction_remote_data_source.dart';
 import 'package:mocktail/mocktail.dart';
@@ -86,6 +87,7 @@ void main() {
       budgetRemoteDataSource: BudgetRemoteDataSource(firestore),
       budgetInstanceRemoteDataSource: BudgetInstanceRemoteDataSource(firestore),
       savingGoalRemoteDataSource: SavingGoalRemoteDataSource(firestore),
+      recurringRuleRemoteDataSource: RecurringRuleRemoteDataSource(firestore),
       profileRemoteDataSource: profileRemote,
       firebaseAuth: firebaseAuth,
       connectivity: connectivity,

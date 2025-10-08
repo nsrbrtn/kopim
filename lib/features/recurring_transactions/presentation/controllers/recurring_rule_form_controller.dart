@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:kopim/core/di/injectors.dart';
+import 'package:kopim/core/utils/timezone_utils.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/recurring_transactions/domain/entities/recurring_rule.dart';
@@ -34,6 +35,8 @@ abstract class RecurringRuleFormState with _$RecurringRuleFormState {
     required DateTime startDate,
     @Default(0) int applyHour,
     @Default(0) int applyMinute,
+    int? reminderMinutesBefore,
+    @Default(false) bool remindOnce,
     @Default(false) bool autoPost,
     @Default(false) bool isSubmitting,
     @Default(false) bool submissionSuccess,
@@ -73,6 +76,7 @@ class RecurringRuleFormController extends _$RecurringRuleFormController {
       final TransactionType initialType = initialRule.amount >= 0
           ? TransactionType.expense
           : TransactionType.income;
+      final bool isOneOff = _isOneOffRule(initialRule.rrule);
       return RecurringRuleFormState(
         title: initialRule.title,
         amountInput: _formatAmountInput(absoluteAmount),
@@ -87,7 +91,9 @@ class RecurringRuleFormController extends _$RecurringRuleFormController {
         ),
         applyHour: initialRule.applyAtLocalHour,
         applyMinute: initialRule.applyAtLocalMinute,
-        autoPost: initialRule.autoPost,
+        reminderMinutesBefore: initialRule.reminderMinutesBefore,
+        remindOnce: isOneOff,
+        autoPost: isOneOff ? false : initialRule.autoPost,
         isEditing: true,
         initialRule: initialRule,
       );
@@ -98,6 +104,8 @@ class RecurringRuleFormController extends _$RecurringRuleFormController {
       applyHour: 0,
       applyMinute: 1,
       categoryId: null,
+      reminderMinutesBefore: null,
+      remindOnce: false,
     );
   }
 
@@ -172,7 +180,27 @@ class RecurringRuleFormController extends _$RecurringRuleFormController {
     );
   }
 
+  void updateReminder(int? minutes) {
+    state = state.copyWith(
+      reminderMinutesBefore: minutes,
+      submissionSuccess: false,
+      generalErrorMessage: null,
+    );
+  }
+
+  void updateRemindOnce(bool value) {
+    state = state.copyWith(
+      remindOnce: value,
+      autoPost: value ? false : state.autoPost,
+      submissionSuccess: false,
+      generalErrorMessage: null,
+    );
+  }
+
   void updateAutoPost(bool value) {
+    if (state.remindOnce && value) {
+      return;
+    }
     state = state.copyWith(autoPost: value, submissionSuccess: false);
   }
 
@@ -236,13 +264,13 @@ class RecurringRuleFormController extends _$RecurringRuleFormController {
 
     final DateTime startDate = state.startDate;
     final DateTime startDateTimeLocal = state.startDateTime;
-    final DateTime startAtUtc = DateTime.utc(
-      startDate.year,
-      startDate.month,
-      startDate.day,
-      state.applyHour,
-      state.applyMinute,
-    );
+    final DateTime startAtUtc = startDateTimeLocal.toUtc();
+    final String timezoneId = resolveCurrentTimeZoneId();
+    final bool remindOnce = state.remindOnce;
+    final bool autoPost = remindOnce ? false : state.autoPost;
+    final String recurrenceRule = remindOnce
+        ? 'FREQ=DAILY;COUNT=1'
+        : 'FREQ=MONTHLY;INTERVAL=1;BYMONTHDAY=${startDate.day}';
     final double amount = state.type == TransactionType.expense
         ? parsedAmount!
         : -parsedAmount!;
@@ -260,8 +288,9 @@ class RecurringRuleFormController extends _$RecurringRuleFormController {
         amount: amount,
         currency: account.currency,
         startAt: startAtUtc,
-        timezone: 'Europe/Helsinki',
-        rrule: 'FREQ=MONTHLY;INTERVAL=1;BYMONTHDAY=${startDate.day}',
+        endAt: remindOnce ? startAtUtc : null,
+        timezone: timezoneId,
+        rrule: recurrenceRule,
         notes: noteToPersist,
         dayOfMonth: startDate.day,
         applyAtLocalHour: state.applyHour,
@@ -269,8 +298,8 @@ class RecurringRuleFormController extends _$RecurringRuleFormController {
         lastRunAt: null,
         nextDueLocalDate: startDateTimeLocal,
         isActive: true,
-        autoPost: state.autoPost,
-        reminderMinutesBefore: null,
+        autoPost: autoPost,
+        reminderMinutesBefore: state.reminderMinutesBefore,
         shortMonthPolicy: RecurringRuleShortMonthPolicy.clipToLastDay,
         createdAt: now,
         updatedAt: now,
@@ -283,13 +312,15 @@ class RecurringRuleFormController extends _$RecurringRuleFormController {
         amount: amount,
         currency: account.currency,
         startAt: startAtUtc,
-        rrule: 'FREQ=MONTHLY;INTERVAL=1;BYMONTHDAY=${startDate.day}',
-        timezone: 'Europe/Helsinki',
+        endAt: remindOnce ? startAtUtc : existingRule.endAt,
+        rrule: recurrenceRule,
+        timezone: timezoneId,
         dayOfMonth: startDate.day,
         applyAtLocalHour: state.applyHour,
         applyAtLocalMinute: state.applyMinute,
         nextDueLocalDate: startDateTimeLocal,
-        autoPost: state.autoPost,
+        autoPost: autoPost,
+        reminderMinutesBefore: state.reminderMinutesBefore,
         updatedAt: now,
         notes: noteToPersist,
       );
@@ -335,6 +366,10 @@ class RecurringRuleFormController extends _$RecurringRuleFormController {
     }
     return trimmed;
   }
+}
+
+bool _isOneOffRule(String rrule) {
+  return rrule.toUpperCase().contains('COUNT=1');
 }
 
 final StreamProvider<List<AccountEntity>> recurringRuleAccountsProvider =

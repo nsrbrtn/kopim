@@ -2,6 +2,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/accounts/domain/use_cases/add_account_use_case.dart';
+import 'package:kopim/features/accounts/domain/utils/account_type_utils.dart';
 import 'package:kopim/features/accounts/presentation/controllers/account_balance_parser.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -37,7 +38,11 @@ abstract class EditAccountFormState with _$EditAccountFormState {
     if (value.isEmpty) {
       return null;
     }
-    return value;
+    final String normalized = normalizeAccountType(value);
+    if (normalized.isEmpty) {
+      return null;
+    }
+    return normalized;
   }
 
   bool get canSubmit =>
@@ -58,7 +63,12 @@ class EditAccountFormController extends _$EditAccountFormController {
   @override
   EditAccountFormState build(AccountEntity account) {
     _addAccountUseCase = ref.watch(addAccountUseCaseProvider);
-    final bool useCustomType = !_defaultTypes.contains(account.type);
+    final bool useCustomType = !_defaultTypes.contains(
+      account.type.toLowerCase(),
+    );
+    final String customType = useCustomType
+        ? stripCustomAccountPrefix(account.type)
+        : '';
     return EditAccountFormState(
       original: account,
       name: account.name,
@@ -66,7 +76,7 @@ class EditAccountFormController extends _$EditAccountFormController {
       currency: account.currency,
       type: useCustomType ? 'cash' : account.type,
       useCustomType: useCustomType,
-      customType: useCustomType ? account.type : '',
+      customType: customType,
     );
   }
 
@@ -191,14 +201,19 @@ class EditAccountFormController extends _$EditAccountFormController {
 
     try {
       await _addAccountUseCase(updatedAccount);
-      final bool updatedIsCustom = !_defaultTypes.contains(updatedAccount.type);
+      final bool updatedIsCustom = !_defaultTypes.contains(
+        updatedAccount.type.toLowerCase(),
+      );
+      final String normalizedCustom = stripCustomAccountPrefix(
+        updatedAccount.type,
+      );
       state = state.copyWith(
         isSaving: false,
         original: updatedAccount,
         balanceInput: balance.toStringAsFixed(2),
         type: updatedIsCustom ? state.type : updatedAccount.type,
         useCustomType: updatedIsCustom,
-        customType: updatedIsCustom ? updatedAccount.type : '',
+        customType: updatedIsCustom ? normalizedCustom : '',
         submissionSuccess: true,
       );
     } catch (error) {

@@ -448,6 +448,8 @@ class _SubmitButton extends ConsumerWidget {
       onPressed: isSubmitting
           ? null
           : () async {
+              FocusManager.instance.primaryFocus?.unfocus();
+              await Future<void>.delayed(Duration.zero);
               if (!(formKey.currentState?.validate() ?? false)) {
                 return;
               }
@@ -483,6 +485,7 @@ class _AmountFieldState extends ConsumerState<_AmountField> {
   ProviderSubscription<String>? _subscription;
   Timer? _debounce;
   String _lastSyncedValue = '';
+  late final FocusNode _focusNode;
 
   @override
   void initState() {
@@ -492,6 +495,8 @@ class _AmountFieldState extends ConsumerState<_AmountField> {
     );
     _controller = TextEditingController(text: initialState.amount);
     _lastSyncedValue = initialState.amount;
+    _focusNode = FocusNode();
+    _focusNode.addListener(_handleFocusChange);
     _subscription = ref.listenManual<String>(
       transactionFormControllerProvider(
         widget.formArgs,
@@ -515,6 +520,8 @@ class _AmountFieldState extends ConsumerState<_AmountField> {
     _debounce?.cancel();
     _subscription?.close();
     _controller.dispose();
+    _focusNode.removeListener(_handleFocusChange);
+    _focusNode.dispose();
     super.dispose();
   }
 
@@ -523,6 +530,12 @@ class _AmountFieldState extends ConsumerState<_AmountField> {
     _debounce = Timer(const Duration(milliseconds: 220), () {
       _pushUpdate(value);
     });
+  }
+
+  void _handleFocusChange() {
+    if (!_focusNode.hasFocus) {
+      _flushPendingUpdate();
+    }
   }
 
   void _pushUpdate(String value) {
@@ -558,6 +571,7 @@ class _AmountFieldState extends ConsumerState<_AmountField> {
 
     return TextFormField(
       controller: _controller,
+      focusNode: _focusNode,
       enabled: !isSubmitting,
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
       inputFormatters: <TextInputFormatter>[

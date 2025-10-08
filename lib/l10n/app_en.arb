@@ -634,9 +634,60 @@
   "@addRecurringRuleStartTimeLabel": {
     "description": "Label for the time picker"
   },
+  "addRecurringRuleReminderLabel": "Reminder",
+  "@addRecurringRuleReminderLabel": {
+    "description": "Label for reminder selection in the recurring rule form"
+  },
+  "addRecurringRuleReminderNone": "No reminder",
+  "@addRecurringRuleReminderNone": {
+    "description": "Dropdown option meaning no reminder"
+  },
+  "addRecurringRuleReminderAtTime": "At due time",
+  "@addRecurringRuleReminderAtTime": {
+    "description": "Dropdown option for reminder exactly at due time"
+  },
+  "addRecurringRuleReminderMinutes": "{minutes, plural, one {# minute before} other {# minutes before}}",
+  "@addRecurringRuleReminderMinutes": {
+    "description": "Dropdown option for reminder in minutes before due time",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "addRecurringRuleReminderHours": "{hours, plural, one {# hour before} other {# hours before}}",
+  "@addRecurringRuleReminderHours": {
+    "description": "Dropdown option for reminder in hours before due time",
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "addRecurringRuleReminderDays": "{days, plural, one {# day before} other {# days before}}",
+  "@addRecurringRuleReminderDays": {
+    "description": "Dropdown option for reminder in days before due date",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "addRecurringRuleRemindOnceLabel": "Only once",
+  "@addRecurringRuleRemindOnceLabel": {
+    "description": "Label for the one-time reminder toggle"
+  },
+  "addRecurringRuleRemindOnceSubtitle": "Schedule a single reminder and skip future repeats.",
+  "@addRecurringRuleRemindOnceSubtitle": {
+    "description": "Helper text explaining the one-time reminder behaviour"
+  },
   "addRecurringRuleAutoPostLabel": "Post automatically",
   "@addRecurringRuleAutoPostLabel": {
     "description": "Label for the auto-post toggle"
+  },
+  "addRecurringRuleAutoPostDisabled": "Automatic posting is disabled for one-time reminders.",
+  "@addRecurringRuleAutoPostDisabled": {
+    "description": "Helper text shown when auto-post is unavailable due to one-time reminder"
   },
   "addRecurringRuleNextDuePreviewLabel": "Next due",
   "@addRecurringRuleNextDuePreviewLabel": {
@@ -1000,6 +1051,10 @@
   "analyticsTopCategoriesIncomeTab": "Income",
   "@analyticsTopCategoriesIncomeTab": {
     "description": "Tab label for income categories"
+  },
+  "analyticsTopCategoriesOthers": "Others",
+  "@analyticsTopCategoriesOthers": {
+    "description": "Legend label for remaining categories not shown individually"
   },
   "analyticsTopCategoriesEmpty": "Not enough data to show category trends yet.",
   "@analyticsTopCategoriesEmpty": {

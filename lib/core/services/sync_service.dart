@@ -13,6 +13,8 @@ import 'package:kopim/features/budgets/domain/entities/budget.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_instance.dart';
 import 'package:kopim/features/categories/data/sources/remote/category_remote_data_source.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
+import 'package:kopim/features/recurring_transactions/data/sources/remote/recurring_rule_remote_data_source.dart';
+import 'package:kopim/features/recurring_transactions/domain/entities/recurring_rule.dart';
 import 'package:kopim/features/savings/data/sources/remote/saving_goal_remote_data_source.dart';
 import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
 import 'package:kopim/features/profile/data/remote/profile_remote_data_source.dart';
@@ -30,6 +32,7 @@ class SyncService {
     required BudgetRemoteDataSource budgetRemoteDataSource,
     required BudgetInstanceRemoteDataSource budgetInstanceRemoteDataSource,
     required SavingGoalRemoteDataSource savingGoalRemoteDataSource,
+    required RecurringRuleRemoteDataSource recurringRuleRemoteDataSource,
     FirebaseAuth? firebaseAuth,
     Connectivity? connectivity,
   }) : _outboxDao = outboxDao,
@@ -40,6 +43,7 @@ class SyncService {
        _budgetRemoteDataSource = budgetRemoteDataSource,
        _budgetInstanceRemoteDataSource = budgetInstanceRemoteDataSource,
        _savingGoalRemoteDataSource = savingGoalRemoteDataSource,
+       _recurringRuleRemoteDataSource = recurringRuleRemoteDataSource,
        _auth = firebaseAuth ?? FirebaseAuth.instance,
        _connectivity = connectivity ?? Connectivity();
 
@@ -51,6 +55,7 @@ class SyncService {
   final BudgetRemoteDataSource _budgetRemoteDataSource;
   final BudgetInstanceRemoteDataSource _budgetInstanceRemoteDataSource;
   final SavingGoalRemoteDataSource _savingGoalRemoteDataSource;
+  final RecurringRuleRemoteDataSource _recurringRuleRemoteDataSource;
   final FirebaseAuth _auth;
   final Connectivity _connectivity;
 
@@ -141,6 +146,10 @@ class SyncService {
         case 'saving_goal':
           final SavingGoal goal = SavingGoal.fromJson(payload);
           await _dispatchSavingGoal(userId, goal, operation);
+          break;
+        case 'recurring_rule':
+          final RecurringRule rule = RecurringRule.fromJson(payload);
+          await _dispatchRecurringRule(userId, rule, operation);
           break;
         default:
           throw UnsupportedError(
@@ -256,6 +265,17 @@ class SyncService {
     OutboxOperation operation,
   ) {
     return _savingGoalRemoteDataSource.upsert(userId, goal);
+  }
+
+  Future<void> _dispatchRecurringRule(
+    String userId,
+    RecurringRule rule,
+    OutboxOperation operation,
+  ) {
+    if (operation == OutboxOperation.delete) {
+      return _recurringRuleRemoteDataSource.delete(userId, rule);
+    }
+    return _recurringRuleRemoteDataSource.upsert(userId, rule);
   }
 
   Future<void> _handleConnectivity(List<ConnectivityResult> results) async {

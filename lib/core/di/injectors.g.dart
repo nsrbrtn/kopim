@@ -995,6 +995,57 @@ final class JobQueueDaoProvider
 
 String _$jobQueueDaoHash() => r'8c93af9c3b09afed591a9c33c68b501b7878a2c9';
 
+@ProviderFor(recurringRuleRemoteDataSource)
+const recurringRuleRemoteDataSourceProvider =
+    RecurringRuleRemoteDataSourceProvider._();
+
+final class RecurringRuleRemoteDataSourceProvider
+    extends
+        $FunctionalProvider<
+          RecurringRuleRemoteDataSource,
+          RecurringRuleRemoteDataSource,
+          RecurringRuleRemoteDataSource
+        >
+    with $Provider<RecurringRuleRemoteDataSource> {
+  const RecurringRuleRemoteDataSourceProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'recurringRuleRemoteDataSourceProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$recurringRuleRemoteDataSourceHash();
+
+  @$internal
+  @override
+  $ProviderElement<RecurringRuleRemoteDataSource> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  RecurringRuleRemoteDataSource create(Ref ref) {
+    return recurringRuleRemoteDataSource(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(RecurringRuleRemoteDataSource value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<RecurringRuleRemoteDataSource>(
+        value,
+      ),
+    );
+  }
+}
+
+String _$recurringRuleRemoteDataSourceHash() =>
+    r'479bdf0779028dc3be133916a5aecdefc79521c3';
+
 @ProviderFor(flutterLocalNotificationsPlugin)
 const flutterLocalNotificationsPluginProvider =
     FlutterLocalNotificationsPluginProvider._();
@@ -2720,7 +2771,7 @@ final class RecurringTransactionsRepositoryProvider
 }
 
 String _$recurringTransactionsRepositoryHash() =>
-    r'c9e78997c2dc5aac0bdab4afb0ededd86e277639';
+    r'e72e5469061960310698932463efbb1e6e4001d5';
 
 @ProviderFor(watchAccountTransactionsUseCase)
 const watchAccountTransactionsUseCaseProvider =
@@ -3839,7 +3890,7 @@ final class SyncServiceProvider
   }
 }
 
-String _$syncServiceHash() => r'03e0adb3546e049baa1e430740fe733bb166c2d6';
+String _$syncServiceHash() => r'1c5a44db41601ecaa14ed9f79b980d42eff82db7';
 
 @ProviderFor(authRepository)
 const authRepositoryProvider = AuthRepositoryProvider._();
@@ -3922,4 +3973,4 @@ final class AuthSyncServiceProvider
   }
 }
 
-String _$authSyncServiceHash() => r'a78c5d5998ff4b896ab39a61219d85f92164ec35';
+String _$authSyncServiceHash() => r'b6233bcc0f00471b7b3510b51b18bcb0f1206c1a';
