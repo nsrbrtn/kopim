@@ -61,6 +61,14 @@
   "@settingsHomeRecurringSubtitle": {
     "description": "Подсказка к переключателю виджета повторяющихся операций"
   },
+  "settingsHomeSavingsTitle": "Виджет накоплений",
+  "@settingsHomeSavingsTitle": {
+    "description": "Подпись переключателя виджета накоплений"
+  },
+  "settingsHomeSavingsSubtitle": "Следите за целями накоплений прямо с домашнего экрана.",
+  "@settingsHomeSavingsSubtitle": {
+    "description": "Подсказка к переключателю виджета накоплений"
+  },
   "settingsHomeBudgetSelectedLabel": "Выбранный бюджет",
   "@settingsHomeBudgetSelectedLabel": {
     "description": "Заголовок элемента со статусом выбранного бюджета"
@@ -882,6 +890,18 @@
         "type": "int"
       }
     }
+  },
+  "homeSavingsWidgetTitle": "Цели накоплений",
+  "@homeSavingsWidgetTitle": {
+    "description": "Заголовок виджета накоплений на домашнем экране"
+  },
+  "homeSavingsWidgetEmpty": "Создайте первую цель, чтобы отслеживать прогресс.",
+  "@homeSavingsWidgetEmpty": {
+    "description": "Сообщение пустого состояния для виджета накоплений"
+  },
+  "homeSavingsWidgetViewAll": "Открыть накопления",
+  "@homeSavingsWidgetViewAll": {
+    "description": "Кнопка перехода на экран накоплений из виджета"
   },
   "homeGamificationTitle": "Прогресс уровня",
   "@homeGamificationTitle": {

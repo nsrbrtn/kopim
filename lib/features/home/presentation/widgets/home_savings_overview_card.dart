@@ -1,0 +1,216 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
+
+import 'package:kopim/features/home/presentation/controllers/home_providers.dart';
+import 'package:kopim/features/savings/domain/value_objects/goal_progress.dart';
+import 'package:kopim/l10n/app_localizations.dart';
+
+class HomeSavingsOverviewCard extends ConsumerWidget {
+  const HomeSavingsOverviewCard({required this.onOpenSavings, super.key});
+
+  final VoidCallback onOpenSavings;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final ThemeData theme = Theme.of(context);
+    final AppLocalizations strings = AppLocalizations.of(context)!;
+    final AsyncValue<List<GoalProgress>> goalsAsync = ref.watch(
+      homeSavingGoalProgressProvider,
+    );
+
+    return goalsAsync.when(
+      data: (List<GoalProgress> goals) {
+        final List<GoalProgress> activeGoals = goals
+            .where((GoalProgress progress) => !progress.goal.isArchived)
+            .toList(growable: false);
+        if (activeGoals.isEmpty) {
+          return _HomeSavingsEmptyState(
+            strings: strings,
+            theme: theme,
+            onOpenSavings: onOpenSavings,
+          );
+        }
+
+        final NumberFormat currencyFormat = NumberFormat.simpleCurrency(
+          locale: strings.localeName,
+        );
+        final List<GoalProgress> visibleGoals = activeGoals
+            .take(3)
+            .toList(growable: false);
+
+        return Card(
+          color: theme.colorScheme.surfaceContainerHigh,
+          clipBehavior: Clip.antiAlias,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(
+                  strings.homeSavingsWidgetTitle,
+                  style: theme.textTheme.titleMedium,
+                ),
+                const SizedBox(height: 12),
+                for (int i = 0; i < visibleGoals.length; i++) ...<Widget>[
+                  if (i != 0) const SizedBox(height: 12),
+                  _HomeSavingGoalTile(
+                    progress: visibleGoals[i],
+                    currencyFormat: currencyFormat,
+                    strings: strings,
+                  ),
+                ],
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: TextButton(
+                    onPressed: onOpenSavings,
+                    style: TextButton.styleFrom(
+                      foregroundColor: theme.colorScheme.primary.withValues(
+                        alpha: 0.92,
+                      ),
+                    ),
+                    child: Text(strings.homeSavingsWidgetViewAll),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+      loading: () => Card(
+        color: theme.colorScheme.surfaceContainerHigh,
+        child: const Padding(
+          padding: EdgeInsets.all(16),
+          child: Center(child: CircularProgressIndicator()),
+        ),
+      ),
+      error: (Object error, _) => Card(
+        color: theme.colorScheme.surfaceContainerHigh,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Text(
+            strings.genericErrorMessage,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.error,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _HomeSavingsEmptyState extends StatelessWidget {
+  const _HomeSavingsEmptyState({
+    required this.strings,
+    required this.theme,
+    required this.onOpenSavings,
+  });
+
+  final AppLocalizations strings;
+  final ThemeData theme;
+  final VoidCallback onOpenSavings;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      color: theme.colorScheme.surfaceContainerHigh,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Text(
+              strings.homeSavingsWidgetTitle,
+              style: theme.textTheme.titleMedium,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              strings.homeSavingsWidgetEmpty,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.72),
+              ),
+            ),
+            const SizedBox(height: 12),
+            FilledButton.tonalIcon(
+              onPressed: onOpenSavings,
+              icon: const Icon(Icons.savings_outlined),
+              label: Text(strings.homeSavingsWidgetViewAll),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _HomeSavingGoalTile extends StatelessWidget {
+  const _HomeSavingGoalTile({
+    required this.progress,
+    required this.currencyFormat,
+    required this.strings,
+  });
+
+  final GoalProgress progress;
+  final NumberFormat currencyFormat;
+  final AppLocalizations strings;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final double percent = progress.percent.clamp(0, 1);
+    final String percentLabel = NumberFormat.percentPattern(
+      strings.localeName,
+    ).format(percent);
+    final String balanceLabel =
+        '${currencyFormat.format(progress.goal.currentAmount / 100)} · ${currencyFormat.format(progress.goal.targetAmount / 100)}';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Row(
+          children: <Widget>[
+            Expanded(
+              child: Text(
+                progress.goal.name,
+                style: theme.textTheme.titleSmall,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Text(
+              percentLabel,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.primary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        ClipRRect(
+          borderRadius: const BorderRadius.all(Radius.circular(8)),
+          child: LinearProgressIndicator(value: percent),
+        ),
+        const SizedBox(height: 6),
+        Row(
+          children: <Widget>[
+            Expanded(
+              child: Text(
+                balanceLabel,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.72),
+                ),
+              ),
+            ),
+            Text(
+              strings.savingsRemainingLabel(
+                currencyFormat.format(progress.remaining.minorUnits / 100),
+              ),
+              style: theme.textTheme.labelSmall,
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}

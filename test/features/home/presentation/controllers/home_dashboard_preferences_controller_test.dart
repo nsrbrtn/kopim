@@ -87,6 +87,21 @@ void main() {
       expect(repository.lastSaved?.showRecurringWidget, isTrue);
     });
 
+    test('setShowSavings toggles flag and persists value', () async {
+      await container.read(homeDashboardPreferencesControllerProvider.future);
+
+      await container
+          .read(homeDashboardPreferencesControllerProvider.notifier)
+          .setShowSavings(true);
+
+      final HomeDashboardPreferences? state = container
+          .read(homeDashboardPreferencesControllerProvider)
+          .value;
+
+      expect(state?.showSavingsWidget, isTrue);
+      expect(repository.lastSaved?.showSavingsWidget, isTrue);
+    });
+
     test(
       'setShowBudget toggles flag and clears budget when disabled',
       () async {

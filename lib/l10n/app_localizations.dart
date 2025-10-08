@@ -194,6 +194,18 @@ abstract class AppLocalizations {
   /// **'Show upcoming recurring operations on the home screen.'**
   String get settingsHomeRecurringSubtitle;
 
+  /// Toggle title for enabling the savings widget on the home screen
+  ///
+  /// In en, this message translates to:
+  /// **'Savings widget'**
+  String get settingsHomeSavingsTitle;
+
+  /// Helper text for the savings widget toggle
+  ///
+  /// In en, this message translates to:
+  /// **'Keep track of your saving goals without leaving the home screen.'**
+  String get settingsHomeSavingsSubtitle;
+
   /// Title for the list tile showing the currently selected budget
   ///
   /// In en, this message translates to:
@@ -866,7 +878,7 @@ abstract class AppLocalizations {
   /// **'Note'**
   String get addRecurringRuleNoteLabel;
 
-  /// Hint for the optional note field
+  /// Hint text for the optional note field
   ///
   /// In en, this message translates to:
   /// **'Optional comment'**
@@ -1243,6 +1255,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =0 {No scheduled payments} one {# upcoming payment} other {# upcoming payments}}'**
   String homeUpcomingPaymentsCountSemantics(int count);
+
+  /// Title for the savings overview widget on the home screen
+  ///
+  /// In en, this message translates to:
+  /// **'Saving goals'**
+  String get homeSavingsWidgetTitle;
+
+  /// Empty state message for the savings widget
+  ///
+  /// In en, this message translates to:
+  /// **'Create your first goal to start tracking progress.'**
+  String get homeSavingsWidgetEmpty;
+
+  /// CTA label that opens the savings screen from the home widget
+  ///
+  /// In en, this message translates to:
+  /// **'Open savings'**
+  String get homeSavingsWidgetViewAll;
 
   /// Title for the gamification widget on the home screen
   ///

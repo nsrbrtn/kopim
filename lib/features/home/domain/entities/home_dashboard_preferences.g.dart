@@ -12,6 +12,7 @@ _HomeDashboardPreferences _$HomeDashboardPreferencesFromJson(
   showGamificationWidget: json['showGamificationWidget'] as bool? ?? false,
   showBudgetWidget: json['showBudgetWidget'] as bool? ?? false,
   showRecurringWidget: json['showRecurringWidget'] as bool? ?? false,
+  showSavingsWidget: json['showSavingsWidget'] as bool? ?? false,
   budgetId: json['budgetId'] as String?,
 );
 
@@ -21,5 +22,6 @@ Map<String, dynamic> _$HomeDashboardPreferencesToJson(
   'showGamificationWidget': instance.showGamificationWidget,
   'showBudgetWidget': instance.showBudgetWidget,
   'showRecurringWidget': instance.showRecurringWidget,
+  'showSavingsWidget': instance.showSavingsWidget,
   'budgetId': instance.budgetId,
 };

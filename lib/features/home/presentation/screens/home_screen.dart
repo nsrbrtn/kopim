@@ -14,6 +14,7 @@ import 'package:kopim/features/home/presentation/controllers/home_dashboard_pref
 import 'package:kopim/features/home/presentation/controllers/home_transactions_filter_controller.dart';
 import 'package:kopim/features/home/presentation/widgets/home_budget_progress_card.dart';
 import 'package:kopim/features/home/presentation/widgets/home_gamification_app_bar.dart';
+import 'package:kopim/features/home/presentation/widgets/home_savings_overview_card.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
@@ -31,6 +32,7 @@ import 'package:kopim/core/utils/helpers.dart';
 import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
 import 'package:kopim/features/profile/presentation/screens/profile_management_screen.dart';
 import 'package:kopim/features/transactions/presentation/screens/all_transactions_screen.dart';
+import 'package:kopim/features/savings/presentation/screens/savings_list_screen.dart';
 
 import '../controllers/home_providers.dart';
 
@@ -110,6 +112,7 @@ class _HomeBody extends StatelessWidget {
                 : 16;
             final HomeDashboardPreferences? dashboardPreferences =
                 dashboardPreferencesAsync.asData?.value;
+            final ThemeData theme = Theme.of(context);
             final List<Widget> slivers = <Widget>[];
             final bool showGamificationHeader =
                 user != null &&
@@ -121,7 +124,7 @@ class _HomeBody extends StatelessWidget {
               slivers.add(_HomePinnedTitleAppBar(strings: strings));
             }
 
-            double nextTopPadding = 24;
+            double nextTopPadding = 16;
 
             void addBoxSection(Widget child) {
               slivers.add(
@@ -135,7 +138,7 @@ class _HomeBody extends StatelessWidget {
                   sliver: SliverToBoxAdapter(child: child),
                 ),
               );
-              nextTopPadding = 24;
+              nextTopPadding = 16;
             }
 
             if (dashboardPreferencesAsync.hasError) {
@@ -162,23 +165,35 @@ class _HomeBody extends StatelessWidget {
               );
             }
 
+            if (dashboardPreferences?.showSavingsWidget ?? false) {
+              addBoxSection(
+                HomeSavingsOverviewCard(
+                  onOpenSavings: () {
+                    Navigator.of(
+                      context,
+                    ).pushNamed(SavingsListScreen.routeName);
+                  },
+                ),
+              );
+            }
+
             final EdgeInsets accountsPadding = EdgeInsets.fromLTRB(
               horizontalPadding,
-              slivers.isEmpty ? 16 : 24,
+              slivers.isEmpty ? 12 : 20,
               horizontalPadding,
               0,
             );
             final EdgeInsets transactionsHeaderPadding = EdgeInsets.fromLTRB(
               horizontalPadding,
-              32,
+              24,
               horizontalPadding,
-              12,
+              8,
             );
             final EdgeInsets transactionsContentPadding = EdgeInsets.fromLTRB(
               horizontalPadding,
               0,
               horizontalPadding,
-              16,
+              12,
             );
 
             final Widget accountsSection = accountsAsync.when(
@@ -297,7 +312,7 @@ class _HomeBody extends StatelessWidget {
                   horizontalPadding,
                   0,
                   horizontalPadding,
-                  12,
+                  8,
                 ),
                 sliver: SliverToBoxAdapter(
                   child: _TransactionsFilterBar(strings: strings),
@@ -316,7 +331,7 @@ class _HomeBody extends StatelessWidget {
                   horizontalPadding,
                   0,
                   horizontalPadding,
-                  24,
+                  20,
                 ),
                 sliver: SliverToBoxAdapter(
                   child: Align(
@@ -327,6 +342,11 @@ class _HomeBody extends StatelessWidget {
                           context,
                         ).pushNamed(AllTransactionsScreen.routeName);
                       },
+                      style: TextButton.styleFrom(
+                        foregroundColor: theme.colorScheme.primary.withValues(
+                          alpha: 0.9,
+                        ),
+                      ),
                       child: Text(strings.homeTransactionsSeeAll),
                     ),
                   ),
@@ -519,8 +539,13 @@ class _AccountsListState extends State<_AccountsList> {
                     child: Card(
                       elevation: 0,
                       clipBehavior: Clip.antiAlias,
+                      color: theme.colorScheme.surfaceContainerHigh,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
                       surfaceTintColor: Colors.transparent,
                       child: InkWell(
+                        borderRadius: BorderRadius.circular(20),
                         onTap: () {
                           Navigator.of(context).pushNamed(
                             AccountDetailsScreen.routeName,
@@ -530,7 +555,10 @@ class _AccountsListState extends State<_AccountsList> {
                           );
                         },
                         child: Padding(
-                          padding: const EdgeInsets.all(16),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 18,
+                            vertical: 16,
+                          ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: <Widget>[
@@ -552,7 +580,13 @@ class _AccountsListState extends State<_AccountsList> {
                                             widget.strings,
                                             account.type,
                                           ),
-                                          style: theme.textTheme.bodySmall,
+                                          style: theme.textTheme.bodySmall
+                                              ?.copyWith(
+                                                color: theme
+                                                    .colorScheme
+                                                    .onSurface
+                                                    .withValues(alpha: 0.7),
+                                              ),
                                         ),
                                       ],
                                     ),
@@ -566,7 +600,7 @@ class _AccountsListState extends State<_AccountsList> {
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 12),
+                              const SizedBox(height: 10),
                               Row(
                                 children: <Widget>[
                                   Expanded(
@@ -580,7 +614,7 @@ class _AccountsListState extends State<_AccountsList> {
                                       valueColor: theme.colorScheme.primary,
                                     ),
                                   ),
-                                  const SizedBox(width: 16),
+                                  const SizedBox(width: 12),
                                   Expanded(
                                     child: _AccountMonthlyValue(
                                       label: widget
@@ -605,7 +639,7 @@ class _AccountsListState extends State<_AccountsList> {
             ),
             if (widget.accounts.length > 1)
               Padding(
-                padding: const EdgeInsets.only(top: 12),
+                padding: const EdgeInsets.only(top: 8),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: List<Widget>.generate(widget.accounts.length, (
@@ -637,7 +671,11 @@ class _AccountsListState extends State<_AccountsList> {
 }
 
 String _resolveAccountTypeLabel(AppLocalizations strings, String type) {
-  switch (type.toLowerCase()) {
+  final String normalized = type.trim();
+  if (normalized.isEmpty) {
+    return strings.accountTypeOther;
+  }
+  switch (normalized.toLowerCase()) {
     case 'cash':
       return strings.accountTypeCash;
     case 'card':
@@ -645,7 +683,7 @@ String _resolveAccountTypeLabel(AppLocalizations strings, String type) {
     case 'bank':
       return strings.accountTypeBank;
     default:
-      return strings.accountTypeOther;
+      return normalized;
   }
 }
 
@@ -666,7 +704,12 @@ class _AccountMonthlyValue extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        Text(label, style: theme.textTheme.bodySmall),
+        Text(
+          label,
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.68),
+          ),
+        ),
         const SizedBox(height: 4),
         Text(
           value,
@@ -763,7 +806,7 @@ class _TransactionsFilterBar extends ConsumerWidget {
         fontWeight: isSelected ? FontWeight.w600 : baseStyle.fontWeight,
         color: isSelected
             ? theme.colorScheme.primary
-            : theme.colorScheme.onSurfaceVariant,
+            : theme.colorScheme.onSurface.withValues(alpha: 0.68),
       );
       return TextButton(
         onPressed: () => ref
@@ -784,12 +827,12 @@ class _TransactionsFilterBar extends ConsumerWidget {
           HomeTransactionsFilter.all,
           strings.homeTransactionsFilterAll,
         ),
-        const SizedBox(width: 16),
+        const SizedBox(width: 12),
         buildFilterButton(
           HomeTransactionsFilter.income,
           strings.homeTransactionsFilterIncome,
         ),
-        const SizedBox(width: 16),
+        const SizedBox(width: 12),
         buildFilterButton(
           HomeTransactionsFilter.expense,
           strings.homeTransactionsFilterExpense,
@@ -851,6 +894,8 @@ class _UpcomingPaymentsCard extends StatelessWidget {
 
     return Card(
       elevation: 0,
+      color: theme.colorScheme.surfaceContainerHigh,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       surfaceTintColor: Colors.transparent,
       child: ExpansionTile(
         initiallyExpanded: false,
@@ -880,7 +925,7 @@ class _UpcomingPaymentsCard extends StatelessWidget {
           child: Text(
             subtitle,
             style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
             ),
           ),
         ),
@@ -928,7 +973,7 @@ class _UpcomingPaymentTile extends ConsumerWidget {
 
     return ListTile(
       dense: true,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       leading: CircleAvatar(
         backgroundColor:
             categoryColor ?? theme.colorScheme.surfaceContainerHighest,
@@ -940,7 +985,9 @@ class _UpcomingPaymentTile extends ConsumerWidget {
       title: Text(payment.title, style: theme.textTheme.bodyMedium),
       subtitle: Text(
         strings.homeUpcomingPaymentsDueDate(dateFormat.format(payment.dueDate)),
-        style: theme.textTheme.bodySmall,
+        style: theme.textTheme.bodySmall?.copyWith(
+          color: theme.colorScheme.onSurface.withValues(alpha: 0.68),
+        ),
       ),
       trailing: Column(
         mainAxisSize: MainAxisSize.min,
@@ -956,7 +1003,12 @@ class _UpcomingPaymentTile extends ConsumerWidget {
           if (account?.name != null)
             Padding(
               padding: const EdgeInsets.only(top: 4),
-              child: Text(account!.name, style: theme.textTheme.bodySmall),
+              child: Text(
+                account!.name,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.68),
+                ),
+              ),
             ),
         ],
       ),
@@ -1050,7 +1102,7 @@ class _TransactionListItem extends ConsumerWidget {
     required this.strings,
   });
 
-  static const double extent = 120;
+  static const double extent = 112;
 
   final String transactionId;
   final String localeName;
@@ -1153,11 +1205,15 @@ class _TransactionListItem extends ConsumerWidget {
       },
       child: RepaintBoundary(
         child: Card(
-          margin: const EdgeInsets.symmetric(vertical: 6),
+          margin: const EdgeInsets.symmetric(vertical: 5),
           elevation: 0,
+          color: Theme.of(context).colorScheme.surfaceContainerHigh,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+          ),
           surfaceTintColor: Colors.transparent,
           child: InkWell(
-            borderRadius: const BorderRadius.all(Radius.circular(12)),
+            borderRadius: const BorderRadius.all(Radius.circular(18)),
             onTap: () {
               final TransactionEntity? transaction = ref.read(
                 homeTransactionByIdProvider(transactionId),
@@ -1173,20 +1229,21 @@ class _TransactionListItem extends ConsumerWidget {
               );
             },
             child: Padding(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: <Widget>[
                   CircleAvatar(
+                    radius: 24,
                     backgroundColor:
                         categoryColor ??
                         Theme.of(context).colorScheme.surfaceContainerHighest,
                     foregroundColor: avatarIconColor,
                     child: categoryIcon != null
-                        ? Icon(categoryIcon)
-                        : const Icon(Icons.category_outlined),
+                        ? Icon(categoryIcon, size: 22)
+                        : const Icon(Icons.category_outlined, size: 22),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 14),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1194,7 +1251,8 @@ class _TransactionListItem extends ConsumerWidget {
                       children: <Widget>[
                         Text(
                           categoryName,
-                          style: Theme.of(context).textTheme.bodyMedium,
+                          style: Theme.of(context).textTheme.titleSmall
+                              ?.copyWith(fontWeight: FontWeight.w600),
                         ),
                         if (note != null && note.isNotEmpty)
                           Padding(
@@ -1203,7 +1261,13 @@ class _TransactionListItem extends ConsumerWidget {
                               note,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: Theme.of(context).textTheme.bodySmall,
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurface
+                                        .withValues(alpha: 0.68),
+                                  ),
                             ),
                           ),
                       ],
@@ -1215,14 +1279,21 @@ class _TransactionListItem extends ConsumerWidget {
                     children: <Widget>[
                       Text(
                         moneyFormat.format(amount.abs()),
-                        style: Theme.of(
-                          context,
-                        ).textTheme.titleMedium?.copyWith(color: amountColor),
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(
+                              color: amountColor,
+                              fontWeight: FontWeight.w700,
+                            ),
                       ),
                       if (accountName != null)
                         Text(
                           accountName,
-                          style: Theme.of(context).textTheme.bodySmall,
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurface.withValues(alpha: 0.68),
+                              ),
                         ),
                     ],
                   ),
@@ -1270,7 +1341,7 @@ class _TransactionsSkeletonList extends StatelessWidget {
 class _SkeletonContainer extends StatelessWidget {
   const _SkeletonContainer();
 
-  static const double _height = _TransactionListItem.extent - 12;
+  static const double _height = _TransactionListItem.extent - 10;
 
   @override
   Widget build(BuildContext context) {

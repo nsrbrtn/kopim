@@ -60,6 +60,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'Show upcoming recurring operations on the home screen.';
 
   @override
+  String get settingsHomeSavingsTitle => 'Savings widget';
+
+  @override
+  String get settingsHomeSavingsSubtitle =>
+      'Keep track of your saving goals without leaving the home screen.';
+
+  @override
   String get settingsHomeBudgetSelectedLabel => 'Selected budget';
 
   @override
@@ -648,6 +655,16 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get homeSavingsWidgetTitle => 'Saving goals';
+
+  @override
+  String get homeSavingsWidgetEmpty =>
+      'Create your first goal to start tracking progress.';
+
+  @override
+  String get homeSavingsWidgetViewAll => 'Open savings';
 
   @override
   String get homeGamificationTitle => 'Level progress';

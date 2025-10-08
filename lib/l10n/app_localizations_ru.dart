@@ -61,6 +61,13 @@ class AppLocalizationsRu extends AppLocalizations {
       'Показывать ближайшие повторяющиеся операции на главном экране.';
 
   @override
+  String get settingsHomeSavingsTitle => 'Виджет накоплений';
+
+  @override
+  String get settingsHomeSavingsSubtitle =>
+      'Следите за целями накоплений прямо с домашнего экрана.';
+
+  @override
   String get settingsHomeBudgetSelectedLabel => 'Выбранный бюджет';
 
   @override
@@ -652,6 +659,16 @@ class AppLocalizationsRu extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get homeSavingsWidgetTitle => 'Цели накоплений';
+
+  @override
+  String get homeSavingsWidgetEmpty =>
+      'Создайте первую цель, чтобы отслеживать прогресс.';
+
+  @override
+  String get homeSavingsWidgetViewAll => 'Открыть накопления';
 
   @override
   String get homeGamificationTitle => 'Прогресс уровня';

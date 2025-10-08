@@ -66,6 +66,9 @@ class GeneralSettingsScreen extends ConsumerWidget {
                   onToggleRecurring: (bool value) => ref
                       .read(homeDashboardPreferencesControllerProvider.notifier)
                       .setShowRecurring(value),
+                  onToggleSavings: (bool value) => ref
+                      .read(homeDashboardPreferencesControllerProvider.notifier)
+                      .setShowSavings(value),
                   onSelectBudget: (List<BudgetProgress> budgets) async {
                     await _showBudgetSelector(
                       context: context,
@@ -120,6 +123,7 @@ class _HomeDashboardSettingsCard extends StatelessWidget {
     required this.onToggleGamification,
     required this.onToggleBudget,
     required this.onToggleRecurring,
+    required this.onToggleSavings,
     required this.onSelectBudget,
   });
 
@@ -129,6 +133,7 @@ class _HomeDashboardSettingsCard extends StatelessWidget {
   final ValueChanged<bool> onToggleGamification;
   final ValueChanged<bool> onToggleBudget;
   final ValueChanged<bool> onToggleRecurring;
+  final ValueChanged<bool> onToggleSavings;
   final ValueChanged<List<BudgetProgress>> onSelectBudget;
 
   @override
@@ -205,6 +210,14 @@ class _HomeDashboardSettingsCard extends StatelessWidget {
             onChanged: onToggleRecurring,
             title: Text(strings.settingsHomeRecurringTitle),
             subtitle: Text(strings.settingsHomeRecurringSubtitle),
+          ),
+          const Divider(height: 0),
+          SwitchListTile.adaptive(
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+            value: preferences.showSavingsWidget,
+            onChanged: onToggleSavings,
+            title: Text(strings.settingsHomeSavingsTitle),
+            subtitle: Text(strings.settingsHomeSavingsSubtitle),
           ),
         ],
       ),
