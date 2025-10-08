@@ -938,11 +938,65 @@ abstract class AppLocalizations {
   /// **'Execution time'**
   String get addRecurringRuleStartTimeLabel;
 
+  /// Label for reminder selection in the recurring rule form
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder'**
+  String get addRecurringRuleReminderLabel;
+
+  /// Dropdown option meaning no reminder
+  ///
+  /// In en, this message translates to:
+  /// **'No reminder'**
+  String get addRecurringRuleReminderNone;
+
+  /// Dropdown option for reminder exactly at due time
+  ///
+  /// In en, this message translates to:
+  /// **'At due time'**
+  String get addRecurringRuleReminderAtTime;
+
+  /// Dropdown option for reminder in minutes before due time
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes, plural, one {# minute before} other {# minutes before}}'**
+  String addRecurringRuleReminderMinutes(int minutes);
+
+  /// Dropdown option for reminder in hours before due time
+  ///
+  /// In en, this message translates to:
+  /// **'{hours, plural, one {# hour before} other {# hours before}}'**
+  String addRecurringRuleReminderHours(int hours);
+
+  /// Dropdown option for reminder in days before due date
+  ///
+  /// In en, this message translates to:
+  /// **'{days, plural, one {# day before} other {# days before}}'**
+  String addRecurringRuleReminderDays(int days);
+
+  /// Label for the one-time reminder toggle
+  ///
+  /// In en, this message translates to:
+  /// **'Only once'**
+  String get addRecurringRuleRemindOnceLabel;
+
+  /// Helper text explaining the one-time reminder behaviour
+  ///
+  /// In en, this message translates to:
+  /// **'Schedule a single reminder and skip future repeats.'**
+  String get addRecurringRuleRemindOnceSubtitle;
+
   /// Label for the auto-post toggle
   ///
   /// In en, this message translates to:
   /// **'Post automatically'**
   String get addRecurringRuleAutoPostLabel;
+
+  /// Helper text shown when auto-post is unavailable due to one-time reminder
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic posting is disabled for one-time reminders.'**
+  String get addRecurringRuleAutoPostDisabled;
 
   /// Label for the next due preview
   ///
@@ -1405,6 +1459,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Income'**
   String get analyticsTopCategoriesIncomeTab;
+
+  /// Legend label for remaining categories not shown individually
+  ///
+  /// In en, this message translates to:
+  /// **'Others'**
+  String get analyticsTopCategoriesOthers;
 
   /// Message displayed when there are no categories to show
   ///

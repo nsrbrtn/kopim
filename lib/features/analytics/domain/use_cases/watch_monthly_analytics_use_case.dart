@@ -78,12 +78,12 @@ class WatchMonthlyAnalyticsUseCase {
               return b.value.compareTo(a.value);
             });
 
-      final int effectiveLimit = topCategoriesLimit <= 0
+      final int expenseLimit = topCategoriesLimit <= 0
           ? sortedExpenses.length
           : math.min(topCategoriesLimit, sortedExpenses.length);
 
       final Iterable<AnalyticsCategoryBreakdown> topExpenses = sortedExpenses
-          .take(effectiveLimit)
+          .take(expenseLimit)
           .map((MapEntry<String?, double> entry) {
             return AnalyticsCategoryBreakdown(
               categoryId: entry.key,
@@ -97,8 +97,12 @@ class WatchMonthlyAnalyticsUseCase {
               return b.value.compareTo(a.value);
             });
 
+      final int incomeLimit = topCategoriesLimit <= 0
+          ? sortedIncomes.length
+          : math.min(topCategoriesLimit, sortedIncomes.length);
+
       final Iterable<AnalyticsCategoryBreakdown> topIncomes = sortedIncomes
-          .take(effectiveLimit)
+          .take(incomeLimit)
           .map((MapEntry<String?, double> entry) {
             return AnalyticsCategoryBreakdown(
               categoryId: entry.key,

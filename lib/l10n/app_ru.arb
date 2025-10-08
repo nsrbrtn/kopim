@@ -634,9 +634,60 @@
   "@addRecurringRuleStartTimeLabel": {
     "description": "Подпись выбора времени"
   },
+  "addRecurringRuleReminderLabel": "Напоминание",
+  "@addRecurringRuleReminderLabel": {
+    "description": "Подпись для настройки напоминаний в форме"
+  },
+  "addRecurringRuleReminderNone": "Без напоминания",
+  "@addRecurringRuleReminderNone": {
+    "description": "Опция без напоминаний"
+  },
+  "addRecurringRuleReminderAtTime": "В момент платежа",
+  "@addRecurringRuleReminderAtTime": {
+    "description": "Опция напоминания в момент наступления платежа"
+  },
+  "addRecurringRuleReminderMinutes": "{minutes, plural, one {За # минуту до} few {За # минуты до} many {За # минут до} other {За # минуты до}}",
+  "@addRecurringRuleReminderMinutes": {
+    "description": "Опция напоминания за несколько минут",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "addRecurringRuleReminderHours": "{hours, plural, one {За # час до} few {За # часа до} many {За # часов до} other {За # часа до}}",
+  "@addRecurringRuleReminderHours": {
+    "description": "Опция напоминания за несколько часов",
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "addRecurringRuleReminderDays": "{days, plural, one {За # день до} few {За # дня до} many {За # дней до} other {За # дня до}}",
+  "@addRecurringRuleReminderDays": {
+    "description": "Опция напоминания за несколько дней",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "addRecurringRuleRemindOnceLabel": "Только один раз",
+  "@addRecurringRuleRemindOnceLabel": {
+    "description": "Переключатель одноразового напоминания"
+  },
+  "addRecurringRuleRemindOnceSubtitle": "Создать одно напоминание и не повторять автоматически.",
+  "@addRecurringRuleRemindOnceSubtitle": {
+    "description": "Описание поведения одноразового напоминания"
+  },
   "addRecurringRuleAutoPostLabel": "Проводить автоматически",
   "@addRecurringRuleAutoPostLabel": {
     "description": "Подпись переключателя автопроведения"
+  },
+  "addRecurringRuleAutoPostDisabled": "Автопроведение недоступно для одноразовых напоминаний.",
+  "@addRecurringRuleAutoPostDisabled": {
+    "description": "Комментарий, когда автопроведение недоступно"
   },
   "addRecurringRuleNextDuePreviewLabel": "Ближайшая дата",
   "@addRecurringRuleNextDuePreviewLabel": {
@@ -1000,6 +1051,10 @@
   "analyticsTopCategoriesIncomeTab": "Доходы",
   "@analyticsTopCategoriesIncomeTab": {
     "description": "Подпись вкладки с категориями доходов"
+  },
+  "analyticsTopCategoriesOthers": "Остальные",
+  "@analyticsTopCategoriesOthers": {
+    "description": "Обозначение категорий, которые не попали в топ"
   },
   "analyticsTopCategoriesEmpty": "Недостаточно данных для анализа категорий.",
   "@analyticsTopCategoriesEmpty": {

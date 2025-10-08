@@ -216,7 +216,7 @@ class SavingGoalRepositoryImpl implements SavingGoalRepository {
           accountId: accountId,
           categoryId: categoryId,
           savingGoalId: goal.id,
-          amount: -amountDouble,
+          amount: amountDouble,
           date: timestamp,
           note: _composeContributionNote(goal.name, contributionNote),
           type: 'expense',

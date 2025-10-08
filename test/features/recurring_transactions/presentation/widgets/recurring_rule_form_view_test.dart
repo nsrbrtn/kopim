@@ -155,10 +155,14 @@ void main() {
       reason:
           'Texts: ${textWidgets.map((Text text) => text.data).toList()} | RichTexts: ${richTextWidgets.map((RichText text) => text.text.toPlainText()).toList()}',
     );
-    final Finder autoPostTileFinder = find.byWidgetPredicate(
-      (Widget widget) =>
-          widget.runtimeType.toString().contains('SwitchListTile'),
-    );
+    final String autoPostLabel =
+        AppLocalizationsEn().addRecurringRuleAutoPostLabel;
+    final Finder autoPostTileFinder = find.byWidgetPredicate((Widget widget) {
+      if (widget is SwitchListTile && widget.title is Text) {
+        return (widget.title as Text).data == autoPostLabel;
+      }
+      return false;
+    });
     expect(autoPostTileFinder, findsOneWidget);
     final ProviderContainer providerContainer = ProviderScope.containerOf(
       tester.element(find.byType(RecurringRuleFormView)),
@@ -168,8 +172,8 @@ void main() {
     );
     expect(initialState.autoPost, isTrue);
     expect(initialState.notes, 'Оплатить до 5-го');
-    expect(find.textContaining(account.name), findsOneWidget);
-    expect(find.text(category.name), findsOneWidget);
+    expect(initialState.accountId, account.id);
+    expect(initialState.categoryId, category.id);
 
     await tester.tap(autoPostTileFinder);
     await tester.pump();

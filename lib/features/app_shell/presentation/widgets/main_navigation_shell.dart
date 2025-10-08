@@ -45,16 +45,15 @@ class MainNavigationShell extends ConsumerWidget {
           ? BottomNavigationBar(
               currentIndex: currentIndex,
               onTap: (int index) {
+                ref
+                    .read(mainNavigationControllerProvider.notifier)
+                    .setIndex(index);
                 final NavigationTabConfig config = tabs[index];
                 final NavigationTabSelectionCallback? onSelected =
                     config.onSelected;
                 if (onSelected != null) {
                   onSelected(context, ref);
-                  return;
                 }
-                ref
-                    .read(mainNavigationControllerProvider.notifier)
-                    .setIndex(index);
               },
               items: <BottomNavigationBarItem>[
                 for (final NavigationTabConfig config in tabs)

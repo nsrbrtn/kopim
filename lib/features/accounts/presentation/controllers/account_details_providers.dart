@@ -114,10 +114,16 @@ AsyncValue<List<TransactionEntity>> filteredAccountTransactions(
       final bool matchesCategory =
           filter.categoryId == null ||
           transaction.categoryId == filter.categoryId;
-      final bool matchesDate =
-          filter.dateRange == null ||
-          !_isBefore(transaction.date, filter.dateRange!.start) &&
-              !_isAfter(transaction.date, filter.dateRange!.end);
+      final bool matchesDate;
+      if (filter.dateRange == null) {
+        matchesDate = true;
+      } else {
+        final DateTimeRange range = filter.dateRange!;
+        final DateTime endInclusive = range.end.add(const Duration(days: 1));
+        matchesDate =
+            !_isBefore(transaction.date, range.start) &&
+            transaction.date.isBefore(endInclusive);
+      }
       return matchesType && matchesCategory && matchesDate;
     });
     return List<TransactionEntity>.unmodifiable(filtered.toList());
@@ -126,10 +132,6 @@ AsyncValue<List<TransactionEntity>> filteredAccountTransactions(
 
 bool _isBefore(DateTime value, DateTime reference) {
   return value.isBefore(reference);
-}
-
-bool _isAfter(DateTime value, DateTime reference) {
-  return value.isAfter(reference);
 }
 
 AccountEntity? _findAccount(List<AccountEntity> accounts, String id) {

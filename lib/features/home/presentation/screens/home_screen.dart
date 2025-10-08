@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
+import 'package:kopim/features/accounts/domain/utils/account_type_utils.dart';
 import 'package:kopim/features/accounts/presentation/account_details_screen.dart';
 import 'package:kopim/features/accounts/presentation/accounts_add_screen.dart';
 import 'package:kopim/features/app_shell/presentation/models/navigation_tab_content.dart';
@@ -675,15 +676,22 @@ String _resolveAccountTypeLabel(AppLocalizations strings, String type) {
   if (normalized.isEmpty) {
     return strings.accountTypeOther;
   }
-  switch (normalized.toLowerCase()) {
+  final String stripped = stripCustomAccountPrefix(normalized);
+  if (stripped.isEmpty) {
+    return strings.accountTypeOther;
+  }
+  final String lower = stripped.toLowerCase();
+  switch (lower) {
     case 'cash':
       return strings.accountTypeCash;
     case 'card':
       return strings.accountTypeCard;
     case 'bank':
       return strings.accountTypeBank;
+    case 'other':
+      return strings.accountTypeOther;
     default:
-      return normalized;
+      return stripped;
   }
 }
 

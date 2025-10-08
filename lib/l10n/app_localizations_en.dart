@@ -467,7 +467,60 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addRecurringRuleStartTimeLabel => 'Execution time';
 
   @override
+  String get addRecurringRuleReminderLabel => 'Reminder';
+
+  @override
+  String get addRecurringRuleReminderNone => 'No reminder';
+
+  @override
+  String get addRecurringRuleReminderAtTime => 'At due time';
+
+  @override
+  String addRecurringRuleReminderMinutes(int minutes) {
+    String _temp0 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: '# minutes before',
+      one: '# minute before',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String addRecurringRuleReminderHours(int hours) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hours,
+      locale: localeName,
+      other: '# hours before',
+      one: '# hour before',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String addRecurringRuleReminderDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '# days before',
+      one: '# day before',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get addRecurringRuleRemindOnceLabel => 'Only once';
+
+  @override
+  String get addRecurringRuleRemindOnceSubtitle =>
+      'Schedule a single reminder and skip future repeats.';
+
+  @override
   String get addRecurringRuleAutoPostLabel => 'Post automatically';
+
+  @override
+  String get addRecurringRuleAutoPostDisabled =>
+      'Automatic posting is disabled for one-time reminders.';
 
   @override
   String get addRecurringRuleNextDuePreviewLabel => 'Next due';
@@ -738,6 +791,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get analyticsTopCategoriesIncomeTab => 'Income';
+
+  @override
+  String get analyticsTopCategoriesOthers => 'Others';
 
   @override
   String get analyticsTopCategoriesEmpty =>

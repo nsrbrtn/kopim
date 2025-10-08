@@ -83,11 +83,20 @@ NavigationTabContent buildAnalyticsTabContent(
                 0,
               ),
               sliver: SliverToBoxAdapter(
-                child: _AnalyticsFiltersCard(
-                  filterState: filterState,
-                  accounts: accounts,
-                  categories: categories,
-                  strings: strings,
+                child: KeyedSubtree(
+                  key: ValueKey<int>(
+                    Object.hashAll(<Object?>[
+                      filterState,
+                      accounts.length,
+                      categories.length,
+                    ]),
+                  ),
+                  child: _AnalyticsFiltersCard(
+                    filterState: filterState,
+                    accounts: accounts,
+                    categories: categories,
+                    strings: strings,
+                  ),
                 ),
               ),
             ),
@@ -783,6 +792,26 @@ class _TopCategoriesPage extends StatelessWidget {
     final ThemeData theme = Theme.of(context);
     final Color backgroundColor = theme.colorScheme.surfaceContainerHighest
         .withValues(alpha: 0.32);
+    final double capturedTotal = data.total;
+    final double sumOfItems = data.items.fold<double>(
+      0,
+      (double previous, AnalyticsChartItem item) =>
+          previous + item.absoluteAmount,
+    );
+    final double remainder = (capturedTotal - sumOfItems).clamp(
+      0,
+      double.infinity,
+    );
+    final bool hasRemainder = remainder > 0.01;
+    final List<AnalyticsChartItem> chartItems = <AnalyticsChartItem>[
+      ...data.items,
+      if (hasRemainder)
+        AnalyticsChartItem(
+          title: strings.analyticsTopCategoriesOthers,
+          amount: remainder,
+          color: theme.colorScheme.outlineVariant,
+        ),
+    ];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -799,8 +828,9 @@ class _TopCategoriesPage extends StatelessWidget {
         const SizedBox(height: 12),
         Expanded(
           child: AnalyticsDonutChart(
-            items: data.items,
+            items: chartItems,
             backgroundColor: backgroundColor,
+            totalAmount: capturedTotal,
           ),
         ),
       ],
@@ -823,10 +853,11 @@ class _TopCategoriesLegend extends StatelessWidget {
       return const SizedBox.shrink();
     }
     final ThemeData theme = Theme.of(context);
+    final List<AnalyticsChartItem> displayItems = items;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
-        for (final AnalyticsChartItem item in items)
+        for (final AnalyticsChartItem item in displayItems)
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 6),
             child: Row(
@@ -841,17 +872,22 @@ class _TopCategoriesLegend extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: Text(
-                    item.title,
-                    style: theme.textTheme.bodyMedium,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Text(
-                  currencyFormat.format(item.amount),
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text(
+                        item.title,
+                        style: theme.textTheme.bodyMedium,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        currencyFormat.format(item.absoluteAmount),
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],

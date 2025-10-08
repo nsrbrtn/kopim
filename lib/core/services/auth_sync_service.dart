@@ -16,6 +16,9 @@ import 'package:kopim/features/budgets/domain/entities/budget.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_instance.dart';
 import 'package:kopim/features/categories/data/sources/local/category_dao.dart';
 import 'package:kopim/features/categories/data/sources/remote/category_remote_data_source.dart';
+import 'package:kopim/features/recurring_transactions/data/sources/local/recurring_rule_dao.dart';
+import 'package:kopim/features/recurring_transactions/data/sources/remote/recurring_rule_remote_data_source.dart';
+import 'package:kopim/features/recurring_transactions/domain/entities/recurring_rule.dart';
 import 'package:kopim/features/savings/data/sources/local/saving_goal_dao.dart';
 import 'package:kopim/features/savings/data/sources/remote/saving_goal_remote_data_source.dart';
 import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
@@ -39,12 +42,14 @@ class AuthSyncService {
     required BudgetDao budgetDao,
     required BudgetInstanceDao budgetInstanceDao,
     required SavingGoalDao savingGoalDao,
+    required RecurringRuleDao recurringRuleDao,
     required AccountRemoteDataSource accountRemoteDataSource,
     required CategoryRemoteDataSource categoryRemoteDataSource,
     required TransactionRemoteDataSource transactionRemoteDataSource,
     required BudgetRemoteDataSource budgetRemoteDataSource,
     required BudgetInstanceRemoteDataSource budgetInstanceRemoteDataSource,
     required SavingGoalRemoteDataSource savingGoalRemoteDataSource,
+    required RecurringRuleRemoteDataSource recurringRuleRemoteDataSource,
     required ProfileDao profileDao,
     required ProfileRemoteDataSource profileRemoteDataSource,
     required FirebaseFirestore firestore,
@@ -58,6 +63,7 @@ class AuthSyncService {
        _budgetDao = budgetDao,
        _budgetInstanceDao = budgetInstanceDao,
        _savingGoalDao = savingGoalDao,
+       _recurringRuleDao = recurringRuleDao,
        _profileDao = profileDao,
        _accountRemoteDataSource = accountRemoteDataSource,
        _categoryRemoteDataSource = categoryRemoteDataSource,
@@ -65,6 +71,7 @@ class AuthSyncService {
        _budgetRemoteDataSource = budgetRemoteDataSource,
        _budgetInstanceRemoteDataSource = budgetInstanceRemoteDataSource,
        _savingGoalRemoteDataSource = savingGoalRemoteDataSource,
+       _recurringRuleRemoteDataSource = recurringRuleRemoteDataSource,
        _profileRemoteDataSource = profileRemoteDataSource,
        _firestore = firestore,
        _logger = loggerService,
@@ -80,12 +87,14 @@ class AuthSyncService {
   final BudgetDao _budgetDao;
   final BudgetInstanceDao _budgetInstanceDao;
   final SavingGoalDao _savingGoalDao;
+  final RecurringRuleDao _recurringRuleDao;
   final AccountRemoteDataSource _accountRemoteDataSource;
   final CategoryRemoteDataSource _categoryRemoteDataSource;
   final TransactionRemoteDataSource _transactionRemoteDataSource;
   final BudgetRemoteDataSource _budgetRemoteDataSource;
   final BudgetInstanceRemoteDataSource _budgetInstanceRemoteDataSource;
   final SavingGoalRemoteDataSource _savingGoalRemoteDataSource;
+  final RecurringRuleRemoteDataSource _recurringRuleRemoteDataSource;
   final ProfileDao _profileDao;
   final ProfileRemoteDataSource _profileRemoteDataSource;
   final FirebaseFirestore _firestore;
@@ -144,6 +153,7 @@ class AuthSyncService {
         'remoteBudgets': remoteSnapshot.budgets.length,
         'remoteBudgetInstances': remoteSnapshot.budgetInstances.length,
         'remoteSavingGoals': remoteSnapshot.savingGoals.length,
+        'remoteRecurringRules': remoteSnapshot.recurringRules.length,
       });
       _logger.logInfo(
         'AuthSyncService: login sync completed for ${user.uid}. '
@@ -151,7 +161,8 @@ class AuthSyncService {
         'Categories: ${remoteSnapshot.categories.length}, '
         'Transactions: ${remoteSnapshot.transactions.length}, '
         'Budgets: ${remoteSnapshot.budgets.length}, '
-        'Savings goals: ${remoteSnapshot.savingGoals.length}.',
+        'Savings goals: ${remoteSnapshot.savingGoals.length}, '
+        'Recurring rules: ${remoteSnapshot.recurringRules.length}.',
       );
     } catch (error, stackTrace) {
       _logger.logError(
@@ -297,6 +308,22 @@ class AuthSyncService {
               goal,
             );
             break;
+          case 'recurring_rule':
+            final RecurringRule rule = RecurringRule.fromJson(payload);
+            if (operation == OutboxOperation.delete) {
+              _recurringRuleRemoteDataSource.deleteInTransaction(
+                transaction,
+                userId,
+                rule,
+              );
+            } else {
+              _recurringRuleRemoteDataSource.upsertInTransaction(
+                transaction,
+                userId,
+                rule,
+              );
+            }
+            break;
           default:
             throw UnsupportedError(
               'Unsupported outbox entity type ${entry.entityType}',
@@ -314,6 +341,7 @@ class AuthSyncService {
       _budgetRemoteDataSource.fetchAll(userId),
       _budgetInstanceRemoteDataSource.fetchAll(userId),
       _savingGoalRemoteDataSource.fetchAll(userId),
+      _recurringRuleRemoteDataSource.fetchAll(userId),
     ]);
     final Profile? profile = await _profileRemoteDataSource.fetch(userId);
     return _RemoteSnapshot(
@@ -323,6 +351,7 @@ class AuthSyncService {
       budgets: results[3] as List<Budget>,
       budgetInstances: results[4] as List<BudgetInstance>,
       savingGoals: results[5] as List<SavingGoal>,
+      recurringRules: results[6] as List<RecurringRule>,
       profile: profile,
     );
   }
@@ -353,6 +382,8 @@ class AuthSyncService {
       final List<SavingGoal> localSavingGoals = await _savingGoalDao.getGoals(
         includeArchived: true,
       );
+      final List<RecurringRule> localRecurringRules =
+          (await _recurringRuleDao.getAll()).map(_mapRuleRowToEntity).toList();
 
       final List<AccountEntity> mergedAccounts = _mergeEntities<AccountEntity>(
         local: localAccounts,
@@ -392,6 +423,13 @@ class AuthSyncService {
         getId: (SavingGoal goal) => goal.id,
         getUpdatedAt: (SavingGoal goal) => goal.updatedAt,
       );
+      final List<RecurringRule> mergedRecurringRules =
+          _mergeEntities<RecurringRule>(
+            local: localRecurringRules,
+            remote: remoteSnapshot.recurringRules,
+            getId: (RecurringRule rule) => rule.id,
+            getUpdatedAt: (RecurringRule rule) => rule.updatedAt,
+          );
 
       await _accountDao.upsertAll(mergedAccounts);
       await _categoryDao.upsertAll(mergedCategories);
@@ -399,6 +437,9 @@ class AuthSyncService {
       await _budgetDao.upsertAll(mergedBudgets);
       await _budgetInstanceDao.upsertAll(mergedBudgetInstances);
       await _savingGoalDao.upsertAll(mergedSavingGoals);
+      for (final RecurringRule rule in mergedRecurringRules) {
+        await _recurringRuleDao.upsert(rule);
+      }
 
       final Profile? profile = _mergeProfile(
         await _profileDao.getProfile(userId),
@@ -446,6 +487,35 @@ class AuthSyncService {
     }
     return local.updatedAt.isAfter(remote.updatedAt) ? local : remote;
   }
+
+  RecurringRule _mapRuleRowToEntity(db.RecurringRuleRow row) {
+    return RecurringRule(
+      id: row.id,
+      title: row.title,
+      accountId: row.accountId,
+      categoryId: row.categoryId,
+      amount: row.amount,
+      currency: row.currency,
+      startAt: row.startAt.toUtc(),
+      endAt: row.endAt?.toUtc(),
+      timezone: row.timezone,
+      rrule: row.rrule,
+      notes: row.notes,
+      dayOfMonth: row.dayOfMonth,
+      applyAtLocalHour: row.applyAtLocalHour,
+      applyAtLocalMinute: row.applyAtLocalMinute,
+      lastRunAt: row.lastRunAt?.toLocal(),
+      nextDueLocalDate: row.nextDueLocalDate?.toLocal(),
+      isActive: row.isActive,
+      autoPost: row.autoPost,
+      reminderMinutesBefore: row.reminderMinutesBefore,
+      shortMonthPolicy: RecurringRuleShortMonthPolicy.fromValue(
+        row.shortMonthPolicy,
+      ),
+      createdAt: row.createdAt.toUtc(),
+      updatedAt: row.updatedAt.toUtc(),
+    );
+  }
 }
 
 class _RemoteSnapshot {
@@ -456,6 +526,7 @@ class _RemoteSnapshot {
     required this.budgets,
     required this.budgetInstances,
     required this.savingGoals,
+    required this.recurringRules,
     required this.profile,
   });
 
@@ -465,5 +536,6 @@ class _RemoteSnapshot {
   final List<Budget> budgets;
   final List<BudgetInstance> budgetInstances;
   final List<SavingGoal> savingGoals;
+  final List<RecurringRule> recurringRules;
   final Profile? profile;
 }
