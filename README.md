@@ -75,23 +75,101 @@ ai/ # Финансовый помощник (ИИ)
 
 ### 1. Установить зависимости
 ```bash
-flutter pub get
-### 2. Запустить генераторы кода
-flutter pub run build_runner build --delete-conflicting-outputs
+База
 
-### 3. Запустить приложение
-flutter run
+flutter doctor — проверка окружения. 
+docs.flutter.dev
 
-flutter build apk --release
+flutter create <app> — создать проект. 
+docs.flutter.dev
 
-📦 CI/CD
+flutter analyze — статический анализ. 
+docs.flutter.dev
 
-Автоматическая проверка стиля (flutter analyze, dart format)
+flutter test — запустить тесты. 
+docs.flutter.dev
 
-Unit и widget тесты
+flutter run — запустить на устройстве/эмуляторе. 
+docs.flutter.dev
 
-Сборка для Android, iOS и Web
+flutter devices — список устройств. 
+docs.flutter.dev
 
+flutter clean — очистить сборочные артефакты. 
+docs.flutter.dev
+
+Работа с зависимостями (pub)
+
+flutter pub get — установить зависимости. 
+dart.dev
+
+flutter pub upgrade — обновить зависимости. 
+dart.dev
+
+flutter pub add <pkg> / flutter pub remove <pkg> — добавить/удалить пакет. 
+docs.flutter.dev
+
+dart pub outdated — посмотреть устаревшие пакеты. 
+dart.dev
+
+Сборки
+
+flutter build apk --release — Android APK. 
+docs.flutter.dev
+
+flutter build appbundle --release — AAB для Play. 
+docs.flutter.dev
+
+flutter build ios --release — iOS сборка (на macOS). 
+docs.flutter.dev
+
+flutter build web — Web сборка. 
+docs.flutter.dev
+
+Каналы и SDK
+
+flutter --version — версия SDK. 
+docs.flutter.dev
+
+flutter channel / flutter channel <name> — каналы SDK. 
+docs.flutter.dev
+
+flutter upgrade / flutter downgrade — обновить/откатить SDK. 
+docs.flutter.dev
+
+flutter precache — предзагрузка бинарей платформ. 
+docs.flutter.dev
+
+flutter config --enable-<platform> — включить платформу. 
+docs.flutter.dev
+
+Устройства и эмуляторы
+
+flutter emulators — список эмуляторов.
+
+flutter emulators --launch <id> — запустить эмулятор. 
+docs.flutter.dev
+
+Отладка и профилирование
+
+dart devtools — запустить DevTools. 
+docs.flutter.dev
+
+flutter run --profile — профильный запуск. 
+docs.flutter.dev
+
+Частые утилиты проекта
+
+flutter gen-l10n — генерация локализаций (если настроено). 
+docs.flutter.dev
+
+dart format . — автоформат. 
+dart.dev
+
+dart fix --apply — автофиксы анализа. 
+dart.dev
+
+dart run build_runner build --delete-conflicting-outputs — кодоген (Freezed/Drift и т.п.)
 📜 Лицензия
 
 MIT License © 2025 — kopim project
