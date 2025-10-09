@@ -500,7 +500,7 @@ class _AccountsListState extends State<_AccountsList> {
         return Column(
           children: <Widget>[
             SizedBox(
-              height: 120,
+              height: 132,
               child: PageView.builder(
                 controller: _pageController,
                 physics: const BouncingScrollPhysics(),
