@@ -810,6 +810,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Not enough data to show category trends yet.';
 
   @override
+  String analyticsTopCategoriesTapHint(String amount) =>
+      'Tap a category to view totals · Total $amount';
+
+  @override
   String get analyticsCategoryUncategorized => 'Uncategorized';
 
   @override
@@ -1386,6 +1390,46 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get savingsContributionSuccess => 'Contribution added';
+
+  @override
+  String get savingsGoalDetailsTitle => 'Savings goal';
+
+  @override
+  String get savingsGoalDetailsEditTooltip => 'Edit goal';
+
+  @override
+  String get savingsGoalDetailsNotFound => 'This savings goal is unavailable.';
+
+  @override
+  String get savingsGoalDetailsSummaryTitle => 'Progress overview';
+
+  @override
+  String savingsGoalDetailsCurrentLabel(String amount) => 'Current: $amount';
+
+  @override
+  String savingsGoalDetailsTargetLabel(String amount) => 'Target: $amount';
+
+  @override
+  String get savingsGoalDetailsNoContributions => 'No contributions yet';
+
+  @override
+  String savingsGoalDetailsLastContribution(String date) =>
+      'Last contribution on $date';
+
+  @override
+  String savingsGoalDetailsTransactionsCount(int count) =>
+      'Transactions linked: $count';
+
+  @override
+  String get savingsGoalDetailsAnalyticsTitle => 'Account analytics';
+
+  @override
+  String get savingsGoalDetailsAnalyticsEmpty =>
+      'Link transactions to this goal to see category analytics.';
+
+  @override
+  String savingsGoalDetailsAnalyticsTotal(String amount) =>
+      'Total contributions: $amount';
 
   @override
   String get transactionDefaultTitle => 'Transaction';

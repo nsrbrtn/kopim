@@ -1,9 +1,11 @@
 import 'dart:ui';
 
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:kopim/core/utils/helpers.dart';
+import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/analytics/domain/models/analytics_category_breakdown.dart';
 import 'package:kopim/features/analytics/domain/models/analytics_overview.dart';
@@ -739,10 +741,14 @@ class _TopCategoriesPagerState extends State<_TopCategoriesPager> {
               parseHexColor(category?.color) ?? theme.colorScheme.primary;
           final String title =
               category?.name ?? strings.analyticsCategoryUncategorized;
+          final IconData? iconData = resolvePhosphorIconData(category?.icon);
+          final String key = breakdown.categoryId ?? '_uncategorized';
           return AnalyticsChartItem(
+            key: key,
             title: title,
             amount: breakdown.amount,
             color: color,
+            icon: iconData,
           );
         })
         .toList(growable: false);
@@ -777,17 +783,8 @@ class _TopCategoriesPage extends StatefulWidget {
 }
 
 class _TopCategoriesPageState extends State<_TopCategoriesPage> {
-  int _selectedIndex = 0;
-
-  @override
-  void didUpdateWidget(covariant _TopCategoriesPage oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (_selectedIndex >= widget.data.items.length) {
-      _selectedIndex = widget.data.items.isEmpty
-          ? 0
-          : widget.data.items.length - 1;
-    }
-  }
+  final Set<String> _selectedKeys = <String>{};
+  String? _focusedKey;
 
   @override
   Widget build(BuildContext context) {
@@ -820,6 +817,7 @@ class _TopCategoriesPageState extends State<_TopCategoriesPage> {
     if (remainder > 0.01) {
       chartItems.add(
         AnalyticsChartItem(
+          key: '_others',
           title: widget.strings.analyticsTopCategoriesOthers,
           amount: remainder,
           color: theme.colorScheme.outlineVariant,
@@ -827,18 +825,38 @@ class _TopCategoriesPageState extends State<_TopCategoriesPage> {
       );
     }
 
-    if (_selectedIndex >= chartItems.length) {
-      _selectedIndex = chartItems.length - 1;
+    _reconcileSelection(chartItems);
+
+    final List<AnalyticsChartItem> activeItems = chartItems
+        .where((AnalyticsChartItem item) => _selectedKeys.contains(item.key))
+        .toList(growable: false);
+
+    AnalyticsChartItem? focusedItem;
+    if (_focusedKey != null) {
+      focusedItem = activeItems.firstWhereOrNull(
+        (AnalyticsChartItem item) => item.key == _focusedKey,
+      );
     }
 
-    final AnalyticsChartItem selectedItem = chartItems[_selectedIndex];
-    final double selectedShare = capturedTotal <= 0
+    int? selectedIndex;
+    final String? focusKey = focusedItem?.key;
+    if (focusKey != null) {
+      final int candidateIndex = activeItems.indexWhere(
+        (AnalyticsChartItem item) => item.key == focusKey,
+      );
+      if (candidateIndex >= 0) {
+        selectedIndex = candidateIndex;
+      }
+    }
+    final double selectedShare = focusedItem == null || capturedTotal <= 0
         ? 0
-        : selectedItem.absoluteAmount / capturedTotal;
-    final String selectedAmount = widget.currencyFormat.format(
-      selectedItem.absoluteAmount,
-    );
-    final String selectedPercent = selectedShare >= 1
+        : focusedItem.absoluteAmount / capturedTotal;
+    final String selectedAmount = focusedItem == null
+        ? widget.currencyFormat.format(capturedTotal)
+        : widget.currencyFormat.format(focusedItem.absoluteAmount);
+    final String selectedPercent = focusedItem == null
+        ? '100%'
+        : selectedShare >= 1
         ? '${(selectedShare * 100).round()}%'
         : '${(selectedShare * 100).toStringAsFixed(1)}%';
 
@@ -861,14 +879,17 @@ class _TopCategoriesPageState extends State<_TopCategoriesPage> {
             children: <Widget>[
               Expanded(
                 child: AnalyticsDonutChart(
-                  items: chartItems,
+                  items: activeItems.isEmpty ? chartItems : activeItems,
                   backgroundColor: backgroundColor,
                   totalAmount: capturedTotal,
-                  selectedIndex: _selectedIndex,
+                  selectedIndex: selectedIndex,
                   onSegmentSelected: (int index) {
-                    if (index >= 0 && index < chartItems.length) {
+                    final List<AnalyticsChartItem> source = activeItems.isEmpty
+                        ? chartItems
+                        : activeItems;
+                    if (index >= 0 && index < source.length) {
                       setState(() {
-                        _selectedIndex = index;
+                        _focusedKey = source[index].key;
                       });
                     }
                   },
@@ -876,7 +897,11 @@ class _TopCategoriesPageState extends State<_TopCategoriesPage> {
               ),
               const SizedBox(height: 12),
               Text(
-                '${selectedItem.title}: $selectedAmount · $selectedPercent',
+                focusedItem == null
+                    ? widget.strings.analyticsTopCategoriesTapHint(
+                        selectedAmount,
+                      )
+                    : '${focusedItem.title}: $selectedAmount · $selectedPercent',
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                   fontWeight: FontWeight.w600,
@@ -889,20 +914,60 @@ class _TopCategoriesPageState extends State<_TopCategoriesPage> {
                 items: chartItems,
                 currencyFormat: widget.currencyFormat,
                 total: capturedTotal,
-                selectedIndex: _selectedIndex,
-                onSelect: (int index) {
-                  if (index >= 0 && index < chartItems.length) {
-                    setState(() {
-                      _selectedIndex = index;
-                    });
-                  }
-                },
+                selectedKeys: _selectedKeys,
+                focusedKey: _focusedKey,
+                onToggle: _handleToggle,
               ),
             ],
           ),
         ),
       ],
     );
+  }
+
+  void _reconcileSelection(List<AnalyticsChartItem> items) {
+    if (items.isEmpty) {
+      _selectedKeys.clear();
+      _focusedKey = null;
+      return;
+    }
+
+    final Set<String> availableKeys = items
+        .map((AnalyticsChartItem item) => item.key)
+        .toSet();
+    if (_selectedKeys.isEmpty) {
+      _selectedKeys.addAll(availableKeys);
+    } else {
+      final Set<String> valid = _selectedKeys
+          .intersection(availableKeys)
+          .toSet();
+      if (valid.isEmpty) {
+        _selectedKeys
+          ..clear()
+          ..addAll(availableKeys);
+      } else if (valid.length != _selectedKeys.length) {
+        _selectedKeys
+          ..clear()
+          ..addAll(valid);
+      }
+    }
+
+    if (_focusedKey != null && !availableKeys.contains(_focusedKey)) {
+      _focusedKey = availableKeys.first;
+    }
+  }
+
+  void _handleToggle(AnalyticsChartItem item) {
+    setState(() {
+      if (_selectedKeys.contains(item.key)) {
+        if (_selectedKeys.length > 1) {
+          _selectedKeys.remove(item.key);
+        }
+      } else {
+        _selectedKeys.add(item.key);
+      }
+      _focusedKey = item.key;
+    });
   }
 }
 
@@ -911,15 +976,17 @@ class _TopCategoriesLegend extends StatelessWidget {
     required this.items,
     required this.currencyFormat,
     required this.total,
-    required this.selectedIndex,
-    required this.onSelect,
+    required this.selectedKeys,
+    required this.focusedKey,
+    required this.onToggle,
   });
 
   final List<AnalyticsChartItem> items;
   final NumberFormat currencyFormat;
   final double total;
-  final int selectedIndex;
-  final ValueChanged<int> onSelect;
+  final Set<String> selectedKeys;
+  final String? focusedKey;
+  final ValueChanged<AnalyticsChartItem> onToggle;
 
   @override
   Widget build(BuildContext context) {
@@ -943,15 +1010,23 @@ class _TopCategoriesLegend extends StatelessWidget {
         final String percentText = percentage >= 1
             ? '${percentFormat.format(percentage.round())}%'
             : '${smallPercentFormat.format(percentage)}%';
+        final bool isSelected = selectedKeys.contains(item.key);
+        final bool isFocused = focusedKey == item.key;
         return Tooltip(
           message: currencyFormat.format(item.absoluteAmount),
           waitDuration: const Duration(milliseconds: 400),
           child: CategoryChip(
             label: item.title,
             backgroundColor: item.color,
-            selected: index == selectedIndex,
-            onTap: () => onSelect(index),
-            trailing: Text(percentText),
+            selected: isSelected,
+            onTap: () => onToggle(item),
+            leading: Icon(item.icon ?? Icons.pie_chart_outline, size: 16),
+            trailing: Text(
+              percentText,
+              style: isFocused
+                  ? const TextStyle(fontWeight: FontWeight.bold)
+                  : null,
+            ),
           ),
         );
       }),

@@ -1490,6 +1490,12 @@ abstract class AppLocalizations {
   /// **'Not enough data to show category trends yet.'**
   String get analyticsTopCategoriesEmpty;
 
+  /// Hint instructing the user to tap categories in the donut chart
+  ///
+  /// In en, this message translates to:
+  /// **'Tap a category to view totals · Total {amount}'**
+  String analyticsTopCategoriesTapHint(String amount);
+
   /// Label for expenses without a category
   ///
   /// In en, this message translates to:
@@ -2533,6 +2539,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Contribution added'**
   String get savingsContributionSuccess;
+
+  /// Fallback title for the savings goal details screen
+  ///
+  /// In en, this message translates to:
+  /// **'Savings goal'**
+  String get savingsGoalDetailsTitle;
+
+  /// Tooltip for the edit action on the goal details screen
+  ///
+  /// In en, this message translates to:
+  /// **'Edit goal'**
+  String get savingsGoalDetailsEditTooltip;
+
+  /// Message shown when a goal cannot be found
+  ///
+  /// In en, this message translates to:
+  /// **'This savings goal is unavailable.'**
+  String get savingsGoalDetailsNotFound;
+
+  /// Section title for the goal progress summary
+  ///
+  /// In en, this message translates to:
+  /// **'Progress overview'**
+  String get savingsGoalDetailsSummaryTitle;
+
+  /// Label showing the current amount saved
+  ///
+  /// In en, this message translates to:
+  /// **'Current: {amount}'**
+  String savingsGoalDetailsCurrentLabel(String amount);
+
+  /// Label showing the target amount
+  ///
+  /// In en, this message translates to:
+  /// **'Target: {amount}'**
+  String savingsGoalDetailsTargetLabel(String amount);
+
+  /// Shown when the goal has no contributions
+  ///
+  /// In en, this message translates to:
+  /// **'No contributions yet'**
+  String get savingsGoalDetailsNoContributions;
+
+  /// Displays the date of the most recent contribution
+  ///
+  /// In en, this message translates to:
+  /// **'Last contribution on {date}'**
+  String savingsGoalDetailsLastContribution(String date);
+
+  /// Shows how many transactions reference the goal
+  ///
+  /// In en, this message translates to:
+  /// **'Transactions linked: {count}'**
+  String savingsGoalDetailsTransactionsCount(int count);
+
+  /// Section title for goal analytics
+  ///
+  /// In en, this message translates to:
+  /// **'Account analytics'**
+  String get savingsGoalDetailsAnalyticsTitle;
+
+  /// Message shown when there is no analytics data yet
+  ///
+  /// In en, this message translates to:
+  /// **'Link transactions to this goal to see category analytics.'**
+  String get savingsGoalDetailsAnalyticsEmpty;
+
+  /// Summary of the total contributed amount
+  ///
+  /// In en, this message translates to:
+  /// **'Total contributions: {amount}'**
+  String savingsGoalDetailsAnalyticsTotal(String amount);
 
   /// Fallback title for transactions without a note
   ///

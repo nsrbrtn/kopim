@@ -4,14 +4,18 @@ import 'package:flutter/material.dart';
 
 class AnalyticsChartItem {
   const AnalyticsChartItem({
+    required this.key,
     required this.title,
     required this.amount,
     required this.color,
+    this.icon,
   });
 
+  final String key;
   final String title;
   final double amount;
   final Color color;
+  final IconData? icon;
 
   double get absoluteAmount => amount.abs();
 }
@@ -55,20 +59,20 @@ class AnalyticsDonutChart extends StatelessWidget {
           final double canvasRadius = size / 2;
           final double ringRadius = canvasRadius - strokeWidth / 2;
           final double labelRadius = ringRadius + strokeWidth * 0.65;
-          final bool showOnlySelected = constraints.maxWidth < 320;
-          final int effectiveSelected =
+          final bool baseShowOnlySelected = constraints.maxWidth < 320;
+          final bool hasSelection =
               selectedIndex != null &&
-                  selectedIndex! >= 0 &&
-                  selectedIndex! < segments.length
-              ? selectedIndex!
-              : 0;
+              selectedIndex! >= 0 &&
+              selectedIndex! < segments.length;
+          final bool showOnlySelected = baseShowOnlySelected && hasSelection;
+          final int fallbackSelected = hasSelection ? selectedIndex! : 0;
 
           final List<_LabelPlacement> placements = _buildLabelPlacements(
             segments: segments,
             size: size,
             labelRadius: labelRadius,
             showOnlySelected: showOnlySelected,
-            selectedIndex: effectiveSelected,
+            selectedIndex: fallbackSelected,
             minGap: _minLabelGap,
           );
 
@@ -85,7 +89,9 @@ class AnalyticsDonutChart extends StatelessWidget {
                     segments: segments,
                     strokeWidth: strokeWidth,
                     backgroundColor: backgroundColor,
-                    selectedIndex: showOnlySelected ? effectiveSelected : null,
+                    selectedIndex: showOnlySelected
+                        ? fallbackSelected
+                        : (hasSelection ? selectedIndex! : null),
                   ),
                 ),
                 for (final _LabelPlacement placement in placements)

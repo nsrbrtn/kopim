@@ -2288,6 +2288,57 @@ final class WatchSavingGoalsUseCaseProvider
 String _$watchSavingGoalsUseCaseHash() =>
     r'4594ab8a779349cd0948384eb9c72b1beea27747';
 
+@ProviderFor(watchSavingGoalAnalyticsUseCase)
+const watchSavingGoalAnalyticsUseCaseProvider =
+    WatchSavingGoalAnalyticsUseCaseProvider._();
+
+final class WatchSavingGoalAnalyticsUseCaseProvider
+    extends
+        $FunctionalProvider<
+          WatchSavingGoalAnalyticsUseCase,
+          WatchSavingGoalAnalyticsUseCase,
+          WatchSavingGoalAnalyticsUseCase
+        >
+    with $Provider<WatchSavingGoalAnalyticsUseCase> {
+  const WatchSavingGoalAnalyticsUseCaseProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'watchSavingGoalAnalyticsUseCaseProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$watchSavingGoalAnalyticsUseCaseHash();
+
+  @$internal
+  @override
+  $ProviderElement<WatchSavingGoalAnalyticsUseCase> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  WatchSavingGoalAnalyticsUseCase create(Ref ref) {
+    return watchSavingGoalAnalyticsUseCase(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(WatchSavingGoalAnalyticsUseCase value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<WatchSavingGoalAnalyticsUseCase>(
+        value,
+      ),
+    );
+  }
+}
+
+String _$watchSavingGoalAnalyticsUseCaseHash() =>
+    r'f0a8c0b88af85b43a43d2db6f3d0e87bc454547e';
+
 @ProviderFor(getSavingGoalsUseCase)
 const getSavingGoalsUseCaseProvider = GetSavingGoalsUseCaseProvider._();
 

@@ -13,6 +13,7 @@ class SavingGoalCard extends StatelessWidget {
     required this.onContribute,
     required this.onEdit,
     required this.onArchive,
+    this.onOpen,
   });
 
   final SavingGoal goal;
@@ -20,6 +21,7 @@ class SavingGoalCard extends StatelessWidget {
   final VoidCallback onContribute;
   final VoidCallback onEdit;
   final VoidCallback onArchive;
+  final VoidCallback? onOpen;
 
   @override
   Widget build(BuildContext context) {
@@ -48,82 +50,86 @@ class SavingGoalCard extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       color: theme.colorScheme.surfaceContainerHighest,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            Row(
-              children: <Widget>[
-                Expanded(
-                  child: Text(goal.name, style: theme.textTheme.titleMedium),
-                ),
-                PopupMenuButton<_GoalAction>(
-                  onSelected: (_GoalAction action) {
-                    switch (action) {
-                      case _GoalAction.edit:
-                        onEdit();
-                        break;
-                      case _GoalAction.archive:
-                        onArchive();
-                        break;
-                    }
-                  },
-                  itemBuilder: (BuildContext context) =>
-                      <PopupMenuEntry<_GoalAction>>[
-                        PopupMenuItem<_GoalAction>(
-                          value: _GoalAction.edit,
-                          child: Text(strings.savingsEditAction),
-                        ),
-                        PopupMenuItem<_GoalAction>(
-                          value: _GoalAction.archive,
-                          enabled: !goal.isArchived,
-                          child: Text(strings.savingsArchiveAction),
-                        ),
-                      ],
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            LinearProgressIndicator(value: percentValue),
-            const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                Text(
-                  '$currentLabel / $targetLabel',
-                  style: theme.textTheme.bodyMedium,
-                ),
-                Text(percentLabel, style: theme.textTheme.bodyMedium),
-              ],
-            ),
-            if (goal.note != null && goal.note!.isNotEmpty) ...<Widget>[
-              const SizedBox(height: 8),
-              Text(goal.note!, style: theme.textTheme.bodySmall),
-            ],
-            const SizedBox(height: 12),
-            Row(
-              children: <Widget>[
-                Expanded(
-                  child: Text(
-                    strings.savingsRemainingLabel(remainingLabel),
-                    style: theme.textTheme.bodySmall,
+      child: InkWell(
+        onTap: onOpen,
+        borderRadius: const BorderRadius.all(Radius.circular(16)),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Row(
+                children: <Widget>[
+                  Expanded(
+                    child: Text(goal.name, style: theme.textTheme.titleMedium),
                   ),
-                ),
-                const SizedBox(width: 12),
-                FilledButton.icon(
-                  onPressed: onContribute,
-                  icon: const Icon(Icons.savings_outlined),
-                  label: Text(strings.savingsContributeAction),
-                ),
+                  PopupMenuButton<_GoalAction>(
+                    onSelected: (_GoalAction action) {
+                      switch (action) {
+                        case _GoalAction.edit:
+                          onEdit();
+                          break;
+                        case _GoalAction.archive:
+                          onArchive();
+                          break;
+                      }
+                    },
+                    itemBuilder: (BuildContext context) =>
+                        <PopupMenuEntry<_GoalAction>>[
+                          PopupMenuItem<_GoalAction>(
+                            value: _GoalAction.edit,
+                            child: Text(strings.savingsEditAction),
+                          ),
+                          PopupMenuItem<_GoalAction>(
+                            value: _GoalAction.archive,
+                            enabled: !goal.isArchived,
+                            child: Text(strings.savingsArchiveAction),
+                          ),
+                        ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              LinearProgressIndicator(value: percentValue),
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[
+                  Text(
+                    '$currentLabel / $targetLabel',
+                    style: theme.textTheme.bodyMedium,
+                  ),
+                  Text(percentLabel, style: theme.textTheme.bodyMedium),
+                ],
+              ),
+              if (goal.note != null && goal.note!.isNotEmpty) ...<Widget>[
+                const SizedBox(height: 8),
+                Text(goal.note!, style: theme.textTheme.bodySmall),
               ],
-            ),
-            if (goal.isArchived) ...<Widget>[
               const SizedBox(height: 12),
-              Chip(label: Text(strings.savingsArchivedBadge)),
+              Row(
+                children: <Widget>[
+                  Expanded(
+                    child: Text(
+                      strings.savingsRemainingLabel(remainingLabel),
+                      style: theme.textTheme.bodySmall,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  FilledButton.icon(
+                    onPressed: onContribute,
+                    icon: const Icon(Icons.savings_outlined),
+                    label: Text(strings.savingsContributeAction),
+                  ),
+                ],
+              ),
+              if (goal.isArchived) ...<Widget>[
+                const SizedBox(height: 12),
+                Chip(label: Text(strings.savingsArchivedBadge)),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );

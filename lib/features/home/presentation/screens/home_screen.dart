@@ -16,6 +16,7 @@ import 'package:kopim/features/home/presentation/controllers/home_transactions_f
 import 'package:kopim/features/home/presentation/widgets/home_budget_progress_card.dart';
 import 'package:kopim/features/home/presentation/widgets/home_gamification_app_bar.dart';
 import 'package:kopim/features/home/presentation/widgets/home_savings_overview_card.dart';
+import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
@@ -35,6 +36,7 @@ import 'package:kopim/core/utils/helpers.dart';
 import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
 import 'package:kopim/features/profile/presentation/screens/profile_management_screen.dart';
 import 'package:kopim/features/transactions/presentation/screens/all_transactions_screen.dart';
+import 'package:kopim/features/savings/presentation/screens/saving_goal_details_screen.dart';
 import 'package:kopim/features/savings/presentation/screens/savings_list_screen.dart';
 
 import '../controllers/home_providers.dart';
@@ -278,6 +280,11 @@ class _HomeBody extends StatelessWidget {
                     Navigator.of(
                       context,
                     ).pushNamed(SavingsListScreen.routeName);
+                  },
+                  onOpenGoal: (SavingGoal goal) {
+                    Navigator.of(
+                      context,
+                    ).push(SavingGoalDetailsScreen.route(goal.id));
                   },
                 ),
               );
