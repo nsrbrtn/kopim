@@ -53,6 +53,7 @@ import 'package:kopim/features/savings/domain/use_cases/archive_saving_goal_use_
 import 'package:kopim/features/savings/domain/use_cases/create_saving_goal_use_case.dart';
 import 'package:kopim/features/savings/domain/use_cases/get_saving_goals_use_case.dart';
 import 'package:kopim/features/savings/domain/use_cases/update_saving_goal_use_case.dart';
+import 'package:kopim/features/savings/domain/use_cases/watch_saving_goal_analytics_use_case.dart';
 import 'package:kopim/features/savings/domain/use_cases/watch_saving_goals_use_case.dart';
 import 'package:kopim/features/profile/data/auth_repository_impl.dart';
 import 'package:kopim/features/profile/data/local/profile_dao.dart';
@@ -306,6 +307,12 @@ ArchiveSavingGoalUseCase archiveSavingGoalUseCase(Ref ref) =>
 WatchSavingGoalsUseCase watchSavingGoalsUseCase(Ref ref) =>
     WatchSavingGoalsUseCase(
       repository: ref.watch(savingGoalRepositoryProvider),
+    );
+
+@riverpod
+WatchSavingGoalAnalyticsUseCase watchSavingGoalAnalyticsUseCase(Ref ref) =>
+    WatchSavingGoalAnalyticsUseCase(
+      transactionRepository: ref.watch(transactionRepositoryProvider),
     );
 
 @riverpod

@@ -11,6 +11,7 @@ import 'package:kopim/features/savings/presentation/controllers/saving_goals_pro
 import 'package:kopim/features/savings/presentation/controllers/saving_goals_state.dart';
 import 'package:kopim/features/savings/presentation/screens/add_edit_goal_screen.dart';
 import 'package:kopim/features/savings/presentation/screens/contribute_screen.dart';
+import 'package:kopim/features/savings/presentation/screens/saving_goal_details_screen.dart';
 import 'package:kopim/features/savings/presentation/widgets/saving_goal_card.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
@@ -153,6 +154,11 @@ class _SavingsBodyState extends ConsumerState<_SavingsBody> {
                 ).push(AddEditGoalScreen.route(goal: progress.goal));
               },
               onArchive: () => unawaited(_archiveGoal(progress.goal)),
+              onOpen: () {
+                Navigator.of(
+                  context,
+                ).push(SavingGoalDetailsScreen.route(progress.goal.id));
+              },
             ),
           );
         },

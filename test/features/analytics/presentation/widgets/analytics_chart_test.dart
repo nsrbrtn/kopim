@@ -7,8 +7,18 @@ void main() {
     WidgetTester tester,
   ) async {
     final List<AnalyticsChartItem> items = <AnalyticsChartItem>[
-      const AnalyticsChartItem(title: 'A', amount: 60, color: Colors.red),
-      const AnalyticsChartItem(title: 'B', amount: 40, color: Colors.blue),
+      const AnalyticsChartItem(
+        key: 'a',
+        title: 'A',
+        amount: 60,
+        color: Colors.red,
+      ),
+      const AnalyticsChartItem(
+        key: 'b',
+        title: 'B',
+        amount: 40,
+        color: Colors.blue,
+      ),
     ];
 
     await tester.pumpWidget(
@@ -40,6 +50,7 @@ void main() {
     final List<AnalyticsChartItem> items = <AnalyticsChartItem>[
       for (int index = 0; index < 6; index++)
         AnalyticsChartItem(
+          key: 'item-$index',
           title: 'Item $index',
           amount: 10 + index.toDouble(),
           color: Colors.primaries[index % Colors.primaries.length],

@@ -1072,6 +1072,15 @@
   "@analyticsTopCategoriesEmpty": {
     "description": "Message displayed when there are no categories to show"
   },
+  "analyticsTopCategoriesTapHint": "Tap a category to view totals · Total {amount}",
+  "@analyticsTopCategoriesTapHint": {
+    "description": "Hint instructing the user to tap categories in the donut chart",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "analyticsCategoryUncategorized": "Uncategorized",
   "@analyticsCategoryUncategorized": {
     "description": "Label for expenses without a category"
@@ -1857,6 +1866,79 @@
   "savingsContributionSuccess": "Contribution added",
   "@savingsContributionSuccess": {
     "description": "Snackbar after adding a contribution"
+  },
+  "savingsGoalDetailsTitle": "Savings goal",
+  "@savingsGoalDetailsTitle": {
+    "description": "Fallback title for the savings goal details screen"
+  },
+  "savingsGoalDetailsEditTooltip": "Edit goal",
+  "@savingsGoalDetailsEditTooltip": {
+    "description": "Tooltip for the edit action on the goal details screen"
+  },
+  "savingsGoalDetailsNotFound": "This savings goal is unavailable.",
+  "@savingsGoalDetailsNotFound": {
+    "description": "Message shown when a goal cannot be found"
+  },
+  "savingsGoalDetailsSummaryTitle": "Progress overview",
+  "@savingsGoalDetailsSummaryTitle": {
+    "description": "Section title for the goal progress summary"
+  },
+  "savingsGoalDetailsCurrentLabel": "Current: {amount}",
+  "@savingsGoalDetailsCurrentLabel": {
+    "description": "Label showing the current amount saved",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "savingsGoalDetailsTargetLabel": "Target: {amount}",
+  "@savingsGoalDetailsTargetLabel": {
+    "description": "Label showing the target amount",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "savingsGoalDetailsNoContributions": "No contributions yet",
+  "@savingsGoalDetailsNoContributions": {
+    "description": "Shown when the goal has no contributions"
+  },
+  "savingsGoalDetailsLastContribution": "Last contribution on {date}",
+  "@savingsGoalDetailsLastContribution": {
+    "description": "Displays the date of the most recent contribution",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "savingsGoalDetailsTransactionsCount": "Transactions linked: {count}",
+  "@savingsGoalDetailsTransactionsCount": {
+    "description": "Shows how many transactions reference the goal",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "savingsGoalDetailsAnalyticsTitle": "Account analytics",
+  "@savingsGoalDetailsAnalyticsTitle": {
+    "description": "Section title for goal analytics"
+  },
+  "savingsGoalDetailsAnalyticsEmpty": "Link transactions to this goal to see category analytics.",
+  "@savingsGoalDetailsAnalyticsEmpty": {
+    "description": "Message shown when there is no analytics data yet"
+  },
+  "savingsGoalDetailsAnalyticsTotal": "Total contributions: {amount}",
+  "@savingsGoalDetailsAnalyticsTotal": {
+    "description": "Summary of the total contributed amount",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
   },
   "transactionDefaultTitle": "Transaction",
   "@transactionDefaultTitle": {

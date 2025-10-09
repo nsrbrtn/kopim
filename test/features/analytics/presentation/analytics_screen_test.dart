@@ -148,6 +148,13 @@ void main() {
           ),
           findsOneWidget,
         );
+
+        expect(
+          find.text(
+            strings.analyticsTopCategoriesTapHint(currencyFormat.format(100)),
+          ),
+          findsOneWidget,
+        );
       },
     );
 
