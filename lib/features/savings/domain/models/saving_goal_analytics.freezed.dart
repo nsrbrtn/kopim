@@ -212,8 +212,8 @@ return $default(_that.goalId,_that.totalAmount,_that.lastContributionAt,_that.ca
 /// @nodoc
 @JsonSerializable()
 
-class _SavingGoalAnalytics implements SavingGoalAnalytics {
-  const _SavingGoalAnalytics({required this.goalId, this.totalAmount = 0.0, this.lastContributionAt, final  List<SavingGoalCategoryBreakdown> categoryBreakdown = const <SavingGoalCategoryBreakdown>[], this.transactionCount = 0}): _categoryBreakdown = categoryBreakdown;
+class _SavingGoalAnalytics extends SavingGoalAnalytics {
+  const _SavingGoalAnalytics({required this.goalId, this.totalAmount = 0.0, this.lastContributionAt, final  List<SavingGoalCategoryBreakdown> categoryBreakdown = const <SavingGoalCategoryBreakdown>[], this.transactionCount = 0}): _categoryBreakdown = categoryBreakdown,super._();
   factory _SavingGoalAnalytics.fromJson(Map<String, dynamic> json) => _$SavingGoalAnalyticsFromJson(json);
 
 @override final  String goalId;

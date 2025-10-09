@@ -37,7 +37,6 @@ import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
 import 'package:kopim/features/profile/presentation/screens/profile_management_screen.dart';
 import 'package:kopim/features/transactions/presentation/screens/all_transactions_screen.dart';
 import 'package:kopim/features/savings/presentation/screens/saving_goal_details_screen.dart';
-import 'package:kopim/features/savings/presentation/screens/savings_list_screen.dart';
 
 import '../controllers/home_providers.dart';
 
@@ -276,11 +275,6 @@ class _HomeBody extends StatelessWidget {
             if (dashboardPreferences?.showSavingsWidget ?? false) {
               addBoxSection(
                 HomeSavingsOverviewCard(
-                  onOpenSavings: () {
-                    Navigator.of(
-                      context,
-                    ).pushNamed(SavingsListScreen.routeName);
-                  },
                   onOpenGoal: (SavingGoal goal) {
                     Navigator.of(
                       context,
@@ -1019,6 +1013,9 @@ class _UpcomingPaymentTile extends ConsumerWidget {
         payment.accountId,
       ).select((AccountEntity? value) => value),
     );
+    final RecurringRule? rule = ref.watch(
+      homeRecurringRuleByIdProvider(payment.ruleId),
+    );
 
     final ThemeData theme = Theme.of(context);
     final PhosphorIconData? iconData = resolvePhosphorIconData(category?.icon);
@@ -1079,9 +1076,6 @@ class _UpcomingPaymentTile extends ConsumerWidget {
         ],
       ),
       onTap: () async {
-        final RecurringRule? rule = ref.read(
-          homeRecurringRuleByIdProvider(payment.ruleId),
-        );
         if (rule == null) {
           if (!context.mounted) {
             return;

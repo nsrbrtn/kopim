@@ -8,13 +8,8 @@ import 'package:kopim/features/savings/domain/value_objects/goal_progress.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
 class HomeSavingsOverviewCard extends ConsumerWidget {
-  const HomeSavingsOverviewCard({
-    required this.onOpenSavings,
-    this.onOpenGoal,
-    super.key,
-  });
+  const HomeSavingsOverviewCard({this.onOpenGoal, super.key});
 
-  final VoidCallback onOpenSavings;
   final void Function(SavingGoal goal)? onOpenGoal;
 
   @override
@@ -31,11 +26,7 @@ class HomeSavingsOverviewCard extends ConsumerWidget {
             .where((GoalProgress progress) => !progress.goal.isArchived)
             .toList(growable: false);
         if (activeGoals.isEmpty) {
-          return _HomeSavingsEmptyState(
-            strings: strings,
-            theme: theme,
-            onOpenSavings: onOpenSavings,
-          );
+          return _HomeSavingsEmptyState(strings: strings, theme: theme);
         }
 
         final NumberFormat currencyFormat = NumberFormat.simpleCurrency(
@@ -69,18 +60,6 @@ class HomeSavingsOverviewCard extends ConsumerWidget {
                         : () => onOpenGoal!(visibleGoals[i].goal),
                   ),
                 ],
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: TextButton(
-                    onPressed: onOpenSavings,
-                    style: TextButton.styleFrom(
-                      foregroundColor: theme.colorScheme.primary.withValues(
-                        alpha: 0.92,
-                      ),
-                    ),
-                    child: Text(strings.homeSavingsWidgetViewAll),
-                  ),
-                ),
               ],
             ),
           ),
@@ -110,15 +89,10 @@ class HomeSavingsOverviewCard extends ConsumerWidget {
 }
 
 class _HomeSavingsEmptyState extends StatelessWidget {
-  const _HomeSavingsEmptyState({
-    required this.strings,
-    required this.theme,
-    required this.onOpenSavings,
-  });
+  const _HomeSavingsEmptyState({required this.strings, required this.theme});
 
   final AppLocalizations strings;
   final ThemeData theme;
-  final VoidCallback onOpenSavings;
 
   @override
   Widget build(BuildContext context) {
@@ -139,12 +113,6 @@ class _HomeSavingsEmptyState extends StatelessWidget {
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurface.withValues(alpha: 0.72),
               ),
-            ),
-            const SizedBox(height: 12),
-            FilledButton.tonalIcon(
-              onPressed: onOpenSavings,
-              icon: const Icon(Icons.savings_outlined),
-              label: Text(strings.homeSavingsWidgetViewAll),
             ),
           ],
         ),

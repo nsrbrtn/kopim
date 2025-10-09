@@ -209,8 +209,8 @@ return $default(_that.categoryId,_that.amount);case _:
 /// @nodoc
 @JsonSerializable()
 
-class _SavingGoalCategoryBreakdown implements SavingGoalCategoryBreakdown {
-  const _SavingGoalCategoryBreakdown({this.categoryId, this.amount = 0.0});
+class _SavingGoalCategoryBreakdown extends SavingGoalCategoryBreakdown {
+  const _SavingGoalCategoryBreakdown({this.categoryId, this.amount = 0.0}): super._();
   factory _SavingGoalCategoryBreakdown.fromJson(Map<String, dynamic> json) => _$SavingGoalCategoryBreakdownFromJson(json);
 
 @override final  String? categoryId;
