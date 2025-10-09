@@ -819,8 +819,9 @@ class AppLocalizationsRu extends AppLocalizations {
       'Недостаточно данных для анализа категорий.';
 
   @override
-  String analyticsTopCategoriesTapHint(String amount) =>
-      'Нажмите на категорию, чтобы увидеть сумму · Всего $amount';
+  String analyticsTopCategoriesTapHint(String amount) {
+    return 'Нажмите на категорию, чтобы увидеть сумму · Всего $amount';
+  }
 
   @override
   String get analyticsCategoryUncategorized => 'Без категории';
@@ -1413,21 +1414,27 @@ class AppLocalizationsRu extends AppLocalizations {
   String get savingsGoalDetailsSummaryTitle => 'Прогресс';
 
   @override
-  String savingsGoalDetailsCurrentLabel(String amount) => 'Накоплено: $amount';
+  String savingsGoalDetailsCurrentLabel(String amount) {
+    return 'Накоплено: $amount';
+  }
 
   @override
-  String savingsGoalDetailsTargetLabel(String amount) => 'Цель: $amount';
+  String savingsGoalDetailsTargetLabel(String amount) {
+    return 'Цель: $amount';
+  }
 
   @override
   String get savingsGoalDetailsNoContributions => 'Внесений ещё не было';
 
   @override
-  String savingsGoalDetailsLastContribution(String date) =>
-      'Последнее внесение $date';
+  String savingsGoalDetailsLastContribution(String date) {
+    return 'Последнее внесение $date';
+  }
 
   @override
-  String savingsGoalDetailsTransactionsCount(int count) =>
-      'Связанных операций: $count';
+  String savingsGoalDetailsTransactionsCount(int count) {
+    return 'Связанных операций: $count';
+  }
 
   @override
   String get savingsGoalDetailsAnalyticsTitle => 'Аналитика по счёту';
@@ -1437,8 +1444,9 @@ class AppLocalizationsRu extends AppLocalizations {
       'Добавьте операции к накоплению, чтобы увидеть аналитику по категориям.';
 
   @override
-  String savingsGoalDetailsAnalyticsTotal(String amount) =>
-      'Всего внесено: $amount';
+  String savingsGoalDetailsAnalyticsTotal(String amount) {
+    return 'Всего внесено: $amount';
+  }
 
   @override
   String get transactionDefaultTitle => 'Транзакция';
