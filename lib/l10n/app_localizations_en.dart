@@ -112,6 +112,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dialogConfirm => 'Confirm';
 
   @override
+  String get commonUndo => 'Undo';
+
+  @override
   String get manageCategoriesParentLabel => 'Parent category';
 
   @override
@@ -224,6 +227,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get manageCategoriesColorPickerTitle => 'Pick a category color';
+
+  @override
+  String get manageCategoriesFavoriteLabel => 'Add to favorites';
+
+  @override
+  String get manageCategoriesFavoriteSubtitle =>
+      'Favorite categories appear at the top when creating transactions.';
 
   @override
   String get manageCategoriesSaveCta => 'Save category';
@@ -800,6 +810,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Not enough data to show category trends yet.';
 
   @override
+  String analyticsTopCategoriesTapHint(String amount) =>
+      'Tap a category to view totals · Total $amount';
+
+  @override
   String get analyticsCategoryUncategorized => 'Uncategorized';
 
   @override
@@ -953,6 +967,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addTransactionSuccess => 'Transaction saved';
 
   @override
+  String get addTransactionUndoSuccess => 'Transaction removed.';
+
+  @override
+  String get addTransactionUndoError => 'Couldn\'t undo the transaction.';
+
+  @override
   String get homeAccountsAddTooltip => 'Add account';
 
   @override
@@ -999,6 +1019,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get addAccountTypeRequired => 'Please specify the account type.';
+
+  @override
+  String get accountPrimaryToggleLabel => 'Set as primary account';
+
+  @override
+  String get accountPrimaryToggleSubtitle =>
+      'This account will be selected by default for new transactions.';
 
   @override
   String get accountDetailsTitle => 'Account details';
@@ -1363,6 +1390,46 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get savingsContributionSuccess => 'Contribution added';
+
+  @override
+  String get savingsGoalDetailsTitle => 'Savings goal';
+
+  @override
+  String get savingsGoalDetailsEditTooltip => 'Edit goal';
+
+  @override
+  String get savingsGoalDetailsNotFound => 'This savings goal is unavailable.';
+
+  @override
+  String get savingsGoalDetailsSummaryTitle => 'Progress overview';
+
+  @override
+  String savingsGoalDetailsCurrentLabel(String amount) => 'Current: $amount';
+
+  @override
+  String savingsGoalDetailsTargetLabel(String amount) => 'Target: $amount';
+
+  @override
+  String get savingsGoalDetailsNoContributions => 'No contributions yet';
+
+  @override
+  String savingsGoalDetailsLastContribution(String date) =>
+      'Last contribution on $date';
+
+  @override
+  String savingsGoalDetailsTransactionsCount(int count) =>
+      'Transactions linked: $count';
+
+  @override
+  String get savingsGoalDetailsAnalyticsTitle => 'Account analytics';
+
+  @override
+  String get savingsGoalDetailsAnalyticsEmpty =>
+      'Link transactions to this goal to see category analytics.';
+
+  @override
+  String savingsGoalDetailsAnalyticsTotal(String amount) =>
+      'Total contributions: $amount';
 
   @override
   String get transactionDefaultTitle => 'Transaction';

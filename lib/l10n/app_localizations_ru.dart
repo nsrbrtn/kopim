@@ -113,6 +113,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get dialogConfirm => 'Готово';
 
   @override
+  String get commonUndo => 'Отменить';
+
+  @override
   String get manageCategoriesParentLabel => 'Родительская категория';
 
   @override
@@ -225,6 +228,13 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get manageCategoriesColorPickerTitle => 'Выберите цвет категории';
+
+  @override
+  String get manageCategoriesFavoriteLabel => 'Добавить в избранное';
+
+  @override
+  String get manageCategoriesFavoriteSubtitle =>
+      'Избранные категории отображаются вверху списка при создании транзакций.';
 
   @override
   String get manageCategoriesSaveCta => 'Сохранить категорию';
@@ -809,6 +819,10 @@ class AppLocalizationsRu extends AppLocalizations {
       'Недостаточно данных для анализа категорий.';
 
   @override
+  String analyticsTopCategoriesTapHint(String amount) =>
+      'Нажмите на категорию, чтобы увидеть сумму · Всего $amount';
+
+  @override
   String get analyticsCategoryUncategorized => 'Без категории';
 
   @override
@@ -962,6 +976,12 @@ class AppLocalizationsRu extends AppLocalizations {
   String get addTransactionSuccess => 'Транзакция сохранена';
 
   @override
+  String get addTransactionUndoSuccess => 'Транзакция отменена.';
+
+  @override
+  String get addTransactionUndoError => 'Не удалось отменить транзакцию.';
+
+  @override
   String get homeAccountsAddTooltip => 'Добавить счёт';
 
   @override
@@ -1008,6 +1028,13 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get addAccountTypeRequired => 'Укажите тип счёта.';
+
+  @override
+  String get accountPrimaryToggleLabel => 'Сделать счёт основным';
+
+  @override
+  String get accountPrimaryToggleSubtitle =>
+      'Этот счёт будет выбираться по умолчанию при создании транзакций.';
 
   @override
   String get accountDetailsTitle => 'Счёт';
@@ -1372,6 +1399,46 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get savingsContributionSuccess => 'Пополнение добавлено';
+
+  @override
+  String get savingsGoalDetailsTitle => 'Накопление';
+
+  @override
+  String get savingsGoalDetailsEditTooltip => 'Редактировать накопление';
+
+  @override
+  String get savingsGoalDetailsNotFound => 'Накопление недоступно.';
+
+  @override
+  String get savingsGoalDetailsSummaryTitle => 'Прогресс';
+
+  @override
+  String savingsGoalDetailsCurrentLabel(String amount) => 'Накоплено: $amount';
+
+  @override
+  String savingsGoalDetailsTargetLabel(String amount) => 'Цель: $amount';
+
+  @override
+  String get savingsGoalDetailsNoContributions => 'Внесений ещё не было';
+
+  @override
+  String savingsGoalDetailsLastContribution(String date) =>
+      'Последнее внесение $date';
+
+  @override
+  String savingsGoalDetailsTransactionsCount(int count) =>
+      'Связанных операций: $count';
+
+  @override
+  String get savingsGoalDetailsAnalyticsTitle => 'Аналитика по счёту';
+
+  @override
+  String get savingsGoalDetailsAnalyticsEmpty =>
+      'Добавьте операции к накоплению, чтобы увидеть аналитику по категориям.';
+
+  @override
+  String savingsGoalDetailsAnalyticsTotal(String amount) =>
+      'Всего внесено: $amount';
 
   @override
   String get transactionDefaultTitle => 'Транзакция';

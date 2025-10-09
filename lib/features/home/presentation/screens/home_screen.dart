@@ -16,6 +16,7 @@ import 'package:kopim/features/home/presentation/controllers/home_transactions_f
 import 'package:kopim/features/home/presentation/widgets/home_budget_progress_card.dart';
 import 'package:kopim/features/home/presentation/widgets/home_gamification_app_bar.dart';
 import 'package:kopim/features/home/presentation/widgets/home_savings_overview_card.dart';
+import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
@@ -24,8 +25,10 @@ import 'package:kopim/features/profile/presentation/screens/general_settings_scr
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/presentation/add_transaction_screen.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
+import 'package:kopim/features/transactions/presentation/controllers/transaction_actions_controller.dart';
 import 'package:kopim/features/transactions/presentation/widgets/transaction_editor.dart';
 import 'package:kopim/features/transactions/presentation/widgets/transaction_tile_formatters.dart';
+import 'package:kopim/features/transactions/presentation/widgets/transaction_form_view.dart';
 import 'package:kopim/features/recurring_transactions/domain/entities/recurring_rule.dart';
 import 'package:kopim/features/recurring_transactions/presentation/screens/recurring_rule_edit_screen.dart';
 import 'package:kopim/l10n/app_localizations.dart';
@@ -33,6 +36,7 @@ import 'package:kopim/core/utils/helpers.dart';
 import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
 import 'package:kopim/features/profile/presentation/screens/profile_management_screen.dart';
 import 'package:kopim/features/transactions/presentation/screens/all_transactions_screen.dart';
+import 'package:kopim/features/savings/presentation/screens/saving_goal_details_screen.dart';
 import 'package:kopim/features/savings/presentation/screens/savings_list_screen.dart';
 
 import '../controllers/home_providers.dart';
@@ -277,6 +281,11 @@ class _HomeBody extends StatelessWidget {
                       context,
                     ).pushNamed(SavingsListScreen.routeName);
                   },
+                  onOpenGoal: (SavingGoal goal) {
+                    Navigator.of(
+                      context,
+                    ).push(SavingGoalDetailsScreen.route(goal.id));
+                  },
                 ),
               );
             }
@@ -405,16 +414,59 @@ class _AddTransactionButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return FloatingActionButton(
       onPressed: () async {
-        final bool? created = await Navigator.of(context).push<bool>(
-          MaterialPageRoute<bool>(builder: (_) => const AddTransactionScreen()),
-        );
-        if (created == true && context.mounted) {
-          ScaffoldMessenger.of(context)
-            ..hideCurrentSnackBar()
-            ..showSnackBar(
-              SnackBar(content: Text(strings.addTransactionSuccess)),
+        final TransactionFormResult? result = await Navigator.of(context)
+            .push<TransactionFormResult>(
+              MaterialPageRoute<TransactionFormResult>(
+                builder: (_) => const AddTransactionScreen(),
+              ),
             );
+        if (!context.mounted || result == null) {
+          return;
         }
+        final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar();
+        final TransactionEntity? createdTransaction = result.createdTransaction;
+        if (createdTransaction == null) {
+          messenger.showSnackBar(
+            SnackBar(content: Text(strings.addTransactionSuccess)),
+          );
+          return;
+        }
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(strings.addTransactionSuccess),
+            action: SnackBarAction(
+              label: strings.commonUndo,
+              onPressed: () {
+                final ProviderContainer container = ProviderScope.containerOf(
+                  context,
+                );
+                container
+                    .read(transactionActionsControllerProvider.notifier)
+                    .deleteTransaction(createdTransaction.id)
+                    .then((bool undone) {
+                      if (!context.mounted) {
+                        return;
+                      }
+                      ScaffoldMessenger.of(context)
+                        ..hideCurrentSnackBar()
+                        ..showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              undone
+                                  ? strings.addTransactionUndoSuccess
+                                  : strings.addTransactionUndoError,
+                            ),
+                          ),
+                        );
+                      container
+                          .read(transactionActionsControllerProvider.notifier)
+                          .reset();
+                    });
+              },
+            ),
+          ),
+        );
       },
       child: const Icon(Icons.add),
     );
@@ -585,8 +637,9 @@ class _AccountsListState extends State<_AccountsList> {
                                         fit: BoxFit.scaleDown,
                                         alignment: Alignment.topRight,
                                         child: Text(
-                                          currencyFormat
-                                              .format(account.balance),
+                                          currencyFormat.format(
+                                            account.balance,
+                                          ),
                                           style: theme.textTheme.headlineSmall
                                               ?.copyWith(
                                                 fontWeight: FontWeight.w600,
@@ -1036,9 +1089,7 @@ class _UpcomingPaymentTile extends ConsumerWidget {
           ScaffoldMessenger.of(context)
             ..hideCurrentSnackBar()
             ..showSnackBar(
-              SnackBar(
-                content: Text(strings.homeUpcomingPaymentsMissingRule),
-              ),
+              SnackBar(content: Text(strings.homeUpcomingPaymentsMissingRule)),
             );
           return;
         }

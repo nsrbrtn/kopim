@@ -20,6 +20,8 @@ class Accounts extends Table {
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
   BoolColumn get isDeleted =>
       boolean().withDefault(const Constant<bool>(false))();
+  BoolColumn get isPrimary =>
+      boolean().withDefault(const Constant<bool>(false))();
   @override
   Set<Column<Object>> get primaryKey => <Column<Object>>{id};
 }
@@ -41,6 +43,8 @@ class Categories extends Table {
   BoolColumn get isDeleted =>
       boolean().withDefault(const Constant<bool>(false))();
   BoolColumn get isSystem =>
+      boolean().withDefault(const Constant<bool>(false))();
+  BoolColumn get isFavorite =>
       boolean().withDefault(const Constant<bool>(false))();
 
   @override
@@ -273,7 +277,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.connect(DatabaseConnection super.connection);
 
   @override
-  int get schemaVersion => 12;
+  int get schemaVersion => 13;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -510,6 +514,10 @@ class AppDatabase extends _$AppDatabase {
                 'ON accounts(type)',
           ),
         );
+      }
+      if (from < 13) {
+        await m.addColumn(accounts, accounts.isPrimary);
+        await m.addColumn(categories, categories.isFavorite);
       }
     },
   );

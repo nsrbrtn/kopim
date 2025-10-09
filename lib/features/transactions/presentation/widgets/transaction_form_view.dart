@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
+import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
 import 'package:kopim/features/transactions/presentation/controllers/transaction_form_controller.dart';
 import 'package:kopim/l10n/app_localizations.dart';
@@ -33,6 +34,16 @@ InputDecoration _transactionTextFieldDecoration(
   );
 }
 
+class TransactionFormResult {
+  const TransactionFormResult({
+    required this.isEditing,
+    this.createdTransaction,
+  });
+
+  final bool isEditing;
+  final TransactionEntity? createdTransaction;
+}
+
 class TransactionFormView extends ConsumerWidget {
   const TransactionFormView({
     super.key,
@@ -44,7 +55,7 @@ class TransactionFormView extends ConsumerWidget {
 
   final GlobalKey<FormState> formKey;
   final TransactionFormArgs formArgs;
-  final VoidCallback onSuccess;
+  final void Function(TransactionFormResult result) onSuccess;
   final String? submitLabel;
 
   @override
@@ -61,18 +72,20 @@ class TransactionFormView extends ConsumerWidget {
       transactionFormControllerProvider(formArgs),
       (TransactionFormState? previous, TransactionFormState next) {
         if (next.isSuccess && previous?.isSuccess != next.isSuccess) {
-          if (formArgs.initialTransaction == null && context.mounted) {
-            ScaffoldMessenger.of(context)
-              ..hideCurrentSnackBar()
-              ..showSnackBar(
-                SnackBar(content: Text(strings.transactionXpGained)),
-              );
-          }
-          ref
-              .read(transactionFormControllerProvider(formArgs).notifier)
-              .acknowledgeSuccess();
+          final TransactionEntity? created = next.lastCreatedTransaction;
+          final TransactionFormController notifier = ref.read(
+            transactionFormControllerProvider(formArgs).notifier,
+          );
+          notifier
+            ..acknowledgeSuccess()
+            ..clearLastCreatedTransaction();
           if (context.mounted) {
-            onSuccess();
+            onSuccess(
+              TransactionFormResult(
+                isEditing: formArgs.initialTransaction != null,
+                createdTransaction: created,
+              ),
+            );
           }
         } else if (next.error != null && next.error != previous?.error) {
           final String message = switch (next.error) {
@@ -245,7 +258,8 @@ class _AccountDropdownField extends ConsumerWidget {
     );
 
     final String? resolvedAccountId =
-        selectedAccountId ?? (accounts.isNotEmpty ? accounts.first.id : null);
+        selectedAccountId ??
+        _resolveDefaultAccountId(accounts, formArgs.defaultAccountId);
     if (selectedAccountId == null && resolvedAccountId != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ref.read(transactionProvider.notifier).updateAccount(resolvedAccountId);
@@ -293,6 +307,25 @@ class _AccountDropdownField extends ConsumerWidget {
       upper,
       () => NumberFormat.currency(locale: locale, symbol: upper),
     );
+  }
+
+  String? _resolveDefaultAccountId(
+    List<AccountEntity> accounts,
+    String? preferredId,
+  ) {
+    if (preferredId != null) {
+      for (final AccountEntity account in accounts) {
+        if (account.id == preferredId) {
+          return preferredId;
+        }
+      }
+    }
+    for (final AccountEntity account in accounts) {
+      if (account.isPrimary) {
+        return account.id;
+      }
+    }
+    return accounts.isNotEmpty ? accounts.first.id : null;
   }
 }
 
@@ -374,12 +407,22 @@ class _CategoryDropdownField extends ConsumerWidget {
       orElse: () => const <Category>[],
     );
 
-    final List<Category> filteredCategories = categories
-        .where(
-          (Category category) =>
-              category.type.toLowerCase() == type.storageValue,
-        )
-        .toList(growable: false);
+    final List<Category> filteredCategories =
+        categories
+            .where(
+              (Category category) =>
+                  category.type.toLowerCase() == type.storageValue,
+            )
+            .toList(growable: true)
+          ..sort((Category a, Category b) {
+            final int favoriteComparison = (b.isFavorite ? 1 : 0).compareTo(
+              a.isFavorite ? 1 : 0,
+            );
+            if (favoriteComparison != 0) {
+              return favoriteComparison;
+            }
+            return a.name.toLowerCase().compareTo(b.name.toLowerCase());
+          });
 
     return DropdownButtonFormField<String>(
       key: key,
@@ -497,6 +540,13 @@ class _AmountFieldState extends ConsumerState<_AmountField> {
     _lastSyncedValue = initialState.amount;
     _focusNode = FocusNode();
     _focusNode.addListener(_handleFocusChange);
+    if (!initialState.isEditing && initialState.amount.isEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _focusNode.requestFocus();
+        }
+      });
+    }
     _subscription = ref.listenManual<String>(
       transactionFormControllerProvider(
         widget.formArgs,

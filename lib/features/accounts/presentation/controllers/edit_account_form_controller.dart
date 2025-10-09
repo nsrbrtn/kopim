@@ -23,6 +23,7 @@ abstract class EditAccountFormState with _$EditAccountFormState {
     @Default('') String customType,
     @Default(false) bool isSaving,
     @Default(false) bool submissionSuccess,
+    @Default(false) bool isPrimary,
     EditAccountFieldError? nameError,
     EditAccountFieldError? balanceError,
     EditAccountFieldError? typeError,
@@ -77,6 +78,7 @@ class EditAccountFormController extends _$EditAccountFormController {
       type: useCustomType ? 'cash' : account.type,
       useCustomType: useCustomType,
       customType: customType,
+      isPrimary: account.isPrimary,
     );
   }
 
@@ -131,6 +133,14 @@ class EditAccountFormController extends _$EditAccountFormController {
       submissionSuccess: false,
       errorMessage: null,
       typeError: null,
+    );
+  }
+
+  void updateIsPrimary(bool value) {
+    state = state.copyWith(
+      isPrimary: value,
+      submissionSuccess: false,
+      errorMessage: null,
     );
   }
 
@@ -197,6 +207,7 @@ class EditAccountFormController extends _$EditAccountFormController {
       currency: state.currency,
       type: resolvedType!,
       updatedAt: updatedAt,
+      isPrimary: state.isPrimary,
     );
 
     try {
@@ -215,6 +226,7 @@ class EditAccountFormController extends _$EditAccountFormController {
         useCustomType: updatedIsCustom,
         customType: updatedIsCustom ? normalizedCustom : '',
         submissionSuccess: true,
+        isPrimary: updatedAccount.isPrimary,
       );
     } catch (error) {
       state = state.copyWith(

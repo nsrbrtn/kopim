@@ -47,6 +47,9 @@ class AccountRepositoryImpl implements AccountRepository {
     final DateTime now = DateTime.now();
     final AccountEntity toPersist = account.copyWith(updatedAt: now);
     await _database.transaction(() async {
+      if (toPersist.isPrimary) {
+        await _accountDao.clearPrimaryExcept(toPersist.id, now);
+      }
       await _accountDao.upsert(toPersist);
       await _outboxDao.enqueue(
         entityType: _entityType,
@@ -80,6 +83,7 @@ class AccountRepositoryImpl implements AccountRepository {
     final Map<String, dynamic> json = account.toJson();
     json['updatedAt'] = account.updatedAt.toIso8601String();
     json['createdAt'] = account.createdAt.toIso8601String();
+    json['isPrimary'] = account.isPrimary;
     return json;
   }
 
@@ -93,6 +97,7 @@ class AccountRepositoryImpl implements AccountRepository {
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
       isDeleted: row.isDeleted,
+      isPrimary: row.isPrimary,
     );
   }
 }

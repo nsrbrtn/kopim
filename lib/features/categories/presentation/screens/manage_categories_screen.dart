@@ -621,6 +621,14 @@ class _CategoryEditorSheet extends ConsumerWidget {
                 ],
               ),
             ),
+            const SizedBox(height: 8),
+            SwitchListTile.adaptive(
+              contentPadding: EdgeInsets.zero,
+              value: state.isFavorite,
+              onChanged: controller.updateFavorite,
+              title: Text(strings.manageCategoriesFavoriteLabel),
+              subtitle: Text(strings.manageCategoriesFavoriteSubtitle),
+            ),
             const SizedBox(height: 24),
             FilledButton.icon(
               onPressed: state.isSaving || !state.hasChanges

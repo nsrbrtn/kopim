@@ -33,7 +33,7 @@ Future<void> showTransactionEditorSheet({
             formKey: formKey,
             formArgs: args,
             submitLabel: submitLabel,
-            onSuccess: () {
+            onSuccess: (_) {
               if (Navigator.of(modalContext).canPop()) {
                 Navigator.of(modalContext).pop();
               }

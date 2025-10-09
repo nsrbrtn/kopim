@@ -134,6 +134,10 @@
   "@dialogConfirm": {
     "description": "Подпись кнопки подтверждения в диалогах"
   },
+  "commonUndo": "Отменить",
+  "@commonUndo": {
+    "description": "Подпись для действия отмены"
+  },
   "manageCategoriesParentLabel": "Родительская категория",
   "@manageCategoriesParentLabel": {
     "description": "Подпись выпадающего списка выбора родительской категории"
@@ -286,6 +290,14 @@
   "manageCategoriesColorPickerTitle": "Выберите цвет категории",
   "@manageCategoriesColorPickerTitle": {
     "description": "Заголовок диалога выбора цвета"
+  },
+  "manageCategoriesFavoriteLabel": "Добавить в избранное",
+  "@manageCategoriesFavoriteLabel": {
+    "description": "Подпись переключателя избранных категорий"
+  },
+  "manageCategoriesFavoriteSubtitle": "Избранные категории отображаются вверху списка при создании транзакций.",
+  "@manageCategoriesFavoriteSubtitle": {
+    "description": "Пояснение, как используются избранные категории"
   },
   "manageCategoriesSaveCta": "Сохранить категорию",
   "@manageCategoriesSaveCta": {
@@ -1060,6 +1072,15 @@
   "@analyticsTopCategoriesEmpty": {
     "description": "Сообщение при отсутствии данных для категорий"
   },
+  "analyticsTopCategoriesTapHint": "Нажмите на категорию, чтобы увидеть сумму · Всего {amount}",
+  "@analyticsTopCategoriesTapHint": {
+    "description": "Подсказка к диаграмме с категориями",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "analyticsCategoryUncategorized": "Без категории",
   "@analyticsCategoryUncategorized": {
     "description": "Подпись для неразмеченных расходов"
@@ -1262,6 +1283,14 @@
   "@addTransactionSuccess": {
     "description": "Сообщение об успешном сохранении"
   },
+  "addTransactionUndoSuccess": "Транзакция отменена.",
+  "@addTransactionUndoSuccess": {
+    "description": "Сообщение после успешной отмены добавленной транзакции"
+  },
+  "addTransactionUndoError": "Не удалось отменить транзакцию.",
+  "@addTransactionUndoError": {
+    "description": "Сообщение об ошибке при отмене транзакции"
+  },
   "homeAccountsAddTooltip": "Добавить счёт",
   "@homeAccountsAddTooltip": {
     "description": "Тултип для кнопки добавления счёта на домашнем экране"
@@ -1325,6 +1354,14 @@
   "addAccountTypeRequired": "Укажите тип счёта.",
   "@addAccountTypeRequired": {
     "description": "Сообщение валидации при отсутствии типа счёта"
+  },
+  "accountPrimaryToggleLabel": "Сделать счёт основным",
+  "@accountPrimaryToggleLabel": {
+    "description": "Подпись переключателя назначения счёта основным"
+  },
+  "accountPrimaryToggleSubtitle": "Этот счёт будет выбираться по умолчанию при создании транзакций.",
+  "@accountPrimaryToggleSubtitle": {
+    "description": "Подпись с пояснением настройки основного счёта"
   },
   "accountDetailsTitle": "Счёт",
   "@accountDetailsTitle": {
@@ -1829,6 +1866,79 @@
   "savingsContributionSuccess": "Пополнение добавлено",
   "@savingsContributionSuccess": {
     "description": "Сообщение после успешного пополнения"
+  },
+  "savingsGoalDetailsTitle": "Накопление",
+  "@savingsGoalDetailsTitle": {
+    "description": "Резервный заголовок экрана деталей накопления"
+  },
+  "savingsGoalDetailsEditTooltip": "Редактировать накопление",
+  "@savingsGoalDetailsEditTooltip": {
+    "description": "Подсказка к кнопке редактирования на экране деталей"
+  },
+  "savingsGoalDetailsNotFound": "Накопление недоступно.",
+  "@savingsGoalDetailsNotFound": {
+    "description": "Сообщение, когда накопление не найдено"
+  },
+  "savingsGoalDetailsSummaryTitle": "Прогресс",
+  "@savingsGoalDetailsSummaryTitle": {
+    "description": "Заголовок блока с прогрессом накопления"
+  },
+  "savingsGoalDetailsCurrentLabel": "Накоплено: {amount}",
+  "@savingsGoalDetailsCurrentLabel": {
+    "description": "Подпись текущего баланса накопления",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "savingsGoalDetailsTargetLabel": "Цель: {amount}",
+  "@savingsGoalDetailsTargetLabel": {
+    "description": "Подпись целевой суммы",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "savingsGoalDetailsNoContributions": "Внесений ещё не было",
+  "@savingsGoalDetailsNoContributions": {
+    "description": "Текст при отсутствии пополнений"
+  },
+  "savingsGoalDetailsLastContribution": "Последнее внесение {date}",
+  "@savingsGoalDetailsLastContribution": {
+    "description": "Подпись с датой последнего пополнения",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "savingsGoalDetailsTransactionsCount": "Связанных операций: {count}",
+  "@savingsGoalDetailsTransactionsCount": {
+    "description": "Количество транзакций, связанных с накоплением",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "savingsGoalDetailsAnalyticsTitle": "Аналитика по счёту",
+  "@savingsGoalDetailsAnalyticsTitle": {
+    "description": "Заголовок блока аналитики накопления"
+  },
+  "savingsGoalDetailsAnalyticsEmpty": "Добавьте операции к накоплению, чтобы увидеть аналитику по категориям.",
+  "@savingsGoalDetailsAnalyticsEmpty": {
+    "description": "Сообщение при отсутствии аналитических данных"
+  },
+  "savingsGoalDetailsAnalyticsTotal": "Всего внесено: {amount}",
+  "@savingsGoalDetailsAnalyticsTotal": {
+    "description": "Итоговая сумма внесений",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
   },
   "transactionDefaultTitle": "Транзакция",
   "@transactionDefaultTitle": {

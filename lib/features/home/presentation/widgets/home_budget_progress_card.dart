@@ -379,7 +379,8 @@ class _BudgetCategoryChip extends StatelessWidget {
       leading: Icon(iconData ?? PhosphorIconsLight.tag, size: 16),
       trailing: Text(
         percentText,
-        style: theme.textTheme.labelSmall?.copyWith(
+        style:
+            theme.textTheme.labelSmall?.copyWith(
               color: foregroundColor.withValues(alpha: 0.88),
               fontWeight: FontWeight.w600,
             ) ??

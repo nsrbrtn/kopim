@@ -140,7 +140,21 @@ void main() {
         final NumberFormat currencyFormat = NumberFormat.simpleCurrency(
           locale: strings.localeName,
         );
-        expect(find.text(currencyFormat.format(60)), findsWidgets);
+        expect(
+          find.byWidgetPredicate(
+            (Widget widget) =>
+                widget is Tooltip &&
+                widget.message == currencyFormat.format(60),
+          ),
+          findsOneWidget,
+        );
+
+        expect(
+          find.text(
+            strings.analyticsTopCategoriesTapHint(currencyFormat.format(100)),
+          ),
+          findsOneWidget,
+        );
       },
     );
 

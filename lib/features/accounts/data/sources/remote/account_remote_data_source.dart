@@ -69,6 +69,7 @@ class AccountRemoteDataSource {
       'updatedAt': Timestamp.fromDate(account.updatedAt.toUtc()),
       'isDeleted': account.isDeleted,
       'balance': account.balance,
+      'isPrimary': account.isPrimary,
     };
   }
 
@@ -83,6 +84,7 @@ class AccountRemoteDataSource {
       createdAt: _parseTimestamp(data['createdAt']),
       updatedAt: _parseTimestamp(data['updatedAt']),
       isDeleted: data['isDeleted'] as bool? ?? false,
+      isPrimary: data['isPrimary'] as bool? ?? false,
     );
   }
 

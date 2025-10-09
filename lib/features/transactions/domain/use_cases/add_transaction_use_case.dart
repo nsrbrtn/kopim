@@ -30,7 +30,7 @@ class AddTransactionUseCase {
   final String Function() _generateId;
   final DateTime Function() _clock;
 
-  Future<void> call(AddTransactionRequest request) async {
+  Future<TransactionEntity> call(AddTransactionRequest request) async {
     final AccountEntity? account = await _accountRepository.findById(
       request.accountId,
     );
@@ -64,5 +64,6 @@ class AddTransactionUseCase {
     await _accountRepository.upsert(updatedAccount);
 
     await _onTransactionCreatedUseCase?.call();
+    return transaction;
   }
 }

@@ -11,13 +11,27 @@ class AccountDao {
     final SimpleSelectStatement<db.$AccountsTable, db.AccountRow> query =
         _db.select(_db.accounts)
           ..where((db.$AccountsTable tbl) => tbl.isDeleted.equals(false));
+    query.orderBy(<OrderingTerm Function(db.$AccountsTable tbl)>[
+      (db.$AccountsTable tbl) =>
+          OrderingTerm(expression: tbl.isPrimary, mode: OrderingMode.desc),
+      (db.$AccountsTable tbl) =>
+          OrderingTerm(expression: tbl.name, mode: OrderingMode.asc),
+    ]);
     return query.watch();
   }
 
   Future<List<db.AccountRow>> getActiveAccounts() {
     final SimpleSelectStatement<db.$AccountsTable, db.AccountRow> query =
         _db.select(_db.accounts)
-          ..where((db.$AccountsTable tbl) => tbl.isDeleted.equals(false));
+          ..where((db.$AccountsTable tbl) => tbl.isDeleted.equals(false))
+          ..orderBy(<OrderingTerm Function(db.$AccountsTable tbl)>[
+            (db.$AccountsTable tbl) => OrderingTerm(
+              expression: tbl.isPrimary,
+              mode: OrderingMode.desc,
+            ),
+            (db.$AccountsTable tbl) =>
+                OrderingTerm(expression: tbl.name, mode: OrderingMode.asc),
+          ]);
     return query.get();
   }
 
@@ -37,6 +51,19 @@ class AccountDao {
     return _db
         .into(_db.accounts)
         .insertOnConflictUpdate(_mapToCompanion(account));
+  }
+
+  Future<void> clearPrimaryExcept(String accountId, DateTime updatedAt) async {
+    await (_db.update(_db.accounts)..where(
+          (db.$AccountsTable tbl) =>
+              tbl.id.equals(accountId).not() & tbl.isPrimary.equals(true),
+        ))
+        .write(
+          db.AccountsCompanion(
+            isPrimary: const Value<bool>(false),
+            updatedAt: Value<DateTime>(updatedAt),
+          ),
+        );
   }
 
   Future<void> upsertAll(List<AccountEntity> accounts) async {
@@ -72,6 +99,7 @@ class AccountDao {
       createdAt: Value<DateTime>(account.createdAt),
       updatedAt: Value<DateTime>(account.updatedAt),
       isDeleted: Value<bool>(account.isDeleted),
+      isPrimary: Value<bool>(account.isPrimary),
     );
   }
 
@@ -85,6 +113,7 @@ class AccountDao {
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
       isDeleted: row.isDeleted,
+      isPrimary: row.isPrimary,
     );
   }
 }

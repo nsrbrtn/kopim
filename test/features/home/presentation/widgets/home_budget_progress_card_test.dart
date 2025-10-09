@@ -11,6 +11,7 @@ import 'package:kopim/features/budgets/presentation/controllers/budgets_provider
 import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/home/domain/entities/home_dashboard_preferences.dart';
 import 'package:kopim/features/home/presentation/widgets/home_budget_progress_card.dart';
+import 'package:kopim/features/categories/presentation/widgets/category_chip.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 import 'package:riverpod/src/framework.dart' show Override;
@@ -112,7 +113,7 @@ void main() {
       expect(find.text('Budget overview'), findsOneWidget);
       expect(find.text('Food'), findsOneWidget);
       expect(find.byType(LinearProgressIndicator), findsOneWidget);
-      expect(find.byType(Chip), findsWidgets);
+      expect(find.byType(CategoryChip), findsWidgets);
       expect(find.textContaining('%'), findsWidgets);
     });
 

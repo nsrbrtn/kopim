@@ -14,7 +14,6 @@ import 'package:kopim/l10n/app_localizations.dart';
 final GlobalKey<NavigatorState> profileTabNavigatorKey =
     GlobalKey<NavigatorState>(debugLabel: 'profileTabNavigator');
 
-
 /// Экран профиля в составе нижней навигации.
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
