@@ -33,6 +33,7 @@ class TransactionFormState {
     this.error,
     this.selectedDate,
     this.initialTransaction,
+    this.lastCreatedTransaction,
   });
 
   factory TransactionFormState.initial({
@@ -63,6 +64,7 @@ class TransactionFormState {
       type: TransactionType.expense,
       selectedDate: null,
       initialTransaction: null,
+      lastCreatedTransaction: null,
     );
   }
 
@@ -76,6 +78,7 @@ class TransactionFormState {
   final TransactionFormError? error;
   final DateTime? selectedDate;
   final TransactionEntity? initialTransaction;
+  final TransactionEntity? lastCreatedTransaction;
 
   DateTime get date =>
       selectedDate ?? initialTransaction?.date ?? DateTime.now();
@@ -107,6 +110,8 @@ class TransactionFormState {
     DateTime? selectedDate,
     bool clearCategory = false,
     TransactionEntity? initialTransaction,
+    TransactionEntity? lastCreatedTransaction,
+    bool clearLastCreatedTransaction = false,
   }) {
     return TransactionFormState(
       amount: amount ?? this.amount,
@@ -119,6 +124,9 @@ class TransactionFormState {
       error: clearError ? null : (error ?? this.error),
       selectedDate: selectedDate ?? this.selectedDate,
       initialTransaction: initialTransaction ?? this.initialTransaction,
+      lastCreatedTransaction: clearLastCreatedTransaction
+          ? null
+          : (lastCreatedTransaction ?? this.lastCreatedTransaction),
     );
   }
 }
@@ -184,6 +192,12 @@ class TransactionFormController extends _$TransactionFormController {
     }
   }
 
+  void clearLastCreatedTransaction() {
+    if (state.lastCreatedTransaction != null) {
+      state = state.copyWith(clearLastCreatedTransaction: true);
+    }
+  }
+
   Future<void> submit() async {
     if (!state.canSubmit) {
       state = state.copyWith(error: TransactionFormError.unknown);
@@ -218,24 +232,34 @@ class TransactionFormController extends _$TransactionFormController {
             type: state.type,
           ),
         );
-      } else {
-        final AddTransactionUseCase addUseCase = ref.read(
-          addTransactionUseCaseProvider,
+        state = state.copyWith(
+          isSubmitting: false,
+          isSuccess: true,
+          clearLastCreatedTransaction: true,
         );
-        await addUseCase(
-          AddTransactionRequest(
-            accountId: state.accountId!,
-            categoryId: state.categoryId?.isEmpty ?? true
-                ? null
-                : state.categoryId,
-            amount: state.parsedAmount!,
-            date: state.date,
-            note: state.note,
-            type: state.type,
-          ),
-        );
+        return;
       }
-      state = state.copyWith(isSubmitting: false, isSuccess: true);
+      final AddTransactionUseCase addUseCase = ref.read(
+        addTransactionUseCaseProvider,
+      );
+      final TransactionEntity created = await addUseCase(
+        AddTransactionRequest(
+          accountId: state.accountId!,
+          categoryId: state.categoryId?.isEmpty ?? true
+              ? null
+              : state.categoryId,
+          amount: state.parsedAmount!,
+          date: state.date,
+          note: state.note,
+          type: state.type,
+        ),
+      );
+      state = state.copyWith(
+        isSubmitting: false,
+        isSuccess: true,
+        lastCreatedTransaction: created,
+      );
+      return;
     } on StateError catch (_) {
       state = state.copyWith(
         isSubmitting: false,

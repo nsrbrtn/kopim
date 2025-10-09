@@ -134,6 +134,10 @@
   "@dialogConfirm": {
     "description": "Generic confirmation button label"
   },
+  "commonUndo": "Undo",
+  "@commonUndo": {
+    "description": "Generic undo action label"
+  },
   "manageCategoriesParentLabel": "Parent category",
   "@manageCategoriesParentLabel": {
     "description": "Label for the dropdown that selects a parent category"
@@ -286,6 +290,14 @@
   "manageCategoriesColorPickerTitle": "Pick a category color",
   "@manageCategoriesColorPickerTitle": {
     "description": "Title for the dialog that lets the user choose a category color"
+  },
+  "manageCategoriesFavoriteLabel": "Add to favorites",
+  "@manageCategoriesFavoriteLabel": {
+    "description": "Label for the switch that marks a category as favorite"
+  },
+  "manageCategoriesFavoriteSubtitle": "Favorite categories appear at the top when creating transactions.",
+  "@manageCategoriesFavoriteSubtitle": {
+    "description": "Helper text explaining how favorite categories are used"
   },
   "manageCategoriesSaveCta": "Save category",
   "@manageCategoriesSaveCta": {
@@ -1262,6 +1274,14 @@
   "@addTransactionSuccess": {
     "description": "Confirmation message shown after creating a transaction"
   },
+  "addTransactionUndoSuccess": "Transaction removed.",
+  "@addTransactionUndoSuccess": {
+    "description": "Snackbar message shown after undoing a newly created transaction"
+  },
+  "addTransactionUndoError": "Couldn't undo the transaction.",
+  "@addTransactionUndoError": {
+    "description": "Snackbar message shown when undoing a transaction fails"
+  },
   "homeAccountsAddTooltip": "Add account",
   "@homeAccountsAddTooltip": {
     "description": "Tooltip for the add account button on the home screen"
@@ -1325,6 +1345,14 @@
   "addAccountTypeRequired": "Please specify the account type.",
   "@addAccountTypeRequired": {
     "description": "Validation error shown when the account type is missing"
+  },
+  "accountPrimaryToggleLabel": "Set as primary account",
+  "@accountPrimaryToggleLabel": {
+    "description": "Label for the switch that marks an account as primary"
+  },
+  "accountPrimaryToggleSubtitle": "This account will be selected by default for new transactions.",
+  "@accountPrimaryToggleSubtitle": {
+    "description": "Helper text explaining what the primary account setting does"
   },
   "accountDetailsTitle": "Account details",
   "@accountDetailsTitle": {

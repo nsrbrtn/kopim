@@ -113,6 +113,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get dialogConfirm => 'Готово';
 
   @override
+  String get commonUndo => 'Отменить';
+
+  @override
   String get manageCategoriesParentLabel => 'Родительская категория';
 
   @override
@@ -225,6 +228,13 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get manageCategoriesColorPickerTitle => 'Выберите цвет категории';
+
+  @override
+  String get manageCategoriesFavoriteLabel => 'Добавить в избранное';
+
+  @override
+  String get manageCategoriesFavoriteSubtitle =>
+      'Избранные категории отображаются вверху списка при создании транзакций.';
 
   @override
   String get manageCategoriesSaveCta => 'Сохранить категорию';
@@ -962,6 +972,12 @@ class AppLocalizationsRu extends AppLocalizations {
   String get addTransactionSuccess => 'Транзакция сохранена';
 
   @override
+  String get addTransactionUndoSuccess => 'Транзакция отменена.';
+
+  @override
+  String get addTransactionUndoError => 'Не удалось отменить транзакцию.';
+
+  @override
   String get homeAccountsAddTooltip => 'Добавить счёт';
 
   @override
@@ -1008,6 +1024,13 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get addAccountTypeRequired => 'Укажите тип счёта.';
+
+  @override
+  String get accountPrimaryToggleLabel => 'Сделать счёт основным';
+
+  @override
+  String get accountPrimaryToggleSubtitle =>
+      'Этот счёт будет выбираться по умолчанию при создании транзакций.';
 
   @override
   String get accountDetailsTitle => 'Счёт';

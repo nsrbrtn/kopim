@@ -53,7 +53,8 @@ final Provider<List<NavigationTabConfig>> mainNavigationTabsProvider =
               AppLocalizations.of(context)!.homeNavSettings,
           contentBuilder: buildProfileTabContent,
           onSelected: (BuildContext context, WidgetRef ref) {
-            final NavigatorState? navigator = profileTabNavigatorKey.currentState;
+            final NavigatorState? navigator =
+                profileTabNavigatorKey.currentState;
             if (navigator == null) {
               return;
             }

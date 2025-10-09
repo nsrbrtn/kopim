@@ -16,6 +16,7 @@ _AccountEntity _$AccountEntityFromJson(Map<String, dynamic> json) =>
       createdAt: DateTime.parse(json['createdAt'] as String),
       updatedAt: DateTime.parse(json['updatedAt'] as String),
       isDeleted: json['isDeleted'] as bool? ?? false,
+      isPrimary: json['isPrimary'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$AccountEntityToJson(_AccountEntity instance) =>
@@ -28,4 +29,5 @@ Map<String, dynamic> _$AccountEntityToJson(_AccountEntity instance) =>
       'createdAt': instance.createdAt.toIso8601String(),
       'updatedAt': instance.updatedAt.toIso8601String(),
       'isDeleted': instance.isDeleted,
+      'isPrimary': instance.isPrimary,
     };

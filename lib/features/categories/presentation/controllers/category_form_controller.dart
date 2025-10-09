@@ -58,6 +58,7 @@ abstract class CategoryFormState with _$CategoryFormState {
     String? errorMessage,
     @Default(false) bool showValidationError,
     @Default(false) bool isNew,
+    @Default(false) bool isFavorite,
   }) = _CategoryFormState;
 
   const CategoryFormState._();
@@ -83,13 +84,15 @@ abstract class CategoryFormState with _$CategoryFormState {
           type != _kDefaultCategoryType ||
           normalizedIcon != null ||
           normalizedColor.isNotEmpty ||
-          normalizedParent != baseParent;
+          normalizedParent != baseParent ||
+          isFavorite;
     }
     return trimmedName != base.name ||
         type != base.type ||
         !_iconEquals(normalizedIcon, baseIcon) ||
         normalizedColor != (base.color ?? '').trim() ||
-        normalizedParent != baseParent;
+        normalizedParent != baseParent ||
+        isFavorite != (base.isFavorite);
   }
 
   Category? get selectedParent {
@@ -132,6 +135,7 @@ class CategoryFormController extends _$CategoryFormController {
       updatedAt: initial?.updatedAt ?? now,
       initialCategory: initial,
       isNew: initial == null,
+      isFavorite: initial?.isFavorite ?? false,
     );
   }
 
@@ -165,6 +169,10 @@ class CategoryFormController extends _$CategoryFormController {
       return;
     }
     state = state.copyWith(parentId: normalized, isSuccess: false);
+  }
+
+  void updateFavorite(bool value) {
+    state = state.copyWith(isFavorite: value, isSuccess: false);
   }
 
   void resetSuccess() {
@@ -208,6 +216,7 @@ class CategoryFormController extends _$CategoryFormController {
           parentId: normalizedParentId,
           createdAt: createdAt,
           updatedAt: createdAt,
+          isFavorite: state.isFavorite,
         );
     final Category toSave = base.copyWith(
       name: trimmedName,
@@ -216,6 +225,7 @@ class CategoryFormController extends _$CategoryFormController {
       color: normalizedColor.isEmpty ? null : normalizedColor,
       parentId: normalizedParentId,
       updatedAt: now,
+      isFavorite: state.isFavorite,
     );
 
     try {
@@ -234,6 +244,7 @@ class CategoryFormController extends _$CategoryFormController {
         createdAt: toSave.createdAt,
         updatedAt: toSave.updatedAt,
         isNew: false,
+        isFavorite: toSave.isFavorite,
       );
     } catch (error) {
       state = state.copyWith(

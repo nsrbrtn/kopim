@@ -62,6 +62,7 @@ void main() {
     controller.updateType('income');
     controller.updateIcon(const PhosphorIconDescriptor(name: 'airplane'));
     controller.updateColor('#FFA500');
+    controller.updateFavorite(true);
 
     await controller.submit();
 
@@ -79,6 +80,7 @@ void main() {
     expect(captured.createdAt.isUtc, isTrue);
     expect(captured.updatedAt.isUtc, isTrue);
     expect(captured.createdAt, captured.updatedAt);
+    expect(captured.isFavorite, isTrue);
 
     final CategoryFormState state = container.read(
       categoryFormControllerProvider(const CategoryFormParams()),
@@ -86,6 +88,7 @@ void main() {
     expect(state.isSuccess, isTrue);
     expect(state.initialCategory?.id, 'uuid-123');
     expect(state.hasChanges, isFalse);
+    expect(state.isFavorite, isTrue);
   });
 
   test('submit updates existing category and preserves identifiers', () async {

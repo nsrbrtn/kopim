@@ -16,6 +16,7 @@ abstract class AccountEntity with _$AccountEntity {
     required DateTime createdAt,
     required DateTime updatedAt,
     @Default(false) bool isDeleted,
+    @Default(false) bool isPrimary,
   }) = _AccountEntity;
 
   factory AccountEntity.fromJson(Map<String, Object?> json) =>

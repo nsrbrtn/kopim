@@ -56,17 +56,15 @@ void main() {
 
     await tester.pumpAndSettle();
 
-    final BuildContext context = tester.element(
-      find.byType(AddTransactionScreen),
-    );
+    final BuildContext context = tester.element(find.byType(Scaffold));
     final AppLocalizations strings = AppLocalizations.of(context)!;
 
-    final Finder decoratorFinder = find.descendant(
-      of: find.bySemanticsLabel(strings.addTransactionAmountLabel),
-      matching: find.byType(InputDecorator),
-    );
     final InputDecorator decorator = tester.widget<InputDecorator>(
-      decoratorFinder,
+      find.byWidgetPredicate(
+        (Widget widget) =>
+            widget is InputDecorator &&
+            widget.decoration.labelText == strings.addTransactionAmountLabel,
+      ),
     );
     final InputDecoration decoration = decorator.decoration;
 

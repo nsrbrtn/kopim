@@ -59,6 +59,7 @@ void main() {
     controller.updateBalance('150.5');
     controller.updateCurrency('EUR');
     controller.updateType('bank');
+    controller.updateIsPrimary(true);
 
     await controller.submit();
 
@@ -73,6 +74,7 @@ void main() {
     expect(captured.type, 'bank');
     expect(captured.createdAt, captured.updatedAt);
     expect(captured.createdAt.isUtc, isTrue);
+    expect(captured.isPrimary, isTrue);
 
     final AddAccountFormState state = container.read(
       addAccountFormControllerProvider,
@@ -82,6 +84,7 @@ void main() {
     expect(state.name, isEmpty);
     expect(state.balanceInput, isEmpty);
     expect(state.errorMessage, isNull);
+    expect(state.isPrimary, isTrue);
   });
 
   test('submit surfaces error message when use case throws', () async {

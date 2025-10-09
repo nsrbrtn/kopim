@@ -113,6 +113,21 @@ class $AccountsTable extends Accounts
     ),
     defaultValue: const Constant<bool>(false),
   );
+  static const VerificationMeta _isPrimaryMeta = const VerificationMeta(
+    'isPrimary',
+  );
+  @override
+  late final GeneratedColumn<bool> isPrimary = GeneratedColumn<bool>(
+    'is_primary',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_primary" IN (0, 1))',
+    ),
+    defaultValue: const Constant<bool>(false),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -123,6 +138,7 @@ class $AccountsTable extends Accounts
     createdAt,
     updatedAt,
     isDeleted,
+    isPrimary,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -191,6 +207,12 @@ class $AccountsTable extends Accounts
         isDeleted.isAcceptableOrUnknown(data['is_deleted']!, _isDeletedMeta),
       );
     }
+    if (data.containsKey('is_primary')) {
+      context.handle(
+        _isPrimaryMeta,
+        isPrimary.isAcceptableOrUnknown(data['is_primary']!, _isPrimaryMeta),
+      );
+    }
     return context;
   }
 
@@ -232,6 +254,10 @@ class $AccountsTable extends Accounts
         DriftSqlType.bool,
         data['${effectivePrefix}is_deleted'],
       )!,
+      isPrimary: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_primary'],
+      )!,
     );
   }
 
@@ -250,6 +276,7 @@ class AccountRow extends DataClass implements Insertable<AccountRow> {
   final DateTime createdAt;
   final DateTime updatedAt;
   final bool isDeleted;
+  final bool isPrimary;
   const AccountRow({
     required this.id,
     required this.name,
@@ -259,6 +286,7 @@ class AccountRow extends DataClass implements Insertable<AccountRow> {
     required this.createdAt,
     required this.updatedAt,
     required this.isDeleted,
+    required this.isPrimary,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -271,6 +299,7 @@ class AccountRow extends DataClass implements Insertable<AccountRow> {
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
     map['is_deleted'] = Variable<bool>(isDeleted);
+    map['is_primary'] = Variable<bool>(isPrimary);
     return map;
   }
 
@@ -284,6 +313,7 @@ class AccountRow extends DataClass implements Insertable<AccountRow> {
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
       isDeleted: Value(isDeleted),
+      isPrimary: Value(isPrimary),
     );
   }
 
@@ -301,6 +331,7 @@ class AccountRow extends DataClass implements Insertable<AccountRow> {
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       isDeleted: serializer.fromJson<bool>(json['isDeleted']),
+      isPrimary: serializer.fromJson<bool>(json['isPrimary']),
     );
   }
   @override
@@ -315,6 +346,7 @@ class AccountRow extends DataClass implements Insertable<AccountRow> {
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'isDeleted': serializer.toJson<bool>(isDeleted),
+      'isPrimary': serializer.toJson<bool>(isPrimary),
     };
   }
 
@@ -327,6 +359,7 @@ class AccountRow extends DataClass implements Insertable<AccountRow> {
     DateTime? createdAt,
     DateTime? updatedAt,
     bool? isDeleted,
+    bool? isPrimary,
   }) => AccountRow(
     id: id ?? this.id,
     name: name ?? this.name,
@@ -336,6 +369,7 @@ class AccountRow extends DataClass implements Insertable<AccountRow> {
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
     isDeleted: isDeleted ?? this.isDeleted,
+    isPrimary: isPrimary ?? this.isPrimary,
   );
   AccountRow copyWithCompanion(AccountsCompanion data) {
     return AccountRow(
@@ -347,6 +381,7 @@ class AccountRow extends DataClass implements Insertable<AccountRow> {
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       isDeleted: data.isDeleted.present ? data.isDeleted.value : this.isDeleted,
+      isPrimary: data.isPrimary.present ? data.isPrimary.value : this.isPrimary,
     );
   }
 
@@ -360,7 +395,8 @@ class AccountRow extends DataClass implements Insertable<AccountRow> {
           ..write('type: $type, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
-          ..write('isDeleted: $isDeleted')
+          ..write('isDeleted: $isDeleted, ')
+          ..write('isPrimary: $isPrimary')
           ..write(')'))
         .toString();
   }
@@ -375,6 +411,7 @@ class AccountRow extends DataClass implements Insertable<AccountRow> {
     createdAt,
     updatedAt,
     isDeleted,
+    isPrimary,
   );
   @override
   bool operator ==(Object other) =>
@@ -387,7 +424,8 @@ class AccountRow extends DataClass implements Insertable<AccountRow> {
           other.type == this.type &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
-          other.isDeleted == this.isDeleted);
+          other.isDeleted == this.isDeleted &&
+          other.isPrimary == this.isPrimary);
 }
 
 class AccountsCompanion extends UpdateCompanion<AccountRow> {
@@ -399,6 +437,7 @@ class AccountsCompanion extends UpdateCompanion<AccountRow> {
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<bool> isDeleted;
+  final Value<bool> isPrimary;
   final Value<int> rowid;
   const AccountsCompanion({
     this.id = const Value.absent(),
@@ -409,6 +448,7 @@ class AccountsCompanion extends UpdateCompanion<AccountRow> {
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.isDeleted = const Value.absent(),
+    this.isPrimary = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   AccountsCompanion.insert({
@@ -420,6 +460,7 @@ class AccountsCompanion extends UpdateCompanion<AccountRow> {
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.isDeleted = const Value.absent(),
+    this.isPrimary = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        name = Value(name),
@@ -435,6 +476,7 @@ class AccountsCompanion extends UpdateCompanion<AccountRow> {
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<bool>? isDeleted,
+    Expression<bool>? isPrimary,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -446,6 +488,7 @@ class AccountsCompanion extends UpdateCompanion<AccountRow> {
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (isDeleted != null) 'is_deleted': isDeleted,
+      if (isPrimary != null) 'is_primary': isPrimary,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -459,6 +502,7 @@ class AccountsCompanion extends UpdateCompanion<AccountRow> {
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
     Value<bool>? isDeleted,
+    Value<bool>? isPrimary,
     Value<int>? rowid,
   }) {
     return AccountsCompanion(
@@ -470,6 +514,7 @@ class AccountsCompanion extends UpdateCompanion<AccountRow> {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       isDeleted: isDeleted ?? this.isDeleted,
+      isPrimary: isPrimary ?? this.isPrimary,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -501,6 +546,9 @@ class AccountsCompanion extends UpdateCompanion<AccountRow> {
     if (isDeleted.present) {
       map['is_deleted'] = Variable<bool>(isDeleted.value);
     }
+    if (isPrimary.present) {
+      map['is_primary'] = Variable<bool>(isPrimary.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -518,6 +566,7 @@ class AccountsCompanion extends UpdateCompanion<AccountRow> {
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('isDeleted: $isDeleted, ')
+          ..write('isPrimary: $isPrimary, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -675,6 +724,21 @@ class $CategoriesTable extends Categories
     ),
     defaultValue: const Constant<bool>(false),
   );
+  static const VerificationMeta _isFavoriteMeta = const VerificationMeta(
+    'isFavorite',
+  );
+  @override
+  late final GeneratedColumn<bool> isFavorite = GeneratedColumn<bool>(
+    'is_favorite',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_favorite" IN (0, 1))',
+    ),
+    defaultValue: const Constant<bool>(false),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -689,6 +753,7 @@ class $CategoriesTable extends Categories
     updatedAt,
     isDeleted,
     isSystem,
+    isFavorite,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -777,6 +842,12 @@ class $CategoriesTable extends Categories
         isSystem.isAcceptableOrUnknown(data['is_system']!, _isSystemMeta),
       );
     }
+    if (data.containsKey('is_favorite')) {
+      context.handle(
+        _isFavoriteMeta,
+        isFavorite.isAcceptableOrUnknown(data['is_favorite']!, _isFavoriteMeta),
+      );
+    }
     return context;
   }
 
@@ -834,6 +905,10 @@ class $CategoriesTable extends Categories
         DriftSqlType.bool,
         data['${effectivePrefix}is_system'],
       )!,
+      isFavorite: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_favorite'],
+      )!,
     );
   }
 
@@ -856,6 +931,7 @@ class CategoryRow extends DataClass implements Insertable<CategoryRow> {
   final DateTime updatedAt;
   final bool isDeleted;
   final bool isSystem;
+  final bool isFavorite;
   const CategoryRow({
     required this.id,
     required this.name,
@@ -869,6 +945,7 @@ class CategoryRow extends DataClass implements Insertable<CategoryRow> {
     required this.updatedAt,
     required this.isDeleted,
     required this.isSystem,
+    required this.isFavorite,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -895,6 +972,7 @@ class CategoryRow extends DataClass implements Insertable<CategoryRow> {
     map['updated_at'] = Variable<DateTime>(updatedAt);
     map['is_deleted'] = Variable<bool>(isDeleted);
     map['is_system'] = Variable<bool>(isSystem);
+    map['is_favorite'] = Variable<bool>(isFavorite);
     return map;
   }
 
@@ -920,6 +998,7 @@ class CategoryRow extends DataClass implements Insertable<CategoryRow> {
       updatedAt: Value(updatedAt),
       isDeleted: Value(isDeleted),
       isSystem: Value(isSystem),
+      isFavorite: Value(isFavorite),
     );
   }
 
@@ -941,6 +1020,7 @@ class CategoryRow extends DataClass implements Insertable<CategoryRow> {
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       isDeleted: serializer.fromJson<bool>(json['isDeleted']),
       isSystem: serializer.fromJson<bool>(json['isSystem']),
+      isFavorite: serializer.fromJson<bool>(json['isFavorite']),
     );
   }
   @override
@@ -959,6 +1039,7 @@ class CategoryRow extends DataClass implements Insertable<CategoryRow> {
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'isDeleted': serializer.toJson<bool>(isDeleted),
       'isSystem': serializer.toJson<bool>(isSystem),
+      'isFavorite': serializer.toJson<bool>(isFavorite),
     };
   }
 
@@ -975,6 +1056,7 @@ class CategoryRow extends DataClass implements Insertable<CategoryRow> {
     DateTime? updatedAt,
     bool? isDeleted,
     bool? isSystem,
+    bool? isFavorite,
   }) => CategoryRow(
     id: id ?? this.id,
     name: name ?? this.name,
@@ -988,6 +1070,7 @@ class CategoryRow extends DataClass implements Insertable<CategoryRow> {
     updatedAt: updatedAt ?? this.updatedAt,
     isDeleted: isDeleted ?? this.isDeleted,
     isSystem: isSystem ?? this.isSystem,
+    isFavorite: isFavorite ?? this.isFavorite,
   );
   CategoryRow copyWithCompanion(CategoriesCompanion data) {
     return CategoryRow(
@@ -1003,6 +1086,9 @@ class CategoryRow extends DataClass implements Insertable<CategoryRow> {
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       isDeleted: data.isDeleted.present ? data.isDeleted.value : this.isDeleted,
       isSystem: data.isSystem.present ? data.isSystem.value : this.isSystem,
+      isFavorite: data.isFavorite.present
+          ? data.isFavorite.value
+          : this.isFavorite,
     );
   }
 
@@ -1020,7 +1106,8 @@ class CategoryRow extends DataClass implements Insertable<CategoryRow> {
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('isDeleted: $isDeleted, ')
-          ..write('isSystem: $isSystem')
+          ..write('isSystem: $isSystem, ')
+          ..write('isFavorite: $isFavorite')
           ..write(')'))
         .toString();
   }
@@ -1039,6 +1126,7 @@ class CategoryRow extends DataClass implements Insertable<CategoryRow> {
     updatedAt,
     isDeleted,
     isSystem,
+    isFavorite,
   );
   @override
   bool operator ==(Object other) =>
@@ -1055,7 +1143,8 @@ class CategoryRow extends DataClass implements Insertable<CategoryRow> {
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
           other.isDeleted == this.isDeleted &&
-          other.isSystem == this.isSystem);
+          other.isSystem == this.isSystem &&
+          other.isFavorite == this.isFavorite);
 }
 
 class CategoriesCompanion extends UpdateCompanion<CategoryRow> {
@@ -1071,6 +1160,7 @@ class CategoriesCompanion extends UpdateCompanion<CategoryRow> {
   final Value<DateTime> updatedAt;
   final Value<bool> isDeleted;
   final Value<bool> isSystem;
+  final Value<bool> isFavorite;
   final Value<int> rowid;
   const CategoriesCompanion({
     this.id = const Value.absent(),
@@ -1085,6 +1175,7 @@ class CategoriesCompanion extends UpdateCompanion<CategoryRow> {
     this.updatedAt = const Value.absent(),
     this.isDeleted = const Value.absent(),
     this.isSystem = const Value.absent(),
+    this.isFavorite = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   CategoriesCompanion.insert({
@@ -1100,6 +1191,7 @@ class CategoriesCompanion extends UpdateCompanion<CategoryRow> {
     this.updatedAt = const Value.absent(),
     this.isDeleted = const Value.absent(),
     this.isSystem = const Value.absent(),
+    this.isFavorite = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        name = Value(name),
@@ -1117,6 +1209,7 @@ class CategoriesCompanion extends UpdateCompanion<CategoryRow> {
     Expression<DateTime>? updatedAt,
     Expression<bool>? isDeleted,
     Expression<bool>? isSystem,
+    Expression<bool>? isFavorite,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -1132,6 +1225,7 @@ class CategoriesCompanion extends UpdateCompanion<CategoryRow> {
       if (updatedAt != null) 'updated_at': updatedAt,
       if (isDeleted != null) 'is_deleted': isDeleted,
       if (isSystem != null) 'is_system': isSystem,
+      if (isFavorite != null) 'is_favorite': isFavorite,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -1149,6 +1243,7 @@ class CategoriesCompanion extends UpdateCompanion<CategoryRow> {
     Value<DateTime>? updatedAt,
     Value<bool>? isDeleted,
     Value<bool>? isSystem,
+    Value<bool>? isFavorite,
     Value<int>? rowid,
   }) {
     return CategoriesCompanion(
@@ -1164,6 +1259,7 @@ class CategoriesCompanion extends UpdateCompanion<CategoryRow> {
       updatedAt: updatedAt ?? this.updatedAt,
       isDeleted: isDeleted ?? this.isDeleted,
       isSystem: isSystem ?? this.isSystem,
+      isFavorite: isFavorite ?? this.isFavorite,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -1207,6 +1303,9 @@ class CategoriesCompanion extends UpdateCompanion<CategoryRow> {
     if (isSystem.present) {
       map['is_system'] = Variable<bool>(isSystem.value);
     }
+    if (isFavorite.present) {
+      map['is_favorite'] = Variable<bool>(isFavorite.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -1228,6 +1327,7 @@ class CategoriesCompanion extends UpdateCompanion<CategoryRow> {
           ..write('updatedAt: $updatedAt, ')
           ..write('isDeleted: $isDeleted, ')
           ..write('isSystem: $isSystem, ')
+          ..write('isFavorite: $isFavorite, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -7968,6 +8068,7 @@ typedef $$AccountsTableCreateCompanionBuilder =
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<bool> isDeleted,
+      Value<bool> isPrimary,
       Value<int> rowid,
     });
 typedef $$AccountsTableUpdateCompanionBuilder =
@@ -7980,6 +8081,7 @@ typedef $$AccountsTableUpdateCompanionBuilder =
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<bool> isDeleted,
+      Value<bool> isPrimary,
       Value<int> rowid,
     });
 
@@ -8073,6 +8175,11 @@ class $$AccountsTableFilterComposer
 
   ColumnFilters<bool> get isDeleted => $composableBuilder(
     column: $table.isDeleted,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isPrimary => $composableBuilder(
+    column: $table.isPrimary,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -8175,6 +8282,11 @@ class $$AccountsTableOrderingComposer
     column: $table.isDeleted,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<bool> get isPrimary => $composableBuilder(
+    column: $table.isPrimary,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$AccountsTableAnnotationComposer
@@ -8209,6 +8321,9 @@ class $$AccountsTableAnnotationComposer
 
   GeneratedColumn<bool> get isDeleted =>
       $composableBuilder(column: $table.isDeleted, builder: (column) => column);
+
+  GeneratedColumn<bool> get isPrimary =>
+      $composableBuilder(column: $table.isPrimary, builder: (column) => column);
 
   Expression<T> transactionsRefs<T extends Object>(
     Expression<T> Function($$TransactionsTableAnnotationComposer a) f,
@@ -8300,6 +8415,7 @@ class $$AccountsTableTableManager
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<bool> isDeleted = const Value.absent(),
+                Value<bool> isPrimary = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => AccountsCompanion(
                 id: id,
@@ -8310,6 +8426,7 @@ class $$AccountsTableTableManager
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 isDeleted: isDeleted,
+                isPrimary: isPrimary,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -8322,6 +8439,7 @@ class $$AccountsTableTableManager
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<bool> isDeleted = const Value.absent(),
+                Value<bool> isPrimary = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => AccountsCompanion.insert(
                 id: id,
@@ -8332,6 +8450,7 @@ class $$AccountsTableTableManager
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 isDeleted: isDeleted,
+                isPrimary: isPrimary,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -8431,6 +8550,7 @@ typedef $$CategoriesTableCreateCompanionBuilder =
       Value<DateTime> updatedAt,
       Value<bool> isDeleted,
       Value<bool> isSystem,
+      Value<bool> isFavorite,
       Value<int> rowid,
     });
 typedef $$CategoriesTableUpdateCompanionBuilder =
@@ -8447,6 +8567,7 @@ typedef $$CategoriesTableUpdateCompanionBuilder =
       Value<DateTime> updatedAt,
       Value<bool> isDeleted,
       Value<bool> isSystem,
+      Value<bool> isFavorite,
       Value<int> rowid,
     });
 
@@ -8563,6 +8684,11 @@ class $$CategoriesTableFilterComposer
 
   ColumnFilters<bool> get isSystem => $composableBuilder(
     column: $table.isSystem,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isFavorite => $composableBuilder(
+    column: $table.isFavorite,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -8685,6 +8811,11 @@ class $$CategoriesTableOrderingComposer
     column: $table.isSystem,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<bool> get isFavorite => $composableBuilder(
+    column: $table.isFavorite,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$CategoriesTableAnnotationComposer
@@ -8731,6 +8862,11 @@ class $$CategoriesTableAnnotationComposer
 
   GeneratedColumn<bool> get isSystem =>
       $composableBuilder(column: $table.isSystem, builder: (column) => column);
+
+  GeneratedColumn<bool> get isFavorite => $composableBuilder(
+    column: $table.isFavorite,
+    builder: (column) => column,
+  );
 
   Expression<T> transactionsRefs<T extends Object>(
     Expression<T> Function($$TransactionsTableAnnotationComposer a) f,
@@ -8826,6 +8962,7 @@ class $$CategoriesTableTableManager
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<bool> isDeleted = const Value.absent(),
                 Value<bool> isSystem = const Value.absent(),
+                Value<bool> isFavorite = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => CategoriesCompanion(
                 id: id,
@@ -8840,6 +8977,7 @@ class $$CategoriesTableTableManager
                 updatedAt: updatedAt,
                 isDeleted: isDeleted,
                 isSystem: isSystem,
+                isFavorite: isFavorite,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -8856,6 +8994,7 @@ class $$CategoriesTableTableManager
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<bool> isDeleted = const Value.absent(),
                 Value<bool> isSystem = const Value.absent(),
+                Value<bool> isFavorite = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => CategoriesCompanion.insert(
                 id: id,
@@ -8870,6 +9009,7 @@ class $$CategoriesTableTableManager
                 updatedAt: updatedAt,
                 isDeleted: isDeleted,
                 isSystem: isSystem,
+                isFavorite: isFavorite,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

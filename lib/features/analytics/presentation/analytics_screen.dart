@@ -802,8 +802,8 @@ class _TopCategoriesPageState extends State<_TopCategoriesPage> {
     }
 
     final ThemeData theme = Theme.of(context);
-    final Color backgroundColor =
-        theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.32);
+    final Color backgroundColor = theme.colorScheme.surfaceContainerHighest
+        .withValues(alpha: 0.32);
     final double capturedTotal = widget.data.total;
     final List<AnalyticsChartItem> chartItems = <AnalyticsChartItem>[
       ...widget.data.items,
@@ -835,8 +835,9 @@ class _TopCategoriesPageState extends State<_TopCategoriesPage> {
     final double selectedShare = capturedTotal <= 0
         ? 0
         : selectedItem.absoluteAmount / capturedTotal;
-    final String selectedAmount =
-        widget.currencyFormat.format(selectedItem.absoluteAmount);
+    final String selectedAmount = widget.currencyFormat.format(
+      selectedItem.absoluteAmount,
+    );
     final String selectedPercent = selectedShare >= 1
         ? '${(selectedShare * 100).round()}%'
         : '${(selectedShare * 100).toStringAsFixed(1)}%';

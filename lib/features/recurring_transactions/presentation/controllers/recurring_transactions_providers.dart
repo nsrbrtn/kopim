@@ -15,7 +15,9 @@ Stream<List<RecurringRule>> recurringRules(Ref ref) {
 
 @riverpod
 AsyncValue<RecurringRule?> recurringRuleById(Ref ref, String id) {
-  return ref.watch(recurringRulesProvider).whenData(
+  return ref
+      .watch(recurringRulesProvider)
+      .whenData(
         (List<RecurringRule> rules) =>
             rules.firstWhereOrNull((RecurringRule rule) => rule.id == id),
       );

@@ -42,7 +42,7 @@ final class AddAccountFormControllerProvider
 }
 
 String _$addAccountFormControllerHash() =>
-    r'9d118da8b06291d4266231824ccefc868d47598d';
+    r'3264255562141fd271e8cfd3c32f2e14a14d3843';
 
 abstract class _$AddAccountFormController
     extends $Notifier<AddAccountFormState> {
