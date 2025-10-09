@@ -27,7 +27,7 @@ import 'package:kopim/features/transactions/domain/entities/transaction_type.dar
 import 'package:kopim/features/transactions/presentation/widgets/transaction_editor.dart';
 import 'package:kopim/features/transactions/presentation/widgets/transaction_tile_formatters.dart';
 import 'package:kopim/features/recurring_transactions/domain/entities/recurring_rule.dart';
-import 'package:kopim/features/recurring_transactions/presentation/screens/add_recurring_rule_screen.dart';
+import 'package:kopim/features/recurring_transactions/presentation/screens/recurring_rule_edit_screen.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 import 'package:kopim/core/utils/helpers.dart';
 import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
@@ -125,7 +125,7 @@ class _HomeBody extends StatelessWidget {
               slivers.add(_HomePinnedTitleAppBar(strings: strings));
             }
 
-            double nextTopPadding = 16;
+            double nextTopPadding = 24;
 
             void addBoxSection(Widget child) {
               slivers.add(
@@ -142,45 +142,9 @@ class _HomeBody extends StatelessWidget {
               nextTopPadding = 16;
             }
 
-            if (dashboardPreferencesAsync.hasError) {
-              addBoxSection(
-                _ErrorMessage(
-                  message: strings.homeDashboardPreferencesError(
-                    dashboardPreferencesAsync.error.toString(),
-                  ),
-                ),
-              );
-            }
-
-            if (dashboardPreferences != null &&
-                dashboardPreferences.showBudgetWidget) {
-              addBoxSection(
-                HomeBudgetProgressCard(
-                  preferences: dashboardPreferences,
-                  onConfigure: () {
-                    Navigator.of(
-                      context,
-                    ).pushNamed(GeneralSettingsScreen.routeName);
-                  },
-                ),
-              );
-            }
-
-            if (dashboardPreferences?.showSavingsWidget ?? false) {
-              addBoxSection(
-                HomeSavingsOverviewCard(
-                  onOpenSavings: () {
-                    Navigator.of(
-                      context,
-                    ).pushNamed(SavingsListScreen.routeName);
-                  },
-                ),
-              );
-            }
-
             final EdgeInsets accountsPadding = EdgeInsets.fromLTRB(
               horizontalPadding,
-              slivers.isEmpty ? 12 : 20,
+              16,
               horizontalPadding,
               0,
             );
@@ -241,27 +205,21 @@ class _HomeBody extends StatelessWidget {
               ),
             );
 
-            final Widget upcomingPaymentsSliver = upcomingPaymentsAsync.when(
+            final Widget upcomingPaymentsSection = upcomingPaymentsAsync.when(
               data: (List<UpcomingPayment> payments) {
-                return SliverToBoxAdapter(
-                  child: _UpcomingPaymentsCard(
-                    payments: payments,
-                    strings: strings,
-                  ),
+                return _UpcomingPaymentsCard(
+                  payments: payments,
+                  strings: strings,
                 );
               },
-              loading: () => const SliverToBoxAdapter(
-                child: Center(
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(vertical: 16),
-                    child: CircularProgressIndicator(),
-                  ),
+              loading: () => const Center(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                  child: CircularProgressIndicator(),
                 ),
               ),
-              error: (Object error, _) => SliverToBoxAdapter(
-                child: _ErrorMessage(
-                  message: strings.homeUpcomingPaymentsError(error.toString()),
-                ),
+              error: (Object error, _) => _ErrorMessage(
+                message: strings.homeUpcomingPaymentsError(error.toString()),
               ),
             );
 
@@ -286,18 +244,45 @@ class _HomeBody extends StatelessWidget {
                 ),
               ),
             );
-            if (dashboardPreferences?.showRecurringWidget ?? false) {
-              slivers.add(
-                SliverPadding(
-                  padding: EdgeInsets.fromLTRB(
-                    horizontalPadding,
-                    24,
-                    horizontalPadding,
-                    0,
+
+            if (dashboardPreferencesAsync.hasError) {
+              addBoxSection(
+                _ErrorMessage(
+                  message: strings.homeDashboardPreferencesError(
+                    dashboardPreferencesAsync.error.toString(),
                   ),
-                  sliver: upcomingPaymentsSliver,
                 ),
               );
+            }
+
+            if (dashboardPreferences != null &&
+                dashboardPreferences.showBudgetWidget) {
+              addBoxSection(
+                HomeBudgetProgressCard(
+                  preferences: dashboardPreferences,
+                  onConfigure: () {
+                    Navigator.of(
+                      context,
+                    ).pushNamed(GeneralSettingsScreen.routeName);
+                  },
+                ),
+              );
+            }
+
+            if (dashboardPreferences?.showSavingsWidget ?? false) {
+              addBoxSection(
+                HomeSavingsOverviewCard(
+                  onOpenSavings: () {
+                    Navigator.of(
+                      context,
+                    ).pushNamed(SavingsListScreen.routeName);
+                  },
+                ),
+              );
+            }
+
+            if (dashboardPreferences?.showRecurringWidget ?? false) {
+              addBoxSection(upcomingPaymentsSection);
             }
             slivers.add(
               SliverPadding(
@@ -515,7 +500,7 @@ class _AccountsListState extends State<_AccountsList> {
         return Column(
           children: <Widget>[
             SizedBox(
-              height: 160,
+              height: 120,
               child: PageView.builder(
                 controller: _pageController,
                 physics: const BouncingScrollPhysics(),
@@ -536,7 +521,7 @@ class _AccountsListState extends State<_AccountsList> {
                       const HomeAccountMonthlySummary(income: 0, expense: 0);
 
                   return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 6),
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
                     child: Card(
                       elevation: 0,
                       clipBehavior: Clip.antiAlias,
@@ -557,8 +542,8 @@ class _AccountsListState extends State<_AccountsList> {
                         },
                         child: Padding(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 18,
-                            vertical: 16,
+                            horizontal: 16,
+                            vertical: 12,
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -593,15 +578,26 @@ class _AccountsListState extends State<_AccountsList> {
                                     ),
                                   ),
                                   const SizedBox(width: 12),
-                                  Text(
-                                    currencyFormat.format(account.balance),
-                                    textAlign: TextAlign.right,
-                                    style: theme.textTheme.headlineSmall
-                                        ?.copyWith(fontWeight: FontWeight.w600),
+                                  Flexible(
+                                    child: Align(
+                                      alignment: Alignment.topRight,
+                                      child: FittedBox(
+                                        fit: BoxFit.scaleDown,
+                                        alignment: Alignment.topRight,
+                                        child: Text(
+                                          currencyFormat
+                                              .format(account.balance),
+                                          style: theme.textTheme.headlineSmall
+                                              ?.copyWith(
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                        ),
+                                      ),
+                                    ),
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 10),
+                              const SizedBox(height: 8),
                               Row(
                                 children: <Widget>[
                                   Expanded(
@@ -882,23 +878,32 @@ class _UpcomingPaymentsCard extends StatelessWidget {
         : strings.homeUpcomingPaymentsNextDate(headerFormat.format(nearest));
     final int count = payments.length;
 
-    final List<Widget> children = payments.isEmpty
-        ? <Widget>[
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-              child: Text(
-                strings.homeUpcomingPaymentsEmpty,
-                style: theme.textTheme.bodyMedium,
-              ),
+    final List<Widget> children;
+    if (payments.isEmpty) {
+      children = <Widget>[
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+          child: Text(
+            strings.homeUpcomingPaymentsEmpty,
+            style: theme.textTheme.bodyMedium,
+          ),
+        ),
+      ];
+    } else {
+      children = <Widget>[
+        const SizedBox(height: 8),
+        for (int index = 0; index < payments.length; index++) ...<Widget>[
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            child: _UpcomingPaymentTile(
+              payment: payments[index],
+              strings: strings,
             ),
-          ]
-        : ListTile.divideTiles(
-            context: context,
-            tiles: payments.map(
-              (UpcomingPayment payment) =>
-                  _UpcomingPaymentTile(payment: payment, strings: strings),
-            ),
-          ).toList(growable: false);
+          ),
+        ],
+        const SizedBox(height: 4),
+      ];
+    }
 
     return Card(
       elevation: 0,
@@ -908,7 +913,7 @@ class _UpcomingPaymentsCard extends StatelessWidget {
       child: ExpansionTile(
         initiallyExpanded: false,
         tilePadding: const EdgeInsets.symmetric(horizontal: 16),
-        childrenPadding: EdgeInsets.zero,
+        childrenPadding: const EdgeInsets.only(bottom: 12),
         leading: Icon(
           Icons.event_repeat_outlined,
           color: theme.colorScheme.primary,
@@ -981,7 +986,7 @@ class _UpcomingPaymentTile extends ConsumerWidget {
 
     return ListTile(
       dense: true,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      contentPadding: const EdgeInsets.symmetric(vertical: 6),
       leading: CircleAvatar(
         backgroundColor:
             categoryColor ?? theme.colorScheme.surfaceContainerHighest,
@@ -1031,18 +1036,20 @@ class _UpcomingPaymentTile extends ConsumerWidget {
           ScaffoldMessenger.of(context)
             ..hideCurrentSnackBar()
             ..showSnackBar(
-              SnackBar(content: Text(strings.homeUpcomingPaymentsMissingRule)),
+              SnackBar(
+                content: Text(strings.homeUpcomingPaymentsMissingRule),
+              ),
             );
           return;
         }
         if (!context.mounted) {
           return;
         }
-        await Navigator.of(context).push<RecurringRule?>(
-          MaterialPageRoute<RecurringRule?>(
-            builder: (_) => AddRecurringRuleScreen(initialRule: rule),
+        await Navigator.of(context).push<void>(
+          MaterialPageRoute<void>(
+            builder: (_) => RecurringRuleEditScreen(ruleId: payment.ruleId),
             settings: const RouteSettings(
-              name: AddRecurringRuleScreen.routeName,
+              name: RecurringRuleEditScreen.routeName,
             ),
           ),
         );
@@ -1213,7 +1220,7 @@ class _TransactionListItem extends ConsumerWidget {
       },
       child: RepaintBoundary(
         child: Card(
-          margin: const EdgeInsets.symmetric(vertical: 5),
+          margin: const EdgeInsets.symmetric(vertical: 4),
           elevation: 0,
           color: Theme.of(context).colorScheme.surfaceContainerHigh,
           shape: RoundedRectangleBorder(
@@ -1237,7 +1244,7 @@ class _TransactionListItem extends ConsumerWidget {
               );
             },
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: <Widget>[

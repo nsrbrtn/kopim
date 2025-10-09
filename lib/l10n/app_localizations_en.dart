@@ -690,7 +690,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeUpcomingPaymentsMissingRule =>
-      'This recurring rule is no longer available.';
+      'This recurring rule has been removed.';
 
   @override
   String homeUpcomingPaymentsDueDate(String date) {

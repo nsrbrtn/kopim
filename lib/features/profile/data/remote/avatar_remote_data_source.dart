@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:kopim/features/profile/domain/exceptions/avatar_storage_exception.dart';
 
 class AvatarRemoteDataSource {
   AvatarRemoteDataSource(this._storage);
@@ -20,11 +21,20 @@ class AvatarRemoteDataSource {
     final SettableMetadata metadata = SettableMetadata(
       contentType: contentType,
     );
-    await ref.putData(data, metadata);
-    return ref.getDownloadURL();
+    try {
+      final UploadTask task = ref.putData(data, metadata);
+      final TaskSnapshot snapshot = await task.whenComplete(() {});
+      return snapshot.ref.getDownloadURL();
+    } on FirebaseException catch (error) {
+      throw AvatarStorageException(error.code, error.message);
+    }
   }
 
-  Future<void> delete(String uid) {
-    return _reference(uid).delete();
+  Future<void> delete(String uid) async {
+    try {
+      await _reference(uid).delete();
+    } on FirebaseException catch (error) {
+      throw AvatarStorageException(error.code, error.message);
+    }
   }
 }

@@ -697,8 +697,7 @@ class AppLocalizationsRu extends AppLocalizations {
   }
 
   @override
-  String get homeUpcomingPaymentsMissingRule =>
-      'Правило повторений больше не доступно.';
+  String get homeUpcomingPaymentsMissingRule => 'Правило удалено.';
 
   @override
   String homeUpcomingPaymentsDueDate(String date) {

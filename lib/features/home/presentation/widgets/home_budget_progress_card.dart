@@ -9,6 +9,7 @@ import 'package:kopim/features/budgets/presentation/budget_detail_screen.dart';
 import 'package:kopim/features/budgets/presentation/controllers/budgets_providers.dart';
 import 'package:kopim/features/budgets/presentation/widgets/budget_progress_indicator.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
+import 'package:kopim/features/categories/presentation/widgets/category_chip.dart';
 import 'package:kopim/features/home/domain/entities/home_dashboard_preferences.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/l10n/app_localizations.dart';
@@ -371,32 +372,22 @@ class _BudgetCategoryChip extends StatelessWidget {
     final int roundedPercent = breakdown.percent.round();
     final String percentText = '${percentFormat.format(roundedPercent)}%';
 
-    return Chip(
-      avatar: Icon(
-        iconData ?? PhosphorIconsLight.tag,
-        size: 16,
-        color: foregroundColor,
-      ),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+    return CategoryChip(
+      label: category.name,
       backgroundColor: backgroundColor,
-      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-      side: BorderSide.none,
-      labelPadding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-      label: DefaultTextStyle.merge(
-        style: theme.textTheme.labelLarge?.copyWith(
-          color: foregroundColor,
-          fontWeight: FontWeight.w600,
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            Flexible(
-              child: Text(category.name, overflow: TextOverflow.ellipsis),
+      foregroundColor: foregroundColor,
+      leading: Icon(iconData ?? PhosphorIconsLight.tag, size: 16),
+      trailing: Text(
+        percentText,
+        style: theme.textTheme.labelSmall?.copyWith(
+              color: foregroundColor.withValues(alpha: 0.88),
+              fontWeight: FontWeight.w600,
+            ) ??
+            TextStyle(
+              color: foregroundColor.withValues(alpha: 0.88),
+              fontWeight: FontWeight.w600,
+              fontSize: 11,
             ),
-            const SizedBox(width: 2),
-            Text(percentText),
-          ],
-        ),
       ),
     );
   }

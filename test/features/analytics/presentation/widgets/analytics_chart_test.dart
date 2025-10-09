@@ -16,8 +16,8 @@ void main() {
         home: Scaffold(
           body: Center(
             child: SizedBox(
-              width: 240,
-              height: 240,
+              width: 360,
+              height: 360,
               child: AnalyticsDonutChart(
                 items: items,
                 backgroundColor: Colors.grey.shade200,

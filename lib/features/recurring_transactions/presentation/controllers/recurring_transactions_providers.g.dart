@@ -50,6 +50,89 @@ final class RecurringRulesProvider
 
 String _$recurringRulesHash() => r'5fa30fa65c7e7c733773fdbf42242d31e71bb6a4';
 
+@ProviderFor(recurringRuleById)
+const recurringRuleByIdProvider = RecurringRuleByIdFamily._();
+
+final class RecurringRuleByIdProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<RecurringRule?>,
+          AsyncValue<RecurringRule?>,
+          AsyncValue<RecurringRule?>
+        >
+    with $Provider<AsyncValue<RecurringRule?>> {
+  const RecurringRuleByIdProvider._({
+    required RecurringRuleByIdFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'recurringRuleByIdProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$recurringRuleByIdHash();
+
+  @override
+  String toString() {
+    return r'recurringRuleByIdProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $ProviderElement<AsyncValue<RecurringRule?>> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  AsyncValue<RecurringRule?> create(Ref ref) {
+    final argument = this.argument as String;
+    return recurringRuleById(ref, argument);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(AsyncValue<RecurringRule?> value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<AsyncValue<RecurringRule?>>(value),
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is RecurringRuleByIdProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$recurringRuleByIdHash() => r'9455e6c7dba20726bdc854c6a78944f25e901fbe';
+
+final class RecurringRuleByIdFamily extends $Family
+    with $FunctionalFamilyOverride<AsyncValue<RecurringRule?>, String> {
+  const RecurringRuleByIdFamily._()
+    : super(
+        retry: null,
+        name: r'recurringRuleByIdProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  RecurringRuleByIdProvider call(String id) =>
+      RecurringRuleByIdProvider._(argument: id, from: this);
+
+  @override
+  String toString() => r'recurringRuleByIdProvider';
+}
+
 @ProviderFor(upcomingRecurringOccurrences)
 const upcomingRecurringOccurrencesProvider =
     UpcomingRecurringOccurrencesFamily._();

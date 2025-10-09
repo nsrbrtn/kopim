@@ -13,6 +13,7 @@ import 'package:kopim/features/profile/presentation/controllers/auth_controller.
 import 'package:kopim/features/profile/presentation/controllers/profile_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/profile_form_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/avatar_controller.dart';
+import 'package:kopim/features/profile/domain/exceptions/avatar_storage_exception.dart';
 import 'package:kopim/features/profile/presentation/controllers/user_progress_controller.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 import 'package:kopim/features/profile/presentation/widgets/settings_button_theme.dart';
@@ -52,19 +53,16 @@ class ProfileManagementBody extends ConsumerWidget {
           if (!context.mounted) {
             return;
           }
+          final AppLocalizations strings = AppLocalizations.of(context)!;
           if (next.hasError) {
-            final String message = AppLocalizations.of(
-              context,
-            )!.profileAvatarUploadError;
+            final String message = _mapAvatarError(strings, next.error);
             ScaffoldMessenger.of(context)
               ..hideCurrentSnackBar()
               ..showSnackBar(SnackBar(content: Text(message)));
             return;
           }
           if (previous?.isLoading == true && next.hasValue) {
-            final String message = AppLocalizations.of(
-              context,
-            )!.profileAvatarUploadSuccess;
+            final String message = strings.profileAvatarUploadSuccess;
             ScaffoldMessenger.of(context)
               ..hideCurrentSnackBar()
               ..showSnackBar(SnackBar(content: Text(message)));
@@ -100,6 +98,18 @@ class ProfileManagementBody extends ConsumerWidget {
       },
     );
   }
+}
+
+String _mapAvatarError(AppLocalizations strings, Object? error) {
+  if (error is AvatarStorageException) {
+    switch (error.code) {
+      case 'object-not-found':
+        return strings.homeUpcomingPaymentsMissingRule;
+      default:
+        return strings.profileAvatarUploadError;
+    }
+  }
+  return strings.profileAvatarUploadError;
 }
 
 class _ProfileForm extends ConsumerWidget {

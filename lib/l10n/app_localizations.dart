@@ -1295,7 +1295,7 @@ abstract class AppLocalizations {
   /// Snackbar message when the source recurring rule is missing
   ///
   /// In en, this message translates to:
-  /// **'This recurring rule is no longer available.'**
+  /// **'This recurring rule has been removed.'**
   String get homeUpcomingPaymentsMissingRule;
 
   /// Subtitle for individual upcoming payment entries

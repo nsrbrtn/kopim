@@ -920,7 +920,7 @@
       }
     }
   },
-  "homeUpcomingPaymentsMissingRule": "Правило повторений больше не доступно.",
+  "homeUpcomingPaymentsMissingRule": "Правило удалено.",
   "@homeUpcomingPaymentsMissingRule": {
     "description": "Сообщение, когда правило повторений отсутствует"
   },

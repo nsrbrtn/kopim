@@ -22,11 +22,18 @@ class AnalyticsDonutChart extends StatelessWidget {
     required this.items,
     required this.backgroundColor,
     this.totalAmount,
+    this.selectedIndex,
+    this.onSegmentSelected,
   });
 
   final List<AnalyticsChartItem> items;
   final Color backgroundColor;
   final double? totalAmount;
+  final int? selectedIndex;
+  final ValueChanged<int>? onSegmentSelected;
+
+  static const double _minLabelGap = 4;
+  static const double _labelSidePadding = 12;
 
   @override
   Widget build(BuildContext context) {
@@ -36,60 +43,109 @@ class AnalyticsDonutChart extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.all(16),
-      child: AspectRatio(
-        aspectRatio: 1,
-        child: LayoutBuilder(
-          builder: (BuildContext context, BoxConstraints constraints) {
-            final Size biggest = constraints.biggest;
-            double size = biggest.shortestSide;
-            if (!size.isFinite || size <= 0) {
-              size = biggest.longestSide;
-            }
-            if (!size.isFinite || size <= 0) {
-              size = 200;
-            }
-            final double strokeWidth = math.max(size * 0.18, 12);
-            final List<_DonutSegment> segments = _buildSegments();
-            final double radius = size / 2;
-            final double labelRadius = radius + strokeWidth * 0.4;
-            final double alignmentFactor = radius == 0
-                ? 0
-                : labelRadius / radius;
+      child: LayoutBuilder(
+        builder: (BuildContext context, BoxConstraints constraints) {
+          final double size = _resolveSize(constraints);
+          final List<_DonutSegment> segments = _buildSegments();
+          if (segments.isEmpty) {
+            return const SizedBox.shrink();
+          }
 
-            return Center(
-              child: SizedBox(
-                width: size,
-                height: size,
-                child: Stack(
-                  clipBehavior: Clip.none,
-                  alignment: Alignment.center,
-                  children: <Widget>[
-                    CustomPaint(
-                      size: Size.square(size),
-                      painter: _DonutChartPainter(
-                        segments: segments,
-                        strokeWidth: strokeWidth,
-                        backgroundColor: backgroundColor,
-                      ),
-                    ),
-                    for (final _DonutSegment segment in segments)
-                      Align(
-                        alignment: Alignment(
-                          math.cos(segment.midAngle) * alignmentFactor,
-                          math.sin(segment.midAngle) * alignmentFactor,
-                        ),
-                        child: _DonutPercentageLabel(
-                          percentage: segment.percentage,
-                        ),
-                      ),
-                  ],
+          final double strokeWidth = math.max(size * 0.18, 12);
+          final double canvasRadius = size / 2;
+          final double ringRadius = canvasRadius - strokeWidth / 2;
+          final double labelRadius = ringRadius + strokeWidth * 0.65;
+          final bool showOnlySelected = constraints.maxWidth < 320;
+          final int effectiveSelected =
+              selectedIndex != null && selectedIndex! >= 0 &&
+                      selectedIndex! < segments.length
+                  ? selectedIndex!
+                  : 0;
+
+          final List<_LabelPlacement> placements = _buildLabelPlacements(
+            segments: segments,
+            size: size,
+            labelRadius: labelRadius,
+            showOnlySelected: showOnlySelected,
+            selectedIndex: effectiveSelected,
+            minGap: _minLabelGap,
+          );
+
+          Widget chart = SizedBox(
+            width: size,
+            height: size,
+            child: Stack(
+              clipBehavior: Clip.none,
+              alignment: Alignment.center,
+              children: <Widget>[
+                CustomPaint(
+                  size: Size.square(size),
+                  painter: _DonutChartPainter(
+                    segments: segments,
+                    strokeWidth: strokeWidth,
+                    backgroundColor: backgroundColor,
+                    selectedIndex: showOnlySelected ? effectiveSelected : null,
+                  ),
                 ),
-              ),
+                for (final _LabelPlacement placement in placements)
+                  Positioned(
+                    top: placement.top,
+                    left: placement.isRight
+                        ? canvasRadius +
+                            ringRadius +
+                            strokeWidth / 2 +
+                            _labelSidePadding
+                        : null,
+                    right: placement.isRight
+                        ? null
+                        : canvasRadius +
+                            ringRadius +
+                            strokeWidth / 2 +
+                            _labelSidePadding,
+                    child: _DonutPercentageBadge(
+                      percentage: placement.percentage,
+                    ),
+                  ),
+              ],
+            ),
+          );
+
+          if (onSegmentSelected != null) {
+            chart = GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTapUp: (TapUpDetails details) {
+                final Offset local = details.localPosition;
+                final int? hit = _hitTestSegment(
+                  position: local,
+                  segments: segments,
+                  canvasSize: size,
+                  ringRadius: ringRadius,
+                  strokeWidth: strokeWidth,
+                );
+                if (hit != null) {
+                  onSegmentSelected!(hit);
+                }
+              },
+              child: chart,
             );
-          },
-        ),
+          }
+
+          return Center(child: chart);
+        },
       ),
     );
+  }
+
+  double _resolveSize(BoxConstraints constraints) {
+    final Size biggest = constraints.biggest;
+    double size = biggest.shortestSide;
+    if (!size.isFinite || size <= 0) {
+      size = biggest.longestSide;
+    }
+    if (!size.isFinite || size <= 0) {
+      size = 200;
+    }
+    return size;
   }
 
   List<_DonutSegment> _buildSegments() {
@@ -149,11 +205,13 @@ class _DonutChartPainter extends CustomPainter {
     required this.segments,
     required this.strokeWidth,
     required this.backgroundColor,
+    this.selectedIndex,
   });
 
   final List<_DonutSegment> segments;
   final double strokeWidth;
   final Color backgroundColor;
+  final int? selectedIndex;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -168,8 +226,12 @@ class _DonutChartPainter extends CustomPainter {
     paint.color = backgroundColor;
     canvas.drawArc(rect, 0, 2 * math.pi, false, paint);
 
-    for (final _DonutSegment segment in segments) {
-      paint.color = segment.color;
+    for (int index = 0; index < segments.length; index++) {
+      final _DonutSegment segment = segments[index];
+      final bool isDimmed =
+          selectedIndex != null && index != selectedIndex;
+      paint.color =
+          isDimmed ? segment.color.withValues(alpha: 0.35) : segment.color;
       canvas.drawArc(
         rect,
         segment.startAngle,
@@ -184,40 +246,202 @@ class _DonutChartPainter extends CustomPainter {
   bool shouldRepaint(covariant _DonutChartPainter oldDelegate) {
     return oldDelegate.segments != segments ||
         oldDelegate.strokeWidth != strokeWidth ||
-        oldDelegate.backgroundColor != backgroundColor;
+        oldDelegate.backgroundColor != backgroundColor ||
+        oldDelegate.selectedIndex != selectedIndex;
   }
 }
 
-class _DonutPercentageLabel extends StatelessWidget {
-  const _DonutPercentageLabel({required this.percentage});
+class _LabelPlacement {
+  _LabelPlacement({
+    required this.segmentIndex,
+    required this.isRight,
+    required this.baseTop,
+    required this.percentage,
+  });
+
+  final int segmentIndex;
+  final bool isRight;
+  final double baseTop;
+  final double percentage;
+  double top = 0;
+}
+
+class _DonutPercentageBadge extends StatelessWidget {
+  const _DonutPercentageBadge({required this.percentage});
 
   final double percentage;
+
+  static const double _height = 24;
 
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
-    final Color textColor = theme.colorScheme.onSurface;
     final TextStyle style =
-        theme.textTheme.labelMedium?.copyWith(
-          color: textColor,
+        theme.textTheme.labelSmall?.copyWith(
+              color: theme.colorScheme.onSurface,
+              fontWeight: FontWeight.w600,
+            ) ??
+        TextStyle(
+          color: theme.colorScheme.onSurface,
           fontWeight: FontWeight.w600,
-        ) ??
-        TextStyle(color: textColor, fontWeight: FontWeight.w600, fontSize: 12);
+          fontSize: 12,
+        );
 
     final String formatted = percentage >= 1
         ? '${percentage.round()}%'
         : '${percentage.toStringAsFixed(1)}%';
 
-    return DecoratedBox(
+    return Container(
+      height: _height,
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: const BorderRadius.all(Radius.circular(12)),
         border: Border.all(color: theme.colorScheme.outlineVariant),
+        boxShadow: <BoxShadow>[
+          BoxShadow(
+        color: theme.colorScheme.shadow.withValues(alpha: 0.08),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        child: Text(formatted, style: style),
-      ),
+      alignment: Alignment.center,
+      child: Text(formatted, style: style),
     );
   }
+}
+
+List<_LabelPlacement> _buildLabelPlacements({
+  required List<_DonutSegment> segments,
+  required double size,
+  required double labelRadius,
+  required bool showOnlySelected,
+  required int selectedIndex,
+  required double minGap,
+}) {
+  if (segments.isEmpty) {
+    return <_LabelPlacement>[];
+  }
+
+  final double center = size / 2;
+  final List<_LabelPlacement> right = <_LabelPlacement>[];
+  final List<_LabelPlacement> left = <_LabelPlacement>[];
+
+  for (int index = 0; index < segments.length; index++) {
+    if (showOnlySelected && index != selectedIndex) {
+      continue;
+    }
+    final _DonutSegment segment = segments[index];
+    final double angle = segment.midAngle;
+    final bool isRight = math.cos(angle) >= 0;
+    final double y = center + math.sin(angle) * labelRadius;
+    final _LabelPlacement placement = _LabelPlacement(
+      segmentIndex: index,
+      isRight: isRight,
+      baseTop: y - _DonutPercentageBadge._height / 2,
+      percentage: segment.percentage,
+    );
+    (isRight ? right : left).add(placement);
+  }
+
+  _resolveLabelPositions(right, size, minGap);
+  _resolveLabelPositions(left, size, minGap);
+
+  return <_LabelPlacement>[...right, ...left];
+}
+
+void _resolveLabelPositions(
+  List<_LabelPlacement> placements,
+  double size,
+  double minGap,
+) {
+  if (placements.isEmpty) {
+    return;
+  }
+  placements.sort(
+    (_LabelPlacement a, _LabelPlacement b) => a.baseTop.compareTo(b.baseTop),
+  );
+
+  double previousTop = 0;
+  for (int i = 0; i < placements.length; i++) {
+    final _LabelPlacement placement = placements[i];
+    double top = placement.baseTop;
+    if (i == 0) {
+      top = top.clamp(
+        0,
+        size - _DonutPercentageBadge._height,
+      );
+    } else {
+      final double minTop =
+          previousTop + _DonutPercentageBadge._height + minGap;
+      top = math.max(top, minTop);
+      top = math.min(
+        top,
+        size - _DonutPercentageBadge._height,
+      );
+    }
+    placement.top = top;
+    previousTop = top;
+  }
+
+  for (int i = placements.length - 2; i >= 0; i--) {
+    final double nextTop = placements[i + 1].top;
+    final double maxTop =
+        nextTop - (_DonutPercentageBadge._height + minGap);
+    if (placements[i].top > maxTop) {
+      placements[i].top = maxTop.clamp(
+        0,
+        size - _DonutPercentageBadge._height,
+      );
+    }
+  }
+}
+
+int? _hitTestSegment({
+  required Offset position,
+  required List<_DonutSegment> segments,
+  required double canvasSize,
+  required double ringRadius,
+  required double strokeWidth,
+}) {
+  if (segments.isEmpty) {
+    return null;
+  }
+  final Offset center = Offset(canvasSize / 2, canvasSize / 2);
+  final Offset vector = position - center;
+  final double distance = vector.distance;
+  final double innerRadius = ringRadius - strokeWidth / 2;
+  final double outerRadius = ringRadius + strokeWidth / 2;
+  if (distance < innerRadius || distance > outerRadius) {
+    return null;
+  }
+
+  double angle = math.atan2(vector.dy, vector.dx);
+  angle = _normalizeAngle(angle);
+
+  for (int index = 0; index < segments.length; index++) {
+    final _DonutSegment segment = segments[index];
+    final double start = _normalizeAngle(segment.startAngle);
+    final double end = start + segment.sweepAngle;
+    double candidate = angle;
+    if (candidate < start) {
+      candidate += 2 * math.pi;
+    }
+    if (candidate >= start && candidate <= end) {
+      return index;
+    }
+  }
+  return null;
+}
+
+double _normalizeAngle(double angle) {
+  const double twoPi = 2 * math.pi;
+  while (angle < 0) {
+    angle += twoPi;
+  }
+  while (angle >= twoPi) {
+    angle -= twoPi;
+  }
+  return angle;
 }

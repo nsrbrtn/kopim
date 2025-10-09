@@ -920,7 +920,7 @@
       }
     }
   },
-  "homeUpcomingPaymentsMissingRule": "This recurring rule is no longer available.",
+  "homeUpcomingPaymentsMissingRule": "This recurring rule has been removed.",
   "@homeUpcomingPaymentsMissingRule": {
     "description": "Snackbar message when the source recurring rule is missing"
   },

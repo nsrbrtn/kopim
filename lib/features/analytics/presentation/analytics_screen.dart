@@ -12,6 +12,7 @@ import 'package:kopim/features/analytics/presentation/controllers/analytics_prov
 import 'package:kopim/features/analytics/presentation/widgets/analytics_chart.dart';
 import 'package:kopim/features/app_shell/presentation/models/navigation_tab_content.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
+import 'package:kopim/features/categories/presentation/widgets/category_chip.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
 class AnalyticsScreen extends ConsumerWidget {
@@ -647,7 +648,6 @@ class _TopCategoriesPagerState extends State<_TopCategoriesPager> {
         total: widget.totalIncome,
       ),
     ];
-    final _TopCategoriesPageData currentPage = pages[_pageIndex];
 
     return Card(
       elevation: 0,
@@ -688,7 +688,7 @@ class _TopCategoriesPagerState extends State<_TopCategoriesPager> {
             ),
             const SizedBox(height: 16),
             SizedBox(
-              height: 220,
+              height: 280,
               child: ScrollConfiguration(
                 behavior: ScrollConfiguration.of(context).copyWith(
                   dragDevices: const <PointerDeviceKind>{
@@ -717,11 +717,6 @@ class _TopCategoriesPagerState extends State<_TopCategoriesPager> {
                       .toList(growable: false),
                 ),
               ),
-            ),
-            const SizedBox(height: 16),
-            _TopCategoriesLegend(
-              items: currentPage.items,
-              currencyFormat: widget.currencyFormat,
             ),
           ],
         ),
@@ -766,7 +761,7 @@ class _TopCategoriesPageData {
   final double total;
 }
 
-class _TopCategoriesPage extends StatelessWidget {
+class _TopCategoriesPage extends StatefulWidget {
   const _TopCategoriesPage({
     required this.data,
     required this.currencyFormat,
@@ -778,11 +773,28 @@ class _TopCategoriesPage extends StatelessWidget {
   final AppLocalizations strings;
 
   @override
+  State<_TopCategoriesPage> createState() => _TopCategoriesPageState();
+}
+
+class _TopCategoriesPageState extends State<_TopCategoriesPage> {
+  int _selectedIndex = 0;
+
+  @override
+  void didUpdateWidget(covariant _TopCategoriesPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (_selectedIndex >= widget.data.items.length) {
+      _selectedIndex = widget.data.items.isEmpty
+          ? 0
+          : widget.data.items.length - 1;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    if (data.items.isEmpty || data.total <= 0) {
+    if (widget.data.items.isEmpty || widget.data.total <= 0) {
       return Center(
         child: Text(
-          strings.analyticsTopCategoriesEmpty,
+          widget.strings.analyticsTopCategoriesEmpty,
           style: Theme.of(context).textTheme.bodyMedium,
           textAlign: TextAlign.center,
         ),
@@ -790,10 +802,13 @@ class _TopCategoriesPage extends StatelessWidget {
     }
 
     final ThemeData theme = Theme.of(context);
-    final Color backgroundColor = theme.colorScheme.surfaceContainerHighest
-        .withValues(alpha: 0.32);
-    final double capturedTotal = data.total;
-    final double sumOfItems = data.items.fold<double>(
+    final Color backgroundColor =
+        theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.32);
+    final double capturedTotal = widget.data.total;
+    final List<AnalyticsChartItem> chartItems = <AnalyticsChartItem>[
+      ...widget.data.items,
+    ];
+    final double sumOfItems = chartItems.fold<double>(
       0,
       (double previous, AnalyticsChartItem item) =>
           previous + item.absoluteAmount,
@@ -802,16 +817,29 @@ class _TopCategoriesPage extends StatelessWidget {
       0,
       double.infinity,
     );
-    final bool hasRemainder = remainder > 0.01;
-    final List<AnalyticsChartItem> chartItems = <AnalyticsChartItem>[
-      ...data.items,
-      if (hasRemainder)
+    if (remainder > 0.01) {
+      chartItems.add(
         AnalyticsChartItem(
-          title: strings.analyticsTopCategoriesOthers,
+          title: widget.strings.analyticsTopCategoriesOthers,
           amount: remainder,
           color: theme.colorScheme.outlineVariant,
         ),
-    ];
+      );
+    }
+
+    if (_selectedIndex >= chartItems.length) {
+      _selectedIndex = chartItems.length - 1;
+    }
+
+    final AnalyticsChartItem selectedItem = chartItems[_selectedIndex];
+    final double selectedShare = capturedTotal <= 0
+        ? 0
+        : selectedItem.absoluteAmount / capturedTotal;
+    final String selectedAmount =
+        widget.currencyFormat.format(selectedItem.absoluteAmount);
+    final String selectedPercent = selectedShare >= 1
+        ? '${(selectedShare * 100).round()}%'
+        : '${(selectedShare * 100).toStringAsFixed(1)}%';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -819,7 +847,7 @@ class _TopCategoriesPage extends StatelessWidget {
         Align(
           alignment: Alignment.centerLeft,
           child: Text(
-            data.label,
+            widget.data.label,
             style: theme.textTheme.bodyMedium?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),
@@ -827,10 +855,49 @@ class _TopCategoriesPage extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         Expanded(
-          child: AnalyticsDonutChart(
-            items: chartItems,
-            backgroundColor: backgroundColor,
-            totalAmount: capturedTotal,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              Expanded(
+                child: AnalyticsDonutChart(
+                  items: chartItems,
+                  backgroundColor: backgroundColor,
+                  totalAmount: capturedTotal,
+                  selectedIndex: _selectedIndex,
+                  onSegmentSelected: (int index) {
+                    if (index >= 0 && index < chartItems.length) {
+                      setState(() {
+                        _selectedIndex = index;
+                      });
+                    }
+                  },
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                '${selectedItem.title}: $selectedAmount · $selectedPercent',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w600,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 12),
+              _TopCategoriesLegend(
+                items: chartItems,
+                currencyFormat: widget.currencyFormat,
+                total: capturedTotal,
+                selectedIndex: _selectedIndex,
+                onSelect: (int index) {
+                  if (index >= 0 && index < chartItems.length) {
+                    setState(() {
+                      _selectedIndex = index;
+                    });
+                  }
+                },
+              ),
+            ],
           ),
         ),
       ],
@@ -842,58 +909,51 @@ class _TopCategoriesLegend extends StatelessWidget {
   const _TopCategoriesLegend({
     required this.items,
     required this.currencyFormat,
+    required this.total,
+    required this.selectedIndex,
+    required this.onSelect,
   });
 
   final List<AnalyticsChartItem> items;
   final NumberFormat currencyFormat;
+  final double total;
+  final int selectedIndex;
+  final ValueChanged<int> onSelect;
 
   @override
   Widget build(BuildContext context) {
-    if (items.isEmpty) {
+    if (items.isEmpty || total <= 0) {
       return const SizedBox.shrink();
     }
-    final ThemeData theme = Theme.of(context);
-    final List<AnalyticsChartItem> displayItems = items;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: <Widget>[
-        for (final AnalyticsChartItem item in displayItems)
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 6),
-            child: Row(
-              children: <Widget>[
-                Container(
-                  width: 12,
-                  height: 12,
-                  decoration: BoxDecoration(
-                    color: item.color,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Text(
-                        item.title,
-                        style: theme.textTheme.bodyMedium,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        currencyFormat.format(item.absoluteAmount),
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+    final AppLocalizations strings = AppLocalizations.of(context)!;
+    final NumberFormat percentFormat = NumberFormat.decimalPattern(
+      strings.localeName,
+    );
+    final NumberFormat smallPercentFormat = NumberFormat(
+      '0.0',
+      strings.localeName,
+    );
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: List<Widget>.generate(items.length, (int index) {
+        final AnalyticsChartItem item = items[index];
+        final double percentage = item.absoluteAmount / total * 100;
+        final String percentText = percentage >= 1
+            ? '${percentFormat.format(percentage.round())}%'
+            : '${smallPercentFormat.format(percentage)}%';
+        return Tooltip(
+          message: currencyFormat.format(item.absoluteAmount),
+          waitDuration: const Duration(milliseconds: 400),
+          child: CategoryChip(
+            label: item.title,
+            backgroundColor: item.color,
+            selected: index == selectedIndex,
+            onTap: () => onSelect(index),
+            trailing: Text(percentText),
           ),
-      ],
+        );
+      }),
     );
   }
 }

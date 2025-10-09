@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/features/recurring_transactions/domain/entities/recurring_occurrence.dart';
 import 'package:kopim/features/recurring_transactions/domain/entities/recurring_rule.dart';
@@ -10,6 +11,14 @@ const int kRecurringWindowMonths = 6;
 @riverpod
 Stream<List<RecurringRule>> recurringRules(Ref ref) {
   return ref.watch(watchRecurringRulesUseCaseProvider).call();
+}
+
+@riverpod
+AsyncValue<RecurringRule?> recurringRuleById(Ref ref, String id) {
+  return ref.watch(recurringRulesProvider).whenData(
+        (List<RecurringRule> rules) =>
+            rules.firstWhereOrNull((RecurringRule rule) => rule.id == id),
+      );
 }
 
 @riverpod

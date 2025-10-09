@@ -8,6 +8,7 @@ import 'package:kopim/core/services/logger_service.dart';
 import 'package:kopim/features/profile/domain/entities/profile.dart';
 import 'package:kopim/features/profile/domain/repositories/profile_repository.dart';
 import 'package:kopim/features/profile/domain/repositories/profile_avatar_repository.dart';
+import 'package:kopim/features/profile/domain/exceptions/avatar_storage_exception.dart';
 
 enum AvatarImageSource { gallery, camera }
 
@@ -68,10 +69,14 @@ class UpdateProfileAvatarUseCase {
           data: processedBytes,
           contentType: resolvedContentType,
         );
+      } on AvatarStorageException catch (error, stackTrace) {
+        _logger.logError('Failed to upload avatar: ${error.code}');
+        _logger.logError(stackTrace.toString());
+        rethrow;
       } catch (error, stackTrace) {
         _logger.logError('Failed to upload avatar: $error');
         _logger.logError(stackTrace.toString());
-        downloadUrl = _encodeAsDataUrl(processedBytes, resolvedContentType);
+        rethrow;
       }
     }
 

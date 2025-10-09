@@ -5,9 +5,15 @@ import 'package:kopim/features/app_shell/presentation/models/navigation_tab_cont
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
 import 'package:kopim/features/profile/presentation/controllers/auth_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/avatar_controller.dart';
+import 'package:kopim/features/categories/presentation/screens/manage_categories_screen.dart';
+import 'package:kopim/features/recurring_transactions/presentation/screens/recurring_transactions_screen.dart';
 import 'package:kopim/features/profile/presentation/screens/general_settings_screen.dart';
 import 'package:kopim/features/profile/presentation/widgets/profile_management_body.dart';
 import 'package:kopim/l10n/app_localizations.dart';
+
+final GlobalKey<NavigatorState> profileTabNavigatorKey =
+    GlobalKey<NavigatorState>(debugLabel: 'profileTabNavigator');
+
 
 /// Экран профиля в составе нижней навигации.
 class ProfileScreen extends ConsumerWidget {
@@ -34,10 +40,62 @@ NavigationTabContent buildProfileTabContent(
   WidgetRef ref,
 ) {
   return NavigationTabContent(
-    appBarBuilder: (BuildContext context, WidgetRef ref) {
-      final AppLocalizations strings = AppLocalizations.of(context)!;
-      final AuthUser? user = ref.watch(authControllerProvider).value;
-      return AppBar(
+    bodyBuilder: (BuildContext context, WidgetRef ref) =>
+        _ProfileTabNavigator(navigatorKey: profileTabNavigatorKey),
+  );
+}
+
+class _ProfileTabNavigator extends StatefulWidget {
+  const _ProfileTabNavigator({required this.navigatorKey});
+
+  final GlobalKey<NavigatorState> navigatorKey;
+
+  @override
+  State<_ProfileTabNavigator> createState() => _ProfileTabNavigatorState();
+}
+
+class _ProfileTabNavigatorState extends State<_ProfileTabNavigator> {
+  @override
+  Widget build(BuildContext context) {
+    return Navigator(
+      key: widget.navigatorKey,
+      onGenerateRoute: (RouteSettings settings) {
+        switch (settings.name) {
+          case GeneralSettingsScreen.routeName:
+            return MaterialPageRoute<void>(
+              builder: (_) => const GeneralSettingsScreen(),
+              settings: settings,
+            );
+          case ManageCategoriesScreen.routeName:
+            return MaterialPageRoute<void>(
+              builder: (_) => const ManageCategoriesScreen(),
+              settings: settings,
+            );
+          case RecurringTransactionsScreen.routeName:
+            return MaterialPageRoute<void>(
+              builder: (_) => const RecurringTransactionsScreen(),
+              settings: settings,
+            );
+          default:
+            return MaterialPageRoute<void>(
+              builder: (_) => const _ProfileOverviewPage(),
+              settings: settings,
+            );
+        }
+      },
+    );
+  }
+}
+
+class _ProfileOverviewPage extends ConsumerWidget {
+  const _ProfileOverviewPage();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final AppLocalizations strings = AppLocalizations.of(context)!;
+    final AuthUser? user = ref.watch(authControllerProvider).value;
+    return Scaffold(
+      appBar: AppBar(
         title: Text(strings.profileTitle),
         actions: <Widget>[
           if (user != null)
@@ -64,11 +122,10 @@ NavigationTabContent buildProfileTabContent(
             },
           ),
         ],
-      );
-    },
-    bodyBuilder: (BuildContext context, WidgetRef ref) =>
-        const ProfileManagementBody(),
-  );
+      ),
+      body: const ProfileManagementBody(),
+    );
+  }
 }
 
 enum _ProfileMenuAction { changeAvatar }

@@ -53,7 +53,12 @@ final Provider<List<NavigationTabConfig>> mainNavigationTabsProvider =
               AppLocalizations.of(context)!.homeNavSettings,
           contentBuilder: buildProfileTabContent,
           onSelected: (BuildContext context, WidgetRef ref) {
-            Navigator.of(context).pushNamed(GeneralSettingsScreen.routeName);
+            final NavigatorState? navigator = profileTabNavigatorKey.currentState;
+            if (navigator == null) {
+              return;
+            }
+            navigator.popUntil((Route<dynamic> route) => route.isFirst);
+            navigator.pushNamed(GeneralSettingsScreen.routeName);
           },
         ),
       ];
