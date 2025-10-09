@@ -1,4 +1,7 @@
 // android/app/build.gradle.kts
+
+import org.gradle.api.tasks.compile.JavaCompile
+
 plugins {
     id("com.android.application")
     // START: FlutterFire Configuration
@@ -16,21 +19,17 @@ android {
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11  // Для совместимости с desugaring
-        targetCompatibility = JavaVersion.VERSION_11  // Для совместимости с desugaring
-        isCoreLibraryDesugaringEnabled = true  // Исправлено: добавлен префикс "is" для KTS
-
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
+        isCoreLibraryDesugaringEnabled = true
     }
 
     kotlinOptions {
-        jvmTarget = "11"  // Для Kotlin compatibility с Java 8
+        jvmTarget = "11"
     }
 
     defaultConfig {
-        // Specify your own unique Application ID[](https://developer.android.com/studio/build/application-id.html).
         applicationId = "qmodo.ru.kopim"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
@@ -39,9 +38,14 @@ android {
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
+            // Для простоты подписываем debug-ключом, чтобы `flutter run --release` работал.
             signingConfig = signingConfigs.getByName("debug")
+            // При необходимости включите минификацию:
+            // isMinifyEnabled = true
+            // proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+        }
+        debug {
+            // Настройки для отладки при необходимости
         }
     }
 }
@@ -51,8 +55,14 @@ flutter {
 }
 
 dependencies {
-    // Desugaring библиотека (версия для AGP 8.x+)
-    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")  // Необходима для desugaring
+    // Desugaring для Java 8+ API
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 
-    // ... (остальные зависимости, если есть)
+    // Прочие зависимости модуля app при необходимости:
+    // implementation("...")
+}
+
+// Включаем подробные предупреждения компилятора Java об устаревших API
+tasks.withType<JavaCompile>().configureEach {
+    options.compilerArgs.addAll(listOf("-Xlint:deprecation", "-Xlint:unchecked"))
 }
