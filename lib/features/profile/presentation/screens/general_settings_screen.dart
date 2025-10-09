@@ -29,7 +29,10 @@ class GeneralSettingsScreen extends ConsumerWidget {
     );
 
     return Scaffold(
-      appBar: AppBar(title: Text(strings.profileGeneralSettingsTitle)),
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        title: Text(strings.profileGeneralSettingsTitle),
+      ),
       body: ListView(
         padding: const EdgeInsets.all(24),
         children: <Widget>[

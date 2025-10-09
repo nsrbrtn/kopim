@@ -7,6 +7,7 @@ part 'saving_goal_analytics.g.dart';
 
 @freezed
 abstract class SavingGoalAnalytics with _$SavingGoalAnalytics {
+  // ignore: unused_element
   const SavingGoalAnalytics._();
 
   const factory SavingGoalAnalytics({

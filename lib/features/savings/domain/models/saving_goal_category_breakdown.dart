@@ -5,6 +5,7 @@ part 'saving_goal_category_breakdown.g.dart';
 
 @freezed
 abstract class SavingGoalCategoryBreakdown with _$SavingGoalCategoryBreakdown {
+  // ignore: unused_element
   const SavingGoalCategoryBreakdown._();
 
   const factory SavingGoalCategoryBreakdown({
