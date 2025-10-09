@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$CategoryFormState implements DiagnosticableTreeMixin {
 
- String get id; String get name; String get type; PhosphorIconDescriptor? get icon; String get color; String? get parentId; String? get initialParentId; List<Category> get availableParents; DateTime get createdAt; DateTime get updatedAt; Category? get initialCategory; bool get isSaving; bool get isSuccess; String? get errorMessage; bool get showValidationError; bool get isNew;
+ String get id; String get name; String get type; PhosphorIconDescriptor? get icon; String get color; String? get parentId; String? get initialParentId; List<Category> get availableParents; DateTime get createdAt; DateTime get updatedAt; Category? get initialCategory; bool get isSaving; bool get isSuccess; String? get errorMessage; bool get showValidationError; bool get isNew; bool get isFavorite;
 /// Create a copy of CategoryFormState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -26,21 +26,21 @@ $CategoryFormStateCopyWith<CategoryFormState> get copyWith => _$CategoryFormStat
 void debugFillProperties(DiagnosticPropertiesBuilder properties) {
   properties
     ..add(DiagnosticsProperty('type', 'CategoryFormState'))
-    ..add(DiagnosticsProperty('id', id))..add(DiagnosticsProperty('name', name))..add(DiagnosticsProperty('type', type))..add(DiagnosticsProperty('icon', icon))..add(DiagnosticsProperty('color', color))..add(DiagnosticsProperty('parentId', parentId))..add(DiagnosticsProperty('initialParentId', initialParentId))..add(DiagnosticsProperty('availableParents', availableParents))..add(DiagnosticsProperty('createdAt', createdAt))..add(DiagnosticsProperty('updatedAt', updatedAt))..add(DiagnosticsProperty('initialCategory', initialCategory))..add(DiagnosticsProperty('isSaving', isSaving))..add(DiagnosticsProperty('isSuccess', isSuccess))..add(DiagnosticsProperty('errorMessage', errorMessage))..add(DiagnosticsProperty('showValidationError', showValidationError))..add(DiagnosticsProperty('isNew', isNew));
+    ..add(DiagnosticsProperty('id', id))..add(DiagnosticsProperty('name', name))..add(DiagnosticsProperty('type', type))..add(DiagnosticsProperty('icon', icon))..add(DiagnosticsProperty('color', color))..add(DiagnosticsProperty('parentId', parentId))..add(DiagnosticsProperty('initialParentId', initialParentId))..add(DiagnosticsProperty('availableParents', availableParents))..add(DiagnosticsProperty('createdAt', createdAt))..add(DiagnosticsProperty('updatedAt', updatedAt))..add(DiagnosticsProperty('initialCategory', initialCategory))..add(DiagnosticsProperty('isSaving', isSaving))..add(DiagnosticsProperty('isSuccess', isSuccess))..add(DiagnosticsProperty('errorMessage', errorMessage))..add(DiagnosticsProperty('showValidationError', showValidationError))..add(DiagnosticsProperty('isNew', isNew))..add(DiagnosticsProperty('isFavorite', isFavorite));
 }
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CategoryFormState&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.type, type) || other.type == type)&&(identical(other.icon, icon) || other.icon == icon)&&(identical(other.color, color) || other.color == color)&&(identical(other.parentId, parentId) || other.parentId == parentId)&&(identical(other.initialParentId, initialParentId) || other.initialParentId == initialParentId)&&const DeepCollectionEquality().equals(other.availableParents, availableParents)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.initialCategory, initialCategory) || other.initialCategory == initialCategory)&&(identical(other.isSaving, isSaving) || other.isSaving == isSaving)&&(identical(other.isSuccess, isSuccess) || other.isSuccess == isSuccess)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage)&&(identical(other.showValidationError, showValidationError) || other.showValidationError == showValidationError)&&(identical(other.isNew, isNew) || other.isNew == isNew));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CategoryFormState&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.type, type) || other.type == type)&&(identical(other.icon, icon) || other.icon == icon)&&(identical(other.color, color) || other.color == color)&&(identical(other.parentId, parentId) || other.parentId == parentId)&&(identical(other.initialParentId, initialParentId) || other.initialParentId == initialParentId)&&const DeepCollectionEquality().equals(other.availableParents, availableParents)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.initialCategory, initialCategory) || other.initialCategory == initialCategory)&&(identical(other.isSaving, isSaving) || other.isSaving == isSaving)&&(identical(other.isSuccess, isSuccess) || other.isSuccess == isSuccess)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage)&&(identical(other.showValidationError, showValidationError) || other.showValidationError == showValidationError)&&(identical(other.isNew, isNew) || other.isNew == isNew)&&(identical(other.isFavorite, isFavorite) || other.isFavorite == isFavorite));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,name,type,icon,color,parentId,initialParentId,const DeepCollectionEquality().hash(availableParents),createdAt,updatedAt,initialCategory,isSaving,isSuccess,errorMessage,showValidationError,isNew);
+int get hashCode => Object.hash(runtimeType,id,name,type,icon,color,parentId,initialParentId,const DeepCollectionEquality().hash(availableParents),createdAt,updatedAt,initialCategory,isSaving,isSuccess,errorMessage,showValidationError,isNew,isFavorite);
 
 @override
 String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
-  return 'CategoryFormState(id: $id, name: $name, type: $type, icon: $icon, color: $color, parentId: $parentId, initialParentId: $initialParentId, availableParents: $availableParents, createdAt: $createdAt, updatedAt: $updatedAt, initialCategory: $initialCategory, isSaving: $isSaving, isSuccess: $isSuccess, errorMessage: $errorMessage, showValidationError: $showValidationError, isNew: $isNew)';
+  return 'CategoryFormState(id: $id, name: $name, type: $type, icon: $icon, color: $color, parentId: $parentId, initialParentId: $initialParentId, availableParents: $availableParents, createdAt: $createdAt, updatedAt: $updatedAt, initialCategory: $initialCategory, isSaving: $isSaving, isSuccess: $isSuccess, errorMessage: $errorMessage, showValidationError: $showValidationError, isNew: $isNew, isFavorite: $isFavorite)';
 }
 
 
@@ -51,7 +51,7 @@ abstract mixin class $CategoryFormStateCopyWith<$Res>  {
   factory $CategoryFormStateCopyWith(CategoryFormState value, $Res Function(CategoryFormState) _then) = _$CategoryFormStateCopyWithImpl;
 @useResult
 $Res call({
- String id, String name, String type, PhosphorIconDescriptor? icon, String color, String? parentId, String? initialParentId, List<Category> availableParents, DateTime createdAt, DateTime updatedAt, Category? initialCategory, bool isSaving, bool isSuccess, String? errorMessage, bool showValidationError, bool isNew
+ String id, String name, String type, PhosphorIconDescriptor? icon, String color, String? parentId, String? initialParentId, List<Category> availableParents, DateTime createdAt, DateTime updatedAt, Category? initialCategory, bool isSaving, bool isSuccess, String? errorMessage, bool showValidationError, bool isNew, bool isFavorite
 });
 
 
@@ -68,7 +68,7 @@ class _$CategoryFormStateCopyWithImpl<$Res>
 
 /// Create a copy of CategoryFormState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? type = null,Object? icon = freezed,Object? color = null,Object? parentId = freezed,Object? initialParentId = freezed,Object? availableParents = null,Object? createdAt = null,Object? updatedAt = null,Object? initialCategory = freezed,Object? isSaving = null,Object? isSuccess = null,Object? errorMessage = freezed,Object? showValidationError = null,Object? isNew = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? type = null,Object? icon = freezed,Object? color = null,Object? parentId = freezed,Object? initialParentId = freezed,Object? availableParents = null,Object? createdAt = null,Object? updatedAt = null,Object? initialCategory = freezed,Object? isSaving = null,Object? isSuccess = null,Object? errorMessage = freezed,Object? showValidationError = null,Object? isNew = null,Object? isFavorite = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -86,6 +86,7 @@ as bool,isSuccess: null == isSuccess ? _self.isSuccess : isSuccess // ignore: ca
 as bool,errorMessage: freezed == errorMessage ? _self.errorMessage : errorMessage // ignore: cast_nullable_to_non_nullable
 as String?,showValidationError: null == showValidationError ? _self.showValidationError : showValidationError // ignore: cast_nullable_to_non_nullable
 as bool,isNew: null == isNew ? _self.isNew : isNew // ignore: cast_nullable_to_non_nullable
+as bool,isFavorite: null == isFavorite ? _self.isFavorite : isFavorite // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
 }
@@ -195,10 +196,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  String type,  PhosphorIconDescriptor? icon,  String color,  String? parentId,  String? initialParentId,  List<Category> availableParents,  DateTime createdAt,  DateTime updatedAt,  Category? initialCategory,  bool isSaving,  bool isSuccess,  String? errorMessage,  bool showValidationError,  bool isNew)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  String type,  PhosphorIconDescriptor? icon,  String color,  String? parentId,  String? initialParentId,  List<Category> availableParents,  DateTime createdAt,  DateTime updatedAt,  Category? initialCategory,  bool isSaving,  bool isSuccess,  String? errorMessage,  bool showValidationError,  bool isNew,  bool isFavorite)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _CategoryFormState() when $default != null:
-return $default(_that.id,_that.name,_that.type,_that.icon,_that.color,_that.parentId,_that.initialParentId,_that.availableParents,_that.createdAt,_that.updatedAt,_that.initialCategory,_that.isSaving,_that.isSuccess,_that.errorMessage,_that.showValidationError,_that.isNew);case _:
+return $default(_that.id,_that.name,_that.type,_that.icon,_that.color,_that.parentId,_that.initialParentId,_that.availableParents,_that.createdAt,_that.updatedAt,_that.initialCategory,_that.isSaving,_that.isSuccess,_that.errorMessage,_that.showValidationError,_that.isNew,_that.isFavorite);case _:
   return orElse();
 
 }
@@ -216,10 +217,10 @@ return $default(_that.id,_that.name,_that.type,_that.icon,_that.color,_that.pare
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  String type,  PhosphorIconDescriptor? icon,  String color,  String? parentId,  String? initialParentId,  List<Category> availableParents,  DateTime createdAt,  DateTime updatedAt,  Category? initialCategory,  bool isSaving,  bool isSuccess,  String? errorMessage,  bool showValidationError,  bool isNew)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  String type,  PhosphorIconDescriptor? icon,  String color,  String? parentId,  String? initialParentId,  List<Category> availableParents,  DateTime createdAt,  DateTime updatedAt,  Category? initialCategory,  bool isSaving,  bool isSuccess,  String? errorMessage,  bool showValidationError,  bool isNew,  bool isFavorite)  $default,) {final _that = this;
 switch (_that) {
 case _CategoryFormState():
-return $default(_that.id,_that.name,_that.type,_that.icon,_that.color,_that.parentId,_that.initialParentId,_that.availableParents,_that.createdAt,_that.updatedAt,_that.initialCategory,_that.isSaving,_that.isSuccess,_that.errorMessage,_that.showValidationError,_that.isNew);case _:
+return $default(_that.id,_that.name,_that.type,_that.icon,_that.color,_that.parentId,_that.initialParentId,_that.availableParents,_that.createdAt,_that.updatedAt,_that.initialCategory,_that.isSaving,_that.isSuccess,_that.errorMessage,_that.showValidationError,_that.isNew,_that.isFavorite);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -236,10 +237,10 @@ return $default(_that.id,_that.name,_that.type,_that.icon,_that.color,_that.pare
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  String type,  PhosphorIconDescriptor? icon,  String color,  String? parentId,  String? initialParentId,  List<Category> availableParents,  DateTime createdAt,  DateTime updatedAt,  Category? initialCategory,  bool isSaving,  bool isSuccess,  String? errorMessage,  bool showValidationError,  bool isNew)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  String type,  PhosphorIconDescriptor? icon,  String color,  String? parentId,  String? initialParentId,  List<Category> availableParents,  DateTime createdAt,  DateTime updatedAt,  Category? initialCategory,  bool isSaving,  bool isSuccess,  String? errorMessage,  bool showValidationError,  bool isNew,  bool isFavorite)?  $default,) {final _that = this;
 switch (_that) {
 case _CategoryFormState() when $default != null:
-return $default(_that.id,_that.name,_that.type,_that.icon,_that.color,_that.parentId,_that.initialParentId,_that.availableParents,_that.createdAt,_that.updatedAt,_that.initialCategory,_that.isSaving,_that.isSuccess,_that.errorMessage,_that.showValidationError,_that.isNew);case _:
+return $default(_that.id,_that.name,_that.type,_that.icon,_that.color,_that.parentId,_that.initialParentId,_that.availableParents,_that.createdAt,_that.updatedAt,_that.initialCategory,_that.isSaving,_that.isSuccess,_that.errorMessage,_that.showValidationError,_that.isNew,_that.isFavorite);case _:
   return null;
 
 }
@@ -251,7 +252,7 @@ return $default(_that.id,_that.name,_that.type,_that.icon,_that.color,_that.pare
 
 
 class _CategoryFormState extends CategoryFormState with DiagnosticableTreeMixin {
-  const _CategoryFormState({required this.id, required this.name, required this.type, this.icon, this.color = '', this.parentId, this.initialParentId, final  List<Category> availableParents = const <Category>[], required this.createdAt, required this.updatedAt, this.initialCategory, this.isSaving = false, this.isSuccess = false, this.errorMessage, this.showValidationError = false, this.isNew = false}): _availableParents = availableParents,super._();
+  const _CategoryFormState({required this.id, required this.name, required this.type, this.icon, this.color = '', this.parentId, this.initialParentId, final  List<Category> availableParents = const <Category>[], required this.createdAt, required this.updatedAt, this.initialCategory, this.isSaving = false, this.isSuccess = false, this.errorMessage, this.showValidationError = false, this.isNew = false, this.isFavorite = false}): _availableParents = availableParents,super._();
   
 
 @override final  String id;
@@ -276,6 +277,7 @@ class _CategoryFormState extends CategoryFormState with DiagnosticableTreeMixin 
 @override final  String? errorMessage;
 @override@JsonKey() final  bool showValidationError;
 @override@JsonKey() final  bool isNew;
+@override@JsonKey() final  bool isFavorite;
 
 /// Create a copy of CategoryFormState
 /// with the given fields replaced by the non-null parameter values.
@@ -288,21 +290,21 @@ _$CategoryFormStateCopyWith<_CategoryFormState> get copyWith => __$CategoryFormS
 void debugFillProperties(DiagnosticPropertiesBuilder properties) {
   properties
     ..add(DiagnosticsProperty('type', 'CategoryFormState'))
-    ..add(DiagnosticsProperty('id', id))..add(DiagnosticsProperty('name', name))..add(DiagnosticsProperty('type', type))..add(DiagnosticsProperty('icon', icon))..add(DiagnosticsProperty('color', color))..add(DiagnosticsProperty('parentId', parentId))..add(DiagnosticsProperty('initialParentId', initialParentId))..add(DiagnosticsProperty('availableParents', availableParents))..add(DiagnosticsProperty('createdAt', createdAt))..add(DiagnosticsProperty('updatedAt', updatedAt))..add(DiagnosticsProperty('initialCategory', initialCategory))..add(DiagnosticsProperty('isSaving', isSaving))..add(DiagnosticsProperty('isSuccess', isSuccess))..add(DiagnosticsProperty('errorMessage', errorMessage))..add(DiagnosticsProperty('showValidationError', showValidationError))..add(DiagnosticsProperty('isNew', isNew));
+    ..add(DiagnosticsProperty('id', id))..add(DiagnosticsProperty('name', name))..add(DiagnosticsProperty('type', type))..add(DiagnosticsProperty('icon', icon))..add(DiagnosticsProperty('color', color))..add(DiagnosticsProperty('parentId', parentId))..add(DiagnosticsProperty('initialParentId', initialParentId))..add(DiagnosticsProperty('availableParents', availableParents))..add(DiagnosticsProperty('createdAt', createdAt))..add(DiagnosticsProperty('updatedAt', updatedAt))..add(DiagnosticsProperty('initialCategory', initialCategory))..add(DiagnosticsProperty('isSaving', isSaving))..add(DiagnosticsProperty('isSuccess', isSuccess))..add(DiagnosticsProperty('errorMessage', errorMessage))..add(DiagnosticsProperty('showValidationError', showValidationError))..add(DiagnosticsProperty('isNew', isNew))..add(DiagnosticsProperty('isFavorite', isFavorite));
 }
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CategoryFormState&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.type, type) || other.type == type)&&(identical(other.icon, icon) || other.icon == icon)&&(identical(other.color, color) || other.color == color)&&(identical(other.parentId, parentId) || other.parentId == parentId)&&(identical(other.initialParentId, initialParentId) || other.initialParentId == initialParentId)&&const DeepCollectionEquality().equals(other._availableParents, _availableParents)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.initialCategory, initialCategory) || other.initialCategory == initialCategory)&&(identical(other.isSaving, isSaving) || other.isSaving == isSaving)&&(identical(other.isSuccess, isSuccess) || other.isSuccess == isSuccess)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage)&&(identical(other.showValidationError, showValidationError) || other.showValidationError == showValidationError)&&(identical(other.isNew, isNew) || other.isNew == isNew));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CategoryFormState&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.type, type) || other.type == type)&&(identical(other.icon, icon) || other.icon == icon)&&(identical(other.color, color) || other.color == color)&&(identical(other.parentId, parentId) || other.parentId == parentId)&&(identical(other.initialParentId, initialParentId) || other.initialParentId == initialParentId)&&const DeepCollectionEquality().equals(other._availableParents, _availableParents)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.initialCategory, initialCategory) || other.initialCategory == initialCategory)&&(identical(other.isSaving, isSaving) || other.isSaving == isSaving)&&(identical(other.isSuccess, isSuccess) || other.isSuccess == isSuccess)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage)&&(identical(other.showValidationError, showValidationError) || other.showValidationError == showValidationError)&&(identical(other.isNew, isNew) || other.isNew == isNew)&&(identical(other.isFavorite, isFavorite) || other.isFavorite == isFavorite));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,name,type,icon,color,parentId,initialParentId,const DeepCollectionEquality().hash(_availableParents),createdAt,updatedAt,initialCategory,isSaving,isSuccess,errorMessage,showValidationError,isNew);
+int get hashCode => Object.hash(runtimeType,id,name,type,icon,color,parentId,initialParentId,const DeepCollectionEquality().hash(_availableParents),createdAt,updatedAt,initialCategory,isSaving,isSuccess,errorMessage,showValidationError,isNew,isFavorite);
 
 @override
 String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
-  return 'CategoryFormState(id: $id, name: $name, type: $type, icon: $icon, color: $color, parentId: $parentId, initialParentId: $initialParentId, availableParents: $availableParents, createdAt: $createdAt, updatedAt: $updatedAt, initialCategory: $initialCategory, isSaving: $isSaving, isSuccess: $isSuccess, errorMessage: $errorMessage, showValidationError: $showValidationError, isNew: $isNew)';
+  return 'CategoryFormState(id: $id, name: $name, type: $type, icon: $icon, color: $color, parentId: $parentId, initialParentId: $initialParentId, availableParents: $availableParents, createdAt: $createdAt, updatedAt: $updatedAt, initialCategory: $initialCategory, isSaving: $isSaving, isSuccess: $isSuccess, errorMessage: $errorMessage, showValidationError: $showValidationError, isNew: $isNew, isFavorite: $isFavorite)';
 }
 
 
@@ -313,7 +315,7 @@ abstract mixin class _$CategoryFormStateCopyWith<$Res> implements $CategoryFormS
   factory _$CategoryFormStateCopyWith(_CategoryFormState value, $Res Function(_CategoryFormState) _then) = __$CategoryFormStateCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String name, String type, PhosphorIconDescriptor? icon, String color, String? parentId, String? initialParentId, List<Category> availableParents, DateTime createdAt, DateTime updatedAt, Category? initialCategory, bool isSaving, bool isSuccess, String? errorMessage, bool showValidationError, bool isNew
+ String id, String name, String type, PhosphorIconDescriptor? icon, String color, String? parentId, String? initialParentId, List<Category> availableParents, DateTime createdAt, DateTime updatedAt, Category? initialCategory, bool isSaving, bool isSuccess, String? errorMessage, bool showValidationError, bool isNew, bool isFavorite
 });
 
 
@@ -330,7 +332,7 @@ class __$CategoryFormStateCopyWithImpl<$Res>
 
 /// Create a copy of CategoryFormState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? type = null,Object? icon = freezed,Object? color = null,Object? parentId = freezed,Object? initialParentId = freezed,Object? availableParents = null,Object? createdAt = null,Object? updatedAt = null,Object? initialCategory = freezed,Object? isSaving = null,Object? isSuccess = null,Object? errorMessage = freezed,Object? showValidationError = null,Object? isNew = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? type = null,Object? icon = freezed,Object? color = null,Object? parentId = freezed,Object? initialParentId = freezed,Object? availableParents = null,Object? createdAt = null,Object? updatedAt = null,Object? initialCategory = freezed,Object? isSaving = null,Object? isSuccess = null,Object? errorMessage = freezed,Object? showValidationError = null,Object? isNew = null,Object? isFavorite = null,}) {
   return _then(_CategoryFormState(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -348,6 +350,7 @@ as bool,isSuccess: null == isSuccess ? _self.isSuccess : isSuccess // ignore: ca
 as bool,errorMessage: freezed == errorMessage ? _self.errorMessage : errorMessage // ignore: cast_nullable_to_non_nullable
 as String?,showValidationError: null == showValidationError ? _self.showValidationError : showValidationError // ignore: cast_nullable_to_non_nullable
 as bool,isNew: null == isNew ? _self.isNew : isNew // ignore: cast_nullable_to_non_nullable
+as bool,isFavorite: null == isFavorite ? _self.isFavorite : isFavorite // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
 }

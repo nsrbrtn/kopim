@@ -23,6 +23,7 @@ abstract class AddAccountFormState with _$AddAccountFormState {
     @Default('') String customType,
     @Default(false) bool isSaving,
     @Default(false) bool submissionSuccess,
+    @Default(false) bool isPrimary,
     AddAccountFieldError? nameError,
     AddAccountFieldError? balanceError,
     AddAccountFieldError? typeError,
@@ -124,6 +125,10 @@ class AddAccountFormController extends _$AddAccountFormController {
     }
   }
 
+  void updateIsPrimary(bool value) {
+    state = state.copyWith(isPrimary: value, submissionSuccess: false);
+  }
+
   Future<void> submit() async {
     if (state.isSaving) {
       return;
@@ -184,6 +189,7 @@ class AddAccountFormController extends _$AddAccountFormController {
       type: resolvedType!,
       createdAt: now,
       updatedAt: now,
+      isPrimary: state.isPrimary,
     );
 
     try {
@@ -196,6 +202,7 @@ class AddAccountFormController extends _$AddAccountFormController {
         useCustomType: false,
         customType: '',
         submissionSuccess: true,
+        isPrimary: state.isPrimary,
       );
     } catch (error) {
       state = state.copyWith(

@@ -24,8 +24,10 @@ import 'package:kopim/features/profile/presentation/screens/general_settings_scr
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/presentation/add_transaction_screen.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
+import 'package:kopim/features/transactions/presentation/controllers/transaction_actions_controller.dart';
 import 'package:kopim/features/transactions/presentation/widgets/transaction_editor.dart';
 import 'package:kopim/features/transactions/presentation/widgets/transaction_tile_formatters.dart';
+import 'package:kopim/features/transactions/presentation/widgets/transaction_form_view.dart';
 import 'package:kopim/features/recurring_transactions/domain/entities/recurring_rule.dart';
 import 'package:kopim/features/recurring_transactions/presentation/screens/recurring_rule_edit_screen.dart';
 import 'package:kopim/l10n/app_localizations.dart';
@@ -405,16 +407,59 @@ class _AddTransactionButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return FloatingActionButton(
       onPressed: () async {
-        final bool? created = await Navigator.of(context).push<bool>(
-          MaterialPageRoute<bool>(builder: (_) => const AddTransactionScreen()),
-        );
-        if (created == true && context.mounted) {
-          ScaffoldMessenger.of(context)
-            ..hideCurrentSnackBar()
-            ..showSnackBar(
-              SnackBar(content: Text(strings.addTransactionSuccess)),
+        final TransactionFormResult? result = await Navigator.of(context)
+            .push<TransactionFormResult>(
+              MaterialPageRoute<TransactionFormResult>(
+                builder: (_) => const AddTransactionScreen(),
+              ),
             );
+        if (!context.mounted || result == null) {
+          return;
         }
+        final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar();
+        final TransactionEntity? createdTransaction = result.createdTransaction;
+        if (createdTransaction == null) {
+          messenger.showSnackBar(
+            SnackBar(content: Text(strings.addTransactionSuccess)),
+          );
+          return;
+        }
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(strings.addTransactionSuccess),
+            action: SnackBarAction(
+              label: strings.commonUndo,
+              onPressed: () {
+                final ProviderContainer container = ProviderScope.containerOf(
+                  context,
+                );
+                container
+                    .read(transactionActionsControllerProvider.notifier)
+                    .deleteTransaction(createdTransaction.id)
+                    .then((bool undone) {
+                      if (!context.mounted) {
+                        return;
+                      }
+                      ScaffoldMessenger.of(context)
+                        ..hideCurrentSnackBar()
+                        ..showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              undone
+                                  ? strings.addTransactionUndoSuccess
+                                  : strings.addTransactionUndoError,
+                            ),
+                          ),
+                        );
+                      container
+                          .read(transactionActionsControllerProvider.notifier)
+                          .reset();
+                    });
+              },
+            ),
+          ),
+        );
       },
       child: const Icon(Icons.add),
     );
@@ -585,8 +630,9 @@ class _AccountsListState extends State<_AccountsList> {
                                         fit: BoxFit.scaleDown,
                                         alignment: Alignment.topRight,
                                         child: Text(
-                                          currencyFormat
-                                              .format(account.balance),
+                                          currencyFormat.format(
+                                            account.balance,
+                                          ),
                                           style: theme.textTheme.headlineSmall
                                               ?.copyWith(
                                                 fontWeight: FontWeight.w600,
@@ -1036,9 +1082,7 @@ class _UpcomingPaymentTile extends ConsumerWidget {
           ScaffoldMessenger.of(context)
             ..hideCurrentSnackBar()
             ..showSnackBar(
-              SnackBar(
-                content: Text(strings.homeUpcomingPaymentsMissingRule),
-              ),
+              SnackBar(content: Text(strings.homeUpcomingPaymentsMissingRule)),
             );
           return;
         }

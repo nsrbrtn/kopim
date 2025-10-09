@@ -28,7 +28,7 @@ void main() {
     await database.close();
   });
 
-  AccountEntity buildAccount({bool isDeleted = false}) {
+  AccountEntity buildAccount({bool isDeleted = false, bool isPrimary = false}) {
     final DateTime now = DateTime.utc(2024, 1, 1);
     return AccountEntity(
       id: 'acc-1',
@@ -39,6 +39,7 @@ void main() {
       createdAt: now,
       updatedAt: now,
       isDeleted: isDeleted,
+      isPrimary: isPrimary,
     );
   }
 
@@ -53,6 +54,7 @@ void main() {
     expect(rows, hasLength(1));
     expect(rows.single.name, 'Main');
     expect(rows.single.isDeleted, isFalse);
+    expect(rows.single.isPrimary, isFalse);
 
     final List<db.OutboxEntryRow> outboxRows = await database
         .select(database.outboxEntries)
@@ -65,6 +67,32 @@ void main() {
         jsonDecode(outbox.payload) as Map<String, dynamic>;
     expect(payload['id'], 'acc-1');
     expect(payload['isDeleted'], false);
+    expect(payload['isPrimary'], false);
+  });
+
+  test('upsert primary account resets previous primary flags', () async {
+    final AccountEntity primaryAccount = buildAccount(isPrimary: true);
+    await repository.upsert(primaryAccount);
+
+    final AccountEntity secondAccount = primaryAccount.copyWith(
+      id: 'acc-2',
+      name: 'Savings',
+      isPrimary: true,
+    );
+    await repository.upsert(secondAccount);
+
+    final List<db.AccountRow> rows = await database
+        .select(database.accounts)
+        .get();
+    expect(rows, hasLength(2));
+    final db.AccountRow first = rows.firstWhere(
+      (db.AccountRow row) => row.id == 'acc-1',
+    );
+    final db.AccountRow second = rows.firstWhere(
+      (db.AccountRow row) => row.id == 'acc-2',
+    );
+    expect(first.isPrimary, isFalse);
+    expect(second.isPrimary, isTrue);
   });
 
   test('softDelete marks record and enqueues delete event', () async {

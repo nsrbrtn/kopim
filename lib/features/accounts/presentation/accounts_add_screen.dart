@@ -205,6 +205,14 @@ class _AddAccountScreenState extends ConsumerState<AddAccountScreen> {
                   onChanged: controller.updateCustomType,
                 ),
               ],
+              const SizedBox(height: 16),
+              SwitchListTile.adaptive(
+                contentPadding: EdgeInsets.zero,
+                value: state.isPrimary,
+                onChanged: state.isSaving ? null : controller.updateIsPrimary,
+                title: Text(strings.accountPrimaryToggleLabel),
+                subtitle: Text(strings.accountPrimaryToggleSubtitle),
+              ),
               if (state.errorMessage != null) ...<Widget>[
                 const SizedBox(height: 24),
                 Text(

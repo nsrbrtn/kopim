@@ -22,8 +22,10 @@ class CategoryChip extends StatelessWidget {
   final VoidCallback? onTap;
 
   static const double _height = 24;
-  static const EdgeInsets _padding =
-      EdgeInsets.symmetric(horizontal: 8, vertical: 2);
+  static const EdgeInsets _padding = EdgeInsets.symmetric(
+    horizontal: 8,
+    vertical: 2,
+  );
   static const double _borderRadius = 12;
 
   @override
@@ -31,21 +33,21 @@ class CategoryChip extends StatelessWidget {
     final ThemeData theme = Theme.of(context);
     final Color resolvedBackground =
         backgroundColor ?? theme.colorScheme.surfaceContainerHighest;
-    final Color resolvedForeground = foregroundColor ??
+    final Color resolvedForeground =
+        foregroundColor ??
         (ThemeData.estimateBrightnessForColor(resolvedBackground) ==
                 Brightness.dark
             ? Colors.white
             : theme.colorScheme.onSurface);
-    final Color selectedOverlay =
-        theme.colorScheme.primary.withValues(alpha: 0.14);
+    final Color selectedOverlay = theme.colorScheme.primary.withValues(
+      alpha: 0.14,
+    );
 
     return Material(
       type: MaterialType.transparency,
       child: InkWell(
         onTap: onTap,
-        borderRadius: const BorderRadius.all(
-          Radius.circular(_borderRadius),
-        ),
+        borderRadius: const BorderRadius.all(Radius.circular(_borderRadius)),
         splashColor: theme.colorScheme.primary.withValues(alpha: 0.12),
         highlightColor: theme.colorScheme.primary.withValues(alpha: 0.08),
         child: AnimatedContainer(
@@ -60,14 +62,13 @@ class CategoryChip extends StatelessWidget {
               Radius.circular(_borderRadius),
             ),
             border: Border.all(
-              color: selected
-                  ? theme.colorScheme.primary
-                  : Colors.transparent,
+              color: selected ? theme.colorScheme.primary : Colors.transparent,
               width: selected ? 1.2 : 1,
             ),
           ),
           child: DefaultTextStyle(
-            style: theme.textTheme.labelMedium?.copyWith(
+            style:
+                theme.textTheme.labelMedium?.copyWith(
                   color: resolvedForeground,
                   fontWeight: FontWeight.w600,
                 ) ??

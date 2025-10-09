@@ -112,6 +112,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dialogConfirm => 'Confirm';
 
   @override
+  String get commonUndo => 'Undo';
+
+  @override
   String get manageCategoriesParentLabel => 'Parent category';
 
   @override
@@ -224,6 +227,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get manageCategoriesColorPickerTitle => 'Pick a category color';
+
+  @override
+  String get manageCategoriesFavoriteLabel => 'Add to favorites';
+
+  @override
+  String get manageCategoriesFavoriteSubtitle =>
+      'Favorite categories appear at the top when creating transactions.';
 
   @override
   String get manageCategoriesSaveCta => 'Save category';
@@ -953,6 +963,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addTransactionSuccess => 'Transaction saved';
 
   @override
+  String get addTransactionUndoSuccess => 'Transaction removed.';
+
+  @override
+  String get addTransactionUndoError => 'Couldn\'t undo the transaction.';
+
+  @override
   String get homeAccountsAddTooltip => 'Add account';
 
   @override
@@ -999,6 +1015,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get addAccountTypeRequired => 'Please specify the account type.';
+
+  @override
+  String get accountPrimaryToggleLabel => 'Set as primary account';
+
+  @override
+  String get accountPrimaryToggleSubtitle =>
+      'This account will be selected by default for new transactions.';
 
   @override
   String get accountDetailsTitle => 'Account details';

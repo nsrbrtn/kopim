@@ -27,9 +27,9 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
         child: TransactionFormView(
           formKey: _formKey,
           formArgs: _formArgs,
-          onSuccess: () {
+          onSuccess: (TransactionFormResult result) {
             if (!context.mounted) return;
-            Navigator.of(context).pop(true);
+            Navigator.of(context).pop(result);
           },
         ),
       ),

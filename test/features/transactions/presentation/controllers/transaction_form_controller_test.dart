@@ -80,7 +80,19 @@ void main() {
       provider.notifier,
     );
 
-    when(() => addUseCase(any())).thenAnswer((_) async {});
+    when(() => addUseCase(any())).thenAnswer(
+      (_) async => TransactionEntity(
+        id: 'generated',
+        accountId: 'acc-1',
+        categoryId: 'cat-1',
+        amount: 42.5,
+        date: DateTime.utc(2024, 4, 1),
+        note: 'Snacks',
+        type: TransactionType.income.storageValue,
+        createdAt: DateTime.utc(2024, 4, 1),
+        updatedAt: DateTime.utc(2024, 4, 1),
+      ),
+    );
 
     controller
       ..updateAccount('acc-1')
@@ -105,6 +117,7 @@ void main() {
     final TransactionFormState state = container.read(provider);
     expect(state.isSuccess, isTrue);
     expect(state.isSubmitting, isFalse);
+    expect(state.lastCreatedTransaction?.amount, closeTo(42.5, 1e-9));
   });
 
   test('submit updates an existing transaction', () async {
@@ -154,5 +167,6 @@ void main() {
     final TransactionFormState state = container.read(provider);
     expect(state.isSuccess, isTrue);
     expect(state.isSubmitting, isFalse);
+    expect(state.lastCreatedTransaction, isNull);
   });
 }

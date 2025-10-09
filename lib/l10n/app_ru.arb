@@ -134,6 +134,10 @@
   "@dialogConfirm": {
     "description": "Подпись кнопки подтверждения в диалогах"
   },
+  "commonUndo": "Отменить",
+  "@commonUndo": {
+    "description": "Подпись для действия отмены"
+  },
   "manageCategoriesParentLabel": "Родительская категория",
   "@manageCategoriesParentLabel": {
     "description": "Подпись выпадающего списка выбора родительской категории"
@@ -286,6 +290,14 @@
   "manageCategoriesColorPickerTitle": "Выберите цвет категории",
   "@manageCategoriesColorPickerTitle": {
     "description": "Заголовок диалога выбора цвета"
+  },
+  "manageCategoriesFavoriteLabel": "Добавить в избранное",
+  "@manageCategoriesFavoriteLabel": {
+    "description": "Подпись переключателя избранных категорий"
+  },
+  "manageCategoriesFavoriteSubtitle": "Избранные категории отображаются вверху списка при создании транзакций.",
+  "@manageCategoriesFavoriteSubtitle": {
+    "description": "Пояснение, как используются избранные категории"
   },
   "manageCategoriesSaveCta": "Сохранить категорию",
   "@manageCategoriesSaveCta": {
@@ -1262,6 +1274,14 @@
   "@addTransactionSuccess": {
     "description": "Сообщение об успешном сохранении"
   },
+  "addTransactionUndoSuccess": "Транзакция отменена.",
+  "@addTransactionUndoSuccess": {
+    "description": "Сообщение после успешной отмены добавленной транзакции"
+  },
+  "addTransactionUndoError": "Не удалось отменить транзакцию.",
+  "@addTransactionUndoError": {
+    "description": "Сообщение об ошибке при отмене транзакции"
+  },
   "homeAccountsAddTooltip": "Добавить счёт",
   "@homeAccountsAddTooltip": {
     "description": "Тултип для кнопки добавления счёта на домашнем экране"
@@ -1325,6 +1345,14 @@
   "addAccountTypeRequired": "Укажите тип счёта.",
   "@addAccountTypeRequired": {
     "description": "Сообщение валидации при отсутствии типа счёта"
+  },
+  "accountPrimaryToggleLabel": "Сделать счёт основным",
+  "@accountPrimaryToggleLabel": {
+    "description": "Подпись переключателя назначения счёта основным"
+  },
+  "accountPrimaryToggleSubtitle": "Этот счёт будет выбираться по умолчанию при создании транзакций.",
+  "@accountPrimaryToggleSubtitle": {
+    "description": "Подпись с пояснением настройки основного счёта"
   },
   "accountDetailsTitle": "Счёт",
   "@accountDetailsTitle": {

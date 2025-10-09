@@ -284,6 +284,12 @@ abstract class AppLocalizations {
   /// **'Confirm'**
   String get dialogConfirm;
 
+  /// Generic undo action label
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get commonUndo;
+
   /// Label for the dropdown that selects a parent category
   ///
   /// In en, this message translates to:
@@ -505,6 +511,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Pick a category color'**
   String get manageCategoriesColorPickerTitle;
+
+  /// Label for the switch that marks a category as favorite
+  ///
+  /// In en, this message translates to:
+  /// **'Add to favorites'**
+  String get manageCategoriesFavoriteLabel;
+
+  /// Helper text explaining how favorite categories are used
+  ///
+  /// In en, this message translates to:
+  /// **'Favorite categories appear at the top when creating transactions.'**
+  String get manageCategoriesFavoriteSubtitle;
 
   /// Button label for saving a category
   ///
@@ -1724,6 +1742,18 @@ abstract class AppLocalizations {
   /// **'Transaction saved'**
   String get addTransactionSuccess;
 
+  /// Snackbar message shown after undoing a newly created transaction
+  ///
+  /// In en, this message translates to:
+  /// **'Transaction removed.'**
+  String get addTransactionUndoSuccess;
+
+  /// Snackbar message shown when undoing a transaction fails
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t undo the transaction.'**
+  String get addTransactionUndoError;
+
   /// Tooltip for the add account button on the home screen
   ///
   /// In en, this message translates to:
@@ -1819,6 +1849,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Please specify the account type.'**
   String get addAccountTypeRequired;
+
+  /// Label for the switch that marks an account as primary
+  ///
+  /// In en, this message translates to:
+  /// **'Set as primary account'**
+  String get accountPrimaryToggleLabel;
+
+  /// Helper text explaining what the primary account setting does
+  ///
+  /// In en, this message translates to:
+  /// **'This account will be selected by default for new transactions.'**
+  String get accountPrimaryToggleSubtitle;
 
   /// Title for the account details screen
   ///

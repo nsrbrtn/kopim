@@ -25,41 +25,42 @@ class _RecurringRuleEditScreenState
   @override
   Widget build(BuildContext context) {
     final AppLocalizations strings = AppLocalizations.of(context)!;
-    final AsyncValue<RecurringRule?> ruleAsync =
-        ref.watch(recurringRuleByIdProvider(widget.ruleId));
+    final AsyncValue<RecurringRule?> ruleAsync = ref.watch(
+      recurringRuleByIdProvider(widget.ruleId),
+    );
 
     return ruleAsync.when(
       data: (RecurringRule? rule) {
         if (rule == null) {
-        return Scaffold(
-          appBar: AppBar(title: Text(strings.editRecurringRuleTitle)),
-          body: Center(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  Icon(
-                    Icons.info_outline,
-                    size: 48,
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    strings.homeUpcomingPaymentsMissingRule,
-                    style: Theme.of(context).textTheme.bodyMedium,
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 24),
-                  FilledButton(
-                    onPressed: () => Navigator.of(context).maybePop(),
-                    child: Text(strings.cancelButtonLabel),
-                  ),
-                ],
+          return Scaffold(
+            appBar: AppBar(title: Text(strings.editRecurringRuleTitle)),
+            body: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    Icon(
+                      Icons.info_outline,
+                      size: 48,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      strings.homeUpcomingPaymentsMissingRule,
+                      style: Theme.of(context).textTheme.bodyMedium,
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 24),
+                    FilledButton(
+                      onPressed: () => Navigator.of(context).maybePop(),
+                      child: Text(strings.cancelButtonLabel),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-        );
+          );
         }
 
         return Scaffold(

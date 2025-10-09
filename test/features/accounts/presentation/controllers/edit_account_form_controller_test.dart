@@ -41,7 +41,8 @@ void main() {
       controller
         ..updateName(' Wallet Plus ')
         ..updateBalance('250,75')
-        ..updateCurrency('EUR');
+        ..updateCurrency('EUR')
+        ..updateIsPrimary(true);
 
       await controller.submit();
 
@@ -54,11 +55,13 @@ void main() {
       expect(updated.type, original.type);
       expect(updated.createdAt, original.createdAt);
       expect(updated.updatedAt.isAfter(original.updatedAt), isTrue);
+      expect(updated.isPrimary, isTrue);
 
       final EditAccountFormState state = container.read(
         editAccountFormControllerProvider(original),
       );
       expect(state.submissionSuccess, isTrue);
+      expect(state.isPrimary, isTrue);
     });
 
     test('validates empty name and invalid balance', () async {

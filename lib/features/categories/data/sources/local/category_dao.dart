@@ -13,6 +13,10 @@ class CategoryDao {
         _db.select(_db.categories)
           ..where((db.$CategoriesTable tbl) => tbl.isDeleted.equals(false))
           ..orderBy(<OrderingTerm Function(db.$CategoriesTable tbl)>[
+            (db.$CategoriesTable tbl) => OrderingTerm(
+              expression: tbl.isFavorite,
+              mode: OrderingMode.desc,
+            ),
             (db.$CategoriesTable tbl) =>
                 OrderingTerm(expression: tbl.name, mode: OrderingMode.asc),
           ]);
@@ -24,6 +28,10 @@ class CategoryDao {
         _db.select(_db.categories)
           ..where((db.$CategoriesTable tbl) => tbl.isDeleted.equals(false))
           ..orderBy(<OrderingTerm Function(db.$CategoriesTable tbl)>[
+            (db.$CategoriesTable tbl) => OrderingTerm(
+              expression: tbl.isFavorite,
+              mode: OrderingMode.desc,
+            ),
             (db.$CategoriesTable tbl) =>
                 OrderingTerm(expression: tbl.name, mode: OrderingMode.asc),
           ]);
@@ -107,6 +115,7 @@ class CategoryDao {
       updatedAt: Value<DateTime>(category.updatedAt),
       isDeleted: Value<bool>(category.isDeleted),
       isSystem: Value<bool>(category.isSystem),
+      isFavorite: Value<bool>(category.isFavorite),
     );
   }
 
@@ -131,6 +140,7 @@ class CategoryDao {
       updatedAt: row.updatedAt,
       isDeleted: row.isDeleted,
       isSystem: row.isSystem,
+      isFavorite: row.isFavorite,
     );
   }
 }

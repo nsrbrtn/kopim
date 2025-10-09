@@ -86,7 +86,7 @@ void main() {
       type: TransactionType.expense,
     );
 
-    await useCase(request);
+    final TransactionEntity created = await useCase(request);
 
     final TransactionEntity transaction =
         verify(() => transactionRepository.upsert(captureAny())).captured.single
@@ -98,6 +98,8 @@ void main() {
     expect(transaction.note, 'Lunch');
     expect(transaction.createdAt, fixedNow.toUtc());
     expect(transaction.updatedAt, fixedNow.toUtc());
+    expect(created.id, 'generated-id');
+    expect(created.amount, 50);
 
     final AccountEntity updatedAccount =
         verify(() => accountRepository.upsert(captureAny())).captured.single
@@ -122,12 +124,13 @@ void main() {
       type: TransactionType.income,
     );
 
-    await useCase(request);
+    final TransactionEntity created = await useCase(request);
 
     final AccountEntity updatedAccount =
         verify(() => accountRepository.upsert(captureAny())).captured.single
             as AccountEntity;
     expect(updatedAccount.balance, closeTo(100, 1e-9));
+    expect(created.amount, 20);
   });
 
   test('throws StateError when account is missing', () async {

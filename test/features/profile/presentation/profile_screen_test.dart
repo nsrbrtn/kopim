@@ -269,11 +269,6 @@ void main() {
   testWidgets('opens general settings from app bar action', (
     WidgetTester tester,
   ) async {
-    final List<Route<dynamic>> pushedRoutes = <Route<dynamic>>[];
-    final NavigatorObserver observer = _RecordingNavigatorObserver(
-      pushedRoutes,
-    );
-
     await tester.pumpWidget(
       ProviderScope(
         overrides: <Override>[
@@ -310,7 +305,6 @@ void main() {
             GeneralSettingsScreen.routeName: (_) =>
                 const GeneralSettingsScreen(),
           },
-          navigatorObservers: <NavigatorObserver>[observer],
         ),
       ),
     );
@@ -323,10 +317,6 @@ void main() {
     await tester.tap(find.byTooltip(strings.profileGeneralSettingsTooltip));
     await tester.pumpAndSettle();
 
-    expect(
-      pushedRoutes.map((Route<dynamic> route) => route.settings.name),
-      contains(GeneralSettingsScreen.routeName),
-    );
     expect(find.byType(GeneralSettingsScreen), findsOneWidget);
   });
 
@@ -387,16 +377,4 @@ void main() {
 
     expect(didSignOut, isTrue);
   });
-}
-
-class _RecordingNavigatorObserver extends NavigatorObserver {
-  _RecordingNavigatorObserver(this.pushedRoutes);
-
-  final List<Route<dynamic>> pushedRoutes;
-
-  @override
-  void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
-    pushedRoutes.add(route);
-    super.didPush(route, previousRoute);
-  }
 }

@@ -57,10 +57,11 @@ class AnalyticsDonutChart extends StatelessWidget {
           final double labelRadius = ringRadius + strokeWidth * 0.65;
           final bool showOnlySelected = constraints.maxWidth < 320;
           final int effectiveSelected =
-              selectedIndex != null && selectedIndex! >= 0 &&
-                      selectedIndex! < segments.length
-                  ? selectedIndex!
-                  : 0;
+              selectedIndex != null &&
+                  selectedIndex! >= 0 &&
+                  selectedIndex! < segments.length
+              ? selectedIndex!
+              : 0;
 
           final List<_LabelPlacement> placements = _buildLabelPlacements(
             segments: segments,
@@ -92,16 +93,16 @@ class AnalyticsDonutChart extends StatelessWidget {
                     top: placement.top,
                     left: placement.isRight
                         ? canvasRadius +
-                            ringRadius +
-                            strokeWidth / 2 +
-                            _labelSidePadding
+                              ringRadius +
+                              strokeWidth / 2 +
+                              _labelSidePadding
                         : null,
                     right: placement.isRight
                         ? null
                         : canvasRadius +
-                            ringRadius +
-                            strokeWidth / 2 +
-                            _labelSidePadding,
+                              ringRadius +
+                              strokeWidth / 2 +
+                              _labelSidePadding,
                     child: _DonutPercentageBadge(
                       percentage: placement.percentage,
                     ),
@@ -228,10 +229,10 @@ class _DonutChartPainter extends CustomPainter {
 
     for (int index = 0; index < segments.length; index++) {
       final _DonutSegment segment = segments[index];
-      final bool isDimmed =
-          selectedIndex != null && index != selectedIndex;
-      paint.color =
-          isDimmed ? segment.color.withValues(alpha: 0.35) : segment.color;
+      final bool isDimmed = selectedIndex != null && index != selectedIndex;
+      paint.color = isDimmed
+          ? segment.color.withValues(alpha: 0.35)
+          : segment.color;
       canvas.drawArc(
         rect,
         segment.startAngle,
@@ -278,9 +279,9 @@ class _DonutPercentageBadge extends StatelessWidget {
     final ThemeData theme = Theme.of(context);
     final TextStyle style =
         theme.textTheme.labelSmall?.copyWith(
-              color: theme.colorScheme.onSurface,
-              fontWeight: FontWeight.w600,
-            ) ??
+          color: theme.colorScheme.onSurface,
+          fontWeight: FontWeight.w600,
+        ) ??
         TextStyle(
           color: theme.colorScheme.onSurface,
           fontWeight: FontWeight.w600,
@@ -300,7 +301,7 @@ class _DonutPercentageBadge extends StatelessWidget {
         border: Border.all(color: theme.colorScheme.outlineVariant),
         boxShadow: <BoxShadow>[
           BoxShadow(
-        color: theme.colorScheme.shadow.withValues(alpha: 0.08),
+            color: theme.colorScheme.shadow.withValues(alpha: 0.08),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -368,18 +369,12 @@ void _resolveLabelPositions(
     final _LabelPlacement placement = placements[i];
     double top = placement.baseTop;
     if (i == 0) {
-      top = top.clamp(
-        0,
-        size - _DonutPercentageBadge._height,
-      );
+      top = top.clamp(0, size - _DonutPercentageBadge._height);
     } else {
       final double minTop =
           previousTop + _DonutPercentageBadge._height + minGap;
       top = math.max(top, minTop);
-      top = math.min(
-        top,
-        size - _DonutPercentageBadge._height,
-      );
+      top = math.min(top, size - _DonutPercentageBadge._height);
     }
     placement.top = top;
     previousTop = top;
@@ -387,13 +382,9 @@ void _resolveLabelPositions(
 
   for (int i = placements.length - 2; i >= 0; i--) {
     final double nextTop = placements[i + 1].top;
-    final double maxTop =
-        nextTop - (_DonutPercentageBadge._height + minGap);
+    final double maxTop = nextTop - (_DonutPercentageBadge._height + minGap);
     if (placements[i].top > maxTop) {
-      placements[i].top = maxTop.clamp(
-        0,
-        size - _DonutPercentageBadge._height,
-      );
+      placements[i].top = maxTop.clamp(0, size - _DonutPercentageBadge._height);
     }
   }
 }

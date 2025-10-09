@@ -7,4 +7,3 @@ class AvatarStorageException implements Exception {
   @override
   String toString() => 'AvatarStorageException(code: , message: )';
 }
-
