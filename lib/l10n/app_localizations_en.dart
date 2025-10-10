@@ -33,7 +33,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileManageCategoriesCta => 'Manage categories';
 
   @override
-  String get profileRecurringTransactionsCta => 'Recurring transactions';
+  String get profileUpcomingPaymentsCta => 'Upcoming payments';
 
   @override
   String get settingsHomeSectionTitle => 'Home screen';
@@ -718,6 +718,160 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get homeUpcomingPaymentsMore => 'More';
+
+  @override
+  String get upcomingPaymentsTitle => 'Upcoming payments';
+
+  @override
+  String get upcomingPaymentsTabPayments => 'Payments';
+
+  @override
+  String get upcomingPaymentsTabReminders => 'Reminders';
+
+  @override
+  String get upcomingPaymentsEmptyPaymentsTitle => 'No payment rules yet';
+
+  @override
+  String get upcomingPaymentsEmptyPaymentsDescription =>
+      'Create automated payment rules to keep bills under control.';
+
+  @override
+  String get upcomingPaymentsEmptyRemindersTitle => 'No reminders yet';
+
+  @override
+  String get upcomingPaymentsEmptyRemindersDescription =>
+      'Set reminders so you never miss a manual payment.';
+
+  @override
+  String get upcomingPaymentsAddPayment => 'Add payment';
+
+  @override
+  String get upcomingPaymentsAddReminder => 'Add reminder';
+
+  @override
+  String get upcomingPaymentsNewPaymentTitle => 'New payment';
+
+  @override
+  String get upcomingPaymentsEditPaymentTitle => 'Edit payment';
+
+  @override
+  String get upcomingPaymentsNewReminderTitle => 'New reminder';
+
+  @override
+  String get upcomingPaymentsEditReminderTitle => 'Edit reminder';
+
+  @override
+  String get upcomingPaymentsFieldTitle => 'Name';
+
+  @override
+  String get upcomingPaymentsFieldAccount => 'Account';
+
+  @override
+  String get upcomingPaymentsFieldCategory => 'Category';
+
+  @override
+  String get upcomingPaymentsFieldAmount => 'Amount';
+
+  @override
+  String get upcomingPaymentsFieldDayOfMonth => 'Day of month';
+
+  @override
+  String get upcomingPaymentsFieldNotifyDaysBefore => 'Notify days before';
+
+  @override
+  String get upcomingPaymentsFieldNotifyTime => 'Notification time';
+
+  @override
+  String get upcomingPaymentsFieldAutoPost => 'Post automatically';
+
+  @override
+  String get upcomingPaymentsFieldNote => 'Note';
+
+  @override
+  String get upcomingPaymentsFieldReminderWhen => 'Date and time';
+
+  @override
+  String get upcomingPaymentsFieldReminderCompleted => 'Mark as done';
+
+  @override
+  String get upcomingPaymentsSubmit => 'Save';
+
+  @override
+  String get upcomingPaymentsCancel => 'Cancel';
+
+  @override
+  String get upcomingPaymentsSaveSuccess => 'Upcoming payment saved';
+
+  @override
+  String get upcomingPaymentsReminderSaveSuccess => 'Reminder saved';
+
+  @override
+  String upcomingPaymentsSaveError(String error) {
+    return 'Failed to save payment: $error';
+  }
+
+  @override
+  String upcomingPaymentsReminderSaveError(String error) {
+    return 'Failed to save reminder: $error';
+  }
+
+  @override
+  String get upcomingPaymentsValidationTitle => 'Enter a name';
+
+  @override
+  String get upcomingPaymentsValidationAmount => 'Enter a positive amount';
+
+  @override
+  String get upcomingPaymentsValidationDay => 'Day must be between 1 and 31';
+
+  @override
+  String get upcomingPaymentsValidationNotifyDays =>
+      'Notify days must be zero or greater';
+
+  @override
+  String get upcomingPaymentsNoAccounts =>
+      'Add an account to schedule payments.';
+
+  @override
+  String get upcomingPaymentsNoCategories =>
+      'Create a category to schedule payments.';
+
+  @override
+  String upcomingPaymentsMonthlySummary(int day) {
+    return 'Every month on day $day';
+  }
+
+  @override
+  String upcomingPaymentsNotifySummary(int days, String time) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days days before at $time',
+      one: '$days day before at $time',
+      zero: 'on the day at $time',
+    );
+    return 'Notify $_temp0';
+  }
+
+  @override
+  String upcomingPaymentsReminderDue(String date) {
+    return 'Due $date';
+  }
+
+  @override
+  String upcomingPaymentsListError(String error) {
+    return 'Couldn\'t load items: $error';
+  }
+
+  @override
+  String get upcomingPaymentsNotificationPermissionDenied =>
+      'Notifications are disabled. Enable them to receive reminders.';
+
+  @override
+  String get upcomingPaymentsScheduleTriggered => 'Background worker queued';
 
   @override
   String get homeSavingsWidgetTitle => 'Saving goals';

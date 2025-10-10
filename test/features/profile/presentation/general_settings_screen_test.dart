@@ -7,7 +7,7 @@ import 'package:kopim/features/categories/presentation/screens/manage_categories
 import 'package:kopim/features/home/domain/entities/home_dashboard_preferences.dart';
 import 'package:kopim/features/home/presentation/controllers/home_dashboard_preferences_controller.dart';
 import 'package:kopim/features/profile/presentation/screens/general_settings_screen.dart';
-import 'package:kopim/features/recurring_transactions/presentation/screens/recurring_transactions_screen.dart';
+import 'package:kopim/features/upcoming_payments/presentation/screens/upcoming_payments_screen.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 import 'package:riverpod/src/framework.dart' show Override;
 
@@ -56,7 +56,7 @@ void main() {
     final AppLocalizations strings = AppLocalizations.of(context)!;
 
     expect(find.text(strings.profileManageCategoriesCta), findsOneWidget);
-    expect(find.text(strings.profileRecurringTransactionsCta), findsOneWidget);
+    expect(find.text(strings.profileUpcomingPaymentsCta), findsOneWidget);
   });
 
   testWidgets('navigates to management screens', (WidgetTester tester) async {
@@ -77,8 +77,8 @@ void main() {
           routes: <String, WidgetBuilder>{
             ManageCategoriesScreen.routeName: (_) =>
                 const _StubDestination(label: 'manage-categories-destination'),
-            RecurringTransactionsScreen.routeName: (_) =>
-                const _StubDestination(label: 'recurring-destination'),
+            UpcomingPaymentsScreen.routeName: (_) =>
+                const _StubDestination(label: 'upcoming-destination'),
           },
           navigatorObservers: <NavigatorObserver>[observer],
         ),
@@ -104,14 +104,14 @@ void main() {
     navigatorKey.currentState!.pop();
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text(strings.profileRecurringTransactionsCta));
+    await tester.tap(find.text(strings.profileUpcomingPaymentsCta));
     await tester.pumpAndSettle();
 
     expect(
       pushedRoutes.map((Route<dynamic> route) => route.settings.name),
-      contains(RecurringTransactionsScreen.routeName),
+      contains(UpcomingPaymentsScreen.routeName),
     );
-    expect(find.text('recurring-destination'), findsOneWidget);
+    expect(find.text('upcoming-destination'), findsOneWidget);
   });
 }
 

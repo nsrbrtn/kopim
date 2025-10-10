@@ -146,11 +146,11 @@ abstract class AppLocalizations {
   /// **'Manage categories'**
   String get profileManageCategoriesCta;
 
-  /// Button label that opens the recurring transactions screen from the profile settings
+  /// Button label that opens the upcoming payments screen from the profile settings
   ///
   /// In en, this message translates to:
-  /// **'Recurring transactions'**
-  String get profileRecurringTransactionsCta;
+  /// **'Upcoming payments'**
+  String get profileUpcomingPaymentsCta;
 
   /// Section header for home screen configuration
   ///
@@ -1327,6 +1327,264 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =0 {No scheduled payments} one {# upcoming payment} other {# upcoming payments}}'**
   String homeUpcomingPaymentsCountSemantics(int count);
+
+  /// Button label that opens the upcoming payments screen from the home widget
+  ///
+  /// In en, this message translates to:
+  /// **'More'**
+  String get homeUpcomingPaymentsMore;
+
+  /// Title for the upcoming payments screen
+  ///
+  /// In en, this message translates to:
+  /// **'Upcoming payments'**
+  String get upcomingPaymentsTitle;
+
+  /// Tab label for recurring payment rules
+  ///
+  /// In en, this message translates to:
+  /// **'Payments'**
+  String get upcomingPaymentsTabPayments;
+
+  /// Tab label for manual payment reminders
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders'**
+  String get upcomingPaymentsTabReminders;
+
+  /// Headline for empty state of the payment rules list
+  ///
+  /// In en, this message translates to:
+  /// **'No payment rules yet'**
+  String get upcomingPaymentsEmptyPaymentsTitle;
+
+  /// Description for empty state of the payment rules list
+  ///
+  /// In en, this message translates to:
+  /// **'Create automated payment rules to keep bills under control.'**
+  String get upcomingPaymentsEmptyPaymentsDescription;
+
+  /// Headline for empty state of the reminders list
+  ///
+  /// In en, this message translates to:
+  /// **'No reminders yet'**
+  String get upcomingPaymentsEmptyRemindersTitle;
+
+  /// Description for empty state of the reminders list
+  ///
+  /// In en, this message translates to:
+  /// **'Set reminders so you never miss a manual payment.'**
+  String get upcomingPaymentsEmptyRemindersDescription;
+
+  /// Action label for creating a new upcoming payment
+  ///
+  /// In en, this message translates to:
+  /// **'Add payment'**
+  String get upcomingPaymentsAddPayment;
+
+  /// Action label for creating a new payment reminder
+  ///
+  /// In en, this message translates to:
+  /// **'Add reminder'**
+  String get upcomingPaymentsAddReminder;
+
+  /// Title for the create payment form
+  ///
+  /// In en, this message translates to:
+  /// **'New payment'**
+  String get upcomingPaymentsNewPaymentTitle;
+
+  /// Title for the edit payment form
+  ///
+  /// In en, this message translates to:
+  /// **'Edit payment'**
+  String get upcomingPaymentsEditPaymentTitle;
+
+  /// Title for the create reminder form
+  ///
+  /// In en, this message translates to:
+  /// **'New reminder'**
+  String get upcomingPaymentsNewReminderTitle;
+
+  /// Title for the edit reminder form
+  ///
+  /// In en, this message translates to:
+  /// **'Edit reminder'**
+  String get upcomingPaymentsEditReminderTitle;
+
+  /// Label for the payment or reminder title field
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get upcomingPaymentsFieldTitle;
+
+  /// Label for selecting an account
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get upcomingPaymentsFieldAccount;
+
+  /// Label for selecting a category
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get upcomingPaymentsFieldCategory;
+
+  /// Label for the amount input
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get upcomingPaymentsFieldAmount;
+
+  /// Label for selecting the recurring day of month
+  ///
+  /// In en, this message translates to:
+  /// **'Day of month'**
+  String get upcomingPaymentsFieldDayOfMonth;
+
+  /// Label for the notify days input
+  ///
+  /// In en, this message translates to:
+  /// **'Notify days before'**
+  String get upcomingPaymentsFieldNotifyDaysBefore;
+
+  /// Label for the notification time picker
+  ///
+  /// In en, this message translates to:
+  /// **'Notification time'**
+  String get upcomingPaymentsFieldNotifyTime;
+
+  /// Label for the auto post switch
+  ///
+  /// In en, this message translates to:
+  /// **'Post automatically'**
+  String get upcomingPaymentsFieldAutoPost;
+
+  /// Label for the optional note field
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get upcomingPaymentsFieldNote;
+
+  /// Label for selecting reminder date and time
+  ///
+  /// In en, this message translates to:
+  /// **'Date and time'**
+  String get upcomingPaymentsFieldReminderWhen;
+
+  /// Label for reminder completion switch
+  ///
+  /// In en, this message translates to:
+  /// **'Mark as done'**
+  String get upcomingPaymentsFieldReminderCompleted;
+
+  /// Primary action button for saving a form
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get upcomingPaymentsSubmit;
+
+  /// Secondary action for dismissing a form
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get upcomingPaymentsCancel;
+
+  /// Snackbar message shown when a payment rule is saved
+  ///
+  /// In en, this message translates to:
+  /// **'Upcoming payment saved'**
+  String get upcomingPaymentsSaveSuccess;
+
+  /// Snackbar message shown when a reminder is saved
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder saved'**
+  String get upcomingPaymentsReminderSaveSuccess;
+
+  /// Error message shown when saving a payment rule fails
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to save payment: {error}'**
+  String upcomingPaymentsSaveError(String error);
+
+  /// Error message shown when saving a reminder fails
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to save reminder: {error}'**
+  String upcomingPaymentsReminderSaveError(String error);
+
+  /// Validation error shown when title is empty
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a name'**
+  String get upcomingPaymentsValidationTitle;
+
+  /// Validation error for amount
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a positive amount'**
+  String get upcomingPaymentsValidationAmount;
+
+  /// Validation error for day of month
+  ///
+  /// In en, this message translates to:
+  /// **'Day must be between 1 and 31'**
+  String get upcomingPaymentsValidationDay;
+
+  /// Validation error for notify days
+  ///
+  /// In en, this message translates to:
+  /// **'Notify days must be zero or greater'**
+  String get upcomingPaymentsValidationNotifyDays;
+
+  /// Message shown when there are no accounts available
+  ///
+  /// In en, this message translates to:
+  /// **'Add an account to schedule payments.'**
+  String get upcomingPaymentsNoAccounts;
+
+  /// Message shown when there are no categories available
+  ///
+  /// In en, this message translates to:
+  /// **'Create a category to schedule payments.'**
+  String get upcomingPaymentsNoCategories;
+
+  /// Summary text describing the recurring schedule
+  ///
+  /// In en, this message translates to:
+  /// **'Every month on day {day}'**
+  String upcomingPaymentsMonthlySummary(int day);
+
+  /// Summary describing when notifications are sent
+  ///
+  /// In en, this message translates to:
+  /// **'Notify {days, plural, =0 {on the day at {time}} one {{days} day before at {time}} other {{days} days before at {time}}}'**
+  String upcomingPaymentsNotifySummary(int days, String time);
+
+  /// Label showing reminder due date
+  ///
+  /// In en, this message translates to:
+  /// **'Due {date}'**
+  String upcomingPaymentsReminderDue(String date);
+
+  /// Error shown when stream loading fails
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load items: {error}'**
+  String upcomingPaymentsListError(String error);
+
+  /// Message shown when scheduling notifications fails because permission is denied
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications are disabled. Enable them to receive reminders.'**
+  String get upcomingPaymentsNotificationPermissionDenied;
+
+  /// Message shown when the background worker is scheduled
+  ///
+  /// In en, this message translates to:
+  /// **'Background worker queued'**
+  String get upcomingPaymentsScheduleTriggered;
 
   /// Title for the savings overview widget on the home screen
   ///

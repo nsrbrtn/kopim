@@ -10,7 +10,7 @@ import 'package:kopim/features/budgets/presentation/controllers/budgets_provider
 import 'package:kopim/features/home/domain/entities/home_dashboard_preferences.dart';
 import 'package:kopim/features/home/presentation/controllers/home_dashboard_preferences_controller.dart';
 import 'package:kopim/features/categories/presentation/screens/manage_categories_screen.dart';
-import 'package:kopim/features/recurring_transactions/presentation/screens/recurring_transactions_screen.dart';
+import 'package:kopim/features/upcoming_payments/presentation/screens/upcoming_payments_screen.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
 class GeneralSettingsScreen extends ConsumerWidget {
@@ -45,12 +45,10 @@ class GeneralSettingsScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 12),
           _SettingsTile(
-            icon: Icons.repeat,
-            title: strings.profileRecurringTransactionsCta,
+            icon: Icons.event_repeat,
+            title: strings.profileUpcomingPaymentsCta,
             onTap: () {
-              Navigator.of(
-                context,
-              ).pushNamed(RecurringTransactionsScreen.routeName);
+              Navigator.of(context).pushNamed(UpcomingPaymentsScreen.routeName);
             },
           ),
           const SizedBox(height: 24),

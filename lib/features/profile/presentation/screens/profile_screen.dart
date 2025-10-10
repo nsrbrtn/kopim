@@ -6,7 +6,7 @@ import 'package:kopim/features/profile/domain/entities/auth_user.dart';
 import 'package:kopim/features/profile/presentation/controllers/auth_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/avatar_controller.dart';
 import 'package:kopim/features/categories/presentation/screens/manage_categories_screen.dart';
-import 'package:kopim/features/recurring_transactions/presentation/screens/recurring_transactions_screen.dart';
+import 'package:kopim/features/upcoming_payments/presentation/screens/upcoming_payments_screen.dart';
 import 'package:kopim/features/profile/presentation/screens/general_settings_screen.dart';
 import 'package:kopim/features/profile/presentation/widgets/profile_management_body.dart';
 import 'package:kopim/l10n/app_localizations.dart';
@@ -70,9 +70,9 @@ class _ProfileTabNavigatorState extends State<_ProfileTabNavigator> {
               builder: (_) => const ManageCategoriesScreen(),
               settings: settings,
             );
-          case RecurringTransactionsScreen.routeName:
+          case UpcomingPaymentsScreen.routeName:
             return MaterialPageRoute<void>(
-              builder: (_) => const RecurringTransactionsScreen(),
+              builder: (_) => const UpcomingPaymentsScreen(),
               settings: settings,
             );
           default:

@@ -25,6 +25,9 @@ import 'features/transactions/presentation/add_transaction_screen.dart';
 import 'features/transactions/presentation/screens/all_transactions_screen.dart';
 import 'features/recurring_transactions/presentation/screens/add_recurring_rule_screen.dart';
 import 'features/recurring_transactions/presentation/screens/recurring_transactions_screen.dart';
+import 'features/upcoming_payments/presentation/screens/edit_payment_reminder_screen.dart';
+import 'features/upcoming_payments/presentation/screens/edit_upcoming_payment_screen.dart';
+import 'features/upcoming_payments/presentation/screens/upcoming_payments_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -95,6 +98,23 @@ class _MyAppState extends ConsumerState<MyApp> {
         RecurringTransactionsScreen.routeName: (_) =>
             const RecurringTransactionsScreen(),
         AddRecurringRuleScreen.routeName: (_) => const AddRecurringRuleScreen(),
+        UpcomingPaymentsScreen.routeName: (_) => const UpcomingPaymentsScreen(),
+        EditUpcomingPaymentScreen.routeName: (BuildContext context) {
+          final Object? args = ModalRoute.of(context)?.settings.arguments;
+          final EditUpcomingPaymentScreenArgs typedArgs =
+              args is EditUpcomingPaymentScreenArgs
+              ? args
+              : const EditUpcomingPaymentScreenArgs();
+          return EditUpcomingPaymentScreen(args: typedArgs);
+        },
+        EditPaymentReminderScreen.routeName: (BuildContext context) {
+          final Object? args = ModalRoute.of(context)?.settings.arguments;
+          final EditPaymentReminderScreenArgs typedArgs =
+              args is EditPaymentReminderScreenArgs
+              ? args
+              : const EditPaymentReminderScreenArgs();
+          return EditPaymentReminderScreen(args: typedArgs);
+        },
         AllTransactionsScreen.routeName: (_) => const AllTransactionsScreen(),
       },
       home: startupState.when(

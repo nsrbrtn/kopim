@@ -10,12 +10,12 @@ import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/home/domain/entities/home_dashboard_preferences.dart';
 import 'package:kopim/features/home/domain/models/day_section.dart';
 import 'package:kopim/features/home/domain/models/home_account_monthly_summary.dart';
-import 'package:kopim/features/home/domain/models/upcoming_payment.dart';
 import 'package:kopim/features/home/presentation/controllers/home_dashboard_preferences_controller.dart';
 import 'package:kopim/features/home/presentation/controllers/home_transactions_filter_controller.dart';
 import 'package:kopim/features/home/presentation/widgets/home_budget_progress_card.dart';
 import 'package:kopim/features/home/presentation/widgets/home_gamification_app_bar.dart';
 import 'package:kopim/features/home/presentation/widgets/home_savings_overview_card.dart';
+import 'package:kopim/features/home/presentation/widgets/home_upcoming_items_card.dart';
 import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -29,14 +29,16 @@ import 'package:kopim/features/transactions/presentation/controllers/transaction
 import 'package:kopim/features/transactions/presentation/widgets/transaction_editor.dart';
 import 'package:kopim/features/transactions/presentation/widgets/transaction_tile_formatters.dart';
 import 'package:kopim/features/transactions/presentation/widgets/transaction_form_view.dart';
-import 'package:kopim/features/recurring_transactions/domain/entities/recurring_rule.dart';
-import 'package:kopim/features/recurring_transactions/presentation/screens/recurring_rule_edit_screen.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 import 'package:kopim/core/utils/helpers.dart';
 import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
 import 'package:kopim/features/profile/presentation/screens/profile_management_screen.dart';
 import 'package:kopim/features/transactions/presentation/screens/all_transactions_screen.dart';
 import 'package:kopim/features/savings/presentation/screens/saving_goal_details_screen.dart';
+import 'package:kopim/features/upcoming_payments/domain/models/upcoming_item.dart';
+import 'package:kopim/features/upcoming_payments/domain/providers/upcoming_payments_providers.dart';
+import 'package:kopim/features/upcoming_payments/domain/services/time_service.dart';
+import 'package:kopim/features/upcoming_payments/presentation/screens/upcoming_payments_screen.dart';
 
 import '../controllers/home_providers.dart';
 
@@ -51,9 +53,10 @@ NavigationTabContent buildHomeTabContent(BuildContext context, WidgetRef ref) {
   final AsyncValue<List<DaySection>> groupedTransactionsAsync = ref.watch(
     homeGroupedTransactionsProvider,
   );
-  final AsyncValue<List<UpcomingPayment>> upcomingPaymentsAsync = ref.watch(
-    homeUpcomingPaymentsProvider,
+  final AsyncValue<List<UpcomingItem>> upcomingItemsAsync = ref.watch(
+    homeUpcomingItemsProvider(limit: 6),
   );
+  final TimeService timeService = ref.watch(timeServiceProvider);
   final AsyncValue<HomeDashboardPreferences> dashboardPreferencesAsync = ref
       .watch(homeDashboardPreferencesControllerProvider);
   final bool isWideLayout = MediaQuery.of(context).size.width >= 720;
@@ -67,7 +70,8 @@ NavigationTabContent buildHomeTabContent(BuildContext context, WidgetRef ref) {
         isWideLayout: isWideLayout,
         accountSummariesAsync: accountSummariesAsync,
         groupedTransactionsAsync: groupedTransactionsAsync,
-        upcomingPaymentsAsync: upcomingPaymentsAsync,
+        upcomingItemsAsync: upcomingItemsAsync,
+        timeService: timeService,
         dashboardPreferencesAsync: dashboardPreferencesAsync,
       ),
     ),
@@ -84,7 +88,8 @@ class _HomeBody extends StatelessWidget {
     required this.isWideLayout,
     required this.accountSummariesAsync,
     required this.groupedTransactionsAsync,
-    required this.upcomingPaymentsAsync,
+    required this.upcomingItemsAsync,
+    required this.timeService,
     required this.dashboardPreferencesAsync,
   });
 
@@ -95,7 +100,8 @@ class _HomeBody extends StatelessWidget {
   final AsyncValue<Map<String, HomeAccountMonthlySummary>>
   accountSummariesAsync;
   final AsyncValue<List<DaySection>> groupedTransactionsAsync;
-  final AsyncValue<List<UpcomingPayment>> upcomingPaymentsAsync;
+  final AsyncValue<List<UpcomingItem>> upcomingItemsAsync;
+  final TimeService timeService;
   final AsyncValue<HomeDashboardPreferences> dashboardPreferencesAsync;
 
   @override
@@ -208,11 +214,17 @@ class _HomeBody extends StatelessWidget {
               ),
             );
 
-            final Widget upcomingPaymentsSection = upcomingPaymentsAsync.when(
-              data: (List<UpcomingPayment> payments) {
-                return _UpcomingPaymentsCard(
-                  payments: payments,
+            final Widget upcomingPaymentsSection = upcomingItemsAsync.when(
+              data: (List<UpcomingItem> items) {
+                return HomeUpcomingItemsCard(
+                  items: items,
                   strings: strings,
+                  timeService: timeService,
+                  onMore: () {
+                    Navigator.of(
+                      context,
+                    ).pushNamed(UpcomingPaymentsScreen.routeName);
+                  },
                 );
               },
               loading: () => const Center(
@@ -907,235 +919,6 @@ class _TransactionItemEntry extends _TransactionSliverEntry {
   const _TransactionItemEntry({required this.transactionId});
 
   final String transactionId;
-}
-
-class _UpcomingPaymentsCard extends StatelessWidget {
-  const _UpcomingPaymentsCard({required this.payments, required this.strings});
-
-  final List<UpcomingPayment> payments;
-  final AppLocalizations strings;
-
-  @override
-  Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
-    final DateFormat headerFormat = DateFormat.MMMd(strings.localeName);
-    final DateTime? nearest = payments.isEmpty ? null : payments.first.dueDate;
-    final String subtitle = nearest == null
-        ? strings.homeUpcomingPaymentsEmptyHeader
-        : strings.homeUpcomingPaymentsNextDate(headerFormat.format(nearest));
-    final int count = payments.length;
-
-    final List<Widget> children;
-    if (payments.isEmpty) {
-      children = <Widget>[
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-          child: Text(
-            strings.homeUpcomingPaymentsEmpty,
-            style: theme.textTheme.bodyMedium,
-          ),
-        ),
-      ];
-    } else {
-      children = <Widget>[
-        const SizedBox(height: 8),
-        for (int index = 0; index < payments.length; index++) ...<Widget>[
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-            child: _UpcomingPaymentTile(
-              payment: payments[index],
-              strings: strings,
-            ),
-          ),
-        ],
-        const SizedBox(height: 4),
-      ];
-    }
-
-    return Card(
-      elevation: 0,
-      color: theme.colorScheme.surfaceContainerHigh,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      surfaceTintColor: Colors.transparent,
-      child: ExpansionTile(
-        initiallyExpanded: false,
-        tilePadding: const EdgeInsets.symmetric(horizontal: 16),
-        childrenPadding: const EdgeInsets.only(bottom: 12),
-        leading: Icon(
-          Icons.event_repeat_outlined,
-          color: theme.colorScheme.primary,
-        ),
-        title: Row(
-          children: <Widget>[
-            Expanded(
-              child: Text(
-                strings.homeUpcomingPaymentsTitle,
-                style: theme.textTheme.titleMedium,
-              ),
-            ),
-            const SizedBox(width: 12),
-            _CountBadge(
-              count: count,
-              semanticLabel: strings.homeUpcomingPaymentsCountSemantics(count),
-            ),
-          ],
-        ),
-        subtitle: Padding(
-          padding: const EdgeInsets.only(top: 4),
-          child: Text(
-            subtitle,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
-            ),
-          ),
-        ),
-        children: children,
-      ),
-    );
-  }
-}
-
-class _UpcomingPaymentTile extends ConsumerWidget {
-  const _UpcomingPaymentTile({required this.payment, required this.strings});
-
-  final UpcomingPayment payment;
-  final AppLocalizations strings;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final Category? category = ref.watch(
-      homeCategoryByIdProvider(
-        payment.categoryId,
-      ).select((Category? value) => value),
-    );
-    final AccountEntity? account = ref.watch(
-      homeAccountByIdProvider(
-        payment.accountId,
-      ).select((AccountEntity? value) => value),
-    );
-    final RecurringRule? rule = ref.watch(
-      homeRecurringRuleByIdProvider(payment.ruleId),
-    );
-
-    final ThemeData theme = Theme.of(context);
-    final PhosphorIconData? iconData = resolvePhosphorIconData(category?.icon);
-    final Color? categoryColor = parseHexColor(category?.color);
-    final Color foreground = categoryColor == null
-        ? theme.colorScheme.onSurfaceVariant
-        : ThemeData.estimateBrightnessForColor(categoryColor) == Brightness.dark
-        ? Colors.white
-        : Colors.black87;
-    final NumberFormat moneyFormat = NumberFormat.currency(
-      locale: strings.localeName,
-      symbol: payment.currency.toUpperCase(),
-    );
-    final Color amountColor = payment.isExpense
-        ? theme.colorScheme.error
-        : theme.colorScheme.primary;
-    final DateFormat dateFormat = DateFormat.yMMMd(strings.localeName);
-
-    return ListTile(
-      dense: true,
-      contentPadding: const EdgeInsets.symmetric(vertical: 6),
-      leading: CircleAvatar(
-        backgroundColor:
-            categoryColor ?? theme.colorScheme.surfaceContainerHighest,
-        foregroundColor: foreground,
-        child: iconData != null
-            ? Icon(iconData)
-            : const Icon(Icons.category_outlined),
-      ),
-      title: Text(payment.title, style: theme.textTheme.bodyMedium),
-      subtitle: Text(
-        strings.homeUpcomingPaymentsDueDate(dateFormat.format(payment.dueDate)),
-        style: theme.textTheme.bodySmall?.copyWith(
-          color: theme.colorScheme.onSurface.withValues(alpha: 0.68),
-        ),
-      ),
-      trailing: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: <Widget>[
-          Text(
-            moneyFormat.format(payment.absoluteAmount),
-            style: theme.textTheme.titleSmall?.copyWith(
-              color: amountColor,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          if (account?.name != null)
-            Padding(
-              padding: const EdgeInsets.only(top: 4),
-              child: Text(
-                account!.name,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.68),
-                ),
-              ),
-            ),
-        ],
-      ),
-      onTap: () async {
-        if (rule == null) {
-          if (!context.mounted) {
-            return;
-          }
-          ScaffoldMessenger.of(context)
-            ..hideCurrentSnackBar()
-            ..showSnackBar(
-              SnackBar(content: Text(strings.homeUpcomingPaymentsMissingRule)),
-            );
-          return;
-        }
-        if (!context.mounted) {
-          return;
-        }
-        await Navigator.of(context).push<void>(
-          MaterialPageRoute<void>(
-            builder: (_) => RecurringRuleEditScreen(ruleId: payment.ruleId),
-            settings: const RouteSettings(
-              name: RecurringRuleEditScreen.routeName,
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
-
-class _CountBadge extends StatelessWidget {
-  const _CountBadge({required this.count, this.semanticLabel});
-
-  final int count;
-  final String? semanticLabel;
-
-  @override
-  Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
-    final Widget badge = Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: count == 0
-            ? theme.colorScheme.surfaceContainerHighest
-            : theme.colorScheme.primary,
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Text(
-        count.toString(),
-        style: theme.textTheme.labelSmall?.copyWith(
-          color: count == 0
-              ? theme.colorScheme.onSurface
-              : theme.colorScheme.onPrimary,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-    );
-
-    if (semanticLabel == null) {
-      return badge;
-    }
-    return Semantics(label: semanticLabel, child: badge);
-  }
 }
 
 String _formatSectionTitle({
