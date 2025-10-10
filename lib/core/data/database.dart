@@ -4,6 +4,8 @@ import 'dart:io';
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:kopim/core/data/converters/string_list_converter.dart';
+import 'package:kopim/features/upcoming_payments/data/drift/tables/payment_reminders_table.dart';
+import 'package:kopim/features/upcoming_payments/data/drift/tables/upcoming_payments_table.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
@@ -272,6 +274,8 @@ class JobQueue extends Table {
     BudgetInstances,
     SavingGoals,
     GoalContributions,
+    UpcomingPayments,
+    PaymentReminders,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -280,7 +284,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.connect(DatabaseConnection super.connection);
 
   @override
-  int get schemaVersion => 14;
+  int get schemaVersion => 16;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -347,6 +351,34 @@ class AppDatabase extends _$AppDatabase {
           'accounts_type_idx',
           'CREATE INDEX IF NOT EXISTS accounts_type_idx '
               'ON accounts(type)',
+        ),
+      );
+      await m.createIndex(
+        Index(
+          'upcoming_payments_next_notify_idx',
+          'CREATE INDEX IF NOT EXISTS upcoming_payments_next_notify_idx '
+              'ON upcoming_payments(next_notify_at)',
+        ),
+      );
+      await m.createIndex(
+        Index(
+          'upcoming_payments_next_run_idx',
+          'CREATE INDEX IF NOT EXISTS upcoming_payments_next_run_idx '
+              'ON upcoming_payments(next_run_at)',
+        ),
+      );
+      await m.createIndex(
+        Index(
+          'upcoming_payments_day_idx',
+          'CREATE INDEX IF NOT EXISTS upcoming_payments_day_idx '
+              'ON upcoming_payments(day_of_month)',
+        ),
+      );
+      await m.createIndex(
+        Index(
+          'payment_reminders_when_idx',
+          'CREATE INDEX IF NOT EXISTS payment_reminders_when_idx '
+              'ON payment_reminders(when_at)',
         ),
       );
     },
@@ -534,8 +566,167 @@ class AppDatabase extends _$AppDatabase {
           ),
         );
       }
+      if (from < 15) {
+        await m.createTable(upcomingPayments);
+        await m.createTable(paymentReminders);
+        await m.createIndex(
+          Index(
+            'upcoming_payments_next_notify_idx',
+            'CREATE INDEX IF NOT EXISTS upcoming_payments_next_notify_idx '
+                'ON upcoming_payments(next_notify_at)',
+          ),
+        );
+        await m.createIndex(
+          Index(
+            'upcoming_payments_next_run_idx',
+            'CREATE INDEX IF NOT EXISTS upcoming_payments_next_run_idx '
+                'ON upcoming_payments(next_run_at)',
+          ),
+        );
+        await m.createIndex(
+          Index(
+            'upcoming_payments_day_idx',
+            'CREATE INDEX IF NOT EXISTS upcoming_payments_day_idx '
+                'ON upcoming_payments(day_of_month)',
+          ),
+        );
+        await m.createIndex(
+          Index(
+            'payment_reminders_when_idx',
+            'CREATE INDEX IF NOT EXISTS payment_reminders_when_idx '
+                'ON payment_reminders(when_at)',
+          ),
+        );
+        await _disableOneShotRecurringRules();
+        await _migrateRecurringRulesToUpcomingPayments();
+      }
+      if (from < 16) {
+        await _ensureUpcomingPaymentsIndexes();
+      }
+    },
+    beforeOpen: (OpeningDetails details) async {
+      await customStatement('PRAGMA foreign_keys = ON');
     },
   );
+
+  Future<void> _disableOneShotRecurringRules() async {
+    const List<String> candidateColumns = <String>[
+      'one_shot',
+      'is_one_time',
+      'is_single_use',
+    ];
+    for (final String column in candidateColumns) {
+      final bool exists = await _columnExists('recurring_rules', column);
+      if (!exists) {
+        continue;
+      }
+      await customStatement(
+        'UPDATE recurring_rules SET $column = 0 WHERE $column IS NOT NULL',
+      );
+    }
+  }
+
+  Future<void> _migrateRecurringRulesToUpcomingPayments() async {
+    final bool hasRecurringRules = await _tableExists('recurring_rules');
+    if (!hasRecurringRules) {
+      return;
+    }
+
+    final List<QueryRow> rows = await customSelect(
+      'SELECT title, account_id, category_id, amount, day_of_month, notes, '
+      'auto_post, is_active, next_due_local_date, created_at, updated_at '
+      'FROM recurring_rules '
+      "WHERE is_active = 1 AND instr(upper(rrule), 'FREQ=MONTHLY') > 0",
+    ).get();
+    if (rows.isEmpty) {
+      return;
+    }
+
+    const Uuid uuid = Uuid();
+    final List<Insertable<UpcomingPaymentRow>> entries =
+        <Insertable<UpcomingPaymentRow>>[];
+
+    for (final QueryRow row in rows) {
+      final int dayOfMonth = row.read<int>('day_of_month');
+      final double amount = row.read<double>('amount');
+      if (dayOfMonth < 1 || dayOfMonth > 31 || amount <= 0) {
+        continue;
+      }
+      final DateTime createdAt = row.read<DateTime>('created_at');
+      final DateTime updatedAt = row.read<DateTime>('updated_at');
+      final DateTime? nextDue = row.read<DateTime?>('next_due_local_date');
+      entries.add(
+        UpcomingPaymentsCompanion(
+          id: Value<String>(uuid.v4()),
+          title: Value<String>(row.read<String>('title')),
+          accountId: Value<String>(row.read<String>('account_id')),
+          categoryId: Value<String>(row.read<String>('category_id')),
+          amount: Value<double>(amount),
+          dayOfMonth: Value<int>(dayOfMonth),
+          notifyDaysBefore: const Value<int>(1),
+          notifyTimeHhmm: const Value<String>('12:00'),
+          note: Value<String?>(row.read<String?>('notes')),
+          autoPost: Value<bool>(row.read<bool>('auto_post')),
+          isActive: Value<bool>(row.read<bool>('is_active')),
+          nextRunAt: Value<int?>(nextDue?.toUtc().millisecondsSinceEpoch),
+          nextNotifyAt: const Value<int?>(null),
+          createdAt: Value<int>(createdAt.toUtc().millisecondsSinceEpoch),
+          updatedAt: Value<int>(updatedAt.toUtc().millisecondsSinceEpoch),
+        ),
+      );
+    }
+
+    if (entries.isEmpty) {
+      return;
+    }
+
+    await batch((Batch batch) {
+      batch.insertAll(
+        upcomingPayments,
+        entries,
+        mode: InsertMode.insertOrIgnore,
+      );
+    });
+  }
+
+  Future<void> _ensureUpcomingPaymentsIndexes() async {
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS upcoming_payments_next_notify_idx '
+      'ON upcoming_payments(next_notify_at)',
+    );
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS upcoming_payments_next_run_idx '
+      'ON upcoming_payments(next_run_at)',
+    );
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS upcoming_payments_day_idx '
+      'ON upcoming_payments(day_of_month)',
+    );
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS payment_reminders_when_idx '
+      'ON payment_reminders(when_at)',
+    );
+  }
+
+  Future<bool> _columnExists(String table, String column) async {
+    final List<QueryRow> columns = await customSelect(
+      'PRAGMA table_info($table)',
+    ).get();
+    for (final QueryRow row in columns) {
+      if (row.read<String>('name') == column) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  Future<bool> _tableExists(String table) async {
+    final QueryRow? row = await customSelect(
+      "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ? LIMIT 1",
+      variables: <Variable<String>>[Variable<String>(table)],
+    ).getSingleOrNull();
+    return row != null;
+  }
 }
 
 LazyDatabase _openConnection() {
