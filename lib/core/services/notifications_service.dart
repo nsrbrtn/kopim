@@ -1,0 +1,259 @@
+import 'dart:async';
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:timezone/timezone.dart' as tz;
+
+import 'package:kopim/core/services/exact_alarm_permission_service.dart';
+import 'package:kopim/core/services/logger_service.dart';
+import 'package:kopim/core/utils/timezone_utils.dart';
+
+class NotificationsService {
+  NotificationsService({
+    FlutterLocalNotificationsPlugin? plugin,
+    LoggerService? logger,
+    ExactAlarmPermissionService? exactAlarmPermissionService,
+  }) : _plugin = plugin ?? FlutterLocalNotificationsPlugin(),
+       _logger = logger ?? LoggerService(),
+       _exactAlarmPermissionService =
+           exactAlarmPermissionService ?? ExactAlarmPermissionService();
+
+  static const String _channelId = 'UpcomingPayments';
+  static const String _channelName = 'UpcomingPayments';
+  static const String _channelDescription =
+      'Локальные уведомления о предстоящих платежах';
+
+  final FlutterLocalNotificationsPlugin _plugin;
+  final LoggerService _logger;
+  final ExactAlarmPermissionService _exactAlarmPermissionService;
+
+  bool _initialized = false;
+  bool? _permissionGranted;
+
+  Future<void> initialize() async {
+    await _ensureInitialized();
+  }
+
+  Future<void> ensurePermission() async {
+    await _resolvePermission(requestIfNeeded: true);
+  }
+
+  Future<void> scheduleAt({
+    required int id,
+    required tz.TZDateTime when,
+    required String title,
+    required String body,
+    String? payload,
+  }) async {
+    await _ensureInitialized();
+    final bool hasPermission = await _resolvePermission(
+      requestIfNeeded: false,
+      forceRefresh: true,
+    );
+    if (!hasPermission) {
+      _logger.logInfo(
+        'Notifications permission denied, skip scheduling id=$id',
+      );
+      return;
+    }
+
+    final tz.TZDateTime now = tz.TZDateTime.now(when.location);
+    if (!when.isAfter(now)) {
+      _logger.logInfo(
+        'Skip scheduling id=$id because time ${when.toIso8601String()} is not in the future',
+      );
+      return;
+    }
+
+    AndroidScheduleMode androidScheduleMode =
+        AndroidScheduleMode.exactAllowWhileIdle;
+    if (Platform.isAndroid) {
+      final bool canScheduleExact = await _exactAlarmPermissionService
+          .canScheduleExactAlarms();
+      if (!canScheduleExact) {
+        androidScheduleMode = AndroidScheduleMode.inexactAllowWhileIdle;
+        _logger.logInfo('exact alarm unavailable, id=$id fallback to inexact');
+      }
+    }
+
+    const NotificationDetails details = NotificationDetails(
+      android: AndroidNotificationDetails(
+        _channelId,
+        _channelName,
+        channelDescription: _channelDescription,
+        importance: Importance.max,
+        priority: Priority.high,
+        category: AndroidNotificationCategory.reminder,
+      ),
+      iOS: DarwinNotificationDetails(),
+      macOS: DarwinNotificationDetails(),
+    );
+
+    try {
+      await _plugin.zonedSchedule(
+        id,
+        title,
+        body,
+        when,
+        details,
+        androidScheduleMode: androidScheduleMode,
+        payload: payload,
+        matchDateTimeComponents: null,
+      );
+      _logger.logInfo('scheduled id=$id at ${when.toIso8601String()}');
+    } catch (error) {
+      _logger.logError('Failed to schedule notification id=$id', error);
+    }
+  }
+
+  Future<void> cancel(int id) async {
+    await _ensureInitialized();
+    try {
+      await _plugin.cancel(id);
+      _logger.logInfo('cancelled id=$id');
+    } catch (error) {
+      _logger.logError('Failed to cancel notification id=$id', error);
+    }
+  }
+
+  Future<void> cancelAll() async {
+    await _ensureInitialized();
+    try {
+      await _plugin.cancelAll();
+      _logger.logInfo('cancelled all notifications');
+    } catch (error) {
+      _logger.logError('Failed to cancel all notifications', error);
+    }
+  }
+
+  Future<void> showDebugNotification() async {
+    if (!kDebugMode) {
+      return;
+    }
+    await _ensureInitialized();
+    final bool hasPermission = await _resolvePermission(
+      requestIfNeeded: true,
+      forceRefresh: true,
+    );
+    if (!hasPermission) {
+      return;
+    }
+    final tz.TZDateTime when = tz.TZDateTime.now(
+      tz.local,
+    ).add(const Duration(seconds: 10));
+    await scheduleAt(
+      id: 0x0DD17,
+      when: when,
+      title: 'Тестовое уведомление',
+      body: 'Проверка локальных уведомлений через 10 секунд',
+      payload: 'debug',
+    );
+  }
+
+  Future<void> _ensureInitialized() async {
+    if (_initialized) {
+      return;
+    }
+    final String timeZoneId = resolveCurrentTimeZoneId();
+    tz.setLocalLocation(tz.getLocation(timeZoneId));
+
+    const AndroidInitializationSettings androidSettings =
+        AndroidInitializationSettings('@mipmap/ic_launcher');
+    const DarwinInitializationSettings darwinSettings =
+        DarwinInitializationSettings();
+    const InitializationSettings settings = InitializationSettings(
+      android: androidSettings,
+      iOS: darwinSettings,
+      macOS: darwinSettings,
+    );
+
+    await _plugin.initialize(settings);
+
+    final AndroidFlutterLocalNotificationsPlugin? androidImplementation =
+        _plugin
+            .resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin
+            >();
+    if (androidImplementation != null) {
+      const AndroidNotificationChannel channel = AndroidNotificationChannel(
+        _channelId,
+        _channelName,
+        description: _channelDescription,
+        importance: Importance.max,
+      );
+      await androidImplementation.createNotificationChannel(channel);
+    }
+    _initialized = true;
+    _logger.logInfo('Notifications initialized with tz=$timeZoneId');
+  }
+
+  Future<bool> _resolvePermission({
+    required bool requestIfNeeded,
+    bool forceRefresh = false,
+  }) async {
+    if (!forceRefresh && _permissionGranted != null) {
+      return _permissionGranted!;
+    }
+    if (!Platform.isAndroid && !Platform.isIOS && !Platform.isMacOS) {
+      _permissionGranted = true;
+      return true;
+    }
+
+    bool granted = true;
+    if (Platform.isAndroid) {
+      final AndroidFlutterLocalNotificationsPlugin? androidImplementation =
+          _plugin
+              .resolvePlatformSpecificImplementation<
+                AndroidFlutterLocalNotificationsPlugin
+              >();
+      if (androidImplementation == null) {
+        _permissionGranted = false;
+        return false;
+      }
+      final bool? current = await androidImplementation
+          .areNotificationsEnabled();
+      granted = current ?? false;
+      if (!granted && requestIfNeeded) {
+        final bool? requested = await androidImplementation
+            .requestNotificationsPermission();
+        granted = requested ?? false;
+      }
+    } else if (Platform.isIOS || Platform.isMacOS) {
+      if (requestIfNeeded) {
+        final IOSFlutterLocalNotificationsPlugin? iosImplementation = _plugin
+            .resolvePlatformSpecificImplementation<
+              IOSFlutterLocalNotificationsPlugin
+            >();
+        final MacOSFlutterLocalNotificationsPlugin? macImplementation = _plugin
+            .resolvePlatformSpecificImplementation<
+              MacOSFlutterLocalNotificationsPlugin
+            >();
+        bool anyGranted = false;
+        if (iosImplementation != null) {
+          final bool? result = await iosImplementation.requestPermissions(
+            alert: true,
+            badge: true,
+            sound: true,
+          );
+          anyGranted = anyGranted || (result ?? false);
+        }
+        if (macImplementation != null) {
+          final bool? result = await macImplementation.requestPermissions(
+            alert: true,
+            badge: true,
+            sound: true,
+          );
+          anyGranted = anyGranted || (result ?? false);
+        }
+        granted = anyGranted || granted;
+      } else {
+        granted = _permissionGranted ?? true;
+      }
+    }
+
+    _permissionGranted = granted;
+    _logger.logInfo('permission: ${granted ? 'granted' : 'denied'}');
+    return granted;
+  }
+}

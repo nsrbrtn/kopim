@@ -1193,6 +1193,54 @@ final class FlutterLocalNotificationsPluginProvider
 String _$flutterLocalNotificationsPluginHash() =>
     r'270976c2447345deefd91efb7ccfc64878e707f4';
 
+@ProviderFor(notificationsService)
+const notificationsServiceProvider = NotificationsServiceProvider._();
+
+final class NotificationsServiceProvider
+    extends
+        $FunctionalProvider<
+          NotificationsService,
+          NotificationsService,
+          NotificationsService
+        >
+    with $Provider<NotificationsService> {
+  const NotificationsServiceProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'notificationsServiceProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$notificationsServiceHash();
+
+  @$internal
+  @override
+  $ProviderElement<NotificationsService> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  NotificationsService create(Ref ref) {
+    return notificationsService(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(NotificationsService value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<NotificationsService>(value),
+    );
+  }
+}
+
+String _$notificationsServiceHash() =>
+    r'17ebb00672749bc71bffab1f89706cce814be25b';
+
 @ProviderFor(workmanager)
 const workmanagerProvider = WorkmanagerProvider._();
 
@@ -1233,6 +1281,57 @@ final class WorkmanagerProvider
 }
 
 String _$workmanagerHash() => r'884c489ccf3eeb94f5d425cc7ab546b9bf48747e';
+
+@ProviderFor(upcomingPaymentsWorkScheduler)
+const upcomingPaymentsWorkSchedulerProvider =
+    UpcomingPaymentsWorkSchedulerProvider._();
+
+final class UpcomingPaymentsWorkSchedulerProvider
+    extends
+        $FunctionalProvider<
+          UpcomingPaymentsWorkScheduler,
+          UpcomingPaymentsWorkScheduler,
+          UpcomingPaymentsWorkScheduler
+        >
+    with $Provider<UpcomingPaymentsWorkScheduler> {
+  const UpcomingPaymentsWorkSchedulerProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'upcomingPaymentsWorkSchedulerProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$upcomingPaymentsWorkSchedulerHash();
+
+  @$internal
+  @override
+  $ProviderElement<UpcomingPaymentsWorkScheduler> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  UpcomingPaymentsWorkScheduler create(Ref ref) {
+    return upcomingPaymentsWorkScheduler(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(UpcomingPaymentsWorkScheduler value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<UpcomingPaymentsWorkScheduler>(
+        value,
+      ),
+    );
+  }
+}
+
+String _$upcomingPaymentsWorkSchedulerHash() =>
+    r'd02f8ba9573c38966dc26073210fd2dfc45d990d';
 
 @ProviderFor(recurringRuleEngine)
 const recurringRuleEngineProvider = RecurringRuleEngineProvider._();

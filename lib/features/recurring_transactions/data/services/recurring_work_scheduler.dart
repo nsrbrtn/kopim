@@ -26,6 +26,8 @@ import 'package:kopim/features/transactions/data/sources/local/transaction_dao.d
 import 'package:kopim/features/transactions/domain/entities/add_transaction_request.dart';
 import 'package:kopim/features/transactions/domain/repositories/transaction_repository.dart';
 import 'package:kopim/features/transactions/domain/use_cases/add_transaction_use_case.dart';
+import 'package:kopim/features/upcoming_payments/data/services/upcoming_payments_work_scheduler.dart'
+    as upcoming_work;
 import 'package:uuid/uuid.dart';
 import 'package:workmanager/workmanager.dart';
 
@@ -65,6 +67,10 @@ void recurringWorkDispatcher() {
             database: database,
             logger: logger,
           );
+          break;
+        case upcoming_work.kUpcomingPaymentsPeriodicTask:
+        case upcoming_work.kUpcomingPaymentsOneOffTask:
+          success = await upcoming_work.runUpcomingPaymentsBackgroundTask(task);
           break;
         default:
           logger.logInfo('Unhandled WorkManager task: $task');

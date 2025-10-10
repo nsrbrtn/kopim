@@ -8877,6 +8877,17 @@ class $PaymentRemindersTable extends PaymentReminders
     ),
     defaultValue: const Constant<bool>(false),
   );
+  static const VerificationMeta _lastNotifiedAtMeta = const VerificationMeta(
+    'lastNotifiedAt',
+  );
+  @override
+  late final GeneratedColumn<int> lastNotifiedAt = GeneratedColumn<int>(
+    'last_notified_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -8907,6 +8918,7 @@ class $PaymentRemindersTable extends PaymentReminders
     whenAt,
     note,
     isDone,
+    lastNotifiedAt,
     createdAt,
     updatedAt,
   ];
@@ -8963,6 +8975,15 @@ class $PaymentRemindersTable extends PaymentReminders
         isDone.isAcceptableOrUnknown(data['is_done']!, _isDoneMeta),
       );
     }
+    if (data.containsKey('last_notified_at')) {
+      context.handle(
+        _lastNotifiedAtMeta,
+        lastNotifiedAt.isAcceptableOrUnknown(
+          data['last_notified_at']!,
+          _lastNotifiedAtMeta,
+        ),
+      );
+    }
     if (data.containsKey('created_at')) {
       context.handle(
         _createdAtMeta,
@@ -9012,6 +9033,10 @@ class $PaymentRemindersTable extends PaymentReminders
         DriftSqlType.bool,
         data['${effectivePrefix}is_done'],
       )!,
+      lastNotifiedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}last_notified_at'],
+      ),
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}created_at'],
@@ -9037,6 +9062,7 @@ class PaymentReminderRow extends DataClass
   final int whenAt;
   final String? note;
   final bool isDone;
+  final int? lastNotifiedAt;
   final int createdAt;
   final int updatedAt;
   const PaymentReminderRow({
@@ -9046,6 +9072,7 @@ class PaymentReminderRow extends DataClass
     required this.whenAt,
     this.note,
     required this.isDone,
+    this.lastNotifiedAt,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -9060,6 +9087,9 @@ class PaymentReminderRow extends DataClass
       map['note'] = Variable<String>(note);
     }
     map['is_done'] = Variable<bool>(isDone);
+    if (!nullToAbsent || lastNotifiedAt != null) {
+      map['last_notified_at'] = Variable<int>(lastNotifiedAt);
+    }
     map['created_at'] = Variable<int>(createdAt);
     map['updated_at'] = Variable<int>(updatedAt);
     return map;
@@ -9073,6 +9103,9 @@ class PaymentReminderRow extends DataClass
       whenAt: Value(whenAt),
       note: note == null && nullToAbsent ? const Value.absent() : Value(note),
       isDone: Value(isDone),
+      lastNotifiedAt: lastNotifiedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastNotifiedAt),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
     );
@@ -9090,6 +9123,7 @@ class PaymentReminderRow extends DataClass
       whenAt: serializer.fromJson<int>(json['whenAt']),
       note: serializer.fromJson<String?>(json['note']),
       isDone: serializer.fromJson<bool>(json['isDone']),
+      lastNotifiedAt: serializer.fromJson<int?>(json['lastNotifiedAt']),
       createdAt: serializer.fromJson<int>(json['createdAt']),
       updatedAt: serializer.fromJson<int>(json['updatedAt']),
     );
@@ -9104,6 +9138,7 @@ class PaymentReminderRow extends DataClass
       'whenAt': serializer.toJson<int>(whenAt),
       'note': serializer.toJson<String?>(note),
       'isDone': serializer.toJson<bool>(isDone),
+      'lastNotifiedAt': serializer.toJson<int?>(lastNotifiedAt),
       'createdAt': serializer.toJson<int>(createdAt),
       'updatedAt': serializer.toJson<int>(updatedAt),
     };
@@ -9116,6 +9151,7 @@ class PaymentReminderRow extends DataClass
     int? whenAt,
     Value<String?> note = const Value.absent(),
     bool? isDone,
+    Value<int?> lastNotifiedAt = const Value.absent(),
     int? createdAt,
     int? updatedAt,
   }) => PaymentReminderRow(
@@ -9125,6 +9161,9 @@ class PaymentReminderRow extends DataClass
     whenAt: whenAt ?? this.whenAt,
     note: note.present ? note.value : this.note,
     isDone: isDone ?? this.isDone,
+    lastNotifiedAt: lastNotifiedAt.present
+        ? lastNotifiedAt.value
+        : this.lastNotifiedAt,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
   );
@@ -9136,6 +9175,9 @@ class PaymentReminderRow extends DataClass
       whenAt: data.whenAt.present ? data.whenAt.value : this.whenAt,
       note: data.note.present ? data.note.value : this.note,
       isDone: data.isDone.present ? data.isDone.value : this.isDone,
+      lastNotifiedAt: data.lastNotifiedAt.present
+          ? data.lastNotifiedAt.value
+          : this.lastNotifiedAt,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
@@ -9150,6 +9192,7 @@ class PaymentReminderRow extends DataClass
           ..write('whenAt: $whenAt, ')
           ..write('note: $note, ')
           ..write('isDone: $isDone, ')
+          ..write('lastNotifiedAt: $lastNotifiedAt, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -9164,6 +9207,7 @@ class PaymentReminderRow extends DataClass
     whenAt,
     note,
     isDone,
+    lastNotifiedAt,
     createdAt,
     updatedAt,
   );
@@ -9177,6 +9221,7 @@ class PaymentReminderRow extends DataClass
           other.whenAt == this.whenAt &&
           other.note == this.note &&
           other.isDone == this.isDone &&
+          other.lastNotifiedAt == this.lastNotifiedAt &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt);
 }
@@ -9188,6 +9233,7 @@ class PaymentRemindersCompanion extends UpdateCompanion<PaymentReminderRow> {
   final Value<int> whenAt;
   final Value<String?> note;
   final Value<bool> isDone;
+  final Value<int?> lastNotifiedAt;
   final Value<int> createdAt;
   final Value<int> updatedAt;
   final Value<int> rowid;
@@ -9198,6 +9244,7 @@ class PaymentRemindersCompanion extends UpdateCompanion<PaymentReminderRow> {
     this.whenAt = const Value.absent(),
     this.note = const Value.absent(),
     this.isDone = const Value.absent(),
+    this.lastNotifiedAt = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -9209,6 +9256,7 @@ class PaymentRemindersCompanion extends UpdateCompanion<PaymentReminderRow> {
     required int whenAt,
     this.note = const Value.absent(),
     this.isDone = const Value.absent(),
+    this.lastNotifiedAt = const Value.absent(),
     required int createdAt,
     required int updatedAt,
     this.rowid = const Value.absent(),
@@ -9225,6 +9273,7 @@ class PaymentRemindersCompanion extends UpdateCompanion<PaymentReminderRow> {
     Expression<int>? whenAt,
     Expression<String>? note,
     Expression<bool>? isDone,
+    Expression<int>? lastNotifiedAt,
     Expression<int>? createdAt,
     Expression<int>? updatedAt,
     Expression<int>? rowid,
@@ -9236,6 +9285,7 @@ class PaymentRemindersCompanion extends UpdateCompanion<PaymentReminderRow> {
       if (whenAt != null) 'when_at': whenAt,
       if (note != null) 'note': note,
       if (isDone != null) 'is_done': isDone,
+      if (lastNotifiedAt != null) 'last_notified_at': lastNotifiedAt,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (rowid != null) 'rowid': rowid,
@@ -9249,6 +9299,7 @@ class PaymentRemindersCompanion extends UpdateCompanion<PaymentReminderRow> {
     Value<int>? whenAt,
     Value<String?>? note,
     Value<bool>? isDone,
+    Value<int?>? lastNotifiedAt,
     Value<int>? createdAt,
     Value<int>? updatedAt,
     Value<int>? rowid,
@@ -9260,6 +9311,7 @@ class PaymentRemindersCompanion extends UpdateCompanion<PaymentReminderRow> {
       whenAt: whenAt ?? this.whenAt,
       note: note ?? this.note,
       isDone: isDone ?? this.isDone,
+      lastNotifiedAt: lastNotifiedAt ?? this.lastNotifiedAt,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       rowid: rowid ?? this.rowid,
@@ -9287,6 +9339,9 @@ class PaymentRemindersCompanion extends UpdateCompanion<PaymentReminderRow> {
     if (isDone.present) {
       map['is_done'] = Variable<bool>(isDone.value);
     }
+    if (lastNotifiedAt.present) {
+      map['last_notified_at'] = Variable<int>(lastNotifiedAt.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<int>(createdAt.value);
     }
@@ -9308,6 +9363,7 @@ class PaymentRemindersCompanion extends UpdateCompanion<PaymentReminderRow> {
           ..write('whenAt: $whenAt, ')
           ..write('note: $note, ')
           ..write('isDone: $isDone, ')
+          ..write('lastNotifiedAt: $lastNotifiedAt, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('rowid: $rowid')
@@ -16331,6 +16387,7 @@ typedef $$PaymentRemindersTableCreateCompanionBuilder =
       required int whenAt,
       Value<String?> note,
       Value<bool> isDone,
+      Value<int?> lastNotifiedAt,
       required int createdAt,
       required int updatedAt,
       Value<int> rowid,
@@ -16343,6 +16400,7 @@ typedef $$PaymentRemindersTableUpdateCompanionBuilder =
       Value<int> whenAt,
       Value<String?> note,
       Value<bool> isDone,
+      Value<int?> lastNotifiedAt,
       Value<int> createdAt,
       Value<int> updatedAt,
       Value<int> rowid,
@@ -16384,6 +16442,11 @@ class $$PaymentRemindersTableFilterComposer
 
   ColumnFilters<bool> get isDone => $composableBuilder(
     column: $table.isDone,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get lastNotifiedAt => $composableBuilder(
+    column: $table.lastNotifiedAt,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -16437,6 +16500,11 @@ class $$PaymentRemindersTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get lastNotifiedAt => $composableBuilder(
+    column: $table.lastNotifiedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -16474,6 +16542,11 @@ class $$PaymentRemindersTableAnnotationComposer
 
   GeneratedColumn<bool> get isDone =>
       $composableBuilder(column: $table.isDone, builder: (column) => column);
+
+  GeneratedColumn<int> get lastNotifiedAt => $composableBuilder(
+    column: $table.lastNotifiedAt,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<int> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
@@ -16525,6 +16598,7 @@ class $$PaymentRemindersTableTableManager
                 Value<int> whenAt = const Value.absent(),
                 Value<String?> note = const Value.absent(),
                 Value<bool> isDone = const Value.absent(),
+                Value<int?> lastNotifiedAt = const Value.absent(),
                 Value<int> createdAt = const Value.absent(),
                 Value<int> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -16535,6 +16609,7 @@ class $$PaymentRemindersTableTableManager
                 whenAt: whenAt,
                 note: note,
                 isDone: isDone,
+                lastNotifiedAt: lastNotifiedAt,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 rowid: rowid,
@@ -16547,6 +16622,7 @@ class $$PaymentRemindersTableTableManager
                 required int whenAt,
                 Value<String?> note = const Value.absent(),
                 Value<bool> isDone = const Value.absent(),
+                Value<int?> lastNotifiedAt = const Value.absent(),
                 required int createdAt,
                 required int updatedAt,
                 Value<int> rowid = const Value.absent(),
@@ -16557,6 +16633,7 @@ class $$PaymentRemindersTableTableManager
                 whenAt: whenAt,
                 note: note,
                 isDone: isDone,
+                lastNotifiedAt: lastNotifiedAt,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 rowid: rowid,

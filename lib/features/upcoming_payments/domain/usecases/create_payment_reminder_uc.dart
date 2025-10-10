@@ -54,6 +54,7 @@ class CreatePaymentReminderUC {
       whenAtMs: whenAtMs,
       note: input.note,
       isDone: false,
+      lastNotifiedAtMs: null,
       createdAtMs: nowMs,
       updatedAtMs: nowMs,
     );

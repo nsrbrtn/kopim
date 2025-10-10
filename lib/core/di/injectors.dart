@@ -12,9 +12,10 @@ import 'package:workmanager/workmanager.dart';
 import 'package:kopim/core/data/database.dart';
 import 'package:kopim/core/data/outbox/outbox_dao.dart';
 import 'package:kopim/core/services/analytics_service.dart';
-import 'package:kopim/core/services/logger_service.dart';
 import 'package:kopim/core/services/auth_sync_service.dart';
 import 'package:kopim/core/services/exact_alarm_permission_service.dart';
+import 'package:kopim/core/services/logger_service.dart';
+import 'package:kopim/core/services/notifications_service.dart';
 import 'package:kopim/core/services/sync_service.dart';
 import 'package:kopim/features/accounts/data/repositories/account_repository_impl.dart';
 import 'package:kopim/features/accounts/data/sources/local/account_dao.dart';
@@ -106,6 +107,7 @@ import 'package:kopim/features/recurring_transactions/domain/use_cases/save_recu
 import 'package:kopim/features/recurring_transactions/domain/use_cases/toggle_recurring_rule_use_case.dart';
 import 'package:kopim/features/recurring_transactions/domain/use_cases/watch_recurring_rules_use_case.dart';
 import 'package:kopim/features/recurring_transactions/domain/use_cases/watch_upcoming_occurrences_use_case.dart';
+import 'package:kopim/features/upcoming_payments/data/services/upcoming_payments_work_scheduler.dart';
 import 'package:kopim/features/upcoming_payments/data/drift/daos/payment_reminders_dao.dart';
 import 'package:kopim/features/upcoming_payments/data/drift/daos/upcoming_payments_dao.dart';
 import 'package:kopim/features/upcoming_payments/data/drift/repositories/payment_reminders_repository_impl.dart';
@@ -212,7 +214,21 @@ FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin(Ref ref) =>
     FlutterLocalNotificationsPlugin();
 
 @riverpod
+NotificationsService notificationsService(Ref ref) => NotificationsService(
+  plugin: ref.watch(flutterLocalNotificationsPluginProvider),
+  logger: ref.watch(loggerServiceProvider),
+  exactAlarmPermissionService: ref.watch(exactAlarmPermissionServiceProvider),
+);
+
+@riverpod
 Workmanager workmanager(Ref ref) => Workmanager();
+
+@riverpod
+UpcomingPaymentsWorkScheduler upcomingPaymentsWorkScheduler(Ref ref) =>
+    UpcomingPaymentsWorkScheduler(
+      workmanager: ref.watch(workmanagerProvider),
+      logger: ref.watch(loggerServiceProvider),
+    );
 
 @riverpod
 RecurringRuleEngine recurringRuleEngine(Ref ref) => RecurringRuleEngine();

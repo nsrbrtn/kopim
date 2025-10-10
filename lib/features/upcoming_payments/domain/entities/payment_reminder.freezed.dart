@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$PaymentReminder {
 
- String get id; String get title; double get amount; int get whenAtMs; String? get note; bool get isDone; int get createdAtMs; int get updatedAtMs;
+ String get id; String get title; double get amount; int get whenAtMs; String? get note; bool get isDone; int? get lastNotifiedAtMs; int get createdAtMs; int get updatedAtMs;
 /// Create a copy of PaymentReminder
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $PaymentReminderCopyWith<PaymentReminder> get copyWith => _$PaymentReminderCopyW
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PaymentReminder&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.whenAtMs, whenAtMs) || other.whenAtMs == whenAtMs)&&(identical(other.note, note) || other.note == note)&&(identical(other.isDone, isDone) || other.isDone == isDone)&&(identical(other.createdAtMs, createdAtMs) || other.createdAtMs == createdAtMs)&&(identical(other.updatedAtMs, updatedAtMs) || other.updatedAtMs == updatedAtMs));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PaymentReminder&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.whenAtMs, whenAtMs) || other.whenAtMs == whenAtMs)&&(identical(other.note, note) || other.note == note)&&(identical(other.isDone, isDone) || other.isDone == isDone)&&(identical(other.lastNotifiedAtMs, lastNotifiedAtMs) || other.lastNotifiedAtMs == lastNotifiedAtMs)&&(identical(other.createdAtMs, createdAtMs) || other.createdAtMs == createdAtMs)&&(identical(other.updatedAtMs, updatedAtMs) || other.updatedAtMs == updatedAtMs));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,title,amount,whenAtMs,note,isDone,createdAtMs,updatedAtMs);
+int get hashCode => Object.hash(runtimeType,id,title,amount,whenAtMs,note,isDone,lastNotifiedAtMs,createdAtMs,updatedAtMs);
 
 @override
 String toString() {
-  return 'PaymentReminder(id: $id, title: $title, amount: $amount, whenAtMs: $whenAtMs, note: $note, isDone: $isDone, createdAtMs: $createdAtMs, updatedAtMs: $updatedAtMs)';
+  return 'PaymentReminder(id: $id, title: $title, amount: $amount, whenAtMs: $whenAtMs, note: $note, isDone: $isDone, lastNotifiedAtMs: $lastNotifiedAtMs, createdAtMs: $createdAtMs, updatedAtMs: $updatedAtMs)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $PaymentReminderCopyWith<$Res>  {
   factory $PaymentReminderCopyWith(PaymentReminder value, $Res Function(PaymentReminder) _then) = _$PaymentReminderCopyWithImpl;
 @useResult
 $Res call({
- String id, String title, double amount, int whenAtMs, String? note, bool isDone, int createdAtMs, int updatedAtMs
+ String id, String title, double amount, int whenAtMs, String? note, bool isDone, int? lastNotifiedAtMs, int createdAtMs, int updatedAtMs
 });
 
 
@@ -62,7 +62,7 @@ class _$PaymentReminderCopyWithImpl<$Res>
 
 /// Create a copy of PaymentReminder
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? title = null,Object? amount = null,Object? whenAtMs = null,Object? note = freezed,Object? isDone = null,Object? createdAtMs = null,Object? updatedAtMs = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? title = null,Object? amount = null,Object? whenAtMs = null,Object? note = freezed,Object? isDone = null,Object? lastNotifiedAtMs = freezed,Object? createdAtMs = null,Object? updatedAtMs = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
@@ -70,7 +70,8 @@ as String,amount: null == amount ? _self.amount : amount // ignore: cast_nullabl
 as double,whenAtMs: null == whenAtMs ? _self.whenAtMs : whenAtMs // ignore: cast_nullable_to_non_nullable
 as int,note: freezed == note ? _self.note : note // ignore: cast_nullable_to_non_nullable
 as String?,isDone: null == isDone ? _self.isDone : isDone // ignore: cast_nullable_to_non_nullable
-as bool,createdAtMs: null == createdAtMs ? _self.createdAtMs : createdAtMs // ignore: cast_nullable_to_non_nullable
+as bool,lastNotifiedAtMs: freezed == lastNotifiedAtMs ? _self.lastNotifiedAtMs : lastNotifiedAtMs // ignore: cast_nullable_to_non_nullable
+as int?,createdAtMs: null == createdAtMs ? _self.createdAtMs : createdAtMs // ignore: cast_nullable_to_non_nullable
 as int,updatedAtMs: null == updatedAtMs ? _self.updatedAtMs : updatedAtMs // ignore: cast_nullable_to_non_nullable
 as int,
   ));
@@ -157,10 +158,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String title,  double amount,  int whenAtMs,  String? note,  bool isDone,  int createdAtMs,  int updatedAtMs)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String title,  double amount,  int whenAtMs,  String? note,  bool isDone,  int? lastNotifiedAtMs,  int createdAtMs,  int updatedAtMs)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _PaymentReminder() when $default != null:
-return $default(_that.id,_that.title,_that.amount,_that.whenAtMs,_that.note,_that.isDone,_that.createdAtMs,_that.updatedAtMs);case _:
+return $default(_that.id,_that.title,_that.amount,_that.whenAtMs,_that.note,_that.isDone,_that.lastNotifiedAtMs,_that.createdAtMs,_that.updatedAtMs);case _:
   return orElse();
 
 }
@@ -178,10 +179,10 @@ return $default(_that.id,_that.title,_that.amount,_that.whenAtMs,_that.note,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String title,  double amount,  int whenAtMs,  String? note,  bool isDone,  int createdAtMs,  int updatedAtMs)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String title,  double amount,  int whenAtMs,  String? note,  bool isDone,  int? lastNotifiedAtMs,  int createdAtMs,  int updatedAtMs)  $default,) {final _that = this;
 switch (_that) {
 case _PaymentReminder():
-return $default(_that.id,_that.title,_that.amount,_that.whenAtMs,_that.note,_that.isDone,_that.createdAtMs,_that.updatedAtMs);case _:
+return $default(_that.id,_that.title,_that.amount,_that.whenAtMs,_that.note,_that.isDone,_that.lastNotifiedAtMs,_that.createdAtMs,_that.updatedAtMs);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -198,10 +199,10 @@ return $default(_that.id,_that.title,_that.amount,_that.whenAtMs,_that.note,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String title,  double amount,  int whenAtMs,  String? note,  bool isDone,  int createdAtMs,  int updatedAtMs)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String title,  double amount,  int whenAtMs,  String? note,  bool isDone,  int? lastNotifiedAtMs,  int createdAtMs,  int updatedAtMs)?  $default,) {final _that = this;
 switch (_that) {
 case _PaymentReminder() when $default != null:
-return $default(_that.id,_that.title,_that.amount,_that.whenAtMs,_that.note,_that.isDone,_that.createdAtMs,_that.updatedAtMs);case _:
+return $default(_that.id,_that.title,_that.amount,_that.whenAtMs,_that.note,_that.isDone,_that.lastNotifiedAtMs,_that.createdAtMs,_that.updatedAtMs);case _:
   return null;
 
 }
@@ -213,7 +214,7 @@ return $default(_that.id,_that.title,_that.amount,_that.whenAtMs,_that.note,_tha
 
 
 class _PaymentReminder extends PaymentReminder {
-  const _PaymentReminder({required this.id, required this.title, required this.amount, required this.whenAtMs, this.note, required this.isDone, required this.createdAtMs, required this.updatedAtMs}): super._();
+  const _PaymentReminder({required this.id, required this.title, required this.amount, required this.whenAtMs, this.note, required this.isDone, this.lastNotifiedAtMs, required this.createdAtMs, required this.updatedAtMs}): super._();
   
 
 @override final  String id;
@@ -222,6 +223,7 @@ class _PaymentReminder extends PaymentReminder {
 @override final  int whenAtMs;
 @override final  String? note;
 @override final  bool isDone;
+@override final  int? lastNotifiedAtMs;
 @override final  int createdAtMs;
 @override final  int updatedAtMs;
 
@@ -235,16 +237,16 @@ _$PaymentReminderCopyWith<_PaymentReminder> get copyWith => __$PaymentReminderCo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PaymentReminder&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.whenAtMs, whenAtMs) || other.whenAtMs == whenAtMs)&&(identical(other.note, note) || other.note == note)&&(identical(other.isDone, isDone) || other.isDone == isDone)&&(identical(other.createdAtMs, createdAtMs) || other.createdAtMs == createdAtMs)&&(identical(other.updatedAtMs, updatedAtMs) || other.updatedAtMs == updatedAtMs));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PaymentReminder&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.whenAtMs, whenAtMs) || other.whenAtMs == whenAtMs)&&(identical(other.note, note) || other.note == note)&&(identical(other.isDone, isDone) || other.isDone == isDone)&&(identical(other.lastNotifiedAtMs, lastNotifiedAtMs) || other.lastNotifiedAtMs == lastNotifiedAtMs)&&(identical(other.createdAtMs, createdAtMs) || other.createdAtMs == createdAtMs)&&(identical(other.updatedAtMs, updatedAtMs) || other.updatedAtMs == updatedAtMs));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,title,amount,whenAtMs,note,isDone,createdAtMs,updatedAtMs);
+int get hashCode => Object.hash(runtimeType,id,title,amount,whenAtMs,note,isDone,lastNotifiedAtMs,createdAtMs,updatedAtMs);
 
 @override
 String toString() {
-  return 'PaymentReminder(id: $id, title: $title, amount: $amount, whenAtMs: $whenAtMs, note: $note, isDone: $isDone, createdAtMs: $createdAtMs, updatedAtMs: $updatedAtMs)';
+  return 'PaymentReminder(id: $id, title: $title, amount: $amount, whenAtMs: $whenAtMs, note: $note, isDone: $isDone, lastNotifiedAtMs: $lastNotifiedAtMs, createdAtMs: $createdAtMs, updatedAtMs: $updatedAtMs)';
 }
 
 
@@ -255,7 +257,7 @@ abstract mixin class _$PaymentReminderCopyWith<$Res> implements $PaymentReminder
   factory _$PaymentReminderCopyWith(_PaymentReminder value, $Res Function(_PaymentReminder) _then) = __$PaymentReminderCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String title, double amount, int whenAtMs, String? note, bool isDone, int createdAtMs, int updatedAtMs
+ String id, String title, double amount, int whenAtMs, String? note, bool isDone, int? lastNotifiedAtMs, int createdAtMs, int updatedAtMs
 });
 
 
@@ -272,7 +274,7 @@ class __$PaymentReminderCopyWithImpl<$Res>
 
 /// Create a copy of PaymentReminder
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? title = null,Object? amount = null,Object? whenAtMs = null,Object? note = freezed,Object? isDone = null,Object? createdAtMs = null,Object? updatedAtMs = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? title = null,Object? amount = null,Object? whenAtMs = null,Object? note = freezed,Object? isDone = null,Object? lastNotifiedAtMs = freezed,Object? createdAtMs = null,Object? updatedAtMs = null,}) {
   return _then(_PaymentReminder(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
@@ -280,7 +282,8 @@ as String,amount: null == amount ? _self.amount : amount // ignore: cast_nullabl
 as double,whenAtMs: null == whenAtMs ? _self.whenAtMs : whenAtMs // ignore: cast_nullable_to_non_nullable
 as int,note: freezed == note ? _self.note : note // ignore: cast_nullable_to_non_nullable
 as String?,isDone: null == isDone ? _self.isDone : isDone // ignore: cast_nullable_to_non_nullable
-as bool,createdAtMs: null == createdAtMs ? _self.createdAtMs : createdAtMs // ignore: cast_nullable_to_non_nullable
+as bool,lastNotifiedAtMs: freezed == lastNotifiedAtMs ? _self.lastNotifiedAtMs : lastNotifiedAtMs // ignore: cast_nullable_to_non_nullable
+as int?,createdAtMs: null == createdAtMs ? _self.createdAtMs : createdAtMs // ignore: cast_nullable_to_non_nullable
 as int,updatedAtMs: null == updatedAtMs ? _self.updatedAtMs : updatedAtMs // ignore: cast_nullable_to_non_nullable
 as int,
   ));
