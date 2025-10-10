@@ -1,10 +1,7 @@
-import 'dart:convert';
-
-import 'package:crypto/crypto.dart';
-
 import 'package:kopim/features/recurring_transactions/domain/entities/recurring_rule.dart';
 import 'package:kopim/features/recurring_transactions/domain/repositories/recurring_transactions_repository.dart';
 import 'package:kopim/features/recurring_transactions/domain/services/recurring_rule_scheduler.dart';
+import 'package:kopim/features/recurring_transactions/domain/utils/recurring_occurrence_id.dart';
 import 'package:kopim/features/transactions/domain/entities/add_transaction_request.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
 
@@ -58,7 +55,10 @@ class ApplyRecurringRulesUseCase {
           rule: rule,
           due: due,
         );
-        final String occurrenceId = _occurrenceId(rule.id, due);
+        final String occurrenceId = buildRecurringOccurrenceId(
+          ruleId: rule.id,
+          dueAt: due,
+        );
         final bool appliedNow = await _repository.applyRuleOccurrence(
           rule: rule,
           occurrenceId: occurrenceId,
@@ -98,13 +98,5 @@ class ApplyRecurringRulesUseCase {
       note: 'Автоплатеж "${rule.title}"',
       type: type,
     );
-  }
-
-  String _occurrenceId(String ruleId, DateTime due) {
-    final String day = due.day.toString().padLeft(2, '0');
-    final String month = due.month.toString().padLeft(2, '0');
-    final String dateKey = '${due.year.toString().padLeft(4, '0')}-$month-$day';
-    final String raw = '$ruleId$dateKey';
-    return sha1.convert(utf8.encode(raw)).toString();
   }
 }

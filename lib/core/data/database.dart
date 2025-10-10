@@ -6,6 +6,7 @@ import 'package:drift/native.dart';
 import 'package:kopim/core/data/converters/string_list_converter.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
+import 'package:uuid/uuid.dart';
 
 part 'database.g.dart';
 
@@ -158,7 +159,9 @@ class RecurringRuleExecutions extends Table {
 
 @DataClassName('RecurringOccurrenceRow')
 class RecurringOccurrences extends Table {
-  TextColumn get id => text().withLength(min: 1, max: 60)();
+  TextColumn get id => text()
+      .withLength(min: 1, max: 60)
+      .clientDefault(() => const Uuid().v4())();
   TextColumn get ruleId =>
       text().references(RecurringRules, #id, onDelete: KeyAction.cascade)();
   DateTimeColumn get dueAt => dateTime()();
@@ -277,7 +280,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.connect(DatabaseConnection super.connection);
 
   @override
-  int get schemaVersion => 13;
+  int get schemaVersion => 14;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -286,7 +289,7 @@ class AppDatabase extends _$AppDatabase {
       await m.createIndex(
         Index(
           'recurring_occurrences_rule_due_idx',
-          'CREATE INDEX IF NOT EXISTS recurring_occurrences_rule_due_idx '
+          'CREATE UNIQUE INDEX IF NOT EXISTS recurring_occurrences_rule_due_idx '
               'ON recurring_occurrences(rule_id, due_at)',
         ),
       );
@@ -518,6 +521,18 @@ class AppDatabase extends _$AppDatabase {
       if (from < 13) {
         await m.addColumn(accounts, accounts.isPrimary);
         await m.addColumn(categories, categories.isFavorite);
+      }
+      if (from < 14) {
+        await m.database.customStatement(
+          'DROP INDEX IF EXISTS recurring_occurrences_rule_due_idx',
+        );
+        await m.createIndex(
+          Index(
+            'recurring_occurrences_rule_due_idx',
+            'CREATE UNIQUE INDEX IF NOT EXISTS recurring_occurrences_rule_due_idx '
+                'ON recurring_occurrences(rule_id, due_at)',
+          ),
+        );
       }
     },
   );

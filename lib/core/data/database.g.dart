@@ -4911,7 +4911,8 @@ class $RecurringOccurrencesTable extends RecurringOccurrences
       maxTextLength: 60,
     ),
     type: DriftSqlType.string,
-    requiredDuringInsert: true,
+    requiredDuringInsert: false,
+    clientDefault: () => const Uuid().v4(),
   );
   static const VerificationMeta _ruleIdMeta = const VerificationMeta('ruleId');
   @override
@@ -5006,8 +5007,6 @@ class $RecurringOccurrencesTable extends RecurringOccurrences
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
-    } else if (isInserting) {
-      context.missing(_idMeta);
     }
     if (data.containsKey('rule_id')) {
       context.handle(
@@ -5258,7 +5257,7 @@ class RecurringOccurrencesCompanion
     this.rowid = const Value.absent(),
   });
   RecurringOccurrencesCompanion.insert({
-    required String id,
+    this.id = const Value.absent(),
     required String ruleId,
     required DateTime dueAt,
     required String status,
@@ -5266,8 +5265,7 @@ class RecurringOccurrencesCompanion
     this.postedTxId = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
-  }) : id = Value(id),
-       ruleId = Value(ruleId),
+  }) : ruleId = Value(ruleId),
        dueAt = Value(dueAt),
        status = Value(status);
   static Insertable<RecurringOccurrenceRow> custom({
@@ -11824,7 +11822,7 @@ typedef $$RecurringRulesTableProcessedTableManager =
     >;
 typedef $$RecurringOccurrencesTableCreateCompanionBuilder =
     RecurringOccurrencesCompanion Function({
-      required String id,
+      Value<String> id,
       required String ruleId,
       required DateTime dueAt,
       required String status,
@@ -12116,7 +12114,7 @@ class $$RecurringOccurrencesTableTableManager
               ),
           createCompanionCallback:
               ({
-                required String id,
+                Value<String> id = const Value.absent(),
                 required String ruleId,
                 required DateTime dueAt,
                 required String status,
