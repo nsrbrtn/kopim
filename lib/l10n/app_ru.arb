@@ -29,9 +29,9 @@
   "@profileManageCategoriesCta": {
     "description": "Подпись кнопки, открывающей экран управления категориями из настроек профиля"
   },
-  "profileRecurringTransactionsCta": "Повторяющиеся операции",
-  "@profileRecurringTransactionsCta": {
-    "description": "Подпись кнопки, открывающей экран повторяющихся операций из настроек профиля"
+  "profileUpcomingPaymentsCta": "Предстоящие платежи",
+  "@profileUpcomingPaymentsCta": {
+    "description": "Подпись кнопки, открывающей экран предстоящих платежей из настроек профиля"
   },
   "settingsHomeSectionTitle": "Домашний экран",
   "@settingsHomeSectionTitle": {
@@ -953,6 +953,211 @@
         "type": "int"
       }
     }
+  },
+  "homeUpcomingPaymentsMore": "Больше",
+  "@homeUpcomingPaymentsMore": {
+    "description": "Подпись кнопки, открывающей экран предстоящих платежей из домашнего виджета"
+  },
+  "upcomingPaymentsTitle": "Предстоящие платежи",
+  "@upcomingPaymentsTitle": {
+    "description": "Заголовок экрана предстоящих платежей"
+  },
+  "upcomingPaymentsTabPayments": "Платежи",
+  "@upcomingPaymentsTabPayments": {
+    "description": "Название вкладки с правилами платежей"
+  },
+  "upcomingPaymentsTabReminders": "Напоминания",
+  "@upcomingPaymentsTabReminders": {
+    "description": "Название вкладки с напоминаниями"
+  },
+  "upcomingPaymentsEmptyPaymentsTitle": "Правила ещё не созданы",
+  "@upcomingPaymentsEmptyPaymentsTitle": {
+    "description": "Заголовок пустого состояния списка правил"
+  },
+  "upcomingPaymentsEmptyPaymentsDescription": "Настройте автоматические платежи и держите счета под контролем.",
+  "@upcomingPaymentsEmptyPaymentsDescription": {
+    "description": "Описание пустого состояния списка правил"
+  },
+  "upcomingPaymentsEmptyRemindersTitle": "Напоминаний пока нет",
+  "@upcomingPaymentsEmptyRemindersTitle": {
+    "description": "Заголовок пустого состояния списка напоминаний"
+  },
+  "upcomingPaymentsEmptyRemindersDescription": "Создайте напоминания, чтобы не пропустить ручные платежи.",
+  "@upcomingPaymentsEmptyRemindersDescription": {
+    "description": "Описание пустого состояния списка напоминаний"
+  },
+  "upcomingPaymentsAddPayment": "Добавить платёж",
+  "@upcomingPaymentsAddPayment": {
+    "description": "Подпись действия создания правила платежа"
+  },
+  "upcomingPaymentsAddReminder": "Добавить напоминание",
+  "@upcomingPaymentsAddReminder": {
+    "description": "Подпись действия создания напоминания"
+  },
+  "upcomingPaymentsNewPaymentTitle": "Новый платёж",
+  "@upcomingPaymentsNewPaymentTitle": {
+    "description": "Заголовок формы создания платежа"
+  },
+  "upcomingPaymentsEditPaymentTitle": "Редактирование платежа",
+  "@upcomingPaymentsEditPaymentTitle": {
+    "description": "Заголовок формы редактирования платежа"
+  },
+  "upcomingPaymentsNewReminderTitle": "Новое напоминание",
+  "@upcomingPaymentsNewReminderTitle": {
+    "description": "Заголовок формы создания напоминания"
+  },
+  "upcomingPaymentsEditReminderTitle": "Редактирование напоминания",
+  "@upcomingPaymentsEditReminderTitle": {
+    "description": "Заголовок формы редактирования напоминания"
+  },
+  "upcomingPaymentsFieldTitle": "Название",
+  "@upcomingPaymentsFieldTitle": {
+    "description": "Подпись поля названия правила или напоминания"
+  },
+  "upcomingPaymentsFieldAccount": "Счёт",
+  "@upcomingPaymentsFieldAccount": {
+    "description": "Подпись выбора счёта"
+  },
+  "upcomingPaymentsFieldCategory": "Категория",
+  "@upcomingPaymentsFieldCategory": {
+    "description": "Подпись выбора категории"
+  },
+  "upcomingPaymentsFieldAmount": "Сумма",
+  "@upcomingPaymentsFieldAmount": {
+    "description": "Подпись поля суммы"
+  },
+  "upcomingPaymentsFieldDayOfMonth": "День месяца",
+  "@upcomingPaymentsFieldDayOfMonth": {
+    "description": "Подпись выбора дня месяца"
+  },
+  "upcomingPaymentsFieldNotifyDaysBefore": "За сколько дней напомнить",
+  "@upcomingPaymentsFieldNotifyDaysBefore": {
+    "description": "Подпись поля количества дней до уведомления"
+  },
+  "upcomingPaymentsFieldNotifyTime": "Время уведомления",
+  "@upcomingPaymentsFieldNotifyTime": {
+    "description": "Подпись выбора времени уведомления"
+  },
+  "upcomingPaymentsFieldAutoPost": "Проводить автоматически",
+  "@upcomingPaymentsFieldAutoPost": {
+    "description": "Подпись переключателя автопроведения"
+  },
+  "upcomingPaymentsFieldNote": "Заметка",
+  "@upcomingPaymentsFieldNote": {
+    "description": "Подпись текстового поля заметки"
+  },
+  "upcomingPaymentsFieldReminderWhen": "Дата и время",
+  "@upcomingPaymentsFieldReminderWhen": {
+    "description": "Подпись выбора даты и времени напоминания"
+  },
+  "upcomingPaymentsFieldReminderCompleted": "Отметить выполненным",
+  "@upcomingPaymentsFieldReminderCompleted": {
+    "description": "Подпись переключателя статуса напоминания"
+  },
+  "upcomingPaymentsSubmit": "Сохранить",
+  "@upcomingPaymentsSubmit": {
+    "description": "Основная кнопка сохранения формы"
+  },
+  "upcomingPaymentsCancel": "Отмена",
+  "@upcomingPaymentsCancel": {
+    "description": "Кнопка отмены в формах"
+  },
+  "upcomingPaymentsSaveSuccess": "Правило сохранено",
+  "@upcomingPaymentsSaveSuccess": {
+    "description": "Сообщение об успешном сохранении правила"
+  },
+  "upcomingPaymentsReminderSaveSuccess": "Напоминание сохранено",
+  "@upcomingPaymentsReminderSaveSuccess": {
+    "description": "Сообщение об успешном сохранении напоминания"
+  },
+  "upcomingPaymentsSaveError": "Не удалось сохранить платёж: {error}",
+  "@upcomingPaymentsSaveError": {
+    "description": "Сообщение об ошибке при сохранении правила",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "upcomingPaymentsReminderSaveError": "Не удалось сохранить напоминание: {error}",
+  "@upcomingPaymentsReminderSaveError": {
+    "description": "Сообщение об ошибке при сохранении напоминания",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "upcomingPaymentsValidationTitle": "Введите название",
+  "@upcomingPaymentsValidationTitle": {
+    "description": "Ошибочное состояние при пустом названии"
+  },
+  "upcomingPaymentsValidationAmount": "Введите положительную сумму",
+  "@upcomingPaymentsValidationAmount": {
+    "description": "Ошибочное состояние при некорректной сумме"
+  },
+  "upcomingPaymentsValidationDay": "День должен быть в диапазоне 1–31",
+  "@upcomingPaymentsValidationDay": {
+    "description": "Ошибочное состояние дня месяца"
+  },
+  "upcomingPaymentsValidationNotifyDays": "Количество дней должно быть неотрицательным",
+  "@upcomingPaymentsValidationNotifyDays": {
+    "description": "Ошибочное состояние поля дней до уведомления"
+  },
+  "upcomingPaymentsNoAccounts": "Добавьте счёт, чтобы создать платёж.",
+  "@upcomingPaymentsNoAccounts": {
+    "description": "Сообщение при отсутствии доступных счетов"
+  },
+  "upcomingPaymentsNoCategories": "Создайте категорию, чтобы выбрать её для платежа.",
+  "@upcomingPaymentsNoCategories": {
+    "description": "Сообщение при отсутствии доступных категорий"
+  },
+  "upcomingPaymentsMonthlySummary": "Каждый месяц, {day}-го числа",
+  "@upcomingPaymentsMonthlySummary": {
+    "description": "Краткое описание расписания правила",
+    "placeholders": {
+      "day": {
+        "type": "int"
+      }
+    }
+  },
+  "upcomingPaymentsNotifySummary": "Напоминание {days, plural, =0 {в день платежа в {time}} one {за {days} день до платежа в {time}} few {за {days} дня до платежа в {time}} many {за {days} дней до платежа в {time}} other {за {days} дня до платежа в {time}}}",
+  "@upcomingPaymentsNotifySummary": {
+    "description": "Описание параметров уведомления",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "upcomingPaymentsReminderDue": "Срок {date}",
+  "@upcomingPaymentsReminderDue": {
+    "description": "Подпись срока выполнения напоминания",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "upcomingPaymentsListError": "Не удалось загрузить элементы: {error}",
+  "@upcomingPaymentsListError": {
+    "description": "Сообщение об ошибке загрузки списка",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "upcomingPaymentsNotificationPermissionDenied": "Уведомления отключены. Включите их, чтобы получать напоминания.",
+  "@upcomingPaymentsNotificationPermissionDenied": {
+    "description": "Сообщение при отсутствии разрешения на уведомления"
+  },
+  "upcomingPaymentsScheduleTriggered": "Фоновая задача запланирована",
+  "@upcomingPaymentsScheduleTriggered": {
+    "description": "Сообщение о постановке фоновой задачи"
   },
   "homeSavingsWidgetTitle": "Цели накоплений",
   "@homeSavingsWidgetTitle": {

@@ -29,9 +29,9 @@
   "@profileManageCategoriesCta": {
     "description": "Button label that opens the category management screen from the profile settings"
   },
-  "profileRecurringTransactionsCta": "Recurring transactions",
-  "@profileRecurringTransactionsCta": {
-    "description": "Button label that opens the recurring transactions screen from the profile settings"
+  "profileUpcomingPaymentsCta": "Upcoming payments",
+  "@profileUpcomingPaymentsCta": {
+    "description": "Button label that opens the upcoming payments screen from the profile settings"
   },
   "settingsHomeSectionTitle": "Home screen",
   "@settingsHomeSectionTitle": {
@@ -953,6 +953,211 @@
         "type": "int"
       }
     }
+  },
+  "homeUpcomingPaymentsMore": "More",
+  "@homeUpcomingPaymentsMore": {
+    "description": "Button label that opens the upcoming payments screen from the home widget"
+  },
+  "upcomingPaymentsTitle": "Upcoming payments",
+  "@upcomingPaymentsTitle": {
+    "description": "Title for the upcoming payments screen"
+  },
+  "upcomingPaymentsTabPayments": "Payments",
+  "@upcomingPaymentsTabPayments": {
+    "description": "Tab label for recurring payment rules"
+  },
+  "upcomingPaymentsTabReminders": "Reminders",
+  "@upcomingPaymentsTabReminders": {
+    "description": "Tab label for manual payment reminders"
+  },
+  "upcomingPaymentsEmptyPaymentsTitle": "No payment rules yet",
+  "@upcomingPaymentsEmptyPaymentsTitle": {
+    "description": "Headline for empty state of the payment rules list"
+  },
+  "upcomingPaymentsEmptyPaymentsDescription": "Create automated payment rules to keep bills under control.",
+  "@upcomingPaymentsEmptyPaymentsDescription": {
+    "description": "Description for empty state of the payment rules list"
+  },
+  "upcomingPaymentsEmptyRemindersTitle": "No reminders yet",
+  "@upcomingPaymentsEmptyRemindersTitle": {
+    "description": "Headline for empty state of the reminders list"
+  },
+  "upcomingPaymentsEmptyRemindersDescription": "Set reminders so you never miss a manual payment.",
+  "@upcomingPaymentsEmptyRemindersDescription": {
+    "description": "Description for empty state of the reminders list"
+  },
+  "upcomingPaymentsAddPayment": "Add payment",
+  "@upcomingPaymentsAddPayment": {
+    "description": "Action label for creating a new upcoming payment"
+  },
+  "upcomingPaymentsAddReminder": "Add reminder",
+  "@upcomingPaymentsAddReminder": {
+    "description": "Action label for creating a new payment reminder"
+  },
+  "upcomingPaymentsNewPaymentTitle": "New payment",
+  "@upcomingPaymentsNewPaymentTitle": {
+    "description": "Title for the create payment form"
+  },
+  "upcomingPaymentsEditPaymentTitle": "Edit payment",
+  "@upcomingPaymentsEditPaymentTitle": {
+    "description": "Title for the edit payment form"
+  },
+  "upcomingPaymentsNewReminderTitle": "New reminder",
+  "@upcomingPaymentsNewReminderTitle": {
+    "description": "Title for the create reminder form"
+  },
+  "upcomingPaymentsEditReminderTitle": "Edit reminder",
+  "@upcomingPaymentsEditReminderTitle": {
+    "description": "Title for the edit reminder form"
+  },
+  "upcomingPaymentsFieldTitle": "Name",
+  "@upcomingPaymentsFieldTitle": {
+    "description": "Label for the payment or reminder title field"
+  },
+  "upcomingPaymentsFieldAccount": "Account",
+  "@upcomingPaymentsFieldAccount": {
+    "description": "Label for selecting an account"
+  },
+  "upcomingPaymentsFieldCategory": "Category",
+  "@upcomingPaymentsFieldCategory": {
+    "description": "Label for selecting a category"
+  },
+  "upcomingPaymentsFieldAmount": "Amount",
+  "@upcomingPaymentsFieldAmount": {
+    "description": "Label for the amount input"
+  },
+  "upcomingPaymentsFieldDayOfMonth": "Day of month",
+  "@upcomingPaymentsFieldDayOfMonth": {
+    "description": "Label for selecting the recurring day of month"
+  },
+  "upcomingPaymentsFieldNotifyDaysBefore": "Notify days before",
+  "@upcomingPaymentsFieldNotifyDaysBefore": {
+    "description": "Label for the notify days input"
+  },
+  "upcomingPaymentsFieldNotifyTime": "Notification time",
+  "@upcomingPaymentsFieldNotifyTime": {
+    "description": "Label for the notification time picker"
+  },
+  "upcomingPaymentsFieldAutoPost": "Post automatically",
+  "@upcomingPaymentsFieldAutoPost": {
+    "description": "Label for the auto post switch"
+  },
+  "upcomingPaymentsFieldNote": "Note",
+  "@upcomingPaymentsFieldNote": {
+    "description": "Label for the optional note field"
+  },
+  "upcomingPaymentsFieldReminderWhen": "Date and time",
+  "@upcomingPaymentsFieldReminderWhen": {
+    "description": "Label for selecting reminder date and time"
+  },
+  "upcomingPaymentsFieldReminderCompleted": "Mark as done",
+  "@upcomingPaymentsFieldReminderCompleted": {
+    "description": "Label for reminder completion switch"
+  },
+  "upcomingPaymentsSubmit": "Save",
+  "@upcomingPaymentsSubmit": {
+    "description": "Primary action button for saving a form"
+  },
+  "upcomingPaymentsCancel": "Cancel",
+  "@upcomingPaymentsCancel": {
+    "description": "Secondary action for dismissing a form"
+  },
+  "upcomingPaymentsSaveSuccess": "Upcoming payment saved",
+  "@upcomingPaymentsSaveSuccess": {
+    "description": "Snackbar message shown when a payment rule is saved"
+  },
+  "upcomingPaymentsReminderSaveSuccess": "Reminder saved",
+  "@upcomingPaymentsReminderSaveSuccess": {
+    "description": "Snackbar message shown when a reminder is saved"
+  },
+  "upcomingPaymentsSaveError": "Failed to save payment: {error}",
+  "@upcomingPaymentsSaveError": {
+    "description": "Error message shown when saving a payment rule fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "upcomingPaymentsReminderSaveError": "Failed to save reminder: {error}",
+  "@upcomingPaymentsReminderSaveError": {
+    "description": "Error message shown when saving a reminder fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "upcomingPaymentsValidationTitle": "Enter a name",
+  "@upcomingPaymentsValidationTitle": {
+    "description": "Validation error shown when title is empty"
+  },
+  "upcomingPaymentsValidationAmount": "Enter a positive amount",
+  "@upcomingPaymentsValidationAmount": {
+    "description": "Validation error for amount"
+  },
+  "upcomingPaymentsValidationDay": "Day must be between 1 and 31",
+  "@upcomingPaymentsValidationDay": {
+    "description": "Validation error for day of month"
+  },
+  "upcomingPaymentsValidationNotifyDays": "Notify days must be zero or greater",
+  "@upcomingPaymentsValidationNotifyDays": {
+    "description": "Validation error for notify days"
+  },
+  "upcomingPaymentsNoAccounts": "Add an account to schedule payments.",
+  "@upcomingPaymentsNoAccounts": {
+    "description": "Message shown when there are no accounts available"
+  },
+  "upcomingPaymentsNoCategories": "Create a category to schedule payments.",
+  "@upcomingPaymentsNoCategories": {
+    "description": "Message shown when there are no categories available"
+  },
+  "upcomingPaymentsMonthlySummary": "Every month on day {day}",
+  "@upcomingPaymentsMonthlySummary": {
+    "description": "Summary text describing the recurring schedule",
+    "placeholders": {
+      "day": {
+        "type": "int"
+      }
+    }
+  },
+  "upcomingPaymentsNotifySummary": "Notify {days, plural, =0 {on the day at {time}} one {{days} day before at {time}} other {{days} days before at {time}}}",
+  "@upcomingPaymentsNotifySummary": {
+    "description": "Summary describing when notifications are sent",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "upcomingPaymentsReminderDue": "Due {date}",
+  "@upcomingPaymentsReminderDue": {
+    "description": "Label showing reminder due date",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "upcomingPaymentsListError": "Couldn't load items: {error}",
+  "@upcomingPaymentsListError": {
+    "description": "Error shown when stream loading fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "upcomingPaymentsNotificationPermissionDenied": "Notifications are disabled. Enable them to receive reminders.",
+  "@upcomingPaymentsNotificationPermissionDenied": {
+    "description": "Message shown when scheduling notifications fails because permission is denied"
+  },
+  "upcomingPaymentsScheduleTriggered": "Background worker queued",
+  "@upcomingPaymentsScheduleTriggered": {
+    "description": "Message shown when the background worker is scheduled"
   },
   "homeSavingsWidgetTitle": "Saving goals",
   "@homeSavingsWidgetTitle": {

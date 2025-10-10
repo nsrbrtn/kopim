@@ -34,7 +34,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get profileManageCategoriesCta => 'Управлять категориями';
 
   @override
-  String get profileRecurringTransactionsCta => 'Повторяющиеся операции';
+  String get profileUpcomingPaymentsCta => 'Предстоящие платежи';
 
   @override
   String get settingsHomeSectionTitle => 'Домашний экран';
@@ -727,6 +727,165 @@ class AppLocalizationsRu extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get homeUpcomingPaymentsMore => 'Больше';
+
+  @override
+  String get upcomingPaymentsTitle => 'Предстоящие платежи';
+
+  @override
+  String get upcomingPaymentsTabPayments => 'Платежи';
+
+  @override
+  String get upcomingPaymentsTabReminders => 'Напоминания';
+
+  @override
+  String get upcomingPaymentsEmptyPaymentsTitle => 'Правила ещё не созданы';
+
+  @override
+  String get upcomingPaymentsEmptyPaymentsDescription =>
+      'Настройте автоматические платежи и держите счета под контролем.';
+
+  @override
+  String get upcomingPaymentsEmptyRemindersTitle => 'Напоминаний пока нет';
+
+  @override
+  String get upcomingPaymentsEmptyRemindersDescription =>
+      'Создайте напоминания, чтобы не пропустить ручные платежи.';
+
+  @override
+  String get upcomingPaymentsAddPayment => 'Добавить платёж';
+
+  @override
+  String get upcomingPaymentsAddReminder => 'Добавить напоминание';
+
+  @override
+  String get upcomingPaymentsNewPaymentTitle => 'Новый платёж';
+
+  @override
+  String get upcomingPaymentsEditPaymentTitle => 'Редактирование платежа';
+
+  @override
+  String get upcomingPaymentsNewReminderTitle => 'Новое напоминание';
+
+  @override
+  String get upcomingPaymentsEditReminderTitle => 'Редактирование напоминания';
+
+  @override
+  String get upcomingPaymentsFieldTitle => 'Название';
+
+  @override
+  String get upcomingPaymentsFieldAccount => 'Счёт';
+
+  @override
+  String get upcomingPaymentsFieldCategory => 'Категория';
+
+  @override
+  String get upcomingPaymentsFieldAmount => 'Сумма';
+
+  @override
+  String get upcomingPaymentsFieldDayOfMonth => 'День месяца';
+
+  @override
+  String get upcomingPaymentsFieldNotifyDaysBefore =>
+      'За сколько дней напомнить';
+
+  @override
+  String get upcomingPaymentsFieldNotifyTime => 'Время уведомления';
+
+  @override
+  String get upcomingPaymentsFieldAutoPost => 'Проводить автоматически';
+
+  @override
+  String get upcomingPaymentsFieldNote => 'Заметка';
+
+  @override
+  String get upcomingPaymentsFieldReminderWhen => 'Дата и время';
+
+  @override
+  String get upcomingPaymentsFieldReminderCompleted => 'Отметить выполненным';
+
+  @override
+  String get upcomingPaymentsSubmit => 'Сохранить';
+
+  @override
+  String get upcomingPaymentsCancel => 'Отмена';
+
+  @override
+  String get upcomingPaymentsSaveSuccess => 'Правило сохранено';
+
+  @override
+  String get upcomingPaymentsReminderSaveSuccess => 'Напоминание сохранено';
+
+  @override
+  String upcomingPaymentsSaveError(String error) {
+    return 'Не удалось сохранить платёж: $error';
+  }
+
+  @override
+  String upcomingPaymentsReminderSaveError(String error) {
+    return 'Не удалось сохранить напоминание: $error';
+  }
+
+  @override
+  String get upcomingPaymentsValidationTitle => 'Введите название';
+
+  @override
+  String get upcomingPaymentsValidationAmount => 'Введите положительную сумму';
+
+  @override
+  String get upcomingPaymentsValidationDay =>
+      'День должен быть в диапазоне 1–31';
+
+  @override
+  String get upcomingPaymentsValidationNotifyDays =>
+      'Количество дней должно быть неотрицательным';
+
+  @override
+  String get upcomingPaymentsNoAccounts =>
+      'Добавьте счёт, чтобы создать платёж.';
+
+  @override
+  String get upcomingPaymentsNoCategories =>
+      'Создайте категорию, чтобы выбрать её для платежа.';
+
+  @override
+  String upcomingPaymentsMonthlySummary(int day) {
+    return 'Каждый месяц, $day-го числа';
+  }
+
+  @override
+  String upcomingPaymentsNotifySummary(int days, String time) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'за $days дня до платежа в $time',
+      many: 'за $days дней до платежа в $time',
+      few: 'за $days дня до платежа в $time',
+      one: 'за $days день до платежа в $time',
+      zero: 'в день платежа в $time',
+    );
+    return 'Напоминание $_temp0';
+  }
+
+  @override
+  String upcomingPaymentsReminderDue(String date) {
+    return 'Срок $date';
+  }
+
+  @override
+  String upcomingPaymentsListError(String error) {
+    return 'Не удалось загрузить элементы: $error';
+  }
+
+  @override
+  String get upcomingPaymentsNotificationPermissionDenied =>
+      'Уведомления отключены. Включите их, чтобы получать напоминания.';
+
+  @override
+  String get upcomingPaymentsScheduleTriggered =>
+      'Фоновая задача запланирована';
 
   @override
   String get homeSavingsWidgetTitle => 'Цели накоплений';

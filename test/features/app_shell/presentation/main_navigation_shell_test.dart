@@ -23,7 +23,6 @@ import 'package:kopim/features/categories/presentation/controllers/categories_li
 import 'package:kopim/features/home/domain/entities/home_dashboard_preferences.dart';
 import 'package:kopim/features/home/presentation/controllers/home_dashboard_preferences_controller.dart';
 import 'package:kopim/features/home/presentation/controllers/home_providers.dart';
-import 'package:kopim/features/home/domain/models/upcoming_payment.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
 import 'package:kopim/features/profile/presentation/controllers/auth_controller.dart';
 import 'package:kopim/features/profile/presentation/screens/general_settings_screen.dart';
@@ -38,6 +37,8 @@ import 'package:kopim/features/recurring_transactions/domain/entities/recurring_
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/repositories/transaction_repository.dart';
 import 'package:kopim/features/transactions/domain/use_cases/watch_recent_transactions_use_case.dart';
+import 'package:kopim/features/upcoming_payments/domain/models/upcoming_item.dart';
+import 'package:kopim/features/upcoming_payments/domain/providers/upcoming_payments_providers.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 import 'package:kopim/l10n/app_localizations_en.dart';
 
@@ -245,9 +246,9 @@ void main() {
           (Ref ref) =>
               Stream<List<RecurringRule>>.value(const <RecurringRule>[]),
         ),
-        homeUpcomingPaymentsProvider.overrideWith(
-          (Ref ref) =>
-              Stream<List<UpcomingPayment>>.value(const <UpcomingPayment>[]),
+        homeUpcomingItemsProvider.overrideWith(
+          (Ref ref, int limit) =>
+              Stream<List<UpcomingItem>>.value(const <UpcomingItem>[]),
         ),
         budgetsStreamProvider.overrideWith(
           (Ref ref) => Stream<List<Budget>>.value(const <Budget>[]),
