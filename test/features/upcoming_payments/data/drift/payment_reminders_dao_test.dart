@@ -26,6 +26,7 @@ void main() {
     int whenAtMs = 1700000000000,
     String? note,
     bool isDone = false,
+    int? lastNotifiedAtMs,
     int createdAtMs = 1700000000000,
     int updatedAtMs = 1700000000000,
   }) {
@@ -36,6 +37,7 @@ void main() {
       whenAtMs: whenAtMs,
       note: note,
       isDone: isDone,
+      lastNotifiedAtMs: lastNotifiedAtMs,
       createdAtMs: createdAtMs,
       updatedAtMs: updatedAtMs,
     );

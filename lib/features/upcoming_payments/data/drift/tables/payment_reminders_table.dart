@@ -17,6 +17,8 @@ class PaymentReminders extends Table {
 
   BoolColumn get isDone => boolean().withDefault(const Constant<bool>(false))();
 
+  IntColumn get lastNotifiedAt => integer().nullable()();
+
   IntColumn get createdAt => integer()();
 
   IntColumn get updatedAt => integer()();

@@ -284,7 +284,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.connect(DatabaseConnection super.connection);
 
   @override
-  int get schemaVersion => 16;
+  int get schemaVersion => 17;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -602,6 +602,15 @@ class AppDatabase extends _$AppDatabase {
       }
       if (from < 16) {
         await _ensureUpcomingPaymentsIndexes();
+      }
+      if (from < 17) {
+        final bool hasLastNotifiedColumn = await _columnExists(
+          'payment_reminders',
+          'last_notified_at',
+        );
+        if (!hasLastNotifiedColumn) {
+          await m.addColumn(paymentReminders, paymentReminders.lastNotifiedAt);
+        }
       }
     },
     beforeOpen: (OpeningDetails details) async {

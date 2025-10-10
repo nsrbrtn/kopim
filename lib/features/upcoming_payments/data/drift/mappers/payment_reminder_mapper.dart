@@ -13,6 +13,7 @@ class PaymentReminderMapper {
       whenAtMs: row.whenAt,
       note: row.note,
       isDone: row.isDone,
+      lastNotifiedAtMs: row.lastNotifiedAt,
       createdAtMs: row.createdAt,
       updatedAtMs: row.updatedAt,
     );
@@ -26,6 +27,7 @@ class PaymentReminderMapper {
       whenAt: Value<int>(reminder.whenAtMs),
       note: Value<String?>(reminder.note),
       isDone: Value<bool>(reminder.isDone),
+      lastNotifiedAt: Value<int?>(reminder.lastNotifiedAtMs),
       createdAt: Value<int>(reminder.createdAtMs),
       updatedAt: Value<int>(reminder.updatedAtMs),
     );

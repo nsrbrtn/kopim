@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:timezone/timezone.dart' as tz;
+
+import 'package:kopim/core/utils/timezone_utils.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 import 'core/config/app_config.dart';
@@ -25,6 +28,8 @@ import 'features/recurring_transactions/presentation/screens/recurring_transacti
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  final String timeZoneId = resolveCurrentTimeZoneId();
+  tz.setLocalLocation(tz.getLocation(timeZoneId));
   runApp(const ProviderScope(child: MyApp()));
 }
 

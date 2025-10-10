@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -7,6 +8,8 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/features/recurring_transactions/data/services/recurring_work_scheduler.dart';
+import 'package:kopim/features/upcoming_payments/application/upcoming_notifications_controller.dart';
+import 'package:kopim/features/upcoming_payments/data/services/upcoming_payments_work_scheduler.dart';
 import 'package:kopim/firebase_options.dart';
 
 part 'app_startup_controller.g.dart';
@@ -56,7 +59,9 @@ class AppStartupController extends _$AppStartupController {
   }
 
   Future<void> _initializeBackgroundServices() async {
-    await Future.wait<void>(<Future<void>>[_warmUpRecurringWorkScheduler()]);
+    await _warmUpRecurringWorkScheduler();
+    await _warmUpUpcomingPaymentsWork();
+    await _activateUpcomingNotificationsSync();
   }
 
   Future<void> _warmUpRecurringWorkScheduler() async {
@@ -77,6 +82,45 @@ class AppStartupController extends _$AppStartupController {
           library: 'app_startup_controller',
           context: ErrorDescription(
             'while warming up background recurring transaction services',
+          ),
+        ),
+      );
+    }
+  }
+
+  Future<void> _warmUpUpcomingPaymentsWork() async {
+    if (!Platform.isAndroid && !Platform.isIOS) {
+      return;
+    }
+    try {
+      final UpcomingPaymentsWorkScheduler scheduler = ref.read(
+        upcomingPaymentsWorkSchedulerProvider,
+      );
+      await scheduler.scheduleDailyCatchUp();
+      await scheduler.triggerOneOffCatchUp();
+    } catch (error, stackTrace) {
+      FlutterError.reportError(
+        FlutterErrorDetails(
+          exception: error,
+          stack: stackTrace,
+          library: 'app_startup_controller',
+          context: ErrorDescription('while scheduling upcoming payments work'),
+        ),
+      );
+    }
+  }
+
+  Future<void> _activateUpcomingNotificationsSync() async {
+    try {
+      await ref.read(upcomingNotificationsControllerProvider.future);
+    } catch (error, stackTrace) {
+      FlutterError.reportError(
+        FlutterErrorDetails(
+          exception: error,
+          stack: stackTrace,
+          library: 'app_startup_controller',
+          context: ErrorDescription(
+            'while starting upcoming notifications coordinator',
           ),
         ),
       );

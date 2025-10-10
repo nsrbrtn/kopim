@@ -93,7 +93,7 @@ void main() {
           .customSelect('PRAGMA user_version')
           .map((drift.QueryRow row) => row.read<int>('user_version'))
           .getSingle());
-      expect(schemaVersion, 16);
+      expect(schemaVersion, database.schemaVersion);
 
       await database.close();
     });

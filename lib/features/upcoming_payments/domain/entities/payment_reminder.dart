@@ -13,6 +13,7 @@ abstract class PaymentReminder with _$PaymentReminder {
     required int whenAtMs,
     String? note,
     required bool isDone,
+    int? lastNotifiedAtMs,
     required int createdAtMs,
     required int updatedAtMs,
   }) = _PaymentReminder;

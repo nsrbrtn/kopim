@@ -53,6 +53,7 @@ void main() {
     required String id,
     required int when,
     bool isDone = false,
+    int? lastNotifiedAtMs,
   }) {
     return PaymentReminder(
       id: id,
@@ -61,6 +62,7 @@ void main() {
       whenAtMs: when,
       note: null,
       isDone: isDone,
+      lastNotifiedAtMs: lastNotifiedAtMs,
       createdAtMs: 0,
       updatedAtMs: 0,
     );
