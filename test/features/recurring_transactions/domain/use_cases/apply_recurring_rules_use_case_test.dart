@@ -1,6 +1,3 @@
-import 'dart:convert';
-
-import 'package:crypto/crypto.dart';
 import 'package:drift/drift.dart' as drift;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -19,6 +16,7 @@ import 'package:kopim/features/recurring_transactions/data/sources/local/recurri
 import 'package:kopim/features/recurring_transactions/domain/entities/recurring_rule.dart';
 import 'package:kopim/features/recurring_transactions/domain/repositories/recurring_transactions_repository.dart';
 import 'package:kopim/features/recurring_transactions/domain/use_cases/apply_recurring_rules_use_case.dart';
+import 'package:kopim/features/recurring_transactions/domain/utils/recurring_occurrence_id.dart';
 import 'package:kopim/features/transactions/data/repositories/transaction_repository_impl.dart';
 import 'package:kopim/features/transactions/data/sources/local/transaction_dao.dart';
 import 'package:kopim/features/transactions/domain/entities/add_transaction_request.dart';
@@ -169,9 +167,10 @@ void main() {
       expect(updated!.lastRunAt, DateTime(2024, 2, 29, 0, 1));
       expect(updated.nextDueLocalDate, DateTime(2024, 3, 31, 0, 1));
 
-      final String occurrenceId = sha1
-          .convert(utf8.encode('rule12024-02-29'))
-          .toString();
+      final String occurrenceId = buildRecurringOccurrenceId(
+        ruleId: 'rule1',
+        dueAt: DateTime(2024, 2, 29, 0, 1),
+      );
       bool executed = false;
       final bool duplicate = await repository.applyRuleOccurrence(
         rule: updated,

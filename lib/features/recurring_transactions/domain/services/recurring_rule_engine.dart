@@ -2,6 +2,7 @@ import 'dart:isolate';
 
 import 'package:kopim/features/recurring_transactions/domain/entities/recurring_occurrence.dart';
 import 'package:kopim/features/recurring_transactions/domain/entities/recurring_rule.dart';
+import 'package:kopim/features/recurring_transactions/domain/utils/recurring_occurrence_id.dart';
 import 'package:rrule/rrule.dart';
 import 'package:timezone/data/latest.dart' as tzdata;
 import 'package:timezone/timezone.dart' as tz;
@@ -94,7 +95,10 @@ List<RecurringOccurrence> _generateOccurrences({
     if (_isOutsideRule(instance, rule, localWindowStart, localWindowEnd)) {
       continue;
     }
-    final String occurrenceId = _occurrenceId(rule.id, instance);
+    final String occurrenceId = buildRecurringOccurrenceId(
+      ruleId: rule.id,
+      dueAt: instance.toUtc(),
+    );
     if (seenIds.add(occurrenceId)) {
       occurrences.add(
         RecurringOccurrence(
@@ -150,7 +154,10 @@ List<RecurringOccurrence> _generateOccurrences({
           )) {
             continue;
           }
-          final String occurrenceId = _occurrenceId(rule.id, candidate);
+          final String occurrenceId = buildRecurringOccurrenceId(
+            ruleId: rule.id,
+            dueAt: candidate.toUtc(),
+          );
           if (seenIds.add(occurrenceId)) {
             occurrences.add(
               RecurringOccurrence(
@@ -193,10 +200,6 @@ bool _isOutsideRule(
     }
   }
   return false;
-}
-
-String _occurrenceId(String ruleId, tz.TZDateTime dueAt) {
-  return '$ruleId-${dueAt.toUtc().toIso8601String()}';
 }
 
 DateTime _asUtcDateTime(tz.TZDateTime value) {
