@@ -16,7 +16,7 @@ class HomeGamificationAppBar extends ConsumerWidget {
   final String userId;
 
   static const double appBarHeight = 40;
-  static const double gamificationHeight = 80;
+  static const double minGamificationHeight = 80;
 
   static const List<String> _phrases = <String>[
     'Ты экономишь как супергерой!',
@@ -86,8 +86,10 @@ class HomeGamificationAppBar extends ConsumerWidget {
         SliverPadding(
           padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
           sliver: SliverToBoxAdapter(
-            child: SizedBox(
-              height: gamificationHeight,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(
+                minHeight: minGamificationHeight,
+              ),
               child: _HomeGamificationCard(
                 progressAsync: progressAsync,
                 policy: policy,
@@ -152,7 +154,7 @@ class _HomeGamificationCard extends StatelessWidget {
               final bool maxedOut = nextThreshold == progress.totalTx;
 
               return Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   Text(
@@ -163,10 +165,12 @@ class _HomeGamificationCard extends StatelessWidget {
                       fontWeight: FontWeight.w600,
                     ),
                   ),
+                  const SizedBox(height: 12),
                   ClipRRect(
                     borderRadius: const BorderRadius.all(Radius.circular(12)),
                     child: LinearProgressIndicator(value: ratio, minHeight: 8),
                   ),
+                  const SizedBox(height: 12),
                   Text(
                     maxedOut
                         ? strings.profileLevelMaxReached

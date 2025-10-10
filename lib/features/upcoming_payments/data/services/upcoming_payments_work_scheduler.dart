@@ -1,5 +1,4 @@
-import 'dart:io';
-
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:workmanager/workmanager.dart';
@@ -35,6 +34,19 @@ import 'package:kopim/features/upcoming_payments/domain/usecases/recalc_upcoming
 
 const String kUpcomingPaymentsPeriodicTask = 'upcoming_apply_rules';
 const String kUpcomingPaymentsOneOffTask = 'upcoming_apply_rules_once';
+
+bool _isMobilePlatform() {
+  if (kIsWeb) {
+    return false;
+  }
+  switch (defaultTargetPlatform) {
+    case TargetPlatform.android:
+    case TargetPlatform.iOS:
+      return true;
+    default:
+      return false;
+  }
+}
 
 @pragma('vm:entry-point')
 Future<bool> runUpcomingPaymentsBackgroundTask(String task) async {
@@ -72,7 +84,7 @@ class UpcomingPaymentsWorkScheduler {
   final LoggerService _logger;
 
   Future<void> scheduleDailyCatchUp() async {
-    if (!Platform.isAndroid && !Platform.isIOS) {
+    if (!_isMobilePlatform()) {
       return;
     }
     await _workmanager.registerPeriodicTask(
@@ -89,7 +101,7 @@ class UpcomingPaymentsWorkScheduler {
   }
 
   Future<void> triggerOneOffCatchUp() async {
-    if (!Platform.isAndroid && !Platform.isIOS) {
+    if (!_isMobilePlatform()) {
       return;
     }
     final String id =
@@ -262,6 +274,14 @@ Future<void> _handleReminder({
       payload: 'reminder:${reminder.id}',
     );
     logger.logInfo('scheduled id=$notificationId for reminder ${reminder.id}');
+    if (reminder.lastNotifiedAtMs != reminder.whenAtMs) {
+      final int updatedAt = timeService.nowMs();
+      final PaymentReminder updated = reminder.copyWith(
+        lastNotifiedAtMs: reminder.whenAtMs,
+        updatedAtMs: updatedAt,
+      );
+      await remindersRepository.upsert(updated);
+    }
     return;
   }
   if (reminder.lastNotifiedAtMs != null &&

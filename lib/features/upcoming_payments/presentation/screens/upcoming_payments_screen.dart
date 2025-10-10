@@ -54,6 +54,7 @@ class _UpcomingPaymentsScreenState extends ConsumerState<UpcomingPaymentsScreen>
         ],
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'upcomingPaymentsFab',
         onPressed: () => _showCreateMenu(context, strings),
         child: const Icon(Icons.add),
       ),

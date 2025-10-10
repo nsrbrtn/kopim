@@ -1,9 +1,8 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/widgets.dart';
+import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:kopim/core/di/injectors.dart';
@@ -89,7 +88,7 @@ class AppStartupController extends _$AppStartupController {
   }
 
   Future<void> _warmUpUpcomingPaymentsWork() async {
-    if (!Platform.isAndroid && !Platform.isIOS) {
+    if (!_supportsUpcomingPaymentsWork()) {
       return;
     }
     try {
@@ -124,6 +123,19 @@ class AppStartupController extends _$AppStartupController {
           ),
         ),
       );
+    }
+  }
+
+  bool _supportsUpcomingPaymentsWork() {
+    if (kIsWeb) {
+      return false;
+    }
+    switch (defaultTargetPlatform) {
+      case TargetPlatform.android:
+      case TargetPlatform.iOS:
+        return true;
+      default:
+        return false;
     }
   }
 }

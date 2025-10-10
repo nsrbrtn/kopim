@@ -214,12 +214,27 @@ class _EditPaymentReminderScreenState
   }
 
   void _onSelectDate() async {
-    final DateTime initialDate = _whenLocal;
+    final DateTime initialDateTime = _whenLocal;
+    final DateTime initialDate = DateTime(
+      initialDateTime.year,
+      initialDateTime.month,
+      initialDateTime.day,
+    );
+    final DateTime now = DateTime.now();
+    final DateTime today = DateTime(now.year, now.month, now.day);
+    final DateTime fallbackFirstDate = today.subtract(const Duration(days: 1));
+    final DateTime firstDate = initialDate.isBefore(fallbackFirstDate)
+        ? initialDate
+        : fallbackFirstDate;
+    final DateTime maxAllowedDate = today.add(const Duration(days: 365 * 5));
+    final DateTime lastDate = initialDate.isAfter(maxAllowedDate)
+        ? initialDate
+        : maxAllowedDate;
     final DateTime? pickedDate = await showDatePicker(
       context: context,
       initialDate: initialDate,
-      firstDate: DateTime.now().subtract(const Duration(days: 1)),
-      lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
+      firstDate: firstDate,
+      lastDate: lastDate,
     );
     if (pickedDate == null) {
       return;

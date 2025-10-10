@@ -95,8 +95,9 @@ void main() {
 
       final Finder cardHeightFinder = find.byWidgetPredicate(
         (Widget widget) =>
-            widget is SizedBox &&
-            widget.height == HomeGamificationAppBar.gamificationHeight,
+            widget is ConstrainedBox &&
+            widget.constraints.minHeight ==
+                HomeGamificationAppBar.minGamificationHeight,
       );
 
       expect(cardHeightFinder, findsOneWidget);
