@@ -106,6 +106,12 @@ import 'package:kopim/features/recurring_transactions/domain/use_cases/save_recu
 import 'package:kopim/features/recurring_transactions/domain/use_cases/toggle_recurring_rule_use_case.dart';
 import 'package:kopim/features/recurring_transactions/domain/use_cases/watch_recurring_rules_use_case.dart';
 import 'package:kopim/features/recurring_transactions/domain/use_cases/watch_upcoming_occurrences_use_case.dart';
+import 'package:kopim/features/upcoming_payments/data/drift/daos/payment_reminders_dao.dart';
+import 'package:kopim/features/upcoming_payments/data/drift/daos/upcoming_payments_dao.dart';
+import 'package:kopim/features/upcoming_payments/data/drift/repositories/payment_reminders_repository_impl.dart';
+import 'package:kopim/features/upcoming_payments/data/drift/repositories/upcoming_payments_repository_impl.dart';
+import 'package:kopim/features/upcoming_payments/domain/repositories/payment_reminders_repository.dart';
+import 'package:kopim/features/upcoming_payments/domain/repositories/upcoming_payments_repository.dart';
 
 part 'injectors.g.dart';
 
@@ -188,6 +194,14 @@ RecurringRuleExecutionDao recurringRuleExecutionDao(Ref ref) =>
 
 @riverpod
 JobQueueDao jobQueueDao(Ref ref) => JobQueueDao(ref.watch(appDatabaseProvider));
+
+@riverpod
+UpcomingPaymentsDao upcomingPaymentsDao(Ref ref) =>
+    UpcomingPaymentsDao(ref.watch(appDatabaseProvider));
+
+@riverpod
+PaymentRemindersDao paymentRemindersDao(Ref ref) =>
+    PaymentRemindersDao(ref.watch(appDatabaseProvider));
 
 @riverpod
 RecurringRuleRemoteDataSource recurringRuleRemoteDataSource(Ref ref) =>
@@ -395,6 +409,14 @@ RecurringTransactionsRepository recurringTransactionsRepository(Ref ref) =>
       database: ref.watch(appDatabaseProvider),
       outboxDao: ref.watch(outboxDaoProvider),
     );
+
+@riverpod
+UpcomingPaymentsRepository upcomingPaymentsRepository(Ref ref) =>
+    UpcomingPaymentsRepositoryImpl(dao: ref.watch(upcomingPaymentsDaoProvider));
+
+@riverpod
+PaymentRemindersRepository paymentRemindersRepository(Ref ref) =>
+    PaymentRemindersRepositoryImpl(dao: ref.watch(paymentRemindersDaoProvider));
 
 final rp.Provider<AddTransactionUseCase> addTransactionUseCaseProvider =
     rp.Provider<AddTransactionUseCase>((rp.Ref ref) {

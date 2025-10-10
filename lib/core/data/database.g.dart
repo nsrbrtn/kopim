@@ -7939,6 +7939,1383 @@ class GoalContributionsCompanion extends UpdateCompanion<GoalContributionRow> {
   }
 }
 
+class $UpcomingPaymentsTable extends UpcomingPayments
+    with TableInfo<$UpcomingPaymentsTable, UpcomingPaymentRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $UpcomingPaymentsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+    'title',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _accountIdMeta = const VerificationMeta(
+    'accountId',
+  );
+  @override
+  late final GeneratedColumn<String> accountId = GeneratedColumn<String>(
+    'account_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES accounts (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _categoryIdMeta = const VerificationMeta(
+    'categoryId',
+  );
+  @override
+  late final GeneratedColumn<String> categoryId = GeneratedColumn<String>(
+    'category_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES categories (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _amountMeta = const VerificationMeta('amount');
+  @override
+  late final GeneratedColumn<double> amount = GeneratedColumn<double>(
+    'amount',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _dayOfMonthMeta = const VerificationMeta(
+    'dayOfMonth',
+  );
+  @override
+  late final GeneratedColumn<int> dayOfMonth = GeneratedColumn<int>(
+    'day_of_month',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _notifyDaysBeforeMeta = const VerificationMeta(
+    'notifyDaysBefore',
+  );
+  @override
+  late final GeneratedColumn<int> notifyDaysBefore = GeneratedColumn<int>(
+    'notify_days_before',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant<int>(1),
+  );
+  static const VerificationMeta _notifyTimeHhmmMeta = const VerificationMeta(
+    'notifyTimeHhmm',
+  );
+  @override
+  late final GeneratedColumn<String> notifyTimeHhmm = GeneratedColumn<String>(
+    'notify_time_hhmm',
+    aliasedName,
+    false,
+    additionalChecks: GeneratedColumn.checkTextLength(
+      minTextLength: 5,
+      maxTextLength: 5,
+    ),
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant<String>('12:00'),
+  );
+  static const VerificationMeta _noteMeta = const VerificationMeta('note');
+  @override
+  late final GeneratedColumn<String> note = GeneratedColumn<String>(
+    'note',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _autoPostMeta = const VerificationMeta(
+    'autoPost',
+  );
+  @override
+  late final GeneratedColumn<bool> autoPost = GeneratedColumn<bool>(
+    'auto_post',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("auto_post" IN (0, 1))',
+    ),
+    defaultValue: const Constant<bool>(false),
+  );
+  static const VerificationMeta _isActiveMeta = const VerificationMeta(
+    'isActive',
+  );
+  @override
+  late final GeneratedColumn<bool> isActive = GeneratedColumn<bool>(
+    'is_active',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_active" IN (0, 1))',
+    ),
+    defaultValue: const Constant<bool>(true),
+  );
+  static const VerificationMeta _nextRunAtMeta = const VerificationMeta(
+    'nextRunAt',
+  );
+  @override
+  late final GeneratedColumn<int> nextRunAt = GeneratedColumn<int>(
+    'next_run_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _nextNotifyAtMeta = const VerificationMeta(
+    'nextNotifyAt',
+  );
+  @override
+  late final GeneratedColumn<int> nextNotifyAt = GeneratedColumn<int>(
+    'next_notify_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<int> createdAt = GeneratedColumn<int>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<int> updatedAt = GeneratedColumn<int>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    title,
+    accountId,
+    categoryId,
+    amount,
+    dayOfMonth,
+    notifyDaysBefore,
+    notifyTimeHhmm,
+    note,
+    autoPost,
+    isActive,
+    nextRunAt,
+    nextNotifyAt,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'upcoming_payments';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<UpcomingPaymentRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+        _titleMeta,
+        title.isAcceptableOrUnknown(data['title']!, _titleMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_titleMeta);
+    }
+    if (data.containsKey('account_id')) {
+      context.handle(
+        _accountIdMeta,
+        accountId.isAcceptableOrUnknown(data['account_id']!, _accountIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_accountIdMeta);
+    }
+    if (data.containsKey('category_id')) {
+      context.handle(
+        _categoryIdMeta,
+        categoryId.isAcceptableOrUnknown(data['category_id']!, _categoryIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_categoryIdMeta);
+    }
+    if (data.containsKey('amount')) {
+      context.handle(
+        _amountMeta,
+        amount.isAcceptableOrUnknown(data['amount']!, _amountMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_amountMeta);
+    }
+    if (data.containsKey('day_of_month')) {
+      context.handle(
+        _dayOfMonthMeta,
+        dayOfMonth.isAcceptableOrUnknown(
+          data['day_of_month']!,
+          _dayOfMonthMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_dayOfMonthMeta);
+    }
+    if (data.containsKey('notify_days_before')) {
+      context.handle(
+        _notifyDaysBeforeMeta,
+        notifyDaysBefore.isAcceptableOrUnknown(
+          data['notify_days_before']!,
+          _notifyDaysBeforeMeta,
+        ),
+      );
+    }
+    if (data.containsKey('notify_time_hhmm')) {
+      context.handle(
+        _notifyTimeHhmmMeta,
+        notifyTimeHhmm.isAcceptableOrUnknown(
+          data['notify_time_hhmm']!,
+          _notifyTimeHhmmMeta,
+        ),
+      );
+    }
+    if (data.containsKey('note')) {
+      context.handle(
+        _noteMeta,
+        note.isAcceptableOrUnknown(data['note']!, _noteMeta),
+      );
+    }
+    if (data.containsKey('auto_post')) {
+      context.handle(
+        _autoPostMeta,
+        autoPost.isAcceptableOrUnknown(data['auto_post']!, _autoPostMeta),
+      );
+    }
+    if (data.containsKey('is_active')) {
+      context.handle(
+        _isActiveMeta,
+        isActive.isAcceptableOrUnknown(data['is_active']!, _isActiveMeta),
+      );
+    }
+    if (data.containsKey('next_run_at')) {
+      context.handle(
+        _nextRunAtMeta,
+        nextRunAt.isAcceptableOrUnknown(data['next_run_at']!, _nextRunAtMeta),
+      );
+    }
+    if (data.containsKey('next_notify_at')) {
+      context.handle(
+        _nextNotifyAtMeta,
+        nextNotifyAt.isAcceptableOrUnknown(
+          data['next_notify_at']!,
+          _nextNotifyAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  UpcomingPaymentRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return UpcomingPaymentRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      title: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}title'],
+      )!,
+      accountId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}account_id'],
+      )!,
+      categoryId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}category_id'],
+      )!,
+      amount: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}amount'],
+      )!,
+      dayOfMonth: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}day_of_month'],
+      )!,
+      notifyDaysBefore: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}notify_days_before'],
+      )!,
+      notifyTimeHhmm: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}notify_time_hhmm'],
+      )!,
+      note: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}note'],
+      ),
+      autoPost: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}auto_post'],
+      )!,
+      isActive: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_active'],
+      )!,
+      nextRunAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}next_run_at'],
+      ),
+      nextNotifyAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}next_notify_at'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $UpcomingPaymentsTable createAlias(String alias) {
+    return $UpcomingPaymentsTable(attachedDatabase, alias);
+  }
+}
+
+class UpcomingPaymentRow extends DataClass
+    implements Insertable<UpcomingPaymentRow> {
+  final String id;
+  final String title;
+  final String accountId;
+  final String categoryId;
+  final double amount;
+  final int dayOfMonth;
+  final int notifyDaysBefore;
+  final String notifyTimeHhmm;
+  final String? note;
+  final bool autoPost;
+  final bool isActive;
+  final int? nextRunAt;
+  final int? nextNotifyAt;
+  final int createdAt;
+  final int updatedAt;
+  const UpcomingPaymentRow({
+    required this.id,
+    required this.title,
+    required this.accountId,
+    required this.categoryId,
+    required this.amount,
+    required this.dayOfMonth,
+    required this.notifyDaysBefore,
+    required this.notifyTimeHhmm,
+    this.note,
+    required this.autoPost,
+    required this.isActive,
+    this.nextRunAt,
+    this.nextNotifyAt,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['title'] = Variable<String>(title);
+    map['account_id'] = Variable<String>(accountId);
+    map['category_id'] = Variable<String>(categoryId);
+    map['amount'] = Variable<double>(amount);
+    map['day_of_month'] = Variable<int>(dayOfMonth);
+    map['notify_days_before'] = Variable<int>(notifyDaysBefore);
+    map['notify_time_hhmm'] = Variable<String>(notifyTimeHhmm);
+    if (!nullToAbsent || note != null) {
+      map['note'] = Variable<String>(note);
+    }
+    map['auto_post'] = Variable<bool>(autoPost);
+    map['is_active'] = Variable<bool>(isActive);
+    if (!nullToAbsent || nextRunAt != null) {
+      map['next_run_at'] = Variable<int>(nextRunAt);
+    }
+    if (!nullToAbsent || nextNotifyAt != null) {
+      map['next_notify_at'] = Variable<int>(nextNotifyAt);
+    }
+    map['created_at'] = Variable<int>(createdAt);
+    map['updated_at'] = Variable<int>(updatedAt);
+    return map;
+  }
+
+  UpcomingPaymentsCompanion toCompanion(bool nullToAbsent) {
+    return UpcomingPaymentsCompanion(
+      id: Value(id),
+      title: Value(title),
+      accountId: Value(accountId),
+      categoryId: Value(categoryId),
+      amount: Value(amount),
+      dayOfMonth: Value(dayOfMonth),
+      notifyDaysBefore: Value(notifyDaysBefore),
+      notifyTimeHhmm: Value(notifyTimeHhmm),
+      note: note == null && nullToAbsent ? const Value.absent() : Value(note),
+      autoPost: Value(autoPost),
+      isActive: Value(isActive),
+      nextRunAt: nextRunAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(nextRunAt),
+      nextNotifyAt: nextNotifyAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(nextNotifyAt),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory UpcomingPaymentRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return UpcomingPaymentRow(
+      id: serializer.fromJson<String>(json['id']),
+      title: serializer.fromJson<String>(json['title']),
+      accountId: serializer.fromJson<String>(json['accountId']),
+      categoryId: serializer.fromJson<String>(json['categoryId']),
+      amount: serializer.fromJson<double>(json['amount']),
+      dayOfMonth: serializer.fromJson<int>(json['dayOfMonth']),
+      notifyDaysBefore: serializer.fromJson<int>(json['notifyDaysBefore']),
+      notifyTimeHhmm: serializer.fromJson<String>(json['notifyTimeHhmm']),
+      note: serializer.fromJson<String?>(json['note']),
+      autoPost: serializer.fromJson<bool>(json['autoPost']),
+      isActive: serializer.fromJson<bool>(json['isActive']),
+      nextRunAt: serializer.fromJson<int?>(json['nextRunAt']),
+      nextNotifyAt: serializer.fromJson<int?>(json['nextNotifyAt']),
+      createdAt: serializer.fromJson<int>(json['createdAt']),
+      updatedAt: serializer.fromJson<int>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'title': serializer.toJson<String>(title),
+      'accountId': serializer.toJson<String>(accountId),
+      'categoryId': serializer.toJson<String>(categoryId),
+      'amount': serializer.toJson<double>(amount),
+      'dayOfMonth': serializer.toJson<int>(dayOfMonth),
+      'notifyDaysBefore': serializer.toJson<int>(notifyDaysBefore),
+      'notifyTimeHhmm': serializer.toJson<String>(notifyTimeHhmm),
+      'note': serializer.toJson<String?>(note),
+      'autoPost': serializer.toJson<bool>(autoPost),
+      'isActive': serializer.toJson<bool>(isActive),
+      'nextRunAt': serializer.toJson<int?>(nextRunAt),
+      'nextNotifyAt': serializer.toJson<int?>(nextNotifyAt),
+      'createdAt': serializer.toJson<int>(createdAt),
+      'updatedAt': serializer.toJson<int>(updatedAt),
+    };
+  }
+
+  UpcomingPaymentRow copyWith({
+    String? id,
+    String? title,
+    String? accountId,
+    String? categoryId,
+    double? amount,
+    int? dayOfMonth,
+    int? notifyDaysBefore,
+    String? notifyTimeHhmm,
+    Value<String?> note = const Value.absent(),
+    bool? autoPost,
+    bool? isActive,
+    Value<int?> nextRunAt = const Value.absent(),
+    Value<int?> nextNotifyAt = const Value.absent(),
+    int? createdAt,
+    int? updatedAt,
+  }) => UpcomingPaymentRow(
+    id: id ?? this.id,
+    title: title ?? this.title,
+    accountId: accountId ?? this.accountId,
+    categoryId: categoryId ?? this.categoryId,
+    amount: amount ?? this.amount,
+    dayOfMonth: dayOfMonth ?? this.dayOfMonth,
+    notifyDaysBefore: notifyDaysBefore ?? this.notifyDaysBefore,
+    notifyTimeHhmm: notifyTimeHhmm ?? this.notifyTimeHhmm,
+    note: note.present ? note.value : this.note,
+    autoPost: autoPost ?? this.autoPost,
+    isActive: isActive ?? this.isActive,
+    nextRunAt: nextRunAt.present ? nextRunAt.value : this.nextRunAt,
+    nextNotifyAt: nextNotifyAt.present ? nextNotifyAt.value : this.nextNotifyAt,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  UpcomingPaymentRow copyWithCompanion(UpcomingPaymentsCompanion data) {
+    return UpcomingPaymentRow(
+      id: data.id.present ? data.id.value : this.id,
+      title: data.title.present ? data.title.value : this.title,
+      accountId: data.accountId.present ? data.accountId.value : this.accountId,
+      categoryId: data.categoryId.present
+          ? data.categoryId.value
+          : this.categoryId,
+      amount: data.amount.present ? data.amount.value : this.amount,
+      dayOfMonth: data.dayOfMonth.present
+          ? data.dayOfMonth.value
+          : this.dayOfMonth,
+      notifyDaysBefore: data.notifyDaysBefore.present
+          ? data.notifyDaysBefore.value
+          : this.notifyDaysBefore,
+      notifyTimeHhmm: data.notifyTimeHhmm.present
+          ? data.notifyTimeHhmm.value
+          : this.notifyTimeHhmm,
+      note: data.note.present ? data.note.value : this.note,
+      autoPost: data.autoPost.present ? data.autoPost.value : this.autoPost,
+      isActive: data.isActive.present ? data.isActive.value : this.isActive,
+      nextRunAt: data.nextRunAt.present ? data.nextRunAt.value : this.nextRunAt,
+      nextNotifyAt: data.nextNotifyAt.present
+          ? data.nextNotifyAt.value
+          : this.nextNotifyAt,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('UpcomingPaymentRow(')
+          ..write('id: $id, ')
+          ..write('title: $title, ')
+          ..write('accountId: $accountId, ')
+          ..write('categoryId: $categoryId, ')
+          ..write('amount: $amount, ')
+          ..write('dayOfMonth: $dayOfMonth, ')
+          ..write('notifyDaysBefore: $notifyDaysBefore, ')
+          ..write('notifyTimeHhmm: $notifyTimeHhmm, ')
+          ..write('note: $note, ')
+          ..write('autoPost: $autoPost, ')
+          ..write('isActive: $isActive, ')
+          ..write('nextRunAt: $nextRunAt, ')
+          ..write('nextNotifyAt: $nextNotifyAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    title,
+    accountId,
+    categoryId,
+    amount,
+    dayOfMonth,
+    notifyDaysBefore,
+    notifyTimeHhmm,
+    note,
+    autoPost,
+    isActive,
+    nextRunAt,
+    nextNotifyAt,
+    createdAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is UpcomingPaymentRow &&
+          other.id == this.id &&
+          other.title == this.title &&
+          other.accountId == this.accountId &&
+          other.categoryId == this.categoryId &&
+          other.amount == this.amount &&
+          other.dayOfMonth == this.dayOfMonth &&
+          other.notifyDaysBefore == this.notifyDaysBefore &&
+          other.notifyTimeHhmm == this.notifyTimeHhmm &&
+          other.note == this.note &&
+          other.autoPost == this.autoPost &&
+          other.isActive == this.isActive &&
+          other.nextRunAt == this.nextRunAt &&
+          other.nextNotifyAt == this.nextNotifyAt &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class UpcomingPaymentsCompanion extends UpdateCompanion<UpcomingPaymentRow> {
+  final Value<String> id;
+  final Value<String> title;
+  final Value<String> accountId;
+  final Value<String> categoryId;
+  final Value<double> amount;
+  final Value<int> dayOfMonth;
+  final Value<int> notifyDaysBefore;
+  final Value<String> notifyTimeHhmm;
+  final Value<String?> note;
+  final Value<bool> autoPost;
+  final Value<bool> isActive;
+  final Value<int?> nextRunAt;
+  final Value<int?> nextNotifyAt;
+  final Value<int> createdAt;
+  final Value<int> updatedAt;
+  final Value<int> rowid;
+  const UpcomingPaymentsCompanion({
+    this.id = const Value.absent(),
+    this.title = const Value.absent(),
+    this.accountId = const Value.absent(),
+    this.categoryId = const Value.absent(),
+    this.amount = const Value.absent(),
+    this.dayOfMonth = const Value.absent(),
+    this.notifyDaysBefore = const Value.absent(),
+    this.notifyTimeHhmm = const Value.absent(),
+    this.note = const Value.absent(),
+    this.autoPost = const Value.absent(),
+    this.isActive = const Value.absent(),
+    this.nextRunAt = const Value.absent(),
+    this.nextNotifyAt = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  UpcomingPaymentsCompanion.insert({
+    required String id,
+    required String title,
+    required String accountId,
+    required String categoryId,
+    required double amount,
+    required int dayOfMonth,
+    this.notifyDaysBefore = const Value.absent(),
+    this.notifyTimeHhmm = const Value.absent(),
+    this.note = const Value.absent(),
+    this.autoPost = const Value.absent(),
+    this.isActive = const Value.absent(),
+    this.nextRunAt = const Value.absent(),
+    this.nextNotifyAt = const Value.absent(),
+    required int createdAt,
+    required int updatedAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       title = Value(title),
+       accountId = Value(accountId),
+       categoryId = Value(categoryId),
+       amount = Value(amount),
+       dayOfMonth = Value(dayOfMonth),
+       createdAt = Value(createdAt),
+       updatedAt = Value(updatedAt);
+  static Insertable<UpcomingPaymentRow> custom({
+    Expression<String>? id,
+    Expression<String>? title,
+    Expression<String>? accountId,
+    Expression<String>? categoryId,
+    Expression<double>? amount,
+    Expression<int>? dayOfMonth,
+    Expression<int>? notifyDaysBefore,
+    Expression<String>? notifyTimeHhmm,
+    Expression<String>? note,
+    Expression<bool>? autoPost,
+    Expression<bool>? isActive,
+    Expression<int>? nextRunAt,
+    Expression<int>? nextNotifyAt,
+    Expression<int>? createdAt,
+    Expression<int>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (title != null) 'title': title,
+      if (accountId != null) 'account_id': accountId,
+      if (categoryId != null) 'category_id': categoryId,
+      if (amount != null) 'amount': amount,
+      if (dayOfMonth != null) 'day_of_month': dayOfMonth,
+      if (notifyDaysBefore != null) 'notify_days_before': notifyDaysBefore,
+      if (notifyTimeHhmm != null) 'notify_time_hhmm': notifyTimeHhmm,
+      if (note != null) 'note': note,
+      if (autoPost != null) 'auto_post': autoPost,
+      if (isActive != null) 'is_active': isActive,
+      if (nextRunAt != null) 'next_run_at': nextRunAt,
+      if (nextNotifyAt != null) 'next_notify_at': nextNotifyAt,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  UpcomingPaymentsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? title,
+    Value<String>? accountId,
+    Value<String>? categoryId,
+    Value<double>? amount,
+    Value<int>? dayOfMonth,
+    Value<int>? notifyDaysBefore,
+    Value<String>? notifyTimeHhmm,
+    Value<String?>? note,
+    Value<bool>? autoPost,
+    Value<bool>? isActive,
+    Value<int?>? nextRunAt,
+    Value<int?>? nextNotifyAt,
+    Value<int>? createdAt,
+    Value<int>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return UpcomingPaymentsCompanion(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      accountId: accountId ?? this.accountId,
+      categoryId: categoryId ?? this.categoryId,
+      amount: amount ?? this.amount,
+      dayOfMonth: dayOfMonth ?? this.dayOfMonth,
+      notifyDaysBefore: notifyDaysBefore ?? this.notifyDaysBefore,
+      notifyTimeHhmm: notifyTimeHhmm ?? this.notifyTimeHhmm,
+      note: note ?? this.note,
+      autoPost: autoPost ?? this.autoPost,
+      isActive: isActive ?? this.isActive,
+      nextRunAt: nextRunAt ?? this.nextRunAt,
+      nextNotifyAt: nextNotifyAt ?? this.nextNotifyAt,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (accountId.present) {
+      map['account_id'] = Variable<String>(accountId.value);
+    }
+    if (categoryId.present) {
+      map['category_id'] = Variable<String>(categoryId.value);
+    }
+    if (amount.present) {
+      map['amount'] = Variable<double>(amount.value);
+    }
+    if (dayOfMonth.present) {
+      map['day_of_month'] = Variable<int>(dayOfMonth.value);
+    }
+    if (notifyDaysBefore.present) {
+      map['notify_days_before'] = Variable<int>(notifyDaysBefore.value);
+    }
+    if (notifyTimeHhmm.present) {
+      map['notify_time_hhmm'] = Variable<String>(notifyTimeHhmm.value);
+    }
+    if (note.present) {
+      map['note'] = Variable<String>(note.value);
+    }
+    if (autoPost.present) {
+      map['auto_post'] = Variable<bool>(autoPost.value);
+    }
+    if (isActive.present) {
+      map['is_active'] = Variable<bool>(isActive.value);
+    }
+    if (nextRunAt.present) {
+      map['next_run_at'] = Variable<int>(nextRunAt.value);
+    }
+    if (nextNotifyAt.present) {
+      map['next_notify_at'] = Variable<int>(nextNotifyAt.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<int>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<int>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('UpcomingPaymentsCompanion(')
+          ..write('id: $id, ')
+          ..write('title: $title, ')
+          ..write('accountId: $accountId, ')
+          ..write('categoryId: $categoryId, ')
+          ..write('amount: $amount, ')
+          ..write('dayOfMonth: $dayOfMonth, ')
+          ..write('notifyDaysBefore: $notifyDaysBefore, ')
+          ..write('notifyTimeHhmm: $notifyTimeHhmm, ')
+          ..write('note: $note, ')
+          ..write('autoPost: $autoPost, ')
+          ..write('isActive: $isActive, ')
+          ..write('nextRunAt: $nextRunAt, ')
+          ..write('nextNotifyAt: $nextNotifyAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $PaymentRemindersTable extends PaymentReminders
+    with TableInfo<$PaymentRemindersTable, PaymentReminderRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $PaymentRemindersTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+    'title',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _amountMeta = const VerificationMeta('amount');
+  @override
+  late final GeneratedColumn<double> amount = GeneratedColumn<double>(
+    'amount',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _whenAtMeta = const VerificationMeta('whenAt');
+  @override
+  late final GeneratedColumn<int> whenAt = GeneratedColumn<int>(
+    'when_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _noteMeta = const VerificationMeta('note');
+  @override
+  late final GeneratedColumn<String> note = GeneratedColumn<String>(
+    'note',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _isDoneMeta = const VerificationMeta('isDone');
+  @override
+  late final GeneratedColumn<bool> isDone = GeneratedColumn<bool>(
+    'is_done',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_done" IN (0, 1))',
+    ),
+    defaultValue: const Constant<bool>(false),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<int> createdAt = GeneratedColumn<int>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<int> updatedAt = GeneratedColumn<int>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    title,
+    amount,
+    whenAt,
+    note,
+    isDone,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'payment_reminders';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<PaymentReminderRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+        _titleMeta,
+        title.isAcceptableOrUnknown(data['title']!, _titleMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_titleMeta);
+    }
+    if (data.containsKey('amount')) {
+      context.handle(
+        _amountMeta,
+        amount.isAcceptableOrUnknown(data['amount']!, _amountMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_amountMeta);
+    }
+    if (data.containsKey('when_at')) {
+      context.handle(
+        _whenAtMeta,
+        whenAt.isAcceptableOrUnknown(data['when_at']!, _whenAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_whenAtMeta);
+    }
+    if (data.containsKey('note')) {
+      context.handle(
+        _noteMeta,
+        note.isAcceptableOrUnknown(data['note']!, _noteMeta),
+      );
+    }
+    if (data.containsKey('is_done')) {
+      context.handle(
+        _isDoneMeta,
+        isDone.isAcceptableOrUnknown(data['is_done']!, _isDoneMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  PaymentReminderRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return PaymentReminderRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      title: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}title'],
+      )!,
+      amount: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}amount'],
+      )!,
+      whenAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}when_at'],
+      )!,
+      note: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}note'],
+      ),
+      isDone: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_done'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $PaymentRemindersTable createAlias(String alias) {
+    return $PaymentRemindersTable(attachedDatabase, alias);
+  }
+}
+
+class PaymentReminderRow extends DataClass
+    implements Insertable<PaymentReminderRow> {
+  final String id;
+  final String title;
+  final double amount;
+  final int whenAt;
+  final String? note;
+  final bool isDone;
+  final int createdAt;
+  final int updatedAt;
+  const PaymentReminderRow({
+    required this.id,
+    required this.title,
+    required this.amount,
+    required this.whenAt,
+    this.note,
+    required this.isDone,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['title'] = Variable<String>(title);
+    map['amount'] = Variable<double>(amount);
+    map['when_at'] = Variable<int>(whenAt);
+    if (!nullToAbsent || note != null) {
+      map['note'] = Variable<String>(note);
+    }
+    map['is_done'] = Variable<bool>(isDone);
+    map['created_at'] = Variable<int>(createdAt);
+    map['updated_at'] = Variable<int>(updatedAt);
+    return map;
+  }
+
+  PaymentRemindersCompanion toCompanion(bool nullToAbsent) {
+    return PaymentRemindersCompanion(
+      id: Value(id),
+      title: Value(title),
+      amount: Value(amount),
+      whenAt: Value(whenAt),
+      note: note == null && nullToAbsent ? const Value.absent() : Value(note),
+      isDone: Value(isDone),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory PaymentReminderRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return PaymentReminderRow(
+      id: serializer.fromJson<String>(json['id']),
+      title: serializer.fromJson<String>(json['title']),
+      amount: serializer.fromJson<double>(json['amount']),
+      whenAt: serializer.fromJson<int>(json['whenAt']),
+      note: serializer.fromJson<String?>(json['note']),
+      isDone: serializer.fromJson<bool>(json['isDone']),
+      createdAt: serializer.fromJson<int>(json['createdAt']),
+      updatedAt: serializer.fromJson<int>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'title': serializer.toJson<String>(title),
+      'amount': serializer.toJson<double>(amount),
+      'whenAt': serializer.toJson<int>(whenAt),
+      'note': serializer.toJson<String?>(note),
+      'isDone': serializer.toJson<bool>(isDone),
+      'createdAt': serializer.toJson<int>(createdAt),
+      'updatedAt': serializer.toJson<int>(updatedAt),
+    };
+  }
+
+  PaymentReminderRow copyWith({
+    String? id,
+    String? title,
+    double? amount,
+    int? whenAt,
+    Value<String?> note = const Value.absent(),
+    bool? isDone,
+    int? createdAt,
+    int? updatedAt,
+  }) => PaymentReminderRow(
+    id: id ?? this.id,
+    title: title ?? this.title,
+    amount: amount ?? this.amount,
+    whenAt: whenAt ?? this.whenAt,
+    note: note.present ? note.value : this.note,
+    isDone: isDone ?? this.isDone,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  PaymentReminderRow copyWithCompanion(PaymentRemindersCompanion data) {
+    return PaymentReminderRow(
+      id: data.id.present ? data.id.value : this.id,
+      title: data.title.present ? data.title.value : this.title,
+      amount: data.amount.present ? data.amount.value : this.amount,
+      whenAt: data.whenAt.present ? data.whenAt.value : this.whenAt,
+      note: data.note.present ? data.note.value : this.note,
+      isDone: data.isDone.present ? data.isDone.value : this.isDone,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PaymentReminderRow(')
+          ..write('id: $id, ')
+          ..write('title: $title, ')
+          ..write('amount: $amount, ')
+          ..write('whenAt: $whenAt, ')
+          ..write('note: $note, ')
+          ..write('isDone: $isDone, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    title,
+    amount,
+    whenAt,
+    note,
+    isDone,
+    createdAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is PaymentReminderRow &&
+          other.id == this.id &&
+          other.title == this.title &&
+          other.amount == this.amount &&
+          other.whenAt == this.whenAt &&
+          other.note == this.note &&
+          other.isDone == this.isDone &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class PaymentRemindersCompanion extends UpdateCompanion<PaymentReminderRow> {
+  final Value<String> id;
+  final Value<String> title;
+  final Value<double> amount;
+  final Value<int> whenAt;
+  final Value<String?> note;
+  final Value<bool> isDone;
+  final Value<int> createdAt;
+  final Value<int> updatedAt;
+  final Value<int> rowid;
+  const PaymentRemindersCompanion({
+    this.id = const Value.absent(),
+    this.title = const Value.absent(),
+    this.amount = const Value.absent(),
+    this.whenAt = const Value.absent(),
+    this.note = const Value.absent(),
+    this.isDone = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  PaymentRemindersCompanion.insert({
+    required String id,
+    required String title,
+    required double amount,
+    required int whenAt,
+    this.note = const Value.absent(),
+    this.isDone = const Value.absent(),
+    required int createdAt,
+    required int updatedAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       title = Value(title),
+       amount = Value(amount),
+       whenAt = Value(whenAt),
+       createdAt = Value(createdAt),
+       updatedAt = Value(updatedAt);
+  static Insertable<PaymentReminderRow> custom({
+    Expression<String>? id,
+    Expression<String>? title,
+    Expression<double>? amount,
+    Expression<int>? whenAt,
+    Expression<String>? note,
+    Expression<bool>? isDone,
+    Expression<int>? createdAt,
+    Expression<int>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (title != null) 'title': title,
+      if (amount != null) 'amount': amount,
+      if (whenAt != null) 'when_at': whenAt,
+      if (note != null) 'note': note,
+      if (isDone != null) 'is_done': isDone,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  PaymentRemindersCompanion copyWith({
+    Value<String>? id,
+    Value<String>? title,
+    Value<double>? amount,
+    Value<int>? whenAt,
+    Value<String?>? note,
+    Value<bool>? isDone,
+    Value<int>? createdAt,
+    Value<int>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return PaymentRemindersCompanion(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      amount: amount ?? this.amount,
+      whenAt: whenAt ?? this.whenAt,
+      note: note ?? this.note,
+      isDone: isDone ?? this.isDone,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (amount.present) {
+      map['amount'] = Variable<double>(amount.value);
+    }
+    if (whenAt.present) {
+      map['when_at'] = Variable<int>(whenAt.value);
+    }
+    if (note.present) {
+      map['note'] = Variable<String>(note.value);
+    }
+    if (isDone.present) {
+      map['is_done'] = Variable<bool>(isDone.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<int>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<int>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PaymentRemindersCompanion(')
+          ..write('id: $id, ')
+          ..write('title: $title, ')
+          ..write('amount: $amount, ')
+          ..write('whenAt: $whenAt, ')
+          ..write('note: $note, ')
+          ..write('isDone: $isDone, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -7960,6 +9337,12 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   );
   late final $GoalContributionsTable goalContributions =
       $GoalContributionsTable(this);
+  late final $UpcomingPaymentsTable upcomingPayments = $UpcomingPaymentsTable(
+    this,
+  );
+  late final $PaymentRemindersTable paymentReminders = $PaymentRemindersTable(
+    this,
+  );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -7978,6 +9361,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     budgets,
     budgetInstances,
     goalContributions,
+    upcomingPayments,
+    paymentReminders,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -8053,6 +9438,20 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       ),
       result: [TableUpdate('goal_contributions', kind: UpdateKind.delete)],
     ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'accounts',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('upcoming_payments', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'categories',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('upcoming_payments', kind: UpdateKind.delete)],
+    ),
   ]);
 }
 
@@ -8121,6 +9520,29 @@ final class $$AccountsTableReferences
     ).filter((f) => f.accountId.id.sqlEquals($_itemColumn<String>('id')!));
 
     final cache = $_typedResult.readTableOrNull(_recurringRulesRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$UpcomingPaymentsTable, List<UpcomingPaymentRow>>
+  _upcomingPaymentsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.upcomingPayments,
+    aliasName: $_aliasNameGenerator(
+      db.accounts.id,
+      db.upcomingPayments.accountId,
+    ),
+  );
+
+  $$UpcomingPaymentsTableProcessedTableManager get upcomingPaymentsRefs {
+    final manager = $$UpcomingPaymentsTableTableManager(
+      $_db,
+      $_db.upcomingPayments,
+    ).filter((f) => f.accountId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _upcomingPaymentsRefsTable($_db),
+    );
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
     );
@@ -8222,6 +9644,31 @@ class $$AccountsTableFilterComposer
           }) => $$RecurringRulesTableFilterComposer(
             $db: $db,
             $table: $db.recurringRules,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> upcomingPaymentsRefs(
+    Expression<bool> Function($$UpcomingPaymentsTableFilterComposer f) f,
+  ) {
+    final $$UpcomingPaymentsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.upcomingPayments,
+      getReferencedColumn: (t) => t.accountId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$UpcomingPaymentsTableFilterComposer(
+            $db: $db,
+            $table: $db.upcomingPayments,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -8372,6 +9819,31 @@ class $$AccountsTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> upcomingPaymentsRefs<T extends Object>(
+    Expression<T> Function($$UpcomingPaymentsTableAnnotationComposer a) f,
+  ) {
+    final $$UpcomingPaymentsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.upcomingPayments,
+      getReferencedColumn: (t) => t.accountId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$UpcomingPaymentsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.upcomingPayments,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$AccountsTableTableManager
@@ -8390,6 +9862,7 @@ class $$AccountsTableTableManager
           PrefetchHooks Function({
             bool transactionsRefs,
             bool recurringRulesRefs,
+            bool upcomingPaymentsRefs,
           })
         > {
   $$AccountsTableTableManager(_$AppDatabase db, $AccountsTable table)
@@ -8460,12 +9933,17 @@ class $$AccountsTableTableManager
               )
               .toList(),
           prefetchHooksCallback:
-              ({transactionsRefs = false, recurringRulesRefs = false}) {
+              ({
+                transactionsRefs = false,
+                recurringRulesRefs = false,
+                upcomingPaymentsRefs = false,
+              }) {
                 return PrefetchHooks(
                   db: db,
                   explicitlyWatchedTables: [
                     if (transactionsRefs) db.transactions,
                     if (recurringRulesRefs) db.recurringRules,
+                    if (upcomingPaymentsRefs) db.upcomingPayments,
                   ],
                   addJoins: null,
                   getPrefetchedDataCallback: (items) async {
@@ -8512,6 +9990,27 @@ class $$AccountsTableTableManager
                               ),
                           typedResults: items,
                         ),
+                      if (upcomingPaymentsRefs)
+                        await $_getPrefetchedData<
+                          AccountRow,
+                          $AccountsTable,
+                          UpcomingPaymentRow
+                        >(
+                          currentTable: table,
+                          referencedTable: $$AccountsTableReferences
+                              ._upcomingPaymentsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$AccountsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).upcomingPaymentsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.accountId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                     ];
                   },
                 );
@@ -8532,7 +10031,11 @@ typedef $$AccountsTableProcessedTableManager =
       $$AccountsTableUpdateCompanionBuilder,
       (AccountRow, $$AccountsTableReferences),
       AccountRow,
-      PrefetchHooks Function({bool transactionsRefs, bool recurringRulesRefs})
+      PrefetchHooks Function({
+        bool transactionsRefs,
+        bool recurringRulesRefs,
+        bool upcomingPaymentsRefs,
+      })
     >;
 typedef $$CategoriesTableCreateCompanionBuilder =
     CategoriesCompanion Function({
@@ -8610,6 +10113,29 @@ final class $$CategoriesTableReferences
     ).filter((f) => f.categoryId.id.sqlEquals($_itemColumn<String>('id')!));
 
     final cache = $_typedResult.readTableOrNull(_recurringRulesRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$UpcomingPaymentsTable, List<UpcomingPaymentRow>>
+  _upcomingPaymentsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.upcomingPayments,
+    aliasName: $_aliasNameGenerator(
+      db.categories.id,
+      db.upcomingPayments.categoryId,
+    ),
+  );
+
+  $$UpcomingPaymentsTableProcessedTableManager get upcomingPaymentsRefs {
+    final manager = $$UpcomingPaymentsTableTableManager(
+      $_db,
+      $_db.upcomingPayments,
+    ).filter((f) => f.categoryId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _upcomingPaymentsRefsTable($_db),
+    );
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
     );
@@ -8731,6 +10257,31 @@ class $$CategoriesTableFilterComposer
           }) => $$RecurringRulesTableFilterComposer(
             $db: $db,
             $table: $db.recurringRules,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> upcomingPaymentsRefs(
+    Expression<bool> Function($$UpcomingPaymentsTableFilterComposer f) f,
+  ) {
+    final $$UpcomingPaymentsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.upcomingPayments,
+      getReferencedColumn: (t) => t.categoryId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$UpcomingPaymentsTableFilterComposer(
+            $db: $db,
+            $table: $db.upcomingPayments,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -8915,6 +10466,31 @@ class $$CategoriesTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> upcomingPaymentsRefs<T extends Object>(
+    Expression<T> Function($$UpcomingPaymentsTableAnnotationComposer a) f,
+  ) {
+    final $$UpcomingPaymentsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.upcomingPayments,
+      getReferencedColumn: (t) => t.categoryId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$UpcomingPaymentsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.upcomingPayments,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$CategoriesTableTableManager
@@ -8933,6 +10509,7 @@ class $$CategoriesTableTableManager
           PrefetchHooks Function({
             bool transactionsRefs,
             bool recurringRulesRefs,
+            bool upcomingPaymentsRefs,
           })
         > {
   $$CategoriesTableTableManager(_$AppDatabase db, $CategoriesTable table)
@@ -9019,12 +10596,17 @@ class $$CategoriesTableTableManager
               )
               .toList(),
           prefetchHooksCallback:
-              ({transactionsRefs = false, recurringRulesRefs = false}) {
+              ({
+                transactionsRefs = false,
+                recurringRulesRefs = false,
+                upcomingPaymentsRefs = false,
+              }) {
                 return PrefetchHooks(
                   db: db,
                   explicitlyWatchedTables: [
                     if (transactionsRefs) db.transactions,
                     if (recurringRulesRefs) db.recurringRules,
+                    if (upcomingPaymentsRefs) db.upcomingPayments,
                   ],
                   addJoins: null,
                   getPrefetchedDataCallback: (items) async {
@@ -9071,6 +10653,27 @@ class $$CategoriesTableTableManager
                               ),
                           typedResults: items,
                         ),
+                      if (upcomingPaymentsRefs)
+                        await $_getPrefetchedData<
+                          CategoryRow,
+                          $CategoriesTable,
+                          UpcomingPaymentRow
+                        >(
+                          currentTable: table,
+                          referencedTable: $$CategoriesTableReferences
+                              ._upcomingPaymentsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$CategoriesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).upcomingPaymentsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.categoryId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                     ];
                   },
                 );
@@ -9091,7 +10694,11 @@ typedef $$CategoriesTableProcessedTableManager =
       $$CategoriesTableUpdateCompanionBuilder,
       (CategoryRow, $$CategoriesTableReferences),
       CategoryRow,
-      PrefetchHooks Function({bool transactionsRefs, bool recurringRulesRefs})
+      PrefetchHooks Function({
+        bool transactionsRefs,
+        bool recurringRulesRefs,
+        bool upcomingPaymentsRefs,
+      })
     >;
 typedef $$SavingGoalsTableCreateCompanionBuilder =
     SavingGoalsCompanion Function({
@@ -14096,6 +15703,893 @@ typedef $$GoalContributionsTableProcessedTableManager =
       GoalContributionRow,
       PrefetchHooks Function({bool goalId, bool transactionId})
     >;
+typedef $$UpcomingPaymentsTableCreateCompanionBuilder =
+    UpcomingPaymentsCompanion Function({
+      required String id,
+      required String title,
+      required String accountId,
+      required String categoryId,
+      required double amount,
+      required int dayOfMonth,
+      Value<int> notifyDaysBefore,
+      Value<String> notifyTimeHhmm,
+      Value<String?> note,
+      Value<bool> autoPost,
+      Value<bool> isActive,
+      Value<int?> nextRunAt,
+      Value<int?> nextNotifyAt,
+      required int createdAt,
+      required int updatedAt,
+      Value<int> rowid,
+    });
+typedef $$UpcomingPaymentsTableUpdateCompanionBuilder =
+    UpcomingPaymentsCompanion Function({
+      Value<String> id,
+      Value<String> title,
+      Value<String> accountId,
+      Value<String> categoryId,
+      Value<double> amount,
+      Value<int> dayOfMonth,
+      Value<int> notifyDaysBefore,
+      Value<String> notifyTimeHhmm,
+      Value<String?> note,
+      Value<bool> autoPost,
+      Value<bool> isActive,
+      Value<int?> nextRunAt,
+      Value<int?> nextNotifyAt,
+      Value<int> createdAt,
+      Value<int> updatedAt,
+      Value<int> rowid,
+    });
+
+final class $$UpcomingPaymentsTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $UpcomingPaymentsTable,
+          UpcomingPaymentRow
+        > {
+  $$UpcomingPaymentsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $AccountsTable _accountIdTable(_$AppDatabase db) =>
+      db.accounts.createAlias(
+        $_aliasNameGenerator(db.upcomingPayments.accountId, db.accounts.id),
+      );
+
+  $$AccountsTableProcessedTableManager get accountId {
+    final $_column = $_itemColumn<String>('account_id')!;
+
+    final manager = $$AccountsTableTableManager(
+      $_db,
+      $_db.accounts,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_accountIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $CategoriesTable _categoryIdTable(_$AppDatabase db) =>
+      db.categories.createAlias(
+        $_aliasNameGenerator(db.upcomingPayments.categoryId, db.categories.id),
+      );
+
+  $$CategoriesTableProcessedTableManager get categoryId {
+    final $_column = $_itemColumn<String>('category_id')!;
+
+    final manager = $$CategoriesTableTableManager(
+      $_db,
+      $_db.categories,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_categoryIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$UpcomingPaymentsTableFilterComposer
+    extends Composer<_$AppDatabase, $UpcomingPaymentsTable> {
+  $$UpcomingPaymentsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get amount => $composableBuilder(
+    column: $table.amount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get dayOfMonth => $composableBuilder(
+    column: $table.dayOfMonth,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get notifyDaysBefore => $composableBuilder(
+    column: $table.notifyDaysBefore,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get notifyTimeHhmm => $composableBuilder(
+    column: $table.notifyTimeHhmm,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get autoPost => $composableBuilder(
+    column: $table.autoPost,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isActive => $composableBuilder(
+    column: $table.isActive,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get nextRunAt => $composableBuilder(
+    column: $table.nextRunAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get nextNotifyAt => $composableBuilder(
+    column: $table.nextNotifyAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$AccountsTableFilterComposer get accountId {
+    final $$AccountsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.accountId,
+      referencedTable: $db.accounts,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AccountsTableFilterComposer(
+            $db: $db,
+            $table: $db.accounts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$CategoriesTableFilterComposer get categoryId {
+    final $$CategoriesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.categoryId,
+      referencedTable: $db.categories,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CategoriesTableFilterComposer(
+            $db: $db,
+            $table: $db.categories,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$UpcomingPaymentsTableOrderingComposer
+    extends Composer<_$AppDatabase, $UpcomingPaymentsTable> {
+  $$UpcomingPaymentsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get amount => $composableBuilder(
+    column: $table.amount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get dayOfMonth => $composableBuilder(
+    column: $table.dayOfMonth,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get notifyDaysBefore => $composableBuilder(
+    column: $table.notifyDaysBefore,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get notifyTimeHhmm => $composableBuilder(
+    column: $table.notifyTimeHhmm,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get autoPost => $composableBuilder(
+    column: $table.autoPost,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isActive => $composableBuilder(
+    column: $table.isActive,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get nextRunAt => $composableBuilder(
+    column: $table.nextRunAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get nextNotifyAt => $composableBuilder(
+    column: $table.nextNotifyAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$AccountsTableOrderingComposer get accountId {
+    final $$AccountsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.accountId,
+      referencedTable: $db.accounts,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AccountsTableOrderingComposer(
+            $db: $db,
+            $table: $db.accounts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$CategoriesTableOrderingComposer get categoryId {
+    final $$CategoriesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.categoryId,
+      referencedTable: $db.categories,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CategoriesTableOrderingComposer(
+            $db: $db,
+            $table: $db.categories,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$UpcomingPaymentsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $UpcomingPaymentsTable> {
+  $$UpcomingPaymentsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<double> get amount =>
+      $composableBuilder(column: $table.amount, builder: (column) => column);
+
+  GeneratedColumn<int> get dayOfMonth => $composableBuilder(
+    column: $table.dayOfMonth,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get notifyDaysBefore => $composableBuilder(
+    column: $table.notifyDaysBefore,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get notifyTimeHhmm => $composableBuilder(
+    column: $table.notifyTimeHhmm,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get note =>
+      $composableBuilder(column: $table.note, builder: (column) => column);
+
+  GeneratedColumn<bool> get autoPost =>
+      $composableBuilder(column: $table.autoPost, builder: (column) => column);
+
+  GeneratedColumn<bool> get isActive =>
+      $composableBuilder(column: $table.isActive, builder: (column) => column);
+
+  GeneratedColumn<int> get nextRunAt =>
+      $composableBuilder(column: $table.nextRunAt, builder: (column) => column);
+
+  GeneratedColumn<int> get nextNotifyAt => $composableBuilder(
+    column: $table.nextNotifyAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<int> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  $$AccountsTableAnnotationComposer get accountId {
+    final $$AccountsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.accountId,
+      referencedTable: $db.accounts,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AccountsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.accounts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$CategoriesTableAnnotationComposer get categoryId {
+    final $$CategoriesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.categoryId,
+      referencedTable: $db.categories,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CategoriesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.categories,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$UpcomingPaymentsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $UpcomingPaymentsTable,
+          UpcomingPaymentRow,
+          $$UpcomingPaymentsTableFilterComposer,
+          $$UpcomingPaymentsTableOrderingComposer,
+          $$UpcomingPaymentsTableAnnotationComposer,
+          $$UpcomingPaymentsTableCreateCompanionBuilder,
+          $$UpcomingPaymentsTableUpdateCompanionBuilder,
+          (UpcomingPaymentRow, $$UpcomingPaymentsTableReferences),
+          UpcomingPaymentRow,
+          PrefetchHooks Function({bool accountId, bool categoryId})
+        > {
+  $$UpcomingPaymentsTableTableManager(
+    _$AppDatabase db,
+    $UpcomingPaymentsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$UpcomingPaymentsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$UpcomingPaymentsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$UpcomingPaymentsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> title = const Value.absent(),
+                Value<String> accountId = const Value.absent(),
+                Value<String> categoryId = const Value.absent(),
+                Value<double> amount = const Value.absent(),
+                Value<int> dayOfMonth = const Value.absent(),
+                Value<int> notifyDaysBefore = const Value.absent(),
+                Value<String> notifyTimeHhmm = const Value.absent(),
+                Value<String?> note = const Value.absent(),
+                Value<bool> autoPost = const Value.absent(),
+                Value<bool> isActive = const Value.absent(),
+                Value<int?> nextRunAt = const Value.absent(),
+                Value<int?> nextNotifyAt = const Value.absent(),
+                Value<int> createdAt = const Value.absent(),
+                Value<int> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => UpcomingPaymentsCompanion(
+                id: id,
+                title: title,
+                accountId: accountId,
+                categoryId: categoryId,
+                amount: amount,
+                dayOfMonth: dayOfMonth,
+                notifyDaysBefore: notifyDaysBefore,
+                notifyTimeHhmm: notifyTimeHhmm,
+                note: note,
+                autoPost: autoPost,
+                isActive: isActive,
+                nextRunAt: nextRunAt,
+                nextNotifyAt: nextNotifyAt,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String title,
+                required String accountId,
+                required String categoryId,
+                required double amount,
+                required int dayOfMonth,
+                Value<int> notifyDaysBefore = const Value.absent(),
+                Value<String> notifyTimeHhmm = const Value.absent(),
+                Value<String?> note = const Value.absent(),
+                Value<bool> autoPost = const Value.absent(),
+                Value<bool> isActive = const Value.absent(),
+                Value<int?> nextRunAt = const Value.absent(),
+                Value<int?> nextNotifyAt = const Value.absent(),
+                required int createdAt,
+                required int updatedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => UpcomingPaymentsCompanion.insert(
+                id: id,
+                title: title,
+                accountId: accountId,
+                categoryId: categoryId,
+                amount: amount,
+                dayOfMonth: dayOfMonth,
+                notifyDaysBefore: notifyDaysBefore,
+                notifyTimeHhmm: notifyTimeHhmm,
+                note: note,
+                autoPost: autoPost,
+                isActive: isActive,
+                nextRunAt: nextRunAt,
+                nextNotifyAt: nextNotifyAt,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$UpcomingPaymentsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({accountId = false, categoryId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (accountId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.accountId,
+                                referencedTable:
+                                    $$UpcomingPaymentsTableReferences
+                                        ._accountIdTable(db),
+                                referencedColumn:
+                                    $$UpcomingPaymentsTableReferences
+                                        ._accountIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
+                    if (categoryId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.categoryId,
+                                referencedTable:
+                                    $$UpcomingPaymentsTableReferences
+                                        ._categoryIdTable(db),
+                                referencedColumn:
+                                    $$UpcomingPaymentsTableReferences
+                                        ._categoryIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$UpcomingPaymentsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $UpcomingPaymentsTable,
+      UpcomingPaymentRow,
+      $$UpcomingPaymentsTableFilterComposer,
+      $$UpcomingPaymentsTableOrderingComposer,
+      $$UpcomingPaymentsTableAnnotationComposer,
+      $$UpcomingPaymentsTableCreateCompanionBuilder,
+      $$UpcomingPaymentsTableUpdateCompanionBuilder,
+      (UpcomingPaymentRow, $$UpcomingPaymentsTableReferences),
+      UpcomingPaymentRow,
+      PrefetchHooks Function({bool accountId, bool categoryId})
+    >;
+typedef $$PaymentRemindersTableCreateCompanionBuilder =
+    PaymentRemindersCompanion Function({
+      required String id,
+      required String title,
+      required double amount,
+      required int whenAt,
+      Value<String?> note,
+      Value<bool> isDone,
+      required int createdAt,
+      required int updatedAt,
+      Value<int> rowid,
+    });
+typedef $$PaymentRemindersTableUpdateCompanionBuilder =
+    PaymentRemindersCompanion Function({
+      Value<String> id,
+      Value<String> title,
+      Value<double> amount,
+      Value<int> whenAt,
+      Value<String?> note,
+      Value<bool> isDone,
+      Value<int> createdAt,
+      Value<int> updatedAt,
+      Value<int> rowid,
+    });
+
+class $$PaymentRemindersTableFilterComposer
+    extends Composer<_$AppDatabase, $PaymentRemindersTable> {
+  $$PaymentRemindersTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get amount => $composableBuilder(
+    column: $table.amount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get whenAt => $composableBuilder(
+    column: $table.whenAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isDone => $composableBuilder(
+    column: $table.isDone,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$PaymentRemindersTableOrderingComposer
+    extends Composer<_$AppDatabase, $PaymentRemindersTable> {
+  $$PaymentRemindersTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get amount => $composableBuilder(
+    column: $table.amount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get whenAt => $composableBuilder(
+    column: $table.whenAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isDone => $composableBuilder(
+    column: $table.isDone,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$PaymentRemindersTableAnnotationComposer
+    extends Composer<_$AppDatabase, $PaymentRemindersTable> {
+  $$PaymentRemindersTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<double> get amount =>
+      $composableBuilder(column: $table.amount, builder: (column) => column);
+
+  GeneratedColumn<int> get whenAt =>
+      $composableBuilder(column: $table.whenAt, builder: (column) => column);
+
+  GeneratedColumn<String> get note =>
+      $composableBuilder(column: $table.note, builder: (column) => column);
+
+  GeneratedColumn<bool> get isDone =>
+      $composableBuilder(column: $table.isDone, builder: (column) => column);
+
+  GeneratedColumn<int> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<int> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$PaymentRemindersTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $PaymentRemindersTable,
+          PaymentReminderRow,
+          $$PaymentRemindersTableFilterComposer,
+          $$PaymentRemindersTableOrderingComposer,
+          $$PaymentRemindersTableAnnotationComposer,
+          $$PaymentRemindersTableCreateCompanionBuilder,
+          $$PaymentRemindersTableUpdateCompanionBuilder,
+          (
+            PaymentReminderRow,
+            BaseReferences<
+              _$AppDatabase,
+              $PaymentRemindersTable,
+              PaymentReminderRow
+            >,
+          ),
+          PaymentReminderRow,
+          PrefetchHooks Function()
+        > {
+  $$PaymentRemindersTableTableManager(
+    _$AppDatabase db,
+    $PaymentRemindersTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$PaymentRemindersTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$PaymentRemindersTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$PaymentRemindersTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> title = const Value.absent(),
+                Value<double> amount = const Value.absent(),
+                Value<int> whenAt = const Value.absent(),
+                Value<String?> note = const Value.absent(),
+                Value<bool> isDone = const Value.absent(),
+                Value<int> createdAt = const Value.absent(),
+                Value<int> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => PaymentRemindersCompanion(
+                id: id,
+                title: title,
+                amount: amount,
+                whenAt: whenAt,
+                note: note,
+                isDone: isDone,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String title,
+                required double amount,
+                required int whenAt,
+                Value<String?> note = const Value.absent(),
+                Value<bool> isDone = const Value.absent(),
+                required int createdAt,
+                required int updatedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => PaymentRemindersCompanion.insert(
+                id: id,
+                title: title,
+                amount: amount,
+                whenAt: whenAt,
+                note: note,
+                isDone: isDone,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$PaymentRemindersTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $PaymentRemindersTable,
+      PaymentReminderRow,
+      $$PaymentRemindersTableFilterComposer,
+      $$PaymentRemindersTableOrderingComposer,
+      $$PaymentRemindersTableAnnotationComposer,
+      $$PaymentRemindersTableCreateCompanionBuilder,
+      $$PaymentRemindersTableUpdateCompanionBuilder,
+      (
+        PaymentReminderRow,
+        BaseReferences<
+          _$AppDatabase,
+          $PaymentRemindersTable,
+          PaymentReminderRow
+        >,
+      ),
+      PaymentReminderRow,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -14129,4 +16623,8 @@ class $AppDatabaseManager {
       $$BudgetInstancesTableTableManager(_db, _db.budgetInstances);
   $$GoalContributionsTableTableManager get goalContributions =>
       $$GoalContributionsTableTableManager(_db, _db.goalContributions);
+  $$UpcomingPaymentsTableTableManager get upcomingPayments =>
+      $$UpcomingPaymentsTableTableManager(_db, _db.upcomingPayments);
+  $$PaymentRemindersTableTableManager get paymentReminders =>
+      $$PaymentRemindersTableTableManager(_db, _db.paymentReminders);
 }

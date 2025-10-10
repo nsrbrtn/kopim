@@ -995,6 +995,102 @@ final class JobQueueDaoProvider
 
 String _$jobQueueDaoHash() => r'8c93af9c3b09afed591a9c33c68b501b7878a2c9';
 
+@ProviderFor(upcomingPaymentsDao)
+const upcomingPaymentsDaoProvider = UpcomingPaymentsDaoProvider._();
+
+final class UpcomingPaymentsDaoProvider
+    extends
+        $FunctionalProvider<
+          UpcomingPaymentsDao,
+          UpcomingPaymentsDao,
+          UpcomingPaymentsDao
+        >
+    with $Provider<UpcomingPaymentsDao> {
+  const UpcomingPaymentsDaoProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'upcomingPaymentsDaoProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$upcomingPaymentsDaoHash();
+
+  @$internal
+  @override
+  $ProviderElement<UpcomingPaymentsDao> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  UpcomingPaymentsDao create(Ref ref) {
+    return upcomingPaymentsDao(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(UpcomingPaymentsDao value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<UpcomingPaymentsDao>(value),
+    );
+  }
+}
+
+String _$upcomingPaymentsDaoHash() =>
+    r'c0a0dddc7c94c45c289da27c7aa901cda850697b';
+
+@ProviderFor(paymentRemindersDao)
+const paymentRemindersDaoProvider = PaymentRemindersDaoProvider._();
+
+final class PaymentRemindersDaoProvider
+    extends
+        $FunctionalProvider<
+          PaymentRemindersDao,
+          PaymentRemindersDao,
+          PaymentRemindersDao
+        >
+    with $Provider<PaymentRemindersDao> {
+  const PaymentRemindersDaoProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'paymentRemindersDaoProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$paymentRemindersDaoHash();
+
+  @$internal
+  @override
+  $ProviderElement<PaymentRemindersDao> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  PaymentRemindersDao create(Ref ref) {
+    return paymentRemindersDao(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(PaymentRemindersDao value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<PaymentRemindersDao>(value),
+    );
+  }
+}
+
+String _$paymentRemindersDaoHash() =>
+    r'0ccf44a3a2d861621cd7f172e6760fdf1ad5934a';
+
 @ProviderFor(recurringRuleRemoteDataSource)
 const recurringRuleRemoteDataSourceProvider =
     RecurringRuleRemoteDataSourceProvider._();
@@ -2823,6 +2919,104 @@ final class RecurringTransactionsRepositoryProvider
 
 String _$recurringTransactionsRepositoryHash() =>
     r'e72e5469061960310698932463efbb1e6e4001d5';
+
+@ProviderFor(upcomingPaymentsRepository)
+const upcomingPaymentsRepositoryProvider =
+    UpcomingPaymentsRepositoryProvider._();
+
+final class UpcomingPaymentsRepositoryProvider
+    extends
+        $FunctionalProvider<
+          UpcomingPaymentsRepository,
+          UpcomingPaymentsRepository,
+          UpcomingPaymentsRepository
+        >
+    with $Provider<UpcomingPaymentsRepository> {
+  const UpcomingPaymentsRepositoryProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'upcomingPaymentsRepositoryProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$upcomingPaymentsRepositoryHash();
+
+  @$internal
+  @override
+  $ProviderElement<UpcomingPaymentsRepository> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  UpcomingPaymentsRepository create(Ref ref) {
+    return upcomingPaymentsRepository(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(UpcomingPaymentsRepository value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<UpcomingPaymentsRepository>(value),
+    );
+  }
+}
+
+String _$upcomingPaymentsRepositoryHash() =>
+    r'dd4f2ff37aee1aa98051a4bec1851ab979cbadc8';
+
+@ProviderFor(paymentRemindersRepository)
+const paymentRemindersRepositoryProvider =
+    PaymentRemindersRepositoryProvider._();
+
+final class PaymentRemindersRepositoryProvider
+    extends
+        $FunctionalProvider<
+          PaymentRemindersRepository,
+          PaymentRemindersRepository,
+          PaymentRemindersRepository
+        >
+    with $Provider<PaymentRemindersRepository> {
+  const PaymentRemindersRepositoryProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'paymentRemindersRepositoryProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$paymentRemindersRepositoryHash();
+
+  @$internal
+  @override
+  $ProviderElement<PaymentRemindersRepository> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  PaymentRemindersRepository create(Ref ref) {
+    return paymentRemindersRepository(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(PaymentRemindersRepository value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<PaymentRemindersRepository>(value),
+    );
+  }
+}
+
+String _$paymentRemindersRepositoryHash() =>
+    r'f11dfdfd8a940412458eda10dd87baa73455972b';
 
 @ProviderFor(watchAccountTransactionsUseCase)
 const watchAccountTransactionsUseCaseProvider =
