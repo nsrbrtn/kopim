@@ -481,8 +481,16 @@ class AppDatabase extends _$AppDatabase {
         });
       }
       if (from < 8) {
-        await m.createTable(budgets);
-        await m.createTable(budgetInstances);
+        final bool hasBudgetsTable = await _tableExists('budgets');
+        if (!hasBudgetsTable) {
+          await m.createTable(budgets);
+        }
+        final bool hasBudgetInstancesTable = await _tableExists(
+          'budget_instances',
+        );
+        if (!hasBudgetInstancesTable) {
+          await m.createTable(budgetInstances);
+        }
         await m.createIndex(
           Index(
             'budget_instances_budget_period_idx',

@@ -166,16 +166,10 @@ class AddAccountFormController extends _$AddAccountFormController {
 
     final DateTime now = DateTime.now().toUtc();
     final String? resolvedType = state.resolvedType;
-    AddAccountFieldError? typeError;
     if (resolvedType == null) {
-      typeError = AddAccountFieldError.emptyType;
-    }
-
-    if (nameError != null || balanceError != null || typeError != null) {
       state = state.copyWith(
-        nameError: nameError,
-        balanceError: balanceError,
-        typeError: typeError,
+        typeError: AddAccountFieldError.emptyType,
+        isSaving: false,
         submissionSuccess: false,
       );
       return;
@@ -186,7 +180,7 @@ class AddAccountFormController extends _$AddAccountFormController {
       name: trimmedName,
       balance: balance!,
       currency: state.currency,
-      type: resolvedType!,
+      type: resolvedType,
       createdAt: now,
       updatedAt: now,
       isPrimary: state.isPrimary,
