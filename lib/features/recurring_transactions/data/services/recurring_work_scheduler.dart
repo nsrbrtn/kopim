@@ -5,6 +5,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:kopim/core/data/database.dart';
 import 'package:kopim/core/data/outbox/outbox_dao.dart';
 import 'package:kopim/core/services/analytics_service.dart';
+import 'package:kopim/core/services/firebase_initializer.dart';
 import 'package:kopim/core/services/logger_service.dart';
 import 'package:kopim/features/accounts/data/repositories/account_repository_impl.dart';
 import 'package:kopim/features/accounts/data/sources/local/account_dao.dart';
@@ -47,6 +48,7 @@ void recurringWorkDispatcher() {
   ) async {
     WidgetsFlutterBinding.ensureInitialized();
     final LoggerService logger = LoggerService();
+    await ensureFirebaseInitialized(logger: logger);
     final AppDatabase database = AppDatabase();
     final RecurringTransactionsRepository repository = _buildRepository(
       database,
@@ -208,7 +210,7 @@ Future<void> _applyRecurringRules({
     outboxDao: outboxDao,
   );
   final ProfileEventRecorder eventRecorder = ProfileEventRecorder(
-    analyticsService: AnalyticsService(),
+    analyticsService: const AnalyticsService(),
     loggerService: logger,
   );
   String? lastGeneratedId;

@@ -4,11 +4,11 @@ import 'package:kopim/features/analytics/presentation/analytics_screen.dart';
 import 'package:kopim/features/budgets/presentation/budgets_screen.dart';
 import 'package:kopim/features/home/presentation/screens/home_screen.dart';
 import 'package:kopim/features/profile/presentation/screens/general_settings_screen.dart';
-import 'package:kopim/features/profile/presentation/screens/profile_screen.dart';
 import 'package:kopim/features/savings/presentation/screens/savings_list_screen.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
 import '../models/navigation_tab_config.dart';
+import '../models/navigation_tab_content.dart';
 
 final Provider<List<NavigationTabConfig>> mainNavigationTabsProvider =
     Provider<List<NavigationTabConfig>>((Ref ref) {
@@ -51,16 +51,18 @@ final Provider<List<NavigationTabConfig>> mainNavigationTabsProvider =
           activeIcon: Icons.settings,
           labelBuilder: (BuildContext context) =>
               AppLocalizations.of(context)!.homeNavSettings,
-          contentBuilder: buildProfileTabContent,
-          onSelected: (BuildContext context, WidgetRef ref) {
-            final NavigatorState? navigator =
-                profileTabNavigatorKey.currentState;
-            if (navigator == null) {
-              return;
-            }
-            navigator.popUntil((Route<dynamic> route) => route.isFirst);
-            navigator.pushNamed(GeneralSettingsScreen.routeName);
-          },
+          contentBuilder: _buildGeneralSettingsTabContent,
         ),
       ];
     });
+
+NavigationTabContent _buildGeneralSettingsTabContent(
+  BuildContext context,
+  WidgetRef ref,
+) {
+  return const NavigationTabContent(bodyBuilder: _generalSettingsBodyBuilder);
+}
+
+Widget _generalSettingsBodyBuilder(BuildContext context, WidgetRef ref) {
+  return const GeneralSettingsScreen();
+}

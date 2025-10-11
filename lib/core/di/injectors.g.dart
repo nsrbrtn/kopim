@@ -94,7 +94,7 @@ final class AnalyticsServiceProvider
   }
 }
 
-String _$analyticsServiceHash() => r'4928fb3ed712b41230dcf79231ab61cb4da3f83d';
+String _$analyticsServiceHash() => r'cab7dcfcbbca6fdfa25059607282e5f33e92576a';
 
 @ProviderFor(firestore)
 const firestoreProvider = FirestoreProvider._();
