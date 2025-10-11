@@ -19,7 +19,7 @@ class PhosphorIconPickerLabels {
   final Map<String, String> groupLabels;
 }
 
-const int _kPhosphorIconPickerLimit = 60;
+const int _kPhosphorIconPickerLimit = 100;
 
 class _IconGroup {
   const _IconGroup({required this.id, required this.iconNames});
@@ -117,6 +117,71 @@ const List<_IconGroup> _iconGroups = <_IconGroup>[
       'ticket',
       'microphone',
       'barbell',
+    ],
+  ),
+  _IconGroup(
+    id: 'beauty',
+    iconNames: <String>[
+      'hairDryer',
+      'scissors',
+      'sparkle',
+      'flower',
+      'flowerLotus',
+      'flowerTulip',
+      'eyedropper',
+      'palette',
+    ],
+  ),
+  _IconGroup(
+    id: 'health',
+    iconNames: <String>[
+      'heartbeat',
+      'stethoscope',
+      'firstAid',
+      'firstAidKit',
+      'pill',
+      'tooth',
+      'syringe',
+      'hospital',
+    ],
+  ),
+  _IconGroup(
+    id: 'sports',
+    iconNames: <String>[
+      'soccerBall',
+      'basketball',
+      'tennisBall',
+      'volleyball',
+      'barbell',
+      'personSimpleRun',
+      'medal',
+      'bicycle',
+    ],
+  ),
+  _IconGroup(
+    id: 'maintenance',
+    iconNames: <String>[
+      'hammer',
+      'screwdriver',
+      'toolbox',
+      'paintRoller',
+      'paintBucket',
+      'wrench',
+      'ruler',
+      'pipeWrench',
+    ],
+  ),
+  _IconGroup(
+    id: 'tech',
+    iconNames: <String>[
+      'deviceMobile',
+      'deviceTablet',
+      'desktop',
+      'laptop',
+      'monitor',
+      'camera',
+      'headset',
+      'cpu',
     ],
   ),
 ];

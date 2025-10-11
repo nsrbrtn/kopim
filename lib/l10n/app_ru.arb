@@ -126,6 +126,14 @@
   "@manageCategoriesCreateSubAction": {
     "description": "Подпись действия создания подкатегории в меню управления"
   },
+  "manageCategoriesAddSubcategoryAction": "Добавить подкатегорию",
+  "@manageCategoriesAddSubcategoryAction": {
+    "description": "Кнопка на форме категории для быстрого добавления подкатегории"
+  },
+  "manageCategoriesAddSubcategorySaveFirst": "Сохраните категорию, чтобы добавить подкатегорию.",
+  "@manageCategoriesAddSubcategorySaveFirst": {
+    "description": "Подсказка при попытке создать подкатегорию до сохранения категории"
+  },
   "dialogCancel": "Отмена",
   "@dialogCancel": {
     "description": "Подпись кнопки отмены в диалогах"
@@ -266,6 +274,26 @@
   "manageCategoriesIconGroupLeisure": "Развлечения и спорт",
   "@manageCategoriesIconGroupLeisure": {
     "description": "Название вкладки с иконками досуга"
+  },
+  "manageCategoriesIconGroupBeauty": "Красота и уход",
+  "@manageCategoriesIconGroupBeauty": {
+    "description": "Название вкладки с иконками для красоты и ухода"
+  },
+  "manageCategoriesIconGroupHealth": "Здоровье",
+  "@manageCategoriesIconGroupHealth": {
+    "description": "Название вкладки с медицинскими и оздоровительными иконками"
+  },
+  "manageCategoriesIconGroupSports": "Спорт",
+  "@manageCategoriesIconGroupSports": {
+    "description": "Название вкладки с иконками спорта"
+  },
+  "manageCategoriesIconGroupMaintenance": "Ремонт и быт",
+  "@manageCategoriesIconGroupMaintenance": {
+    "description": "Название вкладки с иконками ремонта и бытовых дел"
+  },
+  "manageCategoriesIconGroupTech": "Техника и гаджеты",
+  "@manageCategoriesIconGroupTech": {
+    "description": "Название вкладки с иконками техники и гаджетов"
   },
   "manageCategoriesColorLabel": "Цвет",
   "@manageCategoriesColorLabel": {
@@ -910,6 +938,23 @@
   "@homeUpcomingPaymentsEmptyHeader": {
     "description": "Подзаголовок, когда платежей нет"
   },
+  "homeUpcomingPaymentsCollapsedSummary": "{count, plural, =0 {Список скрыт · нет платежей} one {Список скрыт · {count} платеж} few {Список скрыт · {count} платежа} many {Список скрыт · {count} платежей} other {Список скрыт · {count} платежей}}",
+  "@homeUpcomingPaymentsCollapsedSummary": {
+    "description": "Краткое описание в свернутом состоянии виджета",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeUpcomingPaymentsExpand": "Показать список",
+  "@homeUpcomingPaymentsExpand": {
+    "description": "Кнопка развёртывания списка платежей"
+  },
+  "homeUpcomingPaymentsCollapse": "Свернуть список",
+  "@homeUpcomingPaymentsCollapse": {
+    "description": "Кнопка сворачивания списка платежей"
+  },
   "homeUpcomingPaymentsNextDate": "Ближайшая дата: {date}",
   "@homeUpcomingPaymentsNextDate": {
     "description": "Подзаголовок с ближайшей датой платежа",
@@ -1268,6 +1313,18 @@
   "analyticsTopCategoriesOthers": "Остальные",
   "@analyticsTopCategoriesOthers": {
     "description": "Обозначение категорий, которые не попали в топ"
+  },
+  "analyticsChartTypeLabel": "Тип диаграммы",
+  "@analyticsChartTypeLabel": {
+    "description": "Подпись переключателя типа диаграммы"
+  },
+  "analyticsChartTypeDonut": "Кольцевая",
+  "@analyticsChartTypeDonut": {
+    "description": "Опция выбора кольцевой диаграммы"
+  },
+  "analyticsChartTypeBar": "Столбчатая",
+  "@analyticsChartTypeBar": {
+    "description": "Опция выбора столбчатой диаграммы"
   },
   "analyticsTopCategoriesEmpty": "Недостаточно данных для анализа категорий.",
   "@analyticsTopCategoriesEmpty": {

@@ -782,9 +782,12 @@ class _TopCategoriesPage extends StatefulWidget {
   State<_TopCategoriesPage> createState() => _TopCategoriesPageState();
 }
 
+enum _AnalyticsChartType { donut, bar }
+
 class _TopCategoriesPageState extends State<_TopCategoriesPage> {
   final Set<String> _selectedKeys = <String>{};
   String? _focusedKey;
+  _AnalyticsChartType _chartType = _AnalyticsChartType.donut;
 
   @override
   Widget build(BuildContext context) {
@@ -872,28 +875,78 @@ class _TopCategoriesPageState extends State<_TopCategoriesPage> {
             ),
           ),
         ),
+        const SizedBox(height: 8),
+        Text(
+          widget.strings.analyticsChartTypeLabel,
+          style: theme.textTheme.labelLarge?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: 8),
+        SegmentedButton<_AnalyticsChartType>(
+          segments: <ButtonSegment<_AnalyticsChartType>>[
+            ButtonSegment<_AnalyticsChartType>(
+              value: _AnalyticsChartType.donut,
+              label: Text(widget.strings.analyticsChartTypeDonut),
+            ),
+            ButtonSegment<_AnalyticsChartType>(
+              value: _AnalyticsChartType.bar,
+              label: Text(widget.strings.analyticsChartTypeBar),
+            ),
+          ],
+          selected: <_AnalyticsChartType>{_chartType},
+          onSelectionChanged: (Set<_AnalyticsChartType> value) {
+            if (value.isEmpty) {
+              return;
+            }
+            setState(() {
+              _chartType = value.first;
+            });
+          },
+          style: const ButtonStyle(
+            side: WidgetStatePropertyAll<BorderSide>(
+              BorderSide(style: BorderStyle.none),
+            ),
+          ),
+        ),
         const SizedBox(height: 12),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
               Expanded(
-                child: AnalyticsDonutChart(
-                  items: activeItems.isEmpty ? chartItems : activeItems,
-                  backgroundColor: backgroundColor,
-                  totalAmount: capturedTotal,
-                  selectedIndex: selectedIndex,
-                  onSegmentSelected: (int index) {
-                    final List<AnalyticsChartItem> source = activeItems.isEmpty
-                        ? chartItems
-                        : activeItems;
-                    if (index >= 0 && index < source.length) {
-                      setState(() {
-                        _focusedKey = source[index].key;
-                      });
-                    }
-                  },
-                ),
+                child: _chartType == _AnalyticsChartType.donut
+                    ? AnalyticsDonutChart(
+                        items: activeItems.isEmpty ? chartItems : activeItems,
+                        backgroundColor: backgroundColor,
+                        totalAmount: capturedTotal,
+                        selectedIndex: selectedIndex,
+                        onSegmentSelected: (int index) {
+                          final List<AnalyticsChartItem> source =
+                              activeItems.isEmpty ? chartItems : activeItems;
+                          if (index >= 0 && index < source.length) {
+                            setState(() {
+                              _focusedKey = source[index].key;
+                            });
+                          }
+                        },
+                      )
+                    : AnalyticsBarChart(
+                        items: activeItems.isEmpty ? chartItems : activeItems,
+                        backgroundColor: backgroundColor,
+                        totalAmount: capturedTotal,
+                        selectedIndex: selectedIndex,
+                        onBarSelected: (int index) {
+                          final List<AnalyticsChartItem> source =
+                              activeItems.isEmpty ? chartItems : activeItems;
+                          if (index >= 0 && index < source.length) {
+                            setState(() {
+                              _focusedKey = source[index].key;
+                            });
+                          }
+                        },
+                      ),
               ),
               const SizedBox(height: 12),
               Text(

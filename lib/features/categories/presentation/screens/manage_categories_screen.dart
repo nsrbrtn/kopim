@@ -484,6 +484,11 @@ class _CategoryEditorSheet extends ConsumerWidget {
         'transport': strings.manageCategoriesIconGroupTransport,
         'home': strings.manageCategoriesIconGroupHome,
         'leisure': strings.manageCategoriesIconGroupLeisure,
+        'beauty': strings.manageCategoriesIconGroupBeauty,
+        'health': strings.manageCategoriesIconGroupHealth,
+        'sports': strings.manageCategoriesIconGroupSports,
+        'maintenance': strings.manageCategoriesIconGroupMaintenance,
+        'tech': strings.manageCategoriesIconGroupTech,
       },
     );
 
@@ -509,6 +514,26 @@ class _CategoryEditorSheet extends ConsumerWidget {
       if (selection != null) {
         controller.updateIcon(selection.isEmpty ? null : selection);
       }
+    }
+
+    Future<void> addSubcategory() async {
+      if (state.initialCategory == null) {
+        final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar();
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(strings.manageCategoriesAddSubcategorySaveFirst),
+          ),
+        );
+        return;
+      }
+      await _showCategoryEditor(
+        context,
+        ref,
+        strings: strings,
+        parents: parents,
+        defaultParentId: state.id,
+      );
     }
 
     return Padding(
@@ -628,6 +653,12 @@ class _CategoryEditorSheet extends ConsumerWidget {
               onChanged: controller.updateFavorite,
               title: Text(strings.manageCategoriesFavoriteLabel),
               subtitle: Text(strings.manageCategoriesFavoriteSubtitle),
+            ),
+            const SizedBox(height: 16),
+            OutlinedButton.icon(
+              onPressed: addSubcategory,
+              icon: const Icon(Icons.subdirectory_arrow_right_outlined),
+              label: Text(strings.manageCategoriesAddSubcategoryAction),
             ),
             const SizedBox(height: 24),
             FilledButton.icon(

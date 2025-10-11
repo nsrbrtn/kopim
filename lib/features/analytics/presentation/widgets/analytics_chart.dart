@@ -191,6 +191,159 @@ class AnalyticsDonutChart extends StatelessWidget {
   }
 }
 
+class AnalyticsBarChart extends StatelessWidget {
+  const AnalyticsBarChart({
+    super.key,
+    required this.items,
+    required this.backgroundColor,
+    this.totalAmount,
+    this.selectedIndex,
+    this.onBarSelected,
+  });
+
+  final List<AnalyticsChartItem> items;
+  final Color backgroundColor;
+  final double? totalAmount;
+  final int? selectedIndex;
+  final ValueChanged<int>? onBarSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    if (items.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    final ThemeData theme = Theme.of(context);
+    final double computedTotal =
+        totalAmount ??
+        items.fold<double>(
+          0,
+          (double previous, AnalyticsChartItem item) =>
+              previous + item.absoluteAmount,
+        );
+    if (computedTotal <= 0) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+      child: LayoutBuilder(
+        builder: (BuildContext context, BoxConstraints constraints) {
+          final double rawHeight = constraints.maxHeight.isFinite
+              ? constraints.maxHeight
+              : 220;
+          final double chartHeight = math.max(rawHeight, 200);
+          final double maxBarHeight = math.max(chartHeight - 48, 80);
+
+          final List<Widget> children = <Widget>[];
+          final int count = items.length;
+          for (int index = 0; index < count; index++) {
+            final AnalyticsChartItem item = items[index];
+            final double share = item.absoluteAmount <= 0
+                ? 0
+                : (item.absoluteAmount / computedTotal).clamp(0.0, 1.0);
+            final bool isSelected =
+                selectedIndex != null && index == selectedIndex;
+            final double barHeight = share <= 0
+                ? 4
+                : math.max(maxBarHeight * share, 4);
+            final Color barColor = isSelected
+                ? item.color
+                : item.color.withValues(alpha: 0.7);
+            Widget bar = AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeInOut,
+              height: barHeight,
+              decoration: BoxDecoration(
+                color: barColor,
+                borderRadius: BorderRadius.circular(10),
+                boxShadow: isSelected
+                    ? <BoxShadow>[
+                        BoxShadow(
+                          color: item.color.withValues(alpha: 0.35),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ]
+                    : const <BoxShadow>[],
+              ),
+            );
+            if (onBarSelected != null) {
+              bar = GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () => onBarSelected!(index),
+                child: bar,
+              );
+            }
+
+            final String percentageLabel = _formatShare(share);
+
+            children.add(
+              Expanded(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: count > 1 ? 6 : 0),
+                  child: SizedBox(
+                    height: chartHeight,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: <Widget>[
+                        Text(
+                          percentageLabel,
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                            fontWeight: isSelected
+                                ? FontWeight.w600
+                                : FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Expanded(
+                          child: Align(
+                            alignment: Alignment.bottomCenter,
+                            child: FractionallySizedBox(
+                              widthFactor: 0.6,
+                              child: bar,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }
+
+          return SizedBox(
+            height: chartHeight,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: children,
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  String _formatShare(double share) {
+    if (share <= 0) {
+      return '0%';
+    }
+    final double percent = share * 100;
+    if (percent >= 99.5) {
+      return '100%';
+    }
+    if (percent >= 10) {
+      return '${percent.toStringAsFixed(0)}%';
+    }
+    return '${percent.toStringAsFixed(1)}%';
+  }
+}
+
 class _DonutSegment {
   const _DonutSegment({
     required this.color,
@@ -370,17 +523,18 @@ void _resolveLabelPositions(
     (_LabelPlacement a, _LabelPlacement b) => a.baseTop.compareTo(b.baseTop),
   );
 
+  final double maxTopBound = math.max(0, size - _DonutPercentageBadge._height);
   double previousTop = 0;
   for (int i = 0; i < placements.length; i++) {
     final _LabelPlacement placement = placements[i];
     double top = placement.baseTop;
     if (i == 0) {
-      top = top.clamp(0, size - _DonutPercentageBadge._height);
+      top = top.clamp(0, maxTopBound);
     } else {
       final double minTop =
           previousTop + _DonutPercentageBadge._height + minGap;
       top = math.max(top, minTop);
-      top = math.min(top, size - _DonutPercentageBadge._height);
+      top = math.min(top, maxTopBound);
     }
     placement.top = top;
     previousTop = top;
@@ -390,7 +544,7 @@ void _resolveLabelPositions(
     final double nextTop = placements[i + 1].top;
     final double maxTop = nextTop - (_DonutPercentageBadge._height + minGap);
     if (placements[i].top > maxTop) {
-      placements[i].top = maxTop.clamp(0, size - _DonutPercentageBadge._height);
+      placements[i].top = maxTop.clamp(0, maxTopBound);
     }
   }
 }

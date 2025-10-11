@@ -26,8 +26,6 @@ import 'package:kopim/features/home/presentation/controllers/home_providers.dart
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
 import 'package:kopim/features/profile/presentation/controllers/auth_controller.dart';
 import 'package:kopim/features/profile/presentation/screens/general_settings_screen.dart';
-import 'package:kopim/features/profile/presentation/screens/profile_screen.dart'
-    show profileTabNavigatorKey;
 import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
 import 'package:kopim/features/savings/domain/repositories/saving_goal_repository.dart';
 import 'package:kopim/features/savings/domain/use_cases/archive_saving_goal_use_case.dart';

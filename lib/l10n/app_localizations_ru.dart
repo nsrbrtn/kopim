@@ -107,6 +107,13 @@ class AppLocalizationsRu extends AppLocalizations {
   String get manageCategoriesCreateSubAction => 'Создать подкатегорию';
 
   @override
+  String get manageCategoriesAddSubcategoryAction => 'Добавить подкатегорию';
+
+  @override
+  String get manageCategoriesAddSubcategorySaveFirst =>
+      'Сохраните категорию, чтобы добавить подкатегорию.';
+
+  @override
   String get dialogCancel => 'Отмена';
 
   @override
@@ -210,6 +217,21 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get manageCategoriesIconGroupLeisure => 'Развлечения и спорт';
+
+  @override
+  String get manageCategoriesIconGroupBeauty => 'Красота и уход';
+
+  @override
+  String get manageCategoriesIconGroupHealth => 'Здоровье';
+
+  @override
+  String get manageCategoriesIconGroupSports => 'Спорт';
+
+  @override
+  String get manageCategoriesIconGroupMaintenance => 'Ремонт и быт';
+
+  @override
+  String get manageCategoriesIconGroupTech => 'Техника и гаджеты';
 
   @override
   String get manageCategoriesColorLabel => 'Цвет';
@@ -694,6 +716,26 @@ class AppLocalizationsRu extends AppLocalizations {
   String get homeUpcomingPaymentsEmptyHeader => 'Нет ближайших платежей';
 
   @override
+  String homeUpcomingPaymentsCollapsedSummary(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Список скрыт · $count платежей',
+      many: 'Список скрыт · $count платежей',
+      few: 'Список скрыт · $count платежа',
+      one: 'Список скрыт · $count платеж',
+      zero: 'Список скрыт · нет платежей',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get homeUpcomingPaymentsExpand => 'Показать список';
+
+  @override
+  String get homeUpcomingPaymentsCollapse => 'Свернуть список';
+
+  @override
   String homeUpcomingPaymentsNextDate(String date) {
     return 'Ближайшая дата: $date';
   }
@@ -969,6 +1011,15 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get analyticsTopCategoriesOthers => 'Остальные';
+
+  @override
+  String get analyticsChartTypeLabel => 'Тип диаграммы';
+
+  @override
+  String get analyticsChartTypeDonut => 'Кольцевая';
+
+  @override
+  String get analyticsChartTypeBar => 'Столбчатая';
 
   @override
   String get analyticsTopCategoriesEmpty =>

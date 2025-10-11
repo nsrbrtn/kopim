@@ -59,7 +59,6 @@ NavigationTabContent buildHomeTabContent(BuildContext context, WidgetRef ref) {
   final TimeService timeService = ref.watch(timeServiceProvider);
   final AsyncValue<HomeDashboardPreferences> dashboardPreferencesAsync = ref
       .watch(homeDashboardPreferencesControllerProvider);
-  final bool isWideLayout = MediaQuery.of(context).size.width >= 720;
 
   return NavigationTabContent(
     bodyBuilder: (BuildContext context, WidgetRef ref) => SafeArea(
@@ -67,7 +66,6 @@ NavigationTabContent buildHomeTabContent(BuildContext context, WidgetRef ref) {
         authState: authState,
         accountsAsync: accountsAsync,
         strings: strings,
-        isWideLayout: isWideLayout,
         accountSummariesAsync: accountSummariesAsync,
         groupedTransactionsAsync: groupedTransactionsAsync,
         upcomingItemsAsync: upcomingItemsAsync,
@@ -85,7 +83,6 @@ class _HomeBody extends StatelessWidget {
     required this.authState,
     required this.accountsAsync,
     required this.strings,
-    required this.isWideLayout,
     required this.accountSummariesAsync,
     required this.groupedTransactionsAsync,
     required this.upcomingItemsAsync,
@@ -96,7 +93,6 @@ class _HomeBody extends StatelessWidget {
   final AsyncValue<AuthUser?> authState;
   final AsyncValue<List<AccountEntity>> accountsAsync;
   final AppLocalizations strings;
-  final bool isWideLayout;
   final AsyncValue<Map<String, HomeAccountMonthlySummary>>
   accountSummariesAsync;
   final AsyncValue<List<DaySection>> groupedTransactionsAsync;
@@ -117,9 +113,7 @@ class _HomeBody extends StatelessWidget {
       data: (AuthUser? user) {
         return LayoutBuilder(
           builder: (BuildContext context, BoxConstraints constraints) {
-            final double horizontalPadding = isWideLayout
-                ? constraints.maxWidth * 0.1
-                : 16;
+            const double horizontalPadding = 8;
             final HomeDashboardPreferences? dashboardPreferences =
                 dashboardPreferencesAsync.asData?.value;
             final ThemeData theme = Theme.of(context);
@@ -151,22 +145,17 @@ class _HomeBody extends StatelessWidget {
               nextTopPadding = 16;
             }
 
-            final EdgeInsets accountsPadding = EdgeInsets.fromLTRB(
-              horizontalPadding,
-              16,
-              horizontalPadding,
-              0,
-            );
-            final EdgeInsets transactionsHeaderPadding = EdgeInsets.fromLTRB(
-              horizontalPadding,
+            const EdgeInsets accountsPadding = EdgeInsets.fromLTRB(8, 16, 8, 0);
+            const EdgeInsets transactionsHeaderPadding = EdgeInsets.fromLTRB(
+              8,
               24,
-              horizontalPadding,
+              8,
               8,
             );
-            final EdgeInsets transactionsContentPadding = EdgeInsets.fromLTRB(
-              horizontalPadding,
+            const EdgeInsets transactionsContentPadding = EdgeInsets.fromLTRB(
+              8,
               0,
-              horizontalPadding,
+              8,
               12,
             );
 
@@ -309,12 +298,7 @@ class _HomeBody extends StatelessWidget {
             );
             slivers.add(
               SliverPadding(
-                padding: EdgeInsets.fromLTRB(
-                  horizontalPadding,
-                  0,
-                  horizontalPadding,
-                  8,
-                ),
+                padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
                 sliver: SliverToBoxAdapter(
                   child: _TransactionsFilterBar(strings: strings),
                 ),
@@ -328,12 +312,7 @@ class _HomeBody extends StatelessWidget {
             );
             slivers.add(
               SliverPadding(
-                padding: EdgeInsets.fromLTRB(
-                  horizontalPadding,
-                  0,
-                  horizontalPadding,
-                  20,
-                ),
+                padding: const EdgeInsets.fromLTRB(8, 0, 8, 20),
                 sliver: SliverToBoxAdapter(
                   child: Align(
                     alignment: Alignment.centerLeft,
