@@ -126,6 +126,14 @@
   "@manageCategoriesCreateSubAction": {
     "description": "Action label to create a subcategory from the manage categories menu"
   },
+  "manageCategoriesAddSubcategoryAction": "Add subcategory",
+  "@manageCategoriesAddSubcategoryAction": {
+    "description": "Button inside the category form for creating a subcategory"
+  },
+  "manageCategoriesAddSubcategorySaveFirst": "Save the category before adding subcategories.",
+  "@manageCategoriesAddSubcategorySaveFirst": {
+    "description": "Hint shown when the user tries to add a subcategory before saving"
+  },
   "dialogCancel": "Cancel",
   "@dialogCancel": {
     "description": "Generic cancel button label"
@@ -266,6 +274,26 @@
   "manageCategoriesIconGroupLeisure": "Leisure & sports",
   "@manageCategoriesIconGroupLeisure": {
     "description": "Tab label for leisure icons"
+  },
+  "manageCategoriesIconGroupBeauty": "Beauty & care",
+  "@manageCategoriesIconGroupBeauty": {
+    "description": "Tab label for beauty-related icons"
+  },
+  "manageCategoriesIconGroupHealth": "Health",
+  "@manageCategoriesIconGroupHealth": {
+    "description": "Tab label for health and wellness icons"
+  },
+  "manageCategoriesIconGroupSports": "Sports",
+  "@manageCategoriesIconGroupSports": {
+    "description": "Tab label for dedicated sports icons"
+  },
+  "manageCategoriesIconGroupMaintenance": "Repairs & chores",
+  "@manageCategoriesIconGroupMaintenance": {
+    "description": "Tab label for maintenance and household icons"
+  },
+  "manageCategoriesIconGroupTech": "Tech & gadgets",
+  "@manageCategoriesIconGroupTech": {
+    "description": "Tab label for electronics and gadget icons"
   },
   "manageCategoriesColorLabel": "Color",
   "@manageCategoriesColorLabel": {
@@ -910,6 +938,23 @@
   "@homeUpcomingPaymentsEmptyHeader": {
     "description": "Subtitle shown when no upcoming payment is scheduled"
   },
+  "homeUpcomingPaymentsCollapsedSummary": "{count, plural, =0 {List hidden · no payments} one {List hidden · {count} payment} other {List hidden · {count} payments}}",
+  "@homeUpcomingPaymentsCollapsedSummary": {
+    "description": "Summary shown while the upcoming payments list is collapsed",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeUpcomingPaymentsExpand": "Show list",
+  "@homeUpcomingPaymentsExpand": {
+    "description": "Button label that expands the upcoming payments list"
+  },
+  "homeUpcomingPaymentsCollapse": "Hide list",
+  "@homeUpcomingPaymentsCollapse": {
+    "description": "Button label that collapses the upcoming payments list"
+  },
   "homeUpcomingPaymentsNextDate": "Next due: {date}",
   "@homeUpcomingPaymentsNextDate": {
     "description": "Subtitle with the nearest upcoming payment date",
@@ -1268,6 +1313,18 @@
   "analyticsTopCategoriesOthers": "Others",
   "@analyticsTopCategoriesOthers": {
     "description": "Legend label for remaining categories not shown individually"
+  },
+  "analyticsChartTypeLabel": "Chart type",
+  "@analyticsChartTypeLabel": {
+    "description": "Label for the toggle that switches the chart visualization"
+  },
+  "analyticsChartTypeDonut": "Donut",
+  "@analyticsChartTypeDonut": {
+    "description": "Option that selects the donut chart"
+  },
+  "analyticsChartTypeBar": "Bar",
+  "@analyticsChartTypeBar": {
+    "description": "Option that selects the bar chart"
   },
   "analyticsTopCategoriesEmpty": "Not enough data to show category trends yet.",
   "@analyticsTopCategoriesEmpty": {

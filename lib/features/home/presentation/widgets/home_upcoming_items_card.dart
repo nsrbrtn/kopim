@@ -5,7 +5,7 @@ import 'package:kopim/features/upcoming_payments/domain/models/upcoming_item.dar
 import 'package:kopim/features/upcoming_payments/domain/services/time_service.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
-class HomeUpcomingItemsCard extends StatelessWidget {
+class HomeUpcomingItemsCard extends StatefulWidget {
   const HomeUpcomingItemsCard({
     super.key,
     required this.items,
@@ -20,10 +20,72 @@ class HomeUpcomingItemsCard extends StatelessWidget {
   final VoidCallback onMore;
 
   @override
+  State<HomeUpcomingItemsCard> createState() => _HomeUpcomingItemsCardState();
+}
+
+class _HomeUpcomingItemsCardState extends State<HomeUpcomingItemsCard> {
+  bool _isExpanded = false;
+
+  void _toggleExpanded() {
+    setState(() {
+      _isExpanded = !_isExpanded;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
+    final bool hasItems = widget.items.isNotEmpty;
+    final String collapsedSummary = widget.strings
+        .homeUpcomingPaymentsCollapsedSummary(widget.items.length);
+
+    Widget content;
+    if (!hasItems) {
+      content = Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        child: Text(
+          widget.strings.homeUpcomingPaymentsEmpty,
+          style: theme.textTheme.bodyMedium,
+        ),
+      );
+    } else {
+      content = AnimatedCrossFade(
+        crossFadeState: _isExpanded
+            ? CrossFadeState.showSecond
+            : CrossFadeState.showFirst,
+        duration: const Duration(milliseconds: 220),
+        firstCurve: Curves.easeInOut,
+        secondCurve: Curves.easeInOut,
+        sizeCurve: Curves.easeInOut,
+        alignment: Alignment.topCenter,
+        firstChild: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          child: Text(
+            collapsedSummary,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ),
+        secondChild: Column(
+          children: <Widget>[
+            for (final UpcomingItem item in widget.items)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: _UpcomingListRow(
+                  item: item,
+                  strings: widget.strings,
+                  theme: theme,
+                  timeService: widget.timeService,
+                ),
+              ),
+          ],
+        ),
+      );
+    }
+
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      margin: EdgeInsets.zero,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -33,42 +95,31 @@ class HomeUpcomingItemsCard extends StatelessWidget {
               children: <Widget>[
                 Expanded(
                   child: Text(
-                    strings.homeUpcomingPaymentsTitle,
+                    widget.strings.homeUpcomingPaymentsTitle,
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
+                IconButton(
+                  onPressed: hasItems ? _toggleExpanded : null,
+                  tooltip: _isExpanded
+                      ? widget.strings.homeUpcomingPaymentsCollapse
+                      : widget.strings.homeUpcomingPaymentsExpand,
+                  icon: AnimatedRotation(
+                    duration: const Duration(milliseconds: 220),
+                    turns: _isExpanded ? 0.5 : 0,
+                    child: const Icon(Icons.expand_more),
+                  ),
+                ),
                 TextButton(
-                  onPressed: onMore,
-                  child: Text(strings.homeUpcomingPaymentsMore),
+                  onPressed: widget.onMore,
+                  child: Text(widget.strings.homeUpcomingPaymentsMore),
                 ),
               ],
             ),
             const SizedBox(height: 12),
-            if (items.isEmpty)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                child: Text(
-                  strings.homeUpcomingPaymentsEmpty,
-                  style: theme.textTheme.bodyMedium,
-                ),
-              )
-            else
-              Column(
-                children: <Widget>[
-                  for (final UpcomingItem item in items)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      child: _UpcomingListRow(
-                        item: item,
-                        strings: strings,
-                        theme: theme,
-                        timeService: timeService,
-                      ),
-                    ),
-                ],
-              ),
+            content,
           ],
         ),
       ),

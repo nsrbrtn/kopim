@@ -106,6 +106,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get manageCategoriesCreateSubAction => 'Create subcategory';
 
   @override
+  String get manageCategoriesAddSubcategoryAction => 'Add subcategory';
+
+  @override
+  String get manageCategoriesAddSubcategorySaveFirst =>
+      'Save the category before adding subcategories.';
+
+  @override
   String get dialogCancel => 'Cancel';
 
   @override
@@ -209,6 +216,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get manageCategoriesIconGroupLeisure => 'Leisure & sports';
+
+  @override
+  String get manageCategoriesIconGroupBeauty => 'Beauty & care';
+
+  @override
+  String get manageCategoriesIconGroupHealth => 'Health';
+
+  @override
+  String get manageCategoriesIconGroupSports => 'Sports';
+
+  @override
+  String get manageCategoriesIconGroupMaintenance => 'Repairs & chores';
+
+  @override
+  String get manageCategoriesIconGroupTech => 'Tech & gadgets';
 
   @override
   String get manageCategoriesColorLabel => 'Color';
@@ -686,6 +708,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeUpcomingPaymentsEmptyHeader => 'No upcoming payments';
 
   @override
+  String homeUpcomingPaymentsCollapsedSummary(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'List hidden · $count payments',
+      one: 'List hidden · $count payment',
+      zero: 'List hidden · no payments',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get homeUpcomingPaymentsExpand => 'Show list';
+
+  @override
+  String get homeUpcomingPaymentsCollapse => 'Hide list';
+
+  @override
   String homeUpcomingPaymentsNextDate(String date) {
     return 'Next due: $date';
   }
@@ -955,6 +995,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get analyticsTopCategoriesOthers => 'Others';
+
+  @override
+  String get analyticsChartTypeLabel => 'Chart type';
+
+  @override
+  String get analyticsChartTypeDonut => 'Donut';
+
+  @override
+  String get analyticsChartTypeBar => 'Bar';
 
   @override
   String get analyticsTopCategoriesEmpty =>

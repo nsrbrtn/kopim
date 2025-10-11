@@ -272,6 +272,18 @@ abstract class AppLocalizations {
   /// **'Create subcategory'**
   String get manageCategoriesCreateSubAction;
 
+  /// Button inside the category form for creating a subcategory
+  ///
+  /// In en, this message translates to:
+  /// **'Add subcategory'**
+  String get manageCategoriesAddSubcategoryAction;
+
+  /// Hint shown when the user tries to add a subcategory before saving
+  ///
+  /// In en, this message translates to:
+  /// **'Save the category before adding subcategories.'**
+  String get manageCategoriesAddSubcategorySaveFirst;
+
   /// Generic cancel button label
   ///
   /// In en, this message translates to:
@@ -475,6 +487,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Leisure & sports'**
   String get manageCategoriesIconGroupLeisure;
+
+  /// Tab label for beauty-related icons
+  ///
+  /// In en, this message translates to:
+  /// **'Beauty & care'**
+  String get manageCategoriesIconGroupBeauty;
+
+  /// Tab label for health and wellness icons
+  ///
+  /// In en, this message translates to:
+  /// **'Health'**
+  String get manageCategoriesIconGroupHealth;
+
+  /// Tab label for dedicated sports icons
+  ///
+  /// In en, this message translates to:
+  /// **'Sports'**
+  String get manageCategoriesIconGroupSports;
+
+  /// Tab label for maintenance and household icons
+  ///
+  /// In en, this message translates to:
+  /// **'Repairs & chores'**
+  String get manageCategoriesIconGroupMaintenance;
+
+  /// Tab label for electronics and gadget icons
+  ///
+  /// In en, this message translates to:
+  /// **'Tech & gadgets'**
+  String get manageCategoriesIconGroupTech;
 
   /// Label for the color input
   ///
@@ -1292,6 +1334,24 @@ abstract class AppLocalizations {
   /// **'No upcoming payments'**
   String get homeUpcomingPaymentsEmptyHeader;
 
+  /// Summary shown while the upcoming payments list is collapsed
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0 {List hidden · no payments} one {List hidden · {count} payment} other {List hidden · {count} payments}}'**
+  String homeUpcomingPaymentsCollapsedSummary(int count);
+
+  /// Button label that expands the upcoming payments list
+  ///
+  /// In en, this message translates to:
+  /// **'Show list'**
+  String get homeUpcomingPaymentsExpand;
+
+  /// Button label that collapses the upcoming payments list
+  ///
+  /// In en, this message translates to:
+  /// **'Hide list'**
+  String get homeUpcomingPaymentsCollapse;
+
   /// Subtitle with the nearest upcoming payment date
   ///
   /// In en, this message translates to:
@@ -1735,6 +1795,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Others'**
   String get analyticsTopCategoriesOthers;
+
+  /// Label for the toggle that switches the chart visualization
+  ///
+  /// In en, this message translates to:
+  /// **'Chart type'**
+  String get analyticsChartTypeLabel;
+
+  /// Option that selects the donut chart
+  ///
+  /// In en, this message translates to:
+  /// **'Donut'**
+  String get analyticsChartTypeDonut;
+
+  /// Option that selects the bar chart
+  ///
+  /// In en, this message translates to:
+  /// **'Bar'**
+  String get analyticsChartTypeBar;
 
   /// Message displayed when there are no categories to show
   ///
