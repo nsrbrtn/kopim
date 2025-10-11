@@ -126,28 +126,5 @@ void main() {
       expect(state.isSubmitting, isFalse);
       expect(state.errorMessage, 'Invalid credentials');
     });
-
-    test('signInWithGoogle delegates to auth controller', () async {
-      final _TestAuthController testAuthController = _TestAuthController();
-      final ProviderContainer container = ProviderContainer(
-        // ignore: always_specify_types
-        overrides: [
-          authControllerProvider.overrideWith(() => testAuthController),
-        ],
-      );
-      addTearDown(container.dispose);
-
-      final SignInFormController controller = container.read(
-        signInFormControllerProvider.notifier,
-      );
-
-      await controller.signInWithGoogle();
-
-      expect(testAuthController.lastRequest, const SignInRequest.google());
-      final SignInFormState state = container.read(
-        signInFormControllerProvider,
-      );
-      expect(state.isSubmitting, isFalse);
-    });
   });
 }

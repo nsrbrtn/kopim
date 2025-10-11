@@ -5,7 +5,6 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:riverpod/riverpod.dart' as rp;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:workmanager/workmanager.dart';
@@ -128,9 +127,6 @@ FirebaseFirestore firestore(Ref ref) => FirebaseFirestore.instance;
 
 @riverpod
 FirebaseAuth firebaseAuth(Ref ref) => FirebaseAuth.instance;
-
-@riverpod
-GoogleSignIn googleSignIn(Ref ref) => GoogleSignIn.instance;
 
 @riverpod
 FirebaseStorage firebaseStorage(Ref ref) => FirebaseStorage.instance;
@@ -637,7 +633,6 @@ SyncService syncService(Ref ref) {
 @riverpod
 AuthRepository authRepository(Ref ref) => AuthRepositoryImpl(
   firebaseAuth: ref.watch(firebaseAuthProvider),
-  googleSignIn: ref.watch(googleSignInProvider),
   loggerService: ref.watch(loggerServiceProvider),
   analyticsService: ref.watch(analyticsServiceProvider),
 );

@@ -14,30 +14,62 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$SignInRequest {
 
-
+ String get email; String get password;
+/// Create a copy of SignInRequest
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$SignInRequestCopyWith<SignInRequest> get copyWith => _$SignInRequestCopyWithImpl<SignInRequest>(this as SignInRequest, _$identity);
 
 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SignInRequest);
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SignInRequest&&(identical(other.email, email) || other.email == email)&&(identical(other.password, password) || other.password == password));
 }
 
 
 @override
-int get hashCode => runtimeType.hashCode;
+int get hashCode => Object.hash(runtimeType,email,password);
 
 @override
 String toString() {
-  return 'SignInRequest()';
+  return 'SignInRequest(email: $email, password: $password)';
 }
 
 
 }
 
 /// @nodoc
-class $SignInRequestCopyWith<$Res>  {
-$SignInRequestCopyWith(SignInRequest _, $Res Function(SignInRequest) __);
+abstract mixin class $SignInRequestCopyWith<$Res>  {
+  factory $SignInRequestCopyWith(SignInRequest value, $Res Function(SignInRequest) _then) = _$SignInRequestCopyWithImpl;
+@useResult
+$Res call({
+ String email, String password
+});
+
+
+
+
+}
+/// @nodoc
+class _$SignInRequestCopyWithImpl<$Res>
+    implements $SignInRequestCopyWith<$Res> {
+  _$SignInRequestCopyWithImpl(this._self, this._then);
+
+  final SignInRequest _self;
+  final $Res Function(SignInRequest) _then;
+
+/// Create a copy of SignInRequest
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? email = null,Object? password = null,}) {
+  return _then(_self.copyWith(
+email: null == email ? _self.email : email // ignore: cast_nullable_to_non_nullable
+as String,password: null == password ? _self.password : password // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
 }
 
 
@@ -55,12 +87,11 @@ extension SignInRequestPatterns on SignInRequest {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( EmailSignInRequest value)?  email,TResult Function( GoogleSignInRequest value)?  google,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( EmailSignInRequest value)?  email,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case EmailSignInRequest() when email != null:
-return email(_that);case GoogleSignInRequest() when google != null:
-return google(_that);case _:
+return email(_that);case _:
   return orElse();
 
 }
@@ -78,12 +109,11 @@ return google(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( EmailSignInRequest value)  email,required TResult Function( GoogleSignInRequest value)  google,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( EmailSignInRequest value)  email,}){
 final _that = this;
 switch (_that) {
 case EmailSignInRequest():
-return email(_that);case GoogleSignInRequest():
-return google(_that);}
+return email(_that);}
 }
 /// A variant of `map` that fallback to returning `null`.
 ///
@@ -97,12 +127,11 @@ return google(_that);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( EmailSignInRequest value)?  email,TResult? Function( GoogleSignInRequest value)?  google,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( EmailSignInRequest value)?  email,}){
 final _that = this;
 switch (_that) {
 case EmailSignInRequest() when email != null:
-return email(_that);case GoogleSignInRequest() when google != null:
-return google(_that);case _:
+return email(_that);case _:
   return null;
 
 }
@@ -119,11 +148,10 @@ return google(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( String email,  String password)?  email,TResult Function()?  google,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( String email,  String password)?  email,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case EmailSignInRequest() when email != null:
-return email(_that.email,_that.password);case GoogleSignInRequest() when google != null:
-return google();case _:
+return email(_that.email,_that.password);case _:
   return orElse();
 
 }
@@ -141,11 +169,10 @@ return google();case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( String email,  String password)  email,required TResult Function()  google,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( String email,  String password)  email,}) {final _that = this;
 switch (_that) {
 case EmailSignInRequest():
-return email(_that.email,_that.password);case GoogleSignInRequest():
-return google();}
+return email(_that.email,_that.password);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -159,11 +186,10 @@ return google();}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( String email,  String password)?  email,TResult? Function()?  google,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( String email,  String password)?  email,}) {final _that = this;
 switch (_that) {
 case EmailSignInRequest() when email != null:
-return email(_that.email,_that.password);case GoogleSignInRequest() when google != null:
-return google();case _:
+return email(_that.email,_that.password);case _:
   return null;
 
 }
@@ -178,12 +204,12 @@ class EmailSignInRequest implements SignInRequest {
   const EmailSignInRequest({required this.email, required this.password});
   
 
- final  String email;
- final  String password;
+@override final  String email;
+@override final  String password;
 
 /// Create a copy of SignInRequest
 /// with the given fields replaced by the non-null parameter values.
-@JsonKey(includeFromJson: false, includeToJson: false)
+@override @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
 $EmailSignInRequestCopyWith<EmailSignInRequest> get copyWith => _$EmailSignInRequestCopyWithImpl<EmailSignInRequest>(this, _$identity);
 
@@ -209,7 +235,7 @@ String toString() {
 /// @nodoc
 abstract mixin class $EmailSignInRequestCopyWith<$Res> implements $SignInRequestCopyWith<$Res> {
   factory $EmailSignInRequestCopyWith(EmailSignInRequest value, $Res Function(EmailSignInRequest) _then) = _$EmailSignInRequestCopyWithImpl;
-@useResult
+@override @useResult
 $Res call({
  String email, String password
 });
@@ -228,7 +254,7 @@ class _$EmailSignInRequestCopyWithImpl<$Res>
 
 /// Create a copy of SignInRequest
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') $Res call({Object? email = null,Object? password = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? email = null,Object? password = null,}) {
   return _then(EmailSignInRequest(
 email: null == email ? _self.email : email // ignore: cast_nullable_to_non_nullable
 as String,password: null == password ? _self.password : password // ignore: cast_nullable_to_non_nullable
@@ -238,37 +264,5 @@ as String,
 
 
 }
-
-/// @nodoc
-
-
-class GoogleSignInRequest implements SignInRequest {
-  const GoogleSignInRequest();
-  
-
-
-
-
-
-
-@override
-bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is GoogleSignInRequest);
-}
-
-
-@override
-int get hashCode => runtimeType.hashCode;
-
-@override
-String toString() {
-  return 'SignInRequest.google()';
-}
-
-
-}
-
-
-
 
 // dart format on
