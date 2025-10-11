@@ -1,6 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:kopim/core/services/analytics_service.dart';
 import 'package:kopim/core/services/logger_service.dart';
 import 'package:kopim/features/profile/data/auth_repository_impl.dart';
@@ -10,8 +9,6 @@ import 'package:kopim/features/profile/domain/failures/auth_failure.dart';
 import 'package:mocktail/mocktail.dart';
 
 class MockFirebaseAuth extends Mock implements FirebaseAuth {}
-
-class MockGoogleSignIn extends Mock implements GoogleSignIn {}
 
 class MockLoggerService extends Mock implements LoggerService {}
 
@@ -33,7 +30,6 @@ class FakeUserMetadata extends Fake implements UserMetadata {
 
 void main() {
   late MockFirebaseAuth firebaseAuth;
-  late MockGoogleSignIn googleSignIn;
   late MockLoggerService loggerService;
   late MockAnalyticsService analyticsService;
   late AuthRepositoryImpl repository;
@@ -46,13 +42,11 @@ void main() {
 
   setUp(() {
     firebaseAuth = MockFirebaseAuth();
-    googleSignIn = MockGoogleSignIn();
     loggerService = MockLoggerService();
     analyticsService = MockAnalyticsService();
 
     repository = AuthRepositoryImpl(
       firebaseAuth: firebaseAuth,
-      googleSignIn: googleSignIn,
       loggerService: loggerService,
       analyticsService: analyticsService,
     );

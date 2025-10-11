@@ -761,10 +761,6 @@
   "@signInSubmitCta": {
     "description": "Primary call to action button for email/password sign-in"
   },
-  "signInGoogleCta": "Continue with Google",
-  "@signInGoogleCta": {
-    "description": "Button label for Google sign in"
-  },
   "signInOfflineCta": "Work offline",
   "@signInOfflineCta": {
     "description": "Button label for starting the app without an account"

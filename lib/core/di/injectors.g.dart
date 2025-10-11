@@ -184,47 +184,6 @@ final class FirebaseAuthProvider
 
 String _$firebaseAuthHash() => r'8f84097cccd00af817397c1715c5f537399ba780';
 
-@ProviderFor(googleSignIn)
-const googleSignInProvider = GoogleSignInProvider._();
-
-final class GoogleSignInProvider
-    extends $FunctionalProvider<GoogleSignIn, GoogleSignIn, GoogleSignIn>
-    with $Provider<GoogleSignIn> {
-  const GoogleSignInProvider._()
-    : super(
-        from: null,
-        argument: null,
-        retry: null,
-        name: r'googleSignInProvider',
-        isAutoDispose: true,
-        dependencies: null,
-        $allTransitiveDependencies: null,
-      );
-
-  @override
-  String debugGetCreateSourceHash() => _$googleSignInHash();
-
-  @$internal
-  @override
-  $ProviderElement<GoogleSignIn> $createElement($ProviderPointer pointer) =>
-      $ProviderElement(pointer);
-
-  @override
-  GoogleSignIn create(Ref ref) {
-    return googleSignIn(ref);
-  }
-
-  /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(GoogleSignIn value) {
-    return $ProviderOverride(
-      origin: this,
-      providerOverride: $SyncValueProvider<GoogleSignIn>(value),
-    );
-  }
-}
-
-String _$googleSignInHash() => r'16cf38da6ba66b02462d5ad518f809a45382089f';
-
 @ProviderFor(firebaseStorage)
 const firebaseStorageProvider = FirebaseStorageProvider._();
 
@@ -4275,7 +4234,7 @@ final class AuthRepositoryProvider
   }
 }
 
-String _$authRepositoryHash() => r'7e797d65e0d39b813e59519dbc4634a54af22860';
+String _$authRepositoryHash() => r'7c64f3ffafdd910af07c1c9cfd72a9550534f646';
 
 @ProviderFor(authSyncService)
 const authSyncServiceProvider = AuthSyncServiceProvider._();
