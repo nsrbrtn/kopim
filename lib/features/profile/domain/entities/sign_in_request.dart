@@ -8,6 +8,4 @@ sealed class SignInRequest with _$SignInRequest {
     required String email,
     required String password,
   }) = EmailSignInRequest;
-
-  const factory SignInRequest.google() = GoogleSignInRequest;
 }

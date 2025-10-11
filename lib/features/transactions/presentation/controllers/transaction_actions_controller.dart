@@ -1,6 +1,8 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:kopim/core/di/injectors.dart';
+import 'package:kopim/features/profile/presentation/services/profile_event_recorder.dart';
+import 'package:kopim/features/transactions/domain/models/transaction_command_result.dart';
 import 'package:kopim/features/transactions/domain/use_cases/delete_transaction_use_case.dart';
 
 part 'transaction_actions_controller.g.dart';
@@ -15,8 +17,14 @@ class TransactionActionsController extends _$TransactionActionsController {
     final DeleteTransactionUseCase useCase = ref.read(
       deleteTransactionUseCaseProvider,
     );
+    final ProfileEventRecorder recorder = ref.read(
+      profileEventRecorderProvider,
+    );
     try {
-      await useCase(transactionId);
+      final TransactionCommandResult<void> result = await useCase(
+        transactionId,
+      );
+      await recorder.record(result.profileEvents);
       state = const AsyncData<void>(null);
       return true;
     } catch (error, stackTrace) {

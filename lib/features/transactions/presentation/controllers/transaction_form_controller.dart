@@ -6,8 +6,10 @@ import 'package:kopim/features/transactions/domain/entities/add_transaction_requ
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
 import 'package:kopim/features/transactions/domain/entities/update_transaction_request.dart';
+import 'package:kopim/features/transactions/domain/models/transaction_command_result.dart';
 import 'package:kopim/features/transactions/domain/use_cases/add_transaction_use_case.dart';
 import 'package:kopim/features/transactions/domain/use_cases/update_transaction_use_case.dart';
+import 'package:kopim/features/profile/presentation/services/profile_event_recorder.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'transaction_form_controller.g.dart';
@@ -242,18 +244,24 @@ class TransactionFormController extends _$TransactionFormController {
       final AddTransactionUseCase addUseCase = ref.read(
         addTransactionUseCaseProvider,
       );
-      final TransactionEntity created = await addUseCase(
-        AddTransactionRequest(
-          accountId: state.accountId!,
-          categoryId: state.categoryId?.isEmpty ?? true
-              ? null
-              : state.categoryId,
-          amount: state.parsedAmount!,
-          date: state.date,
-          note: state.note,
-          type: state.type,
-        ),
+      final ProfileEventRecorder recorder = ref.read(
+        profileEventRecorderProvider,
       );
+      final TransactionCommandResult<TransactionEntity> createdResult =
+          await addUseCase(
+            AddTransactionRequest(
+              accountId: state.accountId!,
+              categoryId: state.categoryId?.isEmpty ?? true
+                  ? null
+                  : state.categoryId,
+              amount: state.parsedAmount!,
+              date: state.date,
+              note: state.note,
+              type: state.type,
+            ),
+          );
+      await recorder.record(createdResult.profileEvents);
+      final TransactionEntity created = createdResult.value;
       state = state.copyWith(
         isSubmitting: false,
         isSuccess: true,

@@ -581,9 +581,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get signInSubmitCta => 'Sign in';
 
   @override
-  String get signInGoogleCta => 'Continue with Google';
-
-  @override
   String get signInOfflineCta => 'Work offline';
 
   @override

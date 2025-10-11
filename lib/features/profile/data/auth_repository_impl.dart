@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:kopim/core/services/analytics_service.dart';
 import 'package:kopim/core/services/logger_service.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
@@ -13,21 +12,17 @@ import 'package:kopim/features/profile/domain/repositories/auth_repository.dart'
 class AuthRepositoryImpl implements AuthRepository {
   AuthRepositoryImpl({
     required FirebaseAuth firebaseAuth,
-    required GoogleSignIn googleSignIn,
     required LoggerService loggerService,
     required AnalyticsService analyticsService,
   }) : _firebaseAuth = firebaseAuth,
-       _googleSignIn = googleSignIn,
        _logger = loggerService,
        _analyticsService = analyticsService;
 
   final FirebaseAuth _firebaseAuth;
-  final GoogleSignIn _googleSignIn;
   final LoggerService _logger;
   final AnalyticsService _analyticsService;
 
   AuthUser? _localFallbackUser;
-  bool _googleInitialized = false;
 
   @override
   Stream<AuthUser?> authStateChanges() {
@@ -43,17 +38,13 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<AuthUser> signIn(SignInRequest request) async {
-    final String label = switch (request) {
-      EmailSignInRequest() => 'email',
-      GoogleSignInRequest() => 'google',
-    };
+    const String label = 'email';
 
     final AuthUser user = await _guard<AuthUser>('signIn:$label', () async {
-      return switch (request) {
-        EmailSignInRequest(:final String email, :final String password) =>
-          _signInWithEmail(email, password),
-        GoogleSignInRequest() => _signInWithGoogle(),
-      };
+      return request.map(
+        email: (EmailSignInRequest value) =>
+            _signInWithEmail(value.email, value.password),
+      );
     });
 
     _logger.logInfo('Authenticated user ${user.uid} via $label sign-in.');
@@ -78,23 +69,13 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<void> signOut() {
     return _guardVoid('signOut', () async {
       await _firebaseAuth.signOut();
-      try {
-        await _ensureGoogleInitialized();
-        await _googleSignIn.signOut();
-      } catch (error, stack) {
-        _logger.logError('Google sign-out failed', error);
-        _analyticsService.reportError(error, stack);
-      }
       _localFallbackUser = null;
     });
   }
 
   @override
   Future<AuthUser> reauthenticate(SignInRequest request) {
-    final String label = switch (request) {
-      EmailSignInRequest() => 'email',
-      GoogleSignInRequest() => 'google',
-    };
+    const String label = 'email';
 
     return _guard<AuthUser>('reauthenticate:$label', () async {
       final User? user = _firebaseAuth.currentUser;
@@ -178,35 +159,6 @@ class AuthRepositoryImpl implements AuthRepository {
     return _mapCredential(credential);
   }
 
-  Future<AuthUser> _signInWithGoogle() async {
-    await _ensureGoogleInitialized();
-    try {
-      final GoogleSignInAccount account = await _googleSignIn.authenticate();
-      final String? idToken = account.authentication.idToken;
-      if (idToken == null || idToken.isEmpty) {
-        throw const AuthFailure(
-          code: 'missing-id-token',
-          message: 'Google authentication did not return an ID token.',
-        );
-      }
-      final UserCredential result = await _firebaseAuth.signInWithCredential(
-        GoogleAuthProvider.credential(idToken: idToken),
-      );
-      return _mapCredential(result);
-    } on GoogleSignInException catch (error) {
-      if (error.code == GoogleSignInExceptionCode.canceled) {
-        throw const AuthFailure(
-          code: 'sign-in-cancelled',
-          message: 'Google sign-in flow was cancelled by the user.',
-        );
-      }
-      throw AuthFailure(
-        code: error.code.name,
-        message: error.description ?? 'Google sign-in failed.',
-      );
-    }
-  }
-
   Future<AuthUser> _signUpWithEmail(
     String email,
     String password,
@@ -234,54 +186,12 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   Future<AuthCredential> _credentialForRequest(SignInRequest request) async {
-    return switch (request) {
-      EmailSignInRequest(:final String email, :final String password) =>
-        EmailAuthProvider.credential(email: email, password: password),
-      GoogleSignInRequest() => _buildGoogleCredential(),
-    };
-  }
-
-  Future<AuthCredential> _buildGoogleCredential() async {
-    await _ensureGoogleInitialized();
-    try {
-      final GoogleSignInAccount account = await _googleSignIn.authenticate();
-      final String? idToken = account.authentication.idToken;
-      if (idToken == null || idToken.isEmpty) {
-        throw const AuthFailure(
-          code: 'missing-id-token',
-          message: 'Google reauthentication did not return an ID token.',
-        );
-      }
-      return GoogleAuthProvider.credential(idToken: idToken);
-    } on GoogleSignInException catch (error) {
-      if (error.code == GoogleSignInExceptionCode.canceled) {
-        throw const AuthFailure(
-          code: 'sign-in-cancelled',
-          message: 'Google reauthentication was cancelled by the user.',
-        );
-      }
-      throw AuthFailure(
-        code: error.code.name,
-        message: error.description ?? 'Google reauthentication failed.',
-      );
-    }
-  }
-
-  Future<void> _ensureGoogleInitialized() async {
-    if (_googleInitialized) {
-      return;
-    }
-    try {
-      await _googleSignIn.initialize();
-      _googleInitialized = true;
-    } catch (error, stackTrace) {
-      _logger.logError('Failed to initialize Google Sign-In', error);
-      _analyticsService.reportError(error, stackTrace);
-      throw const AuthFailure(
-        code: 'google-initialization-failed',
-        message: 'Failed to initialize Google Sign-In SDK.',
-      );
-    }
+    return request.map(
+      email: (EmailSignInRequest value) => EmailAuthProvider.credential(
+        email: value.email,
+        password: value.password,
+      ),
+    );
   }
 
   AuthUser? _mapFirebaseUser(User? user) {

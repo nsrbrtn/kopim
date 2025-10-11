@@ -59,7 +59,7 @@ final class ProfileFormControllerProvider
 }
 
 String _$profileFormControllerHash() =>
-    r'e5d13d79c34efb61d574eea154e7a90b617ffa96';
+    r'e7e127b71af2e63875190af1065bbd34241acf69';
 
 final class ProfileFormControllerFamily extends $Family
     with

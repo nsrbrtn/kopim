@@ -4,6 +4,7 @@ import 'package:kopim/features/accounts/domain/repositories/account_repository.d
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
 import 'package:kopim/features/transactions/domain/repositories/transaction_repository.dart';
+import 'package:kopim/features/transactions/domain/models/transaction_command_result.dart';
 import 'package:kopim/features/transactions/domain/use_cases/delete_transaction_use_case.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -93,7 +94,7 @@ void main() {
       () => transactionRepository.softDelete(transaction.id),
     ).thenAnswer((_) async {});
 
-    await useCase(transaction.id);
+    final TransactionCommandResult<void> result = await useCase(transaction.id);
 
     final AccountEntity updatedAccount =
         verify(() => accountRepository.upsert(captureAny())).captured.single
@@ -101,6 +102,7 @@ void main() {
     expect(updatedAccount.balance, closeTo(900, 1e-9));
     expect(updatedAccount.updatedAt, fixedNow.toUtc());
     verify(() => transactionRepository.softDelete(transaction.id)).called(1);
+    expect(result.profileEvents, isEmpty);
   });
 
   test('reduces balance when deleting an income transaction', () async {
@@ -128,7 +130,7 @@ void main() {
       () => transactionRepository.softDelete(transaction.id),
     ).thenAnswer((_) async {});
 
-    await useCase(transaction.id);
+    final TransactionCommandResult<void> result = await useCase(transaction.id);
 
     final AccountEntity updatedAccount =
         verify(() => accountRepository.upsert(captureAny())).captured.single
@@ -136,6 +138,7 @@ void main() {
     expect(updatedAccount.balance, closeTo(1000, 1e-9));
     expect(updatedAccount.updatedAt, fixedNow.toUtc());
     verify(() => transactionRepository.softDelete(transaction.id)).called(1);
+    expect(result.profileEvents, isEmpty);
   });
 
   test('does nothing when transaction is not found', () async {
@@ -143,9 +146,10 @@ void main() {
       () => transactionRepository.findById('missing'),
     ).thenAnswer((_) async => null);
 
-    await useCase('missing');
+    final TransactionCommandResult<void> result = await useCase('missing');
 
     verifyNever(() => accountRepository.upsert(any()));
     verifyNever(() => transactionRepository.softDelete(any()));
+    expect(result.profileEvents, isEmpty);
   });
 }

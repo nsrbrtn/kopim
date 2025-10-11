@@ -4,6 +4,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:kopim/core/data/database.dart';
 import 'package:kopim/core/data/outbox/outbox_dao.dart';
+import 'package:kopim/core/services/analytics_service.dart';
 import 'package:kopim/core/services/logger_service.dart';
 import 'package:kopim/features/accounts/data/repositories/account_repository_impl.dart';
 import 'package:kopim/features/accounts/data/sources/local/account_dao.dart';
@@ -21,9 +22,12 @@ import 'package:kopim/features/recurring_transactions/domain/services/recurring_
 import 'package:kopim/features/recurring_transactions/domain/use_cases/apply_recurring_rules_use_case.dart';
 import 'package:kopim/features/savings/data/sources/local/goal_contribution_dao.dart';
 import 'package:kopim/features/savings/data/sources/local/saving_goal_dao.dart';
+import 'package:kopim/features/profile/presentation/services/profile_event_recorder.dart';
 import 'package:kopim/features/transactions/data/repositories/transaction_repository_impl.dart';
 import 'package:kopim/features/transactions/data/sources/local/transaction_dao.dart';
+import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/entities/add_transaction_request.dart';
+import 'package:kopim/features/transactions/domain/models/transaction_command_result.dart';
 import 'package:kopim/features/transactions/domain/repositories/transaction_repository.dart';
 import 'package:kopim/features/transactions/domain/use_cases/add_transaction_use_case.dart';
 import 'package:kopim/features/upcoming_payments/data/services/upcoming_payments_work_scheduler.dart'
@@ -203,6 +207,10 @@ Future<void> _applyRecurringRules({
     goalContributionDao: goalContributionDao,
     outboxDao: outboxDao,
   );
+  final ProfileEventRecorder eventRecorder = ProfileEventRecorder(
+    analyticsService: AnalyticsService(),
+    loggerService: logger,
+  );
   String? lastGeneratedId;
   final AddTransactionUseCase addTransaction = AddTransactionUseCase(
     transactionRepository: transactionRepository,
@@ -216,7 +224,9 @@ Future<void> _applyRecurringRules({
   );
   Future<String?> postTransaction(AddTransactionRequest request) async {
     lastGeneratedId = null;
-    await addTransaction(request);
+    final TransactionCommandResult<TransactionEntity> result =
+        await addTransaction(request);
+    await eventRecorder.record(result.profileEvents);
     return lastGeneratedId;
   }
 

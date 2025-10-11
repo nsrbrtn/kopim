@@ -3,12 +3,11 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:image/image.dart' as img;
-import 'package:kopim/core/services/analytics_service.dart';
-import 'package:kopim/core/services/logger_service.dart';
 import 'package:kopim/features/profile/domain/entities/profile.dart';
+import 'package:kopim/features/profile/domain/events/profile_domain_event.dart';
+import 'package:kopim/features/profile/domain/models/profile_command_result.dart';
 import 'package:kopim/features/profile/domain/repositories/profile_repository.dart';
 import 'package:kopim/features/profile/domain/repositories/profile_avatar_repository.dart';
-import 'package:kopim/features/profile/domain/exceptions/avatar_storage_exception.dart';
 
 enum AvatarImageSource { gallery, camera }
 
@@ -32,28 +31,32 @@ class UpdateProfileAvatarUseCase {
   UpdateProfileAvatarUseCase({
     required ProfileAvatarRepository avatarRepository,
     required ProfileRepository profileRepository,
-    required AnalyticsService analyticsService,
-    required LoggerService loggerService,
   }) : _avatarRepository = avatarRepository,
-       _profileRepository = profileRepository,
-       _analyticsService = analyticsService,
-       _logger = loggerService;
+       _profileRepository = profileRepository;
 
   static const int _maxBytes = 512 * 1024;
   static const int _maxDimension = 512;
 
   final ProfileAvatarRepository _avatarRepository;
   final ProfileRepository _profileRepository;
-  final AnalyticsService _analyticsService;
-  final LoggerService _logger;
 
-  Future<Profile> call(UpdateProfileAvatarRequest request) async {
+  Future<ProfileCommandResult<Profile>> call(
+    UpdateProfileAvatarRequest request,
+  ) async {
+    final List<ProfileDomainEvent> events = <ProfileDomainEvent>[];
     final Profile? existing = await _profileRepository.getProfile(request.uid);
     if (existing == null) {
       throw StateError('Profile not found for uid ${request.uid}');
     }
 
-    final _CompressionResult compression = await _compress(request.bytes);
+    final _CompressionResult compression = await _compress(
+      request.bytes,
+      onWarning: (String message) {
+        events.add(
+          ProfileDomainEvent.avatarProcessingWarning(message: message),
+        );
+      },
+    );
     final Uint8List processedBytes = compression.bytes;
     final String resolvedContentType = compression.convertedToJpeg
         ? 'image/jpeg'
@@ -63,21 +66,11 @@ class UpdateProfileAvatarUseCase {
     if (request.storeOfflineOnly) {
       downloadUrl = _encodeAsDataUrl(processedBytes, resolvedContentType);
     } else {
-      try {
-        downloadUrl = await _avatarRepository.upload(
-          uid: request.uid,
-          data: processedBytes,
-          contentType: resolvedContentType,
-        );
-      } on AvatarStorageException catch (error, stackTrace) {
-        _logger.logError('Failed to upload avatar: ${error.code}');
-        _logger.logError(stackTrace.toString());
-        rethrow;
-      } catch (error, stackTrace) {
-        _logger.logError('Failed to upload avatar: $error');
-        _logger.logError(stackTrace.toString());
-        rethrow;
-      }
+      downloadUrl = await _avatarRepository.upload(
+        uid: request.uid,
+        data: processedBytes,
+        contentType: resolvedContentType,
+      );
     }
 
     final Profile updated = existing.copyWith(
@@ -86,13 +79,18 @@ class UpdateProfileAvatarUseCase {
     );
     await _profileRepository.updateProfile(updated);
 
-    await _analyticsService.logEvent('avatar_updated', <String, Object?>{
-      'source': request.source.name,
-      'size_kb': (processedBytes.lengthInBytes / 1024).round(),
-      'mode': request.storeOfflineOnly ? 'offline' : 'remote',
-    });
+    events
+      ..add(ProfileDomainEvent.profileUpdated(profile: updated))
+      ..add(
+        ProfileDomainEvent.avatarUpdated(
+          uid: request.uid,
+          source: request.source,
+          sizeBytes: processedBytes.lengthInBytes,
+          offlineOnly: request.storeOfflineOnly,
+        ),
+      );
 
-    return updated;
+    return ProfileCommandResult<Profile>(value: updated, events: events);
   }
 
   String _encodeAsDataUrl(Uint8List bytes, String contentType) {
@@ -101,13 +99,16 @@ class UpdateProfileAvatarUseCase {
     return 'data:$mime;base64,$base64Data';
   }
 
-  Future<_CompressionResult> _compress(Uint8List data) async {
+  Future<_CompressionResult> _compress(
+    Uint8List data, {
+    void Function(String message)? onWarning,
+  }) async {
     if (data.lengthInBytes <= _maxBytes) {
       return _CompressionResult(data);
     }
     final img.Image? decoded = img.decodeImage(data);
     if (decoded == null) {
-      _logger.logError('Failed to decode avatar image for compression');
+      onWarning?.call('Failed to decode avatar image for compression');
       return _CompressionResult(data);
     }
     final int targetWidth = decoded.width > decoded.height

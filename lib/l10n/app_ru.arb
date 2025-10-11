@@ -761,10 +761,6 @@
   "@signInSubmitCta": {
     "description": "Кнопка входа"
   },
-  "signInGoogleCta": "Продолжить с Google",
-  "@signInGoogleCta": {
-    "description": "Кнопка входа через Google"
-  },
   "signInOfflineCta": "Войти без учетной записи",
   "@signInOfflineCta": {
     "description": "Кнопка перехода в офлайн-режим без аккаунта"

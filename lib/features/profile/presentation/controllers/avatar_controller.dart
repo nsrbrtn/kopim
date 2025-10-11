@@ -4,7 +4,10 @@ import 'dart:typed_data';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:kopim/core/di/injectors.dart';
+import 'package:kopim/features/profile/domain/entities/profile.dart';
+import 'package:kopim/features/profile/domain/models/profile_command_result.dart';
 import 'package:kopim/features/profile/domain/usecases/update_profile_avatar_use_case.dart';
+import 'package:kopim/features/profile/presentation/services/profile_event_recorder.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'avatar_controller.g.dart';
@@ -50,7 +53,10 @@ class AvatarController extends _$AvatarController {
       final UpdateProfileAvatarUseCase useCase = ref.read(
         updateProfileAvatarUseCaseProvider,
       );
-      await useCase(
+      final ProfileEventRecorder recorder = ref.read(
+        profileEventRecorderProvider,
+      );
+      final ProfileCommandResult<Profile> result = await useCase(
         UpdateProfileAvatarRequest(
           uid: uid,
           bytes: bytes,
@@ -61,6 +67,7 @@ class AvatarController extends _$AvatarController {
           storeOfflineOnly: storeOfflineOnly,
         ),
       );
+      await recorder.record(result.events);
       state = const AsyncValue<void>.data(null);
     } catch (error, stackTrace) {
       state = AsyncValue<void>.error(error, stackTrace);

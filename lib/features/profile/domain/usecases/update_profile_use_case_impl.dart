@@ -1,36 +1,24 @@
-import 'package:kopim/core/services/analytics_service.dart';
 import 'package:kopim/features/profile/domain/entities/profile.dart';
+import 'package:kopim/features/profile/domain/events/profile_domain_event.dart';
+import 'package:kopim/features/profile/domain/models/profile_command_result.dart';
 import 'package:kopim/features/profile/domain/repositories/profile_repository.dart';
 import 'package:kopim/features/profile/domain/usecases/update_profile_use_case.dart';
 
-/// Use case that persists profile updates locally and forwards analytics events.
+/// Use case that persists profile updates locally and emits domain events.
 class UpdateProfileUseCaseImpl implements UpdateProfileUseCase {
-  UpdateProfileUseCaseImpl({
-    required ProfileRepository repository,
-    required AnalyticsService analyticsService,
-  }) : _repository = repository,
-       _analyticsService = analyticsService;
+  UpdateProfileUseCaseImpl({required ProfileRepository repository})
+    : _repository = repository;
 
   final ProfileRepository _repository;
-  final AnalyticsService _analyticsService;
 
   @override
-  Future<Profile> call(Profile profile) async {
+  Future<ProfileCommandResult<Profile>> call(Profile profile) async {
     final Profile updated = await _repository.updateProfile(profile);
-    await _logAnalytics(updated);
-    return updated;
-  }
-
-  Future<void> _logAnalytics(Profile profile) async {
-    try {
-      await _analyticsService.logEvent('profile_updated', <String, dynamic>{
-        'uid': profile.uid,
-        'currency': profile.currency.name,
-        'locale': profile.locale,
-        'has_name': profile.name.isNotEmpty,
-      });
-    } on Object catch (error, stackTrace) {
-      _analyticsService.reportError(error, stackTrace);
-    }
+    return ProfileCommandResult<Profile>(
+      value: updated,
+      events: <ProfileDomainEvent>[
+        ProfileDomainEvent.profileUpdated(profile: updated),
+      ],
+    );
   }
 }

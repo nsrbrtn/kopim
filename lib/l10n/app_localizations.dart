@@ -1106,12 +1106,6 @@ abstract class AppLocalizations {
   /// **'Sign in'**
   String get signInSubmitCta;
 
-  /// Button label for Google sign in
-  ///
-  /// In en, this message translates to:
-  /// **'Continue with Google'**
-  String get signInGoogleCta;
-
   /// Button label for starting the app without an account
   ///
   /// In en, this message translates to:

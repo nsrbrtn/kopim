@@ -184,47 +184,6 @@ final class FirebaseAuthProvider
 
 String _$firebaseAuthHash() => r'8f84097cccd00af817397c1715c5f537399ba780';
 
-@ProviderFor(googleSignIn)
-const googleSignInProvider = GoogleSignInProvider._();
-
-final class GoogleSignInProvider
-    extends $FunctionalProvider<GoogleSignIn, GoogleSignIn, GoogleSignIn>
-    with $Provider<GoogleSignIn> {
-  const GoogleSignInProvider._()
-    : super(
-        from: null,
-        argument: null,
-        retry: null,
-        name: r'googleSignInProvider',
-        isAutoDispose: true,
-        dependencies: null,
-        $allTransitiveDependencies: null,
-      );
-
-  @override
-  String debugGetCreateSourceHash() => _$googleSignInHash();
-
-  @$internal
-  @override
-  $ProviderElement<GoogleSignIn> $createElement($ProviderPointer pointer) =>
-      $ProviderElement(pointer);
-
-  @override
-  GoogleSignIn create(Ref ref) {
-    return googleSignIn(ref);
-  }
-
-  /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(GoogleSignIn value) {
-    return $ProviderOverride(
-      origin: this,
-      providerOverride: $SyncValueProvider<GoogleSignIn>(value),
-    );
-  }
-}
-
-String _$googleSignInHash() => r'16cf38da6ba66b02462d5ad518f809a45382089f';
-
 @ProviderFor(firebaseStorage)
 const firebaseStorageProvider = FirebaseStorageProvider._();
 
@@ -3997,7 +3956,7 @@ final class UpdateProfileUseCaseProvider
 }
 
 String _$updateProfileUseCaseHash() =>
-    r'9a588af407d61e02f7c35d5e0ec46c115704d472';
+    r'df5b968b7d1366622eb17431ae0e2f17bee33f27';
 
 @ProviderFor(recomputeUserProgressUseCase)
 const recomputeUserProgressUseCaseProvider =
@@ -4046,7 +4005,7 @@ final class RecomputeUserProgressUseCaseProvider
 }
 
 String _$recomputeUserProgressUseCaseHash() =>
-    r'06aa08489f3ca62c0f7ebbbb164167cca6256ef7';
+    r'351f72a8ecfdd69a2709660e08779b3681970718';
 
 @ProviderFor(onTransactionCreatedUseCase)
 const onTransactionCreatedUseCaseProvider =
@@ -4095,7 +4054,7 @@ final class OnTransactionCreatedUseCaseProvider
 }
 
 String _$onTransactionCreatedUseCaseHash() =>
-    r'9fe7a7625113314739dcac82d957b6efdf695414';
+    r'60e379acfa755ba8d782045d31577f39c7bef68d';
 
 @ProviderFor(onTransactionDeletedUseCase)
 const onTransactionDeletedUseCaseProvider =
@@ -4193,7 +4152,7 @@ final class UpdateProfileAvatarUseCaseProvider
 }
 
 String _$updateProfileAvatarUseCaseHash() =>
-    r'55cc74f78fefb1db555da7d3a03c91c4c53adc9f';
+    r'bfe251b0b5b2e8b23cd482675f08eb3bbf1f9f84';
 
 @ProviderFor(syncService)
 const syncServiceProvider = SyncServiceProvider._();
@@ -4275,7 +4234,7 @@ final class AuthRepositoryProvider
   }
 }
 
-String _$authRepositoryHash() => r'7e797d65e0d39b813e59519dbc4634a54af22860';
+String _$authRepositoryHash() => r'7c64f3ffafdd910af07c1c9cfd72a9550534f646';
 
 @ProviderFor(authSyncService)
 const authSyncServiceProvider = AuthSyncServiceProvider._();

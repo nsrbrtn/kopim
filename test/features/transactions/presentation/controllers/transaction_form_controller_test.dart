@@ -1,9 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kopim/core/di/injectors.dart';
+import 'package:kopim/features/profile/domain/events/profile_domain_event.dart';
+import 'package:kopim/features/profile/presentation/services/profile_event_recorder.dart';
 import 'package:kopim/features/transactions/domain/entities/add_transaction_request.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
 import 'package:kopim/features/transactions/domain/entities/update_transaction_request.dart';
+import 'package:kopim/features/transactions/domain/models/transaction_command_result.dart';
 import 'package:kopim/features/transactions/domain/use_cases/add_transaction_use_case.dart';
 import 'package:kopim/features/transactions/domain/use_cases/update_transaction_use_case.dart';
 import 'package:kopim/features/transactions/presentation/controllers/transaction_form_controller.dart';
@@ -16,10 +19,13 @@ class _MockAddTransactionUseCase extends Mock
 class _MockUpdateTransactionUseCase extends Mock
     implements UpdateTransactionUseCase {}
 
+class _MockProfileEventRecorder extends Mock implements ProfileEventRecorder {}
+
 void main() {
   late ProviderContainer container;
   late _MockAddTransactionUseCase addUseCase;
   late _MockUpdateTransactionUseCase updateUseCase;
+  late _MockProfileEventRecorder eventRecorder;
 
   setUpAll(() {
     registerFallbackValue(
@@ -44,11 +50,14 @@ void main() {
   setUp(() {
     addUseCase = _MockAddTransactionUseCase();
     updateUseCase = _MockUpdateTransactionUseCase();
+    eventRecorder = _MockProfileEventRecorder();
+    when(() => eventRecorder.record(any())).thenAnswer((_) async {});
     container = ProviderContainer(
       // ignore: always_specify_types, the Override type is internal to riverpod
       overrides: [
         addTransactionUseCaseProvider.overrideWithValue(addUseCase),
         updateTransactionUseCaseProvider.overrideWithValue(updateUseCase),
+        profileEventRecorderProvider.overrideWithValue(eventRecorder),
       ],
     );
     addTearDown(container.dispose);
@@ -80,8 +89,9 @@ void main() {
       provider.notifier,
     );
 
-    when(() => addUseCase(any())).thenAnswer(
-      (_) async => TransactionEntity(
+    when(() => addUseCase(any())).thenAnswer((_) async {
+      // ignore: prefer_const_constructors
+      final TransactionEntity entity = TransactionEntity(
         id: 'generated',
         accountId: 'acc-1',
         categoryId: 'cat-1',
@@ -91,8 +101,18 @@ void main() {
         type: TransactionType.income.storageValue,
         createdAt: DateTime.utc(2024, 4, 1),
         updatedAt: DateTime.utc(2024, 4, 1),
-      ),
-    );
+      );
+      return TransactionCommandResult<TransactionEntity>(
+        value: entity,
+        profileEvents: const <ProfileDomainEvent>[
+          ProfileDomainEvent.levelIncreased(
+            previousLevel: 1,
+            newLevel: 2,
+            totalTransactions: 10,
+          ),
+        ],
+      );
+    });
 
     controller
       ..updateAccount('acc-1')
@@ -118,6 +138,7 @@ void main() {
     expect(state.isSuccess, isTrue);
     expect(state.isSubmitting, isFalse);
     expect(state.lastCreatedTransaction?.amount, closeTo(42.5, 1e-9));
+    verify(() => eventRecorder.record(any())).called(1);
   });
 
   test('submit updates an existing transaction', () async {
@@ -168,5 +189,6 @@ void main() {
     expect(state.isSuccess, isTrue);
     expect(state.isSubmitting, isFalse);
     expect(state.lastCreatedTransaction, isNull);
+    verifyNever(() => eventRecorder.record(any()));
   });
 }

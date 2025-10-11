@@ -5,7 +5,6 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:riverpod/riverpod.dart' as rp;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:workmanager/workmanager.dart';
@@ -128,9 +127,6 @@ FirebaseFirestore firestore(Ref ref) => FirebaseFirestore.instance;
 
 @riverpod
 FirebaseAuth firebaseAuth(Ref ref) => FirebaseAuth.instance;
-
-@riverpod
-GoogleSignIn googleSignIn(Ref ref) => GoogleSignIn.instance;
 
 @riverpod
 FirebaseStorage firebaseStorage(Ref ref) => FirebaseStorage.instance;
@@ -569,10 +565,8 @@ UserProgressRepository userProgressRepository(Ref ref) {
 }
 
 @riverpod
-UpdateProfileUseCase updateProfileUseCase(Ref ref) => UpdateProfileUseCaseImpl(
-  repository: ref.watch(profileRepositoryProvider),
-  analyticsService: ref.watch(analyticsServiceProvider),
-);
+UpdateProfileUseCase updateProfileUseCase(Ref ref) =>
+    UpdateProfileUseCaseImpl(repository: ref.watch(profileRepositoryProvider));
 
 @riverpod
 RecomputeUserProgressUseCase recomputeUserProgressUseCase(Ref ref) =>
@@ -580,7 +574,6 @@ RecomputeUserProgressUseCase recomputeUserProgressUseCase(Ref ref) =>
       repository: ref.watch(userProgressRepositoryProvider),
       levelPolicy: ref.watch(levelPolicyProvider),
       authRepository: ref.watch(authRepositoryProvider),
-      loggerService: ref.watch(loggerServiceProvider),
     );
 
 @riverpod
@@ -590,7 +583,6 @@ OnTransactionCreatedUseCase onTransactionCreatedUseCase(Ref ref) =>
         recomputeUserProgressUseCaseProvider,
       ),
       levelPolicy: ref.watch(levelPolicyProvider),
-      analyticsService: ref.watch(analyticsServiceProvider),
     );
 
 @riverpod
@@ -606,8 +598,6 @@ UpdateProfileAvatarUseCase updateProfileAvatarUseCase(Ref ref) =>
     UpdateProfileAvatarUseCase(
       avatarRepository: ref.watch(profileAvatarRepositoryProvider),
       profileRepository: ref.watch(profileRepositoryProvider),
-      analyticsService: ref.watch(analyticsServiceProvider),
-      loggerService: ref.watch(loggerServiceProvider),
     );
 
 @riverpod
@@ -637,7 +627,6 @@ SyncService syncService(Ref ref) {
 @riverpod
 AuthRepository authRepository(Ref ref) => AuthRepositoryImpl(
   firebaseAuth: ref.watch(firebaseAuthProvider),
-  googleSignIn: ref.watch(googleSignInProvider),
   loggerService: ref.watch(loggerServiceProvider),
   analyticsService: ref.watch(analyticsServiceProvider),
 );
