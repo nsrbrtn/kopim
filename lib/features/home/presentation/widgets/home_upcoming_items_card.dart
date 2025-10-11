@@ -36,8 +36,12 @@ class _HomeUpcomingItemsCardState extends State<HomeUpcomingItemsCard> {
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
     final bool hasItems = widget.items.isNotEmpty;
-    final String collapsedSummary = widget.strings
-        .homeUpcomingPaymentsCollapsedSummary(widget.items.length);
+    final int paymentCount = widget.items
+        .where((UpcomingItem item) => item.type == UpcomingItemType.paymentRule)
+        .length;
+    final int reminderCount = widget.items
+        .where((UpcomingItem item) => item.type == UpcomingItemType.reminder)
+        .length;
 
     Widget content;
     if (!hasItems) {
@@ -60,11 +64,11 @@ class _HomeUpcomingItemsCardState extends State<HomeUpcomingItemsCard> {
         alignment: Alignment.topCenter,
         firstChild: Padding(
           padding: const EdgeInsets.symmetric(vertical: 12),
-          child: Text(
-            collapsedSummary,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
+          child: _UpcomingSummaryBadges(
+            paymentCount: paymentCount,
+            reminderCount: reminderCount,
+            strings: widget.strings,
+            theme: theme,
           ),
         ),
         secondChild: Column(
@@ -79,6 +83,14 @@ class _HomeUpcomingItemsCardState extends State<HomeUpcomingItemsCard> {
                   timeService: widget.timeService,
                 ),
               ),
+            const SizedBox(height: 16),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton(
+                onPressed: widget.onMore,
+                child: Text(widget.strings.homeUpcomingPaymentsMore),
+              ),
+            ),
           ],
         ),
       );
@@ -112,14 +124,121 @@ class _HomeUpcomingItemsCardState extends State<HomeUpcomingItemsCard> {
                     child: const Icon(Icons.expand_more),
                   ),
                 ),
-                TextButton(
-                  onPressed: widget.onMore,
-                  child: Text(widget.strings.homeUpcomingPaymentsMore),
-                ),
               ],
             ),
             const SizedBox(height: 12),
             content,
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _UpcomingSummaryBadges extends StatelessWidget {
+  const _UpcomingSummaryBadges({
+    required this.paymentCount,
+    required this.reminderCount,
+    required this.strings,
+    required this.theme,
+  });
+
+  final int paymentCount;
+  final int reminderCount;
+  final AppLocalizations strings;
+  final ThemeData theme;
+
+  @override
+  Widget build(BuildContext context) {
+    final List<Widget> badges = <Widget>[];
+    if (paymentCount > 0) {
+      badges.add(
+        _UpcomingBadge(
+          count: paymentCount,
+          icon: Icons.event_repeat,
+          color: theme.colorScheme.primary,
+          label: strings.homeUpcomingPaymentsBadgePaymentsLabel,
+          semanticsLabel: strings.homeUpcomingPaymentsBadgePaymentsSemantics(
+            paymentCount,
+          ),
+        ),
+      );
+    }
+    if (reminderCount > 0) {
+      badges.add(
+        _UpcomingBadge(
+          count: reminderCount,
+          icon: Icons.alarm,
+          color: theme.colorScheme.secondary,
+          label: strings.homeUpcomingPaymentsBadgeRemindersLabel,
+          semanticsLabel: strings.homeUpcomingPaymentsBadgeRemindersSemantics(
+            reminderCount,
+          ),
+        ),
+      );
+    }
+
+    if (badges.isEmpty) {
+      return Text(
+        strings.homeUpcomingPaymentsEmpty,
+        style: theme.textTheme.bodyMedium?.copyWith(
+          color: theme.colorScheme.onSurfaceVariant,
+        ),
+      );
+    }
+
+    return Wrap(spacing: 16, runSpacing: 12, children: badges);
+  }
+}
+
+class _UpcomingBadge extends StatelessWidget {
+  const _UpcomingBadge({
+    required this.count,
+    required this.icon,
+    required this.color,
+    required this.label,
+    required this.semanticsLabel,
+  });
+
+  final int count;
+  final IconData icon;
+  final Color color;
+  final String label;
+  final String semanticsLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final Color badgeTextColor =
+        ThemeData.estimateBrightnessForColor(color) == Brightness.dark
+        ? Colors.white
+        : Colors.black;
+
+    return Semantics(
+      label: semanticsLabel,
+      child: ExcludeSemantics(
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Badge.count(
+              count: count,
+              backgroundColor: color,
+              textColor: badgeTextColor,
+              child: Icon(icon, color: color),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style:
+                  theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ) ??
+                  TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: theme.colorScheme.onSurface,
+                  ),
+            ),
           ],
         ),
       ),

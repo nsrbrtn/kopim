@@ -771,6 +771,40 @@ class AppLocalizationsRu extends AppLocalizations {
   String get homeUpcomingPaymentsMore => 'Больше';
 
   @override
+  String get homeUpcomingPaymentsBadgePaymentsLabel => 'Платежи';
+
+  @override
+  String get homeUpcomingPaymentsBadgeRemindersLabel => 'Напоминания';
+
+  @override
+  String homeUpcomingPaymentsBadgePaymentsSemantics(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '# предстоящих платежей',
+      many: '# предстоящих платежей',
+      few: '# предстоящих платежа',
+      one: '# предстоящий платеж',
+      zero: 'Нет предстоящих платежей',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String homeUpcomingPaymentsBadgeRemindersSemantics(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '# напоминаний',
+      many: '# напоминаний',
+      few: '# напоминания',
+      one: '# напоминание',
+      zero: 'Нет напоминаний',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get upcomingPaymentsTitle => 'Предстоящие платежи';
 
   @override

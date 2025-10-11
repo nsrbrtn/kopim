@@ -655,12 +655,15 @@ class _CategoryEditorSheet extends ConsumerWidget {
               subtitle: Text(strings.manageCategoriesFavoriteSubtitle),
             ),
             const SizedBox(height: 16),
-            OutlinedButton.icon(
-              onPressed: addSubcategory,
-              icon: const Icon(Icons.subdirectory_arrow_right_outlined),
-              label: Text(strings.manageCategoriesAddSubcategoryAction),
-            ),
-            const SizedBox(height: 24),
+            if (!state.isNew &&
+                state.initialCategory?.parentId == null) ...<Widget>[
+              OutlinedButton.icon(
+                onPressed: addSubcategory,
+                icon: const Icon(Icons.subdirectory_arrow_right_outlined),
+                label: Text(strings.manageCategoriesAddSubcategoryAction),
+              ),
+              const SizedBox(height: 24),
+            ],
             FilledButton.icon(
               onPressed: state.isSaving || !state.hasChanges
                   ? null

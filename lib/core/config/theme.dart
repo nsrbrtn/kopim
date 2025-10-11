@@ -2,13 +2,17 @@ import 'package:flutter/material.dart';
 
 /// Создаёт тему приложения с учётом Material 3 и новой базовой палитры.
 ThemeData buildAppTheme({required Brightness brightness}) {
-  const Color accentColor = Color(0xFFE8FD00);
+  const Color accentColor = Color(0xFF51AFF7);
   final bool isDark = brightness == Brightness.dark;
   final ColorScheme baseScheme = ColorScheme.fromSeed(
     seedColor: accentColor,
     brightness: brightness,
   );
-  final ColorScheme colorScheme = baseScheme;
+  final ColorScheme colorScheme = baseScheme.copyWith(
+    primary: accentColor,
+    secondary: accentColor,
+    surfaceTint: accentColor,
+  );
   final Color scaffoldBackground = isDark
       ? const Color(0xFF141314)
       : baseScheme.surface;
@@ -30,6 +34,13 @@ ThemeData buildAppTheme({required Brightness brightness}) {
       errorBorder: InputBorder.none,
       focusedErrorBorder: InputBorder.none,
       disabledBorder: InputBorder.none,
+    ),
+    floatingActionButtonTheme: FloatingActionButtonThemeData(
+      backgroundColor: accentColor,
+      foregroundColor:
+          ThemeData.estimateBrightnessForColor(accentColor) == Brightness.dark
+          ? Colors.white
+          : Colors.black,
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(side: BorderSide.none),

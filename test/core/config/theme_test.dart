@@ -5,16 +5,16 @@ import 'package:kopim/core/config/theme.dart';
 void main() {
   group('buildAppTheme', () {
     test('использует Material 3 и новый акцентный цвет', () {
-      const Color seedColor = Color(0xFFE8FD00);
+      const Color accentColor = Color(0xFF51AFF7);
       final ColorScheme expectedScheme = ColorScheme.fromSeed(
-        seedColor: seedColor,
+        seedColor: accentColor,
         brightness: Brightness.light,
       );
       final ThemeData theme = buildAppTheme(brightness: Brightness.light);
 
       expect(theme.useMaterial3, isTrue);
-      expect(theme.colorScheme.primary, expectedScheme.primary);
-      expect(theme.colorScheme.secondary, expectedScheme.secondary);
+      expect(theme.colorScheme.primary, accentColor);
+      expect(theme.colorScheme.secondary, accentColor);
       expect(theme.scaffoldBackgroundColor, expectedScheme.surface);
       expect(
         theme.bottomNavigationBarTheme.selectedItemColor,
@@ -27,16 +27,16 @@ void main() {
     });
 
     test('поддерживает тёмную тему', () {
-      const Color seedColor = Color(0xFFE8FD00);
+      const Color accentColor = Color(0xFF51AFF7);
       final ColorScheme expectedScheme = ColorScheme.fromSeed(
-        seedColor: seedColor,
+        seedColor: accentColor,
         brightness: Brightness.dark,
       );
       final ThemeData theme = buildAppTheme(brightness: Brightness.dark);
 
       expect(theme.brightness, Brightness.dark);
       expect(theme.colorScheme.brightness, Brightness.dark);
-      expect(theme.colorScheme.primary, expectedScheme.primary);
+      expect(theme.colorScheme.primary, accentColor);
       expect(theme.scaffoldBackgroundColor, const Color(0xFF141314));
     });
   });

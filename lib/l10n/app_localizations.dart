@@ -1388,6 +1388,30 @@ abstract class AppLocalizations {
   /// **'More'**
   String get homeUpcomingPaymentsMore;
 
+  /// Label for the upcoming payments badge
+  ///
+  /// In en, this message translates to:
+  /// **'Payments'**
+  String get homeUpcomingPaymentsBadgePaymentsLabel;
+
+  /// Label for the reminders badge
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders'**
+  String get homeUpcomingPaymentsBadgeRemindersLabel;
+
+  /// Accessibility label for the number of upcoming payments
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0 {No upcoming payments} one {# upcoming payment} other {# upcoming payments}}'**
+  String homeUpcomingPaymentsBadgePaymentsSemantics(int count);
+
+  /// Accessibility label for the number of reminders
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0 {No reminders} one {# reminder} other {# reminders}}'**
+  String homeUpcomingPaymentsBadgeRemindersSemantics(int count);
+
   /// Title for the upcoming payments screen
   ///
   /// In en, this message translates to:

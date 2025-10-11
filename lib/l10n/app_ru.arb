@@ -999,6 +999,32 @@
   "@homeUpcomingPaymentsMore": {
     "description": "Подпись кнопки, открывающей экран предстоящих платежей из домашнего виджета"
   },
+  "homeUpcomingPaymentsBadgePaymentsLabel": "Платежи",
+  "@homeUpcomingPaymentsBadgePaymentsLabel": {
+    "description": "Метка для счетчика предстоящих платежей"
+  },
+  "homeUpcomingPaymentsBadgeRemindersLabel": "Напоминания",
+  "@homeUpcomingPaymentsBadgeRemindersLabel": {
+    "description": "Метка для счетчика напоминаний"
+  },
+  "homeUpcomingPaymentsBadgePaymentsSemantics": "{count, plural, =0 {Нет предстоящих платежей} one {# предстоящий платеж} few {# предстоящих платежа} many {# предстоящих платежей} other {# предстоящих платежей}}",
+  "@homeUpcomingPaymentsBadgePaymentsSemantics": {
+    "description": "Озвучивание количества предстоящих платежей",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeUpcomingPaymentsBadgeRemindersSemantics": "{count, plural, =0 {Нет напоминаний} one {# напоминание} few {# напоминания} many {# напоминаний} other {# напоминаний}}",
+  "@homeUpcomingPaymentsBadgeRemindersSemantics": {
+    "description": "Озвучивание количества напоминаний",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "upcomingPaymentsTitle": "Предстоящие платежи",
   "@upcomingPaymentsTitle": {
     "description": "Заголовок экрана предстоящих платежей"

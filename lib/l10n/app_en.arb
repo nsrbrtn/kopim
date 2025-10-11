@@ -999,6 +999,32 @@
   "@homeUpcomingPaymentsMore": {
     "description": "Button label that opens the upcoming payments screen from the home widget"
   },
+  "homeUpcomingPaymentsBadgePaymentsLabel": "Payments",
+  "@homeUpcomingPaymentsBadgePaymentsLabel": {
+    "description": "Label for the upcoming payments badge"
+  },
+  "homeUpcomingPaymentsBadgeRemindersLabel": "Reminders",
+  "@homeUpcomingPaymentsBadgeRemindersLabel": {
+    "description": "Label for the reminders badge"
+  },
+  "homeUpcomingPaymentsBadgePaymentsSemantics": "{count, plural, =0 {No upcoming payments} one {# upcoming payment} other {# upcoming payments}}",
+  "@homeUpcomingPaymentsBadgePaymentsSemantics": {
+    "description": "Accessibility label for the number of upcoming payments",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeUpcomingPaymentsBadgeRemindersSemantics": "{count, plural, =0 {No reminders} one {# reminder} other {# reminders}}",
+  "@homeUpcomingPaymentsBadgeRemindersSemantics": {
+    "description": "Accessibility label for the number of reminders",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "upcomingPaymentsTitle": "Upcoming payments",
   "@upcomingPaymentsTitle": {
     "description": "Title for the upcoming payments screen"
