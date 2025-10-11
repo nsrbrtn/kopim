@@ -8,6 +8,7 @@ import 'package:kopim/core/data/database.dart';
 import 'package:kopim/core/data/outbox/outbox_dao.dart';
 import 'package:kopim/core/services/analytics_service.dart';
 import 'package:kopim/core/services/exact_alarm_permission_service.dart';
+import 'package:kopim/core/services/firebase_initializer.dart';
 import 'package:kopim/core/services/logger_service.dart';
 import 'package:kopim/core/services/notifications_service.dart';
 import 'package:kopim/features/accounts/data/repositories/account_repository_impl.dart';
@@ -56,6 +57,7 @@ bool _isMobilePlatform() {
 Future<bool> runUpcomingPaymentsBackgroundTask(String task) async {
   WidgetsFlutterBinding.ensureInitialized();
   final LoggerService logger = LoggerService();
+  await ensureFirebaseInitialized(logger: logger);
   final AppDatabase database = AppDatabase();
   final NotificationsService notifications = NotificationsService(
     plugin: FlutterLocalNotificationsPlugin(),
@@ -157,7 +159,7 @@ Future<void> _executeUpcomingPaymentsWorkflow({
     accountRepository: accountRepository,
   );
   final ProfileEventRecorder eventRecorder = ProfileEventRecorder(
-    analyticsService: AnalyticsService(),
+    analyticsService: const AnalyticsService(),
     loggerService: logger,
   );
 

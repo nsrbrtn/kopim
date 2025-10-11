@@ -120,7 +120,7 @@ part 'injectors.g.dart';
 LoggerService loggerService(Ref ref) => LoggerService();
 
 @riverpod
-AnalyticsService analyticsService(Ref ref) => AnalyticsService();
+AnalyticsService analyticsService(Ref ref) => const AnalyticsService();
 
 @riverpod
 FirebaseFirestore firestore(Ref ref) => FirebaseFirestore.instance;

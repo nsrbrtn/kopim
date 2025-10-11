@@ -360,9 +360,10 @@ void main() {
     expect(find.text(strings.profileGeneralSettingsTitle), findsOneWidget);
     expect(find.text(strings.profileManageCategoriesCta), findsOneWidget);
 
-    profileTabNavigatorKey.currentState!.pop();
+    await tester.tap(find.text('Home'));
     await tester.pumpAndSettle();
 
+    expect(find.byType(GeneralSettingsScreen), findsNothing);
     expect(find.byType(BottomNavigationBar), findsOneWidget);
   });
 
