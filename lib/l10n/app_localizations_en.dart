@@ -760,6 +760,36 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeUpcomingPaymentsMore => 'More';
 
   @override
+  String get homeUpcomingPaymentsBadgePaymentsLabel => 'Payments';
+
+  @override
+  String get homeUpcomingPaymentsBadgeRemindersLabel => 'Reminders';
+
+  @override
+  String homeUpcomingPaymentsBadgePaymentsSemantics(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '# upcoming payments',
+      one: '# upcoming payment',
+      zero: 'No upcoming payments',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String homeUpcomingPaymentsBadgeRemindersSemantics(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '# reminders',
+      one: '# reminder',
+      zero: 'No reminders',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get upcomingPaymentsTitle => 'Upcoming payments';
 
   @override

@@ -33,12 +33,13 @@ class CategoryChip extends StatelessWidget {
     final ThemeData theme = Theme.of(context);
     final Color resolvedBackground =
         backgroundColor ?? theme.colorScheme.surfaceContainerHighest;
+    final Brightness backgroundBrightness =
+        ThemeData.estimateBrightnessForColor(resolvedBackground);
     final Color resolvedForeground =
         foregroundColor ??
-        (ThemeData.estimateBrightnessForColor(resolvedBackground) ==
-                Brightness.dark
+        (backgroundBrightness == Brightness.dark
             ? Colors.white
-            : theme.colorScheme.onSurface);
+            : Colors.black87);
     final Color selectedOverlay = theme.colorScheme.primary.withValues(
       alpha: 0.14,
     );

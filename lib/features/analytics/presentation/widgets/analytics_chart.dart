@@ -46,108 +46,123 @@ class AnalyticsDonutChart extends StatelessWidget {
     }
 
     return Padding(
-      padding: const EdgeInsets.all(16),
-      child: LayoutBuilder(
-        builder: (BuildContext context, BoxConstraints constraints) {
-          final double size = _resolveSize(constraints);
-          final List<_DonutSegment> segments = _buildSegments();
-          if (segments.isEmpty) {
-            return const SizedBox.shrink();
-          }
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+      child: Align(
+        alignment: Alignment.center,
+        child: FractionallySizedBox(
+          widthFactor: 0.8,
+          child: LayoutBuilder(
+            builder: (BuildContext context, BoxConstraints constraints) {
+              final double size = _resolveSize(constraints);
+              final List<_DonutSegment> segments = _buildSegments();
+              if (segments.isEmpty) {
+                return const SizedBox.shrink();
+              }
 
-          final double strokeWidth = math.max(size * 0.18, 12);
-          final double canvasRadius = size / 2;
-          final double ringRadius = canvasRadius - strokeWidth / 2;
-          final double labelRadius = ringRadius + strokeWidth * 0.65;
-          final bool baseShowOnlySelected = constraints.maxWidth < 320;
-          final bool hasSelection =
-              selectedIndex != null &&
-              selectedIndex! >= 0 &&
-              selectedIndex! < segments.length;
-          final bool showOnlySelected = baseShowOnlySelected && hasSelection;
-          final int fallbackSelected = hasSelection ? selectedIndex! : 0;
+              final double strokeWidth = math.max(size * 0.18, 12);
+              final double canvasRadius = size / 2;
+              final double ringRadius = canvasRadius - strokeWidth / 2;
+              final double labelRadius = ringRadius + strokeWidth * 0.65;
+              final bool baseShowOnlySelected = constraints.maxWidth < 320;
+              final bool hasSelection =
+                  selectedIndex != null &&
+                  selectedIndex! >= 0 &&
+                  selectedIndex! < segments.length;
+              final bool showOnlySelected =
+                  baseShowOnlySelected && hasSelection;
+              final int fallbackSelected = hasSelection ? selectedIndex! : 0;
 
-          final List<_LabelPlacement> placements = _buildLabelPlacements(
-            segments: segments,
-            size: size,
-            labelRadius: labelRadius,
-            showOnlySelected: showOnlySelected,
-            selectedIndex: fallbackSelected,
-            minGap: _minLabelGap,
-          );
+              final List<_LabelPlacement> placements = _buildLabelPlacements(
+                segments: segments,
+                size: size,
+                labelRadius: labelRadius,
+                showOnlySelected: showOnlySelected,
+                selectedIndex: fallbackSelected,
+                minGap: _minLabelGap,
+              );
 
-          Widget chart = SizedBox(
-            width: size,
-            height: size,
-            child: Stack(
-              clipBehavior: Clip.none,
-              alignment: Alignment.center,
-              children: <Widget>[
-                CustomPaint(
-                  size: Size.square(size),
-                  painter: _DonutChartPainter(
-                    segments: segments,
-                    strokeWidth: strokeWidth,
-                    backgroundColor: backgroundColor,
-                    selectedIndex: showOnlySelected
-                        ? fallbackSelected
-                        : (hasSelection ? selectedIndex! : null),
-                  ),
-                ),
-                for (final _LabelPlacement placement in placements)
-                  Positioned(
-                    top: placement.top,
-                    left: placement.isRight
-                        ? canvasRadius +
-                              ringRadius +
-                              strokeWidth / 2 +
-                              _labelSidePadding
-                        : null,
-                    right: placement.isRight
-                        ? null
-                        : canvasRadius +
-                              ringRadius +
-                              strokeWidth / 2 +
-                              _labelSidePadding,
-                    child: _DonutPercentageBadge(
-                      percentage: placement.percentage,
+              Widget chart = SizedBox(
+                width: size,
+                height: size,
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  alignment: Alignment.center,
+                  children: <Widget>[
+                    CustomPaint(
+                      size: Size.square(size),
+                      painter: _DonutChartPainter(
+                        segments: segments,
+                        strokeWidth: strokeWidth,
+                        backgroundColor: backgroundColor,
+                        selectedIndex: showOnlySelected
+                            ? fallbackSelected
+                            : (hasSelection ? selectedIndex! : null),
+                      ),
                     ),
-                  ),
-              ],
-            ),
-          );
+                    for (final _LabelPlacement placement in placements)
+                      Positioned(
+                        top: placement.top,
+                        left: placement.isRight
+                            ? canvasRadius +
+                                  ringRadius +
+                                  strokeWidth / 2 +
+                                  _labelSidePadding
+                            : null,
+                        right: placement.isRight
+                            ? null
+                            : canvasRadius +
+                                  ringRadius +
+                                  strokeWidth / 2 +
+                                  _labelSidePadding,
+                        child: _DonutPercentageBadge(
+                          percentage: placement.percentage,
+                        ),
+                      ),
+                  ],
+                ),
+              );
 
-          if (onSegmentSelected != null) {
-            chart = GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTapUp: (TapUpDetails details) {
-                final Offset local = details.localPosition;
-                final int? hit = _hitTestSegment(
-                  position: local,
-                  segments: segments,
-                  canvasSize: size,
-                  ringRadius: ringRadius,
-                  strokeWidth: strokeWidth,
+              if (onSegmentSelected != null) {
+                chart = GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTapUp: (TapUpDetails details) {
+                    final Offset local = details.localPosition;
+                    final int? hit = _hitTestSegment(
+                      position: local,
+                      segments: segments,
+                      canvasSize: size,
+                      ringRadius: ringRadius,
+                      strokeWidth: strokeWidth,
+                    );
+                    if (hit != null) {
+                      onSegmentSelected!(hit);
+                    }
+                  },
+                  child: chart,
                 );
-                if (hit != null) {
-                  onSegmentSelected!(hit);
-                }
-              },
-              child: chart,
-            );
-          }
+              }
 
-          return Center(child: chart);
-        },
+              return Center(child: chart);
+            },
+          ),
+        ),
       ),
     );
   }
 
   double _resolveSize(BoxConstraints constraints) {
-    final Size biggest = constraints.biggest;
-    double size = biggest.shortestSide;
-    if (!size.isFinite || size <= 0) {
-      size = biggest.longestSide;
+    final double maxWidth = constraints.maxWidth.isFinite
+        ? constraints.maxWidth
+        : constraints.biggest.shortestSide;
+    final double maxHeight = constraints.maxHeight.isFinite
+        ? constraints.maxHeight
+        : constraints.biggest.longestSide;
+    double size = maxWidth.isFinite && maxWidth > 0 ? maxWidth : 0;
+    if (maxHeight.isFinite && maxHeight > 0) {
+      size = size == 0 ? maxHeight : math.min(size, maxHeight);
+    }
+    if (size <= 0 || !size.isFinite) {
+      size = constraints.biggest.shortestSide;
     }
     if (!size.isFinite || size <= 0) {
       size = 200;
@@ -224,107 +239,115 @@ class AnalyticsBarChart extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
-    return Container(
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-      child: LayoutBuilder(
-        builder: (BuildContext context, BoxConstraints constraints) {
-          final double rawHeight = constraints.maxHeight.isFinite
-              ? constraints.maxHeight
-              : 220;
-          final double chartHeight = math.max(rawHeight, 200);
-          final double maxBarHeight = math.max(chartHeight - 48, 80);
+    return Align(
+      alignment: Alignment.center,
+      child: FractionallySizedBox(
+        widthFactor: 0.8,
+        child: Container(
+          decoration: BoxDecoration(
+            color: backgroundColor,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+          child: LayoutBuilder(
+            builder: (BuildContext context, BoxConstraints constraints) {
+              final double rawHeight = constraints.maxHeight.isFinite
+                  ? constraints.maxHeight
+                  : 220;
+              final double chartHeight = math.max(rawHeight, 200);
+              final double maxBarHeight = math.max(chartHeight - 48, 80);
 
-          final List<Widget> children = <Widget>[];
-          final int count = items.length;
-          for (int index = 0; index < count; index++) {
-            final AnalyticsChartItem item = items[index];
-            final double share = item.absoluteAmount <= 0
-                ? 0
-                : (item.absoluteAmount / computedTotal).clamp(0.0, 1.0);
-            final bool isSelected =
-                selectedIndex != null && index == selectedIndex;
-            final double barHeight = share <= 0
-                ? 4
-                : math.max(maxBarHeight * share, 4);
-            final Color barColor = isSelected
-                ? item.color
-                : item.color.withValues(alpha: 0.7);
-            Widget bar = AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              curve: Curves.easeInOut,
-              height: barHeight,
-              decoration: BoxDecoration(
-                color: barColor,
-                borderRadius: BorderRadius.circular(10),
-                boxShadow: isSelected
-                    ? <BoxShadow>[
-                        BoxShadow(
-                          color: item.color.withValues(alpha: 0.35),
-                          blurRadius: 12,
-                          offset: const Offset(0, 4),
-                        ),
-                      ]
-                    : const <BoxShadow>[],
-              ),
-            );
-            if (onBarSelected != null) {
-              bar = GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: () => onBarSelected!(index),
-                child: bar,
-              );
-            }
-
-            final String percentageLabel = _formatShare(share);
-
-            children.add(
-              Expanded(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: count > 1 ? 6 : 0),
-                  child: SizedBox(
-                    height: chartHeight,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: <Widget>[
-                        Text(
-                          percentageLabel,
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                            fontWeight: isSelected
-                                ? FontWeight.w600
-                                : FontWeight.w500,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Expanded(
-                          child: Align(
-                            alignment: Alignment.bottomCenter,
-                            child: FractionallySizedBox(
-                              widthFactor: 0.6,
-                              child: bar,
+              final List<Widget> children = <Widget>[];
+              final int count = items.length;
+              for (int index = 0; index < count; index++) {
+                final AnalyticsChartItem item = items[index];
+                final double share = item.absoluteAmount <= 0
+                    ? 0
+                    : (item.absoluteAmount / computedTotal).clamp(0.0, 1.0);
+                final bool isSelected =
+                    selectedIndex != null && index == selectedIndex;
+                final double barHeight = share <= 0
+                    ? 4
+                    : math.max(maxBarHeight * share, 4);
+                final Color barColor = isSelected
+                    ? item.color
+                    : item.color.withValues(alpha: 0.7);
+                Widget bar = AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  curve: Curves.easeInOut,
+                  height: barHeight,
+                  decoration: BoxDecoration(
+                    color: barColor,
+                    borderRadius: BorderRadius.circular(10),
+                    boxShadow: isSelected
+                        ? <BoxShadow>[
+                            BoxShadow(
+                              color: item.color.withValues(alpha: 0.35),
+                              blurRadius: 12,
+                              offset: const Offset(0, 4),
                             ),
-                          ),
+                          ]
+                        : const <BoxShadow>[],
+                  ),
+                );
+                if (onBarSelected != null) {
+                  bar = GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () => onBarSelected!(index),
+                    child: bar,
+                  );
+                }
+
+                final String percentageLabel = _formatShare(share);
+
+                children.add(
+                  Expanded(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: count > 1 ? 6 : 0,
+                      ),
+                      child: SizedBox(
+                        height: chartHeight,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: <Widget>[
+                            Text(
+                              percentageLabel,
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
+                                fontWeight: isSelected
+                                    ? FontWeight.w600
+                                    : FontWeight.w500,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Expanded(
+                              child: Align(
+                                alignment: Alignment.bottomCenter,
+                                child: FractionallySizedBox(
+                                  widthFactor: 0.6,
+                                  child: bar,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
                   ),
-                ),
-              ),
-            );
-          }
+                );
+              }
 
-          return SizedBox(
-            height: chartHeight,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: children,
-            ),
-          );
-        },
+              return SizedBox(
+                height: chartHeight,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: children,
+                ),
+              );
+            },
+          ),
+        ),
       ),
     );
   }

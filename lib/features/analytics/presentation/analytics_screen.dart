@@ -876,39 +876,52 @@ class _TopCategoriesPageState extends State<_TopCategoriesPage> {
           ),
         ),
         const SizedBox(height: 8),
-        Text(
-          widget.strings.analyticsChartTypeLabel,
-          style: theme.textTheme.labelLarge?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        const SizedBox(height: 8),
-        SegmentedButton<_AnalyticsChartType>(
-          segments: <ButtonSegment<_AnalyticsChartType>>[
-            ButtonSegment<_AnalyticsChartType>(
-              value: _AnalyticsChartType.donut,
-              label: Text(widget.strings.analyticsChartTypeDonut),
+        Row(
+          children: <Widget>[
+            Expanded(
+              child: Text(
+                widget.strings.analyticsChartTypeLabel,
+                style: theme.textTheme.labelLarge?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ),
-            ButtonSegment<_AnalyticsChartType>(
-              value: _AnalyticsChartType.bar,
-              label: Text(widget.strings.analyticsChartTypeBar),
+            const SizedBox(width: 12),
+            SegmentedButton<_AnalyticsChartType>(
+              segments: <ButtonSegment<_AnalyticsChartType>>[
+                ButtonSegment<_AnalyticsChartType>(
+                  value: _AnalyticsChartType.donut,
+                  icon: const Icon(Icons.pie_chart_outline),
+                  tooltip: widget.strings.analyticsChartTypeDonut,
+                ),
+                ButtonSegment<_AnalyticsChartType>(
+                  value: _AnalyticsChartType.bar,
+                  icon: const Icon(Icons.bar_chart_rounded),
+                  tooltip: widget.strings.analyticsChartTypeBar,
+                ),
+              ],
+              selected: <_AnalyticsChartType>{_chartType},
+              onSelectionChanged: (Set<_AnalyticsChartType> value) {
+                if (value.isEmpty) {
+                  return;
+                }
+                setState(() {
+                  _chartType = value.first;
+                });
+              },
+              style: const ButtonStyle(
+                side: WidgetStatePropertyAll<BorderSide>(
+                  BorderSide(style: BorderStyle.none),
+                ),
+                padding: WidgetStatePropertyAll<EdgeInsets>(
+                  EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                ),
+                minimumSize: WidgetStatePropertyAll<Size>(Size(40, 40)),
+                visualDensity: VisualDensity.compact,
+              ),
             ),
           ],
-          selected: <_AnalyticsChartType>{_chartType},
-          onSelectionChanged: (Set<_AnalyticsChartType> value) {
-            if (value.isEmpty) {
-              return;
-            }
-            setState(() {
-              _chartType = value.first;
-            });
-          },
-          style: const ButtonStyle(
-            side: WidgetStatePropertyAll<BorderSide>(
-              BorderSide(style: BorderStyle.none),
-            ),
-          ),
         ),
         const SizedBox(height: 12),
         Expanded(
