@@ -1,7 +1,9 @@
 import 'package:kopim/core/di/injectors.dart';
 import 'package:flutter/foundation.dart';
 import 'package:kopim/features/profile/domain/entities/profile.dart';
+import 'package:kopim/features/profile/domain/models/profile_command_result.dart';
 import 'package:kopim/features/profile/domain/usecases/update_profile_use_case.dart';
+import 'package:kopim/features/profile/presentation/services/profile_event_recorder.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'profile_form_controller.g.dart';
@@ -121,10 +123,12 @@ class ProfileFormState {
 @riverpod
 class ProfileFormController extends _$ProfileFormController {
   late final UpdateProfileUseCase _updateProfileUseCase;
+  late final ProfileEventRecorder _eventRecorder;
 
   @override
   ProfileFormState build(ProfileFormParams params) {
     _updateProfileUseCase = ref.watch(updateProfileUseCaseProvider);
+    _eventRecorder = ref.watch(profileEventRecorderProvider);
     return ProfileFormState.fromProfile(params.uid, params.profile);
   }
 
@@ -144,13 +148,17 @@ class ProfileFormController extends _$ProfileFormController {
     if (state.isSaving) return;
     state = state.copyWith(isSaving: true, clearError: true);
     try {
-      final Profile result = await _updateProfileUseCase(state.toProfile());
+      final ProfileCommandResult<Profile> result = await _updateProfileUseCase(
+        state.toProfile(),
+      );
+      await _eventRecorder.record(result.events);
+      final Profile stored = result.value;
       state = state.copyWith(
         isSaving: false,
-        initialProfile: result,
-        name: result.name,
-        currency: result.currency,
-        locale: result.locale,
+        initialProfile: stored,
+        name: stored.name,
+        currency: stored.currency,
+        locale: stored.locale,
         clearError: true,
       );
     } catch (error) {

@@ -1,4 +1,5 @@
 import 'package:kopim/features/profile/domain/entities/user_progress.dart';
+import 'package:kopim/features/profile/domain/models/profile_command_result.dart';
 
 import 'recompute_user_progress_use_case.dart';
 
@@ -9,7 +10,7 @@ class OnTransactionDeletedUseCase {
 
   final RecomputeUserProgressUseCase _recomputeUserProgressUseCase;
 
-  Future<UserProgress> call() {
+  Future<ProfileCommandResult<UserProgress>> call() {
     return _recomputeUserProgressUseCase();
   }
 }

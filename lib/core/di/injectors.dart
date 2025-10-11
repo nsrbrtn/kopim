@@ -565,10 +565,8 @@ UserProgressRepository userProgressRepository(Ref ref) {
 }
 
 @riverpod
-UpdateProfileUseCase updateProfileUseCase(Ref ref) => UpdateProfileUseCaseImpl(
-  repository: ref.watch(profileRepositoryProvider),
-  analyticsService: ref.watch(analyticsServiceProvider),
-);
+UpdateProfileUseCase updateProfileUseCase(Ref ref) =>
+    UpdateProfileUseCaseImpl(repository: ref.watch(profileRepositoryProvider));
 
 @riverpod
 RecomputeUserProgressUseCase recomputeUserProgressUseCase(Ref ref) =>
@@ -576,7 +574,6 @@ RecomputeUserProgressUseCase recomputeUserProgressUseCase(Ref ref) =>
       repository: ref.watch(userProgressRepositoryProvider),
       levelPolicy: ref.watch(levelPolicyProvider),
       authRepository: ref.watch(authRepositoryProvider),
-      loggerService: ref.watch(loggerServiceProvider),
     );
 
 @riverpod
@@ -586,7 +583,6 @@ OnTransactionCreatedUseCase onTransactionCreatedUseCase(Ref ref) =>
         recomputeUserProgressUseCaseProvider,
       ),
       levelPolicy: ref.watch(levelPolicyProvider),
-      analyticsService: ref.watch(analyticsServiceProvider),
     );
 
 @riverpod
@@ -602,8 +598,6 @@ UpdateProfileAvatarUseCase updateProfileAvatarUseCase(Ref ref) =>
     UpdateProfileAvatarUseCase(
       avatarRepository: ref.watch(profileAvatarRepositoryProvider),
       profileRepository: ref.watch(profileRepositoryProvider),
-      analyticsService: ref.watch(analyticsServiceProvider),
-      loggerService: ref.watch(loggerServiceProvider),
     );
 
 @riverpod

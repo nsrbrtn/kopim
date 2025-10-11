@@ -5,6 +5,7 @@ import 'package:kopim/features/transactions/domain/entities/add_transaction_requ
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
 import 'package:kopim/features/transactions/domain/repositories/transaction_repository.dart';
+import 'package:kopim/features/transactions/domain/models/transaction_command_result.dart';
 import 'package:kopim/features/transactions/domain/use_cases/add_transaction_use_case.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -86,7 +87,8 @@ void main() {
       type: TransactionType.expense,
     );
 
-    final TransactionEntity created = await useCase(request);
+    final TransactionCommandResult<TransactionEntity> createdResult =
+        await useCase(request);
 
     final TransactionEntity transaction =
         verify(() => transactionRepository.upsert(captureAny())).captured.single
@@ -98,8 +100,9 @@ void main() {
     expect(transaction.note, 'Lunch');
     expect(transaction.createdAt, fixedNow.toUtc());
     expect(transaction.updatedAt, fixedNow.toUtc());
-    expect(created.id, 'generated-id');
-    expect(created.amount, 50);
+    expect(createdResult.value.id, 'generated-id');
+    expect(createdResult.value.amount, 50);
+    expect(createdResult.profileEvents, isEmpty);
 
     final AccountEntity updatedAccount =
         verify(() => accountRepository.upsert(captureAny())).captured.single
@@ -124,13 +127,15 @@ void main() {
       type: TransactionType.income,
     );
 
-    final TransactionEntity created = await useCase(request);
+    final TransactionCommandResult<TransactionEntity> createdResult =
+        await useCase(request);
 
     final AccountEntity updatedAccount =
         verify(() => accountRepository.upsert(captureAny())).captured.single
             as AccountEntity;
     expect(updatedAccount.balance, closeTo(100, 1e-9));
-    expect(created.amount, 20);
+    expect(createdResult.value.amount, 20);
+    expect(createdResult.profileEvents, isEmpty);
   });
 
   test('throws StateError when account is missing', () async {

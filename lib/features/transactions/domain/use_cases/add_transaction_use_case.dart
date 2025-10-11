@@ -4,8 +4,12 @@ import 'package:kopim/features/transactions/domain/entities/add_transaction_requ
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
 import 'package:kopim/features/transactions/domain/repositories/transaction_repository.dart';
+import 'package:kopim/features/profile/domain/entities/user_progress.dart';
+import 'package:kopim/features/profile/domain/events/profile_domain_event.dart';
+import 'package:kopim/features/profile/domain/models/profile_command_result.dart';
 import 'package:kopim/features/profile/domain/usecases/on_transaction_created_use_case.dart';
 import 'package:uuid/uuid.dart';
+import 'package:kopim/features/transactions/domain/models/transaction_command_result.dart';
 
 class AddTransactionUseCase {
   AddTransactionUseCase({
@@ -30,7 +34,9 @@ class AddTransactionUseCase {
   final String Function() _generateId;
   final DateTime Function() _clock;
 
-  Future<TransactionEntity> call(AddTransactionRequest request) async {
+  Future<TransactionCommandResult<TransactionEntity>> call(
+    AddTransactionRequest request,
+  ) async {
     final AccountEntity? account = await _accountRepository.findById(
       request.accountId,
     );
@@ -63,7 +69,16 @@ class AddTransactionUseCase {
     );
     await _accountRepository.upsert(updatedAccount);
 
-    await _onTransactionCreatedUseCase?.call();
-    return transaction;
+    final List<ProfileDomainEvent> events = <ProfileDomainEvent>[];
+    if (_onTransactionCreatedUseCase != null) {
+      final ProfileCommandResult<UserProgress> progressResult =
+          await _onTransactionCreatedUseCase.call();
+      events.addAll(progressResult.events);
+    }
+
+    return TransactionCommandResult<TransactionEntity>(
+      value: transaction,
+      profileEvents: events,
+    );
   }
 }

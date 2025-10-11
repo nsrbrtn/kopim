@@ -1,17 +1,15 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:kopim/core/services/analytics_service.dart';
 import 'package:kopim/features/profile/domain/entities/profile.dart';
+import 'package:kopim/features/profile/domain/events/profile_domain_event.dart';
+import 'package:kopim/features/profile/domain/models/profile_command_result.dart';
 import 'package:kopim/features/profile/domain/repositories/profile_repository.dart';
 import 'package:kopim/features/profile/domain/usecases/update_profile_use_case_impl.dart';
 import 'package:mocktail/mocktail.dart';
 
 class _MockProfileRepository extends Mock implements ProfileRepository {}
 
-class _MockAnalyticsService extends Mock implements AnalyticsService {}
-
 void main() {
   late _MockProfileRepository repository;
-  late _MockAnalyticsService analytics;
   late UpdateProfileUseCaseImpl useCase;
 
   final Profile sampleProfile = Profile(
@@ -32,51 +30,34 @@ void main() {
         updatedAt: DateTime.utc(2024, 1, 1),
       ),
     );
-    registerFallbackValue(StackTrace.empty);
   });
 
   setUp(() {
     repository = _MockProfileRepository();
-    analytics = _MockAnalyticsService();
-    useCase = UpdateProfileUseCaseImpl(
-      repository: repository,
-      analyticsService: analytics,
-    );
+    useCase = UpdateProfileUseCaseImpl(repository: repository);
   });
 
-  test('persists profile and logs analytics event', () async {
+  test('persists profile and emits profile updated event', () async {
     when(
       () => repository.updateProfile(any()),
     ).thenAnswer((_) async => sampleProfile);
-    when(() => analytics.logEvent(any(), any())).thenAnswer((_) async {});
 
-    final Profile result = await useCase(sampleProfile);
+    final ProfileCommandResult<Profile> result = await useCase(sampleProfile);
 
-    expect(result, equals(sampleProfile));
+    expect(result.value, equals(sampleProfile));
     verify(() => repository.updateProfile(sampleProfile)).called(1);
-    verify(
-      () => analytics.logEvent('profile_updated', <String, dynamic>{
-        'uid': sampleProfile.uid,
-        'currency': sampleProfile.currency.name,
-        'locale': sampleProfile.locale,
-        'has_name': sampleProfile.name.isNotEmpty,
-      }),
-    ).called(1);
-    verifyNever(() => analytics.reportError(any(), any()));
-  });
-
-  test('reports analytics failures without throwing', () async {
-    final Exception failure = Exception('analytics down');
-    when(
-      () => repository.updateProfile(any()),
-    ).thenAnswer((_) async => sampleProfile);
-    when(() => analytics.logEvent(any(), any())).thenThrow(failure);
-    when(() => analytics.reportError(any(), any())).thenAnswer((_) {});
-
-    final Profile result = await useCase(sampleProfile);
-
-    expect(result, equals(sampleProfile));
-    verify(() => analytics.logEvent('profile_updated', any())).called(1);
-    verify(() => analytics.reportError(failure, any())).called(1);
+    final List<ProfileDomainEvent> events = result.events;
+    expect(events, hasLength(1));
+    final ProfileDomainEvent event = events.first;
+    expect(event, isA<ProfileUpdatedEvent>());
+    event.map(
+      profileUpdated: (ProfileUpdatedEvent value) {
+        expect(value.profile, equals(sampleProfile));
+      },
+      avatarUpdated: (_) => fail('Unexpected avatar event'),
+      avatarProcessingWarning: (_) => fail('Unexpected warning event'),
+      levelIncreased: (_) => fail('Unexpected level event'),
+      progressSyncFailed: (_) => fail('Unexpected sync failure'),
+    );
   });
 }

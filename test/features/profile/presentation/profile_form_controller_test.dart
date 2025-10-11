@@ -1,16 +1,22 @@
 import 'package:kopim/core/di/injectors.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kopim/features/profile/domain/entities/profile.dart';
+import 'package:kopim/features/profile/domain/events/profile_domain_event.dart';
+import 'package:kopim/features/profile/domain/models/profile_command_result.dart';
 import 'package:kopim/features/profile/domain/usecases/update_profile_use_case.dart';
+import 'package:kopim/features/profile/presentation/services/profile_event_recorder.dart';
 import 'package:kopim/features/profile/presentation/controllers/profile_form_controller.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:riverpod/src/framework.dart';
 
 class _MockUpdateProfileUseCase extends Mock implements UpdateProfileUseCase {}
 
+class _MockProfileEventRecorder extends Mock implements ProfileEventRecorder {}
+
 void main() {
   late ProviderContainer container;
   late _MockUpdateProfileUseCase updateUseCase;
+  late _MockProfileEventRecorder eventRecorder;
 
   const String uid = 'user-form';
   final Profile profile = Profile(
@@ -39,9 +45,12 @@ void main() {
 
   setUp(() {
     updateUseCase = _MockUpdateProfileUseCase();
+    eventRecorder = _MockProfileEventRecorder();
+    when(() => eventRecorder.record(any())).thenAnswer((_) async {});
     container = ProviderContainer(
       overrides: <Override>[
         updateProfileUseCaseProvider.overrideWithValue(updateUseCase),
+        profileEventRecorderProvider.overrideWithValue(eventRecorder),
       ],
     );
   });
@@ -84,7 +93,12 @@ void main() {
       Invocation invocation,
     ) async {
       final Profile submitted = invocation.positionalArguments.first as Profile;
-      return submitted;
+      return ProfileCommandResult<Profile>(
+        value: submitted,
+        events: <ProfileDomainEvent>[
+          ProfileDomainEvent.profileUpdated(profile: submitted),
+        ],
+      );
     });
 
     final ProfileFormController notifier = container.read(
@@ -100,6 +114,7 @@ void main() {
     expect(state.isSaving, isFalse);
     expect(state.hasChanges, isFalse);
     verify(() => updateUseCase.call(any())).called(1);
+    verify(() => eventRecorder.record(any())).called(1);
   });
 
   test('submit handles errors', () async {
@@ -118,5 +133,6 @@ void main() {
     );
     expect(state.isSaving, isFalse);
     expect(state.errorMessage, contains('failure updating profile'));
+    verifyNever(() => eventRecorder.record(any()));
   });
 }

@@ -6,6 +6,7 @@ import 'package:timezone/timezone.dart' as tz;
 
 import 'package:kopim/core/data/database.dart';
 import 'package:kopim/core/data/outbox/outbox_dao.dart';
+import 'package:kopim/core/services/analytics_service.dart';
 import 'package:kopim/core/services/exact_alarm_permission_service.dart';
 import 'package:kopim/core/services/logger_service.dart';
 import 'package:kopim/core/services/notifications_service.dart';
@@ -16,10 +17,13 @@ import 'package:kopim/features/savings/data/sources/local/goal_contribution_dao.
 import 'package:kopim/features/savings/data/sources/local/saving_goal_dao.dart';
 import 'package:kopim/features/transactions/data/repositories/transaction_repository_impl.dart';
 import 'package:kopim/features/transactions/data/sources/local/transaction_dao.dart';
+import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/entities/add_transaction_request.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
+import 'package:kopim/features/transactions/domain/models/transaction_command_result.dart';
 import 'package:kopim/features/transactions/domain/repositories/transaction_repository.dart';
 import 'package:kopim/features/transactions/domain/use_cases/add_transaction_use_case.dart';
+import 'package:kopim/features/profile/presentation/services/profile_event_recorder.dart';
 import 'package:kopim/features/upcoming_payments/data/drift/daos/payment_reminders_dao.dart';
 import 'package:kopim/features/upcoming_payments/data/drift/daos/upcoming_payments_dao.dart';
 import 'package:kopim/features/upcoming_payments/data/drift/repositories/payment_reminders_repository_impl.dart';
@@ -152,6 +156,10 @@ Future<void> _executeUpcomingPaymentsWorkflow({
     transactionRepository: transactionRepository,
     accountRepository: accountRepository,
   );
+  final ProfileEventRecorder eventRecorder = ProfileEventRecorder(
+    analyticsService: AnalyticsService(),
+    loggerService: logger,
+  );
 
   const SystemTimeService timeService = SystemTimeService();
   const SchedulePolicy policy = SchedulePolicy();
@@ -166,6 +174,7 @@ Future<void> _executeUpcomingPaymentsWorkflow({
     await _handleUpcomingPayment(
       payment: payment,
       addTransaction: addTransaction,
+      eventRecorder: eventRecorder,
       notifications: notifications,
       recalcUseCase: recalcUseCase,
       timeService: timeService,
@@ -188,6 +197,7 @@ Future<void> _executeUpcomingPaymentsWorkflow({
 Future<void> _handleUpcomingPayment({
   required UpcomingPayment payment,
   required AddTransactionUseCase addTransaction,
+  required ProfileEventRecorder eventRecorder,
   required NotificationsService notifications,
   required RecalcUpcomingPaymentUC recalcUseCase,
   required TimeService timeService,
@@ -215,7 +225,9 @@ Future<void> _handleUpcomingPayment({
         type: type,
       );
       try {
-        await addTransaction(request);
+        final TransactionCommandResult<TransactionEntity> result =
+            await addTransaction(request);
+        await eventRecorder.record(result.profileEvents);
         logger.logInfo('Автоплатёж ${current.id} обработан транзакцией');
       } catch (error) {
         logger.logError('Ошибка автоплатежа ${current.id}: $error');
@@ -255,38 +267,42 @@ Future<void> _handleReminder({
   required TimeService timeService,
   required LoggerService logger,
 }) async {
-  final int notificationId = _hashId('rem_${reminder.id}');
+  PaymentReminder current = reminder;
+  final int notificationId = _hashId('rem_${current.id}');
   await notifications.cancel(notificationId);
-  if (reminder.isDone) {
+  if (current.isDone) {
     return;
   }
+
+  if (current.lastNotifiedAtMs != null &&
+      current.lastNotifiedAtMs! > current.whenAtMs) {
+    final int nowMs = timeService.nowMs();
+    current = current.copyWith(lastNotifiedAtMs: null, updatedAtMs: nowMs);
+    await remindersRepository.upsert(current);
+    logger.logInfo(
+      'Reset lastNotifiedAt for reminder ${current.id} due to past reschedule',
+    );
+  }
+
   final tz.TZDateTime now = tz.TZDateTime.now(tz.local);
   final tz.TZDateTime scheduled = tz.TZDateTime.from(
-    timeService.toLocal(reminder.whenAtMs),
+    timeService.toLocal(current.whenAtMs),
     tz.local,
   );
   if (scheduled.isAfter(now)) {
     await notifications.scheduleAt(
       id: notificationId,
       when: scheduled,
-      title: reminder.title,
-      body: _reminderBody(reminder),
-      payload: 'reminder:${reminder.id}',
+      title: current.title,
+      body: _reminderBody(current),
+      payload: 'reminder:${current.id}',
     );
-    logger.logInfo('scheduled id=$notificationId for reminder ${reminder.id}');
-    if (reminder.lastNotifiedAtMs != reminder.whenAtMs) {
-      final int updatedAt = timeService.nowMs();
-      final PaymentReminder updated = reminder.copyWith(
-        lastNotifiedAtMs: reminder.whenAtMs,
-        updatedAtMs: updatedAt,
-      );
-      await remindersRepository.upsert(updated);
-    }
+    logger.logInfo('scheduled id=$notificationId for reminder ${current.id}');
     return;
   }
-  if (reminder.lastNotifiedAtMs != null &&
-      reminder.lastNotifiedAtMs! >= reminder.whenAtMs) {
-    logger.logInfo('Reminder ${reminder.id} already notified');
+  if (current.lastNotifiedAtMs != null &&
+      current.lastNotifiedAtMs! >= current.whenAtMs) {
+    logger.logInfo('Reminder ${current.id} already notified');
     return;
   }
   final tz.TZDateTime catchUpTime = tz.TZDateTime.now(
@@ -295,17 +311,17 @@ Future<void> _handleReminder({
   await notifications.scheduleAt(
     id: notificationId,
     when: catchUpTime,
-    title: reminder.title,
-    body: _reminderBody(reminder),
-    payload: 'reminder:${reminder.id}',
+    title: current.title,
+    body: _reminderBody(current),
+    payload: 'reminder:${current.id}',
   );
   final int nowMs = timeService.nowMs();
-  final PaymentReminder updated = reminder.copyWith(
+  final PaymentReminder updated = current.copyWith(
     lastNotifiedAtMs: nowMs,
     updatedAtMs: nowMs,
   );
   await remindersRepository.upsert(updated);
-  logger.logInfo('Reminder ${reminder.id} catch-up scheduled');
+  logger.logInfo('Reminder ${current.id} catch-up scheduled');
 }
 
 int _hashId(String value) => value.hashCode & 0x7fffffff;
