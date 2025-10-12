@@ -616,6 +616,34 @@ class AppLocalizationsEn extends AppLocalizations {
       'You appear to be offline. We will sync your data once you reconnect.';
 
   @override
+  String get signInNoAccountCta => 'Create an account';
+
+  @override
+  String get signInAlreadyHaveAccountCta => 'Back to sign in';
+
+  @override
+  String get signUpTitle => 'Create your Kopim account';
+
+  @override
+  String get signUpSubtitle =>
+      'Register to sync your finances securely across devices.';
+
+  @override
+  String get signUpSubmitCta => 'Sign up';
+
+  @override
+  String get signUpLoading => 'Creating account...';
+
+  @override
+  String get signUpError => 'Could not create account. Please try again.';
+
+  @override
+  String get signUpConfirmPasswordLabel => 'Confirm password';
+
+  @override
+  String get signUpDisplayNameLabel => 'Name (optional)';
+
+  @override
   String get homeTitle => 'Home';
 
   @override

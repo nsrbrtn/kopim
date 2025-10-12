@@ -1172,6 +1172,60 @@ abstract class AppLocalizations {
   /// **'You appear to be offline. We will sync your data once you reconnect.'**
   String get signInOfflineNotice;
 
+  /// Link that switches the form into sign-up mode
+  ///
+  /// In en, this message translates to:
+  /// **'Create an account'**
+  String get signInNoAccountCta;
+
+  /// Link that switches the form back to sign-in mode
+  ///
+  /// In en, this message translates to:
+  /// **'Back to sign in'**
+  String get signInAlreadyHaveAccountCta;
+
+  /// Main heading on the sign-up form
+  ///
+  /// In en, this message translates to:
+  /// **'Create your Kopim account'**
+  String get signUpTitle;
+
+  /// Subtitle describing the benefit of registration
+  ///
+  /// In en, this message translates to:
+  /// **'Register to sync your finances securely across devices.'**
+  String get signUpSubtitle;
+
+  /// Primary call to action for sign-up form
+  ///
+  /// In en, this message translates to:
+  /// **'Sign up'**
+  String get signUpSubmitCta;
+
+  /// Status text when sign-up request is running
+  ///
+  /// In en, this message translates to:
+  /// **'Creating account...'**
+  String get signUpLoading;
+
+  /// Fallback message shown when sign-up fails
+  ///
+  /// In en, this message translates to:
+  /// **'Could not create account. Please try again.'**
+  String get signUpError;
+
+  /// Label for the confirm password field
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm password'**
+  String get signUpConfirmPasswordLabel;
+
+  /// Label for display name field during registration
+  ///
+  /// In en, this message translates to:
+  /// **'Name (optional)'**
+  String get signUpDisplayNameLabel;
+
   /// Title for the home screen
   ///
   /// In en, this message translates to:

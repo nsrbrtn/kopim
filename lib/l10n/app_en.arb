@@ -805,6 +805,42 @@
   "@signInOfflineNotice": {
     "description": "Message shown when connectivity provider reports offline state"
   },
+  "signInNoAccountCta": "Create an account",
+  "@signInNoAccountCta": {
+    "description": "Link that switches the form into sign-up mode"
+  },
+  "signInAlreadyHaveAccountCta": "Back to sign in",
+  "@signInAlreadyHaveAccountCta": {
+    "description": "Link that switches the form back to sign-in mode"
+  },
+  "signUpTitle": "Create your Kopim account",
+  "@signUpTitle": {
+    "description": "Main heading on the sign-up form"
+  },
+  "signUpSubtitle": "Register to sync your finances securely across devices.",
+  "@signUpSubtitle": {
+    "description": "Subtitle describing the benefit of registration"
+  },
+  "signUpSubmitCta": "Sign up",
+  "@signUpSubmitCta": {
+    "description": "Primary call to action for sign-up form"
+  },
+  "signUpLoading": "Creating account...",
+  "@signUpLoading": {
+    "description": "Status text when sign-up request is running"
+  },
+  "signUpError": "Could not create account. Please try again.",
+  "@signUpError": {
+    "description": "Fallback message shown when sign-up fails"
+  },
+  "signUpConfirmPasswordLabel": "Confirm password",
+  "@signUpConfirmPasswordLabel": {
+    "description": "Label for the confirm password field"
+  },
+  "signUpDisplayNameLabel": "Name (optional)",
+  "@signUpDisplayNameLabel": {
+    "description": "Label for display name field during registration"
+  },
   "homeTitle": "Home",
   "@homeTitle": {
     "description": "Title for the home screen"

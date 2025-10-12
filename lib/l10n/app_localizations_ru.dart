@@ -624,6 +624,34 @@ class AppLocalizationsRu extends AppLocalizations {
       'Похоже, что вы офлайн. Мы синхронизируем данные, как только подключитесь.';
 
   @override
+  String get signInNoAccountCta => 'Создать аккаунт';
+
+  @override
+  String get signInAlreadyHaveAccountCta => 'Вернуться ко входу';
+
+  @override
+  String get signUpTitle => 'Создайте аккаунт Kopim';
+
+  @override
+  String get signUpSubtitle =>
+      'Зарегистрируйтесь, чтобы синхронизировать финансы на всех устройствах.';
+
+  @override
+  String get signUpSubmitCta => 'Зарегистрироваться';
+
+  @override
+  String get signUpLoading => 'Создание аккаунта...';
+
+  @override
+  String get signUpError => 'Не удалось создать аккаунт. Попробуйте еще раз.';
+
+  @override
+  String get signUpConfirmPasswordLabel => 'Подтвердите пароль';
+
+  @override
+  String get signUpDisplayNameLabel => 'Имя (необязательно)';
+
+  @override
   String get homeTitle => 'Домашний экран';
 
   @override

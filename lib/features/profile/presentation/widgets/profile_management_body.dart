@@ -9,6 +9,7 @@ import 'package:kopim/core/theme/domain/app_theme_mode.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
 import 'package:kopim/features/profile/domain/entities/profile.dart';
 import 'package:kopim/features/profile/domain/entities/user_progress.dart';
+import 'package:kopim/features/profile/domain/failures/auth_failure.dart';
 import 'package:kopim/features/profile/presentation/controllers/auth_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/profile_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/profile_form_controller.dart';
@@ -287,8 +288,24 @@ class _ProfileForm extends ConsumerWidget {
                 ),
                 const SizedBox(height: 16),
                 FilledButton.icon(
-                  onPressed: () {
-                    ref.read(authControllerProvider.notifier).signOut();
+                  onPressed: () async {
+                    final NavigatorState navigator = Navigator.of(context);
+                    try {
+                      await ref.read(authControllerProvider.notifier).signOut();
+                      if (!context.mounted) {
+                        return;
+                      }
+                      navigator.popUntil(
+                        (Route<dynamic> route) => route.isFirst,
+                      );
+                    } on AuthFailure catch (error) {
+                      if (!context.mounted) {
+                        return;
+                      }
+                      ScaffoldMessenger.of(context)
+                        ..hideCurrentSnackBar()
+                        ..showSnackBar(SnackBar(content: Text(error.message)));
+                    }
                   },
                   icon: const Icon(Icons.logout),
                   label: Text(strings.profileSignOutCta),

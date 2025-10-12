@@ -805,6 +805,42 @@
   "@signInOfflineNotice": {
     "description": "Сообщение при отсутствии сети"
   },
+  "signInNoAccountCta": "Создать аккаунт",
+  "@signInNoAccountCta": {
+    "description": "Ссылка для переключения на форму регистрации"
+  },
+  "signInAlreadyHaveAccountCta": "Вернуться ко входу",
+  "@signInAlreadyHaveAccountCta": {
+    "description": "Ссылка для возврата к форме входа"
+  },
+  "signUpTitle": "Создайте аккаунт Kopim",
+  "@signUpTitle": {
+    "description": "Заголовок формы регистрации"
+  },
+  "signUpSubtitle": "Зарегистрируйтесь, чтобы синхронизировать финансы на всех устройствах.",
+  "@signUpSubtitle": {
+    "description": "Подзаголовок формы регистрации"
+  },
+  "signUpSubmitCta": "Зарегистрироваться",
+  "@signUpSubmitCta": {
+    "description": "Кнопка отправки формы регистрации"
+  },
+  "signUpLoading": "Создание аккаунта...",
+  "@signUpLoading": {
+    "description": "Подпись при выполнении регистрации"
+  },
+  "signUpError": "Не удалось создать аккаунт. Попробуйте еще раз.",
+  "@signUpError": {
+    "description": "Резервное сообщение об ошибке регистрации"
+  },
+  "signUpConfirmPasswordLabel": "Подтвердите пароль",
+  "@signUpConfirmPasswordLabel": {
+    "description": "Подпись к полю подтверждения пароля"
+  },
+  "signUpDisplayNameLabel": "Имя (необязательно)",
+  "@signUpDisplayNameLabel": {
+    "description": "Подпись к полю имени при регистрации"
+  },
   "homeTitle": "Домашний экран",
   "@homeTitle": {
     "description": "Заголовок домашнего экрана"
