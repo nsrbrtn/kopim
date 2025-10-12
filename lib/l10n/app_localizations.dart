@@ -152,6 +152,36 @@ abstract class AppLocalizations {
   /// **'Upcoming payments'**
   String get profileUpcomingPaymentsCta;
 
+  /// Title for the exact alarm reminders toggle in settings
+  ///
+  /// In en, this message translates to:
+  /// **'Exact reminders'**
+  String get settingsNotificationsExactTitle;
+
+  /// Subtitle explaining what exact reminders do
+  ///
+  /// In en, this message translates to:
+  /// **'Deliver notifications exactly at the scheduled time.'**
+  String get settingsNotificationsExactSubtitle;
+
+  /// Error shown when the exact alarm permission cannot be resolved
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to read status: {error}'**
+  String settingsNotificationsExactError(String error);
+
+  /// Tooltip for refreshing the exact alarm permission status
+  ///
+  /// In en, this message translates to:
+  /// **'Retry status check'**
+  String get settingsNotificationsRetryTooltip;
+
+  /// Button label that triggers a test notification from settings
+  ///
+  /// In en, this message translates to:
+  /// **'Send test notification'**
+  String get settingsNotificationsTestCta;
+
   /// Section header for home screen configuration
   ///
   /// In en, this message translates to:

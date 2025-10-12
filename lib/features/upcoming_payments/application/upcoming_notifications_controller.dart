@@ -21,25 +21,35 @@ class UpcomingNotificationsController
   ProviderSubscription<AsyncValue<List<PaymentReminder>>>? _remindersSub;
   final Set<int> _activePaymentIds = <int>{};
   final Set<int> _activeReminderIds = <int>{};
+  late NotificationsService _notifications;
+  late LoggerService _logger;
+  late TimeService _timeService;
+  bool _ready = false;
 
   @override
   Future<void> build() async {
-    final NotificationsService notifications = ref.read(
-      notificationsServiceProvider,
-    );
-    final LoggerService logger = ref.read(loggerServiceProvider);
-    final TimeService timeService = ref.read(timeServiceProvider);
+    _notifications = ref.read(notificationsServiceProvider);
+    _logger = ref.read(loggerServiceProvider);
+    _timeService = ref.read(timeServiceProvider);
+
+    try {
+      await _notifications.ensurePermission();
+    } catch (error, stackTrace) {
+      _logger.logError(
+        'Не удалось запросить разрешение на уведомления: $error\n$stackTrace',
+      );
+    }
 
     List<UpcomingPayment> initialPayments = const <UpcomingPayment>[];
     try {
       initialPayments = await ref.watch(watchUpcomingPaymentsProvider.future);
     } on Object catch (error, stackTrace) {
-      logger.logError('Ошибка потока правил платежей: $error\n$stackTrace');
+      _logger.logError('Ошибка потока правил платежей: $error\n$stackTrace');
     }
     await _syncPaymentNotifications(
-      notifications: notifications,
-      logger: logger,
-      timeService: timeService,
+      notifications: _notifications,
+      logger: _logger,
+      timeService: _timeService,
       payments: initialPayments,
     );
 
@@ -53,15 +63,15 @@ class UpcomingNotificationsController
           data: (List<UpcomingPayment> payments) {
             unawaited(
               _syncPaymentNotifications(
-                notifications: notifications,
-                logger: logger,
-                timeService: timeService,
+                notifications: _notifications,
+                logger: _logger,
+                timeService: _timeService,
                 payments: payments,
               ),
             );
           },
           error: (Object error, StackTrace stackTrace) {
-            logger.logError(
+            _logger.logError(
               'Ошибка потока правил платежей: $error\n$stackTrace',
             );
           },
@@ -77,12 +87,12 @@ class UpcomingNotificationsController
         watchPaymentRemindersProvider(limit: null).future,
       );
     } on Object catch (error, stackTrace) {
-      logger.logError('Ошибка потока напоминаний: $error\n$stackTrace');
+      _logger.logError('Ошибка потока напоминаний: $error\n$stackTrace');
     }
     await _syncReminderNotifications(
-      notifications: notifications,
-      logger: logger,
-      timeService: timeService,
+      notifications: _notifications,
+      logger: _logger,
+      timeService: _timeService,
       reminders: initialReminders,
     );
 
@@ -96,15 +106,15 @@ class UpcomingNotificationsController
           data: (List<PaymentReminder> reminders) {
             unawaited(
               _syncReminderNotifications(
-                notifications: notifications,
-                logger: logger,
-                timeService: timeService,
+                notifications: _notifications,
+                logger: _logger,
+                timeService: _timeService,
                 reminders: reminders,
               ),
             );
           },
           error: (Object error, StackTrace stackTrace) {
-            logger.logError('Ошибка потока напоминаний: $error\n$stackTrace');
+            _logger.logError('Ошибка потока напоминаний: $error\n$stackTrace');
           },
           loading: () {},
         );
@@ -117,7 +127,42 @@ class UpcomingNotificationsController
       _remindersSub?.close();
       _activePaymentIds.clear();
       _activeReminderIds.clear();
+      _ready = false;
     });
+
+    _ready = true;
+  }
+
+  Future<void> rescheduleAll() async {
+    if (!_ready) {
+      return;
+    }
+    try {
+      final List<UpcomingPayment> payments = await ref.read(
+        watchUpcomingPaymentsProvider.future,
+      );
+      await _syncPaymentNotifications(
+        notifications: _notifications,
+        logger: _logger,
+        timeService: _timeService,
+        payments: payments,
+      );
+
+      final List<PaymentReminder> reminders = await ref.read(
+        watchPaymentRemindersProvider(limit: null).future,
+      );
+      await _syncReminderNotifications(
+        notifications: _notifications,
+        logger: _logger,
+        timeService: _timeService,
+        reminders: reminders,
+      );
+      _logger.logInfo('Пересоздали напоминания с учётом точных алармов');
+    } on Object catch (error, stackTrace) {
+      _logger.logError(
+        'Не удалось пересоздать напоминания: $error\n$stackTrace',
+      );
+    }
   }
 
   Future<void> _syncPaymentNotifications({

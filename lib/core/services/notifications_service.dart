@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 
@@ -19,10 +18,10 @@ class NotificationsService {
        _exactAlarmPermissionService =
            exactAlarmPermissionService ?? ExactAlarmPermissionService();
 
-  static const String _channelId = 'UpcomingPayments';
-  static const String _channelName = 'UpcomingPayments';
+  static const String _channelId = 'payments_due';
+  static const String _channelName = 'Предстоящие платежи';
   static const String _channelDescription =
-      'Локальные уведомления о предстоящих платежах';
+      'Уведомления о предстоящих и повторяющихся платежах';
 
   final FlutterLocalNotificationsPlugin _plugin;
   final LoggerService _logger;
@@ -37,6 +36,14 @@ class NotificationsService {
 
   Future<void> ensurePermission() async {
     await _resolvePermission(requestIfNeeded: true);
+  }
+
+  Future<bool> canScheduleExact() async {
+    return _exactAlarmPermissionService.canScheduleExactAlarms();
+  }
+
+  Future<void> openExactAlarmsSettings() async {
+    await _exactAlarmPermissionService.openExactAlarmsSettings();
   }
 
   Future<void> scheduleAt({
@@ -69,10 +76,11 @@ class NotificationsService {
     AndroidScheduleMode androidScheduleMode =
         AndroidScheduleMode.exactAllowWhileIdle;
     if (Platform.isAndroid) {
-      final bool canScheduleExact = await _exactAlarmPermissionService
-          .canScheduleExactAlarms();
-      if (!canScheduleExact) {
-        androidScheduleMode = AndroidScheduleMode.inexactAllowWhileIdle;
+      final bool exactEnabled = await canScheduleExact();
+      androidScheduleMode = exactEnabled
+          ? AndroidScheduleMode.exactAllowWhileIdle
+          : AndroidScheduleMode.inexact;
+      if (!exactEnabled) {
         _logger.logInfo('exact alarm unavailable, id=$id fallback to inexact');
       }
     }
@@ -82,7 +90,7 @@ class NotificationsService {
         _channelId,
         _channelName,
         channelDescription: _channelDescription,
-        importance: Importance.max,
+        importance: Importance.high,
         priority: Priority.high,
         category: AndroidNotificationCategory.reminder,
       ),
@@ -127,27 +135,25 @@ class NotificationsService {
     }
   }
 
-  Future<void> showDebugNotification() async {
-    if (!kDebugMode) {
-      return;
-    }
+  Future<void> showTestNotification() async {
     await _ensureInitialized();
     final bool hasPermission = await _resolvePermission(
       requestIfNeeded: true,
       forceRefresh: true,
     );
     if (!hasPermission) {
+      _logger.logInfo('Test notification skipped: permission denied');
       return;
     }
     final tz.TZDateTime when = tz.TZDateTime.now(
       tz.local,
-    ).add(const Duration(seconds: 10));
+    ).add(const Duration(seconds: 5));
     await scheduleAt(
-      id: 0x0DD17,
+      id: 0x54E57,
       when: when,
-      title: 'Тестовое уведомление',
-      body: 'Проверка локальных уведомлений через 10 секунд',
-      payload: 'debug',
+      title: 'Проверка уведомлений',
+      body: 'Тестовое напоминание отправлено из настроек',
+      payload: 'test',
     );
   }
 
@@ -180,7 +186,7 @@ class NotificationsService {
         _channelId,
         _channelName,
         description: _channelDescription,
-        importance: Importance.max,
+        importance: Importance.high,
       );
       await androidImplementation.createNotificationChannel(channel);
     }

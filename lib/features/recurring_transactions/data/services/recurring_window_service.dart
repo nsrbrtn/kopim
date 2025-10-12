@@ -1,4 +1,3 @@
-import 'package:kopim/features/recurring_transactions/data/services/recurring_notification_service.dart';
 import 'package:kopim/features/recurring_transactions/domain/entities/recurring_occurrence.dart';
 import 'package:kopim/features/recurring_transactions/domain/entities/recurring_rule.dart';
 import 'package:kopim/features/recurring_transactions/domain/repositories/recurring_transactions_repository.dart';
@@ -8,14 +7,11 @@ class RecurringWindowService {
   RecurringWindowService({
     required RecurringTransactionsRepository repository,
     required RecurringRuleEngine engine,
-    required RecurringNotificationService notificationService,
   }) : _repository = repository,
-       _engine = engine,
-       _notificationService = notificationService;
+       _engine = engine;
 
   final RecurringTransactionsRepository _repository;
   final RecurringRuleEngine _engine;
-  final RecurringNotificationService _notificationService;
 
   Future<void> rebuildWindow({int monthsAhead = 6}) async {
     final List<RecurringRule> rules = await _repository.getAllRules(
@@ -25,10 +21,6 @@ class RecurringWindowService {
       await _repository.saveOccurrences(
         const <RecurringOccurrence>[],
         replaceExisting: true,
-      );
-      await _notificationService.refreshNotifications(
-        occurrences: const <RecurringOccurrence>[],
-        rules: const <String, RecurringRule>{},
       );
       return;
     }
@@ -51,11 +43,5 @@ class RecurringWindowService {
       aggregated.addAll(occurrences);
     }
     await _repository.saveOccurrences(aggregated, replaceExisting: true);
-    await _notificationService.refreshNotifications(
-      occurrences: aggregated,
-      rules: <String, RecurringRule>{
-        for (final RecurringRule rule in rules) rule.id: rule,
-      },
-    );
   }
 }

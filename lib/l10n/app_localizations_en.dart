@@ -36,6 +36,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileUpcomingPaymentsCta => 'Upcoming payments';
 
   @override
+  String get settingsNotificationsExactTitle => 'Exact reminders';
+
+  @override
+  String get settingsNotificationsExactSubtitle =>
+      'Deliver notifications exactly at the scheduled time.';
+
+  @override
+  String settingsNotificationsExactError(String error) {
+    return 'Failed to read status: $error';
+  }
+
+  @override
+  String get settingsNotificationsRetryTooltip => 'Retry status check';
+
+  @override
+  String get settingsNotificationsTestCta => 'Send test notification';
+
+  @override
   String get settingsHomeSectionTitle => 'Home screen';
 
   @override

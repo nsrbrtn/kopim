@@ -33,6 +33,31 @@
   "@profileUpcomingPaymentsCta": {
     "description": "Подпись кнопки, открывающей экран предстоящих платежей из настроек профиля"
   },
+  "settingsNotificationsExactTitle": "Точные напоминания",
+  "@settingsNotificationsExactTitle": {
+    "description": "Заголовок переключателя точных напоминаний в настройках"
+  },
+  "settingsNotificationsExactSubtitle": "Показывать уведомления ровно в указанное время.",
+  "@settingsNotificationsExactSubtitle": {
+    "description": "Подзаголовок, поясняющий работу точных напоминаний"
+  },
+  "settingsNotificationsExactError": "Не удалось получить статус: {error}",
+  "@settingsNotificationsExactError": {
+    "description": "Сообщение об ошибке при чтении разрешения на точные алармы",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsNotificationsRetryTooltip": "Повторить проверку",
+  "@settingsNotificationsRetryTooltip": {
+    "description": "Подсказка для кнопки обновления статуса точных напоминаний"
+  },
+  "settingsNotificationsTestCta": "Отправить тестовое уведомление",
+  "@settingsNotificationsTestCta": {
+    "description": "Подпись кнопки для отправки тестового уведомления"
+  },
   "settingsHomeSectionTitle": "Домашний экран",
   "@settingsHomeSectionTitle": {
     "description": "Заголовок секции настроек домашнего экрана"

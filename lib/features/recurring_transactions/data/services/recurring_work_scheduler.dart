@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:flutter/widgets.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:kopim/core/data/database.dart';
 import 'package:kopim/core/data/outbox/outbox_dao.dart';
 import 'package:kopim/core/services/analytics_service.dart';
@@ -11,7 +10,6 @@ import 'package:kopim/features/accounts/data/repositories/account_repository_imp
 import 'package:kopim/features/accounts/data/sources/local/account_dao.dart';
 import 'package:kopim/features/accounts/domain/repositories/account_repository.dart';
 import 'package:kopim/features/recurring_transactions/data/repositories/recurring_transactions_repository_impl.dart';
-import 'package:kopim/features/recurring_transactions/data/services/recurring_notification_service.dart';
 import 'package:kopim/features/recurring_transactions/data/services/recurring_window_service.dart';
 import 'package:kopim/features/recurring_transactions/data/sources/local/job_queue_dao.dart';
 import 'package:kopim/features/recurring_transactions/data/sources/local/recurring_occurrence_dao.dart';
@@ -53,12 +51,9 @@ void recurringWorkDispatcher() {
     final RecurringTransactionsRepository repository = _buildRepository(
       database,
     );
-    final RecurringNotificationService notificationService =
-        RecurringNotificationService(FlutterLocalNotificationsPlugin());
     final RecurringWindowService windowService = RecurringWindowService(
       repository: repository,
       engine: RecurringRuleEngine(),
-      notificationService: notificationService,
     );
     bool success = true;
     try {

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:collection/collection.dart';
@@ -5,11 +6,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_progress.dart';
 import 'package:kopim/features/budgets/presentation/controllers/budgets_providers.dart';
 import 'package:kopim/features/home/domain/entities/home_dashboard_preferences.dart';
 import 'package:kopim/features/home/presentation/controllers/home_dashboard_preferences_controller.dart';
 import 'package:kopim/features/categories/presentation/screens/manage_categories_screen.dart';
+import 'package:kopim/features/settings/presentation/controllers/exact_alarm_controller.dart';
 import 'package:kopim/features/upcoming_payments/presentation/screens/upcoming_payments_screen.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
@@ -26,6 +29,9 @@ class GeneralSettingsScreen extends ConsumerWidget {
     );
     final AsyncValue<List<BudgetProgress>> budgetsAsync = ref.watch(
       budgetsWithProgressProvider,
+    );
+    final AsyncValue<bool> exactAlarmAsync = ref.watch(
+      exactAlarmControllerProvider,
     );
 
     return Scaffold(
@@ -49,6 +55,22 @@ class GeneralSettingsScreen extends ConsumerWidget {
             title: strings.profileUpcomingPaymentsCta,
             onTap: () {
               Navigator.of(context).pushNamed(UpcomingPaymentsScreen.routeName);
+            },
+          ),
+          const SizedBox(height: 24),
+          _NotificationsSettingsCard(
+            strings: strings,
+            exactAlarmAsync: exactAlarmAsync,
+            onRequestExactAlarms: () async {
+              await ref.read(exactAlarmControllerProvider.notifier).request();
+            },
+            onRefreshStatus: () async {
+              await ref.read(exactAlarmControllerProvider.notifier).refresh();
+            },
+            onSendTest: () async {
+              await ref
+                  .read(notificationsServiceProvider)
+                  .showTestNotification();
             },
           ),
           const SizedBox(height: 24),
@@ -111,6 +133,82 @@ class _SettingsTile extends StatelessWidget {
         title: Text(title, style: theme.textTheme.titleMedium),
         trailing: const Icon(Icons.chevron_right),
         onTap: onTap,
+      ),
+    );
+  }
+}
+
+class _NotificationsSettingsCard extends StatelessWidget {
+  const _NotificationsSettingsCard({
+    required this.strings,
+    required this.exactAlarmAsync,
+    required this.onRequestExactAlarms,
+    required this.onRefreshStatus,
+    required this.onSendTest,
+  });
+
+  final AppLocalizations strings;
+  final AsyncValue<bool> exactAlarmAsync;
+  final Future<void> Function() onRequestExactAlarms;
+  final Future<void> Function() onRefreshStatus;
+  final Future<void> Function() onSendTest;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: EdgeInsets.zero,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          exactAlarmAsync.when(
+            data: (bool enabled) => SwitchListTile.adaptive(
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+              secondary: const Icon(Icons.alarm_on_outlined),
+              title: Text(strings.settingsNotificationsExactTitle),
+              subtitle: Text(strings.settingsNotificationsExactSubtitle),
+              value: enabled,
+              onChanged: (_) async {
+                await onRequestExactAlarms();
+              },
+            ),
+            loading: () => ListTile(
+              leading: const Icon(Icons.alarm_on_outlined),
+              title: Text(strings.settingsNotificationsExactTitle),
+              subtitle: const Padding(
+                padding: EdgeInsets.only(top: 4),
+                child: LinearProgressIndicator(),
+              ),
+            ),
+            error: (Object error, StackTrace stackTrace) => ListTile(
+              leading: const Icon(Icons.alarm_on_outlined),
+              title: Text(strings.settingsNotificationsExactTitle),
+              subtitle: Text(
+                strings.settingsNotificationsExactError(error.toString()),
+              ),
+              trailing: IconButton(
+                icon: const Icon(Icons.refresh),
+                tooltip: strings.settingsNotificationsRetryTooltip,
+                onPressed: () {
+                  unawaited(onRefreshStatus());
+                },
+              ),
+            ),
+          ),
+          const Divider(height: 0),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: ElevatedButton.icon(
+                onPressed: () async {
+                  await onSendTest();
+                },
+                icon: const Icon(Icons.notifications_active_outlined),
+                label: Text(strings.settingsNotificationsTestCta),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
