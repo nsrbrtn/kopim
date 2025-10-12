@@ -3,14 +3,18 @@ import 'dart:io';
 import 'package:flutter/services.dart';
 
 class ExactAlarmPermissionService {
-  ExactAlarmPermissionService({MethodChannel? channel})
-    : _channel = channel ?? const MethodChannel(_channelName);
+  ExactAlarmPermissionService({MethodChannel? channel, bool? isAndroidOverride})
+    : _channel = channel ?? const MethodChannel(_channelName),
+      _isAndroidOverride = isAndroidOverride;
 
   static const String _channelName = 'kopim/exact_alarms';
   final MethodChannel _channel;
+  final bool? _isAndroidOverride;
+
+  bool get _isAndroid => _isAndroidOverride ?? Platform.isAndroid;
 
   Future<bool> canScheduleExactAlarms() async {
-    if (!Platform.isAndroid) {
+    if (!_isAndroid) {
       return true;
     }
     try {
@@ -18,13 +22,15 @@ class ExactAlarmPermissionService {
         'canScheduleExactAlarms',
       );
       return granted ?? false;
+    } on MissingPluginException {
+      return false;
     } on PlatformException {
       return false;
     }
   }
 
   Future<bool> openExactAlarmsSettings() async {
-    if (!Platform.isAndroid) {
+    if (!_isAndroid) {
       return false;
     }
     try {
@@ -32,6 +38,8 @@ class ExactAlarmPermissionService {
         'openExactAlarmsSettings',
       );
       return started ?? false;
+    } on MissingPluginException {
+      return false;
     } on PlatformException {
       return false;
     }

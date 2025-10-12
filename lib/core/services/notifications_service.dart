@@ -22,6 +22,18 @@ class NotificationsService {
   static const String _channelName = 'Предстоящие платежи';
   static const String _channelDescription =
       'Уведомления о предстоящих и повторяющихся платежах';
+  static const NotificationDetails _notificationDetails = NotificationDetails(
+    android: AndroidNotificationDetails(
+      _channelId,
+      _channelName,
+      channelDescription: _channelDescription,
+      importance: Importance.high,
+      priority: Priority.high,
+      category: AndroidNotificationCategory.reminder,
+    ),
+    iOS: DarwinNotificationDetails(),
+    macOS: DarwinNotificationDetails(),
+  );
 
   final FlutterLocalNotificationsPlugin _plugin;
   final LoggerService _logger;
@@ -85,26 +97,13 @@ class NotificationsService {
       }
     }
 
-    const NotificationDetails details = NotificationDetails(
-      android: AndroidNotificationDetails(
-        _channelId,
-        _channelName,
-        channelDescription: _channelDescription,
-        importance: Importance.high,
-        priority: Priority.high,
-        category: AndroidNotificationCategory.reminder,
-      ),
-      iOS: DarwinNotificationDetails(),
-      macOS: DarwinNotificationDetails(),
-    );
-
     try {
       await _plugin.zonedSchedule(
         id,
         title,
         body,
         when,
-        details,
+        _notificationDetails,
         androidScheduleMode: androidScheduleMode,
         payload: payload,
         matchDateTimeComponents: null,
@@ -143,6 +142,23 @@ class NotificationsService {
     );
     if (!hasPermission) {
       _logger.logInfo('Test notification skipped: permission denied');
+      return;
+    }
+
+    final bool allowExact = !Platform.isAndroid || await canScheduleExact();
+    if (!allowExact && Platform.isAndroid) {
+      try {
+        await _plugin.show(
+          0x54E57,
+          'Проверка уведомлений',
+          'Тестовое напоминание отправлено из настроек',
+          _notificationDetails,
+          payload: 'test',
+        );
+        _logger.logInfo('Test notification shown immediately (fallback)');
+      } catch (error) {
+        _logger.logError('Failed to show fallback test notification', error);
+      }
       return;
     }
     final tz.TZDateTime when = tz.TZDateTime.now(
