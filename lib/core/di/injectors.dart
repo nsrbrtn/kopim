@@ -209,11 +209,15 @@ FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin(Ref ref) =>
     FlutterLocalNotificationsPlugin();
 
 @riverpod
-NotificationsService notificationsService(Ref ref) => NotificationsService(
-  plugin: ref.watch(flutterLocalNotificationsPluginProvider),
-  logger: ref.watch(loggerServiceProvider),
-  exactAlarmPermissionService: ref.watch(exactAlarmPermissionServiceProvider),
-);
+NotificationsService notificationsService(Ref ref) {
+  final NotificationsService service = NotificationsService(
+    plugin: ref.watch(flutterLocalNotificationsPluginProvider),
+    logger: ref.watch(loggerServiceProvider),
+    exactAlarmPermissionService: ref.watch(exactAlarmPermissionServiceProvider),
+  );
+  ref.onDispose(service.dispose);
+  return service;
+}
 
 @riverpod
 Workmanager workmanager(Ref ref) => Workmanager();

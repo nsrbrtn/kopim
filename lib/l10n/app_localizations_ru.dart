@@ -923,9 +923,6 @@ class AppLocalizationsRu extends AppLocalizations {
   String get upcomingPaymentsFieldReminderWhen => 'Дата и время';
 
   @override
-  String get upcomingPaymentsFieldReminderCompleted => 'Отметить выполненным';
-
-  @override
   String get upcomingPaymentsSubmit => 'Сохранить';
 
   @override
@@ -945,6 +942,66 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String upcomingPaymentsReminderSaveError(String error) {
     return 'Не удалось сохранить напоминание: $error';
+  }
+
+  @override
+  String get upcomingPaymentsReminderMarkPaidAction => 'Оплачено';
+
+  @override
+  String get upcomingPaymentsReminderMarkPaidTooltip =>
+      'Отметить напоминание как оплаченное';
+
+  @override
+  String get upcomingPaymentsReminderMarkPaidSuccess =>
+      'Напоминание отмечено как оплаченное.';
+
+  @override
+  String upcomingPaymentsReminderMarkPaidError(String error) {
+    return 'Не удалось отметить напоминание: $error';
+  }
+
+  @override
+  String get upcomingPaymentsReminderEditAction => 'Редактировать';
+
+  @override
+  String get upcomingPaymentsReminderDeleteAction => 'Удалить';
+
+  @override
+  String get upcomingPaymentsReminderDeleteTitle => 'Удалить напоминание?';
+
+  @override
+  String upcomingPaymentsReminderDeleteMessage(String title) {
+    return 'Удалить напоминание «$title»? Действие нельзя отменить.';
+  }
+
+  @override
+  String get upcomingPaymentsReminderDeleteSuccess => 'Напоминание удалено.';
+
+  @override
+  String upcomingPaymentsReminderDeleteError(String error) {
+    return 'Не удалось удалить напоминание: $error';
+  }
+
+  @override
+  String get upcomingPaymentsEditAction => 'Редактировать';
+
+  @override
+  String get upcomingPaymentsDeleteAction => 'Удалить';
+
+  @override
+  String get upcomingPaymentsDeleteTitle => 'Удалить повторяющийся платёж?';
+
+  @override
+  String upcomingPaymentsDeleteMessage(String title) {
+    return 'Удалить «$title»? Действие нельзя отменить.';
+  }
+
+  @override
+  String get upcomingPaymentsDeleteSuccess => 'Повторяющийся платёж удалён.';
+
+  @override
+  String upcomingPaymentsDeleteError(String error) {
+    return 'Не удалось удалить повторяющийся платёж: $error';
   }
 
   @override

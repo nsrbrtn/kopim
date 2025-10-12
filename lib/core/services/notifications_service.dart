@@ -22,25 +22,18 @@ class NotificationsService {
   static const String _channelName = 'Предстоящие платежи';
   static const String _channelDescription =
       'Уведомления о предстоящих и повторяющихся платежах';
-  static const NotificationDetails _notificationDetails = NotificationDetails(
-    android: AndroidNotificationDetails(
-      _channelId,
-      _channelName,
-      channelDescription: _channelDescription,
-      importance: Importance.high,
-      priority: Priority.high,
-      category: AndroidNotificationCategory.reminder,
-    ),
-    iOS: DarwinNotificationDetails(),
-    macOS: DarwinNotificationDetails(),
-  );
+  static const String actionMarkReminderPaid = 'mark_reminder_paid';
 
   final FlutterLocalNotificationsPlugin _plugin;
   final LoggerService _logger;
   final ExactAlarmPermissionService _exactAlarmPermissionService;
+  final StreamController<NotificationResponse> _responsesController =
+      StreamController<NotificationResponse>.broadcast();
 
   bool _initialized = false;
   bool? _permissionGranted;
+
+  Stream<NotificationResponse> get responses => _responsesController.stream;
 
   Future<void> initialize() async {
     await _ensureInitialized();
@@ -64,6 +57,7 @@ class NotificationsService {
     required String title,
     required String body,
     String? payload,
+    List<AndroidNotificationAction>? androidActions,
   }) async {
     await _ensureInitialized();
     final bool hasPermission = await _resolvePermission(
@@ -98,12 +92,15 @@ class NotificationsService {
     }
 
     try {
+      final NotificationDetails details = _buildNotificationDetails(
+        androidActions: androidActions,
+      );
       await _plugin.zonedSchedule(
         id,
         title,
         body,
         when,
-        _notificationDetails,
+        details,
         androidScheduleMode: androidScheduleMode,
         payload: payload,
         matchDateTimeComponents: null,
@@ -134,6 +131,12 @@ class NotificationsService {
     }
   }
 
+  void dispose() {
+    if (!_responsesController.isClosed) {
+      _responsesController.close();
+    }
+  }
+
   Future<void> showTestNotification() async {
     await _ensureInitialized();
     final bool hasPermission = await _resolvePermission(
@@ -152,7 +155,7 @@ class NotificationsService {
           0x54E57,
           'Проверка уведомлений',
           'Тестовое напоминание отправлено из настроек',
-          _notificationDetails,
+          _buildNotificationDetails(),
           payload: 'test',
         );
         _logger.logInfo('Test notification shown immediately (fallback)');
@@ -190,7 +193,22 @@ class NotificationsService {
       macOS: darwinSettings,
     );
 
-    await _plugin.initialize(settings);
+    await _plugin.initialize(
+      settings,
+      onDidReceiveNotificationResponse: (NotificationResponse response) {
+        if (!_responsesController.isClosed) {
+          _responsesController.add(response);
+        }
+      },
+    );
+
+    final NotificationAppLaunchDetails? launchDetails = await _plugin
+        .getNotificationAppLaunchDetails();
+    final NotificationResponse? initialResponse =
+        launchDetails?.notificationResponse;
+    if (initialResponse != null && !_responsesController.isClosed) {
+      _responsesController.add(initialResponse);
+    }
 
     final AndroidFlutterLocalNotificationsPlugin? androidImplementation =
         _plugin
@@ -277,5 +295,23 @@ class NotificationsService {
     _permissionGranted = granted;
     _logger.logInfo('permission: ${granted ? 'granted' : 'denied'}');
     return granted;
+  }
+
+  NotificationDetails _buildNotificationDetails({
+    List<AndroidNotificationAction>? androidActions,
+  }) {
+    return NotificationDetails(
+      android: AndroidNotificationDetails(
+        _channelId,
+        _channelName,
+        channelDescription: _channelDescription,
+        importance: Importance.high,
+        priority: Priority.high,
+        category: AndroidNotificationCategory.reminder,
+        actions: androidActions,
+      ),
+      iOS: const DarwinNotificationDetails(),
+      macOS: const DarwinNotificationDetails(),
+    );
   }
 }

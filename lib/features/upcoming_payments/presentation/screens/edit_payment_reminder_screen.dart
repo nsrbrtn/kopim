@@ -11,7 +11,6 @@ import 'package:kopim/features/upcoming_payments/data/services/upcoming_payments
 import 'package:kopim/features/upcoming_payments/domain/entities/payment_reminder.dart';
 import 'package:kopim/features/upcoming_payments/domain/providers/upcoming_payments_providers.dart';
 import 'package:kopim/features/upcoming_payments/domain/usecases/create_payment_reminder_uc.dart';
-import 'package:kopim/features/upcoming_payments/domain/usecases/mark_reminder_done_uc.dart';
 import 'package:kopim/features/upcoming_payments/domain/usecases/update_payment_reminder_uc.dart';
 import 'package:kopim/features/upcoming_payments/domain/models/value_update.dart';
 import 'package:kopim/features/upcoming_payments/presentation/providers/upcoming_payment_lookup_providers.dart';
@@ -46,10 +45,8 @@ class _EditPaymentReminderScreenState
   late final TextEditingController _amountController;
   late final TextEditingController _noteController;
   late DateTime _whenLocal;
-  bool _isDone = false;
   bool _appliedInitial = false;
   bool _isSubmitting = false;
-  bool _initialIsDone = false;
 
   @override
   void initState() {
@@ -145,16 +142,6 @@ class _EditPaymentReminderScreenState
                       locale: strings.localeName,
                     ),
                     const SizedBox(height: 16),
-                    SwitchListTile.adaptive(
-                      contentPadding: EdgeInsets.zero,
-                      value: _isDone,
-                      onChanged: (bool value) =>
-                          setState(() => _isDone = value),
-                      title: Text(
-                        strings.upcomingPaymentsFieldReminderCompleted,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
                     TextFormField(
                       controller: _noteController,
                       decoration: InputDecoration(
@@ -208,8 +195,6 @@ class _EditPaymentReminderScreenState
     _amountController.text = reminder.amount.abs().toStringAsFixed(2);
     _noteController.text = reminder.note ?? '';
     _whenLocal = ref.read(timeServiceProvider).toLocal(reminder.whenAtMs);
-    _isDone = reminder.isDone;
-    _initialIsDone = reminder.isDone;
     _appliedInitial = true;
   }
 
@@ -297,14 +282,6 @@ class _EditPaymentReminderScreenState
             note: ValueUpdate<String?>.present(note),
           ),
         );
-        if (_initialIsDone != _isDone) {
-          final MarkReminderDoneUC markDone = ref.read(
-            markReminderDoneUCProvider,
-          );
-          result = await markDone(
-            MarkReminderDoneInput(id: result.id, isDone: _isDone),
-          );
-        }
         await analytics.logEvent(
           'reminder_updated',
           _buildAnalyticsPayload(result, success: true),

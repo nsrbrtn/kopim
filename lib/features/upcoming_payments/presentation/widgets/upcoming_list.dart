@@ -12,6 +12,9 @@ import 'package:kopim/features/upcoming_payments/presentation/widgets/empty_stat
 import 'package:kopim/features/upcoming_payments/presentation/widgets/reminder_list_item.dart';
 import 'package:kopim/features/upcoming_payments/presentation/widgets/upcoming_list_item.dart';
 import 'package:kopim/l10n/app_localizations.dart';
+import 'package:kopim/features/upcoming_payments/domain/usecases/delete_payment_reminder_uc.dart';
+import 'package:kopim/features/upcoming_payments/domain/usecases/mark_reminder_done_uc.dart';
+import 'package:kopim/features/upcoming_payments/domain/usecases/delete_upcoming_payment_uc.dart';
 
 class UpcomingPaymentsList extends ConsumerWidget {
   const UpcomingPaymentsList({super.key, required this.onEdit});
@@ -76,6 +79,11 @@ class UpcomingPaymentsList extends ConsumerWidget {
               categories: categories,
               timeService: timeService,
               onTap: () => onEdit(payment),
+              onDelete: () => _deleteUpcomingPayment(
+                context: context,
+                ref: ref,
+                payment: payment,
+              ),
             );
           },
         );
@@ -88,6 +96,63 @@ class UpcomingPaymentsList extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _deleteUpcomingPayment({
+    required BuildContext context,
+    required WidgetRef ref,
+    required UpcomingPayment payment,
+  }) async {
+    final AppLocalizations strings = AppLocalizations.of(context)!;
+    final bool? confirmed = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: Text(strings.upcomingPaymentsDeleteTitle),
+          content: Text(strings.upcomingPaymentsDeleteMessage(payment.title)),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: Text(strings.dialogCancel),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: Text(strings.upcomingPaymentsDeleteAction),
+            ),
+          ],
+        );
+      },
+    );
+    if (confirmed != true) {
+      return;
+    }
+    try {
+      final DeleteUpcomingPaymentUC deleteUc = ref.read(
+        deleteUpcomingPaymentUCProvider,
+      );
+      await deleteUc(DeleteUpcomingPaymentInput(id: payment.id));
+      if (!context.mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(content: Text(strings.upcomingPaymentsDeleteSuccess)),
+        );
+    } catch (error) {
+      if (!context.mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: Text(
+              strings.upcomingPaymentsDeleteError(error.toString()),
+            ),
+          ),
+        );
+    }
   }
 }
 
@@ -122,6 +187,16 @@ class PaymentRemindersList extends ConsumerWidget {
               reminder: reminder,
               timeService: timeService,
               onTap: () => onEdit(reminder),
+              onMarkPaid: () => _markReminderPaid(
+                context: context,
+                ref: ref,
+                reminder: reminder,
+              ),
+              onDelete: () => _deleteReminder(
+                context: context,
+                ref: ref,
+                reminder: reminder,
+              ),
             );
           },
         );
@@ -134,5 +209,104 @@ class PaymentRemindersList extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _markReminderPaid({
+    required BuildContext context,
+    required WidgetRef ref,
+    required PaymentReminder reminder,
+  }) async {
+    final AppLocalizations strings = AppLocalizations.of(context)!;
+    if (reminder.isDone) {
+      return;
+    }
+    try {
+      final MarkReminderDoneUC markDone = ref.read(markReminderDoneUCProvider);
+      await markDone(MarkReminderDoneInput(id: reminder.id, isDone: true));
+      if (!context.mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: Text(strings.upcomingPaymentsReminderMarkPaidSuccess),
+          ),
+        );
+    } catch (error) {
+      if (!context.mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: Text(
+              strings.upcomingPaymentsReminderMarkPaidError(error.toString()),
+            ),
+          ),
+        );
+    }
+  }
+
+  Future<void> _deleteReminder({
+    required BuildContext context,
+    required WidgetRef ref,
+    required PaymentReminder reminder,
+  }) async {
+    final AppLocalizations strings = AppLocalizations.of(context)!;
+    final bool? confirmed = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: Text(strings.upcomingPaymentsReminderDeleteTitle),
+          content: Text(
+            strings.upcomingPaymentsReminderDeleteMessage(reminder.title),
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: Text(strings.dialogCancel),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: Text(strings.upcomingPaymentsReminderDeleteAction),
+            ),
+          ],
+        );
+      },
+    );
+    if (confirmed != true) {
+      return;
+    }
+    try {
+      final DeletePaymentReminderUC deleteUc = ref.read(
+        deletePaymentReminderUCProvider,
+      );
+      await deleteUc(DeletePaymentReminderInput(id: reminder.id));
+      if (!context.mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: Text(strings.upcomingPaymentsReminderDeleteSuccess),
+          ),
+        );
+    } catch (error) {
+      if (!context.mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: Text(
+              strings.upcomingPaymentsReminderDeleteError(error.toString()),
+            ),
+          ),
+        );
+    }
   }
 }
