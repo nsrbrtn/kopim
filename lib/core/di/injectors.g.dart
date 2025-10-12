@@ -1819,55 +1819,6 @@ final class SavingGoalRemoteDataSourceProvider
 String _$savingGoalRemoteDataSourceHash() =>
     r'f92bab57e5d731e4d387077ea0733f42a2a95f56';
 
-@ProviderFor(recurringNotificationService)
-const recurringNotificationServiceProvider =
-    RecurringNotificationServiceProvider._();
-
-final class RecurringNotificationServiceProvider
-    extends
-        $FunctionalProvider<
-          RecurringNotificationService,
-          RecurringNotificationService,
-          RecurringNotificationService
-        >
-    with $Provider<RecurringNotificationService> {
-  const RecurringNotificationServiceProvider._()
-    : super(
-        from: null,
-        argument: null,
-        retry: null,
-        name: r'recurringNotificationServiceProvider',
-        isAutoDispose: true,
-        dependencies: null,
-        $allTransitiveDependencies: null,
-      );
-
-  @override
-  String debugGetCreateSourceHash() => _$recurringNotificationServiceHash();
-
-  @$internal
-  @override
-  $ProviderElement<RecurringNotificationService> $createElement(
-    $ProviderPointer pointer,
-  ) => $ProviderElement(pointer);
-
-  @override
-  RecurringNotificationService create(Ref ref) {
-    return recurringNotificationService(ref);
-  }
-
-  /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(RecurringNotificationService value) {
-    return $ProviderOverride(
-      origin: this,
-      providerOverride: $SyncValueProvider<RecurringNotificationService>(value),
-    );
-  }
-}
-
-String _$recurringNotificationServiceHash() =>
-    r'9c3e7734b39e24acdb8e7b72c6414d5a29ec3564';
-
 @ProviderFor(accountRepository)
 const accountRepositoryProvider = AccountRepositoryProvider._();
 
@@ -3668,7 +3619,7 @@ final class RecurringWindowServiceProvider
 }
 
 String _$recurringWindowServiceHash() =>
-    r'66de8c0084f13ae4fb53f7a45cc0135d21c42738';
+    r'ae1478fae0a0f90c6986c556f9bcb19e19ab5f30';
 
 @ProviderFor(recurringWorkScheduler)
 const recurringWorkSchedulerProvider = RecurringWorkSchedulerProvider._();

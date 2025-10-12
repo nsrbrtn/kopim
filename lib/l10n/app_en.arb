@@ -33,6 +33,31 @@
   "@profileUpcomingPaymentsCta": {
     "description": "Button label that opens the upcoming payments screen from the profile settings"
   },
+  "settingsNotificationsExactTitle": "Exact reminders",
+  "@settingsNotificationsExactTitle": {
+    "description": "Title for the exact alarm reminders toggle in settings"
+  },
+  "settingsNotificationsExactSubtitle": "Deliver notifications exactly at the scheduled time.",
+  "@settingsNotificationsExactSubtitle": {
+    "description": "Subtitle explaining what exact reminders do"
+  },
+  "settingsNotificationsExactError": "Failed to read status: {error}",
+  "@settingsNotificationsExactError": {
+    "description": "Error shown when the exact alarm permission cannot be resolved",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsNotificationsRetryTooltip": "Retry status check",
+  "@settingsNotificationsRetryTooltip": {
+    "description": "Tooltip for refreshing the exact alarm permission status"
+  },
+  "settingsNotificationsTestCta": "Send test notification",
+  "@settingsNotificationsTestCta": {
+    "description": "Button label that triggers a test notification from settings"
+  },
   "settingsHomeSectionTitle": "Home screen",
   "@settingsHomeSectionTitle": {
     "description": "Section header for home screen configuration"

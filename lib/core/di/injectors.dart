@@ -90,7 +90,6 @@ import 'package:kopim/features/home/data/repositories/home_dashboard_preferences
 import 'package:kopim/features/home/domain/repositories/home_dashboard_preferences_repository.dart';
 import 'package:kopim/features/home/domain/use_cases/group_transactions_by_day_use_case.dart';
 import 'package:kopim/features/recurring_transactions/data/repositories/recurring_transactions_repository_impl.dart';
-import 'package:kopim/features/recurring_transactions/data/services/recurring_notification_service.dart';
 import 'package:kopim/features/recurring_transactions/data/services/recurring_window_service.dart';
 import 'package:kopim/features/recurring_transactions/data/services/recurring_work_scheduler.dart';
 import 'package:kopim/features/recurring_transactions/data/sources/local/job_queue_dao.dart';
@@ -267,12 +266,6 @@ BudgetInstanceRemoteDataSource budgetInstanceRemoteDataSource(Ref ref) =>
 @riverpod
 SavingGoalRemoteDataSource savingGoalRemoteDataSource(Ref ref) =>
     SavingGoalRemoteDataSource(ref.watch(firestoreProvider));
-
-@riverpod
-RecurringNotificationService recurringNotificationService(Ref ref) =>
-    RecurringNotificationService(
-      ref.watch(flutterLocalNotificationsPluginProvider),
-    );
 
 @riverpod
 AccountRepository accountRepository(Ref ref) => AccountRepositoryImpl(
@@ -526,7 +519,6 @@ RecurringWindowService recurringWindowService(Ref ref) =>
     RecurringWindowService(
       repository: ref.watch(recurringTransactionsRepositoryProvider),
       engine: ref.watch(recurringRuleEngineProvider),
-      notificationService: ref.watch(recurringNotificationServiceProvider),
     );
 
 @riverpod

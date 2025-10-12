@@ -22,7 +22,7 @@ class ExactAlarmPermissionController extends _$ExactAlarmPermissionController {
   }
 
   Future<void> openSettings() async {
-    final bool started = await _service.openExactAlarmSettings();
+    final bool started = await _service.openExactAlarmsSettings();
     if (!started) {
       return;
     }

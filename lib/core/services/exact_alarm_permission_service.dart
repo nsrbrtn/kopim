@@ -6,7 +6,7 @@ class ExactAlarmPermissionService {
   ExactAlarmPermissionService({MethodChannel? channel})
     : _channel = channel ?? const MethodChannel(_channelName);
 
-  static const String _channelName = 'ru.qmodo.kopim/exact_alarm';
+  static const String _channelName = 'kopim/exact_alarms';
   final MethodChannel _channel;
 
   Future<bool> canScheduleExactAlarms() async {
@@ -23,13 +23,13 @@ class ExactAlarmPermissionService {
     }
   }
 
-  Future<bool> openExactAlarmSettings() async {
+  Future<bool> openExactAlarmsSettings() async {
     if (!Platform.isAndroid) {
       return false;
     }
     try {
       final bool? started = await _channel.invokeMethod<bool>(
-        'openExactAlarmSettings',
+        'openExactAlarmsSettings',
       );
       return started ?? false;
     } on PlatformException {

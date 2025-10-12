@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'exact_alarm_permission_controller.dart';
+part of 'exact_alarm_controller.dart';
 
 // **************************************************************************
 // RiverpodGenerator
@@ -9,35 +9,34 @@ part of 'exact_alarm_permission_controller.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 
-@ProviderFor(ExactAlarmPermissionController)
-const exactAlarmPermissionControllerProvider =
-    ExactAlarmPermissionControllerProvider._();
+@ProviderFor(ExactAlarmController)
+const exactAlarmControllerProvider = ExactAlarmControllerProvider._();
 
-final class ExactAlarmPermissionControllerProvider
-    extends $AsyncNotifierProvider<ExactAlarmPermissionController, bool> {
-  const ExactAlarmPermissionControllerProvider._()
+final class ExactAlarmControllerProvider
+    extends $AsyncNotifierProvider<ExactAlarmController, bool> {
+  const ExactAlarmControllerProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
-        name: r'exactAlarmPermissionControllerProvider',
+        name: r'exactAlarmControllerProvider',
         isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
 
   @override
-  String debugGetCreateSourceHash() => _$exactAlarmPermissionControllerHash();
+  String debugGetCreateSourceHash() => _$exactAlarmControllerHash();
 
   @$internal
   @override
-  ExactAlarmPermissionController create() => ExactAlarmPermissionController();
+  ExactAlarmController create() => ExactAlarmController();
 }
 
-String _$exactAlarmPermissionControllerHash() =>
-    r'9b31bf35df1261e8b12722590a18b9b7f103ab30';
+String _$exactAlarmControllerHash() =>
+    r'fa2f5e77449a9193e5cbb3970e56010eb5071797';
 
-abstract class _$ExactAlarmPermissionController extends $AsyncNotifier<bool> {
+abstract class _$ExactAlarmController extends $AsyncNotifier<bool> {
   FutureOr<bool> build();
   @$mustCallSuper
   @override

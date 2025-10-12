@@ -83,7 +83,7 @@ class _FakeExactAlarmPermissionService extends ExactAlarmPermissionService {
   }
 
   @override
-  Future<bool> openExactAlarmSettings() async {
+  Future<bool> openExactAlarmsSettings() async {
     openInvocations++;
     return openResult;
   }

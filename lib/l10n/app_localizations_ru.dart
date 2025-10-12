@@ -37,6 +37,24 @@ class AppLocalizationsRu extends AppLocalizations {
   String get profileUpcomingPaymentsCta => 'Предстоящие платежи';
 
   @override
+  String get settingsNotificationsExactTitle => 'Точные напоминания';
+
+  @override
+  String get settingsNotificationsExactSubtitle =>
+      'Показывать уведомления ровно в указанное время.';
+
+  @override
+  String settingsNotificationsExactError(String error) {
+    return 'Не удалось получить статус: $error';
+  }
+
+  @override
+  String get settingsNotificationsRetryTooltip => 'Повторить проверку';
+
+  @override
+  String get settingsNotificationsTestCta => 'Отправить тестовое уведомление';
+
+  @override
   String get settingsHomeSectionTitle => 'Домашний экран';
 
   @override
