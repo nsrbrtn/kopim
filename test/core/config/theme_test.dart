@@ -28,15 +28,12 @@ void main() {
 
     test('поддерживает тёмную тему', () {
       const Color accentColor = Color(0xFF51AFF7);
-      final ColorScheme expectedScheme = ColorScheme.fromSeed(
-        seedColor: accentColor,
-        brightness: Brightness.dark,
-      );
       final ThemeData theme = buildAppTheme(brightness: Brightness.dark);
 
       expect(theme.brightness, Brightness.dark);
       expect(theme.colorScheme.brightness, Brightness.dark);
       expect(theme.colorScheme.primary, accentColor);
+      expect(theme.colorScheme.secondary, accentColor);
       expect(theme.scaffoldBackgroundColor, const Color(0xFF141314));
     });
   });

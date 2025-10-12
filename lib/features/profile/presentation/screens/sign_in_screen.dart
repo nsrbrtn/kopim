@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/features/profile/presentation/controllers/sign_in_form_controller.dart';
+import 'package:kopim/features/profile/presentation/controllers/sign_up_form_controller.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
 bool _isOffline(List<ConnectivityResult> results) {
@@ -34,11 +35,21 @@ class SignInScreen extends ConsumerStatefulWidget {
 }
 
 class _SignInScreenState extends ConsumerState<SignInScreen> {
+  bool _isSignUpMode = false;
   late final TextEditingController _emailController;
   late final TextEditingController _passwordController;
+  late final TextEditingController _signUpEmailController;
+  late final TextEditingController _signUpPasswordController;
+  late final TextEditingController _signUpConfirmPasswordController;
+  late final TextEditingController _signUpDisplayNameController;
   late final FocusNode _emailFocusNode;
   late final FocusNode _passwordFocusNode;
+  late final FocusNode _signUpEmailFocusNode;
+  late final FocusNode _signUpPasswordFocusNode;
+  late final FocusNode _signUpConfirmPasswordFocusNode;
+  late final FocusNode _signUpDisplayNameFocusNode;
   ProviderSubscription<SignInFormState>? _signInFormSubscription;
+  ProviderSubscription<SignUpFormState>? _signUpFormSubscription;
 
   @override
   void initState() {
@@ -47,16 +58,52 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
       signInFormControllerProvider.notifier,
     );
     final SignInFormState initialState = ref.read(signInFormControllerProvider);
+    final SignUpFormController signUpController = ref.read(
+      signUpFormControllerProvider.notifier,
+    );
+    final SignUpFormState signUpInitialState = ref.read(
+      signUpFormControllerProvider,
+    );
     _emailController = TextEditingController(text: initialState.email);
     _passwordController = TextEditingController(text: initialState.password);
+    _signUpEmailController = TextEditingController(
+      text: signUpInitialState.email,
+    );
+    _signUpPasswordController = TextEditingController(
+      text: signUpInitialState.password,
+    );
+    _signUpConfirmPasswordController = TextEditingController(
+      text: signUpInitialState.confirmPassword,
+    );
+    _signUpDisplayNameController = TextEditingController(
+      text: signUpInitialState.displayName,
+    );
     _emailFocusNode = FocusNode();
     _passwordFocusNode = FocusNode();
+    _signUpEmailFocusNode = FocusNode();
+    _signUpPasswordFocusNode = FocusNode();
+    _signUpConfirmPasswordFocusNode = FocusNode();
+    _signUpDisplayNameFocusNode = FocusNode();
 
     _emailController.addListener(() {
       controller.updateEmail(_emailController.text);
     });
     _passwordController.addListener(() {
       controller.updatePassword(_passwordController.text);
+    });
+    _signUpEmailController.addListener(() {
+      signUpController.updateEmail(_signUpEmailController.text);
+    });
+    _signUpPasswordController.addListener(() {
+      signUpController.updatePassword(_signUpPasswordController.text);
+    });
+    _signUpConfirmPasswordController.addListener(() {
+      signUpController.updateConfirmPassword(
+        _signUpConfirmPasswordController.text,
+      );
+    });
+    _signUpDisplayNameController.addListener(() {
+      signUpController.updateDisplayName(_signUpDisplayNameController.text);
     });
 
     _signInFormSubscription = ref.listenManual<SignInFormState>(
@@ -72,15 +119,38 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
         }
       },
     );
+    _signUpFormSubscription = ref.listenManual<SignUpFormState>(
+      signUpFormControllerProvider,
+      (SignUpFormState? previous, SignUpFormState next) {
+        if (previous?.isSubmitting == true && !next.isSubmitting) {
+          if (!mounted) {
+            return;
+          }
+          if (next.errorMessage == null) {
+            _signUpPasswordController.clear();
+            _signUpConfirmPasswordController.clear();
+          }
+        }
+      },
+    );
   }
 
   @override
   void dispose() {
     _signInFormSubscription?.close();
+    _signUpFormSubscription?.close();
     _emailController.dispose();
     _passwordController.dispose();
+    _signUpEmailController.dispose();
+    _signUpPasswordController.dispose();
+    _signUpConfirmPasswordController.dispose();
+    _signUpDisplayNameController.dispose();
     _emailFocusNode.dispose();
     _passwordFocusNode.dispose();
+    _signUpEmailFocusNode.dispose();
+    _signUpPasswordFocusNode.dispose();
+    _signUpConfirmPasswordFocusNode.dispose();
+    _signUpDisplayNameFocusNode.dispose();
     super.dispose();
   }
 
@@ -88,11 +158,22 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
   Widget build(BuildContext context) {
     final AppLocalizations strings = AppLocalizations.of(context)!;
     final SignInFormState formState = ref.watch(signInFormControllerProvider);
+    final SignUpFormState signUpState = ref.watch(signUpFormControllerProvider);
     final SignInFormController controller = ref.read(
       signInFormControllerProvider.notifier,
     );
+    final SignUpFormController signUpController = ref.read(
+      signUpFormControllerProvider.notifier,
+    );
     final AsyncValue<bool> isOffline = ref.watch(_signInOfflineProvider);
     final ThemeData theme = Theme.of(context);
+    final bool isSubmitting = _isSignUpMode
+        ? signUpState.isSubmitting
+        : formState.isSubmitting;
+    final bool isBusy = formState.isSubmitting || signUpState.isSubmitting;
+    final String? errorMessage = _isSignUpMode
+        ? signUpState.errorMessage
+        : formState.errorMessage;
 
     return Scaffold(
       body: Center(
@@ -105,45 +186,108 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
                   Text(
-                    strings.signInTitle,
+                    _isSignUpMode ? strings.signUpTitle : strings.signInTitle,
                     style: theme.textTheme.headlineMedium,
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    strings.signInSubtitle,
+                    _isSignUpMode
+                        ? strings.signUpSubtitle
+                        : strings.signInSubtitle,
                     style: theme.textTheme.bodyMedium,
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 24),
-                  TextFormField(
-                    controller: _emailController,
-                    focusNode: _emailFocusNode,
-                    autofillHints: const <String>[AutofillHints.email],
-                    keyboardType: TextInputType.emailAddress,
-                    decoration: InputDecoration(
-                      labelText: strings.signInEmailLabel,
+                  if (_isSignUpMode) ...<Widget>[
+                    TextFormField(
+                      controller: _signUpEmailController,
+                      focusNode: _signUpEmailFocusNode,
+                      autofillHints: const <String>[AutofillHints.email],
+                      keyboardType: TextInputType.emailAddress,
+                      decoration: InputDecoration(
+                        labelText: strings.signInEmailLabel,
+                      ),
+                      textInputAction: TextInputAction.next,
+                      enabled: !isSubmitting,
+                      onFieldSubmitted: (_) {
+                        _signUpPasswordFocusNode.requestFocus();
+                      },
                     ),
-                    textInputAction: TextInputAction.next,
-                    enabled: !formState.isSubmitting,
-                    onFieldSubmitted: (_) {
-                      _passwordFocusNode.requestFocus();
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    controller: _passwordController,
-                    focusNode: _passwordFocusNode,
-                    obscureText: true,
-                    autofillHints: const <String>[AutofillHints.password],
-                    decoration: InputDecoration(
-                      labelText: strings.signInPasswordLabel,
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _signUpPasswordController,
+                      focusNode: _signUpPasswordFocusNode,
+                      obscureText: true,
+                      autofillHints: const <String>[AutofillHints.newPassword],
+                      decoration: InputDecoration(
+                        labelText: strings.signInPasswordLabel,
+                      ),
+                      enabled: !isSubmitting,
+                      textInputAction: TextInputAction.next,
+                      onFieldSubmitted: (_) {
+                        _signUpConfirmPasswordFocusNode.requestFocus();
+                      },
                     ),
-                    enabled: !formState.isSubmitting,
-                    textInputAction: TextInputAction.done,
-                    onFieldSubmitted: (_) => _onSubmit(controller),
-                  ),
-                  const SizedBox(height: 16),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _signUpConfirmPasswordController,
+                      focusNode: _signUpConfirmPasswordFocusNode,
+                      obscureText: true,
+                      autofillHints: const <String>[AutofillHints.newPassword],
+                      decoration: InputDecoration(
+                        labelText: strings.signUpConfirmPasswordLabel,
+                      ),
+                      enabled: !isSubmitting,
+                      textInputAction: TextInputAction.next,
+                      onFieldSubmitted: (_) {
+                        _signUpDisplayNameFocusNode.requestFocus();
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _signUpDisplayNameController,
+                      focusNode: _signUpDisplayNameFocusNode,
+                      textCapitalization: TextCapitalization.words,
+                      decoration: InputDecoration(
+                        labelText: strings.signUpDisplayNameLabel,
+                      ),
+                      enabled: !isSubmitting,
+                      textInputAction: TextInputAction.done,
+                      onFieldSubmitted: (_) =>
+                          _onSignUpSubmit(signUpController),
+                    ),
+                    const SizedBox(height: 16),
+                  ] else ...<Widget>[
+                    TextFormField(
+                      controller: _emailController,
+                      focusNode: _emailFocusNode,
+                      autofillHints: const <String>[AutofillHints.email],
+                      keyboardType: TextInputType.emailAddress,
+                      decoration: InputDecoration(
+                        labelText: strings.signInEmailLabel,
+                      ),
+                      textInputAction: TextInputAction.next,
+                      enabled: !isSubmitting,
+                      onFieldSubmitted: (_) {
+                        _passwordFocusNode.requestFocus();
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _passwordController,
+                      focusNode: _passwordFocusNode,
+                      obscureText: true,
+                      autofillHints: const <String>[AutofillHints.password],
+                      decoration: InputDecoration(
+                        labelText: strings.signInPasswordLabel,
+                      ),
+                      enabled: !isSubmitting,
+                      textInputAction: TextInputAction.done,
+                      onFieldSubmitted: (_) => _onSubmit(controller),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
                   isOffline.when(
                     data: (bool offline) => offline
                         ? Padding(
@@ -161,9 +305,9 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                     error: (Object error, StackTrace stackTrace) =>
                         const SizedBox.shrink(),
                   ),
-                  if (formState.errorMessage != null) ...<Widget>[
+                  if (errorMessage != null) ...<Widget>[
                     Text(
-                      formState.errorMessage ?? strings.signInError,
+                      errorMessage,
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.error,
                       ),
@@ -172,10 +316,14 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                     const SizedBox(height: 12),
                   ],
                   ElevatedButton(
-                    onPressed: formState.canSubmit
-                        ? () => _onSubmit(controller)
-                        : null,
-                    child: formState.isSubmitting
+                    onPressed: _isSignUpMode
+                        ? (signUpState.canSubmit
+                              ? () => _onSignUpSubmit(signUpController)
+                              : null)
+                        : (formState.canSubmit
+                              ? () => _onSubmit(controller)
+                              : null),
+                    child: isSubmitting
                         ? Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             mainAxisSize: MainAxisSize.min,
@@ -188,18 +336,40 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                                 ),
                               ),
                               const SizedBox(width: 12),
-                              Text(strings.signInLoading),
+                              Text(
+                                _isSignUpMode
+                                    ? strings.signUpLoading
+                                    : strings.signInLoading,
+                              ),
                             ],
                           )
-                        : Text(strings.signInSubmitCta),
+                        : Text(
+                            _isSignUpMode
+                                ? strings.signUpSubmitCta
+                                : strings.signInSubmitCta,
+                          ),
                   ),
                   const SizedBox(height: 12),
                   TextButton.icon(
-                    onPressed: formState.isSubmitting
+                    onPressed: isBusy
                         ? null
                         : () => controller.continueOffline(),
                     icon: const Icon(Icons.wifi_off),
                     label: Text(strings.signInOfflineCta),
+                  ),
+                  const SizedBox(height: 8),
+                  TextButton(
+                    onPressed: isBusy
+                        ? null
+                        : () => _toggleMode(
+                            controller: controller,
+                            signUpController: signUpController,
+                          ),
+                    child: Text(
+                      _isSignUpMode
+                          ? strings.signInAlreadyHaveAccountCta
+                          : strings.signInNoAccountCta,
+                    ),
                   ),
                 ],
               ),
@@ -212,5 +382,20 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
 
   Future<void> _onSubmit(SignInFormController controller) {
     return controller.submit();
+  }
+
+  Future<void> _onSignUpSubmit(SignUpFormController controller) {
+    return controller.submit();
+  }
+
+  void _toggleMode({
+    required SignInFormController controller,
+    required SignUpFormController signUpController,
+  }) {
+    setState(() {
+      _isSignUpMode = !_isSignUpMode;
+    });
+    controller.clearError();
+    signUpController.clearError();
   }
 }
