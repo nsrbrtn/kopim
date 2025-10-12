@@ -36,6 +36,7 @@ import 'package:kopim/features/upcoming_payments/domain/repositories/upcoming_pa
 import 'package:kopim/features/upcoming_payments/domain/services/schedule_policy.dart';
 import 'package:kopim/features/upcoming_payments/domain/services/time_service.dart';
 import 'package:kopim/features/upcoming_payments/domain/usecases/recalc_upcoming_payment_uc.dart';
+import 'package:kopim/l10n/app_localizations.dart';
 
 const String kUpcomingPaymentsPeriodicTask = 'upcoming_apply_rules';
 const String kUpcomingPaymentsOneOffTask = 'upcoming_apply_rules_once';
@@ -54,28 +55,47 @@ bool _isMobilePlatform() {
 }
 
 @pragma('vm:entry-point')
-Future<bool> runUpcomingPaymentsBackgroundTask(String task) async {
+Future<bool> runUpcomingPaymentsBackgroundTask(
+  String task, {
+  AppDatabase? database,
+  NotificationsService? notifications,
+  LoggerService? logger,
+}) async {
   WidgetsFlutterBinding.ensureInitialized();
-  final LoggerService logger = LoggerService();
-  await ensureFirebaseInitialized(logger: logger);
-  final AppDatabase database = AppDatabase();
-  final NotificationsService notifications = NotificationsService(
-    plugin: FlutterLocalNotificationsPlugin(),
-    logger: logger,
-    exactAlarmPermissionService: ExactAlarmPermissionService(),
-  );
+  final LoggerService effectiveLogger = logger ?? LoggerService();
+  await ensureFirebaseInitialized(logger: effectiveLogger);
+  final AppDatabase effectiveDatabase = database ?? AppDatabase();
+  final NotificationsService effectiveNotifications =
+      notifications ??
+      NotificationsService(
+        plugin: FlutterLocalNotificationsPlugin(),
+        logger: effectiveLogger,
+        exactAlarmPermissionService: ExactAlarmPermissionService(),
+      );
+  final bool ownsDatabase = database == null;
+  final bool ownsNotifications = notifications == null;
   bool success = true;
   try {
+    final String markPaidLabel = await _resolveReminderMarkPaidLabel();
     await _executeUpcomingPaymentsWorkflow(
-      database: database,
-      notifications: notifications,
-      logger: logger,
+      database: effectiveDatabase,
+      notifications: effectiveNotifications,
+      logger: effectiveLogger,
+      markPaidActionLabel: markPaidLabel,
     );
   } catch (error, stackTrace) {
     success = false;
-    logger.logError('Upcoming payments task failed: $error\n$stackTrace');
+    effectiveLogger.logError(
+      'Upcoming payments task failed: $error\n$stackTrace',
+    );
+  } finally {
+    if (ownsNotifications) {
+      effectiveNotifications.dispose();
+    }
+    if (ownsDatabase) {
+      await effectiveDatabase.close();
+    }
   }
-  await database.close();
   return success;
 }
 
@@ -128,6 +148,7 @@ Future<void> _executeUpcomingPaymentsWorkflow({
   required AppDatabase database,
   required NotificationsService notifications,
   required LoggerService logger,
+  required String markPaidActionLabel,
 }) async {
   final UpcomingPaymentsDao upcomingDao = UpcomingPaymentsDao(database);
   final PaymentRemindersDao remindersDao = PaymentRemindersDao(database);
@@ -192,6 +213,7 @@ Future<void> _executeUpcomingPaymentsWorkflow({
       remindersRepository: remindersRepository,
       timeService: timeService,
       logger: logger,
+      markPaidActionLabel: markPaidActionLabel,
     );
   }
 }
@@ -262,12 +284,36 @@ Future<void> _handleUpcomingPayment({
   logger.logInfo('scheduled id=$notificationId for rule ${current.id}');
 }
 
+Future<String> _resolveReminderMarkPaidLabel() async {
+  try {
+    final Locale deviceLocale =
+        WidgetsBinding.instance.platformDispatcher.locale;
+    final Locale resolved = _resolveSupportedLocale(deviceLocale);
+    final AppLocalizations strings = await AppLocalizations.delegate.load(
+      resolved,
+    );
+    return strings.upcomingPaymentsReminderMarkPaidAction;
+  } catch (_) {
+    return 'Оплачено';
+  }
+}
+
+Locale _resolveSupportedLocale(Locale locale) {
+  for (final Locale supported in AppLocalizations.supportedLocales) {
+    if (supported.languageCode == locale.languageCode) {
+      return supported;
+    }
+  }
+  return const Locale('ru');
+}
+
 Future<void> _handleReminder({
   required PaymentReminder reminder,
   required NotificationsService notifications,
   required PaymentRemindersRepository remindersRepository,
   required TimeService timeService,
   required LoggerService logger,
+  required String markPaidActionLabel,
 }) async {
   PaymentReminder current = reminder;
   final int notificationId = _hashId('rem_${current.id}');
@@ -298,6 +344,12 @@ Future<void> _handleReminder({
       title: current.title,
       body: _reminderBody(current),
       payload: 'reminder:${current.id}',
+      androidActions: <AndroidNotificationAction>[
+        AndroidNotificationAction(
+          NotificationsService.actionMarkReminderPaid,
+          markPaidActionLabel,
+        ),
+      ],
     );
     logger.logInfo('scheduled id=$notificationId for reminder ${current.id}');
     return;
@@ -316,6 +368,12 @@ Future<void> _handleReminder({
     title: current.title,
     body: _reminderBody(current),
     payload: 'reminder:${current.id}',
+    androidActions: <AndroidNotificationAction>[
+      AndroidNotificationAction(
+        NotificationsService.actionMarkReminderPaid,
+        markPaidActionLabel,
+      ),
+    ],
   );
   final int nowMs = timeService.nowMs();
   final PaymentReminder updated = current.copyWith(

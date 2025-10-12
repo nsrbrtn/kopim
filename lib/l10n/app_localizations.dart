@@ -1634,12 +1634,6 @@ abstract class AppLocalizations {
   /// **'Date and time'**
   String get upcomingPaymentsFieldReminderWhen;
 
-  /// Label for reminder completion switch
-  ///
-  /// In en, this message translates to:
-  /// **'Mark as done'**
-  String get upcomingPaymentsFieldReminderCompleted;
-
   /// Primary action button for saving a form
   ///
   /// In en, this message translates to:
@@ -1675,6 +1669,102 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Failed to save reminder: {error}'**
   String upcomingPaymentsReminderSaveError(String error);
+
+  /// Action label for marking a reminder as paid
+  ///
+  /// In en, this message translates to:
+  /// **'Paid'**
+  String get upcomingPaymentsReminderMarkPaidAction;
+
+  /// Tooltip for the paid action on reminder cards
+  ///
+  /// In en, this message translates to:
+  /// **'Mark reminder as paid'**
+  String get upcomingPaymentsReminderMarkPaidTooltip;
+
+  /// Snackbar message when a reminder is marked as paid
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder marked as paid.'**
+  String get upcomingPaymentsReminderMarkPaidSuccess;
+
+  /// Error message when marking a reminder as paid fails
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to mark reminder: {error}'**
+  String upcomingPaymentsReminderMarkPaidError(String error);
+
+  /// Menu option label for editing a reminder
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get upcomingPaymentsReminderEditAction;
+
+  /// Menu option label for deleting a reminder
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get upcomingPaymentsReminderDeleteAction;
+
+  /// Confirmation dialog title for deleting a reminder
+  ///
+  /// In en, this message translates to:
+  /// **'Delete reminder?'**
+  String get upcomingPaymentsReminderDeleteTitle;
+
+  /// Confirmation dialog message for deleting a reminder
+  ///
+  /// In en, this message translates to:
+  /// **'Delete reminder \"{title}\"? This action cannot be undone.'**
+  String upcomingPaymentsReminderDeleteMessage(String title);
+
+  /// Snackbar message when a reminder is deleted
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder deleted.'**
+  String get upcomingPaymentsReminderDeleteSuccess;
+
+  /// Error message shown when reminder deletion fails
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to delete reminder: {error}'**
+  String upcomingPaymentsReminderDeleteError(String error);
+
+  /// Menu option label for editing a recurring payment
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get upcomingPaymentsEditAction;
+
+  /// Menu option label for deleting a recurring payment
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get upcomingPaymentsDeleteAction;
+
+  /// Confirmation dialog title for deleting a recurring payment
+  ///
+  /// In en, this message translates to:
+  /// **'Delete recurring payment?'**
+  String get upcomingPaymentsDeleteTitle;
+
+  /// Confirmation dialog message for deleting a recurring payment
+  ///
+  /// In en, this message translates to:
+  /// **'Delete \"{title}\"? This action cannot be undone.'**
+  String upcomingPaymentsDeleteMessage(String title);
+
+  /// Snackbar message when a recurring payment is deleted
+  ///
+  /// In en, this message translates to:
+  /// **'Recurring payment deleted.'**
+  String get upcomingPaymentsDeleteSuccess;
+
+  /// Error message shown when deleting a recurring payment fails
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to delete recurring payment: {error}'**
+  String upcomingPaymentsDeleteError(String error);
 
   /// Validation error shown when title is empty
   ///

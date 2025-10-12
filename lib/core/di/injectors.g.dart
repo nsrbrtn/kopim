@@ -1198,7 +1198,7 @@ final class NotificationsServiceProvider
 }
 
 String _$notificationsServiceHash() =>
-    r'17ebb00672749bc71bffab1f89706cce814be25b';
+    r'b8f5c4e440c294fdc23c0da1bb00ae0e3ae0327c';
 
 @ProviderFor(workmanager)
 const workmanagerProvider = WorkmanagerProvider._();

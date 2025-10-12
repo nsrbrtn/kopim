@@ -1178,10 +1178,6 @@
   "@upcomingPaymentsFieldReminderWhen": {
     "description": "Подпись выбора даты и времени напоминания"
   },
-  "upcomingPaymentsFieldReminderCompleted": "Отметить выполненным",
-  "@upcomingPaymentsFieldReminderCompleted": {
-    "description": "Подпись переключателя статуса напоминания"
-  },
   "upcomingPaymentsSubmit": "Сохранить",
   "@upcomingPaymentsSubmit": {
     "description": "Основная кнопка сохранения формы"
@@ -1210,6 +1206,95 @@
   "upcomingPaymentsReminderSaveError": "Не удалось сохранить напоминание: {error}",
   "@upcomingPaymentsReminderSaveError": {
     "description": "Сообщение об ошибке при сохранении напоминания",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "upcomingPaymentsReminderMarkPaidAction": "Оплачено",
+  "@upcomingPaymentsReminderMarkPaidAction": {
+    "description": "Название действия отметки напоминания как оплаченного"
+  },
+  "upcomingPaymentsReminderMarkPaidTooltip": "Отметить напоминание как оплаченное",
+  "@upcomingPaymentsReminderMarkPaidTooltip": {
+    "description": "Подсказка для кнопки отметки напоминания как оплаченное"
+  },
+  "upcomingPaymentsReminderMarkPaidSuccess": "Напоминание отмечено как оплаченное.",
+  "@upcomingPaymentsReminderMarkPaidSuccess": {
+    "description": "Сообщение об успешной отметке напоминания как оплаченного"
+  },
+  "upcomingPaymentsReminderMarkPaidError": "Не удалось отметить напоминание: {error}",
+  "@upcomingPaymentsReminderMarkPaidError": {
+    "description": "Сообщение об ошибке при отметке напоминания",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "upcomingPaymentsReminderEditAction": "Редактировать",
+  "@upcomingPaymentsReminderEditAction": {
+    "description": "Название действия редактирования напоминания"
+  },
+  "upcomingPaymentsReminderDeleteAction": "Удалить",
+  "@upcomingPaymentsReminderDeleteAction": {
+    "description": "Название действия удаления напоминания"
+  },
+  "upcomingPaymentsReminderDeleteTitle": "Удалить напоминание?",
+  "@upcomingPaymentsReminderDeleteTitle": {
+    "description": "Заголовок диалога подтверждения удаления напоминания"
+  },
+  "upcomingPaymentsReminderDeleteMessage": "Удалить напоминание «{title}»? Действие нельзя отменить.",
+  "@upcomingPaymentsReminderDeleteMessage": {
+    "description": "Сообщение диалога удаления напоминания",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "upcomingPaymentsReminderDeleteSuccess": "Напоминание удалено.",
+  "@upcomingPaymentsReminderDeleteSuccess": {
+    "description": "Сообщение об успешном удалении напоминания"
+  },
+  "upcomingPaymentsReminderDeleteError": "Не удалось удалить напоминание: {error}",
+  "@upcomingPaymentsReminderDeleteError": {
+    "description": "Сообщение об ошибке при удалении напоминания",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "upcomingPaymentsEditAction": "Редактировать",
+  "@upcomingPaymentsEditAction": {
+    "description": "Название действия редактирования повторяющегося платежа"
+  },
+  "upcomingPaymentsDeleteAction": "Удалить",
+  "@upcomingPaymentsDeleteAction": {
+    "description": "Название действия удаления повторяющегося платежа"
+  },
+  "upcomingPaymentsDeleteTitle": "Удалить повторяющийся платёж?",
+  "@upcomingPaymentsDeleteTitle": {
+    "description": "Заголовок диалога удаления повторяющегося платежа"
+  },
+  "upcomingPaymentsDeleteMessage": "Удалить «{title}»? Действие нельзя отменить.",
+  "@upcomingPaymentsDeleteMessage": {
+    "description": "Сообщение диалога удаления повторяющегося платежа",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "upcomingPaymentsDeleteSuccess": "Повторяющийся платёж удалён.",
+  "@upcomingPaymentsDeleteSuccess": {
+    "description": "Сообщение об успешном удалении повторяющегося платежа"
+  },
+  "upcomingPaymentsDeleteError": "Не удалось удалить повторяющийся платёж: {error}",
+  "@upcomingPaymentsDeleteError": {
+    "description": "Сообщение об ошибке при удалении повторяющегося платежа",
     "placeholders": {
       "error": {
         "type": "String"

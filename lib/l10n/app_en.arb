@@ -1178,10 +1178,6 @@
   "@upcomingPaymentsFieldReminderWhen": {
     "description": "Label for selecting reminder date and time"
   },
-  "upcomingPaymentsFieldReminderCompleted": "Mark as done",
-  "@upcomingPaymentsFieldReminderCompleted": {
-    "description": "Label for reminder completion switch"
-  },
   "upcomingPaymentsSubmit": "Save",
   "@upcomingPaymentsSubmit": {
     "description": "Primary action button for saving a form"
@@ -1210,6 +1206,95 @@
   "upcomingPaymentsReminderSaveError": "Failed to save reminder: {error}",
   "@upcomingPaymentsReminderSaveError": {
     "description": "Error message shown when saving a reminder fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "upcomingPaymentsReminderMarkPaidAction": "Paid",
+  "@upcomingPaymentsReminderMarkPaidAction": {
+    "description": "Action label for marking a reminder as paid"
+  },
+  "upcomingPaymentsReminderMarkPaidTooltip": "Mark reminder as paid",
+  "@upcomingPaymentsReminderMarkPaidTooltip": {
+    "description": "Tooltip for the paid action on reminder cards"
+  },
+  "upcomingPaymentsReminderMarkPaidSuccess": "Reminder marked as paid.",
+  "@upcomingPaymentsReminderMarkPaidSuccess": {
+    "description": "Snackbar message when a reminder is marked as paid"
+  },
+  "upcomingPaymentsReminderMarkPaidError": "Failed to mark reminder: {error}",
+  "@upcomingPaymentsReminderMarkPaidError": {
+    "description": "Error message when marking a reminder as paid fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "upcomingPaymentsReminderEditAction": "Edit",
+  "@upcomingPaymentsReminderEditAction": {
+    "description": "Menu option label for editing a reminder"
+  },
+  "upcomingPaymentsReminderDeleteAction": "Delete",
+  "@upcomingPaymentsReminderDeleteAction": {
+    "description": "Menu option label for deleting a reminder"
+  },
+  "upcomingPaymentsReminderDeleteTitle": "Delete reminder?",
+  "@upcomingPaymentsReminderDeleteTitle": {
+    "description": "Confirmation dialog title for deleting a reminder"
+  },
+  "upcomingPaymentsReminderDeleteMessage": "Delete reminder \"{title}\"? This action cannot be undone.",
+  "@upcomingPaymentsReminderDeleteMessage": {
+    "description": "Confirmation dialog message for deleting a reminder",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "upcomingPaymentsReminderDeleteSuccess": "Reminder deleted.",
+  "@upcomingPaymentsReminderDeleteSuccess": {
+    "description": "Snackbar message when a reminder is deleted"
+  },
+  "upcomingPaymentsReminderDeleteError": "Failed to delete reminder: {error}",
+  "@upcomingPaymentsReminderDeleteError": {
+    "description": "Error message shown when reminder deletion fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "upcomingPaymentsEditAction": "Edit",
+  "@upcomingPaymentsEditAction": {
+    "description": "Menu option label for editing a recurring payment"
+  },
+  "upcomingPaymentsDeleteAction": "Delete",
+  "@upcomingPaymentsDeleteAction": {
+    "description": "Menu option label for deleting a recurring payment"
+  },
+  "upcomingPaymentsDeleteTitle": "Delete recurring payment?",
+  "@upcomingPaymentsDeleteTitle": {
+    "description": "Confirmation dialog title for deleting a recurring payment"
+  },
+  "upcomingPaymentsDeleteMessage": "Delete \"{title}\"? This action cannot be undone.",
+  "@upcomingPaymentsDeleteMessage": {
+    "description": "Confirmation dialog message for deleting a recurring payment",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "upcomingPaymentsDeleteSuccess": "Recurring payment deleted.",
+  "@upcomingPaymentsDeleteSuccess": {
+    "description": "Snackbar message when a recurring payment is deleted"
+  },
+  "upcomingPaymentsDeleteError": "Failed to delete recurring payment: {error}",
+  "@upcomingPaymentsDeleteError": {
+    "description": "Error message shown when deleting a recurring payment fails",
     "placeholders": {
       "error": {
         "type": "String"

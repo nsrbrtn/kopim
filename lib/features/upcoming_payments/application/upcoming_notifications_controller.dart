@@ -1,9 +1,12 @@
 import 'dart:async';
 
+import 'package:flutter/widgets.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:riverpod/riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:timezone/timezone.dart' as tz;
 
+import 'package:kopim/core/config/app_config.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/core/services/logger_service.dart';
 import 'package:kopim/core/services/notifications_service.dart';
@@ -11,6 +14,8 @@ import 'package:kopim/features/upcoming_payments/domain/entities/payment_reminde
 import 'package:kopim/features/upcoming_payments/domain/entities/upcoming_payment.dart';
 import 'package:kopim/features/upcoming_payments/domain/providers/upcoming_payments_providers.dart';
 import 'package:kopim/features/upcoming_payments/domain/services/time_service.dart';
+import 'package:kopim/features/upcoming_payments/domain/usecases/mark_reminder_done_uc.dart';
+import 'package:kopim/l10n/app_localizations.dart';
 
 part 'upcoming_notifications_controller.g.dart';
 
@@ -19,11 +24,13 @@ class UpcomingNotificationsController
     extends _$UpcomingNotificationsController {
   ProviderSubscription<AsyncValue<List<UpcomingPayment>>>? _paymentsSub;
   ProviderSubscription<AsyncValue<List<PaymentReminder>>>? _remindersSub;
+  StreamSubscription<NotificationResponse>? _responsesSub;
   final Set<int> _activePaymentIds = <int>{};
   final Set<int> _activeReminderIds = <int>{};
   late NotificationsService _notifications;
   late LoggerService _logger;
   late TimeService _timeService;
+  late AppLocalizations _strings;
   bool _ready = false;
 
   @override
@@ -31,6 +38,15 @@ class UpcomingNotificationsController
     _notifications = ref.read(notificationsServiceProvider);
     _logger = ref.read(loggerServiceProvider);
     _timeService = ref.read(timeServiceProvider);
+    final Locale locale = ref.watch(appLocaleProvider);
+    _strings = await AppLocalizations.delegate.load(locale);
+
+    await _responsesSub?.cancel();
+    _responsesSub = _notifications.responses.listen((
+      NotificationResponse response,
+    ) {
+      unawaited(handleNotificationResponse(response));
+    });
 
     try {
       await _notifications.ensurePermission();
@@ -94,6 +110,7 @@ class UpcomingNotificationsController
       logger: _logger,
       timeService: _timeService,
       reminders: initialReminders,
+      markPaidLabel: _strings.upcomingPaymentsReminderMarkPaidAction,
     );
 
     _remindersSub = ref.listen<AsyncValue<List<PaymentReminder>>>(
@@ -110,6 +127,7 @@ class UpcomingNotificationsController
                 logger: _logger,
                 timeService: _timeService,
                 reminders: reminders,
+                markPaidLabel: _strings.upcomingPaymentsReminderMarkPaidAction,
               ),
             );
           },
@@ -125,6 +143,8 @@ class UpcomingNotificationsController
     ref.onDispose(() {
       _paymentsSub?.close();
       _remindersSub?.close();
+      unawaited(_responsesSub?.cancel());
+      _responsesSub = null;
       _activePaymentIds.clear();
       _activeReminderIds.clear();
       _ready = false;
@@ -156,11 +176,38 @@ class UpcomingNotificationsController
         logger: _logger,
         timeService: _timeService,
         reminders: reminders,
+        markPaidLabel: _strings.upcomingPaymentsReminderMarkPaidAction,
       );
       _logger.logInfo('Пересоздали напоминания с учётом точных алармов');
     } on Object catch (error, stackTrace) {
       _logger.logError(
         'Не удалось пересоздать напоминания: $error\n$stackTrace',
+      );
+    }
+  }
+
+  Future<void> handleNotificationResponse(NotificationResponse response) async {
+    if (response.actionId != NotificationsService.actionMarkReminderPaid) {
+      return;
+    }
+    final String? payload = response.payload;
+    if (payload == null || !payload.startsWith('reminder:')) {
+      return;
+    }
+    final String reminderId = payload.substring('reminder:'.length);
+    if (reminderId.isEmpty) {
+      return;
+    }
+    try {
+      final MarkReminderDoneUC markDone = ref.read(markReminderDoneUCProvider);
+      await markDone(MarkReminderDoneInput(id: reminderId, isDone: true));
+      _logger.logInfo(
+        'Reminder $reminderId marked as done from notification action',
+      );
+    } catch (error, stackTrace) {
+      _logger.logError(
+        'Failed to mark reminder done from notification action: '
+        '$error\n$stackTrace',
       );
     }
   }
@@ -208,6 +255,7 @@ class UpcomingNotificationsController
     required LoggerService logger,
     required TimeService timeService,
     required List<PaymentReminder> reminders,
+    required String markPaidLabel,
   }) async {
     final tz.TZDateTime now = tz.TZDateTime.now(tz.local);
     final Set<int> currentIds = <int>{};
@@ -234,6 +282,12 @@ class UpcomingNotificationsController
         title: reminder.title,
         body: _buildReminderBody(reminder),
         payload: 'reminder:${reminder.id}',
+        androidActions: <AndroidNotificationAction>[
+          AndroidNotificationAction(
+            NotificationsService.actionMarkReminderPaid,
+            markPaidLabel,
+          ),
+        ],
       );
     }
 

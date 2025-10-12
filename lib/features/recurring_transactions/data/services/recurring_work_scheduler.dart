@@ -71,7 +71,11 @@ void recurringWorkDispatcher() {
           break;
         case upcoming_work.kUpcomingPaymentsPeriodicTask:
         case upcoming_work.kUpcomingPaymentsOneOffTask:
-          success = await upcoming_work.runUpcomingPaymentsBackgroundTask(task);
+          success = await upcoming_work.runUpcomingPaymentsBackgroundTask(
+            task,
+            database: database,
+            logger: logger,
+          );
           break;
         default:
           logger.logInfo('Unhandled WorkManager task: $task');

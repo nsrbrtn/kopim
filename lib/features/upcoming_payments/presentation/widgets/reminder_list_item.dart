@@ -11,11 +11,15 @@ class ReminderListItem extends StatelessWidget {
     required this.reminder,
     required this.onTap,
     required this.timeService,
+    required this.onMarkPaid,
+    required this.onDelete,
   });
 
   final PaymentReminder reminder;
   final VoidCallback onTap;
   final TimeService timeService;
+  final VoidCallback onMarkPaid;
+  final VoidCallback onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -72,13 +76,61 @@ class ReminderListItem extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: subtitleChildren,
         ),
-        trailing: Text(
-          amountText,
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: <Widget>[
+                Text(
+                  amountText,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(width: 8),
+            IconButton(
+              icon: Icon(
+                reminder.isDone
+                    ? Icons.check_circle
+                    : Icons.check_circle_outline,
+              ),
+              tooltip: strings.upcomingPaymentsReminderMarkPaidTooltip,
+              onPressed: reminder.isDone ? null : onMarkPaid,
+            ),
+            const SizedBox(width: 4),
+            PopupMenuButton<_ReminderAction>(
+              onSelected: (_ReminderAction action) {
+                switch (action) {
+                  case _ReminderAction.edit:
+                    onTap();
+                    break;
+                  case _ReminderAction.delete:
+                    onDelete();
+                    break;
+                }
+              },
+              itemBuilder: (BuildContext context) {
+                return <PopupMenuEntry<_ReminderAction>>[
+                  PopupMenuItem<_ReminderAction>(
+                    value: _ReminderAction.edit,
+                    child: Text(strings.upcomingPaymentsReminderEditAction),
+                  ),
+                  PopupMenuItem<_ReminderAction>(
+                    value: _ReminderAction.delete,
+                    child: Text(strings.upcomingPaymentsReminderDeleteAction),
+                  ),
+                ];
+              },
+            ),
+          ],
         ),
       ),
     );
   }
 }
+
+enum _ReminderAction { edit, delete }

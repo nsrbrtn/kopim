@@ -907,9 +907,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get upcomingPaymentsFieldReminderWhen => 'Date and time';
 
   @override
-  String get upcomingPaymentsFieldReminderCompleted => 'Mark as done';
-
-  @override
   String get upcomingPaymentsSubmit => 'Save';
 
   @override
@@ -929,6 +926,65 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String upcomingPaymentsReminderSaveError(String error) {
     return 'Failed to save reminder: $error';
+  }
+
+  @override
+  String get upcomingPaymentsReminderMarkPaidAction => 'Paid';
+
+  @override
+  String get upcomingPaymentsReminderMarkPaidTooltip => 'Mark reminder as paid';
+
+  @override
+  String get upcomingPaymentsReminderMarkPaidSuccess =>
+      'Reminder marked as paid.';
+
+  @override
+  String upcomingPaymentsReminderMarkPaidError(String error) {
+    return 'Failed to mark reminder: $error';
+  }
+
+  @override
+  String get upcomingPaymentsReminderEditAction => 'Edit';
+
+  @override
+  String get upcomingPaymentsReminderDeleteAction => 'Delete';
+
+  @override
+  String get upcomingPaymentsReminderDeleteTitle => 'Delete reminder?';
+
+  @override
+  String upcomingPaymentsReminderDeleteMessage(String title) {
+    return 'Delete reminder \"$title\"? This action cannot be undone.';
+  }
+
+  @override
+  String get upcomingPaymentsReminderDeleteSuccess => 'Reminder deleted.';
+
+  @override
+  String upcomingPaymentsReminderDeleteError(String error) {
+    return 'Failed to delete reminder: $error';
+  }
+
+  @override
+  String get upcomingPaymentsEditAction => 'Edit';
+
+  @override
+  String get upcomingPaymentsDeleteAction => 'Delete';
+
+  @override
+  String get upcomingPaymentsDeleteTitle => 'Delete recurring payment?';
+
+  @override
+  String upcomingPaymentsDeleteMessage(String title) {
+    return 'Delete \"$title\"? This action cannot be undone.';
+  }
+
+  @override
+  String get upcomingPaymentsDeleteSuccess => 'Recurring payment deleted.';
+
+  @override
+  String upcomingPaymentsDeleteError(String error) {
+    return 'Failed to delete recurring payment: $error';
   }
 
   @override

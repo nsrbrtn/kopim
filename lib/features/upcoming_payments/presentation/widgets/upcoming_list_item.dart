@@ -16,6 +16,7 @@ class UpcomingPaymentListItem extends StatelessWidget {
     required this.accounts,
     required this.categories,
     required this.onTap,
+    required this.onDelete,
     required this.timeService,
   });
 
@@ -23,6 +24,7 @@ class UpcomingPaymentListItem extends StatelessWidget {
   final Map<String, AccountEntity> accounts;
   final Map<String, Category> categories;
   final VoidCallback onTap;
+  final VoidCallback onDelete;
   final TimeService timeService;
 
   @override
@@ -99,27 +101,57 @@ class UpcomingPaymentListItem extends StatelessWidget {
             ],
           ),
         ),
-        trailing: Column(
+        trailing: Row(
           mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.end,
           children: <Widget>[
-            Text(
-              formatter.format(amountAbs),
-              style: theme.textTheme.titleMedium?.copyWith(
-                color: amountColor,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            if (nextDate != null)
-              Padding(
-                padding: const EdgeInsets.only(top: 4),
-                child: Text(
-                  dateFormat.format(nextDate),
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: <Widget>[
+                Text(
+                  formatter.format(amountAbs),
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: amountColor,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
-              ),
+                if (nextDate != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text(
+                      dateFormat.format(nextDate),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(width: 8),
+            PopupMenuButton<_UpcomingPaymentAction>(
+              onSelected: (_UpcomingPaymentAction action) {
+                switch (action) {
+                  case _UpcomingPaymentAction.edit:
+                    onTap();
+                    break;
+                  case _UpcomingPaymentAction.delete:
+                    onDelete();
+                    break;
+                }
+              },
+              itemBuilder: (BuildContext context) {
+                return <PopupMenuEntry<_UpcomingPaymentAction>>[
+                  PopupMenuItem<_UpcomingPaymentAction>(
+                    value: _UpcomingPaymentAction.edit,
+                    child: Text(strings.upcomingPaymentsEditAction),
+                  ),
+                  PopupMenuItem<_UpcomingPaymentAction>(
+                    value: _UpcomingPaymentAction.delete,
+                    child: Text(strings.upcomingPaymentsDeleteAction),
+                  ),
+                ];
+              },
+            ),
           ],
         ),
       ),
@@ -132,3 +164,5 @@ class UpcomingPaymentListItem extends StatelessWidget {
     return a.isBefore(b) ? a : b;
   }
 }
+
+enum _UpcomingPaymentAction { edit, delete }
