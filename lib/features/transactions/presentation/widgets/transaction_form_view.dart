@@ -1,9 +1,12 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:kopim/core/utils/helpers.dart';
+import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
@@ -424,24 +427,53 @@ class _CategoryDropdownField extends ConsumerWidget {
             return a.name.toLowerCase().compareTo(b.name.toLowerCase());
           });
 
+    final Map<String, Category> filteredById = <String, Category>{
+      for (final Category category in filteredCategories) category.id: category,
+    };
+
+    final List<DropdownMenuItem<String>> menuItems = <DropdownMenuItem<String>>[
+      DropdownMenuItem<String>(
+        value: '',
+        child: _CategoryDropdownItem(
+          label: strings.addTransactionCategoryNone,
+          icon: Icons.do_not_disturb_alt_outlined,
+        ),
+      ),
+      ...filteredCategories.map(
+        (Category category) => DropdownMenuItem<String>(
+          value: category.id,
+          child: _CategoryDropdownItem.fromCategory(category),
+        ),
+      ),
+    ];
+
     return DropdownButtonFormField<String>(
       key: key,
       initialValue: selectedCategoryId ?? '',
       decoration: InputDecoration(
         labelText: strings.addTransactionCategoryLabel,
       ),
-      items: <DropdownMenuItem<String>>[
-        DropdownMenuItem<String>(
-          value: '',
-          child: Text(strings.addTransactionCategoryNone),
-        ),
-        ...filteredCategories.map(
-          (Category category) => DropdownMenuItem<String>(
-            value: category.id,
-            child: Text(category.name),
-          ),
-        ),
-      ],
+      isExpanded: true,
+      items: menuItems,
+      selectedItemBuilder: (BuildContext context) {
+        return menuItems.map((DropdownMenuItem<String> item) {
+          final String value = item.value ?? '';
+          if (value.isEmpty) {
+            return _CategoryDropdownItem(
+              label: strings.addTransactionCategoryNone,
+              icon: Icons.do_not_disturb_alt_outlined,
+            );
+          }
+          final Category? category = filteredById[value];
+          if (category == null) {
+            return _CategoryDropdownItem(
+              label: strings.addTransactionCategoryNone,
+              icon: Icons.category_outlined,
+            );
+          }
+          return _CategoryDropdownItem.fromCategory(category);
+        }).toList();
+      },
       onChanged: (String? value) {
         ref.read(transactionProvider.notifier).updateCategory(value);
       },
@@ -793,6 +825,103 @@ class _ErrorMessage extends StatelessWidget {
         padding: const EdgeInsets.all(24),
         child: Text(message, textAlign: TextAlign.center),
       ),
+    );
+  }
+}
+
+class _CategoryDropdownItem extends StatelessWidget {
+  const _CategoryDropdownItem({
+    required this.label,
+    this.icon,
+    this.backgroundColor,
+  });
+
+  factory _CategoryDropdownItem.fromCategory(Category category) {
+    final IconData? iconData = resolvePhosphorIconData(category.icon);
+    final Color? color = parseHexColor(category.color);
+    return _CategoryDropdownItem(
+      label: category.name,
+      icon: iconData,
+      backgroundColor: color,
+    );
+  }
+
+  final String label;
+  final IconData? icon;
+  final Color? backgroundColor;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final Color resolvedBackground =
+        backgroundColor ?? theme.colorScheme.surfaceContainerHighest;
+    final Brightness brightness = ThemeData.estimateBrightnessForColor(
+      resolvedBackground,
+    );
+    final Color resolvedForeground = brightness == Brightness.dark
+        ? Colors.white
+        : theme.colorScheme.onSurfaceVariant;
+    final IconData resolvedIcon = icon ?? Icons.category_outlined;
+
+    return LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints constraints) {
+        const double avatarDiameter = 28;
+        const double horizontalGap = 8;
+
+        if (!constraints.hasBoundedWidth) {
+          final double maxWidth = MediaQuery.sizeOf(context).width;
+          final double textWidth = math.max(
+            0,
+            maxWidth - avatarDiameter - horizontalGap,
+          );
+
+          return ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: maxWidth),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                CircleAvatar(
+                  radius: 14,
+                  backgroundColor: resolvedBackground,
+                  foregroundColor: resolvedForeground,
+                  child: Icon(resolvedIcon, size: 18),
+                ),
+                const SizedBox(width: horizontalGap),
+                SizedBox(
+                  width: textWidth,
+                  child: Text(
+                    label,
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                    softWrap: false,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: <Widget>[
+            CircleAvatar(
+              radius: 14,
+              backgroundColor: resolvedBackground,
+              foregroundColor: resolvedForeground,
+              child: Icon(resolvedIcon, size: 18),
+            ),
+            const SizedBox(width: horizontalGap),
+            Expanded(
+              child: Text(
+                label,
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+                softWrap: false,
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }

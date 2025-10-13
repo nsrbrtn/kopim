@@ -47,8 +47,8 @@ class NotificationsService {
     return _exactAlarmPermissionService.canScheduleExactAlarms();
   }
 
-  Future<void> openExactAlarmsSettings() async {
-    await _exactAlarmPermissionService.openExactAlarmsSettings();
+  Future<bool> openExactAlarmsSettings() async {
+    return _exactAlarmPermissionService.openExactAlarmsSettings();
   }
 
   Future<void> scheduleAt({
