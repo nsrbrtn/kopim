@@ -204,7 +204,10 @@ class AuthSyncService {
 
     await _firestore.runTransaction((Transaction transaction) async {
       for (final OutboxEntryRow entry in entries) {
-        final Map<String, dynamic> payload = _outboxDao.decodePayload(entry);
+        final Map<String, dynamic> payload = _normalizeOutboxPayload(
+          entry.entityType,
+          _outboxDao.decodePayload(entry),
+        );
         final OutboxOperation operation = OutboxOperation.values.byName(
           entry.operation,
         );
@@ -332,6 +335,66 @@ class AuthSyncService {
         }
       }
     });
+  }
+
+  Map<String, dynamic> _normalizeOutboxPayload(
+    String entityType,
+    Map<String, dynamic> payload,
+  ) {
+    switch (entityType) {
+      case 'category':
+        return _normalizeCategoryOutboxPayload(payload);
+      default:
+        return Map<String, dynamic>.from(payload);
+    }
+  }
+
+  Map<String, dynamic> _normalizeCategoryOutboxPayload(
+    Map<String, dynamic> payload,
+  ) {
+    final Map<String, dynamic> normalized = Map<String, dynamic>.from(payload);
+
+    final Object? iconRaw = normalized['icon'];
+    String? iconName;
+    String? iconStyle;
+
+    if (iconRaw is Map<String, dynamic>) {
+      final Map<String, dynamic> iconMap = Map<String, dynamic>.from(iconRaw);
+      iconName = iconMap['name'] as String?;
+      iconStyle = iconMap['style']?.toString();
+    } else if (iconRaw is String) {
+      iconName = iconRaw;
+    }
+
+    iconName ??= (normalized['iconName'] as String?)?.trim();
+    iconStyle ??= (normalized['iconStyle'] as String?)?.trim();
+
+    if (iconStyle != null && iconStyle.isNotEmpty) {
+      iconStyle = iconStyle.toLowerCase();
+    }
+
+    if (iconName != null) {
+      iconName = iconName.trim();
+    }
+
+    if (iconName != null && iconName.isNotEmpty) {
+      final Map<String, dynamic> descriptor = <String, dynamic>{
+        'name': iconName,
+        if (iconStyle != null && iconStyle.isNotEmpty) 'style': iconStyle,
+      };
+      descriptor.removeWhere(
+        (String key, dynamic value) =>
+            value == null || (value is String && value.isEmpty),
+      );
+      normalized['icon'] = descriptor;
+    } else {
+      normalized.remove('icon');
+    }
+
+    normalized.remove('iconName');
+    normalized.remove('iconStyle');
+
+    return normalized;
   }
 
   Future<_RemoteSnapshot> _fetchRemoteSnapshot(String userId) async {

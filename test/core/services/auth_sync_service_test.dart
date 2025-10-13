@@ -21,6 +21,8 @@ import 'package:kopim/features/budgets/domain/entities/budget_period.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_scope.dart';
 import 'package:kopim/features/categories/data/sources/local/category_dao.dart';
 import 'package:kopim/features/categories/data/sources/remote/category_remote_data_source.dart';
+import 'package:kopim/features/categories/domain/entities/category.dart';
+import 'package:kopim/core/domain/icons/phosphor_icon_descriptor.dart';
 import 'package:kopim/features/profile/data/local/profile_dao.dart';
 import 'package:kopim/features/profile/data/remote/profile_remote_data_source.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
@@ -374,6 +376,69 @@ void main() {
 
         verify(() => analytics.logEvent('auth_sync_start', any())).called(1);
         verify(() => analytics.logEvent('auth_sync_success', any())).called(1);
+      },
+    );
+
+    test(
+      'replays legacy category outbox payload with string icon descriptor',
+      () async {
+        final AuthSyncService service = buildService();
+        const String userId = 'user-legacy';
+
+        await outboxDao.enqueue(
+          entityType: 'category',
+          entityId: 'cat-1',
+          operation: OutboxOperation.upsert,
+          payload: <String, dynamic>{
+            'id': 'cat-1',
+            'name': 'Food',
+            'type': 'expense',
+            'icon': 'bowl-food',
+            'iconStyle': 'BOLD',
+            'color': '#FF0000',
+            'createdAt': '2023-01-01T00:00:00.000Z',
+            'updatedAt': '2023-01-02T00:00:00.000Z',
+            'isDeleted': false,
+          },
+        );
+
+        final AuthUser authUser = AuthUser(
+          uid: userId,
+          isAnonymous: false,
+          emailVerified: true,
+          creationTime: DateTime.utc(2023, 1, 1),
+          lastSignInTime: DateTime.utc(2023, 1, 2),
+        );
+
+        await service.synchronizeOnLogin(user: authUser, previousUser: null);
+
+        final DocumentSnapshot<Map<String, dynamic>> remoteCategoryDoc =
+            await firestore
+                .collection('users')
+                .doc(userId)
+                .collection('categories')
+                .doc('cat-1')
+                .get();
+
+        expect(remoteCategoryDoc.exists, isTrue);
+        final Map<String, dynamic>? remoteData = remoteCategoryDoc.data();
+        expect(remoteData?['iconDescriptor'], isA<Map<String, dynamic>>());
+        final Map<String, dynamic> descriptor =
+            (remoteData?['iconDescriptor'] as Map<String, dynamic>?) ??
+            const <String, dynamic>{};
+        expect(descriptor['name'], equals('bowl-food'));
+        expect(descriptor['style'], equals('bold'));
+
+        final List<Category> storedCategories = await categoryDao
+            .getAllCategories();
+        expect(storedCategories, hasLength(1));
+        expect(storedCategories.single.icon?.name, equals('bowl-food'));
+        expect(
+          storedCategories.single.icon?.style,
+          equals(PhosphorIconStyle.bold),
+        );
+
+        expect(await outboxDao.pendingCount(), equals(0));
       },
     );
 
