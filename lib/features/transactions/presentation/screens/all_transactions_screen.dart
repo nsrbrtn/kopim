@@ -208,18 +208,41 @@ class _FiltersPanel extends ConsumerWidget {
               shrinkWrap: true,
               children: <Widget>[
                 ListTile(
-                  leading: const Icon(Icons.clear),
+                  leading: CircleAvatar(
+                    backgroundColor: theme.colorScheme.surfaceContainerHighest,
+                    foregroundColor: theme.colorScheme.onSurfaceVariant,
+                    child: const Icon(Icons.all_inclusive, size: 20),
+                  ),
                   title: Text(strings.allTransactionsFiltersCategoryAny),
                   selected: filters.categoryId == null,
                   onTap: () => Navigator.of(sheetContext).pop(null),
                 ),
-                ...categories.map(
-                  (Category category) => ListTile(
+                ...categories.map((Category category) {
+                  final PhosphorIconData? iconData = resolvePhosphorIconData(
+                    category.icon,
+                  );
+                  final Color? categoryColor = parseHexColor(category.color);
+                  final Color avatarForeground = categoryColor != null
+                      ? (ThemeData.estimateBrightnessForColor(categoryColor) ==
+                                Brightness.dark
+                            ? Colors.white
+                            : Colors.black87)
+                      : theme.colorScheme.onSurfaceVariant;
+                  return ListTile(
+                    leading: CircleAvatar(
+                      backgroundColor:
+                          categoryColor ??
+                          theme.colorScheme.surfaceContainerHighest,
+                      foregroundColor: avatarForeground,
+                      child: iconData != null
+                          ? Icon(iconData, size: 20)
+                          : const Icon(Icons.category_outlined, size: 20),
+                    ),
                     title: Text(category.name),
                     selected: filters.categoryId == category.id,
                     onTap: () => Navigator.of(sheetContext).pop(category.id),
-                  ),
-                ),
+                  );
+                }),
               ],
             ),
           );

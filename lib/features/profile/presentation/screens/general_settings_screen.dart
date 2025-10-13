@@ -61,8 +61,8 @@ class GeneralSettingsScreen extends ConsumerWidget {
           _NotificationsSettingsCard(
             strings: strings,
             exactAlarmAsync: exactAlarmAsync,
-            onRequestExactAlarms: () async {
-              await ref.read(exactAlarmControllerProvider.notifier).request();
+            onRequestExactAlarms: () {
+              return ref.read(exactAlarmControllerProvider.notifier).request();
             },
             onRefreshStatus: () async {
               await ref.read(exactAlarmControllerProvider.notifier).refresh();
@@ -138,7 +138,7 @@ class _SettingsTile extends StatelessWidget {
   }
 }
 
-class _NotificationsSettingsCard extends StatelessWidget {
+class _NotificationsSettingsCard extends StatefulWidget {
   const _NotificationsSettingsCard({
     required this.strings,
     required this.exactAlarmAsync,
@@ -149,12 +149,62 @@ class _NotificationsSettingsCard extends StatelessWidget {
 
   final AppLocalizations strings;
   final AsyncValue<bool> exactAlarmAsync;
-  final Future<void> Function() onRequestExactAlarms;
+  final Future<bool> Function() onRequestExactAlarms;
   final Future<void> Function() onRefreshStatus;
   final Future<void> Function() onSendTest;
 
   @override
+  State<_NotificationsSettingsCard> createState() =>
+      _NotificationsSettingsCardState();
+}
+
+class _NotificationsSettingsCardState extends State<_NotificationsSettingsCard>
+    with WidgetsBindingObserver {
+  bool _awaitingResume = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && _awaitingResume) {
+      _awaitingResume = false;
+      if (mounted) {
+        unawaited(widget.onRefreshStatus());
+      }
+    }
+  }
+
+  Future<void> _handleExactAlarmToggle() async {
+    final bool launched = await widget.onRequestExactAlarms();
+    if (!mounted) {
+      return;
+    }
+    if (launched && !_awaitingResume) {
+      setState(() {
+        _awaitingResume = true;
+      });
+    } else if (!launched && _awaitingResume) {
+      setState(() {
+        _awaitingResume = false;
+      });
+    }
+    await widget.onRefreshStatus();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final AppLocalizations strings = widget.strings;
+    final AsyncValue<bool> exactAlarmAsync = widget.exactAlarmAsync;
     return Card(
       margin: EdgeInsets.zero,
       child: Column(
@@ -168,7 +218,7 @@ class _NotificationsSettingsCard extends StatelessWidget {
               subtitle: Text(strings.settingsNotificationsExactSubtitle),
               value: enabled,
               onChanged: (_) async {
-                await onRequestExactAlarms();
+                await _handleExactAlarmToggle();
               },
             ),
             loading: () => ListTile(
@@ -189,7 +239,7 @@ class _NotificationsSettingsCard extends StatelessWidget {
                 icon: const Icon(Icons.refresh),
                 tooltip: strings.settingsNotificationsRetryTooltip,
                 onPressed: () {
-                  unawaited(onRefreshStatus());
+                  unawaited(widget.onRefreshStatus());
                 },
               ),
             ),
@@ -201,7 +251,7 @@ class _NotificationsSettingsCard extends StatelessWidget {
               alignment: Alignment.centerLeft,
               child: ElevatedButton.icon(
                 onPressed: () async {
-                  await onSendTest();
+                  await widget.onSendTest();
                 },
                 icon: const Icon(Icons.notifications_active_outlined),
                 label: Text(strings.settingsNotificationsTestCta),

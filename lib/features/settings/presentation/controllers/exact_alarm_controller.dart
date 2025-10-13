@@ -12,51 +12,60 @@ part 'exact_alarm_controller.g.dart';
 @Riverpod(keepAlive: true)
 class ExactAlarmController extends _$ExactAlarmController {
   bool _isRequesting = false;
+  bool? _lastKnownValue;
 
   @override
   Future<bool> build() async {
     final NotificationsService service = ref.watch(
       notificationsServiceProvider,
     );
-    return service.canScheduleExact();
+    final bool canSchedule = await service.canScheduleExact();
+    _lastKnownValue = canSchedule;
+    return canSchedule;
   }
 
   Future<void> refresh() async {
+    final bool? previousValue = state.asData?.value ?? _lastKnownValue;
     state = const AsyncValue<bool>.loading();
-    state = await AsyncValue.guard<bool>(() async {
+    final AsyncValue<bool> result = await AsyncValue.guard<bool>(() async {
       final NotificationsService service = ref.read(
         notificationsServiceProvider,
       );
       return service.canScheduleExact();
     });
+    state = result;
+
+    final bool? currentValue = result.asData?.value;
+    if (currentValue != null) {
+      final bool shouldReschedule = currentValue && previousValue != true;
+      _lastKnownValue = currentValue;
+      if (shouldReschedule) {
+        final LoggerService logger = ref.read(loggerServiceProvider);
+        logger.logInfo('Точные напоминания включены, пересоздаем расписание.');
+        await ref
+            .read(upcomingNotificationsControllerProvider.notifier)
+            .rescheduleAll();
+      }
+    }
   }
 
-  Future<void> request() async {
+  Future<bool> request() async {
     if (_isRequesting) {
-      return;
+      return false;
     }
     _isRequesting = true;
     final NotificationsService service = ref.read(notificationsServiceProvider);
     final LoggerService logger = ref.read(loggerServiceProvider);
     try {
-      await service.openExactAlarmsSettings();
-      await Future<void>.delayed(const Duration(seconds: 1));
+      final bool launched = await service.openExactAlarmsSettings();
       await refresh();
-      final bool enabled = state.maybeWhen(
-        data: (bool value) => value,
-        orElse: () => false,
-      );
-      if (enabled) {
-        logger.logInfo('Точные напоминания включены, запускаем пересоздание.');
-        await ref
-            .read(upcomingNotificationsControllerProvider.notifier)
-            .rescheduleAll();
-      }
+      return launched;
     } catch (error, stackTrace) {
       state = AsyncValue<bool>.error(error, stackTrace);
       logger.logError(
         'Ошибка при запросе точных напоминаний: $error\n$stackTrace',
       );
+      return false;
     } finally {
       _isRequesting = false;
     }

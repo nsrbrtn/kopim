@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:collection';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:kopim/core/data/database.dart';
@@ -397,6 +398,13 @@ class AuthSyncService {
         getId: (Category entity) => entity.id,
         getUpdatedAt: (Category entity) => entity.updatedAt,
       );
+      final _CategorySanitizationResult sanitizedCategories =
+          _sanitizeCategories(mergedCategories);
+      final List<Category> normalizedCategories =
+          sanitizedCategories.categories;
+      final Map<String, String> categoryIdMapping =
+          sanitizedCategories.idMapping;
+
       final List<TransactionEntity> mergedTransactions =
           _mergeEntities<TransactionEntity>(
             local: localTransactions,
@@ -404,11 +412,17 @@ class AuthSyncService {
             getId: (TransactionEntity entity) => entity.id,
             getUpdatedAt: (TransactionEntity entity) => entity.updatedAt,
           );
+      final List<TransactionEntity> normalizedTransactions =
+          _normalizeTransactions(mergedTransactions, categoryIdMapping);
       final List<Budget> mergedBudgets = _mergeEntities<Budget>(
         local: localBudgets,
         remote: remoteSnapshot.budgets,
         getId: (Budget entity) => entity.id,
         getUpdatedAt: (Budget entity) => entity.updatedAt,
+      );
+      final List<Budget> normalizedBudgets = _normalizeBudgets(
+        mergedBudgets,
+        categoryIdMapping,
       );
       final List<BudgetInstance> mergedBudgetInstances =
           _mergeEntities<BudgetInstance>(
@@ -430,15 +444,24 @@ class AuthSyncService {
             getId: (RecurringRule rule) => rule.id,
             getUpdatedAt: (RecurringRule rule) => rule.updatedAt,
           );
+      final _NormalizedRecurringRules normalizedRecurringRules =
+          _normalizeRecurringRules(mergedRecurringRules, categoryIdMapping);
 
       await _accountDao.upsertAll(mergedAccounts);
-      await _categoryDao.upsertAll(mergedCategories);
-      await _transactionDao.upsertAll(mergedTransactions);
-      await _budgetDao.upsertAll(mergedBudgets);
+      await _categoryDao.upsertAll(normalizedCategories);
+      await _transactionDao.upsertAll(normalizedTransactions);
+      await _budgetDao.upsertAll(normalizedBudgets);
       await _budgetInstanceDao.upsertAll(mergedBudgetInstances);
       await _savingGoalDao.upsertAll(mergedSavingGoals);
-      for (final RecurringRule rule in mergedRecurringRules) {
+      for (final RecurringRule rule in normalizedRecurringRules.rules) {
         await _recurringRuleDao.upsert(rule);
+      }
+      if (normalizedRecurringRules.skippedRuleIds.isNotEmpty) {
+        _logger.logInfo(
+          'AuthSyncService: skipped ${normalizedRecurringRules.skippedRuleIds.length} '
+          'recurring rules with missing categories: '
+          '${normalizedRecurringRules.skippedRuleIds.join(', ')}.',
+        );
       }
 
       final Profile? profile = _mergeProfile(
@@ -516,6 +539,229 @@ class AuthSyncService {
       updatedAt: row.updatedAt.toUtc(),
     );
   }
+
+  _CategorySanitizationResult _sanitizeCategories(List<Category> categories) {
+    if (categories.isEmpty) {
+      return const _CategorySanitizationResult(
+        categories: <Category>[],
+        idMapping: <String, String>{},
+      );
+    }
+
+    final Map<String, List<Category>> groupedByName =
+        <String, List<Category>>{};
+    for (final Category category in categories) {
+      final String key = category.name.trim().toLowerCase();
+      groupedByName.putIfAbsent(key, () => <Category>[]).add(category);
+    }
+
+    final Map<String, String> idMapping = <String, String>{};
+    final List<Category> sanitized = <Category>[];
+    final Set<String> deduplicatedNames = <String>{};
+
+    for (final List<Category> group in groupedByName.values) {
+      if (group.isEmpty) {
+        continue;
+      }
+      group.sort((Category a, Category b) {
+        final int deletionComparison = (a.isDeleted ? 1 : 0).compareTo(
+          b.isDeleted ? 1 : 0,
+        );
+        if (deletionComparison != 0) {
+          return deletionComparison;
+        }
+        return b.updatedAt.compareTo(a.updatedAt);
+      });
+
+      final Category canonical = group.first;
+      sanitized.add(canonical);
+      for (final Category item in group) {
+        idMapping[item.id] = canonical.id;
+      }
+
+      if (group.length > 1) {
+        deduplicatedNames.add(canonical.name);
+      }
+    }
+
+    if (deduplicatedNames.isNotEmpty) {
+      _logger.logInfo(
+        'AuthSyncService: deduplicated categories with identical names: '
+        '${deduplicatedNames.join(', ')}.',
+      );
+    }
+
+    sanitized.sort((Category a, Category b) => a.name.compareTo(b.name));
+    return _CategorySanitizationResult(
+      categories: sanitized,
+      idMapping: idMapping,
+    );
+  }
+
+  List<TransactionEntity> _normalizeTransactions(
+    List<TransactionEntity> transactions,
+    Map<String, String> categoryIdMapping,
+  ) {
+    if (transactions.isEmpty || categoryIdMapping.isEmpty) {
+      return transactions;
+    }
+
+    final Map<String, int> cleared = <String, int>{};
+    final Map<String, int> remapped = <String, int>{};
+    final List<TransactionEntity> normalized = <TransactionEntity>[];
+
+    for (final TransactionEntity transaction in transactions) {
+      final String? categoryId = transaction.categoryId;
+      if (categoryId == null) {
+        normalized.add(transaction);
+        continue;
+      }
+
+      final String? canonicalId = categoryIdMapping[categoryId];
+      if (canonicalId == null) {
+        cleared[categoryId] = (cleared[categoryId] ?? 0) + 1;
+        normalized.add(transaction.copyWith(categoryId: null));
+        continue;
+      }
+
+      if (canonicalId != categoryId) {
+        remapped[canonicalId] = (remapped[canonicalId] ?? 0) + 1;
+        normalized.add(transaction.copyWith(categoryId: canonicalId));
+        continue;
+      }
+
+      normalized.add(transaction);
+    }
+
+    if (cleared.isNotEmpty) {
+      _logger.logInfo(
+        'AuthSyncService: removed category assignments for transactions due to '
+        'missing categories: ${_formatIdCounts(cleared)}.',
+      );
+    }
+    if (remapped.isNotEmpty) {
+      _logger.logInfo(
+        'AuthSyncService: remapped transaction categories to canonical IDs: '
+        '${_formatIdCounts(remapped)}.',
+      );
+    }
+
+    return normalized;
+  }
+
+  List<Budget> _normalizeBudgets(
+    List<Budget> budgets,
+    Map<String, String> categoryIdMapping,
+  ) {
+    if (budgets.isEmpty || categoryIdMapping.isEmpty) {
+      return budgets;
+    }
+
+    final Map<String, int> removed = <String, int>{};
+    final List<Budget> normalized = <Budget>[];
+
+    for (final Budget budget in budgets) {
+      final LinkedHashSet<String> mappedCategories = LinkedHashSet<String>();
+      bool changed = false;
+      for (final String categoryId in budget.categories) {
+        final String? canonicalId = categoryIdMapping[categoryId];
+        if (canonicalId == null) {
+          removed[categoryId] = (removed[categoryId] ?? 0) + 1;
+          changed = true;
+          continue;
+        }
+        if (canonicalId != categoryId) {
+          changed = true;
+        }
+        mappedCategories.add(canonicalId);
+      }
+
+      if (!changed &&
+          mappedCategories.length == budget.categories.length &&
+          _listsEqual(mappedCategories.toList(), budget.categories)) {
+        normalized.add(budget);
+      } else {
+        normalized.add(budget.copyWith(categories: mappedCategories.toList()));
+      }
+    }
+
+    if (removed.isNotEmpty) {
+      _logger.logInfo(
+        'AuthSyncService: removed unknown categories from budgets: '
+        '${_formatIdCounts(removed)}.',
+      );
+    }
+
+    return normalized;
+  }
+
+  _NormalizedRecurringRules _normalizeRecurringRules(
+    List<RecurringRule> rules,
+    Map<String, String> categoryIdMapping,
+  ) {
+    if (rules.isEmpty || categoryIdMapping.isEmpty) {
+      return _NormalizedRecurringRules(rules: rules);
+    }
+
+    final List<RecurringRule> normalized = <RecurringRule>[];
+    final List<String> skipped = <String>[];
+
+    for (final RecurringRule rule in rules) {
+      final String? canonicalId = categoryIdMapping[rule.categoryId];
+      if (canonicalId == null) {
+        skipped.add(rule.id);
+        continue;
+      }
+      if (canonicalId == rule.categoryId) {
+        normalized.add(rule);
+      } else {
+        normalized.add(rule.copyWith(categoryId: canonicalId));
+      }
+    }
+
+    return _NormalizedRecurringRules(
+      rules: normalized,
+      skippedRuleIds: skipped,
+    );
+  }
+
+  bool _listsEqual(List<String> a, List<String> b) {
+    if (a.length != b.length) {
+      return false;
+    }
+    for (int i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  String _formatIdCounts(Map<String, int> counts) {
+    return counts.entries
+        .map((MapEntry<String, int> entry) => '${entry.key}(${entry.value})')
+        .join(', ');
+  }
+}
+
+class _CategorySanitizationResult {
+  const _CategorySanitizationResult({
+    required this.categories,
+    required this.idMapping,
+  });
+
+  final List<Category> categories;
+  final Map<String, String> idMapping;
+}
+
+class _NormalizedRecurringRules {
+  const _NormalizedRecurringRules({
+    required this.rules,
+    this.skippedRuleIds = const <String>[],
+  });
+
+  final List<RecurringRule> rules;
+  final List<String> skippedRuleIds;
 }
 
 class _RemoteSnapshot {
