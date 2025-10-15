@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:kopim/core/data/database.dart';
 import 'package:kopim/core/data/database.dart' as db;
 import 'package:kopim/core/data/outbox/outbox_dao.dart';
+import 'package:kopim/core/data/outbox/outbox_payload_normalizer.dart';
 import 'package:kopim/core/services/analytics_service.dart';
 import 'package:kopim/core/services/logger_service.dart';
 import 'package:kopim/features/accounts/data/sources/local/account_dao.dart';
@@ -56,6 +57,7 @@ class AuthSyncService {
     required FirebaseFirestore firestore,
     required LoggerService loggerService,
     required AnalyticsService analyticsService,
+    OutboxPayloadNormalizer payloadNormalizer = const OutboxPayloadNormalizer(),
   }) : _database = database,
        _outboxDao = outboxDao,
        _accountDao = accountDao,
@@ -76,7 +78,8 @@ class AuthSyncService {
        _profileRemoteDataSource = profileRemoteDataSource,
        _firestore = firestore,
        _logger = loggerService,
-       _analyticsService = analyticsService;
+       _analyticsService = analyticsService,
+       _payloadNormalizer = payloadNormalizer;
 
   static const int _outboxBatchSize = 500;
 
@@ -101,6 +104,7 @@ class AuthSyncService {
   final FirebaseFirestore _firestore;
   final LoggerService _logger;
   final AnalyticsService _analyticsService;
+  final OutboxPayloadNormalizer _payloadNormalizer;
 
   bool _inProgress = false;
 
@@ -204,7 +208,7 @@ class AuthSyncService {
 
     await _firestore.runTransaction((Transaction transaction) async {
       for (final OutboxEntryRow entry in entries) {
-        final Map<String, dynamic> payload = _normalizeOutboxPayload(
+        final Map<String, dynamic> payload = _payloadNormalizer.normalize(
           entry.entityType,
           _outboxDao.decodePayload(entry),
         );
@@ -335,66 +339,6 @@ class AuthSyncService {
         }
       }
     });
-  }
-
-  Map<String, dynamic> _normalizeOutboxPayload(
-    String entityType,
-    Map<String, dynamic> payload,
-  ) {
-    switch (entityType) {
-      case 'category':
-        return _normalizeCategoryOutboxPayload(payload);
-      default:
-        return Map<String, dynamic>.from(payload);
-    }
-  }
-
-  Map<String, dynamic> _normalizeCategoryOutboxPayload(
-    Map<String, dynamic> payload,
-  ) {
-    final Map<String, dynamic> normalized = Map<String, dynamic>.from(payload);
-
-    final Object? iconRaw = normalized['icon'];
-    String? iconName;
-    String? iconStyle;
-
-    if (iconRaw is Map<String, dynamic>) {
-      final Map<String, dynamic> iconMap = Map<String, dynamic>.from(iconRaw);
-      iconName = iconMap['name'] as String?;
-      iconStyle = iconMap['style']?.toString();
-    } else if (iconRaw is String) {
-      iconName = iconRaw;
-    }
-
-    iconName ??= (normalized['iconName'] as String?)?.trim();
-    iconStyle ??= (normalized['iconStyle'] as String?)?.trim();
-
-    if (iconStyle != null && iconStyle.isNotEmpty) {
-      iconStyle = iconStyle.toLowerCase();
-    }
-
-    if (iconName != null) {
-      iconName = iconName.trim();
-    }
-
-    if (iconName != null && iconName.isNotEmpty) {
-      final Map<String, dynamic> descriptor = <String, dynamic>{
-        'name': iconName,
-        if (iconStyle != null && iconStyle.isNotEmpty) 'style': iconStyle,
-      };
-      descriptor.removeWhere(
-        (String key, dynamic value) =>
-            value == null || (value is String && value.isEmpty),
-      );
-      normalized['icon'] = descriptor;
-    } else {
-      normalized.remove('icon');
-    }
-
-    normalized.remove('iconName');
-    normalized.remove('iconStyle');
-
-    return normalized;
   }
 
   Future<_RemoteSnapshot> _fetchRemoteSnapshot(String userId) async {

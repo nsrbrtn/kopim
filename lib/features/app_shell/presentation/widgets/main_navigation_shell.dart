@@ -31,40 +31,51 @@ class MainNavigationShell extends ConsumerWidget {
         .floatingActionButtonBuilder
         ?.call(context, ref);
 
-    return Scaffold(
-      appBar: appBar,
-      body: IndexedStack(
-        index: currentIndex,
-        children: <Widget>[
-          for (final NavigationTabContent content in contents)
-            content.bodyBuilder(context, ref),
-        ],
+    return PopScope(
+      canPop: currentIndex == 0,
+      onPopInvokedWithResult: (bool didPop, Object? result) {
+        if (didPop) {
+          return;
+        }
+        if (currentIndex != 0) {
+          ref.read(mainNavigationControllerProvider.notifier).setIndex(0);
+        }
+      },
+      child: Scaffold(
+        appBar: appBar,
+        body: IndexedStack(
+          index: currentIndex,
+          children: <Widget>[
+            for (final NavigationTabContent content in contents)
+              content.bodyBuilder(context, ref),
+          ],
+        ),
+        floatingActionButton: floatingActionButton,
+        bottomNavigationBar: isCurrentRoute
+            ? BottomNavigationBar(
+                currentIndex: currentIndex,
+                onTap: (int index) {
+                  ref
+                      .read(mainNavigationControllerProvider.notifier)
+                      .setIndex(index);
+                  final NavigationTabConfig config = tabs[index];
+                  final NavigationTabSelectionCallback? onSelected =
+                      config.onSelected;
+                  if (onSelected != null) {
+                    onSelected(context, ref);
+                  }
+                },
+                items: <BottomNavigationBarItem>[
+                  for (final NavigationTabConfig config in tabs)
+                    BottomNavigationBarItem(
+                      icon: Icon(config.icon),
+                      activeIcon: Icon(config.activeIcon),
+                      label: config.labelBuilder(context),
+                    ),
+                ],
+              )
+            : null,
       ),
-      floatingActionButton: floatingActionButton,
-      bottomNavigationBar: isCurrentRoute
-          ? BottomNavigationBar(
-              currentIndex: currentIndex,
-              onTap: (int index) {
-                ref
-                    .read(mainNavigationControllerProvider.notifier)
-                    .setIndex(index);
-                final NavigationTabConfig config = tabs[index];
-                final NavigationTabSelectionCallback? onSelected =
-                    config.onSelected;
-                if (onSelected != null) {
-                  onSelected(context, ref);
-                }
-              },
-              items: <BottomNavigationBarItem>[
-                for (final NavigationTabConfig config in tabs)
-                  BottomNavigationBarItem(
-                    icon: Icon(config.icon),
-                    activeIcon: Icon(config.activeIcon),
-                    label: config.labelBuilder(context),
-                  ),
-              ],
-            )
-          : null,
     );
   }
 }

@@ -2,6 +2,9 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+const double _kMinShareToShowIcon = 0.05;
+const double _kIconBadgeExtent = 32;
+
 class AnalyticsChartItem {
   const AnalyticsChartItem({
     required this.key,
@@ -72,13 +75,17 @@ class AnalyticsDonutChart extends StatelessWidget {
                   baseShowOnlySelected && hasSelection;
               final int fallbackSelected = hasSelection ? selectedIndex! : 0;
 
-              final List<_LabelPlacement> placements = _buildLabelPlacements(
+              final int? highlightIndex = hasSelection
+                  ? (showOnlySelected ? fallbackSelected : selectedIndex!)
+                  : null;
+              final List<_IconPlacement> placements = _buildIconPlacements(
                 segments: segments,
                 size: size,
                 labelRadius: labelRadius,
-                showOnlySelected: showOnlySelected,
-                selectedIndex: fallbackSelected,
+                showOnlySelected: showOnlySelected && highlightIndex != null,
+                selectedIndex: highlightIndex ?? 0,
                 minGap: _minLabelGap,
+                badgeExtent: _kIconBadgeExtent,
               );
 
               Widget chart = SizedBox(
@@ -94,12 +101,10 @@ class AnalyticsDonutChart extends StatelessWidget {
                         segments: segments,
                         strokeWidth: strokeWidth,
                         backgroundColor: backgroundColor,
-                        selectedIndex: showOnlySelected
-                            ? fallbackSelected
-                            : (hasSelection ? selectedIndex! : null),
+                        selectedIndex: highlightIndex,
                       ),
                     ),
-                    for (final _LabelPlacement placement in placements)
+                    for (final _IconPlacement placement in placements)
                       Positioned(
                         top: placement.top,
                         left: placement.isRight
@@ -114,8 +119,11 @@ class AnalyticsDonutChart extends StatelessWidget {
                                   ringRadius +
                                   strokeWidth / 2 +
                                   _labelSidePadding,
-                        child: _DonutPercentageBadge(
-                          percentage: placement.percentage,
+                        child: _CategoryIconBadge(
+                          icon: segments[placement.segmentIndex].icon!,
+                          isSelected:
+                              highlightIndex != null &&
+                              placement.segmentIndex == highlightIndex,
                         ),
                       ),
                   ],
@@ -198,6 +206,8 @@ class AnalyticsDonutChart extends StatelessWidget {
           startAngle: startAngle,
           sweepAngle: sweep,
           percentage: percentage,
+          icon: item.icon,
+          canShowIcon: item.icon != null && share >= _kMinShareToShowIcon,
         ),
       );
       startAngle += sweep;
@@ -227,7 +237,6 @@ class AnalyticsBarChart extends StatelessWidget {
     if (items.isEmpty) {
       return const SizedBox.shrink();
     }
-    final ThemeData theme = Theme.of(context);
     final double computedTotal =
         totalAmount ??
         items.fold<double>(
@@ -298,7 +307,8 @@ class AnalyticsBarChart extends StatelessWidget {
                   );
                 }
 
-                final String percentageLabel = _formatShare(share);
+                final bool showIcon =
+                    item.icon != null && share >= _kMinShareToShowIcon;
 
                 children.add(
                   Expanded(
@@ -311,13 +321,15 @@ class AnalyticsBarChart extends StatelessWidget {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: <Widget>[
-                            Text(
-                              percentageLabel,
-                              style: theme.textTheme.labelSmall?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant,
-                                fontWeight: isSelected
-                                    ? FontWeight.w600
-                                    : FontWeight.w500,
+                            SizedBox(
+                              height: _kIconBadgeExtent,
+                              child: Center(
+                                child: showIcon
+                                    ? _CategoryIconBadge(
+                                        icon: item.icon!,
+                                        isSelected: isSelected,
+                                      )
+                                    : const SizedBox.shrink(),
                               ),
                             ),
                             const SizedBox(height: 8),
@@ -351,20 +363,6 @@ class AnalyticsBarChart extends StatelessWidget {
       ),
     );
   }
-
-  String _formatShare(double share) {
-    if (share <= 0) {
-      return '0%';
-    }
-    final double percent = share * 100;
-    if (percent >= 99.5) {
-      return '100%';
-    }
-    if (percent >= 10) {
-      return '${percent.toStringAsFixed(0)}%';
-    }
-    return '${percent.toStringAsFixed(1)}%';
-  }
 }
 
 class _DonutSegment {
@@ -373,12 +371,16 @@ class _DonutSegment {
     required this.startAngle,
     required this.sweepAngle,
     required this.percentage,
+    required this.icon,
+    required this.canShowIcon,
   });
 
   final Color color;
   final double startAngle;
   final double sweepAngle;
   final double percentage;
+  final IconData? icon;
+  final bool canShowIcon;
 
   double get midAngle => startAngle + sweepAngle / 2;
 }
@@ -434,128 +436,83 @@ class _DonutChartPainter extends CustomPainter {
   }
 }
 
-class _LabelPlacement {
-  _LabelPlacement({
+class _IconPlacement {
+  _IconPlacement({
     required this.segmentIndex,
     required this.isRight,
     required this.baseTop,
-    required this.percentage,
   });
 
   final int segmentIndex;
   final bool isRight;
   final double baseTop;
-  final double percentage;
   double top = 0;
 }
 
-class _DonutPercentageBadge extends StatelessWidget {
-  const _DonutPercentageBadge({required this.percentage});
-
-  final double percentage;
-
-  static const double _height = 24;
-
-  @override
-  Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
-    final TextStyle style =
-        theme.textTheme.labelSmall?.copyWith(
-          color: theme.colorScheme.onSurface,
-          fontWeight: FontWeight.w600,
-        ) ??
-        TextStyle(
-          color: theme.colorScheme.onSurface,
-          fontWeight: FontWeight.w600,
-          fontSize: 12,
-        );
-
-    final String formatted = percentage >= 1
-        ? '${percentage.round()}%'
-        : '${percentage.toStringAsFixed(1)}%';
-
-    return Container(
-      height: _height,
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: const BorderRadius.all(Radius.circular(12)),
-        border: Border.all(color: theme.colorScheme.outlineVariant),
-        boxShadow: <BoxShadow>[
-          BoxShadow(
-            color: theme.colorScheme.shadow.withValues(alpha: 0.08),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      alignment: Alignment.center,
-      child: Text(formatted, style: style),
-    );
-  }
-}
-
-List<_LabelPlacement> _buildLabelPlacements({
+List<_IconPlacement> _buildIconPlacements({
   required List<_DonutSegment> segments,
   required double size,
   required double labelRadius,
   required bool showOnlySelected,
   required int selectedIndex,
   required double minGap,
+  required double badgeExtent,
 }) {
   if (segments.isEmpty) {
-    return <_LabelPlacement>[];
+    return <_IconPlacement>[];
   }
 
   final double center = size / 2;
-  final List<_LabelPlacement> right = <_LabelPlacement>[];
-  final List<_LabelPlacement> left = <_LabelPlacement>[];
+  final List<_IconPlacement> right = <_IconPlacement>[];
+  final List<_IconPlacement> left = <_IconPlacement>[];
 
   for (int index = 0; index < segments.length; index++) {
+    final _DonutSegment segment = segments[index];
+    if (!segment.canShowIcon || segment.icon == null) {
+      continue;
+    }
     if (showOnlySelected && index != selectedIndex) {
       continue;
     }
-    final _DonutSegment segment = segments[index];
     final double angle = segment.midAngle;
     final bool isRight = math.cos(angle) >= 0;
     final double y = center + math.sin(angle) * labelRadius;
-    final _LabelPlacement placement = _LabelPlacement(
+    final _IconPlacement placement = _IconPlacement(
       segmentIndex: index,
       isRight: isRight,
-      baseTop: y - _DonutPercentageBadge._height / 2,
-      percentage: segment.percentage,
+      baseTop: y - badgeExtent / 2,
     );
     (isRight ? right : left).add(placement);
   }
 
-  _resolveLabelPositions(right, size, minGap);
-  _resolveLabelPositions(left, size, minGap);
+  _resolveIconPositions(right, size, minGap, badgeExtent);
+  _resolveIconPositions(left, size, minGap, badgeExtent);
 
-  return <_LabelPlacement>[...right, ...left];
+  return <_IconPlacement>[...right, ...left];
 }
 
-void _resolveLabelPositions(
-  List<_LabelPlacement> placements,
+void _resolveIconPositions(
+  List<_IconPlacement> placements,
   double size,
   double minGap,
+  double badgeExtent,
 ) {
   if (placements.isEmpty) {
     return;
   }
   placements.sort(
-    (_LabelPlacement a, _LabelPlacement b) => a.baseTop.compareTo(b.baseTop),
+    (_IconPlacement a, _IconPlacement b) => a.baseTop.compareTo(b.baseTop),
   );
 
-  final double maxTopBound = math.max(0, size - _DonutPercentageBadge._height);
+  final double maxTopBound = math.max(0, size - badgeExtent);
   double previousTop = 0;
   for (int i = 0; i < placements.length; i++) {
-    final _LabelPlacement placement = placements[i];
+    final _IconPlacement placement = placements[i];
     double top = placement.baseTop;
     if (i == 0) {
       top = top.clamp(0, maxTopBound);
     } else {
-      final double minTop =
-          previousTop + _DonutPercentageBadge._height + minGap;
+      final double minTop = previousTop + badgeExtent + minGap;
       top = math.max(top, minTop);
       top = math.min(top, maxTopBound);
     }
@@ -565,10 +522,56 @@ void _resolveLabelPositions(
 
   for (int i = placements.length - 2; i >= 0; i--) {
     final double nextTop = placements[i + 1].top;
-    final double maxTop = nextTop - (_DonutPercentageBadge._height + minGap);
+    final double maxTop = nextTop - (badgeExtent + minGap);
     if (placements[i].top > maxTop) {
       placements[i].top = maxTop.clamp(0, maxTopBound);
     }
+  }
+}
+
+class _CategoryIconBadge extends StatelessWidget {
+  const _CategoryIconBadge({required this.icon, required this.isSelected});
+
+  final IconData icon;
+  final bool isSelected;
+
+  static const double extent = _kIconBadgeExtent;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final ColorScheme colors = theme.colorScheme;
+    final Color background = isSelected
+        ? Color.alphaBlend(
+            colors.primary.withValues(alpha: 0.16),
+            colors.surface,
+          )
+        : colors.surface;
+    final Color borderColor = isSelected
+        ? colors.primary
+        : colors.outlineVariant;
+    final Color iconColor = isSelected
+        ? colors.primary
+        : colors.onSurfaceVariant;
+
+    return Container(
+      width: extent,
+      height: extent,
+      decoration: BoxDecoration(
+        color: background,
+        shape: BoxShape.circle,
+        border: Border.all(color: borderColor, width: 1.2),
+        boxShadow: <BoxShadow>[
+          BoxShadow(
+            color: colors.shadow.withValues(alpha: 0.06),
+            blurRadius: 6,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      alignment: Alignment.center,
+      child: Icon(icon, size: 18, color: iconColor),
+    );
   }
 }
 
