@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$BudgetFormState implements DiagnosticableTreeMixin {
 
- String get title; String get amountText; BudgetPeriod get period; BudgetScope get scope; DateTime get startDate; DateTime? get endDate; List<String> get categoryIds; List<String> get accountIds; Budget? get initialBudget; bool get isSubmitting; String? get errorMessage;
+ String get title; String get amountText; BudgetPeriod get period; BudgetScope get scope; DateTime get startDate; DateTime? get endDate; List<String> get categoryIds; List<String> get accountIds; Map<String, String> get categoryAmounts; Budget? get initialBudget; bool get isSubmitting; String? get errorMessage;
 /// Create a copy of BudgetFormState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -26,21 +26,21 @@ $BudgetFormStateCopyWith<BudgetFormState> get copyWith => _$BudgetFormStateCopyW
 void debugFillProperties(DiagnosticPropertiesBuilder properties) {
   properties
     ..add(DiagnosticsProperty('type', 'BudgetFormState'))
-    ..add(DiagnosticsProperty('title', title))..add(DiagnosticsProperty('amountText', amountText))..add(DiagnosticsProperty('period', period))..add(DiagnosticsProperty('scope', scope))..add(DiagnosticsProperty('startDate', startDate))..add(DiagnosticsProperty('endDate', endDate))..add(DiagnosticsProperty('categoryIds', categoryIds))..add(DiagnosticsProperty('accountIds', accountIds))..add(DiagnosticsProperty('initialBudget', initialBudget))..add(DiagnosticsProperty('isSubmitting', isSubmitting))..add(DiagnosticsProperty('errorMessage', errorMessage));
+    ..add(DiagnosticsProperty('title', title))..add(DiagnosticsProperty('amountText', amountText))..add(DiagnosticsProperty('period', period))..add(DiagnosticsProperty('scope', scope))..add(DiagnosticsProperty('startDate', startDate))..add(DiagnosticsProperty('endDate', endDate))..add(DiagnosticsProperty('categoryIds', categoryIds))..add(DiagnosticsProperty('accountIds', accountIds))..add(DiagnosticsProperty('categoryAmounts', categoryAmounts))..add(DiagnosticsProperty('initialBudget', initialBudget))..add(DiagnosticsProperty('isSubmitting', isSubmitting))..add(DiagnosticsProperty('errorMessage', errorMessage));
 }
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is BudgetFormState&&(identical(other.title, title) || other.title == title)&&(identical(other.amountText, amountText) || other.amountText == amountText)&&(identical(other.period, period) || other.period == period)&&(identical(other.scope, scope) || other.scope == scope)&&(identical(other.startDate, startDate) || other.startDate == startDate)&&(identical(other.endDate, endDate) || other.endDate == endDate)&&const DeepCollectionEquality().equals(other.categoryIds, categoryIds)&&const DeepCollectionEquality().equals(other.accountIds, accountIds)&&(identical(other.initialBudget, initialBudget) || other.initialBudget == initialBudget)&&(identical(other.isSubmitting, isSubmitting) || other.isSubmitting == isSubmitting)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is BudgetFormState&&(identical(other.title, title) || other.title == title)&&(identical(other.amountText, amountText) || other.amountText == amountText)&&(identical(other.period, period) || other.period == period)&&(identical(other.scope, scope) || other.scope == scope)&&(identical(other.startDate, startDate) || other.startDate == startDate)&&(identical(other.endDate, endDate) || other.endDate == endDate)&&const DeepCollectionEquality().equals(other.categoryIds, categoryIds)&&const DeepCollectionEquality().equals(other.accountIds, accountIds)&&const DeepCollectionEquality().equals(other.categoryAmounts, categoryAmounts)&&(identical(other.initialBudget, initialBudget) || other.initialBudget == initialBudget)&&(identical(other.isSubmitting, isSubmitting) || other.isSubmitting == isSubmitting)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,title,amountText,period,scope,startDate,endDate,const DeepCollectionEquality().hash(categoryIds),const DeepCollectionEquality().hash(accountIds),initialBudget,isSubmitting,errorMessage);
+int get hashCode => Object.hash(runtimeType,title,amountText,period,scope,startDate,endDate,const DeepCollectionEquality().hash(categoryIds),const DeepCollectionEquality().hash(accountIds),const DeepCollectionEquality().hash(categoryAmounts),initialBudget,isSubmitting,errorMessage);
 
 @override
 String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
-  return 'BudgetFormState(title: $title, amountText: $amountText, period: $period, scope: $scope, startDate: $startDate, endDate: $endDate, categoryIds: $categoryIds, accountIds: $accountIds, initialBudget: $initialBudget, isSubmitting: $isSubmitting, errorMessage: $errorMessage)';
+  return 'BudgetFormState(title: $title, amountText: $amountText, period: $period, scope: $scope, startDate: $startDate, endDate: $endDate, categoryIds: $categoryIds, accountIds: $accountIds, categoryAmounts: $categoryAmounts, initialBudget: $initialBudget, isSubmitting: $isSubmitting, errorMessage: $errorMessage)';
 }
 
 
@@ -51,7 +51,7 @@ abstract mixin class $BudgetFormStateCopyWith<$Res>  {
   factory $BudgetFormStateCopyWith(BudgetFormState value, $Res Function(BudgetFormState) _then) = _$BudgetFormStateCopyWithImpl;
 @useResult
 $Res call({
- String title, String amountText, BudgetPeriod period, BudgetScope scope, DateTime startDate, DateTime? endDate, List<String> categoryIds, List<String> accountIds, Budget? initialBudget, bool isSubmitting, String? errorMessage
+ String title, String amountText, BudgetPeriod period, BudgetScope scope, DateTime startDate, DateTime? endDate, List<String> categoryIds, List<String> accountIds, Map<String, String> categoryAmounts, Budget? initialBudget, bool isSubmitting, String? errorMessage
 });
 
 
@@ -68,7 +68,7 @@ class _$BudgetFormStateCopyWithImpl<$Res>
 
 /// Create a copy of BudgetFormState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? title = null,Object? amountText = null,Object? period = null,Object? scope = null,Object? startDate = null,Object? endDate = freezed,Object? categoryIds = null,Object? accountIds = null,Object? initialBudget = freezed,Object? isSubmitting = null,Object? errorMessage = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? title = null,Object? amountText = null,Object? period = null,Object? scope = null,Object? startDate = null,Object? endDate = freezed,Object? categoryIds = null,Object? accountIds = null,Object? categoryAmounts = null,Object? initialBudget = freezed,Object? isSubmitting = null,Object? errorMessage = freezed,}) {
   return _then(_self.copyWith(
 title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String,amountText: null == amountText ? _self.amountText : amountText // ignore: cast_nullable_to_non_nullable
@@ -78,7 +78,8 @@ as BudgetScope,startDate: null == startDate ? _self.startDate : startDate // ign
 as DateTime,endDate: freezed == endDate ? _self.endDate : endDate // ignore: cast_nullable_to_non_nullable
 as DateTime?,categoryIds: null == categoryIds ? _self.categoryIds : categoryIds // ignore: cast_nullable_to_non_nullable
 as List<String>,accountIds: null == accountIds ? _self.accountIds : accountIds // ignore: cast_nullable_to_non_nullable
-as List<String>,initialBudget: freezed == initialBudget ? _self.initialBudget : initialBudget // ignore: cast_nullable_to_non_nullable
+as List<String>,categoryAmounts: null == categoryAmounts ? _self.categoryAmounts : categoryAmounts // ignore: cast_nullable_to_non_nullable
+as Map<String, String>,initialBudget: freezed == initialBudget ? _self.initialBudget : initialBudget // ignore: cast_nullable_to_non_nullable
 as Budget?,isSubmitting: null == isSubmitting ? _self.isSubmitting : isSubmitting // ignore: cast_nullable_to_non_nullable
 as bool,errorMessage: freezed == errorMessage ? _self.errorMessage : errorMessage // ignore: cast_nullable_to_non_nullable
 as String?,
@@ -178,10 +179,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String title,  String amountText,  BudgetPeriod period,  BudgetScope scope,  DateTime startDate,  DateTime? endDate,  List<String> categoryIds,  List<String> accountIds,  Budget? initialBudget,  bool isSubmitting,  String? errorMessage)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String title,  String amountText,  BudgetPeriod period,  BudgetScope scope,  DateTime startDate,  DateTime? endDate,  List<String> categoryIds,  List<String> accountIds,  Map<String, String> categoryAmounts,  Budget? initialBudget,  bool isSubmitting,  String? errorMessage)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _BudgetFormState() when $default != null:
-return $default(_that.title,_that.amountText,_that.period,_that.scope,_that.startDate,_that.endDate,_that.categoryIds,_that.accountIds,_that.initialBudget,_that.isSubmitting,_that.errorMessage);case _:
+return $default(_that.title,_that.amountText,_that.period,_that.scope,_that.startDate,_that.endDate,_that.categoryIds,_that.accountIds,_that.categoryAmounts,_that.initialBudget,_that.isSubmitting,_that.errorMessage);case _:
   return orElse();
 
 }
@@ -199,10 +200,10 @@ return $default(_that.title,_that.amountText,_that.period,_that.scope,_that.star
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String title,  String amountText,  BudgetPeriod period,  BudgetScope scope,  DateTime startDate,  DateTime? endDate,  List<String> categoryIds,  List<String> accountIds,  Budget? initialBudget,  bool isSubmitting,  String? errorMessage)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String title,  String amountText,  BudgetPeriod period,  BudgetScope scope,  DateTime startDate,  DateTime? endDate,  List<String> categoryIds,  List<String> accountIds,  Map<String, String> categoryAmounts,  Budget? initialBudget,  bool isSubmitting,  String? errorMessage)  $default,) {final _that = this;
 switch (_that) {
 case _BudgetFormState():
-return $default(_that.title,_that.amountText,_that.period,_that.scope,_that.startDate,_that.endDate,_that.categoryIds,_that.accountIds,_that.initialBudget,_that.isSubmitting,_that.errorMessage);case _:
+return $default(_that.title,_that.amountText,_that.period,_that.scope,_that.startDate,_that.endDate,_that.categoryIds,_that.accountIds,_that.categoryAmounts,_that.initialBudget,_that.isSubmitting,_that.errorMessage);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -219,10 +220,10 @@ return $default(_that.title,_that.amountText,_that.period,_that.scope,_that.star
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String title,  String amountText,  BudgetPeriod period,  BudgetScope scope,  DateTime startDate,  DateTime? endDate,  List<String> categoryIds,  List<String> accountIds,  Budget? initialBudget,  bool isSubmitting,  String? errorMessage)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String title,  String amountText,  BudgetPeriod period,  BudgetScope scope,  DateTime startDate,  DateTime? endDate,  List<String> categoryIds,  List<String> accountIds,  Map<String, String> categoryAmounts,  Budget? initialBudget,  bool isSubmitting,  String? errorMessage)?  $default,) {final _that = this;
 switch (_that) {
 case _BudgetFormState() when $default != null:
-return $default(_that.title,_that.amountText,_that.period,_that.scope,_that.startDate,_that.endDate,_that.categoryIds,_that.accountIds,_that.initialBudget,_that.isSubmitting,_that.errorMessage);case _:
+return $default(_that.title,_that.amountText,_that.period,_that.scope,_that.startDate,_that.endDate,_that.categoryIds,_that.accountIds,_that.categoryAmounts,_that.initialBudget,_that.isSubmitting,_that.errorMessage);case _:
   return null;
 
 }
@@ -234,7 +235,7 @@ return $default(_that.title,_that.amountText,_that.period,_that.scope,_that.star
 
 
 class _BudgetFormState with DiagnosticableTreeMixin implements BudgetFormState {
-  const _BudgetFormState({required this.title, required this.amountText, required this.period, required this.scope, required this.startDate, this.endDate, final  List<String> categoryIds = const <String>[], final  List<String> accountIds = const <String>[], this.initialBudget, this.isSubmitting = false, this.errorMessage}): _categoryIds = categoryIds,_accountIds = accountIds;
+  const _BudgetFormState({required this.title, required this.amountText, required this.period, required this.scope, required this.startDate, this.endDate, final  List<String> categoryIds = const <String>[], final  List<String> accountIds = const <String>[], final  Map<String, String> categoryAmounts = const <String, String>{}, this.initialBudget, this.isSubmitting = false, this.errorMessage}): _categoryIds = categoryIds,_accountIds = accountIds,_categoryAmounts = categoryAmounts;
   
 
 @override final  String title;
@@ -257,6 +258,13 @@ class _BudgetFormState with DiagnosticableTreeMixin implements BudgetFormState {
   return EqualUnmodifiableListView(_accountIds);
 }
 
+ final  Map<String, String> _categoryAmounts;
+@override@JsonKey() Map<String, String> get categoryAmounts {
+  if (_categoryAmounts is EqualUnmodifiableMapView) return _categoryAmounts;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableMapView(_categoryAmounts);
+}
+
 @override final  Budget? initialBudget;
 @override@JsonKey() final  bool isSubmitting;
 @override final  String? errorMessage;
@@ -272,21 +280,21 @@ _$BudgetFormStateCopyWith<_BudgetFormState> get copyWith => __$BudgetFormStateCo
 void debugFillProperties(DiagnosticPropertiesBuilder properties) {
   properties
     ..add(DiagnosticsProperty('type', 'BudgetFormState'))
-    ..add(DiagnosticsProperty('title', title))..add(DiagnosticsProperty('amountText', amountText))..add(DiagnosticsProperty('period', period))..add(DiagnosticsProperty('scope', scope))..add(DiagnosticsProperty('startDate', startDate))..add(DiagnosticsProperty('endDate', endDate))..add(DiagnosticsProperty('categoryIds', categoryIds))..add(DiagnosticsProperty('accountIds', accountIds))..add(DiagnosticsProperty('initialBudget', initialBudget))..add(DiagnosticsProperty('isSubmitting', isSubmitting))..add(DiagnosticsProperty('errorMessage', errorMessage));
+    ..add(DiagnosticsProperty('title', title))..add(DiagnosticsProperty('amountText', amountText))..add(DiagnosticsProperty('period', period))..add(DiagnosticsProperty('scope', scope))..add(DiagnosticsProperty('startDate', startDate))..add(DiagnosticsProperty('endDate', endDate))..add(DiagnosticsProperty('categoryIds', categoryIds))..add(DiagnosticsProperty('accountIds', accountIds))..add(DiagnosticsProperty('categoryAmounts', categoryAmounts))..add(DiagnosticsProperty('initialBudget', initialBudget))..add(DiagnosticsProperty('isSubmitting', isSubmitting))..add(DiagnosticsProperty('errorMessage', errorMessage));
 }
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _BudgetFormState&&(identical(other.title, title) || other.title == title)&&(identical(other.amountText, amountText) || other.amountText == amountText)&&(identical(other.period, period) || other.period == period)&&(identical(other.scope, scope) || other.scope == scope)&&(identical(other.startDate, startDate) || other.startDate == startDate)&&(identical(other.endDate, endDate) || other.endDate == endDate)&&const DeepCollectionEquality().equals(other._categoryIds, _categoryIds)&&const DeepCollectionEquality().equals(other._accountIds, _accountIds)&&(identical(other.initialBudget, initialBudget) || other.initialBudget == initialBudget)&&(identical(other.isSubmitting, isSubmitting) || other.isSubmitting == isSubmitting)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _BudgetFormState&&(identical(other.title, title) || other.title == title)&&(identical(other.amountText, amountText) || other.amountText == amountText)&&(identical(other.period, period) || other.period == period)&&(identical(other.scope, scope) || other.scope == scope)&&(identical(other.startDate, startDate) || other.startDate == startDate)&&(identical(other.endDate, endDate) || other.endDate == endDate)&&const DeepCollectionEquality().equals(other._categoryIds, _categoryIds)&&const DeepCollectionEquality().equals(other._accountIds, _accountIds)&&const DeepCollectionEquality().equals(other._categoryAmounts, _categoryAmounts)&&(identical(other.initialBudget, initialBudget) || other.initialBudget == initialBudget)&&(identical(other.isSubmitting, isSubmitting) || other.isSubmitting == isSubmitting)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,title,amountText,period,scope,startDate,endDate,const DeepCollectionEquality().hash(_categoryIds),const DeepCollectionEquality().hash(_accountIds),initialBudget,isSubmitting,errorMessage);
+int get hashCode => Object.hash(runtimeType,title,amountText,period,scope,startDate,endDate,const DeepCollectionEquality().hash(_categoryIds),const DeepCollectionEquality().hash(_accountIds),const DeepCollectionEquality().hash(_categoryAmounts),initialBudget,isSubmitting,errorMessage);
 
 @override
 String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
-  return 'BudgetFormState(title: $title, amountText: $amountText, period: $period, scope: $scope, startDate: $startDate, endDate: $endDate, categoryIds: $categoryIds, accountIds: $accountIds, initialBudget: $initialBudget, isSubmitting: $isSubmitting, errorMessage: $errorMessage)';
+  return 'BudgetFormState(title: $title, amountText: $amountText, period: $period, scope: $scope, startDate: $startDate, endDate: $endDate, categoryIds: $categoryIds, accountIds: $accountIds, categoryAmounts: $categoryAmounts, initialBudget: $initialBudget, isSubmitting: $isSubmitting, errorMessage: $errorMessage)';
 }
 
 
@@ -297,7 +305,7 @@ abstract mixin class _$BudgetFormStateCopyWith<$Res> implements $BudgetFormState
   factory _$BudgetFormStateCopyWith(_BudgetFormState value, $Res Function(_BudgetFormState) _then) = __$BudgetFormStateCopyWithImpl;
 @override @useResult
 $Res call({
- String title, String amountText, BudgetPeriod period, BudgetScope scope, DateTime startDate, DateTime? endDate, List<String> categoryIds, List<String> accountIds, Budget? initialBudget, bool isSubmitting, String? errorMessage
+ String title, String amountText, BudgetPeriod period, BudgetScope scope, DateTime startDate, DateTime? endDate, List<String> categoryIds, List<String> accountIds, Map<String, String> categoryAmounts, Budget? initialBudget, bool isSubmitting, String? errorMessage
 });
 
 
@@ -314,7 +322,7 @@ class __$BudgetFormStateCopyWithImpl<$Res>
 
 /// Create a copy of BudgetFormState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? title = null,Object? amountText = null,Object? period = null,Object? scope = null,Object? startDate = null,Object? endDate = freezed,Object? categoryIds = null,Object? accountIds = null,Object? initialBudget = freezed,Object? isSubmitting = null,Object? errorMessage = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? title = null,Object? amountText = null,Object? period = null,Object? scope = null,Object? startDate = null,Object? endDate = freezed,Object? categoryIds = null,Object? accountIds = null,Object? categoryAmounts = null,Object? initialBudget = freezed,Object? isSubmitting = null,Object? errorMessage = freezed,}) {
   return _then(_BudgetFormState(
 title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String,amountText: null == amountText ? _self.amountText : amountText // ignore: cast_nullable_to_non_nullable
@@ -324,7 +332,8 @@ as BudgetScope,startDate: null == startDate ? _self.startDate : startDate // ign
 as DateTime,endDate: freezed == endDate ? _self.endDate : endDate // ignore: cast_nullable_to_non_nullable
 as DateTime?,categoryIds: null == categoryIds ? _self._categoryIds : categoryIds // ignore: cast_nullable_to_non_nullable
 as List<String>,accountIds: null == accountIds ? _self._accountIds : accountIds // ignore: cast_nullable_to_non_nullable
-as List<String>,initialBudget: freezed == initialBudget ? _self.initialBudget : initialBudget // ignore: cast_nullable_to_non_nullable
+as List<String>,categoryAmounts: null == categoryAmounts ? _self._categoryAmounts : categoryAmounts // ignore: cast_nullable_to_non_nullable
+as Map<String, String>,initialBudget: freezed == initialBudget ? _self.initialBudget : initialBudget // ignore: cast_nullable_to_non_nullable
 as Budget?,isSubmitting: null == isSubmitting ? _self.isSubmitting : isSubmitting // ignore: cast_nullable_to_non_nullable
 as bool,errorMessage: freezed == errorMessage ? _self.errorMessage : errorMessage // ignore: cast_nullable_to_non_nullable
 as String?,

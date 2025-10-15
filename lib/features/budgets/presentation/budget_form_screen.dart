@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import 'package:kopim/core/utils/helpers.dart';
+import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/budgets/domain/entities/budget.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_period.dart';
@@ -23,6 +25,8 @@ class BudgetFormScreen extends ConsumerStatefulWidget {
 class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
   late final TextEditingController _titleController;
   late final TextEditingController _amountController;
+  final Map<String, TextEditingController> _categoryControllers =
+      <String, TextEditingController>{};
 
   @override
   void initState() {
@@ -43,6 +47,10 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
   void dispose() {
     _titleController.dispose();
     _amountController.dispose();
+    for (final TextEditingController controller
+        in _categoryControllers.values) {
+      controller.dispose();
+    }
     super.dispose();
   }
 
@@ -58,6 +66,7 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
       budgetFormControllerProvider(params: params).notifier,
     );
     final AppLocalizations strings = AppLocalizations.of(context)!;
+    _syncCategoryControllers(state);
     final NumberFormat currencyFormat = NumberFormat.simpleCurrency(
       locale: strings.localeName,
     );
@@ -69,6 +78,13 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
       if (previous?.initialBudget != next.initialBudget) {
         _titleController.text = next.title;
         _amountController.text = next.amountText;
+      }
+      if (previous?.amountText != next.amountText &&
+          _amountController.text != next.amountText) {
+        _amountController.value = _amountController.value.copyWith(
+          text: next.amountText,
+          selection: TextSelection.collapsed(offset: next.amountText.length),
+        );
       }
     });
 
@@ -103,14 +119,19 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
               const SizedBox(height: 16),
               TextField(
                 controller: _amountController,
+                readOnly: state.scope == BudgetScope.byCategory,
                 keyboardType: const TextInputType.numberWithOptions(
                   decimal: true,
                 ),
                 decoration: InputDecoration(
                   labelText: strings.budgetAmountLabel,
-                  helperText: currencyFormat.currencySymbol,
+                  helperText: state.scope == BudgetScope.byCategory
+                      ? strings.budgetAmountAutoHelper
+                      : currencyFormat.currencySymbol,
                 ),
-                onChanged: controller.setAmountText,
+                onChanged: state.scope == BudgetScope.byCategory
+                    ? null
+                    : controller.setAmountText,
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<BudgetPeriod>(
@@ -172,13 +193,37 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
               if (state.scope == BudgetScope.byCategory)
                 categoriesAsync.when(
                   data: (List<Category> categories) {
-                    return _SelectionChips<Category>(
-                      title: strings.budgetCategoriesLabel,
-                      values: categories,
-                      selectedValues: state.categoryIds,
-                      labelBuilder: (Category category) => category.name,
-                      onToggle: (Category category) =>
-                          controller.toggleCategory(category.id),
+                    final Map<String, Category> categoriesById =
+                        <String, Category>{
+                          for (final Category category in categories)
+                            category.id: category,
+                        };
+                    final List<Category> selectedCategories = state.categoryIds
+                        .map((String id) => categoriesById[id])
+                        .whereType<Category>()
+                        .toList(growable: false);
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        _SelectionChips<Category>(
+                          title: strings.budgetCategoriesLabel,
+                          values: categories,
+                          selectedValues: state.categoryIds,
+                          labelBuilder: (Category category) => category.name,
+                          onToggle: (Category category) =>
+                              controller.toggleCategory(category.id),
+                        ),
+                        if (selectedCategories.isNotEmpty) ...<Widget>[
+                          const SizedBox(height: 16),
+                          _CategoryAllocationsEditor(
+                            title: strings.budgetCategoryAllocationsTitle,
+                            categories: selectedCategories,
+                            controllers: _categoryControllers,
+                            onChanged: controller.updateCategoryAmount,
+                            strings: strings,
+                          ),
+                        ],
+                      ],
                     );
                   },
                   loading: () => const Center(
@@ -253,6 +298,30 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
     );
   }
 
+  void _syncCategoryControllers(BudgetFormState state) {
+    final Set<String> ids = state.categoryIds.toSet();
+    final List<String> toRemove = _categoryControllers.keys
+        .where((String key) => !ids.contains(key))
+        .toList(growable: false);
+    for (final String key in toRemove) {
+      _categoryControllers.remove(key)?.dispose();
+    }
+    for (final String id in ids) {
+      final String value = state.categoryAmounts[id] ?? '0';
+      final TextEditingController controller =
+          _categoryControllers[id] ?? TextEditingController();
+      if (!_categoryControllers.containsKey(id)) {
+        _categoryControllers[id] = controller;
+      }
+      if (controller.text != value) {
+        controller.value = controller.value.copyWith(
+          text: value,
+          selection: TextSelection.collapsed(offset: value.length),
+        );
+      }
+    }
+  }
+
   String _periodLabel(AppLocalizations strings, BudgetPeriod period) {
     switch (period) {
       case BudgetPeriod.monthly:
@@ -281,6 +350,8 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
         return strings.budgetErrorInvalidAmount;
       case 'missing_title':
         return strings.budgetErrorMissingTitle;
+      case 'invalid_category_amount':
+        return strings.budgetErrorInvalidCategoryAmount;
       default:
         return strings.genericErrorMessage;
     }
@@ -372,5 +443,84 @@ class _SelectionChips<T> extends StatelessWidget {
       return value.id;
     }
     throw ArgumentError('Unsupported type $value');
+  }
+}
+
+class _CategoryAllocationsEditor extends StatelessWidget {
+  const _CategoryAllocationsEditor({
+    required this.title,
+    required this.categories,
+    required this.controllers,
+    required this.onChanged,
+    required this.strings,
+  });
+
+  final String title;
+  final List<Category> categories;
+  final Map<String, TextEditingController> controllers;
+  final void Function(String categoryId, String value) onChanged;
+  final AppLocalizations strings;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Text(title, style: theme.textTheme.titleSmall),
+        const SizedBox(height: 8),
+        Column(
+          children: categories
+              .map((Category category) {
+                final TextEditingController controller =
+                    controllers[category.id]!;
+                final Color? background = parseHexColor(category.color);
+                final Color foreground = background != null
+                    ? (ThemeData.estimateBrightnessForColor(background) ==
+                              Brightness.dark
+                          ? Colors.white
+                          : Colors.black87)
+                    : theme.colorScheme.onSurfaceVariant;
+                final IconData? iconData = resolvePhosphorIconData(
+                  category.icon,
+                );
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: <Widget>[
+                      CircleAvatar(
+                        backgroundColor:
+                            background ??
+                            theme.colorScheme.surfaceContainerHighest,
+                        foregroundColor: foreground,
+                        child: iconData != null
+                            ? Icon(iconData, size: 20)
+                            : const Icon(Icons.category_outlined, size: 20),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: TextField(
+                          controller: controller,
+                          keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true,
+                          ),
+                          decoration: InputDecoration(
+                            labelText: strings.budgetCategoryLimitLabel(
+                              category.name,
+                            ),
+                          ),
+                          onChanged: (String value) =>
+                              onChanged(category.id, value),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              })
+              .toList(growable: false),
+        ),
+      ],
+    );
   }
 }

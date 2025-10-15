@@ -2094,6 +2094,10 @@
   "@budgetAmountLabel": {
     "description": "Подпись поля суммы бюджета"
   },
+  "budgetAmountAutoHelper": "Сумма рассчитывается автоматически по лимитам категорий.",
+  "@budgetAmountAutoHelper": {
+    "description": "Подсказка о том, что общая сумма складывается из лимитов категорий."
+  },
   "budgetPeriodLabelShort": "Период",
   "@budgetPeriodLabelShort": {
     "description": "Подпись выбора периода бюджета"
@@ -2113,6 +2117,20 @@
   "budgetCategoriesLabel": "Категории",
   "@budgetCategoriesLabel": {
     "description": "Подпись списка выбранных категорий"
+  },
+  "budgetCategoryAllocationsTitle": "Лимиты по категориям",
+  "@budgetCategoryAllocationsTitle": {
+    "description": "Заголовок блока с настройкой лимитов по категориям."
+  },
+  "budgetCategoryLimitLabel": "Лимит для {category}",
+  "@budgetCategoryLimitLabel": {
+    "description": "Подпись поля ввода лимита для конкретной категории.",
+    "placeholders": {
+      "category": {
+        "type": "String",
+        "description": "Название категории."
+      }
+    }
   },
   "budgetAccountsLabel": "Счета",
   "@budgetAccountsLabel": {
@@ -2145,6 +2163,10 @@
   "budgetErrorInvalidAmount": "Введите положительную сумму.",
   "@budgetErrorInvalidAmount": {
     "description": "Ошибка валидации при неверной сумме"
+  },
+  "budgetErrorInvalidCategoryAmount": "Укажите положительный лимит для каждой выбранной категории.",
+  "@budgetErrorInvalidCategoryAmount": {
+    "description": "Ошибка валидации при неверных лимитах по категориям"
   },
   "budgetErrorMissingTitle": "Введите название бюджета.",
   "@budgetErrorMissingTitle": {

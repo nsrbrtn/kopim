@@ -2786,6 +2786,12 @@ abstract class AppLocalizations {
   /// **'Limit amount'**
   String get budgetAmountLabel;
 
+  /// Helper text shown when the budget amount is computed from category allocations.
+  ///
+  /// In en, this message translates to:
+  /// **'Total is calculated from category limits.'**
+  String get budgetAmountAutoHelper;
+
   /// Label for the budget period dropdown
   ///
   /// In en, this message translates to:
@@ -2815,6 +2821,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Categories'**
   String get budgetCategoriesLabel;
+
+  /// Section title for configuring per-category budget limits.
+  ///
+  /// In en, this message translates to:
+  /// **'Category limits'**
+  String get budgetCategoryAllocationsTitle;
+
+  /// Label for the input that captures a budget limit for a specific category.
+  ///
+  /// In en, this message translates to:
+  /// **'{category} limit'**
+  String budgetCategoryLimitLabel(String category);
 
   /// Label for the selected accounts chips
   ///
@@ -2863,6 +2881,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Enter a positive amount.'**
   String get budgetErrorInvalidAmount;
+
+  /// Validation error shown when category allocations are invalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a positive limit for each selected category.'**
+  String get budgetErrorInvalidCategoryAmount;
 
   /// Validation error shown when the title is missing
   ///

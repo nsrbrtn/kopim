@@ -24,6 +24,13 @@ _Budget _$BudgetFromJson(Map<String, dynamic> json) => _Budget(
   accounts:
       (json['accounts'] as List<dynamic>?)?.map((e) => e as String).toList() ??
       const <String>[],
+  categoryAllocations:
+      (json['categoryAllocations'] as List<dynamic>?)
+          ?.map(
+            (e) => BudgetCategoryAllocation.fromJson(e as Map<String, dynamic>),
+          )
+          .toList() ??
+      const <BudgetCategoryAllocation>[],
   createdAt: DateTime.parse(json['createdAt'] as String),
   updatedAt: DateTime.parse(json['updatedAt'] as String),
   isDeleted: json['isDeleted'] as bool? ?? false,
@@ -39,6 +46,7 @@ Map<String, dynamic> _$BudgetToJson(_Budget instance) => <String, dynamic>{
   'scope': _scopeToJson(instance.scope),
   'categories': instance.categories,
   'accounts': instance.accounts,
+  'categoryAllocations': instance.categoryAllocations,
   'createdAt': instance.createdAt.toIso8601String(),
   'updatedAt': instance.updatedAt.toIso8601String(),
   'isDeleted': instance.isDeleted,
