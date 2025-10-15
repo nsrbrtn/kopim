@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:kopim/features/analytics/presentation/widgets/analytics_chart.dart';
 
 void main() {
-  testWidgets('AnalyticsDonutChart renders percentage labels for segments', (
+  testWidgets('AnalyticsDonutChart отображает иконки для сегментов ≥5%', (
     WidgetTester tester,
   ) async {
     final List<AnalyticsChartItem> items = <AnalyticsChartItem>[
@@ -12,12 +12,14 @@ void main() {
         title: 'A',
         amount: 60,
         color: Colors.red,
+        icon: Icons.star,
       ),
       const AnalyticsChartItem(
         key: 'b',
         title: 'B',
         amount: 40,
         color: Colors.blue,
+        icon: Icons.favorite,
       ),
     ];
 
@@ -40,8 +42,10 @@ void main() {
 
     await tester.pumpAndSettle();
 
-    expect(find.text('60%'), findsOneWidget);
-    expect(find.text('40%'), findsOneWidget);
+    expect(find.byIcon(Icons.star), findsOneWidget);
+    expect(find.byIcon(Icons.favorite), findsOneWidget);
+    expect(find.text('60%'), findsNothing);
+    expect(find.text('40%'), findsNothing);
   });
 
   testWidgets('AnalyticsDonutChart avoids overflow with many slices', (
@@ -77,5 +81,56 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('AnalyticsDonutChart скрывает иконки для сегментов <5%', (
+    WidgetTester tester,
+  ) async {
+    final List<AnalyticsChartItem> items = <AnalyticsChartItem>[
+      const AnalyticsChartItem(
+        key: 'major',
+        title: 'Major',
+        amount: 94,
+        color: Colors.green,
+        icon: Icons.wallet,
+      ),
+      const AnalyticsChartItem(
+        key: 'minor',
+        title: 'Minor',
+        amount: 6,
+        color: Colors.orange,
+        icon: Icons.warning,
+      ),
+      const AnalyticsChartItem(
+        key: 'tiny',
+        title: 'Tiny',
+        amount: 1,
+        color: Colors.purple,
+        icon: Icons.close,
+      ),
+    ];
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Center(
+            child: SizedBox(
+              width: 320,
+              height: 320,
+              child: AnalyticsDonutChart(
+                items: items,
+                backgroundColor: Colors.grey.shade200,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    expect(find.byIcon(Icons.wallet), findsOneWidget);
+    expect(find.byIcon(Icons.warning), findsOneWidget);
+    expect(find.byIcon(Icons.close), findsNothing);
   });
 }

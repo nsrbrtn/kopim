@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:kopim/core/data/database.dart' as db;
 import 'package:kopim/core/data/outbox/outbox_dao.dart';
+import 'package:kopim/core/data/outbox/outbox_payload_normalizer.dart';
 import 'package:kopim/features/accounts/data/sources/remote/account_remote_data_source.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/budgets/data/sources/remote/budget_instance_remote_data_source.dart';
@@ -35,6 +36,7 @@ class SyncService {
     required RecurringRuleRemoteDataSource recurringRuleRemoteDataSource,
     FirebaseAuth? firebaseAuth,
     Connectivity? connectivity,
+    OutboxPayloadNormalizer payloadNormalizer = const OutboxPayloadNormalizer(),
   }) : _outboxDao = outboxDao,
        _accountRemoteDataSource = accountRemoteDataSource,
        _categoryRemoteDataSource = categoryRemoteDataSource,
@@ -45,7 +47,8 @@ class SyncService {
        _savingGoalRemoteDataSource = savingGoalRemoteDataSource,
        _recurringRuleRemoteDataSource = recurringRuleRemoteDataSource,
        _auth = firebaseAuth ?? FirebaseAuth.instance,
-       _connectivity = connectivity ?? Connectivity();
+       _connectivity = connectivity ?? Connectivity(),
+       _payloadNormalizer = payloadNormalizer;
 
   final OutboxDao _outboxDao;
   final AccountRemoteDataSource _accountRemoteDataSource;
@@ -58,6 +61,7 @@ class SyncService {
   final RecurringRuleRemoteDataSource _recurringRuleRemoteDataSource;
   final FirebaseAuth _auth;
   final Connectivity _connectivity;
+  final OutboxPayloadNormalizer _payloadNormalizer;
 
   StreamSubscription<List<db.OutboxEntryRow>>? _outboxSubscription;
   StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
@@ -111,7 +115,10 @@ class SyncService {
   Future<void> _syncEntry(String userId, db.OutboxEntryRow entry) async {
     final db.OutboxEntryRow prepared = await _outboxDao.prepareForSend(entry);
     try {
-      final Map<String, dynamic> payload = _outboxDao.decodePayload(prepared);
+      final Map<String, dynamic> payload = _payloadNormalizer.normalize(
+        prepared.entityType,
+        _outboxDao.decodePayload(prepared),
+      );
       final OutboxOperation operation = OutboxOperation.values.byName(
         prepared.operation,
       );
