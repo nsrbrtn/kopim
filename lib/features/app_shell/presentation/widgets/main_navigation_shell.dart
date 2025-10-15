@@ -31,12 +31,25 @@ class MainNavigationShell extends ConsumerWidget {
         .floatingActionButtonBuilder
         ?.call(context, ref);
 
+    final NavigatorState? activeNavigator =
+        activeContent.navigatorKey?.currentState;
+
     return PopScope(
       canPop: currentIndex == 0,
       onPopInvokedWithResult: (bool didPop, Object? result) {
         if (didPop) {
           return;
         }
+
+        if (activeNavigator != null) {
+          activeNavigator.maybePop().then((bool popped) {
+            if (!popped && ref.read(mainNavigationControllerProvider) != 0) {
+              ref.read(mainNavigationControllerProvider.notifier).setIndex(0);
+            }
+          });
+          return;
+        }
+
         if (currentIndex != 0) {
           ref.read(mainNavigationControllerProvider.notifier).setIndex(0);
         }

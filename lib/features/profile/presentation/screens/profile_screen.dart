@@ -41,6 +41,7 @@ NavigationTabContent buildProfileTabContent(
   return NavigationTabContent(
     bodyBuilder: (BuildContext context, WidgetRef ref) =>
         _ProfileTabNavigator(navigatorKey: profileTabNavigatorKey),
+    navigatorKey: profileTabNavigatorKey,
   );
 }
 

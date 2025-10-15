@@ -46,7 +46,7 @@ class _HomeUpcomingItemsCardState extends State<HomeUpcomingItemsCard> {
     Widget content;
     if (!hasItems) {
       content = Padding(
-        padding: const EdgeInsets.symmetric(vertical: 12),
+        padding: const EdgeInsets.symmetric(vertical: 8),
         child: Text(
           widget.strings.homeUpcomingPaymentsEmpty,
           style: theme.textTheme.bodyMedium,
@@ -63,7 +63,7 @@ class _HomeUpcomingItemsCardState extends State<HomeUpcomingItemsCard> {
         sizeCurve: Curves.easeInOut,
         alignment: Alignment.topCenter,
         firstChild: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12),
+          padding: const EdgeInsets.symmetric(vertical: 8),
           child: _UpcomingSummaryBadges(
             paymentCount: paymentCount,
             reminderCount: reminderCount,
@@ -75,7 +75,7 @@ class _HomeUpcomingItemsCardState extends State<HomeUpcomingItemsCard> {
           children: <Widget>[
             for (final UpcomingItem item in widget.items)
               Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8),
+                padding: const EdgeInsets.symmetric(vertical: 6),
                 child: _UpcomingListRow(
                   item: item,
                   strings: widget.strings,
@@ -83,7 +83,7 @@ class _HomeUpcomingItemsCardState extends State<HomeUpcomingItemsCard> {
                   timeService: widget.timeService,
                 ),
               ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             Align(
               alignment: Alignment.centerRight,
               child: TextButton(
@@ -99,7 +99,7 @@ class _HomeUpcomingItemsCardState extends State<HomeUpcomingItemsCard> {
     return Card(
       margin: EdgeInsets.zero,
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
@@ -126,7 +126,7 @@ class _HomeUpcomingItemsCardState extends State<HomeUpcomingItemsCard> {
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             content,
           ],
         ),
@@ -187,7 +187,7 @@ class _UpcomingSummaryBadges extends StatelessWidget {
       );
     }
 
-    return Wrap(spacing: 16, runSpacing: 12, children: badges);
+    return Wrap(spacing: 12, runSpacing: 8, children: badges);
   }
 }
 

@@ -1542,6 +1542,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get budgetsTitle => 'Бюджеты';
 
   @override
+  String get budgetsCategoryChartTitle => 'Траты по категориям';
+
+  @override
   String get budgetsEmptyTitle => 'Пока нет бюджетов';
 
   @override

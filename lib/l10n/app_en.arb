@@ -2018,6 +2018,10 @@
   "@budgetsTitle": {
     "description": "Title for the budgets list screen"
   },
+  "budgetsCategoryChartTitle": "Spending by category",
+  "@budgetsCategoryChartTitle": {
+    "description": "Title for the category spending chart on the budgets screen"
+  },
   "budgetsEmptyTitle": "No budgets yet",
   "@budgetsEmptyTitle": {
     "description": "Headline shown when the user has not created budgets"
