@@ -7,6 +7,7 @@ class NavigationTabContent {
     this.appBarBuilder,
     required this.bodyBuilder,
     this.floatingActionButtonBuilder,
+    this.navigatorKey,
   });
 
   final PreferredSizeWidget? Function(BuildContext context, WidgetRef ref)?
@@ -14,4 +15,5 @@ class NavigationTabContent {
   final Widget Function(BuildContext context, WidgetRef ref) bodyBuilder;
   final Widget? Function(BuildContext context, WidgetRef ref)?
   floatingActionButtonBuilder;
+  final GlobalKey<NavigatorState>? navigatorKey;
 }

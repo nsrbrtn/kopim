@@ -222,6 +222,55 @@ final class BudgetsWithProgressProvider
 String _$budgetsWithProgressHash() =>
     r'89904c6d80e517389af54ec72a7aca7833697ed3';
 
+@ProviderFor(budgetCategorySpend)
+const budgetCategorySpendProvider = BudgetCategorySpendProvider._();
+
+final class BudgetCategorySpendProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<BudgetCategorySpend>>,
+          AsyncValue<List<BudgetCategorySpend>>,
+          AsyncValue<List<BudgetCategorySpend>>
+        >
+    with $Provider<AsyncValue<List<BudgetCategorySpend>>> {
+  const BudgetCategorySpendProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'budgetCategorySpendProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$budgetCategorySpendHash();
+
+  @$internal
+  @override
+  $ProviderElement<AsyncValue<List<BudgetCategorySpend>>> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  AsyncValue<List<BudgetCategorySpend>> create(Ref ref) {
+    return budgetCategorySpend(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(AsyncValue<List<BudgetCategorySpend>> value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride:
+          $SyncValueProvider<AsyncValue<List<BudgetCategorySpend>>>(value),
+    );
+  }
+}
+
+String _$budgetCategorySpendHash() =>
+    r'08b3499b99f4a3af0a35014669c9cf25ac410432';
+
 @ProviderFor(budgetProgressById)
 const budgetProgressByIdProvider = BudgetProgressByIdFamily._();
 

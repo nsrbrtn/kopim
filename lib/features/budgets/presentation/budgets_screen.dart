@@ -4,7 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kopim/features/app_shell/presentation/models/navigation_tab_content.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_progress.dart';
 import 'package:kopim/features/budgets/presentation/controllers/budgets_providers.dart';
+import 'package:kopim/features/budgets/presentation/models/budget_category_spend.dart';
 import 'package:kopim/features/budgets/presentation/widgets/budget_card.dart';
+import 'package:kopim/features/budgets/presentation/widgets/budget_category_spending_chart_card.dart';
 import 'package:kopim/features/budgets/presentation/budget_detail_screen.dart';
 import 'package:kopim/features/budgets/presentation/budget_form_screen.dart';
 import 'package:kopim/l10n/app_localizations.dart';
@@ -52,16 +54,38 @@ NavigationTabContent buildBudgetsTabContent(
       final AsyncValue<List<BudgetProgress>> budgetsAsync = ref.watch(
         budgetsWithProgressProvider,
       );
+      final AsyncValue<List<BudgetCategorySpend>> categorySpendAsync = ref
+          .watch(budgetCategorySpendProvider);
       return budgetsAsync.when(
         data: (List<BudgetProgress> items) {
           if (items.isEmpty) {
             return _BudgetsEmptyState(strings: strings);
           }
-          return ListView.separated(
-            padding: const EdgeInsets.all(16),
-            itemBuilder: (BuildContext context, int index) {
-              final BudgetProgress progress = items[index];
-              return BudgetCard(
+          final Widget chartSection = categorySpendAsync.when(
+            data: (List<BudgetCategorySpend> chartData) =>
+                BudgetCategorySpendingChartCard(
+                  data: chartData,
+                  localeName: strings.localeName,
+                  strings: strings,
+                ),
+            loading: () => const BudgetCategorySpendingChartSkeleton(),
+            error: (Object error, StackTrace stackTrace) =>
+                BudgetCategorySpendingChartError(
+                  message: error.toString(),
+                  strings: strings,
+                ),
+          );
+          final List<Widget> children = <Widget>[
+            chartSection,
+            const SizedBox(height: 16),
+          ];
+          for (int index = 0; index < items.length; index++) {
+            if (index > 0) {
+              children.add(const SizedBox(height: 12));
+            }
+            final BudgetProgress progress = items[index];
+            children.add(
+              BudgetCard(
                 progress: progress,
                 onTap: () {
                   Navigator.of(context).push(
@@ -71,11 +95,12 @@ NavigationTabContent buildBudgetsTabContent(
                     ),
                   );
                 },
-              );
-            },
-            separatorBuilder: (BuildContext context, int index) =>
-                const SizedBox(height: 12),
-            itemCount: items.length,
+              ),
+            );
+          }
+          return ListView(
+            padding: const EdgeInsets.all(16),
+            children: children,
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),

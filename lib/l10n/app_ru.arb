@@ -2018,6 +2018,10 @@
   "@budgetsTitle": {
     "description": "Заголовок экрана списка бюджетов"
   },
+  "budgetsCategoryChartTitle": "Траты по категориям",
+  "@budgetsCategoryChartTitle": {
+    "description": "Заголовок диаграммы категорий на экране бюджетов"
+  },
   "budgetsEmptyTitle": "Пока нет бюджетов",
   "@budgetsEmptyTitle": {
     "description": "Заголовок пустого состояния списков бюджетов"

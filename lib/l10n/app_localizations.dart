@@ -2684,6 +2684,12 @@ abstract class AppLocalizations {
   /// **'Budgets'**
   String get budgetsTitle;
 
+  /// Title for the category spending chart on the budgets screen
+  ///
+  /// In en, this message translates to:
+  /// **'Spending by category'**
+  String get budgetsCategoryChartTitle;
+
   /// Headline shown when the user has not created budgets
   ///
   /// In en, this message translates to:
