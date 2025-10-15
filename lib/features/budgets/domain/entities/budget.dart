@@ -1,5 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import 'budget_category_allocation.dart';
 import 'budget_period.dart';
 import 'budget_scope.dart';
 
@@ -22,6 +23,8 @@ abstract class Budget with _$Budget {
     required BudgetScope scope,
     @Default(<String>[]) List<String> categories,
     @Default(<String>[]) List<String> accounts,
+    @Default(<BudgetCategoryAllocation>[])
+    List<BudgetCategoryAllocation> categoryAllocations,
     required DateTime createdAt,
     required DateTime updatedAt,
     @Default(false) bool isDeleted,

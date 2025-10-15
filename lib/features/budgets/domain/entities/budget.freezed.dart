@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Budget {
 
- String get id; String get title;@JsonKey(fromJson: BudgetPeriodX.fromStorage, toJson: _periodToJson) BudgetPeriod get period; DateTime get startDate; DateTime? get endDate; double get amount;@JsonKey(fromJson: BudgetScopeX.fromStorage, toJson: _scopeToJson) BudgetScope get scope; List<String> get categories; List<String> get accounts; DateTime get createdAt; DateTime get updatedAt; bool get isDeleted;
+ String get id; String get title;@JsonKey(fromJson: BudgetPeriodX.fromStorage, toJson: _periodToJson) BudgetPeriod get period; DateTime get startDate; DateTime? get endDate; double get amount;@JsonKey(fromJson: BudgetScopeX.fromStorage, toJson: _scopeToJson) BudgetScope get scope; List<String> get categories; List<String> get accounts; List<BudgetCategoryAllocation> get categoryAllocations; DateTime get createdAt; DateTime get updatedAt; bool get isDeleted;
 /// Create a copy of Budget
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $BudgetCopyWith<Budget> get copyWith => _$BudgetCopyWithImpl<Budget>(this as Bud
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Budget&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.period, period) || other.period == period)&&(identical(other.startDate, startDate) || other.startDate == startDate)&&(identical(other.endDate, endDate) || other.endDate == endDate)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.scope, scope) || other.scope == scope)&&const DeepCollectionEquality().equals(other.categories, categories)&&const DeepCollectionEquality().equals(other.accounts, accounts)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.isDeleted, isDeleted) || other.isDeleted == isDeleted));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Budget&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.period, period) || other.period == period)&&(identical(other.startDate, startDate) || other.startDate == startDate)&&(identical(other.endDate, endDate) || other.endDate == endDate)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.scope, scope) || other.scope == scope)&&const DeepCollectionEquality().equals(other.categories, categories)&&const DeepCollectionEquality().equals(other.accounts, accounts)&&const DeepCollectionEquality().equals(other.categoryAllocations, categoryAllocations)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.isDeleted, isDeleted) || other.isDeleted == isDeleted));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,title,period,startDate,endDate,amount,scope,const DeepCollectionEquality().hash(categories),const DeepCollectionEquality().hash(accounts),createdAt,updatedAt,isDeleted);
+int get hashCode => Object.hash(runtimeType,id,title,period,startDate,endDate,amount,scope,const DeepCollectionEquality().hash(categories),const DeepCollectionEquality().hash(accounts),const DeepCollectionEquality().hash(categoryAllocations),createdAt,updatedAt,isDeleted);
 
 @override
 String toString() {
-  return 'Budget(id: $id, title: $title, period: $period, startDate: $startDate, endDate: $endDate, amount: $amount, scope: $scope, categories: $categories, accounts: $accounts, createdAt: $createdAt, updatedAt: $updatedAt, isDeleted: $isDeleted)';
+  return 'Budget(id: $id, title: $title, period: $period, startDate: $startDate, endDate: $endDate, amount: $amount, scope: $scope, categories: $categories, accounts: $accounts, categoryAllocations: $categoryAllocations, createdAt: $createdAt, updatedAt: $updatedAt, isDeleted: $isDeleted)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $BudgetCopyWith<$Res>  {
   factory $BudgetCopyWith(Budget value, $Res Function(Budget) _then) = _$BudgetCopyWithImpl;
 @useResult
 $Res call({
- String id, String title,@JsonKey(fromJson: BudgetPeriodX.fromStorage, toJson: _periodToJson) BudgetPeriod period, DateTime startDate, DateTime? endDate, double amount,@JsonKey(fromJson: BudgetScopeX.fromStorage, toJson: _scopeToJson) BudgetScope scope, List<String> categories, List<String> accounts, DateTime createdAt, DateTime updatedAt, bool isDeleted
+ String id, String title,@JsonKey(fromJson: BudgetPeriodX.fromStorage, toJson: _periodToJson) BudgetPeriod period, DateTime startDate, DateTime? endDate, double amount,@JsonKey(fromJson: BudgetScopeX.fromStorage, toJson: _scopeToJson) BudgetScope scope, List<String> categories, List<String> accounts, List<BudgetCategoryAllocation> categoryAllocations, DateTime createdAt, DateTime updatedAt, bool isDeleted
 });
 
 
@@ -65,7 +65,7 @@ class _$BudgetCopyWithImpl<$Res>
 
 /// Create a copy of Budget
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? title = null,Object? period = null,Object? startDate = null,Object? endDate = freezed,Object? amount = null,Object? scope = null,Object? categories = null,Object? accounts = null,Object? createdAt = null,Object? updatedAt = null,Object? isDeleted = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? title = null,Object? period = null,Object? startDate = null,Object? endDate = freezed,Object? amount = null,Object? scope = null,Object? categories = null,Object? accounts = null,Object? categoryAllocations = null,Object? createdAt = null,Object? updatedAt = null,Object? isDeleted = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
@@ -76,7 +76,8 @@ as DateTime?,amount: null == amount ? _self.amount : amount // ignore: cast_null
 as double,scope: null == scope ? _self.scope : scope // ignore: cast_nullable_to_non_nullable
 as BudgetScope,categories: null == categories ? _self.categories : categories // ignore: cast_nullable_to_non_nullable
 as List<String>,accounts: null == accounts ? _self.accounts : accounts // ignore: cast_nullable_to_non_nullable
-as List<String>,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as List<String>,categoryAllocations: null == categoryAllocations ? _self.categoryAllocations : categoryAllocations // ignore: cast_nullable_to_non_nullable
+as List<BudgetCategoryAllocation>,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,isDeleted: null == isDeleted ? _self.isDeleted : isDeleted // ignore: cast_nullable_to_non_nullable
 as bool,
@@ -164,10 +165,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String title, @JsonKey(fromJson: BudgetPeriodX.fromStorage, toJson: _periodToJson)  BudgetPeriod period,  DateTime startDate,  DateTime? endDate,  double amount, @JsonKey(fromJson: BudgetScopeX.fromStorage, toJson: _scopeToJson)  BudgetScope scope,  List<String> categories,  List<String> accounts,  DateTime createdAt,  DateTime updatedAt,  bool isDeleted)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String title, @JsonKey(fromJson: BudgetPeriodX.fromStorage, toJson: _periodToJson)  BudgetPeriod period,  DateTime startDate,  DateTime? endDate,  double amount, @JsonKey(fromJson: BudgetScopeX.fromStorage, toJson: _scopeToJson)  BudgetScope scope,  List<String> categories,  List<String> accounts,  List<BudgetCategoryAllocation> categoryAllocations,  DateTime createdAt,  DateTime updatedAt,  bool isDeleted)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Budget() when $default != null:
-return $default(_that.id,_that.title,_that.period,_that.startDate,_that.endDate,_that.amount,_that.scope,_that.categories,_that.accounts,_that.createdAt,_that.updatedAt,_that.isDeleted);case _:
+return $default(_that.id,_that.title,_that.period,_that.startDate,_that.endDate,_that.amount,_that.scope,_that.categories,_that.accounts,_that.categoryAllocations,_that.createdAt,_that.updatedAt,_that.isDeleted);case _:
   return orElse();
 
 }
@@ -185,10 +186,10 @@ return $default(_that.id,_that.title,_that.period,_that.startDate,_that.endDate,
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String title, @JsonKey(fromJson: BudgetPeriodX.fromStorage, toJson: _periodToJson)  BudgetPeriod period,  DateTime startDate,  DateTime? endDate,  double amount, @JsonKey(fromJson: BudgetScopeX.fromStorage, toJson: _scopeToJson)  BudgetScope scope,  List<String> categories,  List<String> accounts,  DateTime createdAt,  DateTime updatedAt,  bool isDeleted)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String title, @JsonKey(fromJson: BudgetPeriodX.fromStorage, toJson: _periodToJson)  BudgetPeriod period,  DateTime startDate,  DateTime? endDate,  double amount, @JsonKey(fromJson: BudgetScopeX.fromStorage, toJson: _scopeToJson)  BudgetScope scope,  List<String> categories,  List<String> accounts,  List<BudgetCategoryAllocation> categoryAllocations,  DateTime createdAt,  DateTime updatedAt,  bool isDeleted)  $default,) {final _that = this;
 switch (_that) {
 case _Budget():
-return $default(_that.id,_that.title,_that.period,_that.startDate,_that.endDate,_that.amount,_that.scope,_that.categories,_that.accounts,_that.createdAt,_that.updatedAt,_that.isDeleted);case _:
+return $default(_that.id,_that.title,_that.period,_that.startDate,_that.endDate,_that.amount,_that.scope,_that.categories,_that.accounts,_that.categoryAllocations,_that.createdAt,_that.updatedAt,_that.isDeleted);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -205,10 +206,10 @@ return $default(_that.id,_that.title,_that.period,_that.startDate,_that.endDate,
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String title, @JsonKey(fromJson: BudgetPeriodX.fromStorage, toJson: _periodToJson)  BudgetPeriod period,  DateTime startDate,  DateTime? endDate,  double amount, @JsonKey(fromJson: BudgetScopeX.fromStorage, toJson: _scopeToJson)  BudgetScope scope,  List<String> categories,  List<String> accounts,  DateTime createdAt,  DateTime updatedAt,  bool isDeleted)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String title, @JsonKey(fromJson: BudgetPeriodX.fromStorage, toJson: _periodToJson)  BudgetPeriod period,  DateTime startDate,  DateTime? endDate,  double amount, @JsonKey(fromJson: BudgetScopeX.fromStorage, toJson: _scopeToJson)  BudgetScope scope,  List<String> categories,  List<String> accounts,  List<BudgetCategoryAllocation> categoryAllocations,  DateTime createdAt,  DateTime updatedAt,  bool isDeleted)?  $default,) {final _that = this;
 switch (_that) {
 case _Budget() when $default != null:
-return $default(_that.id,_that.title,_that.period,_that.startDate,_that.endDate,_that.amount,_that.scope,_that.categories,_that.accounts,_that.createdAt,_that.updatedAt,_that.isDeleted);case _:
+return $default(_that.id,_that.title,_that.period,_that.startDate,_that.endDate,_that.amount,_that.scope,_that.categories,_that.accounts,_that.categoryAllocations,_that.createdAt,_that.updatedAt,_that.isDeleted);case _:
   return null;
 
 }
@@ -220,7 +221,7 @@ return $default(_that.id,_that.title,_that.period,_that.startDate,_that.endDate,
 @JsonSerializable()
 
 class _Budget extends Budget {
-  const _Budget({required this.id, required this.title, @JsonKey(fromJson: BudgetPeriodX.fromStorage, toJson: _periodToJson) required this.period, required this.startDate, this.endDate, required this.amount, @JsonKey(fromJson: BudgetScopeX.fromStorage, toJson: _scopeToJson) required this.scope, final  List<String> categories = const <String>[], final  List<String> accounts = const <String>[], required this.createdAt, required this.updatedAt, this.isDeleted = false}): _categories = categories,_accounts = accounts,super._();
+  const _Budget({required this.id, required this.title, @JsonKey(fromJson: BudgetPeriodX.fromStorage, toJson: _periodToJson) required this.period, required this.startDate, this.endDate, required this.amount, @JsonKey(fromJson: BudgetScopeX.fromStorage, toJson: _scopeToJson) required this.scope, final  List<String> categories = const <String>[], final  List<String> accounts = const <String>[], final  List<BudgetCategoryAllocation> categoryAllocations = const <BudgetCategoryAllocation>[], required this.createdAt, required this.updatedAt, this.isDeleted = false}): _categories = categories,_accounts = accounts,_categoryAllocations = categoryAllocations,super._();
   factory _Budget.fromJson(Map<String, dynamic> json) => _$BudgetFromJson(json);
 
 @override final  String id;
@@ -244,6 +245,13 @@ class _Budget extends Budget {
   return EqualUnmodifiableListView(_accounts);
 }
 
+ final  List<BudgetCategoryAllocation> _categoryAllocations;
+@override@JsonKey() List<BudgetCategoryAllocation> get categoryAllocations {
+  if (_categoryAllocations is EqualUnmodifiableListView) return _categoryAllocations;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_categoryAllocations);
+}
+
 @override final  DateTime createdAt;
 @override final  DateTime updatedAt;
 @override@JsonKey() final  bool isDeleted;
@@ -261,16 +269,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Budget&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.period, period) || other.period == period)&&(identical(other.startDate, startDate) || other.startDate == startDate)&&(identical(other.endDate, endDate) || other.endDate == endDate)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.scope, scope) || other.scope == scope)&&const DeepCollectionEquality().equals(other._categories, _categories)&&const DeepCollectionEquality().equals(other._accounts, _accounts)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.isDeleted, isDeleted) || other.isDeleted == isDeleted));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Budget&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.period, period) || other.period == period)&&(identical(other.startDate, startDate) || other.startDate == startDate)&&(identical(other.endDate, endDate) || other.endDate == endDate)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.scope, scope) || other.scope == scope)&&const DeepCollectionEquality().equals(other._categories, _categories)&&const DeepCollectionEquality().equals(other._accounts, _accounts)&&const DeepCollectionEquality().equals(other._categoryAllocations, _categoryAllocations)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.isDeleted, isDeleted) || other.isDeleted == isDeleted));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,title,period,startDate,endDate,amount,scope,const DeepCollectionEquality().hash(_categories),const DeepCollectionEquality().hash(_accounts),createdAt,updatedAt,isDeleted);
+int get hashCode => Object.hash(runtimeType,id,title,period,startDate,endDate,amount,scope,const DeepCollectionEquality().hash(_categories),const DeepCollectionEquality().hash(_accounts),const DeepCollectionEquality().hash(_categoryAllocations),createdAt,updatedAt,isDeleted);
 
 @override
 String toString() {
-  return 'Budget(id: $id, title: $title, period: $period, startDate: $startDate, endDate: $endDate, amount: $amount, scope: $scope, categories: $categories, accounts: $accounts, createdAt: $createdAt, updatedAt: $updatedAt, isDeleted: $isDeleted)';
+  return 'Budget(id: $id, title: $title, period: $period, startDate: $startDate, endDate: $endDate, amount: $amount, scope: $scope, categories: $categories, accounts: $accounts, categoryAllocations: $categoryAllocations, createdAt: $createdAt, updatedAt: $updatedAt, isDeleted: $isDeleted)';
 }
 
 
@@ -281,7 +289,7 @@ abstract mixin class _$BudgetCopyWith<$Res> implements $BudgetCopyWith<$Res> {
   factory _$BudgetCopyWith(_Budget value, $Res Function(_Budget) _then) = __$BudgetCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String title,@JsonKey(fromJson: BudgetPeriodX.fromStorage, toJson: _periodToJson) BudgetPeriod period, DateTime startDate, DateTime? endDate, double amount,@JsonKey(fromJson: BudgetScopeX.fromStorage, toJson: _scopeToJson) BudgetScope scope, List<String> categories, List<String> accounts, DateTime createdAt, DateTime updatedAt, bool isDeleted
+ String id, String title,@JsonKey(fromJson: BudgetPeriodX.fromStorage, toJson: _periodToJson) BudgetPeriod period, DateTime startDate, DateTime? endDate, double amount,@JsonKey(fromJson: BudgetScopeX.fromStorage, toJson: _scopeToJson) BudgetScope scope, List<String> categories, List<String> accounts, List<BudgetCategoryAllocation> categoryAllocations, DateTime createdAt, DateTime updatedAt, bool isDeleted
 });
 
 
@@ -298,7 +306,7 @@ class __$BudgetCopyWithImpl<$Res>
 
 /// Create a copy of Budget
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? title = null,Object? period = null,Object? startDate = null,Object? endDate = freezed,Object? amount = null,Object? scope = null,Object? categories = null,Object? accounts = null,Object? createdAt = null,Object? updatedAt = null,Object? isDeleted = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? title = null,Object? period = null,Object? startDate = null,Object? endDate = freezed,Object? amount = null,Object? scope = null,Object? categories = null,Object? accounts = null,Object? categoryAllocations = null,Object? createdAt = null,Object? updatedAt = null,Object? isDeleted = null,}) {
   return _then(_Budget(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
@@ -309,7 +317,8 @@ as DateTime?,amount: null == amount ? _self.amount : amount // ignore: cast_null
 as double,scope: null == scope ? _self.scope : scope // ignore: cast_nullable_to_non_nullable
 as BudgetScope,categories: null == categories ? _self._categories : categories // ignore: cast_nullable_to_non_nullable
 as List<String>,accounts: null == accounts ? _self._accounts : accounts // ignore: cast_nullable_to_non_nullable
-as List<String>,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as List<String>,categoryAllocations: null == categoryAllocations ? _self._categoryAllocations : categoryAllocations // ignore: cast_nullable_to_non_nullable
+as List<BudgetCategoryAllocation>,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,isDeleted: null == isDeleted ? _self.isDeleted : isDeleted // ignore: cast_nullable_to_non_nullable
 as bool,

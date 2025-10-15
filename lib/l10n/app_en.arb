@@ -2094,6 +2094,10 @@
   "@budgetAmountLabel": {
     "description": "Label for the budget amount input"
   },
+  "budgetAmountAutoHelper": "Total is calculated from category limits.",
+  "@budgetAmountAutoHelper": {
+    "description": "Helper text shown when the budget amount is computed from category allocations."
+  },
   "budgetPeriodLabelShort": "Period",
   "@budgetPeriodLabelShort": {
     "description": "Label for the budget period dropdown"
@@ -2113,6 +2117,20 @@
   "budgetCategoriesLabel": "Categories",
   "@budgetCategoriesLabel": {
     "description": "Label for the selected categories chips"
+  },
+  "budgetCategoryAllocationsTitle": "Category limits",
+  "@budgetCategoryAllocationsTitle": {
+    "description": "Section title for configuring per-category budget limits."
+  },
+  "budgetCategoryLimitLabel": "{category} limit",
+  "@budgetCategoryLimitLabel": {
+    "description": "Label for the input that captures a budget limit for a specific category.",
+    "placeholders": {
+      "category": {
+        "type": "String",
+        "description": "Category name."
+      }
+    }
   },
   "budgetAccountsLabel": "Accounts",
   "@budgetAccountsLabel": {
@@ -2145,6 +2163,10 @@
   "budgetErrorInvalidAmount": "Enter a positive amount.",
   "@budgetErrorInvalidAmount": {
     "description": "Validation error shown when the amount is invalid"
+  },
+  "budgetErrorInvalidCategoryAmount": "Enter a positive limit for each selected category.",
+  "@budgetErrorInvalidCategoryAmount": {
+    "description": "Validation error shown when category allocations are invalid."
   },
   "budgetErrorMissingTitle": "Enter a title for the budget.",
   "@budgetErrorMissingTitle": {

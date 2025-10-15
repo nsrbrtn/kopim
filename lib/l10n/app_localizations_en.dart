@@ -1577,6 +1577,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get budgetAmountLabel => 'Limit amount';
 
   @override
+  String get budgetAmountAutoHelper =>
+      'Total is calculated from category limits.';
+
+  @override
   String get budgetPeriodLabelShort => 'Period';
 
   @override
@@ -1590,6 +1594,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get budgetCategoriesLabel => 'Categories';
+
+  @override
+  String get budgetCategoryAllocationsTitle => 'Category limits';
+
+  @override
+  String budgetCategoryLimitLabel(String category) {
+    return '$category limit';
+  }
 
   @override
   String get budgetAccountsLabel => 'Accounts';
@@ -1614,6 +1626,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get budgetErrorInvalidAmount => 'Enter a positive amount.';
+
+  @override
+  String get budgetErrorInvalidCategoryAmount =>
+      'Enter a positive limit for each selected category.';
 
   @override
   String get budgetErrorMissingTitle => 'Enter a title for the budget.';

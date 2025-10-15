@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/features/budgets/domain/entities/budget.dart';
+import 'package:kopim/features/budgets/domain/entities/budget_category_allocation.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_period.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_scope.dart';
 import 'package:kopim/features/budgets/domain/use_cases/save_budget_use_case.dart';
@@ -38,6 +39,7 @@ abstract class BudgetFormState with _$BudgetFormState {
     DateTime? endDate,
     @Default(<String>[]) List<String> categoryIds,
     @Default(<String>[]) List<String> accountIds,
+    @Default(<String, String>{}) Map<String, String> categoryAmounts,
     Budget? initialBudget,
     @Default(false) bool isSubmitting,
     String? errorMessage,
@@ -50,6 +52,15 @@ class BudgetFormController extends _$BudgetFormController {
   BudgetFormState build({BudgetFormParams params = const BudgetFormParams()}) {
     final Budget? initial = params.initial;
     if (initial != null) {
+      final Map<String, String> initialCategoryAmounts = <String, String>{
+        for (final BudgetCategoryAllocation allocation
+            in initial.categoryAllocations)
+          allocation.categoryId: allocation.limit.toStringAsFixed(2),
+      };
+      final Set<String> categoryIds = <String>{
+        ...initial.categories,
+        ...initialCategoryAmounts.keys,
+      };
       return BudgetFormState(
         title: initial.title,
         amountText: initial.amount.toStringAsFixed(2),
@@ -57,8 +68,9 @@ class BudgetFormController extends _$BudgetFormController {
         scope: initial.scope,
         startDate: initial.startDate,
         endDate: initial.endDate,
-        categoryIds: initial.categories,
+        categoryIds: categoryIds.toList(growable: false),
         accountIds: initial.accounts,
+        categoryAmounts: initialCategoryAmounts,
         initialBudget: initial,
       );
     }
@@ -72,6 +84,7 @@ class BudgetFormController extends _$BudgetFormController {
       endDate: null,
       categoryIds: const <String>[],
       accountIds: const <String>[],
+      categoryAmounts: const <String, String>{},
       initialBudget: null,
     );
   }
@@ -89,7 +102,15 @@ class BudgetFormController extends _$BudgetFormController {
   }
 
   void setScope(BudgetScope scope) {
-    state = state.copyWith(scope: scope);
+    final Map<String, String> categoryAmounts = state.categoryAmounts;
+    if (scope == BudgetScope.byCategory) {
+      state = state.copyWith(
+        scope: scope,
+        amountText: _formatCategoryTotal(categoryAmounts),
+      );
+    } else {
+      state = state.copyWith(scope: scope);
+    }
   }
 
   void setStartDate(DateTime date) {
@@ -104,12 +125,23 @@ class BudgetFormController extends _$BudgetFormController {
 
   void toggleCategory(String categoryId) {
     final List<String> categories = List<String>.from(state.categoryIds);
+    final Map<String, String> categoryAmounts = Map<String, String>.from(
+      state.categoryAmounts,
+    );
     if (categories.contains(categoryId)) {
       categories.remove(categoryId);
+      categoryAmounts.remove(categoryId);
     } else {
       categories.add(categoryId);
+      categoryAmounts.putIfAbsent(categoryId, () => '0');
     }
-    state = state.copyWith(categoryIds: categories);
+    state = state.copyWith(
+      categoryIds: categories,
+      categoryAmounts: categoryAmounts,
+      amountText: state.scope == BudgetScope.byCategory
+          ? _formatCategoryTotal(categoryAmounts)
+          : state.amountText,
+    );
   }
 
   void toggleAccount(String accountId) {
@@ -122,6 +154,19 @@ class BudgetFormController extends _$BudgetFormController {
     state = state.copyWith(accountIds: accounts);
   }
 
+  void updateCategoryAmount(String categoryId, String value) {
+    final Map<String, String> categoryAmounts = Map<String, String>.from(
+      state.categoryAmounts,
+    );
+    categoryAmounts[categoryId] = value;
+    state = state.copyWith(
+      categoryAmounts: categoryAmounts,
+      amountText: state.scope == BudgetScope.byCategory
+          ? _formatCategoryTotal(categoryAmounts)
+          : state.amountText,
+    );
+  }
+
   void clearError() {
     if (state.errorMessage != null) {
       state = state.copyWith(errorMessage: null);
@@ -129,9 +174,36 @@ class BudgetFormController extends _$BudgetFormController {
   }
 
   Future<bool> submit() async {
-    final double? amount = double.tryParse(
+    double? amount = double.tryParse(
       state.amountText.replaceAll(',', '.').trim(),
     );
+    List<BudgetCategoryAllocation> categoryAllocations =
+        const <BudgetCategoryAllocation>[];
+    if (state.scope == BudgetScope.byCategory) {
+      if (state.categoryIds.isEmpty) {
+        state = state.copyWith(errorMessage: 'invalid_category_amount');
+        return false;
+      }
+      final List<BudgetCategoryAllocation> allocations =
+          <BudgetCategoryAllocation>[];
+      for (final String categoryId in state.categoryIds) {
+        final String raw = state.categoryAmounts[categoryId] ?? '';
+        final double? limit = double.tryParse(raw.replaceAll(',', '.').trim());
+        if (limit == null || limit <= 0) {
+          state = state.copyWith(errorMessage: 'invalid_category_amount');
+          return false;
+        }
+        allocations.add(
+          BudgetCategoryAllocation(categoryId: categoryId, limit: limit),
+        );
+      }
+      categoryAllocations = allocations;
+      amount = allocations.fold<double>(
+        0,
+        (double previousValue, BudgetCategoryAllocation allocation) =>
+            previousValue + allocation.limit,
+      );
+    }
     if (amount == null || amount <= 0) {
       state = state.copyWith(errorMessage: 'invalid_amount');
       return false;
@@ -165,6 +237,7 @@ class BudgetFormController extends _$BudgetFormController {
             amount: amount,
             categories: categories,
             accounts: accounts,
+            categoryAllocations: categoryAllocations,
             updatedAt: now,
           )
         : Budget(
@@ -179,6 +252,7 @@ class BudgetFormController extends _$BudgetFormController {
             scope: state.scope,
             categories: categories,
             accounts: accounts,
+            categoryAllocations: categoryAllocations,
             createdAt: now,
             updatedAt: now,
           );
@@ -198,5 +272,19 @@ class BudgetFormController extends _$BudgetFormController {
 
   DateTime _normalizeStart(DateTime date) {
     return DateTime(date.year, date.month, date.day, 0, 1);
+  }
+
+  String _formatCategoryTotal(Map<String, String> categoryAmounts) {
+    if (categoryAmounts.isEmpty) {
+      return '0.00';
+    }
+    double total = 0;
+    for (final String value in categoryAmounts.values) {
+      final double? parsed = double.tryParse(value.replaceAll(',', '.').trim());
+      if (parsed != null && parsed >= 0) {
+        total += parsed;
+      }
+    }
+    return total.toStringAsFixed(2);
   }
 }

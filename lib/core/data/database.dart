@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
+import 'package:kopim/core/data/converters/json_map_list_converter.dart';
 import 'package:kopim/core/data/converters/string_list_converter.dart';
 import 'package:kopim/features/upcoming_payments/data/drift/tables/payment_reminders_table.dart';
 import 'package:kopim/features/upcoming_payments/data/drift/tables/upcoming_payments_table.dart';
@@ -189,6 +190,8 @@ class Budgets extends Table {
       text().map(const StringListConverter()).clientDefault(() => '[]')();
   TextColumn get accounts =>
       text().map(const StringListConverter()).clientDefault(() => '[]')();
+  TextColumn get categoryAllocations =>
+      text().map(const JsonMapListConverter()).clientDefault(() => '[]')();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
   BoolColumn get isDeleted =>
@@ -284,7 +287,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.connect(DatabaseConnection super.connection);
 
   @override
-  int get schemaVersion => 17;
+  int get schemaVersion => 18;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -618,6 +621,19 @@ class AppDatabase extends _$AppDatabase {
         );
         if (!hasLastNotifiedColumn) {
           await m.addColumn(paymentReminders, paymentReminders.lastNotifiedAt);
+        }
+      }
+      if (from < 18) {
+        final bool hasCategoryAllocations = await _columnExists(
+          'budgets',
+          'category_allocations',
+        );
+        if (!hasCategoryAllocations) {
+          await m.addColumn(budgets, budgets.categoryAllocations);
+          await m.database.customStatement(
+            "UPDATE budgets SET category_allocations = '[]' "
+            "WHERE category_allocations IS NULL OR category_allocations = ''",
+          );
         }
       }
     },

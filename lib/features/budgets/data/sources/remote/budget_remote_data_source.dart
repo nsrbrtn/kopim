@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:kopim/features/budgets/domain/entities/budget.dart';
+import 'package:kopim/features/budgets/domain/entities/budget_category_allocation.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_period.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_scope.dart';
 
@@ -74,6 +75,9 @@ class BudgetRemoteDataSource {
       'scope': budget.scope.storageValue,
       'categories': budget.categories,
       'accounts': budget.accounts,
+      'categoryAllocations': budget.categoryAllocations
+          .map((BudgetCategoryAllocation allocation) => allocation.toJson())
+          .toList(),
       'createdAt': Timestamp.fromDate(budget.createdAt.toUtc()),
       'updatedAt': Timestamp.fromDate(budget.updatedAt.toUtc()),
       'isDeleted': budget.isDeleted,
@@ -92,6 +96,7 @@ class BudgetRemoteDataSource {
       scope: BudgetScopeX.fromStorage(data['scope'] as String?),
       categories: _parseStringList(data['categories']),
       accounts: _parseStringList(data['accounts']),
+      categoryAllocations: _parseAllocations(data['categoryAllocations']),
       createdAt: _parseTimestamp(data['createdAt']),
       updatedAt: _parseTimestamp(data['updatedAt']),
       isDeleted: data['isDeleted'] as bool? ?? false,
@@ -122,5 +127,27 @@ class BudgetRemoteDataSource {
           .toList();
     }
     return const <String>[];
+  }
+
+  List<BudgetCategoryAllocation> _parseAllocations(Object? value) {
+    if (value is Iterable) {
+      return value
+          .map((Object? item) {
+            if (item is Map<String, dynamic>) {
+              return item;
+            }
+            if (item is Map<Object?, Object?>) {
+              return item.map(
+                (Object? key, Object? value) =>
+                    MapEntry<String, dynamic>(key?.toString() ?? '', value),
+              );
+            }
+            return null;
+          })
+          .whereType<Map<String, dynamic>>()
+          .map(BudgetCategoryAllocation.fromJson)
+          .toList();
+    }
+    return const <BudgetCategoryAllocation>[];
   }
 }

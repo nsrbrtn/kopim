@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:kopim/core/data/database.dart' as db;
 import 'package:kopim/features/budgets/domain/entities/budget.dart';
+import 'package:kopim/features/budgets/domain/entities/budget_category_allocation.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_instance.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_instance_status.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_period.dart';
@@ -97,6 +98,11 @@ class BudgetDao {
       scope: Value<String>(budget.scope.storageValue),
       categories: Value<List<String>>(budget.categories),
       accounts: Value<List<String>>(budget.accounts),
+      categoryAllocations: Value<List<Map<String, dynamic>>>(
+        budget.categoryAllocations
+            .map((BudgetCategoryAllocation allocation) => allocation.toJson())
+            .toList(growable: false),
+      ),
       createdAt: Value<DateTime>(budget.createdAt),
       updatedAt: Value<DateTime>(budget.updatedAt),
       isDeleted: Value<bool>(budget.isDeleted),
@@ -114,6 +120,12 @@ class BudgetDao {
       scope: BudgetScopeX.fromStorage(row.scope),
       categories: row.categories,
       accounts: row.accounts,
+      categoryAllocations: row.categoryAllocations
+          .map(
+            (Map<String, dynamic> json) =>
+                BudgetCategoryAllocation.fromJson(json),
+          )
+          .toList(growable: false),
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
       isDeleted: row.isDeleted,

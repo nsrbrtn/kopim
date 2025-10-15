@@ -1598,6 +1598,10 @@ class AppLocalizationsRu extends AppLocalizations {
   String get budgetAmountLabel => 'Сумма лимита';
 
   @override
+  String get budgetAmountAutoHelper =>
+      'Сумма рассчитывается автоматически по лимитам категорий.';
+
+  @override
   String get budgetPeriodLabelShort => 'Период';
 
   @override
@@ -1611,6 +1615,14 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get budgetCategoriesLabel => 'Категории';
+
+  @override
+  String get budgetCategoryAllocationsTitle => 'Лимиты по категориям';
+
+  @override
+  String budgetCategoryLimitLabel(String category) {
+    return 'Лимит для $category';
+  }
 
   @override
   String get budgetAccountsLabel => 'Счета';
@@ -1635,6 +1647,10 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get budgetErrorInvalidAmount => 'Введите положительную сумму.';
+
+  @override
+  String get budgetErrorInvalidCategoryAmount =>
+      'Укажите положительный лимит для каждой выбранной категории.';
 
   @override
   String get budgetErrorMissingTitle => 'Введите название бюджета.';

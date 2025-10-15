@@ -6400,6 +6400,22 @@ class $BudgetsTable extends Budgets with TableInfo<$BudgetsTable, BudgetRow> {
         requiredDuringInsert: false,
         clientDefault: () => '[]',
       ).withConverter<List<String>>($BudgetsTable.$converteraccounts);
+  @override
+  late final GeneratedColumnWithTypeConverter<
+    List<Map<String, dynamic>>,
+    String
+  >
+  categoryAllocations =
+      GeneratedColumn<String>(
+        'category_allocations',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        clientDefault: () => '[]',
+      ).withConverter<List<Map<String, dynamic>>>(
+        $BudgetsTable.$convertercategoryAllocations,
+      );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -6450,6 +6466,7 @@ class $BudgetsTable extends Budgets with TableInfo<$BudgetsTable, BudgetRow> {
     scope,
     categories,
     accounts,
+    categoryAllocations,
     createdAt,
     updatedAt,
     isDeleted,
@@ -6584,6 +6601,12 @@ class $BudgetsTable extends Budgets with TableInfo<$BudgetsTable, BudgetRow> {
           data['${effectivePrefix}accounts'],
         )!,
       ),
+      categoryAllocations: $BudgetsTable.$convertercategoryAllocations.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}category_allocations'],
+        )!,
+      ),
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -6608,6 +6631,8 @@ class $BudgetsTable extends Budgets with TableInfo<$BudgetsTable, BudgetRow> {
       const StringListConverter();
   static TypeConverter<List<String>, String> $converteraccounts =
       const StringListConverter();
+  static TypeConverter<List<Map<String, dynamic>>, String>
+  $convertercategoryAllocations = const JsonMapListConverter();
 }
 
 class BudgetRow extends DataClass implements Insertable<BudgetRow> {
@@ -6620,6 +6645,7 @@ class BudgetRow extends DataClass implements Insertable<BudgetRow> {
   final String scope;
   final List<String> categories;
   final List<String> accounts;
+  final List<Map<String, dynamic>> categoryAllocations;
   final DateTime createdAt;
   final DateTime updatedAt;
   final bool isDeleted;
@@ -6633,6 +6659,7 @@ class BudgetRow extends DataClass implements Insertable<BudgetRow> {
     required this.scope,
     required this.categories,
     required this.accounts,
+    required this.categoryAllocations,
     required this.createdAt,
     required this.updatedAt,
     required this.isDeleted,
@@ -6659,6 +6686,11 @@ class BudgetRow extends DataClass implements Insertable<BudgetRow> {
         $BudgetsTable.$converteraccounts.toSql(accounts),
       );
     }
+    {
+      map['category_allocations'] = Variable<String>(
+        $BudgetsTable.$convertercategoryAllocations.toSql(categoryAllocations),
+      );
+    }
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
     map['is_deleted'] = Variable<bool>(isDeleted);
@@ -6678,6 +6710,7 @@ class BudgetRow extends DataClass implements Insertable<BudgetRow> {
       scope: Value(scope),
       categories: Value(categories),
       accounts: Value(accounts),
+      categoryAllocations: Value(categoryAllocations),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
       isDeleted: Value(isDeleted),
@@ -6699,6 +6732,9 @@ class BudgetRow extends DataClass implements Insertable<BudgetRow> {
       scope: serializer.fromJson<String>(json['scope']),
       categories: serializer.fromJson<List<String>>(json['categories']),
       accounts: serializer.fromJson<List<String>>(json['accounts']),
+      categoryAllocations: serializer.fromJson<List<Map<String, dynamic>>>(
+        json['categoryAllocations'],
+      ),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       isDeleted: serializer.fromJson<bool>(json['isDeleted']),
@@ -6717,6 +6753,9 @@ class BudgetRow extends DataClass implements Insertable<BudgetRow> {
       'scope': serializer.toJson<String>(scope),
       'categories': serializer.toJson<List<String>>(categories),
       'accounts': serializer.toJson<List<String>>(accounts),
+      'categoryAllocations': serializer.toJson<List<Map<String, dynamic>>>(
+        categoryAllocations,
+      ),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'isDeleted': serializer.toJson<bool>(isDeleted),
@@ -6733,6 +6772,7 @@ class BudgetRow extends DataClass implements Insertable<BudgetRow> {
     String? scope,
     List<String>? categories,
     List<String>? accounts,
+    List<Map<String, dynamic>>? categoryAllocations,
     DateTime? createdAt,
     DateTime? updatedAt,
     bool? isDeleted,
@@ -6746,6 +6786,7 @@ class BudgetRow extends DataClass implements Insertable<BudgetRow> {
     scope: scope ?? this.scope,
     categories: categories ?? this.categories,
     accounts: accounts ?? this.accounts,
+    categoryAllocations: categoryAllocations ?? this.categoryAllocations,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
     isDeleted: isDeleted ?? this.isDeleted,
@@ -6763,6 +6804,9 @@ class BudgetRow extends DataClass implements Insertable<BudgetRow> {
           ? data.categories.value
           : this.categories,
       accounts: data.accounts.present ? data.accounts.value : this.accounts,
+      categoryAllocations: data.categoryAllocations.present
+          ? data.categoryAllocations.value
+          : this.categoryAllocations,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       isDeleted: data.isDeleted.present ? data.isDeleted.value : this.isDeleted,
@@ -6781,6 +6825,7 @@ class BudgetRow extends DataClass implements Insertable<BudgetRow> {
           ..write('scope: $scope, ')
           ..write('categories: $categories, ')
           ..write('accounts: $accounts, ')
+          ..write('categoryAllocations: $categoryAllocations, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('isDeleted: $isDeleted')
@@ -6799,6 +6844,7 @@ class BudgetRow extends DataClass implements Insertable<BudgetRow> {
     scope,
     categories,
     accounts,
+    categoryAllocations,
     createdAt,
     updatedAt,
     isDeleted,
@@ -6816,6 +6862,7 @@ class BudgetRow extends DataClass implements Insertable<BudgetRow> {
           other.scope == this.scope &&
           other.categories == this.categories &&
           other.accounts == this.accounts &&
+          other.categoryAllocations == this.categoryAllocations &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
           other.isDeleted == this.isDeleted);
@@ -6831,6 +6878,7 @@ class BudgetsCompanion extends UpdateCompanion<BudgetRow> {
   final Value<String> scope;
   final Value<List<String>> categories;
   final Value<List<String>> accounts;
+  final Value<List<Map<String, dynamic>>> categoryAllocations;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<bool> isDeleted;
@@ -6845,6 +6893,7 @@ class BudgetsCompanion extends UpdateCompanion<BudgetRow> {
     this.scope = const Value.absent(),
     this.categories = const Value.absent(),
     this.accounts = const Value.absent(),
+    this.categoryAllocations = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.isDeleted = const Value.absent(),
@@ -6860,6 +6909,7 @@ class BudgetsCompanion extends UpdateCompanion<BudgetRow> {
     required String scope,
     this.categories = const Value.absent(),
     this.accounts = const Value.absent(),
+    this.categoryAllocations = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.isDeleted = const Value.absent(),
@@ -6880,6 +6930,7 @@ class BudgetsCompanion extends UpdateCompanion<BudgetRow> {
     Expression<String>? scope,
     Expression<String>? categories,
     Expression<String>? accounts,
+    Expression<String>? categoryAllocations,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<bool>? isDeleted,
@@ -6895,6 +6946,8 @@ class BudgetsCompanion extends UpdateCompanion<BudgetRow> {
       if (scope != null) 'scope': scope,
       if (categories != null) 'categories': categories,
       if (accounts != null) 'accounts': accounts,
+      if (categoryAllocations != null)
+        'category_allocations': categoryAllocations,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (isDeleted != null) 'is_deleted': isDeleted,
@@ -6912,6 +6965,7 @@ class BudgetsCompanion extends UpdateCompanion<BudgetRow> {
     Value<String>? scope,
     Value<List<String>>? categories,
     Value<List<String>>? accounts,
+    Value<List<Map<String, dynamic>>>? categoryAllocations,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
     Value<bool>? isDeleted,
@@ -6927,6 +6981,7 @@ class BudgetsCompanion extends UpdateCompanion<BudgetRow> {
       scope: scope ?? this.scope,
       categories: categories ?? this.categories,
       accounts: accounts ?? this.accounts,
+      categoryAllocations: categoryAllocations ?? this.categoryAllocations,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       isDeleted: isDeleted ?? this.isDeleted,
@@ -6968,6 +7023,13 @@ class BudgetsCompanion extends UpdateCompanion<BudgetRow> {
         $BudgetsTable.$converteraccounts.toSql(accounts.value),
       );
     }
+    if (categoryAllocations.present) {
+      map['category_allocations'] = Variable<String>(
+        $BudgetsTable.$convertercategoryAllocations.toSql(
+          categoryAllocations.value,
+        ),
+      );
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -6995,6 +7057,7 @@ class BudgetsCompanion extends UpdateCompanion<BudgetRow> {
           ..write('scope: $scope, ')
           ..write('categories: $categories, ')
           ..write('accounts: $accounts, ')
+          ..write('categoryAllocations: $categoryAllocations, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('isDeleted: $isDeleted, ')
@@ -14490,6 +14553,7 @@ typedef $$BudgetsTableCreateCompanionBuilder =
       required String scope,
       Value<List<String>> categories,
       Value<List<String>> accounts,
+      Value<List<Map<String, dynamic>>> categoryAllocations,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<bool> isDeleted,
@@ -14506,6 +14570,7 @@ typedef $$BudgetsTableUpdateCompanionBuilder =
       Value<String> scope,
       Value<List<String>> categories,
       Value<List<String>> accounts,
+      Value<List<Map<String, dynamic>>> categoryAllocations,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<bool> isDeleted,
@@ -14590,6 +14655,16 @@ class $$BudgetsTableFilterComposer
   ColumnWithTypeConverterFilters<List<String>, List<String>, String>
   get accounts => $composableBuilder(
     column: $table.accounts,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<
+    List<Map<String, dynamic>>,
+    List<Map<String, dynamic>>,
+    String
+  >
+  get categoryAllocations => $composableBuilder(
+    column: $table.categoryAllocations,
     builder: (column) => ColumnWithTypeConverterFilters(column),
   );
 
@@ -14688,6 +14763,11 @@ class $$BudgetsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get categoryAllocations => $composableBuilder(
+    column: $table.categoryAllocations,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -14742,6 +14822,12 @@ class $$BudgetsTableAnnotationComposer
 
   GeneratedColumnWithTypeConverter<List<String>, String> get accounts =>
       $composableBuilder(column: $table.accounts, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<List<Map<String, dynamic>>, String>
+  get categoryAllocations => $composableBuilder(
+    column: $table.categoryAllocations,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
@@ -14815,6 +14901,8 @@ class $$BudgetsTableTableManager
                 Value<String> scope = const Value.absent(),
                 Value<List<String>> categories = const Value.absent(),
                 Value<List<String>> accounts = const Value.absent(),
+                Value<List<Map<String, dynamic>>> categoryAllocations =
+                    const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<bool> isDeleted = const Value.absent(),
@@ -14829,6 +14917,7 @@ class $$BudgetsTableTableManager
                 scope: scope,
                 categories: categories,
                 accounts: accounts,
+                categoryAllocations: categoryAllocations,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 isDeleted: isDeleted,
@@ -14845,6 +14934,8 @@ class $$BudgetsTableTableManager
                 required String scope,
                 Value<List<String>> categories = const Value.absent(),
                 Value<List<String>> accounts = const Value.absent(),
+                Value<List<Map<String, dynamic>>> categoryAllocations =
+                    const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<bool> isDeleted = const Value.absent(),
@@ -14859,6 +14950,7 @@ class $$BudgetsTableTableManager
                 scope: scope,
                 categories: categories,
                 accounts: accounts,
+                categoryAllocations: categoryAllocations,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 isDeleted: isDeleted,
