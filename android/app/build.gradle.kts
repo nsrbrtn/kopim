@@ -56,7 +56,7 @@ flutter {
 
 dependencies {
     // Desugaring для Java 8+ API
-    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
 
     // Прочие зависимости модуля app при необходимости:
     // implementation("...")
@@ -66,3 +66,4 @@ dependencies {
 tasks.withType<JavaCompile>().configureEach {
     options.compilerArgs.addAll(listOf("-Xlint:deprecation", "-Xlint:unchecked"))
 }
+
