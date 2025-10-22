@@ -3392,6 +3392,30 @@ abstract class AppLocalizations {
   /// **'The assistant is taking longer than expected. Try again.'**
   String get assistantTimeoutError;
 
+  /// Message shown when Gemini responds with a rate limit error
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ve hit the Gemini request limit. Wait a moment and try again.'**
+  String get assistantRateLimitError;
+
+  /// Message shown when Gemini returns a 5xx server error
+  ///
+  /// In en, this message translates to:
+  /// **'Gemini is temporarily unavailable. Your message stays here so you can retry soon.'**
+  String get assistantServerError;
+
+  /// Message shown when the assistant feature flag is turned off
+  ///
+  /// In en, this message translates to:
+  /// **'The assistant is currently disabled by the team. Please try again later.'**
+  String get assistantDisabledError;
+
+  /// Message shown when the assistant cannot read configuration
+  ///
+  /// In en, this message translates to:
+  /// **'Assistant configuration is missing. Refresh the app or contact support.'**
+  String get assistantConfigurationError;
+
   /// Placeholder shown while the assistant response is streaming
   ///
   /// In en, this message translates to:
@@ -3403,6 +3427,102 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Message copied'**
   String get assistantMessageCopied;
+
+  /// Card title explaining the assistant capabilities
+  ///
+  /// In en, this message translates to:
+  /// **'Get started with the assistant'**
+  String get assistantOnboardingTitle;
+
+  /// Short description encouraging users to try the assistant
+  ///
+  /// In en, this message translates to:
+  /// **'Ask about budgets, spending trends, or savings goals to get tailored insights.'**
+  String get assistantOnboardingDescription;
+
+  /// Checklist item describing analytics capabilities
+  ///
+  /// In en, this message translates to:
+  /// **'Break down spending by category and period in seconds.'**
+  String get assistantOnboardingFeatureInsights;
+
+  /// Checklist item describing budget tracking
+  ///
+  /// In en, this message translates to:
+  /// **'Check how close you are to each budget and get warnings before overspending.'**
+  String get assistantOnboardingFeatureBudgets;
+
+  /// Checklist item describing savings insights
+  ///
+  /// In en, this message translates to:
+  /// **'Discover opportunities to accelerate your savings plans.'**
+  String get assistantOnboardingFeatureSavings;
+
+  /// Section title for assistant limitations
+  ///
+  /// In en, this message translates to:
+  /// **'Keep in mind'**
+  String get assistantOnboardingLimitationsTitle;
+
+  /// Limitation reminding users about data freshness
+  ///
+  /// In en, this message translates to:
+  /// **'Works with the latest synced data—sync offline transactions to include them.'**
+  String get assistantOnboardingLimitationDataFreshness;
+
+  /// Limitation about privacy and security
+  ///
+  /// In en, this message translates to:
+  /// **'Stays inside Kopim: no data is shared outside your account.'**
+  String get assistantOnboardingLimitationSecurity;
+
+  /// Limitation encouraging verification of results
+  ///
+  /// In en, this message translates to:
+  /// **'Treat answers as guidance and double-check totals in detailed reports.'**
+  String get assistantOnboardingLimitationAccuracy;
+
+  /// Section title for assistant FAQ
+  ///
+  /// In en, this message translates to:
+  /// **'FAQ'**
+  String get assistantFaqTitle;
+
+  /// FAQ question about data sources
+  ///
+  /// In en, this message translates to:
+  /// **'Where does the assistant get its data?'**
+  String get assistantFaqQuestionDataSources;
+
+  /// FAQ answer describing assistant data sources
+  ///
+  /// In en, this message translates to:
+  /// **'It uses the same Drift database and Firebase sync as the app, so answers reflect your real accounts, budgets, and transactions.'**
+  String get assistantFaqAnswerDataSources;
+
+  /// FAQ question about rate limits
+  ///
+  /// In en, this message translates to:
+  /// **'Why do I see rate limit or temporary errors?'**
+  String get assistantFaqQuestionLimits;
+
+  /// FAQ answer explaining rate limits
+  ///
+  /// In en, this message translates to:
+  /// **'Gemini occasionally limits traffic. Wait a little before retrying or send a more focused request to stay within the quota.'**
+  String get assistantFaqAnswerLimits;
+
+  /// FAQ question about improving assistant responses
+  ///
+  /// In en, this message translates to:
+  /// **'How do I get better answers?'**
+  String get assistantFaqQuestionImproveResults;
+
+  /// FAQ answer with tips for better assistant queries
+  ///
+  /// In en, this message translates to:
+  /// **'Be specific—mention time ranges, accounts, or categories. Combine quick filters above the chat for extra context.'**
+  String get assistantFaqAnswerImproveResults;
 }
 
 class _AppLocalizationsDelegate

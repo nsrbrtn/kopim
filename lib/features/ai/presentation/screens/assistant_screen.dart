@@ -580,6 +580,14 @@ class _AssistantErrorNotice extends StatelessWidget {
         message = strings.assistantNetworkError;
       case AssistantErrorType.timeout:
         message = strings.assistantTimeoutError;
+      case AssistantErrorType.rateLimit:
+        message = strings.assistantRateLimitError;
+      case AssistantErrorType.server:
+        message = strings.assistantServerError;
+      case AssistantErrorType.disabled:
+        message = strings.assistantDisabledError;
+      case AssistantErrorType.configuration:
+        message = strings.assistantConfigurationError;
       case AssistantErrorType.unknown:
         message = strings.assistantGenericError;
       case AssistantErrorType.none:
@@ -620,28 +628,211 @@ class _AssistantEmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
+    return LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints constraints) {
+        final ThemeData theme = Theme.of(context);
+        return SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minHeight: constraints.maxHeight > 0
+                  ? constraints.maxHeight - 48
+                  : 0,
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: <Widget>[
+                const Icon(Icons.smart_toy_outlined, size: 48),
+                const SizedBox(height: 16),
+                Text(
+                  strings.assistantEmptyStateTitle,
+                  style: theme.textTheme.titleMedium,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  strings.assistantEmptyStateSubtitle,
+                  style: theme.textTheme.bodyMedium,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                _AssistantOnboardingChecklist(strings: strings),
+                const SizedBox(height: 24),
+                _AssistantFaqSection(strings: strings),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _AssistantOnboardingChecklist extends StatelessWidget {
+  const _AssistantOnboardingChecklist({required this.strings});
+
+  final AppLocalizations strings;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final List<_AssistantChecklistItem> features = <_AssistantChecklistItem>[
+      _AssistantChecklistItem(
+        icon: Icons.analytics_outlined,
+        label: strings.assistantOnboardingFeatureInsights,
+      ),
+      _AssistantChecklistItem(
+        icon: Icons.account_balance_wallet_outlined,
+        label: strings.assistantOnboardingFeatureBudgets,
+      ),
+      _AssistantChecklistItem(
+        icon: Icons.savings_outlined,
+        label: strings.assistantOnboardingFeatureSavings,
+      ),
+    ];
+    final List<_AssistantChecklistItem> limitations = <_AssistantChecklistItem>[
+      _AssistantChecklistItem(
+        icon: Icons.sync_outlined,
+        label: strings.assistantOnboardingLimitationDataFreshness,
+      ),
+      _AssistantChecklistItem(
+        icon: Icons.shield_outlined,
+        label: strings.assistantOnboardingLimitationSecurity,
+      ),
+      _AssistantChecklistItem(
+        icon: Icons.fact_check_outlined,
+        label: strings.assistantOnboardingLimitationAccuracy,
+      ),
+    ];
+
+    return Card(
+      elevation: 0,
+      color: theme.colorScheme.surfaceContainerHigh,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 32),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            const Icon(Icons.smart_toy_outlined, size: 48),
-            const SizedBox(height: 16),
             Text(
-              strings.assistantEmptyStateTitle,
-              style: Theme.of(context).textTheme.titleMedium,
-              textAlign: TextAlign.center,
+              strings.assistantOnboardingTitle,
+              style: theme.textTheme.titleSmall,
             ),
             const SizedBox(height: 8),
             Text(
-              strings.assistantEmptyStateSubtitle,
-              style: Theme.of(context).textTheme.bodyMedium,
-              textAlign: TextAlign.center,
+              strings.assistantOnboardingDescription,
+              style: theme.textTheme.bodyMedium,
             ),
+            const SizedBox(height: 16),
+            ...features.map(_AssistantChecklistRow.new),
+            const SizedBox(height: 20),
+            Text(
+              strings.assistantOnboardingLimitationsTitle,
+              style: theme.textTheme.titleSmall,
+            ),
+            const SizedBox(height: 8),
+            ...limitations.map(_AssistantChecklistRow.new),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _AssistantChecklistItem {
+  const _AssistantChecklistItem({required this.icon, required this.label});
+
+  final IconData icon;
+  final String label;
+}
+
+class _AssistantChecklistRow extends StatelessWidget {
+  const _AssistantChecklistRow(this.item);
+
+  final _AssistantChecklistItem item;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Icon(item.icon, size: 20, color: theme.colorScheme.primary),
+          const SizedBox(width: 12),
+          Expanded(child: Text(item.label, style: theme.textTheme.bodyMedium)),
+        ],
+      ),
+    );
+  }
+}
+
+class _AssistantFaqSection extends StatelessWidget {
+  const _AssistantFaqSection({required this.strings});
+
+  final AppLocalizations strings;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final List<_AssistantFaqEntry> entries = <_AssistantFaqEntry>[
+      _AssistantFaqEntry(
+        question: strings.assistantFaqQuestionDataSources,
+        answer: strings.assistantFaqAnswerDataSources,
+      ),
+      _AssistantFaqEntry(
+        question: strings.assistantFaqQuestionLimits,
+        answer: strings.assistantFaqAnswerLimits,
+      ),
+      _AssistantFaqEntry(
+        question: strings.assistantFaqQuestionImproveResults,
+        answer: strings.assistantFaqAnswerImproveResults,
+      ),
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Text(strings.assistantFaqTitle, style: theme.textTheme.titleSmall),
+        const SizedBox(height: 8),
+        ...entries.map(
+          (_AssistantFaqEntry entry) => _AssistantFaqTile(entry: entry),
+        ),
+      ],
+    );
+  }
+}
+
+class _AssistantFaqEntry {
+  const _AssistantFaqEntry({required this.question, required this.answer});
+
+  final String question;
+  final String answer;
+}
+
+class _AssistantFaqTile extends StatelessWidget {
+  const _AssistantFaqTile({required this.entry});
+
+  final _AssistantFaqEntry entry;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    return Card(
+      elevation: 0,
+      margin: const EdgeInsets.symmetric(vertical: 4),
+      color: theme.colorScheme.surfaceContainerLowest,
+      child: ExpansionTile(
+        tilePadding: const EdgeInsets.symmetric(horizontal: 16),
+        childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        title: Text(entry.question, style: theme.textTheme.bodyLarge),
+        children: <Widget>[
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text(entry.answer, style: theme.textTheme.bodyMedium),
+          ),
+        ],
       ),
     );
   }

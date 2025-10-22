@@ -1914,9 +1914,86 @@ class AppLocalizationsEn extends AppLocalizations {
       'The assistant is taking longer than expected. Try again.';
 
   @override
+  String get assistantRateLimitError =>
+      'You\'ve hit the Gemini request limit. Wait a moment and try again.';
+
+  @override
+  String get assistantServerError =>
+      'Gemini is temporarily unavailable. Your message stays here so you can retry soon.';
+
+  @override
+  String get assistantDisabledError =>
+      'The assistant is currently disabled by the team. Please try again later.';
+
+  @override
+  String get assistantConfigurationError =>
+      'Assistant configuration is missing. Refresh the app or contact support.';
+
+  @override
   String get assistantStreamingPlaceholder =>
       'Assistant is preparing a response…';
 
   @override
   String get assistantMessageCopied => 'Message copied';
+
+  @override
+  String get assistantOnboardingTitle => 'Get started with the assistant';
+
+  @override
+  String get assistantOnboardingDescription =>
+      'Ask about budgets, spending trends, or savings goals to get tailored insights.';
+
+  @override
+  String get assistantOnboardingFeatureInsights =>
+      'Break down spending by category and period in seconds.';
+
+  @override
+  String get assistantOnboardingFeatureBudgets =>
+      'Check how close you are to each budget and get warnings before overspending.';
+
+  @override
+  String get assistantOnboardingFeatureSavings =>
+      'Discover opportunities to accelerate your savings plans.';
+
+  @override
+  String get assistantOnboardingLimitationsTitle => 'Keep in mind';
+
+  @override
+  String get assistantOnboardingLimitationDataFreshness =>
+      'Works with the latest synced data—sync offline transactions to include them.';
+
+  @override
+  String get assistantOnboardingLimitationSecurity =>
+      'Stays inside Kopim: no data is shared outside your account.';
+
+  @override
+  String get assistantOnboardingLimitationAccuracy =>
+      'Treat answers as guidance and double-check totals in detailed reports.';
+
+  @override
+  String get assistantFaqTitle => 'FAQ';
+
+  @override
+  String get assistantFaqQuestionDataSources =>
+      'Where does the assistant get its data?';
+
+  @override
+  String get assistantFaqAnswerDataSources =>
+      'It uses the same Drift database and Firebase sync as the app, so answers reflect your real accounts, budgets, and transactions.';
+
+  @override
+  String get assistantFaqQuestionLimits =>
+      'Why do I see rate limit or temporary errors?';
+
+  @override
+  String get assistantFaqAnswerLimits =>
+      'Gemini occasionally limits traffic. Wait a little before retrying or send a more focused request to stay within the quota.';
+
+  @override
+  String get assistantFaqQuestionImproveResults =>
+      'How do I get better answers?';
+
+  @override
+  String get assistantFaqAnswerImproveResults =>
+      'Be specific—mention time ranges, accounts, or categories. Combine quick filters above the chat for extra context.';
 }
