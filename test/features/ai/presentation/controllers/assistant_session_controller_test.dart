@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kopim/core/di/injectors.dart';
+import 'package:kopim/core/services/ai_assistant_service.dart';
 import 'package:kopim/features/ai/domain/entities/ai_llm_result_entity.dart';
 import 'package:kopim/features/ai/domain/entities/ai_recommendation_entity.dart';
 import 'package:kopim/features/ai/domain/entities/ai_user_query_entity.dart';
@@ -237,5 +238,77 @@ void main() {
         );
       },
     );
+
+    test('sets disabled error when assistant feature flag is off', () async {
+      final _TestConnectivity connectivity = _TestConnectivity(
+        <ConnectivityResult>[ConnectivityResult.wifi],
+      );
+      addTearDown(connectivity.disposeStream);
+      final _FakeAiAssistantRepository repository = _FakeAiAssistantRepository(
+        (AiUserQueryEntity query) async =>
+            throw AiAssistantDisabledException('disabled'),
+      );
+      final ProviderContainer container = ProviderContainer(
+        overrides: <Override>[
+          connectivityProvider.overrideWithValue(connectivity),
+          askFinancialAssistantUseCaseProvider.overrideWith(
+            (Ref ref) => AskFinancialAssistantUseCase(repository),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final AssistantSessionController controller = container.read(
+        assistantSessionControllerProvider.notifier,
+      );
+
+      await controller.sendMessage('Привет');
+
+      final AssistantSessionState state = container.read(
+        assistantSessionControllerProvider,
+      );
+
+      expect(state.lastError, AssistantErrorType.disabled);
+      expect(
+        state.messages.last.deliveryStatus,
+        AssistantMessageDeliveryStatus.failed,
+      );
+    });
+
+    test('maps rate limit exception to dedicated error type', () async {
+      final _TestConnectivity connectivity = _TestConnectivity(
+        <ConnectivityResult>[ConnectivityResult.wifi],
+      );
+      addTearDown(connectivity.disposeStream);
+      final _FakeAiAssistantRepository repository = _FakeAiAssistantRepository(
+        (AiUserQueryEntity query) async =>
+            throw AiAssistantRateLimitException('rate-limit'),
+      );
+      final ProviderContainer container = ProviderContainer(
+        overrides: <Override>[
+          connectivityProvider.overrideWithValue(connectivity),
+          askFinancialAssistantUseCaseProvider.overrideWith(
+            (Ref ref) => AskFinancialAssistantUseCase(repository),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final AssistantSessionController controller = container.read(
+        assistantSessionControllerProvider.notifier,
+      );
+
+      await controller.sendMessage('Check budgets');
+
+      final AssistantSessionState state = container.read(
+        assistantSessionControllerProvider,
+      );
+
+      expect(state.lastError, AssistantErrorType.rateLimit);
+      expect(
+        state.messages.last.deliveryStatus,
+        AssistantMessageDeliveryStatus.failed,
+      );
+    });
   });
 }

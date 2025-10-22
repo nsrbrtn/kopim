@@ -6,6 +6,7 @@ import 'package:collection/collection.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:kopim/core/config/app_config.dart';
 import 'package:kopim/core/di/injectors.dart';
+import 'package:kopim/core/services/ai_assistant_service.dart';
 import 'package:kopim/core/services/logger_service.dart';
 import 'package:kopim/features/ai/domain/entities/ai_llm_result_entity.dart';
 import 'package:kopim/features/ai/domain/entities/ai_user_query_entity.dart';
@@ -265,6 +266,36 @@ class AssistantSessionController extends _$AssistantSessionController {
       _handleSendFailure(
         userMessage: userMessage,
         errorType: AssistantErrorType.timeout,
+      );
+    } on AiAssistantDisabledException catch (error) {
+      logger.logInfo('AI assistant disabled: ${error.message}');
+      _handleSendFailure(
+        userMessage: userMessage,
+        errorType: AssistantErrorType.disabled,
+      );
+    } on AiAssistantRateLimitException catch (error) {
+      logger.logError('AI assistant rate limit', error);
+      _handleSendFailure(
+        userMessage: userMessage,
+        errorType: AssistantErrorType.rateLimit,
+      );
+    } on AiAssistantServerException catch (error) {
+      logger.logError('AI assistant server error', error);
+      _handleSendFailure(
+        userMessage: userMessage,
+        errorType: AssistantErrorType.server,
+      );
+    } on AiAssistantConfigurationException catch (error) {
+      logger.logError('AI assistant configuration error', error);
+      _handleSendFailure(
+        userMessage: userMessage,
+        errorType: AssistantErrorType.configuration,
+      );
+    } on AiAssistantException catch (error) {
+      logger.logError('AI assistant unexpected error', error);
+      _handleSendFailure(
+        userMessage: userMessage,
+        errorType: AssistantErrorType.unknown,
       );
     } on Object catch (error) {
       logger.logError('AI assistant request failed', error);

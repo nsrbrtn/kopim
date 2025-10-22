@@ -2550,6 +2550,22 @@
   "@assistantTimeoutError": {
     "description": "Error shown when the assistant request times out"
   },
+  "assistantRateLimitError": "You've hit the Gemini request limit. Wait a moment and try again.",
+  "@assistantRateLimitError": {
+    "description": "Message shown when Gemini responds with a rate limit error"
+  },
+  "assistantServerError": "Gemini is temporarily unavailable. Your message stays here so you can retry soon.",
+  "@assistantServerError": {
+    "description": "Message shown when Gemini returns a 5xx server error"
+  },
+  "assistantDisabledError": "The assistant is currently disabled by the team. Please try again later.",
+  "@assistantDisabledError": {
+    "description": "Message shown when the assistant feature flag is turned off"
+  },
+  "assistantConfigurationError": "Assistant configuration is missing. Refresh the app or contact support.",
+  "@assistantConfigurationError": {
+    "description": "Message shown when the assistant cannot read configuration"
+  },
   "assistantStreamingPlaceholder": "Assistant is preparing a response…",
   "@assistantStreamingPlaceholder": {
     "description": "Placeholder shown while the assistant response is streaming"
@@ -2557,6 +2573,70 @@
   "assistantMessageCopied": "Message copied",
   "@assistantMessageCopied": {
     "description": "Snack bar message shown after copying an assistant message"
+  },
+  "assistantOnboardingTitle": "Get started with the assistant",
+  "@assistantOnboardingTitle": {
+    "description": "Card title explaining the assistant capabilities"
+  },
+  "assistantOnboardingDescription": "Ask about budgets, spending trends, or savings goals to get tailored insights.",
+  "@assistantOnboardingDescription": {
+    "description": "Short description encouraging users to try the assistant"
+  },
+  "assistantOnboardingFeatureInsights": "Break down spending by category and period in seconds.",
+  "@assistantOnboardingFeatureInsights": {
+    "description": "Checklist item describing analytics capabilities"
+  },
+  "assistantOnboardingFeatureBudgets": "Check how close you are to each budget and get warnings before overspending.",
+  "@assistantOnboardingFeatureBudgets": {
+    "description": "Checklist item describing budget tracking"
+  },
+  "assistantOnboardingFeatureSavings": "Discover opportunities to accelerate your savings plans.",
+  "@assistantOnboardingFeatureSavings": {
+    "description": "Checklist item describing savings insights"
+  },
+  "assistantOnboardingLimitationsTitle": "Keep in mind",
+  "@assistantOnboardingLimitationsTitle": {
+    "description": "Section title for assistant limitations"
+  },
+  "assistantOnboardingLimitationDataFreshness": "Works with the latest synced data—sync offline transactions to include them.",
+  "@assistantOnboardingLimitationDataFreshness": {
+    "description": "Limitation reminding users about data freshness"
+  },
+  "assistantOnboardingLimitationSecurity": "Stays inside Kopim: no data is shared outside your account.",
+  "@assistantOnboardingLimitationSecurity": {
+    "description": "Limitation about privacy and security"
+  },
+  "assistantOnboardingLimitationAccuracy": "Treat answers as guidance and double-check totals in detailed reports.",
+  "@assistantOnboardingLimitationAccuracy": {
+    "description": "Limitation encouraging verification of results"
+  },
+  "assistantFaqTitle": "FAQ",
+  "@assistantFaqTitle": {
+    "description": "Section title for assistant FAQ"
+  },
+  "assistantFaqQuestionDataSources": "Where does the assistant get its data?",
+  "@assistantFaqQuestionDataSources": {
+    "description": "FAQ question about data sources"
+  },
+  "assistantFaqAnswerDataSources": "It uses the same Drift database and Firebase sync as the app, so answers reflect your real accounts, budgets, and transactions.",
+  "@assistantFaqAnswerDataSources": {
+    "description": "FAQ answer describing assistant data sources"
+  },
+  "assistantFaqQuestionLimits": "Why do I see rate limit or temporary errors?",
+  "@assistantFaqQuestionLimits": {
+    "description": "FAQ question about rate limits"
+  },
+  "assistantFaqAnswerLimits": "Gemini occasionally limits traffic. Wait a little before retrying or send a more focused request to stay within the quota.",
+  "@assistantFaqAnswerLimits": {
+    "description": "FAQ answer explaining rate limits"
+  },
+  "assistantFaqQuestionImproveResults": "How do I get better answers?",
+  "@assistantFaqQuestionImproveResults": {
+    "description": "FAQ question about improving assistant responses"
+  },
+  "assistantFaqAnswerImproveResults": "Be specific—mention time ranges, accounts, or categories. Combine quick filters above the chat for extra context.",
+  "@assistantFaqAnswerImproveResults": {
+    "description": "FAQ answer with tips for better assistant queries"
   }
 
 }

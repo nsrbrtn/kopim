@@ -6,7 +6,16 @@ import 'assistant_message.dart';
 part 'assistant_session_state.freezed.dart';
 
 /// Тип последней ошибки в диалоге ассистента.
-enum AssistantErrorType { none, network, timeout, unknown }
+enum AssistantErrorType {
+  none,
+  network,
+  timeout,
+  rateLimit,
+  server,
+  disabled,
+  configuration,
+  unknown,
+}
 
 /// Иммутабельное состояние сессии ассистента.
 @freezed

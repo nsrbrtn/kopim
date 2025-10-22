@@ -1935,8 +1935,85 @@ class AppLocalizationsRu extends AppLocalizations {
       'Ассистент отвечает слишком долго. Попробуйте снова.';
 
   @override
+  String get assistantRateLimitError =>
+      'Превышен лимит запросов Gemini. Подождите минуту и попробуйте снова.';
+
+  @override
+  String get assistantServerError =>
+      'Сервис Gemini временно недоступен. Сообщение сохранено — повторите попытку позже.';
+
+  @override
+  String get assistantDisabledError =>
+      'Ассистент временно отключён. Попробуйте позже.';
+
+  @override
+  String get assistantConfigurationError =>
+      'Не удалось загрузить конфигурацию ассистента. Обновите приложение или обратитесь в поддержку.';
+
+  @override
   String get assistantStreamingPlaceholder => 'Ассистент формирует ответ…';
 
   @override
   String get assistantMessageCopied => 'Сообщение скопировано';
+
+  @override
+  String get assistantOnboardingTitle => 'Возможности ассистента';
+
+  @override
+  String get assistantOnboardingDescription =>
+      'Задавайте вопросы про бюджеты, траты и цели накоплений, чтобы получить персональные подсказки.';
+
+  @override
+  String get assistantOnboardingFeatureInsights =>
+      'Мгновенно анализируйте расходы по категориям и периодам.';
+
+  @override
+  String get assistantOnboardingFeatureBudgets =>
+      'Отслеживайте выполнение бюджетов и получайте предупреждения до перерасхода.';
+
+  @override
+  String get assistantOnboardingFeatureSavings =>
+      'Получайте идеи, как ускорить накопления и достичь целей.';
+
+  @override
+  String get assistantOnboardingLimitationsTitle => 'Что важно помнить';
+
+  @override
+  String get assistantOnboardingLimitationDataFreshness =>
+      'Ассистент использует последние синхронизированные данные — не забудьте выгрузить офлайн-операции.';
+
+  @override
+  String get assistantOnboardingLimitationSecurity =>
+      'Все расчёты выполняются внутри Kopim, данные не передаются третьим лицам.';
+
+  @override
+  String get assistantOnboardingLimitationAccuracy =>
+      'Ответы носят рекомендательный характер — перепроверяйте суммы в детальных отчётах.';
+
+  @override
+  String get assistantFaqTitle => 'Ответы на вопросы';
+
+  @override
+  String get assistantFaqQuestionDataSources =>
+      'Откуда ассистент берёт данные?';
+
+  @override
+  String get assistantFaqAnswerDataSources =>
+      'Он использует ту же базу Drift и синхронизацию Firebase, что и приложение, поэтому ответы основаны на ваших реальных счетах, бюджетах и транзакциях.';
+
+  @override
+  String get assistantFaqQuestionLimits =>
+      'Почему появляются ошибки про лимиты или недоступность?';
+
+  @override
+  String get assistantFaqAnswerLimits =>
+      'Иногда Gemini ограничивает трафик. Подождите немного или сформулируйте запрос короче, чтобы остаться в пределах квоты.';
+
+  @override
+  String get assistantFaqQuestionImproveResults =>
+      'Как улучшить качество ответов?';
+
+  @override
+  String get assistantFaqAnswerImproveResults =>
+      'Уточняйте период, счёт или категорию. Используйте фильтры над чатом, чтобы дать больше контекста.';
 }

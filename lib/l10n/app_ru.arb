@@ -2550,6 +2550,22 @@
   "@assistantTimeoutError": {
     "description": "Сообщение о превышении времени ожидания"
   },
+  "assistantRateLimitError": "Превышен лимит запросов Gemini. Подождите минуту и попробуйте снова.",
+  "@assistantRateLimitError": {
+    "description": "Сообщение при ответе Gemini о превышении лимита"
+  },
+  "assistantServerError": "Сервис Gemini временно недоступен. Сообщение сохранено — повторите попытку позже.",
+  "@assistantServerError": {
+    "description": "Сообщение при серверной ошибке Gemini"
+  },
+  "assistantDisabledError": "Ассистент временно отключён. Попробуйте позже.",
+  "@assistantDisabledError": {
+    "description": "Сообщение при отключении ассистента через фиче-флаг"
+  },
+  "assistantConfigurationError": "Не удалось загрузить конфигурацию ассистента. Обновите приложение или обратитесь в поддержку.",
+  "@assistantConfigurationError": {
+    "description": "Сообщение при ошибке чтения конфигурации ассистента"
+  },
   "assistantStreamingPlaceholder": "Ассистент формирует ответ…",
   "@assistantStreamingPlaceholder": {
     "description": "Подсказка во время формирования ответа"
@@ -2557,6 +2573,70 @@
   "assistantMessageCopied": "Сообщение скопировано",
   "@assistantMessageCopied": {
     "description": "Сообщение тоста после копирования"
+  },
+  "assistantOnboardingTitle": "Возможности ассистента",
+  "@assistantOnboardingTitle": {
+    "description": "Заголовок карточки с описанием возможностей ассистента"
+  },
+  "assistantOnboardingDescription": "Задавайте вопросы про бюджеты, траты и цели накоплений, чтобы получить персональные подсказки.",
+  "@assistantOnboardingDescription": {
+    "description": "Описание, мотивирующее попробовать ассистента"
+  },
+  "assistantOnboardingFeatureInsights": "Мгновенно анализируйте расходы по категориям и периодам.",
+  "@assistantOnboardingFeatureInsights": {
+    "description": "Пункт о возможностях аналитики"
+  },
+  "assistantOnboardingFeatureBudgets": "Отслеживайте выполнение бюджетов и получайте предупреждения до перерасхода.",
+  "@assistantOnboardingFeatureBudgets": {
+    "description": "Пункт о контроле бюджетов"
+  },
+  "assistantOnboardingFeatureSavings": "Получайте идеи, как ускорить накопления и достичь целей.",
+  "@assistantOnboardingFeatureSavings": {
+    "description": "Пункт о помощи с целями накоплений"
+  },
+  "assistantOnboardingLimitationsTitle": "Что важно помнить",
+  "@assistantOnboardingLimitationsTitle": {
+    "description": "Заголовок блока ограничений ассистента"
+  },
+  "assistantOnboardingLimitationDataFreshness": "Ассистент использует последние синхронизированные данные — не забудьте выгрузить офлайн-операции.",
+  "@assistantOnboardingLimitationDataFreshness": {
+    "description": "Ограничение, напоминающее о синхронизации данных"
+  },
+  "assistantOnboardingLimitationSecurity": "Все расчёты выполняются внутри Kopim, данные не передаются третьим лицам.",
+  "@assistantOnboardingLimitationSecurity": {
+    "description": "Ограничение, подчёркивающее приватность"
+  },
+  "assistantOnboardingLimitationAccuracy": "Ответы носят рекомендательный характер — перепроверяйте суммы в детальных отчётах.",
+  "@assistantOnboardingLimitationAccuracy": {
+    "description": "Ограничение, напоминающее перепроверять результаты"
+  },
+  "assistantFaqTitle": "Ответы на вопросы",
+  "@assistantFaqTitle": {
+    "description": "Заголовок секции FAQ"
+  },
+  "assistantFaqQuestionDataSources": "Откуда ассистент берёт данные?",
+  "@assistantFaqQuestionDataSources": {
+    "description": "Вопрос FAQ об источниках данных"
+  },
+  "assistantFaqAnswerDataSources": "Он использует ту же базу Drift и синхронизацию Firebase, что и приложение, поэтому ответы основаны на ваших реальных счетах, бюджетах и транзакциях.",
+  "@assistantFaqAnswerDataSources": {
+    "description": "Ответ FAQ об источниках данных"
+  },
+  "assistantFaqQuestionLimits": "Почему появляются ошибки про лимиты или недоступность?",
+  "@assistantFaqQuestionLimits": {
+    "description": "Вопрос FAQ о лимитах"
+  },
+  "assistantFaqAnswerLimits": "Иногда Gemini ограничивает трафик. Подождите немного или сформулируйте запрос короче, чтобы остаться в пределах квоты.",
+  "@assistantFaqAnswerLimits": {
+    "description": "Ответ FAQ о лимитах"
+  },
+  "assistantFaqQuestionImproveResults": "Как улучшить качество ответов?",
+  "@assistantFaqQuestionImproveResults": {
+    "description": "Вопрос FAQ о повышении качества ответов"
+  },
+  "assistantFaqAnswerImproveResults": "Уточняйте период, счёт или категорию. Используйте фильтры над чатом, чтобы дать больше контекста.",
+  "@assistantFaqAnswerImproveResults": {
+    "description": "Ответ FAQ с советами по уточнению запроса"
   }
 
 }
