@@ -1438,6 +1438,10 @@
   "@homeNavAnalytics": {
     "description": "Bottom navigation label for analytics"
   },
+  "homeNavAssistant": "Assistant",
+  "@homeNavAssistant": {
+    "description": "Bottom navigation label for the AI assistant tab"
+  },
   "homeNavSavings": "Savings",
   "@homeNavSavings": {
     "description": "Bottom navigation label for savings"
@@ -2453,6 +2457,106 @@
         "type": "String"
       }
     }
+  },
+  "assistantScreenTitle": "AI Assistant",
+  "@assistantScreenTitle": {
+    "description": "Title for the AI assistant screen"
+  },
+  "assistantInputHint": "Ask about your finances…",
+  "@assistantInputHint": {
+    "description": "Placeholder text inside the assistant input field"
+  },
+  "assistantQuickActionsTitle": "Quick requests",
+  "@assistantQuickActionsTitle": {
+    "description": "Section title for quick action buttons on the assistant screen"
+  },
+  "assistantQuickActionSpendingLabel": "Spending summary",
+  "@assistantQuickActionSpendingLabel": {
+    "description": "Label for the spending summary quick action"
+  },
+  "assistantQuickActionSpendingPrompt": "Give me a spending summary for this month.",
+  "@assistantQuickActionSpendingPrompt": {
+    "description": "Prompt text sent when the spending summary quick action is tapped"
+  },
+  "assistantQuickActionBudgetLabel": "Budget health",
+  "@assistantQuickActionBudgetLabel": {
+    "description": "Label for the budget health quick action"
+  },
+  "assistantQuickActionBudgetPrompt": "Do I stay within my budgets this month?",
+  "@assistantQuickActionBudgetPrompt": {
+    "description": "Prompt text sent when the budget health quick action is tapped"
+  },
+  "assistantQuickActionSavingsLabel": "Savings trends",
+  "@assistantQuickActionSavingsLabel": {
+    "description": "Label for the savings trends quick action"
+  },
+  "assistantQuickActionSavingsPrompt": "How are my savings growing lately?",
+  "@assistantQuickActionSavingsPrompt": {
+    "description": "Prompt text sent when the savings trends quick action is tapped"
+  },
+  "assistantFiltersTitle": "Focus",
+  "@assistantFiltersTitle": {
+    "description": "Section title for assistant filter chips"
+  },
+  "assistantFilterCurrentMonth": "This month",
+  "@assistantFilterCurrentMonth": {
+    "description": "Label for the current month assistant filter"
+  },
+  "assistantFilterLast30Days": "Last 30 days",
+  "@assistantFilterLast30Days": {
+    "description": "Label for the last 30 days assistant filter"
+  },
+  "assistantFilterBudgets": "Budgets",
+  "@assistantFilterBudgets": {
+    "description": "Label for the budgets-focused assistant filter"
+  },
+  "assistantEmptyStateTitle": "Start a conversation",
+  "@assistantEmptyStateTitle": {
+    "description": "Headline for the assistant empty state"
+  },
+  "assistantEmptyStateSubtitle": "Use quick requests or ask your own question.",
+  "@assistantEmptyStateSubtitle": {
+    "description": "Subtitle for the assistant empty state"
+  },
+  "assistantOfflineBanner": "You're offline. We'll send your questions once the connection is back.",
+  "@assistantOfflineBanner": {
+    "description": "Banner message shown on the assistant screen when offline"
+  },
+  "assistantRetryButton": "Retry now",
+  "@assistantRetryButton": {
+    "description": "Button label for retrying assistant requests"
+  },
+  "assistantPendingMessageHint": "Will send when you're back online.",
+  "@assistantPendingMessageHint": {
+    "description": "Status hint shown under queued assistant messages"
+  },
+  "assistantSendingMessageHint": "Sending…",
+  "@assistantSendingMessageHint": {
+    "description": "Status hint shown while an assistant request is in flight"
+  },
+  "assistantFailedMessageHint": "Not delivered. Tap retry.",
+  "@assistantFailedMessageHint": {
+    "description": "Status hint shown when an assistant message fails"
+  },
+  "assistantGenericError": "We couldn't reach the assistant. Try again soon.",
+  "@assistantGenericError": {
+    "description": "Generic error shown when the assistant fails"
+  },
+  "assistantNetworkError": "Connection lost. We'll retry automatically.",
+  "@assistantNetworkError": {
+    "description": "Error shown when the assistant detects a network issue"
+  },
+  "assistantTimeoutError": "The assistant is taking longer than expected. Try again.",
+  "@assistantTimeoutError": {
+    "description": "Error shown when the assistant request times out"
+  },
+  "assistantStreamingPlaceholder": "Assistant is preparing a response…",
+  "@assistantStreamingPlaceholder": {
+    "description": "Placeholder shown while the assistant response is streaming"
+  },
+  "assistantMessageCopied": "Message copied",
+  "@assistantMessageCopied": {
+    "description": "Snack bar message shown after copying an assistant message"
   }
 
 }

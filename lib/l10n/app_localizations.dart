@@ -1922,6 +1922,12 @@ abstract class AppLocalizations {
   /// **'Analytics'**
   String get homeNavAnalytics;
 
+  /// Bottom navigation label for the AI assistant tab
+  ///
+  /// In en, this message translates to:
+  /// **'Assistant'**
+  String get homeNavAssistant;
+
   /// Bottom navigation label for savings
   ///
   /// In en, this message translates to:
@@ -3247,6 +3253,156 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Failed to load transactions: {error}'**
   String allTransactionsError(String error);
+
+  /// Title for the AI assistant screen
+  ///
+  /// In en, this message translates to:
+  /// **'AI Assistant'**
+  String get assistantScreenTitle;
+
+  /// Placeholder text inside the assistant input field
+  ///
+  /// In en, this message translates to:
+  /// **'Ask about your finances…'**
+  String get assistantInputHint;
+
+  /// Section title for quick action buttons on the assistant screen
+  ///
+  /// In en, this message translates to:
+  /// **'Quick requests'**
+  String get assistantQuickActionsTitle;
+
+  /// Label for the spending summary quick action
+  ///
+  /// In en, this message translates to:
+  /// **'Spending summary'**
+  String get assistantQuickActionSpendingLabel;
+
+  /// Prompt text sent when the spending summary quick action is tapped
+  ///
+  /// In en, this message translates to:
+  /// **'Give me a spending summary for this month.'**
+  String get assistantQuickActionSpendingPrompt;
+
+  /// Label for the budget health quick action
+  ///
+  /// In en, this message translates to:
+  /// **'Budget health'**
+  String get assistantQuickActionBudgetLabel;
+
+  /// Prompt text sent when the budget health quick action is tapped
+  ///
+  /// In en, this message translates to:
+  /// **'Do I stay within my budgets this month?'**
+  String get assistantQuickActionBudgetPrompt;
+
+  /// Label for the savings trends quick action
+  ///
+  /// In en, this message translates to:
+  /// **'Savings trends'**
+  String get assistantQuickActionSavingsLabel;
+
+  /// Prompt text sent when the savings trends quick action is tapped
+  ///
+  /// In en, this message translates to:
+  /// **'How are my savings growing lately?'**
+  String get assistantQuickActionSavingsPrompt;
+
+  /// Section title for assistant filter chips
+  ///
+  /// In en, this message translates to:
+  /// **'Focus'**
+  String get assistantFiltersTitle;
+
+  /// Label for the current month assistant filter
+  ///
+  /// In en, this message translates to:
+  /// **'This month'**
+  String get assistantFilterCurrentMonth;
+
+  /// Label for the last 30 days assistant filter
+  ///
+  /// In en, this message translates to:
+  /// **'Last 30 days'**
+  String get assistantFilterLast30Days;
+
+  /// Label for the budgets-focused assistant filter
+  ///
+  /// In en, this message translates to:
+  /// **'Budgets'**
+  String get assistantFilterBudgets;
+
+  /// Headline for the assistant empty state
+  ///
+  /// In en, this message translates to:
+  /// **'Start a conversation'**
+  String get assistantEmptyStateTitle;
+
+  /// Subtitle for the assistant empty state
+  ///
+  /// In en, this message translates to:
+  /// **'Use quick requests or ask your own question.'**
+  String get assistantEmptyStateSubtitle;
+
+  /// Banner message shown on the assistant screen when offline
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re offline. We\'ll send your questions once the connection is back.'**
+  String get assistantOfflineBanner;
+
+  /// Button label for retrying assistant requests
+  ///
+  /// In en, this message translates to:
+  /// **'Retry now'**
+  String get assistantRetryButton;
+
+  /// Status hint shown under queued assistant messages
+  ///
+  /// In en, this message translates to:
+  /// **'Will send when you\'re back online.'**
+  String get assistantPendingMessageHint;
+
+  /// Status hint shown while an assistant request is in flight
+  ///
+  /// In en, this message translates to:
+  /// **'Sending…'**
+  String get assistantSendingMessageHint;
+
+  /// Status hint shown when an assistant message fails
+  ///
+  /// In en, this message translates to:
+  /// **'Not delivered. Tap retry.'**
+  String get assistantFailedMessageHint;
+
+  /// Generic error shown when the assistant fails
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t reach the assistant. Try again soon.'**
+  String get assistantGenericError;
+
+  /// Error shown when the assistant detects a network issue
+  ///
+  /// In en, this message translates to:
+  /// **'Connection lost. We\'ll retry automatically.'**
+  String get assistantNetworkError;
+
+  /// Error shown when the assistant request times out
+  ///
+  /// In en, this message translates to:
+  /// **'The assistant is taking longer than expected. Try again.'**
+  String get assistantTimeoutError;
+
+  /// Placeholder shown while the assistant response is streaming
+  ///
+  /// In en, this message translates to:
+  /// **'Assistant is preparing a response…'**
+  String get assistantStreamingPlaceholder;
+
+  /// Snack bar message shown after copying an assistant message
+  ///
+  /// In en, this message translates to:
+  /// **'Message copied'**
+  String get assistantMessageCopied;
 }
 
 class _AppLocalizationsDelegate

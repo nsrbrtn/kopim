@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:kopim/features/ai/presentation/screens/assistant_screen.dart';
 import 'package:kopim/features/analytics/presentation/analytics_screen.dart';
 import 'package:kopim/features/budgets/presentation/budgets_screen.dart';
 import 'package:kopim/features/home/presentation/screens/home_screen.dart';
@@ -28,6 +29,14 @@ final Provider<List<NavigationTabConfig>> mainNavigationTabsProvider =
           labelBuilder: (BuildContext context) =>
               AppLocalizations.of(context)!.homeNavAnalytics,
           contentBuilder: buildAnalyticsTabContent,
+        ),
+        NavigationTabConfig(
+          id: 'assistant',
+          icon: Icons.smart_toy_outlined,
+          activeIcon: Icons.smart_toy,
+          labelBuilder: (BuildContext context) =>
+              AppLocalizations.of(context)!.homeNavAssistant,
+          contentBuilder: buildAssistantTabContent,
         ),
         NavigationTabConfig(
           id: 'savings',
