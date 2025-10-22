@@ -3229,6 +3229,108 @@ final class GroupTransactionsByDayUseCaseProvider
 String _$groupTransactionsByDayUseCaseHash() =>
     r'7a51339f0bbe69d564577c72d1f5eb9c846f63aa';
 
+@ProviderFor(getAiFinancialOverviewUseCase)
+const getAiFinancialOverviewUseCaseProvider =
+    GetAiFinancialOverviewUseCaseProvider._();
+
+final class GetAiFinancialOverviewUseCaseProvider
+    extends
+        $FunctionalProvider<
+          GetAiFinancialOverviewUseCase,
+          GetAiFinancialOverviewUseCase,
+          GetAiFinancialOverviewUseCase
+        >
+    with $Provider<GetAiFinancialOverviewUseCase> {
+  const GetAiFinancialOverviewUseCaseProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'getAiFinancialOverviewUseCaseProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$getAiFinancialOverviewUseCaseHash();
+
+  @$internal
+  @override
+  $ProviderElement<GetAiFinancialOverviewUseCase> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  GetAiFinancialOverviewUseCase create(Ref ref) {
+    return getAiFinancialOverviewUseCase(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(GetAiFinancialOverviewUseCase value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<GetAiFinancialOverviewUseCase>(
+        value,
+      ),
+    );
+  }
+}
+
+String _$getAiFinancialOverviewUseCaseHash() =>
+    r'81511f3d718a7e3ccd3f8f418a41e3f0eccc19ec';
+
+@ProviderFor(watchAiFinancialOverviewUseCase)
+const watchAiFinancialOverviewUseCaseProvider =
+    WatchAiFinancialOverviewUseCaseProvider._();
+
+final class WatchAiFinancialOverviewUseCaseProvider
+    extends
+        $FunctionalProvider<
+          WatchAiFinancialOverviewUseCase,
+          WatchAiFinancialOverviewUseCase,
+          WatchAiFinancialOverviewUseCase
+        >
+    with $Provider<WatchAiFinancialOverviewUseCase> {
+  const WatchAiFinancialOverviewUseCaseProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'watchAiFinancialOverviewUseCaseProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$watchAiFinancialOverviewUseCaseHash();
+
+  @$internal
+  @override
+  $ProviderElement<WatchAiFinancialOverviewUseCase> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  WatchAiFinancialOverviewUseCase create(Ref ref) {
+    return watchAiFinancialOverviewUseCase(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(WatchAiFinancialOverviewUseCase value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<WatchAiFinancialOverviewUseCase>(
+        value,
+      ),
+    );
+  }
+}
+
+String _$watchAiFinancialOverviewUseCaseHash() =>
+    r'aa3d9d11ec58dba0bbd9b92cc97a249ff9c12e95';
+
 @ProviderFor(watchRecurringRulesUseCase)
 const watchRecurringRulesUseCaseProvider =
     WatchRecurringRulesUseCaseProvider._();
