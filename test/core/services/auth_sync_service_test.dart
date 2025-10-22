@@ -442,6 +442,64 @@ void main() {
       },
     );
 
+    test('нормализует связь родителя категории после дедупликации', () async {
+      final AuthSyncService service = buildService();
+      const String userId = 'user-category-conflict';
+
+      final Category legacyParent = Category(
+        id: 'cat-legacy',
+        name: 'Food Legacy',
+        type: 'expense',
+        createdAt: DateTime.utc(2023, 1, 1),
+        updatedAt: DateTime.utc(2023, 2, 1),
+      );
+      final Category child = Category(
+        id: 'cat-child',
+        name: 'Restaurants',
+        type: 'expense',
+        parentId: legacyParent.id,
+        createdAt: DateTime.utc(2023, 1, 5),
+        updatedAt: DateTime.utc(2023, 2, 5),
+      );
+
+      await categoryDao.upsertAll(<Category>[legacyParent, child]);
+
+      final Category remoteLegacy = legacyParent.copyWith(
+        name: 'Food',
+        updatedAt: DateTime.utc(2023, 2, 2),
+      );
+      final Category canonicalParent = remoteLegacy.copyWith(
+        id: 'cat-canonical',
+        updatedAt: DateTime.utc(2024, 3, 1),
+      );
+      final CategoryRemoteDataSource categoryRemoteDataSource =
+          CategoryRemoteDataSource(firestore);
+      await categoryRemoteDataSource.upsert(userId, remoteLegacy);
+      await categoryRemoteDataSource.upsert(userId, canonicalParent);
+
+      final AuthUser authUser = AuthUser(
+        uid: userId,
+        isAnonymous: false,
+        emailVerified: true,
+        creationTime: DateTime.utc(2024, 1, 1),
+        lastSignInTime: DateTime.utc(2024, 1, 2),
+      );
+
+      await service.synchronizeOnLogin(user: authUser, previousUser: null);
+
+      final List<Category> storedCategories = await categoryDao
+          .getAllCategories();
+      final Category storedChild = storedCategories.firstWhere(
+        (Category category) => category.id == child.id,
+      );
+      expect(storedChild.parentId, equals(canonicalParent.id));
+
+      final Category storedCanonical = storedCategories.firstWhere(
+        (Category category) => category.id == canonicalParent.id,
+      );
+      expect(storedCanonical.parentId, isNull);
+    });
+
     test('resets outbox entries when transaction fails', () async {
       final ThrowingAccountRemoteDataSource throwingDataSource =
           ThrowingAccountRemoteDataSource(firestore);

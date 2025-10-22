@@ -598,11 +598,66 @@ class AuthSyncService {
       );
     }
 
-    sanitized.sort((Category a, Category b) => a.name.compareTo(b.name));
+    final List<Category> normalized = _normalizeCategoryParents(
+      sanitized,
+      idMapping,
+    );
+    normalized.sort((Category a, Category b) => a.name.compareTo(b.name));
     return _CategorySanitizationResult(
-      categories: sanitized,
+      categories: normalized,
       idMapping: idMapping,
     );
+  }
+
+  List<Category> _normalizeCategoryParents(
+    List<Category> categories,
+    Map<String, String> idMapping,
+  ) {
+    if (categories.isEmpty || idMapping.isEmpty) {
+      return categories;
+    }
+
+    final Map<String, int> cleared = <String, int>{};
+    final Map<String, int> remapped = <String, int>{};
+    final List<Category> normalized = <Category>[];
+
+    for (final Category category in categories) {
+      final String? parentId = category.parentId;
+      if (parentId == null) {
+        normalized.add(category);
+        continue;
+      }
+
+      final String? canonicalParentId = idMapping[parentId];
+      if (canonicalParentId == null || canonicalParentId == category.id) {
+        cleared[parentId] = (cleared[parentId] ?? 0) + 1;
+        normalized.add(category.copyWith(parentId: null));
+        continue;
+      }
+
+      if (canonicalParentId != parentId) {
+        remapped[canonicalParentId] = (remapped[canonicalParentId] ?? 0) + 1;
+        normalized.add(category.copyWith(parentId: canonicalParentId));
+        continue;
+      }
+
+      normalized.add(category);
+    }
+
+    if (cleared.isNotEmpty) {
+      _logger.logInfo(
+        'AuthSyncService: removed parent assignments for categories due to '
+        'missing canonical references: ${_formatIdCounts(cleared)}.',
+      );
+    }
+    if (remapped.isNotEmpty) {
+      _logger.logInfo(
+        'AuthSyncService: remapped category parent references to canonical IDs: '
+        '${_formatIdCounts(remapped)}.',
+      );
+    }
+
+    return normalized;
   }
 
   List<TransactionEntity> _normalizeTransactions(
