@@ -9,7 +9,7 @@ enum AiRecommendationType { insight, alert, automation, reminder }
 
 /// Рекомендация ИИ с деталями и списком действий.
 @freezed
-class AiRecommendationEntity with _$AiRecommendationEntity {
+abstract class AiRecommendationEntity with _$AiRecommendationEntity {
   const AiRecommendationEntity._();
 
   const factory AiRecommendationEntity({
@@ -34,7 +34,8 @@ class AiRecommendationEntity with _$AiRecommendationEntity {
 
 /// Дополнительное действие, которое пользователь может выполнить по рекомендации.
 @freezed
-class AiRecommendationActionEntity with _$AiRecommendationActionEntity {
+abstract class AiRecommendationActionEntity
+    with _$AiRecommendationActionEntity {
   const AiRecommendationActionEntity._();
 
   const factory AiRecommendationActionEntity({
@@ -50,7 +51,7 @@ class AiRecommendationActionEntity with _$AiRecommendationActionEntity {
 
 /// Оценка эффекта рекомендации в числовом и текстовом виде.
 @freezed
-class AiRecommendationImpact with _$AiRecommendationImpact {
+abstract class AiRecommendationImpact with _$AiRecommendationImpact {
   const AiRecommendationImpact._();
 
   const factory AiRecommendationImpact({

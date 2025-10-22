@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:riverpod/riverpod.dart' as rp;
@@ -10,15 +11,22 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:workmanager/workmanager.dart';
 import 'package:kopim/core/data/database.dart';
 import 'package:kopim/core/data/outbox/outbox_dao.dart';
+import 'package:kopim/core/config/app_config.dart';
+import 'package:kopim/core/services/ai_assistant_service.dart';
 import 'package:kopim/core/services/analytics_service.dart';
 import 'package:kopim/core/services/auth_sync_service.dart';
 import 'package:kopim/core/services/exact_alarm_permission_service.dart';
 import 'package:kopim/core/services/logger_service.dart';
 import 'package:kopim/core/services/notifications_service.dart';
 import 'package:kopim/core/services/sync_service.dart';
+import 'package:kopim/features/ai/data/repositories/ai_assistant_repository_impl.dart';
 import 'package:kopim/features/ai/data/repositories/ai_financial_data_repository_impl.dart';
+import 'package:kopim/features/ai/domain/repositories/ai_assistant_repository.dart';
 import 'package:kopim/features/ai/domain/use_cases/get_ai_financial_overview_use_case.dart';
+import 'package:kopim/features/ai/domain/use_cases/ask_financial_assistant_use_case.dart';
 import 'package:kopim/features/ai/domain/use_cases/watch_ai_financial_overview_use_case.dart';
+import 'package:kopim/features/ai/domain/use_cases/watch_ai_recommendations_use_case.dart';
+import 'package:kopim/features/ai/domain/use_cases/watch_ai_analytics_use_case.dart';
 import 'package:kopim/features/accounts/data/repositories/account_repository_impl.dart';
 import 'package:kopim/features/accounts/data/sources/local/account_dao.dart';
 import 'package:kopim/features/accounts/data/sources/remote/account_remote_data_source.dart';
@@ -134,6 +142,10 @@ FirebaseAuth firebaseAuth(Ref ref) => FirebaseAuth.instance;
 FirebaseStorage firebaseStorage(Ref ref) => FirebaseStorage.instance;
 
 @riverpod
+FirebaseRemoteConfig firebaseRemoteConfig(Ref ref) =>
+    FirebaseRemoteConfig.instance;
+
+@riverpod
 LevelPolicy levelPolicy(Ref ref) => const SimpleLevelPolicy();
 
 @riverpod
@@ -141,6 +153,15 @@ Connectivity connectivity(Ref ref) => Connectivity();
 
 @riverpod
 Uuid uuidGenerator(Ref ref) => const Uuid();
+
+@Riverpod(keepAlive: true)
+AiAssistantService aiAssistantService(Ref ref) {
+  return AiAssistantService(
+    configLoader: () => ref.read(generativeAiConfigProvider.future),
+    analyticsService: ref.watch(analyticsServiceProvider),
+    loggerService: ref.watch(loggerServiceProvider),
+  );
+}
 
 @Riverpod(keepAlive: true)
 AppDatabase appDatabase(Ref ref) {
@@ -273,6 +294,29 @@ BudgetInstanceRemoteDataSource budgetInstanceRemoteDataSource(Ref ref) =>
 @riverpod
 SavingGoalRemoteDataSource savingGoalRemoteDataSource(Ref ref) =>
     SavingGoalRemoteDataSource(ref.watch(firestoreProvider));
+
+@Riverpod(keepAlive: true)
+AiAssistantRepository aiAssistantRepository(Ref ref) {
+  return AiAssistantRepositoryImpl(
+    service: ref.watch(aiAssistantServiceProvider),
+    financialDataRepository: ref.watch(aiFinancialDataRepositoryProvider),
+    analyticsService: ref.watch(analyticsServiceProvider),
+    loggerService: ref.watch(loggerServiceProvider),
+    uuid: ref.watch(uuidGeneratorProvider),
+  );
+}
+
+@riverpod
+AskFinancialAssistantUseCase askFinancialAssistantUseCase(Ref ref) =>
+    AskFinancialAssistantUseCase(ref.watch(aiAssistantRepositoryProvider));
+
+@riverpod
+WatchAiRecommendationsUseCase watchAiRecommendationsUseCase(Ref ref) =>
+    WatchAiRecommendationsUseCase(ref.watch(aiAssistantRepositoryProvider));
+
+@riverpod
+WatchAiAnalyticsUseCase watchAiAnalyticsUseCase(Ref ref) =>
+    WatchAiAnalyticsUseCase(ref.watch(aiAssistantRepositoryProvider));
 
 @riverpod
 AccountRepository accountRepository(Ref ref) => AccountRepositoryImpl(

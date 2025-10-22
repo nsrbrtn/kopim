@@ -5,7 +5,7 @@ part 'ai_llm_result_entity.g.dart';
 
 /// Ответ модели с дополнительной аналитикой использования токенов.
 @freezed
-class AiLlmResultEntity with _$AiLlmResultEntity {
+abstract class AiLlmResultEntity with _$AiLlmResultEntity {
   const AiLlmResultEntity._();
 
   const factory AiLlmResultEntity({
