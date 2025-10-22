@@ -222,6 +222,11 @@ class AiAssistantRepositoryImpl implements AiAssistantRepository {
 
     final StringBuffer buffer = StringBuffer()
       ..writeln(
+        'Ты — финансовый ассиент финтех-приложения Kopim. '
+        'Отвечай профессионально и на русском языке, ссылайся на предоставленные данные. '
+        'Если данных недостаточно, укажи, какие метрики нужны пользователю.',
+      )
+      ..writeln(
         'Дата формирования сводки: ${overview.generatedAt.toIso8601String()}',
       )
       ..writeln('Фильтр: ${_describeFilter(filter)}')
@@ -262,14 +267,11 @@ class AiAssistantRepositoryImpl implements AiAssistantRepository {
         ..writeln(query.contextSignals.join(', '));
     }
 
+    buffer.writeln('Вопрос пользователя: ${query.content}');
+
+
     return <Content>[
-      Content.system(
-        'Ты — финансовый ассистент финтех-приложения Kopim. '
-        'Отвечай профессионально и на русском языке, ссылайся на предоставленные данные. '
-        'Если данных недостаточно, укажи, какие метрики нужны пользователю.',
-      ),
       Content.text(buffer.toString()),
-      Content.text('Вопрос пользователя: ${query.content}'),
     ];
   }
 
