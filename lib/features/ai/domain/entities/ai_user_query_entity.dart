@@ -18,7 +18,7 @@ enum AiQueryIntent {
 
 /// Иммутабельная модель запроса пользователя к ИИ-ассистенту.
 @freezed
-class AiUserQueryEntity with _$AiUserQueryEntity {
+abstract class AiUserQueryEntity with _$AiUserQueryEntity {
   const AiUserQueryEntity._();
 
   const factory AiUserQueryEntity({

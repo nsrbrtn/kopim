@@ -226,6 +226,54 @@ final class FirebaseStorageProvider
 
 String _$firebaseStorageHash() => r'47903c48019f7dfa1ba82fa0a905885442d69f6b';
 
+@ProviderFor(firebaseRemoteConfig)
+const firebaseRemoteConfigProvider = FirebaseRemoteConfigProvider._();
+
+final class FirebaseRemoteConfigProvider
+    extends
+        $FunctionalProvider<
+          FirebaseRemoteConfig,
+          FirebaseRemoteConfig,
+          FirebaseRemoteConfig
+        >
+    with $Provider<FirebaseRemoteConfig> {
+  const FirebaseRemoteConfigProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'firebaseRemoteConfigProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$firebaseRemoteConfigHash();
+
+  @$internal
+  @override
+  $ProviderElement<FirebaseRemoteConfig> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  FirebaseRemoteConfig create(Ref ref) {
+    return firebaseRemoteConfig(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(FirebaseRemoteConfig value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<FirebaseRemoteConfig>(value),
+    );
+  }
+}
+
+String _$firebaseRemoteConfigHash() =>
+    r'b4c6783736b8eac479413a21329664cf4f4edcb5';
+
 @ProviderFor(levelPolicy)
 const levelPolicyProvider = LevelPolicyProvider._();
 
@@ -347,6 +395,54 @@ final class UuidGeneratorProvider extends $FunctionalProvider<Uuid, Uuid, Uuid>
 }
 
 String _$uuidGeneratorHash() => r'037307e88c8a89227ac8c8e7d971ffd877d0cb60';
+
+@ProviderFor(aiAssistantService)
+const aiAssistantServiceProvider = AiAssistantServiceProvider._();
+
+final class AiAssistantServiceProvider
+    extends
+        $FunctionalProvider<
+          AiAssistantService,
+          AiAssistantService,
+          AiAssistantService
+        >
+    with $Provider<AiAssistantService> {
+  const AiAssistantServiceProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'aiAssistantServiceProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$aiAssistantServiceHash();
+
+  @$internal
+  @override
+  $ProviderElement<AiAssistantService> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  AiAssistantService create(Ref ref) {
+    return aiAssistantService(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(AiAssistantService value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<AiAssistantService>(value),
+    );
+  }
+}
+
+String _$aiAssistantServiceHash() =>
+    r'c826ea80dbdc91df8393560b900850ab19ce7aa1';
 
 @ProviderFor(appDatabase)
 const appDatabaseProvider = AppDatabaseProvider._();
@@ -1818,6 +1914,202 @@ final class SavingGoalRemoteDataSourceProvider
 
 String _$savingGoalRemoteDataSourceHash() =>
     r'f92bab57e5d731e4d387077ea0733f42a2a95f56';
+
+@ProviderFor(aiAssistantRepository)
+const aiAssistantRepositoryProvider = AiAssistantRepositoryProvider._();
+
+final class AiAssistantRepositoryProvider
+    extends
+        $FunctionalProvider<
+          AiAssistantRepository,
+          AiAssistantRepository,
+          AiAssistantRepository
+        >
+    with $Provider<AiAssistantRepository> {
+  const AiAssistantRepositoryProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'aiAssistantRepositoryProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$aiAssistantRepositoryHash();
+
+  @$internal
+  @override
+  $ProviderElement<AiAssistantRepository> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  AiAssistantRepository create(Ref ref) {
+    return aiAssistantRepository(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(AiAssistantRepository value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<AiAssistantRepository>(value),
+    );
+  }
+}
+
+String _$aiAssistantRepositoryHash() =>
+    r'6cc7c01d45e7c0405fdb2c1cfb21751d3c868661';
+
+@ProviderFor(askFinancialAssistantUseCase)
+const askFinancialAssistantUseCaseProvider =
+    AskFinancialAssistantUseCaseProvider._();
+
+final class AskFinancialAssistantUseCaseProvider
+    extends
+        $FunctionalProvider<
+          AskFinancialAssistantUseCase,
+          AskFinancialAssistantUseCase,
+          AskFinancialAssistantUseCase
+        >
+    with $Provider<AskFinancialAssistantUseCase> {
+  const AskFinancialAssistantUseCaseProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'askFinancialAssistantUseCaseProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$askFinancialAssistantUseCaseHash();
+
+  @$internal
+  @override
+  $ProviderElement<AskFinancialAssistantUseCase> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  AskFinancialAssistantUseCase create(Ref ref) {
+    return askFinancialAssistantUseCase(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(AskFinancialAssistantUseCase value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<AskFinancialAssistantUseCase>(value),
+    );
+  }
+}
+
+String _$askFinancialAssistantUseCaseHash() =>
+    r'f6e1566dc999d9a8c249741e2a4d831a1c6b2f0e';
+
+@ProviderFor(watchAiRecommendationsUseCase)
+const watchAiRecommendationsUseCaseProvider =
+    WatchAiRecommendationsUseCaseProvider._();
+
+final class WatchAiRecommendationsUseCaseProvider
+    extends
+        $FunctionalProvider<
+          WatchAiRecommendationsUseCase,
+          WatchAiRecommendationsUseCase,
+          WatchAiRecommendationsUseCase
+        >
+    with $Provider<WatchAiRecommendationsUseCase> {
+  const WatchAiRecommendationsUseCaseProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'watchAiRecommendationsUseCaseProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$watchAiRecommendationsUseCaseHash();
+
+  @$internal
+  @override
+  $ProviderElement<WatchAiRecommendationsUseCase> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  WatchAiRecommendationsUseCase create(Ref ref) {
+    return watchAiRecommendationsUseCase(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(WatchAiRecommendationsUseCase value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<WatchAiRecommendationsUseCase>(
+        value,
+      ),
+    );
+  }
+}
+
+String _$watchAiRecommendationsUseCaseHash() =>
+    r'c6587a1ab8d795ac25070be0222f5e42dd4e9d2d';
+
+@ProviderFor(watchAiAnalyticsUseCase)
+const watchAiAnalyticsUseCaseProvider = WatchAiAnalyticsUseCaseProvider._();
+
+final class WatchAiAnalyticsUseCaseProvider
+    extends
+        $FunctionalProvider<
+          WatchAiAnalyticsUseCase,
+          WatchAiAnalyticsUseCase,
+          WatchAiAnalyticsUseCase
+        >
+    with $Provider<WatchAiAnalyticsUseCase> {
+  const WatchAiAnalyticsUseCaseProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'watchAiAnalyticsUseCaseProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$watchAiAnalyticsUseCaseHash();
+
+  @$internal
+  @override
+  $ProviderElement<WatchAiAnalyticsUseCase> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  WatchAiAnalyticsUseCase create(Ref ref) {
+    return watchAiAnalyticsUseCase(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(WatchAiAnalyticsUseCase value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<WatchAiAnalyticsUseCase>(value),
+    );
+  }
+}
+
+String _$watchAiAnalyticsUseCaseHash() =>
+    r'5bd91aff70efe5aed2b5e802b4aa8c1c91cdaf30';
 
 @ProviderFor(accountRepository)
 const accountRepositoryProvider = AccountRepositoryProvider._();
