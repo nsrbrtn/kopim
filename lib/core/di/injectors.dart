@@ -16,6 +16,9 @@ import 'package:kopim/core/services/exact_alarm_permission_service.dart';
 import 'package:kopim/core/services/logger_service.dart';
 import 'package:kopim/core/services/notifications_service.dart';
 import 'package:kopim/core/services/sync_service.dart';
+import 'package:kopim/features/ai/data/repositories/ai_financial_data_repository_impl.dart';
+import 'package:kopim/features/ai/domain/use_cases/get_ai_financial_overview_use_case.dart';
+import 'package:kopim/features/ai/domain/use_cases/watch_ai_financial_overview_use_case.dart';
 import 'package:kopim/features/accounts/data/repositories/account_repository_impl.dart';
 import 'package:kopim/features/accounts/data/sources/local/account_dao.dart';
 import 'package:kopim/features/accounts/data/sources/remote/account_remote_data_source.dart';
@@ -474,6 +477,16 @@ WatchMonthlyAnalyticsUseCase watchMonthlyAnalyticsUseCase(Ref ref) =>
 @riverpod
 GroupTransactionsByDayUseCase groupTransactionsByDayUseCase(Ref ref) =>
     const GroupTransactionsByDayUseCase();
+
+@riverpod
+GetAiFinancialOverviewUseCase getAiFinancialOverviewUseCase(Ref ref) =>
+    GetAiFinancialOverviewUseCase(ref.watch(aiFinancialDataRepositoryProvider));
+
+@riverpod
+WatchAiFinancialOverviewUseCase watchAiFinancialOverviewUseCase(Ref ref) =>
+    WatchAiFinancialOverviewUseCase(
+      ref.watch(aiFinancialDataRepositoryProvider),
+    );
 
 @riverpod
 WatchRecurringRulesUseCase watchRecurringRulesUseCase(Ref ref) =>
