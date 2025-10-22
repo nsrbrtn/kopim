@@ -1438,6 +1438,10 @@
   "@homeNavAnalytics": {
     "description": "Подпись для раздела аналитики"
   },
+  "homeNavAssistant": "Ассистент",
+  "@homeNavAssistant": {
+    "description": "Подпись для вкладки ИИ-ассистента"
+  },
   "homeNavSavings": "Накопления",
   "@homeNavSavings": {
     "description": "Подпись для раздела накоплений"
@@ -2453,6 +2457,106 @@
         "type": "String"
       }
     }
+  },
+  "assistantScreenTitle": "ИИ-ассистент",
+  "@assistantScreenTitle": {
+    "description": "Заголовок экрана ассистента"
+  },
+  "assistantInputHint": "Спросите о своих финансах…",
+  "@assistantInputHint": {
+    "description": "Подсказка в поле ввода ассистента"
+  },
+  "assistantQuickActionsTitle": "Быстрые запросы",
+  "@assistantQuickActionsTitle": {
+    "description": "Заголовок блока быстрых запросов"
+  },
+  "assistantQuickActionSpendingLabel": "Сводка расходов",
+  "@assistantQuickActionSpendingLabel": {
+    "description": "Подпись быстрого запроса по расходам"
+  },
+  "assistantQuickActionSpendingPrompt": "Дай сводку расходов за текущий месяц.",
+  "@assistantQuickActionSpendingPrompt": {
+    "description": "Текст запроса для сводки расходов"
+  },
+  "assistantQuickActionBudgetLabel": "Состояние бюджета",
+  "@assistantQuickActionBudgetLabel": {
+    "description": "Подпись быстрого запроса по бюджетам"
+  },
+  "assistantQuickActionBudgetPrompt": "Укладываюсь ли я в бюджеты в этом месяце?",
+  "@assistantQuickActionBudgetPrompt": {
+    "description": "Текст запроса для проверки бюджетов"
+  },
+  "assistantQuickActionSavingsLabel": "Тренды накоплений",
+  "@assistantQuickActionSavingsLabel": {
+    "description": "Подпись быстрого запроса по накоплениям"
+  },
+  "assistantQuickActionSavingsPrompt": "Как растут мои накопления в последнее время?",
+  "@assistantQuickActionSavingsPrompt": {
+    "description": "Текст запроса для анализа накоплений"
+  },
+  "assistantFiltersTitle": "Фильтры",
+  "@assistantFiltersTitle": {
+    "description": "Заголовок блока фильтров ассистента"
+  },
+  "assistantFilterCurrentMonth": "Этот месяц",
+  "@assistantFilterCurrentMonth": {
+    "description": "Подпись фильтра текущего месяца"
+  },
+  "assistantFilterLast30Days": "Последние 30 дней",
+  "@assistantFilterLast30Days": {
+    "description": "Подпись фильтра последних 30 дней"
+  },
+  "assistantFilterBudgets": "Бюджеты",
+  "@assistantFilterBudgets": {
+    "description": "Подпись фильтра с фокусом на бюджеты"
+  },
+  "assistantEmptyStateTitle": "Начните диалог",
+  "@assistantEmptyStateTitle": {
+    "description": "Заголовок пустого состояния ассистента"
+  },
+  "assistantEmptyStateSubtitle": "Используйте быстрые запросы или задайте свой вопрос.",
+  "@assistantEmptyStateSubtitle": {
+    "description": "Подзаголовок пустого состояния ассистента"
+  },
+  "assistantOfflineBanner": "Вы офлайн. Вопросы отправятся, как только появится связь.",
+  "@assistantOfflineBanner": {
+    "description": "Сообщение баннера при отсутствии сети"
+  },
+  "assistantRetryButton": "Повторить сейчас",
+  "@assistantRetryButton": {
+    "description": "Подпись кнопки повтора запроса"
+  },
+  "assistantPendingMessageHint": "Отправится, когда появится интернет.",
+  "@assistantPendingMessageHint": {
+    "description": "Подсказка для сообщений, ожидающих отправки"
+  },
+  "assistantSendingMessageHint": "Отправляется…",
+  "@assistantSendingMessageHint": {
+    "description": "Подсказка для сообщений в процессе отправки"
+  },
+  "assistantFailedMessageHint": "Не удалось отправить.",
+  "@assistantFailedMessageHint": {
+    "description": "Подсказка для неотправленного сообщения"
+  },
+  "assistantGenericError": "Не удалось получить ответ ассистента. Попробуйте позже.",
+  "@assistantGenericError": {
+    "description": "Сообщение об общей ошибке ассистента"
+  },
+  "assistantNetworkError": "Соединение потеряно. Мы попробуем отправить сообщение автоматически.",
+  "@assistantNetworkError": {
+    "description": "Сообщение об ошибке сети ассистента"
+  },
+  "assistantTimeoutError": "Ассистент отвечает слишком долго. Попробуйте снова.",
+  "@assistantTimeoutError": {
+    "description": "Сообщение о превышении времени ожидания"
+  },
+  "assistantStreamingPlaceholder": "Ассистент формирует ответ…",
+  "@assistantStreamingPlaceholder": {
+    "description": "Подсказка во время формирования ответа"
+  },
+  "assistantMessageCopied": "Сообщение скопировано",
+  "@assistantMessageCopied": {
+    "description": "Сообщение тоста после копирования"
   }
 
 }

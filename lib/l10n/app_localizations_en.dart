@@ -1093,6 +1093,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeNavAnalytics => 'Analytics';
 
   @override
+  String get homeNavAssistant => 'Assistant';
+
+  @override
   String get homeNavSavings => 'Savings';
 
   @override
@@ -1831,4 +1834,89 @@ class AppLocalizationsEn extends AppLocalizations {
   String allTransactionsError(String error) {
     return 'Failed to load transactions: $error';
   }
+
+  @override
+  String get assistantScreenTitle => 'AI Assistant';
+
+  @override
+  String get assistantInputHint => 'Ask about your finances…';
+
+  @override
+  String get assistantQuickActionsTitle => 'Quick requests';
+
+  @override
+  String get assistantQuickActionSpendingLabel => 'Spending summary';
+
+  @override
+  String get assistantQuickActionSpendingPrompt =>
+      'Give me a spending summary for this month.';
+
+  @override
+  String get assistantQuickActionBudgetLabel => 'Budget health';
+
+  @override
+  String get assistantQuickActionBudgetPrompt =>
+      'Do I stay within my budgets this month?';
+
+  @override
+  String get assistantQuickActionSavingsLabel => 'Savings trends';
+
+  @override
+  String get assistantQuickActionSavingsPrompt =>
+      'How are my savings growing lately?';
+
+  @override
+  String get assistantFiltersTitle => 'Focus';
+
+  @override
+  String get assistantFilterCurrentMonth => 'This month';
+
+  @override
+  String get assistantFilterLast30Days => 'Last 30 days';
+
+  @override
+  String get assistantFilterBudgets => 'Budgets';
+
+  @override
+  String get assistantEmptyStateTitle => 'Start a conversation';
+
+  @override
+  String get assistantEmptyStateSubtitle =>
+      'Use quick requests or ask your own question.';
+
+  @override
+  String get assistantOfflineBanner =>
+      'You\'re offline. We\'ll send your questions once the connection is back.';
+
+  @override
+  String get assistantRetryButton => 'Retry now';
+
+  @override
+  String get assistantPendingMessageHint =>
+      'Will send when you\'re back online.';
+
+  @override
+  String get assistantSendingMessageHint => 'Sending…';
+
+  @override
+  String get assistantFailedMessageHint => 'Not delivered. Tap retry.';
+
+  @override
+  String get assistantGenericError =>
+      'We couldn\'t reach the assistant. Try again soon.';
+
+  @override
+  String get assistantNetworkError =>
+      'Connection lost. We\'ll retry automatically.';
+
+  @override
+  String get assistantTimeoutError =>
+      'The assistant is taking longer than expected. Try again.';
+
+  @override
+  String get assistantStreamingPlaceholder =>
+      'Assistant is preparing a response…';
+
+  @override
+  String get assistantMessageCopied => 'Message copied';
 }

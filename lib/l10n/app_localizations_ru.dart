@@ -1114,6 +1114,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get homeNavAnalytics => 'Аналитика';
 
   @override
+  String get homeNavAssistant => 'Ассистент';
+
+  @override
   String get homeNavSavings => 'Накопления';
 
   @override
@@ -1852,4 +1855,88 @@ class AppLocalizationsRu extends AppLocalizations {
   String allTransactionsError(String error) {
     return 'Не удалось загрузить транзакции: $error';
   }
+
+  @override
+  String get assistantScreenTitle => 'ИИ-ассистент';
+
+  @override
+  String get assistantInputHint => 'Спросите о своих финансах…';
+
+  @override
+  String get assistantQuickActionsTitle => 'Быстрые запросы';
+
+  @override
+  String get assistantQuickActionSpendingLabel => 'Сводка расходов';
+
+  @override
+  String get assistantQuickActionSpendingPrompt =>
+      'Дай сводку расходов за текущий месяц.';
+
+  @override
+  String get assistantQuickActionBudgetLabel => 'Состояние бюджета';
+
+  @override
+  String get assistantQuickActionBudgetPrompt =>
+      'Укладываюсь ли я в бюджеты в этом месяце?';
+
+  @override
+  String get assistantQuickActionSavingsLabel => 'Тренды накоплений';
+
+  @override
+  String get assistantQuickActionSavingsPrompt =>
+      'Как растут мои накопления в последнее время?';
+
+  @override
+  String get assistantFiltersTitle => 'Фильтры';
+
+  @override
+  String get assistantFilterCurrentMonth => 'Этот месяц';
+
+  @override
+  String get assistantFilterLast30Days => 'Последние 30 дней';
+
+  @override
+  String get assistantFilterBudgets => 'Бюджеты';
+
+  @override
+  String get assistantEmptyStateTitle => 'Начните диалог';
+
+  @override
+  String get assistantEmptyStateSubtitle =>
+      'Используйте быстрые запросы или задайте свой вопрос.';
+
+  @override
+  String get assistantOfflineBanner =>
+      'Вы офлайн. Вопросы отправятся, как только появится связь.';
+
+  @override
+  String get assistantRetryButton => 'Повторить сейчас';
+
+  @override
+  String get assistantPendingMessageHint =>
+      'Отправится, когда появится интернет.';
+
+  @override
+  String get assistantSendingMessageHint => 'Отправляется…';
+
+  @override
+  String get assistantFailedMessageHint => 'Не удалось отправить.';
+
+  @override
+  String get assistantGenericError =>
+      'Не удалось получить ответ ассистента. Попробуйте позже.';
+
+  @override
+  String get assistantNetworkError =>
+      'Соединение потеряно. Мы попробуем отправить сообщение автоматически.';
+
+  @override
+  String get assistantTimeoutError =>
+      'Ассистент отвечает слишком долго. Попробуйте снова.';
+
+  @override
+  String get assistantStreamingPlaceholder => 'Ассистент формирует ответ…';
+
+  @override
+  String get assistantMessageCopied => 'Сообщение скопировано';
 }
