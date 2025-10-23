@@ -15,6 +15,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileSignInPrompt => 'Please sign in to manage your profile.';
 
   @override
+  String get profileRegisterCta => 'Register';
+
+  @override
+  String get profileRegisterHint =>
+      'Create an account to keep your data safe and enable synchronization across devices.';
+
+  @override
   String get profileSectionAccount => 'Account';
 
   @override

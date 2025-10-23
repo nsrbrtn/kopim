@@ -8,6 +8,14 @@
   "@profileSignInPrompt": {
     "description": "Shown when user must sign in to access profile"
   },
+  "profileRegisterCta": "Register",
+  "@profileRegisterCta": {
+    "description": "Call to action that opens the registration screen from profile settings"
+  },
+  "profileRegisterHint": "Create an account to keep your data safe and enable synchronization across devices.",
+  "@profileRegisterHint": {
+    "description": "Message shown above the register button for anonymous users"
+  },
   "profileSectionAccount": "Account",
   "profileAppearanceSection": "Appearance",
   "@profileAppearanceSection": {

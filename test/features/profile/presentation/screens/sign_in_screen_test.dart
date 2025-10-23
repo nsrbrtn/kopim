@@ -84,6 +84,45 @@ void main() {
     await connectivityStream.close();
   });
 
+  testWidgets(
+    'SignInScreen запускается в режиме регистрации при startInSignUpMode',
+    (WidgetTester tester) async {
+      final _MockConnectivity connectivity = _MockConnectivity();
+      final StreamController<List<ConnectivityResult>> connectivityStream =
+          StreamController<List<ConnectivityResult>>.broadcast();
+      when(() => connectivity.checkConnectivity()).thenAnswer(
+        (_) async => const <ConnectivityResult>[ConnectivityResult.wifi],
+      );
+      when(
+        () => connectivity.onConnectivityChanged,
+      ).thenAnswer((_) => connectivityStream.stream);
+      final _StubAuthController authController = _StubAuthController();
+
+      await tester.pumpWidget(
+        ProviderScope(
+          // ignore: always_specify_types
+          overrides: [
+            connectivityProvider.overrideWithValue(connectivity),
+            authControllerProvider.overrideWith(() => authController),
+          ],
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: SignInScreen(startInSignUpMode: true),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(find.text('Sign up'), findsOneWidget);
+      expect(find.text('Confirm password'), findsOneWidget);
+      expect(find.text('Name (optional)'), findsOneWidget);
+
+      await connectivityStream.close();
+    },
+  );
+
   testWidgets('успешная регистрация передает данные в контроллер', (
     WidgetTester tester,
   ) async {
