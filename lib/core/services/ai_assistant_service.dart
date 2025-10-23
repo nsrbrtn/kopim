@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 
@@ -93,10 +94,11 @@ class AiCompletionMessage {
   });
 
   factory AiCompletionMessage.fromJson(Map<String, dynamic> json) {
-    final Object? rawContent = json['content'];
-    final String text = _extractContentText(rawContent);
+    final Map<String, dynamic>? delta = json['delta'] as Map<String, dynamic>?;
+    final Object? rawContent = json['content'] ?? delta?['content'];
+    final String text = _sanitizeContent(_extractContentText(rawContent));
     return AiCompletionMessage(
-      role: json['role'] as String? ?? 'assistant',
+      role: json['role'] as String? ?? delta?['role'] as String? ?? 'assistant',
       content: text,
       rawContent: rawContent,
     );
@@ -122,6 +124,17 @@ class AiCompletionMessage {
       return buffer.toString().trim();
     }
     return '';
+  }
+
+  static String _sanitizeContent(String value) {
+    if (value.isEmpty) {
+      return value;
+    }
+    final String sanitized = value
+        .replaceAll('<|begin_of_sentence|>', '')
+        .replaceAll('<|end_of_sentence|>', '')
+        .trim();
+    return sanitized;
   }
 
   final String role;
@@ -219,15 +232,18 @@ class AiAssistantService {
     required AnalyticsService analyticsService,
     required LoggerService loggerService,
     http.Client? httpClient,
+    List<String> fallbackModels = const <String>[],
   }) : _configLoader = configLoader,
        _analyticsService = analyticsService,
        _loggerService = loggerService,
-       _httpClient = httpClient ?? http.Client();
+       _httpClient = httpClient ?? http.Client(),
+       _fallbackModels = List<String>.unmodifiable(fallbackModels);
 
   final Future<GenerativeAiConfig> Function() _configLoader;
   final AnalyticsService _analyticsService;
   final LoggerService _loggerService;
   final http.Client _httpClient;
+  final List<String> _fallbackModels;
 
   DateTime? _lastRequestAt;
   Future<void> _requestQueue = Future<void>.value();
@@ -250,11 +266,12 @@ class AiAssistantService {
             await _executeWithRetry<AiCompletionResponse>(
               config: resolvedConfig,
               operationName: 'chat_completions',
-              operation: () => _sendChatCompletion(
-                config: resolvedConfig,
-                messages: messages,
-                requestOptions: requestOptions,
-              ),
+              operation: (GenerativeAiConfig effectiveConfig) =>
+                  _sendChatCompletion(
+                    config: effectiveConfig,
+                    messages: messages,
+                    requestOptions: requestOptions,
+                  ),
             );
         stopwatch.stop();
         _loggerService.logInfo(
@@ -328,11 +345,12 @@ class AiAssistantService {
                 await _executeWithRetry<AiCompletionResponse>(
                   config: resolvedConfig,
                   operationName: 'chat_completions_stream',
-                  operation: () => _sendChatCompletion(
-                    config: resolvedConfig,
-                    messages: messages,
-                    requestOptions: requestOptions,
-                  ),
+                  operation: (GenerativeAiConfig effectiveConfig) =>
+                      _sendChatCompletion(
+                        config: effectiveConfig,
+                        messages: messages,
+                        requestOptions: requestOptions,
+                      ),
                 );
             stopwatch.stop();
             _loggerService.logInfo(
@@ -456,30 +474,50 @@ class AiAssistantService {
           ),
         );
 
+    final String? requestId = response.headers['x-request-id'];
+    _loggerService.logInfo(
+      'OpenRouter ответил со статусом ${response.statusCode} (x-request-id=$requestId)',
+    );
+
+    if (response.statusCode == 429) {
+      throw AiAssistantRateLimitException(
+        'Превышен лимит запросов OpenRouter.',
+        cause: response.body.isNotEmpty ? response.body : null,
+      );
+    }
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw _mapErrorResponse(
+        response.statusCode,
+        _tryDecodeJson(response.body),
+      );
+    }
+
     return _parseCompletionResponse(response);
   }
 
   AiCompletionResponse _parseCompletionResponse(http.Response response) {
-    Map<String, dynamic>? jsonBody;
-    if (response.body.isNotEmpty) {
-      try {
-        final Object decoded = jsonDecode(response.body);
-        if (decoded is Map<String, dynamic>) {
-          jsonBody = decoded;
-        }
-      } on FormatException catch (error) {
-        throw AiAssistantUnknownException(
-          'OpenRouter вернул некорректный JSON.',
-          cause: error,
-        );
+    final Map<String, dynamic> jsonBody =
+        _tryDecodeJson(response.body) ?? <String, dynamic>{};
+    return AiCompletionResponse.fromJson(jsonBody);
+  }
+
+  Map<String, dynamic>? _tryDecodeJson(String body) {
+    if (body.isEmpty) {
+      return null;
+    }
+    try {
+      final Object decoded = jsonDecode(body);
+      if (decoded is Map<String, dynamic>) {
+        return decoded;
       }
+    } on FormatException catch (error) {
+      _loggerService.logError('Не удалось распарсить ответ OpenRouter', error);
+      throw AiAssistantUnknownException(
+        'OpenRouter вернул некорректный JSON.',
+        cause: error,
+      );
     }
-
-    if (response.statusCode >= 200 && response.statusCode < 300) {
-      return AiCompletionResponse.fromJson(jsonBody ?? <String, dynamic>{});
-    }
-
-    throw _mapErrorResponse(response.statusCode, jsonBody);
+    return null;
   }
 
   AiAssistantException _mapErrorResponse(
@@ -540,50 +578,125 @@ class AiAssistantService {
   Future<T> _executeWithRetry<T>({
     required GenerativeAiConfig config,
     required String operationName,
-    required Future<T> Function() operation,
+    required Future<T> Function(GenerativeAiConfig effectiveConfig) operation,
   }) async {
-    int attempt = 0;
-    while (true) {
+    final List<GenerativeAiConfig> candidates = _buildCandidateConfigs(config);
+    AiAssistantException? lastError;
+    for (final GenerativeAiConfig candidate in candidates) {
       try {
-        if (attempt > 0) {
+        if (candidate.model != config.model) {
           _loggerService.logInfo(
-            'Повторная попытка $operationName (попытка ${attempt + 1})',
+            'Пробуем запасную модель ${candidate.model} для операции $operationName.',
           );
         }
-        return await operation();
+        return await _retry<T>(
+          run: () => operation(candidate),
+          operationName: operationName,
+          baseDelay: candidate.retryBaseDelay,
+          multiplier: candidate.retryMultiplier,
+          maxRetries: candidate.maxRetries,
+        );
+      } on AiAssistantRateLimitException catch (error) {
+        lastError = error;
+        _loggerService.logInfo(
+          'Получен ответ об ограничении. Попытка переключиться на другую модель.',
+        );
+        continue;
+      } on AiAssistantServerException catch (error) {
+        lastError = error;
+        _loggerService.logError(
+          'OpenRouter вернул ошибку сервера для модели ${candidate.model}.',
+          error.cause ?? error,
+        );
+        continue;
+      }
+    }
+    if (lastError != null) {
+      throw lastError;
+    }
+    throw AiAssistantUnknownException(
+      'Не удалось выполнить операцию $operationName.',
+    );
+  }
+
+  Future<T> _retry<T>({
+    required Future<T> Function() run,
+    required String operationName,
+    required Duration baseDelay,
+    required double multiplier,
+    required int maxRetries,
+  }) async {
+    int failures = 0;
+    Duration delay = baseDelay.inMilliseconds > 0
+        ? baseDelay
+        : const Duration(milliseconds: 400);
+    while (true) {
+      try {
+        if (failures > 0) {
+          _loggerService.logInfo(
+            'Повторная попытка $operationName (попытка ${failures + 1})',
+          );
+        }
+        return await run();
       } on TimeoutException {
         rethrow;
       } on AiAssistantException catch (error) {
-        if (!_isRetryableException(error, attempt, config.maxRetries)) {
+        if (failures >= maxRetries) {
           rethrow;
         }
-        final Duration delay = config.retryDelayForAttempt(attempt);
         await _scheduleRetry(operationName, delay, error);
-        attempt++;
+        failures++;
+        delay = _nextDelay(delay, multiplier);
       } on SocketException catch (error) {
         final AiAssistantServerException wrapped = AiAssistantServerException(
           'Сеть недоступна или OpenRouter не отвечает.',
           cause: error,
         );
-        if (!_isRetryableException(wrapped, attempt, config.maxRetries)) {
+        if (failures >= maxRetries) {
           throw wrapped;
         }
-        final Duration delay = config.retryDelayForAttempt(attempt);
         await _scheduleRetry(operationName, delay, wrapped);
-        attempt++;
+        failures++;
+        delay = _nextDelay(delay, multiplier);
       } on http.ClientException catch (error) {
         final AiAssistantUnknownException wrapped = AiAssistantUnknownException(
           'Ошибка HTTP-клиента при обращении к OpenRouter.',
           cause: error,
         );
-        if (!_isRetryableException(wrapped, attempt, config.maxRetries)) {
+        if (failures >= maxRetries) {
           throw wrapped;
         }
-        final Duration delay = config.retryDelayForAttempt(attempt);
         await _scheduleRetry(operationName, delay, wrapped);
-        attempt++;
+        failures++;
+        delay = _nextDelay(delay, multiplier);
       }
     }
+  }
+
+  Duration _nextDelay(Duration current, double multiplier) {
+    final double factor = multiplier.isFinite && multiplier >= 1
+        ? multiplier
+        : 2;
+    final double nextMs = current.inMilliseconds * factor;
+    final int clamped = nextMs.isFinite
+        ? nextMs.round().clamp(200, 60000)
+        : current.inMilliseconds;
+    return Duration(milliseconds: clamped);
+  }
+
+  List<GenerativeAiConfig> _buildCandidateConfigs(GenerativeAiConfig config) {
+    final LinkedHashSet<String> models = LinkedHashSet<String>.from(<String>[
+      config.model,
+      ..._fallbackModels,
+    ]);
+    return models
+        .map((String model) {
+          if (model == config.model) {
+            return config;
+          }
+          return config.copyWith(model: model);
+        })
+        .toList(growable: false);
   }
 
   Future<void> _scheduleRetry(
@@ -602,18 +715,6 @@ class AiAssistantService {
       }),
     );
     await Future<void>.delayed(delay);
-  }
-
-  bool _isRetryableException(
-    AiAssistantException exception,
-    int attempt,
-    int maxRetries,
-  ) {
-    if (attempt >= maxRetries) {
-      return false;
-    }
-    return exception is AiAssistantRateLimitException ||
-        exception is AiAssistantServerException;
   }
 
   void _handleKnownException(
@@ -641,6 +742,13 @@ class AiAssistantService {
     if (error is AiAssistantConfigurationException) {
       _loggerService.logError(error.message, error.cause ?? error);
       _analyticsService.reportError(error.cause ?? error, stackTrace);
+      return;
+    }
+    if (error is AiAssistantUnknownException &&
+        error.cause is FormatException) {
+      _loggerService.logInfo(
+        'Не удалось распарсить ответ OpenRouter, предпринята попытка очистки контента.',
+      );
       return;
     }
     _loggerService.logError(error.message, error.cause ?? error);

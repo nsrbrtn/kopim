@@ -126,6 +126,12 @@ import 'package:kopim/features/upcoming_payments/domain/repositories/upcoming_pa
 
 part 'injectors.g.dart';
 
+const List<String> _kDefaultAiModelFallbacks = <String>[
+  'deepseek/deepseek-chat-v3.1:free',
+  'deepseek/deepseek-r1:free',
+  'openrouter/auto',
+];
+
 @riverpod
 LoggerService loggerService(Ref ref) => LoggerService();
 
@@ -160,6 +166,7 @@ AiAssistantService aiAssistantService(Ref ref) {
     configLoader: () => ref.read(generativeAiConfigProvider.future),
     analyticsService: ref.watch(analyticsServiceProvider),
     loggerService: ref.watch(loggerServiceProvider),
+    fallbackModels: _kDefaultAiModelFallbacks,
   );
 }
 
