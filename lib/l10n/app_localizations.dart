@@ -110,6 +110,18 @@ abstract class AppLocalizations {
   /// **'Please sign in to manage your profile.'**
   String get profileSignInPrompt;
 
+  /// Call to action that opens the registration screen from profile settings
+  ///
+  /// In en, this message translates to:
+  /// **'Register'**
+  String get profileRegisterCta;
+
+  /// Message shown above the register button for anonymous users
+  ///
+  /// In en, this message translates to:
+  /// **'Create an account to keep your data safe and enable synchronization across devices.'**
+  String get profileRegisterHint;
+
   /// Section header for account information
   ///
   /// In en, this message translates to:

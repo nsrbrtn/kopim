@@ -8,6 +8,14 @@
   "@profileSignInPrompt": {
     "description": "Сообщение, когда пользователю нужно войти"
   },
+  "profileRegisterCta": "Зарегистрироваться",
+  "@profileRegisterCta": {
+    "description": "Кнопка, открывающая экран регистрации из настроек профиля"
+  },
+  "profileRegisterHint": "Создайте учётную запись, чтобы сохранить локальные данные и синхронизировать их между устройствами.",
+  "@profileRegisterHint": {
+    "description": "Подсказка над кнопкой регистрации для анонимных пользователей"
+  },
   "profileSectionAccount": "Учетная запись",
   "profileAppearanceSection": "Внешний вид",
   "@profileAppearanceSection": {

@@ -28,14 +28,16 @@ final StreamProvider<bool> _signInOfflineProvider =
     });
 
 class SignInScreen extends ConsumerStatefulWidget {
-  const SignInScreen({super.key});
+  const SignInScreen({super.key, this.startInSignUpMode = false});
+
+  final bool startInSignUpMode;
 
   @override
   ConsumerState<SignInScreen> createState() => _SignInScreenState();
 }
 
 class _SignInScreenState extends ConsumerState<SignInScreen> {
-  bool _isSignUpMode = false;
+  late bool _isSignUpMode;
   late final TextEditingController _emailController;
   late final TextEditingController _passwordController;
   late final TextEditingController _signUpEmailController;
@@ -54,6 +56,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
   @override
   void initState() {
     super.initState();
+    _isSignUpMode = widget.startInSignUpMode;
     final SignInFormController controller = ref.read(
       signInFormControllerProvider.notifier,
     );
@@ -133,6 +136,17 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
         }
       },
     );
+  }
+
+  @override
+  void didUpdateWidget(covariant SignInScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.startInSignUpMode != widget.startInSignUpMode &&
+        widget.startInSignUpMode != _isSignUpMode) {
+      setState(() {
+        _isSignUpMode = widget.startInSignUpMode;
+      });
+    }
   }
 
   @override

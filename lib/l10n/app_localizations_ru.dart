@@ -16,6 +16,13 @@ class AppLocalizationsRu extends AppLocalizations {
       'Пожалуйста, войдите, чтобы управлять профилем.';
 
   @override
+  String get profileRegisterCta => 'Зарегистрироваться';
+
+  @override
+  String get profileRegisterHint =>
+      'Создайте учётную запись, чтобы сохранить локальные данные и синхронизировать их между устройствами.';
+
+  @override
   String get profileSectionAccount => 'Учетная запись';
 
   @override

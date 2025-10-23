@@ -14,6 +14,7 @@ import 'package:kopim/features/profile/presentation/controllers/auth_controller.
 import 'package:kopim/features/profile/presentation/controllers/profile_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/profile_form_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/avatar_controller.dart';
+import 'package:kopim/features/profile/presentation/screens/sign_in_screen.dart';
 import 'package:kopim/features/profile/domain/exceptions/avatar_storage_exception.dart';
 import 'package:kopim/features/profile/presentation/controllers/user_progress_controller.dart';
 import 'package:kopim/l10n/app_localizations.dart';
@@ -90,6 +91,7 @@ class ProfileManagementBody extends ConsumerWidget {
                     profileAsync: profileAsync,
                     progressAsync: progressAsync,
                     avatarState: avatarState,
+                    authUser: user,
                   ),
                 ),
               ),
@@ -119,12 +121,14 @@ class _ProfileForm extends ConsumerWidget {
     required this.profileAsync,
     required this.progressAsync,
     required this.avatarState,
+    required this.authUser,
   });
 
   final ProfileFormParams params;
   final AsyncValue<Profile?> profileAsync;
   final AsyncValue<UserProgress> progressAsync;
   final AsyncValue<void> avatarState;
+  final AuthUser authUser;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -178,6 +182,19 @@ class _ProfileForm extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
+          if (authUser.isAnonymous) ...<Widget>[
+            _AnonymousUpgradeBanner(
+              strings: strings,
+              onRegister: () {
+                Navigator.of(context, rootNavigator: true).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const SignInScreen(startInSignUpMode: true),
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 24),
+          ],
           ProfileOverviewCard(
             profile: currentProfile,
             progressAsync: progressAsync,
@@ -328,6 +345,45 @@ class _ProfileForm extends ConsumerWidget {
       ..add(
         DiagnosticsProperty<AsyncValue<Profile?>>('profileAsync', profileAsync),
       );
+  }
+}
+
+class _AnonymousUpgradeBanner extends StatelessWidget {
+  const _AnonymousUpgradeBanner({
+    required this.strings,
+    required this.onRegister,
+  });
+
+  final AppLocalizations strings;
+  final VoidCallback onRegister;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    return Card(
+      margin: EdgeInsets.zero,
+      color: theme.colorScheme.primaryContainer,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Text(
+              strings.profileRegisterHint,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onPrimaryContainer,
+              ),
+            ),
+            const SizedBox(height: 12),
+            FilledButton.icon(
+              onPressed: onRegister,
+              icon: const Icon(Icons.person_add_alt_1_outlined),
+              label: Text(strings.profileRegisterCta),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
