@@ -240,17 +240,18 @@ class AiAssistantService {
     final Completer<AiAssistantServiceResult> completer =
         Completer<AiAssistantServiceResult>();
     _requestQueue = _requestQueue.then((_) async {
-      final GenerativeAiConfig config = await _loadConfig();
-      _validateConfig(config);
-      await _enforceThrottle(config.throttleInterval);
-      final Stopwatch stopwatch = Stopwatch()..start();
+      final Stopwatch stopwatch = Stopwatch();
       try {
+        final GenerativeAiConfig resolvedConfig = await _loadConfig();
+        _validateConfig(resolvedConfig);
+        await _enforceThrottle(resolvedConfig.throttleInterval);
+        stopwatch.start();
         final AiCompletionResponse response =
             await _executeWithRetry<AiCompletionResponse>(
-              config: config,
+              config: resolvedConfig,
               operationName: 'chat_completions',
               operation: () => _sendChatCompletion(
-                config: config,
+                config: resolvedConfig,
                 messages: messages,
                 requestOptions: requestOptions,
               ),
@@ -261,45 +262,47 @@ class AiAssistantService {
         );
         unawaited(
           _analyticsService.logEvent('ai_assistant_generate', <String, Object?>{
-            'model': config.model,
+            'model': resolvedConfig.model,
             'duration_ms': stopwatch.elapsedMilliseconds,
             'prompt_tokens': response.usage?.promptTokens ?? 0,
             'completion_tokens': response.usage?.completionTokens ?? 0,
             'total_tokens': response.usage?.totalTokens ?? 0,
           }),
         );
-        completer.complete(
-          AiAssistantServiceResult(
-            response: response,
-            config: config,
-            elapsed: stopwatch.elapsed,
-          ),
-        );
-      } on TimeoutException catch (error, stackTrace) {
-        if (stopwatch.isRunning) {
-          stopwatch.stop();
+        if (!completer.isCompleted) {
+          completer.complete(
+            AiAssistantServiceResult(
+              response: response,
+              config: resolvedConfig,
+              elapsed: stopwatch.elapsed,
+            ),
+          );
         }
+      } on TimeoutException catch (error, stackTrace) {
         _loggerService.logError('Таймаут при обращении к OpenRouter', error);
         _analyticsService.reportError(error, stackTrace);
-        completer.completeError(error, stackTrace);
+        if (!completer.isCompleted) {
+          completer.completeError(error, stackTrace);
+        }
       } on AiAssistantException catch (error, stackTrace) {
-        if (stopwatch.isRunning) {
-          stopwatch.stop();
-        }
         _handleKnownException(error, stackTrace);
-        completer.completeError(error, stackTrace);
-      } catch (error, stackTrace) {
-        if (stopwatch.isRunning) {
-          stopwatch.stop();
+        if (!completer.isCompleted) {
+          completer.completeError(error, stackTrace);
         }
+      } catch (error, stackTrace) {
         final AiAssistantUnknownException wrapped = AiAssistantUnknownException(
           'Ошибка генерации OpenRouter',
           cause: error,
         );
         _loggerService.logError(wrapped.message, error);
         _analyticsService.reportError(error, stackTrace);
-        completer.completeError(wrapped, stackTrace);
+        if (!completer.isCompleted) {
+          completer.completeError(wrapped, stackTrace);
+        }
       } finally {
+        if (stopwatch.isRunning) {
+          stopwatch.stop();
+        }
         _lastRequestAt = DateTime.now();
       }
     });
@@ -315,17 +318,18 @@ class AiAssistantService {
     controller = StreamController<AiAssistantStreamChunk>(
       onListen: () {
         _requestQueue = _requestQueue.then((_) async {
-          final GenerativeAiConfig config = await _loadConfig();
-          _validateConfig(config);
-          await _enforceThrottle(config.throttleInterval);
-          final Stopwatch stopwatch = Stopwatch()..start();
+          final Stopwatch stopwatch = Stopwatch();
           try {
+            final GenerativeAiConfig resolvedConfig = await _loadConfig();
+            _validateConfig(resolvedConfig);
+            await _enforceThrottle(resolvedConfig.throttleInterval);
+            stopwatch.start();
             final AiCompletionResponse response =
                 await _executeWithRetry<AiCompletionResponse>(
-                  config: config,
+                  config: resolvedConfig,
                   operationName: 'chat_completions_stream',
                   operation: () => _sendChatCompletion(
-                    config: config,
+                    config: resolvedConfig,
                     messages: messages,
                     requestOptions: requestOptions,
                   ),
@@ -335,52 +339,44 @@ class AiAssistantService {
               'Потоковый ответ OpenRouter завершён за ${stopwatch.elapsedMilliseconds} мс',
             );
             unawaited(
-              _analyticsService.logEvent(
-                'ai_assistant_stream_complete',
-                <String, Object?>{
-                  'model': config.model,
-                  'duration_ms': stopwatch.elapsedMilliseconds,
-                },
-              ),
+              _analyticsService
+                  .logEvent('ai_assistant_stream_complete', <String, Object?>{
+                    'model': resolvedConfig.model,
+                    'duration_ms': stopwatch.elapsedMilliseconds,
+                  }),
             );
-            controller.add(
-              AiAssistantStreamChunk(
-                response: response,
-                config: config,
-                elapsedSinceStart: stopwatch.elapsed,
-              ),
-            );
-            controller.add(
-              AiAssistantStreamChunk(
-                response: null,
-                config: config,
-                elapsedSinceStart: stopwatch.elapsed,
-                isFinal: true,
-              ),
-            );
-            await controller.close();
-          } on TimeoutException catch (error, stackTrace) {
-            if (stopwatch.isRunning) {
-              stopwatch.stop();
+            if (!controller.isClosed) {
+              controller.add(
+                AiAssistantStreamChunk(
+                  response: response,
+                  config: resolvedConfig,
+                  elapsedSinceStart: stopwatch.elapsed,
+                ),
+              );
+              controller.add(
+                AiAssistantStreamChunk(
+                  response: null,
+                  config: resolvedConfig,
+                  elapsedSinceStart: stopwatch.elapsed,
+                  isFinal: true,
+                ),
+              );
             }
+          } on TimeoutException catch (error, stackTrace) {
             _loggerService.logError(
               'Таймаут при запуске потокового ответа OpenRouter',
               error,
             );
             _analyticsService.reportError(error, stackTrace);
-            controller.addError(error, stackTrace);
-            await controller.close();
+            if (!controller.isClosed) {
+              controller.addError(error, stackTrace);
+            }
           } on AiAssistantException catch (error, stackTrace) {
-            if (stopwatch.isRunning) {
-              stopwatch.stop();
-            }
             _handleKnownException(error, stackTrace);
-            controller.addError(error, stackTrace);
-            await controller.close();
-          } catch (error, stackTrace) {
-            if (stopwatch.isRunning) {
-              stopwatch.stop();
+            if (!controller.isClosed) {
+              controller.addError(error, stackTrace);
             }
+          } catch (error, stackTrace) {
             final AiAssistantUnknownException wrapped =
                 AiAssistantUnknownException(
                   'Не удалось запустить поток OpenRouter',
@@ -388,10 +384,17 @@ class AiAssistantService {
                 );
             _loggerService.logError(wrapped.message, error);
             _analyticsService.reportError(error, stackTrace);
-            controller.addError(wrapped, stackTrace);
-            await controller.close();
+            if (!controller.isClosed) {
+              controller.addError(wrapped, stackTrace);
+            }
           } finally {
+            if (stopwatch.isRunning) {
+              stopwatch.stop();
+            }
             _lastRequestAt = DateTime.now();
+            if (!controller.isClosed) {
+              await controller.close();
+            }
           }
         });
       },
