@@ -18,15 +18,19 @@ const Duration _kDefaultAiThrottleInterval = Duration(seconds: 2);
 const Duration _kDefaultAiRetryBaseDelay = Duration(milliseconds: 1200);
 const double _kDefaultAiRetryMultiplier = 1.8;
 const int _kDefaultAiMaxRetries = 2;
-const String _kDefaultAiModel = 'gemini-2.5-flash';
-const String _kRemoteConfigKeyName = 'ai_gemini_api_key';
-const String _kRemoteConfigModelName = 'ai_gemini_model';
-const String _kRemoteConfigTimeoutMs = 'ai_gemini_timeout_ms';
-const String _kRemoteConfigThrottleMs = 'ai_gemini_throttle_ms';
-const String _kRemoteConfigEnabledFlag = 'ai_gemini_enabled';
-const String _kRemoteConfigMaxRetries = 'ai_gemini_max_retries';
-const String _kRemoteConfigRetryBaseMs = 'ai_gemini_retry_base_ms';
-const String _kRemoteConfigRetryMultiplier = 'ai_gemini_retry_multiplier';
+const String _kDefaultAiModel = 'deepseek/deepseek-chat-v3.1:free';
+const String _kDefaultAiBaseUrl = 'https://openrouter.ai/api/v1';
+const String _kRemoteConfigKeyName = 'ai_openrouter_api_key';
+const String _kRemoteConfigModelName = 'ai_openrouter_model';
+const String _kRemoteConfigBaseUrl = 'ai_openrouter_base_url';
+const String _kRemoteConfigReferer = 'ai_openrouter_referer';
+const String _kRemoteConfigTitle = 'ai_openrouter_title';
+const String _kRemoteConfigTimeoutMs = 'ai_openrouter_timeout_ms';
+const String _kRemoteConfigThrottleMs = 'ai_openrouter_throttle_ms';
+const String _kRemoteConfigEnabledFlag = 'ai_openrouter_enabled';
+const String _kRemoteConfigMaxRetries = 'ai_openrouter_max_retries';
+const String _kRemoteConfigRetryBaseMs = 'ai_openrouter_retry_base_ms';
+const String _kRemoteConfigRetryMultiplier = 'ai_openrouter_retry_multiplier';
 
 /// Глобальная конфигурация приложения.
 class AppConfig {
@@ -43,6 +47,7 @@ class AppConfig {
 class GenerativeAiConfig {
   const GenerativeAiConfig({
     required this.model,
+    required this.baseUrl,
     required this.requestTimeout,
     required this.throttleInterval,
     required this.isEnabled,
@@ -50,36 +55,47 @@ class GenerativeAiConfig {
     required this.retryBaseDelay,
     required this.retryMultiplier,
     this.apiKey,
+    this.referer,
+    this.appTitle,
   });
 
   final String? apiKey;
   final String model;
+  final String baseUrl;
   final Duration requestTimeout;
   final Duration throttleInterval;
   final bool isEnabled;
   final int maxRetries;
   final Duration retryBaseDelay;
   final double retryMultiplier;
+  final String? referer;
+  final String? appTitle;
 
   GenerativeAiConfig copyWith({
     String? apiKey,
     String? model,
+    String? baseUrl,
     Duration? requestTimeout,
     Duration? throttleInterval,
     bool? isEnabled,
     int? maxRetries,
     Duration? retryBaseDelay,
     double? retryMultiplier,
+    String? referer,
+    String? appTitle,
   }) {
     return GenerativeAiConfig(
       apiKey: apiKey ?? this.apiKey,
       model: model ?? this.model,
+      baseUrl: baseUrl ?? this.baseUrl,
       requestTimeout: requestTimeout ?? this.requestTimeout,
       throttleInterval: throttleInterval ?? this.throttleInterval,
       isEnabled: isEnabled ?? this.isEnabled,
       maxRetries: maxRetries ?? this.maxRetries,
       retryBaseDelay: retryBaseDelay ?? this.retryBaseDelay,
       retryMultiplier: retryMultiplier ?? this.retryMultiplier,
+      referer: referer ?? this.referer,
+      appTitle: appTitle ?? this.appTitle,
     );
   }
 
@@ -110,7 +126,7 @@ final Provider<ThemeData> appDarkThemeProvider = Provider<ThemeData>((Ref ref) {
   return buildAppTheme(brightness: Brightness.dark);
 });
 
-/// Провайдер, подготавливающий конфигурацию Gemini из Remote Config и переменных окружения.
+/// Провайдер, подготавливающий конфигурацию OpenRouter из Remote Config и переменных окружения.
 final FutureProvider<AppConfig> appConfigProvider = FutureProvider<AppConfig>((
   Ref ref,
 ) async {
@@ -124,6 +140,7 @@ final FutureProvider<AppConfig> appConfigProvider = FutureProvider<AppConfig>((
     await remoteConfig.ensureInitialized();
     await remoteConfig.setDefaults(<String, Object?>{
       _kRemoteConfigModelName: _kDefaultAiModel,
+      _kRemoteConfigBaseUrl: _kDefaultAiBaseUrl,
       _kRemoteConfigTimeoutMs: _kDefaultAiRequestTimeout.inMilliseconds,
       _kRemoteConfigThrottleMs: _kDefaultAiThrottleInterval.inMilliseconds,
       _kRemoteConfigEnabledFlag: true,
@@ -133,7 +150,7 @@ final FutureProvider<AppConfig> appConfigProvider = FutureProvider<AppConfig>((
     });
     await remoteConfig.fetchAndActivate();
   } catch (error, stackTrace) {
-    logger.logError('Не удалось обновить Remote Config для Gemini', error);
+    logger.logError('Не удалось обновить Remote Config для OpenRouter', error);
     analytics.reportError(error, stackTrace);
   }
 
@@ -152,7 +169,7 @@ final FutureProvider<GenerativeAiConfig> generativeAiConfigProvider =
 GenerativeAiConfig _buildGenerativeAiConfig(FirebaseRemoteConfig remoteConfig) {
   final String remoteKey = remoteConfig.getString(_kRemoteConfigKeyName);
   const String envKey = String.fromEnvironment(
-    'AI_ASSISTANT_API_KEY',
+    'OPENROUTER_API_KEY',
     defaultValue: '',
   );
   final String? apiKey = remoteKey.isNotEmpty
@@ -160,6 +177,9 @@ GenerativeAiConfig _buildGenerativeAiConfig(FirebaseRemoteConfig remoteConfig) {
       : (envKey.isNotEmpty ? envKey : null);
 
   final String modelValue = remoteConfig.getString(_kRemoteConfigModelName);
+  final String baseUrlValue = remoteConfig.getString(_kRemoteConfigBaseUrl);
+  final String refererValue = remoteConfig.getString(_kRemoteConfigReferer);
+  final String titleValue = remoteConfig.getString(_kRemoteConfigTitle);
   final int timeoutMs = remoteConfig.getInt(_kRemoteConfigTimeoutMs);
   final int throttleMs = remoteConfig.getInt(_kRemoteConfigThrottleMs);
   final bool enabled = remoteConfig.getBool(_kRemoteConfigEnabledFlag);
@@ -186,11 +206,14 @@ GenerativeAiConfig _buildGenerativeAiConfig(FirebaseRemoteConfig remoteConfig) {
   return GenerativeAiConfig(
     apiKey: apiKey,
     model: modelValue.isNotEmpty ? modelValue : _kDefaultAiModel,
+    baseUrl: baseUrlValue.isNotEmpty ? baseUrlValue : _kDefaultAiBaseUrl,
     requestTimeout: timeout,
     throttleInterval: throttle,
     isEnabled: enabled,
     maxRetries: maxRetries >= 0 ? maxRetries : _kDefaultAiMaxRetries,
     retryBaseDelay: retryBase,
     retryMultiplier: multiplier,
+    referer: refererValue.isNotEmpty ? refererValue : null,
+    appTitle: titleValue.isNotEmpty ? titleValue : null,
   );
 }

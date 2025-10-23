@@ -3404,16 +3404,16 @@ abstract class AppLocalizations {
   /// **'The assistant is taking longer than expected. Try again.'**
   String get assistantTimeoutError;
 
-  /// Message shown when Gemini responds with a rate limit error
+  /// Message shown when OpenRouter responds with a rate limit error
   ///
   /// In en, this message translates to:
-  /// **'You\'ve hit the Gemini request limit. Wait a moment and try again.'**
+  /// **'You\'ve hit the OpenRouter request limit. Wait a moment and try again.'**
   String get assistantRateLimitError;
 
-  /// Message shown when Gemini returns a 5xx server error
+  /// Message shown when OpenRouter returns a 5xx server error
   ///
   /// In en, this message translates to:
-  /// **'Gemini is temporarily unavailable. Your message stays here so you can retry soon.'**
+  /// **'OpenRouter (DeepSeek) is temporarily unavailable. Your message stays here so you can retry soon.'**
   String get assistantServerError;
 
   /// Message shown when the assistant feature flag is turned off
@@ -3521,7 +3521,7 @@ abstract class AppLocalizations {
   /// FAQ answer explaining rate limits
   ///
   /// In en, this message translates to:
-  /// **'Gemini occasionally limits traffic. Wait a little before retrying or send a more focused request to stay within the quota.'**
+  /// **'OpenRouter occasionally limits traffic. Wait a little before retrying or send a more focused request to stay within the quota.'**
   String get assistantFaqAnswerLimits;
 
   /// FAQ question about improving assistant responses

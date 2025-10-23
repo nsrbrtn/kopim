@@ -2558,13 +2558,13 @@
   "@assistantTimeoutError": {
     "description": "Сообщение о превышении времени ожидания"
   },
-  "assistantRateLimitError": "Превышен лимит запросов Gemini. Подождите минуту и попробуйте снова.",
+  "assistantRateLimitError": "Превышен лимит запросов OpenRouter. Подождите минуту и попробуйте снова.",
   "@assistantRateLimitError": {
-    "description": "Сообщение при ответе Gemini о превышении лимита"
+    "description": "Сообщение при ответе OpenRouter о превышении лимита"
   },
-  "assistantServerError": "Сервис Gemini временно недоступен. Сообщение сохранено — повторите попытку позже.",
+  "assistantServerError": "Сервис OpenRouter (DeepSeek) временно недоступен. Сообщение сохранено — повторите попытку позже.",
   "@assistantServerError": {
-    "description": "Сообщение при серверной ошибке Gemini"
+    "description": "Сообщение при серверной ошибке OpenRouter"
   },
   "assistantDisabledError": "Ассистент временно отключён. Попробуйте позже.",
   "@assistantDisabledError": {
@@ -2634,7 +2634,7 @@
   "@assistantFaqQuestionLimits": {
     "description": "Вопрос FAQ о лимитах"
   },
-  "assistantFaqAnswerLimits": "Иногда Gemini ограничивает трафик. Подождите немного или сформулируйте запрос короче, чтобы остаться в пределах квоты.",
+  "assistantFaqAnswerLimits": "Иногда OpenRouter ограничивает трафик. Подождите немного или сформулируйте запрос короче, чтобы остаться в пределах квоты.",
   "@assistantFaqAnswerLimits": {
     "description": "Ответ FAQ о лимитах"
   },
