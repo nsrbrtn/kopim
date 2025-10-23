@@ -89,10 +89,10 @@ docs.flutter.dev
 flutter test — запустить тесты. 
 docs.flutter.dev
 
-flutter run — запустить на устройстве/эмуляторе. 
+flutter run — запустить на устройстве/эмуляторе.
 docs.flutter.dev
 
-flutter devices — список устройств. 
+flutter devices — список устройств.
 docs.flutter.dev
 
 flutter clean — очистить сборочные артефакты. 
@@ -155,8 +155,14 @@ docs.flutter.dev
 dart devtools — запустить DevTools. 
 docs.flutter.dev
 
-flutter run --profile — профильный запуск. 
+flutter run --profile — профильный запуск.
 docs.flutter.dev
+
+```
+
+### 2. Переменные окружения
+
+- `OPENROUTER_API_KEY` — ключ доступа для OpenRouter. Используется сервисом AI-ассистента. Перед сборкой релиза укажите ключ через `--dart-define=OPENROUTER_API_KEY=<значение>` или настройте его в переменных окружения CI/CD.
 
 Частые утилиты проекта
 
