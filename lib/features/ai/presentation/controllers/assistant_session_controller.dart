@@ -26,6 +26,7 @@ const String _kOfflineUserFallbackId = 'assistant-offline-user';
 @Riverpod(keepAlive: true)
 class AssistantSessionController extends _$AssistantSessionController {
   StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
+  Future<void> _sendQueue = Future<void>.value();
 
   @override
   AssistantSessionState build() {
@@ -77,10 +78,14 @@ class AssistantSessionController extends _$AssistantSessionController {
       return;
     }
 
-    await _processUserMessage(
-      userMessage: userMessage,
-      intentOverride: intentOverride,
-    );
+    _sendQueue = _sendQueue.then((_) async {
+      await _processUserMessage(
+        userMessage: userMessage,
+        intentOverride: intentOverride,
+      );
+    });
+
+    await _sendQueue;
   }
 
   Future<void> retryPendingMessages() async {
@@ -190,6 +195,9 @@ class AssistantSessionController extends _$AssistantSessionController {
     required AssistantMessage userMessage,
     AiQueryIntent? intentOverride,
   }) async {
+    if (!ref.mounted) {
+      return;
+    }
     final AskFinancialAssistantUseCase useCase = ref.read(
       askFinancialAssistantUseCaseProvider,
     );
