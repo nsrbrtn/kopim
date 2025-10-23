@@ -442,7 +442,7 @@ final class AiAssistantServiceProvider
 }
 
 String _$aiAssistantServiceHash() =>
-    r'c826ea80dbdc91df8393560b900850ab19ce7aa1';
+    r'614402ddc3a8583de90b4cb2ce26211cd9843e61';
 
 @ProviderFor(appDatabase)
 const appDatabaseProvider = AppDatabaseProvider._();

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:collection/collection.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 
@@ -86,6 +87,14 @@ class AiAssistantRepositoryImpl implements AiAssistantRepository {
       return entity;
     } catch (error, stackTrace) {
       _loggerService.logError('Не удалось получить ответ OpenRouter', error);
+      if (error is AiAssistantException && error.cause != null) {
+        unawaited(
+          FirebaseCrashlytics.instance.setCustomKey(
+            'openrouter_error_body',
+            error.cause.toString(),
+          ),
+        );
+      }
       _analyticsService.reportError(error, stackTrace);
       rethrow;
     }

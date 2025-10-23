@@ -194,6 +194,8 @@ class AssistantSessionController extends _$AssistantSessionController {
   Future<void> _processUserMessage({
     required AssistantMessage userMessage,
     AiQueryIntent? intentOverride,
+    bool enableStreaming = true,
+    bool allowDowngrade = true,
   }) async {
     if (!ref.mounted) {
       return;
@@ -213,13 +215,16 @@ class AssistantSessionController extends _$AssistantSessionController {
         ? state.activeFilters
         : userMessage.contextFilters;
 
-    final AssistantMessage streamingMessage = AssistantMessage(
-      id: uuid.v4(),
-      author: AssistantMessageAuthor.assistant,
-      content: '',
-      createdAt: DateTime.now(),
-      isStreaming: true,
-    );
+    AssistantMessage? streamingMessage;
+    if (enableStreaming) {
+      streamingMessage = AssistantMessage(
+        id: uuid.v4(),
+        author: AssistantMessageAuthor.assistant,
+        content: '',
+        createdAt: DateTime.now(),
+        isStreaming: true,
+      );
+    }
 
     state = state.copyWith(
       streamingMessage: streamingMessage,
@@ -247,11 +252,20 @@ class AssistantSessionController extends _$AssistantSessionController {
 
       final AiLlmResultEntity result = await useCase.execute(query);
 
-      final AssistantMessage finalAssistantMessage = streamingMessage.copyWith(
-        isStreaming: false,
-        content: result.content,
-        createdAt: result.createdAt,
-      );
+      final AssistantMessage baseAssistantMessage =
+          streamingMessage ??
+          AssistantMessage(
+            id: uuid.v4(),
+            author: AssistantMessageAuthor.assistant,
+            content: '',
+            createdAt: DateTime.now(),
+          );
+      final AssistantMessage finalAssistantMessage = baseAssistantMessage
+          .copyWith(
+            isStreaming: false,
+            content: result.content,
+            createdAt: result.createdAt,
+          );
 
       final List<AssistantMessage> deliveredMessages = _replaceMessage(
         userMessage.id,
@@ -289,6 +303,15 @@ class AssistantSessionController extends _$AssistantSessionController {
       );
     } on AiAssistantServerException catch (error) {
       logger.logError('AI assistant server error', error);
+      if (allowDowngrade && enableStreaming) {
+        await _processUserMessage(
+          userMessage: userMessage,
+          intentOverride: intentOverride,
+          enableStreaming: false,
+          allowDowngrade: false,
+        );
+        return;
+      }
       _handleSendFailure(
         userMessage: userMessage,
         errorType: AssistantErrorType.server,
