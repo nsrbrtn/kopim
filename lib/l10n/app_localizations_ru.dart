@@ -1943,11 +1943,11 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get assistantRateLimitError =>
-      'Превышен лимит запросов Gemini. Подождите минуту и попробуйте снова.';
+      'Превышен лимит запросов OpenRouter. Подождите минуту и попробуйте снова.';
 
   @override
   String get assistantServerError =>
-      'Сервис Gemini временно недоступен. Сообщение сохранено — повторите попытку позже.';
+      'Сервис OpenRouter (DeepSeek) временно недоступен. Сообщение сохранено — повторите попытку позже.';
 
   @override
   String get assistantDisabledError =>
@@ -2014,7 +2014,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get assistantFaqAnswerLimits =>
-      'Иногда Gemini ограничивает трафик. Подождите немного или сформулируйте запрос короче, чтобы остаться в пределах квоты.';
+      'Иногда OpenRouter ограничивает трафик. Подождите немного или сформулируйте запрос короче, чтобы остаться в пределах квоты.';
 
   @override
   String get assistantFaqQuestionImproveResults =>

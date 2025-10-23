@@ -1922,11 +1922,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get assistantRateLimitError =>
-      'You\'ve hit the Gemini request limit. Wait a moment and try again.';
+      'You\'ve hit the OpenRouter request limit. Wait a moment and try again.';
 
   @override
   String get assistantServerError =>
-      'Gemini is temporarily unavailable. Your message stays here so you can retry soon.';
+      'OpenRouter (DeepSeek) is temporarily unavailable. Your message stays here so you can retry soon.';
 
   @override
   String get assistantDisabledError =>
@@ -1994,7 +1994,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get assistantFaqAnswerLimits =>
-      'Gemini occasionally limits traffic. Wait a little before retrying or send a more focused request to stay within the quota.';
+      'OpenRouter occasionally limits traffic. Wait a little before retrying or send a more focused request to stay within the quota.';
 
   @override
   String get assistantFaqQuestionImproveResults =>

@@ -1,8 +1,5 @@
 import 'dart:async';
-import 'dart:math' as math;
-
 import 'package:collection/collection.dart';
-import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 
@@ -45,13 +42,13 @@ class AiAssistantRepositoryImpl implements AiAssistantRepository {
       final AiDataFilter filter = _buildFilter(query);
       final AiFinancialOverview overview = await _financialDataRepository
           .loadOverview(filter: filter);
-      final List<Content> prompt = _buildPrompt(
+      final List<AiAssistantMessage> prompt = _buildPrompt(
         query: query,
         overview: overview,
         filter: filter,
       );
       final AiAssistantServiceResult result = await _service.generateAnswer(
-        prompt: prompt,
+        messages: prompt,
       );
       stopwatch.stop();
 
@@ -74,9 +71,9 @@ class AiAssistantRepositoryImpl implements AiAssistantRepository {
         ),
         createdAt: _nowProvider(),
         model: result.config.model,
-        promptTokens: result.response.usageMetadata?.promptTokenCount,
-        completionTokens: result.response.usageMetadata?.candidatesTokenCount,
-        totalTokens: result.response.usageMetadata?.totalTokenCount,
+        promptTokens: result.response.usage?.promptTokens,
+        completionTokens: result.response.usage?.completionTokens,
+        totalTokens: result.response.usage?.totalTokens,
       );
 
       await _analyticsService.logEvent('ai_assistant_answer', <String, Object?>{
@@ -88,7 +85,7 @@ class AiAssistantRepositoryImpl implements AiAssistantRepository {
 
       return entity;
     } catch (error, stackTrace) {
-      _loggerService.logError('Не удалось получить ответ Gemini', error);
+      _loggerService.logError('Не удалось получить ответ OpenRouter', error);
       _analyticsService.reportError(error, stackTrace);
       rethrow;
     }
@@ -211,7 +208,7 @@ class AiAssistantRepositoryImpl implements AiAssistantRepository {
     );
   }
 
-  List<Content> _buildPrompt({
+  List<AiAssistantMessage> _buildPrompt({
     required AiUserQueryEntity query,
     required AiFinancialOverview overview,
     required AiDataFilter filter,
@@ -220,12 +217,12 @@ class AiAssistantRepositoryImpl implements AiAssistantRepository {
     final NumberFormat currency = NumberFormat.simpleCurrency(locale: locale);
     final NumberFormat percent = NumberFormat.percentPattern(locale);
 
-    final StringBuffer buffer = StringBuffer()
-      ..writeln(
-        'Ты — финансовый ассиент финтех-приложения Kopim. '
+    const String systemPrompt =
+        'Ты — финансовый ассистент финтех-приложения Kopim. '
         'Отвечай профессионально и на русском языке, ссылайся на предоставленные данные. '
-        'Если данных недостаточно, укажи, какие метрики нужны пользователю.',
-      )
+        'Если данных недостаточно, подскажи, какие метрики нужны пользователю.';
+
+    final StringBuffer userBuffer = StringBuffer()
       ..writeln(
         'Дата формирования сводки: ${overview.generatedAt.toIso8601String()}',
       )
@@ -236,24 +233,24 @@ class AiAssistantRepositoryImpl implements AiAssistantRepository {
         in overview.monthlyExpenses.sortedBy(
           (MonthlyExpenseInsight item) => item.normalizedMonth,
         )) {
-      buffer.writeln(
+      userBuffer.writeln(
         '${DateFormat.yMMMM(locale).format(insight.normalizedMonth)}: '
         '${currency.format(insight.totalExpense)}',
       );
     }
 
-    buffer.writeln('--- Топ категории расходов ---');
+    userBuffer.writeln('--- Топ категории расходов ---');
     for (final CategoryExpenseInsight category in overview.topCategories) {
-      buffer.writeln(
+      userBuffer.writeln(
         '${category.displayName}: ${currency.format(category.totalExpense)}',
       );
     }
 
     if (overview.budgetForecasts.isNotEmpty) {
-      buffer.writeln('--- Прогнозы по бюджетам ---');
+      userBuffer.writeln('--- Прогнозы по бюджетам ---');
       for (final BudgetForecastInsight forecast in overview.budgetForecasts) {
         final String completion = percent.format(forecast.completionRate);
-        buffer.writeln(
+        userBuffer.writeln(
           '${forecast.title}: потрачено ${currency.format(forecast.spent)} '
           'из ${currency.format(forecast.allocated)} '
           '($completion), статус: ${forecast.status.name}',
@@ -262,16 +259,16 @@ class AiAssistantRepositoryImpl implements AiAssistantRepository {
     }
 
     if (query.contextSignals.isNotEmpty) {
-      buffer
+      userBuffer
         ..writeln('--- Контекстные сигналы ---')
         ..writeln(query.contextSignals.join(', '));
     }
 
-    buffer.writeln('Вопрос пользователя: ${query.content}');
+    userBuffer.writeln('Вопрос пользователя: ${query.content}');
 
-
-    return <Content>[
-      Content.text(buffer.toString()),
+    return <AiAssistantMessage>[
+      AiAssistantMessage.system(systemPrompt),
+      AiAssistantMessage.user(userBuffer.toString()),
     ];
   }
 
@@ -292,72 +289,30 @@ class AiAssistantRepositoryImpl implements AiAssistantRepository {
     return buffer.toString().trim();
   }
 
-  String _extractAnswer(GenerateContentResponse response) {
-    try {
-      final String? text = response.text;
-      if (text != null && text.trim().isNotEmpty) {
-        return text.trim();
-      }
-    } catch (error) {
-      _loggerService.logError('Gemini вернул пустой ответ', error);
-    }
-    for (final Candidate candidate in response.candidates) {
-      final String candidateText = candidate.content.parts
-          .whereType<TextPart>()
-          .map((TextPart part) => part.text)
-          .join(' ')
-          .trim();
-      if (candidateText.isNotEmpty) {
-        return candidateText;
+  String _extractAnswer(AiCompletionResponse response) {
+    for (final AiCompletionChoice choice in response.choices) {
+      final String text = choice.message?.content.trim() ?? '';
+      if (text.isNotEmpty) {
+        return text;
       }
     }
+    _loggerService.logError('OpenRouter вернул пустой ответ', response.raw);
     return 'Модель не смогла сформировать ответ на основании предоставленных данных.';
   }
 
-  List<String> _extractSources(GenerateContentResponse response) {
-    final Set<String> sources = <String>{};
-    for (final Candidate candidate in response.candidates) {
-      final Iterable<CitationSource> citations =
-          candidate.citationMetadata?.citationSources ??
-          const <CitationSource>[];
-      for (final CitationSource citation in citations) {
-        if (citation.uri != null) {
-          sources.add(citation.uri.toString());
-        }
-      }
-    }
-    return sources.toList(growable: false);
+  List<String> _extractSources(AiCompletionResponse response) {
+    return const <String>[];
   }
 
-  double _estimateConfidence(GenerateContentResponse response) {
-    if (response.candidates.isEmpty) {
+  double _estimateConfidence(AiCompletionResponse response) {
+    final bool hasMeaningfulText = response.choices.any(
+      (AiCompletionChoice choice) =>
+          (choice.message?.content.trim() ?? '').isNotEmpty,
+    );
+    if (!hasMeaningfulText) {
       return 0;
     }
-    final Candidate candidate = response.candidates.first;
-    final List<SafetyRating>? ratings = candidate.safetyRatings;
-    if (ratings == null || ratings.isEmpty) {
-      return 1.0;
-    }
-    final double maxProbability = ratings
-        .map((SafetyRating rating) => _probabilityWeight(rating.probability))
-        .fold<double>(0, math.max);
-    final double confidence = (1 - maxProbability).clamp(0.0, 1.0);
-    return double.parse(confidence.toStringAsFixed(3));
-  }
-
-  double _probabilityWeight(HarmProbability probability) {
-    switch (probability) {
-      case HarmProbability.high:
-        return 1.0;
-      case HarmProbability.medium:
-        return 0.7;
-      case HarmProbability.low:
-        return 0.4;
-      case HarmProbability.negligible:
-        return 0.2;
-      case HarmProbability.unspecified:
-        return 0.0;
-    }
+    return 1.0;
   }
 
   Map<String, dynamic> _composeMetadata({

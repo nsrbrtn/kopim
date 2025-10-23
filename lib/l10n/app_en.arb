@@ -2558,13 +2558,13 @@
   "@assistantTimeoutError": {
     "description": "Error shown when the assistant request times out"
   },
-  "assistantRateLimitError": "You've hit the Gemini request limit. Wait a moment and try again.",
+  "assistantRateLimitError": "You've hit the OpenRouter request limit. Wait a moment and try again.",
   "@assistantRateLimitError": {
-    "description": "Message shown when Gemini responds with a rate limit error"
+    "description": "Message shown when OpenRouter responds with a rate limit error"
   },
-  "assistantServerError": "Gemini is temporarily unavailable. Your message stays here so you can retry soon.",
+  "assistantServerError": "OpenRouter (DeepSeek) is temporarily unavailable. Your message stays here so you can retry soon.",
   "@assistantServerError": {
-    "description": "Message shown when Gemini returns a 5xx server error"
+    "description": "Message shown when OpenRouter returns a 5xx server error"
   },
   "assistantDisabledError": "The assistant is currently disabled by the team. Please try again later.",
   "@assistantDisabledError": {
@@ -2634,7 +2634,7 @@
   "@assistantFaqQuestionLimits": {
     "description": "FAQ question about rate limits"
   },
-  "assistantFaqAnswerLimits": "Gemini occasionally limits traffic. Wait a little before retrying or send a more focused request to stay within the quota.",
+  "assistantFaqAnswerLimits": "OpenRouter occasionally limits traffic. Wait a little before retrying or send a more focused request to stay within the quota.",
   "@assistantFaqAnswerLimits": {
     "description": "FAQ answer explaining rate limits"
   },
