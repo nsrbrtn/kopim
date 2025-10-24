@@ -30,6 +30,8 @@ final StreamProvider<bool> _signInOfflineProvider =
 class SignInScreen extends ConsumerStatefulWidget {
   const SignInScreen({super.key, this.startInSignUpMode = false});
 
+  static const String routeName = '/sign-in';
+
   final bool startInSignUpMode;
 
   @override

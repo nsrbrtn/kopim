@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:kopim/core/utils/helpers.dart';
 import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
@@ -204,9 +205,10 @@ class _AccountDetailsScreenState extends ConsumerState<AccountDetailsScreen> {
     BuildContext context,
     AccountEntity account,
   ) async {
-    final Object? result = await Navigator.of(context).pushNamed(
-      EditAccountScreen.routeName,
-      arguments: EditAccountScreenArgs(account: account),
+    final EditAccountScreenArgs args = EditAccountScreenArgs(account: account);
+    final Object? result = await context.push<Object?>(
+      args.location,
+      extra: args,
     );
     if (!context.mounted) {
       return;
@@ -221,6 +223,19 @@ class AccountDetailsScreenArgs {
   const AccountDetailsScreenArgs({required this.accountId});
 
   final String accountId;
+
+  static AccountDetailsScreenArgs fromState(GoRouterState state) {
+    final String? accountId = state.uri.queryParameters['accountId'];
+    if (accountId == null || accountId.isEmpty) {
+      throw GoException('accountId parameter is required');
+    }
+    return AccountDetailsScreenArgs(accountId: accountId);
+  }
+
+  String get location => Uri(
+    path: AccountDetailsScreen.routeName,
+    queryParameters: <String, String>{'accountId': accountId},
+  ).toString();
 }
 
 class _AccountSummaryCard extends StatelessWidget {

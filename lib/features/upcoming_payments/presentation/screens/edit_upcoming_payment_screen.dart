@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import 'package:kopim/core/di/injectors.dart';
@@ -24,6 +25,26 @@ class EditUpcomingPaymentScreenArgs {
 
   final String? paymentId;
   final UpcomingPayment? initialPayment;
+
+  static EditUpcomingPaymentScreenArgs fromState(GoRouterState state) {
+    final Object? extra = state.extra;
+    if (extra is EditUpcomingPaymentScreenArgs) {
+      return extra;
+    }
+    final String? paymentId = state.uri.queryParameters['paymentId'];
+    return EditUpcomingPaymentScreenArgs(paymentId: paymentId);
+  }
+
+  String get location {
+    final Map<String, String> params = <String, String>{};
+    if (paymentId != null && paymentId!.isNotEmpty) {
+      params['paymentId'] = paymentId!;
+    }
+    return Uri(
+      path: EditUpcomingPaymentScreen.routeName,
+      queryParameters: params.isEmpty ? null : params,
+    ).toString();
+  }
 }
 
 class EditUpcomingPaymentScreen extends ConsumerStatefulWidget {

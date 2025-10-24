@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:kopim/features/upcoming_payments/domain/entities/payment_reminder.dart';
 import 'package:kopim/features/upcoming_payments/domain/entities/upcoming_payment.dart';
@@ -94,30 +95,26 @@ class _UpcomingPaymentsScreenState extends ConsumerState<UpcomingPaymentsScreen>
   }
 
   void _createPayment() {
-    Navigator.of(context).pushNamed(
-      EditUpcomingPaymentScreen.routeName,
-      arguments: const EditUpcomingPaymentScreenArgs(),
-    );
+    const EditUpcomingPaymentScreenArgs args = EditUpcomingPaymentScreenArgs();
+    context.push(args.location, extra: args);
   }
 
   void _createReminder() {
-    Navigator.of(context).pushNamed(
-      EditPaymentReminderScreen.routeName,
-      arguments: const EditPaymentReminderScreenArgs(),
-    );
+    const EditPaymentReminderScreenArgs args = EditPaymentReminderScreenArgs();
+    context.push(args.location, extra: args);
   }
 
   void _openPayment(UpcomingPayment payment) {
-    Navigator.of(context).pushNamed(
-      EditUpcomingPaymentScreen.routeName,
-      arguments: EditUpcomingPaymentScreenArgs(initialPayment: payment),
+    final EditUpcomingPaymentScreenArgs args = EditUpcomingPaymentScreenArgs(
+      initialPayment: payment,
     );
+    context.push(args.location, extra: args);
   }
 
   void _openReminder(PaymentReminder reminder) {
-    Navigator.of(context).pushNamed(
-      EditPaymentReminderScreen.routeName,
-      arguments: EditPaymentReminderScreenArgs(initialReminder: reminder),
+    final EditPaymentReminderScreenArgs args = EditPaymentReminderScreenArgs(
+      initialReminder: reminder,
     );
+    context.push(args.location, extra: args);
   }
 }
