@@ -11,10 +11,7 @@ import 'package:kopim/core/services/logger_service.dart';
 
 const Map<String, Object> _kOpenRouterProviderConfiguration = <String, Object>{
   'sort': 'latency',
-  'order': [
-      "cloudflare",
-      "deepseek"
-  ], // Изменено на пустой список
+  'order': <String>['cloudflare', 'deepseek'], // Изменено на пустой список
   'allow_fallbacks': true,
   'data_collection': 'allow',
 };

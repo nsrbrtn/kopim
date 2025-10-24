@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import 'package:kopim/core/di/injectors.dart';
@@ -21,6 +22,26 @@ class EditPaymentReminderScreenArgs {
 
   final String? reminderId;
   final PaymentReminder? initialReminder;
+
+  static EditPaymentReminderScreenArgs fromState(GoRouterState state) {
+    final Object? extra = state.extra;
+    if (extra is EditPaymentReminderScreenArgs) {
+      return extra;
+    }
+    final String? reminderId = state.uri.queryParameters['reminderId'];
+    return EditPaymentReminderScreenArgs(reminderId: reminderId);
+  }
+
+  String get location {
+    final Map<String, String> params = <String, String>{};
+    if (reminderId != null && reminderId!.isNotEmpty) {
+      params['reminderId'] = reminderId!;
+    }
+    return Uri(
+      path: EditPaymentReminderScreen.routeName,
+      queryParameters: params.isEmpty ? null : params,
+    ).toString();
+  }
 }
 
 class EditPaymentReminderScreen extends ConsumerStatefulWidget {

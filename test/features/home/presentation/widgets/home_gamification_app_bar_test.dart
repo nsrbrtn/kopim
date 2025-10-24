@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:kopim/features/home/presentation/widgets/home_gamification_app_bar.dart';
 import 'package:kopim/features/profile/domain/entities/user_progress.dart';
 import 'package:kopim/features/profile/presentation/controllers/user_progress_controller.dart';
@@ -142,6 +143,37 @@ void main() {
         updatedAt: DateTime(2024, 2, 1),
       );
 
+      final String profilePath = ProfileManagementScreen.routeName.replaceFirst(
+        '/',
+        '',
+      );
+      final GoRouter router = GoRouter(
+        routes: <RouteBase>[
+          GoRoute(
+            path: '/',
+            builder: (BuildContext context, GoRouterState state) {
+              return const Scaffold(
+                body: CustomScrollView(
+                  slivers: <Widget>[
+                    HomeGamificationAppBar(userId: userId),
+                    SliverToBoxAdapter(child: SizedBox(height: 400)),
+                  ],
+                ),
+              );
+            },
+            routes: <RouteBase>[
+              GoRoute(
+                path: profilePath,
+                builder: (BuildContext context, GoRouterState state) {
+                  return const Scaffold(body: Text('Profile Management'));
+                },
+              ),
+            ],
+          ),
+        ],
+      );
+      addTearDown(router.dispose);
+
       await tester.pumpWidget(
         ProviderScope(
           overrides: <Override>[
@@ -149,19 +181,11 @@ void main() {
               userId,
             ).overrideWithValue(AsyncValue<UserProgress>.data(progress)),
           ],
-          child: MaterialApp(
-            routes: <String, WidgetBuilder>{
-              ProfileManagementScreen.routeName: (_) =>
-                  const Scaffold(body: Text('Profile Management')),
-            },
+          child: MaterialApp.router(
+            routerConfig: router,
+            locale: const Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
-            home: const CustomScrollView(
-              slivers: <Widget>[
-                HomeGamificationAppBar(userId: userId),
-                SliverToBoxAdapter(child: SizedBox(height: 400)),
-              ],
-            ),
           ),
         ),
       );
