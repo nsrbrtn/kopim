@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kopim/features/ai/domain/entities/ai_user_query_entity.dart';
 import 'package:kopim/features/ai/presentation/controllers/assistant_session_controller.dart';
@@ -369,6 +370,48 @@ class _AssistantMessageBubble extends StatelessWidget {
       color: _isUser ? colorScheme.onPrimaryContainer : colorScheme.onSurface,
     );
 
+    final Widget content;
+    if (message.isStreaming) {
+      content = Row(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          const SizedBox(
+            width: 16,
+            height: 16,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+          const SizedBox(width: 12),
+          Flexible(
+            child: Text(
+              strings.assistantStreamingPlaceholder,
+              style: textStyle,
+            ),
+          ),
+        ],
+      );
+    } else if (_isUser) {
+      content = Text(message.content, style: textStyle);
+    } else {
+      final MarkdownStyleSheet markdownStyleSheet =
+          MarkdownStyleSheet.fromTheme(theme).copyWith(
+            p: textStyle,
+            strong: textStyle?.copyWith(fontWeight: FontWeight.w600),
+            em: textStyle?.copyWith(fontStyle: FontStyle.italic),
+            code: theme.textTheme.bodySmall?.copyWith(
+              color: colorScheme.onSurface,
+              backgroundColor: colorScheme.surfaceContainerHighest,
+              fontFamily: 'monospace',
+            ),
+            a: textStyle?.copyWith(color: colorScheme.primary),
+          );
+      content = MarkdownBody(
+        data: message.content,
+        styleSheet: markdownStyleSheet,
+        shrinkWrap: true,
+        selectable: true,
+      );
+    }
+
     final Widget bubble = Container(
       constraints: const BoxConstraints(maxWidth: 520),
       decoration: BoxDecoration(
@@ -376,25 +419,7 @@ class _AssistantMessageBubble extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: message.isStreaming
-          ? Row(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                const SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
-                const SizedBox(width: 12),
-                Flexible(
-                  child: Text(
-                    strings.assistantStreamingPlaceholder,
-                    style: textStyle,
-                  ),
-                ),
-              ],
-            )
-          : Text(message.content, style: textStyle),
+      child: content,
     );
 
     final Widget? status = _buildStatus(strings, theme);

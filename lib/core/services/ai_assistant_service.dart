@@ -447,6 +447,7 @@ class AiAssistantService {
     final Uri uri = Uri.parse('${config.baseUrl}/chat/completions');
     final Map<String, dynamic> payload = <String, dynamic>{
       'model': config.model,
+      'provider': <String, Object?>{'allow_fallbacks': false},
       'messages': messages
           .map((AiAssistantMessage message) => message.toJson())
           .toList(growable: false),
@@ -640,13 +641,22 @@ class AiAssistantService {
         return await run();
       } on TimeoutException {
         rethrow;
-      } on AiAssistantException catch (error) {
+      } on AiAssistantRateLimitException catch (error) {
         if (failures >= maxRetries) {
           rethrow;
         }
         await _scheduleRetry(operationName, delay, error);
         failures++;
         delay = _nextDelay(delay, multiplier);
+      } on AiAssistantServerException catch (error) {
+        if (failures >= maxRetries) {
+          rethrow;
+        }
+        await _scheduleRetry(operationName, delay, error);
+        failures++;
+        delay = _nextDelay(delay, multiplier);
+      } on AiAssistantException {
+        rethrow;
       } on SocketException catch (error) {
         final AiAssistantServerException wrapped = AiAssistantServerException(
           'Сеть недоступна или OpenRouter не отвечает.',
