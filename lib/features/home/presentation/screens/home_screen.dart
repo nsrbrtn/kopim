@@ -7,6 +7,7 @@ import 'package:kopim/features/accounts/domain/utils/account_type_utils.dart';
 import 'package:kopim/features/accounts/presentation/account_details_screen.dart';
 import 'package:kopim/features/accounts/presentation/accounts_add_screen.dart';
 import 'package:kopim/features/app_shell/presentation/models/navigation_tab_content.dart';
+import 'package:kopim/features/app_shell/presentation/widgets/navigation_responsive_breakpoints.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/home/domain/entities/home_dashboard_preferences.dart';
 import 'package:kopim/features/home/domain/models/day_section.dart';
@@ -76,6 +77,13 @@ NavigationTabContent buildHomeTabContent(BuildContext context, WidgetRef ref) {
     ),
     floatingActionButtonBuilder: (BuildContext context, WidgetRef ref) =>
         _AddTransactionButton(strings: strings),
+    secondaryBodyBuilder: (BuildContext context, WidgetRef ref) =>
+        _HomeSecondaryPanel(
+          dashboardPreferencesAsync: dashboardPreferencesAsync,
+          strings: strings,
+          upcomingItemsAsync: upcomingItemsAsync,
+          timeService: timeService,
+        ),
   );
 }
 
@@ -113,12 +121,15 @@ class _HomeBody extends StatelessWidget {
       ),
       data: (AuthUser? user) {
         return LayoutBuilder(
-          builder: (BuildContext context, BoxConstraints constraints) {
+          builder: (BuildContext context, BoxConstraints _) {
             const double horizontalPadding = 8;
             final HomeDashboardPreferences? dashboardPreferences =
                 dashboardPreferencesAsync.asData?.value;
             final ThemeData theme = Theme.of(context);
             final List<Widget> slivers = <Widget>[];
+            final bool showSecondaryPanel =
+                MediaQuery.sizeOf(context).width >=
+                kMainNavigationRailBreakpoint;
             final bool showGamificationHeader =
                 user != null &&
                 (dashboardPreferences?.showGamificationWidget ?? false);
@@ -167,6 +178,7 @@ class _HomeBody extends StatelessWidget {
                 monthlySummaries:
                     accountSummariesAsync.asData?.value ??
                     const <String, HomeAccountMonthlySummary>{},
+                isWideLayout: showSecondaryPanel,
               ),
               loading: () => const _TransactionsSkeletonList(),
               error: (Object error, _) => _ErrorMessage(
@@ -204,28 +216,6 @@ class _HomeBody extends StatelessWidget {
               ),
             );
 
-            final Widget upcomingPaymentsSection = upcomingItemsAsync.when(
-              data: (List<UpcomingItem> items) {
-                return HomeUpcomingItemsCard(
-                  items: items,
-                  strings: strings,
-                  timeService: timeService,
-                  onMore: () {
-                    context.push(UpcomingPaymentsScreen.routeName);
-                  },
-                );
-              },
-              loading: () => const Center(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(vertical: 16),
-                  child: CircularProgressIndicator(),
-                ),
-              ),
-              error: (Object error, _) => _ErrorMessage(
-                message: strings.homeUpcomingPaymentsError(error.toString()),
-              ),
-            );
-
             slivers.add(
               SliverPadding(
                 padding: accountsPadding,
@@ -247,7 +237,7 @@ class _HomeBody extends StatelessWidget {
               ),
             );
 
-            if (dashboardPreferencesAsync.hasError) {
+            if (!showSecondaryPanel && dashboardPreferencesAsync.hasError) {
               addBoxSection(
                 _ErrorMessage(
                   message: strings.homeDashboardPreferencesError(
@@ -257,7 +247,8 @@ class _HomeBody extends StatelessWidget {
               );
             }
 
-            if (dashboardPreferences != null &&
+            if (!showSecondaryPanel &&
+                dashboardPreferences != null &&
                 dashboardPreferences.showBudgetWidget) {
               addBoxSection(
                 HomeBudgetProgressCard(
@@ -269,7 +260,8 @@ class _HomeBody extends StatelessWidget {
               );
             }
 
-            if (dashboardPreferences?.showSavingsWidget ?? false) {
+            if (!showSecondaryPanel &&
+                (dashboardPreferences?.showSavingsWidget ?? false)) {
               addBoxSection(
                 HomeSavingsOverviewCard(
                   onOpenGoal: (SavingGoal goal) {
@@ -281,7 +273,28 @@ class _HomeBody extends StatelessWidget {
               );
             }
 
-            if (dashboardPreferences?.showRecurringWidget ?? false) {
+            if (!showSecondaryPanel &&
+                (dashboardPreferences?.showRecurringWidget ?? false)) {
+              final Widget upcomingPaymentsSection = upcomingItemsAsync.when(
+                data: (List<UpcomingItem> items) => HomeUpcomingItemsCard(
+                  items: items,
+                  strings: strings,
+                  timeService: timeService,
+                  onMore: () {
+                    context.push(UpcomingPaymentsScreen.routeName);
+                  },
+                ),
+                loading: () => Card(
+                  color: theme.colorScheme.surfaceContainerHigh,
+                  child: const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 24),
+                    child: Center(child: CircularProgressIndicator()),
+                  ),
+                ),
+                error: (Object error, _) => _ErrorMessage(
+                  message: strings.homeUpcomingPaymentsError(error.toString()),
+                ),
+              );
               addBoxSection(upcomingPaymentsSection);
             }
             slivers.add(
@@ -332,6 +345,142 @@ class _HomeBody extends StatelessWidget {
           },
         );
       },
+    );
+  }
+}
+
+class _HomeSecondaryPanel extends StatelessWidget {
+  const _HomeSecondaryPanel({
+    required this.dashboardPreferencesAsync,
+    required this.strings,
+    required this.upcomingItemsAsync,
+    required this.timeService,
+  });
+
+  final AsyncValue<HomeDashboardPreferences> dashboardPreferencesAsync;
+  final AppLocalizations strings;
+  final AsyncValue<List<UpcomingItem>> upcomingItemsAsync;
+  final TimeService timeService;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final HomeDashboardPreferences? preferences =
+        dashboardPreferencesAsync.asData?.value;
+
+    final List<Widget> children = <Widget>[];
+    void addSection(Widget widget) {
+      if (children.isNotEmpty) {
+        children.add(const SizedBox(height: 16));
+      }
+      children.add(widget);
+    }
+
+    if (dashboardPreferencesAsync.isLoading && preferences == null) {
+      addSection(
+        Card(
+          color: theme.colorScheme.surfaceContainerHigh,
+          child: const Padding(
+            padding: EdgeInsets.all(24),
+            child: Center(child: CircularProgressIndicator()),
+          ),
+        ),
+      );
+    }
+
+    if (dashboardPreferencesAsync.hasError) {
+      addSection(
+        _ErrorMessage(
+          message: strings.homeDashboardPreferencesError(
+            dashboardPreferencesAsync.error.toString(),
+          ),
+        ),
+      );
+    }
+
+    if (preferences != null && preferences.showBudgetWidget) {
+      addSection(
+        HomeBudgetProgressCard(
+          preferences: preferences,
+          onConfigure: () {
+            context.push(GeneralSettingsScreen.routeName);
+          },
+        ),
+      );
+    }
+
+    if (preferences?.showSavingsWidget ?? false) {
+      addSection(
+        HomeSavingsOverviewCard(
+          onOpenGoal: (SavingGoal goal) {
+            Navigator.of(context).push(SavingGoalDetailsScreen.route(goal.id));
+          },
+        ),
+      );
+    }
+
+    if (preferences?.showRecurringWidget ?? false) {
+      addSection(
+        upcomingItemsAsync.when(
+          data: (List<UpcomingItem> items) => HomeUpcomingItemsCard(
+            items: items,
+            strings: strings,
+            timeService: timeService,
+            onMore: () {
+              context.push(UpcomingPaymentsScreen.routeName);
+            },
+          ),
+          loading: () => Card(
+            color: theme.colorScheme.surfaceContainerHigh,
+            child: const Padding(
+              padding: EdgeInsets.symmetric(vertical: 24),
+              child: Center(child: CircularProgressIndicator()),
+            ),
+          ),
+          error: (Object error, _) => _ErrorMessage(
+            message: strings.homeUpcomingPaymentsError(error.toString()),
+          ),
+        ),
+      );
+    }
+
+    if (children.isEmpty) {
+      addSection(
+        Card(
+          color: theme.colorScheme.surfaceContainerHigh,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(
+                  strings.settingsHomeSectionTitle,
+                  style: theme.textTheme.titleMedium,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  strings.homeBudgetWidgetEmpty,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.72),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 24, 16, 24),
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: children,
+          ),
+        ),
+      ),
     );
   }
 }
@@ -455,11 +604,13 @@ class _AccountsList extends StatefulWidget {
     required this.accounts,
     required this.strings,
     required this.monthlySummaries,
+    required this.isWideLayout,
   });
 
   final List<AccountEntity> accounts;
   final AppLocalizations strings;
   final Map<String, HomeAccountMonthlySummary> monthlySummaries;
+  final bool isWideLayout;
 
   @override
   State<_AccountsList> createState() => _AccountsListState();
@@ -513,12 +664,46 @@ class _AccountsListState extends State<_AccountsList> {
     final ThemeData theme = Theme.of(context);
     final String localeName = widget.strings.localeName;
 
+    if (widget.isWideLayout) {
+      return Column(
+        children: <Widget>[
+          for (final AccountEntity account in widget.accounts)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 6),
+              child: _AccountCard(
+                account: account,
+                strings: widget.strings,
+                currencyFormat: NumberFormat.currency(
+                  locale: localeName,
+                  symbol: account.currency.toUpperCase(),
+                ),
+                summary:
+                    widget.monthlySummaries[account.id] ??
+                    const HomeAccountMonthlySummary(income: 0, expense: 0),
+              ),
+            ),
+        ],
+      );
+    }
+
+    final int maxIndex = widget.accounts.length - 1;
+    final int activePage = _currentPage.clamp(0, maxIndex);
+    if (_currentPage != activePage) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        setState(() {
+          _currentPage = activePage;
+        });
+      });
+    }
+
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
-        final bool isWide = constraints.maxWidth >= 720;
+        final bool isCarouselWide = constraints.maxWidth >= 720;
         final double targetFraction = widget.accounts.length == 1
             ? 0.95
-            : (isWide ? 0.45 : 0.85);
+            : (isCarouselWide ? 0.45 : 0.85);
+        final double cardHeight = isCarouselWide ? 160 : 132;
         if ((_viewportFraction - targetFraction).abs() > 0.001) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (!mounted) return;
@@ -529,7 +714,7 @@ class _AccountsListState extends State<_AccountsList> {
         return Column(
           children: <Widget>[
             SizedBox(
-              height: 132,
+              height: cardHeight,
               child: PageView.builder(
                 controller: _pageController,
                 physics: const BouncingScrollPhysics(),
@@ -551,113 +736,11 @@ class _AccountsListState extends State<_AccountsList> {
 
                   return Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 4),
-                    child: Card(
-                      elevation: 0,
-                      clipBehavior: Clip.antiAlias,
-                      color: theme.colorScheme.surfaceContainerHigh,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      surfaceTintColor: Colors.transparent,
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(20),
-                        onTap: () {
-                          context.push(
-                            AccountDetailsScreenArgs(
-                              accountId: account.id,
-                            ).location,
-                          );
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 12,
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: <Widget>[
-                              Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: <Widget>[
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: <Widget>[
-                                        Text(
-                                          account.name,
-                                          style: theme.textTheme.titleMedium,
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          _resolveAccountTypeLabel(
-                                            widget.strings,
-                                            account.type,
-                                          ),
-                                          style: theme.textTheme.bodySmall
-                                              ?.copyWith(
-                                                color: theme
-                                                    .colorScheme
-                                                    .onSurface
-                                                    .withValues(alpha: 0.7),
-                                              ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Flexible(
-                                    child: Align(
-                                      alignment: Alignment.topRight,
-                                      child: FittedBox(
-                                        fit: BoxFit.scaleDown,
-                                        alignment: Alignment.topRight,
-                                        child: Text(
-                                          currencyFormat.format(
-                                            account.balance,
-                                          ),
-                                          style: theme.textTheme.headlineSmall
-                                              ?.copyWith(
-                                                fontWeight: FontWeight.w600,
-                                              ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 8),
-                              Row(
-                                children: <Widget>[
-                                  Expanded(
-                                    child: _AccountMonthlyValue(
-                                      label: widget
-                                          .strings
-                                          .homeAccountMonthlyIncomeLabel,
-                                      value: currencyFormat.format(
-                                        summary.income,
-                                      ),
-                                      valueColor: theme.colorScheme.primary,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: _AccountMonthlyValue(
-                                      label: widget
-                                          .strings
-                                          .homeAccountMonthlyExpenseLabel,
-                                      value: currencyFormat.format(
-                                        summary.expense,
-                                      ),
-                                      valueColor: theme.colorScheme.error,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
+                    child: _AccountCard(
+                      account: account,
+                      strings: widget.strings,
+                      currencyFormat: currencyFormat,
+                      summary: summary,
                     ),
                   );
                 },
@@ -671,7 +754,7 @@ class _AccountsListState extends State<_AccountsList> {
                   children: List<Widget>.generate(widget.accounts.length, (
                     int index,
                   ) {
-                    final bool isActive = index == _currentPage;
+                    final bool isActive = index == activePage;
                     return AnimatedContainer(
                       duration: const Duration(milliseconds: 250),
                       margin: const EdgeInsets.symmetric(horizontal: 4),
@@ -692,6 +775,106 @@ class _AccountsListState extends State<_AccountsList> {
           ],
         );
       },
+    );
+  }
+}
+
+class _AccountCard extends StatelessWidget {
+  const _AccountCard({
+    required this.account,
+    required this.strings,
+    required this.currencyFormat,
+    required this.summary,
+  });
+
+  final AccountEntity account;
+  final AppLocalizations strings;
+  final NumberFormat currencyFormat;
+  final HomeAccountMonthlySummary summary;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    return Card(
+      elevation: 0,
+      clipBehavior: Clip.antiAlias,
+      color: theme.colorScheme.surfaceContainerHigh,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      surfaceTintColor: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(20),
+        onTap: () {
+          context.push(
+            AccountDetailsScreenArgs(accountId: account.id).location,
+          );
+        },
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Text(account.name, style: theme.textTheme.titleMedium),
+                        const SizedBox(height: 4),
+                        Text(
+                          _resolveAccountTypeLabel(strings, account.type),
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurface.withValues(
+                              alpha: 0.7,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Flexible(
+                    child: Align(
+                      alignment: Alignment.topRight,
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.topRight,
+                        child: Text(
+                          currencyFormat.format(account.balance),
+                          style: theme.textTheme.headlineSmall?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: <Widget>[
+                  Expanded(
+                    child: _AccountMonthlyValue(
+                      label: strings.homeAccountMonthlyIncomeLabel,
+                      value: currencyFormat.format(summary.income),
+                      valueColor: theme.colorScheme.primary,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _AccountMonthlyValue(
+                      label: strings.homeAccountMonthlyExpenseLabel,
+                      value: currencyFormat.format(summary.expense),
+                      valueColor: theme.colorScheme.error,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

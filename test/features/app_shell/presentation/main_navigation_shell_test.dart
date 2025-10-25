@@ -296,9 +296,19 @@ void main() {
     );
   }
 
+  Future<void> setWindowSize(WidgetTester tester, Size size) async {
+    tester.view.physicalSize = size;
+    tester.view.devicePixelRatio = 1;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+  }
+
   testWidgets('displays bottom navigation bar on every primary tab', (
     WidgetTester tester,
   ) async {
+    await setWindowSize(tester, const Size(800, 1200));
     await tester.pumpWidget(
       buildShell(
         MaterialApp(
@@ -331,6 +341,7 @@ void main() {
   testWidgets('tapping settings tab opens general settings screen', (
     WidgetTester tester,
   ) async {
+    await setWindowSize(tester, const Size(800, 1200));
     await tester.pumpWidget(
       buildShell(
         MaterialApp(
@@ -368,6 +379,7 @@ void main() {
   testWidgets('hides bottom navigation when a secondary route is pushed', (
     WidgetTester tester,
   ) async {
+    await setWindowSize(tester, const Size(800, 1200));
     await tester.pumpWidget(
       buildShell(
         MaterialApp(
@@ -400,5 +412,57 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(BottomNavigationBar), findsOneWidget);
+  });
+
+  testWidgets('switches to navigation rail on wide layouts', (
+    WidgetTester tester,
+  ) async {
+    await setWindowSize(tester, const Size(1200, 1200));
+    await tester.pumpWidget(
+      buildShell(
+        MaterialApp(
+          navigatorKey: navigatorKey,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          routes: <String, WidgetBuilder>{
+            GeneralSettingsScreen.routeName: (_) =>
+                const GeneralSettingsScreen(),
+          },
+          home: const MainNavigationShell(),
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    expect(find.byType(NavigationRail), findsOneWidget);
+    expect(find.byType(BottomNavigationBar), findsNothing);
+  });
+
+  testWidgets('extends navigation rail on extra wide layouts', (
+    WidgetTester tester,
+  ) async {
+    await setWindowSize(tester, const Size(1400, 1200));
+    await tester.pumpWidget(
+      buildShell(
+        MaterialApp(
+          navigatorKey: navigatorKey,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          routes: <String, WidgetBuilder>{
+            GeneralSettingsScreen.routeName: (_) =>
+                const GeneralSettingsScreen(),
+          },
+          home: const MainNavigationShell(),
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    final NavigationRail rail = tester.widget<NavigationRail>(
+      find.byType(NavigationRail),
+    );
+    expect(rail.extended, isTrue);
   });
 }
