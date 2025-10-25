@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/accounts/domain/utils/account_type_utils.dart';
@@ -210,9 +211,7 @@ class _HomeBody extends StatelessWidget {
                   strings: strings,
                   timeService: timeService,
                   onMore: () {
-                    Navigator.of(
-                      context,
-                    ).pushNamed(UpcomingPaymentsScreen.routeName);
+                    context.push(UpcomingPaymentsScreen.routeName);
                   },
                 );
               },
@@ -237,9 +236,8 @@ class _HomeBody extends StatelessWidget {
                       action: IconButton(
                         icon: const Icon(Icons.add),
                         tooltip: strings.homeAccountsAddTooltip,
-                        onPressed: () => Navigator.of(
-                          context,
-                        ).pushNamed(AddAccountScreen.routeName),
+                        onPressed: () =>
+                            context.push(AddAccountScreen.routeName),
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -265,9 +263,7 @@ class _HomeBody extends StatelessWidget {
                 HomeBudgetProgressCard(
                   preferences: dashboardPreferences,
                   onConfigure: () {
-                    Navigator.of(
-                      context,
-                    ).pushNamed(GeneralSettingsScreen.routeName);
+                    context.push(GeneralSettingsScreen.routeName);
                   },
                 ),
               );
@@ -318,9 +314,7 @@ class _HomeBody extends StatelessWidget {
                     alignment: Alignment.centerLeft,
                     child: TextButton(
                       onPressed: () {
-                        Navigator.of(
-                          context,
-                        ).pushNamed(AllTransactionsScreen.routeName);
+                        context.push(AllTransactionsScreen.routeName);
                       },
                       style: TextButton.styleFrom(
                         foregroundColor: theme.colorScheme.primary.withValues(
@@ -378,9 +372,7 @@ class _HomePinnedTitleAppBar extends StatelessWidget {
             tooltip: strings.homeProfileTooltip,
             icon: const Icon(Icons.account_circle_outlined),
             onPressed: () {
-              Navigator.of(
-                context,
-              ).pushNamed(ProfileManagementScreen.routeName);
+              context.push(ProfileManagementScreen.routeName);
             },
           ),
         ),
@@ -570,11 +562,10 @@ class _AccountsListState extends State<_AccountsList> {
                       child: InkWell(
                         borderRadius: BorderRadius.circular(20),
                         onTap: () {
-                          Navigator.of(context).pushNamed(
-                            AccountDetailsScreen.routeName,
-                            arguments: AccountDetailsScreenArgs(
+                          context.push(
+                            AccountDetailsScreenArgs(
                               accountId: account.id,
-                            ),
+                            ).location,
                           );
                         },
                         child: Padding(

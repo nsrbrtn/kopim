@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/accounts/domain/use_cases/delete_account_use_case.dart';
@@ -28,6 +29,19 @@ class EditAccountScreenArgs {
   const EditAccountScreenArgs({required this.account});
 
   final AccountEntity account;
+
+  static EditAccountScreenArgs fromState(GoRouterState state) {
+    final Object? extra = state.extra;
+    if (extra is EditAccountScreenArgs) {
+      return extra;
+    }
+    if (extra is AccountEntity) {
+      return EditAccountScreenArgs(account: extra);
+    }
+    throw GoException('EditAccountScreenArgs were not provided');
+  }
+
+  String get location => EditAccountScreen.routeName;
 }
 
 enum AccountEditResult { updated, deleted }

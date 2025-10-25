@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/features/profile/domain/entities/user_progress.dart';
@@ -74,9 +75,7 @@ class HomeGamificationAppBar extends ConsumerWidget {
                 tooltip: strings.homeProfileTooltip,
                 icon: const Icon(Icons.account_circle_outlined),
                 onPressed: () {
-                  Navigator.of(
-                    context,
-                  ).pushNamed(ProfileManagementScreen.routeName);
+                  context.push(ProfileManagementScreen.routeName);
                 },
               ),
             ),
