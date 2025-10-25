@@ -35,7 +35,7 @@ final class UpcomingNotificationsControllerProvider
 }
 
 String _$upcomingNotificationsControllerHash() =>
-    r'13d686ed2633fdb545690e2c6ac30be1a256c5cf';
+    r'54bbc8c0a51d54d3de7f0018b1cd49e52682a075';
 
 abstract class _$UpcomingNotificationsController extends $AsyncNotifier<void> {
   FutureOr<void> build();

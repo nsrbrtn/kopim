@@ -10,6 +10,7 @@ import 'core/config/app_config.dart';
 import 'core/navigation/app_router.dart';
 import 'core/theme/application/theme_mode_controller.dart';
 import 'core/theme/domain/app_theme_mode.dart';
+import 'core/widgets/notification_fallback_listener.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -52,6 +53,9 @@ class _MyAppState extends ConsumerState<MyApp> {
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       routerConfig: router,
+      builder: (BuildContext context, Widget? child) {
+        return NotificationFallbackListener(child: child);
+      },
     );
   }
 }

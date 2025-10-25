@@ -12,7 +12,7 @@ import 'package:riverpod/riverpod.dart';
 import 'package:kopim/core/application/app_startup_controller.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/core/services/sync_service.dart';
-import 'package:kopim/features/recurring_transactions/data/services/recurring_work_scheduler.dart';
+import 'package:kopim/core/services/recurring_work_scheduler.dart';
 import 'package:kopim/features/upcoming_payments/application/upcoming_notifications_controller.dart';
 import 'package:kopim/features/upcoming_payments/data/services/upcoming_payments_work_scheduler.dart';
 

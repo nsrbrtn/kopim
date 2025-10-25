@@ -36,6 +36,7 @@ dependencies:
   firebase_crashlytics: ^5.0.2
   firebase_storage: ^13.0.2
   firebase_remote_config: ^6.1.0
+  firebase_messaging: ^16.0.3
   riverpod_annotation: ^3.0.0
 
   # Logging and monitoring

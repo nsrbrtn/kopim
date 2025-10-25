@@ -4,7 +4,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/core/services/logger_service.dart';
-import 'package:kopim/core/services/notifications_service.dart';
+import 'package:kopim/core/services/notifications_gateway.dart';
 import 'package:kopim/features/upcoming_payments/application/upcoming_notifications_controller.dart';
 
 part 'exact_alarm_controller.g.dart';
@@ -16,8 +16,8 @@ class ExactAlarmController extends _$ExactAlarmController {
 
   @override
   Future<bool> build() async {
-    final NotificationsService service = ref.watch(
-      notificationsServiceProvider,
+    final NotificationsGateway service = ref.watch(
+      notificationsGatewayProvider,
     );
     final bool canSchedule = await service.canScheduleExact();
     _lastKnownValue = canSchedule;
@@ -28,8 +28,8 @@ class ExactAlarmController extends _$ExactAlarmController {
     final bool? previousValue = state.asData?.value ?? _lastKnownValue;
     state = const AsyncValue<bool>.loading();
     final AsyncValue<bool> result = await AsyncValue.guard<bool>(() async {
-      final NotificationsService service = ref.read(
-        notificationsServiceProvider,
+      final NotificationsGateway service = ref.read(
+        notificationsGatewayProvider,
       );
       return service.canScheduleExact();
     });
@@ -54,7 +54,7 @@ class ExactAlarmController extends _$ExactAlarmController {
       return false;
     }
     _isRequesting = true;
-    final NotificationsService service = ref.read(notificationsServiceProvider);
+    final NotificationsGateway service = ref.read(notificationsGatewayProvider);
     final LoggerService logger = ref.read(loggerServiceProvider);
     try {
       final bool launched = await service.openExactAlarmsSettings();

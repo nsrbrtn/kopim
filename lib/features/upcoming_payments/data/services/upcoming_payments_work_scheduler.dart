@@ -11,7 +11,8 @@ import 'package:kopim/core/services/analytics_service.dart';
 import 'package:kopim/core/services/exact_alarm_permission_service.dart';
 import 'package:kopim/core/services/firebase_initializer.dart';
 import 'package:kopim/core/services/logger_service.dart';
-import 'package:kopim/core/services/notifications_service.dart';
+import 'package:kopim/core/services/notification_fallback_presenter.dart';
+import 'package:kopim/core/services/notifications_gateway.dart';
 import 'package:kopim/features/accounts/data/repositories/account_repository_impl.dart';
 import 'package:kopim/features/accounts/data/sources/local/account_dao.dart';
 import 'package:kopim/features/accounts/domain/repositories/account_repository.dart';
@@ -59,19 +60,20 @@ bool _isMobilePlatform() {
 Future<bool> runUpcomingPaymentsBackgroundTask(
   String task, {
   AppDatabase? database,
-  NotificationsService? notifications,
+  NotificationsGateway? notifications,
   LoggerService? logger,
 }) async {
   WidgetsFlutterBinding.ensureInitialized();
   final LoggerService effectiveLogger = logger ?? LoggerService();
   await ensureFirebaseInitialized(logger: effectiveLogger);
   final AppDatabase effectiveDatabase = database ?? constructDb();
-  final NotificationsService effectiveNotifications =
+  final NotificationsGateway effectiveNotifications =
       notifications ??
-      NotificationsService(
+      createNotificationsGateway(
         plugin: FlutterLocalNotificationsPlugin(),
         logger: effectiveLogger,
         exactAlarmPermissionService: ExactAlarmPermissionService(),
+        fallbackPresenter: const NullNotificationFallbackPresenter(),
       );
   final bool ownsDatabase = database == null;
   final bool ownsNotifications = notifications == null;
@@ -147,7 +149,7 @@ class UpcomingPaymentsWorkScheduler {
 
 Future<void> _executeUpcomingPaymentsWorkflow({
   required AppDatabase database,
-  required NotificationsService notifications,
+  required NotificationsGateway notifications,
   required LoggerService logger,
   required String markPaidActionLabel,
 }) async {
@@ -223,7 +225,7 @@ Future<void> _handleUpcomingPayment({
   required UpcomingPayment payment,
   required AddTransactionUseCase addTransaction,
   required ProfileEventRecorder eventRecorder,
-  required NotificationsService notifications,
+  required NotificationsGateway notifications,
   required RecalcUpcomingPaymentUC recalcUseCase,
   required TimeService timeService,
   required LoggerService logger,
@@ -310,7 +312,7 @@ Locale _resolveSupportedLocale(Locale locale) {
 
 Future<void> _handleReminder({
   required PaymentReminder reminder,
-  required NotificationsService notifications,
+  required NotificationsGateway notifications,
   required PaymentRemindersRepository remindersRepository,
   required TimeService timeService,
   required LoggerService logger,
@@ -347,7 +349,7 @@ Future<void> _handleReminder({
       payload: 'reminder:${current.id}',
       androidActions: <AndroidNotificationAction>[
         AndroidNotificationAction(
-          NotificationsService.actionMarkReminderPaid,
+          NotificationsGateway.actionMarkReminderPaid,
           markPaidActionLabel,
         ),
       ],
@@ -371,7 +373,7 @@ Future<void> _handleReminder({
     payload: 'reminder:${current.id}',
     androidActions: <AndroidNotificationAction>[
       AndroidNotificationAction(
-        NotificationsService.actionMarkReminderPaid,
+        NotificationsGateway.actionMarkReminderPaid,
         markPaidActionLabel,
       ),
     ],

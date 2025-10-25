@@ -9,7 +9,7 @@ import 'package:timezone/timezone.dart' as tz;
 import 'package:kopim/core/config/app_config.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/core/services/logger_service.dart';
-import 'package:kopim/core/services/notifications_service.dart';
+import 'package:kopim/core/services/notifications_gateway.dart';
 import 'package:kopim/features/upcoming_payments/domain/entities/payment_reminder.dart';
 import 'package:kopim/features/upcoming_payments/domain/entities/upcoming_payment.dart';
 import 'package:kopim/features/upcoming_payments/domain/providers/upcoming_payments_providers.dart';
@@ -27,7 +27,7 @@ class UpcomingNotificationsController
   StreamSubscription<NotificationResponse>? _responsesSub;
   final Set<int> _activePaymentIds = <int>{};
   final Set<int> _activeReminderIds = <int>{};
-  late NotificationsService _notifications;
+  late NotificationsGateway _notifications;
   late LoggerService _logger;
   late TimeService _timeService;
   late AppLocalizations _strings;
@@ -35,7 +35,7 @@ class UpcomingNotificationsController
 
   @override
   Future<void> build() async {
-    _notifications = ref.read(notificationsServiceProvider);
+    _notifications = ref.read(notificationsGatewayProvider);
     _logger = ref.read(loggerServiceProvider);
     _timeService = ref.read(timeServiceProvider);
     final Locale locale = ref.watch(appLocaleProvider);
@@ -187,7 +187,7 @@ class UpcomingNotificationsController
   }
 
   Future<void> handleNotificationResponse(NotificationResponse response) async {
-    if (response.actionId != NotificationsService.actionMarkReminderPaid) {
+    if (response.actionId != NotificationsGateway.actionMarkReminderPaid) {
       return;
     }
     final String? payload = response.payload;
@@ -213,7 +213,7 @@ class UpcomingNotificationsController
   }
 
   Future<void> _syncPaymentNotifications({
-    required NotificationsService notifications,
+    required NotificationsGateway notifications,
     required LoggerService logger,
     required TimeService timeService,
     required List<UpcomingPayment> payments,
@@ -251,7 +251,7 @@ class UpcomingNotificationsController
   }
 
   Future<void> _syncReminderNotifications({
-    required NotificationsService notifications,
+    required NotificationsGateway notifications,
     required LoggerService logger,
     required TimeService timeService,
     required List<PaymentReminder> reminders,
@@ -284,7 +284,7 @@ class UpcomingNotificationsController
         payload: 'reminder:${reminder.id}',
         androidActions: <AndroidNotificationAction>[
           AndroidNotificationAction(
-            NotificationsService.actionMarkReminderPaid,
+            NotificationsGateway.actionMarkReminderPaid,
             markPaidLabel,
           ),
         ],
