@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:kopim/features/app_shell/presentation/models/navigation_tab_content.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
@@ -118,7 +119,7 @@ class _ProfileOverviewPage extends ConsumerWidget {
             tooltip: strings.profileGeneralSettingsTooltip,
             icon: const Icon(Icons.tune),
             onPressed: () {
-              Navigator.of(context).pushNamed(GeneralSettingsScreen.routeName);
+              context.push(GeneralSettingsScreen.routeName);
             },
           ),
         ],
