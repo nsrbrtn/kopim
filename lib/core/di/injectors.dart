@@ -10,6 +10,7 @@ import 'package:riverpod/riverpod.dart' as rp;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:workmanager/workmanager.dart';
 import 'package:kopim/core/data/database.dart';
+import 'package:kopim/core/data/database/database_factory.dart';
 import 'package:kopim/core/data/outbox/outbox_dao.dart';
 import 'package:kopim/core/config/app_config.dart';
 import 'package:kopim/core/services/ai_assistant_service.dart';
@@ -168,7 +169,7 @@ AiAssistantService aiAssistantService(Ref ref) {
 
 @Riverpod(keepAlive: true)
 AppDatabase appDatabase(Ref ref) {
-  final AppDatabase database = AppDatabase();
+  final AppDatabase database = constructDb();
   ref.onDispose(database.close);
   return database;
 }

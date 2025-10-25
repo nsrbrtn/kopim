@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/widgets.dart';
 import 'package:kopim/core/data/database.dart';
+import 'package:kopim/core/data/database/database_factory.dart';
 import 'package:kopim/core/data/outbox/outbox_dao.dart';
 import 'package:kopim/core/services/analytics_service.dart';
 import 'package:kopim/core/services/firebase_initializer.dart';
@@ -47,7 +48,7 @@ void recurringWorkDispatcher() {
     WidgetsFlutterBinding.ensureInitialized();
     final LoggerService logger = LoggerService();
     await ensureFirebaseInitialized(logger: logger);
-    final AppDatabase database = AppDatabase();
+    final AppDatabase database = constructDb();
     final RecurringTransactionsRepository repository = _buildRepository(
       database,
     );

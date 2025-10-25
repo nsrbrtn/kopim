@@ -483,7 +483,7 @@ final class AppDatabaseProvider
   }
 }
 
-String _$appDatabaseHash() => r'79fbc893ebdcc6adbd4c31ca4e8922a8f9832d4d';
+String _$appDatabaseHash() => r'd77dd55624f88ba85786c5ed36157c845beee8c5';
 
 @ProviderFor(outboxDao)
 const outboxDaoProvider = OutboxDaoProvider._();
