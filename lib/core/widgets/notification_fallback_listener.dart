@@ -24,7 +24,7 @@ class _NotificationFallbackListenerState
   @override
   void initState() {
     super.initState();
-    _subscribe();
+    _listenPresenter();
   }
 
   @override
@@ -39,24 +39,34 @@ class _NotificationFallbackListenerState
     super.dispose();
   }
 
-  void _subscribe() {
-    final NotificationFallbackPresenter presenter = ref.read(
+  void _listenPresenter() {
+    ref.listen<NotificationFallbackPresenter>(
       notificationFallbackPresenterProvider,
+      (
+        NotificationFallbackPresenter? previous,
+        NotificationFallbackPresenter next,
+      ) {
+        _subscription?.cancel();
+        _subscription = next.events.listen(_handleEvent);
+      },
+      fireImmediately: true,
     );
-    _subscription = presenter.events.listen((NotificationFallbackEvent event) {
-      final ScaffoldMessengerState? messenger = _messenger;
-      if (messenger == null) {
-        return;
-      }
-      messenger
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(
-            content: Text('${event.title}: ${event.body}'),
-            duration: const Duration(seconds: 4),
-          ),
-        );
-    });
+  }
+
+  void _handleEvent(NotificationFallbackEvent event) {
+    final ScaffoldMessengerState? messenger =
+        _messenger ?? ScaffoldMessenger.maybeOf(context);
+    if (messenger == null) {
+      return;
+    }
+    messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text('${event.title}: ${event.body}'),
+          duration: const Duration(seconds: 4),
+        ),
+      );
   }
 
   @override
