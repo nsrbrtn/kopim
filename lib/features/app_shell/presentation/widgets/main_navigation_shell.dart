@@ -5,6 +5,9 @@ import '../controllers/main_navigation_controller.dart';
 import '../models/navigation_tab_config.dart';
 import '../models/navigation_tab_content.dart';
 import '../providers/main_navigation_tabs_provider.dart';
+import 'main_navigation_bar.dart';
+import 'main_navigation_rail.dart';
+import 'navigation_responsive_breakpoints.dart';
 
 class MainNavigationShell extends ConsumerWidget {
   const MainNavigationShell({super.key});
@@ -54,41 +57,121 @@ class MainNavigationShell extends ConsumerWidget {
           ref.read(mainNavigationControllerProvider.notifier).setIndex(0);
         }
       },
-      child: Scaffold(
-        appBar: appBar,
-        body: IndexedStack(
-          index: currentIndex,
-          children: <Widget>[
-            for (final NavigationTabContent content in contents)
-              content.bodyBuilder(context, ref),
-          ],
-        ),
-        floatingActionButton: floatingActionButton,
-        bottomNavigationBar: isCurrentRoute
-            ? BottomNavigationBar(
-                currentIndex: currentIndex,
-                onTap: (int index) {
-                  ref
-                      .read(mainNavigationControllerProvider.notifier)
-                      .setIndex(index);
-                  final NavigationTabConfig config = tabs[index];
-                  final NavigationTabSelectionCallback? onSelected =
-                      config.onSelected;
-                  if (onSelected != null) {
-                    onSelected(context, ref);
-                  }
-                },
-                items: <BottomNavigationBarItem>[
-                  for (final NavigationTabConfig config in tabs)
-                    BottomNavigationBarItem(
-                      icon: Icon(config.icon),
-                      activeIcon: Icon(config.activeIcon),
-                      label: config.labelBuilder(context),
+      child: LayoutBuilder(
+        builder: (BuildContext context, BoxConstraints constraints) {
+          final _MainNavigationLayout layout = _MainNavigationLayout.fromWidth(
+            constraints.maxWidth,
+          );
+          final bool showNavigation = isCurrentRoute;
+          final bool useRail = showNavigation && layout.usesRail;
+          final bool useBottomBar = showNavigation && layout.usesBottomBar;
+          final bool enableTwoPane = useRail;
+
+          final Widget stackedContent = IndexedStack(
+            index: currentIndex,
+            children: <Widget>[
+              for (final NavigationTabContent content in contents)
+                _NavigationTabPane(
+                  primary: content.bodyBuilder(context, ref),
+                  secondary: enableTwoPane
+                      ? content.secondaryBodyBuilder?.call(context, ref)
+                      : null,
+                  enableTwoPane: enableTwoPane,
+                ),
+            ],
+          );
+
+          final Widget body = useRail
+              ? Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: <Widget>[
+                    MainNavigationRail(
+                      tabs: tabs,
+                      extended: layout.isExtendedRail,
                     ),
-                ],
-              )
-            : null,
+                    const VerticalDivider(width: 1),
+                    Expanded(child: stackedContent),
+                  ],
+                )
+              : stackedContent;
+
+          return Scaffold(
+            appBar: appBar,
+            body: body,
+            floatingActionButton: floatingActionButton,
+            bottomNavigationBar: useBottomBar
+                ? MainNavigationBar(tabs: tabs)
+                : null,
+          );
+        },
       ),
     );
   }
+}
+
+class _NavigationTabPane extends StatelessWidget {
+  const _NavigationTabPane({
+    required this.primary,
+    this.secondary,
+    required this.enableTwoPane,
+  });
+
+  final Widget primary;
+  final Widget? secondary;
+  final bool enableTwoPane;
+
+  @override
+  Widget build(BuildContext context) {
+    if (!enableTwoPane || secondary == null) {
+      return primary;
+    }
+
+    return LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints constraints) {
+        final double totalWidth = constraints.maxWidth;
+        final double secondaryWidth = (totalWidth * 0.38)
+            .clamp(280, 420)
+            .toDouble();
+
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            Expanded(child: primary),
+            const VerticalDivider(width: 1),
+            ConstrainedBox(
+              constraints: BoxConstraints(
+                minWidth: secondaryWidth,
+                maxWidth: secondaryWidth,
+              ),
+              child: ClipRect(child: secondary!),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+enum _MainNavigationLayout {
+  bottom,
+  rail,
+  extendedRail;
+
+  static _MainNavigationLayout fromWidth(double width) {
+    if (width >= kMainNavigationExtendedRailBreakpoint) {
+      return _MainNavigationLayout.extendedRail;
+    }
+    if (width >= kMainNavigationRailBreakpoint) {
+      return _MainNavigationLayout.rail;
+    }
+    return _MainNavigationLayout.bottom;
+  }
+
+  bool get usesBottomBar => this == _MainNavigationLayout.bottom;
+
+  bool get usesRail =>
+      this == _MainNavigationLayout.rail ||
+      this == _MainNavigationLayout.extendedRail;
+
+  bool get isExtendedRail => this == _MainNavigationLayout.extendedRail;
 }
