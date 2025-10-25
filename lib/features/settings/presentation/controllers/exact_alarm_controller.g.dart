@@ -34,7 +34,7 @@ final class ExactAlarmControllerProvider
 }
 
 String _$exactAlarmControllerHash() =>
-    r'5617dae1764ad5ace78afc72dd79bc74c57d66cb';
+    r'fb89215db4989147173d4bbc3d1feafb2265bc3d';
 
 abstract class _$ExactAlarmController extends $AsyncNotifier<bool> {
   FutureOr<bool> build();

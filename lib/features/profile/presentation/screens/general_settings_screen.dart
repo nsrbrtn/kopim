@@ -69,7 +69,7 @@ class GeneralSettingsScreen extends ConsumerWidget {
             },
             onSendTest: () async {
               await ref
-                  .read(notificationsServiceProvider)
+                  .read(notificationsGatewayProvider)
                   .showTestNotification();
             },
           ),

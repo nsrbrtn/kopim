@@ -1204,11 +1204,11 @@ const flutterLocalNotificationsPluginProvider =
 final class FlutterLocalNotificationsPluginProvider
     extends
         $FunctionalProvider<
-          FlutterLocalNotificationsPlugin,
-          FlutterLocalNotificationsPlugin,
-          FlutterLocalNotificationsPlugin
+          FlutterLocalNotificationsPlugin?,
+          FlutterLocalNotificationsPlugin?,
+          FlutterLocalNotificationsPlugin?
         >
-    with $Provider<FlutterLocalNotificationsPlugin> {
+    with $Provider<FlutterLocalNotificationsPlugin?> {
   const FlutterLocalNotificationsPluginProvider._()
     : super(
         from: null,
@@ -1225,20 +1225,20 @@ final class FlutterLocalNotificationsPluginProvider
 
   @$internal
   @override
-  $ProviderElement<FlutterLocalNotificationsPlugin> $createElement(
+  $ProviderElement<FlutterLocalNotificationsPlugin?> $createElement(
     $ProviderPointer pointer,
   ) => $ProviderElement(pointer);
 
   @override
-  FlutterLocalNotificationsPlugin create(Ref ref) {
+  FlutterLocalNotificationsPlugin? create(Ref ref) {
     return flutterLocalNotificationsPlugin(ref);
   }
 
   /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(FlutterLocalNotificationsPlugin value) {
+  Override overrideWithValue(FlutterLocalNotificationsPlugin? value) {
     return $ProviderOverride(
       origin: this,
-      providerOverride: $SyncValueProvider<FlutterLocalNotificationsPlugin>(
+      providerOverride: $SyncValueProvider<FlutterLocalNotificationsPlugin?>(
         value,
       ),
     );
@@ -1246,55 +1246,154 @@ final class FlutterLocalNotificationsPluginProvider
 }
 
 String _$flutterLocalNotificationsPluginHash() =>
-    r'270976c2447345deefd91efb7ccfc64878e707f4';
+    r'09393e85415f184f9bb02647975651dd07be74fb';
 
-@ProviderFor(notificationsService)
-const notificationsServiceProvider = NotificationsServiceProvider._();
+@ProviderFor(notificationFallbackPresenter)
+const notificationFallbackPresenterProvider =
+    NotificationFallbackPresenterProvider._();
 
-final class NotificationsServiceProvider
+final class NotificationFallbackPresenterProvider
     extends
         $FunctionalProvider<
-          NotificationsService,
-          NotificationsService,
-          NotificationsService
+          NotificationFallbackPresenter,
+          NotificationFallbackPresenter,
+          NotificationFallbackPresenter
         >
-    with $Provider<NotificationsService> {
-  const NotificationsServiceProvider._()
+    with $Provider<NotificationFallbackPresenter> {
+  const NotificationFallbackPresenterProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
-        name: r'notificationsServiceProvider',
+        name: r'notificationFallbackPresenterProvider',
         isAutoDispose: true,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
 
   @override
-  String debugGetCreateSourceHash() => _$notificationsServiceHash();
+  String debugGetCreateSourceHash() => _$notificationFallbackPresenterHash();
 
   @$internal
   @override
-  $ProviderElement<NotificationsService> $createElement(
+  $ProviderElement<NotificationFallbackPresenter> $createElement(
     $ProviderPointer pointer,
   ) => $ProviderElement(pointer);
 
   @override
-  NotificationsService create(Ref ref) {
-    return notificationsService(ref);
+  NotificationFallbackPresenter create(Ref ref) {
+    return notificationFallbackPresenter(ref);
   }
 
   /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(NotificationsService value) {
+  Override overrideWithValue(NotificationFallbackPresenter value) {
     return $ProviderOverride(
       origin: this,
-      providerOverride: $SyncValueProvider<NotificationsService>(value),
+      providerOverride: $SyncValueProvider<NotificationFallbackPresenter>(
+        value,
+      ),
     );
   }
 }
 
-String _$notificationsServiceHash() =>
-    r'b8f5c4e440c294fdc23c0da1bb00ae0e3ae0327c';
+String _$notificationFallbackPresenterHash() =>
+    r'add04bf69e3b205265b37452400a227d64ddd1ff';
+
+@ProviderFor(pushPermissionService)
+const pushPermissionServiceProvider = PushPermissionServiceProvider._();
+
+final class PushPermissionServiceProvider
+    extends
+        $FunctionalProvider<
+          PushPermissionService,
+          PushPermissionService,
+          PushPermissionService
+        >
+    with $Provider<PushPermissionService> {
+  const PushPermissionServiceProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'pushPermissionServiceProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$pushPermissionServiceHash();
+
+  @$internal
+  @override
+  $ProviderElement<PushPermissionService> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  PushPermissionService create(Ref ref) {
+    return pushPermissionService(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(PushPermissionService value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<PushPermissionService>(value),
+    );
+  }
+}
+
+String _$pushPermissionServiceHash() =>
+    r'8fe2a28067a3d865f79a96b57cb9fb30ffb90fc3';
+
+@ProviderFor(notificationsGateway)
+const notificationsGatewayProvider = NotificationsGatewayProvider._();
+
+final class NotificationsGatewayProvider
+    extends
+        $FunctionalProvider<
+          NotificationsGateway,
+          NotificationsGateway,
+          NotificationsGateway
+        >
+    with $Provider<NotificationsGateway> {
+  const NotificationsGatewayProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'notificationsGatewayProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$notificationsGatewayHash();
+
+  @$internal
+  @override
+  $ProviderElement<NotificationsGateway> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  NotificationsGateway create(Ref ref) {
+    return notificationsGateway(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(NotificationsGateway value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<NotificationsGateway>(value),
+    );
+  }
+}
+
+String _$notificationsGatewayHash() =>
+    r'45f10040ba3db0ab4f7bfde4a3285f7dc4948d96';
 
 @ProviderFor(workmanager)
 const workmanagerProvider = WorkmanagerProvider._();
@@ -4061,7 +4160,7 @@ final class RecurringWorkSchedulerProvider
 }
 
 String _$recurringWorkSchedulerHash() =>
-    r'd74ce3d07b58943fffafbe929e3577de776b45bd';
+    r'6f722883d3cc59bd7ee82be79b0ceffa9386aca9';
 
 @ProviderFor(exactAlarmPermissionService)
 const exactAlarmPermissionServiceProvider =

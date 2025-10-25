@@ -12,14 +12,14 @@ import 'package:timezone/data/latest.dart' as tzdata;
 import 'package:kopim/core/config/app_config.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/core/services/logger_service.dart';
-import 'package:kopim/core/services/notifications_service.dart';
+import 'package:kopim/core/services/notifications_gateway.dart';
 import 'package:kopim/features/upcoming_payments/application/upcoming_notifications_controller.dart';
 import 'package:kopim/features/upcoming_payments/domain/entities/payment_reminder.dart';
 import 'package:kopim/features/upcoming_payments/domain/entities/upcoming_payment.dart';
 import 'package:kopim/features/upcoming_payments/domain/providers/upcoming_payments_providers.dart';
 import 'package:kopim/features/upcoming_payments/domain/usecases/mark_reminder_done_uc.dart';
 
-class _MockNotificationsService extends Mock implements NotificationsService {}
+class _MockNotificationsGateway extends Mock implements NotificationsGateway {}
 
 class _MockLoggerService extends Mock implements LoggerService {}
 
@@ -39,13 +39,13 @@ void main() {
   });
 
   late ProviderContainer container;
-  late _MockNotificationsService notifications;
+  late _MockNotificationsGateway notifications;
   late _MockLoggerService logger;
   late _MockMarkReminderDoneUC markReminderDone;
   late StreamController<NotificationResponse> responses;
 
   setUp(() {
-    notifications = _MockNotificationsService();
+    notifications = _MockNotificationsGateway();
     logger = _MockLoggerService();
     markReminderDone = _MockMarkReminderDoneUC();
     responses = StreamController<NotificationResponse>.broadcast();
@@ -93,7 +93,7 @@ void main() {
 
     container = ProviderContainer(
       overrides: <Override>[
-        notificationsServiceProvider.overrideWithValue(notifications),
+        notificationsGatewayProvider.overrideWithValue(notifications),
         loggerServiceProvider.overrideWithValue(logger),
         markReminderDoneUCProvider.overrideWithValue(markReminderDone),
         watchUpcomingPaymentsProvider.overrideWith(
@@ -123,7 +123,7 @@ void main() {
     const NotificationResponse response = NotificationResponse(
       notificationResponseType:
           NotificationResponseType.selectedNotificationAction,
-      actionId: NotificationsService.actionMarkReminderPaid,
+      actionId: NotificationsGateway.actionMarkReminderPaid,
       payload: 'reminder:rem-1',
     );
 

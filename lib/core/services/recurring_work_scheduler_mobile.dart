@@ -7,6 +7,7 @@ import 'package:kopim/core/data/outbox/outbox_dao.dart';
 import 'package:kopim/core/services/analytics_service.dart';
 import 'package:kopim/core/services/firebase_initializer.dart';
 import 'package:kopim/core/services/logger_service.dart';
+import 'package:kopim/core/services/recurring_work_scheduler.dart';
 import 'package:kopim/features/accounts/data/repositories/account_repository_impl.dart';
 import 'package:kopim/features/accounts/data/sources/local/account_dao.dart';
 import 'package:kopim/features/accounts/domain/repositories/account_repository.dart';
@@ -34,6 +35,17 @@ import 'package:kopim/features/upcoming_payments/data/services/upcoming_payments
     as upcoming_work;
 import 'package:uuid/uuid.dart';
 import 'package:workmanager/workmanager.dart';
+
+RecurringWorkScheduler createRecurringWorkScheduler({
+  Workmanager? workmanager,
+  LoggerService? logger,
+  RecurringWindowService? recurringWindowService,
+}) {
+  return MobileRecurringWorkScheduler(
+    workmanager: workmanager ?? Workmanager(),
+    logger: logger ?? LoggerService(),
+  );
+}
 
 const String kRecurringTaskGenerateWindow = 'recurring_generate_window';
 const String kRecurringTaskMaintainWindow = 'recurring_window_maintenance';
@@ -90,8 +102,8 @@ void recurringWorkDispatcher() {
   });
 }
 
-class RecurringWorkScheduler {
-  RecurringWorkScheduler({
+class MobileRecurringWorkScheduler implements RecurringWorkScheduler {
+  MobileRecurringWorkScheduler({
     required Workmanager workmanager,
     required LoggerService logger,
   }) : _workmanager = workmanager,
@@ -100,12 +112,14 @@ class RecurringWorkScheduler {
   final Workmanager _workmanager;
   final LoggerService _logger;
 
+  @override
   Future<void> initialize() async {
     if (Platform.isAndroid || Platform.isIOS) {
       await _workmanager.initialize(recurringWorkDispatcher);
     }
   }
 
+  @override
   Future<void> scheduleDailyWindowGeneration() async {
     final Duration initialDelay = _timeUntilNextSixAm();
     await _workmanager.registerOneOffTask(
@@ -121,6 +135,7 @@ class RecurringWorkScheduler {
     );
   }
 
+  @override
   Future<void> scheduleMaintenance() async {
     await _workmanager.registerPeriodicTask(
       kRecurringTaskMaintainWindow,
@@ -133,6 +148,7 @@ class RecurringWorkScheduler {
     _logger.logInfo('Scheduled recurring window maintenance');
   }
 
+  @override
   Future<void> scheduleApplyRecurringRules() async {
     final Duration initialDelay = _timeUntilNextApplyRun();
     await _workmanager.registerPeriodicTask(

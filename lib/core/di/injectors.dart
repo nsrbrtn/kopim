@@ -5,6 +5,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:riverpod/riverpod.dart' as rp;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -18,7 +19,9 @@ import 'package:kopim/core/services/analytics_service.dart';
 import 'package:kopim/core/services/auth_sync_service.dart';
 import 'package:kopim/core/services/exact_alarm_permission_service.dart';
 import 'package:kopim/core/services/logger_service.dart';
-import 'package:kopim/core/services/notifications_service.dart';
+import 'package:kopim/core/services/notification_fallback_presenter.dart';
+import 'package:kopim/core/services/notifications_gateway.dart';
+import 'package:kopim/core/services/push_permission_service.dart';
 import 'package:kopim/core/services/sync_service.dart';
 import 'package:kopim/features/ai/data/repositories/ai_assistant_repository_impl.dart';
 import 'package:kopim/features/ai/data/repositories/ai_financial_data_repository_impl.dart';
@@ -103,7 +106,7 @@ import 'package:kopim/features/home/domain/repositories/home_dashboard_preferenc
 import 'package:kopim/features/home/domain/use_cases/group_transactions_by_day_use_case.dart';
 import 'package:kopim/features/recurring_transactions/data/repositories/recurring_transactions_repository_impl.dart';
 import 'package:kopim/features/recurring_transactions/data/services/recurring_window_service.dart';
-import 'package:kopim/features/recurring_transactions/data/services/recurring_work_scheduler.dart';
+import 'package:kopim/core/services/recurring_work_scheduler.dart';
 import 'package:kopim/features/recurring_transactions/data/sources/local/job_queue_dao.dart';
 import 'package:kopim/features/recurring_transactions/data/sources/local/recurring_occurrence_dao.dart';
 import 'package:kopim/features/recurring_transactions/data/sources/local/recurring_rule_dao.dart';
@@ -233,18 +236,43 @@ RecurringRuleRemoteDataSource recurringRuleRemoteDataSource(Ref ref) =>
     RecurringRuleRemoteDataSource(ref.watch(firestoreProvider));
 
 @riverpod
-FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin(Ref ref) =>
-    FlutterLocalNotificationsPlugin();
+FlutterLocalNotificationsPlugin? flutterLocalNotificationsPlugin(Ref ref) {
+  if (kIsWeb) {
+    return null;
+  }
+  return FlutterLocalNotificationsPlugin();
+}
 
 @riverpod
-NotificationsService notificationsService(Ref ref) {
-  final NotificationsService service = NotificationsService(
+NotificationFallbackPresenter notificationFallbackPresenter(Ref ref) {
+  final NotificationFallbackPresenter presenter = kIsWeb
+      ? StreamNotificationFallbackPresenter()
+      : const NullNotificationFallbackPresenter();
+  ref.onDispose(presenter.dispose);
+  return presenter;
+}
+
+@riverpod
+PushPermissionService pushPermissionService(Ref ref) {
+  final PushPermissionService service = createPushPermissionService(
+    logger: ref.watch(loggerServiceProvider),
+  );
+  return service;
+}
+
+@riverpod
+NotificationsGateway notificationsGateway(Ref ref) {
+  final NotificationsGateway gateway = createNotificationsGateway(
     plugin: ref.watch(flutterLocalNotificationsPluginProvider),
     logger: ref.watch(loggerServiceProvider),
     exactAlarmPermissionService: ref.watch(exactAlarmPermissionServiceProvider),
+    fallbackPresenter: ref.watch(notificationFallbackPresenterProvider),
+    pushPermissionService: kIsWeb
+        ? ref.watch(pushPermissionServiceProvider)
+        : null,
   );
-  ref.onDispose(service.dispose);
-  return service;
+  ref.onDispose(gateway.dispose);
+  return gateway;
 }
 
 @riverpod
@@ -588,9 +616,12 @@ RecurringWindowService recurringWindowService(Ref ref) =>
 
 @riverpod
 RecurringWorkScheduler recurringWorkScheduler(Ref ref) =>
-    RecurringWorkScheduler(
+    createRecurringWorkScheduler(
       workmanager: ref.watch(workmanagerProvider),
       logger: ref.watch(loggerServiceProvider),
+      recurringWindowService: kIsWeb
+          ? ref.watch(recurringWindowServiceProvider)
+          : null,
     );
 
 @riverpod
