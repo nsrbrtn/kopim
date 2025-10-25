@@ -5,6 +5,7 @@ import 'package:workmanager/workmanager.dart';
 import 'package:timezone/timezone.dart' as tz;
 
 import 'package:kopim/core/data/database.dart';
+import 'package:kopim/core/data/database/database_factory.dart';
 import 'package:kopim/core/data/outbox/outbox_dao.dart';
 import 'package:kopim/core/services/analytics_service.dart';
 import 'package:kopim/core/services/exact_alarm_permission_service.dart';
@@ -64,7 +65,7 @@ Future<bool> runUpcomingPaymentsBackgroundTask(
   WidgetsFlutterBinding.ensureInitialized();
   final LoggerService effectiveLogger = logger ?? LoggerService();
   await ensureFirebaseInitialized(logger: effectiveLogger);
-  final AppDatabase effectiveDatabase = database ?? AppDatabase();
+  final AppDatabase effectiveDatabase = database ?? constructDb();
   final NotificationsService effectiveNotifications =
       notifications ??
       NotificationsService(

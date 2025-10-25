@@ -1,14 +1,9 @@
 // lib/core/data/database.dart
-import 'dart:io';
-
 import 'package:drift/drift.dart';
-import 'package:drift/native.dart';
 import 'package:kopim/core/data/converters/json_map_list_converter.dart';
 import 'package:kopim/core/data/converters/string_list_converter.dart';
 import 'package:kopim/features/upcoming_payments/data/drift/tables/payment_reminders_table.dart';
 import 'package:kopim/features/upcoming_payments/data/drift/tables/upcoming_payments_table.dart';
-import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
 
 part 'database.g.dart';
@@ -282,7 +277,7 @@ class JobQueue extends Table {
   ],
 )
 class AppDatabase extends _$AppDatabase {
-  AppDatabase() : super(_openConnection());
+  AppDatabase(super.executor);
 
   AppDatabase.connect(DatabaseConnection super.connection);
 
@@ -760,12 +755,4 @@ class AppDatabase extends _$AppDatabase {
     ).getSingleOrNull();
     return row != null;
   }
-}
-
-LazyDatabase _openConnection() {
-  return LazyDatabase(() async {
-    final Directory directory = await getApplicationDocumentsDirectory();
-    final File file = File(p.join(directory.path, 'kopim.db'));
-    return NativeDatabase.createInBackground(file);
-  });
 }

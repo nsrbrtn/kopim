@@ -12,3 +12,14 @@ targets:
           # Например, для SQL-анализа или named constructors
           test_dir: test/drift/  # Для тестов миграций
           schema_dir: drift_schemas/  # Для schema файлов (diffs)
+      build_web_compilers:entrypoint:
+        generate_for:
+          - web/**.dart
+        options:
+          compiler: dart2js
+        dev_options:
+          dart2js_args:
+            - --no-minify
+        release_options:
+          dart2js_args:
+            - -O4
