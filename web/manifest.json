@@ -1,35 +1,82 @@
 {
-    "name": "kopim",
-    "short_name": "kopim",
-    "start_url": ".",
-    "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new fin app",
-    "orientation": "portrait-primary",
-    "prefer_related_applications": false,
-    "icons": [
+  "name": "kopim — умный финансовый помощник",
+  "short_name": "kopim",
+  "id": "/",
+  "scope": "/",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0F131A",
+  "theme_color": "#51AFF7",
+  "description": "kopim помогает управлять личными финансами, работать офлайн и синхронизировать данные между устройствами.",
+  "lang": "ru-RU",
+  "categories": ["finance", "productivity"],
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "icons/Icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/Icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/Icon-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/Icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Добавить транзакцию",
+      "short_name": "Новая операция",
+      "description": "Быстро добавить расход или доход",
+      "url": "/#/transactions/add",
+      "icons": [
         {
-            "src": "icons/Icon-192.png",
-            "sizes": "192x192",
-            "type": "image/png"
-        },
-        {
-            "src": "icons/Icon-512.png",
-            "sizes": "512x512",
-            "type": "image/png"
-        },
-        {
-            "src": "icons/Icon-maskable-192.png",
-            "sizes": "192x192",
-            "type": "image/png",
-            "purpose": "maskable"
-        },
-        {
-            "src": "icons/Icon-maskable-512.png",
-            "sizes": "512x512",
-            "type": "image/png",
-            "purpose": "maskable"
+          "src": "icons/Icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
         }
-    ]
+      ]
+    },
+    {
+      "name": "Аналитика",
+      "short_name": "Аналитика",
+      "description": "Открыть дашборд аналитики расходов",
+      "url": "/#/analytics",
+      "icons": [
+        {
+          "src": "icons/Icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Платежи",
+      "short_name": "Платежи",
+      "description": "Перейти к предстоящим платежам и напоминаниям",
+      "url": "/#/upcoming-payments",
+      "icons": [
+        {
+          "src": "icons/Icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    }
+  ]
 }

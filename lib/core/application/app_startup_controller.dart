@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:kopim/core/di/injectors.dart';
+import 'package:kopim/core/services/sync_service.dart';
 import 'package:kopim/features/recurring_transactions/data/services/recurring_work_scheduler.dart';
 import 'package:kopim/features/upcoming_payments/application/upcoming_notifications_controller.dart';
 import 'package:kopim/features/upcoming_payments/data/services/upcoming_payments_work_scheduler.dart';
@@ -17,7 +18,13 @@ typedef AppStartupResult = AsyncValue<void>;
 
 @riverpod
 class AppStartupController extends _$AppStartupController {
+  @visibleForTesting
+  static bool? debugIsWebOverride;
+
+  static const Duration _webSyncInterval = Duration(minutes: 2);
+
   Completer<void>? _initializationCompleter;
+  Timer? _webSyncTimer;
 
   @override
   AppStartupResult build() {
@@ -46,7 +53,11 @@ class AppStartupController extends _$AppStartupController {
         cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
       );
 
-      unawaited(_initializeBackgroundServices());
+      if (_isRunningOnWeb) {
+        await _initializeWebServices();
+      } else {
+        unawaited(_initializeBackgroundServices());
+      }
       state = const AsyncValue<void>.data(null);
       completer.complete();
     } catch (error, stackTrace) {
@@ -61,6 +72,22 @@ class AppStartupController extends _$AppStartupController {
     await _warmUpRecurringWorkScheduler();
     await _warmUpUpcomingPaymentsWork();
     await _activateUpcomingNotificationsSync();
+  }
+
+  Future<void> _initializeWebServices() async {
+    final SyncService syncService = ref.read(syncServiceProvider);
+    await syncService.initialize();
+    await syncService.syncPending();
+
+    ref.onDispose(() {
+      _webSyncTimer?.cancel();
+      _webSyncTimer = null;
+    });
+
+    _webSyncTimer?.cancel();
+    _webSyncTimer = Timer.periodic(_webSyncInterval, (Timer _) {
+      unawaited(syncService.syncPending());
+    });
   }
 
   Future<void> _warmUpRecurringWorkScheduler() async {
@@ -127,7 +154,7 @@ class AppStartupController extends _$AppStartupController {
   }
 
   bool _supportsUpcomingPaymentsWork() {
-    if (kIsWeb) {
+    if (_isRunningOnWeb) {
       return false;
     }
     switch (defaultTargetPlatform) {
@@ -138,4 +165,6 @@ class AppStartupController extends _$AppStartupController {
         return false;
     }
   }
+
+  bool get _isRunningOnWeb => debugIsWebOverride ?? kIsWeb;
 }
