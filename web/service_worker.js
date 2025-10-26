@@ -4,13 +4,32 @@ const CORE_ASSETS = [
   '/',
   'index.html',
   'manifest.json',
+  'version.json',
+  'flutter.js',
   'flutter_bootstrap.js',
   'main.dart.js',
+  'main.dart.mjs',
+  'main.dart.wasm',
   'assets/AssetManifest.json',
+  'assets/AssetManifest.bin.json',
+  'assets/AssetManifest.bin',
   'assets/FontManifest.json',
   'assets/NOTICES',
+  'canvaskit/canvaskit.js',
+  'canvaskit/canvaskit.wasm',
+  'canvaskit/skwasm.js',
+  'canvaskit/skwasm.wasm',
 ];
 const CORE_SET = new Set(CORE_ASSETS);
+const FIREBASE_HOST_SUFFIXES = [
+  'firebaseio.com',
+  'googleapis.com',
+  'gstatic.com',
+  'firebasestorage.googleapis.com',
+  'firebasestorage.app',
+  'firebaseapp.com',
+  'cloudfunctions.net',
+];
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
@@ -19,7 +38,11 @@ self.addEventListener('install', (event) => {
       await Promise.all(
         CORE_ASSETS.map(async (asset) => {
           try {
-            const response = await fetch(asset, { cache: 'no-cache' });
+            const request = new Request(asset, {
+              cache: 'reload',
+              credentials: 'same-origin',
+            });
+            const response = await fetch(request);
             if (response && response.ok) {
               await cache.put(asset, response.clone());
             }
@@ -58,7 +81,7 @@ self.addEventListener('fetch', (event) => {
       return;
     }
 
-    if (CORE_SET.has(url.pathname) || CORE_SET.has(url.pathname.slice(1))) {
+    if (isCoreAsset(url.pathname)) {
       event.respondWith(cacheFirst(request));
       return;
     }
@@ -142,9 +165,19 @@ async function networkWithOfflineFallback(request) {
 }
 
 function isFirebaseRequest(url) {
-  return (
-    url.hostname.endsWith('firebaseio.com') ||
-    url.hostname.endsWith('googleapis.com') ||
-    url.hostname.endsWith('gstatic.com')
-  );
+  return FIREBASE_HOST_SUFFIXES.some((suffix) => url.hostname.endsWith(suffix));
+}
+
+function isCoreAsset(pathname) {
+  if (CORE_SET.has(pathname)) {
+    return true;
+  }
+  const normalized = pathname.startsWith('/') ? pathname.slice(1) : pathname;
+  if (CORE_SET.has(normalized)) {
+    return true;
+  }
+  // Для wasm-рендерера Flutter запрашивает файлы с query-параметрами, поэтому
+  // игнорируем часть после вопросительного знака.
+  const [pathWithoutSearch] = normalized.split('?');
+  return CORE_SET.has(pathWithoutSearch);
 }
