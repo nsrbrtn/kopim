@@ -40,6 +40,13 @@ class _NotificationFallbackListenerState
   }
 
   void _listenPresenter() {
+    // Manually handle the initial subscription, which is what `fireImmediately: true`
+    // used to accomplish.
+    final initialPresenter = ref.read(notificationFallbackPresenterProvider);
+    _subscription = initialPresenter.events.listen(_handleEvent);
+
+    // Then, listen for changes to the provider itself. If the presenter instance
+    // is replaced, we cancel the old subscription and create a new one.
     ref.listen<NotificationFallbackPresenter>(
       notificationFallbackPresenterProvider,
       (
@@ -49,7 +56,6 @@ class _NotificationFallbackListenerState
         _subscription?.cancel();
         _subscription = next.events.listen(_handleEvent);
       },
-      fireImmediately: true,
     );
   }
 
