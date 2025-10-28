@@ -1,6 +1,15 @@
 // android/app/build.gradle.kts
 
 import org.gradle.api.tasks.compile.JavaCompile
+import java.util.Properties
+import java.io.FileInputStream
+
+// Load keystore properties
+val keystoreProps = Properties()
+val propsFile = rootProject.file("android/key.properties")
+if (propsFile.exists()) {
+    keystoreProps.load(FileInputStream(propsFile))
+}
 
 plugins {
     id("com.android.application")
@@ -28,6 +37,17 @@ android {
         jvmTarget = "11"
     }
 
+    signingConfigs {
+        create("release") {
+            if (propsFile.exists()) {
+                storeFile = file(keystoreProps.getProperty("storeFile"))
+                storePassword = keystoreProps.getProperty("storePassword")
+                keyAlias = keystoreProps.getProperty("keyAlias")
+                keyPassword = keystoreProps.getProperty("keyPassword")
+            }
+        }
+    }
+
     defaultConfig {
         applicationId = "qmodo.ru.kopim"
         minSdk = flutter.minSdkVersion
@@ -36,15 +56,30 @@ android {
         versionName = flutter.versionName
     }
 
-    buildTypes {
-        release {
-            // Для простоты подписываем debug-ключом, чтобы `flutter run --release` работал.
-            signingConfig = signingConfigs.getByName("debug")
-            // При необходимости включите минификацию:
-            // isMinifyEnabled = true
-            // proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+    flavorDimensions("env")
+    productFlavors {
+        create("dev") {
+            dimension = "env"
+            applicationIdSuffix = ".dev"
+            versionNameSuffix = "-dev"
         }
-        debug {
+        create("stage") {
+            dimension = "env"
+            applicationIdSuffix = ".stage"
+            versionNameSuffix = "-stage"
+        }
+        create("prod") {
+            dimension = "env"
+        }
+    }
+
+    buildTypes {
+        getByName("release") {
+            signingConfig = signingConfigs.getByName("release")
+            isMinifyEnabled = true
+            isShrinkResources = true
+        }
+        getByName("debug") {
             // Настройки для отладки при необходимости
         }
     }
@@ -66,4 +101,3 @@ dependencies {
 tasks.withType<JavaCompile>().configureEach {
     options.compilerArgs.addAll(listOf("-Xlint:deprecation", "-Xlint:unchecked"))
 }
-

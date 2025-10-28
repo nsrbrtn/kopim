@@ -157,7 +157,9 @@ docs.flutter.dev
 
 flutter run --profile — профильный запуск.
 docs.flutter.dev
-
+flutter run --flavor dev   -t lib/main_dev.dart
+flutter run --flavor stage -t lib/main_stage.dart
+flutter run --flavor prod  -t lib/main_prod.dart
 ```
 
 ### 2. Переменные окружения

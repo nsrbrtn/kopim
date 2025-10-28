@@ -173,3 +173,5 @@ app.*.map.json
 /firebase.json
 /android/app/device-streaming-74c1af8e-firebase-adminsdk-fbsvc-4298b92d3f.json
 /.run/Template Flutter.run.xml
+
+android/key.properties
