@@ -2,11 +2,12 @@
 
 import org.gradle.api.tasks.compile.JavaCompile
 import java.util.Properties
+import java.io.File
 import java.io.FileInputStream
 
 // Load keystore properties
 val keystoreProps = Properties()
-val propsFile = rootProject.file("android/key.properties")
+val propsFile = rootProject.file("key.properties")
 if (propsFile.exists()) {
     keystoreProps.load(FileInputStream(propsFile))
 }
@@ -40,7 +41,11 @@ android {
     signingConfigs {
         create("release") {
             if (propsFile.exists()) {
-                storeFile = file(keystoreProps.getProperty("storeFile"))
+                val storeFilePath = keystoreProps.getProperty("storeFile")
+                if (!storeFilePath.isNullOrBlank()) {
+                    val candidate = File(storeFilePath)
+                    storeFile = if (candidate.isAbsolute) candidate else rootProject.file(storeFilePath)
+                }
                 storePassword = keystoreProps.getProperty("storePassword")
                 keyAlias = keystoreProps.getProperty("keyAlias")
                 keyPassword = keystoreProps.getProperty("keyPassword")

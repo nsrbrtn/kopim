@@ -175,3 +175,4 @@ app.*.map.json
 /.run/Template Flutter.run.xml
 
 android/key.properties
+/defines.json
