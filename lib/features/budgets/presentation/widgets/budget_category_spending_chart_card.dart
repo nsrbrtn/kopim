@@ -435,7 +435,7 @@ class _BudgetCategoryBreakdownTile extends StatelessWidget {
             child: Stack(
               alignment: Alignment.centerLeft,
               children: <Widget>[
-                Container(color: theme.colorScheme.surfaceVariant),
+                Container(color: theme.colorScheme.surfaceContainerHighest),
                 FractionallySizedBox(
                   alignment: Alignment.centerLeft,
                   widthFactor: progressWidthFactor,
@@ -525,7 +525,7 @@ class _BudgetCategoryBar extends StatelessWidget {
                   alignment: Alignment.bottomCenter,
                   children: <Widget>[
                     Container(
-                      color: theme.colorScheme.surfaceVariant,
+                      color: theme.colorScheme.surfaceContainerHighest,
                     ),
                     FractionallySizedBox(
                       alignment: Alignment.bottomCenter,
@@ -543,7 +543,7 @@ class _BudgetCategoryBar extends StatelessWidget {
         const SizedBox(height: 16),
         DecoratedBox(
           decoration: BoxDecoration(
-            color: theme.colorScheme.surfaceVariant,
+            color: theme.colorScheme.surfaceContainerHighest,
             borderRadius: BorderRadius.circular(24),
           ),
           child: Padding(
