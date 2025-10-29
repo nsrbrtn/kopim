@@ -1534,6 +1534,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get budgetsCategoryChartTitle => 'Spending by category';
 
   @override
+  String get budgetsCategoryBreakdownTitle => 'Budget categories';
+
+  @override
   String get budgetsEmptyTitle => 'No budgets yet';
 
   @override

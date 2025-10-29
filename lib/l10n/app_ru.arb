@@ -2034,6 +2034,10 @@
   "@budgetsCategoryChartTitle": {
     "description": "Заголовок диаграммы категорий на экране бюджетов"
   },
+  "budgetsCategoryBreakdownTitle": "Категории бюджета",
+  "@budgetsCategoryBreakdownTitle": {
+    "description": "Заголовок свёрнутого списка категорий бюджета"
+  },
   "budgetsEmptyTitle": "Пока нет бюджетов",
   "@budgetsEmptyTitle": {
     "description": "Заголовок пустого состояния списков бюджетов"

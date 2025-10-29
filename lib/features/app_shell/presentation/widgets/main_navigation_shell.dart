@@ -37,25 +37,21 @@ class MainNavigationShell extends ConsumerWidget {
     final NavigatorState? activeNavigator =
         activeContent.navigatorKey?.currentState;
 
-    return PopScope(
-      canPop: currentIndex == 0,
-      onPopInvokedWithResult: (bool didPop, Object? result) {
-        if (didPop) {
-          return;
-        }
-
+    return WillPopScope(
+      onWillPop: () async {
         if (activeNavigator != null) {
-          activeNavigator.maybePop().then((bool popped) {
-            if (!popped && ref.read(mainNavigationControllerProvider) != 0) {
-              ref.read(mainNavigationControllerProvider.notifier).setIndex(0);
-            }
-          });
-          return;
+          final bool popped = await activeNavigator.maybePop();
+          if (popped) {
+            return false;
+          }
         }
 
-        if (currentIndex != 0) {
+        if (ref.read(mainNavigationControllerProvider) != 0) {
           ref.read(mainNavigationControllerProvider.notifier).setIndex(0);
+          return false;
         }
+
+        return true;
       },
       child: LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {

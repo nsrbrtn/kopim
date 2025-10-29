@@ -2708,6 +2708,12 @@ abstract class AppLocalizations {
   /// **'Spending by category'**
   String get budgetsCategoryChartTitle;
 
+  /// Title for the collapsible list with budget categories
+  ///
+  /// In en, this message translates to:
+  /// **'Budget categories'**
+  String get budgetsCategoryBreakdownTitle;
+
   /// Headline shown when the user has not created budgets
   ///
   /// In en, this message translates to:
