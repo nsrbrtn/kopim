@@ -19,6 +19,7 @@ class NotificationFallbackListener extends ConsumerStatefulWidget {
 class _NotificationFallbackListenerState
     extends ConsumerState<NotificationFallbackListener> {
   StreamSubscription<NotificationFallbackEvent>? _subscription;
+  ProviderSubscription<NotificationFallbackPresenter>? _presenterSubscription;
   ScaffoldMessengerState? _messenger;
 
   @override
@@ -36,18 +37,21 @@ class _NotificationFallbackListenerState
   @override
   void dispose() {
     _subscription?.cancel();
+    _presenterSubscription?.close();
     super.dispose();
   }
 
   void _listenPresenter() {
     // Manually handle the initial subscription, which is what `fireImmediately: true`
     // used to accomplish.
-    final initialPresenter = ref.read(notificationFallbackPresenterProvider);
+    final NotificationFallbackPresenter initialPresenter = ref.read(
+      notificationFallbackPresenterProvider,
+    );
     _subscription = initialPresenter.events.listen(_handleEvent);
 
     // Then, listen for changes to the provider itself. If the presenter instance
     // is replaced, we cancel the old subscription and create a new one.
-    ref.listen<NotificationFallbackPresenter>(
+    _presenterSubscription = ref.listenManual<NotificationFallbackPresenter>(
       notificationFallbackPresenterProvider,
       (
         NotificationFallbackPresenter? previous,
@@ -63,8 +67,23 @@ class _NotificationFallbackListenerState
     final ScaffoldMessengerState? messenger =
         _messenger ?? ScaffoldMessenger.maybeOf(context);
     if (messenger == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final ScaffoldMessengerState? postFrameMessenger =
+            _messenger ?? ScaffoldMessenger.maybeOf(context);
+        if (postFrameMessenger == null || !mounted) {
+          return;
+        }
+        _showSnackBar(postFrameMessenger, event);
+      });
       return;
     }
+    _showSnackBar(messenger, event);
+  }
+
+  void _showSnackBar(
+    ScaffoldMessengerState messenger,
+    NotificationFallbackEvent event,
+  ) {
     messenger
       ..hideCurrentSnackBar()
       ..showSnackBar(

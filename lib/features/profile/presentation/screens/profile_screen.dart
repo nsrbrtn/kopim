@@ -15,6 +15,18 @@ import 'package:kopim/l10n/app_localizations.dart';
 final GlobalKey<NavigatorState> profileTabNavigatorKey =
     GlobalKey<NavigatorState>(debugLabel: 'profileTabNavigator');
 
+void _navigateProfileRoute(BuildContext context, String routeName) {
+  final GoRouter? router = GoRouter.maybeOf(context);
+  if (router != null) {
+    router.push(routeName);
+    return;
+  }
+
+  final NavigatorState? navigator =
+      profileTabNavigatorKey.currentState ?? Navigator.maybeOf(context);
+  navigator?.pushNamed(routeName);
+}
+
 /// Экран профиля в составе нижней навигации.
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -119,7 +131,7 @@ class _ProfileOverviewPage extends ConsumerWidget {
             tooltip: strings.profileGeneralSettingsTooltip,
             icon: const Icon(Icons.tune),
             onPressed: () {
-              context.push(GeneralSettingsScreen.routeName);
+              _navigateProfileRoute(context, GeneralSettingsScreen.routeName);
             },
           ),
         ],

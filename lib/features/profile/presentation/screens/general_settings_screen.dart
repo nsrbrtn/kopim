@@ -22,6 +22,19 @@ class GeneralSettingsScreen extends ConsumerWidget {
 
   static const String routeName = '/settings/general';
 
+  void _pushRoute(BuildContext context, String routeName) {
+    final GoRouter? router = GoRouter.maybeOf(context);
+    if (router != null) {
+      router.push(routeName);
+      return;
+    }
+
+    final NavigatorState? navigator = Navigator.maybeOf(context);
+    if (navigator != null) {
+      navigator.pushNamed(routeName);
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final AppLocalizations strings = AppLocalizations.of(context)!;
@@ -47,7 +60,7 @@ class GeneralSettingsScreen extends ConsumerWidget {
             icon: Icons.category_outlined,
             title: strings.profileManageCategoriesCta,
             onTap: () {
-              context.push(ManageCategoriesScreen.routeName);
+              _pushRoute(context, ManageCategoriesScreen.routeName);
             },
           ),
           const SizedBox(height: 12),
@@ -55,7 +68,7 @@ class GeneralSettingsScreen extends ConsumerWidget {
             icon: Icons.event_repeat,
             title: strings.profileUpcomingPaymentsCta,
             onTap: () {
-              context.push(UpcomingPaymentsScreen.routeName);
+              _pushRoute(context, UpcomingPaymentsScreen.routeName);
             },
           ),
           const SizedBox(height: 24),
