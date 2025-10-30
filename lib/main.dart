@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -7,6 +9,7 @@ import 'package:kopim/core/utils/timezone_utils.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 import 'core/application/app_startup_controller.dart';
 import 'core/config/app_config.dart';
+import 'core/di/injectors.dart';
 import 'core/navigation/app_router.dart';
 import 'core/theme/application/theme_mode_controller.dart';
 import 'core/theme/domain/app_theme_mode.dart';
@@ -16,7 +19,11 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final String timeZoneId = resolveCurrentTimeZoneId();
   tz.setLocalLocation(tz.getLocation(timeZoneId));
-  runApp(const ProviderScope(child: MyApp()));
+
+  final ProviderContainer container = ProviderContainer();
+  unawaited(container.read(firebaseInitializationProvider.future));
+
+  runApp(UncontrolledProviderScope(container: container, child: const MyApp()));
 }
 
 class MyApp extends ConsumerStatefulWidget {
@@ -27,35 +34,132 @@ class MyApp extends ConsumerStatefulWidget {
 }
 
 class _MyAppState extends ConsumerState<MyApp> {
+  ProviderSubscription<AsyncValue<void>>? _firebaseInitSubscription;
+
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(appStartupControllerProvider.notifier).initialize();
-    });
+    _firebaseInitSubscription = ref.listenManual<AsyncValue<void>>(
+      firebaseInitializationProvider,
+      (AsyncValue<void>? previous, AsyncValue<void> next) {
+        next.whenOrNull(
+          data: (_) =>
+              ref.read(appStartupControllerProvider.notifier).initialize(),
+        );
+      },
+      fireImmediately: true,
+    );
+  }
+
+  @override
+  void dispose() {
+    _firebaseInitSubscription?.close();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final Locale appLocale = ref.watch(appLocaleProvider);
-    final ThemeData lightTheme = ref.watch(appThemeProvider);
-    final ThemeData darkTheme = ref.watch(appDarkThemeProvider);
-    final AppThemeMode appThemeMode = ref.watch(themeModeControllerProvider);
-    final ThemeMode themeMode = appThemeMode.toMaterialThemeMode();
-    final GoRouter router = ref.watch(appRouterProvider);
+    final AsyncValue<void> initializationState = ref.watch(
+      firebaseInitializationProvider,
+    );
 
-    return MaterialApp.router(
-      title: 'Kopim',
-      theme: lightTheme,
-      darkTheme: darkTheme,
-      themeMode: themeMode,
-      locale: appLocale,
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
-      routerConfig: router,
-      builder: (BuildContext context, Widget? child) {
-        return NotificationFallbackListener(child: child);
+    return initializationState.when(
+      data: (_) {
+        final Locale appLocale = ref.watch(appLocaleProvider);
+        final ThemeData lightTheme = ref.watch(appThemeProvider);
+        final ThemeData darkTheme = ref.watch(appDarkThemeProvider);
+        final AppThemeMode appThemeMode = ref.watch(
+          themeModeControllerProvider,
+        );
+        final ThemeMode themeMode = appThemeMode.toMaterialThemeMode();
+        final GoRouter router = ref.watch(appRouterProvider);
+
+        return MaterialApp.router(
+          title: 'Kopim',
+          theme: lightTheme,
+          darkTheme: darkTheme,
+          themeMode: themeMode,
+          locale: appLocale,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          routerConfig: router,
+          builder: (BuildContext context, Widget? child) {
+            return NotificationFallbackListener(child: child);
+          },
+        );
       },
+      loading: () => const _FirebaseInitializationLoadingApp(),
+      error: (Object error, StackTrace stackTrace) {
+        return _FirebaseInitializationErrorApp(
+          error: error,
+          onRetry: () {
+            ref.invalidate(firebaseInitializationProvider);
+          },
+        );
+      },
+    );
+  }
+}
+
+class _FirebaseInitializationLoadingApp extends StatelessWidget {
+  const _FirebaseInitializationLoadingApp();
+
+  @override
+  Widget build(BuildContext context) {
+    return const MaterialApp(
+      home: Scaffold(
+        body: Center(
+          child: SizedBox(
+            width: 72,
+            height: 72,
+            child: CircularProgressIndicator(),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _FirebaseInitializationErrorApp extends StatelessWidget {
+  const _FirebaseInitializationErrorApp({
+    required this.error,
+    required this.onRetry,
+  });
+
+  final Object error;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: Scaffold(
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 400),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  const Text(
+                    'Не удалось инициализировать Firebase.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 12),
+                  Text('$error', textAlign: TextAlign.center),
+                  const SizedBox(height: 24),
+                  FilledButton(
+                    onPressed: onRetry,
+                    child: const Text('Повторить попытку'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

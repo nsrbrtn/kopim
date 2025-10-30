@@ -16,6 +16,9 @@ import 'package:kopim/features/ai/presentation/models/assistant_session_state.da
 import 'package:riverpod/riverpod.dart';
 import 'package:riverpod/misc.dart' show Override;
 
+final Override _firebaseInitializedOverride = firebaseInitializationProvider
+    .overrideWith((Ref ref) => Future<void>.value());
+
 class _TestConnectivity implements Connectivity {
   _TestConnectivity(List<ConnectivityResult> initial)
     : _current = initial,
@@ -82,6 +85,7 @@ void main() {
       );
       final ProviderContainer container = ProviderContainer(
         overrides: <Override>[
+          _firebaseInitializedOverride,
           connectivityProvider.overrideWithValue(connectivity),
           askFinancialAssistantUseCaseProvider.overrideWith(
             (Ref ref) => AskFinancialAssistantUseCase(repository),
@@ -129,6 +133,7 @@ void main() {
       );
       final ProviderContainer container = ProviderContainer(
         overrides: <Override>[
+          _firebaseInitializedOverride,
           connectivityProvider.overrideWithValue(connectivity),
           askFinancialAssistantUseCaseProvider.overrideWith(
             (Ref ref) => AskFinancialAssistantUseCase(repository),
@@ -187,6 +192,7 @@ void main() {
             });
         final ProviderContainer container = ProviderContainer(
           overrides: <Override>[
+            _firebaseInitializedOverride,
             connectivityProvider.overrideWithValue(connectivity),
             askFinancialAssistantUseCaseProvider.overrideWith(
               (Ref ref) => AskFinancialAssistantUseCase(repository),
@@ -250,6 +256,7 @@ void main() {
       );
       final ProviderContainer container = ProviderContainer(
         overrides: <Override>[
+          _firebaseInitializedOverride,
           connectivityProvider.overrideWithValue(connectivity),
           askFinancialAssistantUseCaseProvider.overrideWith(
             (Ref ref) => AskFinancialAssistantUseCase(repository),
@@ -286,6 +293,7 @@ void main() {
       );
       final ProviderContainer container = ProviderContainer(
         overrides: <Override>[
+          _firebaseInitializedOverride,
           connectivityProvider.overrideWithValue(connectivity),
           askFinancialAssistantUseCaseProvider.overrideWith(
             (Ref ref) => AskFinancialAssistantUseCase(repository),

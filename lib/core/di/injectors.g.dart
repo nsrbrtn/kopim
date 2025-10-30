@@ -96,6 +96,40 @@ final class AnalyticsServiceProvider
 
 String _$analyticsServiceHash() => r'cab7dcfcbbca6fdfa25059607282e5f33e92576a';
 
+@ProviderFor(firebaseInitialization)
+const firebaseInitializationProvider = FirebaseInitializationProvider._();
+
+final class FirebaseInitializationProvider
+    extends $FunctionalProvider<rp.AsyncValue<void>, void, FutureOr<void>>
+    with $FutureModifier<void>, $FutureProvider<void> {
+  const FirebaseInitializationProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'firebaseInitializationProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$firebaseInitializationHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<void> $createElement($ProviderPointer pointer) =>
+      $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<void> create(Ref ref) {
+    return firebaseInitialization(ref);
+  }
+}
+
+String _$firebaseInitializationHash() =>
+    r'0cfe6d5149ac705fd63d606d00e439e719552efc';
+
 @ProviderFor(firestore)
 const firestoreProvider = FirestoreProvider._();
 
@@ -113,7 +147,7 @@ final class FirestoreProvider
         argument: null,
         retry: null,
         name: r'firestoreProvider',
-        isAutoDispose: true,
+        isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -141,7 +175,7 @@ final class FirestoreProvider
   }
 }
 
-String _$firestoreHash() => r'597b1a9eb96f2fae51f5b578f4b5debe4f6d30c6';
+String _$firestoreHash() => r'53a4efcd9648970fc47e0f2fbddb47639cf1269c';
 
 @ProviderFor(firebaseAuth)
 const firebaseAuthProvider = FirebaseAuthProvider._();
@@ -155,7 +189,7 @@ final class FirebaseAuthProvider
         argument: null,
         retry: null,
         name: r'firebaseAuthProvider',
-        isAutoDispose: true,
+        isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -182,7 +216,7 @@ final class FirebaseAuthProvider
   }
 }
 
-String _$firebaseAuthHash() => r'8f84097cccd00af817397c1715c5f537399ba780';
+String _$firebaseAuthHash() => r'9ad8c1992b4a4063c6908db71c687bd826c2ad42';
 
 @ProviderFor(firebaseStorage)
 const firebaseStorageProvider = FirebaseStorageProvider._();
@@ -197,7 +231,7 @@ final class FirebaseStorageProvider
         argument: null,
         retry: null,
         name: r'firebaseStorageProvider',
-        isAutoDispose: true,
+        isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -224,7 +258,7 @@ final class FirebaseStorageProvider
   }
 }
 
-String _$firebaseStorageHash() => r'47903c48019f7dfa1ba82fa0a905885442d69f6b';
+String _$firebaseStorageHash() => r'226a6c09079a168220f78a90e520446bb11a8e4f';
 
 @ProviderFor(firebaseRemoteConfig)
 const firebaseRemoteConfigProvider = FirebaseRemoteConfigProvider._();
@@ -243,7 +277,7 @@ final class FirebaseRemoteConfigProvider
         argument: null,
         retry: null,
         name: r'firebaseRemoteConfigProvider',
-        isAutoDispose: true,
+        isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -272,7 +306,7 @@ final class FirebaseRemoteConfigProvider
 }
 
 String _$firebaseRemoteConfigHash() =>
-    r'b4c6783736b8eac479413a21329664cf4f4edcb5';
+    r'581f76311fb39c27371f336d66b954d803d4f05a';
 
 @ProviderFor(levelPolicy)
 const levelPolicyProvider = LevelPolicyProvider._();
