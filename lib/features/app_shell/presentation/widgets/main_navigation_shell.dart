@@ -41,7 +41,7 @@ class MainNavigationShell extends ConsumerWidget {
 
     final bool canPopNestedRoute = activeNavigator?.canPop() ?? false;
     final bool isOnHomeTab = currentIndex == 0;
-    final bool allowSystemPop = !canPopNestedRoute && isOnHomeTab;
+    final bool allowSystemPop = canPopNestedRoute || isOnHomeTab;
 
     return PopScope(
       canPop: allowSystemPop,
@@ -50,8 +50,18 @@ class MainNavigationShell extends ConsumerWidget {
           return;
         }
 
-        if (canPopNestedRoute && activeNavigator != null) {
-          unawaited(activeNavigator.maybePop());
+        final NavigatorState? currentNavigator =
+            activeContent.navigatorKey?.currentState;
+        final bool nestedCanPop = currentNavigator?.canPop() ?? false;
+
+        if (nestedCanPop && currentNavigator != null) {
+          unawaited(
+            currentNavigator.maybePop().then((bool nestedDidPop) {
+              if (!nestedDidPop && !isOnHomeTab) {
+                ref.read(mainNavigationControllerProvider.notifier).setIndex(0);
+              }
+            }),
+          );
           return;
         }
 
