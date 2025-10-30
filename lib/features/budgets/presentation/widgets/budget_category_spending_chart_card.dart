@@ -82,8 +82,9 @@ class BudgetCategorySpendingChartCard extends StatelessWidget {
             const SizedBox(height: 12),
             LayoutBuilder(
               builder: (BuildContext context, BoxConstraints constraints) {
-                final double chartHeight =
-                    _resolveChartHeight(constraints.maxWidth);
+                final double chartHeight = _resolveChartHeight(
+                  constraints.maxWidth,
+                );
                 final double maxBarHeight = math.max(
                   0,
                   chartHeight - _BudgetCategoryBar.extraHeight,
@@ -135,8 +136,9 @@ double _resolveChartHeight(double maxWidth) {
 double _resolveMaxReference(List<BudgetCategorySpend> items) {
   double reference = 0;
   for (final BudgetCategorySpend item in items) {
-    final double candidate =
-        (item.limit != null && item.limit! > 0) ? item.limit! : item.spent;
+    final double candidate = (item.limit != null && item.limit! > 0)
+        ? item.limit!
+        : item.spent;
     reference = math.max(reference, candidate);
   }
   if (reference <= 0) {
@@ -237,8 +239,9 @@ class _CategoryChartMetrics {
     double maxReference,
   ) {
     final double safeReference = maxReference > 0 ? maxReference : 1;
-    final double rawLimit =
-        (item.limit != null && item.limit! > 0) ? item.limit! : item.spent;
+    final double rawLimit = (item.limit != null && item.limit! > 0)
+        ? item.limit!
+        : item.spent;
     final double limitFraction = rawLimit > 0
         ? (rawLimit / safeReference).clamp(0, 1)
         : 0;
@@ -247,12 +250,14 @@ class _CategoryChartMetrics {
     double spentFractionWithinLimit = 0;
     if (item.limit != null && item.limit! > 0) {
       utilization = item.limit! == 0 ? 0 : item.spent / item.limit!;
-      spentFractionWithinLimit =
-          (item.limit! == 0) ? 0 : (item.spent / item.limit!).clamp(0, 1);
+      spentFractionWithinLimit = (item.limit! == 0)
+          ? 0
+          : (item.spent / item.limit!).clamp(0, 1);
     } else if (rawLimit > 0) {
       utilization = rawLimit == 0 ? 0 : item.spent / rawLimit;
-      spentFractionWithinLimit =
-          rawLimit == 0 ? 0 : (item.spent / rawLimit).clamp(0, 1);
+      spentFractionWithinLimit = rawLimit == 0
+          ? 0
+          : (item.spent / rawLimit).clamp(0, 1);
     }
 
     return _CategoryChartMetrics(
@@ -347,15 +352,13 @@ class _BudgetCategoryBreakdownTile extends StatelessWidget {
     );
     final double limit = item.limit ?? 0;
     final bool hasLimit = limit > 0;
-    final double utilization =
-        hasLimit && limit != 0 ? item.spent / limit : 0;
+    final double utilization = hasLimit && limit != 0 ? item.spent / limit : 0;
     final bool exceeded = hasLimit && utilization > 1;
-    final double progressWidthFactor =
-        hasLimit && limit > 0 ? (item.spent / limit).clamp(0, 1) : 0;
+    final double progressWidthFactor = hasLimit && limit > 0
+        ? (item.spent / limit).clamp(0, 1)
+        : 0;
     final String percentLabel = percentFormat.format(
-      hasLimit
-          ? (utilization.isFinite ? utilization.clamp(0, 9.99) : 0)
-          : 0,
+      hasLimit ? (utilization.isFinite ? utilization.clamp(0, 9.99) : 0) : 0,
     );
     final TextStyle? baseAmountStyle = theme.textTheme.bodySmall;
     final TextStyle? spentStyle = exceeded
@@ -488,13 +491,11 @@ class _BudgetCategoryBar extends StatelessWidget {
     final double safeMaxBarHeight = math.max(0, maxBarHeight);
     final double backgroundHeight =
         safeMaxBarHeight * metrics.limitFraction.clamp(0, 1);
-    final double foregroundHeight =
-        backgroundHeight * metrics.spentFractionWithinLimit.clamp(0, 1);
     final String percentLabel = percentFormat.format(
       metrics.hasLimit
           ? metrics.utilization.isFinite
-              ? metrics.utilization.clamp(0, 9.99)
-              : 0
+                ? metrics.utilization.clamp(0, 9.99)
+                : 0
           : 0,
     );
 
@@ -524,9 +525,7 @@ class _BudgetCategoryBar extends StatelessWidget {
                 child: Stack(
                   alignment: Alignment.bottomCenter,
                   children: <Widget>[
-                    Container(
-                      color: theme.colorScheme.surfaceContainerHighest,
-                    ),
+                    Container(color: theme.colorScheme.surfaceContainerHighest),
                     FractionallySizedBox(
                       alignment: Alignment.bottomCenter,
                       heightFactor: backgroundHeight <= 0
