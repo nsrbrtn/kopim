@@ -27,10 +27,6 @@ import 'package:kopim/features/upcoming_payments/presentation/screens/upcoming_p
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>(
   debugLabel: 'rootNavigator',
 );
-final GlobalKey<NavigatorState> _shellNavigatorKey = GlobalKey<NavigatorState>(
-  debugLabel: 'shellNavigator',
-);
-
 final Provider<GoRouter> appRouterProvider = Provider<GoRouter>((Ref ref) {
   final AppRouterNotifier notifier = ref.watch(_appRouterNotifierProvider)
     ..initialize();
@@ -40,19 +36,12 @@ final Provider<GoRouter> appRouterProvider = Provider<GoRouter>((Ref ref) {
     refreshListenable: notifier,
     redirect: notifier.redirect,
     routes: <RouteBase>[
-      ShellRoute(
-        navigatorKey: _shellNavigatorKey,
-        builder: (BuildContext context, GoRouterState state, Widget child) {
-          return const _AppShell();
+      GoRoute(
+        path: MainNavigationShell.routeName,
+        parentNavigatorKey: _rootNavigatorKey,
+        pageBuilder: (BuildContext context, GoRouterState state) {
+          return const NoTransitionPage<void>(child: _AppShell());
         },
-        routes: <RouteBase>[
-          GoRoute(
-            path: MainNavigationShell.routeName,
-            pageBuilder: (BuildContext context, GoRouterState state) {
-              return const NoTransitionPage<void>(child: SizedBox.shrink());
-            },
-          ),
-        ],
       ),
       GoRoute(
         path: AnalyticsScreen.routeName,

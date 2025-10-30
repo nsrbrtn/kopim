@@ -1952,6 +1952,30 @@ abstract class AppLocalizations {
   /// **'Settings'**
   String get homeNavSettings;
 
+  /// Dialog title asking the user to confirm app exit from the home screen
+  ///
+  /// In en, this message translates to:
+  /// **'Exit Kopim?'**
+  String get mainNavigationExitTitle;
+
+  /// Dialog message asking whether the user wants to close the app
+  ///
+  /// In en, this message translates to:
+  /// **'Do you want to close the app?'**
+  String get mainNavigationExitMessage;
+
+  /// Confirmation button label that closes the app
+  ///
+  /// In en, this message translates to:
+  /// **'Exit'**
+  String get mainNavigationExitConfirm;
+
+  /// Cancellation button label that keeps the user inside the app
+  ///
+  /// In en, this message translates to:
+  /// **'Stay'**
+  String get mainNavigationExitCancel;
+
   /// Title for analytics screen
   ///
   /// In en, this message translates to:

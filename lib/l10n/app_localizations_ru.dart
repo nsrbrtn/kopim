@@ -1130,6 +1130,18 @@ class AppLocalizationsRu extends AppLocalizations {
   String get homeNavSettings => 'Настройки';
 
   @override
+  String get mainNavigationExitTitle => 'Выйти из Kopim?';
+
+  @override
+  String get mainNavigationExitMessage => 'Вы хотите закрыть приложение?';
+
+  @override
+  String get mainNavigationExitConfirm => 'Выйти';
+
+  @override
+  String get mainNavigationExitCancel => 'Остаться';
+
+  @override
   String get analyticsTitle => 'Аналитика';
 
   @override

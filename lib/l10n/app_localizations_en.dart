@@ -1109,6 +1109,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeNavSettings => 'Settings';
 
   @override
+  String get mainNavigationExitTitle => 'Exit Kopim?';
+
+  @override
+  String get mainNavigationExitMessage => 'Do you want to close the app?';
+
+  @override
+  String get mainNavigationExitConfirm => 'Exit';
+
+  @override
+  String get mainNavigationExitCancel => 'Stay';
+
+  @override
   String get analyticsTitle => 'Analytics';
 
   @override

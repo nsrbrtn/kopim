@@ -1,7 +1,11 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import 'package:kopim/l10n/app_localizations.dart';
 
 import '../controllers/main_navigation_controller.dart';
 import '../models/navigation_tab_config.dart';
@@ -18,6 +22,7 @@ class MainNavigationShell extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final AppLocalizations strings = AppLocalizations.of(context)!;
     final List<NavigationTabConfig> tabs = ref.watch(
       mainNavigationTabsProvider,
     );
@@ -41,11 +46,11 @@ class MainNavigationShell extends ConsumerWidget {
 
     final bool canPopNestedRoute = activeNavigator?.canPop() ?? false;
     final bool isOnHomeTab = currentIndex == 0;
-    final bool allowSystemPop = canPopNestedRoute || isOnHomeTab;
+    final bool allowSystemPop = canPopNestedRoute;
 
     return PopScope(
       canPop: allowSystemPop,
-      onPopInvokedWithResult: (bool didPop, Object? _) {
+      onPopInvokedWithResult: (bool didPop, Object? _) async {
         if (didPop) {
           return;
         }
@@ -67,6 +72,18 @@ class MainNavigationShell extends ConsumerWidget {
 
         if (!isOnHomeTab) {
           ref.read(mainNavigationControllerProvider.notifier).setIndex(0);
+          return;
+        }
+
+        final bool shouldExit = await _showExitConfirmationDialog(
+          context,
+          strings,
+        );
+        if (!context.mounted || !shouldExit) {
+          return;
+        }
+        if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+          await SystemNavigator.pop();
         }
       },
       child: LayoutBuilder(
@@ -119,6 +136,32 @@ class MainNavigationShell extends ConsumerWidget {
       ),
     );
   }
+}
+
+Future<bool> _showExitConfirmationDialog(
+  BuildContext context,
+  AppLocalizations strings,
+) async {
+  final bool? result = await showDialog<bool>(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text(strings.mainNavigationExitTitle),
+        content: Text(strings.mainNavigationExitMessage),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(strings.mainNavigationExitCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(strings.mainNavigationExitConfirm),
+          ),
+        ],
+      );
+    },
+  );
+  return result ?? false;
 }
 
 class _NavigationTabPane extends StatelessWidget {

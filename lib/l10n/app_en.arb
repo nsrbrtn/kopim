@@ -1458,6 +1458,22 @@
   "@homeNavSettings": {
     "description": "Bottom navigation label for settings"
   },
+  "mainNavigationExitTitle": "Exit Kopim?",
+  "@mainNavigationExitTitle": {
+    "description": "Dialog title asking the user to confirm app exit from the home screen"
+  },
+  "mainNavigationExitMessage": "Do you want to close the app?",
+  "@mainNavigationExitMessage": {
+    "description": "Dialog message asking whether the user wants to close the app"
+  },
+  "mainNavigationExitConfirm": "Exit",
+  "@mainNavigationExitConfirm": {
+    "description": "Confirmation button label that closes the app"
+  },
+  "mainNavigationExitCancel": "Stay",
+  "@mainNavigationExitCancel": {
+    "description": "Cancellation button label that keeps the user inside the app"
+  },
   "analyticsTitle": "Analytics",
   "@analyticsTitle": {
     "description": "Title for analytics screen"

@@ -1458,6 +1458,22 @@
   "@homeNavSettings": {
     "description": "Подпись для раздела настроек"
   },
+  "mainNavigationExitTitle": "Выйти из Kopim?",
+  "@mainNavigationExitTitle": {
+    "description": "Заголовок диалога подтверждения выхода из приложения на главном экране"
+  },
+  "mainNavigationExitMessage": "Вы хотите закрыть приложение?",
+  "@mainNavigationExitMessage": {
+    "description": "Текст диалога, предлагающего закрыть приложение"
+  },
+  "mainNavigationExitConfirm": "Выйти",
+  "@mainNavigationExitConfirm": {
+    "description": "Кнопка подтверждения выхода из приложения"
+  },
+  "mainNavigationExitCancel": "Остаться",
+  "@mainNavigationExitCancel": {
+    "description": "Кнопка отмены выхода из приложения"
+  },
   "analyticsTitle": "Аналитика",
   "@analyticsTitle": {
     "description": "Заголовок экрана аналитики"

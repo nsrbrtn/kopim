@@ -7,6 +7,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/core/services/sync_service.dart';
 import 'package:kopim/core/services/recurring_work_scheduler.dart';
+import 'package:kopim/features/recurring_transactions/data/services/recurring_window_service.dart';
 import 'package:kopim/features/upcoming_payments/application/upcoming_notifications_controller.dart';
 import 'package:kopim/features/upcoming_payments/data/services/upcoming_payments_work_scheduler.dart';
 
@@ -14,7 +15,7 @@ part 'app_startup_controller.g.dart';
 
 typedef AppStartupResult = AsyncValue<void>;
 
-@riverpod
+@Riverpod(keepAlive: true)
 class AppStartupController extends _$AppStartupController {
   @visibleForTesting
   static bool? debugIsWebOverride;
@@ -66,7 +67,13 @@ class AppStartupController extends _$AppStartupController {
 
   Future<void> _initializeBackgroundServices() async {
     await _warmUpRecurringWorkScheduler();
+    if (!ref.mounted) {
+      return;
+    }
     await _warmUpUpcomingPaymentsWork();
+    if (!ref.mounted) {
+      return;
+    }
     await _activateUpcomingNotificationsSync();
   }
 
@@ -91,11 +98,17 @@ class AppStartupController extends _$AppStartupController {
       final RecurringWorkScheduler scheduler = ref.read(
         recurringWorkSchedulerProvider,
       );
+      final RecurringWindowService recurringWindowService = ref.read(
+        recurringWindowServiceProvider,
+      );
       await scheduler.initialize();
       await scheduler.scheduleDailyWindowGeneration();
       await scheduler.scheduleMaintenance();
       await scheduler.scheduleApplyRecurringRules();
-      await ref.read(recurringWindowServiceProvider).rebuildWindow();
+      if (!ref.mounted) {
+        return;
+      }
+      await recurringWindowService.rebuildWindow();
     } catch (error, stackTrace) {
       FlutterError.reportError(
         FlutterErrorDetails(
@@ -133,6 +146,9 @@ class AppStartupController extends _$AppStartupController {
   }
 
   Future<void> _activateUpcomingNotificationsSync() async {
+    if (!ref.mounted) {
+      return;
+    }
     try {
       await ref.read(upcomingNotificationsControllerProvider.future);
     } catch (error, stackTrace) {
