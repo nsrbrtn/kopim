@@ -20,8 +20,6 @@ class BudgetCategorySpendingChartCard extends StatelessWidget {
   final String localeName;
   final AppLocalizations strings;
 
-  static const int _maxCategoriesToShow = 6;
-
   @override
   Widget build(BuildContext context) {
     if (data.isEmpty) {
@@ -57,9 +55,7 @@ class BudgetCategorySpendingChartCard extends StatelessWidget {
       ..minimumFractionDigits = 0
       ..maximumFractionDigits = 0;
 
-    final List<BudgetCategorySpend> chartItems = data
-        .take(_maxCategoriesToShow)
-        .toList(growable: false);
+    final List<BudgetCategorySpend> chartItems = data;
     final double maxReference = _resolveMaxReference(chartItems);
     final List<_CategoryChartMetrics> metrics = <_CategoryChartMetrics>[
       for (final BudgetCategorySpend item in chartItems)
@@ -92,21 +88,42 @@ class BudgetCategorySpendingChartCard extends StatelessWidget {
 
                 return SizedBox(
                   height: chartHeight,
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: <Widget>[
-                      for (final _CategoryChartMetrics item in metrics)
-                        Expanded(
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 6),
-                            child: _BudgetCategoryBar(
-                              metrics: item,
-                              maxBarHeight: maxBarHeight,
-                              percentFormat: percentFormat,
-                            ),
+                  child: ScrollConfiguration(
+                    behavior: const ScrollBehavior().copyWith(
+                      overscroll: false,
+                    ),
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.symmetric(horizontal: 6),
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minWidth: constraints.maxWidth,
+                        ),
+                        child: Align(
+                          alignment: Alignment.bottomLeft,
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: <Widget>[
+                              for (
+                                int index = 0;
+                                index < metrics.length;
+                                index++
+                              ) ...<Widget>[
+                                if (index > 0) const SizedBox(width: 12),
+                                SizedBox(
+                                  width: 72,
+                                  child: _BudgetCategoryBar(
+                                    metrics: metrics[index],
+                                    maxBarHeight: maxBarHeight,
+                                    percentFormat: percentFormat,
+                                  ),
+                                ),
+                              ],
+                            ],
                           ),
                         ),
-                    ],
+                      ),
+                    ),
                   ),
                 );
               },
@@ -478,7 +495,7 @@ class _BudgetCategoryBar extends StatelessWidget {
   final double maxBarHeight;
   final NumberFormat percentFormat;
 
-  static const double extraHeight = 120;
+  static const double extraHeight = 92;
 
   @override
   Widget build(BuildContext context) {
@@ -553,14 +570,6 @@ class _BudgetCategoryBar extends StatelessWidget {
               size: 20,
             ),
           ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          metrics.data.category.name,
-          style: theme.textTheme.labelMedium,
-          textAlign: TextAlign.center,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
         ),
       ],
     );
