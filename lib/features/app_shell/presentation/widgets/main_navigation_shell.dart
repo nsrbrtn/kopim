@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -37,21 +39,25 @@ class MainNavigationShell extends ConsumerWidget {
     final NavigatorState? activeNavigator =
         activeContent.navigatorKey?.currentState;
 
-    return WillPopScope(
-      onWillPop: () async {
-        if (activeNavigator != null) {
-          final bool popped = await activeNavigator.maybePop();
-          if (popped) {
-            return false;
-          }
+    final bool canPopNestedRoute = activeNavigator?.canPop() ?? false;
+    final bool isOnHomeTab = currentIndex == 0;
+    final bool allowSystemPop = !canPopNestedRoute && isOnHomeTab;
+
+    return PopScope(
+      canPop: allowSystemPop,
+      onPopInvokedWithResult: (bool didPop, Object? _) {
+        if (didPop) {
+          return;
         }
 
-        if (ref.read(mainNavigationControllerProvider) != 0) {
+        if (canPopNestedRoute && activeNavigator != null) {
+          unawaited(activeNavigator.maybePop());
+          return;
+        }
+
+        if (!isOnHomeTab) {
           ref.read(mainNavigationControllerProvider.notifier).setIndex(0);
-          return false;
         }
-
-        return true;
       },
       child: LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {
