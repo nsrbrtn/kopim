@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:kopim/core/navigation/app_router.dart';
+import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/analytics/domain/models/analytics_category_breakdown.dart';
 import 'package:kopim/features/analytics/domain/models/analytics_overview.dart';
@@ -71,6 +72,9 @@ void main() {
       ProviderScope(
         // ignore: always_specify_types
         overrides: [
+          firebaseInitializationProvider.overrideWith(
+            (Ref ref) => Future<void>.value(),
+          ),
           mainNavigationTabsProvider.overrideWithValue(<NavigationTabConfig>[
             NavigationTabConfig(
               id: 'test-home',

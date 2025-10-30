@@ -34,7 +34,7 @@ class SyncService {
     required BudgetInstanceRemoteDataSource budgetInstanceRemoteDataSource,
     required SavingGoalRemoteDataSource savingGoalRemoteDataSource,
     required RecurringRuleRemoteDataSource recurringRuleRemoteDataSource,
-    FirebaseAuth? firebaseAuth,
+    required FirebaseAuth firebaseAuth,
     Connectivity? connectivity,
     OutboxPayloadNormalizer payloadNormalizer = const OutboxPayloadNormalizer(),
   }) : _outboxDao = outboxDao,
@@ -46,7 +46,7 @@ class SyncService {
        _budgetInstanceRemoteDataSource = budgetInstanceRemoteDataSource,
        _savingGoalRemoteDataSource = savingGoalRemoteDataSource,
        _recurringRuleRemoteDataSource = recurringRuleRemoteDataSource,
-       _auth = firebaseAuth ?? FirebaseAuth.instance,
+       _auth = firebaseAuth,
        _connectivity = connectivity ?? Connectivity(),
        _payloadNormalizer = payloadNormalizer;
 

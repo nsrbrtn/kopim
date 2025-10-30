@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -10,7 +9,6 @@ import 'package:kopim/core/services/sync_service.dart';
 import 'package:kopim/core/services/recurring_work_scheduler.dart';
 import 'package:kopim/features/upcoming_payments/application/upcoming_notifications_controller.dart';
 import 'package:kopim/features/upcoming_payments/data/services/upcoming_payments_work_scheduler.dart';
-import 'package:kopim/firebase_options.dart';
 
 part 'app_startup_controller.g.dart';
 
@@ -43,9 +41,7 @@ class AppStartupController extends _$AppStartupController {
     state = const AsyncValue<void>.loading();
 
     try {
-      await Firebase.initializeApp(
-        options: DefaultFirebaseOptions.currentPlatform,
-      );
+      await ref.read(firebaseInitializationProvider.future);
 
       final FirebaseFirestore firestore = ref.read(firestoreProvider);
       firestore.settings = const Settings(

@@ -147,6 +147,16 @@ void main() {
 
         final ProviderContainer container = ProviderContainer(
           overrides: [
+            firebaseInitializationProvider.overrideWith((ref) async {
+              await Firebase.initializeApp(
+                options: const FirebaseOptions(
+                  apiKey: 'test-api-key',
+                  appId: '1:1:test:test',
+                  messagingSenderId: '0',
+                  projectId: 'test-project',
+                ),
+              );
+            }),
             recurringWorkSchedulerProvider.overrideWithValue(
               recurringScheduler,
             ),

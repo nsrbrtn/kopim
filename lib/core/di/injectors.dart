@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
@@ -121,6 +122,7 @@ import 'package:kopim/features/recurring_transactions/domain/use_cases/toggle_re
 import 'package:kopim/features/recurring_transactions/domain/use_cases/watch_recurring_rules_use_case.dart';
 import 'package:kopim/features/recurring_transactions/domain/use_cases/watch_upcoming_occurrences_use_case.dart';
 import 'package:kopim/features/upcoming_payments/data/services/upcoming_payments_work_scheduler.dart';
+import 'package:kopim/firebase_options.dart';
 import 'package:kopim/features/upcoming_payments/data/drift/daos/payment_reminders_dao.dart';
 import 'package:kopim/features/upcoming_payments/data/drift/daos/upcoming_payments_dao.dart';
 import 'package:kopim/features/upcoming_payments/data/drift/repositories/payment_reminders_repository_impl.dart';
@@ -138,18 +140,53 @@ LoggerService loggerService(Ref ref) => LoggerService();
 @riverpod
 AnalyticsService analyticsService(Ref ref) => const AnalyticsService();
 
-@riverpod
-FirebaseFirestore firestore(Ref ref) => FirebaseFirestore.instance;
+@Riverpod(keepAlive: true)
+Future<void> firebaseInitialization(Ref ref) async {
+  final LoggerService logger = ref.watch(loggerServiceProvider);
 
-@riverpod
-FirebaseAuth firebaseAuth(Ref ref) => FirebaseAuth.instance;
+  if (Firebase.apps.isNotEmpty) {
+    return;
+  }
 
-@riverpod
-FirebaseStorage firebaseStorage(Ref ref) => FirebaseStorage.instance;
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  } on FirebaseException catch (error, stackTrace) {
+    if (error.code == 'duplicate-app' && Firebase.apps.isNotEmpty) {
+      return;
+    }
+    logger.logError('Сбой инициализации Firebase: ${error.code}', error);
+    Error.throwWithStackTrace(error, stackTrace);
+  } catch (error, stackTrace) {
+    logger.logError('Неожиданная ошибка инициализации Firebase', error);
+    Error.throwWithStackTrace(error, stackTrace);
+  }
+}
 
-@riverpod
-FirebaseRemoteConfig firebaseRemoteConfig(Ref ref) =>
-    FirebaseRemoteConfig.instance;
+@Riverpod(keepAlive: true)
+FirebaseFirestore firestore(Ref ref) {
+  ref.watch(firebaseInitializationProvider).requireValue;
+  return FirebaseFirestore.instance;
+}
+
+@Riverpod(keepAlive: true)
+FirebaseAuth firebaseAuth(Ref ref) {
+  ref.watch(firebaseInitializationProvider).requireValue;
+  return FirebaseAuth.instance;
+}
+
+@Riverpod(keepAlive: true)
+FirebaseStorage firebaseStorage(Ref ref) {
+  ref.watch(firebaseInitializationProvider).requireValue;
+  return FirebaseStorage.instance;
+}
+
+@Riverpod(keepAlive: true)
+FirebaseRemoteConfig firebaseRemoteConfig(Ref ref) {
+  ref.watch(firebaseInitializationProvider).requireValue;
+  return FirebaseRemoteConfig.instance;
+}
 
 @riverpod
 LevelPolicy levelPolicy(Ref ref) => const SimpleLevelPolicy();
