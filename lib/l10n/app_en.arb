@@ -41,6 +41,32 @@
   "@profileUpcomingPaymentsCta": {
     "description": "Button label that opens the upcoming payments screen from the profile settings"
   },
+  "profileExportDataCta": "Export data",
+  "@profileExportDataCta": {
+    "description": "Button that starts the user data export flow"
+  },
+  "profileExportDataSuccess": "Data exported successfully.",
+  "@profileExportDataSuccess": {
+    "description": "Shown when export finishes without a target path"
+  },
+  "profileExportDataSuccessWithPath": "Data exported to {target}",
+  "@profileExportDataSuccessWithPath": {
+    "description": "Shown when export finishes with a known file path or URL",
+    "placeholders": {
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "profileExportDataFailure": "Failed to export data: {error}",
+  "@profileExportDataFailure": {
+    "description": "Shown when export fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "settingsNotificationsExactTitle": "Exact reminders",
   "@settingsNotificationsExactTitle": {
     "description": "Title for the exact alarm reminders toggle in settings"

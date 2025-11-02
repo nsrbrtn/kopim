@@ -13,7 +13,9 @@ import 'package:kopim/features/budgets/presentation/controllers/budgets_provider
 import 'package:kopim/features/home/domain/entities/home_dashboard_preferences.dart';
 import 'package:kopim/features/home/presentation/controllers/home_dashboard_preferences_controller.dart';
 import 'package:kopim/features/categories/presentation/screens/manage_categories_screen.dart';
+import 'package:kopim/features/settings/domain/repositories/export_file_saver.dart';
 import 'package:kopim/features/settings/presentation/controllers/exact_alarm_controller.dart';
+import 'package:kopim/features/settings/presentation/controllers/export_user_data_controller.dart';
 import 'package:kopim/features/upcoming_payments/presentation/screens/upcoming_payments_screen.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
@@ -47,6 +49,57 @@ class GeneralSettingsScreen extends ConsumerWidget {
     final AsyncValue<bool> exactAlarmAsync = ref.watch(
       exactAlarmControllerProvider,
     );
+    final AsyncValue<ExportFileSaveResult?> exportAsync = ref.watch(
+      exportUserDataControllerProvider,
+    );
+
+    ref.listen<
+      AsyncValue<ExportFileSaveResult?>
+    >(exportUserDataControllerProvider, (
+      AsyncValue<ExportFileSaveResult?>? previous,
+      AsyncValue<ExportFileSaveResult?> next,
+    ) {
+      next.whenOrNull(
+        data: (ExportFileSaveResult? result) {
+          if (result == null) {
+            return;
+          }
+          final ScaffoldMessengerState messenger = ScaffoldMessenger.of(
+            context,
+          );
+          if (result.isSuccess) {
+            final String? filePath = result.filePath;
+            final Uri? downloadUrl = result.downloadUrl;
+            final String message = (filePath != null && filePath.isNotEmpty)
+                ? strings.profileExportDataSuccessWithPath(filePath)
+                : (downloadUrl != null)
+                ? strings.profileExportDataSuccessWithPath(
+                    downloadUrl.toString(),
+                  )
+                : strings.profileExportDataSuccess;
+            messenger.showSnackBar(SnackBar(content: Text(message)));
+          } else {
+            final String error =
+                result.errorMessage ?? strings.genericErrorMessage;
+            messenger.showSnackBar(
+              SnackBar(content: Text(strings.profileExportDataFailure(error))),
+            );
+          }
+          ref.read(exportUserDataControllerProvider.notifier).clearResult();
+        },
+        error: (Object error, StackTrace stackTrace) {
+          final ScaffoldMessengerState messenger = ScaffoldMessenger.of(
+            context,
+          );
+          messenger.showSnackBar(
+            SnackBar(
+              content: Text(strings.profileExportDataFailure(error.toString())),
+            ),
+          );
+          ref.read(exportUserDataControllerProvider.notifier).clearResult();
+        },
+      );
+    });
 
     return Scaffold(
       appBar: AppBar(
@@ -70,6 +123,22 @@ class GeneralSettingsScreen extends ConsumerWidget {
             onTap: () {
               _pushRoute(context, UpcomingPaymentsScreen.routeName);
             },
+          ),
+          const SizedBox(height: 12),
+          _SettingsTile(
+            icon: Icons.download_outlined,
+            title: strings.profileExportDataCta,
+            onTap: () {
+              ref.read(exportUserDataControllerProvider.notifier).export();
+            },
+            trailing: exportAsync.isLoading
+                ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : null,
+            enabled: !exportAsync.isLoading,
           ),
           const SizedBox(height: 24),
           _NotificationsSettingsCard(
@@ -131,11 +200,15 @@ class _SettingsTile extends StatelessWidget {
     required this.icon,
     required this.title,
     required this.onTap,
+    this.trailing,
+    this.enabled = true,
   });
 
   final IconData icon;
   final String title;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
+  final Widget? trailing;
+  final bool enabled;
 
   @override
   Widget build(BuildContext context) {
@@ -145,8 +218,9 @@ class _SettingsTile extends StatelessWidget {
       child: ListTile(
         leading: Icon(icon),
         title: Text(title, style: theme.textTheme.titleMedium),
-        trailing: const Icon(Icons.chevron_right),
-        onTap: onTap,
+        trailing: trailing ?? const Icon(Icons.chevron_right),
+        onTap: enabled ? onTap : null,
+        enabled: enabled,
       ),
     );
   }

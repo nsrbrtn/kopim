@@ -264,7 +264,13 @@ class RecurringRuleFormController extends _$RecurringRuleFormController {
 
     final DateTime startDate = state.startDate;
     final DateTime startDateTimeLocal = state.startDateTime;
-    final DateTime startAtUtc = startDateTimeLocal.toUtc();
+    final DateTime startAtUtc = DateTime.utc(
+      startDate.year,
+      startDate.month,
+      startDate.day,
+      state.applyHour,
+      state.applyMinute,
+    );
     final String timezoneId = resolveCurrentTimeZoneId();
     final bool remindOnce = state.remindOnce;
     final bool autoPost = remindOnce ? false : state.autoPost;

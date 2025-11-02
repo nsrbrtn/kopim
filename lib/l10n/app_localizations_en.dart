@@ -43,6 +43,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileUpcomingPaymentsCta => 'Upcoming payments';
 
   @override
+  String get profileExportDataCta => 'Export data';
+
+  @override
+  String get profileExportDataSuccess => 'Data exported successfully.';
+
+  @override
+  String profileExportDataSuccessWithPath(String target) {
+    return 'Data exported to $target';
+  }
+
+  @override
+  String profileExportDataFailure(String error) {
+    return 'Failed to export data: $error';
+  }
+
+  @override
   String get settingsNotificationsExactTitle => 'Exact reminders';
 
   @override

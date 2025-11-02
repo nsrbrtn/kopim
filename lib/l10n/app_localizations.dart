@@ -164,6 +164,30 @@ abstract class AppLocalizations {
   /// **'Upcoming payments'**
   String get profileUpcomingPaymentsCta;
 
+  /// Button that starts the user data export flow
+  ///
+  /// In en, this message translates to:
+  /// **'Export data'**
+  String get profileExportDataCta;
+
+  /// Shown when export finishes without a target path
+  ///
+  /// In en, this message translates to:
+  /// **'Data exported successfully.'**
+  String get profileExportDataSuccess;
+
+  /// Shown when export finishes with a known file path or URL
+  ///
+  /// In en, this message translates to:
+  /// **'Data exported to {target}'**
+  String profileExportDataSuccessWithPath(String target);
+
+  /// Shown when export fails
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to export data: {error}'**
+  String profileExportDataFailure(String error);
+
   /// Title for the exact alarm reminders toggle in settings
   ///
   /// In en, this message translates to:

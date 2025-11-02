@@ -89,6 +89,15 @@ import 'package:kopim/features/profile/domain/usecases/recompute_user_progress_u
 import 'package:kopim/features/profile/domain/usecases/update_profile_avatar_use_case.dart';
 import 'package:kopim/features/profile/domain/usecases/update_profile_use_case.dart';
 import 'package:kopim/features/profile/domain/usecases/update_profile_use_case_impl.dart';
+import 'package:kopim/features/settings/data/repositories/export_data_repository_impl.dart';
+import 'package:kopim/features/settings/data/services/export_file_saver/export_file_saver_factory.dart';
+import 'package:kopim/features/settings/domain/repositories/export_data_repository.dart';
+import 'package:kopim/features/settings/domain/repositories/export_file_saver.dart';
+import 'package:kopim/features/settings/domain/services/export_bundle_json_encoder.dart';
+import 'package:kopim/features/settings/domain/use_cases/export_user_data_use_case.dart';
+import 'package:kopim/features/settings/domain/use_cases/export_user_data_use_case_impl.dart';
+import 'package:kopim/features/settings/domain/use_cases/prepare_export_bundle_use_case.dart';
+import 'package:kopim/features/settings/domain/use_cases/prepare_export_bundle_use_case_impl.dart';
 
 import 'package:kopim/features/profile/domain/repositories/auth_repository.dart';
 import 'package:kopim/features/transactions/data/repositories/transaction_repository_impl.dart';
@@ -226,6 +235,34 @@ CategoryDao categoryDao(Ref ref) => CategoryDao(ref.watch(appDatabaseProvider));
 @riverpod
 TransactionDao transactionDao(Ref ref) =>
     TransactionDao(ref.watch(appDatabaseProvider));
+
+@riverpod
+ExportDataRepository exportDataRepository(Ref ref) => ExportDataRepositoryImpl(
+  accountDao: ref.watch(accountDaoProvider),
+  transactionDao: ref.watch(transactionDaoProvider),
+  categoryDao: ref.watch(categoryDaoProvider),
+);
+
+@riverpod
+ExportBundleJsonEncoder exportBundleJsonEncoder(Ref ref) =>
+    const ExportBundleJsonEncoder();
+
+@riverpod
+ExportFileSaver exportFileSaver(Ref ref) => createExportFileSaver();
+
+@riverpod
+PrepareExportBundleUseCase prepareExportBundleUseCase(Ref ref) =>
+    PrepareExportBundleUseCaseImpl(
+      repository: ref.watch(exportDataRepositoryProvider),
+    );
+
+@riverpod
+ExportUserDataUseCase exportUserDataUseCase(Ref ref) =>
+    ExportUserDataUseCaseImpl(
+      prepareExportBundle: ref.watch(prepareExportBundleUseCaseProvider),
+      encoder: ref.watch(exportBundleJsonEncoderProvider),
+      fileSaver: ref.watch(exportFileSaverProvider),
+    );
 
 @riverpod
 BudgetDao budgetDao(Ref ref) => BudgetDao(ref.watch(appDatabaseProvider));

@@ -41,6 +41,32 @@
   "@profileUpcomingPaymentsCta": {
     "description": "Подпись кнопки, открывающей экран предстоящих платежей из настроек профиля"
   },
+  "profileExportDataCta": "Экспортировать данные",
+  "@profileExportDataCta": {
+    "description": "Кнопка запуска экспорта пользовательских данных"
+  },
+  "profileExportDataSuccess": "Экспорт завершён успешно.",
+  "@profileExportDataSuccess": {
+    "description": "Сообщение при успешном экспорте без пути к файлу"
+  },
+  "profileExportDataSuccessWithPath": "Данные экспортированы в {target}",
+  "@profileExportDataSuccessWithPath": {
+    "description": "Сообщение при успешном экспорте с известным путём или ссылкой",
+    "placeholders": {
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "profileExportDataFailure": "Не удалось экспортировать данные: {error}",
+  "@profileExportDataFailure": {
+    "description": "Сообщение при неудачном экспорте",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "settingsNotificationsExactTitle": "Точные напоминания",
   "@settingsNotificationsExactTitle": {
     "description": "Заголовок переключателя точных напоминаний в настройках"

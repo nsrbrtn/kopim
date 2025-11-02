@@ -44,6 +44,22 @@ class AppLocalizationsRu extends AppLocalizations {
   String get profileUpcomingPaymentsCta => 'Предстоящие платежи';
 
   @override
+  String get profileExportDataCta => 'Экспортировать данные';
+
+  @override
+  String get profileExportDataSuccess => 'Экспорт завершён успешно.';
+
+  @override
+  String profileExportDataSuccessWithPath(String target) {
+    return 'Данные экспортированы в $target';
+  }
+
+  @override
+  String profileExportDataFailure(String error) {
+    return 'Не удалось экспортировать данные: $error';
+  }
+
+  @override
   String get settingsNotificationsExactTitle => 'Точные напоминания';
 
   @override
