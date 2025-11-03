@@ -188,6 +188,40 @@ abstract class AppLocalizations {
   /// **'Failed to export data: {error}'**
   String profileExportDataFailure(String error);
 
+  /// Button that opens the import flow
+  ///
+  /// In en, this message translates to:
+  /// **'Import data'**
+  String get profileImportDataCta;
+
+  /// Shown when data import finishes successfully
+  ///
+  /// In en, this message translates to:
+  /// **'Data imported successfully.'**
+  String get profileImportDataSuccess;
+
+  /// Detailed import success message with entity counts
+  ///
+  /// In en, this message translates to:
+  /// **'Imported {accounts} accounts, {categories} categories, and {transactions} transactions.'**
+  String profileImportDataSuccessWithStats(
+    int accounts,
+    int categories,
+    int transactions,
+  );
+
+  /// Shown when the user cancels the import dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Import cancelled by user.'**
+  String get profileImportDataCancelled;
+
+  /// Shown when data import fails
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to import data: {error}'**
+  String profileImportDataFailure(String error);
+
   /// Title for the exact alarm reminders toggle in settings
   ///
   /// In en, this message translates to:

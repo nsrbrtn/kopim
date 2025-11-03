@@ -14,7 +14,7 @@ class _ExportFileSaverIo implements ExportFileSaver {
   @override
   Future<ExportFileSaveResult> save(ExportedFile file) async {
     try {
-      final Directory baseDir = await getApplicationDocumentsDirectory();
+      final Directory baseDir = await _resolveDownloadsDirectory();
       final Directory exportDir = Directory(
         p.join(baseDir.path, _exportFolderName),
       );
@@ -27,5 +27,25 @@ class _ExportFileSaverIo implements ExportFileSaver {
     } on Object catch (error) {
       return ExportFileSaveResult.failure(error.toString());
     }
+  }
+
+  Future<Directory> _resolveDownloadsDirectory() async {
+    if (Platform.isAndroid) {
+      final List<Directory>? externalDownloads =
+          await getExternalStorageDirectories(type: StorageDirectory.downloads);
+      if (externalDownloads != null && externalDownloads.isNotEmpty) {
+        return externalDownloads.first;
+      }
+    } else if (Platform.isIOS) {
+      final Directory documentsDir = await getApplicationDocumentsDirectory();
+      return Directory(p.join(documentsDir.path, 'Downloads'));
+    }
+
+    final Directory? downloadsDir = await getDownloadsDirectory();
+    if (downloadsDir != null) {
+      return downloadsDir;
+    }
+
+    return getApplicationDocumentsDirectory();
   }
 }

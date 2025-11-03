@@ -1,0 +1,31 @@
+import 'dart:typed_data';
+
+import 'package:file_picker/file_picker.dart';
+
+import 'package:kopim/features/settings/domain/entities/picked_import_file.dart';
+import 'package:kopim/features/settings/domain/services/import_file_picker.dart';
+
+ImportFilePicker buildImportFilePicker() => _ImportFilePickerWeb();
+
+class _ImportFilePickerWeb implements ImportFilePicker {
+  @override
+  Future<PickedImportFile?> pickJsonFile() async {
+    final FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: <String>['json'],
+      withData: true,
+    );
+
+    if (result == null || result.files.isEmpty) {
+      return null;
+    }
+
+    final PlatformFile file = result.files.first;
+    final Uint8List? bytes = file.bytes;
+    if (bytes == null) {
+      return null;
+    }
+
+    return PickedImportFile(fileName: file.name, bytes: bytes);
+  }
+}

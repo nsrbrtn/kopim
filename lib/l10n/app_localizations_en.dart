@@ -59,6 +59,29 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get profileImportDataCta => 'Import data';
+
+  @override
+  String get profileImportDataSuccess => 'Data imported successfully.';
+
+  @override
+  String profileImportDataSuccessWithStats(
+    int accounts,
+    int categories,
+    int transactions,
+  ) {
+    return 'Imported $accounts accounts, $categories categories, and $transactions transactions.';
+  }
+
+  @override
+  String get profileImportDataCancelled => 'Import cancelled by user.';
+
+  @override
+  String profileImportDataFailure(String error) {
+    return 'Failed to import data: $error';
+  }
+
+  @override
   String get settingsNotificationsExactTitle => 'Exact reminders';
 
   @override

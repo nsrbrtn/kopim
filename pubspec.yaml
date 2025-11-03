@@ -27,6 +27,7 @@ dependencies:
   sqlite3_flutter_libs: ^0.5.39
   path_provider: ^2.1.5
   path: ^1.9.0
+  file_picker: ^8.1.2
 
   # Firebase (auth, sync, analytics)
   firebase_core: ^4.1.1

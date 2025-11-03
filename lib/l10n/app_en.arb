@@ -67,6 +67,42 @@
       }
     }
   },
+  "profileImportDataCta": "Import data",
+  "@profileImportDataCta": {
+    "description": "Button that opens the import flow"
+  },
+  "profileImportDataSuccess": "Data imported successfully.",
+  "@profileImportDataSuccess": {
+    "description": "Shown when data import finishes successfully"
+  },
+  "profileImportDataSuccessWithStats": "Imported {accounts} accounts, {categories} categories, and {transactions} transactions.",
+  "@profileImportDataSuccessWithStats": {
+    "description": "Detailed import success message with entity counts",
+    "placeholders": {
+      "accounts": {
+        "type": "int"
+      },
+      "categories": {
+        "type": "int"
+      },
+      "transactions": {
+        "type": "int"
+      }
+    }
+  },
+  "profileImportDataCancelled": "Import cancelled by user.",
+  "@profileImportDataCancelled": {
+    "description": "Shown when the user cancels the import dialog"
+  },
+  "profileImportDataFailure": "Failed to import data: {error}",
+  "@profileImportDataFailure": {
+    "description": "Shown when data import fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "settingsNotificationsExactTitle": "Exact reminders",
   "@settingsNotificationsExactTitle": {
     "description": "Title for the exact alarm reminders toggle in settings"

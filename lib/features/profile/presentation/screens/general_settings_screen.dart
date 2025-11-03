@@ -14,8 +14,10 @@ import 'package:kopim/features/home/domain/entities/home_dashboard_preferences.d
 import 'package:kopim/features/home/presentation/controllers/home_dashboard_preferences_controller.dart';
 import 'package:kopim/features/categories/presentation/screens/manage_categories_screen.dart';
 import 'package:kopim/features/settings/domain/repositories/export_file_saver.dart';
+import 'package:kopim/features/settings/domain/use_cases/import_user_data_result.dart';
 import 'package:kopim/features/settings/presentation/controllers/exact_alarm_controller.dart';
 import 'package:kopim/features/settings/presentation/controllers/export_user_data_controller.dart';
+import 'package:kopim/features/settings/presentation/controllers/import_user_data_controller.dart';
 import 'package:kopim/features/upcoming_payments/presentation/screens/upcoming_payments_screen.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
@@ -51,6 +53,9 @@ class GeneralSettingsScreen extends ConsumerWidget {
     );
     final AsyncValue<ExportFileSaveResult?> exportAsync = ref.watch(
       exportUserDataControllerProvider,
+    );
+    final AsyncValue<ImportUserDataResult?> importAsync = ref.watch(
+      importUserDataControllerProvider,
     );
 
     ref.listen<
@@ -101,6 +106,72 @@ class GeneralSettingsScreen extends ConsumerWidget {
       );
     });
 
+    ref.listen<AsyncValue<ImportUserDataResult?>>(
+      importUserDataControllerProvider,
+      (
+        AsyncValue<ImportUserDataResult?>? previous,
+        AsyncValue<ImportUserDataResult?> next,
+      ) {
+        next.whenOrNull(
+          data: (ImportUserDataResult? result) {
+            if (result == null) {
+              return;
+            }
+            final ScaffoldMessengerState messenger = ScaffoldMessenger.of(
+              context,
+            );
+            result.map(
+              success: (ImportUserDataResultSuccess value) {
+                messenger.showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      value.accounts == 0 &&
+                              value.categories == 0 &&
+                              value.transactions == 0
+                          ? strings.profileImportDataSuccess
+                          : strings.profileImportDataSuccessWithStats(
+                              value.accounts,
+                              value.categories,
+                              value.transactions,
+                            ),
+                    ),
+                  ),
+                );
+              },
+              cancelled: (_) {
+                messenger.showSnackBar(
+                  SnackBar(content: Text(strings.profileImportDataCancelled)),
+                );
+              },
+              failure: (ImportUserDataResultFailure value) {
+                messenger.showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      strings.profileImportDataFailure(value.message),
+                    ),
+                  ),
+                );
+              },
+            );
+            ref.read(importUserDataControllerProvider.notifier).clearResult();
+          },
+          error: (Object error, StackTrace stackTrace) {
+            final ScaffoldMessengerState messenger = ScaffoldMessenger.of(
+              context,
+            );
+            messenger.showSnackBar(
+              SnackBar(
+                content: Text(
+                  strings.profileImportDataFailure(error.toString()),
+                ),
+              ),
+            );
+            ref.read(importUserDataControllerProvider.notifier).clearResult();
+          },
+        );
+      },
+    );
+
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
@@ -139,6 +210,22 @@ class GeneralSettingsScreen extends ConsumerWidget {
                   )
                 : null,
             enabled: !exportAsync.isLoading,
+          ),
+          const SizedBox(height: 12),
+          _SettingsTile(
+            icon: Icons.upload_outlined,
+            title: strings.profileImportDataCta,
+            onTap: () {
+              ref.read(importUserDataControllerProvider.notifier).importData();
+            },
+            trailing: importAsync.isLoading
+                ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : null,
+            enabled: !importAsync.isLoading,
           ),
           const SizedBox(height: 24),
           _NotificationsSettingsCard(

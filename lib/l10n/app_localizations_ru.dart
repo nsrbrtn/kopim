@@ -60,6 +60,29 @@ class AppLocalizationsRu extends AppLocalizations {
   }
 
   @override
+  String get profileImportDataCta => 'Импортировать данные';
+
+  @override
+  String get profileImportDataSuccess => 'Импорт завершён успешно.';
+
+  @override
+  String profileImportDataSuccessWithStats(
+    int accounts,
+    int categories,
+    int transactions,
+  ) {
+    return 'Импортировано счетов: $accounts, категорий: $categories, транзакций: $transactions.';
+  }
+
+  @override
+  String get profileImportDataCancelled => 'Импорт отменён пользователем.';
+
+  @override
+  String profileImportDataFailure(String error) {
+    return 'Не удалось импортировать данные: $error';
+  }
+
+  @override
   String get settingsNotificationsExactTitle => 'Точные напоминания';
 
   @override
