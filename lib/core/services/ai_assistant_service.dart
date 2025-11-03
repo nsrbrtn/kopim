@@ -1,13 +1,13 @@
 import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:http/http.dart' as http;
 
 import 'package:kopim/core/config/app_config.dart';
 import 'package:kopim/core/services/analytics_service.dart';
 import 'package:kopim/core/services/logger_service.dart';
+import 'package:kopim/core/utils/network_error_utils.dart';
 
 const Map<String, Object> _kOpenRouterProviderConfiguration = <String, Object>{
   'sort': 'latency',
@@ -664,17 +664,6 @@ class AiAssistantService {
         delay = _nextDelay(delay, multiplier);
       } on AiAssistantException {
         rethrow;
-      } on SocketException catch (error) {
-        final AiAssistantServerException wrapped = AiAssistantServerException(
-          'Сеть недоступна или OpenRouter не отвечает.',
-          cause: error,
-        );
-        if (failures >= maxRetries) {
-          throw wrapped;
-        }
-        await _scheduleRetry(operationName, delay, wrapped);
-        failures++;
-        delay = _nextDelay(delay, multiplier);
       } on http.ClientException catch (error) {
         final AiAssistantUnknownException wrapped = AiAssistantUnknownException(
           'Ошибка HTTP-клиента при обращении к OpenRouter.',
@@ -686,6 +675,21 @@ class AiAssistantService {
         await _scheduleRetry(operationName, delay, wrapped);
         failures++;
         delay = _nextDelay(delay, multiplier);
+      } catch (error, stackTrace) {
+        if (isNetworkSocketException(error)) {
+          final AiAssistantServerException wrapped = AiAssistantServerException(
+            'Сеть недоступна или OpenRouter не отвечает.',
+            cause: error,
+          );
+          if (failures >= maxRetries) {
+            Error.throwWithStackTrace(wrapped, stackTrace);
+          }
+          await _scheduleRetry(operationName, delay, wrapped);
+          failures++;
+          delay = _nextDelay(delay, multiplier);
+        } else {
+          Error.throwWithStackTrace(error, stackTrace);
+        }
       }
     }
   }

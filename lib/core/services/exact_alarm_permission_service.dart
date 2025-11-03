@@ -1,6 +1,6 @@
-import 'dart:io';
-
 import 'package:flutter/services.dart';
+
+import 'package:kopim/core/utils/platform_check.dart';
 
 class ExactAlarmPermissionService {
   ExactAlarmPermissionService({MethodChannel? channel, bool? isAndroidOverride})
@@ -11,7 +11,12 @@ class ExactAlarmPermissionService {
   final MethodChannel _channel;
   final bool? _isAndroidOverride;
 
-  bool get _isAndroid => _isAndroidOverride ?? Platform.isAndroid;
+  bool get _isAndroid {
+    if (_isAndroidOverride != null) {
+      return _isAndroidOverride;
+    }
+    return isAndroid;
+  }
 
   Future<bool> canScheduleExactAlarms() async {
     if (!_isAndroid) {
