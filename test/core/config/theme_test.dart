@@ -1,40 +1,47 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kopim/core/config/theme.dart';
+import 'package:kopim/core/config/theme_extensions.dart';
+import 'package:kopim/core/theme/data/generated/kopim_theme_tokens.g.dart';
 
 void main() {
   group('buildAppTheme', () {
-    test('использует Material 3 и новый акцентный цвет', () {
-      const Color accentColor = Color(0xFF51AFF7);
-      final ColorScheme expectedScheme = ColorScheme.fromSeed(
-        seedColor: accentColor,
-        brightness: Brightness.light,
-      );
+    test('возвращает тему с токенами светлой палитры', () {
       final ThemeData theme = buildAppTheme(brightness: Brightness.light);
 
       expect(theme.useMaterial3, isTrue);
-      expect(theme.colorScheme.primary, accentColor);
-      expect(theme.colorScheme.secondary, accentColor);
-      expect(theme.scaffoldBackgroundColor, expectedScheme.surface);
+      expect(theme.colorScheme.primary, kopimThemeTokens.lightColors.primary);
+      expect(theme.textTheme.displayLarge?.fontFamily, 'Onest');
+      expect(theme.textTheme.bodyMedium?.fontFamily, 'Inter');
       expect(
-        theme.bottomNavigationBarTheme.selectedItemColor,
-        theme.colorScheme.onSurface,
+        theme.navigationBarTheme.backgroundColor,
+        kopimThemeTokens.specialSurfaces.navbarLight,
+      );
+
+      final KopimSpecialSurfaces surfaces = theme
+          .extension<KopimSpecialSurfaces>()!;
+      expect(
+        surfaces.fabGradient.colors.first,
+        kopimThemeTokens.specialSurfaces.fabGradientStart,
       );
       expect(
-        theme.bottomNavigationBarTheme.unselectedItemColor,
-        theme.colorScheme.onSurfaceVariant,
+        surfaces.navigationBarLight,
+        kopimThemeTokens.specialSurfaces.navbarLight,
       );
     });
 
-    test('поддерживает тёмную тему', () {
-      const Color accentColor = Color(0xFF51AFF7);
+    test('возвращает тему с токенами тёмной палитры', () {
       final ThemeData theme = buildAppTheme(brightness: Brightness.dark);
 
-      expect(theme.brightness, Brightness.dark);
-      expect(theme.colorScheme.brightness, Brightness.dark);
-      expect(theme.colorScheme.primary, accentColor);
-      expect(theme.colorScheme.secondary, accentColor);
-      expect(theme.scaffoldBackgroundColor, const Color(0xFF141314));
+      expect(theme.colorScheme.primary, kopimThemeTokens.darkColors.primary);
+      expect(
+        theme.navigationBarTheme.backgroundColor,
+        kopimThemeTokens.specialSurfaces.navbarDark,
+      );
+
+      final KopimMotion motion = theme.extension<KopimMotion>()!;
+      expect(motion.durations.md, kopimThemeTokens.motion.durations.md);
+      expect(motion.curves.standard, kopimThemeTokens.motion.easing.standard);
     });
   });
 }

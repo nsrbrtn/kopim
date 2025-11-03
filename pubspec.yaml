@@ -95,3 +95,14 @@ flutter:
   uses-material-design: true
   generate: true
   # Добавьте assets, fonts если нужно для UI kit
+  fonts:
+    - family: Onest
+      fonts:
+        - asset: assets/fonts/Onest-Regular.ttf
+          weight: 400
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/Inter-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Inter-Medium.ttf
+          weight: 500
