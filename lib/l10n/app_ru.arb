@@ -67,6 +67,42 @@
       }
     }
   },
+  "profileImportDataCta": "Импортировать данные",
+  "@profileImportDataCta": {
+    "description": "Кнопка открытия сценария импорта"
+  },
+  "profileImportDataSuccess": "Импорт завершён успешно.",
+  "@profileImportDataSuccess": {
+    "description": "Сообщение об успешном импорте"
+  },
+  "profileImportDataSuccessWithStats": "Импортировано счетов: {accounts}, категорий: {categories}, транзакций: {transactions}.",
+  "@profileImportDataSuccessWithStats": {
+    "description": "Сообщение с деталями о количестве импортированных сущностей",
+    "placeholders": {
+      "accounts": {
+        "type": "int"
+      },
+      "categories": {
+        "type": "int"
+      },
+      "transactions": {
+        "type": "int"
+      }
+    }
+  },
+  "profileImportDataCancelled": "Импорт отменён пользователем.",
+  "@profileImportDataCancelled": {
+    "description": "Сообщение при отмене импорта"
+  },
+  "profileImportDataFailure": "Не удалось импортировать данные: {error}",
+  "@profileImportDataFailure": {
+    "description": "Сообщение при ошибке импорта",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "settingsNotificationsExactTitle": "Точные напоминания",
   "@settingsNotificationsExactTitle": {
     "description": "Заголовок переключателя точных напоминаний в настройках"

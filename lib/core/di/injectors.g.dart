@@ -779,6 +779,54 @@ final class ExportBundleJsonEncoderProvider
 String _$exportBundleJsonEncoderHash() =>
     r'98cc7480796f81a14d0b5872d3c9b0a679ed88bd';
 
+@ProviderFor(exportBundleJsonDecoder)
+const exportBundleJsonDecoderProvider = ExportBundleJsonDecoderProvider._();
+
+final class ExportBundleJsonDecoderProvider
+    extends
+        $FunctionalProvider<
+          ExportBundleJsonDecoder,
+          ExportBundleJsonDecoder,
+          ExportBundleJsonDecoder
+        >
+    with $Provider<ExportBundleJsonDecoder> {
+  const ExportBundleJsonDecoderProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'exportBundleJsonDecoderProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$exportBundleJsonDecoderHash();
+
+  @$internal
+  @override
+  $ProviderElement<ExportBundleJsonDecoder> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  ExportBundleJsonDecoder create(Ref ref) {
+    return exportBundleJsonDecoder(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(ExportBundleJsonDecoder value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<ExportBundleJsonDecoder>(value),
+    );
+  }
+}
+
+String _$exportBundleJsonDecoderHash() =>
+    r'ed7ae4ea8b0909d8e73acb9d317cdbdc0bce6358';
+
 @ProviderFor(exportFileSaver)
 const exportFileSaverProvider = ExportFileSaverProvider._();
 
@@ -820,6 +868,52 @@ final class ExportFileSaverProvider
 }
 
 String _$exportFileSaverHash() => r'bf455a4ef9af1c50a64411f0ff781f316f6e5e23';
+
+@ProviderFor(importFilePicker)
+const importFilePickerProvider = ImportFilePickerProvider._();
+
+final class ImportFilePickerProvider
+    extends
+        $FunctionalProvider<
+          ImportFilePicker,
+          ImportFilePicker,
+          ImportFilePicker
+        >
+    with $Provider<ImportFilePicker> {
+  const ImportFilePickerProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'importFilePickerProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$importFilePickerHash();
+
+  @$internal
+  @override
+  $ProviderElement<ImportFilePicker> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  ImportFilePicker create(Ref ref) {
+    return importFilePicker(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(ImportFilePicker value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<ImportFilePicker>(value),
+    );
+  }
+}
+
+String _$importFilePickerHash() => r'3c5d5355bcb00c9260d8b66e0ad378116dc22e3f';
 
 @ProviderFor(prepareExportBundleUseCase)
 const prepareExportBundleUseCaseProvider =
@@ -917,6 +1011,102 @@ final class ExportUserDataUseCaseProvider
 
 String _$exportUserDataUseCaseHash() =>
     r'8560cec9fd06523f99988ff01d1c6ae34638a0b3';
+
+@ProviderFor(importDataRepository)
+const importDataRepositoryProvider = ImportDataRepositoryProvider._();
+
+final class ImportDataRepositoryProvider
+    extends
+        $FunctionalProvider<
+          ImportDataRepository,
+          ImportDataRepository,
+          ImportDataRepository
+        >
+    with $Provider<ImportDataRepository> {
+  const ImportDataRepositoryProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'importDataRepositoryProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$importDataRepositoryHash();
+
+  @$internal
+  @override
+  $ProviderElement<ImportDataRepository> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  ImportDataRepository create(Ref ref) {
+    return importDataRepository(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(ImportDataRepository value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<ImportDataRepository>(value),
+    );
+  }
+}
+
+String _$importDataRepositoryHash() =>
+    r'2e241c9918613d85f7b0ce89bdcf29039b895d00';
+
+@ProviderFor(importUserDataUseCase)
+const importUserDataUseCaseProvider = ImportUserDataUseCaseProvider._();
+
+final class ImportUserDataUseCaseProvider
+    extends
+        $FunctionalProvider<
+          ImportUserDataUseCase,
+          ImportUserDataUseCase,
+          ImportUserDataUseCase
+        >
+    with $Provider<ImportUserDataUseCase> {
+  const ImportUserDataUseCaseProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'importUserDataUseCaseProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$importUserDataUseCaseHash();
+
+  @$internal
+  @override
+  $ProviderElement<ImportUserDataUseCase> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  ImportUserDataUseCase create(Ref ref) {
+    return importUserDataUseCase(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(ImportUserDataUseCase value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<ImportUserDataUseCase>(value),
+    );
+  }
+}
+
+String _$importUserDataUseCaseHash() =>
+    r'cf336cfeac0becbc0f2eb9748c92eaea86282946';
 
 @ProviderFor(budgetDao)
 const budgetDaoProvider = BudgetDaoProvider._();

@@ -90,12 +90,19 @@ import 'package:kopim/features/profile/domain/usecases/update_profile_avatar_use
 import 'package:kopim/features/profile/domain/usecases/update_profile_use_case.dart';
 import 'package:kopim/features/profile/domain/usecases/update_profile_use_case_impl.dart';
 import 'package:kopim/features/settings/data/repositories/export_data_repository_impl.dart';
+import 'package:kopim/features/settings/data/repositories/import_data_repository_impl.dart';
 import 'package:kopim/features/settings/data/services/export_file_saver/export_file_saver_factory.dart';
+import 'package:kopim/features/settings/data/services/import_file_picker/import_file_picker_factory.dart';
 import 'package:kopim/features/settings/domain/repositories/export_data_repository.dart';
 import 'package:kopim/features/settings/domain/repositories/export_file_saver.dart';
+import 'package:kopim/features/settings/domain/repositories/import_data_repository.dart';
+import 'package:kopim/features/settings/domain/services/export_bundle_json_decoder.dart';
 import 'package:kopim/features/settings/domain/services/export_bundle_json_encoder.dart';
+import 'package:kopim/features/settings/domain/services/import_file_picker.dart';
 import 'package:kopim/features/settings/domain/use_cases/export_user_data_use_case.dart';
 import 'package:kopim/features/settings/domain/use_cases/export_user_data_use_case_impl.dart';
+import 'package:kopim/features/settings/domain/use_cases/import_user_data_use_case.dart';
+import 'package:kopim/features/settings/domain/use_cases/import_user_data_use_case_impl.dart';
 import 'package:kopim/features/settings/domain/use_cases/prepare_export_bundle_use_case.dart';
 import 'package:kopim/features/settings/domain/use_cases/prepare_export_bundle_use_case_impl.dart';
 
@@ -248,7 +255,14 @@ ExportBundleJsonEncoder exportBundleJsonEncoder(Ref ref) =>
     const ExportBundleJsonEncoder();
 
 @riverpod
+ExportBundleJsonDecoder exportBundleJsonDecoder(Ref ref) =>
+    const ExportBundleJsonDecoder();
+
+@riverpod
 ExportFileSaver exportFileSaver(Ref ref) => createExportFileSaver();
+
+@riverpod
+ImportFilePicker importFilePicker(Ref ref) => createImportFilePicker();
 
 @riverpod
 PrepareExportBundleUseCase prepareExportBundleUseCase(Ref ref) =>
@@ -262,6 +276,21 @@ ExportUserDataUseCase exportUserDataUseCase(Ref ref) =>
       prepareExportBundle: ref.watch(prepareExportBundleUseCaseProvider),
       encoder: ref.watch(exportBundleJsonEncoderProvider),
       fileSaver: ref.watch(exportFileSaverProvider),
+    );
+
+@riverpod
+ImportDataRepository importDataRepository(Ref ref) => ImportDataRepositoryImpl(
+  accountDao: ref.watch(accountDaoProvider),
+  categoryDao: ref.watch(categoryDaoProvider),
+  transactionDao: ref.watch(transactionDaoProvider),
+);
+
+@riverpod
+ImportUserDataUseCase importUserDataUseCase(Ref ref) =>
+    ImportUserDataUseCaseImpl(
+      filePicker: ref.watch(importFilePickerProvider),
+      decoder: ref.watch(exportBundleJsonDecoderProvider),
+      repository: ref.watch(importDataRepositoryProvider),
     );
 
 @riverpod
