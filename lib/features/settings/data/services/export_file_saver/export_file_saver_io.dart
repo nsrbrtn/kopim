@@ -38,9 +38,8 @@ class _ExportFileSaverIo implements ExportFileSaver {
 
   Future<Directory> _resolveDownloadsDirectory() async {
     if (Platform.isAndroid) {
-      final List<Directory>? externalDownloads = await getExternalStorageDirectories(
-        type: StorageDirectory.downloads,
-      );
+      final List<Directory>? externalDownloads =
+          await getExternalStorageDirectories(type: StorageDirectory.downloads);
       if (externalDownloads != null && externalDownloads.isNotEmpty) {
         return externalDownloads.first;
       }

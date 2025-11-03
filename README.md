@@ -58,7 +58,13 @@ flutter pub get
 
 ### 5. Генерация кода
 
-Проект активно использует кодогенерацию. Выполните команду для создания необходимых файлов:
+Проект активно использует кодогенерацию. Перед запуском `build_runner` обновите токены темы из Figma:
+
+```bash
+flutter pub run tool/figma_theme/generate_tokens.dart
+```
+
+Затем выполните сборку генерируемых файлов:
 
 ```bash
 dart run build_runner build --delete-conflicting-outputs
@@ -80,6 +86,11 @@ flutter run
 - **Анализ кода:**
   ```bash
   flutter analyze
+  ```
+
+- **Экспорт токенов темы из Figma:**
+  ```bash
+  flutter pub run tool/figma_theme/generate_tokens.dart
   ```
 
 - **Запуск тестов:**

@@ -11,9 +11,9 @@ class ExportUserDataUseCaseImpl implements ExportUserDataUseCase {
     required PrepareExportBundleUseCase prepareExportBundle,
     required ExportBundleJsonEncoder encoder,
     required ExportFileSaver fileSaver,
-  })  : _prepareExportBundle = prepareExportBundle,
-        _encoder = encoder,
-        _fileSaver = fileSaver;
+  }) : _prepareExportBundle = prepareExportBundle,
+       _encoder = encoder,
+       _fileSaver = fileSaver;
 
   final PrepareExportBundleUseCase _prepareExportBundle;
   final ExportBundleJsonEncoder _encoder;
@@ -24,10 +24,7 @@ class ExportUserDataUseCaseImpl implements ExportUserDataUseCase {
     try {
       final ExportBundle bundle = await _prepareExportBundle();
       final ExportedFile file = _encoder.encode(bundle);
-      return await _fileSaver.save(
-        file,
-        directoryPath: params.directoryPath,
-      );
+      return await _fileSaver.save(file, directoryPath: params.directoryPath);
     } on Object catch (error) {
       return ExportFileSaveResult.failure(error.toString());
     }
