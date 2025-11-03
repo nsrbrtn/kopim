@@ -3,7 +3,10 @@ import 'package:kopim/features/settings/domain/entities/exported_file.dart';
 /// Абстракция сохранения экспортированного файла на платформенно-специфичном уровне.
 abstract class ExportFileSaver {
   /// Сохраняет файл и возвращает путь или дескриптор, пригодный для отображения в UI.
-  Future<ExportFileSaveResult> save(ExportedFile file);
+  Future<ExportFileSaveResult> save(
+    ExportedFile file, {
+    String? directoryPath,
+  });
 }
 
 /// Результат сохранения файла экспорта.

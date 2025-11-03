@@ -12,12 +12,19 @@ class _ExportFileSaverIo implements ExportFileSaver {
   static const String _exportFolderName = 'kopim_exports';
 
   @override
-  Future<ExportFileSaveResult> save(ExportedFile file) async {
+  Future<ExportFileSaveResult> save(
+    ExportedFile file, {
+    String? directoryPath,
+  }) async {
     try {
-      final Directory baseDir = await _resolveDownloadsDirectory();
-      final Directory exportDir = Directory(
-        p.join(baseDir.path, _exportFolderName),
-      );
+      final Directory exportDir;
+      if (directoryPath != null && directoryPath.isNotEmpty) {
+        exportDir = Directory(directoryPath);
+      } else {
+        final Directory baseDir = await _resolveDownloadsDirectory();
+        exportDir = Directory(p.join(baseDir.path, _exportFolderName));
+      }
+
       if (!await exportDir.exists()) {
         await exportDir.create(recursive: true);
       }
@@ -31,8 +38,9 @@ class _ExportFileSaverIo implements ExportFileSaver {
 
   Future<Directory> _resolveDownloadsDirectory() async {
     if (Platform.isAndroid) {
-      final List<Directory>? externalDownloads =
-          await getExternalStorageDirectories(type: StorageDirectory.downloads);
+      final List<Directory>? externalDownloads = await getExternalStorageDirectories(
+        type: StorageDirectory.downloads,
+      );
       if (externalDownloads != null && externalDownloads.isNotEmpty) {
         return externalDownloads.first;
       }

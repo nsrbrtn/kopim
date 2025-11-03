@@ -2,17 +2,18 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:collection/collection.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_progress.dart';
 import 'package:kopim/features/budgets/presentation/controllers/budgets_providers.dart';
+import 'package:kopim/features/categories/presentation/screens/manage_categories_screen.dart';
 import 'package:kopim/features/home/domain/entities/home_dashboard_preferences.dart';
 import 'package:kopim/features/home/presentation/controllers/home_dashboard_preferences_controller.dart';
-import 'package:kopim/features/categories/presentation/screens/manage_categories_screen.dart';
 import 'package:kopim/features/settings/domain/repositories/export_file_saver.dart';
 import 'package:kopim/features/settings/domain/use_cases/import_user_data_result.dart';
 import 'package:kopim/features/settings/presentation/controllers/exact_alarm_controller.dart';
@@ -58,53 +59,54 @@ class GeneralSettingsScreen extends ConsumerWidget {
       importUserDataControllerProvider,
     );
 
-    ref.listen<
-      AsyncValue<ExportFileSaveResult?>
-    >(exportUserDataControllerProvider, (
-      AsyncValue<ExportFileSaveResult?>? previous,
-      AsyncValue<ExportFileSaveResult?> next,
-    ) {
-      next.whenOrNull(
-        data: (ExportFileSaveResult? result) {
-          if (result == null) {
-            return;
-          }
-          final ScaffoldMessengerState messenger = ScaffoldMessenger.of(
-            context,
-          );
-          if (result.isSuccess) {
-            final String? filePath = result.filePath;
-            final Uri? downloadUrl = result.downloadUrl;
-            final String message = (filePath != null && filePath.isNotEmpty)
-                ? strings.profileExportDataSuccessWithPath(filePath)
-                : (downloadUrl != null)
-                ? strings.profileExportDataSuccessWithPath(
-                    downloadUrl.toString(),
-                  )
-                : strings.profileExportDataSuccess;
-            messenger.showSnackBar(SnackBar(content: Text(message)));
-          } else {
-            final String error =
-                result.errorMessage ?? strings.genericErrorMessage;
-            messenger.showSnackBar(
-              SnackBar(content: Text(strings.profileExportDataFailure(error))),
+    ref.listen<AsyncValue<ExportFileSaveResult?>>(
+      exportUserDataControllerProvider,
+      (
+        AsyncValue<ExportFileSaveResult?>? previous,
+        AsyncValue<ExportFileSaveResult?> next,
+      ) {
+        next.whenOrNull(
+          data: (ExportFileSaveResult? result) {
+            if (result == null) {
+              return;
+            }
+            final ScaffoldMessengerState messenger = ScaffoldMessenger.of(
+              context,
             );
-          }
-          ref.read(exportUserDataControllerProvider.notifier).clearResult();
-        },
-        error: (Object error, StackTrace stackTrace) {
-          final ScaffoldMessengerState messenger = ScaffoldMessenger.of(
-            context,
-          );
-          messenger.showSnackBar(
-            SnackBar(
-              content: Text(strings.profileExportDataFailure(error.toString())),
-            ),
-          );
-          ref.read(exportUserDataControllerProvider.notifier).clearResult();
-        },
-      );
-    });
+            if (result.isSuccess) {
+              final String? filePath = result.filePath;
+              final Uri? downloadUrl = result.downloadUrl;
+              final String message = (filePath != null && filePath.isNotEmpty)
+                  ? strings.profileExportDataSuccessWithPath(filePath)
+                  : (downloadUrl != null)
+                      ? strings.profileExportDataSuccessWithPath(
+                          downloadUrl.toString(),
+                        )
+                      : strings.profileExportDataSuccess;
+              messenger.showSnackBar(SnackBar(content: Text(message)));
+            } else {
+              final String error =
+                  result.errorMessage ?? strings.genericErrorMessage;
+              messenger.showSnackBar(
+                SnackBar(content: Text(strings.profileExportDataFailure(error))),
+              );
+            }
+            ref.read(exportUserDataControllerProvider.notifier).clearResult();
+          },
+          error: (Object error, StackTrace stackTrace) {
+            final ScaffoldMessengerState messenger = ScaffoldMessenger.of(
+              context,
+            );
+            messenger.showSnackBar(
+              SnackBar(
+                content: Text(strings.profileExportDataFailure(error.toString())),
+              ),
+            );
+            ref.read(exportUserDataControllerProvider.notifier).clearResult();
+          },
+        );
+      },
+    );
 
     ref.listen<AsyncValue<ImportUserDataResult?>>(
       importUserDataControllerProvider,
@@ -199,8 +201,18 @@ class GeneralSettingsScreen extends ConsumerWidget {
           _SettingsTile(
             icon: Icons.download_outlined,
             title: strings.profileExportDataCta,
-            onTap: () {
-              ref.read(exportUserDataControllerProvider.notifier).export();
+            onTap: () async {
+              final notifier = ref.read(
+                exportUserDataControllerProvider.notifier,
+              );
+              if (kIsWeb) {
+                await notifier.export();
+                return;
+              }
+              final String? path = await FilePicker.platform.getDirectoryPath();
+              if (path != null) {
+                await notifier.export(directoryPath: path);
+              }
             },
             trailing: exportAsync.isLoading
                 ? const SizedBox(
@@ -247,30 +259,30 @@ class GeneralSettingsScreen extends ConsumerWidget {
           preferencesAsync.when(
             data: (HomeDashboardPreferences preferences) =>
                 _HomeDashboardSettingsCard(
-                  strings: strings,
-                  preferences: preferences,
-                  budgetsAsync: budgetsAsync,
-                  onToggleGamification: (bool value) => ref
-                      .read(homeDashboardPreferencesControllerProvider.notifier)
-                      .setShowGamification(value),
-                  onToggleBudget: (bool value) => ref
-                      .read(homeDashboardPreferencesControllerProvider.notifier)
-                      .setShowBudget(value),
-                  onToggleRecurring: (bool value) => ref
-                      .read(homeDashboardPreferencesControllerProvider.notifier)
-                      .setShowRecurring(value),
-                  onToggleSavings: (bool value) => ref
-                      .read(homeDashboardPreferencesControllerProvider.notifier)
-                      .setShowSavings(value),
-                  onSelectBudget: (List<BudgetProgress> budgets) async {
-                    await _showBudgetSelector(
-                      context: context,
-                      ref: ref,
-                      budgets: budgets,
-                      selectedId: preferences.budgetId,
-                    );
-                  },
-                ),
+              strings: strings,
+              preferences: preferences,
+              budgetsAsync: budgetsAsync,
+              onToggleGamification: (bool value) => ref
+                  .read(homeDashboardPreferencesControllerProvider.notifier)
+                  .setShowGamification(value),
+              onToggleBudget: (bool value) => ref
+                  .read(homeDashboardPreferencesControllerProvider.notifier)
+                  .setShowBudget(value),
+              onToggleRecurring: (bool value) => ref
+                  .read(homeDashboardPreferencesControllerProvider.notifier)
+                  .setShowRecurring(value),
+              onToggleSavings: (bool value) => ref
+                  .read(homeDashboardPreferencesControllerProvider.notifier)
+                  .setShowSavings(value),
+              onSelectBudget: (List<BudgetProgress> budgets) async {
+                await _showBudgetSelector(
+                  context: context,
+                  ref: ref,
+                  budgets: budgets,
+                  selectedId: preferences.budgetId,
+                );
+              },
+            ),
             loading: () => const _SettingsLoadingCard(),
             error: (Object error, _) => _SettingsErrorCard(
               message: strings.homeDashboardPreferencesError(error.toString()),

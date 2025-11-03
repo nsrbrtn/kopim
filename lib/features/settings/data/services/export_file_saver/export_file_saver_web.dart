@@ -9,7 +9,10 @@ ExportFileSaver buildExportFileSaver() => _ExportFileSaverWeb();
 
 class _ExportFileSaverWeb implements ExportFileSaver {
   @override
-  Future<ExportFileSaveResult> save(ExportedFile file) async {
+  Future<ExportFileSaveResult> save(
+    ExportedFile file, {
+    String? directoryPath,
+  }) async {
     final html.Blob blob = html.Blob(
       <dynamic>[file.bytes],
       file.mimeType,

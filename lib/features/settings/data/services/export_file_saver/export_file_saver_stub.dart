@@ -5,7 +5,10 @@ ExportFileSaver buildExportFileSaver() => _UnsupportedExportFileSaver();
 
 class _UnsupportedExportFileSaver implements ExportFileSaver {
   @override
-  Future<ExportFileSaveResult> save(ExportedFile file) async {
+  Future<ExportFileSaveResult> save(
+    ExportedFile file, {
+    String? directoryPath,
+  }) async {
     return ExportFileSaveResult.failure(
       'Сохранение экспорта недоступно на данной платформе.',
     );
