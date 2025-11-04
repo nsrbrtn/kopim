@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:kopim/core/config/theme_extensions.dart';
+
 import '../controllers/main_navigation_controller.dart';
 import '../models/navigation_tab_config.dart';
 
@@ -11,11 +13,17 @@ class MainNavigationBar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final ThemeData theme = Theme.of(context);
+    final KopimSpecialSurfaces surfaces = theme.kopimSpecialSurfaces;
+    final Color backgroundColor = theme.brightness == Brightness.dark
+        ? surfaces.navigationBarDark
+        : surfaces.navigationBarLight;
     final int currentIndex = ref.watch(
       mainNavigationControllerProvider.select((int value) => value),
     );
 
     return BottomNavigationBar(
+      backgroundColor: backgroundColor,
       currentIndex: currentIndex,
       onTap: (int index) {
         if (index == currentIndex) {

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:kopim/core/widgets/kopim_floating_action_button.dart';
 import 'package:kopim/features/upcoming_payments/domain/entities/payment_reminder.dart';
 import 'package:kopim/features/upcoming_payments/domain/entities/upcoming_payment.dart';
 import 'package:kopim/features/upcoming_payments/presentation/screens/edit_payment_reminder_screen.dart';
@@ -54,10 +55,10 @@ class _UpcomingPaymentsScreenState extends ConsumerState<UpcomingPaymentsScreen>
           PaymentRemindersList(onEdit: _openReminder),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: KopimFloatingActionButton(
         heroTag: 'upcomingPaymentsFab',
         onPressed: () => _showCreateMenu(context, strings),
-        child: const Icon(Icons.add),
+        icon: const Icon(Icons.add),
       ),
     );
   }

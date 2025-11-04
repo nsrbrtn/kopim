@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:kopim/core/config/theme_extensions.dart';
 import 'package:kopim/core/utils/helpers.dart';
 import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
 import 'package:kopim/features/budgets/presentation/models/budget_category_spend.dart';
@@ -22,11 +23,18 @@ class BudgetCategorySpendingChartCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final KopimLayout layout = context.kopimLayout;
+    final KopimSpacingScale spacing = layout.spacing;
     if (data.isEmpty) {
       return Card(
         margin: EdgeInsets.zero,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
+          padding: EdgeInsets.fromLTRB(
+            spacing.section,
+            spacing.section,
+            spacing.section,
+            spacing.sectionLarge,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
@@ -36,7 +44,7 @@ class BudgetCategorySpendingChartCard extends StatelessWidget {
                   context,
                 ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: spacing.section),
               Text(
                 strings.homeBudgetWidgetCategoriesEmpty,
                 style: Theme.of(context).textTheme.bodyMedium,
@@ -65,7 +73,7 @@ class BudgetCategorySpendingChartCard extends StatelessWidget {
     return Card(
       margin: EdgeInsets.zero,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+        padding: EdgeInsets.all(spacing.section),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
@@ -75,7 +83,7 @@ class BudgetCategorySpendingChartCard extends StatelessWidget {
                 fontWeight: FontWeight.w600,
               ),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: spacing.section),
             LayoutBuilder(
               builder: (BuildContext context, BoxConstraints constraints) {
                 final double chartHeight = _resolveChartHeight(
@@ -94,7 +102,9 @@ class BudgetCategorySpendingChartCard extends StatelessWidget {
                     ),
                     child: SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
-                      padding: const EdgeInsets.symmetric(horizontal: 6),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: spacing.between,
+                      ),
                       child: ConstrainedBox(
                         constraints: BoxConstraints(
                           minWidth: constraints.maxWidth,
@@ -109,7 +119,7 @@ class BudgetCategorySpendingChartCard extends StatelessWidget {
                                 index < metrics.length;
                                 index++
                               ) ...<Widget>[
-                                if (index > 0) const SizedBox(width: 12),
+                                if (index > 0) SizedBox(width: spacing.section),
                                 SizedBox(
                                   width: 72,
                                   child: _BudgetCategoryBar(
@@ -128,7 +138,7 @@ class BudgetCategorySpendingChartCard extends StatelessWidget {
                 );
               },
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: spacing.section),
             _BudgetCategoryBreakdown(
               data: data,
               currencyFormat: currencyFormat,
@@ -172,10 +182,16 @@ class BudgetCategorySpendingChartSkeleton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
+    final KopimSpacingScale spacing = context.kopimLayout.spacing;
     return Card(
       margin: EdgeInsets.zero,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
+        padding: EdgeInsets.fromLTRB(
+          spacing.section,
+          spacing.section,
+          spacing.section,
+          spacing.sectionLarge,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
@@ -185,9 +201,9 @@ class BudgetCategorySpendingChartSkeleton extends StatelessWidget {
                 fontWeight: FontWeight.w600,
               ),
             ),
-            const SizedBox(height: 32),
+            SizedBox(height: spacing.sectionLarge + spacing.section),
             const Center(child: CircularProgressIndicator()),
-            const SizedBox(height: 24),
+            SizedBox(height: spacing.sectionLarge),
           ],
         ),
       ),
@@ -208,10 +224,16 @@ class BudgetCategorySpendingChartError extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
+    final KopimSpacingScale spacing = context.kopimLayout.spacing;
     return Card(
       margin: EdgeInsets.zero,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
+        padding: EdgeInsets.fromLTRB(
+          spacing.section,
+          spacing.section,
+          spacing.section,
+          spacing.sectionLarge,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
@@ -221,7 +243,7 @@ class BudgetCategorySpendingChartError extends StatelessWidget {
                 fontWeight: FontWeight.w600,
               ),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: spacing.section),
             Text(
               strings.budgetsErrorTitle,
               style: theme.textTheme.bodyMedium?.copyWith(
@@ -229,7 +251,7 @@ class BudgetCategorySpendingChartError extends StatelessWidget {
                 color: theme.colorScheme.error,
               ),
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: spacing.between),
             Text(
               message,
               style: theme.textTheme.bodySmall?.copyWith(

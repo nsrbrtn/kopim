@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:kopim/core/config/theme_extensions.dart';
+
 import '../controllers/main_navigation_controller.dart';
 import '../models/navigation_tab_config.dart';
 
@@ -17,6 +19,10 @@ class MainNavigationRail extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final ThemeData theme = Theme.of(context);
+    final KopimSpecialSurfaces surfaces = theme.kopimSpecialSurfaces;
+    final Color backgroundColor = theme.brightness == Brightness.dark
+        ? surfaces.navigationBarDark
+        : surfaces.navigationBarLight;
     final int currentIndex = ref.watch(
       mainNavigationControllerProvider.select((int value) => value),
     );
@@ -42,7 +48,7 @@ class MainNavigationRail extends ConsumerWidget {
             onSelected(context, ref);
           }
         },
-        backgroundColor: theme.colorScheme.surface,
+        backgroundColor: backgroundColor,
         labelType: extended
             ? NavigationRailLabelType.none
             : NavigationRailLabelType.selected,

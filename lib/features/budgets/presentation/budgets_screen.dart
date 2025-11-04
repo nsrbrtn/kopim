@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:kopim/core/config/theme_extensions.dart';
+import 'package:kopim/core/widgets/kopim_floating_action_button.dart';
 import 'package:kopim/features/app_shell/presentation/models/navigation_tab_content.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_progress.dart';
 import 'package:kopim/features/budgets/presentation/controllers/budgets_providers.dart';
@@ -39,7 +41,7 @@ NavigationTabContent buildBudgetsTabContent(
     appBarBuilder: (BuildContext context, WidgetRef ref) =>
         AppBar(title: Text(strings.budgetsTitle)),
     floatingActionButtonBuilder: (BuildContext context, WidgetRef ref) {
-      return FloatingActionButton(
+      return KopimFloatingActionButton(
         onPressed: () async {
           await Navigator.of(context).push(
             MaterialPageRoute<void>(
@@ -47,10 +49,12 @@ NavigationTabContent buildBudgetsTabContent(
             ),
           );
         },
-        child: const Icon(Icons.add),
+        icon: const Icon(Icons.add),
       );
     },
     bodyBuilder: (BuildContext context, WidgetRef ref) {
+      final KopimLayout layout = context.kopimLayout;
+      final KopimSpacingScale spacing = layout.spacing;
       final AsyncValue<List<BudgetProgress>> budgetsAsync = ref.watch(
         budgetsWithProgressProvider,
       );
@@ -77,11 +81,11 @@ NavigationTabContent buildBudgetsTabContent(
           );
           final List<Widget> children = <Widget>[
             chartSection,
-            const SizedBox(height: 16),
+            SizedBox(height: spacing.section),
           ];
           for (int index = 0; index < items.length; index++) {
             if (index > 0) {
-              children.add(const SizedBox(height: 12));
+              children.add(SizedBox(height: spacing.section));
             }
             final BudgetProgress progress = items[index];
             children.add(
@@ -99,7 +103,7 @@ NavigationTabContent buildBudgetsTabContent(
             );
           }
           return ListView(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(spacing.screen),
             children: children,
           );
         },
@@ -123,24 +127,27 @@ class _BudgetsEmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
+    final KopimLayout layout = context.kopimLayout;
+    final KopimSpacingScale spacing = layout.spacing;
+    final KopimIconSizes iconSizes = layout.iconSizes;
     return Center(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 32),
+        padding: EdgeInsets.symmetric(horizontal: spacing.screen),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
             Icon(
               Icons.pie_chart_outline,
-              size: 64,
+              size: iconSizes.xl,
               color: theme.colorScheme.primary,
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: spacing.section),
             Text(
               strings.budgetsEmptyTitle,
               style: theme.textTheme.titleMedium,
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: spacing.between),
             Text(
               strings.budgetsEmptyMessage,
               style: theme.textTheme.bodyMedium,
@@ -162,24 +169,27 @@ class _BudgetsErrorState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
+    final KopimLayout layout = context.kopimLayout;
+    final KopimSpacingScale spacing = layout.spacing;
+    final KopimIconSizes iconSizes = layout.iconSizes;
     return Center(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24),
+        padding: EdgeInsets.symmetric(horizontal: spacing.sectionLarge),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
             Icon(
               Icons.warning_amber_rounded,
-              size: 48,
+              size: iconSizes.lg,
               color: theme.colorScheme.error,
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: spacing.section),
             Text(
               strings.budgetsErrorTitle,
               style: theme.textTheme.titleMedium,
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: spacing.between),
             Text(
               message,
               style: theme.textTheme.bodySmall,

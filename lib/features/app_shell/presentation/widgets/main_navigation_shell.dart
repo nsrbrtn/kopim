@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:kopim/core/config/theme_extensions.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
 import '../controllers/main_navigation_controller.dart';
@@ -23,6 +24,8 @@ class MainNavigationShell extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final AppLocalizations strings = AppLocalizations.of(context)!;
+    final KopimLayout layoutTokens = Theme.of(context).kopimLayout;
+    final double dividerThickness = layoutTokens.divider.thickness;
     final List<NavigationTabConfig> tabs = ref.watch(
       mainNavigationTabsProvider,
     );
@@ -118,7 +121,10 @@ class MainNavigationShell extends ConsumerWidget {
                       tabs: tabs,
                       extended: layout.isExtendedRail,
                     ),
-                    const VerticalDivider(width: 1),
+                    VerticalDivider(
+                      width: dividerThickness,
+                      thickness: dividerThickness,
+                    ),
                     Expanded(child: stackedContent),
                   ],
                 )
@@ -177,6 +183,9 @@ class _NavigationTabPane extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final double dividerThickness = Theme.of(
+      context,
+    ).kopimLayout.divider.thickness;
     if (!enableTwoPane || secondary == null) {
       return primary;
     }
@@ -192,7 +201,10 @@ class _NavigationTabPane extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
             Expanded(child: primary),
-            const VerticalDivider(width: 1),
+            VerticalDivider(
+              width: dividerThickness,
+              thickness: dividerThickness,
+            ),
             ConstrainedBox(
               constraints: BoxConstraints(
                 minWidth: secondaryWidth,
