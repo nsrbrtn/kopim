@@ -7,8 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:kopim/core/di/injectors.dart';
-
-import 'theme.dart';
+import 'package:kopim/core/theme/data/app_theme_factory.dart';
+import 'package:kopim/core/theme/data/dto/kopim_theme_tokens.dart';
 
 import 'package:kopim/core/services/analytics_service.dart';
 import 'package:kopim/core/services/logger_service.dart';
@@ -118,12 +118,25 @@ final Provider<Locale> appLocaleProvider = Provider<Locale>((Ref ref) {
 });
 
 // Другие providers: theme, auth и т.д.
+ThemeData _resolveAppTheme(Ref ref, Brightness brightness) {
+  final AppThemeFactory factory = ref.watch(appThemeFactoryProvider);
+  final AsyncValue<KopimThemeTokenBundle> tokensState = ref.watch(
+    appThemeTokensProvider,
+  );
+  final KopimThemeTokenBundle tokens = tokensState.maybeWhen(
+    data: (KopimThemeTokenBundle bundle) => bundle,
+    orElse: () => factory.fallbackTokens,
+  );
+
+  return factory.createTheme(brightness: brightness, tokens: tokens);
+}
+
 final Provider<ThemeData> appThemeProvider = Provider<ThemeData>((Ref ref) {
-  return buildAppTheme(brightness: Brightness.light);
+  return _resolveAppTheme(ref, Brightness.light);
 });
 
 final Provider<ThemeData> appDarkThemeProvider = Provider<ThemeData>((Ref ref) {
-  return buildAppTheme(brightness: Brightness.dark);
+  return _resolveAppTheme(ref, Brightness.dark);
 });
 
 /// Провайдер, подготавливающий конфигурацию OpenRouter из Remote Config и переменных окружения.
