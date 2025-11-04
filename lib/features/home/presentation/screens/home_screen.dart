@@ -33,6 +33,7 @@ import 'package:kopim/features/transactions/presentation/widgets/transaction_til
 import 'package:kopim/features/transactions/presentation/widgets/transaction_form_view.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 import 'package:kopim/core/utils/helpers.dart';
+import 'package:kopim/core/widgets/kopim_floating_action_button.dart';
 import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
 import 'package:kopim/features/profile/presentation/screens/profile_management_screen.dart';
 import 'package:kopim/features/transactions/presentation/screens/all_transactions_screen.dart';
@@ -538,7 +539,7 @@ class _AddTransactionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return FloatingActionButton(
+    return KopimFloatingActionButton(
       onPressed: () async {
         final TransactionFormResult? result = await Navigator.of(context)
             .push<TransactionFormResult>(
@@ -594,7 +595,7 @@ class _AddTransactionButton extends StatelessWidget {
           ),
         );
       },
-      child: const Icon(Icons.add),
+      icon: const Icon(Icons.add),
     );
   }
 }

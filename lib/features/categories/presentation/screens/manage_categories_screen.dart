@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/core/domain/icons/phosphor_icon_descriptor.dart';
 import 'package:kopim/core/utils/helpers.dart';
+import 'package:kopim/core/widgets/kopim_floating_action_button.dart';
 import 'package:kopim/core/widgets/phosphor_icon_picker.dart';
 import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
@@ -33,7 +34,7 @@ class ManageCategoriesScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(title: Text(strings.profileManageCategoriesTitle)),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: KopimFloatingActionButton(
         onPressed: () => _showCategoryEditor(
           context,
           ref,
@@ -41,7 +42,7 @@ class ManageCategoriesScreen extends ConsumerWidget {
           parents: rootCategories,
         ),
         tooltip: strings.manageCategoriesAddAction,
-        child: const Icon(Icons.add),
+        icon: const Icon(Icons.add),
       ),
       body: SafeArea(
         child: treeAsync.when(
