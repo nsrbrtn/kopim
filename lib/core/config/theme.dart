@@ -4,8 +4,11 @@ import 'theme_extensions.dart';
 import '../theme/data/dto/kopim_theme_tokens.dart';
 import '../theme/data/generated/kopim_theme_tokens.g.dart';
 
-ThemeData buildAppTheme({required Brightness brightness}) {
-  const KopimThemeTokenBundle tokens = kopimThemeTokens;
+ThemeData buildAppTheme({
+  required Brightness brightness,
+  KopimThemeTokenBundle? tokensOverride,
+}) {
+  final KopimThemeTokenBundle tokens = tokensOverride ?? kopimThemeTokens;
   final KopimSystemColorTokens systemColors = brightness == Brightness.dark
       ? tokens.darkColors
       : tokens.lightColors;
