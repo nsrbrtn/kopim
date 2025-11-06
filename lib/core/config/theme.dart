@@ -303,6 +303,6 @@ double _spacing(Map<String, double> values, String key, double fallback) {
 }
 
 int _scaledAlpha(Color color, double factor) {
-  final int computed = (color.a * 255.0 * factor).round();
+  final int computed = (color.alpha * factor).round();
   return computed.clamp(0, 255);
 }
