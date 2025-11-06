@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:kopim/core/config/theme_extensions.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/core/formatting/date_format_providers.dart';
+import 'package:kopim/core/widgets/kopim_floating_action_button.dart';
 import 'package:kopim/features/recurring_transactions/domain/entities/recurring_rule.dart';
 import 'package:kopim/features/recurring_transactions/presentation/controllers/recurring_transactions_providers.dart';
 import 'package:kopim/features/recurring_transactions/presentation/models/recurring_rule_form_result.dart';
@@ -21,6 +23,8 @@ class RecurringTransactionsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final AppLocalizations strings = AppLocalizations.of(context)!;
+    final KopimLayout layout = context.kopimLayout;
+    final KopimSpacingScale spacing = layout.spacing;
     final AsyncValue<List<RecurringRule>> rulesAsync = ref.watch(
       recurringRulesProvider,
     );
@@ -39,7 +43,7 @@ class RecurringTransactionsScreen extends ConsumerWidget {
           final List<Widget> children = <Widget>[];
           if (isAndroid) {
             children.add(const _ExactAlarmPermissionCard());
-            children.add(const SizedBox(height: 16));
+            children.add(SizedBox(height: spacing.section));
           }
           for (int index = 0; index < rules.length; index++) {
             final RecurringRule rule = rules[index];
@@ -62,7 +66,7 @@ class RecurringTransactionsScreen extends ConsumerWidget {
                   onDelete: () => _onDeleteRulePressed(context, ref, rule),
                 ),
               )
-              ..add(const SizedBox(height: 12));
+              ..add(SizedBox(height: spacing.between));
           }
           if (children.isNotEmpty) {
             children.removeLast();
@@ -72,7 +76,10 @@ class RecurringTransactionsScreen extends ConsumerWidget {
               await ref.read(recurringWindowServiceProvider).rebuildWindow();
             },
             child: ListView(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+              padding: EdgeInsets.symmetric(
+                horizontal: spacing.screen,
+                vertical: spacing.sectionLarge,
+              ),
               children: children,
             ),
           );
@@ -81,9 +88,9 @@ class RecurringTransactionsScreen extends ConsumerWidget {
         error: (Object error, StackTrace stackTrace) =>
             Center(child: Text(strings.genericErrorMessage)),
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: KopimFloatingActionButton(
         onPressed: () => _onAddRulePressed(context),
-        child: const Icon(Icons.add),
+        icon: const Icon(Icons.add),
       ),
     );
   }
@@ -229,6 +236,8 @@ class _RecurringRuleTile extends ConsumerWidget {
     final DateFormat dateFormat = ref.watch(
       dateFormatProvider((locale: locale, format: AppDateFormat.longMonthDay)),
     );
+    final KopimLayout layout = context.kopimLayout;
+    final KopimSpacingScale spacing = layout.spacing;
     final String subtitle = nextDue == null
         ? AppLocalizations.of(context)!.recurringTransactionsNoUpcoming
         : '${AppLocalizations.of(context)!.recurringTransactionsNextDue}: '
@@ -236,7 +245,7 @@ class _RecurringRuleTile extends ConsumerWidget {
     return Material(
       key: ValueKey<String>(rule.id),
       elevation: 1,
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(layout.radius.card),
       child: ListTile(
         title: Text(rule.title),
         subtitle: Text(subtitle),
@@ -245,7 +254,7 @@ class _RecurringRuleTile extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
             Switch(value: rule.isActive, onChanged: onToggle),
-            const SizedBox(width: 8),
+            SizedBox(width: spacing.between),
             PopupMenuButton<_RecurringRuleTileAction>(
               onSelected: (_RecurringRuleTileAction action) {
                 switch (action) {
@@ -287,13 +296,16 @@ class _ExactAlarmPermissionCard extends ConsumerWidget {
     final AsyncValue<bool> permissionAsync = ref.watch(
       exactAlarmPermissionControllerProvider,
     );
+    final KopimLayout layout = context.kopimLayout;
+    final KopimSpacingScale spacing = layout.spacing;
+    final KopimIconSizes iconSizes = layout.iconSizes;
 
     return permissionAsync.when(
       data: (bool granted) {
         if (granted) {
           return Card(
             child: ListTile(
-              leading: const Icon(Icons.alarm_on_outlined),
+              leading: Icon(Icons.alarm_on_outlined, size: iconSizes.md),
               title: Text(strings.recurringExactAlarmEnabledTitle),
               subtitle: Text(strings.recurringExactAlarmEnabledSubtitle),
             ),
@@ -301,14 +313,14 @@ class _ExactAlarmPermissionCard extends ConsumerWidget {
         }
         return Card(
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(spacing.section),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 Row(
                   children: <Widget>[
-                    const Icon(Icons.alarm_add_outlined),
-                    const SizedBox(width: 12),
+                    Icon(Icons.alarm_add_outlined, size: iconSizes.md),
+                    SizedBox(width: spacing.section),
                     Expanded(
                       child: Text(
                         strings.recurringExactAlarmPromptTitle,
@@ -317,9 +329,9 @@ class _ExactAlarmPermissionCard extends ConsumerWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: spacing.between),
                 Text(strings.recurringExactAlarmPromptSubtitle),
-                const SizedBox(height: 12),
+                SizedBox(height: spacing.section),
                 Align(
                   alignment: Alignment.centerLeft,
                   child: FilledButton(
@@ -344,14 +356,14 @@ class _ExactAlarmPermissionCard extends ConsumerWidget {
       ),
       error: (Object error, StackTrace _) => Card(
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.all(spacing.section),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               Row(
                 children: <Widget>[
-                  const Icon(Icons.error_outline),
-                  const SizedBox(width: 12),
+                  Icon(Icons.error_outline, size: iconSizes.md),
+                  SizedBox(width: spacing.section),
                   Expanded(
                     child: Text(
                       strings.recurringExactAlarmErrorTitle,
@@ -360,9 +372,9 @@ class _ExactAlarmPermissionCard extends ConsumerWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
+              SizedBox(height: spacing.between),
               Text(strings.recurringExactAlarmErrorSubtitle(error.toString())),
-              const SizedBox(height: 12),
+              SizedBox(height: spacing.section),
               Align(
                 alignment: Alignment.centerLeft,
                 child: OutlinedButton(
@@ -389,9 +401,10 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final KopimSpacingScale spacing = context.kopimLayout.spacing;
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: EdgeInsets.all(spacing.sectionLarge),
         child: Text(
           message,
           style: Theme.of(context).textTheme.bodyLarge,

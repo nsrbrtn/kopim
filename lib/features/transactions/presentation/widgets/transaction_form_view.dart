@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:kopim/core/config/theme_extensions.dart';
 import 'package:kopim/core/utils/helpers.dart';
 import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
@@ -20,9 +21,11 @@ InputDecoration _transactionTextFieldDecoration(
   String? hintText,
 }) {
   final ThemeData theme = Theme.of(context);
-  const OutlineInputBorder border = OutlineInputBorder(
+  final KopimLayout layout = context.kopimLayout;
+  final KopimSpacingScale spacing = layout.spacing;
+  final OutlineInputBorder border = OutlineInputBorder(
     borderSide: BorderSide.none,
-    borderRadius: BorderRadius.all(Radius.circular(12)),
+    borderRadius: BorderRadius.circular(layout.radius.card),
   );
 
   return InputDecoration(
@@ -30,7 +33,10 @@ InputDecoration _transactionTextFieldDecoration(
     hintText: hintText,
     filled: true,
     fillColor: theme.colorScheme.surfaceContainerHighest,
-    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+    contentPadding: EdgeInsets.symmetric(
+      horizontal: spacing.section,
+      vertical: spacing.section,
+    ),
     border: border,
     enabledBorder: border,
     focusedBorder: border,
@@ -155,6 +161,7 @@ class _TransactionForm extends ConsumerWidget {
     );
 
     final ThemeData theme = Theme.of(context);
+    final KopimSpacingScale spacing = context.kopimLayout.spacing;
 
     final List<_FormSectionBuilder> sections = <_FormSectionBuilder>[
       () => RepaintBoundary(
@@ -165,11 +172,11 @@ class _TransactionForm extends ConsumerWidget {
           strings: strings,
         ),
       ),
-      () => const SizedBox(height: 16),
+      () => SizedBox(height: spacing.section),
       () => RepaintBoundary(
         child: _AmountField(formArgs: formArgs, strings: strings),
       ),
-      () => const SizedBox(height: 16),
+      () => SizedBox(height: spacing.section),
       () => RepaintBoundary(
         child: _TransactionTypeSelector(
           key: const ValueKey<String>('transaction_type_selector'),
@@ -177,7 +184,7 @@ class _TransactionForm extends ConsumerWidget {
           strings: strings,
         ),
       ),
-      () => const SizedBox(height: 16),
+      () => SizedBox(height: spacing.section),
       () => RepaintBoundary(
         child: _CategoryDropdownField(
           key: const ValueKey<String>('transaction_category_field'),
@@ -186,7 +193,7 @@ class _TransactionForm extends ConsumerWidget {
           strings: strings,
         ),
       ),
-      if (categoriesAsync.isLoading) () => const SizedBox(height: 8),
+      if (categoriesAsync.isLoading) () => SizedBox(height: spacing.between),
       if (categoriesAsync.isLoading)
         () => RepaintBoundary(
           child: _CategoriesStatusMessage(
@@ -194,7 +201,7 @@ class _TransactionForm extends ConsumerWidget {
             message: strings.addTransactionCategoriesLoading,
           ),
         ),
-      if (categoriesAsync.hasError) () => const SizedBox(height: 8),
+      if (categoriesAsync.hasError) () => SizedBox(height: spacing.between),
       if (categoriesAsync.hasError)
         () => RepaintBoundary(
           child: _CategoriesStatusMessage(
@@ -207,13 +214,13 @@ class _TransactionForm extends ConsumerWidget {
             ),
           ),
         ),
-      () => const SizedBox(height: 16),
+      () => SizedBox(height: spacing.section),
       () => RepaintBoundary(child: _DatePickerField(formArgs: formArgs)),
-      () => const SizedBox(height: 16),
+      () => SizedBox(height: spacing.section),
       () => RepaintBoundary(child: _TimePickerField(formArgs: formArgs)),
-      () => const SizedBox(height: 16),
+      () => SizedBox(height: spacing.section),
       () => RepaintBoundary(child: _NoteField(formArgs: formArgs)),
-      () => const SizedBox(height: 24),
+      () => SizedBox(height: spacing.sectionLarge),
       () => RepaintBoundary(
         child: _SubmitButton(
           key: const ValueKey<String>('transaction_submit_button'),
@@ -228,7 +235,7 @@ class _TransactionForm extends ConsumerWidget {
     return Form(
       key: formKey,
       child: ListView.builder(
-        padding: const EdgeInsets.all(24),
+        padding: EdgeInsets.all(spacing.screen),
         keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
         cacheExtent: MediaQuery.sizeOf(context).height,
         itemCount: sections.length,

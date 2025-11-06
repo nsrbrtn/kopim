@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:kopim/core/widgets/kopim_floating_action_button.dart';
 import 'package:kopim/features/app_shell/presentation/models/navigation_tab_content.dart';
 import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
 import 'package:kopim/features/savings/domain/value_objects/goal_progress.dart';
@@ -43,11 +44,11 @@ NavigationTabContent buildSavingsTabContent(
     appBarBuilder: (BuildContext context, WidgetRef ref) =>
         AppBar(title: Text(strings.savingsTitle)),
     floatingActionButtonBuilder: (BuildContext context, WidgetRef ref) {
-      return FloatingActionButton(
+      return KopimFloatingActionButton(
         onPressed: () {
           Navigator.of(context).push(AddEditGoalScreen.route());
         },
-        child: const Icon(Icons.add),
+        icon: const Icon(Icons.add),
       );
     },
     bodyBuilder: (BuildContext context, WidgetRef ref) => const _SavingsBody(),

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import 'package:kopim/core/config/theme_extensions.dart';
+
 import 'package:kopim/features/budgets/domain/entities/budget_progress.dart';
 import 'package:kopim/features/budgets/presentation/widgets/budget_progress_indicator.dart';
 import 'package:kopim/l10n/app_localizations.dart';
@@ -14,6 +16,8 @@ class BudgetCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
+    final KopimLayout layout = context.kopimLayout;
+    final KopimSpacingScale spacing = layout.spacing;
     final AppLocalizations strings = AppLocalizations.of(context)!;
     final NumberFormat currencyFormat = NumberFormat.simpleCurrency(
       locale: strings.localeName,
@@ -28,19 +32,19 @@ class BudgetCard extends StatelessWidget {
 
     return Material(
       color: theme.colorScheme.surface,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(layout.radius.card),
       child: InkWell(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(layout.radius.card),
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.all(spacing.section),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               Text(progress.budget.title, style: theme.textTheme.titleMedium),
-              const SizedBox(height: 12),
+              SizedBox(height: spacing.section),
               BudgetProgressIndicator(value: ratio, exceeded: exceeded),
-              const SizedBox(height: 12),
+              SizedBox(height: spacing.section),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: <Widget>[
@@ -90,6 +94,7 @@ class _BudgetMetric extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
+    final KopimSpacingScale spacing = context.kopimLayout.spacing;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
@@ -99,7 +104,7 @@ class _BudgetMetric extends StatelessWidget {
             color: theme.colorScheme.onSurfaceVariant,
           ),
         ),
-        const SizedBox(height: 4),
+        SizedBox(height: spacing.between / 2),
         Text(value, style: valueStyle ?? theme.textTheme.bodyMedium),
       ],
     );

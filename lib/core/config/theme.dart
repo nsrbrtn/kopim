@@ -4,8 +4,11 @@ import 'theme_extensions.dart';
 import '../theme/data/dto/kopim_theme_tokens.dart';
 import '../theme/data/generated/kopim_theme_tokens.g.dart';
 
-ThemeData buildAppTheme({required Brightness brightness}) {
-  const KopimThemeTokenBundle tokens = kopimThemeTokens;
+ThemeData buildAppTheme({
+  required Brightness brightness,
+  KopimThemeTokenBundle? tokensOverride,
+}) {
+  final KopimThemeTokenBundle tokens = tokensOverride ?? kopimThemeTokens;
   final KopimSystemColorTokens systemColors = brightness == Brightness.dark
       ? tokens.darkColors
       : tokens.lightColors;
@@ -106,6 +109,25 @@ ThemeData buildAppTheme({required Brightness brightness}) {
   final Map<String, double> radius = tokens.shape.radius;
   final Map<String, double> borderWidth = tokens.shape.borderWidth;
   final Map<String, double> touchSizes = tokens.sizes.touch;
+  final Map<String, double> iconSizes = tokens.sizes.icon;
+
+  final KopimLayout layoutExtension = KopimLayout(
+    divider: KopimDividerTokens(thickness: _spacing(borderWidth, 'thin', 1)),
+    spacing: KopimSpacingScale(
+      screen: _spacing(spacing, '16', 16),
+      between: _spacing(spacing, '8', 8),
+      section: _spacing(spacing, '16', 16),
+      sectionLarge: _spacing(spacing, '24', 24),
+    ),
+    radius: KopimRadiusScale(card: _spacing(radius, 'xl', 24)),
+    iconSizes: KopimIconSizes(
+      xs: _spacing(iconSizes, 'xs', 16),
+      sm: _spacing(iconSizes, 'sm', 20),
+      md: _spacing(iconSizes, 'md', 24),
+      lg: _spacing(iconSizes, 'lg', 32),
+      xl: _spacing(iconSizes, 'xl', 48),
+    ),
+  );
 
   final Color navigationBarBackground = brightness == Brightness.dark
       ? specialSurfaces.navigationBarDark
@@ -261,7 +283,11 @@ ThemeData buildAppTheme({required Brightness brightness}) {
       ),
     ),
     iconTheme: IconThemeData(color: colorScheme.onSurfaceVariant),
-    extensions: <ThemeExtension<dynamic>>[specialSurfaces, motionExtension],
+    extensions: <ThemeExtension<dynamic>>[
+      specialSurfaces,
+      motionExtension,
+      layoutExtension,
+    ],
   );
 }
 
