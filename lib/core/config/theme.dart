@@ -216,11 +216,15 @@ ThemeData buildAppTheme({
     ),
     floatingActionButtonTheme: FloatingActionButtonThemeData(
       backgroundColor: colorScheme.primary,
+      foregroundColor: colorScheme.onPrimary,
       elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(_spacing(radius, 'full', 9999)),
+        borderRadius: BorderRadius.circular(_spacing(radius, 'xl', 24)),
       ),
-      foregroundColor: colorScheme.onPrimary,
+      sizeConstraints: const BoxConstraints.tightFor(
+        width: 72,
+        height: 72,
+      ),
     ),
     filledButtonTheme: FilledButtonThemeData(
       style: ButtonStyle(

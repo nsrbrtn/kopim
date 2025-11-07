@@ -1,9 +1,11 @@
+import 'dart:math' as math;
+import 'dart:ui' as ui show TextDirection;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
-import 'package:kopim/features/accounts/domain/utils/account_type_utils.dart';
 import 'package:kopim/features/accounts/presentation/account_details_screen.dart';
 import 'package:kopim/features/accounts/presentation/accounts_add_screen.dart';
 import 'package:kopim/features/app_shell/presentation/models/navigation_tab_content.dart';
@@ -123,7 +125,7 @@ class _HomeBody extends StatelessWidget {
       data: (AuthUser? user) {
         return LayoutBuilder(
           builder: (BuildContext context, BoxConstraints _) {
-            const double horizontalPadding = 8;
+            const double horizontalPadding = 16;
             final HomeDashboardPreferences? dashboardPreferences =
                 dashboardPreferencesAsync.asData?.value;
             final ThemeData theme = Theme.of(context);
@@ -158,17 +160,22 @@ class _HomeBody extends StatelessWidget {
               nextTopPadding = 16;
             }
 
-            const EdgeInsets accountsPadding = EdgeInsets.fromLTRB(8, 16, 8, 0);
+            const EdgeInsets accountsPadding = EdgeInsets.fromLTRB(
+              16,
+              16,
+              16,
+              0,
+            );
             const EdgeInsets transactionsHeaderPadding = EdgeInsets.fromLTRB(
-              8,
+              16,
               24,
-              8,
+              16,
               8,
             );
             const EdgeInsets transactionsContentPadding = EdgeInsets.fromLTRB(
-              8,
+              16,
               0,
-              8,
+              16,
               12,
             );
 
@@ -474,7 +481,7 @@ class _HomeSecondaryPanel extends StatelessWidget {
 
     return SafeArea(
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 24, 16, 24),
+        padding: const EdgeInsets.all(16),
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -668,19 +675,20 @@ class _AccountsListState extends State<_AccountsList> {
     if (widget.isWideLayout) {
       return Column(
         children: <Widget>[
-          for (final AccountEntity account in widget.accounts)
+          for (int i = 0; i < widget.accounts.length; i++)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 6),
               child: _AccountCard(
-                account: account,
+                account: widget.accounts[i],
                 strings: widget.strings,
                 currencyFormat: NumberFormat.currency(
                   locale: localeName,
-                  symbol: account.currency.toUpperCase(),
+                  symbol: widget.accounts[i].currency.toUpperCase(),
                 ),
                 summary:
-                    widget.monthlySummaries[account.id] ??
+                    widget.monthlySummaries[widget.accounts[i].id] ??
                     const HomeAccountMonthlySummary(income: 0, expense: 0),
+                isHighlighted: i == 0,
               ),
             ),
         ],
@@ -701,10 +709,14 @@ class _AccountsListState extends State<_AccountsList> {
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
         final bool isCarouselWide = constraints.maxWidth >= 720;
+        final double baseHeight = _AccountCardLayout.estimateHeight(context);
+        final double cardHeight = math.max(
+          baseHeight,
+          isCarouselWide ? 168 : 176,
+        );
         final double targetFraction = widget.accounts.length == 1
             ? 0.95
             : (isCarouselWide ? 0.45 : 0.85);
-        final double cardHeight = isCarouselWide ? 160 : 132;
         if ((_viewportFraction - targetFraction).abs() > 0.001) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (!mounted) return;
@@ -719,6 +731,7 @@ class _AccountsListState extends State<_AccountsList> {
               child: PageView.builder(
                 controller: _pageController,
                 physics: const BouncingScrollPhysics(),
+                padEnds: false,
                 itemCount: widget.accounts.length,
                 onPageChanged: (int index) {
                   setState(() {
@@ -735,13 +748,15 @@ class _AccountsListState extends State<_AccountsList> {
                       widget.monthlySummaries[account.id] ??
                       const HomeAccountMonthlySummary(income: 0, expense: 0);
 
+                  final bool isLast = index == widget.accounts.length - 1;
                   return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    padding: EdgeInsets.only(right: isLast ? 0 : 8),
                     child: _AccountCard(
                       account: account,
                       strings: widget.strings,
                       currencyFormat: currencyFormat,
                       summary: summary,
+                      isHighlighted: index == 0,
                     ),
                   );
                 },
@@ -786,93 +801,106 @@ class _AccountCard extends StatelessWidget {
     required this.strings,
     required this.currencyFormat,
     required this.summary,
+    required this.isHighlighted,
   });
 
   final AccountEntity account;
   final AppLocalizations strings;
   final NumberFormat currencyFormat;
   final HomeAccountMonthlySummary summary;
+  final bool isHighlighted;
 
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
-    return Card(
-      elevation: 0,
-      clipBehavior: Clip.antiAlias,
-      color: theme.colorScheme.surfaceContainerHigh,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      surfaceTintColor: Colors.transparent,
+    final _AccountCardPalette palette = _AccountCardPalette.fromTheme(
+      theme.colorScheme,
+      isHighlighted: isHighlighted,
+    );
+    final BorderRadius borderRadius = BorderRadius.circular(28);
+    final TextStyle labelStyle = (theme.textTheme.labelSmall ??
+            const TextStyle(fontSize: 11, height: 1.45))
+        .copyWith(
+      color: palette.support,
+      letterSpacing: 0.5,
+      fontWeight: FontWeight.w500,
+    );
+    final TextStyle balanceStyle = (theme.textTheme.displaySmall ??
+            theme.textTheme.headlineMedium ??
+            const TextStyle(fontSize: 36, height: 44 / 36))
+        .copyWith(
+      fontWeight: FontWeight.w500,
+      color: palette.emphasis,
+      letterSpacing: 0.1,
+    );
+    final TextStyle summaryTextStyle = (theme.textTheme.titleSmall ??
+            theme.textTheme.titleMedium ??
+            const TextStyle(fontSize: 14))
+        .copyWith(
+      color: palette.emphasis,
+      fontWeight: FontWeight.w600,
+      letterSpacing: 0.1,
+    );
+    final TextStyle summaryHeaderStyle = labelStyle.copyWith(
+      color: palette.summaryLabel,
+    );
+
+    return Material(
+      color: Colors.transparent,
       child: InkWell(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: borderRadius,
         onTap: () {
           context.push(
             AccountDetailsScreenArgs(accountId: account.id).location,
           );
         },
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Text(account.name, style: theme.textTheme.titleMedium),
-                        const SizedBox(height: 4),
-                        Text(
-                          _resolveAccountTypeLabel(strings, account.type),
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurface.withValues(
-                              alpha: 0.7,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Flexible(
-                    child: Align(
-                      alignment: Alignment.topRight,
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        alignment: Alignment.topRight,
-                        child: Text(
-                          currencyFormat.format(account.balance),
-                          style: theme.textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: <Widget>[
-                  Expanded(
-                    child: _AccountMonthlyValue(
+        child: Ink(
+          decoration: BoxDecoration(
+            color: palette.background,
+            borderRadius: borderRadius,
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(
+                  account.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: labelStyle,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  currencyFormat.format(account.balance),
+                  style: balanceStyle,
+                  softWrap: true,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  strings.analyticsCurrentMonthTitle,
+                  style: summaryHeaderStyle,
+                ),
+                const SizedBox(height: 8),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    _AccountMonthlyValue(
                       label: strings.homeAccountMonthlyIncomeLabel,
                       value: currencyFormat.format(summary.income),
-                      valueColor: theme.colorScheme.primary,
+                      textStyle: summaryTextStyle,
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _AccountMonthlyValue(
+                    const SizedBox(height: 4),
+                    _AccountMonthlyValue(
                       label: strings.homeAccountMonthlyExpenseLabel,
                       value: currencyFormat.format(summary.expense),
-                      valueColor: theme.colorScheme.error,
+                      textStyle: summaryTextStyle,
                     ),
-                  ),
-                ],
-              ),
-            ],
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -880,60 +908,101 @@ class _AccountCard extends StatelessWidget {
   }
 }
 
-String _resolveAccountTypeLabel(AppLocalizations strings, String type) {
-  final String normalized = type.trim();
-  if (normalized.isEmpty) {
-    return strings.accountTypeOther;
-  }
-  final String stripped = stripCustomAccountPrefix(normalized);
-  if (stripped.isEmpty) {
-    return strings.accountTypeOther;
-  }
-  final String lower = stripped.toLowerCase();
-  switch (lower) {
-    case 'cash':
-      return strings.accountTypeCash;
-    case 'card':
-      return strings.accountTypeCard;
-    case 'bank':
-      return strings.accountTypeBank;
-    case 'other':
-      return strings.accountTypeOther;
-    default:
-      return stripped;
-  }
-}
-
 class _AccountMonthlyValue extends StatelessWidget {
   const _AccountMonthlyValue({
     required this.label,
     required this.value,
-    required this.valueColor,
+    required this.textStyle,
   });
 
   final String label;
   final String value;
-  final Color valueColor;
+  final TextStyle textStyle;
 
   @override
   Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        Text(
-          label,
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: theme.colorScheme.onSurface.withValues(alpha: 0.68),
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          value,
-          style: theme.textTheme.titleMedium?.copyWith(color: valueColor),
-        ),
-      ],
+    return Text(
+      '$label: $value',
+      style: textStyle,
+      softWrap: true,
     );
+  }
+}
+
+class _AccountCardPalette {
+  const _AccountCardPalette({
+    required this.background,
+    required this.emphasis,
+    required this.support,
+    required this.summaryLabel,
+  });
+
+  factory _AccountCardPalette.fromTheme(
+    ColorScheme colorScheme, {
+    required bool isHighlighted,
+  }) {
+    if (isHighlighted) {
+      return _AccountCardPalette(
+        background: colorScheme.primary,
+        emphasis: colorScheme.onPrimaryFixed,
+        support: colorScheme.inversePrimary,
+        summaryLabel: colorScheme.onPrimaryFixedVariant,
+      );
+    }
+    return _AccountCardPalette(
+      background: colorScheme.tertiary,
+      emphasis: colorScheme.onTertiaryFixed,
+      support: colorScheme.inversePrimary,
+      summaryLabel: colorScheme.onTertiaryFixedVariant,
+    );
+  }
+
+  final Color background;
+  final Color emphasis;
+  final Color support;
+  final Color summaryLabel;
+}
+
+class _AccountCardLayout {
+  static double estimateHeight(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final double label = _textHeight(
+      theme.textTheme.labelSmall ??
+          const TextStyle(fontSize: 11, height: 1.45),
+    );
+    final double balance = _textHeight(
+      theme.textTheme.displaySmall ??
+          theme.textTheme.headlineMedium ??
+          const TextStyle(fontSize: 36, height: 44 / 36),
+    );
+    final double summaryTitle = _textHeight(
+      theme.textTheme.labelSmall ??
+          const TextStyle(fontSize: 11, height: 1.45),
+    );
+    final double summaryValue = _textHeight(
+      theme.textTheme.titleSmall ??
+          theme.textTheme.bodyLarge ??
+          const TextStyle(fontSize: 14),
+    );
+
+    const double padding = 16 * 2;
+    const double gaps = 8 + 16 + 8 + 4;
+
+    return padding +
+        label +
+        balance +
+        summaryTitle +
+        (summaryValue * 2) +
+        gaps;
+  }
+
+  static double _textHeight(TextStyle style) {
+    final TextPainter painter = TextPainter(
+      text: TextSpan(text: 'Hg', style: style),
+      maxLines: 1,
+      textDirection: ui.TextDirection.ltr,
+    )..layout();
+    return painter.height;
   }
 }
 

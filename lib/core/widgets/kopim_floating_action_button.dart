@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import 'package:kopim/core/config/theme_extensions.dart';
 
 class KopimFloatingActionButton extends StatelessWidget {
@@ -34,15 +33,19 @@ class KopimFloatingActionButton extends StatelessWidget {
   final Clip clipBehavior;
 
   bool get _isExtended => label != null;
+  static const double _fabSize = 72;
 
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
-    final KopimSpecialSurfaces surfaces = theme.kopimSpecialSurfaces;
+    final ColorScheme colorScheme = theme.colorScheme;
     final KopimLayout layout = theme.kopimLayout;
-    final BorderRadius? extendedRadius = _isExtended
-        ? BorderRadius.circular(layout.radius.card)
-        : null;
+    final BorderRadius borderRadius =
+        BorderRadius.circular(layout.radius.card);
+    final double iconSize = layout.iconSizes.md * 3;
+    final ShapeBorder shape = RoundedRectangleBorder(
+      borderRadius: borderRadius,
+    );
 
     final Widget fab = _isExtended
         ? FloatingActionButton.extended(
@@ -53,8 +56,9 @@ class KopimFloatingActionButton extends StatelessWidget {
             materialTapTargetSize: materialTapTargetSize,
             autofocus: autofocus,
             backgroundColor: Colors.transparent,
+            foregroundColor: colorScheme.onPrimary,
             elevation: 0,
-            shape: RoundedRectangleBorder(borderRadius: extendedRadius!),
+            shape: shape,
             icon: icon,
             label: label!,
             clipBehavior: clipBehavior,
@@ -70,19 +74,29 @@ class KopimFloatingActionButton extends StatelessWidget {
             clipBehavior: clipBehavior,
             elevation: 0,
             backgroundColor: Colors.transparent,
+            foregroundColor: colorScheme.onPrimary,
+            shape: shape,
             child: child ?? icon,
           );
 
-    final BorderRadiusGeometry clipRadius =
-        extendedRadius ?? BorderRadius.circular(layout.radius.card);
+    final Widget sizedFab = SizedBox(
+      height: _fabSize,
+      width: _isExtended ? null : _fabSize,
+      child: fab,
+    );
 
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        gradient: surfaces.fabGradient,
-        shape: _isExtended ? BoxShape.rectangle : BoxShape.circle,
-        borderRadius: extendedRadius,
+    return IconTheme.merge(
+      data: IconThemeData(size: iconSize),
+      child: ClipRRect(
+        borderRadius: borderRadius,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: colorScheme.primary,
+            borderRadius: borderRadius,
+          ),
+          child: sizedFab,
+        ),
       ),
-      child: ClipRRect(borderRadius: clipRadius, child: fab),
     );
   }
 }
