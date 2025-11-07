@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:collection';
 
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:riverpod/riverpod.dart';
 import 'package:riverpod/misc.dart' show Override;
@@ -96,7 +97,9 @@ void main() {
         });
 
     currentTokens = kopimThemeTokens.copyWith(
-      specialSurfaces: kopimThemeTokens.specialSurfaces,
+      lightColors: kopimThemeTokens.lightColors.copyWith(
+        primary: const Color(0xFF000001), // Change any color to trigger update
+      ),
     );
     container.invalidate(appThemeTokensProvider);
     await secondLoad;

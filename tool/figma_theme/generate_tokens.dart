@@ -33,7 +33,7 @@ class _TokenBundle {
     required this.sizes,
     required this.motionDurations,
     required this.motionCurves,
-    required this.specialSurfaces,
+
   });
 
   factory _TokenBundle.fromRaw(Map<String, dynamic> raw) {
@@ -75,8 +75,8 @@ class _TokenBundle {
         ((kopim['motion'] as Map<String, dynamic>)['easing']
                 as Map<String, dynamic>)
             .cast<String, dynamic>(),
-      ),
-      specialSurfaces: _mapSpecialSurfaces(kopim),
+
+      )
     );
   }
 
@@ -89,7 +89,7 @@ class _TokenBundle {
   final Map<String, Map<String, double>> sizes;
   final Map<String, int> motionDurations;
   final Map<String, List<double>> motionCurves;
-  final Map<String, String> specialSurfaces;
+
 
   String render() {
     final StringBuffer buffer = StringBuffer()
@@ -121,7 +121,6 @@ class _TokenBundle {
       ..writeln('  ),')
       ..writeln('  sizes: ${_renderSizes()},')
       ..writeln('  motion: ${_renderMotion()},')
-      ..writeln('  specialSurfaces: ${_renderSpecialSurfaces()},')
       ..write(')');
     return buffer.toString();
   }
@@ -214,14 +213,7 @@ class _TokenBundle {
     return buffer.toString();
   }
 
-  String _renderSpecialSurfaces() {
-    return 'KopimSpecialSurfacesTokens(\n'
-        '    fabGradientStart: ${_formatColor(specialSurfaces['fabGradientStart']!)},\n'
-        '    fabGradientEnd: ${_formatColor(specialSurfaces['fabGradientEnd']!)},\n'
-        '    navbarLight: ${_formatColor(specialSurfaces['navbarLight']!)},\n'
-        '    navbarDark: ${_formatColor(specialSurfaces['navbarDark']!)},\n'
-        '  )';
-  }
+
 }
 
 Map<String, String> _mapSystemColors(Map<String, dynamic> source) {
@@ -368,28 +360,7 @@ Map<String, List<double>> _mapMotionCurves(Map<String, dynamic> easing) {
   };
 }
 
-Map<String, String> _mapSpecialSurfaces(Map<String, dynamic> kopim) {
-  final String fabGradientRaw =
-      (kopim['Fab'] as Map<String, dynamic>)['value'] as String;
-  final List<String> fabColors = RegExp(r'#([0-9a-fA-F]{6})([0-9a-fA-F]{2})?')
-      .allMatches(fabGradientRaw)
-      .map((RegExpMatch match) => match.group(0)!.toUpperCase())
-      .toList();
-  if (fabColors.length < 2) {
-    throw StateError('Невозможно разобрать градиент FAB: $fabGradientRaw');
-  }
 
-  return <String, String>{
-    'fabGradientStart': fabColors.first,
-    'fabGradientEnd': fabColors.last,
-    'navbarLight':
-        ((kopim['navbar light'] as Map<String, dynamic>)['value'] as String)
-            .toUpperCase(),
-    'navbarDark':
-        ((kopim['navbar dark'] as Map<String, dynamic>)['value'] as String)
-            .toUpperCase(),
-  };
-}
 
 Map<String, dynamic> _readTokenGroup(Map<String, dynamic> kopim, String key) {
   final List<String> parts = key.split('.');

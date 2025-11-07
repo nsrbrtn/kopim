@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$KopimThemeTokenBundle {
 
- KopimSystemColorTokens get lightColors; KopimSystemColorTokens get darkColors; KopimTypographyTokens get typography; KopimShapeTokens get shape; KopimSpacingTokens get spacing; KopimSizeTokens get sizes; KopimMotionTokens get motion; KopimSpecialSurfacesTokens get specialSurfaces;
+ KopimSystemColorTokens get lightColors; KopimSystemColorTokens get darkColors; KopimTypographyTokens get typography; KopimShapeTokens get shape; KopimSpacingTokens get spacing; KopimSizeTokens get sizes; KopimMotionTokens get motion;
 /// Create a copy of KopimThemeTokenBundle
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $KopimThemeTokenBundleCopyWith<KopimThemeTokenBundle> get copyWith => _$KopimThe
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is KopimThemeTokenBundle&&(identical(other.lightColors, lightColors) || other.lightColors == lightColors)&&(identical(other.darkColors, darkColors) || other.darkColors == darkColors)&&(identical(other.typography, typography) || other.typography == typography)&&(identical(other.shape, shape) || other.shape == shape)&&(identical(other.spacing, spacing) || other.spacing == spacing)&&(identical(other.sizes, sizes) || other.sizes == sizes)&&(identical(other.motion, motion) || other.motion == motion)&&(identical(other.specialSurfaces, specialSurfaces) || other.specialSurfaces == specialSurfaces));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is KopimThemeTokenBundle&&(identical(other.lightColors, lightColors) || other.lightColors == lightColors)&&(identical(other.darkColors, darkColors) || other.darkColors == darkColors)&&(identical(other.typography, typography) || other.typography == typography)&&(identical(other.shape, shape) || other.shape == shape)&&(identical(other.spacing, spacing) || other.spacing == spacing)&&(identical(other.sizes, sizes) || other.sizes == sizes)&&(identical(other.motion, motion) || other.motion == motion));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,lightColors,darkColors,typography,shape,spacing,sizes,motion,specialSurfaces);
+int get hashCode => Object.hash(runtimeType,lightColors,darkColors,typography,shape,spacing,sizes,motion);
 
 @override
 String toString() {
-  return 'KopimThemeTokenBundle(lightColors: $lightColors, darkColors: $darkColors, typography: $typography, shape: $shape, spacing: $spacing, sizes: $sizes, motion: $motion, specialSurfaces: $specialSurfaces)';
+  return 'KopimThemeTokenBundle(lightColors: $lightColors, darkColors: $darkColors, typography: $typography, shape: $shape, spacing: $spacing, sizes: $sizes, motion: $motion)';
 }
 
 
@@ -48,11 +48,11 @@ abstract mixin class $KopimThemeTokenBundleCopyWith<$Res>  {
   factory $KopimThemeTokenBundleCopyWith(KopimThemeTokenBundle value, $Res Function(KopimThemeTokenBundle) _then) = _$KopimThemeTokenBundleCopyWithImpl;
 @useResult
 $Res call({
- KopimSystemColorTokens lightColors, KopimSystemColorTokens darkColors, KopimTypographyTokens typography, KopimShapeTokens shape, KopimSpacingTokens spacing, KopimSizeTokens sizes, KopimMotionTokens motion, KopimSpecialSurfacesTokens specialSurfaces
+ KopimSystemColorTokens lightColors, KopimSystemColorTokens darkColors, KopimTypographyTokens typography, KopimShapeTokens shape, KopimSpacingTokens spacing, KopimSizeTokens sizes, KopimMotionTokens motion
 });
 
 
-$KopimSystemColorTokensCopyWith<$Res> get lightColors;$KopimSystemColorTokensCopyWith<$Res> get darkColors;$KopimTypographyTokensCopyWith<$Res> get typography;$KopimShapeTokensCopyWith<$Res> get shape;$KopimSpacingTokensCopyWith<$Res> get spacing;$KopimSizeTokensCopyWith<$Res> get sizes;$KopimMotionTokensCopyWith<$Res> get motion;$KopimSpecialSurfacesTokensCopyWith<$Res> get specialSurfaces;
+$KopimSystemColorTokensCopyWith<$Res> get lightColors;$KopimSystemColorTokensCopyWith<$Res> get darkColors;$KopimTypographyTokensCopyWith<$Res> get typography;$KopimShapeTokensCopyWith<$Res> get shape;$KopimSpacingTokensCopyWith<$Res> get spacing;$KopimSizeTokensCopyWith<$Res> get sizes;$KopimMotionTokensCopyWith<$Res> get motion;
 
 }
 /// @nodoc
@@ -65,7 +65,7 @@ class _$KopimThemeTokenBundleCopyWithImpl<$Res>
 
 /// Create a copy of KopimThemeTokenBundle
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? lightColors = null,Object? darkColors = null,Object? typography = null,Object? shape = null,Object? spacing = null,Object? sizes = null,Object? motion = null,Object? specialSurfaces = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? lightColors = null,Object? darkColors = null,Object? typography = null,Object? shape = null,Object? spacing = null,Object? sizes = null,Object? motion = null,}) {
   return _then(_self.copyWith(
 lightColors: null == lightColors ? _self.lightColors : lightColors // ignore: cast_nullable_to_non_nullable
 as KopimSystemColorTokens,darkColors: null == darkColors ? _self.darkColors : darkColors // ignore: cast_nullable_to_non_nullable
@@ -74,8 +74,7 @@ as KopimTypographyTokens,shape: null == shape ? _self.shape : shape // ignore: c
 as KopimShapeTokens,spacing: null == spacing ? _self.spacing : spacing // ignore: cast_nullable_to_non_nullable
 as KopimSpacingTokens,sizes: null == sizes ? _self.sizes : sizes // ignore: cast_nullable_to_non_nullable
 as KopimSizeTokens,motion: null == motion ? _self.motion : motion // ignore: cast_nullable_to_non_nullable
-as KopimMotionTokens,specialSurfaces: null == specialSurfaces ? _self.specialSurfaces : specialSurfaces // ignore: cast_nullable_to_non_nullable
-as KopimSpecialSurfacesTokens,
+as KopimMotionTokens,
   ));
 }
 /// Create a copy of KopimThemeTokenBundle
@@ -140,15 +139,6 @@ $KopimMotionTokensCopyWith<$Res> get motion {
   
   return $KopimMotionTokensCopyWith<$Res>(_self.motion, (value) {
     return _then(_self.copyWith(motion: value));
-  });
-}/// Create a copy of KopimThemeTokenBundle
-/// with the given fields replaced by the non-null parameter values.
-@override
-@pragma('vm:prefer-inline')
-$KopimSpecialSurfacesTokensCopyWith<$Res> get specialSurfaces {
-  
-  return $KopimSpecialSurfacesTokensCopyWith<$Res>(_self.specialSurfaces, (value) {
-    return _then(_self.copyWith(specialSurfaces: value));
   });
 }
 }
@@ -232,10 +222,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( KopimSystemColorTokens lightColors,  KopimSystemColorTokens darkColors,  KopimTypographyTokens typography,  KopimShapeTokens shape,  KopimSpacingTokens spacing,  KopimSizeTokens sizes,  KopimMotionTokens motion,  KopimSpecialSurfacesTokens specialSurfaces)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( KopimSystemColorTokens lightColors,  KopimSystemColorTokens darkColors,  KopimTypographyTokens typography,  KopimShapeTokens shape,  KopimSpacingTokens spacing,  KopimSizeTokens sizes,  KopimMotionTokens motion)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _KopimThemeTokenBundle() when $default != null:
-return $default(_that.lightColors,_that.darkColors,_that.typography,_that.shape,_that.spacing,_that.sizes,_that.motion,_that.specialSurfaces);case _:
+return $default(_that.lightColors,_that.darkColors,_that.typography,_that.shape,_that.spacing,_that.sizes,_that.motion);case _:
   return orElse();
 
 }
@@ -253,10 +243,10 @@ return $default(_that.lightColors,_that.darkColors,_that.typography,_that.shape,
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( KopimSystemColorTokens lightColors,  KopimSystemColorTokens darkColors,  KopimTypographyTokens typography,  KopimShapeTokens shape,  KopimSpacingTokens spacing,  KopimSizeTokens sizes,  KopimMotionTokens motion,  KopimSpecialSurfacesTokens specialSurfaces)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( KopimSystemColorTokens lightColors,  KopimSystemColorTokens darkColors,  KopimTypographyTokens typography,  KopimShapeTokens shape,  KopimSpacingTokens spacing,  KopimSizeTokens sizes,  KopimMotionTokens motion)  $default,) {final _that = this;
 switch (_that) {
 case _KopimThemeTokenBundle():
-return $default(_that.lightColors,_that.darkColors,_that.typography,_that.shape,_that.spacing,_that.sizes,_that.motion,_that.specialSurfaces);case _:
+return $default(_that.lightColors,_that.darkColors,_that.typography,_that.shape,_that.spacing,_that.sizes,_that.motion);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -273,10 +263,10 @@ return $default(_that.lightColors,_that.darkColors,_that.typography,_that.shape,
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( KopimSystemColorTokens lightColors,  KopimSystemColorTokens darkColors,  KopimTypographyTokens typography,  KopimShapeTokens shape,  KopimSpacingTokens spacing,  KopimSizeTokens sizes,  KopimMotionTokens motion,  KopimSpecialSurfacesTokens specialSurfaces)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( KopimSystemColorTokens lightColors,  KopimSystemColorTokens darkColors,  KopimTypographyTokens typography,  KopimShapeTokens shape,  KopimSpacingTokens spacing,  KopimSizeTokens sizes,  KopimMotionTokens motion)?  $default,) {final _that = this;
 switch (_that) {
 case _KopimThemeTokenBundle() when $default != null:
-return $default(_that.lightColors,_that.darkColors,_that.typography,_that.shape,_that.spacing,_that.sizes,_that.motion,_that.specialSurfaces);case _:
+return $default(_that.lightColors,_that.darkColors,_that.typography,_that.shape,_that.spacing,_that.sizes,_that.motion);case _:
   return null;
 
 }
@@ -288,7 +278,7 @@ return $default(_that.lightColors,_that.darkColors,_that.typography,_that.shape,
 @JsonSerializable()
 
 class _KopimThemeTokenBundle implements KopimThemeTokenBundle {
-  const _KopimThemeTokenBundle({required this.lightColors, required this.darkColors, required this.typography, required this.shape, required this.spacing, required this.sizes, required this.motion, required this.specialSurfaces});
+  const _KopimThemeTokenBundle({required this.lightColors, required this.darkColors, required this.typography, required this.shape, required this.spacing, required this.sizes, required this.motion});
   factory _KopimThemeTokenBundle.fromJson(Map<String, dynamic> json) => _$KopimThemeTokenBundleFromJson(json);
 
 @override final  KopimSystemColorTokens lightColors;
@@ -298,7 +288,6 @@ class _KopimThemeTokenBundle implements KopimThemeTokenBundle {
 @override final  KopimSpacingTokens spacing;
 @override final  KopimSizeTokens sizes;
 @override final  KopimMotionTokens motion;
-@override final  KopimSpecialSurfacesTokens specialSurfaces;
 
 /// Create a copy of KopimThemeTokenBundle
 /// with the given fields replaced by the non-null parameter values.
@@ -313,16 +302,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _KopimThemeTokenBundle&&(identical(other.lightColors, lightColors) || other.lightColors == lightColors)&&(identical(other.darkColors, darkColors) || other.darkColors == darkColors)&&(identical(other.typography, typography) || other.typography == typography)&&(identical(other.shape, shape) || other.shape == shape)&&(identical(other.spacing, spacing) || other.spacing == spacing)&&(identical(other.sizes, sizes) || other.sizes == sizes)&&(identical(other.motion, motion) || other.motion == motion)&&(identical(other.specialSurfaces, specialSurfaces) || other.specialSurfaces == specialSurfaces));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _KopimThemeTokenBundle&&(identical(other.lightColors, lightColors) || other.lightColors == lightColors)&&(identical(other.darkColors, darkColors) || other.darkColors == darkColors)&&(identical(other.typography, typography) || other.typography == typography)&&(identical(other.shape, shape) || other.shape == shape)&&(identical(other.spacing, spacing) || other.spacing == spacing)&&(identical(other.sizes, sizes) || other.sizes == sizes)&&(identical(other.motion, motion) || other.motion == motion));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,lightColors,darkColors,typography,shape,spacing,sizes,motion,specialSurfaces);
+int get hashCode => Object.hash(runtimeType,lightColors,darkColors,typography,shape,spacing,sizes,motion);
 
 @override
 String toString() {
-  return 'KopimThemeTokenBundle(lightColors: $lightColors, darkColors: $darkColors, typography: $typography, shape: $shape, spacing: $spacing, sizes: $sizes, motion: $motion, specialSurfaces: $specialSurfaces)';
+  return 'KopimThemeTokenBundle(lightColors: $lightColors, darkColors: $darkColors, typography: $typography, shape: $shape, spacing: $spacing, sizes: $sizes, motion: $motion)';
 }
 
 
@@ -333,11 +322,11 @@ abstract mixin class _$KopimThemeTokenBundleCopyWith<$Res> implements $KopimThem
   factory _$KopimThemeTokenBundleCopyWith(_KopimThemeTokenBundle value, $Res Function(_KopimThemeTokenBundle) _then) = __$KopimThemeTokenBundleCopyWithImpl;
 @override @useResult
 $Res call({
- KopimSystemColorTokens lightColors, KopimSystemColorTokens darkColors, KopimTypographyTokens typography, KopimShapeTokens shape, KopimSpacingTokens spacing, KopimSizeTokens sizes, KopimMotionTokens motion, KopimSpecialSurfacesTokens specialSurfaces
+ KopimSystemColorTokens lightColors, KopimSystemColorTokens darkColors, KopimTypographyTokens typography, KopimShapeTokens shape, KopimSpacingTokens spacing, KopimSizeTokens sizes, KopimMotionTokens motion
 });
 
 
-@override $KopimSystemColorTokensCopyWith<$Res> get lightColors;@override $KopimSystemColorTokensCopyWith<$Res> get darkColors;@override $KopimTypographyTokensCopyWith<$Res> get typography;@override $KopimShapeTokensCopyWith<$Res> get shape;@override $KopimSpacingTokensCopyWith<$Res> get spacing;@override $KopimSizeTokensCopyWith<$Res> get sizes;@override $KopimMotionTokensCopyWith<$Res> get motion;@override $KopimSpecialSurfacesTokensCopyWith<$Res> get specialSurfaces;
+@override $KopimSystemColorTokensCopyWith<$Res> get lightColors;@override $KopimSystemColorTokensCopyWith<$Res> get darkColors;@override $KopimTypographyTokensCopyWith<$Res> get typography;@override $KopimShapeTokensCopyWith<$Res> get shape;@override $KopimSpacingTokensCopyWith<$Res> get spacing;@override $KopimSizeTokensCopyWith<$Res> get sizes;@override $KopimMotionTokensCopyWith<$Res> get motion;
 
 }
 /// @nodoc
@@ -350,7 +339,7 @@ class __$KopimThemeTokenBundleCopyWithImpl<$Res>
 
 /// Create a copy of KopimThemeTokenBundle
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? lightColors = null,Object? darkColors = null,Object? typography = null,Object? shape = null,Object? spacing = null,Object? sizes = null,Object? motion = null,Object? specialSurfaces = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? lightColors = null,Object? darkColors = null,Object? typography = null,Object? shape = null,Object? spacing = null,Object? sizes = null,Object? motion = null,}) {
   return _then(_KopimThemeTokenBundle(
 lightColors: null == lightColors ? _self.lightColors : lightColors // ignore: cast_nullable_to_non_nullable
 as KopimSystemColorTokens,darkColors: null == darkColors ? _self.darkColors : darkColors // ignore: cast_nullable_to_non_nullable
@@ -359,8 +348,7 @@ as KopimTypographyTokens,shape: null == shape ? _self.shape : shape // ignore: c
 as KopimShapeTokens,spacing: null == spacing ? _self.spacing : spacing // ignore: cast_nullable_to_non_nullable
 as KopimSpacingTokens,sizes: null == sizes ? _self.sizes : sizes // ignore: cast_nullable_to_non_nullable
 as KopimSizeTokens,motion: null == motion ? _self.motion : motion // ignore: cast_nullable_to_non_nullable
-as KopimMotionTokens,specialSurfaces: null == specialSurfaces ? _self.specialSurfaces : specialSurfaces // ignore: cast_nullable_to_non_nullable
-as KopimSpecialSurfacesTokens,
+as KopimMotionTokens,
   ));
 }
 
@@ -426,15 +414,6 @@ $KopimMotionTokensCopyWith<$Res> get motion {
   
   return $KopimMotionTokensCopyWith<$Res>(_self.motion, (value) {
     return _then(_self.copyWith(motion: value));
-  });
-}/// Create a copy of KopimThemeTokenBundle
-/// with the given fields replaced by the non-null parameter values.
-@override
-@pragma('vm:prefer-inline')
-$KopimSpecialSurfacesTokensCopyWith<$Res> get specialSurfaces {
-  
-  return $KopimSpecialSurfacesTokensCopyWith<$Res>(_self.specialSurfaces, (value) {
-    return _then(_self.copyWith(specialSurfaces: value));
   });
 }
 }
@@ -3379,278 +3358,6 @@ as Cubic,decelerate: null == decelerate ? _self.decelerate : decelerate // ignor
 as Cubic,accelerate: null == accelerate ? _self.accelerate : accelerate // ignore: cast_nullable_to_non_nullable
 as Cubic,emphasized: null == emphasized ? _self.emphasized : emphasized // ignore: cast_nullable_to_non_nullable
 as Cubic,
-  ));
-}
-
-
-}
-
-
-/// @nodoc
-mixin _$KopimSpecialSurfacesTokens {
-
-@ColorConverter() Color get fabGradientStart;@ColorConverter() Color get fabGradientEnd;@ColorConverter() Color get navbarLight;@ColorConverter() Color get navbarDark;
-/// Create a copy of KopimSpecialSurfacesTokens
-/// with the given fields replaced by the non-null parameter values.
-@JsonKey(includeFromJson: false, includeToJson: false)
-@pragma('vm:prefer-inline')
-$KopimSpecialSurfacesTokensCopyWith<KopimSpecialSurfacesTokens> get copyWith => _$KopimSpecialSurfacesTokensCopyWithImpl<KopimSpecialSurfacesTokens>(this as KopimSpecialSurfacesTokens, _$identity);
-
-  /// Serializes this KopimSpecialSurfacesTokens to a JSON map.
-  Map<String, dynamic> toJson();
-
-
-@override
-bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is KopimSpecialSurfacesTokens&&(identical(other.fabGradientStart, fabGradientStart) || other.fabGradientStart == fabGradientStart)&&(identical(other.fabGradientEnd, fabGradientEnd) || other.fabGradientEnd == fabGradientEnd)&&(identical(other.navbarLight, navbarLight) || other.navbarLight == navbarLight)&&(identical(other.navbarDark, navbarDark) || other.navbarDark == navbarDark));
-}
-
-@JsonKey(includeFromJson: false, includeToJson: false)
-@override
-int get hashCode => Object.hash(runtimeType,fabGradientStart,fabGradientEnd,navbarLight,navbarDark);
-
-@override
-String toString() {
-  return 'KopimSpecialSurfacesTokens(fabGradientStart: $fabGradientStart, fabGradientEnd: $fabGradientEnd, navbarLight: $navbarLight, navbarDark: $navbarDark)';
-}
-
-
-}
-
-/// @nodoc
-abstract mixin class $KopimSpecialSurfacesTokensCopyWith<$Res>  {
-  factory $KopimSpecialSurfacesTokensCopyWith(KopimSpecialSurfacesTokens value, $Res Function(KopimSpecialSurfacesTokens) _then) = _$KopimSpecialSurfacesTokensCopyWithImpl;
-@useResult
-$Res call({
-@ColorConverter() Color fabGradientStart,@ColorConverter() Color fabGradientEnd,@ColorConverter() Color navbarLight,@ColorConverter() Color navbarDark
-});
-
-
-
-
-}
-/// @nodoc
-class _$KopimSpecialSurfacesTokensCopyWithImpl<$Res>
-    implements $KopimSpecialSurfacesTokensCopyWith<$Res> {
-  _$KopimSpecialSurfacesTokensCopyWithImpl(this._self, this._then);
-
-  final KopimSpecialSurfacesTokens _self;
-  final $Res Function(KopimSpecialSurfacesTokens) _then;
-
-/// Create a copy of KopimSpecialSurfacesTokens
-/// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? fabGradientStart = null,Object? fabGradientEnd = null,Object? navbarLight = null,Object? navbarDark = null,}) {
-  return _then(_self.copyWith(
-fabGradientStart: null == fabGradientStart ? _self.fabGradientStart : fabGradientStart // ignore: cast_nullable_to_non_nullable
-as Color,fabGradientEnd: null == fabGradientEnd ? _self.fabGradientEnd : fabGradientEnd // ignore: cast_nullable_to_non_nullable
-as Color,navbarLight: null == navbarLight ? _self.navbarLight : navbarLight // ignore: cast_nullable_to_non_nullable
-as Color,navbarDark: null == navbarDark ? _self.navbarDark : navbarDark // ignore: cast_nullable_to_non_nullable
-as Color,
-  ));
-}
-
-}
-
-
-/// Adds pattern-matching-related methods to [KopimSpecialSurfacesTokens].
-extension KopimSpecialSurfacesTokensPatterns on KopimSpecialSurfacesTokens {
-/// A variant of `map` that fallback to returning `orElse`.
-///
-/// It is equivalent to doing:
-/// ```dart
-/// switch (sealedClass) {
-///   case final Subclass value:
-///     return ...;
-///   case _:
-///     return orElse();
-/// }
-/// ```
-
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _KopimSpecialSurfacesTokens value)?  $default,{required TResult orElse(),}){
-final _that = this;
-switch (_that) {
-case _KopimSpecialSurfacesTokens() when $default != null:
-return $default(_that);case _:
-  return orElse();
-
-}
-}
-/// A `switch`-like method, using callbacks.
-///
-/// Callbacks receives the raw object, upcasted.
-/// It is equivalent to doing:
-/// ```dart
-/// switch (sealedClass) {
-///   case final Subclass value:
-///     return ...;
-///   case final Subclass2 value:
-///     return ...;
-/// }
-/// ```
-
-@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _KopimSpecialSurfacesTokens value)  $default,){
-final _that = this;
-switch (_that) {
-case _KopimSpecialSurfacesTokens():
-return $default(_that);case _:
-  throw StateError('Unexpected subclass');
-
-}
-}
-/// A variant of `map` that fallback to returning `null`.
-///
-/// It is equivalent to doing:
-/// ```dart
-/// switch (sealedClass) {
-///   case final Subclass value:
-///     return ...;
-///   case _:
-///     return null;
-/// }
-/// ```
-
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _KopimSpecialSurfacesTokens value)?  $default,){
-final _that = this;
-switch (_that) {
-case _KopimSpecialSurfacesTokens() when $default != null:
-return $default(_that);case _:
-  return null;
-
-}
-}
-/// A variant of `when` that fallback to an `orElse` callback.
-///
-/// It is equivalent to doing:
-/// ```dart
-/// switch (sealedClass) {
-///   case Subclass(:final field):
-///     return ...;
-///   case _:
-///     return orElse();
-/// }
-/// ```
-
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@ColorConverter()  Color fabGradientStart, @ColorConverter()  Color fabGradientEnd, @ColorConverter()  Color navbarLight, @ColorConverter()  Color navbarDark)?  $default,{required TResult orElse(),}) {final _that = this;
-switch (_that) {
-case _KopimSpecialSurfacesTokens() when $default != null:
-return $default(_that.fabGradientStart,_that.fabGradientEnd,_that.navbarLight,_that.navbarDark);case _:
-  return orElse();
-
-}
-}
-/// A `switch`-like method, using callbacks.
-///
-/// As opposed to `map`, this offers destructuring.
-/// It is equivalent to doing:
-/// ```dart
-/// switch (sealedClass) {
-///   case Subclass(:final field):
-///     return ...;
-///   case Subclass2(:final field2):
-///     return ...;
-/// }
-/// ```
-
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@ColorConverter()  Color fabGradientStart, @ColorConverter()  Color fabGradientEnd, @ColorConverter()  Color navbarLight, @ColorConverter()  Color navbarDark)  $default,) {final _that = this;
-switch (_that) {
-case _KopimSpecialSurfacesTokens():
-return $default(_that.fabGradientStart,_that.fabGradientEnd,_that.navbarLight,_that.navbarDark);case _:
-  throw StateError('Unexpected subclass');
-
-}
-}
-/// A variant of `when` that fallback to returning `null`
-///
-/// It is equivalent to doing:
-/// ```dart
-/// switch (sealedClass) {
-///   case Subclass(:final field):
-///     return ...;
-///   case _:
-///     return null;
-/// }
-/// ```
-
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@ColorConverter()  Color fabGradientStart, @ColorConverter()  Color fabGradientEnd, @ColorConverter()  Color navbarLight, @ColorConverter()  Color navbarDark)?  $default,) {final _that = this;
-switch (_that) {
-case _KopimSpecialSurfacesTokens() when $default != null:
-return $default(_that.fabGradientStart,_that.fabGradientEnd,_that.navbarLight,_that.navbarDark);case _:
-  return null;
-
-}
-}
-
-}
-
-/// @nodoc
-@JsonSerializable()
-
-class _KopimSpecialSurfacesTokens implements KopimSpecialSurfacesTokens {
-  const _KopimSpecialSurfacesTokens({@ColorConverter() required this.fabGradientStart, @ColorConverter() required this.fabGradientEnd, @ColorConverter() required this.navbarLight, @ColorConverter() required this.navbarDark});
-  factory _KopimSpecialSurfacesTokens.fromJson(Map<String, dynamic> json) => _$KopimSpecialSurfacesTokensFromJson(json);
-
-@override@ColorConverter() final  Color fabGradientStart;
-@override@ColorConverter() final  Color fabGradientEnd;
-@override@ColorConverter() final  Color navbarLight;
-@override@ColorConverter() final  Color navbarDark;
-
-/// Create a copy of KopimSpecialSurfacesTokens
-/// with the given fields replaced by the non-null parameter values.
-@override @JsonKey(includeFromJson: false, includeToJson: false)
-@pragma('vm:prefer-inline')
-_$KopimSpecialSurfacesTokensCopyWith<_KopimSpecialSurfacesTokens> get copyWith => __$KopimSpecialSurfacesTokensCopyWithImpl<_KopimSpecialSurfacesTokens>(this, _$identity);
-
-@override
-Map<String, dynamic> toJson() {
-  return _$KopimSpecialSurfacesTokensToJson(this, );
-}
-
-@override
-bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _KopimSpecialSurfacesTokens&&(identical(other.fabGradientStart, fabGradientStart) || other.fabGradientStart == fabGradientStart)&&(identical(other.fabGradientEnd, fabGradientEnd) || other.fabGradientEnd == fabGradientEnd)&&(identical(other.navbarLight, navbarLight) || other.navbarLight == navbarLight)&&(identical(other.navbarDark, navbarDark) || other.navbarDark == navbarDark));
-}
-
-@JsonKey(includeFromJson: false, includeToJson: false)
-@override
-int get hashCode => Object.hash(runtimeType,fabGradientStart,fabGradientEnd,navbarLight,navbarDark);
-
-@override
-String toString() {
-  return 'KopimSpecialSurfacesTokens(fabGradientStart: $fabGradientStart, fabGradientEnd: $fabGradientEnd, navbarLight: $navbarLight, navbarDark: $navbarDark)';
-}
-
-
-}
-
-/// @nodoc
-abstract mixin class _$KopimSpecialSurfacesTokensCopyWith<$Res> implements $KopimSpecialSurfacesTokensCopyWith<$Res> {
-  factory _$KopimSpecialSurfacesTokensCopyWith(_KopimSpecialSurfacesTokens value, $Res Function(_KopimSpecialSurfacesTokens) _then) = __$KopimSpecialSurfacesTokensCopyWithImpl;
-@override @useResult
-$Res call({
-@ColorConverter() Color fabGradientStart,@ColorConverter() Color fabGradientEnd,@ColorConverter() Color navbarLight,@ColorConverter() Color navbarDark
-});
-
-
-
-
-}
-/// @nodoc
-class __$KopimSpecialSurfacesTokensCopyWithImpl<$Res>
-    implements _$KopimSpecialSurfacesTokensCopyWith<$Res> {
-  __$KopimSpecialSurfacesTokensCopyWithImpl(this._self, this._then);
-
-  final _KopimSpecialSurfacesTokens _self;
-  final $Res Function(_KopimSpecialSurfacesTokens) _then;
-
-/// Create a copy of KopimSpecialSurfacesTokens
-/// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? fabGradientStart = null,Object? fabGradientEnd = null,Object? navbarLight = null,Object? navbarDark = null,}) {
-  return _then(_KopimSpecialSurfacesTokens(
-fabGradientStart: null == fabGradientStart ? _self.fabGradientStart : fabGradientStart // ignore: cast_nullable_to_non_nullable
-as Color,fabGradientEnd: null == fabGradientEnd ? _self.fabGradientEnd : fabGradientEnd // ignore: cast_nullable_to_non_nullable
-as Color,navbarLight: null == navbarLight ? _self.navbarLight : navbarLight // ignore: cast_nullable_to_non_nullable
-as Color,navbarDark: null == navbarDark ? _self.navbarDark : navbarDark // ignore: cast_nullable_to_non_nullable
-as Color,
   ));
 }
 

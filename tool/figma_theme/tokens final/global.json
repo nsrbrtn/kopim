@@ -1,10 +1,6 @@
 {
   "Kopim": {
-    "Fab": {
-      "value": "linear-gradient(180deg, #74875f 0%, #474747 100%)",
-      "type": "color",
-      "description": "back fab"
-    },
+
     "white": {
       "value": "#ffffff",
       "type": "color"
@@ -13,14 +9,7 @@
       "value": "#000000",
       "type": "color"
     },
-    "navbar dark": {
-      "value": "#d4d4d499",
-      "type": "color"
-    },
-    "navbar light": {
-      "value": "#ffffffd4",
-      "type": "color"
-    },
+
     "sys": {
       "light": {
         "primary": {
@@ -300,16 +289,16 @@
           "type": "color"
         },
         "surface": {
-          "value": "#171a1c",
+          "value": "#101010",
           "type": "color",
           "description": "Surface / On Surface\n\nRegular text:\nLevel AA - ✅ Pass\nLevel AAA - ✅ Pass\n\nLarge text:\nLevel AA - ✅ Pass\nLevel AAA - ✅ Pass\n\nIcons:\nLevel AA - ✅ Pass\nLevel AAA - ✅ Pass"
         },
         "on-surface": {
-          "value": "#fffcd9",
+          "value": "#EFF0E1",
           "type": "color"
         },
         "surface-variant": {
-          "value": "#48473f",
+          "value": "#48473F",
           "type": "color",
           "description": "Surface Variant / On Surface Variant\n\nRegular text:\nLevel AA - ✅ Pass\nLevel AAA - ❌ Fail\n\nLarge text:\nLevel AA - ✅ Pass\nLevel AAA - ✅ Pass\n\nIcons:\nLevel AA - ✅ Pass\nLevel AAA - ✅ Pass"
         },
@@ -382,27 +371,27 @@
           "type": "color"
         },
         "surface-bright": {
-          "value": "#394044",
+          "value": "#757575",
           "type": "color"
         },
         "surface-container-lowest": {
-          "value": "#1e2124",
+          "value": "#4A4A4A",
           "type": "color"
         },
         "surface-container-low": {
-          "value": "#26292d",
+          "value": "#28292B",
           "type": "color"
         },
         "surface-container": {
-          "value": "#2e3236",
+          "value": "#1A1A1A",
           "type": "color"
         },
         "surface-container-high": {
-          "value": "#3a4146",
+          "value": "#4D5053",
           "type": "color"
         },
         "surface-container-highest": {
-          "value": "#424950",
+          "value": "#67696A",
           "type": "color"
         },
         "secondary": {

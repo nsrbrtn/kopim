@@ -22,9 +22,6 @@ _KopimThemeTokenBundle _$KopimThemeTokenBundleFromJson(
   spacing: KopimSpacingTokens.fromJson(json['spacing'] as Map<String, dynamic>),
   sizes: KopimSizeTokens.fromJson(json['sizes'] as Map<String, dynamic>),
   motion: KopimMotionTokens.fromJson(json['motion'] as Map<String, dynamic>),
-  specialSurfaces: KopimSpecialSurfacesTokens.fromJson(
-    json['specialSurfaces'] as Map<String, dynamic>,
-  ),
 );
 
 Map<String, dynamic> _$KopimThemeTokenBundleToJson(
@@ -37,7 +34,6 @@ Map<String, dynamic> _$KopimThemeTokenBundleToJson(
   'spacing': instance.spacing,
   'sizes': instance.sizes,
   'motion': instance.motion,
-  'specialSurfaces': instance.specialSurfaces,
 };
 
 _KopimSystemColorTokens _$KopimSystemColorTokensFromJson(
@@ -437,25 +433,3 @@ Map<String, dynamic> _$KopimMotionEasingToJson(_KopimMotionEasing instance) =>
       'accelerate': const CubicConverter().toJson(instance.accelerate),
       'emphasized': const CubicConverter().toJson(instance.emphasized),
     };
-
-_KopimSpecialSurfacesTokens _$KopimSpecialSurfacesTokensFromJson(
-  Map<String, dynamic> json,
-) => _KopimSpecialSurfacesTokens(
-  fabGradientStart: const ColorConverter().fromJson(
-    json['fabGradientStart'] as String,
-  ),
-  fabGradientEnd: const ColorConverter().fromJson(
-    json['fabGradientEnd'] as String,
-  ),
-  navbarLight: const ColorConverter().fromJson(json['navbarLight'] as String),
-  navbarDark: const ColorConverter().fromJson(json['navbarDark'] as String),
-);
-
-Map<String, dynamic> _$KopimSpecialSurfacesTokensToJson(
-  _KopimSpecialSurfacesTokens instance,
-) => <String, dynamic>{
-  'fabGradientStart': const ColorConverter().toJson(instance.fabGradientStart),
-  'fabGradientEnd': const ColorConverter().toJson(instance.fabGradientEnd),
-  'navbarLight': const ColorConverter().toJson(instance.navbarLight),
-  'navbarDark': const ColorConverter().toJson(instance.navbarDark),
-};

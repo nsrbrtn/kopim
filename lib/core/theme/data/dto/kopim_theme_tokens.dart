@@ -14,7 +14,6 @@ abstract class KopimThemeTokenBundle with _$KopimThemeTokenBundle {
     required KopimSpacingTokens spacing,
     required KopimSizeTokens sizes,
     required KopimMotionTokens motion,
-    required KopimSpecialSurfacesTokens specialSurfaces,
   }) = _KopimThemeTokenBundle;
 
   factory KopimThemeTokenBundle.fromJson(Map<String, dynamic> json) =>
@@ -189,18 +188,7 @@ abstract class KopimMotionEasing with _$KopimMotionEasing {
       _$KopimMotionEasingFromJson(json);
 }
 
-@freezed
-abstract class KopimSpecialSurfacesTokens with _$KopimSpecialSurfacesTokens {
-  const factory KopimSpecialSurfacesTokens({
-    @ColorConverter() required Color fabGradientStart,
-    @ColorConverter() required Color fabGradientEnd,
-    @ColorConverter() required Color navbarLight,
-    @ColorConverter() required Color navbarDark,
-  }) = _KopimSpecialSurfacesTokens;
 
-  factory KopimSpecialSurfacesTokens.fromJson(Map<String, dynamic> json) =>
-      _$KopimSpecialSurfacesTokensFromJson(json);
-}
 
 class ColorConverter implements JsonConverter<Color, String> {
   const ColorConverter();

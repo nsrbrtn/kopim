@@ -15,28 +15,24 @@ void main() {
       expect(theme.textTheme.bodyMedium?.fontFamily, 'Inter');
       expect(
         theme.navigationBarTheme.backgroundColor,
-        kopimThemeTokens.specialSurfaces.navbarLight,
+        theme.colorScheme.surfaceContainer,
       );
 
-      final KopimSpecialSurfaces surfaces = theme
-          .extension<KopimSpecialSurfaces>()!;
-      expect(
-        surfaces.fabGradient.colors.first,
-        kopimThemeTokens.specialSurfaces.fabGradientStart,
-      );
-      expect(
-        surfaces.navigationBarLight,
-        kopimThemeTokens.specialSurfaces.navbarLight,
-      );
+      final KopimMotion motion = theme.extension<KopimMotion>()!;
+      expect(motion.durations.md, kopimThemeTokens.motion.durations.md);
+      expect(motion.curves.standard, kopimThemeTokens.motion.easing.standard);
     });
 
     test('возвращает тему с токенами тёмной палитры', () {
       final ThemeData theme = buildAppTheme(brightness: Brightness.dark);
 
+      expect(theme.useMaterial3, isTrue);
       expect(theme.colorScheme.primary, kopimThemeTokens.darkColors.primary);
+      expect(theme.textTheme.displayLarge?.fontFamily, 'Onest');
+      expect(theme.textTheme.bodyMedium?.fontFamily, 'Inter');
       expect(
         theme.navigationBarTheme.backgroundColor,
-        kopimThemeTokens.specialSurfaces.navbarDark,
+        theme.colorScheme.surfaceContainer,
       );
 
       final KopimMotion motion = theme.extension<KopimMotion>()!;

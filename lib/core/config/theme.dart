@@ -74,19 +74,6 @@ ThemeData buildAppTheme({
     bodyColor: colorScheme.onSurface,
   );
 
-  final KopimSpecialSurfaces specialSurfaces = KopimSpecialSurfaces(
-    fabGradient: LinearGradient(
-      begin: Alignment.topCenter,
-      end: Alignment.bottomCenter,
-      colors: <Color>[
-        tokens.specialSurfaces.fabGradientStart,
-        tokens.specialSurfaces.fabGradientEnd,
-      ],
-    ),
-    navigationBarLight: tokens.specialSurfaces.navbarLight,
-    navigationBarDark: tokens.specialSurfaces.navbarDark,
-  );
-
   final KopimMotion motionExtension = KopimMotion(
     durations: KopimMotionDurationsData(
       xxs: tokens.motion.durations.xxs,
@@ -129,10 +116,6 @@ ThemeData buildAppTheme({
     ),
   );
 
-  final Color navigationBarBackground = brightness == Brightness.dark
-      ? specialSurfaces.navigationBarDark
-      : specialSurfaces.navigationBarLight;
-
   return ThemeData(
     useMaterial3: true,
     brightness: brightness,
@@ -150,7 +133,7 @@ ThemeData buildAppTheme({
     ),
     navigationBarTheme: NavigationBarThemeData(
       height: touchSizes['comfortable'] ?? 56.0,
-      backgroundColor: navigationBarBackground,
+      backgroundColor: colorScheme.surfaceContainer,
       indicatorColor: colorScheme.secondaryContainer,
       elevation: 0,
       iconTheme: WidgetStateProperty.resolveWith(
@@ -168,11 +151,17 @@ ThemeData buildAppTheme({
               ),
       ),
     ),
+    bottomNavigationBarTheme: BottomNavigationBarThemeData(
+      backgroundColor: colorScheme.surfaceContainer,
+      selectedItemColor: colorScheme.onSecondaryContainer,
+      unselectedItemColor: colorScheme.onSurfaceVariant,
+      elevation: 0,
+    ),
     navigationRailTheme: NavigationRailThemeData(
       backgroundColor: colorScheme.surface,
-      indicatorColor: colorScheme.secondaryContainer,
+      indicatorColor: colorScheme.primary,
       useIndicator: true,
-      selectedIconTheme: IconThemeData(color: colorScheme.onSecondaryContainer),
+      selectedIconTheme: IconThemeData(color: colorScheme.onPrimary),
       unselectedIconTheme: IconThemeData(color: colorScheme.onSurfaceVariant),
       selectedLabelTextStyle: textTheme.labelLarge,
       unselectedLabelTextStyle: textTheme.labelLarge?.copyWith(
@@ -226,7 +215,7 @@ ThemeData buildAppTheme({
       ),
     ),
     floatingActionButtonTheme: FloatingActionButtonThemeData(
-      backgroundColor: Colors.transparent,
+      backgroundColor: colorScheme.primary,
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(_spacing(radius, 'full', 9999)),
@@ -284,7 +273,6 @@ ThemeData buildAppTheme({
     ),
     iconTheme: IconThemeData(color: colorScheme.onSurfaceVariant),
     extensions: <ThemeExtension<dynamic>>[
-      specialSurfaces,
       motionExtension,
       layoutExtension,
     ],

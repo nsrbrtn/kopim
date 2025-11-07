@@ -5,7 +5,8 @@
 import 'package:flutter/material.dart';
 import '../dto/kopim_theme_tokens.dart';
 
-const KopimThemeTokenBundle kopimThemeTokens = KopimThemeTokenBundle(
+const KopimThemeTokenBundle kopimThemeTokens =
+KopimThemeTokenBundle(
   lightColors: KopimSystemColorTokens(
     background: Color(0xFFF7FBEA),
     error: Color(0xFFBA1A1A),
@@ -75,7 +76,7 @@ const KopimThemeTokenBundle kopimThemeTokens = KopimThemeTokenBundle(
     onSecondaryContainer: Color(0xFFA1C37A),
     onSecondaryFixed: Color(0xFF0F2000),
     onSecondaryFixedVariant: Color(0xFF324E13),
-    onSurface: Color(0xFFFFFCD9),
+    onSurface: Color(0xFFEFF0E1),
     onSurfaceVariant: Color(0xFFC9C6BC),
     onTertiary: Color(0xFF003735),
     onTertiaryContainer: Color(0xFF006663),
@@ -93,13 +94,13 @@ const KopimThemeTokenBundle kopimThemeTokens = KopimThemeTokenBundle(
     secondaryFixed: Color(0xFFCAEEA1),
     secondaryFixedDim: Color(0xFFAED287),
     shadow: Color(0xFF000000),
-    surface: Color(0xFF171A1C),
-    surfaceBright: Color(0xFF394044),
-    surfaceContainer: Color(0xFF2E3236),
-    surfaceContainerHigh: Color(0xFF3A4146),
-    surfaceContainerHighest: Color(0xFF424950),
-    surfaceContainerLow: Color(0xFF26292D),
-    surfaceContainerLowest: Color(0xFF1E2124),
+    surface: Color(0xFF101010),
+    surfaceBright: Color(0xFF757575),
+    surfaceContainer: Color(0xFF1A1A1A),
+    surfaceContainerHigh: Color(0xFF4D5053),
+    surfaceContainerHighest: Color(0xFF67696A),
+    surfaceContainerLow: Color(0xFF28292B),
+    surfaceContainerLowest: Color(0xFF4A4A4A),
     surfaceDim: Color(0xFF141313),
     surfaceTint: Color(0xFF93DA46),
     surfaceVariant: Color(0xFF48473F),
@@ -288,10 +289,5 @@ const KopimThemeTokenBundle kopimThemeTokens = KopimThemeTokenBundle(
       standard: Cubic(0.2, 0.0, 0.0, 1.0),
     ),
   ),
-  specialSurfaces: KopimSpecialSurfacesTokens(
-    fabGradientStart: Color(0xFF74875F),
-    fabGradientEnd: Color(0xFF474747),
-    navbarLight: Color(0xD4FFFFFF),
-    navbarDark: Color(0x99D4D4D4),
-  ),
-);
+)
+;
