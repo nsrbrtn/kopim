@@ -81,6 +81,10 @@ class GeneralSettingsScreen extends ConsumerWidget {
                 textStyle: theme.textTheme.bodyLarge?.copyWith(
                   color: theme.colorScheme.onSurface,
                 ),
+                backgroundColor: _settingsMenuContainerColor(theme),
+                borderRadius: 28,
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
               ),
               const SizedBox(height: 8),
             ],
@@ -138,6 +142,10 @@ class _SettingsMenuItem extends StatelessWidget {
     this.onTap,
     this.trailing,
     this.subtitle,
+    this.backgroundColor,
+    this.borderRadius = 16,
+    this.contentPadding =
+        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
   });
 
   final IconData icon;
@@ -146,6 +154,9 @@ class _SettingsMenuItem extends StatelessWidget {
   final VoidCallback? onTap;
   final Widget? trailing;
   final String? subtitle;
+  final Color? backgroundColor;
+  final double borderRadius;
+  final EdgeInsetsGeometry contentPadding;
 
   @override
   Widget build(BuildContext context) {
@@ -153,13 +164,13 @@ class _SettingsMenuItem extends StatelessWidget {
     final Color iconColor = theme.colorScheme.onSurfaceVariant;
 
     return Material(
-      color: Colors.transparent,
-      borderRadius: BorderRadius.circular(16),
+      color: backgroundColor ?? Colors.transparent,
+      borderRadius: BorderRadius.circular(borderRadius),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(borderRadius),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          padding: contentPadding,
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
@@ -182,11 +193,7 @@ class _SettingsMenuItem extends StatelessWidget {
                   ],
                 ),
               ),
-              trailing ??
-                  Icon(
-                    Icons.chevron_right,
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
+              if (trailing != null) trailing!,
             ],
           ),
         ),
@@ -195,7 +202,13 @@ class _SettingsMenuItem extends StatelessWidget {
   }
 }
 
-class _HomeDashboardVisibilityMenu extends StatelessWidget {
+Color _settingsMenuContainerColor(ThemeData theme) {
+  return theme.colorScheme.surfaceVariant.withOpacity(
+    theme.brightness == Brightness.dark ? 0.4 : 0.8,
+  );
+}
+
+class _HomeDashboardVisibilityMenu extends StatefulWidget {
   const _HomeDashboardVisibilityMenu({
     required this.strings,
     required this.preferences,
@@ -212,21 +225,19 @@ class _HomeDashboardVisibilityMenu extends StatelessWidget {
   final ValueChanged<bool> onToggleRecurring;
   final ValueChanged<bool> onToggleSavings;
 
-  void _handleToggle(_HomeDashboardToggle toggle) {
-    switch (toggle) {
-      case _HomeDashboardToggle.gamification:
-        onToggleGamification(!preferences.showGamificationWidget);
-        break;
-      case _HomeDashboardToggle.budgets:
-        onToggleBudget(!preferences.showBudgetWidget);
-        break;
-      case _HomeDashboardToggle.recurring:
-        onToggleRecurring(!preferences.showRecurringWidget);
-        break;
-      case _HomeDashboardToggle.savings:
-        onToggleSavings(!preferences.showSavingsWidget);
-        break;
-    }
+  @override
+  State<_HomeDashboardVisibilityMenu> createState() =>
+      _HomeDashboardVisibilityMenuState();
+}
+
+class _HomeDashboardVisibilityMenuState
+    extends State<_HomeDashboardVisibilityMenu> {
+  bool _isExpanded = false;
+
+  void _toggleExpanded() {
+    setState(() {
+      _isExpanded = !_isExpanded;
+    });
   }
 
   @override
@@ -235,66 +246,151 @@ class _HomeDashboardVisibilityMenu extends StatelessWidget {
     final TextStyle? textStyle = theme.textTheme.bodyLarge?.copyWith(
       color: theme.colorScheme.onSurface,
     );
-    final List<String> active = <String>[
-      if (preferences.showGamificationWidget)
-        strings.settingsHomeGamificationTitle,
-      if (preferences.showBudgetWidget) strings.settingsHomeBudgetTitle,
-      if (preferences.showRecurringWidget) strings.settingsHomeRecurringTitle,
-      if (preferences.showSavingsWidget) strings.settingsHomeSavingsTitle,
+    final Color containerColor = _settingsMenuContainerColor(theme);
+    final List<_DashboardToggleConfig> toggles = <_DashboardToggleConfig>[
+      _DashboardToggleConfig(
+        label: widget.strings.settingsHomeGamificationTitle,
+        value: widget.preferences.showGamificationWidget,
+        onChanged: widget.onToggleGamification,
+      ),
+      _DashboardToggleConfig(
+        label: widget.strings.settingsHomeBudgetTitle,
+        value: widget.preferences.showBudgetWidget,
+        onChanged: widget.onToggleBudget,
+      ),
+      _DashboardToggleConfig(
+        label: widget.strings.settingsHomeRecurringTitle,
+        value: widget.preferences.showRecurringWidget,
+        onChanged: widget.onToggleRecurring,
+      ),
+      _DashboardToggleConfig(
+        label: widget.strings.settingsHomeSavingsTitle,
+        value: widget.preferences.showSavingsWidget,
+        onChanged: widget.onToggleSavings,
+      ),
     ];
-    final String subtitle = active.isEmpty
-        ? strings.settingsHomeBudgetSelectedNone
-        : active.join(', ');
-    final GlobalKey<PopupMenuButtonState<_HomeDashboardToggle>> menuKey =
-        GlobalKey<PopupMenuButtonState<_HomeDashboardToggle>>();
 
-    return _SettingsMenuItem(
-      icon: Icons.home_outlined,
-      label: strings.settingsHomeSectionTitle,
-      textStyle: textStyle,
-      subtitle: subtitle,
-      onTap: () => menuKey.currentState?.showButtonMenu(),
-      trailing: PopupMenuButton<_HomeDashboardToggle>(
-        key: menuKey,
-        icon: Icon(
-          Icons.expand_more,
-          color: theme.colorScheme.onSurfaceVariant,
-        ),
-        onSelected: _handleToggle,
-        itemBuilder: (BuildContext context) {
-          return <PopupMenuEntry<_HomeDashboardToggle>>[
-            CheckedPopupMenuItem<_HomeDashboardToggle>(
-              value: _HomeDashboardToggle.gamification,
-              checked: preferences.showGamificationWidget,
-              child: Text(strings.settingsHomeGamificationTitle),
+    return Container(
+      decoration: BoxDecoration(
+        color: containerColor,
+        borderRadius: BorderRadius.circular(28),
+      ),
+      child: Column(
+        children: <Widget>[
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(28),
+              onTap: _toggleExpanded,
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+                child: Row(
+                  children: <Widget>[
+                    Icon(
+                      Icons.home_outlined,
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        widget.strings.settingsHomeSectionTitle,
+                        style: textStyle,
+                      ),
+                    ),
+                    AnimatedRotation(
+                      turns: _isExpanded ? 0.5 : 0,
+                      duration: const Duration(milliseconds: 200),
+                      curve: Curves.easeInOut,
+                      child: Icon(
+                        Icons.keyboard_arrow_down,
+                        color: theme.colorScheme.onSurface,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
-            CheckedPopupMenuItem<_HomeDashboardToggle>(
-              value: _HomeDashboardToggle.budgets,
-              checked: preferences.showBudgetWidget,
-              child: Text(strings.settingsHomeBudgetTitle),
+          ),
+          ClipRect(
+            child: AnimatedCrossFade(
+              duration: const Duration(milliseconds: 200),
+              sizeCurve: Curves.easeInOut,
+              crossFadeState: _isExpanded
+                  ? CrossFadeState.showFirst
+                  : CrossFadeState.showSecond,
+              firstChild: Padding(
+                padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+                child: Column(
+                  children: <Widget>[
+                    const SizedBox(height: 16),
+                    for (int index = 0; index < toggles.length; index++) ...<
+                        Widget>[
+                      if (index > 0) const SizedBox(height: 16),
+                      _DashboardToggleTile(config: toggles[index]),
+                    ],
+                  ],
+                ),
+              ),
+              secondChild: const SizedBox.shrink(),
             ),
-            CheckedPopupMenuItem<_HomeDashboardToggle>(
-              value: _HomeDashboardToggle.recurring,
-              checked: preferences.showRecurringWidget,
-              child: Text(strings.settingsHomeRecurringTitle),
-            ),
-            CheckedPopupMenuItem<_HomeDashboardToggle>(
-              value: _HomeDashboardToggle.savings,
-              checked: preferences.showSavingsWidget,
-              child: Text(strings.settingsHomeSavingsTitle),
-            ),
-          ];
-        },
+          ),
+        ],
       ),
     );
   }
 }
 
-enum _HomeDashboardToggle {
-  gamification,
-  budgets,
-  recurring,
-  savings,
+class _DashboardToggleConfig {
+  const _DashboardToggleConfig({
+    required this.label,
+    required this.value,
+    required this.onChanged,
+  });
+
+  final String label;
+  final bool value;
+  final ValueChanged<bool> onChanged;
+}
+
+class _DashboardToggleTile extends StatelessWidget {
+  const _DashboardToggleTile({required this.config});
+
+  final _DashboardToggleConfig config;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final Color tileColor =
+        theme.colorScheme.surfaceVariant.withOpacity(
+          theme.brightness == Brightness.dark ? 0.8 : 0.4,
+        );
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+      decoration: BoxDecoration(
+        color: tileColor,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        children: <Widget>[
+          Expanded(
+            child: Text(
+              config.label,
+              style: theme.textTheme.bodyLarge?.copyWith(
+                color: theme.colorScheme.onSurface,
+              ),
+            ),
+          ),
+          Switch.adaptive(
+            value: config.value,
+            onChanged: config.onChanged,
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _SettingsSkeleton extends StatelessWidget {

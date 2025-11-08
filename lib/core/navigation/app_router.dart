@@ -9,6 +9,7 @@ import 'package:kopim/features/accounts/presentation/accounts_add_screen.dart';
 import 'package:kopim/features/accounts/presentation/edit_account_screen.dart';
 import 'package:kopim/features/analytics/presentation/analytics_screen.dart';
 import 'package:kopim/features/app_shell/presentation/widgets/main_navigation_shell.dart';
+import 'package:kopim/features/budgets/presentation/budgets_screen.dart';
 import 'package:kopim/features/categories/presentation/screens/manage_categories_screen.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
 import 'package:kopim/features/profile/presentation/controllers/auth_controller.dart';
@@ -18,6 +19,7 @@ import 'package:kopim/features/profile/presentation/screens/profile_screen.dart'
 import 'package:kopim/features/profile/presentation/screens/sign_in_screen.dart';
 import 'package:kopim/features/recurring_transactions/presentation/screens/add_recurring_rule_screen.dart';
 import 'package:kopim/features/recurring_transactions/presentation/screens/recurring_transactions_screen.dart';
+import 'package:kopim/features/savings/presentation/screens/savings_list_screen.dart';
 import 'package:kopim/features/transactions/presentation/add_transaction_screen.dart';
 import 'package:kopim/features/transactions/presentation/screens/all_transactions_screen.dart';
 import 'package:kopim/features/upcoming_payments/presentation/screens/edit_payment_reminder_screen.dart';
@@ -48,6 +50,13 @@ final Provider<GoRouter> appRouterProvider = Provider<GoRouter>((Ref ref) {
         parentNavigatorKey: _rootNavigatorKey,
         builder: (BuildContext context, GoRouterState state) {
           return const AnalyticsScreen();
+        },
+      ),
+      GoRoute(
+        path: BudgetsScreen.routeName,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (BuildContext context, GoRouterState state) {
+          return const BudgetsScreen();
         },
       ),
       GoRoute(
@@ -109,6 +118,13 @@ final Provider<GoRouter> appRouterProvider = Provider<GoRouter>((Ref ref) {
         parentNavigatorKey: _rootNavigatorKey,
         builder: (BuildContext context, GoRouterState state) {
           return const ManageCategoriesScreen();
+        },
+      ),
+      GoRoute(
+        path: SavingsListScreen.routeName,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (BuildContext context, GoRouterState state) {
+          return const SavingsListScreen();
         },
       ),
       GoRoute(

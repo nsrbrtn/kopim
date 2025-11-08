@@ -2290,7 +2290,7 @@
   "@saveButtonLabel": {
     "description": "Общая подпись кнопки сохранения"
   },
-  "savingsTitle": "Цели по накоплениям",
+  "savingsTitle": "Копилки",
   "@savingsTitle": {
     "description": "Заголовок экрана накоплений"
   },

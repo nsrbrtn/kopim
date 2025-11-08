@@ -1738,7 +1738,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get saveButtonLabel => 'Сохранить';
 
   @override
-  String get savingsTitle => 'Цели по накоплениям';
+  String get savingsTitle => 'Копилки';
 
   @override
   String get savingsAddGoalTitle => 'Новая цель';
