@@ -10,12 +10,11 @@ import 'package:kopim/features/settings/presentation/controllers/exact_alarm_con
 import 'package:kopim/features/settings/presentation/controllers/export_user_data_controller.dart';
 import 'package:kopim/features/settings/presentation/controllers/import_user_data_controller.dart';
 import 'package:kopim/l10n/app_localizations.dart';
-import 'package:riverpod/riverpod.dart' show Override;
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  final List<Override> overrides = <Override>[
+  final overrides = [
     exactAlarmControllerProvider.overrideWith(
       () => _FakeExactAlarmController(),
     ),

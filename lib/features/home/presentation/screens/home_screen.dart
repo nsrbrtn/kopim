@@ -339,8 +339,8 @@ class _HomeBody extends StatelessWidget {
                         context.push(AllTransactionsScreen.routeName);
                       },
                       style: TextButton.styleFrom(
-                        foregroundColor: theme.colorScheme.primary.withValues(
-                          alpha: 0.9,
+                        foregroundColor: theme.colorScheme.primary.withAlpha(
+                          (0.9 * 255).round(),
                         ),
                       ),
                       child: Text(strings.homeTransactionsSeeAll),

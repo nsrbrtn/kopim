@@ -514,72 +514,99 @@ class _AssistantInputBarState extends State<_AssistantInputBar> {
         widget.controller.text.trim().isNotEmpty && !widget.isSending;
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surface,
-          borderRadius: const BorderRadius.all(Radius.circular(24)),
-          border: Border.all(color: theme.dividerColor),
-        ),
-        child: Row(
-          children: <Widget>[
-            const SizedBox(width: 16),
-            Expanded(
-              child: TextField(
-                controller: widget.controller,
-                focusNode: widget.focusNode,
-                minLines: 1,
-                maxLines: 5,
-                textInputAction: TextInputAction.send,
-                onSubmitted: (String value) {
-                  if (value.trim().isEmpty) {
-                    return;
-                  }
-                  widget.onSubmitted(value);
-                  widget.controller.clear();
-                  setState(() {});
-                },
-                onChanged: (_) => setState(() {}),
-                decoration: InputDecoration(
-                  hintText: widget.hintText,
-                  border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(vertical: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          TextField(
+            controller: widget.controller,
+            focusNode: widget.focusNode,
+            minLines: 1,
+            maxLines: 5,
+            textInputAction: TextInputAction.send,
+            onSubmitted: (String value) {
+              final String trimmed = value.trim();
+              if (trimmed.isEmpty) {
+                return;
+              }
+              widget.onSubmitted(trimmed);
+              widget.controller.clear();
+              setState(() {});
+            },
+            onChanged: (_) => setState(() {}),
+            style: theme.textTheme.bodyLarge?.copyWith(
+              color: theme.colorScheme.onSurface,
+              letterSpacing: 0.5,
+            ),
+            decoration: InputDecoration(
+              hintText: widget.hintText,
+              hintStyle: theme.textTheme.bodyLarge?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+                letterSpacing: 0.5,
+              ),
+              filled: true,
+              fillColor: theme.colorScheme.surfaceContainerLow,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 16,
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(28),
+                borderSide: const BorderSide(color: Colors.transparent),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(28),
+                borderSide: BorderSide(
+                  color: theme.colorScheme.primary,
+                  width: 1,
+                ),
+              ),
+              suffixIconConstraints:
+                  const BoxConstraints(minWidth: 48, minHeight: 48),
+              suffixIcon: Padding(
+                padding: const EdgeInsets.only(right: 4),
+                child: IconButton(
+                  splashRadius: 24,
+                  onPressed: canSend
+                      ? () {
+                          final String value =
+                              widget.controller.text.trim();
+                          if (value.isEmpty) {
+                            return;
+                          }
+                          widget.onSubmitted(value);
+                          widget.controller.clear();
+                          setState(() {});
+                        }
+                      : null,
+                  icon: widget.isSending
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.send_rounded),
                 ),
               ),
             ),
-            IconButton(
-              onPressed: canSend
-                  ? () {
-                      final String value = widget.controller.text.trim();
-                      if (value.isEmpty) {
-                        return;
-                      }
-                      widget.onSubmitted(value);
-                      widget.controller.clear();
-                      setState(() {});
-                    }
-                  : null,
-              icon: widget.isSending
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.send_rounded),
-            ),
-            if (widget.isOffline)
-              Padding(
-                padding: const EdgeInsets.only(right: 16),
+          ),
+          if (widget.isOffline)
+            Padding(
+              padding: const EdgeInsets.only(top: 8, right: 8),
+              child: Align(
+                alignment: Alignment.centerRight,
                 child: Tooltip(
                   message: AppLocalizations.of(
                     context,
                   )!.assistantPendingMessageHint,
-                  child: const Icon(Icons.cloud_off, size: 18),
+                  child: Icon(
+                    Icons.cloud_off,
+                    size: 18,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
                 ),
-              )
-            else
-              const SizedBox(width: 8),
-          ],
-        ),
+              ),
+            ),
+        ],
       ),
     );
   }

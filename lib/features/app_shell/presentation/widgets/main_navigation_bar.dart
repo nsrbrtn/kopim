@@ -17,8 +17,8 @@ class MainNavigationBar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final ThemeData theme = Theme.of(context);
     final bool isDark = theme.brightness == Brightness.dark;
-    final Color backgroundColor = theme.colorScheme.surface.withAlpha(
-      (255 * (isDark ? 0.45 : 0.6)).round(),
+    final Color backgroundColor = theme.colorScheme.onSurface.withAlpha(
+      (255 * (isDark ? 0.20 : 0.35)).round(),
     );
     final Color activeIconBackground =
         isDark ? const Color(0xFFEFF0E1) : theme.colorScheme.primary.withAlpha((255 * 0.15).round());
@@ -26,23 +26,13 @@ class MainNavigationBar extends ConsumerWidget {
         isDark ? const Color(0xFF313030) : theme.colorScheme.primary;
     final Color activeLabelColor =
         isDark ? const Color(0xFFEFF0E1) : theme.colorScheme.onSurface;
-    final Color inactiveColor = theme.colorScheme.onSurface.withAlpha(
-      (255 * (isDark ? 0.65 : 0.55)).round(),
-    );
+    final Color inactiveColor = theme.colorScheme.onSurface;
 
     final int currentIndex = ref.watch(
       mainNavigationControllerProvider.select((int value) => value),
     );
-    const double horizontalPadding = 16;
-    const double verticalPadding = 4;
-
     return Padding(
-      padding: EdgeInsets.fromLTRB(
-        horizontalPadding,
-        0,
-        horizontalPadding,
-        verticalPadding,
-      ),
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(24),
         child: ClipRect(

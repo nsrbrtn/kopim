@@ -15,7 +15,6 @@ import 'package:kopim/features/settings/presentation/controllers/export_user_dat
 import 'package:kopim/features/settings/presentation/controllers/import_user_data_controller.dart';
 import 'package:kopim/features/upcoming_payments/presentation/screens/upcoming_payments_screen.dart';
 import 'package:kopim/l10n/app_localizations.dart';
-import 'package:riverpod/riverpod.dart' show Override;
 
 class _RecordingNavigatorObserver extends NavigatorObserver {
   _RecordingNavigatorObserver(this.pushedRoutes);
@@ -32,7 +31,7 @@ class _RecordingNavigatorObserver extends NavigatorObserver {
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  final List<Override> overrides = <Override>[
+  final overrides = [
     homeDashboardPreferencesControllerProvider.overrideWith(
       () => _FakeHomeDashboardPreferencesController(),
     ),
