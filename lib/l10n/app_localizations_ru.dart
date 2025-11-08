@@ -29,10 +29,13 @@ class AppLocalizationsRu extends AppLocalizations {
   String get profileAppearanceSection => 'Внешний вид';
 
   @override
-  String get profileGeneralSettingsTitle => 'Общие настройки';
+  String get profileGeneralSettingsTitle => 'Генеральные настройки';
 
   @override
-  String get profileGeneralSettingsTooltip => 'Общие настройки';
+  String get profileGeneralSettingsTooltip => 'Генеральные настройки';
+
+  @override
+  String get profileMenuTitle => 'Меню';
 
   @override
   String get profileGeneralSettingsManagementSection => 'Управление данными';
@@ -1166,7 +1169,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get homeNavSavings => 'Накопления';
 
   @override
-  String get homeNavSettings => 'Настройки';
+  String get homeNavSettings => 'Меню';
 
   @override
   String get mainNavigationExitTitle => 'Выйти из Kopim?';

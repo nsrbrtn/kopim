@@ -4,7 +4,7 @@ import 'package:kopim/features/ai/presentation/screens/assistant_screen.dart';
 import 'package:kopim/features/analytics/presentation/analytics_screen.dart';
 import 'package:kopim/features/budgets/presentation/budgets_screen.dart';
 import 'package:kopim/features/home/presentation/screens/home_screen.dart';
-import 'package:kopim/features/profile/presentation/screens/general_settings_screen.dart';
+import 'package:kopim/features/profile/presentation/screens/menu_screen.dart';
 import 'package:kopim/features/savings/presentation/screens/savings_list_screen.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
@@ -56,22 +56,22 @@ final Provider<List<NavigationTabConfig>> mainNavigationTabsProvider =
         ),
         NavigationTabConfig(
           id: 'settings',
-          icon: Icons.settings_outlined,
-          activeIcon: Icons.settings,
+          icon: Icons.menu,
+          activeIcon: Icons.menu_open,
           labelBuilder: (BuildContext context) =>
               AppLocalizations.of(context)!.homeNavSettings,
-          contentBuilder: _buildGeneralSettingsTabContent,
+          contentBuilder: _buildMenuTabContent,
         ),
       ];
     });
 
-NavigationTabContent _buildGeneralSettingsTabContent(
+NavigationTabContent _buildMenuTabContent(
   BuildContext context,
   WidgetRef ref,
 ) {
-  return const NavigationTabContent(bodyBuilder: _generalSettingsBodyBuilder);
+  return const NavigationTabContent(bodyBuilder: _menuBodyBuilder);
 }
 
-Widget _generalSettingsBodyBuilder(BuildContext context, WidgetRef ref) {
-  return const GeneralSettingsScreen();
+Widget _menuBodyBuilder(BuildContext context, WidgetRef ref) {
+  return const MenuScreen();
 }

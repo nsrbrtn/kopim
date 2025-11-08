@@ -18,7 +18,7 @@ import 'package:kopim/features/profile/domain/models/profile_command_result.dart
 import 'package:kopim/features/profile/domain/usecases/update_profile_use_case.dart';
 import 'package:kopim/features/profile/presentation/controllers/auth_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/profile_controller.dart';
-import 'package:kopim/features/profile/presentation/screens/general_settings_screen.dart';
+import 'package:kopim/features/profile/presentation/screens/menu_screen.dart';
 import 'package:kopim/features/profile/presentation/screens/profile_screen.dart';
 import 'package:kopim/features/profile/presentation/services/profile_event_recorder.dart';
 import 'package:kopim/features/recurring_transactions/domain/entities/recurring_job.dart';
@@ -325,8 +325,8 @@ void main() {
           supportedLocales: AppLocalizations.supportedLocales,
           home: const ProfileScreen(),
           routes: <String, WidgetBuilder>{
-            GeneralSettingsScreen.routeName: (_) =>
-                const GeneralSettingsScreen(),
+            MenuScreen.routeName: (_) =>
+                const MenuScreen(),
           },
         ),
       ),
@@ -337,10 +337,10 @@ void main() {
     final BuildContext context = tester.element(find.byType(ProfileScreen));
     final AppLocalizations strings = AppLocalizations.of(context)!;
 
-    await tester.tap(find.byTooltip(strings.profileGeneralSettingsTooltip));
+    await tester.tap(find.byTooltip(strings.profileMenuTitle));
     await tester.pumpAndSettle();
 
-    expect(find.byType(GeneralSettingsScreen), findsOneWidget);
+    expect(find.byType(MenuScreen), findsOneWidget);
   });
 
   testWidgets('sign out button triggers auth controller sign out', (

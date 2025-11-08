@@ -21,13 +21,17 @@
   "@profileAppearanceSection": {
     "description": "Заголовок секции настроек внешнего вида на экране профиля"
   },
-  "profileGeneralSettingsTitle": "Общие настройки",
+  "profileGeneralSettingsTitle": "Генеральные настройки",
   "@profileGeneralSettingsTitle": {
     "description": "Заголовок экрана общих настроек"
   },
-  "profileGeneralSettingsTooltip": "Общие настройки",
+  "profileGeneralSettingsTooltip": "Генеральные настройки",
   "@profileGeneralSettingsTooltip": {
     "description": "Подсказка для перехода на экран общих настроек"
+  },
+  "profileMenuTitle": "Меню",
+  "@profileMenuTitle": {
+    "description": "Заголовок экрана меню"
   },
   "profileGeneralSettingsManagementSection": "Управление данными",
   "@profileGeneralSettingsManagementSection": {
@@ -1516,7 +1520,7 @@
   "@homeNavSavings": {
     "description": "Подпись для раздела накоплений"
   },
-  "homeNavSettings": "Настройки",
+  "homeNavSettings": "Меню",
   "@homeNavSettings": {
     "description": "Подпись для раздела настроек"
   },

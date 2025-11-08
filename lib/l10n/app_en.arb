@@ -29,6 +29,10 @@
   "@profileGeneralSettingsTooltip": {
     "description": "Tooltip for opening the general settings screen"
   },
+  "profileMenuTitle": "Menu",
+  "@profileMenuTitle": {
+    "description": "App bar title for the menu screen"
+  },
   "profileGeneralSettingsManagementSection": "Data management",
   "@profileGeneralSettingsManagementSection": {
     "description": "Section title for category and recurring actions on general settings"
@@ -1516,7 +1520,7 @@
   "@homeNavSavings": {
     "description": "Bottom navigation label for savings"
   },
-  "homeNavSettings": "Settings",
+  "homeNavSettings": "Menu",
   "@homeNavSettings": {
     "description": "Bottom navigation label for settings"
   },

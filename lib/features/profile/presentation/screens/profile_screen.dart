@@ -8,7 +8,7 @@ import 'package:kopim/features/profile/presentation/controllers/auth_controller.
 import 'package:kopim/features/profile/presentation/controllers/avatar_controller.dart';
 import 'package:kopim/features/categories/presentation/screens/manage_categories_screen.dart';
 import 'package:kopim/features/upcoming_payments/presentation/screens/upcoming_payments_screen.dart';
-import 'package:kopim/features/profile/presentation/screens/general_settings_screen.dart';
+import 'package:kopim/features/profile/presentation/screens/menu_screen.dart';
 import 'package:kopim/features/profile/presentation/widgets/profile_management_body.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
@@ -74,9 +74,9 @@ class _ProfileTabNavigatorState extends State<_ProfileTabNavigator> {
       key: widget.navigatorKey,
       onGenerateRoute: (RouteSettings settings) {
         switch (settings.name) {
-          case GeneralSettingsScreen.routeName:
+          case MenuScreen.routeName:
             return MaterialPageRoute<void>(
-              builder: (_) => const GeneralSettingsScreen(),
+              builder: (_) => const MenuScreen(),
               settings: settings,
             );
           case ManageCategoriesScreen.routeName:
@@ -128,10 +128,10 @@ class _ProfileOverviewPage extends ConsumerWidget {
                   ],
             ),
           IconButton(
-            tooltip: strings.profileGeneralSettingsTooltip,
+            tooltip: strings.profileMenuTitle,
             icon: const Icon(Icons.tune),
             onPressed: () {
-              _navigateProfileRoute(context, GeneralSettingsScreen.routeName);
+              _navigateProfileRoute(context, MenuScreen.routeName);
             },
           ),
         ],

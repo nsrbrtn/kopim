@@ -146,6 +146,12 @@ abstract class AppLocalizations {
   /// **'General settings'**
   String get profileGeneralSettingsTooltip;
 
+  /// App bar title for the menu screen
+  ///
+  /// In en, this message translates to:
+  /// **'Menu'**
+  String get profileMenuTitle;
+
   /// Section title for category and recurring actions on general settings
   ///
   /// In en, this message translates to:
@@ -2007,7 +2013,7 @@ abstract class AppLocalizations {
   /// Bottom navigation label for settings
   ///
   /// In en, this message translates to:
-  /// **'Settings'**
+  /// **'Menu'**
   String get homeNavSettings;
 
   /// Dialog title asking the user to confirm app exit from the home screen

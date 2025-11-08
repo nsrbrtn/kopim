@@ -25,7 +25,7 @@ import 'package:kopim/features/home/presentation/controllers/home_dashboard_pref
 import 'package:kopim/features/home/presentation/controllers/home_providers.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
 import 'package:kopim/features/profile/presentation/controllers/auth_controller.dart';
-import 'package:kopim/features/profile/presentation/screens/general_settings_screen.dart';
+import 'package:kopim/features/profile/presentation/screens/menu_screen.dart';
 import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
 import 'package:kopim/features/savings/domain/repositories/saving_goal_repository.dart';
 import 'package:kopim/features/savings/domain/use_cases/archive_saving_goal_use_case.dart';
@@ -316,8 +316,8 @@ void main() {
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           routes: <String, WidgetBuilder>{
-            GeneralSettingsScreen.routeName: (_) =>
-                const GeneralSettingsScreen(),
+            MenuScreen.routeName: (_) =>
+                const MenuScreen(),
           },
           home: const MainNavigationShell(),
         ),
@@ -349,8 +349,8 @@ void main() {
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           routes: <String, WidgetBuilder>{
-            GeneralSettingsScreen.routeName: (_) =>
-                const GeneralSettingsScreen(),
+            MenuScreen.routeName: (_) =>
+                const MenuScreen(),
           },
           home: const MainNavigationShell(),
         ),
@@ -359,20 +359,20 @@ void main() {
 
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Settings'));
+    await tester.tap(find.text('Menu'));
     await tester.pumpAndSettle();
 
-    expect(find.byType(GeneralSettingsScreen), findsOneWidget);
+    expect(find.byType(MenuScreen), findsOneWidget);
 
     final AppLocalizations strings = AppLocalizationsEn();
 
-    expect(find.text(strings.profileGeneralSettingsTitle), findsOneWidget);
+    expect(find.text(strings.profileMenuTitle), findsOneWidget);
     expect(find.text(strings.profileManageCategoriesCta), findsOneWidget);
 
     await tester.tap(find.text('Home'));
     await tester.pumpAndSettle();
 
-    expect(find.byType(GeneralSettingsScreen), findsNothing);
+    expect(find.byType(MenuScreen), findsNothing);
     expect(find.byType(BottomNavigationBar), findsOneWidget);
   });
 
@@ -387,8 +387,8 @@ void main() {
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           routes: <String, WidgetBuilder>{
-            GeneralSettingsScreen.routeName: (_) =>
-                const GeneralSettingsScreen(),
+            MenuScreen.routeName: (_) =>
+                const MenuScreen(),
           },
           home: const MainNavigationShell(),
         ),
@@ -425,8 +425,8 @@ void main() {
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           routes: <String, WidgetBuilder>{
-            GeneralSettingsScreen.routeName: (_) =>
-                const GeneralSettingsScreen(),
+            MenuScreen.routeName: (_) =>
+                const MenuScreen(),
           },
           home: const MainNavigationShell(),
         ),
@@ -450,8 +450,8 @@ void main() {
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           routes: <String, WidgetBuilder>{
-            GeneralSettingsScreen.routeName: (_) =>
-                const GeneralSettingsScreen(),
+            MenuScreen.routeName: (_) =>
+                const MenuScreen(),
           },
           home: const MainNavigationShell(),
         ),

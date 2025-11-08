@@ -34,6 +34,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileGeneralSettingsTooltip => 'General settings';
 
   @override
+  String get profileMenuTitle => 'Menu';
+
+  @override
   String get profileGeneralSettingsManagementSection => 'Data management';
 
   @override
@@ -1145,7 +1148,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeNavSavings => 'Savings';
 
   @override
-  String get homeNavSettings => 'Settings';
+  String get homeNavSettings => 'Menu';
 
   @override
   String get mainNavigationExitTitle => 'Exit Kopim?';

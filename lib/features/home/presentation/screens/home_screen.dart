@@ -25,7 +25,7 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
 import 'package:kopim/features/profile/presentation/controllers/auth_controller.dart';
-import 'package:kopim/features/profile/presentation/screens/general_settings_screen.dart';
+import 'package:kopim/features/profile/presentation/screens/menu_screen.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/presentation/add_transaction_screen.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
@@ -262,7 +262,7 @@ class _HomeBody extends StatelessWidget {
                 HomeBudgetProgressCard(
                   preferences: dashboardPreferences,
                   onConfigure: () {
-                    context.push(GeneralSettingsScreen.routeName);
+                    context.push(MenuScreen.routeName);
                   },
                 ),
               );
@@ -411,7 +411,7 @@ class _HomeSecondaryPanel extends StatelessWidget {
         HomeBudgetProgressCard(
           preferences: preferences,
           onConfigure: () {
-            context.push(GeneralSettingsScreen.routeName);
+            context.push(MenuScreen.routeName);
           },
         ),
       );
