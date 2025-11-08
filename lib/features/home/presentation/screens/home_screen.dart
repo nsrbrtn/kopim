@@ -67,6 +67,7 @@ NavigationTabContent buildHomeTabContent(BuildContext context, WidgetRef ref) {
 
   return NavigationTabContent(
     bodyBuilder: (BuildContext context, WidgetRef ref) => SafeArea(
+      bottom: false,
       child: _HomeBody(
         authState: authState,
         accountsAsync: accountsAsync,
@@ -346,6 +347,11 @@ class _HomeBody extends StatelessWidget {
                     ),
                   ),
                 ),
+              ),
+            );
+            slivers.add(
+              const SliverToBoxAdapter(
+                child: SizedBox(height: 80),
               ),
             );
 

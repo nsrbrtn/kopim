@@ -74,6 +74,7 @@ NavigationTabContent buildAnalyticsTabContent(
           : 24;
 
       return SafeArea(
+        bottom: false,
         child: CustomScrollView(
           slivers: <Widget>[
             SliverPadding(
@@ -137,6 +138,7 @@ NavigationTabContent buildAnalyticsTabContent(
                   ),
                 ),
               ),
+            const SliverToBoxAdapter(child: SizedBox(height: 80)),
           ],
         ),
       );

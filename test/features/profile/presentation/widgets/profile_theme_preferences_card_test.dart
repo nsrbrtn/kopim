@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:kopim/core/theme/application/theme_mode_controller.dart';
 import 'package:kopim/core/theme/domain/app_theme_mode.dart';
-import 'package:kopim/features/profile/presentation/widgets/profile_management_body.dart';
+import 'package:kopim/features/profile/presentation/widgets/profile_theme_preferences_card.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
 class _TestThemeModeController extends ThemeModeController {
@@ -44,25 +44,18 @@ void main() {
     );
     final AppLocalizations strings = AppLocalizations.of(context)!;
 
-    expect(find.text(strings.profileDarkModeSystemActive), findsOneWidget);
+    expect(find.text(strings.profileThemeLightDescription), findsOneWidget);
 
     await tester.tap(find.byType(Switch));
     await tester.pump();
 
     expect(controller.debugState, const AppThemeMode.dark());
+    expect(find.text(strings.profileThemeDarkDescription), findsOneWidget);
 
     await tester.tap(find.byType(Switch));
     await tester.pump();
 
     expect(controller.debugState, const AppThemeMode.light());
-
-    await tester.tap(find.text(strings.profileThemeHeader));
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.text(strings.profileDarkModeSystemCta));
-    await tester.pump();
-
-    expect(controller.debugState, const AppThemeMode.system());
   });
 }
 

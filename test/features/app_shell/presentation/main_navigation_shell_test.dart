@@ -8,6 +8,7 @@ import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/accounts/domain/repositories/account_repository.dart';
 import 'package:kopim/features/accounts/domain/use_cases/watch_accounts_use_case.dart';
 import 'package:kopim/features/analytics/domain/use_cases/watch_monthly_analytics_use_case.dart';
+import 'package:kopim/features/app_shell/presentation/widgets/main_navigation_bar.dart';
 import 'package:kopim/features/app_shell/presentation/widgets/main_navigation_shell.dart';
 import 'package:kopim/features/budgets/domain/entities/budget.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_instance.dart';
@@ -326,7 +327,7 @@ void main() {
 
     await tester.pumpAndSettle();
 
-    final Finder bottomNavFinder = find.byType(BottomNavigationBar);
+    final Finder bottomNavFinder = find.byType(MainNavigationBar);
     expect(bottomNavFinder, findsOneWidget);
 
     await tester.tap(find.text('Analytics'));
@@ -373,7 +374,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(MenuScreen), findsNothing);
-    expect(find.byType(BottomNavigationBar), findsOneWidget);
+    expect(find.byType(MainNavigationBar), findsOneWidget);
   });
 
   testWidgets('hides bottom navigation when a secondary route is pushed', (
@@ -406,12 +407,12 @@ void main() {
 
     await tester.pumpAndSettle();
 
-    expect(find.byType(BottomNavigationBar), findsNothing);
+    expect(find.byType(MainNavigationBar), findsNothing);
 
     navigatorKey.currentState!.pop();
     await tester.pumpAndSettle();
 
-    expect(find.byType(BottomNavigationBar), findsOneWidget);
+    expect(find.byType(MainNavigationBar), findsOneWidget);
   });
 
   testWidgets('switches to navigation rail on wide layouts', (
@@ -436,7 +437,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(NavigationRail), findsOneWidget);
-    expect(find.byType(BottomNavigationBar), findsNothing);
+    expect(find.byType(MainNavigationBar), findsNothing);
   });
 
   testWidgets('extends navigation rail on extra wide layouts', (

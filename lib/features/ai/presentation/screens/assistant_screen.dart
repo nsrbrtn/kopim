@@ -119,6 +119,7 @@ class _AssistantScreenState extends ConsumerState<AssistantScreen> {
     return Scaffold(
       appBar: AppBar(title: Text(strings.assistantScreenTitle)),
       body: SafeArea(
+        bottom: false,
         child: Column(
           children: <Widget>[
             _AssistantOfflineBanner(
@@ -175,7 +176,7 @@ class _AssistantScreenState extends ConsumerState<AssistantScreen> {
                 _inputController.clear();
               },
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 114),
           ],
         ),
       ),

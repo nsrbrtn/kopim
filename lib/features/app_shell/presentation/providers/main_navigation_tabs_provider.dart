@@ -5,7 +5,6 @@ import 'package:kopim/features/analytics/presentation/analytics_screen.dart';
 import 'package:kopim/features/budgets/presentation/budgets_screen.dart';
 import 'package:kopim/features/home/presentation/screens/home_screen.dart';
 import 'package:kopim/features/profile/presentation/screens/menu_screen.dart';
-import 'package:kopim/features/savings/presentation/screens/savings_list_screen.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
 import '../models/navigation_tab_config.dart';
@@ -37,14 +36,6 @@ final Provider<List<NavigationTabConfig>> mainNavigationTabsProvider =
           labelBuilder: (BuildContext context) =>
               AppLocalizations.of(context)!.homeNavAssistant,
           contentBuilder: buildAssistantTabContent,
-        ),
-        NavigationTabConfig(
-          id: 'savings',
-          icon: Icons.savings_outlined,
-          activeIcon: Icons.savings,
-          labelBuilder: (BuildContext context) =>
-              AppLocalizations.of(context)!.homeNavSavings,
-          contentBuilder: buildSavingsTabContent,
         ),
         NavigationTabConfig(
           id: 'budgets',

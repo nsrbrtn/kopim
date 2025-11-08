@@ -131,11 +131,17 @@ class MainNavigationShell extends ConsumerWidget {
               : stackedContent;
 
           return Scaffold(
+            extendBody: useBottomBar,
             appBar: appBar,
             body: body,
             floatingActionButton: floatingActionButton,
             bottomNavigationBar: useBottomBar
-                ? MainNavigationBar(tabs: tabs)
+                ? SafeArea(
+                  top: false,
+                  left: false,
+                  right: false,
+                  child: MainNavigationBar(tabs: tabs),
+                )
                 : null,
           );
         },

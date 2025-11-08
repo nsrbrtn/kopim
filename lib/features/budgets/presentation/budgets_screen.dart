@@ -60,7 +60,7 @@ NavigationTabContent buildBudgetsTabContent(
       );
       final AsyncValue<List<BudgetCategorySpend>> categorySpendAsync = ref
           .watch(budgetCategorySpendProvider);
-      return budgetsAsync.when(
+      final Widget content = budgetsAsync.when(
         data: (List<BudgetProgress> items) {
           if (items.isEmpty) {
             return _BudgetsEmptyState(strings: strings);
@@ -114,6 +114,14 @@ NavigationTabContent buildBudgetsTabContent(
             strings: strings,
           );
         },
+      );
+      return MediaQuery.removePadding(
+        context: context,
+        removeBottom: true,
+        child: Padding(
+          padding: const EdgeInsets.only(bottom: 80),
+          child: content,
+        ),
       );
     },
   );
