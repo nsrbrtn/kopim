@@ -11,6 +11,7 @@ class MainNavigationBar extends ConsumerWidget {
 
   final List<NavigationTabConfig> tabs;
 
+  static const double height = 96; // Эмпирическая высота контента бара без safe-area.
   static const Duration _animationDuration = Duration(milliseconds: 200);
 
   @override

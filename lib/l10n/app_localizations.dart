@@ -249,7 +249,7 @@ abstract class AppLocalizations {
   /// Tooltip for refreshing the exact alarm permission status
   ///
   /// In en, this message translates to:
-  /// **'Retry status check'**
+  /// **'Update status'**
   String get settingsNotificationsRetryTooltip;
 
   /// Button label that triggers a test notification from settings

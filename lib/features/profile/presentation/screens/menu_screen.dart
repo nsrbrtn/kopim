@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:kopim/features/analytics/presentation/analytics_screen.dart';
+import 'package:kopim/features/app_shell/presentation/widgets/main_navigation_bar.dart';
+import 'package:kopim/features/app_shell/presentation/widgets/navigation_responsive_breakpoints.dart';
 import 'package:kopim/features/budgets/presentation/budgets_screen.dart';
 import 'package:kopim/features/categories/presentation/screens/manage_categories_screen.dart';
 import 'package:kopim/features/home/domain/entities/home_dashboard_preferences.dart';
@@ -17,6 +19,7 @@ class MenuScreen extends ConsumerWidget {
   const MenuScreen({super.key});
 
   static const String routeName = '/menu';
+  static const double _actionButtonGap = 32;
 
   void _pushRoute(BuildContext context, String routeName) {
     final GoRouter? router = GoRouter.maybeOf(context);
@@ -28,6 +31,15 @@ class MenuScreen extends ConsumerWidget {
     if (navigator != null) {
       navigator.pushNamed(routeName);
     }
+  }
+
+  double _actionButtonBottomPadding(BuildContext context) {
+    final double bottomInset = MediaQuery.viewPaddingOf(context).bottom;
+    final double width = MediaQuery.sizeOf(context).width;
+    final bool usesBottomNav = width < kMainNavigationRailBreakpoint;
+    final double navigationClearance =
+        usesBottomNav ? MainNavigationBar.height : 0;
+    return bottomInset + navigationClearance + _actionButtonGap;
   }
 
   @override
@@ -73,67 +85,77 @@ class MenuScreen extends ConsumerWidget {
       ),
       body: SafeArea(
         bottom: false,
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
+        child: Stack(
           children: <Widget>[
-            for (final _SettingsMenuConfig config in menuItems) ...<Widget>[
-              _SettingsMenuItem(
-                icon: config.icon,
-                label: config.label,
-                onTap: config.onTap,
-                textStyle: theme.textTheme.bodyLarge?.copyWith(
-                  color: theme.colorScheme.onSurface,
-                ),
-                backgroundColor: _settingsMenuContainerColor(theme),
-                borderRadius: 28,
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-              ),
-              const SizedBox(height: 8),
-            ],
-            preferencesAsync.when(
-              data: (HomeDashboardPreferences preferences) =>
-                  HomeDashboardVisibilityCard(
-                    strings: strings,
-                    preferences: preferences,
-                    onToggleGamification: (bool value) => ref
-                        .read(
-                          homeDashboardPreferencesControllerProvider.notifier,
-                        )
-                        .setShowGamification(value),
-                    onToggleBudget: (bool value) => ref
-                        .read(
-                          homeDashboardPreferencesControllerProvider.notifier,
-                        )
-                        .setShowBudget(value),
-                    onToggleRecurring: (bool value) => ref
-                        .read(
-                          homeDashboardPreferencesControllerProvider.notifier,
-                        )
-                        .setShowRecurring(value),
-                    onToggleSavings: (bool value) => ref
-                        .read(
-                          homeDashboardPreferencesControllerProvider.notifier,
-                        )
-                        .setShowSavings(value),
+            ListView(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
+              children: <Widget>[
+                for (final _SettingsMenuConfig config in menuItems) ...<Widget>[
+                  _SettingsMenuItem(
+                    icon: config.icon,
+                    label: config.label,
+                    onTap: config.onTap,
+                    textStyle: theme.textTheme.bodyLarge?.copyWith(
+                      color: theme.colorScheme.onSurface,
+                    ),
+                    backgroundColor: _settingsMenuContainerColor(theme),
+                    borderRadius: 28,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 24,
+                    ),
                   ),
-              loading: () => const _SettingsSkeleton(),
-              error: (Object error, _) => _SettingsErrorMessage(
-                message: strings.homeDashboardPreferencesError(
-                  error.toString(),
+                  const SizedBox(height: 8),
+                ],
+                preferencesAsync.when(
+                  data: (HomeDashboardPreferences preferences) =>
+                      HomeDashboardVisibilityCard(
+                        strings: strings,
+                        preferences: preferences,
+                        onToggleGamification: (bool value) => ref
+                            .read(
+                              homeDashboardPreferencesControllerProvider
+                                  .notifier,
+                            )
+                            .setShowGamification(value),
+                        onToggleBudget: (bool value) => ref
+                            .read(
+                              homeDashboardPreferencesControllerProvider
+                                  .notifier,
+                            )
+                            .setShowBudget(value),
+                        onToggleRecurring: (bool value) => ref
+                            .read(
+                              homeDashboardPreferencesControllerProvider
+                                  .notifier,
+                            )
+                            .setShowRecurring(value),
+                        onToggleSavings: (bool value) => ref
+                            .read(
+                              homeDashboardPreferencesControllerProvider
+                                  .notifier,
+                            )
+                            .setShowSavings(value),
+                      ),
+                  loading: () => const _SettingsSkeleton(),
+                  error: (Object error, _) => _SettingsErrorMessage(
+                    message: strings.homeDashboardPreferencesError(
+                      error.toString(),
+                    ),
+                  ),
                 ),
+                const SizedBox(height: 120),
+              ],
+            ),
+            Positioned(
+              right: 24,
+              bottom: _actionButtonBottomPadding(context),
+              child: _SettingsActionButton(
+                tooltip: strings.profileGeneralSettingsTooltip,
+                onPressed: () => _openGeneralSettings(context),
               ),
             ),
-            const SizedBox(height: 32),
           ],
-        ),
-      ),
-      floatingActionButton: Padding(
-        padding: const EdgeInsets.only(bottom: 106),
-        child: FloatingActionButton(
-          tooltip: strings.profileGeneralSettingsTooltip,
-          onPressed: () => _openGeneralSettings(context),
-          child: const Icon(Icons.settings_outlined),
         ),
       ),
     );
@@ -206,11 +228,50 @@ class _SettingsMenuItem extends StatelessWidget {
   }
 }
 
+class _SettingsActionButton extends StatelessWidget {
+  const _SettingsActionButton({
+    required this.tooltip,
+    required this.onPressed,
+  });
+
+  final String tooltip;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final Color backgroundColor = theme.colorScheme.primary;
+    final Color iconColor = theme.colorScheme.onPrimary;
+
+    return Semantics(
+      button: true,
+      label: tooltip,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: backgroundColor,
+          shape: BoxShape.circle,
+          boxShadow: <BoxShadow>[
+            BoxShadow(
+              color: backgroundColor.withOpacity(0.35),
+              blurRadius: 16,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: IconButton(
+          tooltip: tooltip,
+          iconSize: 28,
+          icon: const Icon(Icons.settings_outlined),
+          color: iconColor,
+          onPressed: onPressed,
+        ),
+      ),
+    );
+  }
+}
+
 Color _settingsMenuContainerColor(ThemeData theme) {
-  final bool isDark = theme.brightness == Brightness.dark;
-  return theme.colorScheme.surfaceContainerHighest.withAlpha(
-    (255 * (isDark ? 0.4 : 0.8)).round(),
-  );
+  return theme.colorScheme.surfaceContainer;
 }
 
 class _SettingsSkeleton extends StatelessWidget {

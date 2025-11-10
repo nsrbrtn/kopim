@@ -98,7 +98,7 @@ class AppLocalizationsRu extends AppLocalizations {
   }
 
   @override
-  String get settingsNotificationsRetryTooltip => 'Повторить проверку';
+  String get settingsNotificationsRetryTooltip => 'Обновить статус';
 
   @override
   String get settingsNotificationsTestCta => 'Отправить тестовое уведомление';

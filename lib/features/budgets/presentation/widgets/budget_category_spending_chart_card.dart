@@ -25,6 +25,43 @@ class BudgetCategorySpendingChartCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final KopimLayout layout = context.kopimLayout;
     final KopimSpacingScale spacing = layout.spacing;
+    final ThemeData theme = Theme.of(context);
+    final BorderRadius containerRadius = BorderRadius.circular(24);
+    const EdgeInsets containerPadding = EdgeInsets.all(16);
+    final Color containerColor = theme.colorScheme.surfaceContainer;
+
+    Widget buildSectionContainer({
+      required Widget child,
+      bool withTitle = false,
+      String? title,
+    }) {
+      return SizedBox(
+        width: double.infinity,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: containerColor,
+            borderRadius: containerRadius,
+          ),
+          child: Padding(
+            padding: containerPadding,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                if (withTitle && title != null)
+                  Text(
+                    title,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                child,
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
     if (data.isEmpty) {
       return Card(
         margin: EdgeInsets.zero,
@@ -55,7 +92,6 @@ class BudgetCategorySpendingChartCard extends StatelessWidget {
       );
     }
 
-    final ThemeData theme = Theme.of(context);
     final NumberFormat currencyFormat = NumberFormat.simpleCurrency(
       locale: localeName,
     );
@@ -70,83 +106,81 @@ class BudgetCategorySpendingChartCard extends StatelessWidget {
         _CategoryChartMetrics.from(item, maxReference),
     ];
 
-    return Card(
-      margin: EdgeInsets.zero,
-      child: Padding(
-        padding: EdgeInsets.all(spacing.section),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Text(
-              strings.budgetsCategoryChartTitle,
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            SizedBox(height: spacing.section),
-            LayoutBuilder(
-              builder: (BuildContext context, BoxConstraints constraints) {
-                final double chartHeight = _resolveChartHeight(
-                  constraints.maxWidth,
-                );
-                final double maxBarHeight = math.max(
-                  0,
-                  chartHeight - _BudgetCategoryBar.extraHeight,
-                );
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          buildSectionContainer(
+            withTitle: true,
+            title: strings.budgetsCategoryChartTitle,
+            child: LayoutBuilder(
+            builder: (BuildContext context, BoxConstraints constraints) {
+              final double chartHeight = _resolveChartHeight(
+                constraints.maxWidth,
+              );
+              final double maxBarHeight = math.max(
+                0,
+                chartHeight - _BudgetCategoryBar.extraHeight,
+              );
 
-                return SizedBox(
-                  height: chartHeight,
-                  child: ScrollConfiguration(
-                    behavior: const ScrollBehavior().copyWith(
-                      overscroll: false,
+              return SizedBox(
+                height: chartHeight,
+                child: ScrollConfiguration(
+                  behavior: const ScrollBehavior().copyWith(
+                    overscroll: false,
+                  ),
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: spacing.between,
                     ),
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      padding: EdgeInsets.symmetric(
-                        horizontal: spacing.between,
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minWidth: constraints.maxWidth,
                       ),
-                      child: ConstrainedBox(
-                        constraints: BoxConstraints(
-                          minWidth: constraints.maxWidth,
-                        ),
-                        child: Align(
-                          alignment: Alignment.bottomLeft,
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: <Widget>[
-                              for (
-                                int index = 0;
-                                index < metrics.length;
-                                index++
-                              ) ...<Widget>[
-                                if (index > 0) SizedBox(width: spacing.section),
-                                SizedBox(
-                                  width: 72,
-                                  child: _BudgetCategoryBar(
-                                    metrics: metrics[index],
-                                    maxBarHeight: maxBarHeight,
-                                    percentFormat: percentFormat,
-                                  ),
+                      child: Align(
+                        alignment: Alignment.bottomLeft,
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: <Widget>[
+                            for (
+                              int index = 0;
+                              index < metrics.length;
+                              index++
+                            ) ...<Widget>[
+                              if (index > 0)
+                                SizedBox(width: spacing.section),
+                              SizedBox(
+                                width: 28,
+                                child: _BudgetCategoryBar(
+                                  metrics: metrics[index],
+                                  maxBarHeight: maxBarHeight,
+                                  percentFormat: percentFormat,
                                 ),
-                              ],
+                              ),
                             ],
-                          ),
+                          ],
                         ),
                       ),
                     ),
                   ),
-                );
-              },
-            ),
-            SizedBox(height: spacing.section),
-            _BudgetCategoryBreakdown(
+                ),
+              );
+            },
+          ),
+        ),
+        SizedBox(height: spacing.section),
+          buildSectionContainer(
+            withTitle: false,
+            child: _BudgetCategoryBreakdown(
               data: data,
               currencyFormat: currencyFormat,
               percentFormat: percentFormat,
               strings: strings,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -517,7 +551,8 @@ class _BudgetCategoryBar extends StatelessWidget {
   final double maxBarHeight;
   final NumberFormat percentFormat;
 
-  static const double extraHeight = 92;
+  static const double extraHeight = 120;
+  static const double _barWidth = 28;
 
   @override
   Widget build(BuildContext context) {
@@ -528,15 +563,24 @@ class _BudgetCategoryBar extends StatelessWidget {
       metrics.data.category.icon,
     );
     final double safeMaxBarHeight = math.max(0, maxBarHeight);
-    final double backgroundHeight =
-        safeMaxBarHeight * metrics.limitFraction.clamp(0, 1);
+    final double baseFillFraction = metrics.hasLimit
+        ? metrics.utilization.isFinite
+            ? metrics.utilization.clamp(0, 1)
+            : 0
+        : metrics.limitFraction.clamp(0, 1);
+    final double overshootFraction = metrics.hasLimit && metrics.utilization.isFinite
+        ? (metrics.utilization - 1).clamp(0, 1)
+        : 0;
+    final double baseFillHeight = safeMaxBarHeight * baseFillFraction;
+    final double overshootHeight = safeMaxBarHeight * overshootFraction;
     final String percentLabel = percentFormat.format(
       metrics.hasLimit
           ? metrics.utilization.isFinite
-                ? metrics.utilization.clamp(0, 9.99)
-                : 0
+              ? metrics.utilization.clamp(0, 9.99)
+              : 0
           : 0,
     );
+    final BorderRadiusGeometry barRadius = BorderRadius.circular(14);
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.end,
@@ -554,28 +598,45 @@ class _BudgetCategoryBar extends StatelessWidget {
         const SizedBox(height: 8),
         SizedBox(
           height: safeMaxBarHeight,
-          child: Align(
+          child: Stack(
+            clipBehavior: Clip.none,
             alignment: Alignment.bottomCenter,
-            child: SizedBox(
-              height: backgroundHeight,
-              width: 40,
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(14),
-                child: Stack(
-                  alignment: Alignment.bottomCenter,
-                  children: <Widget>[
-                    Container(color: theme.colorScheme.surfaceContainerHighest),
-                    FractionallySizedBox(
-                      alignment: Alignment.bottomCenter,
-                      heightFactor: backgroundHeight <= 0
-                          ? 0
-                          : metrics.spentFractionWithinLimit.clamp(0, 1),
-                      child: Container(color: categoryColor),
-                    ),
-                  ],
+            children: <Widget>[
+              Container(
+                width: _barWidth,
+                height: safeMaxBarHeight,
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surfaceContainerHighest,
+                  borderRadius: barRadius,
                 ),
               ),
-            ),
+              if (baseFillHeight > 0)
+                Positioned(
+                  bottom: 0,
+                  child: Container(
+                    width: _barWidth,
+                    height: baseFillHeight,
+                    decoration: BoxDecoration(
+                      color: categoryColor,
+                      borderRadius: barRadius,
+                    ),
+                  ),
+                ),
+              if (overshootHeight > 0)
+                Positioned(
+                  top: 0,
+                  child: Container(
+                    width: _barWidth,
+                    height: overshootHeight,
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.error,
+                      borderRadius: const BorderRadius.vertical(
+                        top: Radius.circular(14),
+                      ),
+                    ),
+                  ),
+                ),
+            ],
           ),
         ),
         const SizedBox(height: 16),

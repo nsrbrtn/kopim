@@ -124,7 +124,7 @@
       }
     }
   },
-  "settingsNotificationsRetryTooltip": "Retry status check",
+  "settingsNotificationsRetryTooltip": "Update status",
   "@settingsNotificationsRetryTooltip": {
     "description": "Tooltip for refreshing the exact alarm permission status"
   },

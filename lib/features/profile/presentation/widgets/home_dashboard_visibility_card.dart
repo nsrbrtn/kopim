@@ -41,11 +41,7 @@ class _HomeDashboardVisibilityCardState
     final TextStyle? textStyle = theme.textTheme.bodyLarge?.copyWith(
       color: theme.colorScheme.onSurface,
     );
-    final bool isDark = theme.brightness == Brightness.dark;
-    final Color containerColor =
-        theme.colorScheme.surfaceContainerHighest.withAlpha(
-          (255 * (isDark ? 0.4 : 0.8)).round(),
-        );
+    final Color containerColor = theme.colorScheme.surfaceContainer;
     final List<_DashboardToggleConfig> toggles = <_DashboardToggleConfig>[
       _DashboardToggleConfig(
         label: widget.strings.settingsHomeGamificationTitle,
@@ -160,11 +156,7 @@ class _DashboardToggleTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
-    final bool isDark = theme.brightness == Brightness.dark;
-    final Color tileColor =
-        theme.colorScheme.surfaceContainerHighest.withAlpha(
-          (255 * (isDark ? 0.8 : 0.4)).round(),
-        );
+    final Color tileColor = theme.colorScheme.surfaceContainer;
 
     return Container(
       width: double.infinity,
