@@ -124,7 +124,7 @@
       }
     }
   },
-  "settingsNotificationsRetryTooltip": "Повторить проверку",
+  "settingsNotificationsRetryTooltip": "Обновить статус",
   "@settingsNotificationsRetryTooltip": {
     "description": "Подсказка для кнопки обновления статуса точных напоминаний"
   },

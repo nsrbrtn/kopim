@@ -119,7 +119,6 @@ class _AssistantScreenState extends ConsumerState<AssistantScreen> {
     return Scaffold(
       appBar: AppBar(title: Text(strings.assistantScreenTitle)),
       body: SafeArea(
-        bottom: false,
         child: Column(
           children: <Widget>[
             _AssistantOfflineBanner(
@@ -176,7 +175,6 @@ class _AssistantScreenState extends ConsumerState<AssistantScreen> {
                 _inputController.clear();
               },
             ),
-            const SizedBox(height: 114),
           ],
         ),
       ),
@@ -513,7 +511,7 @@ class _AssistantInputBarState extends State<_AssistantInputBar> {
     final bool canSend =
         widget.controller.text.trim().isNotEmpty && !widget.isSending;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[

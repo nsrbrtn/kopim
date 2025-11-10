@@ -167,19 +167,6 @@ class _HomeBody extends StatelessWidget {
               16,
               0,
             );
-            const EdgeInsets transactionsHeaderPadding = EdgeInsets.fromLTRB(
-              16,
-              24,
-              16,
-              8,
-            );
-            const EdgeInsets transactionsContentPadding = EdgeInsets.fromLTRB(
-              16,
-              0,
-              16,
-              12,
-            );
-
             final Widget accountsSection = accountsAsync.when(
               data: (List<AccountEntity> accounts) => _AccountsList(
                 accounts: accounts,
@@ -195,30 +182,17 @@ class _HomeBody extends StatelessWidget {
               ),
             );
 
-            final Widget transactionsSliver = groupedTransactionsAsync.when(
-              data: (List<DaySection> sections) {
-                if (sections.isEmpty) {
-                  return SliverToBoxAdapter(
-                    child: _EmptyMessage(
-                      message: strings.homeTransactionsEmpty,
-                    ),
-                  );
-                }
-                return _TransactionsSliver(
-                  sections: sections,
-                  localeName: strings.localeName,
-                  strings: strings,
-                );
-              },
-              loading: () => const SliverToBoxAdapter(
-                child: Center(
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(vertical: 24),
-                    child: CircularProgressIndicator(),
-                  ),
-                ),
+            final Widget transactionsSection = groupedTransactionsAsync.when(
+              data: (List<DaySection> sections) => _TransactionsSectionCard(
+                sections: sections,
+                localeName: strings.localeName,
+                strings: strings,
+                onSeeAll: () {
+                  context.push(AllTransactionsScreen.routeName);
+                },
               ),
-              error: (Object error, _) => SliverToBoxAdapter(
+              loading: () => const _TransactionsSectionLoading(),
+              error: (Object error, _) => _TransactionsContainer(
                 child: _ErrorMessage(
                   message: strings.homeTransactionsError(error.toString()),
                 ),
@@ -308,45 +282,8 @@ class _HomeBody extends StatelessWidget {
             }
             slivers.add(
               SliverPadding(
-                padding: transactionsHeaderPadding,
-                sliver: SliverToBoxAdapter(
-                  child: _SectionHeader(title: strings.homeTransactionsSection),
-                ),
-              ),
-            );
-            slivers.add(
-              SliverPadding(
-                padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
-                sliver: SliverToBoxAdapter(
-                  child: _TransactionsFilterBar(strings: strings),
-                ),
-              ),
-            );
-            slivers.add(
-              SliverPadding(
-                padding: transactionsContentPadding,
-                sliver: transactionsSliver,
-              ),
-            );
-            slivers.add(
-              SliverPadding(
-                padding: const EdgeInsets.fromLTRB(8, 0, 8, 20),
-                sliver: SliverToBoxAdapter(
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: TextButton(
-                      onPressed: () {
-                        context.push(AllTransactionsScreen.routeName);
-                      },
-                      style: TextButton.styleFrom(
-                        foregroundColor: theme.colorScheme.primary.withAlpha(
-                          (0.9 * 255).round(),
-                        ),
-                      ),
-                      child: Text(strings.homeTransactionsSeeAll),
-                    ),
-                  ),
-                ),
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+                sliver: SliverToBoxAdapter(child: transactionsSection),
               ),
             );
             slivers.add(
@@ -669,6 +606,31 @@ class _AccountsListState extends State<_AccountsList> {
     oldController.dispose();
   }
 
+  double _calculateRequiredFraction({
+    required BuildContext context,
+    required BoxConstraints constraints,
+    required String localeName,
+  }) {
+    final double maxWidth = constraints.maxWidth;
+    if (maxWidth <= 0 || widget.accounts.isEmpty) {
+      return 0;
+    }
+    double requiredWidth = 0;
+    for (final AccountEntity account in widget.accounts) {
+      final NumberFormat format = NumberFormat.currency(
+        locale: localeName,
+        symbol: account.currency.toUpperCase(),
+      );
+      final double width = _AccountCardLayout.measureBalanceWidth(
+        context: context,
+        text: format.format(account.balance),
+      );
+      requiredWidth = math.max(requiredWidth, width);
+    }
+    requiredWidth += _AccountCardLayout.horizontalPadding;
+    return (requiredWidth / maxWidth).clamp(0, 1);
+  }
+
   @override
   Widget build(BuildContext context) {
     if (widget.accounts.isEmpty) {
@@ -715,14 +677,23 @@ class _AccountsListState extends State<_AccountsList> {
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
         final bool isCarouselWide = constraints.maxWidth >= 720;
+        final double baseFraction = widget.accounts.length == 1
+            ? 0.95
+            : (isCarouselWide ? 0.45 : 0.85);
+        final double requiredFraction = _calculateRequiredFraction(
+          context: context,
+          constraints: constraints,
+          localeName: localeName,
+        );
+        final double targetFraction = math.min(
+          0.98,
+          math.max(baseFraction, requiredFraction),
+        );
         final double baseHeight = _AccountCardLayout.estimateHeight(context);
         final double cardHeight = math.max(
           baseHeight,
           isCarouselWide ? 168 : 176,
         );
-        final double targetFraction = widget.accounts.length == 1
-            ? 0.95
-            : (isCarouselWide ? 0.45 : 0.85);
         if ((_viewportFraction - targetFraction).abs() > 0.001) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (!mounted) return;
@@ -749,6 +720,7 @@ class _AccountsListState extends State<_AccountsList> {
                   final NumberFormat currencyFormat = NumberFormat.currency(
                     locale: localeName,
                     symbol: account.currency.toUpperCase(),
+                    decimalDigits: 0,
                   );
                   final HomeAccountMonthlySummary summary =
                       widget.monthlySummaries[account.id] ??
@@ -912,6 +884,7 @@ class _AccountCard extends StatelessWidget {
       ),
     );
   }
+
 }
 
 class _AccountMonthlyValue extends StatelessWidget {
@@ -970,6 +943,8 @@ class _AccountCardPalette {
 }
 
 class _AccountCardLayout {
+  static const double horizontalPadding = 32;
+
   static double estimateHeight(BuildContext context) {
     final ThemeData theme = Theme.of(context);
     final double label = _textHeight(
@@ -1002,6 +977,22 @@ class _AccountCardLayout {
         gaps;
   }
 
+  static double measureBalanceWidth({
+    required BuildContext context,
+    required String text,
+  }) {
+    final ThemeData theme = Theme.of(context);
+    final TextStyle style = theme.textTheme.displaySmall ??
+        theme.textTheme.headlineMedium ??
+        const TextStyle(fontSize: 36, height: 44 / 36);
+    final TextPainter painter = TextPainter(
+      text: TextSpan(text: text, style: style),
+      maxLines: 1,
+      textDirection: ui.TextDirection.ltr,
+    )..layout();
+    return painter.width;
+  }
+
   static double _textHeight(TextStyle style) {
     final TextPainter painter = TextPainter(
       text: TextSpan(text: 'Hg', style: style),
@@ -1012,52 +1003,73 @@ class _AccountCardLayout {
   }
 }
 
-class _TransactionsSliver extends StatelessWidget {
-  const _TransactionsSliver({
+List<_TransactionSliverEntry> _buildTransactionEntries(
+  List<DaySection> sections,
+  String localeName,
+  AppLocalizations strings,
+) {
+  final DateTime today = DateUtils.dateOnly(DateTime.now());
+  final DateTime yesterday = DateUtils.dateOnly(
+    today.subtract(const Duration(days: 1)),
+  );
+  final DateFormat headerFormat = TransactionTileFormatters.dayHeader(
+    localeName,
+  );
+  final List<_TransactionSliverEntry> entries = <_TransactionSliverEntry>[];
+  for (final DaySection section in sections) {
+    final String title = _formatSectionTitle(
+      date: section.date,
+      today: today,
+      yesterday: yesterday,
+      dateFormat: headerFormat,
+      strings: strings,
+    );
+    entries.add(_TransactionHeaderEntry(title: title));
+    for (final TransactionEntity transaction in section.transactions) {
+      entries.add(_TransactionItemEntry(transactionId: transaction.id));
+    }
+  }
+  return entries;
+}
+
+class _TransactionsSectionCard extends StatelessWidget {
+  const _TransactionsSectionCard({
     required this.sections,
     required this.localeName,
     required this.strings,
+    required this.onSeeAll,
   });
 
   final List<DaySection> sections;
   final String localeName;
   final AppLocalizations strings;
+  final VoidCallback onSeeAll;
 
   @override
   Widget build(BuildContext context) {
-    final DateTime today = DateUtils.dateOnly(DateTime.now());
-    final DateTime yesterday = DateUtils.dateOnly(
-      today.subtract(const Duration(days: 1)),
-    );
-    final DateFormat headerFormat = TransactionTileFormatters.dayHeader(
-      localeName,
+    final ThemeData theme = Theme.of(context);
+    final List<_TransactionSliverEntry> entries =
+        _buildTransactionEntries(sections, localeName, strings);
+    final bool hasTransactions = entries.any(
+      ( _TransactionSliverEntry entry) => entry is _TransactionItemEntry,
     );
 
-    final List<_TransactionSliverEntry> entries = <_TransactionSliverEntry>[];
-    for (final DaySection section in sections) {
-      final String title = _formatSectionTitle(
-        date: section.date,
-        today: today,
-        yesterday: yesterday,
-        dateFormat: headerFormat,
-        strings: strings,
-      );
-      entries.add(_TransactionHeaderEntry(title: title));
-      for (final TransactionEntity transaction in section.transactions) {
-        entries.add(_TransactionItemEntry(transactionId: transaction.id));
+    Widget buildEntries() {
+      if (!hasTransactions) {
+        return _EmptyMessage(message: strings.homeTransactionsEmpty);
       }
-    }
-
-    return SliverList(
-      delegate: SliverChildBuilderDelegate(
-        (BuildContext context, int index) {
+      return ListView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: entries.length,
+        itemBuilder: (BuildContext context, int index) {
           final _TransactionSliverEntry entry = entries[index];
           if (entry is _TransactionHeaderEntry) {
             return Padding(
               padding: EdgeInsets.only(top: index == 0 ? 0 : 24, bottom: 8),
               child: Text(
                 entry.title,
-                style: Theme.of(context).textTheme.titleMedium,
+                style: theme.textTheme.titleMedium,
               ),
             );
           }
@@ -1070,9 +1082,62 @@ class _TransactionsSliver extends StatelessWidget {
           }
           return const SizedBox.shrink();
         },
-        childCount: entries.length,
-        addAutomaticKeepAlives: false,
-        addRepaintBoundaries: true,
+      );
+    }
+
+    return _TransactionsContainer(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          _SectionHeader(
+            title: strings.homeTransactionsSection,
+            action: TextButton(
+              onPressed: onSeeAll,
+              style: TextButton.styleFrom(
+                foregroundColor: theme.colorScheme.primary,
+              ),
+              child: Text(strings.homeTransactionsSeeAll),
+            ),
+          ),
+          const SizedBox(height: 12),
+          _TransactionsFilterBar(strings: strings),
+          const SizedBox(height: 12),
+          buildEntries(),
+        ],
+      ),
+    );
+  }
+}
+
+class _TransactionsSectionLoading extends StatelessWidget {
+  const _TransactionsSectionLoading();
+
+  @override
+  Widget build(BuildContext context) {
+    return _TransactionsContainer(
+      child: const Padding(
+        padding: EdgeInsets.symmetric(vertical: 32),
+        child: Center(child: CircularProgressIndicator()),
+      ),
+    );
+  }
+}
+
+class _TransactionsContainer extends StatelessWidget {
+  const _TransactionsContainer({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainer,
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: child,
       ),
     );
   }

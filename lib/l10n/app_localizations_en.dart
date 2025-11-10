@@ -97,7 +97,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get settingsNotificationsRetryTooltip => 'Retry status check';
+  String get settingsNotificationsRetryTooltip => 'Update status';
 
   @override
   String get settingsNotificationsTestCta => 'Send test notification';

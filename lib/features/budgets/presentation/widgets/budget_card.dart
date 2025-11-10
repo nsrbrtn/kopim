@@ -30,49 +30,52 @@ class BudgetCard extends StatelessWidget {
         : 1.0;
     final bool exceeded = progress.isExceeded;
 
-    return Material(
-      color: theme.colorScheme.surface,
-      borderRadius: BorderRadius.circular(layout.radius.card),
-      child: InkWell(
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Material(
+        color: theme.colorScheme.surfaceContainer,
         borderRadius: BorderRadius.circular(layout.radius.card),
-        onTap: onTap,
-        child: Padding(
-          padding: EdgeInsets.all(spacing.section),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Text(progress.budget.title, style: theme.textTheme.titleMedium),
-              SizedBox(height: spacing.section),
-              BudgetProgressIndicator(value: ratio, exceeded: exceeded),
-              SizedBox(height: spacing.section),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: <Widget>[
-                  _BudgetMetric(
-                    label: strings.budgetsSpentLabel,
-                    value: currencyFormat.format(spent),
-                  ),
-                  _BudgetMetric(
-                    label: strings.budgetsLimitLabel,
-                    value: currencyFormat.format(limit),
-                  ),
-                  _BudgetMetric(
-                    label: exceeded
-                        ? strings.budgetsExceededLabel
-                        : strings.budgetsRemainingLabel,
-                    value: currencyFormat.format(
-                      exceeded ? (spent - limit) : remaining,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(layout.radius.card),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(progress.budget.title, style: theme.textTheme.titleMedium),
+                SizedBox(height: spacing.section),
+                BudgetProgressIndicator(value: ratio, exceeded: exceeded),
+                SizedBox(height: spacing.section),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    _BudgetMetric(
+                      label: strings.budgetsSpentLabel,
+                      value: currencyFormat.format(spent),
                     ),
-                    valueStyle: exceeded
-                        ? theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.error,
-                            fontWeight: FontWeight.w600,
-                          )
-                        : null,
-                  ),
-                ],
-              ),
-            ],
+                    _BudgetMetric(
+                      label: strings.budgetsLimitLabel,
+                      value: currencyFormat.format(limit),
+                    ),
+                    _BudgetMetric(
+                      label: exceeded
+                          ? strings.budgetsExceededLabel
+                          : strings.budgetsRemainingLabel,
+                      value: currencyFormat.format(
+                        exceeded ? (spent - limit) : remaining,
+                      ),
+                      valueStyle: exceeded
+                          ? theme.textTheme.bodyMedium?.copyWith(
+                              color: theme.colorScheme.error,
+                              fontWeight: FontWeight.w600,
+                            )
+                          : null,
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),

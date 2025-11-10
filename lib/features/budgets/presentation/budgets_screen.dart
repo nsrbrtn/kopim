@@ -79,16 +79,13 @@ NavigationTabContent buildBudgetsTabContent(
                   strings: strings,
                 ),
           );
-          final List<Widget> children = <Widget>[
-            chartSection,
-            SizedBox(height: spacing.section),
-          ];
+          final List<Widget> budgetCards = <Widget>[];
           for (int index = 0; index < items.length; index++) {
             if (index > 0) {
-              children.add(SizedBox(height: spacing.section));
+              budgetCards.add(SizedBox(height: spacing.section));
             }
             final BudgetProgress progress = items[index];
-            children.add(
+            budgetCards.add(
               BudgetCard(
                 progress: progress,
                 onTap: () {
@@ -102,8 +99,13 @@ NavigationTabContent buildBudgetsTabContent(
               ),
             );
           }
+          final List<Widget> children = <Widget>[
+            ...budgetCards,
+            if (budgetCards.isNotEmpty) SizedBox(height: spacing.section),
+            chartSection,
+          ];
           return ListView(
-            padding: EdgeInsets.all(spacing.screen),
+            padding: const EdgeInsets.only(top: 16, bottom: 16),
             children: children,
           );
         },
