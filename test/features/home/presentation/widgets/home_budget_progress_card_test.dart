@@ -73,6 +73,9 @@ void main() {
       );
       final ProviderContainer container = ProviderContainer(
         overrides: <Override>[
+          budgetsStreamProvider.overrideWith(
+            (Ref _) => Stream<List<Budget>>.value(<Budget>[budget]),
+          ),
           budgetProgressByIdProvider(
             'budget-1',
           ).overrideWithValue(AsyncValue<BudgetProgress>.data(progress)),
@@ -101,7 +104,6 @@ void main() {
                   showBudgetWidget: true,
                   budgetId: 'budget-1',
                 ),
-                onConfigure: () {},
               ),
             ),
           ),
@@ -113,17 +115,73 @@ void main() {
       expect(find.text('Budget overview'), findsOneWidget);
       expect(find.text('Food'), findsOneWidget);
       expect(find.byType(LinearProgressIndicator), findsOneWidget);
-      expect(find.byType(CategoryChip), findsWidgets);
-      expect(find.textContaining('%'), findsWidgets);
+      expect(find.byType(CategoryChip), findsNothing);
     });
 
-    testWidgets(
-      'invokes callback when configure button tapped for empty state',
-      (WidgetTester tester) async {
-        bool tapped = false;
+    testWidgets('shows high-utilization category chips', (
+      WidgetTester tester,
+    ) async {
+      final Category groceries = Category(
+        id: 'cat-1',
+        name: 'Groceries',
+        type: 'expense',
+        color: '#FF0000',
+        createdAt: DateTime(2024, 1, 1),
+        updatedAt: DateTime(2024, 1, 1),
+      );
+      final TransactionEntity groceryTx = TransactionEntity(
+        id: 'tx-1',
+        accountId: 'acc-1',
+        categoryId: groceries.id,
+        amount: -420,
+        date: DateTime(2024, 1, 10),
+        type: 'expense',
+        createdAt: DateTime(2024, 1, 10),
+        updatedAt: DateTime(2024, 1, 10),
+      );
+      final BudgetInstance highInstance = BudgetInstance(
+        id: 'instance-2',
+        budgetId: 'budget-1',
+        periodStart: DateTime(2024, 1, 1),
+        periodEnd: DateTime(2024, 1, 31),
+        amount: 500,
+        spent: 420,
+        status: BudgetInstanceStatus.active,
+        createdAt: DateTime(2024, 1, 1),
+        updatedAt: DateTime(2024, 1, 2),
+      );
+      final BudgetProgress highProgress = BudgetProgress(
+        budget: budget,
+        instance: highInstance,
+        spent: 420,
+        remaining: 80,
+        utilization: 0.84,
+        isExceeded: false,
+      );
+      final ProviderContainer container = ProviderContainer(
+        overrides: <Override>[
+          budgetsStreamProvider.overrideWith(
+            (Ref _) => Stream<List<Budget>>.value(<Budget>[budget]),
+          ),
+          budgetProgressByIdProvider(
+            'budget-1',
+          ).overrideWithValue(AsyncValue<BudgetProgress>.data(highProgress)),
+          budgetCategoriesStreamProvider.overrideWith(
+            (Ref ref) => Stream<List<Category>>.value(<Category>[groceries]),
+          ),
+          budgetTransactionsByIdProvider('budget-1').overrideWithValue(
+            AsyncValue<List<TransactionEntity>>.data(<TransactionEntity>[
+              groceryTx,
+            ]),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
 
-        await tester.pumpWidget(
-          MaterialApp(
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: MaterialApp(
             locale: const Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
@@ -131,21 +189,17 @@ void main() {
               body: HomeBudgetProgressCard(
                 preferences: const HomeDashboardPreferences(
                   showBudgetWidget: true,
-                  budgetId: null,
+                  budgetId: 'budget-1',
                 ),
-                onConfigure: () {
-                  tapped = true;
-                },
               ),
             ),
           ),
-        );
+        ),
+      );
 
-        await tester.tap(find.text('Open settings'));
-        await tester.pump();
+      await tester.pump();
 
-        expect(tapped, isTrue);
-      },
-    );
+      expect(find.byType(CategoryChip), findsWidgets);
+    });
   });
 }
