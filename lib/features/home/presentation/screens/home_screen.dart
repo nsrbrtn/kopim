@@ -25,10 +25,8 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
 import 'package:kopim/features/profile/presentation/controllers/auth_controller.dart';
-import 'package:kopim/features/profile/presentation/screens/menu_screen.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/presentation/add_transaction_screen.dart';
-import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
 import 'package:kopim/features/transactions/presentation/controllers/transaction_actions_controller.dart';
 import 'package:kopim/features/transactions/presentation/widgets/transaction_editor.dart';
 import 'package:kopim/features/transactions/presentation/widgets/transaction_tile_formatters.dart';
@@ -158,7 +156,7 @@ class _HomeBody extends StatelessWidget {
                   sliver: SliverToBoxAdapter(child: child),
                 ),
               );
-              nextTopPadding = 16;
+              nextTopPadding = 0;
             }
 
             const EdgeInsets accountsPadding = EdgeInsets.fromLTRB(
@@ -236,9 +234,6 @@ class _HomeBody extends StatelessWidget {
               addBoxSection(
                 HomeBudgetProgressCard(
                   preferences: dashboardPreferences,
-                  onConfigure: () {
-                    context.push(MenuScreen.routeName);
-                  },
                 ),
               );
             }
@@ -353,9 +348,6 @@ class _HomeSecondaryPanel extends StatelessWidget {
       addSection(
         HomeBudgetProgressCard(
           preferences: preferences,
-          onConfigure: () {
-            context.push(MenuScreen.routeName);
-          },
         ),
       );
     }
@@ -1061,6 +1053,7 @@ class _TransactionsSectionCard extends StatelessWidget {
       return ListView.builder(
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
+        padding: EdgeInsets.zero,
         itemCount: entries.length,
         itemBuilder: (BuildContext context, int index) {
           final _TransactionSliverEntry entry = entries[index];
@@ -1085,24 +1078,37 @@ class _TransactionsSectionCard extends StatelessWidget {
       );
     }
 
+    final TextStyle? titleStyle = theme.textTheme.titleLarge?.copyWith(
+      color: theme.colorScheme.onSurface,
+    );
     return _TransactionsContainer(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: <Widget>[
-          _SectionHeader(
-            title: strings.homeTransactionsSection,
-            action: TextButton(
+          Text(strings.homeTransactionsSection, style: titleStyle),
+          const SizedBox(height: 16),
+          _TransactionsFilterBar(strings: strings),
+          const SizedBox(height: 16),
+          buildEntries(),
+          const SizedBox(height: 16),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: FilledButton(
               onPressed: onSeeAll,
-              style: TextButton.styleFrom(
-                foregroundColor: theme.colorScheme.primary,
+              style: FilledButton.styleFrom(
+                backgroundColor: theme.colorScheme.secondary,
+                foregroundColor: theme.colorScheme.onSecondary,
+                minimumSize: const Size(91, 56),
+                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+                shape: const StadiumBorder(),
+                textStyle: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w500,
+                ),
               ),
               child: Text(strings.homeTransactionsSeeAll),
             ),
           ),
-          const SizedBox(height: 12),
-          _TransactionsFilterBar(strings: strings),
-          const SizedBox(height: 12),
-          buildEntries(),
         ],
       ),
     );
@@ -1114,7 +1120,7 @@ class _TransactionsSectionLoading extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _TransactionsContainer(
+    return const _TransactionsContainer(
       child: const Padding(
         padding: EdgeInsets.symmetric(vertical: 32),
         child: Center(child: CircularProgressIndicator()),
@@ -1133,10 +1139,10 @@ class _TransactionsContainer extends StatelessWidget {
     return DecoratedBox(
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceContainer,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(28),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
         child: child,
       ),
     );
@@ -1155,46 +1161,62 @@ class _TransactionsFilterBar extends ConsumerWidget {
       homeTransactionsFilterControllerProvider,
     );
 
-    TextButton buildFilterButton(HomeTransactionsFilter filter, String label) {
+    Widget buildFilterChip(HomeTransactionsFilter filter, String label) {
       final bool isSelected = selected == filter;
-      final TextStyle baseStyle =
-          theme.textTheme.bodyMedium ?? const TextStyle(fontSize: 14);
-      final TextStyle style = baseStyle.copyWith(
-        fontWeight: isSelected ? FontWeight.w600 : baseStyle.fontWeight,
-        color: isSelected
-            ? theme.colorScheme.primary
-            : theme.colorScheme.onSurface.withValues(alpha: 0.68),
-      );
-      return TextButton(
-        onPressed: () => ref
+      final Color backgroundColor = isSelected
+          ? theme.colorScheme.primary
+          : Colors.transparent;
+      final Color textColor = isSelected
+          ? theme.colorScheme.onPrimary
+          : theme.colorScheme.onSurface;
+      return InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: () => ref
             .read(homeTransactionsFilterControllerProvider.notifier)
             .update(filter),
-        style: TextButton.styleFrom(
-          padding: EdgeInsets.zero,
-          minimumSize: const Size(0, 0),
-          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          decoration: BoxDecoration(
+            color: backgroundColor,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Text(
+            label,
+            style: theme.textTheme.labelMedium?.copyWith(
+              fontWeight: FontWeight.w500,
+              letterSpacing: 0.5,
+              color: textColor,
+            ),
+          ),
         ),
-        child: Text(label, style: style),
       );
     }
 
-    return Row(
-      children: <Widget>[
-        buildFilterButton(
-          HomeTransactionsFilter.all,
-          strings.homeTransactionsFilterAll,
-        ),
-        const SizedBox(width: 12),
-        buildFilterButton(
-          HomeTransactionsFilter.income,
-          strings.homeTransactionsFilterIncome,
-        ),
-        const SizedBox(width: 12),
-        buildFilterButton(
-          HomeTransactionsFilter.expense,
-          strings.homeTransactionsFilterExpense,
-        ),
-      ],
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          buildFilterChip(
+            HomeTransactionsFilter.all,
+            strings.homeTransactionsFilterAll,
+          ),
+          const SizedBox(width: 10),
+          buildFilterChip(
+            HomeTransactionsFilter.income,
+            strings.homeTransactionsFilterIncome,
+          ),
+          const SizedBox(width: 10),
+          buildFilterChip(
+            HomeTransactionsFilter.expense,
+            strings.homeTransactionsFilterExpense,
+          ),
+        ],
+      ),
     );
   }
 }
@@ -1323,11 +1345,6 @@ class _TransactionListItem extends ConsumerWidget {
               : Colors.black87)
         : Theme.of(context).colorScheme.onSurfaceVariant;
 
-    final bool isExpense = type == TransactionType.expense.storageValue;
-    final Color amountColor = isExpense
-        ? Theme.of(context).colorScheme.error
-        : Theme.of(context).colorScheme.primary;
-
     return Dismissible(
       key: ValueKey<String>(transactionId),
       direction: DismissDirection.endToStart,
@@ -1366,21 +1383,27 @@ class _TransactionListItem extends ConsumerWidget {
               );
             },
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              padding: const EdgeInsets.fromLTRB(8, 8, 16, 8),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  CircleAvatar(
-                    radius: 24,
-                    backgroundColor:
-                        categoryColor ??
-                        Theme.of(context).colorScheme.surfaceContainerHighest,
-                    foregroundColor: avatarIconColor,
-                    child: categoryIcon != null
-                        ? Icon(categoryIcon, size: 22)
-                        : const Icon(Icons.category_outlined, size: 22),
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: categoryColor ??
+                          Theme.of(context).colorScheme.surfaceContainerHighest,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Center(
+                      child: Icon(
+                        categoryIcon ?? Icons.category_outlined,
+                        size: 22,
+                        color: avatarIconColor,
+                      ),
+                    ),
                   ),
-                  const SizedBox(width: 14),
+                  const SizedBox(width: 16),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1388,8 +1411,12 @@ class _TransactionListItem extends ConsumerWidget {
                       children: <Widget>[
                         Text(
                           categoryName,
-                          style: Theme.of(context).textTheme.titleSmall
-                              ?.copyWith(fontWeight: FontWeight.w600),
+                          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                                fontWeight: FontWeight.w500,
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSurface,
+                              ),
                         ),
                         if (note != null && note.isNotEmpty)
                           Padding(
@@ -1402,8 +1429,7 @@ class _TransactionListItem extends ConsumerWidget {
                                   ?.copyWith(
                                     color: Theme.of(context)
                                         .colorScheme
-                                        .onSurface
-                                        .withValues(alpha: 0.68),
+                                        .onSurfaceVariant,
                                   ),
                             ),
                           ),
@@ -1412,24 +1438,22 @@ class _TransactionListItem extends ConsumerWidget {
                   ),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
-                    mainAxisAlignment: MainAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
                       Text(
                         moneyFormat.format(amount.abs()),
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(
-                              color: amountColor,
-                              fontWeight: FontWeight.w700,
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                              color: Theme.of(context).colorScheme.onSurface,
+                              fontWeight: FontWeight.w400,
                             ),
                       ),
                       if (accountName != null)
                         Text(
                           accountName,
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onSurface.withValues(alpha: 0.68),
+                          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSurfaceVariant,
                               ),
                         ),
                     ],

@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import 'package:kopim/features/upcoming_payments/domain/models/upcoming_item.dart';
 import 'package:kopim/features/upcoming_payments/domain/services/time_service.dart';
 import 'package:kopim/l10n/app_localizations.dart';
+import 'package:kopim/features/upcoming_payments/domain/providers/upcoming_payments_providers.dart';
+import 'package:kopim/features/upcoming_payments/domain/usecases/mark_reminder_done_uc.dart';
 
 class HomeUpcomingItemsCard extends StatefulWidget {
   const HomeUpcomingItemsCard({
@@ -52,65 +55,65 @@ class _HomeUpcomingItemsCardState extends State<HomeUpcomingItemsCard> {
           style: theme.textTheme.bodyMedium,
         ),
       );
-    } else {
-      content = AnimatedCrossFade(
-        crossFadeState: _isExpanded
-            ? CrossFadeState.showSecond
-            : CrossFadeState.showFirst,
-        duration: const Duration(milliseconds: 220),
-        firstCurve: Curves.easeInOut,
-        secondCurve: Curves.easeInOut,
-        sizeCurve: Curves.easeInOut,
-        alignment: Alignment.topCenter,
-        firstChild: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: _UpcomingSummaryBadges(
-            paymentCount: paymentCount,
-            reminderCount: reminderCount,
-            strings: widget.strings,
-            theme: theme,
-          ),
-        ),
-        secondChild: Column(
-          children: <Widget>[
-            for (final UpcomingItem item in widget.items)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 6),
-                child: _UpcomingListRow(
-                  item: item,
-                  strings: widget.strings,
-                  theme: theme,
-                  timeService: widget.timeService,
-                ),
-              ),
-            const SizedBox(height: 12),
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton(
-                onPressed: widget.onMore,
-                child: Text(widget.strings.homeUpcomingPaymentsMore),
+    } else if (_isExpanded) {
+      content = Column(
+        children: <Widget>[
+          for (final UpcomingItem item in widget.items)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 6),
+              child: _UpcomingListRow(
+                item: item,
+                strings: widget.strings,
+                timeService: widget.timeService,
               ),
             ),
-          ],
+          const SizedBox(height: 12),
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton(
+              onPressed: widget.onMore,
+              child: Text(widget.strings.homeUpcomingPaymentsMore),
+            ),
+          ),
+        ],
+      );
+    } else {
+      content = Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: _UpcomingSummaryBadges(
+          paymentCount: paymentCount,
+          reminderCount: reminderCount,
+          strings: widget.strings,
+          theme: theme,
         ),
       );
     }
 
-    return Card(
-      margin: EdgeInsets.zero,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
+    final TextStyle? headerStyle = theme.textTheme.titleLarge?.copyWith(
+      color: theme.colorScheme.onSurface,
+      fontWeight: FontWeight.w500,
+    );
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Container(
+        margin: EdgeInsets.zero,
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surfaceContainer,
+          borderRadius: BorderRadius.circular(28),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
             Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: <Widget>[
                 Expanded(
                   child: Text(
                     widget.strings.homeUpcomingPaymentsTitle,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: headerStyle,
                   ),
                 ),
                 IconButton(
@@ -128,7 +131,8 @@ class _HomeUpcomingItemsCardState extends State<HomeUpcomingItemsCard> {
             ),
             const SizedBox(height: 8),
             content,
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -226,7 +230,7 @@ class _UpcomingBadge extends StatelessWidget {
               textColor: badgeTextColor,
               child: Icon(icon, color: color),
             ),
-            const SizedBox(width: 8),
+                        const SizedBox(width: 4),
             Text(
               label,
               style:
@@ -246,106 +250,136 @@ class _UpcomingBadge extends StatelessWidget {
   }
 }
 
-class _UpcomingListRow extends StatelessWidget {
+class _UpcomingListRow extends ConsumerWidget {
   const _UpcomingListRow({
     required this.item,
     required this.strings,
-    required this.theme,
     required this.timeService,
   });
 
   final UpcomingItem item;
   final AppLocalizations strings;
-  final ThemeData theme;
   final TimeService timeService;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final ThemeData theme = Theme.of(context);
     final DateTime whenLocal = timeService.toLocal(item.whenMs);
-    final DateFormat dateFormat = DateFormat.MMMd(strings.localeName);
-    final DateFormat timeFormat = DateFormat.Hm(strings.localeName);
+    final DateFormat dateFormat =
+        DateFormat('dd.MM.yyyy', strings.localeName);
     final NumberFormat amountFormat = NumberFormat.currency(
       locale: strings.localeName,
       symbol: '',
       decimalDigits: 2,
     );
-    final bool isPayment = item.type == UpcomingItemType.paymentRule;
-    final IconData icon = isPayment ? Icons.event_repeat : Icons.alarm;
-    final Color accentColor = isPayment
-        ? theme.colorScheme.primary
-        : theme.colorScheme.secondary;
-    final Color amountColor = item.amount >= 0
-        ? theme.colorScheme.error
-        : theme.colorScheme.primary;
     final String amountText = amountFormat.format(item.amount.abs()).trim();
+    final bool isReminder = item.type == UpcomingItemType.reminder;
+    final MarkReminderDoneUC markDone =
+        ref.read(markReminderDoneUCProvider);
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        SizedBox(
-          width: 72,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Text(
-                dateFormat.format(whenLocal),
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                timeFormat.format(whenLocal),
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ],
+    Future<void> markReminderDone() async {
+      try {
+        await markDone(
+          MarkReminderDoneInput(id: item.id, isDone: true),
+        );
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(strings.upcomingPaymentsReminderMarkPaidSuccess),
           ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Row(
-                children: <Widget>[
-                  Icon(icon, size: 18, color: accentColor),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      item.title,
-                      style: theme.textTheme.bodyLarge,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
+        );
+      } catch (error) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              strings.upcomingPaymentsReminderMarkPaidError(
+                error.toString(),
               ),
-              const SizedBox(height: 4),
-              Text(
-                amountText,
-                style: theme.textTheme.titleSmall?.copyWith(
-                  color: amountColor,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              if (item.note != null && item.note!.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.only(top: 4),
-                  child: Text(
-                    item.note!,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-            ],
+            ),
           ),
-        ),
-      ],
+        );
+      }
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: <Widget>[
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(
+                  item.title,
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w500,
+                    color: theme.colorScheme.onSurface,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: <Widget>[
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.surfaceContainerHighest,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Text(
+                        amountText,
+                        style: theme.textTheme.bodyLarge?.copyWith(
+                          color: theme.colorScheme.onSurface,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Flexible(
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: <Widget>[
+                          Flexible(
+                            child: Text(
+                              dateFormat.format(whenLocal),
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: theme.colorScheme.onSurface,
+                                letterSpacing: 0.4,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Icon(
+                            Icons.calendar_today,
+                            size: 16.3,
+                            color: theme.colorScheme.onSurface,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          if (isReminder)
+            IconButton(
+              onPressed: markReminderDone,
+              icon: const Icon(Icons.check_circle_outline),
+              color: theme.colorScheme.onSurface,
+              tooltip: strings.upcomingPaymentsReminderMarkPaidTooltip,
+            ),
+        ],
+      ),
     );
   }
 }

@@ -375,11 +375,11 @@
           "type": "color"
         },
         "surface-container-lowest": {
-          "value": "#4A4A4A",
+          "value": "#0C0C0C",
           "type": "color"
         },
         "surface-container-low": {
-          "value": "#28292B",
+          "value": "#141414",
           "type": "color"
         },
         "surface-container": {
@@ -387,7 +387,7 @@
           "type": "color"
         },
         "surface-container-high": {
-          "value": "#4D5053",
+          "value": "#323232",
           "type": "color"
         },
         "surface-container-highest": {

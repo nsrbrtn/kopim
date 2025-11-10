@@ -1,9 +1,12 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import 'package:kopim/core/utils/helpers.dart';
 import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
+import 'package:kopim/features/budgets/domain/entities/budget.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_progress.dart';
 import 'package:kopim/features/budgets/presentation/budget_detail_screen.dart';
 import 'package:kopim/features/budgets/presentation/controllers/budgets_providers.dart';
@@ -11,6 +14,7 @@ import 'package:kopim/features/budgets/presentation/widgets/budget_progress_indi
 import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/categories/presentation/widgets/category_chip.dart';
 import 'package:kopim/features/home/domain/entities/home_dashboard_preferences.dart';
+import 'package:kopim/features/home/presentation/controllers/home_dashboard_preferences_controller.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -18,30 +22,155 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 class HomeBudgetProgressCard extends ConsumerWidget {
   const HomeBudgetProgressCard({
     required this.preferences,
-    required this.onConfigure,
     super.key,
   });
 
   final HomeDashboardPreferences preferences;
-  final VoidCallback onConfigure;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final ThemeData theme = Theme.of(context);
     final AppLocalizations strings = AppLocalizations.of(context)!;
+    final AsyncValue<List<Budget>> budgetsAsync =
+        ref.watch(budgetsStreamProvider);
 
     final String? budgetId = preferences.budgetId;
+    Future<void> openBudgetPicker(List<Budget> budgets) async {
+      final NumberFormat currencyFormat =
+          NumberFormat.simpleCurrency(locale: strings.localeName);
+      final String? selectedBudgetId = await showModalBottomSheet<String>(
+        context: context,
+        isScrollControlled: true,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(28),
+          ),
+        ),
+        builder: (BuildContext sheetContext) {
+          final double maxHeight =
+              math.min(budgets.length * 72 + 120, 400);
+          return SafeArea(
+            child: SizedBox(
+              height: maxHeight,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(24, 24, 24, 12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Text(
+                          strings.settingsHomeBudgetPickerTitle,
+                          style: theme.textTheme.titleLarge,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          strings.settingsHomeBudgetPickerHint,
+                          style: theme.textTheme.bodyMedium,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Divider(height: 1),
+                  Expanded(
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: budgets.length,
+                      itemBuilder: (BuildContext context, int index) {
+                        final Budget budget = budgets[index];
+                        return ListTile(
+                          title: Text(budget.title),
+                          subtitle: Text(
+                            currencyFormat.format(budget.amount),
+                          ),
+                          onTap: () {
+                            Navigator.pop(sheetContext, budget.id);
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+      if (selectedBudgetId != null) {
+        await ref
+            .read(homeDashboardPreferencesControllerProvider.notifier)
+            .setBudgetId(selectedBudgetId);
+      }
+    }
+
+    Widget buildBudgetSelector() {
+      return budgetsAsync.when(
+        data: (List<Budget> budgets) {
+          if (budgets.isEmpty) {
+            return Text(
+              strings.settingsHomeBudgetNoBudgets,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.72),
+              ),
+            );
+          }
+          return FilledButton.tonal(
+            onPressed: () => openBudgetPicker(budgets),
+            child: Text(strings.settingsHomeBudgetPickerTitle),
+          );
+        },
+        loading: () => const SizedBox(
+          height: 32,
+          child: Center(
+            child: SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+          ),
+        ),
+        error: (Object error, _) => Text(
+          strings.settingsHomeBudgetError(error.toString()),
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.error,
+          ),
+        ),
+      );
+    }
+
+    Widget wrapWithContainer({
+      required Widget child,
+      VoidCallback? onTap,
+    }) {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 8),
+        child: Material(
+          color: theme.colorScheme.surfaceContainer,
+          borderRadius: BorderRadius.circular(28),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(28),
+            onTap: onTap,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minWidth: double.infinity),
+              child: child,
+            ),
+          ),
+        ),
+      );
+    }
+
     if (budgetId == null) {
-      return Card(
-        color: theme.colorScheme.surfaceContainerHigh,
+      return wrapWithContainer(
+        onTap: null,
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               Text(
                 strings.homeBudgetWidgetTitle,
-                style: theme.textTheme.titleMedium,
+                style: theme.textTheme.titleLarge,
               ),
               const SizedBox(height: 4),
               Text(
@@ -51,11 +180,7 @@ class HomeBudgetProgressCard extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 16),
-              FilledButton.tonalIcon(
-                onPressed: onConfigure,
-                icon: const Icon(Icons.settings_outlined),
-                label: Text(strings.homeBudgetWidgetConfigureCta),
-              ),
+              buildBudgetSelector(),
             ],
           ),
         ),
@@ -72,113 +197,99 @@ class HomeBudgetProgressCard extends ConsumerWidget {
       budgetTransactionsByIdProvider(budgetId),
     );
 
-    return Card(
-      color: theme.colorScheme.surfaceContainerHigh,
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: progressAsync.maybeWhen(
-          data: (BudgetProgress progress) => () {
-            Navigator.of(context).push(
-              MaterialPageRoute<void>(
-                builder: (_) =>
-                    BudgetDetailScreen(budgetId: progress.budget.id),
-              ),
-            );
-          },
-          orElse: () => null,
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Text(
-                strings.homeBudgetWidgetTitle,
-                style: theme.textTheme.titleMedium,
-              ),
-              const SizedBox(height: 4),
-              progressAsync.when(
-                data: (BudgetProgress progress) {
-                  final NumberFormat currencyFormat =
-                      NumberFormat.simpleCurrency(locale: strings.localeName);
-                  final double limit = progress.budget.amount;
-                  final double spent = progress.spent;
-                  final double remaining = progress.remaining;
-                  final double ratio = progress.utilization.isFinite
-                      ? progress.utilization.clamp(0, 2)
-                      : 1.0;
-                  final bool exceeded = progress.isExceeded;
+    final VoidCallback? progressTap = progressAsync.maybeWhen(
+      data: (BudgetProgress progress) => () {
+        Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (_) => BudgetDetailScreen(budgetId: progress.budget.id),
+          ),
+        );
+      },
+      orElse: () => null,
+    );
 
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Text(
-                        progress.budget.title,
-                        style: theme.textTheme.titleMedium,
-                      ),
-                      const SizedBox(height: 12),
-                      BudgetProgressIndicator(value: ratio, exceeded: exceeded),
-                      const SizedBox(height: 12),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: <Widget>[
-                          _BudgetStat(
-                            label: strings.budgetsSpentLabel,
-                            value: currencyFormat.format(spent),
-                          ),
-                          _BudgetStat(
-                            label: strings.budgetsLimitLabel,
-                            value: currencyFormat.format(limit),
-                          ),
-                          _BudgetStat(
-                            label: exceeded
-                                ? strings.budgetsExceededLabel
-                                : strings.budgetsRemainingLabel,
-                            value: currencyFormat.format(
-                              exceeded ? (spent - limit) : remaining,
-                            ),
-                            valueStyle: exceeded
-                                ? theme.textTheme.bodyMedium?.copyWith(
-                                    color: theme.colorScheme.error,
-                                    fontWeight: FontWeight.w600,
-                                  )
-                                : null,
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      _BudgetCategoriesBreakdown(
-                        progress: progress,
-                        categoriesAsync: categoriesAsync,
-                        transactionsAsync: transactionsAsync,
-                      ),
-                    ],
-                  );
-                },
-                loading: () => const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 8),
-                  child: LinearProgressIndicator(),
-                ),
-                error: (Object error, _) => Column(
+    return wrapWithContainer(
+      onTap: progressTap,
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Text(
+              strings.homeBudgetWidgetTitle,
+              style: theme.textTheme.titleLarge,
+            ),
+            const SizedBox(height: 4),
+            progressAsync.when(
+              data: (BudgetProgress progress) {
+                final NumberFormat currencyFormat =
+                    NumberFormat.simpleCurrency(locale: strings.localeName);
+                final double limit = progress.budget.amount;
+                final double spent = progress.spent;
+                final double remaining = progress.remaining;
+                final double ratio = progress.utilization.isFinite
+                    ? progress.utilization.clamp(0, 2)
+                    : 1.0;
+                final bool exceeded = progress.isExceeded;
+
+                return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     Text(
-                      strings.homeBudgetWidgetMissing,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.error,
-                      ),
+                      progress.budget.title,
+                      style: theme.textTheme.titleSmall,
                     ),
-                    const SizedBox(height: 8),
-                    FilledButton.tonalIcon(
-                      onPressed: onConfigure,
-                      icon: const Icon(Icons.settings_outlined),
-                      label: Text(strings.homeBudgetWidgetConfigureCta),
+                    const SizedBox(height: 12),
+                    BudgetProgressIndicator(value: ratio, exceeded: exceeded),
+                    const SizedBox(height: 12),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: <Widget>[
+                        _BudgetStat(
+                          label: strings.budgetsSpentLabel,
+                          value: currencyFormat.format(spent),
+                        ),
+                        _BudgetStat(
+                          label: strings.budgetsLimitLabel,
+                          value: currencyFormat.format(limit),
+                        ),
+                        _BudgetStat(
+                          label: exceeded
+                              ? strings.budgetsExceededLabel
+                              : strings.budgetsRemainingLabel,
+                          value: currencyFormat.format(
+                            exceeded ? (spent - limit) : remaining,
+                          ),
+                          valueStyle: exceeded
+                              ? theme.textTheme.labelMedium?.copyWith(
+                                  color: theme.colorScheme.error,
+                                  fontWeight: FontWeight.w600,
+                                )
+                              : null,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    _BudgetCategoriesBreakdown(
+                      progress: progress,
+                      categoriesAsync: categoriesAsync,
+                      transactionsAsync: transactionsAsync,
                     ),
                   ],
+                );
+              },
+              loading: () => const Padding(
+                padding: EdgeInsets.symmetric(vertical: 8),
+                child: LinearProgressIndicator(),
+              ),
+              error: (Object error, _) => Text(
+                strings.homeBudgetWidgetMissing,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.error,
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -209,7 +320,10 @@ class _BudgetStat extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 4),
-        Text(value, style: valueStyle ?? theme.textTheme.bodyMedium),
+        Text(
+          value,
+          style: valueStyle ?? theme.textTheme.labelMedium,
+        ),
       ],
     );
   }
@@ -289,10 +403,16 @@ class _BudgetCategoriesBreakdown extends ConsumerWidget {
                 ),
               );
             }
+            final List<_CategoryBreakdown> highBreakdowns = breakdowns
+                .where((_CategoryBreakdown breakdown) => breakdown.percent >= 80)
+                .toList(growable: false);
+            if (highBreakdowns.isEmpty) {
+              return const SizedBox.shrink();
+            }
             return Wrap(
               spacing: 8,
               runSpacing: 8,
-              children: breakdowns
+              children: highBreakdowns
                   .map(
                     (_CategoryBreakdown breakdown) =>
                         _BudgetCategoryChip(breakdown: breakdown),
