@@ -423,8 +423,9 @@ class _RoundedActionButton extends StatelessWidget {
     final Color background = theme.colorScheme.secondaryContainer;
     final Color foreground = theme.colorScheme.onSecondaryContainer;
     final bool disabled = onPressed == null;
+    final double disabledAlpha = background.a * 0.6;
     final Color displayBackground = disabled
-        ? background.withAlpha((background.alpha * 0.6).round())
+        ? background.withValues(alpha: disabledAlpha)
         : background;
     return Material(
       color: displayBackground,

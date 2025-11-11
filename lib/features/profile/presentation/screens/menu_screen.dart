@@ -252,7 +252,7 @@ class _SettingsActionButton extends StatelessWidget {
           shape: BoxShape.circle,
           boxShadow: <BoxShadow>[
             BoxShadow(
-              color: backgroundColor.withOpacity(0.35),
+              color: backgroundColor.withValues(alpha: 0.35),
               blurRadius: 16,
               offset: const Offset(0, 6),
             ),

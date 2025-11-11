@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import 'package:kopim/core/utils/helpers.dart';
+import 'package:kopim/core/config/theme_extensions.dart';
 import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
 import 'package:kopim/features/budgets/domain/entities/budget.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_progress.dart';
@@ -143,13 +144,15 @@ class HomeBudgetProgressCard extends ConsumerWidget {
       required Widget child,
       VoidCallback? onTap,
     }) {
+      final double cardRadius = context.kopimLayout.radius.xxl;
+      final BorderRadius borderRadius = BorderRadius.circular(cardRadius);
       return Padding(
         padding: const EdgeInsets.only(bottom: 8),
         child: Material(
           color: theme.colorScheme.surfaceContainer,
-          borderRadius: BorderRadius.circular(28),
+          borderRadius: borderRadius,
           child: InkWell(
-            borderRadius: BorderRadius.circular(28),
+            borderRadius: borderRadius,
             onTap: onTap,
             child: ConstrainedBox(
               constraints: const BoxConstraints(minWidth: double.infinity),
@@ -491,6 +494,8 @@ class _BudgetCategoryChip extends StatelessWidget {
     );
     final int roundedPercent = breakdown.percent.round();
     final String percentText = '${percentFormat.format(roundedPercent)}%';
+    final TextStyle? basePercentStyle =
+        theme.textTheme.labelSmall ?? theme.textTheme.bodySmall;
 
     return CategoryChip(
       label: category.name,
@@ -499,16 +504,10 @@ class _BudgetCategoryChip extends StatelessWidget {
       leading: Icon(iconData ?? PhosphorIconsLight.tag, size: 16),
       trailing: Text(
         percentText,
-        style:
-            theme.textTheme.labelSmall?.copyWith(
-              color: foregroundColor.withValues(alpha: 0.88),
-              fontWeight: FontWeight.w600,
-            ) ??
-            TextStyle(
-              color: foregroundColor.withValues(alpha: 0.88),
-              fontWeight: FontWeight.w600,
-              fontSize: 11,
-            ),
+        style: basePercentStyle?.copyWith(
+          color: foregroundColor.withValues(alpha: 0.88),
+          fontWeight: FontWeight.w600,
+        ),
       ),
     );
   }

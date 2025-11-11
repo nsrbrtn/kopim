@@ -6,6 +6,7 @@ import 'package:kopim/features/home/presentation/controllers/home_providers.dart
 import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
 import 'package:kopim/features/savings/domain/value_objects/goal_progress.dart';
 import 'package:kopim/l10n/app_localizations.dart';
+import 'package:kopim/core/config/theme_extensions.dart';
 
 class HomeSavingsOverviewCard extends ConsumerWidget {
   const HomeSavingsOverviewCard({this.onOpenGoal, super.key});
@@ -26,7 +27,9 @@ class HomeSavingsOverviewCard extends ConsumerWidget {
             .where((GoalProgress progress) => !progress.goal.isArchived)
             .toList(growable: false);
         if (activeGoals.isEmpty) {
-          return _HomeSavingsEmptyState(strings: strings, theme: theme);
+          return _HomeSavingsCardContainer(
+            child: _HomeSavingsEmptyState(strings: strings, theme: theme),
+          );
         }
 
         final NumberFormat currencyFormat = NumberFormat.simpleCurrency(
@@ -36,51 +39,38 @@ class HomeSavingsOverviewCard extends ConsumerWidget {
             .take(3)
             .toList(growable: false);
 
-        return Card(
-          color: theme.colorScheme.surfaceContainerHigh,
-          clipBehavior: Clip.antiAlias,
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text(
-                  strings.homeSavingsWidgetTitle,
-                  style: theme.textTheme.titleMedium,
+        return _HomeSavingsCardContainer(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Text(
+                strings.homeSavingsWidgetTitle,
+                style: theme.textTheme.titleMedium,
+              ),
+              const SizedBox(height: 12),
+              for (int i = 0; i < visibleGoals.length; i++) ...<Widget>[
+                if (i != 0) const SizedBox(height: 12),
+                _HomeSavingGoalTile(
+                  progress: visibleGoals[i],
+                  currencyFormat: currencyFormat,
+                  strings: strings,
+                  onTap: onOpenGoal == null
+                      ? null
+                      : () => onOpenGoal!(visibleGoals[i].goal),
                 ),
-                const SizedBox(height: 12),
-                for (int i = 0; i < visibleGoals.length; i++) ...<Widget>[
-                  if (i != 0) const SizedBox(height: 12),
-                  _HomeSavingGoalTile(
-                    progress: visibleGoals[i],
-                    currencyFormat: currencyFormat,
-                    strings: strings,
-                    onTap: onOpenGoal == null
-                        ? null
-                        : () => onOpenGoal!(visibleGoals[i].goal),
-                  ),
-                ],
               ],
-            ),
+            ],
           ),
         );
       },
-      loading: () => Card(
-        color: theme.colorScheme.surfaceContainerHigh,
-        child: const Padding(
-          padding: EdgeInsets.all(16),
-          child: Center(child: CircularProgressIndicator()),
-        ),
+      loading: () => const _HomeSavingsCardContainer(
+        child: Center(child: CircularProgressIndicator()),
       ),
-      error: (Object error, _) => Card(
-        color: theme.colorScheme.surfaceContainerHigh,
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Text(
-            strings.genericErrorMessage,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.error,
-            ),
+      error: (Object error, _) => _HomeSavingsCardContainer(
+        child: Text(
+          strings.genericErrorMessage,
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: theme.colorScheme.error,
           ),
         ),
       ),
@@ -96,27 +86,21 @@ class _HomeSavingsEmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      color: theme.colorScheme.surfaceContainerHigh,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Text(
-              strings.homeSavingsWidgetTitle,
-              style: theme.textTheme.titleMedium,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              strings.homeSavingsWidgetEmpty,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.72),
-              ),
-            ),
-          ],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Text(
+          strings.homeSavingsWidgetTitle,
+          style: theme.textTheme.titleMedium,
         ),
-      ),
+        const SizedBox(height: 8),
+        Text(
+          strings.homeSavingsWidgetEmpty,
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.72),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -197,6 +181,33 @@ class _HomeSavingGoalTile extends StatelessWidget {
               ],
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _HomeSavingsCardContainer extends StatelessWidget {
+  const _HomeSavingsCardContainer({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final double cardRadius = context.kopimLayout.radius.xxl;
+    final BorderRadius borderRadius = BorderRadius.circular(cardRadius);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Material(
+        color: theme.colorScheme.surfaceContainer,
+        borderRadius: borderRadius,
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minWidth: double.infinity),
+            child: child,
+          ),
         ),
       ),
     );

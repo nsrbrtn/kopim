@@ -12,11 +12,19 @@ class TransactionTileFormatters {
     return _dayHeaderCache.putIfAbsent(locale, () => DateFormat.yMMMMd(locale));
   }
 
-  static NumberFormat currency(String locale, String symbol) {
-    final String cacheKey = '$locale|$symbol';
+  static NumberFormat currency(
+    String locale,
+    String symbol, {
+    int? decimalDigits,
+  }) {
+    final String cacheKey = '$locale|$symbol|${decimalDigits ?? 'default'}';
     return _currencyCache.putIfAbsent(
       cacheKey,
-      () => NumberFormat.currency(locale: locale, symbol: symbol),
+      () => NumberFormat.currency(
+        locale: locale,
+        symbol: symbol,
+        decimalDigits: decimalDigits,
+      ),
     );
   }
 

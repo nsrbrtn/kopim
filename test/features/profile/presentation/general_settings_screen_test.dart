@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:kopim/core/theme/application/theme_mode_controller.dart';
 import 'package:kopim/core/theme/domain/app_theme_mode.dart';
 import 'package:kopim/features/profile/presentation/screens/general_settings_screen.dart';
@@ -14,7 +15,7 @@ import 'package:kopim/l10n/app_localizations.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  final overrides = [
+  final List<Override> overrides = <Override>[
     exactAlarmControllerProvider.overrideWith(
       () => _FakeExactAlarmController(),
     ),

@@ -94,13 +94,13 @@ void main() {
       await tester.pumpWidget(
         UncontrolledProviderScope(
           container: container,
-          child: MaterialApp(
-            locale: const Locale('en'),
+          child: const MaterialApp(
+            locale: Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(
               body: HomeBudgetProgressCard(
-                preferences: const HomeDashboardPreferences(
+                preferences: HomeDashboardPreferences(
                   showBudgetWidget: true,
                   budgetId: 'budget-1',
                 ),
@@ -181,13 +181,13 @@ void main() {
       await tester.pumpWidget(
         UncontrolledProviderScope(
           container: container,
-          child: MaterialApp(
-            locale: const Locale('en'),
+          child: const MaterialApp(
+            locale: Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(
               body: HomeBudgetProgressCard(
-                preferences: const HomeDashboardPreferences(
+                preferences: HomeDashboardPreferences(
                   showBudgetWidget: true,
                   budgetId: 'budget-1',
                 ),

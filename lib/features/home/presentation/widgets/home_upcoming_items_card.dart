@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:kopim/features/upcoming_payments/domain/models/upcoming_item.dart';
 import 'package:kopim/features/upcoming_payments/domain/services/time_service.dart';
 import 'package:kopim/l10n/app_localizations.dart';
+import 'package:kopim/core/config/theme_extensions.dart';
 import 'package:kopim/features/upcoming_payments/domain/providers/upcoming_payments_providers.dart';
 import 'package:kopim/features/upcoming_payments/domain/usecases/mark_reminder_done_uc.dart';
 
@@ -38,6 +39,8 @@ class _HomeUpcomingItemsCardState extends State<HomeUpcomingItemsCard> {
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
+    final double cardRadius = context.kopimLayout.radius.xxl;
+    final BorderRadius borderRadius = BorderRadius.circular(cardRadius);
     final bool hasItems = widget.items.isNotEmpty;
     final int paymentCount = widget.items
         .where((UpcomingItem item) => item.type == UpcomingItemType.paymentRule)
@@ -99,7 +102,7 @@ class _HomeUpcomingItemsCardState extends State<HomeUpcomingItemsCard> {
         margin: EdgeInsets.zero,
         decoration: BoxDecoration(
           color: theme.colorScheme.surfaceContainer,
-          borderRadius: BorderRadius.circular(28),
+          borderRadius: borderRadius,
         ),
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -233,15 +236,10 @@ class _UpcomingBadge extends StatelessWidget {
                         const SizedBox(width: 4),
             Text(
               label,
-              style:
-                  theme.textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ) ??
-                  TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: theme.colorScheme.onSurface,
-                  ),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+                color: theme.colorScheme.onSurface,
+              ),
             ),
           ],
         ),
@@ -278,17 +276,24 @@ class _UpcomingListRow extends ConsumerWidget {
         ref.read(markReminderDoneUCProvider);
 
     Future<void> markReminderDone() async {
+      final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
       try {
         await markDone(
           MarkReminderDoneInput(id: item.id, isDone: true),
         );
-        ScaffoldMessenger.of(context).showSnackBar(
+        if (!context.mounted) {
+          return;
+        }
+        messenger.showSnackBar(
           SnackBar(
             content: Text(strings.upcomingPaymentsReminderMarkPaidSuccess),
           ),
         );
       } catch (error) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        if (!context.mounted) {
+          return;
+        }
+        messenger.showSnackBar(
           SnackBar(
             content: Text(
               strings.upcomingPaymentsReminderMarkPaidError(

@@ -151,7 +151,7 @@ class KopimLayout extends ThemeExtension<KopimLayout> {
       section: 16,
       sectionLarge: 24,
     ),
-    radius: KopimRadiusScale(card: 24),
+    radius: KopimRadiusScale(card: 24, xxl: 32),
     iconSizes: KopimIconSizes(xs: 16, sm: 20, md: 24, lg: 32, xl: 48),
   );
 
@@ -252,12 +252,19 @@ class KopimSpacingScale {
 }
 
 class KopimRadiusScale {
-  const KopimRadiusScale({required this.card});
+  const KopimRadiusScale({required this.card, required this.xxl});
 
   final double card;
+  final double xxl;
 
-  KopimRadiusScale copyWith({double? card}) {
-    return KopimRadiusScale(card: card ?? this.card);
+  KopimRadiusScale copyWith({
+    double? card,
+    double? xxl,
+  }) {
+    return KopimRadiusScale(
+      card: card ?? this.card,
+      xxl: xxl ?? this.xxl,
+    );
   }
 
   static KopimRadiusScale lerp(
@@ -267,6 +274,7 @@ class KopimRadiusScale {
   ) {
     return KopimRadiusScale(
       card: lerpDouble(current.card, target.card, t) ?? current.card,
+      xxl: lerpDouble(current.xxl, target.xxl, t) ?? current.xxl,
     );
   }
 }
