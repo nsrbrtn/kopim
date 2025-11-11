@@ -35,6 +35,7 @@ import 'package:kopim/l10n/app_localizations.dart';
 import 'package:kopim/core/utils/helpers.dart';
 import 'package:kopim/core/widgets/kopim_floating_action_button.dart';
 import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
+import 'package:kopim/core/config/theme_extensions.dart';
 import 'package:kopim/features/profile/presentation/screens/profile_management_screen.dart';
 import 'package:kopim/features/transactions/presentation/screens/all_transactions_screen.dart';
 import 'package:kopim/features/savings/presentation/screens/saving_goal_details_screen.dart';
@@ -124,7 +125,7 @@ class _HomeBody extends StatelessWidget {
       data: (AuthUser? user) {
         return LayoutBuilder(
           builder: (BuildContext context, BoxConstraints _) {
-            const double horizontalPadding = 16;
+            const double horizontalPadding = 8;
             final HomeDashboardPreferences? dashboardPreferences =
                 dashboardPreferencesAsync.asData?.value;
             final ThemeData theme = Theme.of(context);
@@ -160,9 +161,9 @@ class _HomeBody extends StatelessWidget {
             }
 
             const EdgeInsets accountsPadding = EdgeInsets.fromLTRB(
+              8,
               16,
-              16,
-              16,
+              8,
               0,
             );
             final Widget accountsSection = accountsAsync.when(
@@ -277,7 +278,7 @@ class _HomeBody extends StatelessWidget {
             }
             slivers.add(
               SliverPadding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+                padding: const EdgeInsets.fromLTRB(8, 0, 8, 20),
                 sliver: SliverToBoxAdapter(child: transactionsSection),
               ),
             );
@@ -392,7 +393,7 @@ class _HomeSecondaryPanel extends StatelessWidget {
         Card(
           color: theme.colorScheme.surfaceContainerHigh,
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(24),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
@@ -787,7 +788,8 @@ class _AccountCard extends StatelessWidget {
       theme.colorScheme,
       isHighlighted: isHighlighted,
     );
-    final BorderRadius borderRadius = BorderRadius.circular(28);
+    final double cardRadius = context.kopimLayout.radius.xxl;
+    final BorderRadius borderRadius = BorderRadius.circular(cardRadius);
     final TextStyle labelStyle = (theme.textTheme.labelSmall ??
             const TextStyle(fontSize: 11, height: 1.45))
         .copyWith(
@@ -1121,7 +1123,7 @@ class _TransactionsSectionLoading extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const _TransactionsContainer(
-      child: const Padding(
+      child: Padding(
         padding: EdgeInsets.symmetric(vertical: 32),
         child: Center(child: CircularProgressIndicator()),
       ),
@@ -1136,10 +1138,11 @@ class _TransactionsContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final double containerRadius = context.kopimLayout.radius.xxl;
     return DecoratedBox(
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceContainer,
-        borderRadius: BorderRadius.circular(28),
+        borderRadius: BorderRadius.circular(containerRadius),
       ),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
@@ -1325,6 +1328,7 @@ class _TransactionListItem extends ConsumerWidget {
     final NumberFormat moneyFormat = TransactionTileFormatters.currency(
       localeName,
       currencySymbol,
+      decimalDigits: 0,
     );
 
     final Category? category = categoryId == null
@@ -1450,11 +1454,10 @@ class _TransactionListItem extends ConsumerWidget {
                       if (accountName != null)
                         Text(
                           accountName,
-                          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .onSurfaceVariant,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.labelSmall?.copyWith(
+                                    color: Theme.of(context).colorScheme.outline,
+                                  ),
                         ),
                     ],
                   ),
