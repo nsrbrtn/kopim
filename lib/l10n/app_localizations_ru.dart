@@ -1295,6 +1295,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get addTransactionAccountLabel => 'Счёт';
 
   @override
+  String get addTransactionAccountHint => 'Выберите счёт для этой транзакции';
+
+  @override
   String get addTransactionAccountRequired => 'Выберите счёт';
 
   @override
@@ -1328,6 +1331,19 @@ class AppLocalizationsRu extends AppLocalizations {
   String get addTransactionCategoryLabel => 'Категория';
 
   @override
+  String get addTransactionCategoryHint =>
+      'Привяжите категорию, чтобы аналитика работала точнее';
+
+  @override
+  String get addTransactionCategorySearchHint => 'Поиск категории';
+
+  @override
+  String get addTransactionShowAllCategories => 'Показать все категории';
+
+  @override
+  String get addTransactionHideCategories => 'Свернуть категории';
+
+  @override
   String get addTransactionCategoryNone => 'Без категории';
 
   @override
@@ -1343,6 +1359,9 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get addTransactionTimeLabel => 'Время';
+
+  @override
+  String get addTransactionChangeDateTimeHint => 'Изменить дату и время';
 
   @override
   String get addTransactionNoteLabel => 'Заметка';

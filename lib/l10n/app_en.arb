@@ -1689,6 +1689,10 @@
   "@addTransactionAccountLabel": {
     "description": "Label for account selector on add transaction form"
   },
+  "addTransactionAccountHint": "Pick an account to start this transaction",
+  "@addTransactionAccountHint": {
+    "description": "Supporting text shown above the account selector"
+  },
   "addTransactionAccountRequired": "Please choose an account",
   "@addTransactionAccountRequired": {
     "description": "Validation message when no account is selected"
@@ -1734,6 +1738,22 @@
   "@addTransactionCategoryLabel": {
     "description": "Label for category selector"
   },
+  "addTransactionCategoryHint": "Assign a category so your analytics stay accurate",
+  "@addTransactionCategoryHint": {
+    "description": "Supporting text shown above the category selector"
+  },
+  "addTransactionCategorySearchHint": "Search categories",
+  "@addTransactionCategorySearchHint": {
+    "description": "Placeholder text inside the category search field"
+  },
+  "addTransactionShowAllCategories": "Show all categories",
+  "@addTransactionShowAllCategories": {
+    "description": "Button label to expand the full category list"
+  },
+  "addTransactionHideCategories": "Hide all categories",
+  "@addTransactionHideCategories": {
+    "description": "Button label to collapse the full category list"
+  },
   "addTransactionCategoryNone": "No category",
   "@addTransactionCategoryNone": {
     "description": "Option label when no category is selected"
@@ -1758,6 +1778,10 @@
   "addTransactionTimeLabel": "Time",
   "@addTransactionTimeLabel": {
     "description": "Label for the time picker"
+  },
+  "addTransactionChangeDateTimeHint": "Change date and time",
+  "@addTransactionChangeDateTimeHint": {
+    "description": "Hint text shown above the date/time controls"
   },
   "addTransactionNoteLabel": "Note",
   "@addTransactionNoteLabel": {

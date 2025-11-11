@@ -2220,6 +2220,12 @@ abstract class AppLocalizations {
   /// **'Account'**
   String get addTransactionAccountLabel;
 
+  /// Supporting text shown above the account selector
+  ///
+  /// In en, this message translates to:
+  /// **'Pick an account to start this transaction'**
+  String get addTransactionAccountHint;
+
   /// Validation message when no account is selected
   ///
   /// In en, this message translates to:
@@ -2280,6 +2286,30 @@ abstract class AppLocalizations {
   /// **'Category'**
   String get addTransactionCategoryLabel;
 
+  /// Supporting text shown above the category selector
+  ///
+  /// In en, this message translates to:
+  /// **'Assign a category so your analytics stay accurate'**
+  String get addTransactionCategoryHint;
+
+  /// Placeholder text inside the category search field
+  ///
+  /// In en, this message translates to:
+  /// **'Search categories'**
+  String get addTransactionCategorySearchHint;
+
+  /// Button label to expand the full category list
+  ///
+  /// In en, this message translates to:
+  /// **'Show all categories'**
+  String get addTransactionShowAllCategories;
+
+  /// Button label to collapse the full category list
+  ///
+  /// In en, this message translates to:
+  /// **'Hide all categories'**
+  String get addTransactionHideCategories;
+
   /// Option label when no category is selected
   ///
   /// In en, this message translates to:
@@ -2309,6 +2339,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Time'**
   String get addTransactionTimeLabel;
+
+  /// Hint text shown above the date/time controls
+  ///
+  /// In en, this message translates to:
+  /// **'Change date and time'**
+  String get addTransactionChangeDateTimeHint;
 
   /// Label for optional note field
   ///
