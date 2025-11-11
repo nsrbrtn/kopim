@@ -15,10 +15,18 @@ import 'package:kopim/features/transactions/domain/entities/transaction_type.dar
 import 'package:kopim/features/transactions/presentation/controllers/transaction_form_controller.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
+const Color _kFormSurfaceColor = Color(0xFF1A1A1A);
+const Color _kTypeSelectedColor = Color(0xFFAEF75F);
+const Color _kTypeSelectedTextColor = Color(0xFF1D3700);
+const Color _kPrimaryButtonBackground = Color(0xFFAEF75F);
+const Color _kPrimaryButtonForeground = Color(0xFF1D3700);
+
 InputDecoration _transactionTextFieldDecoration(
   BuildContext context, {
-  required String labelText,
+  String? labelText,
   String? hintText,
+  Color? fillColor,
+  Widget? suffixIcon,
 }) {
   final ThemeData theme = Theme.of(context);
   final KopimLayout layout = context.kopimLayout;
@@ -32,7 +40,7 @@ InputDecoration _transactionTextFieldDecoration(
     labelText: labelText,
     hintText: hintText,
     filled: true,
-    fillColor: theme.colorScheme.surfaceContainerHighest,
+    fillColor: fillColor ?? theme.colorScheme.surfaceContainerHighest,
     contentPadding: EdgeInsets.symmetric(
       horizontal: spacing.section,
       vertical: spacing.section,
@@ -40,6 +48,7 @@ InputDecoration _transactionTextFieldDecoration(
     border: border,
     enabledBorder: border,
     focusedBorder: border,
+    suffixIcon: suffixIcon,
   );
 }
 
@@ -132,8 +141,6 @@ class TransactionFormView extends ConsumerWidget {
   }
 }
 
-typedef _FormSectionBuilder = Widget Function();
-
 class _TransactionForm extends ConsumerWidget {
   const _TransactionForm({
     required this.formKey,
@@ -162,90 +169,127 @@ class _TransactionForm extends ConsumerWidget {
 
     final ThemeData theme = Theme.of(context);
     final KopimSpacingScale spacing = context.kopimLayout.spacing;
-
-    final List<_FormSectionBuilder> sections = <_FormSectionBuilder>[
-      () => RepaintBoundary(
-        child: _AccountDropdownField(
-          key: const ValueKey<String>('transaction_account_field'),
-          accounts: accounts,
-          formArgs: formArgs,
-          strings: strings,
-        ),
-      ),
-      () => SizedBox(height: spacing.section),
-      () => RepaintBoundary(
-        child: _AmountField(formArgs: formArgs, strings: strings),
-      ),
-      () => SizedBox(height: spacing.section),
-      () => RepaintBoundary(
-        child: _TransactionTypeSelector(
-          key: const ValueKey<String>('transaction_type_selector'),
-          formArgs: formArgs,
-          strings: strings,
-        ),
-      ),
-      () => SizedBox(height: spacing.section),
-      () => RepaintBoundary(
-        child: _CategoryDropdownField(
-          key: const ValueKey<String>('transaction_category_field'),
-          categoriesAsync: categoriesAsync,
-          formArgs: formArgs,
-          strings: strings,
-        ),
-      ),
-      if (categoriesAsync.isLoading) () => SizedBox(height: spacing.between),
-      if (categoriesAsync.isLoading)
-        () => RepaintBoundary(
-          child: _CategoriesStatusMessage(
-            key: const ValueKey<String>('transaction_categories_loading'),
-            message: strings.addTransactionCategoriesLoading,
-          ),
-        ),
-      if (categoriesAsync.hasError) () => SizedBox(height: spacing.between),
-      if (categoriesAsync.hasError)
-        () => RepaintBoundary(
-          child: _CategoriesStatusMessage(
-            key: const ValueKey<String>('transaction_categories_error'),
-            message: strings.addTransactionCategoriesError(
-              categoriesAsync.error.toString(),
-            ),
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.error,
-            ),
-          ),
-        ),
-      () => SizedBox(height: spacing.section),
-      () => RepaintBoundary(child: _DatePickerField(formArgs: formArgs)),
-      () => SizedBox(height: spacing.section),
-      () => RepaintBoundary(child: _TimePickerField(formArgs: formArgs)),
-      () => SizedBox(height: spacing.section),
-      () => RepaintBoundary(child: _NoteField(formArgs: formArgs)),
-      () => SizedBox(height: spacing.sectionLarge),
-      () => RepaintBoundary(
-        child: _SubmitButton(
-          key: const ValueKey<String>('transaction_submit_button'),
-          formArgs: formArgs,
-          formKey: formKey,
-          isSubmitting: isSubmitting,
-          submitLabel: submitLabel,
-        ),
-      ),
-    ];
+    final TextStyle titleStyle = theme.textTheme.headlineSmall?.copyWith(
+          fontSize: 22,
+          height: 28 / 22,
+          fontWeight: FontWeight.w400,
+          color: theme.colorScheme.onSurface,
+        ) ??
+        theme.textTheme.titleLarge!;
+    final TextStyle labelStyle = theme.textTheme.titleSmall?.copyWith(
+          fontWeight: FontWeight.w500,
+          letterSpacing: 0.1,
+          color: theme.colorScheme.onSurfaceVariant,
+        ) ??
+        theme.textTheme.bodyLarge!;
+    final TextStyle helperStyle = theme.textTheme.bodySmall?.copyWith(
+          color: theme.colorScheme.surfaceContainerHighest,
+        ) ??
+        theme.textTheme.bodySmall!;
 
     return Form(
       key: formKey,
-      child: ListView.builder(
-        padding: EdgeInsets.all(spacing.screen),
-        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-        cacheExtent: MediaQuery.sizeOf(context).height,
-        itemCount: sections.length,
-        itemBuilder: (BuildContext context, int index) => sections[index](),
+      child: LayoutBuilder(
+        builder: (BuildContext context, BoxConstraints constraints) {
+          final double availableWidth = constraints.maxWidth.isFinite
+              ? constraints.maxWidth
+              : MediaQuery.sizeOf(context).width;
+          final double maxWidth = math.max(availableWidth - spacing.screen * 2, 0);
+          final double formWidth = math.min(maxWidth, 412);
+
+          return SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            padding: EdgeInsets.symmetric(vertical: spacing.sectionLarge),
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            child: Center(
+              child: Container(
+                width: formWidth,
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: _kFormSurfaceColor,
+                  borderRadius: BorderRadius.circular(28),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: <Widget>[
+                    Text(
+                      strings.addTransactionTitle,
+                      style: titleStyle,
+                    ),
+                    SizedBox(height: spacing.sectionLarge),
+                    _SectionHeader(
+                      label: strings.addTransactionAccountLabel,
+                      helper: strings.addTransactionAccountHint,
+                      labelStyle: labelStyle,
+                      helperStyle: helperStyle,
+                    ),
+                    SizedBox(height: spacing.between),
+                    _AccountDropdownField(
+                      key: const ValueKey<String>('transaction_account_field'),
+                      accounts: accounts,
+                      formArgs: formArgs,
+                      strings: strings,
+                    ),
+                    SizedBox(height: spacing.sectionLarge),
+                    _SectionHeader(
+                      label: strings.addTransactionAmountLabel,
+                      labelStyle: labelStyle,
+                    ),
+                    SizedBox(height: spacing.between),
+                    _AmountField(formArgs: formArgs, strings: strings),
+                    SizedBox(height: spacing.sectionLarge),
+                    _SectionHeader(
+                      label: strings.addTransactionTypeLabel,
+                      labelStyle: labelStyle,
+                    ),
+                    SizedBox(height: spacing.between),
+                    _TransactionTypeSelector(
+                      key: const ValueKey<String>('transaction_type_selector'),
+                      formArgs: formArgs,
+                      strings: strings,
+                    ),
+                    SizedBox(height: spacing.sectionLarge),
+                    _SectionHeader(
+                      label: strings.addTransactionCategoryLabel,
+                      helper: strings.addTransactionCategoryHint,
+                      labelStyle: labelStyle,
+                      helperStyle: helperStyle,
+                    ),
+                    SizedBox(height: spacing.between),
+                    _CategoryDropdownField(
+                      key: const ValueKey<String>('transaction_category_field'),
+                      categoriesAsync: categoriesAsync,
+                      formArgs: formArgs,
+                      strings: strings,
+                    ),
+                    SizedBox(height: spacing.sectionLarge),
+                    _DateTimeSelectorRow(formArgs: formArgs),
+                    SizedBox(height: spacing.sectionLarge),
+                    _NoteField(formArgs: formArgs),
+                    SizedBox(height: spacing.sectionLarge),
+                    Center(
+                      child: _SubmitButton(
+                        key: const ValueKey<String>(
+                          'transaction_submit_button',
+                        ),
+                        formArgs: formArgs,
+                        formKey: formKey,
+                        isSubmitting: isSubmitting,
+                        submitLabel: submitLabel,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }
 }
 
-class _AccountDropdownField extends ConsumerWidget {
+class _AccountDropdownField extends ConsumerStatefulWidget {
   const _AccountDropdownField({
     super.key,
     required this.accounts,
@@ -258,9 +302,34 @@ class _AccountDropdownField extends ConsumerWidget {
   final AppLocalizations strings;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_AccountDropdownField> createState() =>
+      _AccountDropdownFieldState();
+}
+
+class _AccountDropdownFieldState extends ConsumerState<_AccountDropdownField> {
+  bool _isExpanded = false;
+
+  void _toggleExpansion() {
+    setState(() {
+      _isExpanded = !_isExpanded;
+    });
+  }
+
+  void _selectAccount(String accountId) {
+    ref
+        .read(transactionFormControllerProvider(widget.formArgs).notifier)
+        .updateAccount(accountId);
+    setState(() {
+      _isExpanded = false;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final TransactionFormControllerProvider transactionProvider =
-        transactionFormControllerProvider(formArgs);
+        transactionFormControllerProvider(widget.formArgs);
+    final AppLocalizations strings = widget.strings;
+    final List<AccountEntity> accounts = widget.accounts;
     final String? selectedAccountId = ref.watch(
       transactionProvider.select(
         (TransactionFormState state) => state.accountId,
@@ -269,7 +338,7 @@ class _AccountDropdownField extends ConsumerWidget {
 
     final String? resolvedAccountId =
         selectedAccountId ??
-        _resolveDefaultAccountId(accounts, formArgs.defaultAccountId);
+        _resolveDefaultAccountId(accounts, widget.formArgs.defaultAccountId);
     if (selectedAccountId == null && resolvedAccountId != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ref.read(transactionProvider.notifier).updateAccount(resolvedAccountId);
@@ -277,33 +346,78 @@ class _AccountDropdownField extends ConsumerWidget {
     }
 
     final Map<String, NumberFormat> cache = <String, NumberFormat>{};
+    AccountEntity? selectedAccount;
+    for (final AccountEntity account in accounts) {
+      if (account.id == resolvedAccountId) {
+        selectedAccount = account;
+        break;
+      }
+    }
 
-    return DropdownButtonFormField<String>(
-      key: key,
-      initialValue: resolvedAccountId,
-      decoration: InputDecoration(
-        labelText: strings.addTransactionAccountLabel,
+    final ThemeData theme = Theme.of(context);
+    final KopimSpacingScale spacing = context.kopimLayout.spacing;
+    final double indicatorGap = spacing.between;
+    final List<AccountEntity> accountList = accounts;
+    return Container(
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(32),
       ),
-      items: accounts
-          .map(
-            (AccountEntity account) => DropdownMenuItem<String>(
-              value: account.id,
-              child: Text(
-                '${account.name} · '
-                '${_resolveFormatter(cache, account.currency, strings.localeName).format(account.balance)}',
-              ),
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          InkWell(
+            borderRadius: BorderRadius.circular(24),
+            onTap: _toggleExpansion,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                Expanded(
+                  child: Text(
+                    selectedAccount?.name ?? strings.addTransactionAccountLabel,
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      fontWeight: FontWeight.w400,
+                      letterSpacing: 0.5,
+                      color: theme.colorScheme.onSurface,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                AnimatedRotation(
+                  turns: _isExpanded ? 0.5 : 0,
+                  duration: const Duration(milliseconds: 200),
+                  child: Icon(
+                    Icons.keyboard_arrow_down,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                )
+              ],
             ),
-          )
-          .toList(growable: false),
-      onChanged: (String? value) {
-        ref.read(transactionProvider.notifier).updateAccount(value);
-      },
-      validator: (String? value) {
-        if (value == null || value.isEmpty) {
-          return strings.addTransactionAccountRequired;
-        }
-        return null;
-      },
+          ),
+          if (_isExpanded) ...<Widget>[
+            SizedBox(height: indicatorGap),
+            Column(
+              children: <Widget>[
+                for (int index = 0; index < accountList.length; index++) ...<Widget>{
+                  _AccountSelectionRow(
+                    account: accountList[index],
+                    formatter: _resolveFormatter(
+                      cache,
+                      accountList[index].currency,
+                      strings.localeName,
+                    ),
+                    isSelected: accountList[index].id == resolvedAccountId,
+                    onTap: () => _selectAccount(accountList[index].id),
+                  ),
+                  if (index != accountList.length - 1)
+                    SizedBox(height: indicatorGap),
+                },
+              ],
+            ),
+          ],
+        ],
+      ),
     );
   }
 
@@ -339,6 +453,88 @@ class _AccountDropdownField extends ConsumerWidget {
   }
 }
 
+class _AccountSelectionRow extends StatelessWidget {
+  const _AccountSelectionRow({
+    required this.account,
+    required this.isSelected,
+    required this.formatter,
+    required this.onTap,
+  });
+
+  final AccountEntity account;
+  final bool isSelected;
+  final NumberFormat formatter;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final Color background = isSelected
+        ? theme.colorScheme.surfaceContainerHighest
+        : theme.colorScheme.surfaceContainerHigh;
+    return InkWell(
+      borderRadius: BorderRadius.circular(16),
+      onTap: onTap,
+      child: Container(
+        height: 48,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        decoration: BoxDecoration(
+          color: background,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Row(
+          children: <Widget>[
+            Expanded(
+              child: Text(
+                '${account.name} · ${formatter.format(account.balance)}',
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  letterSpacing: 0.5,
+                  color: theme.colorScheme.onSurface,
+                ),
+              ),
+            ),
+            _AccountSelectionIndicator(selected: isSelected),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _AccountSelectionIndicator extends StatelessWidget {
+  const _AccountSelectionIndicator({required this.selected});
+
+  final bool selected;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    return Container(
+      width: 20,
+      height: 20,
+      decoration: BoxDecoration(
+        color: selected ? _kTypeSelectedColor : Colors.transparent,
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: selected
+              ? _kTypeSelectedColor
+              : theme.colorScheme.onSurfaceVariant,
+          width: 2,
+        ),
+      ),
+      child: Center(
+        child: selected
+            ? Icon(
+                Icons.check,
+                size: 12,
+                color: _kTypeSelectedTextColor,
+              )
+            : const SizedBox.shrink(),
+        ),
+      );
+    }
+  }
+
 class _TransactionTypeSelector extends ConsumerWidget {
   const _TransactionTypeSelector({
     super.key,
@@ -357,37 +553,46 @@ class _TransactionTypeSelector extends ConsumerWidget {
       transactionProvider.select((TransactionFormState state) => state.type),
     );
 
-    return InputDecorator(
-      decoration: InputDecoration(labelText: strings.addTransactionTypeLabel),
-      child: SegmentedButton<TransactionType>(
-        segments: <ButtonSegment<TransactionType>>[
-          ButtonSegment<TransactionType>(
-            value: TransactionType.expense,
-            label: Text(strings.addTransactionTypeExpense),
+    final ThemeData theme = Theme.of(context);
+    final KopimSpacingScale spacing = context.kopimLayout.spacing;
+    return Container(
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(24),
+      ),
+      padding: const EdgeInsets.all(4),
+      child: Row(
+        children: <Widget>[
+          Expanded(
+            child: _TypeChip(
+              label: strings.addTransactionTypeExpense,
+              selected: type == TransactionType.expense,
+              onTap: () => ref
+                  .read(transactionProvider.notifier)
+                  .updateType(TransactionType.expense),
+              highlightColor: _kTypeSelectedColor,
+              selectedTextColor: _kTypeSelectedTextColor,
+            ),
           ),
-          ButtonSegment<TransactionType>(
-            value: TransactionType.income,
-            label: Text(strings.addTransactionTypeIncome),
+          SizedBox(width: spacing.between),
+          Expanded(
+            child: _TypeChip(
+              label: strings.addTransactionTypeIncome,
+              selected: type == TransactionType.income,
+              onTap: () => ref
+                  .read(transactionProvider.notifier)
+                  .updateType(TransactionType.income),
+              highlightColor: _kTypeSelectedColor,
+              selectedTextColor: _kTypeSelectedTextColor,
+            ),
           ),
         ],
-        selected: <TransactionType>{type},
-        onSelectionChanged: (Set<TransactionType> values) {
-          if (values.isEmpty) {
-            return;
-          }
-          ref.read(transactionProvider.notifier).updateType(values.first);
-        },
-        style: const ButtonStyle(
-          side: WidgetStatePropertyAll<BorderSide>(
-            BorderSide(style: BorderStyle.none),
-          ),
-        ),
       ),
     );
   }
 }
 
-class _CategoryDropdownField extends ConsumerWidget {
+class _CategoryDropdownField extends ConsumerStatefulWidget {
   const _CategoryDropdownField({
     super.key,
     required this.categoriesAsync,
@@ -400,109 +605,272 @@ class _CategoryDropdownField extends ConsumerWidget {
   final AppLocalizations strings;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final TransactionFormControllerProvider transactionProvider =
-        transactionFormControllerProvider(formArgs);
-    final String? selectedCategoryId = ref.watch(
-      transactionProvider.select(
-        (TransactionFormState state) => state.categoryId,
+  ConsumerState<_CategoryDropdownField> createState() =>
+      _CategoryDropdownFieldState();
+}
+
+class _CategoryDropdownFieldState
+    extends ConsumerState<_CategoryDropdownField> {
+  bool _showAll = false;
+  late final TextEditingController _searchController;
+  String _query = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController = TextEditingController();
+    _searchController.addListener(_onSearchChanged);
+  }
+
+  void _onSearchChanged() {
+    setState(() {
+      _query = _searchController.text;
+      _showAll = true;
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _toggleShowAll() {
+    setState(() {
+      _showAll = !_showAll;
+    });
+  }
+
+  void _selectCategory(String? categoryId) {
+    ref
+        .read(transactionFormControllerProvider(widget.formArgs).notifier)
+        .updateCategory(categoryId);
+    setState(() {
+      _showAll = false;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return widget.categoriesAsync.when(
+      data: (List<Category> categories) =>
+          _buildCategoryPanel(context, categories),
+      loading: () => _buildStatus(
+        context,
+        child: const Center(child: CircularProgressIndicator()),
       ),
+      error: (Object error, _) =>
+          _buildStatus(context, child: Text(error.toString())),
+    );
+  }
+
+  Widget _buildCategoryPanel(BuildContext context, List<Category> categories) {
+    final AppLocalizations strings = widget.strings;
+    final ThemeData theme = Theme.of(context);
+    final KopimSpacingScale spacing = context.kopimLayout.spacing;
+    final TransactionFormControllerProvider transactionProvider =
+        transactionFormControllerProvider(widget.formArgs);
+    final String? selectedCategoryId = ref.watch(
+      transactionProvider.select((TransactionFormState state) => state.categoryId),
     );
     final TransactionType type = ref.watch(
       transactionProvider.select((TransactionFormState state) => state.type),
     );
+    final String normalizedQuery = _query.trim().toLowerCase();
+    final List<Category> filtered = categories
+        .where(
+          (Category category) =>
+              category.type.toLowerCase() == type.storageValue &&
+              (normalizedQuery.isEmpty ||
+                  category.name.toLowerCase().contains(normalizedQuery)),
+        )
+        .toList(growable: false);
+    final List<Category> favoriteCategories = filtered
+        .where((Category category) => category.isFavorite)
+        .toList(growable: false);
+    final List<Category> otherCategories = filtered
+        .where((Category category) => !category.isFavorite)
+        .toList(growable: false);
+    final String buttonLabel = _showAll
+        ? strings.addTransactionHideCategories
+        : strings.addTransactionShowAllCategories;
 
-    final List<Category> categories = categoriesAsync.maybeWhen(
-      data: (List<Category> data) => data,
-      orElse: () => const <Category>[],
+    return Container(
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(32),
+      ),
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          TextField(
+            controller: _searchController,
+            decoration: _transactionTextFieldDecoration(
+              context,
+              hintText: strings.addTransactionCategorySearchHint,
+              suffixIcon: const Icon(Icons.search),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton(
+              onPressed:
+                  otherCategories.isEmpty && favoriteCategories.isEmpty
+                      ? null
+                      : _toggleShowAll,
+              style: TextButton.styleFrom(
+                padding: EdgeInsets.zero,
+                minimumSize: const Size(126, 20),
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              child: Text(
+                buttonLabel,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                  letterSpacing: 0.1,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Wrap(
+            spacing: spacing.between,
+            runSpacing: spacing.between,
+            children: <Widget>[
+              _CategoryChip(
+                label: strings.addTransactionCategoryNone,
+                icon: Icons.do_not_disturb_alt_outlined,
+                baseColor: theme.colorScheme.surfaceContainerHighest,
+                selected: selectedCategoryId == null ||
+                    selectedCategoryId.isEmpty,
+                onTap: () => _selectCategory(null),
+              ),
+              for (final Category category in favoriteCategories)
+                _buildCategoryChip(
+                  category: category,
+                  selected: category.id == selectedCategoryId,
+                ),
+            ],
+          ),
+          if (_showAll && otherCategories.isNotEmpty) ...<Widget>[
+            SizedBox(height: spacing.between),
+            Wrap(
+              spacing: spacing.between,
+              runSpacing: spacing.between,
+              children: <Widget>[
+                for (final Category category in otherCategories)
+                  _buildCategoryChip(
+                    category: category,
+                    selected: category.id == selectedCategoryId,
+                  ),
+              ],
+            ),
+          ],
+          if (filtered.isEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 16),
+              child: Text(
+                strings.addTransactionCategoryNone,
+                style: theme.textTheme.bodySmall,
+              ),
+            ),
+        ],
+      ),
     );
+  }
 
-    final List<Category> filteredCategories =
-        categories
-            .where(
-              (Category category) =>
-                  category.type.toLowerCase() == type.storageValue,
-            )
-            .toList(growable: true)
-          ..sort((Category a, Category b) {
-            final int favoriteComparison = (b.isFavorite ? 1 : 0).compareTo(
-              a.isFavorite ? 1 : 0,
-            );
-            if (favoriteComparison != 0) {
-              return favoriteComparison;
-            }
-            return a.name.toLowerCase().compareTo(b.name.toLowerCase());
-          });
-
-    final Map<String, Category> filteredById = <String, Category>{
-      for (final Category category in filteredCategories) category.id: category,
-    };
-
-    final List<DropdownMenuItem<String>> menuItems = <DropdownMenuItem<String>>[
-      DropdownMenuItem<String>(
-        value: '',
-        child: _CategoryDropdownItem(
-          label: strings.addTransactionCategoryNone,
-          icon: Icons.do_not_disturb_alt_outlined,
-        ),
+  Widget _buildStatus(BuildContext context, {required Widget child}) {
+    final ThemeData theme = Theme.of(context);
+    return Container(
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(32),
       ),
-      ...filteredCategories.map(
-        (Category category) => DropdownMenuItem<String>(
-          value: category.id,
-          child: _CategoryDropdownItem.fromCategory(category),
-        ),
-      ),
-    ];
+      padding: const EdgeInsets.all(24),
+      child: child,
+    );
+  }
 
-    return DropdownButtonFormField<String>(
-      key: key,
-      initialValue: selectedCategoryId ?? '',
-      decoration: InputDecoration(
-        labelText: strings.addTransactionCategoryLabel,
-      ),
-      isExpanded: true,
-      items: menuItems,
-      selectedItemBuilder: (BuildContext context) {
-        return menuItems.map((DropdownMenuItem<String> item) {
-          final String value = item.value ?? '';
-          if (value.isEmpty) {
-            return _CategoryDropdownItem(
-              label: strings.addTransactionCategoryNone,
-              icon: Icons.do_not_disturb_alt_outlined,
-            );
-          }
-          final Category? category = filteredById[value];
-          if (category == null) {
-            return _CategoryDropdownItem(
-              label: strings.addTransactionCategoryNone,
-              icon: Icons.category_outlined,
-            );
-          }
-          return _CategoryDropdownItem.fromCategory(category);
-        }).toList();
-      },
-      onChanged: (String? value) {
-        ref.read(transactionProvider.notifier).updateCategory(value);
-      },
+  Widget _buildCategoryChip({
+    required Category category,
+    required bool selected,
+  }) {
+    final IconData? iconData = resolvePhosphorIconData(category.icon);
+    final Color? backgroundColor = parseHexColor(category.color);
+    return _CategoryChip(
+      label: category.name,
+      icon: iconData,
+      baseColor: backgroundColor,
+      selected: selected,
+      onTap: () => _selectCategory(category.id),
     );
   }
 }
 
-class _CategoriesStatusMessage extends StatelessWidget {
-  const _CategoriesStatusMessage({
-    super.key,
-    required this.message,
-    this.style,
+class _CategoryChip extends StatelessWidget {
+  const _CategoryChip({
+    required this.label,
+    required this.icon,
+    required this.baseColor,
+    required this.selected,
+    required this.onTap,
   });
 
-  final String message;
-  final TextStyle? style;
+  final String label;
+  final IconData? icon;
+  final Color? baseColor;
+  final bool selected;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 8),
-      child: Text(message, style: style),
+    final ThemeData theme = Theme.of(context);
+    final Color circleBackground =
+        baseColor ?? theme.colorScheme.surfaceContainerHigh;
+    final Color textColor = theme.colorScheme.onSurface;
+    final Color borderColor = _kTypeSelectedColor;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(32),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(32),
+          border: selected
+              ? Border.all(color: borderColor, width: 1)
+              : null,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                color: circleBackground,
+                borderRadius: BorderRadius.circular(999),
+              ),
+              child: Icon(
+                icon ?? Icons.category_outlined,
+                size: 18,
+                color: theme.colorScheme.onPrimary,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: theme.textTheme.labelMedium?.copyWith(
+                color: textColor,
+                fontWeight: FontWeight.w500,
+                letterSpacing: 0.5,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -525,29 +893,53 @@ class _SubmitButton extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final TransactionFormControllerProvider transactionProvider =
         transactionFormControllerProvider(formArgs);
-    return ElevatedButton.icon(
-      key: key,
-      onPressed: isSubmitting
-          ? null
-          : () async {
-              FocusManager.instance.primaryFocus?.unfocus();
-              await Future<void>.delayed(Duration.zero);
-              if (!(formKey.currentState?.validate() ?? false)) {
-                return;
-              }
-              await ref.read(transactionProvider.notifier).submit();
-            },
-      icon: isSubmitting
-          ? SizedBox(
-              width: 16,
-              height: 16,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                semanticsLabel: submitLabel,
+    final ThemeData theme = Theme.of(context);
+    return SizedBox(
+      width: 135,
+      height: 56,
+      child: ElevatedButton(
+        key: key,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: _kPrimaryButtonBackground,
+          foregroundColor: _kPrimaryButtonForeground,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(100),
+          ),
+          elevation: 0,
+          textStyle: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w500,
+            letterSpacing: 0.15,
+          ),
+        ),
+        onPressed: isSubmitting
+            ? null
+            : () async {
+                FocusManager.instance.primaryFocus?.unfocus();
+                await Future<void>.delayed(Duration.zero);
+                if (!(formKey.currentState?.validate() ?? false)) {
+                  return;
+                }
+                await ref.read(transactionProvider.notifier).submit();
+              },
+        child: isSubmitting
+            ? SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: _kPrimaryButtonForeground,
+                  semanticsLabel: submitLabel,
+                ),
+              )
+            : Text(
+                submitLabel,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w500,
+                  letterSpacing: 0.15,
+                  color: _kPrimaryButtonForeground,
+                ),
               ),
-            )
-          : const ExcludeSemantics(child: Icon(Icons.check)),
-      label: Text(submitLabel),
+      ),
     );
   }
 }
@@ -690,91 +1082,6 @@ class _AmountFieldState extends ConsumerState<_AmountField> {
   }
 }
 
-class _DatePickerField extends ConsumerWidget {
-  const _DatePickerField({required this.formArgs});
-
-  final TransactionFormArgs formArgs;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final AppLocalizations strings = AppLocalizations.of(context)!;
-    final DateFormat dateFormat = DateFormat.yMMMd(strings.localeName);
-    final DateTime selectedDate = ref.watch(
-      transactionFormControllerProvider(
-        formArgs,
-      ).select((TransactionFormState state) => state.date),
-    );
-
-    return ListTile(
-      contentPadding: EdgeInsets.zero,
-      leading: const ExcludeSemantics(child: Icon(Icons.event)),
-      title: Text(strings.addTransactionDateLabel),
-      subtitle: Text(dateFormat.format(selectedDate)),
-      onTap: () async {
-        final DateTime initial = selectedDate;
-        final DateTime? picked = await showDatePicker(
-          context: context,
-          initialDate: initial,
-          firstDate: DateTime(2000),
-          lastDate: DateTime(2100),
-        );
-        if (picked != null) {
-          ref
-              .read(transactionFormControllerProvider(formArgs).notifier)
-              .updateDate(
-                DateTime(
-                  picked.year,
-                  picked.month,
-                  picked.day,
-                  initial.hour,
-                  initial.minute,
-                ),
-              );
-        }
-      },
-    );
-  }
-}
-
-class _TimePickerField extends ConsumerWidget {
-  const _TimePickerField({required this.formArgs});
-
-  final TransactionFormArgs formArgs;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final AppLocalizations strings = AppLocalizations.of(context)!;
-    final DateTime selectedDate = ref.watch(
-      transactionFormControllerProvider(
-        formArgs,
-      ).select((TransactionFormState state) => state.date),
-    );
-    final TimeOfDay selectedTime = TimeOfDay.fromDateTime(selectedDate);
-    final MaterialLocalizations localizations = MaterialLocalizations.of(
-      context,
-    );
-
-    return ListTile(
-      contentPadding: EdgeInsets.zero,
-      leading: const ExcludeSemantics(child: Icon(Icons.schedule)),
-      title: Text(strings.addTransactionTimeLabel),
-      subtitle: Text(localizations.formatTimeOfDay(selectedTime)),
-      onTap: () async {
-        final TimeOfDay? picked = await showTimePicker(
-          context: context,
-          initialTime: selectedTime,
-          initialEntryMode: TimePickerEntryMode.input,
-        );
-        if (picked != null) {
-          ref
-              .read(transactionFormControllerProvider(formArgs).notifier)
-              .updateTime(hour: picked.hour, minute: picked.minute);
-        }
-      },
-    );
-  }
-}
-
 class _NoteField extends ConsumerWidget {
   const _NoteField({required this.formArgs});
 
@@ -836,99 +1143,172 @@ class _ErrorMessage extends StatelessWidget {
   }
 }
 
-class _CategoryDropdownItem extends StatelessWidget {
-  const _CategoryDropdownItem({
+class _SectionHeader extends StatelessWidget {
+  const _SectionHeader({
     required this.label,
-    this.icon,
-    this.backgroundColor,
+    required this.labelStyle,
+    this.helper,
+    this.helperStyle,
   });
 
-  factory _CategoryDropdownItem.fromCategory(Category category) {
-    final IconData? iconData = resolvePhosphorIconData(category.icon);
-    final Color? color = parseHexColor(category.color);
-    return _CategoryDropdownItem(
-      label: category.name,
-      icon: iconData,
-      backgroundColor: color,
+  final String label;
+  final String? helper;
+  final TextStyle labelStyle;
+  final TextStyle? helperStyle;
+
+  @override
+  Widget build(BuildContext context) {
+    final TextStyle resolvedHelperStyle =
+        helperStyle ?? labelStyle.copyWith(fontWeight: FontWeight.w400);
+    final List<Widget> children = <Widget>[
+      Text(label, style: labelStyle),
+    ];
+    if (helper != null && helper!.isNotEmpty) {
+      children
+        ..add(const SizedBox(height: 4))
+        ..add(Text(helper!, style: resolvedHelperStyle));
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: children,
     );
   }
+}
+
+class _TypeChip extends StatelessWidget {
+  const _TypeChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+    required this.highlightColor,
+    required this.selectedTextColor,
+  });
 
   final String label;
-  final IconData? icon;
-  final Color? backgroundColor;
+  final bool selected;
+  final VoidCallback onTap;
+  final Color highlightColor;
+  final Color selectedTextColor;
 
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
-    final Color resolvedBackground =
-        backgroundColor ?? theme.colorScheme.surfaceContainerHighest;
-    final Brightness brightness = ThemeData.estimateBrightnessForColor(
-      resolvedBackground,
-    );
-    final Color resolvedForeground = brightness == Brightness.dark
-        ? Colors.white
-        : theme.colorScheme.onSurfaceVariant;
-    final IconData resolvedIcon = icon ?? Icons.category_outlined;
-
-    return LayoutBuilder(
-      builder: (BuildContext context, BoxConstraints constraints) {
-        const double avatarDiameter = 28;
-        const double horizontalGap = 8;
-
-        if (!constraints.hasBoundedWidth) {
-          final double maxWidth = MediaQuery.sizeOf(context).width;
-          final double textWidth = math.max(
-            0,
-            maxWidth - avatarDiameter - horizontalGap,
-          );
-
-          return ConstrainedBox(
-            constraints: BoxConstraints(maxWidth: maxWidth),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                CircleAvatar(
-                  radius: 14,
-                  backgroundColor: resolvedBackground,
-                  foregroundColor: resolvedForeground,
-                  child: Icon(resolvedIcon, size: 18),
-                ),
-                const SizedBox(width: horizontalGap),
-                SizedBox(
-                  width: textWidth,
-                  child: Text(
-                    label,
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                    softWrap: false,
-                  ),
-                ),
-              ],
-            ),
-          );
-        }
-
-        return Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: <Widget>[
-            CircleAvatar(
-              radius: 14,
-              backgroundColor: resolvedBackground,
-              foregroundColor: resolvedForeground,
-              child: Icon(resolvedIcon, size: 18),
-            ),
-            const SizedBox(width: horizontalGap),
-            Expanded(
-              child: Text(
-                label,
-                overflow: TextOverflow.ellipsis,
-                maxLines: 1,
-                softWrap: false,
+    final Color textColor = selected
+        ? selectedTextColor
+        : theme.colorScheme.onSurface;
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeInOut,
+          padding: const EdgeInsets.symmetric(vertical: 6),
+          decoration: BoxDecoration(
+            color: selected ? highlightColor : Colors.transparent,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Center(
+            child: Text(
+              label,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.labelMedium?.copyWith(
+                fontWeight: FontWeight.w500,
+                color: textColor,
               ),
             ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DateTimeSelectorRow extends ConsumerWidget {
+  const _DateTimeSelectorRow({required this.formArgs});
+
+  final TransactionFormArgs formArgs;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final AppLocalizations strings = AppLocalizations.of(context)!;
+    final TransactionFormControllerProvider transactionProvider =
+        transactionFormControllerProvider(formArgs);
+    final DateTime selectedDate = ref.watch(
+      transactionProvider.select((TransactionFormState state) => state.date),
+    );
+    final TimeOfDay selectedTime = TimeOfDay.fromDateTime(selectedDate);
+    final ThemeData theme = Theme.of(context);
+
+    Future<void> handleDateSelection() async {
+      final DateTime initial = selectedDate;
+      final DateTime? picked = await showDatePicker(
+        context: context,
+        initialDate: initial,
+        firstDate: DateTime(2000),
+        lastDate: DateTime(2100),
+      );
+      if (picked != null) {
+        ref
+            .read(transactionProvider.notifier)
+            .updateDate(
+              DateTime(
+                picked.year,
+                picked.month,
+                picked.day,
+                initial.hour,
+                initial.minute,
+              ),
+            );
+      }
+    }
+
+    Future<void> handleTimeSelection() async {
+      final TimeOfDay? picked = await showTimePicker(
+        context: context,
+        initialTime: selectedTime,
+        initialEntryMode: TimePickerEntryMode.input,
+      );
+      if (picked != null) {
+        ref
+            .read(transactionProvider.notifier)
+            .updateTime(hour: picked.hour, minute: picked.minute);
+      }
+    }
+
+    return Material(
+      color: theme.colorScheme.surfaceContainerHigh,
+      borderRadius: BorderRadius.circular(32),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+        child: Row(
+          children: <Widget>[
+            Expanded(
+              child: Text(
+                strings.addTransactionChangeDateTimeHint,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w500,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+            IconButton(
+              icon: const Icon(Icons.event),
+              color: theme.colorScheme.onSurface,
+              onPressed: handleDateSelection,
+              tooltip: strings.addTransactionDateLabel,
+            ),
+            IconButton(
+              icon: const Icon(Icons.schedule),
+              color: theme.colorScheme.onSurface,
+              onPressed: handleTimeSelection,
+              tooltip: strings.addTransactionTimeLabel,
+            ),
           ],
-        );
-      },
+        ),
+      ),
     );
   }
 }

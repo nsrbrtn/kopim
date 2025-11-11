@@ -1273,6 +1273,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addTransactionAccountLabel => 'Account';
 
   @override
+  String get addTransactionAccountHint =>
+      'Pick an account to start this transaction';
+
+  @override
   String get addTransactionAccountRequired => 'Please choose an account';
 
   @override
@@ -1307,6 +1311,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addTransactionCategoryLabel => 'Category';
 
   @override
+  String get addTransactionCategoryHint =>
+      'Assign a category so your analytics stay accurate';
+
+  @override
+  String get addTransactionCategorySearchHint => 'Search categories';
+
+  @override
+  String get addTransactionShowAllCategories => 'Show all categories';
+
+  @override
+  String get addTransactionHideCategories => 'Hide all categories';
+
+  @override
   String get addTransactionCategoryNone => 'No category';
 
   @override
@@ -1322,6 +1339,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get addTransactionTimeLabel => 'Time';
+
+  @override
+  String get addTransactionChangeDateTimeHint => 'Change date and time';
 
   @override
   String get addTransactionNoteLabel => 'Note';

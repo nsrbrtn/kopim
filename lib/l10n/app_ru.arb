@@ -1689,6 +1689,10 @@
   "@addTransactionAccountLabel": {
     "description": "Подпись поля выбора счёта"
   },
+  "addTransactionAccountHint": "Выберите счёт для этой транзакции",
+  "@addTransactionAccountHint": {
+    "description": "Подсказка над полем выбора счёта"
+  },
   "addTransactionAccountRequired": "Выберите счёт",
   "@addTransactionAccountRequired": {
     "description": "Сообщение валидации при отсутствии счёта"
@@ -1734,6 +1738,22 @@
   "@addTransactionCategoryLabel": {
     "description": "Подпись выбора категории"
   },
+  "addTransactionCategoryHint": "Привяжите категорию, чтобы аналитика работала точнее",
+  "@addTransactionCategoryHint": {
+    "description": "Подсказка над выбором категории"
+  },
+  "addTransactionCategorySearchHint": "Поиск категории",
+  "@addTransactionCategorySearchHint": {
+    "description": "Подсказка внутри поля поиска категории"
+  },
+  "addTransactionShowAllCategories": "Показать все категории",
+  "@addTransactionShowAllCategories": {
+    "description": "Кнопка для раскрытия полного списка категорий"
+  },
+  "addTransactionHideCategories": "Свернуть категории",
+  "@addTransactionHideCategories": {
+    "description": "Кнопка для сворачивания списка категорий"
+  },
   "addTransactionCategoryNone": "Без категории",
   "@addTransactionCategoryNone": {
     "description": "Вариант без категории"
@@ -1758,6 +1778,10 @@
   "addTransactionTimeLabel": "Время",
   "@addTransactionTimeLabel": {
     "description": "Подпись выбора времени"
+  },
+  "addTransactionChangeDateTimeHint": "Изменить дату и время",
+  "@addTransactionChangeDateTimeHint": {
+    "description": "Подсказка для управления датой и временем"
   },
   "addTransactionNoteLabel": "Заметка",
   "@addTransactionNoteLabel": {
