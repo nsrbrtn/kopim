@@ -744,10 +744,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get homeAccountMonthlyIncomeLabel => 'Income this month';
+  String get homeAccountMonthlyIncomeLabel => 'Income';
 
   @override
-  String get homeAccountMonthlyExpenseLabel => 'Expense this month';
+  String get homeAccountMonthlyExpenseLabel => 'Expense';
 
   @override
   String get homeTransactionsTodayLabel => 'Today';
@@ -1092,7 +1092,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get upcomingPaymentsScheduleTriggered => 'Background worker queued';
 
   @override
-  String get homeSavingsWidgetTitle => 'Saving goals';
+  String get homeSavingsWidgetTitle => 'Savings';
 
   @override
   String get homeSavingsWidgetEmpty =>

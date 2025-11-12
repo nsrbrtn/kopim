@@ -752,10 +752,10 @@ class AppLocalizationsRu extends AppLocalizations {
   }
 
   @override
-  String get homeAccountMonthlyIncomeLabel => 'Доход за месяц';
+  String get homeAccountMonthlyIncomeLabel => 'Доход';
 
   @override
-  String get homeAccountMonthlyExpenseLabel => 'Расход за месяц';
+  String get homeAccountMonthlyExpenseLabel => 'Расход';
 
   @override
   String get homeTransactionsTodayLabel => 'Сегодня';
@@ -1113,7 +1113,7 @@ class AppLocalizationsRu extends AppLocalizations {
       'Фоновая задача запланирована';
 
   @override
-  String get homeSavingsWidgetTitle => 'Цели накоплений';
+  String get homeSavingsWidgetTitle => 'Копилки';
 
   @override
   String get homeSavingsWidgetEmpty =>

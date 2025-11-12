@@ -15,7 +15,6 @@ import 'package:kopim/features/transactions/domain/entities/transaction_type.dar
 import 'package:kopim/features/transactions/presentation/controllers/transaction_form_controller.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
-const Color _kFormSurfaceColor = Color(0xFF1A1A1A);
 const Color _kTypeSelectedColor = Color(0xFFAEF75F);
 const Color _kTypeSelectedTextColor = Color(0xFF1D3700);
 const Color _kPrimaryButtonBackground = Color(0xFFAEF75F);
@@ -170,7 +169,6 @@ class _TransactionForm extends ConsumerWidget {
     final ThemeData theme = Theme.of(context);
     final KopimLayout layout = context.kopimLayout;
     final KopimSpacingScale spacing = layout.spacing;
-    final double containerRadius = layout.radius.xxl;
     final TextStyle titleStyle = theme.textTheme.headlineSmall?.copyWith(
           fontSize: 22,
           height: 28 / 22,
@@ -209,83 +207,81 @@ class _TransactionForm extends ConsumerWidget {
             ),
             keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
             child: Center(
-              child: Container(
+              child: SizedBox(
                 width: formWidth,
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  color: _kFormSurfaceColor,
-                  borderRadius: BorderRadius.circular(containerRadius),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: <Widget>[
-                    Text(
-                      strings.addTransactionTitle,
-                      style: titleStyle,
-                    ),
-                    SizedBox(height: spacing.sectionLarge),
-                    _SectionHeader(
-                      label: strings.addTransactionAccountLabel,
-                      helper: strings.addTransactionAccountHint,
-                      labelStyle: labelStyle,
-                      helperStyle: helperStyle,
-                    ),
-                    SizedBox(height: spacing.between),
-                    _AccountDropdownField(
-                      key: const ValueKey<String>('transaction_account_field'),
-                      accounts: accounts,
-                      formArgs: formArgs,
-                      strings: strings,
-                    ),
-                    SizedBox(height: spacing.sectionLarge),
-                    _SectionHeader(
-                      label: strings.addTransactionAmountLabel,
-                      labelStyle: labelStyle,
-                    ),
-                    SizedBox(height: spacing.between),
-                    _AmountField(formArgs: formArgs, strings: strings),
-                    SizedBox(height: spacing.sectionLarge),
-                    _SectionHeader(
-                      label: strings.addTransactionTypeLabel,
-                      labelStyle: labelStyle,
-                    ),
-                    SizedBox(height: spacing.between),
-                    _TransactionTypeSelector(
-                      key: const ValueKey<String>('transaction_type_selector'),
-                      formArgs: formArgs,
-                      strings: strings,
-                    ),
-                    SizedBox(height: spacing.sectionLarge),
-                    _SectionHeader(
-                      label: strings.addTransactionCategoryLabel,
-                      helper: strings.addTransactionCategoryHint,
-                      labelStyle: labelStyle,
-                      helperStyle: helperStyle,
-                    ),
-                    SizedBox(height: spacing.between),
-                    _CategoryDropdownField(
-                      key: const ValueKey<String>('transaction_category_field'),
-                      categoriesAsync: categoriesAsync,
-                      formArgs: formArgs,
-                      strings: strings,
-                    ),
-                    SizedBox(height: spacing.sectionLarge),
-                    _DateTimeSelectorRow(formArgs: formArgs),
-                    SizedBox(height: spacing.sectionLarge),
-                    _NoteField(formArgs: formArgs),
-                    SizedBox(height: spacing.sectionLarge),
-                    Center(
-                      child: _SubmitButton(
-                        key: const ValueKey<String>(
-                          'transaction_submit_button',
-                        ),
-                        formArgs: formArgs,
-                        formKey: formKey,
-                        isSubmitting: isSubmitting,
-                        submitLabel: submitLabel,
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: <Widget>[
+                      Text(
+                        strings.addTransactionTitle,
+                        style: titleStyle,
                       ),
-                    ),
-                  ],
+                      SizedBox(height: spacing.sectionLarge),
+                      _SectionHeader(
+                        label: strings.addTransactionAccountLabel,
+                        helper: strings.addTransactionAccountHint,
+                        labelStyle: labelStyle,
+                        helperStyle: helperStyle,
+                      ),
+                      SizedBox(height: spacing.between),
+                      _AccountDropdownField(
+                        key: const ValueKey<String>('transaction_account_field'),
+                        accounts: accounts,
+                        formArgs: formArgs,
+                        strings: strings,
+                      ),
+                      SizedBox(height: spacing.sectionLarge),
+                      _SectionHeader(
+                        label: strings.addTransactionAmountLabel,
+                        labelStyle: labelStyle,
+                      ),
+                      SizedBox(height: spacing.between),
+                      _AmountField(formArgs: formArgs, strings: strings),
+                      SizedBox(height: spacing.sectionLarge),
+                      _SectionHeader(
+                        label: strings.addTransactionTypeLabel,
+                        labelStyle: labelStyle,
+                      ),
+                      SizedBox(height: spacing.between),
+                      _TransactionTypeSelector(
+                        key: const ValueKey<String>('transaction_type_selector'),
+                        formArgs: formArgs,
+                        strings: strings,
+                      ),
+                      SizedBox(height: spacing.sectionLarge),
+                      _SectionHeader(
+                        label: strings.addTransactionCategoryLabel,
+                        helper: strings.addTransactionCategoryHint,
+                        labelStyle: labelStyle,
+                        helperStyle: helperStyle,
+                      ),
+                      SizedBox(height: spacing.between),
+                      _CategoryDropdownField(
+                        key: const ValueKey<String>('transaction_category_field'),
+                        categoriesAsync: categoriesAsync,
+                        formArgs: formArgs,
+                        strings: strings,
+                      ),
+                      SizedBox(height: spacing.sectionLarge),
+                      _DateTimeSelectorRow(formArgs: formArgs),
+                      SizedBox(height: spacing.sectionLarge),
+                      _NoteField(formArgs: formArgs),
+                      SizedBox(height: spacing.sectionLarge),
+                      Center(
+                        child: _SubmitButton(
+                          key: const ValueKey<String>(
+                            'transaction_submit_button',
+                          ),
+                          formArgs: formArgs,
+                          formKey: formKey,
+                          isSubmitting: isSubmitting,
+                          submitLabel: submitLabel,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -702,9 +698,30 @@ class _CategoryDropdownFieldState
     final List<Category> favoriteCategories = filtered
         .where((Category category) => category.isFavorite)
         .toList(growable: false);
-    final List<Category> otherCategories = filtered
-        .where((Category category) => !category.isFavorite)
-        .toList(growable: false);
+    Category? selectedCategory;
+    if (selectedCategoryId != null) {
+      for (final Category category in filtered) {
+        if (category.id == selectedCategoryId) {
+          selectedCategory = category;
+          break;
+        }
+      }
+    }
+    final bool hasSelection = selectedCategory != null;
+    final bool showFavoritesInHeader = !hasSelection || _showAll;
+    final List<Category> headerFavorites = <Category>[
+      for (final Category category in favoriteCategories)
+        if (!hasSelection || category.id != selectedCategoryId) category,
+    ];
+    final List<Category> otherCategories = filtered.where((Category category) {
+      if (category.isFavorite) {
+        return false;
+      }
+      if (!hasSelection) {
+        return true;
+      }
+      return category.id != selectedCategory!.id;
+    }).toList(growable: false);
     final String buttonLabel = _showAll
         ? strings.addTransactionHideCategories
         : strings.addTransactionShowAllCategories;
@@ -761,11 +778,17 @@ class _CategoryDropdownFieldState
                     selectedCategoryId.isEmpty,
                 onTap: () => _selectCategory(null),
               ),
-              for (final Category category in favoriteCategories)
+              if (hasSelection && selectedCategory != null)
                 _buildCategoryChip(
-                  category: category,
-                  selected: category.id == selectedCategoryId,
+                  category: selectedCategory,
+                  selected: true,
                 ),
+              if (showFavoritesInHeader)
+                for (final Category category in headerFavorites)
+                  _buildCategoryChip(
+                    category: category,
+                    selected: category.id == selectedCategoryId,
+                  ),
             ],
           ),
           if (_showAll && otherCategories.isNotEmpty) ...<Widget>[
@@ -912,13 +935,14 @@ class _SubmitButton extends ConsumerWidget {
         transactionFormControllerProvider(formArgs);
     final ThemeData theme = Theme.of(context);
     return SizedBox(
-      width: 135,
       height: 56,
       child: ElevatedButton(
         key: key,
         style: ElevatedButton.styleFrom(
           backgroundColor: _kPrimaryButtonBackground,
           foregroundColor: _kPrimaryButtonForeground,
+          minimumSize: const Size(0, 56),
+          padding: const EdgeInsets.symmetric(horizontal: 32),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(100),
           ),
@@ -1231,7 +1255,7 @@ class _TypeChip extends StatelessWidget {
             child: Text(
               label,
               textAlign: TextAlign.center,
-              style: theme.textTheme.labelMedium?.copyWith(
+              style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w500,
                 color: textColor,
               ),

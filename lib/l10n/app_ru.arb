@@ -992,11 +992,11 @@
       }
     }
   },
-  "homeAccountMonthlyIncomeLabel": "Доход за месяц",
+  "homeAccountMonthlyIncomeLabel": "Доход",
   "@homeAccountMonthlyIncomeLabel": {
     "description": "Подпись для месячного дохода на карточке счёта"
   },
-  "homeAccountMonthlyExpenseLabel": "Расход за месяц",
+  "homeAccountMonthlyExpenseLabel": "Расход",
   "@homeAccountMonthlyExpenseLabel": {
     "description": "Подпись для месячных расходов на карточке счёта"
   },
@@ -1446,7 +1446,7 @@
   "@upcomingPaymentsScheduleTriggered": {
     "description": "Сообщение о постановке фоновой задачи"
   },
-  "homeSavingsWidgetTitle": "Цели накоплений",
+  "homeSavingsWidgetTitle": "Копилки",
   "@homeSavingsWidgetTitle": {
     "description": "Заголовок виджета накоплений на домашнем экране"
   },

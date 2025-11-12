@@ -12,12 +12,15 @@ class TransactionTileFormatters {
     return _dayHeaderCache.putIfAbsent(locale, () => DateFormat.yMMMMd(locale));
   }
 
+  /// Возвращает кешированный форматтер валюты с учётом точности.
   static NumberFormat currency(
     String locale,
     String symbol, {
     int? decimalDigits,
   }) {
-    final String cacheKey = '$locale|$symbol|${decimalDigits ?? 'default'}';
+    final String decimalDigitsKey =
+        decimalDigits == null ? 'default' : decimalDigits.toString();
+    final String cacheKey = '$locale|$symbol|$decimalDigitsKey';
     return _currencyCache.putIfAbsent(
       cacheKey,
       () => NumberFormat.currency(

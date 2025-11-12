@@ -832,7 +832,7 @@ class _AccountCard extends StatelessWidget {
             borderRadius: borderRadius,
           ),
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(24),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -937,7 +937,7 @@ class _AccountCardPalette {
 }
 
 class _AccountCardLayout {
-  static const double horizontalPadding = 32;
+  static const double horizontalPadding = 48;
 
   static double estimateHeight(BuildContext context) {
     final ThemeData theme = Theme.of(context);
@@ -960,7 +960,7 @@ class _AccountCardLayout {
           const TextStyle(fontSize: 14),
     );
 
-    const double padding = 16 * 2;
+    const double padding = 24 * 2;
     const double gaps = 8 + 16 + 8 + 4;
 
     return padding +
@@ -1415,7 +1415,7 @@ class _TransactionListItem extends ConsumerWidget {
                       children: <Widget>[
                         Text(
                           categoryName,
-                          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          style: Theme.of(context).textTheme.labelMedium?.copyWith(
                                 fontWeight: FontWeight.w500,
                                 color: Theme.of(context)
                                     .colorScheme

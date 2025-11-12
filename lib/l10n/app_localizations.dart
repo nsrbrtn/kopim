@@ -1383,13 +1383,13 @@ abstract class AppLocalizations {
   /// Label for monthly income shown on the home screen account card
   ///
   /// In en, this message translates to:
-  /// **'Income this month'**
+  /// **'Income'**
   String get homeAccountMonthlyIncomeLabel;
 
   /// Label for monthly expenses shown on the home screen account card
   ///
   /// In en, this message translates to:
-  /// **'Expense this month'**
+  /// **'Expense'**
   String get homeAccountMonthlyExpenseLabel;
 
   /// Section header label for transactions happening today
@@ -1917,7 +1917,7 @@ abstract class AppLocalizations {
   /// Title for the savings overview widget on the home screen
   ///
   /// In en, this message translates to:
-  /// **'Saving goals'**
+  /// **'Savings'**
   String get homeSavingsWidgetTitle;
 
   /// Empty state message for the savings widget

@@ -992,11 +992,11 @@
       }
     }
   },
-  "homeAccountMonthlyIncomeLabel": "Income this month",
+  "homeAccountMonthlyIncomeLabel": "Income",
   "@homeAccountMonthlyIncomeLabel": {
     "description": "Label for monthly income shown on the home screen account card"
   },
-  "homeAccountMonthlyExpenseLabel": "Expense this month",
+  "homeAccountMonthlyExpenseLabel": "Expense",
   "@homeAccountMonthlyExpenseLabel": {
     "description": "Label for monthly expenses shown on the home screen account card"
   },
@@ -1446,7 +1446,7 @@
   "@upcomingPaymentsScheduleTriggered": {
     "description": "Message shown when the background worker is scheduled"
   },
-  "homeSavingsWidgetTitle": "Saving goals",
+  "homeSavingsWidgetTitle": "Savings",
   "@homeSavingsWidgetTitle": {
     "description": "Title for the savings overview widget on the home screen"
   },

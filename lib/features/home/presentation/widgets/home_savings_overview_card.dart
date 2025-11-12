@@ -45,7 +45,7 @@ class HomeSavingsOverviewCard extends ConsumerWidget {
             children: <Widget>[
               Text(
                 strings.homeSavingsWidgetTitle,
-                style: theme.textTheme.titleMedium,
+                style: theme.textTheme.titleLarge,
               ),
               const SizedBox(height: 12),
               for (int i = 0; i < visibleGoals.length; i++) ...<Widget>[
@@ -91,7 +91,7 @@ class _HomeSavingsEmptyState extends StatelessWidget {
       children: <Widget>[
         Text(
           strings.homeSavingsWidgetTitle,
-          style: theme.textTheme.titleMedium,
+          style: theme.textTheme.titleLarge,
         ),
         const SizedBox(height: 8),
         Text(
