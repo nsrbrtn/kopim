@@ -168,7 +168,9 @@ class _TransactionForm extends ConsumerWidget {
     );
 
     final ThemeData theme = Theme.of(context);
-    final KopimSpacingScale spacing = context.kopimLayout.spacing;
+    final KopimLayout layout = context.kopimLayout;
+    final KopimSpacingScale spacing = layout.spacing;
+    final double containerRadius = layout.radius.xxl;
     final TextStyle titleStyle = theme.textTheme.headlineSmall?.copyWith(
           fontSize: 22,
           height: 28 / 22,
@@ -199,7 +201,12 @@ class _TransactionForm extends ConsumerWidget {
 
           return SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
-            padding: EdgeInsets.symmetric(vertical: spacing.sectionLarge),
+            padding: EdgeInsets.fromLTRB(
+              8,
+              spacing.sectionLarge,
+              8,
+              spacing.sectionLarge,
+            ),
             keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
             child: Center(
               child: Container(
@@ -207,7 +214,7 @@ class _TransactionForm extends ConsumerWidget {
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
                   color: _kFormSurfaceColor,
-                  borderRadius: BorderRadius.circular(28),
+                  borderRadius: BorderRadius.circular(containerRadius),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -355,20 +362,23 @@ class _AccountDropdownFieldState extends ConsumerState<_AccountDropdownField> {
     }
 
     final ThemeData theme = Theme.of(context);
-    final KopimSpacingScale spacing = context.kopimLayout.spacing;
+    final KopimLayout layout = context.kopimLayout;
+    final KopimSpacingScale spacing = layout.spacing;
     final double indicatorGap = spacing.between;
+    final double containerRadius = layout.radius.xxl;
+    final BorderRadius borderRadius = BorderRadius.circular(containerRadius);
     final List<AccountEntity> accountList = accounts;
     return Container(
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerHigh,
-        borderRadius: BorderRadius.circular(32),
+        borderRadius: borderRadius,
       ),
       padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           InkWell(
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: borderRadius,
             onTap: _toggleExpansion,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -524,7 +534,7 @@ class _AccountSelectionIndicator extends StatelessWidget {
       ),
       child: Center(
         child: selected
-            ? Icon(
+            ? const Icon(
                 Icons.check,
                 size: 12,
                 color: _kTypeSelectedTextColor,
@@ -554,11 +564,13 @@ class _TransactionTypeSelector extends ConsumerWidget {
     );
 
     final ThemeData theme = Theme.of(context);
-    final KopimSpacingScale spacing = context.kopimLayout.spacing;
+    final KopimLayout layout = context.kopimLayout;
+    final KopimSpacingScale spacing = layout.spacing;
+    final double containerRadius = layout.radius.xxl;
     return Container(
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerHigh,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(containerRadius),
       ),
       padding: const EdgeInsets.all(4),
       child: Row(
@@ -667,7 +679,9 @@ class _CategoryDropdownFieldState
   Widget _buildCategoryPanel(BuildContext context, List<Category> categories) {
     final AppLocalizations strings = widget.strings;
     final ThemeData theme = Theme.of(context);
-    final KopimSpacingScale spacing = context.kopimLayout.spacing;
+    final KopimLayout layout = context.kopimLayout;
+    final KopimSpacingScale spacing = layout.spacing;
+    final double containerRadius = layout.radius.xxl;
     final TransactionFormControllerProvider transactionProvider =
         transactionFormControllerProvider(widget.formArgs);
     final String? selectedCategoryId = ref.watch(
@@ -698,7 +712,7 @@ class _CategoryDropdownFieldState
     return Container(
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerHigh,
-        borderRadius: BorderRadius.circular(32),
+        borderRadius: BorderRadius.circular(containerRadius),
       ),
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -786,7 +800,8 @@ class _CategoryDropdownFieldState
     return Container(
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerHigh,
-        borderRadius: BorderRadius.circular(32),
+        borderRadius:
+            BorderRadius.circular(context.kopimLayout.radius.xxl),
       ),
       padding: const EdgeInsets.all(24),
       child: child,
@@ -830,15 +845,17 @@ class _CategoryChip extends StatelessWidget {
     final Color circleBackground =
         baseColor ?? theme.colorScheme.surfaceContainerHigh;
     final Color textColor = theme.colorScheme.onSurface;
-    final Color borderColor = _kTypeSelectedColor;
+    const Color borderColor = _kTypeSelectedColor;
+    final double containerRadius = context.kopimLayout.radius.xxl;
+    final BorderRadius borderRadius = BorderRadius.circular(containerRadius);
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(32),
+      borderRadius: borderRadius,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           color: theme.colorScheme.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(32),
+          borderRadius: borderRadius,
           border: selected
               ? Border.all(color: borderColor, width: 1)
               : null,
@@ -1241,6 +1258,7 @@ class _DateTimeSelectorRow extends ConsumerWidget {
     );
     final TimeOfDay selectedTime = TimeOfDay.fromDateTime(selectedDate);
     final ThemeData theme = Theme.of(context);
+    final double containerRadius = context.kopimLayout.radius.xxl;
 
     Future<void> handleDateSelection() async {
       final DateTime initial = selectedDate;
@@ -1280,7 +1298,7 @@ class _DateTimeSelectorRow extends ConsumerWidget {
 
     return Material(
       color: theme.colorScheme.surfaceContainerHigh,
-      borderRadius: BorderRadius.circular(32),
+      borderRadius: BorderRadius.circular(containerRadius),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
         child: Row(

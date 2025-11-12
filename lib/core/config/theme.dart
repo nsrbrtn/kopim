@@ -106,7 +106,10 @@ ThemeData buildAppTheme({
       section: _spacing(spacing, '16', 16),
       sectionLarge: _spacing(spacing, '24', 24),
     ),
-    radius: KopimRadiusScale(card: _spacing(radius, 'xl', 24)),
+    radius: KopimRadiusScale(
+      card: _spacing(radius, 'xl', 24),
+      xxl: _spacing(radius, 'xxl', 32),
+    ),
     iconSizes: KopimIconSizes(
       xs: _spacing(iconSizes, 'xs', 16),
       sm: _spacing(iconSizes, 'sm', 20),
