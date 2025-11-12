@@ -194,6 +194,36 @@ abstract class AppLocalizations {
   /// **'Failed to export data: {error}'**
   String profileExportDataFailure(String error);
 
+  /// Label describing the destination folder for exported data
+  ///
+  /// In en, this message translates to:
+  /// **'Export destination'**
+  String get profileExportDataDestinationLabel;
+
+  /// List item text shown when no custom folder has been chosen
+  ///
+  /// In en, this message translates to:
+  /// **'Default downloads folder'**
+  String get profileExportDataDefaultDestination;
+
+  /// Summary line showing the folder picked by the user
+  ///
+  /// In en, this message translates to:
+  /// **'Folder: {path}'**
+  String profileExportDataSelectedFolder(String path);
+
+  /// Button label that opens the native folder picker
+  ///
+  /// In en, this message translates to:
+  /// **'Choose folder'**
+  String get profileExportDataSelectFolderCta;
+
+  /// Dialog title when requesting a custom export destination
+  ///
+  /// In en, this message translates to:
+  /// **'Select a folder to save exported data'**
+  String get profileExportDataDirectoryPickerTitle;
+
   /// Button that opens the import flow
   ///
   /// In en, this message translates to:

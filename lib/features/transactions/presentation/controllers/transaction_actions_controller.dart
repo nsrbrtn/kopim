@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:kopim/core/di/injectors.dart';
@@ -24,7 +26,7 @@ class TransactionActionsController extends _$TransactionActionsController {
       final TransactionCommandResult<void> result = await useCase(
         transactionId,
       );
-      await recorder.record(result.profileEvents);
+      unawaited(recorder.record(result.profileEvents));
       state = const AsyncData<void>(null);
       return true;
     } catch (error, stackTrace) {

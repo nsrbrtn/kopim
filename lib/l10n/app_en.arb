@@ -71,6 +71,31 @@
       }
     }
   },
+  "profileExportDataDestinationLabel": "Export destination",
+  "@profileExportDataDestinationLabel": {
+    "description": "Label describing the destination folder for exported data"
+  },
+  "profileExportDataDefaultDestination": "Default downloads folder",
+  "@profileExportDataDefaultDestination": {
+    "description": "List item text shown when no custom folder has been chosen"
+  },
+  "profileExportDataSelectedFolder": "Folder: {path}",
+  "@profileExportDataSelectedFolder": {
+    "description": "Summary line showing the folder picked by the user",
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "profileExportDataSelectFolderCta": "Choose folder",
+  "@profileExportDataSelectFolderCta": {
+    "description": "Button label that opens the native folder picker"
+  },
+  "profileExportDataDirectoryPickerTitle": "Select a folder to save exported data",
+  "@profileExportDataDirectoryPickerTitle": {
+    "description": "Dialog title when requesting a custom export destination"
+  },
   "profileImportDataCta": "Import data",
   "@profileImportDataCta": {
     "description": "Button that opens the import flow"

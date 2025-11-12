@@ -1,11 +1,7 @@
 {
   "global": {
     "Kopim": {
-      "Fab": {
-        "value": "linear-gradient(180deg, #74875f 0%, #474747 100%)",
-        "type": "color",
-        "description": "back fab"
-      },
+      
       "white": {
         "value": "#ffffff",
         "type": "color"
@@ -14,14 +10,7 @@
         "value": "#000000",
         "type": "color"
       },
-      "navbar dark": {
-        "value": "#d4d4d499",
-        "type": "color"
-      },
-      "navbar light": {
-        "value": "#ffffffd4",
-        "type": "color"
-      },
+      
       "sys": {
         "light": {
           "primary": {

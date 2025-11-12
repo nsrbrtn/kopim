@@ -62,6 +62,24 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get profileExportDataDestinationLabel => 'Export destination';
+
+  @override
+  String get profileExportDataDefaultDestination => 'Default downloads folder';
+
+  @override
+  String profileExportDataSelectedFolder(String path) {
+    return 'Folder: $path';
+  }
+
+  @override
+  String get profileExportDataSelectFolderCta => 'Choose folder';
+
+  @override
+  String get profileExportDataDirectoryPickerTitle =>
+      'Select a folder to save exported data';
+
+  @override
   String get profileImportDataCta => 'Import data';
 
   @override

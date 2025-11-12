@@ -67,9 +67,9 @@ class BudgetCategorySpendingChartCard extends StatelessWidget {
         margin: EdgeInsets.zero,
         child: Padding(
           padding: EdgeInsets.fromLTRB(
-            spacing.section,
-            spacing.section,
-            spacing.section,
+            spacing.sectionLarge,
+            spacing.sectionLarge,
+            spacing.sectionLarge,
             spacing.sectionLarge,
           ),
           child: Column(
@@ -107,7 +107,7 @@ class BudgetCategorySpendingChartCard extends StatelessWidget {
     ];
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
@@ -491,7 +491,7 @@ class _BudgetCategoryBreakdownTile extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 22),
             Text(
               percentLabel,
               style: theme.textTheme.bodySmall?.copyWith(
@@ -646,7 +646,7 @@ class _BudgetCategoryBar extends StatelessWidget {
             borderRadius: BorderRadius.circular(24),
           ),
           child: Padding(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(4),
             child: Icon(
               iconData ?? PhosphorIconsRegular.squaresFour,
               color: categoryColor,

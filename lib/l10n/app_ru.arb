@@ -71,6 +71,31 @@
       }
     }
   },
+  "profileExportDataDestinationLabel": "Место сохранения",
+  "@profileExportDataDestinationLabel": {
+    "description": "Подпись, описывающая целевую папку экспорта"
+  },
+  "profileExportDataDefaultDestination": "По умолчанию (загрузки)",
+  "@profileExportDataDefaultDestination": {
+    "description": "Текст, показываемый, когда папка не выбрана"
+  },
+  "profileExportDataSelectedFolder": "Папка: {path}",
+  "@profileExportDataSelectedFolder": {
+    "description": "Путь к выбранной папке экспорта",
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "profileExportDataSelectFolderCta": "Выбрать папку",
+  "@profileExportDataSelectFolderCta": {
+    "description": "Название кнопки для открытия выбора папки"
+  },
+  "profileExportDataDirectoryPickerTitle": "Выберите папку для сохранения данных экспорта",
+  "@profileExportDataDirectoryPickerTitle": {
+    "description": "Заголовок диалога выбора папки экспорта"
+  },
   "profileImportDataCta": "Импортировать данные",
   "@profileImportDataCta": {
     "description": "Кнопка открытия сценария импорта"

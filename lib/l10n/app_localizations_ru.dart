@@ -63,6 +63,24 @@ class AppLocalizationsRu extends AppLocalizations {
   }
 
   @override
+  String get profileExportDataDestinationLabel => 'Место сохранения';
+
+  @override
+  String get profileExportDataDefaultDestination => 'По умолчанию (загрузки)';
+
+  @override
+  String profileExportDataSelectedFolder(String path) {
+    return 'Папка: $path';
+  }
+
+  @override
+  String get profileExportDataSelectFolderCta => 'Выбрать папку';
+
+  @override
+  String get profileExportDataDirectoryPickerTitle =>
+      'Выберите папку для сохранения данных экспорта';
+
+  @override
   String get profileImportDataCta => 'Импортировать данные';
 
   @override
