@@ -15,6 +15,7 @@ class Accounts extends Table {
   RealColumn get balance => real()();
   TextColumn get currency => text().withLength(min: 3, max: 3)();
   TextColumn get type => text().withLength(min: 1, max: 50)();
+  TextColumn get color => text().nullable()();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
   BoolColumn get isDeleted =>
@@ -282,7 +283,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.connect(DatabaseConnection super.connection);
 
   @override
-  int get schemaVersion => 18;
+  int get schemaVersion => 19;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -629,6 +630,13 @@ class AppDatabase extends _$AppDatabase {
             "UPDATE budgets SET category_allocations = '[]' "
             "WHERE category_allocations IS NULL OR category_allocations = ''",
           );
+        }
+      }
+      if (from < 19) {
+        final bool hasColorColumn =
+            await _columnExists('accounts', 'color');
+        if (!hasColorColumn) {
+          await m.addColumn(accounts, accounts.color);
         }
       }
     },

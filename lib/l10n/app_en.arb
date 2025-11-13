@@ -1928,6 +1928,26 @@
   "@addAccountTypeRequired": {
     "description": "Validation error shown when the account type is missing"
   },
+  "accountColorLabel": "Card color",
+  "@accountColorLabel": {
+    "description": "Label for the account card color selector"
+  },
+  "accountColorDefault": "Default",
+  "@accountColorDefault": {
+    "description": "Label shown when the default card color is used"
+  },
+  "accountColorPickerTitle": "Pick card color",
+  "@accountColorPickerTitle": {
+    "description": "Title shown on the account color picker dialog"
+  },
+  "accountColorSelect": "Select",
+  "@accountColorSelect": {
+    "description": "Button label for confirming a color choice"
+  },
+  "accountColorClear": "Clear color",
+  "@accountColorClear": {
+    "description": "Tooltip for clearing the selected card color"
+  },
   "accountPrimaryToggleLabel": "Set as primary account",
   "@accountPrimaryToggleLabel": {
     "description": "Label for the switch that marks an account as primary"

@@ -236,6 +236,7 @@ class SavingGoalRepositoryImpl implements SavingGoalRepository {
           balance: accountRow.balance - amountDouble,
           currency: accountRow.currency,
           type: accountRow.type,
+          color: accountRow.color,
           createdAt: accountRow.createdAt,
           updatedAt: timestamp,
           isDeleted: accountRow.isDeleted,

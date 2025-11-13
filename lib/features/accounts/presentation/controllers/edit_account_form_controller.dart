@@ -24,6 +24,7 @@ abstract class EditAccountFormState with _$EditAccountFormState {
     @Default(false) bool isSaving,
     @Default(false) bool submissionSuccess,
     @Default(false) bool isPrimary,
+    String? color,
     EditAccountFieldError? nameError,
     EditAccountFieldError? balanceError,
     EditAccountFieldError? typeError,
@@ -79,6 +80,7 @@ class EditAccountFormController extends _$EditAccountFormController {
       useCustomType: useCustomType,
       customType: customType,
       isPrimary: account.isPrimary,
+      color: account.color,
     );
   }
 
@@ -139,6 +141,14 @@ class EditAccountFormController extends _$EditAccountFormController {
   void updateIsPrimary(bool value) {
     state = state.copyWith(
       isPrimary: value,
+      submissionSuccess: false,
+      errorMessage: null,
+    );
+  }
+
+  void updateColor(String? value) {
+    state = state.copyWith(
+      color: value,
       submissionSuccess: false,
       errorMessage: null,
     );
@@ -208,6 +218,7 @@ class EditAccountFormController extends _$EditAccountFormController {
       type: resolvedType!,
       updatedAt: updatedAt,
       isPrimary: state.isPrimary,
+      color: state.color,
     );
 
     try {

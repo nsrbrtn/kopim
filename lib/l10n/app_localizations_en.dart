@@ -1456,6 +1456,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addAccountTypeRequired => 'Please specify the account type.';
 
   @override
+  String get accountColorLabel => 'Card color';
+
+  @override
+  String get accountColorDefault => 'Default';
+
+  @override
+  String get accountColorPickerTitle => 'Pick card color';
+
+  @override
+  String get accountColorSelect => 'Select';
+
+  @override
+  String get accountColorClear => 'Clear color';
+
+  @override
   String get accountPrimaryToggleLabel => 'Set as primary account';
 
   @override

@@ -74,6 +74,15 @@ class $AccountsTable extends Accounts
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _colorMeta = const VerificationMeta('color');
+  @override
+  late final GeneratedColumn<String> color = GeneratedColumn<String>(
+    'color',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -135,6 +144,7 @@ class $AccountsTable extends Accounts
     balance,
     currency,
     type,
+    color,
     createdAt,
     updatedAt,
     isDeleted,
@@ -189,6 +199,12 @@ class $AccountsTable extends Accounts
     } else if (isInserting) {
       context.missing(_typeMeta);
     }
+    if (data.containsKey('color')) {
+      context.handle(
+        _colorMeta,
+        color.isAcceptableOrUnknown(data['color']!, _colorMeta),
+      );
+    }
     if (data.containsKey('created_at')) {
       context.handle(
         _createdAtMeta,
@@ -242,6 +258,10 @@ class $AccountsTable extends Accounts
         DriftSqlType.string,
         data['${effectivePrefix}type'],
       )!,
+      color: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}color'],
+      ),
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -273,6 +293,7 @@ class AccountRow extends DataClass implements Insertable<AccountRow> {
   final double balance;
   final String currency;
   final String type;
+  final String? color;
   final DateTime createdAt;
   final DateTime updatedAt;
   final bool isDeleted;
@@ -283,6 +304,7 @@ class AccountRow extends DataClass implements Insertable<AccountRow> {
     required this.balance,
     required this.currency,
     required this.type,
+    this.color,
     required this.createdAt,
     required this.updatedAt,
     required this.isDeleted,
@@ -296,6 +318,9 @@ class AccountRow extends DataClass implements Insertable<AccountRow> {
     map['balance'] = Variable<double>(balance);
     map['currency'] = Variable<String>(currency);
     map['type'] = Variable<String>(type);
+    if (!nullToAbsent || color != null) {
+      map['color'] = Variable<String>(color);
+    }
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
     map['is_deleted'] = Variable<bool>(isDeleted);
@@ -310,6 +335,9 @@ class AccountRow extends DataClass implements Insertable<AccountRow> {
       balance: Value(balance),
       currency: Value(currency),
       type: Value(type),
+      color: color == null && nullToAbsent
+          ? const Value.absent()
+          : Value(color),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
       isDeleted: Value(isDeleted),
@@ -328,6 +356,7 @@ class AccountRow extends DataClass implements Insertable<AccountRow> {
       balance: serializer.fromJson<double>(json['balance']),
       currency: serializer.fromJson<String>(json['currency']),
       type: serializer.fromJson<String>(json['type']),
+      color: serializer.fromJson<String?>(json['color']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       isDeleted: serializer.fromJson<bool>(json['isDeleted']),
@@ -343,6 +372,7 @@ class AccountRow extends DataClass implements Insertable<AccountRow> {
       'balance': serializer.toJson<double>(balance),
       'currency': serializer.toJson<String>(currency),
       'type': serializer.toJson<String>(type),
+      'color': serializer.toJson<String?>(color),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'isDeleted': serializer.toJson<bool>(isDeleted),
@@ -356,6 +386,7 @@ class AccountRow extends DataClass implements Insertable<AccountRow> {
     double? balance,
     String? currency,
     String? type,
+    Value<String?> color = const Value.absent(),
     DateTime? createdAt,
     DateTime? updatedAt,
     bool? isDeleted,
@@ -366,6 +397,7 @@ class AccountRow extends DataClass implements Insertable<AccountRow> {
     balance: balance ?? this.balance,
     currency: currency ?? this.currency,
     type: type ?? this.type,
+    color: color.present ? color.value : this.color,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
     isDeleted: isDeleted ?? this.isDeleted,
@@ -378,6 +410,7 @@ class AccountRow extends DataClass implements Insertable<AccountRow> {
       balance: data.balance.present ? data.balance.value : this.balance,
       currency: data.currency.present ? data.currency.value : this.currency,
       type: data.type.present ? data.type.value : this.type,
+      color: data.color.present ? data.color.value : this.color,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       isDeleted: data.isDeleted.present ? data.isDeleted.value : this.isDeleted,
@@ -393,6 +426,7 @@ class AccountRow extends DataClass implements Insertable<AccountRow> {
           ..write('balance: $balance, ')
           ..write('currency: $currency, ')
           ..write('type: $type, ')
+          ..write('color: $color, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('isDeleted: $isDeleted, ')
@@ -408,6 +442,7 @@ class AccountRow extends DataClass implements Insertable<AccountRow> {
     balance,
     currency,
     type,
+    color,
     createdAt,
     updatedAt,
     isDeleted,
@@ -422,6 +457,7 @@ class AccountRow extends DataClass implements Insertable<AccountRow> {
           other.balance == this.balance &&
           other.currency == this.currency &&
           other.type == this.type &&
+          other.color == this.color &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
           other.isDeleted == this.isDeleted &&
@@ -434,6 +470,7 @@ class AccountsCompanion extends UpdateCompanion<AccountRow> {
   final Value<double> balance;
   final Value<String> currency;
   final Value<String> type;
+  final Value<String?> color;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<bool> isDeleted;
@@ -445,6 +482,7 @@ class AccountsCompanion extends UpdateCompanion<AccountRow> {
     this.balance = const Value.absent(),
     this.currency = const Value.absent(),
     this.type = const Value.absent(),
+    this.color = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.isDeleted = const Value.absent(),
@@ -457,6 +495,7 @@ class AccountsCompanion extends UpdateCompanion<AccountRow> {
     required double balance,
     required String currency,
     required String type,
+    this.color = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.isDeleted = const Value.absent(),
@@ -473,6 +512,7 @@ class AccountsCompanion extends UpdateCompanion<AccountRow> {
     Expression<double>? balance,
     Expression<String>? currency,
     Expression<String>? type,
+    Expression<String>? color,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<bool>? isDeleted,
@@ -485,6 +525,7 @@ class AccountsCompanion extends UpdateCompanion<AccountRow> {
       if (balance != null) 'balance': balance,
       if (currency != null) 'currency': currency,
       if (type != null) 'type': type,
+      if (color != null) 'color': color,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (isDeleted != null) 'is_deleted': isDeleted,
@@ -499,6 +540,7 @@ class AccountsCompanion extends UpdateCompanion<AccountRow> {
     Value<double>? balance,
     Value<String>? currency,
     Value<String>? type,
+    Value<String?>? color,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
     Value<bool>? isDeleted,
@@ -511,6 +553,7 @@ class AccountsCompanion extends UpdateCompanion<AccountRow> {
       balance: balance ?? this.balance,
       currency: currency ?? this.currency,
       type: type ?? this.type,
+      color: color ?? this.color,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       isDeleted: isDeleted ?? this.isDeleted,
@@ -536,6 +579,9 @@ class AccountsCompanion extends UpdateCompanion<AccountRow> {
     }
     if (type.present) {
       map['type'] = Variable<String>(type.value);
+    }
+    if (color.present) {
+      map['color'] = Variable<String>(color.value);
     }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
@@ -563,6 +609,7 @@ class AccountsCompanion extends UpdateCompanion<AccountRow> {
           ..write('balance: $balance, ')
           ..write('currency: $currency, ')
           ..write('type: $type, ')
+          ..write('color: $color, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('isDeleted: $isDeleted, ')
@@ -9581,6 +9628,7 @@ typedef $$AccountsTableCreateCompanionBuilder =
       required double balance,
       required String currency,
       required String type,
+      Value<String?> color,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<bool> isDeleted,
@@ -9594,6 +9642,7 @@ typedef $$AccountsTableUpdateCompanionBuilder =
       Value<double> balance,
       Value<String> currency,
       Value<String> type,
+      Value<String?> color,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<bool> isDeleted,
@@ -9699,6 +9748,11 @@ class $$AccountsTableFilterComposer
 
   ColumnFilters<String> get type => $composableBuilder(
     column: $table.type,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get color => $composableBuilder(
+    column: $table.color,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -9832,6 +9886,11 @@ class $$AccountsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get color => $composableBuilder(
+    column: $table.color,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -9876,6 +9935,9 @@ class $$AccountsTableAnnotationComposer
 
   GeneratedColumn<String> get type =>
       $composableBuilder(column: $table.type, builder: (column) => column);
+
+  GeneratedColumn<String> get color =>
+      $composableBuilder(column: $table.color, builder: (column) => column);
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
@@ -10002,6 +10064,7 @@ class $$AccountsTableTableManager
                 Value<double> balance = const Value.absent(),
                 Value<String> currency = const Value.absent(),
                 Value<String> type = const Value.absent(),
+                Value<String?> color = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<bool> isDeleted = const Value.absent(),
@@ -10013,6 +10076,7 @@ class $$AccountsTableTableManager
                 balance: balance,
                 currency: currency,
                 type: type,
+                color: color,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 isDeleted: isDeleted,
@@ -10026,6 +10090,7 @@ class $$AccountsTableTableManager
                 required double balance,
                 required String currency,
                 required String type,
+                Value<String?> color = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<bool> isDeleted = const Value.absent(),
@@ -10037,6 +10102,7 @@ class $$AccountsTableTableManager
                 balance: balance,
                 currency: currency,
                 type: type,
+                color: color,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 isDeleted: isDeleted,

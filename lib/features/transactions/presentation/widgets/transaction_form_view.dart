@@ -68,12 +68,14 @@ class TransactionFormView extends ConsumerWidget {
     required this.formArgs,
     required this.onSuccess,
     this.submitLabel,
+    this.showSubmitButton = true,
   });
 
   final GlobalKey<FormState> formKey;
   final TransactionFormArgs formArgs;
   final void Function(TransactionFormResult result) onSuccess;
   final String? submitLabel;
+  final bool showSubmitButton;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -134,6 +136,7 @@ class TransactionFormView extends ConsumerWidget {
           categoriesAsync: categoriesAsync,
           formArgs: formArgs,
           submitLabel: submitLabel ?? strings.addTransactionSubmit,
+          showSubmitButton: showSubmitButton,
         );
       },
     );
@@ -147,6 +150,7 @@ class _TransactionForm extends ConsumerWidget {
     required this.categoriesAsync,
     required this.formArgs,
     required this.submitLabel,
+    required this.showSubmitButton,
   });
 
   final GlobalKey<FormState> formKey;
@@ -154,6 +158,7 @@ class _TransactionForm extends ConsumerWidget {
   final AsyncValue<List<Category>> categoriesAsync;
   final TransactionFormArgs formArgs;
   final String submitLabel;
+  final bool showSubmitButton;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -169,13 +174,6 @@ class _TransactionForm extends ConsumerWidget {
     final ThemeData theme = Theme.of(context);
     final KopimLayout layout = context.kopimLayout;
     final KopimSpacingScale spacing = layout.spacing;
-    final TextStyle titleStyle = theme.textTheme.headlineSmall?.copyWith(
-          fontSize: 22,
-          height: 28 / 22,
-          fontWeight: FontWeight.w400,
-          color: theme.colorScheme.onSurface,
-        ) ??
-        theme.textTheme.titleLarge!;
     final TextStyle labelStyle = theme.textTheme.titleSmall?.copyWith(
           fontWeight: FontWeight.w500,
           letterSpacing: 0.1,
@@ -214,11 +212,6 @@ class _TransactionForm extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: <Widget>[
-                      Text(
-                        strings.addTransactionTitle,
-                        style: titleStyle,
-                      ),
-                      SizedBox(height: spacing.sectionLarge),
                       _SectionHeader(
                         label: strings.addTransactionAccountLabel,
                         helper: strings.addTransactionAccountHint,
@@ -253,9 +246,7 @@ class _TransactionForm extends ConsumerWidget {
                       SizedBox(height: spacing.sectionLarge),
                       _SectionHeader(
                         label: strings.addTransactionCategoryLabel,
-                        helper: strings.addTransactionCategoryHint,
                         labelStyle: labelStyle,
-                        helperStyle: helperStyle,
                       ),
                       SizedBox(height: spacing.between),
                       _CategoryDropdownField(
@@ -268,18 +259,20 @@ class _TransactionForm extends ConsumerWidget {
                       _DateTimeSelectorRow(formArgs: formArgs),
                       SizedBox(height: spacing.sectionLarge),
                       _NoteField(formArgs: formArgs),
-                      SizedBox(height: spacing.sectionLarge),
-                      Center(
-                        child: _SubmitButton(
-                          key: const ValueKey<String>(
-                            'transaction_submit_button',
+                      if (showSubmitButton) ...[
+                        SizedBox(height: spacing.sectionLarge),
+                        Center(
+                          child: _SubmitButton(
+                            key: const ValueKey<String>(
+                              'transaction_submit_button',
+                            ),
+                            formArgs: formArgs,
+                            formKey: formKey,
+                            isSubmitting: isSubmitting,
+                            submitLabel: submitLabel,
                           ),
-                          formArgs: formArgs,
-                          formKey: formKey,
-                          isSubmitting: isSubmitting,
-                          submitLabel: submitLabel,
                         ),
-                      ),
+                      ],
                     ],
                   ),
                 ),
@@ -310,21 +303,10 @@ class _AccountDropdownField extends ConsumerStatefulWidget {
 }
 
 class _AccountDropdownFieldState extends ConsumerState<_AccountDropdownField> {
-  bool _isExpanded = false;
-
-  void _toggleExpansion() {
-    setState(() {
-      _isExpanded = !_isExpanded;
-    });
-  }
-
   void _selectAccount(String accountId) {
     ref
         .read(transactionFormControllerProvider(widget.formArgs).notifier)
         .updateAccount(accountId);
-    setState(() {
-      _isExpanded = false;
-    });
   }
 
   @override
@@ -349,80 +331,37 @@ class _AccountDropdownFieldState extends ConsumerState<_AccountDropdownField> {
     }
 
     final Map<String, NumberFormat> cache = <String, NumberFormat>{};
-    AccountEntity? selectedAccount;
-    for (final AccountEntity account in accounts) {
-      if (account.id == resolvedAccountId) {
-        selectedAccount = account;
-        break;
-      }
-    }
-
-    final ThemeData theme = Theme.of(context);
     final KopimLayout layout = context.kopimLayout;
     final KopimSpacingScale spacing = layout.spacing;
-    final double indicatorGap = spacing.between;
-    final double containerRadius = layout.radius.xxl;
-    final BorderRadius borderRadius = BorderRadius.circular(containerRadius);
-    final List<AccountEntity> accountList = accounts;
-    return Container(
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHigh,
-        borderRadius: borderRadius,
-      ),
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          InkWell(
-            borderRadius: borderRadius,
-            onTap: _toggleExpansion,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                Expanded(
-                  child: Text(
-                    selectedAccount?.name ?? strings.addTransactionAccountLabel,
-                    style: theme.textTheme.bodyLarge?.copyWith(
-                      fontWeight: FontWeight.w400,
-                      letterSpacing: 0.5,
-                      color: theme.colorScheme.onSurface,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                AnimatedRotation(
-                  turns: _isExpanded ? 0.5 : 0,
-                  duration: const Duration(milliseconds: 200),
-                  child: Icon(
-                    Icons.keyboard_arrow_down,
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                )
-              ],
-            ),
+    const double accountRowHeight = 120;
+    final List<Widget> accountCards = <Widget>[
+      for (int index = 0; index < accounts.length; index++)
+        Padding(
+          padding: EdgeInsets.only(
+            right: index == accounts.length - 1 ? 0 : spacing.between,
           ),
-          if (_isExpanded) ...<Widget>[
-            SizedBox(height: indicatorGap),
-            Column(
-              children: <Widget>[
-                for (int index = 0; index < accountList.length; index++) ...<Widget>{
-                  _AccountSelectionRow(
-                    account: accountList[index],
-                    formatter: _resolveFormatter(
-                      cache,
-                      accountList[index].currency,
-                      strings.localeName,
-                    ),
-                    isSelected: accountList[index].id == resolvedAccountId,
-                    onTap: () => _selectAccount(accountList[index].id),
-                  ),
-                  if (index != accountList.length - 1)
-                    SizedBox(height: indicatorGap),
-                },
-              ],
+          child: _AccountSelectionCard(
+            account: accounts[index],
+            formatter: _resolveFormatter(
+              cache,
+              accounts[index].currency,
+              strings.localeName,
             ),
-          ],
-        ],
+            isSelected: resolvedAccountId != null &&
+                accounts[index].id == resolvedAccountId,
+            onTap: () => _selectAccount(accounts[index].id),
+          ),
+        ),
+    ];
+
+    return SizedBox(
+      height: accountRowHeight,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        child: Row(
+          children: accountCards,
+        ),
       ),
     );
   }
@@ -459,87 +398,125 @@ class _AccountDropdownFieldState extends ConsumerState<_AccountDropdownField> {
   }
 }
 
-class _AccountSelectionRow extends StatelessWidget {
-  const _AccountSelectionRow({
+class _AccountSelectionCard extends StatelessWidget {
+  const _AccountSelectionCard({
     required this.account,
-    required this.isSelected,
     required this.formatter,
+    required this.isSelected,
     required this.onTap,
   });
 
   final AccountEntity account;
-  final bool isSelected;
   final NumberFormat formatter;
+  final bool isSelected;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
-    final Color background = isSelected
-        ? theme.colorScheme.surfaceContainerHighest
-        : theme.colorScheme.surfaceContainerHigh;
-    return InkWell(
-      borderRadius: BorderRadius.circular(16),
-      onTap: onTap,
-      child: Container(
-        height: 48,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        decoration: BoxDecoration(
-          color: background,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Row(
-          children: <Widget>[
-            Expanded(
-              child: Text(
-                '${account.name} · ${formatter.format(account.balance)}',
-                style: theme.textTheme.bodyLarge?.copyWith(
-                  letterSpacing: 0.5,
-                  color: theme.colorScheme.onSurface,
+    final KopimLayout layout = context.kopimLayout;
+    final Color? accountColor = parseHexColor(account.color);
+    final _AccountSelectionCardPalette palette =
+        _AccountSelectionCardPalette.fromTheme(
+      theme.colorScheme,
+      accountColor: accountColor,
+    );
+    final double cardRadius = layout.radius.card;
+    final BorderRadius borderRadius = BorderRadius.circular(cardRadius);
+    final TextStyle labelStyle = (theme.textTheme.labelSmall ??
+            const TextStyle(fontSize: 11, height: 1.45))
+        .copyWith(
+      color: palette.support,
+      letterSpacing: 0.5,
+      fontWeight: FontWeight.w600,
+    );
+    final TextStyle balanceStyle = (theme.textTheme.titleMedium ??
+            const TextStyle(fontSize: 16, height: 20 / 16))
+        .copyWith(
+      color: palette.emphasis,
+      fontWeight: FontWeight.w600,
+    );
+
+    const double baseHeight = 72;
+    final double cardHeight = baseHeight * (isSelected ? 1.15 : 1);
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: borderRadius,
+        child: SizedBox(
+          width: 160,
+          height: cardHeight,
+          child: Ink(
+            decoration: BoxDecoration(
+              color: palette.background,
+              borderRadius: borderRadius,
+            ),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 54),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    Text(
+                      account.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: labelStyle,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      formatter.format(account.balance),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: balanceStyle,
+                    ),
+                  ],
                 ),
               ),
             ),
-            _AccountSelectionIndicator(selected: isSelected),
-          ],
+          ),
         ),
       ),
     );
   }
 }
 
-class _AccountSelectionIndicator extends StatelessWidget {
-  const _AccountSelectionIndicator({required this.selected});
+class _AccountSelectionCardPalette {
+  const _AccountSelectionCardPalette({
+    required this.background,
+    required this.emphasis,
+    required this.support,
+  });
 
-  final bool selected;
-
-  @override
-  Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
-    return Container(
-      width: 20,
-      height: 20,
-      decoration: BoxDecoration(
-        color: selected ? _kTypeSelectedColor : Colors.transparent,
-        shape: BoxShape.circle,
-        border: Border.all(
-          color: selected
-              ? _kTypeSelectedColor
-              : theme.colorScheme.onSurfaceVariant,
-          width: 2,
-        ),
-      ),
-      child: Center(
-        child: selected
-            ? const Icon(
-                Icons.check,
-                size: 12,
-                color: _kTypeSelectedTextColor,
-              )
-            : const SizedBox.shrink(),
-        ),
-      );
-    }
+  factory _AccountSelectionCardPalette.fromTheme(
+    ColorScheme colorScheme, {
+    Color? accountColor,
+  }) {
+    final Color background =
+        accountColor ?? colorScheme.surfaceContainerHigh;
+    final Brightness brightness =
+        ThemeData.estimateBrightnessForColor(background);
+    final Color emphasis =
+        brightness == Brightness.dark ? Colors.white : Colors.black87;
+    final Color support =
+        brightness == Brightness.dark ? Colors.white70 : Colors.black54;
+    return _AccountSelectionCardPalette(
+      background: background,
+      emphasis: emphasis,
+      support: support,
+    );
   }
+
+  final Color background;
+  final Color emphasis;
+  final Color support;
+}
 
 class _TransactionTypeSelector extends ConsumerWidget {
   const _TransactionTypeSelector({
@@ -731,7 +708,7 @@ class _CategoryDropdownFieldState
         color: theme.colorScheme.surfaceContainerHigh,
         borderRadius: BorderRadius.circular(containerRadius),
       ),
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
@@ -770,14 +747,6 @@ class _CategoryDropdownFieldState
             spacing: spacing.between,
             runSpacing: spacing.between,
             children: <Widget>[
-              _CategoryChip(
-                label: strings.addTransactionCategoryNone,
-                icon: Icons.do_not_disturb_alt_outlined,
-                baseColor: theme.colorScheme.surfaceContainerHighest,
-                selected: selectedCategoryId == null ||
-                    selectedCategoryId.isEmpty,
-                onTap: () => _selectCategory(null),
-              ),
               if (hasSelection && selectedCategory != null)
                 _buildCategoryChip(
                   category: selectedCategory,
@@ -1101,7 +1070,6 @@ class _AmountFieldState extends ConsumerState<_AmountField> {
       ],
       decoration: _transactionTextFieldDecoration(
         context,
-        labelText: widget.strings.addTransactionAmountLabel,
         hintText: widget.strings.addTransactionAmountHint,
       ),
       onChanged: _handleChanged,

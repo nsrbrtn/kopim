@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kopim/features/accounts/presentation/controllers/add_account_form_controller.dart';
+import 'package:kopim/features/accounts/presentation/widgets/account_color_selector.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
 class AddAccountScreen extends ConsumerStatefulWidget {
@@ -181,14 +182,20 @@ class _AddAccountScreenState extends ConsumerState<AddAccountScreen> {
                 onChanged: state.isSaving
                     ? null
                     : (String? value) {
-                        if (value != null) {
-                          if (value == customTypeValue) {
-                            controller.enableCustomType();
-                          } else {
-                            controller.updateType(value);
-                          }
-                        }
-                      },
+                  if (value != null) {
+                    if (value == customTypeValue) {
+                      controller.enableCustomType();
+                    } else {
+                      controller.updateType(value);
+                    }
+                  }
+                },
+              ),
+              const SizedBox(height: 16),
+              AccountColorSelector(
+                color: state.color,
+                enabled: !state.isSaving,
+                onColorChanged: controller.updateColor,
               ),
               if (state.useCustomType) ...<Widget>[
                 const SizedBox(height: 16),

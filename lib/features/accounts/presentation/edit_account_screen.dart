@@ -5,6 +5,7 @@ import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/accounts/domain/use_cases/delete_account_use_case.dart';
 import 'package:kopim/features/accounts/presentation/controllers/edit_account_form_controller.dart';
+import 'package:kopim/features/accounts/presentation/widgets/account_color_selector.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
 class EditAccountScreen extends ConsumerStatefulWidget {
@@ -229,6 +230,12 @@ class _EditAccountScreenState extends ConsumerState<EditAccountScreen> {
                           controller.updateType(value);
                         }
                       },
+              ),
+              const SizedBox(height: 16),
+              AccountColorSelector(
+                color: state.color,
+                enabled: !state.isSaving,
+                onColorChanged: controller.updateColor,
               ),
               if (state.useCustomType) ...<Widget>[
                 const SizedBox(height: 16),

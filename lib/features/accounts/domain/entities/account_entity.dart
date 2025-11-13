@@ -15,6 +15,7 @@ abstract class AccountEntity with _$AccountEntity {
     required String type,
     required DateTime createdAt,
     required DateTime updatedAt,
+    String? color,
     @Default(false) bool isDeleted,
     @Default(false) bool isPrimary,
   }) = _AccountEntity;

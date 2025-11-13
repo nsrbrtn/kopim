@@ -84,6 +84,7 @@ class AccountRepositoryImpl implements AccountRepository {
     json['updatedAt'] = account.updatedAt.toIso8601String();
     json['createdAt'] = account.createdAt.toIso8601String();
     json['isPrimary'] = account.isPrimary;
+    json['color'] = account.color;
     return json;
   }
 
@@ -94,6 +95,7 @@ class AccountRepositoryImpl implements AccountRepository {
       balance: row.balance,
       currency: row.currency,
       type: row.type,
+      color: row.color,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
       isDeleted: row.isDeleted,

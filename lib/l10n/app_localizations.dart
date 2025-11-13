@@ -2556,6 +2556,36 @@ abstract class AppLocalizations {
   /// **'Please specify the account type.'**
   String get addAccountTypeRequired;
 
+  /// Label for the account card color selector
+  ///
+  /// In en, this message translates to:
+  /// **'Card color'**
+  String get accountColorLabel;
+
+  /// Label shown when the default card color is used
+  ///
+  /// In en, this message translates to:
+  /// **'Default'**
+  String get accountColorDefault;
+
+  /// Title shown on the account color picker dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Pick card color'**
+  String get accountColorPickerTitle;
+
+  /// Button label for confirming a color choice
+  ///
+  /// In en, this message translates to:
+  /// **'Select'**
+  String get accountColorSelect;
+
+  /// Tooltip for clearing the selected card color
+  ///
+  /// In en, this message translates to:
+  /// **'Clear color'**
+  String get accountColorClear;
+
   /// Label for the switch that marks an account as primary
   ///
   /// In en, this message translates to:

@@ -15,6 +15,7 @@ _AccountEntity _$AccountEntityFromJson(Map<String, dynamic> json) =>
       type: json['type'] as String,
       createdAt: DateTime.parse(json['createdAt'] as String),
       updatedAt: DateTime.parse(json['updatedAt'] as String),
+      color: json['color'] as String?,
       isDeleted: json['isDeleted'] as bool? ?? false,
       isPrimary: json['isPrimary'] as bool? ?? false,
     );
@@ -28,6 +29,7 @@ Map<String, dynamic> _$AccountEntityToJson(_AccountEntity instance) =>
       'type': instance.type,
       'createdAt': instance.createdAt.toIso8601String(),
       'updatedAt': instance.updatedAt.toIso8601String(),
+      'color': instance.color,
       'isDeleted': instance.isDeleted,
       'isPrimary': instance.isPrimary,
     };

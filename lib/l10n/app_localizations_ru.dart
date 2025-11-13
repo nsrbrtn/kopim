@@ -1476,6 +1476,21 @@ class AppLocalizationsRu extends AppLocalizations {
   String get addAccountTypeRequired => 'Укажите тип счёта.';
 
   @override
+  String get accountColorLabel => 'Цвет карточки';
+
+  @override
+  String get accountColorDefault => 'По умолчанию';
+
+  @override
+  String get accountColorPickerTitle => 'Выберите цвет карточки';
+
+  @override
+  String get accountColorSelect => 'Выбрать';
+
+  @override
+  String get accountColorClear => 'Сбросить цвет';
+
+  @override
   String get accountPrimaryToggleLabel => 'Сделать счёт основным';
 
   @override
