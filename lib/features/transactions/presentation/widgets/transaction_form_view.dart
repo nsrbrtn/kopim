@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math' as math;
 
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -14,6 +15,48 @@ import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
 import 'package:kopim/features/transactions/presentation/controllers/transaction_form_controller.dart';
 import 'package:kopim/l10n/app_localizations.dart';
+
+const EdgeInsets _kFormOuterPadding =
+    EdgeInsets.symmetric(horizontal: 16, vertical: 16);
+const EdgeInsets _kAccountSectionPadding = EdgeInsets.all(16);
+const EdgeInsets _kCategorySectionPadding = EdgeInsets.all(16);
+const EdgeInsets _kDateTimeSectionPadding =
+    EdgeInsets.symmetric(vertical: 12, horizontal: 16);
+const SizedBox _kGap8 = SizedBox(height: 8);
+
+AccountEntity _resolveSummaryAccount(
+  List<AccountEntity> accounts,
+  String? selectedAccountId,
+  String? preferredAccountId,
+) {
+  final String? resolvedId =
+      selectedAccountId ?? _resolveDefaultAccountId(accounts, preferredAccountId);
+  final AccountEntity? resolved = accounts.firstWhereOrNull(
+    (AccountEntity account) => account.id == resolvedId,
+  );
+  if (resolved != null) {
+    return resolved;
+  }
+  return accounts.firstWhereOrNull((AccountEntity account) => account.isPrimary) ??
+      accounts.first;
+}
+
+String? _resolveDefaultAccountId(
+  List<AccountEntity> accounts,
+  String? preferredId,
+) {
+  if (preferredId != null &&
+      accounts.any((AccountEntity account) => account.id == preferredId)) {
+    return preferredId;
+  }
+  final AccountEntity? primary = accounts.firstWhereOrNull(
+    (AccountEntity account) => account.isPrimary,
+  );
+  if (primary != null) {
+    return primary.id;
+  }
+  return accounts.isNotEmpty ? accounts.first.id : null;
+}
 
 const Color _kTypeSelectedColor = Color(0xFFAEF75F);
 const Color _kTypeSelectedTextColor = Color(0xFF1D3700);
@@ -241,9 +284,10 @@ class _TransactionFormState extends ConsumerState<_TransactionForm> {
       ),
     );
 
-    final AccountEntity summaryAccount = widget.accounts.firstWhere(
-      (AccountEntity account) => account.id == selectedAccountId,
-      orElse: () => widget.accounts.first,
+    final AccountEntity summaryAccount = _resolveSummaryAccount(
+      widget.accounts,
+      selectedAccountId,
+      widget.formArgs.defaultAccountId,
     );
     final String formattedAmount = hasValidAmount && parsedAmount != null
         ? _formatAmount(parsedAmount, summaryAccount.currency, strings.localeName)
@@ -260,51 +304,66 @@ class _TransactionFormState extends ConsumerState<_TransactionForm> {
           final double maxWidth = math.max(availableWidth - spacing.screen * 2, 0);
           final double formWidth = math.min(maxWidth, 412);
 
-          return SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          final List<Widget> sections = <Widget>[
+            RepaintBoundary(
+              child: _buildAccountAmountSection(
+                context: context,
+                strings: strings,
+                labelStyle: labelStyle,
+                helperStyle: helperStyle,
+                spacing: spacing,
+                transactionProvider: transactionProvider,
+                formattedAmount: formattedAmount,
+                summaryAccount: summaryAccount,
+                showCollapsed: showCollapsed,
+              ),
+            ),
+            RepaintBoundary(
+              child: _CategoryDropdownField(
+                key: const ValueKey<String>('transaction_category_field'),
+                categoriesAsync: widget.categoriesAsync,
+                formArgs: widget.formArgs,
+                strings: strings,
+              ),
+            ),
+            RepaintBoundary(
+              child: _DateTimeSelectorRow(formArgs: widget.formArgs),
+            ),
+            RepaintBoundary(
+              child: _NoteField(formArgs: widget.formArgs),
+            ),
+          ];
+
+          if (widget.showSubmitButton) {
+            sections.add(
+              RepaintBoundary(
+                child: Center(
+                  child: _SubmitButton(
+                    key: const ValueKey<String>('transaction_submit_button'),
+                    formArgs: widget.formArgs,
+                    formKey: widget.formKey,
+                    isSubmitting: isSubmitting,
+                    submitLabel: widget.submitLabel,
+                  ),
+                ),
+              ),
+            );
+          }
+
+          return Padding(
+            padding: _kFormOuterPadding,
             child: Center(
               child: SizedBox(
                 width: formWidth,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: <Widget>[
-              _buildAccountAmountSection(
-                      context: context,
-                      strings: strings,
-                      labelStyle: labelStyle,
-                      helperStyle: helperStyle,
-                      spacing: spacing,
-                      transactionProvider: transactionProvider,
-                      formattedAmount: formattedAmount,
-                      summaryAccount: summaryAccount,
-                      showCollapsed: showCollapsed,
-                    ),
-                    const SizedBox(height: 8),
-                    _CategoryDropdownField(
-                      key: const ValueKey<String>('transaction_category_field'),
-                      categoriesAsync: widget.categoriesAsync,
-                      formArgs: widget.formArgs,
-                      strings: strings,
-                    ),
-                    const SizedBox(height: 8),
-                    _DateTimeSelectorRow(formArgs: widget.formArgs),
-                    const SizedBox(height: 8),
-                    _NoteField(formArgs: widget.formArgs),
-                    if (widget.showSubmitButton) ...[
-                      const SizedBox(height: 8),
-                      Center(
-                        child: _SubmitButton(
-                          key: const ValueKey<String>('transaction_submit_button'),
-                          formArgs: widget.formArgs,
-                          formKey: widget.formKey,
-                          isSubmitting: isSubmitting,
-                          submitLabel: widget.submitLabel,
-                        ),
-                      ),
-                    ],
-                  ],
+                child: ListView.separated(
+                  physics: const BouncingScrollPhysics(),
+                  keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                  cacheExtent: MediaQuery.sizeOf(context).height,
+                  itemCount: sections.length,
+                  itemBuilder: (BuildContext context, int index) {
+                    return sections[index];
+                  },
+                  separatorBuilder: (_, __) => _kGap8,
                 ),
               ),
             ),
@@ -332,7 +391,7 @@ class _TransactionFormState extends ConsumerState<_TransactionForm> {
         color: theme.colorScheme.surfaceContainer,
         borderRadius: BorderRadius.circular(containerRadius),
       ),
-      padding: const EdgeInsets.all(16),
+      padding: _kAccountSectionPadding,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
@@ -551,24 +610,6 @@ class _AccountDropdownFieldState extends ConsumerState<_AccountDropdownField> {
     );
   }
 
-  String? _resolveDefaultAccountId(
-    List<AccountEntity> accounts,
-    String? preferredId,
-  ) {
-    if (preferredId != null) {
-      for (final AccountEntity account in accounts) {
-        if (account.id == preferredId) {
-          return preferredId;
-        }
-      }
-    }
-    for (final AccountEntity account in accounts) {
-      if (account.isPrimary) {
-        return account.id;
-      }
-    }
-    return accounts.isNotEmpty ? accounts.first.id : null;
-  }
 }
 
 class _AccountSelectionCard extends StatelessWidget {
@@ -783,6 +824,12 @@ class _CategoryDropdownFieldState
   bool _showAll = false;
   late final TextEditingController _searchController;
   String _query = '';
+  List<Category> _cachedHeaderCategories = const <Category>[];
+  List<Category> _cachedOtherCategories = const <Category>[];
+  List<Widget> _headerChipWidgets = const <Widget>[];
+  List<Widget> _otherChipWidgets = const <Widget>[];
+  String? _cachedSelectedCategoryId;
+  bool _cachedShowFavoritesInHeader = false;
 
   @override
   void initState() {
@@ -817,6 +864,58 @@ class _CategoryDropdownFieldState
     setState(() {
       _showAll = false;
     });
+  }
+
+  void _updateCategoryChipCache({
+    required List<Category> headerCategories,
+    required List<Category> otherCategories,
+    required String? selectedCategoryId,
+    required bool showFavoritesInHeader,
+    required bool showOtherCategories,
+  }) {
+    final bool headerChanged =
+        !_areCategoryListsEqual(headerCategories, _cachedHeaderCategories);
+    final bool otherChanged = showOtherCategories
+        ? !_areCategoryListsEqual(otherCategories, _cachedOtherCategories)
+        : _cachedOtherCategories.isNotEmpty;
+    final bool selectionChanged =
+        _cachedSelectedCategoryId != selectedCategoryId;
+    final bool favoritesChanged =
+        _cachedShowFavoritesInHeader != showFavoritesInHeader;
+    if (!headerChanged &&
+        !otherChanged &&
+        !selectionChanged &&
+        !favoritesChanged) {
+      return;
+    }
+
+    _cachedHeaderCategories = headerCategories;
+    _cachedShowFavoritesInHeader = showFavoritesInHeader;
+    _cachedSelectedCategoryId = selectedCategoryId;
+    _headerChipWidgets = headerCategories
+        .map((Category category) =>
+            _buildCategoryChip(category, selectedCategoryId))
+        .toList(growable: false);
+
+    if (showOtherCategories) {
+      _cachedOtherCategories = otherCategories;
+      _otherChipWidgets = otherCategories
+          .map((Category category) =>
+              _buildCategoryChip(category, selectedCategoryId))
+          .toList(growable: false);
+    } else {
+      _cachedOtherCategories = const <Category>[];
+      _otherChipWidgets = const <Widget>[];
+    }
+  }
+
+  bool _areCategoryListsEqual(
+    List<Category> first,
+    List<Category> second,
+  ) {
+    final List<String> firstIds = first.map((Category category) => category.id).toList();
+    final List<String> secondIds = second.map((Category category) => category.id).toList();
+    return const ListEquality<String>().equals(firstIds, secondIds);
   }
 
   @override
@@ -886,13 +985,28 @@ class _CategoryDropdownFieldState
     final String buttonLabel = _showAll
         ? strings.addTransactionHideCategories
         : strings.addTransactionShowAllCategories;
+    final List<Category> headerCategories = <Category>[
+      if (selectedCategory != null) selectedCategory,
+      if (showFavoritesInHeader) ...headerFavorites,
+    ];
+    final bool showOtherCategories =
+        _showAll && otherCategories.isNotEmpty;
+    final List<Category> otherDisplayCategories =
+        showOtherCategories ? otherCategories : const <Category>[];
+    _updateCategoryChipCache(
+      headerCategories: headerCategories,
+      otherCategories: otherDisplayCategories,
+      selectedCategoryId: selectedCategoryId,
+      showFavoritesInHeader: showFavoritesInHeader,
+      showOtherCategories: showOtherCategories,
+    );
 
     return Container(
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainer,
         borderRadius: BorderRadius.circular(containerRadius),
       ),
-      padding: const EdgeInsets.all(16),
+      padding: _kCategorySectionPadding,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
@@ -937,32 +1051,14 @@ class _CategoryDropdownFieldState
           Wrap(
             spacing: spacing.between,
             runSpacing: spacing.between,
-            children: <Widget>[
-              if (hasSelection && selectedCategory != null)
-                _buildCategoryChip(
-                  category: selectedCategory,
-                  selected: true,
-                ),
-              if (showFavoritesInHeader)
-                for (final Category category in headerFavorites)
-                  _buildCategoryChip(
-                    category: category,
-                    selected: category.id == selectedCategoryId,
-                  ),
-            ],
+            children: _headerChipWidgets,
           ),
-          if (_showAll && otherCategories.isNotEmpty) ...<Widget>[
+          if (showOtherCategories) ...<Widget>[
             SizedBox(height: spacing.between),
             Wrap(
               spacing: spacing.between,
               runSpacing: spacing.between,
-              children: <Widget>[
-                for (final Category category in otherCategories)
-                  _buildCategoryChip(
-                    category: category,
-                    selected: category.id == selectedCategoryId,
-                  ),
-              ],
+              children: _otherChipWidgets,
             ),
           ],
           if (filtered.isEmpty)
@@ -991,10 +1087,11 @@ class _CategoryDropdownFieldState
     );
   }
 
-  Widget _buildCategoryChip({
-    required Category category,
-    required bool selected,
-  }) {
+  Widget _buildCategoryChip(
+    Category category,
+    String? selectedCategoryId,
+  ) {
+    final bool selected = category.id == selectedCategoryId;
     final IconData? iconData = resolvePhosphorIconData(category.icon);
     final Color? backgroundColor = parseHexColor(category.color);
     return _CategoryChip(
@@ -1497,7 +1594,7 @@ class _DateTimeSelectorRow extends ConsumerWidget {
       color: theme.colorScheme.surfaceContainer,
       borderRadius: BorderRadius.circular(containerRadius),
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+        padding: _kDateTimeSectionPadding,
         child: Row(
           children: <Widget>[
             Expanded(
