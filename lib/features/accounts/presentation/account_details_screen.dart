@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:kopim/core/formatting/currency_symbols.dart';
 import 'package:kopim/core/utils/helpers.dart';
 import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
@@ -90,7 +91,10 @@ class _AccountDetailsScreenState extends ConsumerState<AccountDetailsScreen> {
 
             final NumberFormat currencyFormat = NumberFormat.currency(
               locale: strings.localeName,
-              symbol: account.currency.toUpperCase(),
+              symbol: resolveCurrencySymbol(
+                account.currency,
+                locale: strings.localeName,
+              ),
             );
             final bool isWideLayout = MediaQuery.of(context).size.width >= 720;
             final EdgeInsets padding = EdgeInsets.symmetric(

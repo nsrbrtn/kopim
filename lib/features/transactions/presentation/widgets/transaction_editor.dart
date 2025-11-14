@@ -22,6 +22,8 @@ Future<void> showTransactionEditorSheet({
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
+    shape: const RoundedRectangleBorder(),
+    clipBehavior: Clip.hardEdge,
     builder: (BuildContext modalContext) {
       return Padding(
         padding: EdgeInsets.only(
@@ -105,7 +107,10 @@ Future<bool> deleteTransactionWithFeedback({
   return deleted;
 }
 
-Widget buildDeleteBackground(Color color) {
+Widget buildDeleteBackground(
+  Color color, {
+  Color? iconColor,
+}) {
   return Container(
     margin: const EdgeInsets.symmetric(vertical: 6),
     decoration: BoxDecoration(
@@ -114,6 +119,9 @@ Widget buildDeleteBackground(Color color) {
     ),
     alignment: Alignment.centerRight,
     padding: const EdgeInsets.symmetric(horizontal: 24),
-    child: const Icon(Icons.delete_outline, color: Colors.white),
+    child: Icon(
+      Icons.delete_outline,
+      color: iconColor ?? Colors.white,
+    ),
   );
 }

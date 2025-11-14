@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import 'package:kopim/core/di/injectors.dart';
+import 'package:kopim/core/formatting/currency_symbols.dart';
 import 'package:kopim/core/utils/helpers.dart';
 import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
@@ -272,7 +273,7 @@ class _BudgetTransactionTile extends ConsumerWidget {
     final String categoryName =
         category?.name ?? strings.homeTransactionsUncategorized;
     final String currencySymbol = account.currency.isNotEmpty
-        ? account.currency.toUpperCase()
+        ? resolveCurrencySymbol(account.currency, locale: localeName)
         : TransactionTileFormatters.fallbackCurrencySymbol(localeName);
     final NumberFormat moneyFormat = TransactionTileFormatters.currency(
       localeName,

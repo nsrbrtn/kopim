@@ -32,6 +32,7 @@ import 'package:kopim/features/transactions/presentation/widgets/transaction_edi
 import 'package:kopim/features/transactions/presentation/widgets/transaction_tile_formatters.dart';
 import 'package:kopim/features/transactions/presentation/widgets/transaction_form_view.dart';
 import 'package:kopim/l10n/app_localizations.dart';
+import 'package:kopim/core/formatting/currency_symbols.dart';
 import 'package:kopim/core/utils/helpers.dart';
 import 'package:kopim/core/widgets/kopim_floating_action_button.dart';
 import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
@@ -612,7 +613,7 @@ class _AccountsListState extends State<_AccountsList> {
     for (final AccountEntity account in widget.accounts) {
       final NumberFormat format = NumberFormat.currency(
         locale: localeName,
-        symbol: account.currency.toUpperCase(),
+        symbol: resolveCurrencySymbol(account.currency, locale: localeName),
       );
       final double width = _AccountCardLayout.measureBalanceWidth(
         context: context,
@@ -639,13 +640,15 @@ class _AccountsListState extends State<_AccountsList> {
           for (int i = 0; i < widget.accounts.length; i++)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 6),
-              child: _AccountCard(
-                account: widget.accounts[i],
-                strings: widget.strings,
-                currencyFormat: NumberFormat.currency(
-                  locale: localeName,
-                  symbol: widget.accounts[i].currency.toUpperCase(),
-                ),
+                child: _AccountCard(
+                  account: widget.accounts[i],
+                  strings: widget.strings,
+                  currencyFormat: NumberFormat.currency(
+                    locale: localeName,
+                    symbol:
+                        resolveCurrencySymbol(widget.accounts[i].currency,
+                            locale: localeName),
+                  ),
                 summary:
                     widget.monthlySummaries[widget.accounts[i].id] ??
                     const HomeAccountMonthlySummary(income: 0, expense: 0),
@@ -712,7 +715,8 @@ class _AccountsListState extends State<_AccountsList> {
                   final AccountEntity account = widget.accounts[index];
                   final NumberFormat currencyFormat = NumberFormat.currency(
                     locale: localeName,
-                    symbol: account.currency.toUpperCase(),
+                    symbol:
+                        resolveCurrencySymbol(account.currency, locale: localeName),
                     decimalDigits: 0,
                   );
                   final HomeAccountMonthlySummary summary =
@@ -1313,6 +1317,8 @@ class _TransactionListItem extends ConsumerWidget {
       ).select((TransactionEntity? tx) => tx?.type),
     );
 
+    final ThemeData theme = Theme.of(context);
+
     if (amount == null || type == null || accountId == null) {
       return const _TransactionTileSkeleton();
     }
@@ -1328,7 +1334,7 @@ class _TransactionListItem extends ConsumerWidget {
       ).select((AccountEntity? account) => account?.currency),
     );
     final String currencySymbol = accountCurrency != null
-        ? accountCurrency.toUpperCase()
+        ? resolveCurrencySymbol(accountCurrency, locale: localeName)
         : TransactionTileFormatters.fallbackCurrencySymbol(localeName);
     final NumberFormat moneyFormat = TransactionTileFormatters.currency(
       localeName,
@@ -1357,7 +1363,10 @@ class _TransactionListItem extends ConsumerWidget {
     return Dismissible(
       key: ValueKey<String>(transactionId),
       direction: DismissDirection.endToStart,
-      background: buildDeleteBackground(Theme.of(context).colorScheme.error),
+      background: buildDeleteBackground(
+        theme.colorScheme.errorContainer,
+        iconColor: theme.colorScheme.onErrorContainer,
+      ),
       confirmDismiss: (DismissDirection direction) async {
         return deleteTransactionWithFeedback(
           context: context,
