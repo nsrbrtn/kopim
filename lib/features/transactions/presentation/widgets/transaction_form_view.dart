@@ -363,7 +363,7 @@ class _TransactionFormState extends ConsumerState<_TransactionForm> {
                   itemBuilder: (BuildContext context, int index) {
                     return sections[index];
                   },
-                  separatorBuilder: (_, __) => _kGap8,
+                  separatorBuilder: (BuildContext _, int index) => _kGap8,
                 ),
               ),
             ),
@@ -628,7 +628,6 @@ class _AccountSelectionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
-    final KopimLayout layout = context.kopimLayout;
     final Color? accountColor = parseHexColor(account.color);
     final _AccountSelectionCardPalette palette =
         _AccountSelectionCardPalette.fromTheme(

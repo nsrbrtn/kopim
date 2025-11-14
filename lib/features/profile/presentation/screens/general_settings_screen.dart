@@ -206,7 +206,7 @@ class _DataTransferSectionState extends ConsumerState<_DataTransferSection> {
     final bool isExporting = exportState.isLoading;
     final bool isImporting = importState.isLoading;
     final ThemeData theme = Theme.of(context);
-    final bool canSelectDirectory = !kIsWeb;
+    const bool canSelectDirectory = !kIsWeb;
 
     return _SettingsSectionContainer(
       child: Column(

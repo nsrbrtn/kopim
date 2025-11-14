@@ -20,8 +20,11 @@ class MainNavigationBar extends ConsumerWidget {
     final ColorScheme colorScheme = theme.colorScheme;
     final bool isDark = theme.brightness == Brightness.dark;
     final double backgroundOpacity = isDark ? 0.20 : 0.35;
-    final Color backgroundColor = colorScheme.surfaceContainerHighest
-        .withOpacity(backgroundOpacity);
+    final double backgroundAlpha =
+        (backgroundOpacity * 255).round().clamp(0, 255).toDouble();
+    final Color backgroundColor = colorScheme.surfaceContainerHighest.withValues(
+      alpha: backgroundAlpha,
+    );
     final Color onSurface = colorScheme.onSurface;
     final Color activeIconBackground = colorScheme.inverseSurface;
     final Color activeIconColor = colorScheme.surface;
