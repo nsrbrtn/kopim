@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
@@ -260,7 +262,7 @@ class TransactionFormController extends _$TransactionFormController {
               type: state.type,
             ),
           );
-      await recorder.record(createdResult.profileEvents);
+      unawaited(recorder.record(createdResult.profileEvents));
       final TransactionEntity created = createdResult.value;
       state = state.copyWith(
         isSubmitting: false,

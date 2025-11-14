@@ -63,6 +63,24 @@ class AppLocalizationsRu extends AppLocalizations {
   }
 
   @override
+  String get profileExportDataDestinationLabel => 'Место сохранения';
+
+  @override
+  String get profileExportDataDefaultDestination => 'По умолчанию (загрузки)';
+
+  @override
+  String profileExportDataSelectedFolder(String path) {
+    return 'Папка: $path';
+  }
+
+  @override
+  String get profileExportDataSelectFolderCta => 'Выбрать папку';
+
+  @override
+  String get profileExportDataDirectoryPickerTitle =>
+      'Выберите папку для сохранения данных экспорта';
+
+  @override
   String get profileImportDataCta => 'Импортировать данные';
 
   @override
@@ -752,10 +770,10 @@ class AppLocalizationsRu extends AppLocalizations {
   }
 
   @override
-  String get homeAccountMonthlyIncomeLabel => 'Доход за месяц';
+  String get homeAccountMonthlyIncomeLabel => 'Доход';
 
   @override
-  String get homeAccountMonthlyExpenseLabel => 'Расход за месяц';
+  String get homeAccountMonthlyExpenseLabel => 'Расход';
 
   @override
   String get homeTransactionsTodayLabel => 'Сегодня';
@@ -1113,7 +1131,7 @@ class AppLocalizationsRu extends AppLocalizations {
       'Фоновая задача запланирована';
 
   @override
-  String get homeSavingsWidgetTitle => 'Цели накоплений';
+  String get homeSavingsWidgetTitle => 'Копилки';
 
   @override
   String get homeSavingsWidgetEmpty =>
@@ -1456,6 +1474,21 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get addAccountTypeRequired => 'Укажите тип счёта.';
+
+  @override
+  String get accountColorLabel => 'Цвет карточки';
+
+  @override
+  String get accountColorDefault => 'По умолчанию';
+
+  @override
+  String get accountColorPickerTitle => 'Выберите цвет карточки';
+
+  @override
+  String get accountColorSelect => 'Выбрать';
+
+  @override
+  String get accountColorClear => 'Сбросить цвет';
 
   @override
   String get accountPrimaryToggleLabel => 'Сделать счёт основным';

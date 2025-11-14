@@ -71,6 +71,31 @@
       }
     }
   },
+  "profileExportDataDestinationLabel": "Место сохранения",
+  "@profileExportDataDestinationLabel": {
+    "description": "Подпись, описывающая целевую папку экспорта"
+  },
+  "profileExportDataDefaultDestination": "По умолчанию (загрузки)",
+  "@profileExportDataDefaultDestination": {
+    "description": "Текст, показываемый, когда папка не выбрана"
+  },
+  "profileExportDataSelectedFolder": "Папка: {path}",
+  "@profileExportDataSelectedFolder": {
+    "description": "Путь к выбранной папке экспорта",
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "profileExportDataSelectFolderCta": "Выбрать папку",
+  "@profileExportDataSelectFolderCta": {
+    "description": "Название кнопки для открытия выбора папки"
+  },
+  "profileExportDataDirectoryPickerTitle": "Выберите папку для сохранения данных экспорта",
+  "@profileExportDataDirectoryPickerTitle": {
+    "description": "Заголовок диалога выбора папки экспорта"
+  },
   "profileImportDataCta": "Импортировать данные",
   "@profileImportDataCta": {
     "description": "Кнопка открытия сценария импорта"
@@ -992,11 +1017,11 @@
       }
     }
   },
-  "homeAccountMonthlyIncomeLabel": "Доход за месяц",
+  "homeAccountMonthlyIncomeLabel": "Доход",
   "@homeAccountMonthlyIncomeLabel": {
     "description": "Подпись для месячного дохода на карточке счёта"
   },
-  "homeAccountMonthlyExpenseLabel": "Расход за месяц",
+  "homeAccountMonthlyExpenseLabel": "Расход",
   "@homeAccountMonthlyExpenseLabel": {
     "description": "Подпись для месячных расходов на карточке счёта"
   },
@@ -1446,7 +1471,7 @@
   "@upcomingPaymentsScheduleTriggered": {
     "description": "Сообщение о постановке фоновой задачи"
   },
-  "homeSavingsWidgetTitle": "Цели накоплений",
+  "homeSavingsWidgetTitle": "Копилки",
   "@homeSavingsWidgetTitle": {
     "description": "Заголовок виджета накоплений на домашнем экране"
   },
@@ -1902,6 +1927,26 @@
   "addAccountTypeRequired": "Укажите тип счёта.",
   "@addAccountTypeRequired": {
     "description": "Сообщение валидации при отсутствии типа счёта"
+  },
+  "accountColorLabel": "Цвет карточки",
+  "@accountColorLabel": {
+    "description": "Подпись настройки цвета карточки счёта"
+  },
+  "accountColorDefault": "По умолчанию",
+  "@accountColorDefault": {
+    "description": "Текст, когда используется цвет по умолчанию"
+  },
+  "accountColorPickerTitle": "Выберите цвет карточки",
+  "@accountColorPickerTitle": {
+    "description": "Заголовок диалога выбора цвета счёта"
+  },
+  "accountColorSelect": "Выбрать",
+  "@accountColorSelect": {
+    "description": "Подпись кнопки подтверждения цвета"
+  },
+  "accountColorClear": "Сбросить цвет",
+  "@accountColorClear": {
+    "description": "Подсказка для кнопки очистки выбранного цвета"
   },
   "accountPrimaryToggleLabel": "Сделать счёт основным",
   "@accountPrimaryToggleLabel": {

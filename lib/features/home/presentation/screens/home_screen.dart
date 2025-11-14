@@ -784,8 +784,10 @@ class _AccountCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
-    final _AccountCardPalette palette = _AccountCardPalette.fromTheme(
-      theme.colorScheme,
+    final Color? accountColor = parseHexColor(account.color);
+    final _AccountCardPalette palette = _AccountCardPalette.fromAccount(
+      colorScheme: theme.colorScheme,
+      accountColor: accountColor,
       isHighlighted: isHighlighted,
     );
     final double cardRadius = context.kopimLayout.radius.xxl;
@@ -832,7 +834,7 @@ class _AccountCard extends StatelessWidget {
             borderRadius: borderRadius,
           ),
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(24),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -910,23 +912,26 @@ class _AccountCardPalette {
     required this.summaryLabel,
   });
 
-  factory _AccountCardPalette.fromTheme(
-    ColorScheme colorScheme, {
+  factory _AccountCardPalette.fromAccount({
+    required ColorScheme colorScheme,
+    Color? accountColor,
     required bool isHighlighted,
   }) {
-    if (isHighlighted) {
-      return _AccountCardPalette(
-        background: colorScheme.primary,
-        emphasis: colorScheme.onPrimaryFixed,
-        support: colorScheme.inversePrimary,
-        summaryLabel: colorScheme.onPrimaryFixedVariant,
-      );
-    }
+    final Color defaultBackground = isHighlighted
+        ? colorScheme.primary
+        : colorScheme.tertiary;
+    final Color background = accountColor ?? defaultBackground;
+    final Brightness brightness =
+        ThemeData.estimateBrightnessForColor(background);
+    final Color emphasis =
+        brightness == Brightness.dark ? Colors.white : Colors.black87;
+    final Color support =
+        brightness == Brightness.dark ? Colors.white70 : Colors.black54;
     return _AccountCardPalette(
-      background: colorScheme.tertiary,
-      emphasis: colorScheme.onTertiaryFixed,
-      support: colorScheme.inversePrimary,
-      summaryLabel: colorScheme.onTertiaryFixedVariant,
+      background: background,
+      emphasis: emphasis,
+      support: support,
+      summaryLabel: support,
     );
   }
 
@@ -937,7 +942,7 @@ class _AccountCardPalette {
 }
 
 class _AccountCardLayout {
-  static const double horizontalPadding = 32;
+  static const double horizontalPadding = 48;
 
   static double estimateHeight(BuildContext context) {
     final ThemeData theme = Theme.of(context);
@@ -960,7 +965,7 @@ class _AccountCardLayout {
           const TextStyle(fontSize: 14),
     );
 
-    const double padding = 16 * 2;
+    const double padding = 24 * 2;
     const double gaps = 8 + 16 + 8 + 4;
 
     return padding +
@@ -1415,7 +1420,7 @@ class _TransactionListItem extends ConsumerWidget {
                       children: <Widget>[
                         Text(
                           categoryName,
-                          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          style: Theme.of(context).textTheme.labelMedium?.copyWith(
                                 fontWeight: FontWeight.w500,
                                 color: Theme.of(context)
                                     .colorScheme

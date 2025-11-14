@@ -71,6 +71,31 @@
       }
     }
   },
+  "profileExportDataDestinationLabel": "Export destination",
+  "@profileExportDataDestinationLabel": {
+    "description": "Label describing the destination folder for exported data"
+  },
+  "profileExportDataDefaultDestination": "Default downloads folder",
+  "@profileExportDataDefaultDestination": {
+    "description": "List item text shown when no custom folder has been chosen"
+  },
+  "profileExportDataSelectedFolder": "Folder: {path}",
+  "@profileExportDataSelectedFolder": {
+    "description": "Summary line showing the folder picked by the user",
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "profileExportDataSelectFolderCta": "Choose folder",
+  "@profileExportDataSelectFolderCta": {
+    "description": "Button label that opens the native folder picker"
+  },
+  "profileExportDataDirectoryPickerTitle": "Select a folder to save exported data",
+  "@profileExportDataDirectoryPickerTitle": {
+    "description": "Dialog title when requesting a custom export destination"
+  },
   "profileImportDataCta": "Import data",
   "@profileImportDataCta": {
     "description": "Button that opens the import flow"
@@ -992,11 +1017,11 @@
       }
     }
   },
-  "homeAccountMonthlyIncomeLabel": "Income this month",
+  "homeAccountMonthlyIncomeLabel": "Income",
   "@homeAccountMonthlyIncomeLabel": {
     "description": "Label for monthly income shown on the home screen account card"
   },
-  "homeAccountMonthlyExpenseLabel": "Expense this month",
+  "homeAccountMonthlyExpenseLabel": "Expense",
   "@homeAccountMonthlyExpenseLabel": {
     "description": "Label for monthly expenses shown on the home screen account card"
   },
@@ -1446,7 +1471,7 @@
   "@upcomingPaymentsScheduleTriggered": {
     "description": "Message shown when the background worker is scheduled"
   },
-  "homeSavingsWidgetTitle": "Saving goals",
+  "homeSavingsWidgetTitle": "Savings",
   "@homeSavingsWidgetTitle": {
     "description": "Title for the savings overview widget on the home screen"
   },
@@ -1902,6 +1927,26 @@
   "addAccountTypeRequired": "Please specify the account type.",
   "@addAccountTypeRequired": {
     "description": "Validation error shown when the account type is missing"
+  },
+  "accountColorLabel": "Card color",
+  "@accountColorLabel": {
+    "description": "Label for the account card color selector"
+  },
+  "accountColorDefault": "Default",
+  "@accountColorDefault": {
+    "description": "Label shown when the default card color is used"
+  },
+  "accountColorPickerTitle": "Pick card color",
+  "@accountColorPickerTitle": {
+    "description": "Title shown on the account color picker dialog"
+  },
+  "accountColorSelect": "Select",
+  "@accountColorSelect": {
+    "description": "Button label for confirming a color choice"
+  },
+  "accountColorClear": "Clear color",
+  "@accountColorClear": {
+    "description": "Tooltip for clearing the selected card color"
   },
   "accountPrimaryToggleLabel": "Set as primary account",
   "@accountPrimaryToggleLabel": {

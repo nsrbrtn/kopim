@@ -67,7 +67,7 @@ class AvatarController extends _$AvatarController {
           storeOfflineOnly: storeOfflineOnly,
         ),
       );
-      await recorder.record(result.events);
+      unawaited(recorder.record(result.events));
       state = const AsyncValue<void>.data(null);
     } catch (error, stackTrace) {
       state = AsyncValue<void>.error(error, stackTrace);

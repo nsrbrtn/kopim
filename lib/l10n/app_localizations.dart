@@ -194,6 +194,36 @@ abstract class AppLocalizations {
   /// **'Failed to export data: {error}'**
   String profileExportDataFailure(String error);
 
+  /// Label describing the destination folder for exported data
+  ///
+  /// In en, this message translates to:
+  /// **'Export destination'**
+  String get profileExportDataDestinationLabel;
+
+  /// List item text shown when no custom folder has been chosen
+  ///
+  /// In en, this message translates to:
+  /// **'Default downloads folder'**
+  String get profileExportDataDefaultDestination;
+
+  /// Summary line showing the folder picked by the user
+  ///
+  /// In en, this message translates to:
+  /// **'Folder: {path}'**
+  String profileExportDataSelectedFolder(String path);
+
+  /// Button label that opens the native folder picker
+  ///
+  /// In en, this message translates to:
+  /// **'Choose folder'**
+  String get profileExportDataSelectFolderCta;
+
+  /// Dialog title when requesting a custom export destination
+  ///
+  /// In en, this message translates to:
+  /// **'Select a folder to save exported data'**
+  String get profileExportDataDirectoryPickerTitle;
+
   /// Button that opens the import flow
   ///
   /// In en, this message translates to:
@@ -1383,13 +1413,13 @@ abstract class AppLocalizations {
   /// Label for monthly income shown on the home screen account card
   ///
   /// In en, this message translates to:
-  /// **'Income this month'**
+  /// **'Income'**
   String get homeAccountMonthlyIncomeLabel;
 
   /// Label for monthly expenses shown on the home screen account card
   ///
   /// In en, this message translates to:
-  /// **'Expense this month'**
+  /// **'Expense'**
   String get homeAccountMonthlyExpenseLabel;
 
   /// Section header label for transactions happening today
@@ -1917,7 +1947,7 @@ abstract class AppLocalizations {
   /// Title for the savings overview widget on the home screen
   ///
   /// In en, this message translates to:
-  /// **'Saving goals'**
+  /// **'Savings'**
   String get homeSavingsWidgetTitle;
 
   /// Empty state message for the savings widget
@@ -2525,6 +2555,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Please specify the account type.'**
   String get addAccountTypeRequired;
+
+  /// Label for the account card color selector
+  ///
+  /// In en, this message translates to:
+  /// **'Card color'**
+  String get accountColorLabel;
+
+  /// Label shown when the default card color is used
+  ///
+  /// In en, this message translates to:
+  /// **'Default'**
+  String get accountColorDefault;
+
+  /// Title shown on the account color picker dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Pick card color'**
+  String get accountColorPickerTitle;
+
+  /// Button label for confirming a color choice
+  ///
+  /// In en, this message translates to:
+  /// **'Select'**
+  String get accountColorSelect;
+
+  /// Tooltip for clearing the selected card color
+  ///
+  /// In en, this message translates to:
+  /// **'Clear color'**
+  String get accountColorClear;
 
   /// Label for the switch that marks an account as primary
   ///

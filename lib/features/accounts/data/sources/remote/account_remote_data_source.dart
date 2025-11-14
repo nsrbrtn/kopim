@@ -70,6 +70,7 @@ class AccountRemoteDataSource {
       'isDeleted': account.isDeleted,
       'balance': account.balance,
       'isPrimary': account.isPrimary,
+      'color': account.color,
     };
   }
 
@@ -85,6 +86,7 @@ class AccountRemoteDataSource {
       updatedAt: _parseTimestamp(data['updatedAt']),
       isDeleted: data['isDeleted'] as bool? ?? false,
       isPrimary: data['isPrimary'] as bool? ?? false,
+      color: data['color'] as String?,
     );
   }
 

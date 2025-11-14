@@ -1,9 +1,11 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:kopim/core/di/injectors.dart';
+import 'package:kopim/core/utils/helpers.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/accounts/domain/use_cases/add_account_use_case.dart';
 import 'package:kopim/features/accounts/domain/utils/account_type_utils.dart';
 import 'package:kopim/features/accounts/presentation/controllers/account_balance_parser.dart';
+import 'package:kopim/features/categories/presentation/utils/category_color_palette.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:uuid/uuid.dart';
 
@@ -28,6 +30,7 @@ abstract class AddAccountFormState with _$AddAccountFormState {
     AddAccountFieldError? balanceError,
     AddAccountFieldError? typeError,
     String? errorMessage,
+    String? color,
   }) = _AddAccountFormState;
 
   const AddAccountFormState._();
@@ -65,7 +68,11 @@ class AddAccountFormController extends _$AddAccountFormController {
   AddAccountFormState build() {
     _addAccountUseCase = ref.watch(addAccountUseCaseProvider);
     _uuid = ref.watch(uuidGeneratorProvider);
-    return const AddAccountFormState();
+    final String defaultColor = colorToHex(
+      kCategoryPastelPalette.first,
+      includeAlpha: false,
+    )!;
+    return AddAccountFormState(color: defaultColor);
   }
 
   void updateName(String value) {
@@ -129,6 +136,10 @@ class AddAccountFormController extends _$AddAccountFormController {
     state = state.copyWith(isPrimary: value, submissionSuccess: false);
   }
 
+  void updateColor(String? value) {
+    state = state.copyWith(color: value, submissionSuccess: false);
+  }
+
   Future<void> submit() async {
     if (state.isSaving) {
       return;
@@ -183,6 +194,7 @@ class AddAccountFormController extends _$AddAccountFormController {
       type: resolvedType,
       createdAt: now,
       updatedAt: now,
+      color: state.color,
       isPrimary: state.isPrimary,
     );
 

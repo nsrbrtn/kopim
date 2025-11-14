@@ -1,4 +1,7 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:kopim/features/profile/presentation/widgets/profile_theme_preferences_card.dart';
@@ -188,6 +191,8 @@ class _DataTransferSection extends ConsumerStatefulWidget {
 
 class _DataTransferSectionState extends ConsumerState<_DataTransferSection> {
   bool _isExpanded = false;
+  String? _exportDirectoryPath;
+  bool _isPickingDirectory = false;
 
   @override
   Widget build(BuildContext context) {
@@ -200,6 +205,8 @@ class _DataTransferSectionState extends ConsumerState<_DataTransferSection> {
     );
     final bool isExporting = exportState.isLoading;
     final bool isImporting = importState.isLoading;
+    final ThemeData theme = Theme.of(context);
+    final bool canSelectDirectory = !kIsWeb;
 
     return _SettingsSectionContainer(
       child: Column(
@@ -254,51 +261,101 @@ class _DataTransferSectionState extends ConsumerState<_DataTransferSection> {
                   : CrossFadeState.showSecond,
               firstChild: Padding(
                 padding: const EdgeInsets.only(top: 16),
-                child: LayoutBuilder(
-                  builder: (BuildContext context, BoxConstraints constraints) {
-                    final bool stacked = constraints.maxWidth < 360;
-                    final double buttonWidth = stacked
-                        ? constraints.maxWidth
-                        : (constraints.maxWidth - 12) / 2;
-                    final Widget exportButton = SizedBox(
-                      width: buttonWidth,
-                      child: _RoundedActionButton(
-                        label: strings.profileExportDataCta,
-                        icon: Icons.upload_file_outlined,
-                        onPressed: isExporting
-                            ? null
-                            : () => _handleExport(context, ref),
-                        isLoading: isExporting,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: <Widget>[
+                    LayoutBuilder(
+                      builder: (BuildContext context, BoxConstraints constraints) {
+                        final bool stacked = constraints.maxWidth < 360;
+                        final double buttonWidth = stacked
+                            ? constraints.maxWidth
+                            : (constraints.maxWidth - 12) / 2;
+                        final Widget exportButton = SizedBox(
+                          width: buttonWidth,
+                          child: _RoundedActionButton(
+                            label: strings.profileExportDataCta,
+                            icon: Icons.upload_file_outlined,
+                            onPressed: isExporting
+                                ? null
+                                : () => _handleExport(context, ref),
+                            isLoading: isExporting,
+                          ),
+                        );
+                        final Widget importButton = SizedBox(
+                          width: buttonWidth,
+                          child: _RoundedActionButton(
+                            label: strings.profileImportDataCta,
+                            icon: Icons.download_for_offline_outlined,
+                            onPressed: isImporting
+                                ? null
+                                : () => _handleImport(context, ref),
+                            isLoading: isImporting,
+                          ),
+                        );
+                        if (stacked) {
+                          return Column(
+                            children: <Widget>[
+                              exportButton,
+                              const SizedBox(height: 12),
+                              importButton,
+                            ],
+                          );
+                        }
+                        return Row(
+                          children: <Widget>[
+                            exportButton,
+                            const SizedBox(width: 12),
+                            importButton,
+                          ],
+                        );
+                      },
+                    ),
+                    if (canSelectDirectory) ...<Widget>[
+                      const SizedBox(height: 16),
+                      Text(
+                        strings.profileExportDataDestinationLabel,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
                       ),
-                    );
-                    final Widget importButton = SizedBox(
-                      width: buttonWidth,
-                      child: _RoundedActionButton(
-                        label: strings.profileImportDataCta,
-                        icon: Icons.download_for_offline_outlined,
-                        onPressed: isImporting
-                            ? null
-                            : () => _handleImport(context, ref),
-                        isLoading: isImporting,
-                      ),
-                    );
-                    if (stacked) {
-                      return Column(
+                      const SizedBox(height: 4),
+                      Row(
                         children: <Widget>[
-                          exportButton,
-                          const SizedBox(height: 12),
-                          importButton,
+                          Expanded(
+                            child: Text(
+                              _exportDirectoryPath != null
+                                  ? strings.profileExportDataSelectedFolder(
+                                      _exportDirectoryPath!,
+                                    )
+                                  : strings.profileExportDataDefaultDestination,
+                              style: theme.textTheme.bodySmall,
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          OutlinedButton.icon(
+                            onPressed: _isPickingDirectory
+                                ? null
+                                : () => _selectExportDirectory(context),
+                            icon: _isPickingDirectory
+                                ? SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: theme.colorScheme.onSurface,
+                                    ),
+                                  )
+                                : const Icon(Icons.folder_open_outlined),
+                            label: Text(
+                              strings.profileExportDataSelectFolderCta,
+                            ),
+                          ),
                         ],
-                      );
-                    }
-                    return Row(
-                      children: <Widget>[
-                        exportButton,
-                        const SizedBox(width: 12),
-                        importButton,
-                      ],
-                    );
-                  },
+                      ),
+                    ],
+                  ],
                 ),
               ),
               secondChild: const SizedBox.shrink(),
@@ -309,13 +366,36 @@ class _DataTransferSectionState extends ConsumerState<_DataTransferSection> {
     );
   }
 
+  Future<void> _selectExportDirectory(BuildContext context) async {
+    if (_isPickingDirectory) {
+      return;
+    }
+    setState(() => _isPickingDirectory = true);
+    try {
+      final AppLocalizations strings = AppLocalizations.of(context)!;
+      final String? selected = await FilePicker.platform.getDirectoryPath(
+        dialogTitle: strings.profileExportDataDirectoryPickerTitle,
+      );
+      if (!mounted) {
+        return;
+      }
+      if (selected != null && selected.isNotEmpty) {
+        setState(() => _exportDirectoryPath = selected);
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isPickingDirectory = false);
+      }
+    }
+  }
+
   Future<void> _handleExport(BuildContext context, WidgetRef ref) async {
     final AppLocalizations strings = AppLocalizations.of(context)!;
     final ExportUserDataController controller = ref.read(
       exportUserDataControllerProvider.notifier,
     );
     final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
-    await controller.export();
+    await controller.export(directoryPath: _exportDirectoryPath);
     final AsyncValue<ExportFileSaveResult?> state = ref.read(
       exportUserDataControllerProvider,
     );

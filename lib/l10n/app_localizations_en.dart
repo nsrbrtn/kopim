@@ -62,6 +62,24 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get profileExportDataDestinationLabel => 'Export destination';
+
+  @override
+  String get profileExportDataDefaultDestination => 'Default downloads folder';
+
+  @override
+  String profileExportDataSelectedFolder(String path) {
+    return 'Folder: $path';
+  }
+
+  @override
+  String get profileExportDataSelectFolderCta => 'Choose folder';
+
+  @override
+  String get profileExportDataDirectoryPickerTitle =>
+      'Select a folder to save exported data';
+
+  @override
   String get profileImportDataCta => 'Import data';
 
   @override
@@ -744,10 +762,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get homeAccountMonthlyIncomeLabel => 'Income this month';
+  String get homeAccountMonthlyIncomeLabel => 'Income';
 
   @override
-  String get homeAccountMonthlyExpenseLabel => 'Expense this month';
+  String get homeAccountMonthlyExpenseLabel => 'Expense';
 
   @override
   String get homeTransactionsTodayLabel => 'Today';
@@ -1092,7 +1110,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get upcomingPaymentsScheduleTriggered => 'Background worker queued';
 
   @override
-  String get homeSavingsWidgetTitle => 'Saving goals';
+  String get homeSavingsWidgetTitle => 'Savings';
 
   @override
   String get homeSavingsWidgetEmpty =>
@@ -1436,6 +1454,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get addAccountTypeRequired => 'Please specify the account type.';
+
+  @override
+  String get accountColorLabel => 'Card color';
+
+  @override
+  String get accountColorDefault => 'Default';
+
+  @override
+  String get accountColorPickerTitle => 'Pick card color';
+
+  @override
+  String get accountColorSelect => 'Select';
+
+  @override
+  String get accountColorClear => 'Clear color';
 
   @override
   String get accountPrimaryToggleLabel => 'Set as primary account';

@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:flutter_riverpod/misc.dart' show KeepAliveLink;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:kopim/core/di/injectors.dart';
@@ -13,23 +16,32 @@ class TransactionActionsController extends _$TransactionActionsController {
   AsyncValue<void> build() => const AsyncData<void>(null);
 
   Future<bool> deleteTransaction(String transactionId) async {
-    state = const AsyncLoading<void>();
-    final DeleteTransactionUseCase useCase = ref.read(
-      deleteTransactionUseCaseProvider,
-    );
-    final ProfileEventRecorder recorder = ref.read(
-      profileEventRecorderProvider,
-    );
+    final KeepAliveLink link = ref.keepAlive();
     try {
+      state = const AsyncLoading<void>();
+      final DeleteTransactionUseCase useCase = ref.read(
+        deleteTransactionUseCaseProvider,
+      );
+      final ProfileEventRecorder recorder = ref.read(
+        profileEventRecorderProvider,
+      );
       final TransactionCommandResult<void> result = await useCase(
         transactionId,
       );
-      await recorder.record(result.profileEvents);
+      if (!ref.mounted) {
+        return false;
+      }
+      unawaited(recorder.record(result.profileEvents));
       state = const AsyncData<void>(null);
       return true;
     } catch (error, stackTrace) {
+      if (!ref.mounted) {
+        return false;
+      }
       state = AsyncError<void>(error, stackTrace);
       return false;
+    } finally {
+      link.close();
     }
   }
 

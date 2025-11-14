@@ -17,17 +17,16 @@ class MainNavigationBar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final ThemeData theme = Theme.of(context);
+    final ColorScheme colorScheme = theme.colorScheme;
     final bool isDark = theme.brightness == Brightness.dark;
-    final Color backgroundColor = theme.colorScheme.onSurface.withAlpha(
-      (255 * (isDark ? 0.20 : 0.35)).round(),
-    );
-    final Color activeIconBackground =
-        isDark ? const Color(0xFFEFF0E1) : theme.colorScheme.primary.withAlpha((255 * 0.15).round());
-    final Color activeIconColor =
-        isDark ? const Color(0xFF313030) : theme.colorScheme.primary;
-    final Color activeLabelColor =
-        isDark ? const Color(0xFFEFF0E1) : theme.colorScheme.onSurface;
-    final Color inactiveColor = theme.colorScheme.onSurface;
+    final double backgroundOpacity = isDark ? 0.20 : 0.35;
+    final Color backgroundColor = colorScheme.surfaceContainerHighest
+        .withOpacity(backgroundOpacity);
+    final Color onSurface = colorScheme.onSurface;
+    final Color activeIconBackground = colorScheme.inverseSurface;
+    final Color activeIconColor = colorScheme.surface;
+    final Color activeLabelColor = onSurface;
+    final Color inactiveColor = onSurface;
 
     final int currentIndex = ref.watch(
       mainNavigationControllerProvider.select((int value) => value),
