@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 import 'dart:ui' as ui show TextDirection;
 
+import 'package:flutter/foundation.dart' hide Category;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -1035,7 +1036,7 @@ List<_TransactionSliverEntry> _buildTransactionEntries(
   return entries;
 }
 
-class _TransactionsSectionCard extends StatelessWidget {
+class _TransactionsSectionCard extends StatefulWidget {
   const _TransactionsSectionCard({
     required this.sections,
     required this.localeName,
@@ -1049,46 +1050,83 @@ class _TransactionsSectionCard extends StatelessWidget {
   final VoidCallback onSeeAll;
 
   @override
-  Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
-    final List<_TransactionSliverEntry> entries =
-        _buildTransactionEntries(sections, localeName, strings);
-    final bool hasTransactions = entries.any(
-      ( _TransactionSliverEntry entry) => entry is _TransactionItemEntry,
-    );
+  State<_TransactionsSectionCard> createState() =>
+      _TransactionsSectionCardState();
+}
 
-    Widget buildEntries() {
-      if (!hasTransactions) {
-        return _EmptyMessage(message: strings.homeTransactionsEmpty);
-      }
-      return ListView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        padding: EdgeInsets.zero,
-        itemCount: entries.length,
-        itemBuilder: (BuildContext context, int index) {
-          final _TransactionSliverEntry entry = entries[index];
-          if (entry is _TransactionHeaderEntry) {
-            return Padding(
-              padding: EdgeInsets.only(top: index == 0 ? 0 : 24, bottom: 8),
-              child: Text(
-                entry.title,
-                style: theme.textTheme.titleMedium,
-              ),
-            );
-          }
-          if (entry is _TransactionItemEntry) {
-            return _TransactionListItem(
-              transactionId: entry.transactionId,
-              localeName: localeName,
-              strings: strings,
-            );
-          }
-          return const SizedBox.shrink();
-        },
+class _TransactionsSectionCardState extends State<_TransactionsSectionCard> {
+  late List<_TransactionSliverEntry> _entries;
+
+  @override
+  void initState() {
+    super.initState();
+    _entries = _buildTransactionEntries(
+      widget.sections,
+      widget.localeName,
+      widget.strings,
+    );
+  }
+
+  @override
+  void didUpdateWidget(covariant _TransactionsSectionCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!listEquals(oldWidget.sections, widget.sections) ||
+        oldWidget.localeName != widget.localeName) {
+      _entries = _buildTransactionEntries(
+        widget.sections,
+        widget.localeName,
+        widget.strings,
       );
     }
+  }
 
+  Widget _buildEntryList(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final bool hasTransactions = _entries.any(
+      ( _TransactionSliverEntry entry) => entry is _TransactionItemEntry,
+    );
+    if (!hasTransactions) {
+      return _EmptyMessage(message: widget.strings.homeTransactionsEmpty);
+    }
+    final List<Widget> widgets = <Widget>[];
+    for (int i = 0; i < _entries.length; i++) {
+      final _TransactionSliverEntry entry = _entries[i];
+      if (entry is _TransactionHeaderEntry) {
+        widgets.add(
+          Padding(
+            padding: EdgeInsets.only(
+              top: i == 0 ? 0 : 24,
+              bottom: 8,
+            ),
+            child: Text(
+              entry.title,
+              style: theme.textTheme.titleMedium,
+            ),
+          ),
+        );
+        continue;
+      }
+      if (entry is _TransactionItemEntry) {
+        widgets.add(
+          _TransactionListItem(
+            transactionId: entry.transactionId,
+            localeName: widget.localeName,
+            strings: widget.strings,
+          ),
+        );
+        continue;
+      }
+      widgets.add(const SizedBox.shrink());
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: widgets,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
     final TextStyle? titleStyle = theme.textTheme.titleLarge?.copyWith(
       color: theme.colorScheme.onSurface,
     );
@@ -1097,16 +1135,16 @@ class _TransactionsSectionCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
-          Text(strings.homeTransactionsSection, style: titleStyle),
+          Text(widget.strings.homeTransactionsSection, style: titleStyle),
           const SizedBox(height: 16),
-          _TransactionsFilterBar(strings: strings),
+          _TransactionsFilterBar(strings: widget.strings),
           const SizedBox(height: 16),
-          buildEntries(),
+          _buildEntryList(context),
           const SizedBox(height: 16),
           Align(
             alignment: Alignment.centerLeft,
             child: FilledButton(
-              onPressed: onSeeAll,
+              onPressed: widget.onSeeAll,
               style: FilledButton.styleFrom(
                 backgroundColor: theme.colorScheme.secondary,
                 foregroundColor: theme.colorScheme.onSecondary,
@@ -1117,7 +1155,7 @@ class _TransactionsSectionCard extends StatelessWidget {
                   fontWeight: FontWeight.w500,
                 ),
               ),
-              child: Text(strings.homeTransactionsSeeAll),
+              child: Text(widget.strings.homeTransactionsSeeAll),
             ),
           ),
         ],
@@ -1281,48 +1319,20 @@ class _TransactionListItem extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final bool hasTransaction = ref.watch(
-      homeTransactionByIdProvider(
-        transactionId,
-      ).select((TransactionEntity? tx) => tx != null),
+    final TransactionEntity? transaction = ref.watch(
+      homeTransactionByIdProvider(transactionId),
     );
 
-    if (!hasTransaction) {
+    if (transaction == null) {
       return const _TransactionTileSkeleton();
     }
 
-    final String? accountId = ref.watch(
-      homeTransactionByIdProvider(
-        transactionId,
-      ).select((TransactionEntity? tx) => tx?.accountId),
-    );
-    final String? categoryId = ref.watch(
-      homeTransactionByIdProvider(
-        transactionId,
-      ).select((TransactionEntity? tx) => tx?.categoryId),
-    );
-    final double? amount = ref.watch(
-      homeTransactionByIdProvider(
-        transactionId,
-      ).select((TransactionEntity? tx) => tx?.amount),
-    );
-    final String? note = ref.watch(
-      homeTransactionByIdProvider(
-        transactionId,
-      ).select((TransactionEntity? tx) => tx?.note),
-    );
-    final String? type = ref.watch(
-      homeTransactionByIdProvider(
-        transactionId,
-      ).select((TransactionEntity? tx) => tx?.type),
-    );
+    final String accountId = transaction.accountId;
+    final String? categoryId = transaction.categoryId;
+    final double amount = transaction.amount;
+    final String? note = transaction.note;
 
     final ThemeData theme = Theme.of(context);
-
-    if (amount == null || type == null || accountId == null) {
-      return const _TransactionTileSkeleton();
-    }
-
     final String? accountName = ref.watch(
       homeAccountByIdProvider(
         accountId,
