@@ -143,7 +143,7 @@ class TransactionFormView extends ConsumerWidget {
   }
 }
 
-class _TransactionForm extends ConsumerWidget {
+class _TransactionForm extends ConsumerStatefulWidget {
   const _TransactionForm({
     required this.formKey,
     required this.accounts,
@@ -161,16 +161,55 @@ class _TransactionForm extends ConsumerWidget {
   final bool showSubmitButton;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_TransactionForm> createState() => _TransactionFormState();
+}
+
+class _TransactionFormState extends ConsumerState<_TransactionForm> {
+  bool _isAmountSectionCollapsed = false;
+  final Map<String, NumberFormat> _formatterCache = <String, NumberFormat>{};
+
+  void _handleAmountCommitted(bool hasValidAmount) {
+    if (hasValidAmount && !_isAmountSectionCollapsed) {
+      setState(() {
+        _isAmountSectionCollapsed = true;
+      });
+    } else if (!hasValidAmount && _isAmountSectionCollapsed) {
+      setState(() {
+        _isAmountSectionCollapsed = false;
+      });
+    }
+  }
+
+  void _expandAmountSection() {
+    if (_isAmountSectionCollapsed) {
+      setState(() {
+        _isAmountSectionCollapsed = false;
+      });
+    }
+  }
+
+  NumberFormat _formatterForCurrency(String currency, String locale) {
+    final String symbol = currency.isEmpty ? '₽' : currency.toUpperCase();
+    return _formatterCache.putIfAbsent(
+      symbol,
+      () => NumberFormat.currency(locale: locale, symbol: symbol),
+    );
+  }
+
+  String _formatAmount(
+    double amount,
+    String currency,
+    String locale,
+  ) {
+    final NumberFormat formatter = _formatterForCurrency(currency, locale);
+    return formatter.format(amount);
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final AppLocalizations strings = AppLocalizations.of(context)!;
     final TransactionFormControllerProvider transactionProvider =
-        transactionFormControllerProvider(formArgs);
-    final bool isSubmitting = ref.watch(
-      transactionProvider.select(
-        (TransactionFormState state) => state.isSubmitting,
-      ),
-    );
-
+        transactionFormControllerProvider(widget.formArgs);
     final ThemeData theme = Theme.of(context);
     final KopimLayout layout = context.kopimLayout;
     final KopimSpacingScale spacing = layout.spacing;
@@ -185,8 +224,34 @@ class _TransactionForm extends ConsumerWidget {
         ) ??
         theme.textTheme.bodySmall!;
 
+    final bool isSubmitting = ref.watch(
+      transactionProvider.select(
+        (TransactionFormState state) => state.isSubmitting,
+      ),
+    );
+    final double? parsedAmount = ref.watch(
+      transactionProvider.select(
+        (TransactionFormState state) => state.parsedAmount,
+      ),
+    );
+    final bool hasValidAmount = parsedAmount != null;
+    final String? selectedAccountId = ref.watch(
+      transactionProvider.select(
+        (TransactionFormState state) => state.accountId,
+      ),
+    );
+
+    final AccountEntity summaryAccount = widget.accounts.firstWhere(
+      (AccountEntity account) => account.id == selectedAccountId,
+      orElse: () => widget.accounts.first,
+    );
+    final String formattedAmount = hasValidAmount && parsedAmount != null
+        ? _formatAmount(parsedAmount, summaryAccount.currency, strings.localeName)
+        : '';
+    final bool showCollapsed = _isAmountSectionCollapsed && hasValidAmount;
+
     return Form(
-      key: formKey,
+      key: widget.formKey,
       child: LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {
           final double availableWidth = constraints.maxWidth.isFinite
@@ -197,89 +262,194 @@ class _TransactionForm extends ConsumerWidget {
 
           return SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
-            padding: EdgeInsets.fromLTRB(
-              8,
-              spacing.sectionLarge,
-              8,
-              spacing.sectionLarge,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
             keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
             child: Center(
               child: SizedBox(
                 width: formWidth,
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: <Widget>[
-                      _SectionHeader(
-                        label: strings.addTransactionAccountLabel,
-                        helper: strings.addTransactionAccountHint,
-                        labelStyle: labelStyle,
-                        helperStyle: helperStyle,
-                      ),
-                      SizedBox(height: spacing.between),
-                      _AccountDropdownField(
-                        key: const ValueKey<String>('transaction_account_field'),
-                        accounts: accounts,
-                        formArgs: formArgs,
-                        strings: strings,
-                      ),
-                      SizedBox(height: spacing.sectionLarge),
-                      _SectionHeader(
-                        label: strings.addTransactionAmountLabel,
-                        labelStyle: labelStyle,
-                      ),
-                      SizedBox(height: spacing.between),
-                      _AmountField(formArgs: formArgs, strings: strings),
-                      SizedBox(height: spacing.sectionLarge),
-                      _SectionHeader(
-                        label: strings.addTransactionTypeLabel,
-                        labelStyle: labelStyle,
-                      ),
-                      SizedBox(height: spacing.between),
-                      _TransactionTypeSelector(
-                        key: const ValueKey<String>('transaction_type_selector'),
-                        formArgs: formArgs,
-                        strings: strings,
-                      ),
-                      SizedBox(height: spacing.sectionLarge),
-                      _SectionHeader(
-                        label: strings.addTransactionCategoryLabel,
-                        labelStyle: labelStyle,
-                      ),
-                      SizedBox(height: spacing.between),
-                      _CategoryDropdownField(
-                        key: const ValueKey<String>('transaction_category_field'),
-                        categoriesAsync: categoriesAsync,
-                        formArgs: formArgs,
-                        strings: strings,
-                      ),
-                      SizedBox(height: spacing.sectionLarge),
-                      _DateTimeSelectorRow(formArgs: formArgs),
-                      SizedBox(height: spacing.sectionLarge),
-                      _NoteField(formArgs: formArgs),
-                      if (showSubmitButton) ...[
-                        SizedBox(height: spacing.sectionLarge),
-                        Center(
-                          child: _SubmitButton(
-                            key: const ValueKey<String>(
-                              'transaction_submit_button',
-                            ),
-                            formArgs: formArgs,
-                            formKey: formKey,
-                            isSubmitting: isSubmitting,
-                            submitLabel: submitLabel,
-                          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              _buildAccountAmountSection(
+                      context: context,
+                      strings: strings,
+                      labelStyle: labelStyle,
+                      helperStyle: helperStyle,
+                      spacing: spacing,
+                      transactionProvider: transactionProvider,
+                      formattedAmount: formattedAmount,
+                      summaryAccount: summaryAccount,
+                      showCollapsed: showCollapsed,
+                    ),
+                    const SizedBox(height: 8),
+                    _CategoryDropdownField(
+                      key: const ValueKey<String>('transaction_category_field'),
+                      categoriesAsync: widget.categoriesAsync,
+                      formArgs: widget.formArgs,
+                      strings: strings,
+                    ),
+                    const SizedBox(height: 8),
+                    _DateTimeSelectorRow(formArgs: widget.formArgs),
+                    const SizedBox(height: 8),
+                    _NoteField(formArgs: widget.formArgs),
+                    if (widget.showSubmitButton) ...[
+                      const SizedBox(height: 8),
+                      Center(
+                        child: _SubmitButton(
+                          key: const ValueKey<String>('transaction_submit_button'),
+                          formArgs: widget.formArgs,
+                          formKey: widget.formKey,
+                          isSubmitting: isSubmitting,
+                          submitLabel: widget.submitLabel,
                         ),
-                      ],
+                      ),
                     ],
-                  ),
+                  ],
                 ),
               ),
             ),
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildAccountAmountSection({
+    required BuildContext context,
+    required AppLocalizations strings,
+    required TextStyle labelStyle,
+    required TextStyle helperStyle,
+    required KopimSpacingScale spacing,
+    required TransactionFormControllerProvider transactionProvider,
+    required String formattedAmount,
+    required AccountEntity summaryAccount,
+    required bool showCollapsed,
+  }) {
+    final ThemeData theme = Theme.of(context);
+    final double containerRadius = context.kopimLayout.radius.xxl;
+    final Widget expanded = Container(
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainer,
+        borderRadius: BorderRadius.circular(containerRadius),
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+        _SectionHeader(
+          label: strings.addTransactionAccountLabel,
+          helper: strings.addTransactionAccountHint,
+          labelStyle: labelStyle,
+          helperStyle: helperStyle,
+        ),
+        SizedBox(height: spacing.between),
+        _AccountDropdownField(
+          key: const ValueKey<String>('transaction_account_field'),
+          accounts: widget.accounts,
+          formArgs: widget.formArgs,
+          strings: strings,
+        ),
+        SizedBox(height: spacing.between),
+        _SectionHeader(
+          label: strings.addTransactionAmountLabel,
+          labelStyle: labelStyle,
+        ),
+        SizedBox(height: spacing.between),
+        _AmountField(
+          formArgs: widget.formArgs,
+          strings: strings,
+          onAmountCommitted: _handleAmountCommitted,
+        ),
+      ],
+      ),
+    );
+
+    final Widget collapsed = _buildCollapsedAccountSummary(
+      context: context,
+      account: summaryAccount,
+      amountLabel: formattedAmount,
+      onTap: _expandAmountSection,
+    );
+
+    return AnimatedCrossFade(
+      firstChild: expanded,
+      secondChild: collapsed,
+      crossFadeState:
+          showCollapsed ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+      duration: const Duration(milliseconds: 260),
+      firstCurve: Curves.easeOut,
+      secondCurve: Curves.easeOut,
+      sizeCurve: Curves.easeInOut,
+    );
+  }
+
+  Widget _buildCollapsedAccountSummary({
+    required BuildContext context,
+    required AccountEntity account,
+    required String amountLabel,
+    required VoidCallback onTap,
+  }) {
+    final ThemeData theme = Theme.of(context);
+    final KopimLayout layout = context.kopimLayout;
+    final Color? accent = parseHexColor(account.color);
+    final double radius = layout.radius.xxl;
+    final double spacing = layout.spacing.section;
+    final String initials =
+        account.name.isNotEmpty ? account.name.substring(0, 1) : '';
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(radius),
+      child: Container(
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surfaceContainer,
+          borderRadius: BorderRadius.circular(radius),
+        ),
+        padding: EdgeInsets.all(spacing),
+        child: Row(
+          children: <Widget>[
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: accent ?? theme.colorScheme.primary,
+                borderRadius: BorderRadius.circular(18),
+              ),
+              alignment: Alignment.center,
+              child: Text(
+                initials.toUpperCase(),
+                style: theme.textTheme.titleMedium?.copyWith(
+                  color: theme.colorScheme.onPrimary,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text(
+                    account.name,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  SizedBox(height: layout.spacing.section / 2),
+                  Text(
+                    amountLabel,
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  SizedBox(height: layout.spacing.section / 4),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -338,7 +508,10 @@ class _AccountDropdownFieldState extends ConsumerState<_AccountDropdownField> {
       for (int index = 0; index < accounts.length; index++)
         Padding(
           padding: EdgeInsets.only(
-            right: index == accounts.length - 1 ? 0 : spacing.between,
+            left: 2,
+            right: index == accounts.length - 1
+                ? 2
+                : spacing.between / 2 + 2,
           ),
           child: _AccountSelectionCard(
             account: accounts[index],
@@ -421,7 +594,7 @@ class _AccountSelectionCard extends StatelessWidget {
       theme.colorScheme,
       accountColor: accountColor,
     );
-    final double cardRadius = layout.radius.card;
+    const double cardRadius = 16;
     final BorderRadius borderRadius = BorderRadius.circular(cardRadius);
     final TextStyle labelStyle = (theme.textTheme.labelSmall ??
             const TextStyle(fontSize: 11, height: 1.45))
@@ -437,46 +610,57 @@ class _AccountSelectionCard extends StatelessWidget {
       fontWeight: FontWeight.w600,
     );
 
-    const double baseHeight = 72;
-    final double cardHeight = baseHeight * (isSelected ? 1.15 : 1);
+    const double cardHeight = 72;
+    final Border? outline = isSelected
+        ? Border.all(color: theme.colorScheme.primary, width: 1)
+        : null;
+    final EdgeInsetsGeometry outerPadding =
+        isSelected ? const EdgeInsets.all(4) : EdgeInsets.zero;
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
         borderRadius: borderRadius,
-        child: SizedBox(
-          width: 160,
-          height: cardHeight,
-          child: Ink(
-            decoration: BoxDecoration(
-              color: palette.background,
-              borderRadius: borderRadius,
-            ),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(minHeight: 54),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    Text(
-                      account.name,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: labelStyle,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      formatter.format(account.balance),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: balanceStyle,
-                    ),
-                  ],
+        child: Container(
+          padding: outerPadding,
+          decoration: BoxDecoration(
+            border: outline,
+            borderRadius: borderRadius,
+          ),
+          child: SizedBox(
+            width: 160,
+            height: cardHeight,
+            child: Ink(
+              decoration: BoxDecoration(
+                color: palette.background,
+                borderRadius: borderRadius,
+              ),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(minHeight: 54),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      Text(
+                        account.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: labelStyle,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        formatter.format(account.balance),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: balanceStyle,
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -705,18 +889,25 @@ class _CategoryDropdownFieldState
 
     return Container(
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHigh,
+        color: theme.colorScheme.surfaceContainer,
         borderRadius: BorderRadius.circular(containerRadius),
       ),
-      padding: const EdgeInsets.all(8),
+      padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
+          _TransactionTypeSelector(
+            key: const ValueKey<String>('transaction_type_selector'),
+            formArgs: widget.formArgs,
+            strings: strings,
+          ),
+          const SizedBox(height: 16),
           TextField(
             controller: _searchController,
             decoration: _transactionTextFieldDecoration(
               context,
               hintText: strings.addTransactionCategorySearchHint,
+              fillColor: theme.colorScheme.surfaceContainerHigh,
               suffixIcon: const Icon(Icons.search),
             ),
           ),
@@ -955,10 +1146,15 @@ class _SubmitButton extends ConsumerWidget {
 }
 
 class _AmountField extends ConsumerStatefulWidget {
-  const _AmountField({required this.formArgs, required this.strings});
+  const _AmountField({
+    required this.formArgs,
+    required this.strings,
+    this.onAmountCommitted,
+  });
 
   final TransactionFormArgs formArgs;
   final AppLocalizations strings;
+  final ValueChanged<bool>? onAmountCommitted;
 
   @override
   ConsumerState<_AmountField> createState() => _AmountFieldState();
@@ -1050,6 +1246,15 @@ class _AmountFieldState extends ConsumerState<_AmountField> {
       );
     }
     _pushUpdate(normalized);
+    _notifyAmountCommitted();
+  }
+
+  void _notifyAmountCommitted() {
+    final bool isValid = ref
+            .read(transactionFormControllerProvider(widget.formArgs))
+            .parsedAmount !=
+        null;
+    widget.onAmountCommitted?.call(isValid);
   }
 
   @override
@@ -1107,8 +1312,8 @@ class _NoteField extends ConsumerWidget {
 
     return TextFormField(
       initialValue: note,
-      minLines: 3,
-      maxLines: 3,
+      minLines: 2,
+      maxLines: 2,
       decoration: _transactionTextFieldDecoration(
         context,
         labelText: strings.addTransactionNoteLabel,
@@ -1289,7 +1494,7 @@ class _DateTimeSelectorRow extends ConsumerWidget {
     }
 
     return Material(
-      color: theme.colorScheme.surfaceContainerHigh,
+      color: theme.colorScheme.surfaceContainer,
       borderRadius: BorderRadius.circular(containerRadius),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
