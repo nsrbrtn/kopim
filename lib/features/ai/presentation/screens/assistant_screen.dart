@@ -116,66 +116,149 @@ class _AssistantScreenState extends ConsumerState<AssistantScreen> {
       visibleMessages.add(streamingMessage);
     }
 
+    final ThemeData theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(title: Text(strings.assistantScreenTitle)),
+      backgroundColor: theme.colorScheme.background,
       body: SafeArea(
-        child: Column(
-          children: <Widget>[
-            _AssistantOfflineBanner(
-              isOffline: isOffline,
-              onRetry: () => ref
-                  .read(assistantSessionControllerProvider.notifier)
-                  .retryPendingMessages(),
-            ),
-            _AssistantQuickActions(
-              onActionSelected:
-                  (
-                    AiQueryIntent intent,
-                    String prompt,
-                    Set<AssistantFilter> filters,
-                  ) {
-                    ref
-                        .read(assistantSessionControllerProvider.notifier)
-                        .sendMessage(
-                          prompt,
-                          intentOverride: intent,
-                          additionalFilters: filters,
-                        );
-                    _inputFocusNode.requestFocus();
-                  },
-            ),
-            _AssistantFiltersBar(
-              activeFilters: activeFilters,
-              onFilterTapped: (AssistantFilter filter) => ref
-                  .read(assistantSessionControllerProvider.notifier)
-                  .toggleFilter(filter),
-            ),
-            Expanded(
-              child: visibleMessages.isEmpty
-                  ? _AssistantEmptyState(strings: strings)
-                  : _AssistantMessageList(
-                      controller: _scrollController,
-                      messages: visibleMessages,
-                      onRetry: (String messageId) => ref
-                          .read(assistantSessionControllerProvider.notifier)
-                          .retryMessage(messageId),
+        child: Padding(
+          padding: const EdgeInsets.all(8),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 412),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                    Row(
+                      children: <Widget>[
+                        Text(
+                          strings.assistantScreenTitle,
+                          style: theme.textTheme.headlineSmall,
+                        ),
+                        const Spacer(),
+                        Material(
+                          color: Colors.transparent,
+                          borderRadius: BorderRadius.circular(14),
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(14),
+                          onTap: () => Navigator.of(context).push(
+                            MaterialPageRoute<void>(
+                              builder: (_) => const AssistantUsageInfoScreen(),
+                            ),
+                          ),
+                          child: Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            child: Icon(
+                              Icons.help_outline,
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ),
+                        ),
+                      ],
                     ),
+                  const SizedBox(height: 8),
+                  _AssistantOfflineBanner(
+                    isOffline: isOffline,
+                    onRetry: () => ref
+                        .read(assistantSessionControllerProvider.notifier)
+                        .retryPendingMessages(),
+                  ),
+                  const SizedBox(height: 8),
+                  _AssistantFiltersBar(
+                    activeFilters: activeFilters,
+                    onFilterTapped: (AssistantFilter filter) => ref
+                        .read(assistantSessionControllerProvider.notifier)
+                        .toggleFilter(filter),
+                  ),
+                  const SizedBox(height: 8),
+                  Expanded(
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(30),
+                      child: Container(
+                        color: theme.colorScheme.surfaceContainer,
+                        padding: const EdgeInsets.all(8),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: <Widget>[
+                            _AssistantErrorNotice(
+                              lastError: lastError,
+                              isOffline: isOffline,
+                            ),
+                            Expanded(
+                              child: visibleMessages.isEmpty
+                                  ? _AssistantEmptyState(strings: strings)
+                                  : _AssistantMessageList(
+                                      controller: _scrollController,
+                                      messages: visibleMessages,
+                                      onRetry: (String messageId) => ref
+                                          .read(
+                                            assistantSessionControllerProvider
+                                                .notifier,
+                                          )
+                                          .retryMessage(messageId),
+                                    ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  AnimatedBuilder(
+                    animation: _inputFocusNode,
+                    builder: (BuildContext context, Widget? child) {
+                      if (_inputFocusNode.hasFocus) {
+                        return const SizedBox.shrink();
+                      }
+                      return Column(
+                        children: <Widget>[
+                          const SizedBox(height: 8),
+                          _AssistantQuickActions(
+                            onActionSelected:
+                                (
+                                  AiQueryIntent intent,
+                                  String prompt,
+                                  Set<AssistantFilter> filters,
+                                ) {
+                                  ref
+                                      .read(
+                                        assistantSessionControllerProvider
+                                            .notifier,
+                                      )
+                                      .sendMessage(
+                                        prompt,
+                                        intentOverride: intent,
+                                        additionalFilters: filters,
+                                      );
+                                  _inputFocusNode.requestFocus();
+                                },
+                          ),
+                          const SizedBox(height: 8),
+                        ],
+                      );
+                    },
+                  ),
+                  _AssistantInputBar(
+                    controller: _inputController,
+                    focusNode: _inputFocusNode,
+                    isSending: isSending,
+                    isOffline: isOffline,
+                    hintText: strings.assistantInputHint,
+                    onSubmitted: (String value) {
+                      ref
+                          .read(assistantSessionControllerProvider.notifier)
+                          .sendMessage(value);
+                      _inputController.clear();
+                    },
+                  ),
+                ],
+              ),
             ),
-            _AssistantErrorNotice(lastError: lastError, isOffline: isOffline),
-            _AssistantInputBar(
-              controller: _inputController,
-              focusNode: _inputFocusNode,
-              isSending: isSending,
-              isOffline: isOffline,
-              hintText: strings.assistantInputHint,
-              onSubmitted: (String value) {
-                ref
-                    .read(assistantSessionControllerProvider.notifier)
-                    .sendMessage(value);
-                _inputController.clear();
-              },
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -225,8 +308,7 @@ class _AssistantQuickActions extends StatelessWidget {
     AiQueryIntent intent,
     String prompt,
     Set<AssistantFilter> filters,
-  )
-  onActionSelected;
+  ) onActionSelected;
 
   @override
   Widget build(BuildContext context) {
@@ -234,51 +316,160 @@ class _AssistantQuickActions extends StatelessWidget {
     if (_kAssistantQuickActions.isEmpty) {
       return const SizedBox.shrink();
     }
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    final ThemeData theme = Theme.of(context);
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: <Widget>[
-          Text(
-            strings.assistantQuickActionsTitle,
-            style: Theme.of(context).textTheme.titleSmall,
-          ),
-          const SizedBox(height: 8),
-          SizedBox(
-            height: 40,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              itemCount: _kAssistantQuickActions.length,
-              separatorBuilder: (_, int index) => const SizedBox(width: 8),
-              itemBuilder: (BuildContext context, int index) {
-                final _AssistantQuickActionConfig config =
-                    _kAssistantQuickActions[index];
-                final String label = strings.assistantQuickActionLabel(
-                  config.kind,
-                );
-                return ActionChip(
-                  label: Text(label),
-                  onPressed: () {
-                    final String prompt = strings.assistantQuickActionPrompt(
-                      config.kind,
-                    );
-                    onActionSelected(
-                      config.intent,
-                      prompt,
-                      config.additionalFilters,
-                    );
-                  },
-                );
-              },
+          for (int index = 0; index < _kAssistantQuickActions.length; index++) ...<Widget>[
+            if (index > 0) const SizedBox(width: 8),
+            Material(
+              color: theme.colorScheme.secondaryContainer,
+              borderRadius: BorderRadius.circular(20),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(20),
+                onTap: () {
+                  final _AssistantQuickActionConfig config =
+                      _kAssistantQuickActions[index];
+                  final String prompt = strings.assistantQuickActionPrompt(
+                    config.kind,
+                  );
+                  onActionSelected(
+                    config.intent,
+                    prompt,
+                    config.additionalFilters,
+                  );
+                },
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  child: Text(
+                    strings.assistantQuickActionLabel(
+                      _kAssistantQuickActions[index].kind,
+                    ),
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSecondaryContainer,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ),
             ),
-          ),
+          ],
         ],
       ),
     );
   }
 }
 
-class _AssistantFiltersBar extends StatelessWidget {
+class AssistantUsageInfoScreen extends StatelessWidget {
+  const AssistantUsageInfoScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final AppLocalizations strings = AppLocalizations.of(context)!;
+    return Scaffold(
+      appBar: AppBar(title: Text(strings.assistantScreenTitle)),
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Text(
+              'Использование ИИ-ассистента',
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'В приложении доступен ИИ-ассистент, ответы '
+              'которого формируются автоматически на основе моделей '
+              'искусственного интеллекта (через сервис OpenRouter).\n\n'
+              'Ответы могут содержать ошибки, быть неполными или '
+              'устаревшими и не являются финансовой, юридической, '
+              'налоговой или иной профессиональной консультацией. Все '
+              'решения вы принимаете самостоятельно и на свой риск.\n\n'
+              'Не вводите в чат номера карт, пароли, CVV, коды из SMS, '
+              'паспортные данные и другую чувствительную личную информацию. '
+              'Текст ваших запросов передаётся стороннему сервису для '
+              'обработки.\n\n'
+              'Продолжая, вы подтверждаете, что ознакомились с этими '
+              'условиями и согласны с ними.',
+              style: Theme.of(context).textTheme.bodyLarge,
+            ),
+            const SizedBox(height: 16),
+            TextButton(
+              onPressed: () {},
+              child: const Text('Подробнее'),
+            ),
+            const Spacer(),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Expanded(
+                  child: SizedBox(
+                    height: 56,
+                    child: OutlinedButton(
+                      onPressed: () {},
+                      style: OutlinedButton.styleFrom(
+                        backgroundColor: const Color(0xFF67696A),
+                        foregroundColor: const Color(0xFFC9C6BC),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(100),
+                        ),
+                        side: BorderSide.none,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 16,
+                        ),
+                        textStyle: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      child: const Text('Отмена'),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: SizedBox(
+                    height: 56,
+                    child: ElevatedButton(
+                      onPressed: () {},
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFAEF75F),
+                        foregroundColor: const Color(0xFF1D3700),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(100),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 16,
+                        ),
+                        textStyle: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      child: const Text('Принять'),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _AssistantFiltersBar extends StatefulWidget {
   const _AssistantFiltersBar({
     required this.activeFilters,
     required this.onFilterTapped,
@@ -288,31 +479,102 @@ class _AssistantFiltersBar extends StatelessWidget {
   final ValueChanged<AssistantFilter> onFilterTapped;
 
   @override
+  State<_AssistantFiltersBar> createState() => _AssistantFiltersBarState();
+}
+
+class _AssistantFiltersBarState extends State<_AssistantFiltersBar>
+    with SingleTickerProviderStateMixin {
+  bool _isExpanded = false;
+
+  void _toggleExpanded() {
+    setState(() {
+      _isExpanded = !_isExpanded;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final AppLocalizations strings = AppLocalizations.of(context)!;
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+    final ThemeData theme = Theme.of(context);
+    final Color iconColor = theme.colorScheme.onSurfaceVariant;
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainer,
+        borderRadius: BorderRadius.circular(28),
+      ),
+      padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Text(
-            strings.assistantFiltersTitle,
-            style: Theme.of(context).textTheme.titleSmall,
+          GestureDetector(
+            onTap: _toggleExpanded,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                Text(
+                  strings.assistantFiltersTitle,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                AnimatedRotation(
+                  turns: _isExpanded ? 0.5 : 0,
+                  duration: const Duration(milliseconds: 200),
+                  child: Icon(
+                    Icons.keyboard_arrow_down,
+                    color: iconColor,
+                    size: 24,
+                  ),
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            runSpacing: 4,
-            children: _kAssistantFilters
-                .map((AssistantFilter filter) {
-                  final bool selected = activeFilters.contains(filter);
-                  return FilterChip(
-                    label: Text(strings.assistantFilterLabel(filter)),
-                    selected: selected,
-                    onSelected: (_) => onFilterTapped(filter),
+          AnimatedCrossFade(
+            firstChild: const SizedBox.shrink(),
+            secondChild: Padding(
+              padding: const EdgeInsets.only(top: 16),
+              child: Wrap(
+                spacing: 10,
+                runSpacing: 10,
+                children: _kAssistantFilters.map((AssistantFilter filter) {
+                  final bool selected = widget.activeFilters.contains(filter);
+                  final Color chipColor = selected
+                      ? theme.colorScheme.secondaryContainer
+                      : theme.colorScheme.surfaceContainerHighest;
+                  final Color textColor = selected
+                      ? theme.colorScheme.onSecondaryContainer
+                      : theme.colorScheme.onSurface;
+                  return InkWell(
+                    borderRadius: BorderRadius.circular(16),
+                    onTap: () => widget.onFilterTapped(filter),
+                    child: Container(
+                      width: null,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: chipColor,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Text(
+                        strings.assistantFilterLabel(filter),
+                        style: theme.textTheme.labelMedium?.copyWith(
+                          color: textColor,
+                          letterSpacing: 0.5,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
                   );
-                })
-                .toList(growable: false),
+                }).toList(growable: false),
+              ),
+            ),
+            crossFadeState: _isExpanded
+                ? CrossFadeState.showSecond
+                : CrossFadeState.showFirst,
+            duration: const Duration(milliseconds: 200),
           ),
         ],
       ),
@@ -335,7 +597,8 @@ class _AssistantMessageList extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListView.separated(
       controller: controller,
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       itemCount: messages.length,
       separatorBuilder: (_, int index) => const SizedBox(height: 8),
       itemBuilder: (BuildContext context, int index) {
@@ -362,11 +625,14 @@ class _AssistantMessageBubble extends StatelessWidget {
         ? Alignment.centerRight
         : Alignment.centerLeft;
     final ColorScheme colorScheme = theme.colorScheme;
-    final Color backgroundColor = _isUser
-        ? colorScheme.primaryContainer
+    final Color bubbleColor = _isUser
+        ? colorScheme.secondaryContainer
         : colorScheme.surfaceContainerHigh;
     final TextStyle? textStyle = theme.textTheme.bodyMedium?.copyWith(
-      color: _isUser ? colorScheme.onPrimaryContainer : colorScheme.onSurface,
+      color: _isUser
+          ? colorScheme.onSecondaryContainer
+          : colorScheme.onSurfaceVariant,
+      height: 1.4,
     );
 
     final Widget content;
@@ -411,13 +677,36 @@ class _AssistantMessageBubble extends StatelessWidget {
       );
     }
 
+    final BorderRadius borderRadius = _isUser
+        ? const BorderRadius.only(
+            topLeft: Radius.circular(20),
+            topRight: Radius.circular(20),
+            bottomLeft: Radius.circular(20),
+            bottomRight: Radius.circular(8),
+          )
+        : const BorderRadius.only(
+            topLeft: Radius.circular(20),
+            topRight: Radius.circular(20),
+            bottomLeft: Radius.circular(8),
+            bottomRight: Radius.circular(20),
+          );
+    final BoxDecoration decoration = BoxDecoration(
+      color: bubbleColor,
+      borderRadius: borderRadius,
+      boxShadow: _isUser
+          ? <BoxShadow>[
+              BoxShadow(
+                color: colorScheme.secondaryContainer.withOpacity(0.35),
+                blurRadius: 12,
+                offset: const Offset(0, 6),
+              ),
+            ]
+          : null,
+    );
     final Widget bubble = Container(
-      constraints: const BoxConstraints(maxWidth: 520),
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      constraints: const BoxConstraints(maxWidth: 380),
+      decoration: decoration,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: content,
     );
 
@@ -508,28 +797,32 @@ class _AssistantInputBarState extends State<_AssistantInputBar> {
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
+    final AppLocalizations strings = AppLocalizations.of(context)!;
     final bool canSend =
         widget.controller.text.trim().isNotEmpty && !widget.isSending;
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: <Widget>[
-          TextField(
+
+    void handleSend() {
+      final String trimmed = widget.controller.text.trim();
+      if (trimmed.isEmpty) {
+        return;
+      }
+      widget.onSubmitted(trimmed);
+      widget.controller.clear();
+      setState(() {});
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        SizedBox(
+          height: 56,
+          child: TextField(
             controller: widget.controller,
             focusNode: widget.focusNode,
             minLines: 1,
-            maxLines: 5,
+            maxLines: 3,
             textInputAction: TextInputAction.send,
-            onSubmitted: (String value) {
-              final String trimmed = value.trim();
-              if (trimmed.isEmpty) {
-                return;
-              }
-              widget.onSubmitted(trimmed);
-              widget.controller.clear();
-              setState(() {});
-            },
+            onSubmitted: (_) => handleSend(),
             onChanged: (_) => setState(() {}),
             style: theme.textTheme.bodyLarge?.copyWith(
               color: theme.colorScheme.onSurface,
@@ -542,70 +835,77 @@ class _AssistantInputBarState extends State<_AssistantInputBar> {
                 letterSpacing: 0.5,
               ),
               filled: true,
-              fillColor: theme.colorScheme.surfaceContainerLow,
+              fillColor: theme.colorScheme.surfaceContainerHigh,
               contentPadding: const EdgeInsets.symmetric(
                 horizontal: 16,
-                vertical: 16,
+                vertical: 18,
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(32),
+                borderSide: BorderSide(
+                  color: theme.colorScheme.outline,
+                ),
               ),
               enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(28),
-                borderSide: const BorderSide(color: Colors.transparent),
+                borderRadius: BorderRadius.circular(32),
+                borderSide: BorderSide(
+                  color: theme.colorScheme.outline,
+                ),
               ),
               focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(28),
+                borderRadius: BorderRadius.circular(32),
                 borderSide: BorderSide(
                   color: theme.colorScheme.primary,
                   width: 1,
                 ),
               ),
-              suffixIconConstraints:
-                  const BoxConstraints(minWidth: 48, minHeight: 48),
               suffixIcon: Padding(
                 padding: const EdgeInsets.only(right: 4),
                 child: IconButton(
                   splashRadius: 24,
-                  onPressed: canSend
-                      ? () {
-                          final String value =
-                              widget.controller.text.trim();
-                          if (value.isEmpty) {
-                            return;
-                          }
-                          widget.onSubmitted(value);
-                          widget.controller.clear();
-                          setState(() {});
-                        }
-                      : null,
+                  onPressed: canSend ? handleSend : null,
                   icon: widget.isSending
-                      ? const SizedBox(
+                      ? SizedBox(
                           width: 20,
                           height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: theme.colorScheme.onSecondaryContainer,
+                          ),
                         )
-                      : const Icon(Icons.send_rounded),
+                      : Icon(
+                          Icons.send_rounded,
+                          color: canSend
+                              ? theme.colorScheme.onSecondaryContainer
+                              : theme.colorScheme.onSurfaceVariant,
+                        ),
                 ),
               ),
             ),
+            cursorColor: theme.colorScheme.primary,
           ),
-          if (widget.isOffline)
-            Padding(
-              padding: const EdgeInsets.only(top: 8, right: 8),
-              child: Align(
-                alignment: Alignment.centerRight,
-                child: Tooltip(
-                  message: AppLocalizations.of(
-                    context,
-                  )!.assistantPendingMessageHint,
-                  child: Icon(
-                    Icons.cloud_off,
-                    size: 18,
+        ),
+        if (widget.isOffline)
+          Padding(
+            padding: const EdgeInsets.only(top: 6),
+            child: Row(
+              children: <Widget>[
+                Icon(
+                  Icons.cloud_off,
+                  size: 16,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  strings.assistantPendingMessageHint,
+                  style: theme.textTheme.labelSmall?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
                 ),
-              ),
+              ],
             ),
-        ],
-      ),
+          ),
+      ],
     );
   }
 }
@@ -679,213 +979,7 @@ class _AssistantEmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (BuildContext context, BoxConstraints constraints) {
-        final ThemeData theme = Theme.of(context);
-        return SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-          child: ConstrainedBox(
-            constraints: BoxConstraints(
-              minHeight: constraints.maxHeight > 0
-                  ? constraints.maxHeight - 48
-                  : 0,
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: <Widget>[
-                const Icon(Icons.smart_toy_outlined, size: 48),
-                const SizedBox(height: 16),
-                Text(
-                  strings.assistantEmptyStateTitle,
-                  style: theme.textTheme.titleMedium,
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  strings.assistantEmptyStateSubtitle,
-                  style: theme.textTheme.bodyMedium,
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 24),
-                _AssistantOnboardingChecklist(strings: strings),
-                const SizedBox(height: 24),
-                _AssistantFaqSection(strings: strings),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
-
-class _AssistantOnboardingChecklist extends StatelessWidget {
-  const _AssistantOnboardingChecklist({required this.strings});
-
-  final AppLocalizations strings;
-
-  @override
-  Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
-    final List<_AssistantChecklistItem> features = <_AssistantChecklistItem>[
-      _AssistantChecklistItem(
-        icon: Icons.analytics_outlined,
-        label: strings.assistantOnboardingFeatureInsights,
-      ),
-      _AssistantChecklistItem(
-        icon: Icons.account_balance_wallet_outlined,
-        label: strings.assistantOnboardingFeatureBudgets,
-      ),
-      _AssistantChecklistItem(
-        icon: Icons.savings_outlined,
-        label: strings.assistantOnboardingFeatureSavings,
-      ),
-    ];
-    final List<_AssistantChecklistItem> limitations = <_AssistantChecklistItem>[
-      _AssistantChecklistItem(
-        icon: Icons.sync_outlined,
-        label: strings.assistantOnboardingLimitationDataFreshness,
-      ),
-      _AssistantChecklistItem(
-        icon: Icons.shield_outlined,
-        label: strings.assistantOnboardingLimitationSecurity,
-      ),
-      _AssistantChecklistItem(
-        icon: Icons.fact_check_outlined,
-        label: strings.assistantOnboardingLimitationAccuracy,
-      ),
-    ];
-
-    return Card(
-      elevation: 0,
-      color: theme.colorScheme.surfaceContainerHigh,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Text(
-              strings.assistantOnboardingTitle,
-              style: theme.textTheme.titleSmall,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              strings.assistantOnboardingDescription,
-              style: theme.textTheme.bodyMedium,
-            ),
-            const SizedBox(height: 16),
-            ...features.map(_AssistantChecklistRow.new),
-            const SizedBox(height: 20),
-            Text(
-              strings.assistantOnboardingLimitationsTitle,
-              style: theme.textTheme.titleSmall,
-            ),
-            const SizedBox(height: 8),
-            ...limitations.map(_AssistantChecklistRow.new),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _AssistantChecklistItem {
-  const _AssistantChecklistItem({required this.icon, required this.label});
-
-  final IconData icon;
-  final String label;
-}
-
-class _AssistantChecklistRow extends StatelessWidget {
-  const _AssistantChecklistRow(this.item);
-
-  final _AssistantChecklistItem item;
-
-  @override
-  Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Icon(item.icon, size: 20, color: theme.colorScheme.primary),
-          const SizedBox(width: 12),
-          Expanded(child: Text(item.label, style: theme.textTheme.bodyMedium)),
-        ],
-      ),
-    );
-  }
-}
-
-class _AssistantFaqSection extends StatelessWidget {
-  const _AssistantFaqSection({required this.strings});
-
-  final AppLocalizations strings;
-
-  @override
-  Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
-    final List<_AssistantFaqEntry> entries = <_AssistantFaqEntry>[
-      _AssistantFaqEntry(
-        question: strings.assistantFaqQuestionDataSources,
-        answer: strings.assistantFaqAnswerDataSources,
-      ),
-      _AssistantFaqEntry(
-        question: strings.assistantFaqQuestionLimits,
-        answer: strings.assistantFaqAnswerLimits,
-      ),
-      _AssistantFaqEntry(
-        question: strings.assistantFaqQuestionImproveResults,
-        answer: strings.assistantFaqAnswerImproveResults,
-      ),
-    ];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        Text(strings.assistantFaqTitle, style: theme.textTheme.titleSmall),
-        const SizedBox(height: 8),
-        ...entries.map(
-          (_AssistantFaqEntry entry) => _AssistantFaqTile(entry: entry),
-        ),
-      ],
-    );
-  }
-}
-
-class _AssistantFaqEntry {
-  const _AssistantFaqEntry({required this.question, required this.answer});
-
-  final String question;
-  final String answer;
-}
-
-class _AssistantFaqTile extends StatelessWidget {
-  const _AssistantFaqTile({required this.entry});
-
-  final _AssistantFaqEntry entry;
-
-  @override
-  Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
-    return Card(
-      elevation: 0,
-      margin: const EdgeInsets.symmetric(vertical: 4),
-      color: theme.colorScheme.surfaceContainerLowest,
-      child: ExpansionTile(
-        tilePadding: const EdgeInsets.symmetric(horizontal: 16),
-        childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-        title: Text(entry.question, style: theme.textTheme.bodyLarge),
-        children: <Widget>[
-          Align(
-            alignment: Alignment.centerLeft,
-            child: Text(entry.answer, style: theme.textTheme.bodyMedium),
-          ),
-        ],
-      ),
-    );
+    return const SizedBox.shrink();
   }
 }
 
