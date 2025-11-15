@@ -9,6 +9,7 @@ import 'package:kopim/features/budgets/presentation/budgets_screen.dart';
 import 'package:kopim/features/categories/presentation/screens/manage_categories_screen.dart';
 import 'package:kopim/features/home/domain/entities/home_dashboard_preferences.dart';
 import 'package:kopim/features/home/presentation/controllers/home_dashboard_preferences_controller.dart';
+import 'package:kopim/core/widgets/collapsible_list/collapsible_list.dart';
 import 'package:kopim/features/profile/presentation/screens/general_settings_screen.dart';
 import 'package:kopim/features/profile/presentation/widgets/home_dashboard_visibility_card.dart';
 import 'package:kopim/features/savings/presentation/screens/savings_list_screen.dart';
@@ -109,38 +110,53 @@ class MenuScreen extends ConsumerWidget {
                 ],
                 preferencesAsync.when(
                   data: (HomeDashboardPreferences preferences) =>
-                      HomeDashboardVisibilityCard(
-                        strings: strings,
-                        preferences: preferences,
-                        onToggleGamification: (bool value) => ref
-                            .read(
-                              homeDashboardPreferencesControllerProvider
-                                  .notifier,
-                            )
-                            .setShowGamification(value),
-                        onToggleBudget: (bool value) => ref
-                            .read(
-                              homeDashboardPreferencesControllerProvider
-                                  .notifier,
-                            )
-                            .setShowBudget(value),
-                        onToggleRecurring: (bool value) => ref
-                            .read(
-                              homeDashboardPreferencesControllerProvider
-                                  .notifier,
-                            )
-                            .setShowRecurring(value),
-                        onToggleSavings: (bool value) => ref
-                            .read(
-                              homeDashboardPreferencesControllerProvider
-                                  .notifier,
-                            )
-                            .setShowSavings(value),
+                      KopimExpandableSectionPlayful(
+                        title: strings.settingsHomeSectionTitle,
+                        initiallyExpanded: true,
+                        leading: Icon(
+                          Icons.home_outlined,
+                          color: theme.colorScheme.onSurfaceVariant,
+                          size: 24,
+                        ),
+                        child: HomeDashboardVisibilityCard(
+                          strings: strings,
+                          preferences: preferences,
+                          onToggleGamification: (bool value) => ref
+                              .read(
+                                homeDashboardPreferencesControllerProvider
+                                    .notifier,
+                              )
+                              .setShowGamification(value),
+                          onToggleBudget: (bool value) => ref
+                              .read(
+                                homeDashboardPreferencesControllerProvider
+                                    .notifier,
+                              )
+                              .setShowBudget(value),
+                          onToggleRecurring: (bool value) => ref
+                              .read(
+                                homeDashboardPreferencesControllerProvider
+                                    .notifier,
+                              )
+                              .setShowRecurring(value),
+                          onToggleSavings: (bool value) => ref
+                              .read(
+                                homeDashboardPreferencesControllerProvider
+                                    .notifier,
+                              )
+                              .setShowSavings(value),
+                        ),
                       ),
-                  loading: () => const _SettingsSkeleton(),
-                  error: (Object error, _) => _SettingsErrorMessage(
-                    message: strings.homeDashboardPreferencesError(
-                      error.toString(),
+                  loading: () => KopimExpandableSectionPlayful(
+                    title: strings.settingsHomeSectionTitle,
+                    child: const _SettingsSkeleton(),
+                  ),
+                  error: (Object error, _) => KopimExpandableSectionPlayful(
+                    title: strings.settingsHomeSectionTitle,
+                    child: _SettingsErrorMessage(
+                      message: strings.homeDashboardPreferencesError(
+                        error.toString(),
+                      ),
                     ),
                   ),
                 ),

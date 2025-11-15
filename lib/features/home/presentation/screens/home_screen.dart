@@ -35,6 +35,7 @@ import 'package:kopim/features/transactions/presentation/widgets/transaction_for
 import 'package:kopim/l10n/app_localizations.dart';
 import 'package:kopim/core/formatting/currency_symbols.dart';
 import 'package:kopim/core/utils/helpers.dart';
+import 'package:kopim/core/widgets/collapsible_list/collapsible_list.dart';
 import 'package:kopim/core/widgets/kopim_floating_action_button.dart';
 import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
 import 'package:kopim/core/config/theme_extensions.dart';
@@ -392,27 +393,15 @@ class _HomeSecondaryPanel extends StatelessWidget {
 
     if (children.isEmpty) {
       addSection(
-        Card(
-          color: theme.colorScheme.surfaceContainerHigh,
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text(
-                  strings.settingsHomeSectionTitle,
-                  style: theme.textTheme.titleMedium,
-                ),
-                const SizedBox(height: 8),
-                Text(
+        KopimExpandableSectionPlayful(
+          title: strings.settingsHomeSectionTitle,
+          initiallyExpanded: true,
+                child: Text(
                   strings.homeBudgetWidgetEmpty,
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.onSurface.withValues(alpha: 0.72),
                   ),
                 ),
-              ],
-            ),
-          ),
         ),
       );
     }

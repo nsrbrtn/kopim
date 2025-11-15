@@ -118,7 +118,7 @@ class _AssistantScreenState extends ConsumerState<AssistantScreen> {
 
     final ThemeData theme = Theme.of(context);
     return Scaffold(
-      backgroundColor: theme.colorScheme.background,
+      backgroundColor: theme.colorScheme.surface,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(8),
@@ -696,7 +696,7 @@ class _AssistantMessageBubble extends StatelessWidget {
       boxShadow: _isUser
           ? <BoxShadow>[
               BoxShadow(
-                color: colorScheme.secondaryContainer.withOpacity(0.35),
+                color: colorScheme.secondaryContainer.withValues(alpha: 0.35),
                 blurRadius: 12,
                 offset: const Offset(0, 6),
               ),
