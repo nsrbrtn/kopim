@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:kopim/core/widgets/collapsible_list/collapsible_list.dart';
 import 'package:kopim/features/ai/domain/entities/ai_user_query_entity.dart';
 import 'package:kopim/features/ai/presentation/controllers/assistant_session_controller.dart';
 import 'package:kopim/features/ai/presentation/models/assistant_filters.dart';
@@ -469,7 +470,7 @@ class AssistantUsageInfoScreen extends StatelessWidget {
   }
 }
 
-class _AssistantFiltersBar extends StatefulWidget {
+class _AssistantFiltersBar extends StatelessWidget {
   const _AssistantFiltersBar({
     required this.activeFilters,
     required this.onFilterTapped,
@@ -479,104 +480,45 @@ class _AssistantFiltersBar extends StatefulWidget {
   final ValueChanged<AssistantFilter> onFilterTapped;
 
   @override
-  State<_AssistantFiltersBar> createState() => _AssistantFiltersBarState();
-}
-
-class _AssistantFiltersBarState extends State<_AssistantFiltersBar>
-    with SingleTickerProviderStateMixin {
-  bool _isExpanded = false;
-
-  void _toggleExpanded() {
-    setState(() {
-      _isExpanded = !_isExpanded;
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
     final AppLocalizations strings = AppLocalizations.of(context)!;
     final ThemeData theme = Theme.of(context);
-    final Color iconColor = theme.colorScheme.onSurfaceVariant;
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainer,
-        borderRadius: BorderRadius.circular(28),
-      ),
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          GestureDetector(
-            onTap: _toggleExpanded,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                Text(
-                  strings.assistantFiltersTitle,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w500,
-                  ),
+    return KopimExpandableSectionPlayful(
+      title: strings.assistantFiltersTitle,
+      child: Wrap(
+        spacing: 10,
+        runSpacing: 10,
+        children: _kAssistantFilters.map((AssistantFilter filter) {
+          final bool selected = activeFilters.contains(filter);
+          final Color chipColor = selected
+              ? theme.colorScheme.secondaryContainer
+              : theme.colorScheme.surfaceContainerHighest;
+          final Color textColor = selected
+              ? theme.colorScheme.onSecondaryContainer
+              : theme.colorScheme.onSurface;
+          return InkWell(
+            borderRadius: BorderRadius.circular(16),
+            onTap: () => onFilterTapped(filter),
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 8,
+              ),
+              decoration: BoxDecoration(
+                color: chipColor,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Text(
+                strings.assistantFilterLabel(filter),
+                style: theme.textTheme.labelMedium?.copyWith(
+                  color: textColor,
+                  letterSpacing: 0.5,
+                  fontWeight: FontWeight.w500,
                 ),
-                AnimatedRotation(
-                  turns: _isExpanded ? 0.5 : 0,
-                  duration: const Duration(milliseconds: 200),
-                  child: Icon(
-                    Icons.keyboard_arrow_down,
-                    color: iconColor,
-                    size: 24,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          AnimatedCrossFade(
-            firstChild: const SizedBox.shrink(),
-            secondChild: Padding(
-              padding: const EdgeInsets.only(top: 16),
-              child: Wrap(
-                spacing: 10,
-                runSpacing: 10,
-                children: _kAssistantFilters.map((AssistantFilter filter) {
-                  final bool selected = widget.activeFilters.contains(filter);
-                  final Color chipColor = selected
-                      ? theme.colorScheme.secondaryContainer
-                      : theme.colorScheme.surfaceContainerHighest;
-                  final Color textColor = selected
-                      ? theme.colorScheme.onSecondaryContainer
-                      : theme.colorScheme.onSurface;
-                  return InkWell(
-                    borderRadius: BorderRadius.circular(16),
-                    onTap: () => widget.onFilterTapped(filter),
-                    child: Container(
-                      width: null,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
-                      decoration: BoxDecoration(
-                        color: chipColor,
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Text(
-                        strings.assistantFilterLabel(filter),
-                        style: theme.textTheme.labelMedium?.copyWith(
-                          color: textColor,
-                          letterSpacing: 0.5,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                  );
-                }).toList(growable: false),
               ),
             ),
-            crossFadeState: _isExpanded
-                ? CrossFadeState.showSecond
-                : CrossFadeState.showFirst,
-            duration: const Duration(milliseconds: 200),
-          ),
-        ],
+          );
+        }).toList(growable: false),
       ),
     );
   }

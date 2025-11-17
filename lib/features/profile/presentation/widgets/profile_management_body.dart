@@ -16,6 +16,7 @@ import 'package:kopim/features/profile/presentation/controllers/user_progress_co
 import 'package:kopim/l10n/app_localizations.dart';
 import 'package:kopim/features/profile/presentation/widgets/settings_button_theme.dart';
 import 'package:kopim/features/profile/presentation/widgets/profile_overview_card.dart';
+import 'package:kopim/core/widgets/collapsible_list/collapsible_list.dart';
 
 class ProfileManagementBody extends ConsumerWidget {
   const ProfileManagementBody({super.key});
@@ -198,8 +199,14 @@ class _ProfileForm extends ConsumerWidget {
             avatarState: avatarState,
           ),
           const SizedBox(height: 24),
-          _CollapsibleSection(
+          KopimExpandableSectionPlayful(
+            key: const PageStorageKey<String>('profile-section-account'),
             title: strings.profileSectionAccount,
+            leading: Icon(
+              Icons.person_outline,
+              color: theme.colorScheme.onSurfaceVariant,
+              size: 24,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
@@ -378,41 +385,6 @@ class _AnonymousUpgradeBanner extends StatelessWidget {
         ),
       ),
     );
-  }
-}
-
-class _CollapsibleSection extends StatelessWidget {
-  const _CollapsibleSection({required this.title, required this.child});
-
-  final String title;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
-    return Card(
-      margin: EdgeInsets.zero,
-      child: Theme(
-        data: theme.copyWith(dividerColor: Colors.transparent),
-        child: ExpansionTile(
-          key: PageStorageKey<String>('profile-section-$title'),
-          tilePadding: const EdgeInsets.symmetric(horizontal: 16),
-          childrenPadding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-          initiallyExpanded: true,
-          title: Text(title, style: theme.textTheme.titleMedium),
-          children: <Widget>[
-            PageStorage(bucket: PageStorageBucket(), child: child),
-          ],
-        ),
-      ),
-    );
-  }
-
-  @override
-  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
-    super.debugFillProperties(properties);
-    properties.add(StringProperty('title', title));
-    properties.add(DiagnosticsProperty<Widget>('child', child));
   }
 }
 

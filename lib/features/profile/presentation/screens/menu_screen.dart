@@ -112,7 +112,6 @@ class MenuScreen extends ConsumerWidget {
                   data: (HomeDashboardPreferences preferences) =>
                       KopimExpandableSectionPlayful(
                         title: strings.settingsHomeSectionTitle,
-                        initiallyExpanded: true,
                         leading: Icon(
                           Icons.home_outlined,
                           color: theme.colorScheme.onSurfaceVariant,
