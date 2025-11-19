@@ -43,7 +43,7 @@ final class TransactionActionsControllerProvider
 }
 
 String _$transactionActionsControllerHash() =>
-    r'3078ce2821c25b9471891e9f53000d0dfa1ccda2';
+    r'5a669804b0a7c14a0157665ee4f1315f97c7690a';
 
 abstract class _$TransactionActionsController
     extends $Notifier<AsyncValue<void>> {

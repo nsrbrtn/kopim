@@ -9,7 +9,7 @@ import 'package:kopim/features/profile/domain/models/profile_command_result.dart
 import 'package:kopim/features/profile/domain/repositories/profile_repository.dart';
 import 'package:kopim/features/profile/domain/repositories/profile_avatar_repository.dart';
 
-enum AvatarImageSource { gallery, camera }
+enum AvatarImageSource { gallery, camera, predefined }
 
 class UpdateProfileAvatarRequest {
   const UpdateProfileAvatarRequest({

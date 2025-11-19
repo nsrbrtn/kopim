@@ -13,10 +13,31 @@ class AnalyticsService {
       final FirebaseAnalytics analytics = FirebaseAnalytics.instance;
       await analytics.logEvent(
         name: name,
-        parameters: params?.cast<String, Object>(),
+        parameters: _sanitizeParameters(params),
       );
     }
     await Sentry.captureMessage('Event: $name');
+  }
+
+  Map<String, Object>? _sanitizeParameters(Map<String, dynamic>? params) {
+    if (params == null) {
+      return null;
+    }
+    final Map<String, Object> sanitized = <String, Object>{};
+    params.forEach((String key, dynamic value) {
+      if (value is String || value is num) {
+        sanitized[key] = value;
+        return;
+      }
+      if (value is bool) {
+        sanitized[key] = value ? 1 : 0;
+        return;
+      }
+      if (value != null) {
+        sanitized[key] = value.toString();
+      }
+    });
+    return sanitized.isEmpty ? null : sanitized;
   }
 
   void reportError(dynamic error, StackTrace stack) {

@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'dart:math' as math;
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,6 +9,8 @@ import 'package:go_router/go_router.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/features/profile/domain/entities/user_progress.dart';
 import 'package:kopim/features/profile/domain/policies/level_policy.dart';
+import 'package:kopim/features/profile/domain/entities/profile.dart';
+import 'package:kopim/features/profile/presentation/controllers/profile_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/user_progress_controller.dart';
 import 'package:kopim/features/profile/presentation/screens/profile_management_screen.dart';
 import 'package:kopim/l10n/app_localizations.dart';
@@ -44,6 +48,9 @@ class HomeGamificationAppBar extends ConsumerWidget {
     final AsyncValue<UserProgress> progressAsync = ref.watch(
       userProgressProvider(userId),
     );
+    final AsyncValue<Profile?> profileAsync = ref.watch(
+      profileControllerProvider(userId),
+    );
     final LevelPolicy policy = ref.read(levelPolicyProvider);
     final double topPadding = MediaQuery.of(context).padding.top;
     final TextTheme textTheme = theme.textTheme;
@@ -71,12 +78,45 @@ class HomeGamificationAppBar extends ConsumerWidget {
             Semantics(
               label: strings.homeProfileTooltip,
               button: true,
-              child: IconButton(
-                tooltip: strings.homeProfileTooltip,
-                icon: const Icon(Icons.account_circle_outlined),
-                onPressed: () {
-                  context.push(ProfileManagementScreen.routeName);
-                },
+              child: profileAsync.when(
+                data: (Profile? profile) => IconButton(
+                  tooltip: strings.homeProfileTooltip,
+                  padding: EdgeInsets.zero,
+                  iconSize: 48,
+                  icon: SizedBox(
+                    width: 48,
+                    height: 48,
+                    child: _TopBarAvatarIcon(photoUrl: profile?.photoUrl),
+                  ),
+                  onPressed: () {
+                    context.push(ProfileManagementScreen.routeName);
+                  },
+                ),
+                loading: () => IconButton(
+                  tooltip: strings.homeProfileTooltip,
+                  padding: EdgeInsets.zero,
+                  onPressed: () {
+                    context.push(ProfileManagementScreen.routeName);
+                  },
+                  icon: const SizedBox(
+                    width: 48,
+                    height: 48,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                ),
+                error: (Object error, StackTrace? stackTrace) => IconButton(
+                  tooltip: strings.homeProfileTooltip,
+                  padding: EdgeInsets.zero,
+                  iconSize: 48,
+                  icon: const SizedBox(
+                    width: 48,
+                    height: 48,
+                    child: Icon(Icons.account_circle_outlined),
+                  ),
+                  onPressed: () {
+                    context.push(ProfileManagementScreen.routeName);
+                  },
+                ),
               ),
             ),
             const SizedBox(width: 8),
@@ -199,5 +239,49 @@ class _HomeGamificationCard extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+class _TopBarAvatarIcon extends StatelessWidget {
+  const _TopBarAvatarIcon({this.photoUrl});
+
+  final String? photoUrl;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final ImageProvider<Object>? imageProvider = _resolveImageProvider();
+    return CircleAvatar(
+      radius: 24,
+      backgroundColor: theme.colorScheme.surfaceContainerHighest,
+      backgroundImage: imageProvider,
+      child: imageProvider == null
+          ? Icon(
+              Icons.account_circle_outlined,
+              size: 28,
+              color: theme.colorScheme.onSurfaceVariant,
+            )
+          : null,
+    );
+  }
+
+  ImageProvider<Object>? _resolveImageProvider() {
+    if (photoUrl == null || photoUrl!.isEmpty) {
+      return null;
+    }
+    if (photoUrl!.startsWith('data:image/')) {
+      final int commaIndex = photoUrl!.indexOf(',');
+      if (commaIndex == -1) {
+        return null;
+      }
+      final String encoded = photoUrl!.substring(commaIndex + 1);
+      try {
+        final Uint8List bytes = base64Decode(encoded);
+        return MemoryImage(bytes);
+      } catch (_) {
+        return null;
+      }
+    }
+    return NetworkImage(photoUrl!);
   }
 }

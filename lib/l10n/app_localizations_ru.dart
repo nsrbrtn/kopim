@@ -434,6 +434,21 @@ class AppLocalizationsRu extends AppLocalizations {
   String get profileChangeAvatarCamera => 'Сделать фото';
 
   @override
+  String get profilePresetAvatarButton => 'Выбрать встроенную';
+
+  @override
+  String get profilePresetAvatarTitle => 'Выберите аватарку';
+
+  @override
+  String get profilePresetAvatarSubtitle =>
+      'Выберите один из встроенных вариантов.';
+
+  @override
+  String profilePresetAvatarLabel(int index) {
+    return 'Аватар $index';
+  }
+
+  @override
   String get profileAvatarUploadError =>
       'Не удалось обновить аватар. Попробуйте ещё раз.';
 

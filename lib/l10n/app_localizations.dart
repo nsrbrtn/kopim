@@ -864,6 +864,30 @@ abstract class AppLocalizations {
   /// **'Take a photo'**
   String get profileChangeAvatarCamera;
 
+  /// Label for the button that opens the preset avatar picker
+  ///
+  /// In en, this message translates to:
+  /// **'Choose built-in avatar'**
+  String get profilePresetAvatarButton;
+
+  /// Title shown at the top of the preset avatar picker sheet
+  ///
+  /// In en, this message translates to:
+  /// **'Pick an avatar'**
+  String get profilePresetAvatarTitle;
+
+  /// Helper text describing the preset avatar picker
+  ///
+  /// In en, this message translates to:
+  /// **'Use one of the curated illustrations bundled with the app.'**
+  String get profilePresetAvatarSubtitle;
+
+  /// Short label under each preset avatar used for accessibility
+  ///
+  /// In en, this message translates to:
+  /// **'Avatar {index}'**
+  String profilePresetAvatarLabel(int index);
+
   /// Snackbar shown when the avatar upload fails
   ///
   /// In en, this message translates to:

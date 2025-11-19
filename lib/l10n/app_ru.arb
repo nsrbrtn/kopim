@@ -582,6 +582,27 @@
   "@profileChangeAvatarCamera": {
     "description": "Действие для съёмки аватара на камеру"
   },
+  "profilePresetAvatarButton": "Выбрать встроенную",
+  "@profilePresetAvatarButton": {
+    "description": "Надпись кнопки, открывающей предустановленные аватары"
+  },
+  "profilePresetAvatarTitle": "Выберите аватарку",
+  "@profilePresetAvatarTitle": {
+    "description": "Заголовок окна выбора предустановленных аватарок"
+  },
+  "profilePresetAvatarSubtitle": "Выберите один из встроенных вариантов.",
+  "@profilePresetAvatarSubtitle": {
+    "description": "Подсказка для окна выбора предустановленных аватарок"
+  },
+  "profilePresetAvatarLabel": "Аватар {index}",
+  "@profilePresetAvatarLabel": {
+    "description": "Подпись под каждым предустановленным аватаром",
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
   "profileAvatarUploadError": "Не удалось обновить аватар. Попробуйте ещё раз.",
   "@profileAvatarUploadError": {
     "description": "Сообщение об ошибке при загрузке аватара"

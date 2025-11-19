@@ -94,6 +94,8 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   generate: true
+  assets:
+    - assets/avatars/
   # Добавьте assets, fonts если нужно для UI kit
   fonts:
     - family: Onest

@@ -582,6 +582,29 @@
   "@profileChangeAvatarCamera": {
     "description": "Action label for capturing an avatar with the camera"
   },
+  "profilePresetAvatarButton": "Choose built-in avatar",
+  "@profilePresetAvatarButton": {
+    "description": "Label for the button that opens the preset avatar picker"
+  },
+  "profilePresetAvatarTitle": "Pick an avatar",
+  "@profilePresetAvatarTitle": {
+    "description": "Title shown at the top of the preset avatar picker sheet"
+  },
+  "profilePresetAvatarSubtitle":
+      "Use one of the curated illustrations bundled with the app.",
+  "@profilePresetAvatarSubtitle": {
+    "description": "Helper text describing the preset avatar picker"
+  },
+  "profilePresetAvatarLabel": "Avatar {index}",
+  "@profilePresetAvatarLabel": {
+    "description":
+        "Short label under each preset avatar used for accessibility",
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
   "profileAvatarUploadError": "Couldn't update avatar. Please try again.",
   "@profileAvatarUploadError": {
     "description": "Snackbar shown when the avatar upload fails"

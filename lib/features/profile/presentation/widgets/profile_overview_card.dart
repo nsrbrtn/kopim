@@ -137,11 +137,18 @@ class ProfileOverviewCard extends ConsumerWidget {
               spacing: 8,
               children: <Widget>[
                 FilledButton.tonalIcon(
-                  onPressed: () {
-                    _showAvatarSourceSheet(context, ref);
-                  },
+                  onPressed: isUploading
+                      ? null
+                      : () => _showAvatarSourceSheet(context, ref),
                   icon: const Icon(Icons.photo_camera_back_outlined),
                   label: Text(strings.profileChangeAvatar),
+                ),
+                FilledButton.tonalIcon(
+                  onPressed: isUploading
+                      ? null
+                      : () => _showPresetAvatarSheet(context, ref, isUploading),
+                  icon: const Icon(Icons.collections_outlined),
+                  label: Text(strings.profilePresetAvatarButton),
                 ),
               ],
             ),
@@ -188,6 +195,111 @@ class ProfileOverviewCard extends ConsumerWidget {
                 },
               ),
             ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showPresetAvatarSheet(
+    BuildContext context,
+    WidgetRef ref,
+    bool isUploading,
+  ) {
+    final AppLocalizations strings = AppLocalizations.of(context)!;
+    final ThemeData theme = Theme.of(context);
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (BuildContext sheetContext) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                Text(
+                  strings.profilePresetAvatarTitle,
+                  style: theme.textTheme.titleLarge,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  strings.profilePresetAvatarSubtitle,
+                  style: theme.textTheme.bodyMedium,
+                ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  height: 300,
+                  child: GridView.builder(
+                    shrinkWrap: true,
+                    padding: EdgeInsets.zero,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 3,
+                          mainAxisSpacing: 12,
+                          crossAxisSpacing: 12,
+                          childAspectRatio: 0.8,
+                        ),
+                    itemCount: _presetAvatarAssetPaths.length,
+                    itemBuilder: (BuildContext gridContext, int index) {
+                      final String assetPath = _presetAvatarAssetPaths[index];
+                      return InkWell(
+                        borderRadius: BorderRadius.circular(16),
+                        onTap: isUploading
+                            ? null
+                            : () async {
+                                Navigator.of(sheetContext).pop();
+                                await ref
+                                    .read(avatarControllerProvider.notifier)
+                                    .selectPresetAvatar(
+                                      uid: uid,
+                                      assetPath: assetPath,
+                                    );
+                              },
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: <Widget>[
+                            ClipOval(
+                              child: Image.asset(
+                                assetPath,
+                                width: 72,
+                                height: 72,
+                                fit: BoxFit.cover,
+                                errorBuilder:
+                                    (
+                                      BuildContext context,
+                                      Object error,
+                                      StackTrace? stackTrace,
+                                    ) => Container(
+                                      width: 72,
+                                      height: 72,
+                                      color: theme
+                                          .colorScheme
+                                          .surfaceContainerHighest,
+                                      child: Icon(
+                                        Icons.person,
+                                        color:
+                                            theme.colorScheme.onSurfaceVariant,
+                                      ),
+                                    ),
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              strings.profilePresetAvatarLabel(index + 1),
+                              style: theme.textTheme.bodySmall,
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 12),
+              ],
+            ),
           ),
         );
       },
@@ -271,3 +383,12 @@ class _AvatarPreview extends StatelessWidget {
     return NetworkImage(value);
   }
 }
+
+const List<String> _presetAvatarAssetPaths = <String>[
+  'assets/avatars/avatar_blue.png',
+  'assets/avatars/avatar_coral.png',
+  'assets/avatars/avatar_green.png',
+  'assets/avatars/avatar_mustard.png',
+  'assets/avatars/avatar_mauve.png',
+  'assets/avatars/avatar_teal.png',
+];

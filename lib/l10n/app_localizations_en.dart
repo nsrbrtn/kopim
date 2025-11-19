@@ -432,6 +432,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileChangeAvatarCamera => 'Take a photo';
 
   @override
+  String get profilePresetAvatarButton => 'Choose built-in avatar';
+
+  @override
+  String get profilePresetAvatarTitle => 'Pick an avatar';
+
+  @override
+  String get profilePresetAvatarSubtitle =>
+      'Use one of the curated illustrations bundled with the app.';
+
+  @override
+  String profilePresetAvatarLabel(int index) {
+    return 'Avatar $index';
+  }
+
+  @override
   String get profileAvatarUploadError =>
       'Couldn\'t update avatar. Please try again.';
 
