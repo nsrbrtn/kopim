@@ -1,7 +1,6 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:kopim/core/widgets/kopim_glass_surface.dart';
 
 import '../controllers/main_navigation_controller.dart';
 import '../models/navigation_tab_config.dart';
@@ -11,7 +10,7 @@ class MainNavigationBar extends ConsumerWidget {
 
   final List<NavigationTabConfig> tabs;
 
-  static const double height = 96; // Эмпирическая высота контента бара без safe-area.
+  static const double height = 84; // Эмпирическая высота контента бара без safe-area.
   static const Duration _animationDuration = Duration(milliseconds: 200);
 
   @override
@@ -19,12 +18,6 @@ class MainNavigationBar extends ConsumerWidget {
     final ThemeData theme = Theme.of(context);
     final ColorScheme colorScheme = theme.colorScheme;
     final bool isDark = theme.brightness == Brightness.dark;
-    final double backgroundOpacity = isDark ? 0.20 : 0.35;
-    final double backgroundAlpha =
-        (backgroundOpacity * 255).round().clamp(0, 255).toDouble();
-    final Color backgroundColor = colorScheme.surfaceContainerHighest.withValues(
-      alpha: backgroundAlpha,
-    );
     final Color onSurface = colorScheme.onSurface;
     final Color activeIconBackground = colorScheme.inverseSurface;
     final Color activeIconColor = colorScheme.surface;
@@ -34,40 +27,35 @@ class MainNavigationBar extends ConsumerWidget {
     final int currentIndex = ref.watch(
       mainNavigationControllerProvider.select((int value) => value),
     );
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
-      child: ClipRRect(
+    return SizedBox(
+      height: height,
+      child: KopimGlassSurface(
+        margin: const EdgeInsets.fromLTRB(16, 0, 16, 4),
         borderRadius: BorderRadius.circular(24),
-        child: ClipRect(
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                color: backgroundColor,
-                borderRadius: BorderRadius.circular(24),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+        blurSigma: 10,
+        baseOpacity: isDark ? 0.14 : 0.22,
+        enableBorder: true,
+        enableShadow: false,
+        enableGradientHighlight: false,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: <Widget>[
+            for (int index = 0; index < tabs.length; index++)
+              Expanded(
+                child: _NavigationBarItem(
+                  label: tabs[index].labelBuilder(context),
+                  icon: tabs[index].icon,
+                  activeIcon: tabs[index].activeIcon,
+                  isActive: index == currentIndex,
+                  activeIconBackground: activeIconBackground,
+                  activeIconColor: activeIconColor,
+                  activeLabelColor: activeLabelColor,
+                  inactiveColor: inactiveColor,
+                  onTap: () => _handleTap(ref, context, index, currentIndex),
+                ),
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: <Widget>[
-                  for (int index = 0; index < tabs.length; index++)
-                    Expanded(
-                      child: _NavigationBarItem(
-                        label: tabs[index].labelBuilder(context),
-                        icon: tabs[index].icon,
-                        activeIcon: tabs[index].activeIcon,
-                        isActive: index == currentIndex,
-                        activeIconBackground: activeIconBackground,
-                        activeIconColor: activeIconColor,
-                        activeLabelColor: activeLabelColor,
-                        inactiveColor: inactiveColor,
-                        onTap: () => _handleTap(ref, context, index, currentIndex),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          ),
+          ],
         ),
       ),
     );

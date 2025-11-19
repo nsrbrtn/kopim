@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:kopim/core/config/theme_extensions.dart';
 import 'package:kopim/core/widgets/kopim_floating_action_button.dart';
+import 'package:kopim/core/widgets/kopim_glass_surface.dart';
 import 'package:kopim/features/app_shell/presentation/models/navigation_tab_content.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_progress.dart';
 import 'package:kopim/features/budgets/presentation/controllers/budgets_providers.dart';
@@ -41,15 +42,42 @@ NavigationTabContent buildBudgetsTabContent(
     appBarBuilder: (BuildContext context, WidgetRef ref) =>
         AppBar(title: Text(strings.budgetsTitle)),
     floatingActionButtonBuilder: (BuildContext context, WidgetRef ref) {
-      return KopimFloatingActionButton(
-        onPressed: () async {
-          await Navigator.of(context).push(
-            MaterialPageRoute<void>(
-              builder: (BuildContext context) => const BudgetFormScreen(),
+      final ThemeData theme = Theme.of(context);
+      final bool isDark = theme.brightness == Brightness.dark;
+      final ColorScheme colorScheme = theme.colorScheme;
+      final KopimLayout layout = context.kopimLayout;
+      final double fabSize = layout.spacing.section + 64;
+      return SizedBox(
+        height: fabSize,
+        width: fabSize,
+        child: KopimGlassSurface(
+          padding: const EdgeInsets.all(4),
+          borderRadius: BorderRadius.circular(layout.radius.xxl),
+          blurSigma: 20,
+          baseOpacity: isDark ? 0.15 : 0.25,
+          enableBorder: true,
+          enableShadow: true,
+          gradientHighlightIntensity: 1.5,
+          gradientTintColor: colorScheme.secondaryContainer.withValues(
+            alpha: 0.9,
+          ),
+          child: KopimFloatingActionButton(
+            decorationColor: Colors.transparent,
+            foregroundColor: colorScheme.primary,
+            iconSize: layout.iconSizes.xl,
+            icon: Icon(
+              Icons.add,
+              color: colorScheme.primary,
             ),
-          );
-        },
-        icon: const Icon(Icons.add),
+            onPressed: () async {
+              await Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (BuildContext context) => const BudgetFormScreen(),
+                ),
+              );
+            },
+          ),
+        ),
       );
     },
     bodyBuilder: (BuildContext context, WidgetRef ref) {
