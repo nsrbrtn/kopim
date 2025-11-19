@@ -15,6 +15,9 @@ class KopimFloatingActionButton extends StatelessWidget {
     this.autofocus = false,
     this.mini = false,
     this.clipBehavior = Clip.antiAlias,
+    this.decorationColor,
+    this.foregroundColor,
+    this.iconSize,
   }) : assert(
          child != null || icon != null || label != null,
          'child, icon или label должны быть заданы',
@@ -32,6 +35,10 @@ class KopimFloatingActionButton extends StatelessWidget {
   final bool mini;
   final Clip clipBehavior;
 
+  final Color? decorationColor;
+  final Color? foregroundColor;
+  final double? iconSize;
+
   bool get _isExtended => label != null;
   static const double _fabSize = 72;
 
@@ -42,7 +49,8 @@ class KopimFloatingActionButton extends StatelessWidget {
     final KopimLayout layout = theme.kopimLayout;
     final BorderRadius borderRadius =
         BorderRadius.circular(layout.radius.card);
-    final double iconSize = layout.iconSizes.md * 3;
+    final double resolvedIconSize =
+        iconSize ?? layout.iconSizes.md * 3;
     final ShapeBorder shape = RoundedRectangleBorder(
       borderRadius: borderRadius,
     );
@@ -56,7 +64,7 @@ class KopimFloatingActionButton extends StatelessWidget {
             materialTapTargetSize: materialTapTargetSize,
             autofocus: autofocus,
             backgroundColor: Colors.transparent,
-            foregroundColor: colorScheme.onPrimary,
+            foregroundColor: foregroundColor ?? colorScheme.onPrimary,
             elevation: 0,
             shape: shape,
             icon: icon,
@@ -74,7 +82,7 @@ class KopimFloatingActionButton extends StatelessWidget {
             clipBehavior: clipBehavior,
             elevation: 0,
             backgroundColor: Colors.transparent,
-            foregroundColor: colorScheme.onPrimary,
+            foregroundColor: foregroundColor ?? colorScheme.onPrimary,
             shape: shape,
             child: child ?? icon,
           );
@@ -86,12 +94,12 @@ class KopimFloatingActionButton extends StatelessWidget {
     );
 
     return IconTheme.merge(
-      data: IconThemeData(size: iconSize),
+      data: IconThemeData(size: resolvedIconSize),
       child: ClipRRect(
         borderRadius: borderRadius,
         child: DecoratedBox(
           decoration: BoxDecoration(
-            color: colorScheme.primary,
+            color: decorationColor ?? colorScheme.primary,
             borderRadius: borderRadius,
           ),
           child: sizedFab,

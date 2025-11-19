@@ -21,6 +21,7 @@ import 'package:kopim/features/home/presentation/widgets/home_budget_progress_ca
 import 'package:kopim/features/home/presentation/widgets/home_gamification_app_bar.dart';
 import 'package:kopim/features/home/presentation/widgets/home_savings_overview_card.dart';
 import 'package:kopim/features/home/presentation/widgets/home_upcoming_items_card.dart';
+import 'package:kopim/core/widgets/kopim_glass_surface.dart';
 import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -473,63 +474,89 @@ class _AddTransactionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return KopimFloatingActionButton(
-      onPressed: () async {
-        final TransactionFormResult? result = await Navigator.of(context)
-            .push<TransactionFormResult>(
-              MaterialPageRoute<TransactionFormResult>(
-                builder: (_) => const AddTransactionScreen(),
+    final ThemeData theme = Theme.of(context);
+    final bool isDark = theme.brightness == Brightness.dark;
+    final ColorScheme colorScheme = theme.colorScheme;
+    final KopimLayout layout = theme.kopimLayout;
+    final BorderRadius borderRadius =
+        BorderRadius.circular(layout.radius.xxl);
+    final double fabSize = layout.spacing.section + 64;
+    return SizedBox(
+      height: fabSize,
+      width: fabSize,
+      child: KopimGlassSurface(
+        padding: const EdgeInsets.all(4),
+        borderRadius: borderRadius,
+        blurSigma: 20,
+        baseOpacity: isDark ? 0.15 : 0.25,
+        enableBorder: true,
+        enableShadow: true,
+        gradientHighlightIntensity: 1.5,
+        gradientTintColor: colorScheme.secondaryContainer.withValues(
+          alpha: 0.9,
+        ),
+        child: KopimFloatingActionButton(
+          decorationColor: Colors.transparent,
+          foregroundColor: colorScheme.primary,
+          iconSize: layout.iconSizes.xl,
+          icon: Icon(
+            Icons.add,
+            color: colorScheme.primary,
+          ),
+          onPressed: () async {
+            final TransactionFormResult? result = await Navigator.of(context)
+                .push<TransactionFormResult>(
+                  MaterialPageRoute<TransactionFormResult>(
+                    builder: (_) => const AddTransactionScreen(),
+                  ),
+                );
+            if (!context.mounted || result == null) {
+              return;
+            }
+            final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context)
+              ..hideCurrentSnackBar();
+            final TransactionEntity? createdTransaction = result.createdTransaction;
+            if (createdTransaction == null) {
+              messenger.showSnackBar(
+                SnackBar(content: Text(strings.addTransactionSuccess)),
+              );
+              return;
+            }
+            messenger.showSnackBar(
+              SnackBar(
+                content: Text(strings.addTransactionSuccess),
+                action: SnackBarAction(
+                  label: strings.commonUndo,
+                  onPressed: () {
+                    final ProviderContainer container = ProviderScope.containerOf(
+                      context,
+                    );
+                    container
+                        .read(transactionActionsControllerProvider.notifier)
+                        .deleteTransaction(createdTransaction.id)
+                        .then((bool undone) {
+                          if (!context.mounted) {
+                            return;
+                          }
+                          ScaffoldMessenger.of(context)
+                            ..hideCurrentSnackBar()
+                            ..showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  undone
+                                      ? strings.addTransactionUndoSuccess
+                                      : strings.addTransactionUndoError,
+                                ),
+                              ),
+                            );
+                        });
+                  },
+                ),
               ),
             );
-        if (!context.mounted || result == null) {
-          return;
-        }
-        final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context)
-          ..hideCurrentSnackBar();
-        final TransactionEntity? createdTransaction = result.createdTransaction;
-        if (createdTransaction == null) {
-          messenger.showSnackBar(
-            SnackBar(content: Text(strings.addTransactionSuccess)),
-          );
-          return;
-        }
-        messenger.showSnackBar(
-          SnackBar(
-            content: Text(strings.addTransactionSuccess),
-            action: SnackBarAction(
-              label: strings.commonUndo,
-              onPressed: () {
-                final ProviderContainer container = ProviderScope.containerOf(
-                  context,
-                );
-                container
-                    .read(transactionActionsControllerProvider.notifier)
-                    .deleteTransaction(createdTransaction.id)
-                    .then((bool undone) {
-                      if (!context.mounted) {
-                        return;
-                      }
-                      ScaffoldMessenger.of(context)
-                        ..hideCurrentSnackBar()
-                        ..showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              undone
-                                  ? strings.addTransactionUndoSuccess
-                                  : strings.addTransactionUndoError,
-                            ),
-                          ),
-                        );
-                      container
-                          .read(transactionActionsControllerProvider.notifier)
-                          .reset();
-                    });
-              },
-            ),
-          ),
-        );
-      },
-      icon: const Icon(Icons.add),
+          },
+        ),
+      ),
     );
   }
 }
