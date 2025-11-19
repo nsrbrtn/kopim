@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import 'package:kopim/core/utils/helpers.dart';
+import 'package:kopim/core/widgets/kopim_text_field.dart';
 import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/budgets/domain/entities/budget.dart';
@@ -109,26 +110,32 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              TextField(
+              Text(
+                strings.budgetTitleLabel,
+                style: Theme.of(context).textTheme.labelLarge,
+              ),
+              const SizedBox(height: 8),
+              KopimTextField(
                 controller: _titleController,
-                decoration: InputDecoration(
-                  labelText: strings.budgetTitleLabel,
-                ),
+                placeholder: strings.budgetTitleLabel,
                 onChanged: controller.setTitle,
               ),
               const SizedBox(height: 16),
-              TextField(
+              Text(
+                strings.budgetAmountLabel,
+                style: Theme.of(context).textTheme.labelLarge,
+              ),
+              const SizedBox(height: 8),
+              KopimTextField(
                 controller: _amountController,
                 readOnly: state.scope == BudgetScope.byCategory,
                 keyboardType: const TextInputType.numberWithOptions(
                   decimal: true,
                 ),
-                decoration: InputDecoration(
-                  labelText: strings.budgetAmountLabel,
-                  helperText: state.scope == BudgetScope.byCategory
-                      ? strings.budgetAmountAutoHelper
-                      : currencyFormat.currencySymbol,
-                ),
+                placeholder: strings.budgetAmountLabel,
+                supportingText: state.scope == BudgetScope.byCategory
+                    ? strings.budgetAmountAutoHelper
+                    : currencyFormat.currencySymbol,
                 onChanged: state.scope == BudgetScope.byCategory
                     ? null
                     : controller.setAmountText,

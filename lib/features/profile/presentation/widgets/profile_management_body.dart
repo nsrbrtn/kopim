@@ -16,6 +16,8 @@ import 'package:kopim/features/profile/presentation/controllers/user_progress_co
 import 'package:kopim/l10n/app_localizations.dart';
 import 'package:kopim/features/profile/presentation/widgets/settings_button_theme.dart';
 import 'package:kopim/features/profile/presentation/widgets/profile_overview_card.dart';
+import 'package:kopim/core/widgets/kopim_dropdown_field.dart';
+import 'package:kopim/core/widgets/kopim_text_field.dart';
 import 'package:kopim/core/widgets/collapsible_list/collapsible_list.dart';
 
 class ProfileManagementBody extends ConsumerWidget {
@@ -112,7 +114,7 @@ String _mapAvatarError(AppLocalizations strings, Object? error) {
   return strings.profileAvatarUploadError;
 }
 
-class _ProfileForm extends ConsumerWidget {
+class _ProfileForm extends ConsumerStatefulWidget {
   const _ProfileForm({
     required this.params,
     required this.profileAsync,
@@ -128,14 +130,56 @@ class _ProfileForm extends ConsumerWidget {
   final AuthUser authUser;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_ProfileForm> createState() => _ProfileFormState();
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties
+      ..add(DiagnosticsProperty<ProfileFormParams>('params', params))
+      ..add(
+        DiagnosticsProperty<AsyncValue<Profile?>>('profileAsync', profileAsync),
+      );
+  }
+}
+
+class _ProfileFormState extends ConsumerState<_ProfileForm> {
+  late final ProfileFormControllerProvider _profileFormProvider;
+  late final TextEditingController _nameController;
+
+  @override
+  void initState() {
+    super.initState();
+    _profileFormProvider = profileFormControllerProvider(widget.params);
+    _nameController = TextEditingController();
+    final ProfileFormState initialState = ref.read(_profileFormProvider);
+    _nameController.text = initialState.name;
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final AppLocalizations strings = AppLocalizations.of(context)!;
     final ProfileFormControllerProvider profileFormProvider =
-        profileFormControllerProvider(params);
-
-    final String name = ref.watch(
-      profileFormProvider.select((ProfileFormState state) => state.name),
+        _profileFormProvider;
+    ref.listen<ProfileFormState>(
+      profileFormProvider,
+      (ProfileFormState? previous, ProfileFormState next) {
+        if (previous?.name != next.name &&
+            _nameController.text != next.name) {
+          _nameController.value = TextEditingValue(
+            text: next.name,
+            selection: TextSelection.collapsed(offset: next.name.length),
+          );
+        }
+      },
     );
+
     final ProfileCurrency currency = ref.watch(
       profileFormProvider.select((ProfileFormState state) => state.currency),
     );
@@ -172,14 +216,15 @@ class _ProfileForm extends ConsumerWidget {
 
     final ThemeData theme = Theme.of(context);
 
-    final Profile? currentProfile = profileAsync.value ?? params.profile;
+    final Profile? currentProfile =
+        widget.profileAsync.value ?? widget.params.profile;
 
     return Theme(
       data: buildSettingsButtonTheme(theme),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          if (authUser.isAnonymous) ...<Widget>[
+          if (widget.authUser.isAnonymous) ...<Widget>[
             _AnonymousUpgradeBanner(
               strings: strings,
               onRegister: () {
@@ -194,9 +239,9 @@ class _ProfileForm extends ConsumerWidget {
           ],
           ProfileOverviewCard(
             profile: currentProfile,
-            progressAsync: progressAsync,
-            uid: params.uid,
-            avatarState: avatarState,
+            progressAsync: widget.progressAsync,
+            uid: widget.params.uid,
+            avatarState: widget.avatarState,
           ),
           const SizedBox(height: 24),
           KopimExpandableSectionPlayful(
@@ -210,49 +255,40 @@ class _ProfileForm extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
-                TextFormField(
+                Text(
+                  strings.profileNameLabel,
+                  style: theme.textTheme.labelLarge,
+                ),
+                const SizedBox(height: 8),
+                KopimTextField(
                   key: ValueKey<String>('name-$initialKey'),
-                  initialValue: name,
+                  controller: _nameController,
+                  placeholder: strings.profileNameLabel,
+                  fillColor: theme.colorScheme.surfaceContainerHigh,
                   onChanged: formController.updateName,
-                  decoration: InputDecoration(
-                    labelText: strings.profileNameLabel,
-                    border: const OutlineInputBorder(),
-                  ),
-                  textInputAction: TextInputAction.next,
                 ),
                 const SizedBox(height: 16),
-                DropdownButtonFormField<ProfileCurrency>(
-                  key: ValueKey<String>(
-                    'currency-$initialKey-${currency.name}',
-                  ),
-                  initialValue: currency,
-                  decoration: InputDecoration(
-                    labelText: strings.profileCurrencyLabel,
-                    border: const OutlineInputBorder(),
-                  ),
+                KopimDropdownField<ProfileCurrency>(
+                  key: ValueKey<String>('currency-$initialKey-${currency.name}'),
+                  value: currency,
+                  label: strings.profileCurrencyLabel,
                   items: ProfileCurrency.values
                       .map(
-                        (ProfileCurrency value) =>
-                            DropdownMenuItem<ProfileCurrency>(
-                              value: value,
-                              child: Text(value.name.toUpperCase()),
-                            ),
+                        (ProfileCurrency value) => DropdownMenuItem<ProfileCurrency>(
+                          value: value,
+                          child: Text(value.name.toUpperCase()),
+                        ),
                       )
-                      .toList(growable: false),
-                  onChanged: (ProfileCurrency? value) {
-                    if (value != null) {
-                      formController.updateCurrency(value);
-                    }
-                  },
+                      .toList(),
+                  onChanged: formController.updateCurrency,
+                  valueLabelBuilder: (ProfileCurrency? value) =>
+                      value?.name.toUpperCase() ?? '',
                 ),
                 const SizedBox(height: 16),
-                DropdownButtonFormField<String>(
+                KopimDropdownField<String>(
                   key: ValueKey<String>('locale-$initialKey-$locale'),
-                  initialValue: locale,
-                  decoration: InputDecoration(
-                    labelText: strings.profileLocaleLabel,
-                    border: const OutlineInputBorder(),
-                  ),
+                  value: locale,
+                  label: strings.profileLocaleLabel,
                   items: locales
                       .map(
                         (String code) => DropdownMenuItem<String>(
@@ -260,17 +296,20 @@ class _ProfileForm extends ConsumerWidget {
                           child: Text(code.toUpperCase()),
                         ),
                       )
-                      .toList(growable: false),
+                      .toList(),
                   onChanged: (String? value) {
                     if (value != null) {
                       formController.updateLocale(value);
                     }
                   },
+                  valueLabelBuilder: (String? value) => value?.toUpperCase() ?? '',
                 ),
-                if (profileAsync.hasError) ...<Widget>[
+                if (widget.profileAsync.hasError) ...<Widget>[
                   const SizedBox(height: 12),
                   Text(
-                    strings.profileLoadError(profileAsync.error.toString()),
+                    strings.profileLoadError(
+                      widget.profileAsync.error.toString(),
+                    ),
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: theme.colorScheme.error,
                     ),
@@ -302,7 +341,7 @@ class _ProfileForm extends ConsumerWidget {
                       label: Text(strings.profileSaveCta),
                     ),
                     const SizedBox(width: 16),
-                    if (profileAsync.isLoading)
+                    if (widget.profileAsync.isLoading)
                       const _CenteredProgress(size: 20),
                   ],
                 ),
@@ -336,16 +375,6 @@ class _ProfileForm extends ConsumerWidget {
         ],
       ),
     );
-  }
-
-  @override
-  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
-    super.debugFillProperties(properties);
-    properties
-      ..add(DiagnosticsProperty<ProfileFormParams>('params', params))
-      ..add(
-        DiagnosticsProperty<AsyncValue<Profile?>>('profileAsync', profileAsync),
-      );
   }
 }
 
