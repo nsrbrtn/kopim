@@ -122,7 +122,6 @@ freeline_project_description.json
 **/macos/Flutter/GeneratedPluginRegistrant.swift
 
 # Web related
-lib/generated_plugin_registrant.dart
 web/importer.dart
 
 # Desktop related (Windows, Linux, macOS)

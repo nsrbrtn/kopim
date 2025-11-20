@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:kopim/core/utils/helpers.dart';
+import 'package:kopim/core/widgets/collapsible_list/collapsible_list.dart';
 import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/analytics/domain/models/analytics_category_breakdown.dart';
@@ -40,8 +41,16 @@ NavigationTabContent buildAnalyticsTabContent(
 ) {
   final AppLocalizations strings = AppLocalizations.of(context)!;
   return NavigationTabContent(
-    appBarBuilder: (BuildContext context, WidgetRef ref) =>
-        AppBar(title: Text(strings.analyticsTitle)),
+    appBarBuilder: (BuildContext context, WidgetRef ref) => AppBar(
+      title: Text(strings.analyticsTitle),
+      actions: <Widget>[
+        IconButton(
+          tooltip: strings.analyticsTitle,
+          icon: const Icon(Icons.help_outline_outlined),
+          onPressed: () => _showAnalyticsInfo(context),
+        ),
+      ],
+    ),
     bodyBuilder: (BuildContext context, WidgetRef ref) {
       final AsyncValue<AnalyticsOverview> overviewAsync = ref.watch(
         analyticsFilteredStatsProvider(topCategoriesLimit: 5),
@@ -96,9 +105,24 @@ NavigationTabContent buildAnalyticsTabContent(
                   child: _AnalyticsFiltersCard(
                     filterState: filterState,
                     accounts: accounts,
-                    categories: categories,
                     strings: strings,
                   ),
+                ),
+              ),
+            ),
+            SliverPadding(
+              padding: EdgeInsets.fromLTRB(
+                horizontalPadding,
+                12,
+                horizontalPadding,
+                0,
+              ),
+              sliver: SliverToBoxAdapter(
+                child: _AnalyticsQuickSelectors(
+                  filterState: filterState,
+                  accounts: accounts,
+                  categories: categories,
+                  strings: strings,
                 ),
               ),
             ),
@@ -347,134 +371,21 @@ class _SummaryValue extends StatelessWidget {
   }
 }
 
-class _AnalyticsFilterBar extends ConsumerWidget {
-  const _AnalyticsFilterBar({
+class _AnalyticsFiltersCard extends ConsumerWidget {
+  const _AnalyticsFiltersCard({
     required this.filterState,
     required this.accounts,
-    required this.categories,
     required this.strings,
   });
 
   final AnalyticsFilterState filterState;
   final List<AccountEntity> accounts;
-  final List<Category> categories;
   final AppLocalizations strings;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final DateFormat dateFormat = DateFormat.yMMMd(strings.localeName);
-    final String startText = dateFormat.format(filterState.dateRange.start);
-    final String endText = dateFormat.format(filterState.dateRange.end);
-    final String dateValue = startText == endText
-        ? startText
-        : strings.analyticsFilterDateValue(startText, endText);
-
-    return Wrap(
-      spacing: 16,
-      runSpacing: 16,
-      crossAxisAlignment: WrapCrossAlignment.center,
-      children: <Widget>[
-        FilledButton.tonal(
-          onPressed: () async {
-            final DateTimeRange? result = await showDateRangePicker(
-              context: context,
-              initialDateRange: filterState.dateRange,
-              firstDate: DateTime(2000),
-              lastDate: DateTime(DateTime.now().year + 10, 12, 31),
-              locale: Locale(strings.localeName),
-            );
-            if (result == null) {
-              return;
-            }
-            ref
-                .read(analyticsFilterControllerProvider.notifier)
-                .updateDateRange(result);
-          },
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              const Icon(Icons.calendar_today_outlined, size: 18),
-              const SizedBox(width: 8),
-              Flexible(
-                child: Text(
-                  '${strings.analyticsFilterDateLabel}: $dateValue',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  softWrap: false,
-                ),
-              ),
-            ],
-          ),
-        ),
-        SizedBox(
-          width: 240,
-          child: DropdownMenu<String?>(
-            initialSelection: filterState.accountId,
-            label: Text(strings.analyticsFilterAccountLabel),
-            dropdownMenuEntries: <DropdownMenuEntry<String?>>[
-              DropdownMenuEntry<String?>(
-                value: null,
-                label: strings.analyticsFilterAccountAll,
-              ),
-              ...accounts.map((AccountEntity account) {
-                return DropdownMenuEntry<String?>(
-                  value: account.id,
-                  label: account.name,
-                );
-              }),
-            ],
-            onSelected: (String? value) {
-              ref
-                  .read(analyticsFilterControllerProvider.notifier)
-                  .updateAccount(value);
-            },
-          ),
-        ),
-        SizedBox(
-          width: 240,
-          child: DropdownMenu<String?>(
-            initialSelection: filterState.categoryId,
-            label: Text(strings.analyticsFilterCategoryLabel),
-            dropdownMenuEntries: <DropdownMenuEntry<String?>>[
-              DropdownMenuEntry<String?>(
-                value: null,
-                label: strings.analyticsFilterCategoryAll,
-              ),
-              ...categories.map((Category category) {
-                return DropdownMenuEntry<String?>(
-                  value: category.id,
-                  label: category.name,
-                );
-              }),
-            ],
-            onSelected: (String? value) {
-              ref
-                  .read(analyticsFilterControllerProvider.notifier)
-                  .updateCategory(value);
-            },
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _AnalyticsFiltersCard extends StatelessWidget {
-  const _AnalyticsFiltersCard({
-    required this.filterState,
-    required this.accounts,
-    required this.categories,
-    required this.strings,
-  });
-
-  final AnalyticsFilterState filterState;
-  final List<AccountEntity> accounts;
-  final List<Category> categories;
-  final AppLocalizations strings;
-
-  @override
-  Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
+    final ColorScheme colors = theme.colorScheme;
     final DateFormat dateFormat = DateFormat.yMMMd(strings.localeName);
     final String startText = dateFormat.format(filterState.dateRange.start);
     final String endText = dateFormat.format(filterState.dateRange.end);
@@ -483,48 +394,77 @@ class _AnalyticsFiltersCard extends StatelessWidget {
         : strings.analyticsFilterDateValue(startText, endText);
     final int activeCount = _resolveActiveFiltersCount(filterState);
 
-    return Card(
-      elevation: 0,
-      surfaceTintColor: Colors.transparent,
-      child: ExpansionTile(
-        initiallyExpanded: false,
-        tilePadding: const EdgeInsets.symmetric(horizontal: 16),
-        leading: Icon(Icons.filter_list, color: theme.colorScheme.primary),
-        title: Row(
-          children: <Widget>[
-            Expanded(
-              child: Text(
-                strings.analyticsFiltersButtonLabel,
-                style: theme.textTheme.titleMedium,
-              ),
-            ),
-            const SizedBox(width: 12),
-            _FilterBadge(
-              count: activeCount,
-              semanticsLabel: strings.analyticsFiltersBadgeSemantics(
-                activeCount,
-              ),
-            ),
-          ],
-        ),
-        subtitle: Padding(
-          padding: const EdgeInsets.only(top: 4),
-          child: Text(
-            dateValue,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ),
+    return KopimExpandableSectionPlayful(
+      initiallyExpanded: false,
+      title: strings.analyticsFiltersButtonLabel,
+      leading: Icon(Icons.filter_list, color: colors.primary),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-            child: _AnalyticsFilterBar(
-              filterState: filterState,
-              accounts: accounts,
-              categories: categories,
-              strings: strings,
-            ),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: <Widget>[
+              _FilterPill(
+                label: 'Этот месяц',
+                selected: filterState.period == AnalyticsPeriodPreset.thisMonth,
+                onTap: () => ref
+                    .read(analyticsFilterControllerProvider.notifier)
+                    .applyThisMonth(),
+              ),
+              _FilterPill(
+                label: 'Последние 30 дней',
+                selected:
+                    filterState.period == AnalyticsPeriodPreset.last30Days,
+                onTap: () => ref
+                    .read(analyticsFilterControllerProvider.notifier)
+                    .applyLast30Days(),
+              ),
+              _FilterPill(
+                label: 'Выбрать дату',
+                selected:
+                    filterState.period == AnalyticsPeriodPreset.customRange,
+                onTap: () async {
+                  final DateTimeRange? result = await showDateRangePicker(
+                    context: context,
+                    initialDateRange: filterState.dateRange,
+                    firstDate: DateTime(2000),
+                    lastDate: DateTime(DateTime.now().year + 10, 12, 31),
+                    locale: Locale(strings.localeName),
+                  );
+                  if (result == null) {
+                    return;
+                  }
+                  ref
+                      .read(analyticsFilterControllerProvider.notifier)
+                      .updateDateRange(result);
+                },
+              ),
+              _FilterPill(
+                label: 'Бюджеты',
+                selected: false,
+                onTap: () => _showBudgetStub(context),
+              ),
+            ],
+          ),
+          Row(
+            children: <Widget>[
+              _FilterBadge(
+                count: activeCount,
+                semanticsLabel: strings.analyticsFiltersBadgeSemantics(
+                  activeCount,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  dateValue,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -535,13 +475,14 @@ class _AnalyticsFiltersCard extends StatelessWidget {
 int _resolveActiveFiltersCount(AnalyticsFilterState state) {
   final AnalyticsFilterState initial = AnalyticsFilterState.initial();
   int count = 0;
-  if (state.accountId != null) {
+  if (state.accountIds.isNotEmpty) {
     count++;
   }
   if (state.categoryId != null) {
     count++;
   }
-  if (state.dateRange != initial.dateRange) {
+  if (state.dateRange != initial.dateRange ||
+      state.period != initial.period) {
     count++;
   }
   return count;
@@ -581,6 +522,462 @@ class _FilterBadge extends StatelessWidget {
     }
     return Semantics(label: semanticsLabel, child: badge);
   }
+}
+
+class _FilterPill extends StatelessWidget {
+  const _FilterPill({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final ColorScheme colors = theme.colorScheme;
+    final Color background = selected
+        ? colors.primary
+        : colors.surfaceContainerHigh;
+    final Color foreground = selected
+        ? colors.onPrimary
+        : colors.onSurface;
+
+    return ActionChip(
+      elevation: 0,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      shape: StadiumBorder(
+        side: BorderSide(
+          color: selected ? Colors.transparent : colors.outlineVariant,
+        ),
+      ),
+      backgroundColor: background,
+      label: Text(
+        label,
+        style: theme.textTheme.labelLarge?.copyWith(
+          color: foreground,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+      onPressed: onTap,
+    );
+  }
+}
+
+class _ActionChipTile extends StatelessWidget {
+  const _ActionChipTile({
+    required this.label,
+    required this.icon,
+    required this.onTap,
+  });
+
+  final String label;
+  final IconData icon;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final ColorScheme colors = theme.colorScheme;
+    final TextStyle? labelStyle = theme.textTheme.labelLarge?.copyWith(
+      color: colors.onPrimary,
+      fontWeight: FontWeight.w600,
+      letterSpacing: 0.1,
+    );
+    return FilledButton(
+      style: FilledButton.styleFrom(
+        backgroundColor: colors.primary,
+        foregroundColor: colors.onPrimary,
+        minimumSize: const Size(90, 32),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        shape: const StadiumBorder(),
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      ),
+      onPressed: onTap,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          Flexible(
+            child: Text(
+              label,
+              style: labelStyle,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          const SizedBox(width: 6),
+          Icon(icon, size: 20, color: colors.onPrimary),
+        ],
+      ),
+    );
+  }
+}
+
+class _AnalyticsQuickSelectors extends ConsumerWidget {
+  const _AnalyticsQuickSelectors({
+    required this.filterState,
+    required this.accounts,
+    required this.categories,
+    required this.strings,
+  });
+
+  final AnalyticsFilterState filterState;
+  final List<AccountEntity> accounts;
+  final List<Category> categories;
+  final AppLocalizations strings;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final String categoryLabel = _resolveCategoryLabel(
+      categories: categories,
+      selectedId: filterState.categoryId,
+    );
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Wrap(
+        spacing: 10,
+        runSpacing: 10,
+        children: <Widget>[
+          _ActionChipTile(
+            icon: Icons.calendar_month_outlined,
+            label: _formatMonthShort(
+              filterState.monthAnchor ?? filterState.dateRange.start,
+              strings.localeName,
+            ),
+            onTap: () => _openMonthPicker(
+              context: context,
+              ref: ref,
+              current: filterState.monthAnchor ?? filterState.dateRange.start,
+            ),
+          ),
+          _ActionChipTile(
+            icon: Icons.account_balance_wallet_outlined,
+            label: _resolveAccountsLabel(
+              accounts: accounts,
+              selectedIds: filterState.accountIds,
+            ),
+            onTap: () => _openAccountsPicker(
+              context: context,
+              ref: ref,
+              accounts: accounts,
+              selected: filterState.accountIds,
+            ),
+          ),
+          _ActionChipTile(
+            icon: Icons.category_outlined,
+            label: categoryLabel,
+            onTap: () => _openCategoryPicker(
+              context: context,
+              ref: ref,
+              categories: categories,
+              selectedId: filterState.categoryId,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+void _showBudgetStub(BuildContext context) {
+  showModalBottomSheet<void>(
+    context: context,
+    showDragHandle: true,
+    backgroundColor: Theme.of(context).colorScheme.surface,
+    builder: (BuildContext context) {
+      final ThemeData theme = Theme.of(context);
+      return Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Text(
+              'Бюджеты в разработке',
+              style: theme.textTheme.titleMedium,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Фильтр по бюджетам появится позже. Сейчас чип служит заглушкой.',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Понятно'),
+              ),
+            ),
+          ],
+        ),
+      );
+    },
+  );
+}
+
+Future<void> _openMonthPicker({
+  required BuildContext context,
+  required WidgetRef ref,
+  required DateTime current,
+}) async {
+  final ThemeData theme = Theme.of(context);
+  final DateTime now = DateTime.now();
+  final List<DateTime> months = List<DateTime>.generate(
+    12,
+    (int index) {
+      final DateTime date = DateTime(now.year, now.month - index);
+      return DateTime(date.year, date.month);
+    },
+  );
+
+  final DateTime? picked = await showModalBottomSheet<DateTime>(
+    context: context,
+    showDragHandle: true,
+    backgroundColor: theme.colorScheme.surface,
+    builder: (BuildContext context) {
+      return SafeArea(
+        top: false,
+        child: ListView.separated(
+          shrinkWrap: true,
+          itemCount: months.length,
+          separatorBuilder: (_, _) => const Divider(height: 1),
+          itemBuilder: (BuildContext context, int index) {
+            final DateTime month = months[index];
+            final bool isSelected =
+                month.year == current.year && month.month == current.month;
+            return ListTile(
+              title: Text(_formatMonthShort(month, AppLocalizations.of(context)!.localeName)),
+              subtitle: Text('${month.year} год'),
+              trailing: isSelected
+                  ? Icon(Icons.check, color: theme.colorScheme.primary)
+                  : null,
+              onTap: () => Navigator.of(context).pop(month),
+            );
+          },
+        ),
+      );
+    },
+  );
+
+  if (picked != null) {
+    ref.read(analyticsFilterControllerProvider.notifier).selectMonth(picked);
+  }
+}
+
+Future<void> _openAccountsPicker({
+  required BuildContext context,
+  required WidgetRef ref,
+  required List<AccountEntity> accounts,
+  required Set<String> selected,
+}) async {
+  final Set<String> tempSelection = <String>{...selected};
+  final ThemeData theme = Theme.of(context);
+  final ColorScheme colors = theme.colorScheme;
+
+  await showModalBottomSheet<void>(
+    context: context,
+    showDragHandle: true,
+    backgroundColor: colors.surface,
+    builder: (BuildContext context) {
+      return StatefulBuilder(
+        builder: (BuildContext context, StateSetter setState) {
+          return SafeArea(
+            top: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  Row(
+                    children: <Widget>[
+                      Text(
+                        'Счета для аналитики',
+                        style: theme.textTheme.titleMedium,
+                      ),
+                      const Spacer(),
+                      TextButton(
+                        onPressed: () {
+                          setState(() => tempSelection.clear());
+                        },
+                        child: const Text('Сбросить'),
+                      ),
+                    ],
+                  ),
+                  ...accounts.map((AccountEntity account) {
+                    final bool checked = tempSelection.contains(account.id);
+                    return CheckboxListTile(
+                      value: checked,
+                      dense: true,
+                      onChanged: (_) {
+                        setState(() {
+                          if (checked) {
+                            tempSelection.remove(account.id);
+                          } else {
+                            tempSelection.add(account.id);
+                          }
+                        });
+                      },
+                      title: Text(account.name),
+                      controlAffinity: ListTileControlAffinity.leading,
+                    );
+                  }),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton(
+                      onPressed: () {
+                        ref
+                            .read(analyticsFilterControllerProvider.notifier)
+                            .setAccounts(tempSelection);
+                        Navigator.of(context).pop();
+                      },
+                      child: const Text('Применить'),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+    },
+  );
+}
+
+String _formatMonthShort(DateTime date, String locale) {
+  final String raw = DateFormat.MMM(locale).format(date);
+  return raw.replaceAll('.', '').toLowerCase();
+}
+
+String _resolveAccountsLabel({
+  required List<AccountEntity> accounts,
+  required Set<String> selectedIds,
+}) {
+  if (selectedIds.isEmpty) {
+    return 'Все счета';
+  }
+  if (selectedIds.length == 1) {
+    final AccountEntity? account = accounts
+        .firstWhereOrNull((AccountEntity item) => item.id == selectedIds.first);
+    return account?.name ?? 'Выбран 1 счёт';
+  }
+  return 'Выбрано ${selectedIds.length} счетов';
+}
+
+String _resolveCategoryLabel({
+  required List<Category> categories,
+  required String? selectedId,
+}) {
+  if (selectedId == null) {
+    return 'Все категории';
+  }
+  final Category? category = categories
+      .firstWhereOrNull((Category item) => item.id == selectedId);
+  return category?.name ?? 'Категория выбрана';
+}
+
+Future<void> _openCategoryPicker({
+  required BuildContext context,
+  required WidgetRef ref,
+  required List<Category> categories,
+  required String? selectedId,
+}) async {
+  final ThemeData theme = Theme.of(context);
+  final ColorScheme colors = theme.colorScheme;
+  final String? picked = await showModalBottomSheet<String?>(
+    context: context,
+    showDragHandle: true,
+    backgroundColor: colors.surface,
+    builder: (BuildContext context) {
+      return SafeArea(
+        top: false,
+        child: ListView.separated(
+          shrinkWrap: true,
+          itemCount: categories.length + 1,
+          separatorBuilder: (_, __) => const Divider(height: 1),
+          itemBuilder: (BuildContext context, int index) {
+            if (index == 0) {
+              final bool isSelected = selectedId == null;
+              return ListTile(
+                title: const Text('Все категории'),
+                trailing: isSelected
+                    ? Icon(Icons.check, color: colors.primary)
+                    : null,
+                onTap: () => Navigator.of(context).pop(null),
+              );
+            }
+            final Category category = categories[index - 1];
+            final bool isSelected = category.id == selectedId;
+            return ListTile(
+              leading: Icon(
+                resolvePhosphorIconData(category.icon) ??
+                    Icons.category_outlined,
+              ),
+              title: Text(category.name),
+              trailing: isSelected
+                  ? Icon(Icons.check, color: colors.primary)
+                  : null,
+              onTap: () => Navigator.of(context).pop(category.id),
+            );
+          },
+        ),
+      );
+    },
+  );
+
+  final AnalyticsFilterController notifier =
+      ref.read(analyticsFilterControllerProvider.notifier);
+  if (picked == null) {
+    notifier.clearCategory();
+  } else {
+    notifier.updateCategory(picked);
+  }
+}
+
+void _showAnalyticsInfo(BuildContext context) {
+  final ThemeData theme = Theme.of(context);
+  final ColorScheme colors = theme.colorScheme;
+  showModalBottomSheet<void>(
+    context: context,
+    showDragHandle: true,
+    backgroundColor: colors.surface,
+    builder: (BuildContext context) {
+      return Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Text(
+              'Что показывает аналитика',
+              style: theme.textTheme.titleMedium,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Круговая диаграмма и список категорий отражают распределение трат или доходов за выбранный период. Выберите период, месяц или счета, чтобы сфокусироваться на нужных данных.',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: colors.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Понятно'),
+              ),
+            ),
+          ],
+        ),
+      );
+    },
+  );
 }
 
 class _TopCategoriesPager extends StatefulWidget {
@@ -791,12 +1188,9 @@ class _TopCategoriesPage extends StatefulWidget {
   State<_TopCategoriesPage> createState() => _TopCategoriesPageState();
 }
 
-enum _AnalyticsChartType { donut, bar }
-
 class _TopCategoriesPageState extends State<_TopCategoriesPage> {
   final Set<String> _selectedKeys = <String>{};
   String? _focusedKey;
-  _AnalyticsChartType _chartType = _AnalyticsChartType.donut;
 
   @override
   Widget build(BuildContext context) {
@@ -890,54 +1284,7 @@ class _TopCategoriesPageState extends State<_TopCategoriesPage> {
           ),
         ),
         const SizedBox(height: 8),
-        Row(
-          children: <Widget>[
-            Expanded(
-              child: Text(
-                widget.strings.analyticsChartTypeLabel,
-                style: theme.textTheme.labelLarge?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            SegmentedButton<_AnalyticsChartType>(
-              segments: <ButtonSegment<_AnalyticsChartType>>[
-                ButtonSegment<_AnalyticsChartType>(
-                  value: _AnalyticsChartType.donut,
-                  icon: const Icon(Icons.pie_chart_outline),
-                  tooltip: widget.strings.analyticsChartTypeDonut,
-                ),
-                ButtonSegment<_AnalyticsChartType>(
-                  value: _AnalyticsChartType.bar,
-                  icon: const Icon(Icons.bar_chart_rounded),
-                  tooltip: widget.strings.analyticsChartTypeBar,
-                ),
-              ],
-              selected: <_AnalyticsChartType>{_chartType},
-              onSelectionChanged: (Set<_AnalyticsChartType> value) {
-                if (value.isEmpty) {
-                  return;
-                }
-                setState(() {
-                  _chartType = value.first;
-                });
-              },
-              style: const ButtonStyle(
-                side: WidgetStatePropertyAll<BorderSide>(
-                  BorderSide(style: BorderStyle.none),
-                ),
-                padding: WidgetStatePropertyAll<EdgeInsets>(
-                  EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                ),
-                minimumSize: WidgetStatePropertyAll<Size>(Size(40, 40)),
-                visualDensity: VisualDensity.compact,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 8),
         LayoutBuilder(
           builder: (BuildContext context, BoxConstraints constraints) {
             final Size screenSize = MediaQuery.of(context).size;
@@ -955,33 +1302,19 @@ class _TopCategoriesPageState extends State<_TopCategoriesPage> {
 
             final Widget chart = SizedBox(
               height: chartExtent,
-              child: _chartType == _AnalyticsChartType.donut
-                  ? AnalyticsDonutChart(
-                      items: displayItems,
-                      backgroundColor: backgroundColor,
-                      totalAmount: capturedTotal,
-                      selectedIndex: selectedIndex,
-                      onSegmentSelected: (int index) {
-                        if (index >= 0 && index < displayItems.length) {
-                          setState(() {
-                            _focusedKey = displayItems[index].key;
-                          });
-                        }
-                      },
-                    )
-                  : AnalyticsBarChart(
-                      items: displayItems,
-                      backgroundColor: backgroundColor,
-                      totalAmount: capturedTotal,
-                      selectedIndex: selectedIndex,
-                      onBarSelected: (int index) {
-                        if (index >= 0 && index < displayItems.length) {
-                          setState(() {
-                            _focusedKey = displayItems[index].key;
-                          });
-                        }
-                      },
-                    ),
+              child: AnalyticsDonutChart(
+                items: displayItems,
+                backgroundColor: backgroundColor,
+                totalAmount: capturedTotal,
+                selectedIndex: selectedIndex,
+                onSegmentSelected: (int index) {
+                  if (index >= 0 && index < displayItems.length) {
+                    setState(() {
+                      _focusedKey = displayItems[index].key;
+                    });
+                  }
+                },
+              ),
             );
 
             return Align(

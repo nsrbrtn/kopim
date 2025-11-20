@@ -2,8 +2,9 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
-const double _kMinShareToShowIcon = 0.05;
-const double _kIconBadgeExtent = 32;
+const double _kMinShareToShowIcon = 0.02;
+const double _kMinShareToShowPercent = 0.02;
+const double _kIconBadgeExtent = 24;
 
 class AnalyticsChartItem {
   const AnalyticsChartItem({
@@ -40,7 +41,6 @@ class AnalyticsDonutChart extends StatelessWidget {
   final ValueChanged<int>? onSegmentSelected;
 
   static const double _minLabelGap = 4;
-  static const double _labelSidePadding = 12;
 
   @override
   Widget build(BuildContext context) {
@@ -64,28 +64,24 @@ class AnalyticsDonutChart extends StatelessWidget {
 
               final double strokeWidth = math.max(size * 0.18, 12);
               final double canvasRadius = size / 2;
+              final Offset center = Offset(canvasRadius, canvasRadius);
               final double ringRadius = canvasRadius - strokeWidth / 2;
-              final double labelRadius = ringRadius + strokeWidth * 0.65;
-              final bool baseShowOnlySelected = constraints.maxWidth < 320;
-              final bool hasSelection =
-                  selectedIndex != null &&
+              final bool hasSelection = selectedIndex != null &&
                   selectedIndex! >= 0 &&
                   selectedIndex! < segments.length;
-              final bool showOnlySelected =
-                  baseShowOnlySelected && hasSelection;
-              final int fallbackSelected = hasSelection ? selectedIndex! : 0;
-
-              final int? highlightIndex = hasSelection
-                  ? (showOnlySelected ? fallbackSelected : selectedIndex!)
-                  : null;
-              final List<_IconPlacement> placements = _buildIconPlacements(
+              final int? highlightIndex = hasSelection ? selectedIndex! : null;
+              final List<_SegmentLabel> percentLabels = _buildPercentLabels(
                 segments: segments,
-                size: size,
-                labelRadius: labelRadius,
-                showOnlySelected: showOnlySelected && highlightIndex != null,
-                selectedIndex: highlightIndex ?? 0,
+                center: center,
+                radius: ringRadius + strokeWidth * 0.35,
+                selectedIndex: highlightIndex,
                 minGap: _minLabelGap,
-                badgeExtent: _kIconBadgeExtent,
+              );
+              final List<_SegmentLabel> iconLabels = _buildIconLabels(
+                segments: segments,
+                center: center,
+                radius: ringRadius - strokeWidth * 0.35,
+                selectedIndex: highlightIndex,
               );
 
               Widget chart = SizedBox(
@@ -104,26 +100,30 @@ class AnalyticsDonutChart extends StatelessWidget {
                         selectedIndex: highlightIndex,
                       ),
                     ),
-                    for (final _IconPlacement placement in placements)
+                    for (final _SegmentLabel label in percentLabels)
                       Positioned(
-                        top: placement.top,
-                        left: placement.isRight
-                            ? canvasRadius +
-                                  ringRadius +
-                                  strokeWidth / 2 +
-                                  _labelSidePadding
-                            : null,
-                        right: placement.isRight
-                            ? null
-                            : canvasRadius +
-                                  ringRadius +
-                                  strokeWidth / 2 +
-                                  _labelSidePadding,
-                        child: _CategoryIconBadge(
-                          icon: segments[placement.segmentIndex].icon!,
-                          isSelected:
-                              highlightIndex != null &&
-                              placement.segmentIndex == highlightIndex,
+                        left: label.position.dx,
+                        top: label.position.dy,
+                        child: FractionalTranslation(
+                          translation: const Offset(-0.5, -0.5),
+                          child: _PercentBadge(
+                            text: label.text,
+                            highlighted: label.highlighted,
+                          ),
+                        ),
+                      ),
+                    for (final _SegmentLabel label in iconLabels)
+                      Positioned(
+                        left: label.position.dx,
+                        top: label.position.dy,
+                        child: FractionalTranslation(
+                          translation: const Offset(-0.5, -0.5),
+                          child: _CategoryIconBadge(
+                            icon: segments[label.index].icon!,
+                            isSelected:
+                                highlightIndex != null &&
+                                label.index == highlightIndex,
+                          ),
                         ),
                       ),
                   ],
@@ -436,99 +436,6 @@ class _DonutChartPainter extends CustomPainter {
   }
 }
 
-class _IconPlacement {
-  _IconPlacement({
-    required this.segmentIndex,
-    required this.isRight,
-    required this.baseTop,
-  });
-
-  final int segmentIndex;
-  final bool isRight;
-  final double baseTop;
-  double top = 0;
-}
-
-List<_IconPlacement> _buildIconPlacements({
-  required List<_DonutSegment> segments,
-  required double size,
-  required double labelRadius,
-  required bool showOnlySelected,
-  required int selectedIndex,
-  required double minGap,
-  required double badgeExtent,
-}) {
-  if (segments.isEmpty) {
-    return <_IconPlacement>[];
-  }
-
-  final double center = size / 2;
-  final List<_IconPlacement> right = <_IconPlacement>[];
-  final List<_IconPlacement> left = <_IconPlacement>[];
-
-  for (int index = 0; index < segments.length; index++) {
-    final _DonutSegment segment = segments[index];
-    if (!segment.canShowIcon || segment.icon == null) {
-      continue;
-    }
-    if (showOnlySelected && index != selectedIndex) {
-      continue;
-    }
-    final double angle = segment.midAngle;
-    final bool isRight = math.cos(angle) >= 0;
-    final double y = center + math.sin(angle) * labelRadius;
-    final _IconPlacement placement = _IconPlacement(
-      segmentIndex: index,
-      isRight: isRight,
-      baseTop: y - badgeExtent / 2,
-    );
-    (isRight ? right : left).add(placement);
-  }
-
-  _resolveIconPositions(right, size, minGap, badgeExtent);
-  _resolveIconPositions(left, size, minGap, badgeExtent);
-
-  return <_IconPlacement>[...right, ...left];
-}
-
-void _resolveIconPositions(
-  List<_IconPlacement> placements,
-  double size,
-  double minGap,
-  double badgeExtent,
-) {
-  if (placements.isEmpty) {
-    return;
-  }
-  placements.sort(
-    (_IconPlacement a, _IconPlacement b) => a.baseTop.compareTo(b.baseTop),
-  );
-
-  final double maxTopBound = math.max(0, size - badgeExtent);
-  double previousTop = 0;
-  for (int i = 0; i < placements.length; i++) {
-    final _IconPlacement placement = placements[i];
-    double top = placement.baseTop;
-    if (i == 0) {
-      top = top.clamp(0, maxTopBound);
-    } else {
-      final double minTop = previousTop + badgeExtent + minGap;
-      top = math.max(top, minTop);
-      top = math.min(top, maxTopBound);
-    }
-    placement.top = top;
-    previousTop = top;
-  }
-
-  for (int i = placements.length - 2; i >= 0; i--) {
-    final double nextTop = placements[i + 1].top;
-    final double maxTop = nextTop - (badgeExtent + minGap);
-    if (placements[i].top > maxTop) {
-      placements[i].top = maxTop.clamp(0, maxTopBound);
-    }
-  }
-}
-
 class _CategoryIconBadge extends StatelessWidget {
   const _CategoryIconBadge({required this.icon, required this.isSelected});
 
@@ -573,6 +480,128 @@ class _CategoryIconBadge extends StatelessWidget {
       child: Icon(icon, size: 18, color: iconColor),
     );
   }
+}
+
+class _PercentBadge extends StatelessWidget {
+  const _PercentBadge({
+    required this.text,
+    required this.highlighted,
+  });
+
+  final String text;
+  final bool highlighted;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final ColorScheme colors = theme.colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: highlighted
+            ? colors.primary.withValues(alpha: 0.12)
+            : colors.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: highlighted ? colors.primary : colors.outlineVariant,
+          width: 1,
+        ),
+      ),
+      child: Text(
+        text,
+        style: theme.textTheme.labelMedium?.copyWith(
+          color: highlighted ? colors.primary : colors.onSurfaceVariant,
+          fontWeight: highlighted ? FontWeight.w700 : FontWeight.w500,
+        ),
+      ),
+    );
+  }
+}
+
+class _SegmentLabel {
+  _SegmentLabel({
+    required this.index,
+    required this.position,
+    required this.text,
+    required this.highlighted,
+  });
+
+  final int index;
+  final Offset position;
+  final String text;
+  final bool highlighted;
+}
+
+List<_SegmentLabel> _buildPercentLabels({
+  required List<_DonutSegment> segments,
+  required Offset center,
+  required double radius,
+  required int? selectedIndex,
+  required double minGap,
+}) {
+  if (segments.isEmpty) {
+    return <_SegmentLabel>[];
+  }
+  final List<_SegmentLabel> labels = <_SegmentLabel>[];
+  double previousY = double.negativeInfinity;
+  for (int i = 0; i < segments.length; i++) {
+    final _DonutSegment segment = segments[i];
+    final double percent = segment.percentage;
+    if (percent < _kMinShareToShowPercent * 100) {
+      continue;
+    }
+    final double angle = segment.midAngle;
+    final double dx = center.dx + math.cos(angle) * radius;
+    double dy = center.dy + math.sin(angle) * radius;
+
+    if ((dy - previousY).abs() < minGap) {
+      dy = previousY + minGap;
+    }
+    previousY = dy;
+
+    final bool highlighted = selectedIndex != null && selectedIndex == i;
+    final String text = percent >= 1
+        ? '${percent.round()}%'
+        : '${percent.toStringAsFixed(1)}%';
+    labels.add(
+      _SegmentLabel(
+        index: i,
+        position: Offset(dx, dy),
+        text: text,
+        highlighted: highlighted,
+      ),
+    );
+  }
+  return labels;
+}
+
+List<_SegmentLabel> _buildIconLabels({
+  required List<_DonutSegment> segments,
+  required Offset center,
+  required double radius,
+  required int? selectedIndex,
+}) {
+  final List<_SegmentLabel> labels = <_SegmentLabel>[];
+  for (int i = 0; i < segments.length; i++) {
+    final _DonutSegment segment = segments[i];
+    if (!segment.canShowIcon || segment.icon == null) {
+      continue;
+    }
+    final double angle = segment.midAngle;
+    final Offset position = Offset(
+      center.dx + math.cos(angle) * radius,
+      center.dy + math.sin(angle) * radius,
+    );
+    labels.add(
+      _SegmentLabel(
+        index: i,
+        position: position,
+        text: '',
+        highlighted: selectedIndex != null && selectedIndex == i,
+      ),
+    );
+  }
+  return labels;
 }
 
 int? _hitTestSegment({

@@ -36,6 +36,8 @@ class WatchMonthlyAnalyticsUseCase {
           filter ?? AnalyticsFilter.monthly(reference: reference);
       final DateTime start = effectiveFilter.start;
       final DateTime end = effectiveFilter.end;
+      final Set<String> accountIds =
+          effectiveFilter.accountIds?.toSet() ?? const <String>{};
 
       double totalIncome = 0;
       double totalExpense = 0;
@@ -45,6 +47,11 @@ class WatchMonthlyAnalyticsUseCase {
       for (final TransactionEntity transaction in transactions) {
         if (transaction.date.isBefore(start) ||
             !transaction.date.isBefore(end)) {
+          continue;
+        }
+
+        if (accountIds.isNotEmpty &&
+            !accountIds.contains(transaction.accountId)) {
           continue;
         }
 
