@@ -183,7 +183,15 @@ Future<void> firebaseInitialization(Ref ref) async {
 @Riverpod(keepAlive: true)
 FirebaseFirestore firestore(Ref ref) {
   ref.watch(firebaseInitializationProvider).requireValue;
-  return FirebaseFirestore.instance;
+  final FirebaseFirestore instance = FirebaseFirestore.instance;
+  if (kIsWeb) {
+    try {
+      instance.settings = const Settings(persistenceEnabled: false);
+    } catch (_) {
+      // Ignore if settings are already set or locked
+    }
+  }
+  return instance;
 }
 
 @Riverpod(keepAlive: true)

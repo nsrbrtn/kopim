@@ -21,12 +21,23 @@ class AuthController extends _$AuthController {
     final AuthRepository repository = ref.watch(authRepositoryProvider);
     final Connectivity connectivity = ref.watch(connectivityProvider);
 
-    _authSubscription = repository.authStateChanges().listen((AuthUser? user) {
-      if (!ref.mounted) {
-        return;
-      }
-      state = AsyncValue<AuthUser?>.data(user);
-    });
+    _authSubscription = repository.authStateChanges().listen(
+      (AuthUser? user) {
+        if (!ref.mounted) {
+          return;
+        }
+        state = AsyncValue<AuthUser?>.data(user);
+        if (user != null && !user.isAnonymous && !_initialSyncTriggered) {
+          _initialSyncTriggered = true;
+          unawaited(_syncSilently(user));
+        }
+      },
+      onError: (Object error, StackTrace stackTrace) {
+        ref
+            .read(loggerServiceProvider)
+            .logError('AuthStateChanges stream error', error);
+      },
+    );
 
     ref.onDispose(() => _authSubscription?.cancel());
 

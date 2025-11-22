@@ -96,6 +96,7 @@ flutter:
   generate: true
   assets:
     - assets/avatars/
+    - assets/fonts/
   # Добавьте assets, fonts если нужно для UI kit
   fonts:
     - family: Onest

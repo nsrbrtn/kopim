@@ -174,6 +174,10 @@ class AuthSyncService {
         'AuthSyncService: synchronization failed for ${user.uid}',
         error,
       );
+      // ignore: avoid_print
+      print('CRITICAL SYNC ERROR: $error');
+      // ignore: avoid_print
+      print(stackTrace);
       _analyticsService.reportError(error, stackTrace);
       await _outboxDao.resetAllToPending(
         preparedEntries.map((OutboxEntryRow entry) => entry.id),
@@ -602,7 +606,15 @@ class AuthSyncService {
       sanitized,
       idMapping,
     );
-    normalized.sort((Category a, Category b) => a.name.compareTo(b.name));
+    // Sort topologically to ensure parents are inserted before children
+    normalized.sort((Category a, Category b) {
+      if (a.parentId == b.id) return 1; // a depends on b, so b comes first
+      if (b.parentId == a.id) return -1; // b depends on a, so a comes first
+      // If no direct dependency, sort by depth (parents have null parentId)
+      if (a.parentId == null && b.parentId != null) return -1;
+      if (b.parentId == null && a.parentId != null) return 1;
+      return a.name.compareTo(b.name);
+    });
     return _CategorySanitizationResult(
       categories: normalized,
       idMapping: idMapping,

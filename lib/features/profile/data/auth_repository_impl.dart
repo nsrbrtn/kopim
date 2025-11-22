@@ -240,10 +240,12 @@ class AuthRepositoryImpl implements AuthRepository {
     } on AuthFailure {
       rethrow;
     } on FirebaseAuthException catch (error, stackTrace) {
-      _logger.logError(
-        'FirebaseAuthException during $action: ${error.code}',
-        error,
-      );
+      try {
+        _logger.logError(
+          'FirebaseAuthException during $action: ${error.code}',
+          error,
+        );
+      } catch (_) {}
       _analyticsService.reportError(error, stackTrace);
       throw AuthFailure(
         code: error.code,
@@ -251,7 +253,9 @@ class AuthRepositoryImpl implements AuthRepository {
             error.message ?? 'Firebase authentication error during $action.',
       );
     } catch (error, stackTrace) {
-      _logger.logError('Unexpected auth error during $action', error);
+      try {
+        _logger.logError('Unexpected auth error during $action', error);
+      } catch (_) {}
       _analyticsService.reportError(error, stackTrace);
       throw AuthFailure.unknown('Unexpected error during $action.');
     }
