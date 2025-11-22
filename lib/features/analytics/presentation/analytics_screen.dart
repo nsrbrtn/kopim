@@ -155,9 +155,9 @@ NavigationTabContent buildAnalyticsTabContent(
         child: CustomScrollView(
           slivers: <Widget>[
             SliverPadding(
-              padding: EdgeInsets.fromLTRB(
+              padding: const EdgeInsets.fromLTRB(
                 8,
-                16,
+                8,
                 8,
                 0,
               ),
@@ -179,9 +179,9 @@ NavigationTabContent buildAnalyticsTabContent(
               ),
             ),
             SliverPadding(
-              padding: EdgeInsets.fromLTRB(
+              padding: const EdgeInsets.fromLTRB(
                 8,
-                12,
+                8,
                 8,
                 0,
               ),
@@ -215,11 +215,11 @@ NavigationTabContent buildAnalyticsTabContent(
               )
             else
               SliverPadding(
-                padding: EdgeInsets.fromLTRB(
+                padding: const EdgeInsets.fromLTRB(
                   8,
-                  24,
                   8,
-                  32,
+                  8,
+                  16,
                 ),
                 sliver: SliverToBoxAdapter(
                   child: _AnalyticsContent(
@@ -262,14 +262,6 @@ class _AnalyticsContent extends StatelessWidget {
     };
     final double totalExpense = overview.totalExpense;
     final double totalIncome = overview.totalIncome;
-    final DateFormat dateRangeFormat = DateFormat.yMMMMd(strings.localeName);
-    final String startLabel = dateRangeFormat.format(
-      filterState.dateRange.start,
-    );
-    final String endLabel = dateRangeFormat.format(filterState.dateRange.end);
-    final String rangeLabel = startLabel == endLabel
-        ? startLabel
-        : strings.analyticsFilterDateValue(startLabel, endLabel);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -290,134 +282,6 @@ class _AnalyticsContent extends StatelessWidget {
             currencyFormat: currencyFormat,
             strings: strings,
           ),
-      ],
-    );
-  }
-}
-
-class _AnalyticsSummaryFrame extends StatelessWidget {
-  const _AnalyticsSummaryFrame({
-    required this.overview,
-    required this.currencyFormat,
-    required this.strings,
-  });
-
-  final AnalyticsOverview overview;
-  final NumberFormat currencyFormat;
-  final AppLocalizations strings;
-
-  @override
-  Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
-    final List<_SummaryEntry> entries = <_SummaryEntry>[
-      _SummaryEntry(
-        label: strings.analyticsSummaryIncomeLabel,
-        value: overview.totalIncome,
-        color: theme.colorScheme.primary,
-      ),
-      _SummaryEntry(
-        label: strings.analyticsSummaryExpenseLabel,
-        value: overview.totalExpense,
-        color: theme.colorScheme.error,
-      ),
-      _SummaryEntry(
-        label: strings.analyticsSummaryNetLabel,
-        value: overview.netBalance,
-        color: overview.netBalance >= 0
-            ? theme.colorScheme.primary
-            : theme.colorScheme.error,
-      ),
-    ];
-
-    return Card(
-      elevation: 0,
-      surfaceTintColor: Colors.transparent,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-        child: LayoutBuilder(
-          builder: (BuildContext context, BoxConstraints constraints) {
-            final TextStyle baseValueStyle =
-                theme.textTheme.headlineSmall ??
-                theme.textTheme.titleLarge ??
-                const TextStyle(fontSize: 24);
-            final double? baseFontSize = baseValueStyle.fontSize;
-            final TextStyle valueStyle = baseValueStyle.copyWith(
-              fontSize: baseFontSize != null
-                  ? baseFontSize * 0.8
-                  : baseFontSize,
-              height: 1.1,
-            );
-
-            return Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                for (
-                  int index = 0;
-                  index < entries.length;
-                  index++
-                ) ...<Widget>[
-                  Expanded(
-                    child: _SummaryValue(
-                      entry: entries[index],
-                      currencyFormat: currencyFormat,
-                      textAlign: TextAlign.center,
-                      valueStyle: valueStyle,
-                    ),
-                  ),
-                  if (index < entries.length - 1) const SizedBox(width: 16),
-                ],
-              ],
-            );
-          },
-        ),
-      ),
-    );
-  }
-}
-
-class _SummaryEntry {
-  const _SummaryEntry({
-    required this.label,
-    required this.value,
-    required this.color,
-  });
-
-  final String label;
-  final double value;
-  final Color color;
-}
-
-class _SummaryValue extends StatelessWidget {
-  const _SummaryValue({
-    required this.entry,
-    required this.currencyFormat,
-    required this.textAlign,
-    required this.valueStyle,
-  });
-
-  final _SummaryEntry entry;
-  final NumberFormat currencyFormat;
-  final TextAlign textAlign;
-  final TextStyle valueStyle;
-
-  @override
-  Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
-    return Column(
-      crossAxisAlignment: textAlign == TextAlign.center
-          ? CrossAxisAlignment.center
-          : CrossAxisAlignment.start,
-      children: <Widget>[
-        Text(entry.label, style: theme.textTheme.bodyMedium),
-        const SizedBox(height: 8),
-        Text(
-          currencyFormat.format(entry.value),
-          textAlign: textAlign,
-          style: valueStyle.copyWith(
-            color: entry.color,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
       ],
     );
   }
@@ -1108,7 +972,7 @@ class _TopCategoriesPagerState extends State<_TopCategoriesPager> {
             onChanged: (int index) => _setPage(index, pageCount: pageCount),
             strings: widget.strings,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 8),
           GestureDetector(
             behavior: HitTestBehavior.opaque,
             onHorizontalDragEnd: (DragEndDetails details) {
@@ -1284,10 +1148,6 @@ class _TopCategoriesPageState extends State<_TopCategoriesPage> {
         selectedIndex = candidateIndex;
       }
     }
-    final double selectedShare = focusedItem == null || capturedTotal <= 0
-        ? 0
-        : focusedItem.absoluteAmount / capturedTotal;
-
     final List<AnalyticsChartItem> displayItems = chartItems;
 
     return Column(
@@ -1335,21 +1195,21 @@ class _TopCategoriesPageState extends State<_TopCategoriesPage> {
               ),
             );
 
-            return Align(
-              alignment: Alignment.center,
-              child: ConstrainedBox(
-                constraints: BoxConstraints(maxWidth: targetWidth),
-                child: chart,
-              ),
-            );
-          },
-        ),
-        const SizedBox(height: 40),
-        _TopCategoriesLegend(
-          items: chartItems,
-          currencyFormat: widget.currencyFormat,
-          total: capturedTotal,
-          highlightedKey: _highlightKey,
+              return Align(
+                alignment: Alignment.center,
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(maxWidth: targetWidth),
+                  child: chart,
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 40),
+          _TopCategoriesLegend(
+            items: chartItems,
+            currencyFormat: widget.currencyFormat,
+            total: capturedTotal,
+            highlightedKey: _highlightKey,
           onToggle: _handleToggle,
         ),
       ],

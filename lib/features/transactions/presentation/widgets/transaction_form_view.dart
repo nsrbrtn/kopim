@@ -12,6 +12,7 @@ import 'package:kopim/core/utils/helpers.dart';
 import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
+import 'package:kopim/features/categories/presentation/widgets/category_chip.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
 import 'package:kopim/features/transactions/presentation/controllers/transaction_form_controller.dart';
@@ -83,7 +84,7 @@ InputDecoration _transactionTextFieldDecoration(
     labelText: labelText,
     hintText: hintText,
     filled: true,
-    fillColor: fillColor ?? theme.colorScheme.surfaceContainerHighest,
+    fillColor: fillColor ?? theme.colorScheme.surfaceContainerHigh,
     contentPadding: EdgeInsets.symmetric(
       horizontal: spacing.section,
       vertical: spacing.section,
@@ -1093,81 +1094,15 @@ class _CategoryDropdownFieldState
   ) {
     final bool selected = category.id == selectedCategoryId;
     final IconData? iconData = resolvePhosphorIconData(category.icon);
-    final Color? backgroundColor = parseHexColor(category.color);
-    return _CategoryChip(
+    final Color? categoryColor = parseHexColor(category.color);
+    final ThemeData theme = Theme.of(context);
+    return CategoryChip(
       label: category.name,
-      icon: iconData,
-      baseColor: backgroundColor,
+      leading: Icon(iconData ?? Icons.category_outlined),
+      iconBackgroundColor: categoryColor,
+      backgroundColor: theme.colorScheme.surfaceContainerHigh,
       selected: selected,
       onTap: () => _selectCategory(category.id),
-    );
-  }
-}
-
-class _CategoryChip extends StatelessWidget {
-  const _CategoryChip({
-    required this.label,
-    required this.icon,
-    required this.baseColor,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final String label;
-  final IconData? icon;
-  final Color? baseColor;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
-    final Color circleBackground =
-        baseColor ?? theme.colorScheme.surfaceContainerHigh;
-    final Color textColor = theme.colorScheme.onSurface;
-    const Color borderColor = _kTypeSelectedColor;
-    final double containerRadius = context.kopimLayout.radius.xxl;
-    final BorderRadius borderRadius = BorderRadius.circular(containerRadius);
-    return InkWell(
-      onTap: onTap,
-      borderRadius: borderRadius,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surfaceContainerHighest,
-          borderRadius: borderRadius,
-          border: selected
-              ? Border.all(color: borderColor, width: 1)
-              : null,
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            Container(
-              width: 32,
-              height: 32,
-              decoration: BoxDecoration(
-                color: circleBackground,
-                borderRadius: BorderRadius.circular(999),
-              ),
-              child: Icon(
-                icon ?? Icons.category_outlined,
-                size: 18,
-                color: theme.colorScheme.onPrimary,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Text(
-              label,
-              style: theme.textTheme.labelMedium?.copyWith(
-                color: textColor,
-                fontWeight: FontWeight.w500,
-                letterSpacing: 0.5,
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }
