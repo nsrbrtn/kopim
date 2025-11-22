@@ -35,6 +35,79 @@ class AnalyticsScreen extends ConsumerWidget {
   }
 }
 
+class _TopCategoriesSummary extends StatelessWidget {
+  const _TopCategoriesSummary({
+    required this.strings,
+    required this.currencyFormat,
+    required this.total,
+    required this.isIncome,
+    required this.focusedItem,
+  });
+
+  final AppLocalizations strings;
+  final NumberFormat currencyFormat;
+  final double total;
+  final bool isIncome;
+  final AnalyticsChartItem? focusedItem;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final TextStyle labelStyle = theme.textTheme.titleSmall?.copyWith(
+          fontWeight: FontWeight.w500,
+          letterSpacing: 0.1,
+          color: theme.colorScheme.onSurface,
+        ) ??
+        TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+          letterSpacing: 0.1,
+          color: theme.colorScheme.onSurface,
+        );
+    final TextStyle amountStyle = theme.textTheme.titleLarge?.copyWith(
+          fontWeight: FontWeight.w400,
+          color: theme.colorScheme.onSurface,
+        ) ??
+        TextStyle(
+          fontSize: 22,
+          fontWeight: FontWeight.w400,
+          color: theme.colorScheme.onSurface,
+        );
+
+    if (focusedItem != null) {
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: <Widget>[
+          Text(
+            '${focusedItem!.title}:',
+            style: labelStyle,
+          ),
+          const SizedBox(width: 8),
+          Text(
+            currencyFormat.format(focusedItem!.absoluteAmount),
+            style: amountStyle,
+          ),
+        ],
+      );
+    }
+
+    final String label = isIncome
+        ? strings.analyticsSummaryIncomeLabel
+        : strings.analyticsSummaryExpenseLabel;
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: <Widget>[
+        Text(label, style: labelStyle),
+        const SizedBox(width: 8),
+        Text(
+          currencyFormat.format(total),
+          style: amountStyle,
+        ),
+      ],
+    );
+  }
+}
+
 NavigationTabContent buildAnalyticsTabContent(
   BuildContext context,
   WidgetRef ref,
@@ -77,20 +150,15 @@ NavigationTabContent buildAnalyticsTabContent(
           overviewAsync.error ?? categoriesAsync.error ?? accountsAsync.error;
       final AnalyticsOverview? overview = overviewAsync.value;
 
-      final Size size = MediaQuery.of(context).size;
-      final double horizontalPadding = size.width >= 960
-          ? size.width * 0.15
-          : 24;
-
       return SafeArea(
         bottom: false,
         child: CustomScrollView(
           slivers: <Widget>[
             SliverPadding(
               padding: EdgeInsets.fromLTRB(
-                horizontalPadding,
+                8,
                 16,
-                horizontalPadding,
+                8,
                 0,
               ),
               sliver: SliverToBoxAdapter(
@@ -112,9 +180,9 @@ NavigationTabContent buildAnalyticsTabContent(
             ),
             SliverPadding(
               padding: EdgeInsets.fromLTRB(
-                horizontalPadding,
+                8,
                 12,
-                horizontalPadding,
+                8,
                 0,
               ),
               sliver: SliverToBoxAdapter(
@@ -148,9 +216,9 @@ NavigationTabContent buildAnalyticsTabContent(
             else
               SliverPadding(
                 padding: EdgeInsets.fromLTRB(
-                  horizontalPadding,
+                  8,
                   24,
-                  horizontalPadding,
+                  8,
                   32,
                 ),
                 sliver: SliverToBoxAdapter(
@@ -206,22 +274,6 @@ class _AnalyticsContent extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        Text(
-          strings.analyticsOverviewRangeTitle(rangeLabel),
-          style: theme.textTheme.titleLarge,
-        ),
-        const SizedBox(height: 24),
-        _AnalyticsSummaryFrame(
-          overview: overview,
-          currencyFormat: currencyFormat,
-          strings: strings,
-        ),
-        const SizedBox(height: 24),
-        Text(
-          strings.analyticsTopCategoriesTitle,
-          style: theme.textTheme.titleMedium,
-        ),
-        const SizedBox(height: 12),
         if ((overview.topExpenseCategories.isEmpty || totalExpense == 0) &&
             (overview.topIncomeCategories.isEmpty || totalIncome == 0))
           Text(
@@ -1026,11 +1078,13 @@ class _TopCategoriesPagerState extends State<_TopCategoriesPager> {
         label: widget.strings.analyticsTopCategoriesExpensesTab,
         items: expenseItems,
         total: widget.totalExpense,
+        isIncome: false,
       ),
       _TopCategoriesPageData(
         label: widget.strings.analyticsTopCategoriesIncomeTab,
         items: incomeItems,
         total: widget.totalIncome,
+        isIncome: true,
       ),
     ];
     final int pageCount = pages.length;
@@ -1038,66 +1092,48 @@ class _TopCategoriesPagerState extends State<_TopCategoriesPager> {
         ? 0
         : _pageIndex.clamp(0, pageCount - 1);
 
-    return Card(
-      elevation: 0,
-      surfaceTintColor: Colors.transparent,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            SegmentedButton<int>(
-              segments: <ButtonSegment<int>>[
-                ButtonSegment<int>(
-                  value: 0,
-                  label: Text(widget.strings.analyticsTopCategoriesExpensesTab),
-                ),
-                ButtonSegment<int>(
-                  value: 1,
-                  label: Text(widget.strings.analyticsTopCategoriesIncomeTab),
-                ),
-              ],
-              selected: <int>{safeIndex},
-              onSelectionChanged: (Set<int> selected) {
-                if (selected.isEmpty) {
-                  return;
-                }
-                _setPage(selected.first, pageCount: pageCount);
-              },
-              style: const ButtonStyle(
-                side: WidgetStatePropertyAll<BorderSide>(
-                  BorderSide(style: BorderStyle.none),
-                ),
+    return Container(
+      margin: EdgeInsets.zero,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainer,
+        borderRadius: BorderRadius.circular(28),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          _TopCategoriesToggle(
+            safeIndex: safeIndex,
+            onChanged: (int index) => _setPage(index, pageCount: pageCount),
+            strings: widget.strings,
+          ),
+          const SizedBox(height: 16),
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onHorizontalDragEnd: (DragEndDetails details) {
+              _handleHorizontalDragEnd(details, pageCount);
+            },
+            child: AnimatedSize(
+              alignment: Alignment.topCenter,
+              duration: const Duration(milliseconds: 250),
+              curve: Curves.easeInOut,
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 200),
+                switchInCurve: Curves.easeInOut,
+                switchOutCurve: Curves.easeInOut,
+                child: pageCount == 0
+                    ? const SizedBox.shrink()
+                    : _TopCategoriesPage(
+                        key: ValueKey<int>(safeIndex),
+                        data: pages[safeIndex],
+                        currencyFormat: widget.currencyFormat,
+                        strings: widget.strings,
+                      ),
               ),
             ),
-            const SizedBox(height: 16),
-            GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onHorizontalDragEnd: (DragEndDetails details) {
-                _handleHorizontalDragEnd(details, pageCount);
-              },
-              child: AnimatedSize(
-                alignment: Alignment.topCenter,
-                duration: const Duration(milliseconds: 250),
-                curve: Curves.easeInOut,
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 200),
-                  switchInCurve: Curves.easeInOut,
-                  switchOutCurve: Curves.easeInOut,
-                  child: pageCount == 0
-                      ? const SizedBox.shrink()
-                      : _TopCategoriesPage(
-                          key: ValueKey<int>(safeIndex),
-                          data: pages[safeIndex],
-                          currencyFormat: widget.currencyFormat,
-                          strings: widget.strings,
-                        ),
-                ),
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -1164,11 +1200,13 @@ class _TopCategoriesPageData {
     required this.label,
     required this.items,
     required this.total,
+    required this.isIncome,
   });
 
   final String label;
   final List<AnalyticsChartItem> items;
   final double total;
+  final bool isIncome;
 }
 
 class _TopCategoriesPage extends StatefulWidget {
@@ -1188,8 +1226,7 @@ class _TopCategoriesPage extends StatefulWidget {
 }
 
 class _TopCategoriesPageState extends State<_TopCategoriesPage> {
-  final Set<String> _selectedKeys = <String>{};
-  String? _focusedKey;
+  String? _highlightKey;
 
   @override
   Widget build(BuildContext context) {
@@ -1230,23 +1267,17 @@ class _TopCategoriesPageState extends State<_TopCategoriesPage> {
       );
     }
 
-    _reconcileSelection(chartItems);
-
-    final List<AnalyticsChartItem> activeItems = chartItems
-        .where((AnalyticsChartItem item) => _selectedKeys.contains(item.key))
-        .toList(growable: false);
-
     AnalyticsChartItem? focusedItem;
-    if (_focusedKey != null) {
-      focusedItem = activeItems.firstWhereOrNull(
-        (AnalyticsChartItem item) => item.key == _focusedKey,
+    if (_highlightKey != null) {
+      focusedItem = chartItems.firstWhereOrNull(
+        (AnalyticsChartItem item) => item.key == _highlightKey,
       );
     }
 
     int? selectedIndex;
     final String? focusKey = focusedItem?.key;
     if (focusKey != null) {
-      final int candidateIndex = activeItems.indexWhere(
+      final int candidateIndex = chartItems.indexWhere(
         (AnalyticsChartItem item) => item.key == focusKey,
       );
       if (candidateIndex >= 0) {
@@ -1256,33 +1287,20 @@ class _TopCategoriesPageState extends State<_TopCategoriesPage> {
     final double selectedShare = focusedItem == null || capturedTotal <= 0
         ? 0
         : focusedItem.absoluteAmount / capturedTotal;
-    final String selectedAmount = focusedItem == null
-        ? widget.currencyFormat.format(capturedTotal)
-        : widget.currencyFormat.format(focusedItem.absoluteAmount);
-    final String selectedPercent = focusedItem == null
-        ? '100%'
-        : selectedShare >= 1
-        ? '${(selectedShare * 100).round()}%'
-        : '${(selectedShare * 100).toStringAsFixed(1)}%';
 
-    final List<AnalyticsChartItem> displayItems = activeItems.isEmpty
-        ? chartItems
-        : activeItems;
+    final List<AnalyticsChartItem> displayItems = chartItems;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
-        Align(
-          alignment: Alignment.centerLeft,
-          child: Text(
-            widget.data.label,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
+        _TopCategoriesSummary(
+          strings: widget.strings,
+          currencyFormat: widget.currencyFormat,
+          total: capturedTotal,
+          isIncome: widget.data.isIncome,
+          focusedItem: focusedItem,
         ),
-        const SizedBox(height: 8),
         const SizedBox(height: 8),
         LayoutBuilder(
           builder: (BuildContext context, BoxConstraints constraints) {
@@ -1309,7 +1327,8 @@ class _TopCategoriesPageState extends State<_TopCategoriesPage> {
                 onSegmentSelected: (int index) {
                   if (index >= 0 && index < displayItems.length) {
                     setState(() {
-                      _focusedKey = displayItems[index].key;
+                      final String key = displayItems[index].key;
+                      _highlightKey = _highlightKey == key ? null : key;
                     });
                   }
                 },
@@ -1325,73 +1344,21 @@ class _TopCategoriesPageState extends State<_TopCategoriesPage> {
             );
           },
         ),
-        const SizedBox(height: 12),
-        Text(
-          focusedItem == null
-              ? widget.strings.analyticsTopCategoriesTapHint(selectedAmount)
-              : '${focusedItem.title}: $selectedAmount · $selectedPercent',
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
-            fontWeight: FontWeight.w600,
-          ),
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-        ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 40),
         _TopCategoriesLegend(
           items: chartItems,
           currencyFormat: widget.currencyFormat,
           total: capturedTotal,
-          selectedKeys: _selectedKeys,
-          focusedKey: _focusedKey,
+          highlightedKey: _highlightKey,
           onToggle: _handleToggle,
         ),
       ],
     );
   }
 
-  void _reconcileSelection(List<AnalyticsChartItem> items) {
-    if (items.isEmpty) {
-      _selectedKeys.clear();
-      _focusedKey = null;
-      return;
-    }
-
-    final Set<String> availableKeys = items
-        .map((AnalyticsChartItem item) => item.key)
-        .toSet();
-    if (_selectedKeys.isEmpty) {
-      _selectedKeys.addAll(availableKeys);
-    } else {
-      final Set<String> valid = _selectedKeys
-          .intersection(availableKeys)
-          .toSet();
-      if (valid.isEmpty) {
-        _selectedKeys
-          ..clear()
-          ..addAll(availableKeys);
-      } else if (valid.length != _selectedKeys.length) {
-        _selectedKeys
-          ..clear()
-          ..addAll(valid);
-      }
-    }
-
-    if (_focusedKey != null && !availableKeys.contains(_focusedKey)) {
-      _focusedKey = availableKeys.first;
-    }
-  }
-
   void _handleToggle(AnalyticsChartItem item) {
     setState(() {
-      if (_selectedKeys.contains(item.key)) {
-        if (_selectedKeys.length > 1) {
-          _selectedKeys.remove(item.key);
-        }
-      } else {
-        _selectedKeys.add(item.key);
-      }
-      _focusedKey = item.key;
+      _highlightKey = _highlightKey == item.key ? null : item.key;
     });
   }
 }
@@ -1401,16 +1368,14 @@ class _TopCategoriesLegend extends StatelessWidget {
     required this.items,
     required this.currencyFormat,
     required this.total,
-    required this.selectedKeys,
-    required this.focusedKey,
+    required this.highlightedKey,
     required this.onToggle,
   });
 
   final List<AnalyticsChartItem> items;
   final NumberFormat currencyFormat;
   final double total;
-  final Set<String> selectedKeys;
-  final String? focusedKey;
+  final String? highlightedKey;
   final ValueChanged<AnalyticsChartItem> onToggle;
 
   @override
@@ -1418,43 +1383,135 @@ class _TopCategoriesLegend extends StatelessWidget {
     if (items.isEmpty || total <= 0) {
       return const SizedBox.shrink();
     }
-    final AppLocalizations strings = AppLocalizations.of(context)!;
-    final NumberFormat percentFormat = NumberFormat.decimalPattern(
-      strings.localeName,
-    );
-    final NumberFormat smallPercentFormat = NumberFormat(
-      '0.0',
-      strings.localeName,
-    );
     return Wrap(
       spacing: 8,
       runSpacing: 8,
       children: List<Widget>.generate(items.length, (int index) {
         final AnalyticsChartItem item = items[index];
-        final double percentage = item.absoluteAmount / total * 100;
-        final String percentText = percentage >= 1
-            ? '${percentFormat.format(percentage.round())}%'
-            : '${smallPercentFormat.format(percentage)}%';
-        final bool isSelected = selectedKeys.contains(item.key);
-        final bool isFocused = focusedKey == item.key;
+        final String amountText = currencyFormat.format(item.absoluteAmount);
+        final bool isSelected = highlightedKey == item.key;
         return Tooltip(
           message: currencyFormat.format(item.absoluteAmount),
           waitDuration: const Duration(milliseconds: 400),
           child: CategoryChip(
             label: item.title,
-            backgroundColor: item.color,
+            iconBackgroundColor: item.color,
             selected: isSelected,
+            size: CategoryChipSize.small,
             onTap: () => onToggle(item),
             leading: Icon(item.icon ?? Icons.pie_chart_outline, size: 16),
             trailing: Text(
-              percentText,
-              style: isFocused
-                  ? const TextStyle(fontWeight: FontWeight.bold)
-                  : null,
+              amountText,
+              style: TextStyle(
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                fontSize: 12,
+                letterSpacing: 0.2,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
           ),
         );
       }),
+    );
+  }
+}
+
+class _TopCategoriesToggle extends StatelessWidget {
+  const _TopCategoriesToggle({
+    required this.safeIndex,
+    required this.onChanged,
+    required this.strings,
+  });
+
+  final int safeIndex;
+  final ValueChanged<int> onChanged;
+  final AppLocalizations strings;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final ColorScheme colors = theme.colorScheme;
+    final Color selectedBg = colors.primary;
+    final Color selectedText = colors.onPrimary;
+    final Color unselectedText = colors.onSurface;
+    final Color containerColor = colors.surfaceContainerHigh;
+
+    Widget buildChip({
+      required String label,
+      required bool selected,
+      required VoidCallback onTap,
+    }) {
+      return Expanded(
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 160),
+          decoration: BoxDecoration(
+            color: selected ? selectedBg : Colors.transparent,
+            borderRadius: BorderRadius.circular(32),
+            boxShadow: selected
+                ? const <BoxShadow>[
+                    BoxShadow(
+                      color: Color(0x4D000000),
+                      blurRadius: 16,
+                      offset: Offset(0, 8),
+                    ),
+                    BoxShadow(
+                      color: Color(0x1F000000),
+                      blurRadius: 8,
+                      offset: Offset(0, 4),
+                    ),
+                  ]
+                : const <BoxShadow>[],
+          ),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(32),
+            onTap: onTap,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Center(
+                child: Text(
+                  label,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w500,
+                        fontSize: 16,
+                        letterSpacing: 0.15,
+                        color: selected ? selectedText : unselectedText,
+                      ) ??
+                      TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        letterSpacing: 0.15,
+                        color: selected ? selectedText : unselectedText,
+                      ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Container(
+      height: 48,
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: containerColor,
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: Row(
+        children: <Widget>[
+          buildChip(
+            label: strings.analyticsTopCategoriesExpensesTab,
+            selected: safeIndex == 0,
+            onTap: () => onChanged(0),
+          ),
+          const SizedBox(width: 8),
+          buildChip(
+            label: strings.analyticsTopCategoriesIncomeTab,
+            selected: safeIndex == 1,
+            onTap: () => onChanged(1),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -6,6 +6,8 @@ class CategoryChip extends StatelessWidget {
     super.key,
     required this.label,
     this.backgroundColor,
+    this.iconBackgroundColor,
+    this.iconColor,
     this.foregroundColor,
     this.leading,
     this.trailing,
@@ -15,6 +17,8 @@ class CategoryChip extends StatelessWidget {
 
   final String label;
   final Color? backgroundColor;
+  final Color? iconBackgroundColor;
+  final Color? iconColor;
   final Color? foregroundColor;
   final Widget? leading;
   final Widget? trailing;
@@ -22,27 +26,20 @@ class CategoryChip extends StatelessWidget {
   final VoidCallback? onTap;
 
   static const double _height = 24;
-  static const EdgeInsets _padding = EdgeInsets.symmetric(
-    horizontal: 8,
-    vertical: 2,
-  );
-  static const double _borderRadius = 12;
+  static const EdgeInsets _padding = EdgeInsets.fromLTRB(2, 2, 8, 2);
+  static const double _borderRadius = 32;
+  static const double _iconExtent = 20;
 
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
-    final Color resolvedBackground =
-        backgroundColor ?? theme.colorScheme.surfaceContainerHighest;
-    final Brightness backgroundBrightness =
-        ThemeData.estimateBrightnessForColor(resolvedBackground);
-    final Color resolvedForeground =
-        foregroundColor ??
-        (backgroundBrightness == Brightness.dark
-            ? Colors.white
-            : Colors.black87);
-    final Color selectedOverlay = theme.colorScheme.primary.withValues(
-      alpha: 0.14,
-    );
+    final Color resolvedBackground = backgroundColor ?? const Color(0xFF67696A);
+    final Color resolvedForeground = foregroundColor ?? const Color(0xFFEFF0E1);
+    final Color resolvedIconBackground =
+        iconBackgroundColor ?? theme.colorScheme.primary;
+    final Color resolvedIconColor = iconColor ?? const Color(0xFF1C1B1B);
+    final Color selectedBorder =
+        selected ? theme.colorScheme.primary : Colors.transparent;
 
     return Material(
       type: MaterialType.transparency,
@@ -56,36 +53,48 @@ class CategoryChip extends StatelessWidget {
           height: _height,
           padding: _padding,
           decoration: BoxDecoration(
-            color: selected
-                ? Color.alphaBlend(selectedOverlay, resolvedBackground)
-                : resolvedBackground,
+            color: resolvedBackground,
             borderRadius: const BorderRadius.all(
               Radius.circular(_borderRadius),
             ),
             border: Border.all(
-              color: selected ? theme.colorScheme.primary : Colors.transparent,
-              width: selected ? 1.2 : 1,
+              color: selectedBorder,
+              width: selected ? 1.1 : 1,
             ),
           ),
           child: DefaultTextStyle(
             style:
-                theme.textTheme.labelMedium?.copyWith(
+                theme.textTheme.labelSmall?.copyWith(
                   color: resolvedForeground,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.w500,
+                  fontSize: 11,
+                  letterSpacing: 0.5,
+                  height: 16 / 11,
                 ) ??
                 TextStyle(
                   color: resolvedForeground,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                  fontSize: 11,
+                  letterSpacing: 0.5,
+                  height: 16 / 11,
                 ),
             child: IconTheme(
-              data: IconThemeData(color: resolvedForeground, size: 16),
+              data: IconThemeData(color: resolvedIconColor, size: 10),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
                   if (leading != null) ...<Widget>[
-                    leading!,
-                    const SizedBox(width: 4),
+                    Container(
+                      width: _iconExtent,
+                      height: _iconExtent,
+                      decoration: BoxDecoration(
+                        color: resolvedIconBackground,
+                        borderRadius: BorderRadius.circular(9999),
+                      ),
+                      alignment: Alignment.center,
+                      child: leading,
+                    ),
+                    const SizedBox(width: 8),
                   ],
                   Flexible(
                     child: Text(
