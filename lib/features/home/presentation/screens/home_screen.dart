@@ -443,7 +443,7 @@ class _HomePinnedTitleAppBar extends ConsumerWidget {
     final ThemeData theme = Theme.of(context);
     final double topPadding = MediaQuery.of(context).padding.top;
     final AsyncValue<Profile?> profileAsync = userId == null
-        ? const AsyncValue.data(null)
+        ? const AsyncValue<Profile?>.data(null)
         : ref.watch(profileControllerProvider(userId!));
 
     return SliverAppBar(

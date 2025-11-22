@@ -9,8 +9,6 @@ enum AnalyticsPeriodPreset { thisMonth, last30Days, customMonth, customRange }
 
 @immutable
 class AnalyticsFilterState {
-  static const Object _unset = Object();
-
   const AnalyticsFilterState({
     required this.dateRange,
     this.accountIds = const <String>{},
@@ -18,6 +16,8 @@ class AnalyticsFilterState {
     this.period = AnalyticsPeriodPreset.thisMonth,
     this.monthAnchor,
   });
+
+  static const Object _unset = Object();
 
   factory AnalyticsFilterState.initial() {
     final DateTime now = DateTime.now();

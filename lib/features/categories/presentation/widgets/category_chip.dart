@@ -13,6 +13,7 @@ class CategoryChip extends StatelessWidget {
     this.trailing,
     this.selected = false,
     this.onTap,
+    this.size = CategoryChipSize.regular,
   });
 
   final String label;
@@ -24,22 +25,24 @@ class CategoryChip extends StatelessWidget {
   final Widget? trailing;
   final bool selected;
   final VoidCallback? onTap;
+  final CategoryChipSize size;
 
-  static const double _height = 24;
-  static const EdgeInsets _padding = EdgeInsets.fromLTRB(2, 2, 8, 2);
   static const double _borderRadius = 32;
-  static const double _iconExtent = 20;
 
   @override
   Widget build(BuildContext context) {
+    final _CategoryChipStyle style = _resolveStyle(size);
     final ThemeData theme = Theme.of(context);
-    final Color resolvedBackground = backgroundColor ?? const Color(0xFF67696A);
-    final Color resolvedForeground = foregroundColor ?? const Color(0xFFEFF0E1);
+    final ColorScheme colors = theme.colorScheme;
+    final Color resolvedBackground =
+        backgroundColor ?? colors.surfaceContainerHighest;
+    final Color resolvedForeground =
+        foregroundColor ?? colors.onSurfaceVariant;
     final Color resolvedIconBackground =
-        iconBackgroundColor ?? theme.colorScheme.primary;
-    final Color resolvedIconColor = iconColor ?? const Color(0xFF1C1B1B);
+        iconBackgroundColor ?? colors.primary;
+    final Color resolvedIconColor = iconColor ?? colors.surface;
     final Color selectedBorder =
-        selected ? theme.colorScheme.primary : Colors.transparent;
+        selected ? colors.primary : Colors.transparent;
 
     return Material(
       type: MaterialType.transparency,
@@ -50,8 +53,8 @@ class CategoryChip extends StatelessWidget {
         highlightColor: theme.colorScheme.primary.withValues(alpha: 0.08),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 160),
-          height: _height,
-          padding: _padding,
+          height: style.height,
+          padding: style.padding,
           decoration: BoxDecoration(
             color: resolvedBackground,
             borderRadius: const BorderRadius.all(
@@ -64,29 +67,32 @@ class CategoryChip extends StatelessWidget {
           ),
           child: DefaultTextStyle(
             style:
-                theme.textTheme.labelSmall?.copyWith(
+                theme.textTheme.labelMedium?.copyWith(
                   color: resolvedForeground,
-                  fontWeight: FontWeight.w500,
-                  fontSize: 11,
-                  letterSpacing: 0.5,
-                  height: 16 / 11,
+                  fontWeight: style.fontWeight,
+                  fontSize: style.fontSize,
+                  letterSpacing: style.letterSpacing,
+                  height: style.heightPx / style.fontSize,
                 ) ??
                 TextStyle(
                   color: resolvedForeground,
-                  fontWeight: FontWeight.w500,
-                  fontSize: 11,
-                  letterSpacing: 0.5,
-                  height: 16 / 11,
+                  fontWeight: style.fontWeight,
+                  fontSize: style.fontSize,
+                  letterSpacing: style.letterSpacing,
+                  height: style.heightPx / style.fontSize,
                 ),
             child: IconTheme(
-              data: IconThemeData(color: resolvedIconColor, size: 10),
+              data: IconThemeData(
+                color: resolvedIconColor,
+                size: style.iconSize,
+              ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
                   if (leading != null) ...<Widget>[
                     Container(
-                      width: _iconExtent,
-                      height: _iconExtent,
+                      width: style.iconExtent,
+                      height: style.iconExtent,
                       decoration: BoxDecoration(
                         color: resolvedIconBackground,
                         borderRadius: BorderRadius.circular(9999),
@@ -94,7 +100,7 @@ class CategoryChip extends StatelessWidget {
                       alignment: Alignment.center,
                       child: leading,
                     ),
-                    const SizedBox(width: 8),
+                    SizedBox(width: style.gap),
                   ],
                   Flexible(
                     child: Text(
@@ -104,7 +110,7 @@ class CategoryChip extends StatelessWidget {
                     ),
                   ),
                   if (trailing != null) ...<Widget>[
-                    const SizedBox(width: 4),
+                    SizedBox(width: style.gap),
                     trailing!,
                   ],
                 ],
@@ -114,5 +120,60 @@ class CategoryChip extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+enum CategoryChipSize { regular, small }
+
+class _CategoryChipStyle {
+  const _CategoryChipStyle({
+    required this.height,
+    required this.padding,
+    required this.iconExtent,
+    required this.iconSize,
+    required this.gap,
+    required this.fontSize,
+    required this.fontWeight,
+    required this.letterSpacing,
+    required this.heightPx,
+  });
+
+  final double height;
+  final EdgeInsets padding;
+  final double iconExtent;
+  final double iconSize;
+  final double gap;
+  final double fontSize;
+  final FontWeight fontWeight;
+  final double letterSpacing;
+  final double heightPx;
+}
+
+_CategoryChipStyle _resolveStyle(CategoryChipSize size) {
+  switch (size) {
+    case CategoryChipSize.small:
+      return const _CategoryChipStyle(
+        height: 32,
+        padding: EdgeInsets.fromLTRB(0, 0, 8, 0),
+        iconExtent: 32,
+        iconSize: 16,
+        gap: 8,
+        fontSize: 12,
+        fontWeight: FontWeight.w500,
+        letterSpacing: 0.5,
+        heightPx: 16,
+      );
+    case CategoryChipSize.regular:
+      return const _CategoryChipStyle(
+        height: 47,
+        padding: EdgeInsets.fromLTRB(0, 0, 8, 0),
+        iconExtent: 39,
+        iconSize: 22,
+        gap: 8,
+        fontSize: 14,
+        fontWeight: FontWeight.w500,
+        letterSpacing: 0.1,
+        heightPx: 20,
+      );
   }
 }
