@@ -1,6 +1,4 @@
-import 'dart:convert';
 import 'dart:math' as math;
-import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -13,6 +11,7 @@ import 'package:kopim/features/profile/domain/entities/profile.dart';
 import 'package:kopim/features/profile/presentation/controllers/profile_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/user_progress_controller.dart';
 import 'package:kopim/features/profile/presentation/screens/profile_management_screen.dart';
+import 'package:kopim/features/home/presentation/widgets/top_bar_avatar_icon.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
 class HomeGamificationAppBar extends ConsumerWidget {
@@ -86,7 +85,7 @@ class HomeGamificationAppBar extends ConsumerWidget {
                   icon: SizedBox(
                     width: 48,
                     height: 48,
-                    child: _TopBarAvatarIcon(photoUrl: profile?.photoUrl),
+                    child: TopBarAvatarIcon(photoUrl: profile?.photoUrl),
                   ),
                   onPressed: () {
                     context.push(ProfileManagementScreen.routeName);
@@ -141,7 +140,6 @@ class HomeGamificationAppBar extends ConsumerWidget {
     );
   }
 }
-
 class _HomeGamificationCard extends StatelessWidget {
   const _HomeGamificationCard({
     required this.progressAsync,
@@ -239,49 +237,5 @@ class _HomeGamificationCard extends StatelessWidget {
         ),
       ),
     );
-  }
-}
-
-class _TopBarAvatarIcon extends StatelessWidget {
-  const _TopBarAvatarIcon({this.photoUrl});
-
-  final String? photoUrl;
-
-  @override
-  Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
-    final ImageProvider<Object>? imageProvider = _resolveImageProvider();
-    return CircleAvatar(
-      radius: 24,
-      backgroundColor: theme.colorScheme.surfaceContainerHighest,
-      backgroundImage: imageProvider,
-      child: imageProvider == null
-          ? Icon(
-              Icons.account_circle_outlined,
-              size: 28,
-              color: theme.colorScheme.onSurfaceVariant,
-            )
-          : null,
-    );
-  }
-
-  ImageProvider<Object>? _resolveImageProvider() {
-    if (photoUrl == null || photoUrl!.isEmpty) {
-      return null;
-    }
-    if (photoUrl!.startsWith('data:image/')) {
-      final int commaIndex = photoUrl!.indexOf(',');
-      if (commaIndex == -1) {
-        return null;
-      }
-      final String encoded = photoUrl!.substring(commaIndex + 1);
-      try {
-        final Uint8List bytes = base64Decode(encoded);
-        return MemoryImage(bytes);
-      } catch (_) {
-        return null;
-      }
-    }
-    return NetworkImage(photoUrl!);
   }
 }

@@ -22,8 +22,10 @@ class AnalyticsFilterState {
   factory AnalyticsFilterState.initial() {
     final DateTime now = DateTime.now();
     final DateTime start = DateTime(now.year, now.month);
-    final DateTime endInclusive = DateTime(now.year, now.month + 1)
-        .subtract(const Duration(days: 1));
+    final DateTime endInclusive = DateTime(
+      now.year,
+      now.month + 1,
+    ).subtract(const Duration(days: 1));
     return AnalyticsFilterState(
       dateRange: DateTimeRange(start: start, end: endInclusive),
       monthAnchor: start,
@@ -69,12 +71,12 @@ class AnalyticsFilterState {
 
   @override
   int get hashCode => Object.hash(
-        dateRange,
-        Object.hashAll(accountIds),
-        categoryId,
-        period,
-        monthAnchor,
-      );
+    dateRange,
+    Object.hashAll(accountIds),
+    categoryId,
+    period,
+    monthAnchor,
+  );
 }
 
 extension AnalyticsFilterStateX on AnalyticsFilterState {
@@ -120,8 +122,10 @@ class AnalyticsFilterController extends _$AnalyticsFilterController {
   void applyThisMonth({DateTime? reference}) {
     final DateTime now = reference ?? DateTime.now();
     final DateTime start = DateTime(now.year, now.month);
-    final DateTime end = DateTime(now.year, now.month + 1)
-        .subtract(const Duration(days: 1));
+    final DateTime end = DateTime(
+      now.year,
+      now.month + 1,
+    ).subtract(const Duration(days: 1));
     state = state.copyWith(
       dateRange: DateTimeRange(start: start, end: end),
       monthAnchor: start,
@@ -143,8 +147,10 @@ class AnalyticsFilterController extends _$AnalyticsFilterController {
 
   void selectMonth(DateTime month) {
     final DateTime start = DateTime(month.year, month.month);
-    final DateTime end = DateTime(month.year, month.month + 1)
-        .subtract(const Duration(days: 1));
+    final DateTime end = DateTime(
+      month.year,
+      month.month + 1,
+    ).subtract(const Duration(days: 1));
     state = state.copyWith(
       dateRange: DateTimeRange(start: start, end: end),
       monthAnchor: start,

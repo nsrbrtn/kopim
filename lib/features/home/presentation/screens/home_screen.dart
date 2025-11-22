@@ -26,7 +26,9 @@ import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
+import 'package:kopim/features/profile/domain/entities/profile.dart';
 import 'package:kopim/features/profile/presentation/controllers/auth_controller.dart';
+import 'package:kopim/features/profile/presentation/controllers/profile_controller.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/presentation/add_transaction_screen.dart';
 import 'package:kopim/features/transactions/presentation/controllers/transaction_actions_controller.dart';
@@ -47,6 +49,7 @@ import 'package:kopim/features/upcoming_payments/domain/models/upcoming_item.dar
 import 'package:kopim/features/upcoming_payments/domain/providers/upcoming_payments_providers.dart';
 import 'package:kopim/features/upcoming_payments/domain/services/time_service.dart';
 import 'package:kopim/features/upcoming_payments/presentation/screens/upcoming_payments_screen.dart';
+import 'package:kopim/features/home/presentation/widgets/top_bar_avatar_icon.dart';
 
 import '../controllers/home_providers.dart';
 
@@ -144,7 +147,12 @@ class _HomeBody extends StatelessWidget {
             if (showGamificationHeader) {
               slivers.add(HomeGamificationAppBar(userId: user.uid));
             } else {
-              slivers.add(_HomePinnedTitleAppBar(strings: strings));
+              slivers.add(
+                _HomePinnedTitleAppBar(
+                  strings: strings,
+                  userId: user?.uid,
+                ),
+              );
             }
 
             double nextTopPadding = 24;
@@ -421,15 +429,22 @@ class _HomeSecondaryPanel extends StatelessWidget {
   }
 }
 
-class _HomePinnedTitleAppBar extends StatelessWidget {
-  const _HomePinnedTitleAppBar({required this.strings});
+class _HomePinnedTitleAppBar extends ConsumerWidget {
+  const _HomePinnedTitleAppBar({
+    required this.strings,
+    required this.userId,
+  });
 
   final AppLocalizations strings;
+  final String? userId;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final ThemeData theme = Theme.of(context);
     final double topPadding = MediaQuery.of(context).padding.top;
+    final AsyncValue<Profile?> profileAsync = userId == null
+        ? const AsyncValue.data(null)
+        : ref.watch(profileControllerProvider(userId!));
 
     return SliverAppBar(
       automaticallyImplyLeading: false,
@@ -453,12 +468,45 @@ class _HomePinnedTitleAppBar extends StatelessWidget {
         Semantics(
           label: strings.homeProfileTooltip,
           button: true,
-          child: IconButton(
-            tooltip: strings.homeProfileTooltip,
-            icon: const Icon(Icons.account_circle_outlined),
-            onPressed: () {
-              context.push(ProfileManagementScreen.routeName);
-            },
+          child: profileAsync.when(
+            data: (Profile? profile) => IconButton(
+              tooltip: strings.homeProfileTooltip,
+              padding: EdgeInsets.zero,
+              iconSize: 48,
+              icon: SizedBox(
+                width: 48,
+                height: 48,
+                child: TopBarAvatarIcon(photoUrl: profile?.photoUrl),
+              ),
+              onPressed: () {
+                context.push(ProfileManagementScreen.routeName);
+              },
+            ),
+            loading: () => IconButton(
+              tooltip: strings.homeProfileTooltip,
+              padding: EdgeInsets.zero,
+              onPressed: () {
+                context.push(ProfileManagementScreen.routeName);
+              },
+              icon: const SizedBox(
+                width: 48,
+                height: 48,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            ),
+            error: (Object error, StackTrace? stackTrace) => IconButton(
+              tooltip: strings.homeProfileTooltip,
+              padding: EdgeInsets.zero,
+              iconSize: 48,
+              icon: const SizedBox(
+                width: 48,
+                height: 48,
+                child: Icon(Icons.account_circle_outlined),
+              ),
+              onPressed: () {
+                context.push(ProfileManagementScreen.routeName);
+              },
+            ),
           ),
         ),
         const SizedBox(width: 8),
@@ -491,10 +539,7 @@ class _AddTransactionButton extends StatelessWidget {
         baseOpacity: isDark ? 0.15 : 0.25,
         enableBorder: true,
         enableShadow: true,
-        gradientHighlightIntensity: 1.5,
-        gradientTintColor: colorScheme.secondaryContainer.withValues(
-          alpha: 0.9,
-        ),
+        enableGradientHighlight: false,
         child: KopimFloatingActionButton(
           decorationColor: Colors.transparent,
           foregroundColor: colorScheme.primary,

@@ -5,13 +5,13 @@ import 'package:drift/wasm.dart';
 
 DatabaseConnection openAppDatabaseConnection() {
   return DatabaseConnection.delayed(
-    Future(() async {
+    Future<DatabaseConnection>(() async {
       final WasmDatabaseResult result = await WasmDatabase.open(
         databaseName: 'kopim_db',
         sqlite3Uri: Uri.parse('sqlite3.wasm'),
         driftWorkerUri: Uri.parse('drift_worker.js'),
       );
-      return result.resolvedExecutor;
+      return DatabaseConnection(result.resolvedExecutor);
     }),
   );
 }

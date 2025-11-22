@@ -481,8 +481,7 @@ int _resolveActiveFiltersCount(AnalyticsFilterState state) {
   if (state.categoryId != null) {
     count++;
   }
-  if (state.dateRange != initial.dateRange ||
-      state.period != initial.period) {
+  if (state.dateRange != initial.dateRange || state.period != initial.period) {
     count++;
   }
   return count;
@@ -542,9 +541,7 @@ class _FilterPill extends StatelessWidget {
     final Color background = selected
         ? colors.primary
         : colors.surfaceContainerHigh;
-    final Color foreground = selected
-        ? colors.onPrimary
-        : colors.onSurface;
+    final Color foreground = selected ? colors.onPrimary : colors.onSurface;
 
     return ActionChip(
       elevation: 0,
@@ -695,10 +692,7 @@ void _showBudgetStub(BuildContext context) {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            Text(
-              'Бюджеты в разработке',
-              style: theme.textTheme.titleMedium,
-            ),
+            Text('Бюджеты в разработке', style: theme.textTheme.titleMedium),
             const SizedBox(height: 8),
             Text(
               'Фильтр по бюджетам появится позже. Сейчас чип служит заглушкой.',
@@ -728,13 +722,10 @@ Future<void> _openMonthPicker({
 }) async {
   final ThemeData theme = Theme.of(context);
   final DateTime now = DateTime.now();
-  final List<DateTime> months = List<DateTime>.generate(
-    12,
-    (int index) {
-      final DateTime date = DateTime(now.year, now.month - index);
-      return DateTime(date.year, date.month);
-    },
-  );
+  final List<DateTime> months = List<DateTime>.generate(12, (int index) {
+    final DateTime date = DateTime(now.year, now.month - index);
+    return DateTime(date.year, date.month);
+  });
 
   final DateTime? picked = await showModalBottomSheet<DateTime>(
     context: context,
@@ -752,7 +743,12 @@ Future<void> _openMonthPicker({
             final bool isSelected =
                 month.year == current.year && month.month == current.month;
             return ListTile(
-              title: Text(_formatMonthShort(month, AppLocalizations.of(context)!.localeName)),
+              title: Text(
+                _formatMonthShort(
+                  month,
+                  AppLocalizations.of(context)!.localeName,
+                ),
+              ),
               subtitle: Text('${month.year} год'),
               trailing: isSelected
                   ? Icon(Icons.check, color: theme.colorScheme.primary)
@@ -863,8 +859,9 @@ String _resolveAccountsLabel({
     return 'Все счета';
   }
   if (selectedIds.length == 1) {
-    final AccountEntity? account = accounts
-        .firstWhereOrNull((AccountEntity item) => item.id == selectedIds.first);
+    final AccountEntity? account = accounts.firstWhereOrNull(
+      (AccountEntity item) => item.id == selectedIds.first,
+    );
     return account?.name ?? 'Выбран 1 счёт';
   }
   return 'Выбрано ${selectedIds.length} счетов';
@@ -877,8 +874,9 @@ String _resolveCategoryLabel({
   if (selectedId == null) {
     return 'Все категории';
   }
-  final Category? category = categories
-      .firstWhereOrNull((Category item) => item.id == selectedId);
+  final Category? category = categories.firstWhereOrNull(
+    (Category item) => item.id == selectedId,
+  );
   return category?.name ?? 'Категория выбрана';
 }
 
@@ -900,7 +898,7 @@ Future<void> _openCategoryPicker({
         child: ListView.separated(
           shrinkWrap: true,
           itemCount: categories.length + 1,
-          separatorBuilder: (_, __) => const Divider(height: 1),
+          separatorBuilder: (_, _) => const Divider(height: 1),
           itemBuilder: (BuildContext context, int index) {
             if (index == 0) {
               final bool isSelected = selectedId == null;
@@ -931,8 +929,9 @@ Future<void> _openCategoryPicker({
     },
   );
 
-  final AnalyticsFilterController notifier =
-      ref.read(analyticsFilterControllerProvider.notifier);
+  final AnalyticsFilterController notifier = ref.read(
+    analyticsFilterControllerProvider.notifier,
+  );
   if (picked == null) {
     notifier.clearCategory();
   } else {
