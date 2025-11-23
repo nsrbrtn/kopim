@@ -409,12 +409,10 @@ class _TransactionFormState extends ConsumerState<_TransactionForm> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
           _SectionHeader(
-            label: strings.addTransactionAccountLabel,
-            helper: strings.addTransactionAccountHint,
+            label: 'Выбери счёт',
             labelStyle: labelStyle,
-            helperStyle: helperStyle,
           ),
-          SizedBox(height: spacing.between),
+          SizedBox(height: spacing.between / 2),
           _AccountDropdownField(
             key: const ValueKey<String>('transaction_account_field'),
             accounts: widget.accounts,
@@ -623,7 +621,7 @@ class _AccountDropdownFieldState extends ConsumerState<_AccountDropdownField> {
   }
 }
 
-class _AccountSelectionCard extends StatefulWidget {
+class _AccountSelectionCard extends StatelessWidget {
   const _AccountSelectionCard({
     required this.account,
     required this.formatter,
@@ -637,37 +635,9 @@ class _AccountSelectionCard extends StatefulWidget {
   final VoidCallback onTap;
 
   @override
-  State<_AccountSelectionCard> createState() => _AccountSelectionCardState();
-}
-
-class _AccountSelectionCardState extends State<_AccountSelectionCard>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-  late final Animation<double> _animation;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1500),
-    )..repeat(reverse: true);
-    _animation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
-    final Color? accountColor = parseHexColor(widget.account.color);
+    final Color? accountColor = parseHexColor(account.color);
     final _AccountSelectionCardPalette palette =
         _AccountSelectionCardPalette.fromTheme(
           theme.colorScheme,
@@ -689,71 +659,61 @@ class _AccountSelectionCardState extends State<_AccountSelectionCard>
             .copyWith(color: palette.emphasis, fontWeight: FontWeight.w600);
 
     const double cardHeight = 72;
-    final EdgeInsetsGeometry outerPadding = widget.isSelected
-        ? const EdgeInsets.all(4)
-        : EdgeInsets.zero;
+    const double cardWidth = 160;
+    final EdgeInsets outerPadding =
+        isSelected ? const EdgeInsets.all(4) : EdgeInsets.zero;
+    final double paddedWidth = cardWidth + outerPadding.horizontal;
+    final double paddedHeight = cardHeight + outerPadding.vertical;
 
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: widget.onTap,
-        borderRadius: borderRadius,
-        child: AnimatedBuilder(
-          animation: _animation,
-          builder: (BuildContext context, Widget? child) {
-            final List<BoxShadow>? boxShadow = widget.isSelected
-                ? <BoxShadow>[
-                    BoxShadow(
-                      color: (accountColor ?? theme.colorScheme.primary)
-                          .withOpacity(0.4 + (0.2 * _animation.value)),
-                      blurRadius: 8 + (4 * _animation.value),
-                      spreadRadius: 1 + (1 * _animation.value),
-                    ),
-                  ]
-                : null;
-
-            return Container(
-              padding: outerPadding,
-              decoration: BoxDecoration(
-                borderRadius: borderRadius,
-                boxShadow: boxShadow,
-              ),
-              child: child,
-            );
-          },
-          child: SizedBox(
-            width: 160,
-            height: cardHeight,
-            child: Ink(
-              decoration: BoxDecoration(
-                color: palette.background,
-                borderRadius: borderRadius,
-              ),
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(minHeight: 54),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
+    return SizedBox(
+      width: paddedWidth,
+      height: paddedHeight,
+      child: GlowingAccountCard(
+        glowColor: accountColor ?? theme.colorScheme.primary,
+        borderRadius: cardRadius.toDouble(),
+        enabled: isSelected,
+        child: Padding(
+          padding: outerPadding,
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: onTap,
+              borderRadius: borderRadius,
+              child: SizedBox(
+                width: cardWidth,
+                height: cardHeight,
+                child: Ink(
+                  decoration: BoxDecoration(
+                    color: palette.background,
+                    borderRadius: borderRadius,
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      Text(
-                        widget.account.name,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: labelStyle,
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(minHeight: 54),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        widget.formatter.format(widget.account.balance),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: balanceStyle,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                          Text(
+                            account.name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: labelStyle,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            formatter.format(account.balance),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: balanceStyle,
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
                 ),
               ),
@@ -764,6 +724,184 @@ class _AccountSelectionCardState extends State<_AccountSelectionCard>
     );
   }
 }
+
+/// Карточка счета с анимированным «змейкой»-свечением.
+///
+/// Параметры анимации:
+/// * `duration` — полный круг змейки (по умолчанию 4400 мс).
+/// * `glowColor` — цвет змейки и направляющей обводки.
+/// * `borderRadius` — радиус скругления траектории (совпадает с карточкой).
+/// * `enabled` — когда `false`, свечение полностью отключено.
+class GlowingAccountCard extends StatefulWidget {
+  const GlowingAccountCard({
+    super.key,
+    required this.child,
+    this.glowColor = const Color(0xFF00F7FF),
+    this.duration = const Duration(milliseconds: 4400),
+    this.borderRadius = 24.0,
+    this.enabled,
+  });
+
+  final Widget child;
+  final Color glowColor;
+  final Duration duration;
+  final double borderRadius;
+  final bool? enabled;
+
+  @override
+  State<GlowingAccountCard> createState() => _GlowingAccountCardState();
+}
+
+class _GlowingAccountCardState extends State<GlowingAccountCard>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _curve;
+
+  bool get _isEnabled => widget.enabled ?? true;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: widget.duration,
+    );
+
+    _curve = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeInOut,
+    );
+
+    if (_isEnabled) {
+      _controller.repeat();
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant GlowingAccountCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (_isEnabled && !_controller.isAnimating) {
+      _controller.repeat(reverse: true);
+    } else if (!_isEnabled && _controller.isAnimating) {
+      _controller.stop();
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_isEnabled) {
+      return widget.child;
+    }
+
+    return RepaintBoundary(
+      child: AnimatedBuilder(
+        animation: _curve,
+        child: widget.child,
+        builder: (BuildContext context, Widget? child) {
+          final double t = _curve.value;
+          const double strokeWidth = 4.0;
+
+          return Stack(
+            clipBehavior: Clip.none,
+            children: <Widget>[
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: CustomPaint(
+                    painter: _GlowBorderPainter(
+                      color: widget.glowColor,
+                      progress: t,
+                      thickness: strokeWidth,
+                      borderRadius: widget.borderRadius,
+                    ),
+                  ),
+                ),
+              ),
+              child!,
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _GlowBorderPainter extends CustomPainter {
+  const _GlowBorderPainter({
+    required this.color,
+    required this.progress,
+    required this.thickness,
+    required this.borderRadius,
+  });
+
+  final Color color;
+  final double progress;
+  final double thickness;
+  final double borderRadius;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (size.isEmpty) {
+      return;
+    }
+
+    final Rect rect = Offset.zero & size;
+    final double guideThickness = math.min(thickness, 2.0);
+    final RRect waveRrect = RRect.fromRectAndRadius(
+      rect.deflate(thickness / 2),
+      Radius.circular(borderRadius),
+    );
+    final RRect guideRrect = RRect.fromRectAndRadius(
+      rect.deflate(guideThickness / 2),
+      Radius.circular(borderRadius),
+    );
+    final SweepGradient gradient = SweepGradient(
+      startAngle: 0.0,
+      endAngle: math.pi * 2,
+      transform: GradientRotation(progress * math.pi * 2),
+      colors: <Color>[
+        _colorWithOpacity(color, 0.0),
+        _colorWithOpacity(color, 0.0),
+        _colorWithOpacity(color, 0.32),
+        _colorWithOpacity(color, 0.0),
+        _colorWithOpacity(color, 0.0),
+      ],
+      stops: const <double>[0.0, 0.08, 0.14, 0.20, 1.0],
+    );
+
+    final Paint guidePaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = guideThickness
+      ..color = _colorWithOpacity(color, 0.02);
+
+    final Paint paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = thickness
+      ..shader = gradient.createShader(rect);
+
+    canvas
+      ..drawRRect(guideRrect, guidePaint)
+      ..drawRRect(waveRrect, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _GlowBorderPainter oldDelegate) {
+    return oldDelegate.color != color ||
+        oldDelegate.progress != progress ||
+        oldDelegate.thickness != thickness ||
+        oldDelegate.borderRadius != borderRadius;
+  }
+}
+
+Color _colorWithOpacity(Color color, double opacity) =>
+    color.withValues(
+      alpha: (opacity.clamp(0.0, 1.0) * 255).toDouble(),
+    );
 
 class _AccountSelectionCardPalette {
   const _AccountSelectionCardPalette({
@@ -818,40 +956,75 @@ class _TransactionTypeSelector extends ConsumerWidget {
 
     final ThemeData theme = Theme.of(context);
     final KopimLayout layout = context.kopimLayout;
-    final KopimSpacingScale spacing = layout.spacing;
     final double containerRadius = layout.radius.xxl;
     return Container(
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerHigh,
         borderRadius: BorderRadius.circular(containerRadius),
       ),
-      padding: const EdgeInsets.all(4),
-      child: Row(
-        children: <Widget>[
-          Expanded(
-            child: _TypeChip(
-              label: strings.addTransactionTypeExpense,
-              selected: type == TransactionType.expense,
-              onTap: () => ref
-                  .read(transactionProvider.notifier)
-                  .updateType(TransactionType.expense),
-              highlightColor: _kTypeSelectedColor,
-              selectedTextColor: _kTypeSelectedTextColor,
+      padding: const EdgeInsets.all(6),
+      child: LayoutBuilder(
+        builder: (BuildContext context, BoxConstraints constraints) {
+          final double segmentWidth = constraints.maxWidth / 2;
+          final Color accent = _kTypeSelectedColor;
+          const Duration duration = Duration(milliseconds: 260);
+
+          return SizedBox(
+            height: 48,
+            child: Stack(
+              children: <Widget>[
+                Positioned.fill(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.surfaceContainerHigh,
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                  ),
+                ),
+                AnimatedPositioned(
+                  duration: duration,
+                  curve: Curves.easeOutBack,
+                  left: (type == TransactionType.expense ? 0 : 1) *
+                      segmentWidth,
+                  top: 0,
+                  bottom: 0,
+                  width: segmentWidth,
+                  child: AnimatedContainer(
+                    duration: duration,
+                    curve: Curves.easeOutBack,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(999),
+                      color: _colorWithOpacity(accent, 0.25),
+                      boxShadow: const <BoxShadow>[],
+                    ),
+                  ),
+                ),
+                Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: _TypeSegmentItem(
+                        label: strings.addTransactionTypeExpense,
+                        selected: type == TransactionType.expense,
+                        onTap: () => ref
+                            .read(transactionProvider.notifier)
+                            .updateType(TransactionType.expense),
+                      ),
+                    ),
+                    Expanded(
+                      child: _TypeSegmentItem(
+                        label: strings.addTransactionTypeIncome,
+                        selected: type == TransactionType.income,
+                        onTap: () => ref
+                            .read(transactionProvider.notifier)
+                            .updateType(TransactionType.income),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
-          ),
-          SizedBox(width: spacing.between),
-          Expanded(
-            child: _TypeChip(
-              label: strings.addTransactionTypeIncome,
-              selected: type == TransactionType.income,
-              onTap: () => ref
-                  .read(transactionProvider.notifier)
-                  .updateType(TransactionType.income),
-              highlightColor: _kTypeSelectedColor,
-              selectedTextColor: _kTypeSelectedTextColor,
-            ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }
@@ -1454,76 +1627,52 @@ class _SectionHeader extends StatelessWidget {
   const _SectionHeader({
     required this.label,
     required this.labelStyle,
-    this.helper,
-    this.helperStyle,
   });
 
   final String label;
-  final String? helper;
   final TextStyle labelStyle;
-  final TextStyle? helperStyle;
 
   @override
   Widget build(BuildContext context) {
-    final TextStyle resolvedHelperStyle =
-        helperStyle ?? labelStyle.copyWith(fontWeight: FontWeight.w400);
-    final List<Widget> children = <Widget>[Text(label, style: labelStyle)];
-    if (helper != null && helper!.isNotEmpty) {
-      children
-        ..add(const SizedBox(height: 4))
-        ..add(Text(helper!, style: resolvedHelperStyle));
-    }
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: children,
-    );
+    return Text(label, style: labelStyle);
   }
 }
 
-class _TypeChip extends StatelessWidget {
-  const _TypeChip({
+class _TypeSegmentItem extends StatelessWidget {
+  const _TypeSegmentItem({
     required this.label,
     required this.selected,
     required this.onTap,
-    required this.highlightColor,
-    required this.selectedTextColor,
   });
 
   final String label;
   final bool selected;
   final VoidCallback onTap;
-  final Color highlightColor;
-  final Color selectedTextColor;
 
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
-    final Color textColor = selected
-        ? selectedTextColor
-        : theme.colorScheme.onSurface;
-    return Material(
-      color: Colors.transparent,
-      borderRadius: BorderRadius.circular(16),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(16),
-        onTap: onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          curve: Curves.easeInOut,
-          padding: const EdgeInsets.symmetric(vertical: 6),
-          decoration: BoxDecoration(
-            color: selected ? highlightColor : Colors.transparent,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Center(
-            child: Text(
-              label,
-              textAlign: TextAlign.center,
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w500,
-                color: textColor,
-              ),
+    final TextStyle baseStyle =
+        theme.textTheme.labelLarge ?? const TextStyle(fontSize: 16);
+
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Center(
+        child: AnimatedScale(
+          duration: const Duration(milliseconds: 180),
+          curve: Curves.easeOut,
+          scale: selected ? 1.0 : 0.95,
+          child: AnimatedDefaultTextStyle(
+            duration: const Duration(milliseconds: 180),
+            curve: Curves.easeOut,
+            style: baseStyle.copyWith(
+              fontWeight: selected ? FontWeight.w700 : FontWeight.w400,
+              color: selected
+                  ? _kTypeSelectedTextColor
+                  : theme.colorScheme.onSurface.withOpacity(0.8),
             ),
+            child: Text(label),
           ),
         ),
       ),
