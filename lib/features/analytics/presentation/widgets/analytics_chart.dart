@@ -120,6 +120,9 @@ class AnalyticsDonutChart extends StatelessWidget {
                                 isSelected:
                                     highlightIndex != null &&
                                     label.index == highlightIndex,
+                                onTap: onSegmentSelected != null
+                                    ? () => onSegmentSelected!(label.index)
+                                    : null,
                               ),
                             ),
                           ),
@@ -323,17 +326,20 @@ class AnalyticsBarChart extends StatelessWidget {
                           children: <Widget>[
                             SizedBox(
                               height: _kIconBadgeExtent,
-                          child: Center(
-                            child: showIcon
-                                ? _CategoryIconBadge(
-                                      icon: item.icon!,
-                                      color: item.color,
-                                      percentText: '',
-                                      isSelected: isSelected,
-                                    )
-                                : const SizedBox.shrink(),
-                          ),
-                        ),
+                              child: Center(
+                                child: showIcon
+                                    ? _CategoryIconBadge(
+                                        icon: item.icon!,
+                                        color: item.color,
+                                        percentText: '',
+                                        isSelected: isSelected,
+                                        onTap: onBarSelected != null
+                                            ? () => onBarSelected!(index)
+                                            : null,
+                                      )
+                                    : const SizedBox.shrink(),
+                              ),
+                            ),
                             const SizedBox(height: 8),
                             Expanded(
                               child: Align(
@@ -450,12 +456,14 @@ class _CategoryIconBadge extends StatelessWidget {
     required this.color,
     required this.percentText,
     required this.isSelected,
+    this.onTap,
   });
 
   final IconData icon;
   final Color color;
   final String percentText;
   final bool isSelected;
+  final VoidCallback? onTap;
 
   static const double extent = _kIconBadgeExtent;
 
@@ -471,7 +479,7 @@ class _CategoryIconBadge extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
-        onTap: () {},
+        onTap: onTap,
         child: Container(
           padding: const EdgeInsets.fromLTRB(0, 0, 4, 0),
           decoration: BoxDecoration(

@@ -18,12 +18,16 @@ import 'package:kopim/features/transactions/domain/entities/transaction_type.dar
 import 'package:kopim/features/transactions/presentation/controllers/transaction_form_controller.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
-const EdgeInsets _kFormOuterPadding =
-    EdgeInsets.symmetric(horizontal: 16, vertical: 16);
+const EdgeInsets _kFormOuterPadding = EdgeInsets.symmetric(
+  horizontal: 16,
+  vertical: 16,
+);
 const EdgeInsets _kAccountSectionPadding = EdgeInsets.all(16);
 const EdgeInsets _kCategorySectionPadding = EdgeInsets.all(16);
-const EdgeInsets _kDateTimeSectionPadding =
-    EdgeInsets.symmetric(vertical: 12, horizontal: 16);
+const EdgeInsets _kDateTimeSectionPadding = EdgeInsets.symmetric(
+  vertical: 12,
+  horizontal: 16,
+);
 const SizedBox _kGap8 = SizedBox(height: 8);
 
 AccountEntity _resolveSummaryAccount(
@@ -32,14 +36,17 @@ AccountEntity _resolveSummaryAccount(
   String? preferredAccountId,
 ) {
   final String? resolvedId =
-      selectedAccountId ?? _resolveDefaultAccountId(accounts, preferredAccountId);
+      selectedAccountId ??
+      _resolveDefaultAccountId(accounts, preferredAccountId);
   final AccountEntity? resolved = accounts.firstWhereOrNull(
     (AccountEntity account) => account.id == resolvedId,
   );
   if (resolved != null) {
     return resolved;
   }
-  return accounts.firstWhereOrNull((AccountEntity account) => account.isPrimary) ??
+  return accounts.firstWhereOrNull(
+        (AccountEntity account) => account.isPrimary,
+      ) ??
       accounts.first;
 }
 
@@ -241,11 +248,7 @@ class _TransactionFormState extends ConsumerState<_TransactionForm> {
     );
   }
 
-  String _formatAmount(
-    double amount,
-    String currency,
-    String locale,
-  ) {
+  String _formatAmount(double amount, String currency, String locale) {
     final NumberFormat formatter = _formatterForCurrency(currency, locale);
     return formatter.format(amount);
   }
@@ -258,13 +261,15 @@ class _TransactionFormState extends ConsumerState<_TransactionForm> {
     final ThemeData theme = Theme.of(context);
     final KopimLayout layout = context.kopimLayout;
     final KopimSpacingScale spacing = layout.spacing;
-    final TextStyle labelStyle = theme.textTheme.titleSmall?.copyWith(
+    final TextStyle labelStyle =
+        theme.textTheme.titleSmall?.copyWith(
           fontWeight: FontWeight.w500,
           letterSpacing: 0.1,
           color: theme.colorScheme.onSurfaceVariant,
         ) ??
         theme.textTheme.bodyLarge!;
-    final TextStyle helperStyle = theme.textTheme.bodySmall?.copyWith(
+    final TextStyle helperStyle =
+        theme.textTheme.bodySmall?.copyWith(
           color: theme.colorScheme.surfaceContainerHighest,
         ) ??
         theme.textTheme.bodySmall!;
@@ -292,7 +297,11 @@ class _TransactionFormState extends ConsumerState<_TransactionForm> {
       widget.formArgs.defaultAccountId,
     );
     final String formattedAmount = hasValidAmount && parsedAmount != null
-        ? _formatAmount(parsedAmount, summaryAccount.currency, strings.localeName)
+        ? _formatAmount(
+            parsedAmount,
+            summaryAccount.currency,
+            strings.localeName,
+          )
         : '';
     final bool showCollapsed = _isAmountSectionCollapsed && hasValidAmount;
 
@@ -303,7 +312,10 @@ class _TransactionFormState extends ConsumerState<_TransactionForm> {
           final double availableWidth = constraints.maxWidth.isFinite
               ? constraints.maxWidth
               : MediaQuery.sizeOf(context).width;
-          final double maxWidth = math.max(availableWidth - spacing.screen * 2, 0);
+          final double maxWidth = math.max(
+            availableWidth - spacing.screen * 2,
+            0,
+          );
           final double formWidth = math.min(maxWidth, 412);
 
           final List<Widget> sections = <Widget>[
@@ -331,9 +343,7 @@ class _TransactionFormState extends ConsumerState<_TransactionForm> {
             RepaintBoundary(
               child: _DateTimeSelectorRow(formArgs: widget.formArgs),
             ),
-            RepaintBoundary(
-              child: _NoteField(formArgs: widget.formArgs),
-            ),
+            RepaintBoundary(child: _NoteField(formArgs: widget.formArgs)),
           ];
 
           if (widget.showSubmitButton) {
@@ -359,7 +369,8 @@ class _TransactionFormState extends ConsumerState<_TransactionForm> {
                 width: formWidth,
                 child: ListView.separated(
                   physics: const BouncingScrollPhysics(),
-                  keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                  keyboardDismissBehavior:
+                      ScrollViewKeyboardDismissBehavior.onDrag,
                   cacheExtent: MediaQuery.sizeOf(context).height,
                   itemCount: sections.length,
                   itemBuilder: (BuildContext context, int index) {
@@ -397,31 +408,31 @@ class _TransactionFormState extends ConsumerState<_TransactionForm> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-        _SectionHeader(
-          label: strings.addTransactionAccountLabel,
-          helper: strings.addTransactionAccountHint,
-          labelStyle: labelStyle,
-          helperStyle: helperStyle,
-        ),
-        SizedBox(height: spacing.between),
-        _AccountDropdownField(
-          key: const ValueKey<String>('transaction_account_field'),
-          accounts: widget.accounts,
-          formArgs: widget.formArgs,
-          strings: strings,
-        ),
-        SizedBox(height: spacing.between),
-        _SectionHeader(
-          label: strings.addTransactionAmountLabel,
-          labelStyle: labelStyle,
-        ),
-        SizedBox(height: spacing.between),
-        _AmountField(
-          formArgs: widget.formArgs,
-          strings: strings,
-          onAmountCommitted: _handleAmountCommitted,
-        ),
-      ],
+          _SectionHeader(
+            label: strings.addTransactionAccountLabel,
+            helper: strings.addTransactionAccountHint,
+            labelStyle: labelStyle,
+            helperStyle: helperStyle,
+          ),
+          SizedBox(height: spacing.between),
+          _AccountDropdownField(
+            key: const ValueKey<String>('transaction_account_field'),
+            accounts: widget.accounts,
+            formArgs: widget.formArgs,
+            strings: strings,
+          ),
+          SizedBox(height: spacing.between),
+          _SectionHeader(
+            label: strings.addTransactionAmountLabel,
+            labelStyle: labelStyle,
+          ),
+          SizedBox(height: spacing.between),
+          _AmountField(
+            formArgs: widget.formArgs,
+            strings: strings,
+            onAmountCommitted: _handleAmountCommitted,
+          ),
+        ],
       ),
     );
 
@@ -435,8 +446,9 @@ class _TransactionFormState extends ConsumerState<_TransactionForm> {
     return AnimatedCrossFade(
       firstChild: expanded,
       secondChild: collapsed,
-      crossFadeState:
-          showCollapsed ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+      crossFadeState: showCollapsed
+          ? CrossFadeState.showSecond
+          : CrossFadeState.showFirst,
       duration: const Duration(milliseconds: 260),
       firstCurve: Curves.easeOut,
       secondCurve: Curves.easeOut,
@@ -455,8 +467,9 @@ class _TransactionFormState extends ConsumerState<_TransactionForm> {
     final Color? accent = parseHexColor(account.color);
     final double radius = layout.radius.xxl;
     final double spacing = layout.spacing.section;
-    final String initials =
-        account.name.isNotEmpty ? account.name.substring(0, 1) : '';
+    final String initials = account.name.isNotEmpty
+        ? account.name.substring(0, 1)
+        : '';
 
     return InkWell(
       onTap: onTap,
@@ -570,9 +583,7 @@ class _AccountDropdownFieldState extends ConsumerState<_AccountDropdownField> {
         Padding(
           padding: EdgeInsets.only(
             left: 2,
-            right: index == accounts.length - 1
-                ? 2
-                : spacing.between / 2 + 2,
+            right: index == accounts.length - 1 ? 2 : spacing.between / 2 + 2,
           ),
           child: _AccountSelectionCard(
             account: accounts[index],
@@ -581,7 +592,8 @@ class _AccountDropdownFieldState extends ConsumerState<_AccountDropdownField> {
               accounts[index].currency,
               strings.localeName,
             ),
-            isSelected: resolvedAccountId != null &&
+            isSelected:
+                resolvedAccountId != null &&
                 accounts[index].id == resolvedAccountId,
             onTap: () => _selectAccount(accounts[index].id),
           ),
@@ -593,9 +605,7 @@ class _AccountDropdownFieldState extends ConsumerState<_AccountDropdownField> {
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         physics: const BouncingScrollPhysics(),
-        child: Row(
-          children: accountCards,
-        ),
+        child: Row(children: accountCards),
       ),
     );
   }
@@ -611,10 +621,9 @@ class _AccountDropdownFieldState extends ConsumerState<_AccountDropdownField> {
       () => NumberFormat.currency(locale: locale, symbol: symbol),
     );
   }
-
 }
 
-class _AccountSelectionCard extends StatelessWidget {
+class _AccountSelectionCard extends StatefulWidget {
   const _AccountSelectionCard({
     required this.account,
     required this.formatter,
@@ -628,47 +637,90 @@ class _AccountSelectionCard extends StatelessWidget {
   final VoidCallback onTap;
 
   @override
+  State<_AccountSelectionCard> createState() => _AccountSelectionCardState();
+}
+
+class _AccountSelectionCardState extends State<_AccountSelectionCard>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    )..repeat(reverse: true);
+    _animation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
-    final Color? accountColor = parseHexColor(account.color);
+    final Color? accountColor = parseHexColor(widget.account.color);
     final _AccountSelectionCardPalette palette =
         _AccountSelectionCardPalette.fromTheme(
-      theme.colorScheme,
-      accountColor: accountColor,
-    );
+          theme.colorScheme,
+          accountColor: accountColor,
+        );
     const double cardRadius = 16;
     final BorderRadius borderRadius = BorderRadius.circular(cardRadius);
-    final TextStyle labelStyle = (theme.textTheme.labelSmall ??
-            const TextStyle(fontSize: 11, height: 1.45))
-        .copyWith(
-      color: palette.support,
-      letterSpacing: 0.5,
-      fontWeight: FontWeight.w600,
-    );
-    final TextStyle balanceStyle = (theme.textTheme.titleMedium ??
-            const TextStyle(fontSize: 16, height: 20 / 16))
-        .copyWith(
-      color: palette.emphasis,
-      fontWeight: FontWeight.w600,
-    );
+    final TextStyle labelStyle =
+        (theme.textTheme.labelSmall ??
+                const TextStyle(fontSize: 11, height: 1.45))
+            .copyWith(
+              color: palette.support,
+              letterSpacing: 0.5,
+              fontWeight: FontWeight.w600,
+            );
+    final TextStyle balanceStyle =
+        (theme.textTheme.titleMedium ??
+                const TextStyle(fontSize: 16, height: 20 / 16))
+            .copyWith(color: palette.emphasis, fontWeight: FontWeight.w600);
 
     const double cardHeight = 72;
-    final Border? outline = isSelected
-        ? Border.all(color: theme.colorScheme.primary, width: 1)
-        : null;
-    final EdgeInsetsGeometry outerPadding =
-        isSelected ? const EdgeInsets.all(4) : EdgeInsets.zero;
+    final EdgeInsetsGeometry outerPadding = widget.isSelected
+        ? const EdgeInsets.all(4)
+        : EdgeInsets.zero;
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: onTap,
+        onTap: widget.onTap,
         borderRadius: borderRadius,
-        child: Container(
-          padding: outerPadding,
-          decoration: BoxDecoration(
-            border: outline,
-            borderRadius: borderRadius,
-          ),
+        child: AnimatedBuilder(
+          animation: _animation,
+          builder: (BuildContext context, Widget? child) {
+            final List<BoxShadow>? boxShadow = widget.isSelected
+                ? <BoxShadow>[
+                    BoxShadow(
+                      color: (accountColor ?? theme.colorScheme.primary)
+                          .withOpacity(0.4 + (0.2 * _animation.value)),
+                      blurRadius: 8 + (4 * _animation.value),
+                      spreadRadius: 1 + (1 * _animation.value),
+                    ),
+                  ]
+                : null;
+
+            return Container(
+              padding: outerPadding,
+              decoration: BoxDecoration(
+                borderRadius: borderRadius,
+                boxShadow: boxShadow,
+              ),
+              child: child,
+            );
+          },
           child: SizedBox(
             width: 160,
             height: cardHeight,
@@ -689,14 +741,14 @@ class _AccountSelectionCard extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
                       Text(
-                        account.name,
+                        widget.account.name,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: labelStyle,
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        formatter.format(account.balance),
+                        widget.formatter.format(widget.account.balance),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: balanceStyle,
@@ -724,14 +776,16 @@ class _AccountSelectionCardPalette {
     ColorScheme colorScheme, {
     Color? accountColor,
   }) {
-    final Color background =
-        accountColor ?? colorScheme.surfaceContainerHigh;
-    final Brightness brightness =
-        ThemeData.estimateBrightnessForColor(background);
-    final Color emphasis =
-        brightness == Brightness.dark ? Colors.white : Colors.black87;
-    final Color support =
-        brightness == Brightness.dark ? Colors.white70 : Colors.black54;
+    final Color background = accountColor ?? colorScheme.surfaceContainerHigh;
+    final Brightness brightness = ThemeData.estimateBrightnessForColor(
+      background,
+    );
+    final Color emphasis = brightness == Brightness.dark
+        ? Colors.white
+        : Colors.black87;
+    final Color support = brightness == Brightness.dark
+        ? Colors.white70
+        : Colors.black54;
     return _AccountSelectionCardPalette(
       background: background,
       emphasis: emphasis,
@@ -874,8 +928,10 @@ class _CategoryDropdownFieldState
     required bool showFavoritesInHeader,
     required bool showOtherCategories,
   }) {
-    final bool headerChanged =
-        !_areCategoryListsEqual(headerCategories, _cachedHeaderCategories);
+    final bool headerChanged = !_areCategoryListsEqual(
+      headerCategories,
+      _cachedHeaderCategories,
+    );
     final bool otherChanged = showOtherCategories
         ? !_areCategoryListsEqual(otherCategories, _cachedOtherCategories)
         : _cachedOtherCategories.isNotEmpty;
@@ -894,15 +950,19 @@ class _CategoryDropdownFieldState
     _cachedShowFavoritesInHeader = showFavoritesInHeader;
     _cachedSelectedCategoryId = selectedCategoryId;
     _headerChipWidgets = headerCategories
-        .map((Category category) =>
-            _buildCategoryChip(category, selectedCategoryId))
+        .map(
+          (Category category) =>
+              _buildCategoryChip(category, selectedCategoryId),
+        )
         .toList(growable: false);
 
     if (showOtherCategories) {
       _cachedOtherCategories = otherCategories;
       _otherChipWidgets = otherCategories
-          .map((Category category) =>
-              _buildCategoryChip(category, selectedCategoryId))
+          .map(
+            (Category category) =>
+                _buildCategoryChip(category, selectedCategoryId),
+          )
           .toList(growable: false);
     } else {
       _cachedOtherCategories = const <Category>[];
@@ -910,12 +970,13 @@ class _CategoryDropdownFieldState
     }
   }
 
-  bool _areCategoryListsEqual(
-    List<Category> first,
-    List<Category> second,
-  ) {
-    final List<String> firstIds = first.map((Category category) => category.id).toList();
-    final List<String> secondIds = second.map((Category category) => category.id).toList();
+  bool _areCategoryListsEqual(List<Category> first, List<Category> second) {
+    final List<String> firstIds = first
+        .map((Category category) => category.id)
+        .toList();
+    final List<String> secondIds = second
+        .map((Category category) => category.id)
+        .toList();
     return const ListEquality<String>().equals(firstIds, secondIds);
   }
 
@@ -942,7 +1003,9 @@ class _CategoryDropdownFieldState
     final TransactionFormControllerProvider transactionProvider =
         transactionFormControllerProvider(widget.formArgs);
     final String? selectedCategoryId = ref.watch(
-      transactionProvider.select((TransactionFormState state) => state.categoryId),
+      transactionProvider.select(
+        (TransactionFormState state) => state.categoryId,
+      ),
     );
     final TransactionType type = ref.watch(
       transactionProvider.select((TransactionFormState state) => state.type),
@@ -974,15 +1037,17 @@ class _CategoryDropdownFieldState
       for (final Category category in favoriteCategories)
         if (!hasSelection || category.id != selectedCategoryId) category,
     ];
-    final List<Category> otherCategories = filtered.where((Category category) {
-      if (category.isFavorite) {
-        return false;
-      }
-      if (!hasSelection) {
-        return true;
-      }
-      return category.id != selectedCategory!.id;
-    }).toList(growable: false);
+    final List<Category> otherCategories = filtered
+        .where((Category category) {
+          if (category.isFavorite) {
+            return false;
+          }
+          if (!hasSelection) {
+            return true;
+          }
+          return category.id != selectedCategory!.id;
+        })
+        .toList(growable: false);
     final String buttonLabel = _showAll
         ? strings.addTransactionHideCategories
         : strings.addTransactionShowAllCategories;
@@ -990,10 +1055,10 @@ class _CategoryDropdownFieldState
       if (selectedCategory != null) selectedCategory,
       if (showFavoritesInHeader) ...headerFavorites,
     ];
-    final bool showOtherCategories =
-        _showAll && otherCategories.isNotEmpty;
-    final List<Category> otherDisplayCategories =
-        showOtherCategories ? otherCategories : const <Category>[];
+    final bool showOtherCategories = _showAll && otherCategories.isNotEmpty;
+    final List<Category> otherDisplayCategories = showOtherCategories
+        ? otherCategories
+        : const <Category>[];
     _updateCategoryChipCache(
       headerCategories: headerCategories,
       otherCategories: otherDisplayCategories,
@@ -1030,10 +1095,9 @@ class _CategoryDropdownFieldState
           Align(
             alignment: Alignment.centerRight,
             child: TextButton(
-              onPressed:
-                  otherCategories.isEmpty && favoriteCategories.isEmpty
-                      ? null
-                      : _toggleShowAll,
+              onPressed: otherCategories.isEmpty && favoriteCategories.isEmpty
+                  ? null
+                  : _toggleShowAll,
               style: TextButton.styleFrom(
                 padding: EdgeInsets.zero,
                 minimumSize: const Size(126, 20),
@@ -1080,18 +1144,14 @@ class _CategoryDropdownFieldState
     return Container(
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerHigh,
-        borderRadius:
-            BorderRadius.circular(context.kopimLayout.radius.xxl),
+        borderRadius: BorderRadius.circular(context.kopimLayout.radius.xxl),
       ),
       padding: const EdgeInsets.all(24),
       child: child,
     );
   }
 
-  Widget _buildCategoryChip(
-    Category category,
-    String? selectedCategoryId,
-  ) {
+  Widget _buildCategoryChip(Category category, String? selectedCategoryId) {
     final bool selected = category.id == selectedCategoryId;
     final IconData? iconData = resolvePhosphorIconData(category.icon);
     final Color? categoryColor = parseHexColor(category.color);
@@ -1282,7 +1342,8 @@ class _AmountFieldState extends ConsumerState<_AmountField> {
   }
 
   void _notifyAmountCommitted() {
-    final bool isValid = ref
+    final bool isValid =
+        ref
             .read(transactionFormControllerProvider(widget.formArgs))
             .parsedAmount !=
         null;
@@ -1406,9 +1467,7 @@ class _SectionHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final TextStyle resolvedHelperStyle =
         helperStyle ?? labelStyle.copyWith(fontWeight: FontWeight.w400);
-    final List<Widget> children = <Widget>[
-      Text(label, style: labelStyle),
-    ];
+    final List<Widget> children = <Widget>[Text(label, style: labelStyle)];
     if (helper != null && helper!.isNotEmpty) {
       children
         ..add(const SizedBox(height: 4))

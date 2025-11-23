@@ -2,21 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/core/formatting/currency_symbols.dart';
-import 'package:kopim/core/utils/helpers.dart';
-import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/accounts/presentation/controllers/account_details_providers.dart';
 import 'package:kopim/features/accounts/presentation/edit_account_screen.dart';
+import 'package:kopim/features/accounts/presentation/widgets/account_transaction_list_tile.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
+import 'package:kopim/features/home/domain/models/day_section.dart';
+import 'package:kopim/features/home/domain/use_cases/group_transactions_by_day_use_case.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
-import 'package:kopim/features/transactions/presentation/widgets/transaction_editor.dart';
+import 'package:kopim/features/transactions/presentation/widgets/transaction_tile_formatters.dart';
 import 'package:kopim/l10n/app_localizations.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class AccountDetailsScreen extends ConsumerStatefulWidget {
-  const AccountDetailsScreen({super.key, required this.accountId});
+  const AccountDetailsScreen({required this.accountId, super.key});
 
   static const String routeName = '/accounts/details';
 
@@ -158,12 +159,10 @@ class _AccountDetailsScreenState extends ConsumerState<AccountDetailsScreen> {
               ),
             );
 
-            final Widget transactionsSection = transactionsAsync.when(
+            final Widget transactionsList = transactionsAsync.when(
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (Object error, _) => _ErrorMessage(
-                message: strings.accountDetailsTransactionsError(
-                  error.toString(),
-                ),
+                message: strings.accountDetailsError(error.toString()),
               ),
               data: (List<TransactionEntity> transactions) {
                 if (transactions.isEmpty) {
@@ -171,19 +170,17 @@ class _AccountDetailsScreenState extends ConsumerState<AccountDetailsScreen> {
                     message: strings.accountDetailsTransactionsEmpty,
                   );
                 }
-
-                return Column(
-                  children: transactions.map((TransactionEntity transaction) {
-                    return _AccountTransactionTile(
-                      transaction: transaction,
-                      account: account,
-                      currencyFormat: currencyFormat,
-                      strings: strings,
-                      category: transaction.categoryId == null
-                          ? null
-                          : categoriesById[transaction.categoryId!],
-                    );
-                  }).toList(),
+                final GroupTransactionsByDayUseCase groupUseCase = ref.watch(
+                  groupTransactionsByDayUseCaseProvider,
+                );
+                final List<DaySection> sections = groupUseCase(
+                  transactions: transactions,
+                );
+                return _buildTransactionsList(
+                  sections,
+                  strings,
+                  account.currency,
+                  categoriesById,
                 );
               },
             );
@@ -192,11 +189,11 @@ class _AccountDetailsScreenState extends ConsumerState<AccountDetailsScreen> {
               padding: padding,
               children: <Widget>[
                 summarySection,
-                const SizedBox(height: 24),
+                const SizedBox(height: 16),
                 filterButton,
                 filterPanel,
-                if (_filtersExpanded) const SizedBox(height: 16),
-                transactionsSection,
+                const SizedBox(height: 16),
+                transactionsList,
               ],
             );
           },
@@ -220,6 +217,72 @@ class _AccountDetailsScreenState extends ConsumerState<AccountDetailsScreen> {
     if (result == AccountEditResult.deleted) {
       Navigator.of(context).pop();
     }
+  }
+
+  Widget _buildTransactionsList(
+    List<DaySection> sections,
+    AppLocalizations strings,
+    String currency,
+    Map<String, Category> categoriesById,
+  ) {
+    final ThemeData theme = Theme.of(context);
+    final String currencySymbol = resolveCurrencySymbol(
+      currency,
+      locale: strings.localeName,
+    );
+    final DateTime today = DateUtils.dateOnly(DateTime.now());
+    final DateTime yesterday = DateUtils.dateOnly(
+      today.subtract(const Duration(days: 1)),
+    );
+    final DateFormat headerFormat = TransactionTileFormatters.dayHeader(
+      strings.localeName,
+    );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        for (int i = 0; i < sections.length; i++) ...<Widget>[
+          if (i > 0) const SizedBox(height: 24),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Text(
+              _formatSectionTitle(
+                date: sections[i].date,
+                today: today,
+                yesterday: yesterday,
+                dateFormat: headerFormat,
+                strings: strings,
+              ),
+              style: theme.textTheme.titleMedium,
+            ),
+          ),
+          for (final TransactionEntity transaction in sections[i].transactions)
+            AccountTransactionListTile(
+              transaction: transaction,
+              category: categoriesById[transaction.categoryId],
+              currencySymbol: currencySymbol,
+              strings: strings,
+            ),
+        ],
+      ],
+    );
+  }
+
+  String _formatSectionTitle({
+    required DateTime date,
+    required DateTime today,
+    required DateTime yesterday,
+    required DateFormat dateFormat,
+    required AppLocalizations strings,
+  }) {
+    if (date.isAtSameMomentAs(today)) {
+      return strings.homeTransactionsTodayLabel;
+    }
+    if (date.isAtSameMomentAs(yesterday)) {
+      return strings.homeTransactionsYesterdayLabel;
+    }
+    final String formatted = dateFormat.format(date);
+    return toBeginningOfSentenceCase(formatted) ?? formatted;
   }
 }
 
@@ -447,138 +510,6 @@ class _AccountTransactionsFilterPanel extends ConsumerWidget {
           label: Text(strings.accountDetailsFiltersClear),
         ),
       ],
-    );
-  }
-}
-
-class _AccountTransactionTile extends ConsumerWidget {
-  const _AccountTransactionTile({
-    required this.transaction,
-    required this.account,
-    required this.currencyFormat,
-    required this.strings,
-    this.category,
-  });
-
-  final TransactionEntity transaction;
-  final AccountEntity account;
-  final NumberFormat currencyFormat;
-  final AppLocalizations strings;
-  final Category? category;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final ThemeData theme = Theme.of(context);
-    final bool isIncome =
-        transaction.type == TransactionType.income.storageValue;
-    final Color amountColor = isIncome
-        ? theme.colorScheme.primary
-        : theme.colorScheme.error;
-    final String amountText = currencyFormat.format(transaction.amount.abs());
-    final PhosphorIconData? categoryIcon = resolvePhosphorIconData(
-      category?.icon,
-    );
-    final Color? categoryColor = parseHexColor(category?.color);
-    final Color avatarIconColor = categoryColor != null
-        ? (ThemeData.estimateBrightnessForColor(categoryColor) ==
-                  Brightness.dark
-              ? Colors.white
-              : Colors.black87)
-        : theme.colorScheme.onSurfaceVariant;
-    final DateFormat dateFormat = DateFormat.yMMMd(strings.localeName);
-
-    return Dismissible(
-      key: ValueKey<String>(transaction.id),
-      direction: DismissDirection.endToStart,
-      background: buildDeleteBackground(theme.colorScheme.error),
-      confirmDismiss: (DismissDirection direction) async {
-        return deleteTransactionWithFeedback(
-          context: context,
-          ref: ref,
-          transactionId: transaction.id,
-          strings: strings,
-        );
-      },
-      child: Card(
-        margin: const EdgeInsets.symmetric(vertical: 6),
-        elevation: 0,
-        surfaceTintColor: Colors.transparent,
-        child: InkWell(
-          borderRadius: const BorderRadius.all(Radius.circular(12)),
-          onTap: () => showTransactionEditorSheet(
-            context: context,
-            ref: ref,
-            transaction: transaction,
-            submitLabel: strings.editTransactionSubmit,
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                CircleAvatar(
-                  backgroundColor:
-                      categoryColor ??
-                      theme.colorScheme.surfaceContainerHighest,
-                  foregroundColor: avatarIconColor,
-                  child: categoryIcon != null
-                      ? Icon(categoryIcon)
-                      : const Icon(Icons.category_outlined),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Text(
-                        category?.name ??
-                            strings.accountDetailsTransactionsUncategorized,
-                        style: theme.textTheme.bodyMedium,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${dateFormat.format(transaction.date)} · '
-                        '${DateFormat.Hm(strings.localeName).format(transaction.date)}',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                      if (transaction.note != null &&
-                          transaction.note!.isNotEmpty)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 4),
-                          child: Text(
-                            transaction.note!,
-                            style: theme.textTheme.bodySmall,
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: <Widget>[
-                    Text(
-                      amountText,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        color: amountColor,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      isIncome
-                          ? strings.accountDetailsTypeIncome
-                          : strings.accountDetailsTypeExpense,
-                      style: theme.textTheme.bodySmall,
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
     );
   }
 }

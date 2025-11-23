@@ -30,8 +30,7 @@
           return;
         }
         hasReloaded = true;
-        console.info('[kopim-sw] Активирован обновлённый service worker, перезагружаем приложение.');
-        window.location.reload();
+        console.info('[kopim-sw] Активирован обновлённый service worker. Перезагрузите страницу, чтобы увидеть изменения.');
       });
     } catch (error) {
       console.error('[kopim-sw] Ошибка регистрации service worker', error);

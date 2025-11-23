@@ -137,6 +137,22 @@ NavigationTabContent buildAnalyticsTabContent(
       final AnalyticsFilterState filterState = ref.watch(
         analyticsFilterControllerProvider,
       );
+      final DateTime activeAnchor =
+          filterState.monthAnchor ?? filterState.dateRange.start;
+      final DateTime currentMonthStart = DateTime(
+        DateTime.now().year,
+        DateTime.now().month,
+      );
+      final DateTime today = DateUtils.dateOnly(DateTime.now());
+      final bool isMonthBased = filterState.period == AnalyticsPeriodPreset.thisMonth ||
+          filterState.period == AnalyticsPeriodPreset.customMonth;
+      final DateTime anchorForBounds = isMonthBased
+          ? DateTime(activeAnchor.year, activeAnchor.month)
+          : DateUtils.dateOnly(activeAnchor);
+      final bool canGoNextRange = isMonthBased
+          ? anchorForBounds.isBefore(currentMonthStart)
+          : filterState.dateRange.end.isBefore(today);
+      final bool canGoPreviousRange = anchorForBounds.isAfter(DateTime(2000));
 
       final List<Category> categories =
           categoriesAsync.value ?? const <Category>[];
@@ -207,8 +223,7 @@ NavigationTabContent buildAnalyticsTabContent(
                   strings: strings,
                 ),
               )
-            else if (overview == null ||
-                (overview.totalIncome == 0 && overview.totalExpense == 0))
+            else if (overview == null)
               SliverFillRemaining(
                 hasScrollBody: false,
                 child: _AnalyticsEmpty(strings: strings),
@@ -227,6 +242,15 @@ NavigationTabContent buildAnalyticsTabContent(
                     categories: categories,
                     filterState: filterState,
                     strings: strings,
+                    activeAnchor: activeAnchor,
+                    canGoNextRange: canGoNextRange,
+                    canGoPreviousRange: canGoPreviousRange,
+                    onGoPreviousRange: () => ref
+                        .read(analyticsFilterControllerProvider.notifier)
+                        .goToPreviousRangeStep(),
+                    onGoNextRange: () => ref
+                        .read(analyticsFilterControllerProvider.notifier)
+                        .goToNextRangeStep(),
                   ),
                 ),
               ),
@@ -244,16 +268,25 @@ class _AnalyticsContent extends StatelessWidget {
     required this.categories,
     required this.filterState,
     required this.strings,
+    required this.activeAnchor,
+    required this.canGoNextRange,
+    required this.canGoPreviousRange,
+    required this.onGoPreviousRange,
+    required this.onGoNextRange,
   });
 
   final AnalyticsOverview overview;
   final List<Category> categories;
   final AnalyticsFilterState filterState;
   final AppLocalizations strings;
+  final DateTime activeAnchor;
+  final bool canGoNextRange;
+  final bool canGoPreviousRange;
+  final VoidCallback onGoPreviousRange;
+  final VoidCallback onGoNextRange;
 
   @override
   Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
     final NumberFormat currencyFormat = NumberFormat.simpleCurrency(
       locale: strings.localeName,
     );
@@ -266,14 +299,23 @@ class _AnalyticsContent extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        if ((overview.topExpenseCategories.isEmpty || totalExpense == 0) &&
-            (overview.topIncomeCategories.isEmpty || totalIncome == 0))
-          Text(
-            strings.analyticsTopCategoriesEmpty,
-            style: theme.textTheme.bodyMedium,
-          )
-        else
-          _TopCategoriesPager(
+        AnimatedSwitcher(
+          duration: const Duration(milliseconds: 250),
+          transitionBuilder: (Widget child, Animation<double> animation) {
+            final Animation<Offset> slide = Tween<Offset>(
+              begin: const Offset(0.04, 0),
+              end: Offset.zero,
+            ).animate(CurvedAnimation(
+              parent: animation,
+              curve: Curves.easeInOut,
+            ));
+            return FadeTransition(
+              opacity: animation,
+              child: SlideTransition(position: slide, child: child),
+            );
+          },
+          child: _TopCategoriesPager(
+            key: ValueKey<DateTime>(activeAnchor),
             expenseBreakdowns: overview.topExpenseCategories,
             incomeBreakdowns: overview.topIncomeCategories,
             categoriesById: categoriesById,
@@ -281,7 +323,13 @@ class _AnalyticsContent extends StatelessWidget {
             totalIncome: totalIncome,
             currencyFormat: currencyFormat,
             strings: strings,
+            activeAnchor: activeAnchor,
+            canGoNextRange: canGoNextRange,
+            canGoPreviousRange: canGoPreviousRange,
+            onPreviousRange: onGoPreviousRange,
+            onNextRange: onGoNextRange,
           ),
+        ),
       ],
     );
   }
@@ -897,6 +945,7 @@ void _showAnalyticsInfo(BuildContext context) {
 
 class _TopCategoriesPager extends StatefulWidget {
   const _TopCategoriesPager({
+    super.key,
     required this.expenseBreakdowns,
     required this.incomeBreakdowns,
     required this.categoriesById,
@@ -904,6 +953,11 @@ class _TopCategoriesPager extends StatefulWidget {
     required this.totalIncome,
     required this.currencyFormat,
     required this.strings,
+    required this.activeAnchor,
+    required this.canGoNextRange,
+    required this.canGoPreviousRange,
+    required this.onPreviousRange,
+    required this.onNextRange,
   });
 
   final List<AnalyticsCategoryBreakdown> expenseBreakdowns;
@@ -913,6 +967,11 @@ class _TopCategoriesPager extends StatefulWidget {
   final double totalIncome;
   final NumberFormat currencyFormat;
   final AppLocalizations strings;
+  final DateTime activeAnchor;
+  final bool canGoNextRange;
+  final bool canGoPreviousRange;
+  final VoidCallback onPreviousRange;
+  final VoidCallback onNextRange;
 
   @override
   State<_TopCategoriesPager> createState() => _TopCategoriesPagerState();
@@ -973,28 +1032,27 @@ class _TopCategoriesPagerState extends State<_TopCategoriesPager> {
             strings: widget.strings,
           ),
           const SizedBox(height: 8),
-          GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onHorizontalDragEnd: (DragEndDetails details) {
-              _handleHorizontalDragEnd(details, pageCount);
-            },
-            child: AnimatedSize(
-              alignment: Alignment.topCenter,
-              duration: const Duration(milliseconds: 250),
-              curve: Curves.easeInOut,
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 200),
-                switchInCurve: Curves.easeInOut,
-                switchOutCurve: Curves.easeInOut,
-                child: pageCount == 0
-                    ? const SizedBox.shrink()
-                    : _TopCategoriesPage(
-                        key: ValueKey<int>(safeIndex),
-                        data: pages[safeIndex],
-                        currencyFormat: widget.currencyFormat,
-                        strings: widget.strings,
-                      ),
-              ),
+          AnimatedSize(
+            alignment: Alignment.topCenter,
+            duration: const Duration(milliseconds: 250),
+            curve: Curves.easeInOut,
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 200),
+              switchInCurve: Curves.easeInOut,
+              switchOutCurve: Curves.easeInOut,
+              child: pageCount == 0
+                  ? const SizedBox.shrink()
+                  : _TopCategoriesPage(
+                      key: ValueKey<int>(safeIndex),
+                      data: pages[safeIndex],
+                      currencyFormat: widget.currencyFormat,
+                      strings: widget.strings,
+                      activeAnchor: widget.activeAnchor,
+                      canGoNextRange: widget.canGoNextRange,
+                      canGoPreviousRange: widget.canGoPreviousRange,
+                      onPreviousRange: widget.onPreviousRange,
+                      onNextRange: widget.onNextRange,
+                    ),
             ),
           ),
         ],
@@ -1013,21 +1071,6 @@ class _TopCategoriesPagerState extends State<_TopCategoriesPager> {
     setState(() {
       _pageIndex = clamped;
     });
-  }
-
-  void _handleHorizontalDragEnd(DragEndDetails details, int pageCount) {
-    if (pageCount <= 1) {
-      return;
-    }
-    final double velocityX = details.velocity.pixelsPerSecond.dx;
-    if (velocityX.abs() < 150) {
-      return;
-    }
-    if (velocityX < 0 && _pageIndex < pageCount - 1) {
-      _setPage(_pageIndex + 1, pageCount: pageCount);
-    } else if (velocityX > 0 && _pageIndex > 0) {
-      _setPage(_pageIndex - 1, pageCount: pageCount);
-    }
   }
 
   List<AnalyticsChartItem> _mapBreakdowns(
@@ -1079,11 +1122,21 @@ class _TopCategoriesPage extends StatefulWidget {
     required this.data,
     required this.currencyFormat,
     required this.strings,
+    required this.activeAnchor,
+    required this.canGoNextRange,
+    required this.canGoPreviousRange,
+    required this.onPreviousRange,
+    required this.onNextRange,
   });
 
   final _TopCategoriesPageData data;
   final NumberFormat currencyFormat;
   final AppLocalizations strings;
+  final DateTime activeAnchor;
+  final bool canGoNextRange;
+  final bool canGoPreviousRange;
+  final VoidCallback onPreviousRange;
+  final VoidCallback onNextRange;
 
   @override
   State<_TopCategoriesPage> createState() => _TopCategoriesPageState();
@@ -1093,107 +1146,147 @@ class _TopCategoriesPageState extends State<_TopCategoriesPage> {
   String? _highlightKey;
 
   @override
+  void didUpdateWidget(covariant _TopCategoriesPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.activeAnchor != oldWidget.activeAnchor) {
+      _highlightKey = null;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    if (widget.data.items.isEmpty || widget.data.total <= 0) {
-      return Center(
-        child: Text(
-          widget.strings.analyticsTopCategoriesEmpty,
-          style: Theme.of(context).textTheme.bodyMedium,
-          textAlign: TextAlign.center,
-        ),
-      );
-    }
-
-    final ThemeData theme = Theme.of(context);
-    final Color backgroundColor = theme.colorScheme.surfaceContainerHighest
-        .withValues(alpha: 0.32);
-    final double capturedTotal = widget.data.total;
-    final List<AnalyticsChartItem> chartItems = <AnalyticsChartItem>[
-      ...widget.data.items,
-    ];
-    final double sumOfItems = chartItems.fold<double>(
-      0,
-      (double previous, AnalyticsChartItem item) =>
-          previous + item.absoluteAmount,
-    );
-    final double remainder = (capturedTotal - sumOfItems).clamp(
-      0,
-      double.infinity,
-    );
-    if (remainder > 0.01) {
-      chartItems.add(
+    final Widget content;
+    final bool isEmptyData =
+        widget.data.items.isEmpty || widget.data.total <= 0;
+    if (isEmptyData) {
+      final ThemeData theme = Theme.of(context);
+      final Color placeholderColor =
+          theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.7);
+      final List<AnalyticsChartItem> placeholderItems = <AnalyticsChartItem>[
         AnalyticsChartItem(
-          key: '_others',
-          title: widget.strings.analyticsTopCategoriesOthers,
-          amount: remainder,
-          color: theme.colorScheme.outlineVariant,
+          key: '_placeholder',
+          title: widget.strings.analyticsEmptyState,
+          amount: 1,
+          color: placeholderColor,
         ),
+      ];
+      content = Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          _TopCategoriesSummary(
+            strings: widget.strings,
+            currencyFormat: widget.currencyFormat,
+            total: 0,
+            isIncome: widget.data.isIncome,
+            focusedItem: null,
+          ),
+          const SizedBox(height: 8),
+          _EmptyMonthChart(
+            items: placeholderItems,
+            color: placeholderColor,
+          ),
+          const SizedBox(height: 16),
+          Center(
+            child: Text(
+              widget.strings.analyticsEmptyState,
+              style: Theme.of(context).textTheme.bodyMedium,
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ],
       );
-    }
-
-    AnalyticsChartItem? focusedItem;
-    if (_highlightKey != null) {
-      focusedItem = chartItems.firstWhereOrNull(
-        (AnalyticsChartItem item) => item.key == _highlightKey,
+    } else {
+      final ThemeData theme = Theme.of(context);
+      final Color backgroundColor = theme.colorScheme.surfaceContainerHighest
+          .withValues(alpha: 0.32);
+      final double capturedTotal = widget.data.total;
+      final List<AnalyticsChartItem> chartItems = <AnalyticsChartItem>[
+        ...widget.data.items,
+      ];
+      final double sumOfItems = chartItems.fold<double>(
+        0,
+        (double previous, AnalyticsChartItem item) =>
+            previous + item.absoluteAmount,
       );
-    }
-
-    int? selectedIndex;
-    final String? focusKey = focusedItem?.key;
-    if (focusKey != null) {
-      final int candidateIndex = chartItems.indexWhere(
-        (AnalyticsChartItem item) => item.key == focusKey,
+      final double remainder = (capturedTotal - sumOfItems).clamp(
+        0,
+        double.infinity,
       );
-      if (candidateIndex >= 0) {
-        selectedIndex = candidateIndex;
+      if (remainder > 0.01) {
+        chartItems.add(
+          AnalyticsChartItem(
+            key: '_others',
+            title: widget.strings.analyticsTopCategoriesOthers,
+            amount: remainder,
+            color: theme.colorScheme.outlineVariant,
+          ),
+        );
       }
-    }
-    final List<AnalyticsChartItem> displayItems = chartItems;
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: <Widget>[
-        _TopCategoriesSummary(
-          strings: widget.strings,
-          currencyFormat: widget.currencyFormat,
-          total: capturedTotal,
-          isIncome: widget.data.isIncome,
-          focusedItem: focusedItem,
-        ),
-        const SizedBox(height: 8),
-        LayoutBuilder(
-          builder: (BuildContext context, BoxConstraints constraints) {
-            final Size screenSize = MediaQuery.of(context).size;
-            final double availableWidth =
-                constraints.maxWidth.isFinite && constraints.maxWidth > 0
-                ? constraints.maxWidth
-                : screenSize.width;
-            final double baseExtent = availableWidth * 0.7;
-            final double chartExtent = baseExtent
-                .clamp(220.0, 360.0)
-                .toDouble();
-            final double targetWidth = availableWidth
-                .clamp(240.0, screenSize.width)
-                .toDouble();
+      AnalyticsChartItem? focusedItem;
+      if (_highlightKey != null) {
+        focusedItem = chartItems.firstWhereOrNull(
+          (AnalyticsChartItem item) => item.key == _highlightKey,
+        );
+      }
 
-            final Widget chart = SizedBox(
-              height: chartExtent,
-              child: AnalyticsDonutChart(
-                items: displayItems,
-                backgroundColor: backgroundColor,
-                totalAmount: capturedTotal,
-                selectedIndex: selectedIndex,
-                onSegmentSelected: (int index) {
-                  if (index >= 0 && index < displayItems.length) {
-                    setState(() {
-                      final String key = displayItems[index].key;
-                      _highlightKey = _highlightKey == key ? null : key;
-                    });
-                  }
-                },
-              ),
-            );
+      int? selectedIndex;
+      final String? focusKey = focusedItem?.key;
+      if (focusKey != null) {
+        final int candidateIndex = chartItems.indexWhere(
+          (AnalyticsChartItem item) => item.key == focusKey,
+        );
+        if (candidateIndex >= 0) {
+          selectedIndex = candidateIndex;
+        }
+      }
+      final List<AnalyticsChartItem> displayItems = chartItems;
+
+      content = Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          _TopCategoriesSummary(
+            strings: widget.strings,
+            currencyFormat: widget.currencyFormat,
+            total: capturedTotal,
+            isIncome: widget.data.isIncome,
+            focusedItem: focusedItem,
+          ),
+          const SizedBox(height: 8),
+          LayoutBuilder(
+            builder: (BuildContext context, BoxConstraints constraints) {
+              final Size screenSize = MediaQuery.of(context).size;
+              final double availableWidth =
+                  constraints.maxWidth.isFinite && constraints.maxWidth > 0
+                  ? constraints.maxWidth
+                  : screenSize.width;
+              final double baseExtent = availableWidth * 0.7;
+              final double chartExtent = baseExtent
+                  .clamp(220.0, 360.0)
+                  .toDouble();
+              final double targetWidth = availableWidth
+                  .clamp(240.0, screenSize.width)
+                  .toDouble();
+
+              final Widget chart = SizedBox(
+                height: chartExtent,
+                child: AnalyticsDonutChart(
+                  items: displayItems,
+                  backgroundColor: backgroundColor,
+                  totalAmount: capturedTotal,
+                  selectedIndex: selectedIndex,
+                  onSegmentSelected: (int index) {
+                    if (index >= 0 && index < displayItems.length) {
+                      setState(() {
+                        final String key = displayItems[index].key;
+                        _highlightKey = _highlightKey == key ? null : key;
+                      });
+                    }
+                  },
+                ),
+              );
 
               return Align(
                 alignment: Alignment.center,
@@ -1210,16 +1303,81 @@ class _TopCategoriesPageState extends State<_TopCategoriesPage> {
             currencyFormat: widget.currencyFormat,
             total: capturedTotal,
             highlightedKey: _highlightKey,
-          onToggle: _handleToggle,
-        ),
-      ],
+            onToggle: _handleToggle,
+          ),
+        ],
+      );
+    }
+
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onHorizontalDragEnd: _handleChartHorizontalDragEnd,
+      child: content,
     );
+  }
+
+  void _handleChartHorizontalDragEnd(DragEndDetails details) {
+    const double threshold = 150;
+    final double velocityX = details.velocity.pixelsPerSecond.dx;
+    if (velocityX.abs() < threshold) {
+      return;
+    }
+    if (velocityX > 0 && widget.canGoPreviousRange) {
+      widget.onPreviousRange();
+    } else if (velocityX < 0 && widget.canGoNextRange) {
+      widget.onNextRange();
+    }
   }
 
   void _handleToggle(AnalyticsChartItem item) {
     setState(() {
       _highlightKey = _highlightKey == item.key ? null : item.key;
     });
+  }
+}
+
+class _EmptyMonthChart extends StatelessWidget {
+  const _EmptyMonthChart({
+    required this.items,
+    required this.color,
+  });
+
+  final List<AnalyticsChartItem> items;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints constraints) {
+        final Size screenSize = MediaQuery.of(context).size;
+        final double availableWidth =
+            constraints.maxWidth.isFinite && constraints.maxWidth > 0
+                ? constraints.maxWidth
+                : screenSize.width;
+        final double baseExtent = availableWidth * 0.7;
+        final double chartExtent =
+            baseExtent.clamp(220.0, 360.0).toDouble();
+        final double targetWidth =
+            availableWidth.clamp(240.0, screenSize.width).toDouble();
+
+        return Align(
+          alignment: Alignment.center,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: targetWidth),
+            child: SizedBox(
+              height: chartExtent,
+              child: AnalyticsDonutChart(
+                items: items,
+                backgroundColor: color.withValues(alpha: 0.2),
+                totalAmount: 1,
+                selectedIndex: null,
+                onSegmentSelected: null,
+              ),
+            ),
+          ),
+        );
+      },
+    );
   }
 }
 

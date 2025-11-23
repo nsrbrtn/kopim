@@ -17,8 +17,6 @@ class AnalyticsFilterState {
     this.monthAnchor,
   });
 
-  static const Object _unset = Object();
-
   factory AnalyticsFilterState.initial() {
     final DateTime now = DateTime.now();
     final DateTime start = DateTime(now.year, now.month);
@@ -31,6 +29,8 @@ class AnalyticsFilterState {
       monthAnchor: start,
     );
   }
+
+  static const Object _unset = Object();
 
   final DateTimeRange dateRange;
   final Set<String> accountIds;
@@ -99,6 +99,8 @@ extension AnalyticsFilterStateX on AnalyticsFilterState {
 
 @riverpod
 class AnalyticsFilterController extends _$AnalyticsFilterController {
+  static final DateTime _kMinSupportedDate = DateTime(2000);
+
   @override
   AnalyticsFilterState build() {
     return AnalyticsFilterState.initial();
@@ -156,6 +158,81 @@ class AnalyticsFilterController extends _$AnalyticsFilterController {
       monthAnchor: start,
       period: AnalyticsPeriodPreset.customMonth,
     );
+  }
+
+  void goToPreviousMonth() {
+    final DateTime active = _resolveActiveMonth();
+    final DateTime previous = DateTime(active.year, active.month - 1);
+    if (!previous.isBefore(_kMinSupportedDate)) {
+      selectMonth(previous);
+    }
+  }
+
+  void goToNextMonth() {
+    final DateTime active = _resolveActiveMonth();
+    final DateTime currentMonth = DateTime(DateTime.now().year, DateTime.now().month);
+    final DateTime next = DateTime(active.year, active.month + 1);
+    if (next.isAfter(currentMonth)) {
+      return;
+    }
+    selectMonth(next);
+  }
+
+  void goToPreviousRangeStep() {
+    final DateTime start = state.dateRange.start;
+    final DateTime end = state.dateRange.end;
+    if (start.isBefore(_kMinSupportedDate) || start.isAtSameMomentAs(_kMinSupportedDate)) {
+      return;
+    }
+    if (_isMonthBased()) {
+      goToPreviousMonth();
+      return;
+    }
+    final int spanDays = end.difference(start).inDays + 1;
+    DateTime newStart = start.subtract(Duration(days: spanDays));
+    DateTime newEnd = end.subtract(Duration(days: spanDays));
+    if (newStart.isBefore(_kMinSupportedDate)) {
+      newStart = _kMinSupportedDate;
+      newEnd = newStart.add(Duration(days: spanDays - 1));
+    }
+    state = state.copyWith(
+      dateRange: DateTimeRange(start: newStart, end: newEnd),
+      monthAnchor: null,
+    );
+  }
+
+  void goToNextRangeStep() {
+    final DateTime start = state.dateRange.start;
+    final DateTime end = state.dateRange.end;
+    final DateTime today = DateUtils.dateOnly(DateTime.now());
+    if (_isMonthBased()) {
+      goToNextMonth();
+      return;
+    }
+    if (!end.isBefore(today)) {
+      return;
+    }
+    final int spanDays = end.difference(start).inDays + 1;
+    DateTime newStart = start.add(Duration(days: spanDays));
+    DateTime newEnd = end.add(Duration(days: spanDays));
+    if (newEnd.isAfter(today)) {
+      newEnd = today;
+      newStart = newEnd.subtract(Duration(days: spanDays - 1));
+    }
+    state = state.copyWith(
+      dateRange: DateTimeRange(start: newStart, end: newEnd),
+      monthAnchor: null,
+    );
+  }
+
+  DateTime _resolveActiveMonth() {
+    final DateTime anchor = state.monthAnchor ?? state.dateRange.start;
+    return DateTime(anchor.year, anchor.month);
+  }
+
+  bool _isMonthBased() {
+    return state.period == AnalyticsPeriodPreset.thisMonth ||
+        state.period == AnalyticsPeriodPreset.customMonth;
   }
 
   void toggleAccount(String accountId) {
