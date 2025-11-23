@@ -18,12 +18,21 @@
 - [AnalyticsBarChart](AnalyticsBarChart.md) — столбчатая диаграмма для аналитики
 - [AnalyticsDonutChart](AnalyticsDonutChart.md) — круговая диаграмма с интерактивной подсветкой
 
-### Селекторы и выбор
+### Формы и ввод данных
+- [KopimTextField](KopimTextField.md) — кастомное текстовое поле с поддержкой иконок, валидации и многострочного режима
+- [KopimDropdownField](KopimDropdownField.md) — выпадающий список с анимацией и кастомным отображением значений
 - [AccountColorSelector](AccountColorSelector.md) — селектор цвета для счётов
+
+### UI-компоненты и контейнеры
+- [KopimFloatingActionButton](KopimFloatingActionButton.md) — кнопка действия с поддержкой обычного и расширенного режима
+- [KopimGlassSurface](KopimGlassSurface.md) — стеклянный эффект (glassmorphism) для премиум-дизайна
 
 ### Карточки и элементы списков
 - [BudgetCard](BudgetCard.md) — карточка бюджета с прогресс-индикатором
+- [BudgetMetric](BudgetMetric.md) — метрика бюджета (лейбл + значение)
 - [ReminderListItem](ReminderListItem.md) — элемент списка напоминаний
+- [GlowingAccountCard](GlowingAccountCard.md) — анимированная подсветка-змейка вокруг карточки счёта
+- [TransactionTypeSelector](TransactionTypeSelector.md) — сегментированный переключатель «расход/доход» в стиле Kopim
 
 ### Вспомогательные компоненты
 - [BudgetMetric](BudgetMetric.md) — метрика бюджета (лейбл + значение)

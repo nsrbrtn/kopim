@@ -867,7 +867,7 @@ class _GlowBorderPainter extends CustomPainter {
       colors: <Color>[
         _colorWithOpacity(color, 0.0),
         _colorWithOpacity(color, 0.0),
-        _colorWithOpacity(color, 0.32),
+        _colorWithOpacity(color, 0.75),
         _colorWithOpacity(color, 0.0),
         _colorWithOpacity(color, 0.0),
       ],
@@ -877,7 +877,7 @@ class _GlowBorderPainter extends CustomPainter {
     final Paint guidePaint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = guideThickness
-      ..color = _colorWithOpacity(color, 0.02);
+      ..color = _colorWithOpacity(color, 0.30);
 
     final Paint paint = Paint()
       ..style = PaintingStyle.stroke
@@ -899,9 +899,7 @@ class _GlowBorderPainter extends CustomPainter {
 }
 
 Color _colorWithOpacity(Color color, double opacity) =>
-    color.withValues(
-      alpha: (opacity.clamp(0.0, 1.0) * 255).toDouble(),
-    );
+    color.withValues(alpha: opacity.clamp(0.0, 1.0));
 
 class _AccountSelectionCardPalette {
   const _AccountSelectionCardPalette({
@@ -936,6 +934,16 @@ class _AccountSelectionCardPalette {
   final Color support;
 }
 
+/// Сегментированный переключатель «Расход/Доход» в стиле Kopim.
+///
+/// Стиль и анимация (для повторного использования):
+/// - Трек: `surfaceContainerHigh`, скругление 999.
+/// - Активная таблетка: цвет `primary` без прозрачности, скругление 999,
+///   анимация смещения `AnimatedPositioned` + `AnimatedContainer`
+///   с `Curves.easeOutBack` и длительностью 260 мс.
+/// - Текст: `labelLarge`, анимированное изменение толщины и масштаба
+///   (`AnimatedDefaultTextStyle` + `AnimatedScale`), выбранный цвет — `onPrimary`,
+///   невыбранный — `onSurface` c 80% прозрачностью.
 class _TransactionTypeSelector extends ConsumerWidget {
   const _TransactionTypeSelector({
     super.key,
@@ -966,7 +974,7 @@ class _TransactionTypeSelector extends ConsumerWidget {
       child: LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {
           final double segmentWidth = constraints.maxWidth / 2;
-          final Color accent = _kTypeSelectedColor;
+          final Color accent = theme.colorScheme.primary;
           const Duration duration = Duration(milliseconds: 260);
 
           return SizedBox(
@@ -994,7 +1002,7 @@ class _TransactionTypeSelector extends ConsumerWidget {
                     curve: Curves.easeOutBack,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(999),
-                      color: _colorWithOpacity(accent, 0.25),
+                      color: accent,
                       boxShadow: const <BoxShadow>[],
                     ),
                   ),
@@ -1008,6 +1016,7 @@ class _TransactionTypeSelector extends ConsumerWidget {
                         onTap: () => ref
                             .read(transactionProvider.notifier)
                             .updateType(TransactionType.expense),
+                        selectedTextColor: theme.colorScheme.onPrimary,
                       ),
                     ),
                     Expanded(
@@ -1017,6 +1026,7 @@ class _TransactionTypeSelector extends ConsumerWidget {
                         onTap: () => ref
                             .read(transactionProvider.notifier)
                             .updateType(TransactionType.income),
+                        selectedTextColor: theme.colorScheme.onPrimary,
                       ),
                     ),
                   ],
@@ -1643,11 +1653,13 @@ class _TypeSegmentItem extends StatelessWidget {
     required this.label,
     required this.selected,
     required this.onTap,
+    required this.selectedTextColor,
   });
 
   final String label;
   final bool selected;
   final VoidCallback onTap;
+  final Color selectedTextColor;
 
   @override
   Widget build(BuildContext context) {
@@ -1669,7 +1681,7 @@ class _TypeSegmentItem extends StatelessWidget {
             style: baseStyle.copyWith(
               fontWeight: selected ? FontWeight.w700 : FontWeight.w400,
               color: selected
-                  ? _kTypeSelectedTextColor
+                  ? selectedTextColor
                   : theme.colorScheme.onSurface.withOpacity(0.8),
             ),
             child: Text(label),

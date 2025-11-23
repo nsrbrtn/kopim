@@ -3,6 +3,7 @@
 import 'dart:math' as math;
 
 import 'package:firebase_remote_config/firebase_remote_config.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -12,6 +13,10 @@ import 'package:kopim/core/theme/data/dto/kopim_theme_tokens.dart';
 
 import 'package:kopim/core/services/analytics_service.dart';
 import 'package:kopim/core/services/logger_service.dart';
+import 'package:kopim/features/profile/domain/entities/auth_user.dart';
+import 'package:kopim/features/profile/domain/entities/profile.dart';
+import 'package:kopim/features/profile/presentation/controllers/auth_controller.dart';
+import 'package:kopim/features/profile/presentation/controllers/profile_controller.dart';
 
 const Duration _kDefaultAiRequestTimeout = Duration(seconds: 25);
 const Duration _kDefaultAiThrottleInterval = Duration(seconds: 2);
@@ -111,10 +116,47 @@ class GenerativeAiConfig {
   }
 }
 
-// Provider для locale (init по умолчанию ru, или из хранилища)
+// Provider для locale - читает из профиля пользователя
 final Provider<Locale> appLocaleProvider = Provider<Locale>((Ref ref) {
-  // Здесь можно читать из SharedPreferences или Drift для persistent locale
-  return const Locale('ru'); // По умолчанию русский, как в стиле проекта
+  // Получаем текущего пользователя
+  final AsyncValue<AuthUser?> authState = ref.watch(authControllerProvider);
+
+  // Если пользователь не авторизован, возвращаем русский по умолчанию
+  final AuthUser? authUser = authState.asData?.value;
+  if (authUser == null) {
+    debugPrint('🔴 [appLocaleProvider] No auth user, returning default ru');
+    return const Locale('ru');
+  }
+
+  // Пытаемся получить профиль пользователя
+  final AsyncValue<Profile?> profileState = ref.watch(
+    profileControllerProvider(authUser.uid),
+  );
+
+  // Извлекаем locale из профиля
+  final Profile? profile = profileState.asData?.value;
+  if (profile != null) {
+    final String localeString = profile.locale;
+    debugPrint('🟢 [appLocaleProvider] Profile locale: $localeString');
+    // Парсим locale строку (например, 'ru' или 'en')
+    final List<String> parts = localeString.split('-');
+    if (parts.isNotEmpty) {
+      final Locale result = Locale(
+        parts[0],
+        parts.length > 1 ? parts[1] : null,
+      );
+      debugPrint(
+        '🟢 [appLocaleProvider] Returning locale: ${result.toLanguageTag()}',
+      );
+      return result;
+    }
+  }
+
+  // Если профиль не загружен или locale не установлен, возвращаем русский
+  debugPrint(
+    '🟡 [appLocaleProvider] Profile not loaded or no locale, returning default ru',
+  );
+  return const Locale('ru');
 });
 
 // Другие providers: theme, auth и т.д.

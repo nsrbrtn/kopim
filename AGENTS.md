@@ -64,6 +64,7 @@
 * Human-in-the-loop: require review for any data-deleting or schema-changing action; keep change logs. Enforce least privilege and observability.
 * Expectation management: use AI for scaffolding, boilerplate, exploration; humans own final judgment.
 * Prompt hygiene: provide context, constraints, acceptance tests, and repo paths; iterate with short cycles.
+* **Documentation:** при создании кастомного компонента/виджета или архитектурного решения — обязательно создать документ в `docs/components/` (для UI-виджетов) или `docs/logic/` (для бизнес-логики) с описанием назначения, параметров, примеров использования и ссылками на исходный код.
 
 ## 8) Definition of Done (per PR)
 
