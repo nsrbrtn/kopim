@@ -5,5 +5,6 @@ class AvatarStorageException implements Exception {
   final String? originalMessage;
 
   @override
-  String toString() => 'AvatarStorageException(code: , message: )';
+  String toString() =>
+      'AvatarStorageException(code: $code, message: $originalMessage)';
 }

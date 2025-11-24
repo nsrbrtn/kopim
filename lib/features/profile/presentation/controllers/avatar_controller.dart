@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/features/profile/domain/entities/profile.dart';
@@ -27,7 +26,8 @@ class AvatarController extends _$AvatarController {
   }) async {
     state = const AsyncValue<void>.loading();
     try {
-      final bool storeOfflineOnly = await _shouldStoreOfflineOnly(uid);
+      // Всегда храним аватар локально (data URL), не трогаем Firebase Storage.
+      const bool storeOfflineOnly = true;
 
       final XFile? file = await _picker.pickImage(
         source: source == AvatarUploadSource.gallery
@@ -44,6 +44,11 @@ class AvatarController extends _$AvatarController {
       final Uint8List bytes = await file.readAsBytes();
       final String contentType =
           file.mimeType ?? _guessContentType(file.path) ?? 'image/jpeg';
+      final logger = ref.read(loggerServiceProvider);
+      logger.logInfo(
+        'Avatar upload start: source=$source, uid=$uid, '
+        'bytes=${bytes.lengthInBytes}, mime=$contentType, offlineOnly=$storeOfflineOnly',
+      );
       final UpdateProfileAvatarUseCase useCase = ref.read(
         updateProfileAvatarUseCaseProvider,
       );
@@ -62,8 +67,14 @@ class AvatarController extends _$AvatarController {
         ),
       );
       unawaited(recorder.record(result.events));
+      logger.logInfo(
+        'Avatar upload success: uid=$uid, bytes=${bytes.lengthInBytes}, mime=$contentType',
+      );
       state = const AsyncValue<void>.data(null);
     } catch (error, stackTrace) {
+      ref
+          .read(loggerServiceProvider)
+          .logError('Avatar upload failed for uid=$uid', error);
       state = AsyncValue<void>.error(error, stackTrace);
     }
   }
@@ -98,13 +109,8 @@ class AvatarController extends _$AvatarController {
   }
 
   Future<bool> _shouldStoreOfflineOnly(String uid) async {
-    final Connectivity connectivity = ref.read(connectivityProvider);
-    final List<ConnectivityResult> results = await connectivity
-        .checkConnectivity();
-    final bool isOffline = results.every(
-      (ConnectivityResult result) => result == ConnectivityResult.none,
-    );
-    return isOffline || uid.startsWith('guest-');
+    // Локальное хранение для всех пользователей: не загружаем в облако.
+    return true;
   }
 
   String? _guessContentType(String path) {

@@ -148,10 +148,7 @@ class _HomeBody extends StatelessWidget {
               slivers.add(HomeGamificationAppBar(userId: user.uid));
             } else {
               slivers.add(
-                _HomePinnedTitleAppBar(
-                  strings: strings,
-                  userId: user?.uid,
-                ),
+                _HomePinnedTitleAppBar(strings: strings, userId: user?.uid),
               );
             }
 
@@ -172,12 +169,7 @@ class _HomeBody extends StatelessWidget {
               nextTopPadding = 0;
             }
 
-            const EdgeInsets accountsPadding = EdgeInsets.fromLTRB(
-              8,
-              16,
-              8,
-              0,
-            );
+            const EdgeInsets accountsPadding = EdgeInsets.fromLTRB(8, 16, 8, 0);
             final Widget accountsSection = accountsAsync.when(
               data: (List<AccountEntity> accounts) => _AccountsList(
                 accounts: accounts,
@@ -245,9 +237,7 @@ class _HomeBody extends StatelessWidget {
                 dashboardPreferences != null &&
                 dashboardPreferences.showBudgetWidget) {
               addBoxSection(
-                HomeBudgetProgressCard(
-                  preferences: dashboardPreferences,
-                ),
+                HomeBudgetProgressCard(preferences: dashboardPreferences),
               );
             }
 
@@ -294,11 +284,7 @@ class _HomeBody extends StatelessWidget {
                 sliver: SliverToBoxAdapter(child: transactionsSection),
               ),
             );
-            slivers.add(
-              const SliverToBoxAdapter(
-                child: SizedBox(height: 80),
-              ),
-            );
+            slivers.add(const SliverToBoxAdapter(child: SizedBox(height: 80)));
 
             return CustomScrollView(slivers: slivers);
           },
@@ -358,11 +344,7 @@ class _HomeSecondaryPanel extends StatelessWidget {
     }
 
     if (preferences != null && preferences.showBudgetWidget) {
-      addSection(
-        HomeBudgetProgressCard(
-          preferences: preferences,
-        ),
-      );
+      addSection(HomeBudgetProgressCard(preferences: preferences));
     }
 
     if (preferences?.showSavingsWidget ?? false) {
@@ -405,12 +387,12 @@ class _HomeSecondaryPanel extends StatelessWidget {
         KopimExpandableSectionPlayful(
           title: strings.settingsHomeSectionTitle,
           initiallyExpanded: true,
-                child: Text(
-                  strings.homeBudgetWidgetEmpty,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.72),
-                  ),
-                ),
+          child: Text(
+            strings.homeBudgetWidgetEmpty,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.72),
+            ),
+          ),
         ),
       );
     }
@@ -430,10 +412,7 @@ class _HomeSecondaryPanel extends StatelessWidget {
 }
 
 class _HomePinnedTitleAppBar extends ConsumerWidget {
-  const _HomePinnedTitleAppBar({
-    required this.strings,
-    required this.userId,
-  });
+  const _HomePinnedTitleAppBar({required this.strings, required this.userId});
 
   final AppLocalizations strings;
   final String? userId;
@@ -526,8 +505,7 @@ class _AddTransactionButton extends StatelessWidget {
     final bool isDark = theme.brightness == Brightness.dark;
     final ColorScheme colorScheme = theme.colorScheme;
     final KopimLayout layout = theme.kopimLayout;
-    final BorderRadius borderRadius =
-        BorderRadius.circular(layout.radius.xxl);
+    final BorderRadius borderRadius = BorderRadius.circular(layout.radius.xxl);
     final double fabSize = layout.spacing.section + 64;
     return SizedBox(
       height: fabSize,
@@ -544,10 +522,7 @@ class _AddTransactionButton extends StatelessWidget {
           decorationColor: Colors.transparent,
           foregroundColor: colorScheme.primary,
           iconSize: layout.iconSizes.xl,
-          icon: Icon(
-            Icons.add,
-            color: colorScheme.primary,
-          ),
+          icon: Icon(Icons.add, color: colorScheme.primary),
           onPressed: () async {
             final TransactionFormResult? result = await Navigator.of(context)
                 .push<TransactionFormResult>(
@@ -558,9 +533,11 @@ class _AddTransactionButton extends StatelessWidget {
             if (!context.mounted || result == null) {
               return;
             }
-            final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context)
-              ..hideCurrentSnackBar();
-            final TransactionEntity? createdTransaction = result.createdTransaction;
+            final ScaffoldMessengerState messenger = ScaffoldMessenger.of(
+              context,
+            )..hideCurrentSnackBar();
+            final TransactionEntity? createdTransaction =
+                result.createdTransaction;
             if (createdTransaction == null) {
               messenger.showSnackBar(
                 SnackBar(content: Text(strings.addTransactionSuccess)),
@@ -573,9 +550,8 @@ class _AddTransactionButton extends StatelessWidget {
                 action: SnackBarAction(
                   label: strings.commonUndo,
                   onPressed: () {
-                    final ProviderContainer container = ProviderScope.containerOf(
-                      context,
-                    );
+                    final ProviderContainer container =
+                        ProviderScope.containerOf(context);
                     container
                         .read(transactionActionsControllerProvider.notifier)
                         .deleteTransaction(createdTransaction.id)
@@ -702,15 +678,16 @@ class _AccountsListState extends State<_AccountsList> {
           for (int i = 0; i < widget.accounts.length; i++)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 6),
-                child: _AccountCard(
-                  account: widget.accounts[i],
-                  strings: widget.strings,
-                  currencyFormat: NumberFormat.currency(
+              child: _AccountCard(
+                account: widget.accounts[i],
+                strings: widget.strings,
+                currencyFormat: NumberFormat.currency(
+                  locale: localeName,
+                  symbol: resolveCurrencySymbol(
+                    widget.accounts[i].currency,
                     locale: localeName,
-                    symbol:
-                        resolveCurrencySymbol(widget.accounts[i].currency,
-                            locale: localeName),
                   ),
+                ),
                 summary:
                     widget.monthlySummaries[widget.accounts[i].id] ??
                     const HomeAccountMonthlySummary(income: 0, expense: 0),
@@ -777,8 +754,10 @@ class _AccountsListState extends State<_AccountsList> {
                   final AccountEntity account = widget.accounts[index];
                   final NumberFormat currencyFormat = NumberFormat.currency(
                     locale: localeName,
-                    symbol:
-                        resolveCurrencySymbol(account.currency, locale: localeName),
+                    symbol: resolveCurrencySymbol(
+                      account.currency,
+                      locale: localeName,
+                    ),
                     decimalDigits: 0,
                   );
                   final HomeAccountMonthlySummary summary =
@@ -858,29 +837,32 @@ class _AccountCard extends StatelessWidget {
     );
     final double cardRadius = context.kopimLayout.radius.xxl;
     final BorderRadius borderRadius = BorderRadius.circular(cardRadius);
-    final TextStyle labelStyle = (theme.textTheme.labelSmall ??
-            const TextStyle(fontSize: 11, height: 1.45))
-        .copyWith(
-      color: palette.support,
-      letterSpacing: 0.5,
-      fontWeight: FontWeight.w500,
-    );
-    final TextStyle balanceStyle = (theme.textTheme.displaySmall ??
-            theme.textTheme.headlineMedium ??
-            const TextStyle(fontSize: 36, height: 44 / 36))
-        .copyWith(
-      fontWeight: FontWeight.w500,
-      color: palette.emphasis,
-      letterSpacing: 0.1,
-    );
-    final TextStyle summaryTextStyle = (theme.textTheme.titleSmall ??
-            theme.textTheme.titleMedium ??
-            const TextStyle(fontSize: 14))
-        .copyWith(
-      color: palette.emphasis,
-      fontWeight: FontWeight.w600,
-      letterSpacing: 0.1,
-    );
+    final TextStyle labelStyle =
+        (theme.textTheme.labelSmall ??
+                const TextStyle(fontSize: 11, height: 1.45))
+            .copyWith(
+              color: palette.support,
+              letterSpacing: 0.5,
+              fontWeight: FontWeight.w500,
+            );
+    final TextStyle balanceStyle =
+        (theme.textTheme.displaySmall ??
+                theme.textTheme.headlineMedium ??
+                const TextStyle(fontSize: 36, height: 44 / 36))
+            .copyWith(
+              fontWeight: FontWeight.w500,
+              color: palette.emphasis,
+              letterSpacing: 0.1,
+            );
+    final TextStyle summaryTextStyle =
+        (theme.textTheme.titleSmall ??
+                theme.textTheme.titleMedium ??
+                const TextStyle(fontSize: 14))
+            .copyWith(
+              color: palette.emphasis,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.1,
+            );
     final TextStyle summaryHeaderStyle = labelStyle.copyWith(
       color: palette.summaryLabel,
     );
@@ -946,7 +928,6 @@ class _AccountCard extends StatelessWidget {
       ),
     );
   }
-
 }
 
 class _AccountMonthlyValue extends StatelessWidget {
@@ -962,11 +943,7 @@ class _AccountMonthlyValue extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      '$label: $value',
-      style: textStyle,
-      softWrap: true,
-    );
+    return Text('$label: $value', style: textStyle, softWrap: true);
   }
 }
 
@@ -987,12 +964,15 @@ class _AccountCardPalette {
         ? colorScheme.primary
         : colorScheme.tertiary;
     final Color background = accountColor ?? defaultBackground;
-    final Brightness brightness =
-        ThemeData.estimateBrightnessForColor(background);
-    final Color emphasis =
-        brightness == Brightness.dark ? Colors.white : Colors.black87;
-    final Color support =
-        brightness == Brightness.dark ? Colors.white70 : Colors.black54;
+    final Brightness brightness = ThemeData.estimateBrightnessForColor(
+      background,
+    );
+    final Color emphasis = brightness == Brightness.dark
+        ? Colors.white
+        : Colors.black87;
+    final Color support = brightness == Brightness.dark
+        ? Colors.white70
+        : Colors.black54;
     return _AccountCardPalette(
       background: background,
       emphasis: emphasis,
@@ -1013,8 +993,7 @@ class _AccountCardLayout {
   static double estimateHeight(BuildContext context) {
     final ThemeData theme = Theme.of(context);
     final double label = _textHeight(
-      theme.textTheme.labelSmall ??
-          const TextStyle(fontSize: 11, height: 1.45),
+      theme.textTheme.labelSmall ?? const TextStyle(fontSize: 11, height: 1.45),
     );
     final double balance = _textHeight(
       theme.textTheme.displaySmall ??
@@ -1022,8 +1001,7 @@ class _AccountCardLayout {
           const TextStyle(fontSize: 36, height: 44 / 36),
     );
     final double summaryTitle = _textHeight(
-      theme.textTheme.labelSmall ??
-          const TextStyle(fontSize: 11, height: 1.45),
+      theme.textTheme.labelSmall ?? const TextStyle(fontSize: 11, height: 1.45),
     );
     final double summaryValue = _textHeight(
       theme.textTheme.titleSmall ??
@@ -1034,12 +1012,7 @@ class _AccountCardLayout {
     const double padding = 24 * 2;
     const double gaps = 8 + 16 + 8 + 4;
 
-    return padding +
-        label +
-        balance +
-        summaryTitle +
-        (summaryValue * 2) +
-        gaps;
+    return padding + label + balance + summaryTitle + (summaryValue * 2) + gaps;
   }
 
   static double measureBalanceWidth({
@@ -1047,7 +1020,8 @@ class _AccountCardLayout {
     required String text,
   }) {
     final ThemeData theme = Theme.of(context);
-    final TextStyle style = theme.textTheme.displaySmall ??
+    final TextStyle style =
+        theme.textTheme.displaySmall ??
         theme.textTheme.headlineMedium ??
         const TextStyle(fontSize: 36, height: 44 / 36);
     final TextPainter painter = TextPainter(
@@ -1144,7 +1118,7 @@ class _TransactionsSectionCardState extends State<_TransactionsSectionCard> {
   Widget _buildEntryList(BuildContext context) {
     final ThemeData theme = Theme.of(context);
     final bool hasTransactions = _entries.any(
-      ( _TransactionSliverEntry entry) => entry is _TransactionItemEntry,
+      (_TransactionSliverEntry entry) => entry is _TransactionItemEntry,
     );
     if (!hasTransactions) {
       return _EmptyMessage(message: widget.strings.homeTransactionsEmpty);
@@ -1155,14 +1129,8 @@ class _TransactionsSectionCardState extends State<_TransactionsSectionCard> {
       if (entry is _TransactionHeaderEntry) {
         widgets.add(
           Padding(
-            padding: EdgeInsets.only(
-              top: i == 0 ? 0 : 24,
-              bottom: 8,
-            ),
-            child: Text(
-              entry.title,
-              style: theme.textTheme.titleMedium,
-            ),
+            padding: EdgeInsets.only(top: i == 0 ? 0 : 24, bottom: 8),
+            child: Text(entry.title, style: theme.textTheme.titleMedium),
           ),
         );
         continue;
@@ -1210,7 +1178,10 @@ class _TransactionsSectionCardState extends State<_TransactionsSectionCard> {
                 backgroundColor: theme.colorScheme.secondary,
                 foregroundColor: theme.colorScheme.onSecondary,
                 minimumSize: const Size(91, 56),
-                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+                padding: const EdgeInsets.symmetric(
+                  vertical: 16,
+                  horizontal: 24,
+                ),
                 shape: const StadiumBorder(),
                 textStyle: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w500,
@@ -1271,62 +1242,148 @@ class _TransactionsFilterBar extends ConsumerWidget {
     final HomeTransactionsFilter selected = ref.watch(
       homeTransactionsFilterControllerProvider,
     );
-
-    Widget buildFilterChip(HomeTransactionsFilter filter, String label) {
-      final bool isSelected = selected == filter;
-      final Color backgroundColor = isSelected
-          ? theme.colorScheme.primary
-          : Colors.transparent;
-      final Color textColor = isSelected
-          ? theme.colorScheme.onPrimary
-          : theme.colorScheme.onSurface;
-      return InkWell(
-        borderRadius: BorderRadius.circular(16),
-        onTap: () => ref
-            .read(homeTransactionsFilterControllerProvider.notifier)
-            .update(filter),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-          decoration: BoxDecoration(
-            color: backgroundColor,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Text(
-            label,
-            style: theme.textTheme.labelMedium?.copyWith(
-              fontWeight: FontWeight.w500,
-              letterSpacing: 0.5,
-              color: textColor,
-            ),
-          ),
-        ),
-      );
-    }
+    final KopimLayout layout = context.kopimLayout;
+    final double containerRadius = layout.radius.xxl;
 
     return Container(
-      padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerHigh,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(containerRadius),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          buildFilterChip(
-            HomeTransactionsFilter.all,
-            strings.homeTransactionsFilterAll,
+      padding: const EdgeInsets.all(6),
+      child: LayoutBuilder(
+        builder: (BuildContext context, BoxConstraints constraints) {
+          final double segmentWidth = constraints.maxWidth / 3;
+          final Color accent = theme.colorScheme.primary;
+          const Duration duration = Duration(milliseconds: 260);
+
+          int selectedIndex = 0;
+          switch (selected) {
+            case HomeTransactionsFilter.all:
+              selectedIndex = 0;
+            case HomeTransactionsFilter.income:
+              selectedIndex = 1;
+            case HomeTransactionsFilter.expense:
+              selectedIndex = 2;
+          }
+
+          return SizedBox(
+            height: 48,
+            child: Stack(
+              children: <Widget>[
+                Positioned.fill(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.surfaceContainerHigh,
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                  ),
+                ),
+                AnimatedPositioned(
+                  duration: duration,
+                  curve: Curves.easeOutBack,
+                  left: selectedIndex * segmentWidth,
+                  top: 0,
+                  bottom: 0,
+                  width: segmentWidth,
+                  child: AnimatedContainer(
+                    duration: duration,
+                    curve: Curves.easeOutBack,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(999),
+                      color: accent,
+                      boxShadow: const <BoxShadow>[],
+                    ),
+                  ),
+                ),
+                Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: _FilterSegmentItem(
+                        label: strings.homeTransactionsFilterAll,
+                        selected: selected == HomeTransactionsFilter.all,
+                        onTap: () => ref
+                            .read(
+                              homeTransactionsFilterControllerProvider.notifier,
+                            )
+                            .update(HomeTransactionsFilter.all),
+                        selectedTextColor: theme.colorScheme.onPrimary,
+                      ),
+                    ),
+                    Expanded(
+                      child: _FilterSegmentItem(
+                        label: strings.homeTransactionsFilterIncome,
+                        selected: selected == HomeTransactionsFilter.income,
+                        onTap: () => ref
+                            .read(
+                              homeTransactionsFilterControllerProvider.notifier,
+                            )
+                            .update(HomeTransactionsFilter.income),
+                        selectedTextColor: theme.colorScheme.onPrimary,
+                      ),
+                    ),
+                    Expanded(
+                      child: _FilterSegmentItem(
+                        label: strings.homeTransactionsFilterExpense,
+                        selected: selected == HomeTransactionsFilter.expense,
+                        onTap: () => ref
+                            .read(
+                              homeTransactionsFilterControllerProvider.notifier,
+                            )
+                            .update(HomeTransactionsFilter.expense),
+                        selectedTextColor: theme.colorScheme.onPrimary,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _FilterSegmentItem extends StatelessWidget {
+  const _FilterSegmentItem({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+    required this.selectedTextColor,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+  final Color selectedTextColor;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final TextStyle baseStyle =
+        theme.textTheme.labelLarge ?? const TextStyle(fontSize: 16);
+
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Center(
+        child: AnimatedScale(
+          duration: const Duration(milliseconds: 180),
+          curve: Curves.easeOut,
+          scale: selected ? 1.0 : 0.95,
+          child: AnimatedDefaultTextStyle(
+            duration: const Duration(milliseconds: 180),
+            curve: Curves.easeOut,
+            style: baseStyle.copyWith(
+              fontWeight: selected ? FontWeight.w700 : FontWeight.w400,
+              color: selected
+                  ? selectedTextColor
+                  : theme.colorScheme.onSurface.withOpacity(0.8),
+            ),
+            child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
           ),
-          const SizedBox(width: 10),
-          buildFilterChip(
-            HomeTransactionsFilter.income,
-            strings.homeTransactionsFilterIncome,
-          ),
-          const SizedBox(width: 10),
-          buildFilterChip(
-            HomeTransactionsFilter.expense,
-            strings.homeTransactionsFilterExpense,
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -1480,7 +1537,8 @@ class _TransactionListItem extends ConsumerWidget {
                     width: 48,
                     height: 48,
                     decoration: BoxDecoration(
-                      color: categoryColor ??
+                      color:
+                          categoryColor ??
                           Theme.of(context).colorScheme.surfaceContainerHighest,
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -1500,11 +1558,10 @@ class _TransactionListItem extends ConsumerWidget {
                       children: <Widget>[
                         Text(
                           categoryName,
-                          style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                          style: Theme.of(context).textTheme.labelMedium
+                              ?.copyWith(
                                 fontWeight: FontWeight.w500,
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .onSurface,
+                                color: Theme.of(context).colorScheme.onSurface,
                               ),
                         ),
                         if (note != null && note.isNotEmpty)
@@ -1516,9 +1573,9 @@ class _TransactionListItem extends ConsumerWidget {
                               overflow: TextOverflow.ellipsis,
                               style: Theme.of(context).textTheme.bodySmall
                                   ?.copyWith(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .onSurfaceVariant,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant,
                                   ),
                             ),
                           ),
@@ -1532,17 +1589,17 @@ class _TransactionListItem extends ConsumerWidget {
                       Text(
                         moneyFormat.format(amount.abs()),
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              color: Theme.of(context).colorScheme.onSurface,
-                              fontWeight: FontWeight.w400,
-                            ),
+                          color: Theme.of(context).colorScheme.onSurface,
+                          fontWeight: FontWeight.w400,
+                        ),
                       ),
                       if (accountName != null)
                         Text(
                           accountName,
-                          style:
-                              Theme.of(context).textTheme.labelSmall?.copyWith(
-                                    color: Theme.of(context).colorScheme.outline,
-                                  ),
+                          style: Theme.of(context).textTheme.labelSmall
+                              ?.copyWith(
+                                color: Theme.of(context).colorScheme.outline,
+                              ),
                         ),
                     ],
                   ),

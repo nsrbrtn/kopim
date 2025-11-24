@@ -104,12 +104,7 @@ class ProfileManagementBody extends ConsumerWidget {
 
 String _mapAvatarError(AppLocalizations strings, Object? error) {
   if (error is AvatarStorageException) {
-    switch (error.code) {
-      case 'object-not-found':
-        return strings.homeUpcomingPaymentsMissingRule;
-      default:
-        return strings.profileAvatarUploadError;
-    }
+    return strings.profileAvatarUploadError;
   }
   return strings.profileAvatarUploadError;
 }

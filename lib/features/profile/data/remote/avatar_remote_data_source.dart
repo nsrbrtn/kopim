@@ -24,7 +24,7 @@ class AvatarRemoteDataSource {
     try {
       final UploadTask task = ref.putData(data, metadata);
       final TaskSnapshot snapshot = await task.whenComplete(() {});
-      return snapshot.ref.getDownloadURL();
+      return await snapshot.ref.getDownloadURL();
     } on FirebaseException catch (error) {
       throw AvatarStorageException(error.code, error.message);
     }

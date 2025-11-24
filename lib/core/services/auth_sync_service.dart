@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:collection';
 
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:kopim/core/data/database.dart';
 import 'package:kopim/core/data/database.dart' as db;
@@ -147,7 +149,7 @@ class AuthSyncService {
       await _persistMergedState(
         remoteSnapshot: remoteSnapshot,
         processedEntries: preparedEntries,
-        userId: user.uid,
+        user: user,
       );
       await _analyticsService.logEvent('auth_sync_success', <String, dynamic>{
         ...syncContext,
@@ -371,8 +373,9 @@ class AuthSyncService {
   Future<void> _persistMergedState({
     required _RemoteSnapshot remoteSnapshot,
     required List<db.OutboxEntryRow> processedEntries,
-    required String userId,
+    required AuthUser user,
   }) async {
+    final String userId = user.uid;
     final List<int> processedIds = processedEntries
         .map((OutboxEntryRow entry) => entry.id)
         .toList();
@@ -479,7 +482,34 @@ class AuthSyncService {
         await _profileDao.getProfile(userId),
         remoteSnapshot.profile,
       );
-      if (profile != null) {
+
+      // If profile is missing or is a fallback profile, initialize it with user data
+      if (profile == null || profile.updatedAt.millisecondsSinceEpoch == 0) {
+        final String systemLocale = Platform.localeName.split('_').first;
+        final Profile newProfile =
+            (profile ?? Profile(uid: userId, updatedAt: DateTime.now().toUtc()))
+                .copyWith(
+                  name: user.displayName ?? '',
+                  locale: systemLocale,
+                  updatedAt: DateTime.now().toUtc(),
+                );
+        await _profileDao.upsertInTransaction(newProfile);
+
+        // Also queue an update to sync this new profile to remote
+        await _outboxDao.enqueue(
+          entityType: 'profile',
+          entityId: userId,
+          operation: OutboxOperation.upsert,
+          payload: <String, dynamic>{
+            'uid': newProfile.uid,
+            'name': newProfile.name,
+            'currency': newProfile.currency.name,
+            'locale': newProfile.locale,
+            'photoUrl': newProfile.photoUrl,
+            'updatedAt': newProfile.updatedAt.toIso8601String(),
+          },
+        );
+      } else if (profile != null) {
         await _profileDao.upsertInTransaction(profile);
       }
     });

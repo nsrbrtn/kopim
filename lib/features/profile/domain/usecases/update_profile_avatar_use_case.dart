@@ -71,6 +71,7 @@ class UpdateProfileAvatarUseCase {
         data: processedBytes,
         contentType: resolvedContentType,
       );
+      downloadUrl = _withCacheBuster(downloadUrl);
     }
 
     final Profile updated = existing.copyWith(
@@ -134,6 +135,12 @@ class UpdateProfileAvatarUseCase {
       return _CompressionResult(encoded, convertedToJpeg: true);
     }
     return _CompressionResult(data);
+  }
+
+  String _withCacheBuster(String url) {
+    final String separator = url.contains('?') ? '&' : '?';
+    final int timestamp = DateTime.now().millisecondsSinceEpoch;
+    return '$url${separator}v=$timestamp';
   }
 }
 

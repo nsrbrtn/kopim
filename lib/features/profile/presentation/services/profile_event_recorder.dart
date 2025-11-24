@@ -49,6 +49,10 @@ class ProfileEventRecorder {
 
   Future<void> _handleAvatarUpdated(ProfileAvatarUpdatedEvent event) async {
     try {
+      _logger.logInfo(
+        'Avatar updated: uid=${event.uid}, source=${event.source.name}, '
+        'sizeBytes=${event.sizeBytes}, mode=${event.offlineOnly ? 'offline' : 'remote'}',
+      );
       await _analytics.logEvent('avatar_updated', <String, Object?>{
         'uid': event.uid,
         'source': event.source.name,
