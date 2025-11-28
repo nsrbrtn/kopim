@@ -20,7 +20,7 @@
 | `clipBehavior` | `Clip` | Поведение обрезки | `Clip.antiAlias` |
 | `decorationColor` | `Color?` | Цвет фона кнопки | `primary` из темы |
 | `foregroundColor` | `Color?` | Цвет иконки/текста | `onPrimary` из темы |
-| `iconSize` | `double?` | Размер иконки | `iconSizes.md * 3` |
+| `iconSize` | `double?` | Размер иконки внутри FAB | `iconSizes.xl` |
 
 > **Важно**: Хотя бы один из параметров `child`, `icon` или `label` должен быть задан.
 

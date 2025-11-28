@@ -41,6 +41,7 @@ class KopimFloatingActionButton extends StatelessWidget {
 
   bool get _isExtended => label != null;
   static const double _fabSize = 72;
+  static const double defaultSize = _fabSize;
 
   @override
   Widget build(BuildContext context) {
@@ -49,8 +50,7 @@ class KopimFloatingActionButton extends StatelessWidget {
     final KopimLayout layout = theme.kopimLayout;
     final BorderRadius borderRadius =
         BorderRadius.circular(layout.radius.card);
-    final double resolvedIconSize =
-        iconSize ?? layout.iconSizes.md * 3;
+    final double resolvedIconSize = iconSize ?? layout.iconSizes.xl;
     final ShapeBorder shape = RoundedRectangleBorder(
       borderRadius: borderRadius,
     );
