@@ -8,6 +8,7 @@ import 'package:kopim/features/profile/domain/usecases/update_profile_avatar_use
 import 'package:kopim/features/profile/presentation/services/profile_event_recorder.dart';
 import 'package:flutter/services.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:kopim/core/services/logger_service.dart';
 
 part 'avatar_controller.g.dart';
 
@@ -44,7 +45,7 @@ class AvatarController extends _$AvatarController {
       final Uint8List bytes = await file.readAsBytes();
       final String contentType =
           file.mimeType ?? _guessContentType(file.path) ?? 'image/jpeg';
-      final logger = ref.read(loggerServiceProvider);
+      final LoggerService logger = ref.read(loggerServiceProvider);
       logger.logInfo(
         'Avatar upload start: source=$source, uid=$uid, '
         'bytes=${bytes.lengthInBytes}, mime=$contentType, offlineOnly=$storeOfflineOnly',
@@ -106,11 +107,6 @@ class AvatarController extends _$AvatarController {
     } catch (error, stackTrace) {
       state = AsyncValue<void>.error(error, stackTrace);
     }
-  }
-
-  Future<bool> _shouldStoreOfflineOnly(String uid) async {
-    // Локальное хранение для всех пользователей: не загружаем в облако.
-    return true;
   }
 
   String? _guessContentType(String path) {

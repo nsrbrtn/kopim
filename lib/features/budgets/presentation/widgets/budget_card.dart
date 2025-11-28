@@ -2,16 +2,27 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import 'package:kopim/core/config/theme_extensions.dart';
+import 'package:kopim/core/widgets/collapsible_list/collapsible_list.dart';
 
 import 'package:kopim/features/budgets/domain/entities/budget_progress.dart';
+import 'package:kopim/features/budgets/presentation/models/budget_category_spend.dart';
+import 'package:kopim/features/budgets/presentation/widgets/budget_category_spending_chart_card.dart';
 import 'package:kopim/features/budgets/presentation/widgets/budget_progress_indicator.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
 class BudgetCard extends StatelessWidget {
-  const BudgetCard({required this.progress, this.onTap, super.key});
+  const BudgetCard({
+    required this.progress,
+    required this.categorySpend,
+    required this.onOpenDetails,
+    this.showDetailsButton = true,
+    super.key,
+  });
 
   final BudgetProgress progress;
-  final VoidCallback? onTap;
+  final List<BudgetCategorySpend> categorySpend;
+  final VoidCallback onOpenDetails;
+  final bool showDetailsButton;
 
   @override
   Widget build(BuildContext context) {
@@ -30,53 +41,76 @@ class BudgetCard extends StatelessWidget {
         : 1.0;
     final bool exceeded = progress.isExceeded;
 
+    final Widget header = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Text(
+          progress.budget.title,
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        SizedBox(height: spacing.section),
+        BudgetProgressIndicator(value: ratio, exceeded: exceeded),
+        SizedBox(height: spacing.section),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: <Widget>[
+            _BudgetMetric(
+              label: strings.budgetsSpentLabel,
+              value: currencyFormat.format(spent),
+            ),
+            _BudgetMetric(
+              label: strings.budgetsLimitLabel,
+              value: currencyFormat.format(limit),
+            ),
+            _BudgetMetric(
+              label: exceeded
+                  ? strings.budgetsExceededLabel
+                  : strings.budgetsRemainingLabel,
+              value: currencyFormat.format(
+                exceeded ? (spent - limit) : remaining,
+              ),
+              valueStyle: exceeded
+                  ? theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.error,
+                        fontWeight: FontWeight.w600,
+                      )
+                  : null,
+            ),
+          ],
+        ),
+      ],
+    );
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Material(
-        color: theme.colorScheme.surfaceContainer,
-        borderRadius: BorderRadius.circular(layout.radius.card),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(layout.radius.card),
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text(progress.budget.title, style: theme.textTheme.titleMedium),
-                SizedBox(height: spacing.section),
-                BudgetProgressIndicator(value: ratio, exceeded: exceeded),
-                SizedBox(height: spacing.section),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
-                    _BudgetMetric(
-                      label: strings.budgetsSpentLabel,
-                      value: currencyFormat.format(spent),
-                    ),
-                    _BudgetMetric(
-                      label: strings.budgetsLimitLabel,
-                      value: currencyFormat.format(limit),
-                    ),
-                    _BudgetMetric(
-                      label: exceeded
-                          ? strings.budgetsExceededLabel
-                          : strings.budgetsRemainingLabel,
-                      value: currencyFormat.format(
-                        exceeded ? (spent - limit) : remaining,
-                      ),
-                      valueStyle: exceeded
-                          ? theme.textTheme.bodyMedium?.copyWith(
-                              color: theme.colorScheme.error,
-                              fontWeight: FontWeight.w600,
-                            )
-                          : null,
-                    ),
-                  ],
+      child: KopimExpandableSectionPlayful(
+        header: header,
+        initiallyExpanded: false,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            if (showDetailsButton) ...<Widget>[
+              SizedBox(height: spacing.section),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: TextButton.icon(
+                  onPressed: onOpenDetails,
+                  icon: const Icon(Icons.chevron_right),
+                  label: Text(strings.budgetsDetailsButton),
                 ),
-              ],
+              ),
+              SizedBox(height: spacing.section),
+            ],
+            BudgetCategorySpendingView(
+              data: categorySpend,
+              localeName: strings.localeName,
+              strings: strings,
+              wrapWithContainers: false,
+              padding: EdgeInsets.zero,
             ),
-          ),
+          ],
         ),
       ),
     );
@@ -108,7 +142,11 @@ class _BudgetMetric extends StatelessWidget {
           ),
         ),
         SizedBox(height: spacing.between / 2),
-        Text(value, style: valueStyle ?? theme.textTheme.bodyMedium),
+        Text(
+          value,
+          style: valueStyle ??
+              theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+        ),
       ],
     );
   }

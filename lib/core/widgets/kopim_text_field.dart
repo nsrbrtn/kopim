@@ -105,7 +105,8 @@ class _KopimTextFieldState extends State<KopimTextField> {
 
     final Color placeholderColor =
         widget.placeholderColor ?? colors.surfaceContainerHighest;
-    final TextStyle effectiveTextStyle = widget.textStyle ??
+    final TextStyle effectiveTextStyle =
+        widget.textStyle ??
         theme.textTheme.bodyLarge?.copyWith(color: colors.onSurface) ??
         TextStyle(color: colors.onSurface);
     final TextStyle hintStyle = effectiveTextStyle.copyWith(
@@ -118,10 +119,7 @@ class _KopimTextFieldState extends State<KopimTextField> {
     );
     final OutlineInputBorder focusBorder = OutlineInputBorder(
       borderRadius: BorderRadius.circular(borderRadius),
-      borderSide: BorderSide(
-        color: colors.primary,
-        width: 1,
-      ),
+      borderSide: BorderSide(color: colors.surfaceContainerHighest, width: 2),
     );
 
     final bool hasSupportingText =
@@ -167,8 +165,8 @@ class _KopimTextFieldState extends State<KopimTextField> {
           Text(
             widget.supportingText!,
             style: theme.textTheme.bodySmall?.copyWith(
-                  color: colors.onSurfaceVariant,
-                ),
+              color: colors.onSurfaceVariant,
+            ),
           ),
         ],
       ],

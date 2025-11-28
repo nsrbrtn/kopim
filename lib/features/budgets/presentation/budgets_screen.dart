@@ -1,17 +1,22 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:kopim/core/config/theme_extensions.dart';
-import 'package:kopim/core/widgets/kopim_floating_action_button.dart';
-import 'package:kopim/core/widgets/kopim_glass_surface.dart';
+import 'package:kopim/core/widgets/kopim_glass_fab.dart';
 import 'package:kopim/features/app_shell/presentation/models/navigation_tab_content.dart';
+import 'package:kopim/core/di/injectors.dart';
+import 'package:kopim/features/budgets/domain/entities/budget.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_progress.dart';
+import 'package:kopim/features/budgets/domain/use_cases/compute_budget_progress_use_case.dart';
 import 'package:kopim/features/budgets/presentation/controllers/budgets_providers.dart';
 import 'package:kopim/features/budgets/presentation/models/budget_category_spend.dart';
 import 'package:kopim/features/budgets/presentation/widgets/budget_card.dart';
-import 'package:kopim/features/budgets/presentation/widgets/budget_category_spending_chart_card.dart';
 import 'package:kopim/features/budgets/presentation/budget_detail_screen.dart';
 import 'package:kopim/features/budgets/presentation/budget_form_screen.dart';
+import 'package:kopim/features/categories/domain/entities/category.dart';
+import 'package:kopim/features/transactions/domain/entities/transaction.dart';
+import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
 class BudgetsScreen extends ConsumerWidget {
@@ -33,6 +38,57 @@ class BudgetsScreen extends ConsumerWidget {
   }
 }
 
+List<BudgetCategorySpend> _computeBudgetCategorySpend({
+  required Budget budget,
+  required List<TransactionEntity> transactions,
+  required List<Category> categories,
+  required ComputeBudgetProgressUseCase compute,
+}) {
+  final List<TransactionEntity> scopedTransactions = compute.filterTransactions(
+    budget: budget,
+    transactions: transactions,
+  );
+
+  if (scopedTransactions.isEmpty) {
+    return const <BudgetCategorySpend>[];
+  }
+
+  final Map<String, double> spentByCategory = <String, double>{};
+  for (final TransactionEntity transaction in scopedTransactions) {
+    if (transaction.type == TransactionType.income.storageValue) {
+      continue;
+    }
+    final String? categoryId = transaction.categoryId;
+    if (categoryId == null) {
+      continue;
+    }
+    spentByCategory[categoryId] =
+        (spentByCategory[categoryId] ?? 0) + transaction.amount.abs();
+  }
+
+  final List<BudgetCategorySpend> items = <BudgetCategorySpend>[];
+  for (final MapEntry<String, double> entry in spentByCategory.entries) {
+    final Category? category = categories.firstWhereOrNull(
+      (Category item) => item.id == entry.key,
+    );
+    if (category == null) {
+      continue;
+    }
+    items.add(
+      BudgetCategorySpend(
+        category: category,
+        spent: entry.value,
+        limit: resolveBudgetCategoryLimit(budget, entry.key),
+      ),
+    );
+  }
+
+  items.sort((BudgetCategorySpend a, BudgetCategorySpend b) {
+    return b.spent.compareTo(a.spent);
+  });
+  return items;
+}
+
 NavigationTabContent buildBudgetsTabContent(
   BuildContext context,
   WidgetRef ref,
@@ -42,42 +98,21 @@ NavigationTabContent buildBudgetsTabContent(
     appBarBuilder: (BuildContext context, WidgetRef ref) =>
         AppBar(title: Text(strings.budgetsTitle)),
     floatingActionButtonBuilder: (BuildContext context, WidgetRef ref) {
-      final ThemeData theme = Theme.of(context);
-      final bool isDark = theme.brightness == Brightness.dark;
-      final ColorScheme colorScheme = theme.colorScheme;
-      final KopimLayout layout = context.kopimLayout;
-      final double fabSize = layout.spacing.section + 64;
-      return SizedBox(
-        height: fabSize,
-        width: fabSize,
-        child: KopimGlassSurface(
-          padding: const EdgeInsets.all(4),
-          borderRadius: BorderRadius.circular(layout.radius.xxl),
-          blurSigma: 20,
-          baseOpacity: isDark ? 0.15 : 0.25,
-          enableBorder: true,
-          enableShadow: true,
-          gradientHighlightIntensity: 1.5,
-          gradientTintColor: colorScheme.secondaryContainer.withValues(
-            alpha: 0.9,
-          ),
-          child: KopimFloatingActionButton(
-            decorationColor: Colors.transparent,
-            foregroundColor: colorScheme.primary,
-            iconSize: layout.iconSizes.xl,
-            icon: Icon(
-              Icons.add,
-              color: colorScheme.primary,
-            ),
-            onPressed: () async {
-              await Navigator.of(context).push(
-                MaterialPageRoute<void>(
-                  builder: (BuildContext context) => const BudgetFormScreen(),
-                ),
-              );
-            },
-          ),
+      final ColorScheme colorScheme = Theme.of(context).colorScheme;
+      return KopimGlassFab(
+        enableGradientHighlight: false,
+        icon: Icon(
+          Icons.add,
+          color: colorScheme.primary,
         ),
+        foregroundColor: colorScheme.primary,
+        onPressed: () async {
+          await Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (BuildContext context) => const BudgetFormScreen(),
+            ),
+          );
+        },
       );
     },
     bodyBuilder: (BuildContext context, WidgetRef ref) {
@@ -86,37 +121,59 @@ NavigationTabContent buildBudgetsTabContent(
       final AsyncValue<List<BudgetProgress>> budgetsAsync = ref.watch(
         budgetsWithProgressProvider,
       );
-      final AsyncValue<List<BudgetCategorySpend>> categorySpendAsync = ref
-          .watch(budgetCategorySpendProvider);
-      final Widget content = budgetsAsync.when(
-        data: (List<BudgetProgress> items) {
-          if (items.isEmpty) {
-            return _BudgetsEmptyState(strings: strings);
-          }
-          final Widget chartSection = categorySpendAsync.when(
-            data: (List<BudgetCategorySpend> chartData) =>
-                BudgetCategorySpendingChartCard(
-                  data: chartData,
-                  localeName: strings.localeName,
-                  strings: strings,
-                ),
-            loading: () => const BudgetCategorySpendingChartSkeleton(),
-            error: (Object error, StackTrace stackTrace) =>
-                BudgetCategorySpendingChartError(
-                  message: error.toString(),
-                  strings: strings,
-                ),
-          );
+      final AsyncValue<List<TransactionEntity>> transactionsAsync = ref.watch(
+        budgetTransactionsStreamProvider,
+      );
+      final AsyncValue<List<Category>> categoriesAsync = ref.watch(
+        budgetCategoriesStreamProvider,
+      );
+      final ComputeBudgetProgressUseCase compute = ref.watch(
+        computeBudgetProgressUseCaseProvider,
+      );
+
+      final bool isLoading = budgetsAsync.isLoading ||
+          transactionsAsync.isLoading ||
+          categoriesAsync.isLoading;
+      final Object? error = budgetsAsync.error ??
+          transactionsAsync.error ??
+          categoriesAsync.error;
+
+      final Widget content;
+      if (isLoading) {
+        content = const Center(child: CircularProgressIndicator());
+      } else if (error != null) {
+        content = _BudgetsErrorState(
+          message: error.toString(),
+          strings: strings,
+        );
+      } else {
+        final List<BudgetProgress> items =
+            budgetsAsync.value ?? const <BudgetProgress>[];
+        if (items.isEmpty) {
+          content = _BudgetsEmptyState(strings: strings);
+        } else {
+          final List<TransactionEntity> transactions =
+              transactionsAsync.value ?? const <TransactionEntity>[];
+          final List<Category> categories =
+              categoriesAsync.value ?? const <Category>[];
           final List<Widget> budgetCards = <Widget>[];
           for (int index = 0; index < items.length; index++) {
             if (index > 0) {
               budgetCards.add(SizedBox(height: spacing.section));
             }
             final BudgetProgress progress = items[index];
+            final List<BudgetCategorySpend> spendByCategory =
+                _computeBudgetCategorySpend(
+              budget: progress.budget,
+              transactions: transactions,
+              categories: categories,
+              compute: compute,
+            );
             budgetCards.add(
               BudgetCard(
                 progress: progress,
-                onTap: () {
+                categorySpend: spendByCategory,
+                onOpenDetails: () {
                   Navigator.of(context).push(
                     MaterialPageRoute<void>(
                       builder: (BuildContext context) =>
@@ -127,24 +184,13 @@ NavigationTabContent buildBudgetsTabContent(
               ),
             );
           }
-          final List<Widget> children = <Widget>[
-            ...budgetCards,
-            if (budgetCards.isNotEmpty) SizedBox(height: spacing.section),
-            chartSection,
-          ];
-          return ListView(
+          final List<Widget> children = <Widget>[...budgetCards];
+          content = ListView(
             padding: const EdgeInsets.only(top: 16, bottom: 16),
             children: children,
           );
-        },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (Object error, StackTrace stackTrace) {
-          return _BudgetsErrorState(
-            message: error.toString(),
-            strings: strings,
-          );
-        },
-      );
+        }
+      }
       return MediaQuery.removePadding(
         context: context,
         removeBottom: true,
@@ -182,13 +228,17 @@ class _BudgetsEmptyState extends StatelessWidget {
             SizedBox(height: spacing.section),
             Text(
               strings.budgetsEmptyTitle,
-              style: theme.textTheme.titleMedium,
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
               textAlign: TextAlign.center,
             ),
             SizedBox(height: spacing.between),
             Text(
               strings.budgetsEmptyMessage,
-              style: theme.textTheme.bodyMedium,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
               textAlign: TextAlign.center,
             ),
           ],

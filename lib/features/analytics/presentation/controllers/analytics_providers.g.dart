@@ -213,3 +213,45 @@ final class AnalyticsAccountsProvider
 }
 
 String _$analyticsAccountsHash() => r'd78d4d75ea71704dc5d8fd42a64919cb59824340';
+
+@ProviderFor(monthlyBalanceData)
+const monthlyBalanceDataProvider = MonthlyBalanceDataProvider._();
+
+final class MonthlyBalanceDataProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<MonthlyBalanceData>>,
+          List<MonthlyBalanceData>,
+          Stream<List<MonthlyBalanceData>>
+        >
+    with
+        $FutureModifier<List<MonthlyBalanceData>>,
+        $StreamProvider<List<MonthlyBalanceData>> {
+  const MonthlyBalanceDataProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'monthlyBalanceDataProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$monthlyBalanceDataHash();
+
+  @$internal
+  @override
+  $StreamProviderElement<List<MonthlyBalanceData>> $createElement(
+    $ProviderPointer pointer,
+  ) => $StreamProviderElement(pointer);
+
+  @override
+  Stream<List<MonthlyBalanceData>> create(Ref ref) {
+    return monthlyBalanceData(ref);
+  }
+}
+
+String _$monthlyBalanceDataHash() =>
+    r'81cb9d5f4c1cc5e4db70109dfbd7fe3e0d28294f';

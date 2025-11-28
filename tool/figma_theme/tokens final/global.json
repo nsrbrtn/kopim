@@ -13,7 +13,7 @@
     "sys": {
       "light": {
         "primary": {
-          "value": "#aef75f",
+          "value": "#3d6a00",
           "type": "color",
           "description": "Primary / On Primary\n\nRegular text:\nLevel AA - ✅ Pass\nLevel AAA - ❌ Fail\n\nLarge text:\nLevel AA - ✅ Pass\nLevel AAA - ✅ Pass\n\nIcons:\nLevel AA - ✅ Pass\nLevel AAA - ✅ Pass"
         },
@@ -22,7 +22,7 @@
           "type": "color"
         },
         "on-primary": {
-          "value": "#111610",
+          "value": "#D7FFD0",
           "type": "color"
         },
         "primary-container": {

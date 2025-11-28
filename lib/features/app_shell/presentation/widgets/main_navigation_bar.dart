@@ -33,7 +33,7 @@ class MainNavigationBar extends ConsumerWidget {
         margin: const EdgeInsets.fromLTRB(16, 0, 16, 4),
         borderRadius: BorderRadius.circular(24),
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-        blurSigma: 10,
+        blurSigma: 7,
         baseOpacity: isDark ? 0.14 : 0.22,
         enableBorder: true,
         enableShadow: false,

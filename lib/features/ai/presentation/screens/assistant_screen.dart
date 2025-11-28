@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kopim/core/widgets/collapsible_list/collapsible_list.dart';
+import 'package:kopim/core/widgets/kopim_text_field.dart';
 import 'package:kopim/features/ai/domain/entities/ai_user_query_entity.dart';
 import 'package:kopim/features/ai/presentation/controllers/assistant_session_controller.dart';
 import 'package:kopim/features/ai/presentation/models/assistant_filters.dart';
@@ -129,16 +130,16 @@ class _AssistantScreenState extends ConsumerState<AssistantScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
-                    Row(
-                      children: <Widget>[
-                        Text(
-                          strings.assistantScreenTitle,
-                          style: theme.textTheme.headlineSmall,
-                        ),
-                        const Spacer(),
-                        Material(
-                          color: Colors.transparent,
-                          borderRadius: BorderRadius.circular(14),
+                  Row(
+                    children: <Widget>[
+                      Text(
+                        strings.assistantScreenTitle,
+                        style: theme.textTheme.headlineSmall,
+                      ),
+                      const Spacer(),
+                      Material(
+                        color: Colors.transparent,
+                        borderRadius: BorderRadius.circular(14),
                         child: InkWell(
                           borderRadius: BorderRadius.circular(14),
                           onTap: () => Navigator.of(context).push(
@@ -158,9 +159,9 @@ class _AssistantScreenState extends ConsumerState<AssistantScreen> {
                             ),
                           ),
                         ),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
+                  ),
                   const SizedBox(height: 8),
                   _AssistantOfflineBanner(
                     isOffline: isOffline,
@@ -309,7 +310,8 @@ class _AssistantQuickActions extends StatelessWidget {
     AiQueryIntent intent,
     String prompt,
     Set<AssistantFilter> filters,
-  ) onActionSelected;
+  )
+  onActionSelected;
 
   @override
   Widget build(BuildContext context) {
@@ -325,7 +327,11 @@ class _AssistantQuickActions extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
-          for (int index = 0; index < _kAssistantQuickActions.length; index++) ...<Widget>[
+          for (
+            int index = 0;
+            index < _kAssistantQuickActions.length;
+            index++
+          ) ...<Widget>[
             if (index > 0) const SizedBox(width: 8),
             Material(
               color: theme.colorScheme.secondaryContainer,
@@ -403,10 +409,7 @@ class AssistantUsageInfoScreen extends StatelessWidget {
               style: Theme.of(context).textTheme.bodyLarge,
             ),
             const SizedBox(height: 16),
-            TextButton(
-              onPressed: () {},
-              child: const Text('Подробнее'),
-            ),
+            TextButton(onPressed: () {}, child: const Text('Подробнее')),
             const Spacer(),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -488,37 +491,39 @@ class _AssistantFiltersBar extends StatelessWidget {
       child: Wrap(
         spacing: 10,
         runSpacing: 10,
-        children: _kAssistantFilters.map((AssistantFilter filter) {
-          final bool selected = activeFilters.contains(filter);
-          final Color chipColor = selected
-              ? theme.colorScheme.secondaryContainer
-              : theme.colorScheme.surfaceContainerHighest;
-          final Color textColor = selected
-              ? theme.colorScheme.onSecondaryContainer
-              : theme.colorScheme.onSurface;
-          return InkWell(
-            borderRadius: BorderRadius.circular(16),
-            onTap: () => onFilterTapped(filter),
-            child: Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 8,
-              ),
-              decoration: BoxDecoration(
-                color: chipColor,
+        children: _kAssistantFilters
+            .map((AssistantFilter filter) {
+              final bool selected = activeFilters.contains(filter);
+              final Color chipColor = selected
+                  ? theme.colorScheme.secondaryContainer
+                  : theme.colorScheme.surfaceContainerHighest;
+              final Color textColor = selected
+                  ? theme.colorScheme.onSecondaryContainer
+                  : theme.colorScheme.onSurface;
+              return InkWell(
                 borderRadius: BorderRadius.circular(16),
-              ),
-              child: Text(
-                strings.assistantFilterLabel(filter),
-                style: theme.textTheme.labelMedium?.copyWith(
-                  color: textColor,
-                  letterSpacing: 0.5,
-                  fontWeight: FontWeight.w500,
+                onTap: () => onFilterTapped(filter),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: chipColor,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Text(
+                    strings.assistantFilterLabel(filter),
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      color: textColor,
+                      letterSpacing: 0.5,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
                 ),
-              ),
-            ),
-          );
-        }).toList(growable: false),
+              );
+            })
+            .toList(growable: false),
       ),
     );
   }
@@ -756,75 +761,37 @@ class _AssistantInputBarState extends State<_AssistantInputBar> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        SizedBox(
-          height: 56,
-          child: TextField(
-            controller: widget.controller,
-            focusNode: widget.focusNode,
-            minLines: 1,
-            maxLines: 3,
-            textInputAction: TextInputAction.send,
-            onSubmitted: (_) => handleSend(),
-            onChanged: (_) => setState(() {}),
-            style: theme.textTheme.bodyLarge?.copyWith(
-              color: theme.colorScheme.onSurface,
-              letterSpacing: 0.5,
+        KopimTextField(
+          controller: widget.controller,
+          focusNode: widget.focusNode,
+          minLines: 1,
+          maxLines: 3,
+          textInputAction: TextInputAction.send,
+          onSubmitted: (_) => handleSend(),
+          onChanged: (_) => setState(() {}),
+          placeholder: widget.hintText,
+          fillColor: theme.colorScheme.surfaceContainerHigh,
+          suffixIcon: Padding(
+            padding: const EdgeInsets.only(right: 4),
+            child: IconButton(
+              splashRadius: 24,
+              onPressed: canSend ? handleSend : null,
+              icon: widget.isSending
+                  ? SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: theme.colorScheme.onSecondaryContainer,
+                      ),
+                    )
+                  : Icon(
+                      Icons.send_rounded,
+                      color: canSend
+                          ? theme.colorScheme.primary
+                          : theme.colorScheme.onSurfaceVariant,
+                    ),
             ),
-            decoration: InputDecoration(
-              hintText: widget.hintText,
-              hintStyle: theme.textTheme.bodyLarge?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-                letterSpacing: 0.5,
-              ),
-              filled: true,
-              fillColor: theme.colorScheme.surfaceContainerHigh,
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 18,
-              ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(32),
-                borderSide: BorderSide(
-                  color: theme.colorScheme.outline,
-                ),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(32),
-                borderSide: BorderSide(
-                  color: theme.colorScheme.outline,
-                ),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(32),
-                borderSide: BorderSide(
-                  color: theme.colorScheme.primary,
-                  width: 1,
-                ),
-              ),
-              suffixIcon: Padding(
-                padding: const EdgeInsets.only(right: 4),
-                child: IconButton(
-                  splashRadius: 24,
-                  onPressed: canSend ? handleSend : null,
-                  icon: widget.isSending
-                      ? SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: theme.colorScheme.onSecondaryContainer,
-                          ),
-                        )
-                      : Icon(
-                          Icons.send_rounded,
-                          color: canSend
-                              ? theme.colorScheme.onSecondaryContainer
-                              : theme.colorScheme.onSurfaceVariant,
-                        ),
-                ),
-              ),
-            ),
-            cursorColor: theme.colorScheme.primary,
           ),
         ),
         if (widget.isOffline)

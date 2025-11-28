@@ -2,15 +2,18 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:kopim/core/config/theme_extensions.dart';
 import 'package:kopim/core/utils/helpers.dart';
 import 'package:kopim/core/widgets/collapsible_list/collapsible_list.dart';
 import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/analytics/domain/models/analytics_category_breakdown.dart';
 import 'package:kopim/features/analytics/domain/models/analytics_overview.dart';
+import 'package:kopim/features/analytics/domain/models/monthly_balance_data.dart';
 import 'package:kopim/features/analytics/presentation/controllers/analytics_filter_controller.dart';
 import 'package:kopim/features/analytics/presentation/controllers/analytics_providers.dart';
 import 'package:kopim/features/analytics/presentation/widgets/analytics_chart.dart';
+import 'package:kopim/features/analytics/presentation/widgets/total_money_chart_widget.dart';
 import 'package:kopim/features/app_shell/presentation/models/navigation_tab_content.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/categories/presentation/widgets/category_chip.dart';
@@ -53,7 +56,8 @@ class _TopCategoriesSummary extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
-    final TextStyle labelStyle = theme.textTheme.titleSmall?.copyWith(
+    final TextStyle labelStyle =
+        theme.textTheme.titleSmall?.copyWith(
           fontWeight: FontWeight.w500,
           letterSpacing: 0.1,
           color: theme.colorScheme.onSurface,
@@ -64,7 +68,8 @@ class _TopCategoriesSummary extends StatelessWidget {
           letterSpacing: 0.1,
           color: theme.colorScheme.onSurface,
         );
-    final TextStyle amountStyle = theme.textTheme.titleLarge?.copyWith(
+    final TextStyle amountStyle =
+        theme.textTheme.titleLarge?.copyWith(
           fontWeight: FontWeight.w400,
           color: theme.colorScheme.onSurface,
         ) ??
@@ -78,10 +83,7 @@ class _TopCategoriesSummary extends StatelessWidget {
       return Row(
         mainAxisAlignment: MainAxisAlignment.start,
         children: <Widget>[
-          Text(
-            '${focusedItem!.title}:',
-            style: labelStyle,
-          ),
+          Text('${focusedItem!.title}:', style: labelStyle),
           const SizedBox(width: 8),
           Text(
             currencyFormat.format(focusedItem!.absoluteAmount),
@@ -99,10 +101,7 @@ class _TopCategoriesSummary extends StatelessWidget {
       children: <Widget>[
         Text(label, style: labelStyle),
         const SizedBox(width: 8),
-        Text(
-          currencyFormat.format(total),
-          style: amountStyle,
-        ),
+        Text(currencyFormat.format(total), style: amountStyle),
       ],
     );
   }
@@ -144,7 +143,8 @@ NavigationTabContent buildAnalyticsTabContent(
         DateTime.now().month,
       );
       final DateTime today = DateUtils.dateOnly(DateTime.now());
-      final bool isMonthBased = filterState.period == AnalyticsPeriodPreset.thisMonth ||
+      final bool isMonthBased =
+          filterState.period == AnalyticsPeriodPreset.thisMonth ||
           filterState.period == AnalyticsPeriodPreset.customMonth;
       final DateTime anchorForBounds = isMonthBased
           ? DateTime(activeAnchor.year, activeAnchor.month)
@@ -171,12 +171,7 @@ NavigationTabContent buildAnalyticsTabContent(
         child: CustomScrollView(
           slivers: <Widget>[
             SliverPadding(
-              padding: const EdgeInsets.fromLTRB(
-                8,
-                8,
-                8,
-                0,
-              ),
+              padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
               sliver: SliverToBoxAdapter(
                 child: KeyedSubtree(
                   key: ValueKey<int>(
@@ -195,12 +190,7 @@ NavigationTabContent buildAnalyticsTabContent(
               ),
             ),
             SliverPadding(
-              padding: const EdgeInsets.fromLTRB(
-                8,
-                8,
-                8,
-                0,
-              ),
+              padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
               sliver: SliverToBoxAdapter(
                 child: _AnalyticsQuickSelectors(
                   filterState: filterState,
@@ -230,12 +220,7 @@ NavigationTabContent buildAnalyticsTabContent(
               )
             else
               SliverPadding(
-                padding: const EdgeInsets.fromLTRB(
-                  8,
-                  8,
-                  8,
-                  16,
-                ),
+                padding: const EdgeInsets.fromLTRB(8, 8, 8, 16),
                 sliver: SliverToBoxAdapter(
                   child: _AnalyticsContent(
                     overview: overview,
@@ -299,16 +284,40 @@ class _AnalyticsContent extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
+        Consumer(
+          builder: (BuildContext context, WidgetRef ref, Widget? child) {
+            final AsyncValue<List<MonthlyBalanceData>> monthlyDataAsync = ref
+                .watch(monthlyBalanceDataProvider);
+
+            return monthlyDataAsync.when(
+              data: (List<MonthlyBalanceData> data) {
+                if (data.isEmpty) {
+                  return const SizedBox.shrink();
+                }
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: TotalMoneyChartWidget(
+                    data: data,
+                    currencySymbol: currencyFormat.currencySymbol,
+                  ),
+                );
+              },
+              loading: () => const SizedBox.shrink(),
+              error: (Object error, StackTrace stack) =>
+                  const SizedBox.shrink(),
+            );
+          },
+        ),
         AnimatedSwitcher(
           duration: const Duration(milliseconds: 250),
           transitionBuilder: (Widget child, Animation<double> animation) {
-            final Animation<Offset> slide = Tween<Offset>(
-              begin: const Offset(0.04, 0),
-              end: Offset.zero,
-            ).animate(CurvedAnimation(
-              parent: animation,
-              curve: Curves.easeInOut,
-            ));
+            final Animation<Offset> slide =
+                Tween<Offset>(
+                  begin: const Offset(0.04, 0),
+                  end: Offset.zero,
+                ).animate(
+                  CurvedAnimation(parent: animation, curve: Curves.easeInOut),
+                );
             return FadeTransition(
               opacity: animation,
               child: SlideTransition(position: slide, child: child),
@@ -1160,8 +1169,8 @@ class _TopCategoriesPageState extends State<_TopCategoriesPage> {
         widget.data.items.isEmpty || widget.data.total <= 0;
     if (isEmptyData) {
       final ThemeData theme = Theme.of(context);
-      final Color placeholderColor =
-          theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.7);
+      final Color placeholderColor = theme.colorScheme.surfaceContainerHighest
+          .withValues(alpha: 0.7);
       final List<AnalyticsChartItem> placeholderItems = <AnalyticsChartItem>[
         AnalyticsChartItem(
           key: '_placeholder',
@@ -1182,10 +1191,7 @@ class _TopCategoriesPageState extends State<_TopCategoriesPage> {
             focusedItem: null,
           ),
           const SizedBox(height: 8),
-          _EmptyMonthChart(
-            items: placeholderItems,
-            color: placeholderColor,
-          ),
+          _EmptyMonthChart(items: placeholderItems, color: placeholderColor),
           const SizedBox(height: 16),
           Center(
             child: Text(
@@ -1337,10 +1343,7 @@ class _TopCategoriesPageState extends State<_TopCategoriesPage> {
 }
 
 class _EmptyMonthChart extends StatelessWidget {
-  const _EmptyMonthChart({
-    required this.items,
-    required this.color,
-  });
+  const _EmptyMonthChart({required this.items, required this.color});
 
   final List<AnalyticsChartItem> items;
   final Color color;
@@ -1352,13 +1355,13 @@ class _EmptyMonthChart extends StatelessWidget {
         final Size screenSize = MediaQuery.of(context).size;
         final double availableWidth =
             constraints.maxWidth.isFinite && constraints.maxWidth > 0
-                ? constraints.maxWidth
-                : screenSize.width;
+            ? constraints.maxWidth
+            : screenSize.width;
         final double baseExtent = availableWidth * 0.7;
-        final double chartExtent =
-            baseExtent.clamp(220.0, 360.0).toDouble();
-        final double targetWidth =
-            availableWidth.clamp(240.0, screenSize.width).toDouble();
+        final double chartExtent = baseExtent.clamp(220.0, 360.0).toDouble();
+        final double targetWidth = availableWidth
+            .clamp(240.0, screenSize.width)
+            .toDouble();
 
         return Align(
           alignment: Alignment.center,
@@ -1449,86 +1452,116 @@ class _TopCategoriesToggle extends StatelessWidget {
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
     final ColorScheme colors = theme.colorScheme;
-    final Color selectedBg = colors.primary;
-    final Color selectedText = colors.onPrimary;
-    final Color unselectedText = colors.onSurface;
-    final Color containerColor = colors.surfaceContainerHigh;
-
-    Widget buildChip({
-      required String label,
-      required bool selected,
-      required VoidCallback onTap,
-    }) {
-      return Expanded(
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 160),
-          decoration: BoxDecoration(
-            color: selected ? selectedBg : Colors.transparent,
-            borderRadius: BorderRadius.circular(32),
-            boxShadow: selected
-                ? const <BoxShadow>[
-                    BoxShadow(
-                      color: Color(0x4D000000),
-                      blurRadius: 16,
-                      offset: Offset(0, 8),
-                    ),
-                    BoxShadow(
-                      color: Color(0x1F000000),
-                      blurRadius: 8,
-                      offset: Offset(0, 4),
-                    ),
-                  ]
-                : const <BoxShadow>[],
-          ),
-          child: InkWell(
-            borderRadius: BorderRadius.circular(32),
-            onTap: onTap,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Center(
-                child: Text(
-                  label,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w500,
-                        fontSize: 16,
-                        letterSpacing: 0.15,
-                        color: selected ? selectedText : unselectedText,
-                      ) ??
-                      TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                        letterSpacing: 0.15,
-                        color: selected ? selectedText : unselectedText,
-                      ),
-                ),
-              ),
-            ),
-          ),
-        ),
-      );
-    }
+    final KopimLayout layout = context.kopimLayout;
+    const Duration duration = Duration(milliseconds: 260);
+    final int clampedIndex = safeIndex.clamp(0, 1).toInt();
 
     return Container(
-      height: 48,
-      padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: containerColor,
-        borderRadius: BorderRadius.circular(24),
+        color: colors.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(layout.radius.xxl),
       ),
-      child: Row(
-        children: <Widget>[
-          buildChip(
-            label: strings.analyticsTopCategoriesExpensesTab,
-            selected: safeIndex == 0,
-            onTap: () => onChanged(0),
+      padding: const EdgeInsets.all(6),
+      child: LayoutBuilder(
+        builder: (BuildContext context, BoxConstraints constraints) {
+          final double segmentWidth = constraints.maxWidth / 2;
+
+          return SizedBox(
+            height: 48,
+            child: Stack(
+              children: <Widget>[
+                Positioned.fill(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: colors.surfaceContainerHigh,
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                  ),
+                ),
+                AnimatedPositioned(
+                  duration: duration,
+                  curve: Curves.easeOutBack,
+                  left: clampedIndex * segmentWidth,
+                  top: 0,
+                  bottom: 0,
+                  width: segmentWidth,
+                  child: AnimatedContainer(
+                    duration: duration,
+                    curve: Curves.easeOutBack,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(999),
+                      color: colors.primary,
+                    ),
+                  ),
+                ),
+                Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: _AnalyticsSegmentItem(
+                        label: strings.analyticsTopCategoriesExpensesTab,
+                        selected: clampedIndex == 0,
+                        onTap: () => onChanged(0),
+                        selectedTextColor: colors.onPrimary,
+                      ),
+                    ),
+                    Expanded(
+                      child: _AnalyticsSegmentItem(
+                        label: strings.analyticsTopCategoriesIncomeTab,
+                        selected: clampedIndex == 1,
+                        onTap: () => onChanged(1),
+                        selectedTextColor: colors.onPrimary,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _AnalyticsSegmentItem extends StatelessWidget {
+  const _AnalyticsSegmentItem({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+    required this.selectedTextColor,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+  final Color selectedTextColor;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final TextStyle baseStyle =
+        theme.textTheme.labelLarge ?? const TextStyle(fontSize: 16);
+
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Center(
+        child: AnimatedScale(
+          duration: const Duration(milliseconds: 180),
+          curve: Curves.easeOut,
+          scale: selected ? 1.0 : 0.95,
+          child: AnimatedDefaultTextStyle(
+            duration: const Duration(milliseconds: 180),
+            curve: Curves.easeOut,
+            style: baseStyle.copyWith(
+              fontWeight: selected ? FontWeight.w700 : FontWeight.w400,
+              color: selected
+                  ? selectedTextColor
+                  : theme.colorScheme.onSurface.withValues(alpha: 0.8),
+            ),
+            child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
           ),
-          const SizedBox(width: 8),
-          buildChip(
-            label: strings.analyticsTopCategoriesIncomeTab,
-            selected: safeIndex == 1,
-            onTap: () => onChanged(1),
-          ),
-        ],
+        ),
       ),
     );
   }

@@ -175,7 +175,7 @@ final class FirestoreProvider
   }
 }
 
-String _$firestoreHash() => r'53a4efcd9648970fc47e0f2fbddb47639cf1269c';
+String _$firestoreHash() => r'9ef8deb736db55c3deab318b7e89442a4bd8436a';
 
 @ProviderFor(firebaseAuth)
 const firebaseAuthProvider = FirebaseAuthProvider._();

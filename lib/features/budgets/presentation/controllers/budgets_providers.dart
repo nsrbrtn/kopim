@@ -173,7 +173,7 @@ AsyncValue<List<BudgetCategorySpend>> budgetCategorySpend(Ref ref) {
         () => _CategoryAccumulator(),
       );
       accumulator.spent += entry.value;
-      final double? limit = _resolveCategoryLimit(budget, entry.key);
+      final double? limit = resolveBudgetCategoryLimit(budget, entry.key);
       if (limit != null) {
         accumulator.limit = (accumulator.limit ?? 0) + limit;
       }
@@ -269,7 +269,7 @@ Future<List<BudgetInstance>> budgetInstancesByBudget(
   return repository.loadInstances(budgetId);
 }
 
-double? _resolveCategoryLimit(Budget budget, String categoryId) {
+double? resolveBudgetCategoryLimit(Budget budget, String categoryId) {
   final Iterable<BudgetCategoryAllocation> allocations = budget
       .categoryAllocations
       .where(

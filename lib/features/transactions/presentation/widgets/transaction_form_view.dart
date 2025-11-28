@@ -67,8 +67,6 @@ String? _resolveDefaultAccountId(
   return accounts.isNotEmpty ? accounts.first.id : null;
 }
 
-const Color _kTypeSelectedColor = Color(0xFFAEF75F);
-const Color _kTypeSelectedTextColor = Color(0xFF1D3700);
 const Color _kPrimaryButtonBackground = Color(0xFFAEF75F);
 const Color _kPrimaryButtonForeground = Color(0xFF1D3700);
 
@@ -1682,7 +1680,7 @@ class _TypeSegmentItem extends StatelessWidget {
               fontWeight: selected ? FontWeight.w700 : FontWeight.w400,
               color: selected
                   ? selectedTextColor
-                  : theme.colorScheme.onSurface.withOpacity(0.8),
+                  : theme.colorScheme.onSurface.withValues(alpha: 0.8),
             ),
             child: Text(label),
           ),

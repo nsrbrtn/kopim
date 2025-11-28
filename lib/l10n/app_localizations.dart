@@ -2958,6 +2958,12 @@ abstract class AppLocalizations {
   /// **'Remaining'**
   String get budgetsRemainingLabel;
 
+  /// Button to open budget transactions
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get budgetsDetailsButton;
+
   /// Label used when a budget is exceeded
   ///
   /// In en, this message translates to:

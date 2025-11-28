@@ -1678,6 +1678,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get budgetsRemainingLabel => 'Remaining';
 
   @override
+  String get budgetsDetailsButton => 'Details';
+
+  @override
   String get budgetsExceededLabel => 'Over';
 
   @override

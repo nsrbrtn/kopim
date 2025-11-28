@@ -2234,6 +2234,10 @@
   "@budgetsRemainingLabel": {
     "description": "Подпись метрики оставшейся суммы"
   },
+  "budgetsDetailsButton": "Подробнее",
+  "@budgetsDetailsButton": {
+    "description": "Кнопка перехода к деталям бюджета"
+  },
   "budgetsExceededLabel": "Перерасход",
   "@budgetsExceededLabel": {
     "description": "Подпись метрики при превышении бюджета"

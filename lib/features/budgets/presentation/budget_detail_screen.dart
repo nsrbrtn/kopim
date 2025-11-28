@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -10,7 +11,6 @@ import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_progress.dart';
 import 'package:kopim/features/budgets/presentation/budget_form_screen.dart';
 import 'package:kopim/features/budgets/presentation/controllers/budgets_providers.dart';
-import 'package:kopim/features/budgets/presentation/widgets/budget_card.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
@@ -88,10 +88,9 @@ class BudgetDetailScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: progressAsync.when(
+      body: progressAsync.when<Widget>(
         data: (BudgetProgress progress) {
           return _BudgetDetailBody(
-            progress: progress,
             transactionsAsync: transactionsAsync,
           );
         },
@@ -109,52 +108,66 @@ class BudgetDetailScreen extends ConsumerWidget {
   }
 }
 
-class _BudgetDetailBody extends ConsumerWidget {
+class _BudgetDetailBody extends ConsumerStatefulWidget {
   const _BudgetDetailBody({
-    required this.progress,
     required this.transactionsAsync,
   });
 
-  final BudgetProgress progress;
   final AsyncValue<List<TransactionEntity>> transactionsAsync;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_BudgetDetailBody> createState() => _BudgetDetailBodyState();
+}
+
+class _BudgetDetailBodyState extends ConsumerState<_BudgetDetailBody> {
+  DateTimeRange? _selectedRange;
+  String? _selectedCategoryId;
+
+  @override
+  Widget build(BuildContext context) {
     final AppLocalizations strings = AppLocalizations.of(context)!;
     final ThemeData theme = Theme.of(context);
-    final DateFormat dateFormat = DateFormat.yMMMMd(strings.localeName);
-    final DateTime start = progress.instance.periodStart;
-    final DateTime end = progress.instance.periodEnd;
+    final DateFormat dateFormat = DateFormat.yMMMd(strings.localeName);
     final AsyncValue<List<AccountEntity>> accountsAsync = ref.watch(
       budgetAccountsStreamProvider,
     );
     final AsyncValue<List<Category>> categoriesAsync = ref.watch(
       budgetCategoriesStreamProvider,
     );
+    final List<TransactionEntity> scopedTransactions =
+        widget.transactionsAsync.value ?? const <TransactionEntity>[];
+    final List<Category> categories =
+        categoriesAsync.value ?? const <Category>[];
+    final List<TransactionEntity> filteredByRange =
+        _applyRange(scopedTransactions);
+    final List<TransactionEntity> filteredTransactions =
+        _applyCategory(filteredByRange);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          BudgetCard(progress: progress),
-          const SizedBox(height: 16),
-          Text(
-            strings.budgetPeriodLabel(
-              dateFormat.format(start),
-              dateFormat.format(end.subtract(const Duration(minutes: 1))),
-            ),
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
+          _BudgetFilters(
+            strings: strings,
+            dateFormat: dateFormat,
+            selectedRange: _selectedRange,
+            onRangeSelected: (DateTimeRange? range) {
+              setState(() => _selectedRange = range);
+            },
+            categories: categories,
+            selectedCategoryId: _selectedCategoryId,
+            onCategorySelected: (String? id) {
+              setState(() => _selectedCategoryId = id);
+            },
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
           Text(
             strings.budgetTransactionsTitle,
             style: theme.textTheme.titleMedium,
           ),
           const SizedBox(height: 12),
-          transactionsAsync.when(
+          widget.transactionsAsync.when(
             data: (List<TransactionEntity> transactions) {
               if (accountsAsync.isLoading || categoriesAsync.isLoading) {
                 return const Padding(
@@ -186,7 +199,8 @@ class _BudgetDetailBody extends ConsumerWidget {
                     in categoriesAsync.value ?? const <Category>[])
                   category.id: category,
               };
-              final List<TransactionEntity> visibleTransactions = transactions
+              final List<TransactionEntity> visibleTransactions =
+                  filteredTransactions
                   .where(
                     (TransactionEntity tx) =>
                         accountsById.containsKey(tx.accountId),
@@ -236,6 +250,187 @@ class _BudgetDetailBody extends ConsumerWidget {
           ),
         ],
       ),
+    );
+  }
+
+  List<TransactionEntity> _applyRange(List<TransactionEntity> items) {
+    final DateTimeRange? range = _selectedRange;
+    if (range == null) return items;
+    final DateTime start = DateUtils.dateOnly(range.start);
+    final DateTime end =
+        DateUtils.dateOnly(range.end).add(const Duration(days: 1));
+    return items
+        .where(
+          (TransactionEntity tx) =>
+              !tx.date.isBefore(start) && tx.date.isBefore(end),
+        )
+        .toList(growable: false);
+  }
+
+  List<TransactionEntity> _applyCategory(List<TransactionEntity> items) {
+    if (_selectedCategoryId == null) return items;
+    return items
+        .where((TransactionEntity tx) => tx.categoryId == _selectedCategoryId)
+        .toList(growable: false);
+  }
+}
+
+class _BudgetFilters extends StatelessWidget {
+  const _BudgetFilters({
+    required this.strings,
+    required this.dateFormat,
+    required this.selectedRange,
+    required this.onRangeSelected,
+    required this.categories,
+    required this.selectedCategoryId,
+    required this.onCategorySelected,
+  });
+
+  final AppLocalizations strings;
+  final DateFormat dateFormat;
+  final DateTimeRange? selectedRange;
+  final ValueChanged<DateTimeRange?> onRangeSelected;
+  final List<Category> categories;
+  final String? selectedCategoryId;
+  final ValueChanged<String?> onCategorySelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final String rangeLabel = _formatRangeLabel(selectedRange, dateFormat);
+    final String categoryLabel = _formatCategoryLabel(
+      categories: categories,
+      selectedId: selectedCategoryId,
+    );
+
+    return Wrap(
+      spacing: 12,
+      runSpacing: 8,
+      children: <Widget>[
+        OutlinedButton.icon(
+          onPressed: () async {
+            final DateTimeRange? picked = await showDateRangePicker(
+              context: context,
+              firstDate: DateTime(2000),
+              lastDate: DateTime(DateTime.now().year + 5, 12, 31),
+              initialDateRange: selectedRange ??
+                  DateTimeRange(
+                    start: DateTime.now().subtract(const Duration(days: 30)),
+                    end: DateTime.now(),
+                  ),
+              locale: Locale(strings.localeName),
+            );
+            onRangeSelected(picked);
+          },
+          icon: const Icon(Icons.calendar_month_outlined),
+          label: Text(rangeLabel),
+        ),
+        OutlinedButton.icon(
+          onPressed: categories.isEmpty
+              ? null
+              : () async {
+                  final String? picked = await _pickCategory(
+                    context,
+                    categories: categories,
+                    selectedId: selectedCategoryId,
+                    strings: strings,
+                  );
+                  onCategorySelected(picked);
+                },
+          icon: const Icon(Icons.category_outlined),
+          label: Text(categoryLabel),
+        ),
+        if (selectedRange != null || selectedCategoryId != null)
+          TextButton.icon(
+            onPressed: () {
+              onRangeSelected(null);
+              onCategorySelected(null);
+            },
+            icon: const Icon(Icons.filter_alt_off_outlined),
+            label: const Text('Сбросить фильтры'),
+            style: TextButton.styleFrom(
+              foregroundColor: theme.colorScheme.primary,
+            ),
+          ),
+      ],
+    );
+  }
+
+  String _formatRangeLabel(
+    DateTimeRange? range,
+    DateFormat format,
+  ) {
+    if (range == null) {
+      return 'Весь период';
+    }
+    final String start = format.format(range.start);
+    final String end = format.format(range.end);
+    return '$start — $end';
+  }
+
+  String _formatCategoryLabel({
+    required List<Category> categories,
+    required String? selectedId,
+  }) {
+    if (selectedId == null) {
+      return 'Все категории';
+    }
+    final Category? category = categories.firstWhereOrNull(
+      (Category item) => item.id == selectedId,
+    );
+    return category?.name ?? 'Категория выбрана';
+  }
+
+  Future<String?> _pickCategory(
+    BuildContext context, {
+    required List<Category> categories,
+    required String? selectedId,
+    required AppLocalizations strings,
+  }) async {
+    return showModalBottomSheet<String?>(
+      context: context,
+      showDragHandle: true,
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      builder: (BuildContext context) {
+        return SafeArea(
+          top: false,
+          child: ListView.separated(
+            shrinkWrap: true,
+            itemCount: categories.length + 1,
+            separatorBuilder: (_, __) => const Divider(height: 1),
+            itemBuilder: (BuildContext context, int index) {
+              if (index == 0) {
+                return ListTile(
+                  title: const Text('Все категории'),
+                  trailing: selectedId == null
+                      ? Icon(
+                          Icons.check,
+                          color: Theme.of(context).colorScheme.primary,
+                        )
+                      : null,
+                  onTap: () => Navigator.of(context).pop(null),
+                );
+              }
+              final Category category = categories[index - 1];
+              final bool isSelected = category.id == selectedId;
+              return ListTile(
+                leading: Icon(
+                  resolvePhosphorIconData(category.icon) ??
+                      Icons.category_outlined,
+                ),
+                title: Text(category.name),
+                trailing: isSelected
+                    ? Icon(
+                        Icons.check,
+                        color: Theme.of(context).colorScheme.primary,
+                      )
+                    : null,
+                onTap: () => Navigator.of(context).pop(category.id),
+              );
+            },
+          ),
+        );
+      },
     );
   }
 }

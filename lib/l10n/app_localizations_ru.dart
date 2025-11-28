@@ -1698,6 +1698,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get budgetsRemainingLabel => 'Осталось';
 
   @override
+  String get budgetsDetailsButton => 'Подробнее';
+
+  @override
   String get budgetsExceededLabel => 'Перерасход';
 
   @override

@@ -42,7 +42,7 @@ final class AnalyticsFilterControllerProvider
 }
 
 String _$analyticsFilterControllerHash() =>
-    r'd6bd42488cb918e8768a43cf75ce4819192f846a';
+    r'd9b786c0dfb474017634916adb214f8c1d0eac2f';
 
 abstract class _$AnalyticsFilterController
     extends $Notifier<AnalyticsFilterState> {

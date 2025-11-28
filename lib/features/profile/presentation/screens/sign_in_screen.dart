@@ -4,6 +4,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kopim/core/di/injectors.dart';
+import 'package:kopim/core/widgets/kopim_text_field.dart';
 import 'package:kopim/features/profile/presentation/controllers/sign_in_form_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/sign_up_form_controller.dart';
 import 'package:kopim/l10n/app_localizations.dart';
@@ -191,147 +192,218 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
         ? signUpState.errorMessage
         : formState.errorMessage;
 
+    // Styles from design
+    final TextStyle headerStyle = TextStyle(
+      fontFamily: 'Onest',
+      fontWeight: FontWeight.w200,
+      fontSize: 45,
+      height: 52 / 45,
+      color: theme.colorScheme.onSurface,
+    );
+
+    final TextStyle subHeaderStyle = TextStyle(
+      fontFamily: 'Inter',
+      fontWeight: FontWeight.w400,
+      fontSize: 22,
+      height: 28 / 22,
+      color: theme.colorScheme.onSurface,
+    );
+
+    final TextStyle labelStyle = TextStyle(
+      fontFamily: 'Inter',
+      fontWeight: FontWeight.w500,
+      fontSize: 12,
+      height: 16 / 12,
+      letterSpacing: 0.5,
+      color: theme.colorScheme.onSurface,
+    );
+
+    final TextStyle linkStyle = TextStyle(
+      fontFamily: 'Inter',
+      fontWeight: FontWeight.w500,
+      fontSize: 12,
+      height: 16 / 12,
+      letterSpacing: 0.5,
+      color: theme.colorScheme.primary,
+    );
+
+    final TextStyle dividerTextStyle = TextStyle(
+      fontFamily: 'Inter',
+      fontWeight: FontWeight.w500,
+      fontSize: 12,
+      height: 16 / 12,
+      letterSpacing: 0.5,
+      color: theme.colorScheme.onSurfaceVariant,
+    );
+
+    final TextStyle bottomActionStyle = TextStyle(
+      fontFamily: 'Inter',
+      fontWeight: FontWeight.w400,
+      fontSize: 12,
+      height: 16 / 12,
+      letterSpacing: 0.4,
+      color: theme.colorScheme.primary,
+    );
+
     return Scaffold(
-      body: Center(
+      body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 420),
-            child: Form(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: <Widget>[
-                  Text(
-                    _isSignUpMode ? strings.signUpTitle : strings.signInTitle,
-                    style: theme.textTheme.headlineMedium,
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    _isSignUpMode
-                        ? strings.signUpSubtitle
-                        : strings.signInSubtitle,
-                    style: theme.textTheme.bodyMedium,
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 24),
-                  if (_isSignUpMode) ...<Widget>[
-                    TextFormField(
-                      controller: _signUpEmailController,
-                      focusNode: _signUpEmailFocusNode,
-                      autofillHints: const <String>[AutofillHints.email],
-                      keyboardType: TextInputType.emailAddress,
-                      decoration: InputDecoration(
-                        labelText: strings.signInEmailLabel,
-                      ),
-                      textInputAction: TextInputAction.next,
-                      enabled: !isSubmitting,
-                      onFieldSubmitted: (_) {
-                        _signUpPasswordFocusNode.requestFocus();
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              // Header
+              SizedBox(
+                width: 348,
+                child: Text(
+                  'Привет!\nДавай копить\nвместе.',
+                  style: headerStyle,
+                ),
+              ),
+
+              // Spacing to push content down (approximate 255px from design, but flexible)
+              const SizedBox(height: 120),
+
+              // Subheader
+              Text(
+                _isSignUpMode ? strings.signUpTitle : 'Войди для синхронизации',
+                style: subHeaderStyle,
+              ),
+              const SizedBox(height: 16),
+
+              // Form
+              if (_isSignUpMode) ...<Widget>[
+                _buildLabel(strings.signInEmailLabel, labelStyle),
+                const SizedBox(height: 10),
+                KopimTextField(
+                  controller: _signUpEmailController,
+                  focusNode: _signUpEmailFocusNode,
+                  keyboardType: TextInputType.emailAddress,
+                  textInputAction: TextInputAction.next,
+                  enabled: !isSubmitting,
+                  onSubmitted: (_) => _signUpPasswordFocusNode.requestFocus(),
+                  placeholder: 'name@example.com',
+                ),
+                const SizedBox(height: 16),
+
+                _buildLabel(strings.signInPasswordLabel, labelStyle),
+                const SizedBox(height: 10),
+                KopimTextField(
+                  controller: _signUpPasswordController,
+                  focusNode: _signUpPasswordFocusNode,
+                  obscureText: true,
+                  textInputAction: TextInputAction.next,
+                  enabled: !isSubmitting,
+                  onSubmitted: (_) =>
+                      _signUpConfirmPasswordFocusNode.requestFocus(),
+                  placeholder: '••••••••',
+                ),
+                const SizedBox(height: 16),
+
+                _buildLabel(strings.signUpConfirmPasswordLabel, labelStyle),
+                const SizedBox(height: 10),
+                KopimTextField(
+                  controller: _signUpConfirmPasswordController,
+                  focusNode: _signUpConfirmPasswordFocusNode,
+                  obscureText: true,
+                  textInputAction: TextInputAction.next,
+                  enabled: !isSubmitting,
+                  onSubmitted: (_) =>
+                      _signUpDisplayNameFocusNode.requestFocus(),
+                  placeholder: '••••••••',
+                ),
+                const SizedBox(height: 16),
+
+                _buildLabel(strings.signUpDisplayNameLabel, labelStyle),
+                const SizedBox(height: 10),
+                KopimTextField(
+                  controller: _signUpDisplayNameController,
+                  focusNode: _signUpDisplayNameFocusNode,
+                  textCapitalization: TextCapitalization.words,
+                  textInputAction: TextInputAction.done,
+                  enabled: !isSubmitting,
+                  onSubmitted: (_) => _onSignUpSubmit(signUpController),
+                  placeholder: 'Иван Иванов',
+                ),
+              ] else ...<Widget>[
+                // Email
+                _buildLabel('Введите вашу почту', labelStyle),
+                const SizedBox(height: 10),
+                KopimTextField(
+                  controller: _emailController,
+                  focusNode: _emailFocusNode,
+                  keyboardType: TextInputType.emailAddress,
+                  textInputAction: TextInputAction.next,
+                  enabled: !isSubmitting,
+                  onSubmitted: (_) => _passwordFocusNode.requestFocus(),
+                  placeholder: 'name@example.com',
+                ),
+                const SizedBox(height: 16),
+
+                // Password Label Row
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    Text('Введите ваш пароль', style: labelStyle),
+                    GestureDetector(
+                      onTap: () {
+                        // TODO: Implement forgot password
                       },
+                      child: Text('Забыли пароль?', style: linkStyle),
                     ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _signUpPasswordController,
-                      focusNode: _signUpPasswordFocusNode,
-                      obscureText: true,
-                      autofillHints: const <String>[AutofillHints.newPassword],
-                      decoration: InputDecoration(
-                        labelText: strings.signInPasswordLabel,
-                      ),
-                      enabled: !isSubmitting,
-                      textInputAction: TextInputAction.next,
-                      onFieldSubmitted: (_) {
-                        _signUpConfirmPasswordFocusNode.requestFocus();
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _signUpConfirmPasswordController,
-                      focusNode: _signUpConfirmPasswordFocusNode,
-                      obscureText: true,
-                      autofillHints: const <String>[AutofillHints.newPassword],
-                      decoration: InputDecoration(
-                        labelText: strings.signUpConfirmPasswordLabel,
-                      ),
-                      enabled: !isSubmitting,
-                      textInputAction: TextInputAction.next,
-                      onFieldSubmitted: (_) {
-                        _signUpDisplayNameFocusNode.requestFocus();
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _signUpDisplayNameController,
-                      focusNode: _signUpDisplayNameFocusNode,
-                      textCapitalization: TextCapitalization.words,
-                      decoration: InputDecoration(
-                        labelText: strings.signUpDisplayNameLabel,
-                      ),
-                      enabled: !isSubmitting,
-                      textInputAction: TextInputAction.done,
-                      onFieldSubmitted: (_) =>
-                          _onSignUpSubmit(signUpController),
-                    ),
-                    const SizedBox(height: 16),
-                  ] else ...<Widget>[
-                    TextFormField(
-                      controller: _emailController,
-                      focusNode: _emailFocusNode,
-                      autofillHints: const <String>[AutofillHints.email],
-                      keyboardType: TextInputType.emailAddress,
-                      decoration: InputDecoration(
-                        labelText: strings.signInEmailLabel,
-                      ),
-                      textInputAction: TextInputAction.next,
-                      enabled: !isSubmitting,
-                      onFieldSubmitted: (_) {
-                        _passwordFocusNode.requestFocus();
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _passwordController,
-                      focusNode: _passwordFocusNode,
-                      obscureText: true,
-                      autofillHints: const <String>[AutofillHints.password],
-                      decoration: InputDecoration(
-                        labelText: strings.signInPasswordLabel,
-                      ),
-                      enabled: !isSubmitting,
-                      textInputAction: TextInputAction.done,
-                      onFieldSubmitted: (_) => _onSubmit(controller),
-                    ),
-                    const SizedBox(height: 16),
                   ],
-                  isOffline.when(
-                    data: (bool offline) => offline
-                        ? Padding(
-                            padding: const EdgeInsets.only(bottom: 8),
-                            child: Text(
-                              strings.signInOfflineNotice,
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: theme.colorScheme.secondary,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          )
-                        : const SizedBox.shrink(),
-                    loading: () => const SizedBox.shrink(),
-                    error: (Object error, StackTrace stackTrace) =>
-                        const SizedBox.shrink(),
+                ),
+                const SizedBox(height: 10),
+                KopimTextField(
+                  controller: _passwordController,
+                  focusNode: _passwordFocusNode,
+                  obscureText: true,
+                  textInputAction: TextInputAction.done,
+                  enabled: !isSubmitting,
+                  onSubmitted: (_) => _onSubmit(controller),
+                  placeholder: '••••••••',
+                ),
+              ],
+
+              const SizedBox(height: 24),
+
+              // Error Message
+              if (errorMessage != null) ...<Widget>[
+                Text(
+                  errorMessage,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.error,
                   ),
-                  if (errorMessage != null) ...<Widget>[
-                    Text(
-                      errorMessage,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.error,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 12),
-                  ],
-                  ElevatedButton(
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 12),
+              ],
+
+              // Offline Notice
+              isOffline.when(
+                data: (bool offline) => offline
+                    ? Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: Text(
+                          strings.signInOfflineNotice,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.secondary,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      )
+                    : const SizedBox.shrink(),
+                loading: () => const SizedBox.shrink(),
+                error: (Object error, StackTrace stackTrace) =>
+                    const SizedBox.shrink(),
+              ),
+
+              // Submit Button
+              SizedBox(
+                width: double.infinity,
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: FilledButton(
                     onPressed: _isSignUpMode
                         ? (signUpState.canSubmit
                               ? () => _onSignUpSubmit(signUpController)
@@ -339,61 +411,89 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                         : (formState.canSubmit
                               ? () => _onSubmit(controller)
                               : null),
+                    style: FilledButton.styleFrom(
+                      textStyle: const TextStyle(
+                        fontFamily: 'Inter',
+                        fontWeight: FontWeight.w500,
+                        fontSize: 16,
+                        letterSpacing: 0.15,
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 16,
+                      ),
+                      shape: const StadiumBorder(),
+                    ),
                     child: isSubmitting
-                        ? Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            mainAxisSize: MainAxisSize.min,
-                            children: <Widget>[
-                              const SizedBox(
-                                width: 18,
-                                height: 18,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Text(
-                                _isSignUpMode
-                                    ? strings.signUpLoading
-                                    : strings.signInLoading,
-                              ),
-                            ],
+                        ? const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(strokeWidth: 2),
                           )
-                        : Text(
-                            _isSignUpMode
-                                ? strings.signUpSubmitCta
-                                : strings.signInSubmitCta,
-                          ),
+                        : Text(_isSignUpMode ? 'Создать' : 'Войти'),
                   ),
-                  const SizedBox(height: 12),
-                  TextButton.icon(
-                    onPressed: isBusy
-                        ? null
-                        : () => controller.continueOffline(),
-                    icon: const Icon(Icons.wifi_off),
-                    label: Text(strings.signInOfflineCta),
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              // Divider
+              Row(
+                children: <Widget>[
+                  Expanded(
+                    child: Divider(
+                      color: theme.colorScheme.outlineVariant,
+                      thickness: 1,
+                    ),
                   ),
-                  const SizedBox(height: 8),
-                  TextButton(
-                    onPressed: isBusy
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    child: Text('или', style: dividerTextStyle),
+                  ),
+                  Expanded(
+                    child: Divider(
+                      color: theme.colorScheme.outlineVariant,
+                      thickness: 1,
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 32),
+
+              // Bottom Actions
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[
+                  GestureDetector(
+                    onTap: isBusy ? null : () => controller.continueOffline(),
+                    child: Text('Продолжить офлайн', style: bottomActionStyle),
+                  ),
+                  GestureDetector(
+                    onTap: isBusy
                         ? null
                         : () => _toggleMode(
                             controller: controller,
                             signUpController: signUpController,
                           ),
                     child: Text(
-                      _isSignUpMode
-                          ? strings.signInAlreadyHaveAccountCta
-                          : strings.signInNoAccountCta,
+                      _isSignUpMode ? 'Войти в аккаунт' : 'Создать аккаунт',
+                      style: bottomActionStyle,
                     ),
                   ),
                 ],
               ),
-            ),
+
+              const SizedBox(height: 40),
+            ],
           ),
         ),
       ),
     );
+  }
+
+  Widget _buildLabel(String text, TextStyle style) {
+    return Text(text, style: style);
   }
 
   Future<void> _onSubmit(SignInFormController controller) {

@@ -2236,6 +2236,10 @@
   "@budgetsRemainingLabel": {
     "description": "Label for the remaining amount metric"
   },
+  "budgetsDetailsButton": "Details",
+  "@budgetsDetailsButton": {
+    "description": "Button to open budget transactions"
+  },
   "budgetsExceededLabel": "Over",
   "@budgetsExceededLabel": {
     "description": "Label used when a budget is exceeded"

@@ -3,15 +3,17 @@ import 'package:flutter/material.dart';
 class KopimExpandableSectionPlayful extends StatefulWidget {
   const KopimExpandableSectionPlayful({
     super.key,
-    required this.title,
+    this.title,
+    this.header,
     required this.child,
     this.initiallyExpanded = false,
     this.duration = const Duration(milliseconds: 260),
     this.onChanged,
     this.leading,
-  });
+  }) : assert(title != null || header != null, 'Нужен title или header');
 
-  final String title;
+  final String? title;
+  final Widget? header;
   final Widget child;
   final bool initiallyExpanded;
   final Duration duration;
@@ -136,14 +138,15 @@ class _KopimExpandableSectionPlayfulState
                           ),
                         ],
                         Expanded(
-                          child: Text(
-                            widget.title,
-                            style: theme.textTheme.bodyLarge?.copyWith(
-                              fontWeight: FontWeight.w400,
-                              letterSpacing: 0.2,
-                              color: colors.onSurface,
-                            ),
-                          ),
+                          child: widget.header ??
+                              Text(
+                                widget.title ?? '',
+                                style: theme.textTheme.bodyLarge?.copyWith(
+                                  fontWeight: FontWeight.w400,
+                                  letterSpacing: 0.2,
+                                  color: colors.onSurface,
+                                ),
+                              ),
                         ),
                         RotationTransition(
                           turns: Tween<double>(begin: 0.0, end: 0.5)
