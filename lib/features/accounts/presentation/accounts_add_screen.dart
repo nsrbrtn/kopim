@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:kopim/core/widgets/kopim_text_field.dart';
 import 'package:kopim/features/accounts/presentation/controllers/add_account_form_controller.dart';
 import 'package:kopim/features/accounts/presentation/widgets/account_color_selector.dart';
 import 'package:kopim/l10n/app_localizations.dart';
@@ -88,6 +89,7 @@ class _AddAccountScreenState extends ConsumerState<AddAccountScreen> {
     const String customTypeValue = '__custom__';
 
     final ThemeData theme = Theme.of(context);
+    final ColorScheme colorScheme = theme.colorScheme;
     final bool showTypeError =
         state.typeError == AddAccountFieldError.emptyType;
     final String? dropdownErrorText = showTypeError && !state.useCustomType
@@ -104,28 +106,36 @@ class _AddAccountScreenState extends ConsumerState<AddAccountScreen> {
             children: <Widget>[
               if (state.isSaving) const LinearProgressIndicator(),
               const SizedBox(height: 16),
-              TextFormField(
+              Text(
+                strings.addAccountNameLabel,
+                style: theme.textTheme.labelLarge,
+              ),
+              const SizedBox(height: 16),
+              KopimTextField(
                 controller: _nameController,
-                decoration: InputDecoration(
-                  labelText: strings.addAccountNameLabel,
-                  errorText: state.nameError == AddAccountFieldError.emptyName
-                      ? strings.addAccountNameRequired
-                      : null,
-                ),
+                placeholder: strings.addAccountNameLabel,
                 enabled: !state.isSaving,
                 textInputAction: TextInputAction.next,
                 onChanged: controller.updateName,
               ),
               const SizedBox(height: 16),
-              TextFormField(
-                controller: _balanceController,
-                decoration: InputDecoration(
-                  labelText: strings.addAccountBalanceLabel,
-                  errorText:
-                      state.balanceError == AddAccountFieldError.invalidBalance
-                      ? strings.addAccountBalanceInvalid
-                      : null,
+              if (state.nameError == AddAccountFieldError.emptyName) ...<Widget>[
+                Text(
+                  strings.addAccountNameRequired,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colorScheme.error,
+                  ),
                 ),
+                const SizedBox(height: 16),
+              ],
+              Text(
+                strings.addAccountBalanceLabel,
+                style: theme.textTheme.labelLarge,
+              ),
+              const SizedBox(height: 16),
+              KopimTextField(
+                controller: _balanceController,
+                placeholder: strings.addAccountBalanceLabel,
                 enabled: !state.isSaving,
                 keyboardType: const TextInputType.numberWithOptions(
                   decimal: true,
@@ -133,6 +143,17 @@ class _AddAccountScreenState extends ConsumerState<AddAccountScreen> {
                 onChanged: controller.updateBalance,
               ),
               const SizedBox(height: 16),
+              if (state.balanceError == AddAccountFieldError.invalidBalance)
+                Text(
+                  strings.addAccountBalanceInvalid,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colorScheme.error,
+                  ),
+                ),
+              if (state.balanceError ==
+                  AddAccountFieldError.invalidBalance) ...<Widget>[
+                const SizedBox(height: 16),
+              ],
               DropdownButtonFormField<String>(
                 initialValue: state.currency,
                 decoration: InputDecoration(
@@ -182,14 +203,14 @@ class _AddAccountScreenState extends ConsumerState<AddAccountScreen> {
                 onChanged: state.isSaving
                     ? null
                     : (String? value) {
-                  if (value != null) {
-                    if (value == customTypeValue) {
-                      controller.enableCustomType();
-                    } else {
-                      controller.updateType(value);
-                    }
-                  }
-                },
+                        if (value != null) {
+                          if (value == customTypeValue) {
+                            controller.enableCustomType();
+                          } else {
+                            controller.updateType(value);
+                          }
+                        }
+                      },
               ),
               const SizedBox(height: 16),
               AccountColorSelector(
@@ -199,18 +220,27 @@ class _AddAccountScreenState extends ConsumerState<AddAccountScreen> {
               ),
               if (state.useCustomType) ...<Widget>[
                 const SizedBox(height: 16),
-                TextFormField(
+                Text(
+                  strings.addAccountCustomTypeLabel,
+                  style: theme.textTheme.labelLarge,
+                ),
+                const SizedBox(height: 16),
+                KopimTextField(
                   controller: _customTypeController,
-                  decoration: InputDecoration(
-                    labelText: strings.addAccountCustomTypeLabel,
-                    errorText: showTypeError
-                        ? strings.addAccountTypeRequired
-                        : null,
-                  ),
+                  placeholder: strings.addAccountCustomTypeLabel,
                   enabled: !state.isSaving,
                   textCapitalization: TextCapitalization.sentences,
+                  textInputAction: TextInputAction.done,
                   onChanged: controller.updateCustomType,
                 ),
+                const SizedBox(height: 16),
+                if (showTypeError)
+                  Text(
+                    strings.addAccountTypeRequired,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: colorScheme.error,
+                    ),
+                  ),
               ],
               const SizedBox(height: 16),
               SwitchListTile.adaptive(

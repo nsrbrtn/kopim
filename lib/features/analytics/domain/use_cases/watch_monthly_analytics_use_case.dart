@@ -7,6 +7,8 @@ import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
 import 'package:kopim/features/transactions/domain/repositories/transaction_repository.dart';
 
+const String _othersCategoryKey = '_others';
+
 class WatchMonthlyAnalyticsUseCase {
   WatchMonthlyAnalyticsUseCase({
     required TransactionRepository transactionRepository,
@@ -85,37 +87,20 @@ class WatchMonthlyAnalyticsUseCase {
               return b.value.compareTo(a.value);
             });
 
-      final int expenseLimit = topCategoriesLimit <= 0
-          ? sortedExpenses.length
-          : math.min(topCategoriesLimit, sortedExpenses.length);
-
-      final Iterable<AnalyticsCategoryBreakdown> topExpenses = sortedExpenses
-          .take(expenseLimit)
-          .map((MapEntry<String?, double> entry) {
-            return AnalyticsCategoryBreakdown(
-              categoryId: entry.key,
-              amount: entry.value,
-            );
-          });
-
       final List<MapEntry<String?, double>> sortedIncomes =
           incomeByCategory.entries.toList()
             ..sort((MapEntry<String?, double> a, MapEntry<String?, double> b) {
               return b.value.compareTo(a.value);
             });
 
-      final int incomeLimit = topCategoriesLimit <= 0
-          ? sortedIncomes.length
-          : math.min(topCategoriesLimit, sortedIncomes.length);
-
-      final Iterable<AnalyticsCategoryBreakdown> topIncomes = sortedIncomes
-          .take(incomeLimit)
-          .map((MapEntry<String?, double> entry) {
-            return AnalyticsCategoryBreakdown(
-              categoryId: entry.key,
-              amount: entry.value,
-            );
-          });
+      final List<AnalyticsCategoryBreakdown> topExpenses = _buildTopWithOthers(
+        sortedExpenses,
+        topCategoriesLimit,
+      );
+      final List<AnalyticsCategoryBreakdown> topIncomes = _buildTopWithOthers(
+        sortedIncomes,
+        topCategoriesLimit,
+      );
 
       return AnalyticsOverview(
         totalIncome: totalIncome,
@@ -129,5 +114,52 @@ class WatchMonthlyAnalyticsUseCase {
         ),
       );
     });
+  }
+
+  List<AnalyticsCategoryBreakdown> _buildTopWithOthers(
+    List<MapEntry<String?, double>> sortedEntries,
+    int topCategoriesLimit,
+  ) {
+    if (sortedEntries.isEmpty) {
+      return const <AnalyticsCategoryBreakdown>[];
+    }
+    final int limit = topCategoriesLimit <= 0
+        ? sortedEntries.length
+        : math.min(topCategoriesLimit, sortedEntries.length);
+
+    final List<AnalyticsCategoryBreakdown> top = sortedEntries
+        .take(limit)
+        .map((MapEntry<String?, double> entry) {
+          return AnalyticsCategoryBreakdown(
+            categoryId: entry.key,
+            amount: entry.value,
+          );
+        })
+        .toList(growable: true);
+
+    if (sortedEntries.length > limit) {
+      final List<AnalyticsCategoryBreakdown> remainder = sortedEntries
+          .skip(limit)
+          .map((MapEntry<String?, double> entry) {
+            return AnalyticsCategoryBreakdown(
+              categoryId: entry.key,
+              amount: entry.value,
+            );
+          })
+          .toList(growable: false);
+      final double remainderAmount = remainder.fold<double>(
+        0,
+        (double previous, AnalyticsCategoryBreakdown breakdown) =>
+            previous + breakdown.amount,
+      );
+      top.add(
+        AnalyticsCategoryBreakdown(
+          categoryId: _othersCategoryKey,
+          amount: remainderAmount,
+          children: remainder,
+        ),
+      );
+    }
+    return top;
   }
 }

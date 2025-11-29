@@ -13,6 +13,7 @@ class AnalyticsChartItem {
     required this.amount,
     required this.color,
     this.icon,
+    this.children = const <AnalyticsChartItem>[],
   });
 
   final String key;
@@ -20,8 +21,11 @@ class AnalyticsChartItem {
   final double amount;
   final Color color;
   final IconData? icon;
+  final List<AnalyticsChartItem> children;
 
   double get absoluteAmount => amount.abs();
+
+  bool get hasChildren => children.isNotEmpty;
 }
 
 class AnalyticsDonutChart extends StatelessWidget {

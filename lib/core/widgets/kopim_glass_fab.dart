@@ -71,7 +71,6 @@ class KopimGlassFab extends StatelessWidget {
         enableGradientHighlight: enableGradientHighlight,
         child: KopimFloatingActionButton(
           onPressed: onPressed,
-          child: child,
           icon: icon,
           label: label,
           tooltip: tooltip,
@@ -84,6 +83,7 @@ class KopimGlassFab extends StatelessWidget {
           decorationColor: Colors.transparent,
           foregroundColor: foregroundColor ?? colorScheme.primary,
           iconSize: resolvedIconSize,
+          child: child,
         ),
       ),
     );

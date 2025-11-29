@@ -9,6 +9,7 @@ import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/features/budgets/domain/entities/budget.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_progress.dart';
 import 'package:kopim/features/budgets/domain/use_cases/compute_budget_progress_use_case.dart';
+import 'package:kopim/features/budgets/domain/use_cases/delete_budget_use_case.dart';
 import 'package:kopim/features/budgets/presentation/controllers/budgets_providers.dart';
 import 'package:kopim/features/budgets/presentation/models/budget_category_spend.dart';
 import 'package:kopim/features/budgets/presentation/widgets/budget_card.dart';
@@ -101,10 +102,7 @@ NavigationTabContent buildBudgetsTabContent(
       final ColorScheme colorScheme = Theme.of(context).colorScheme;
       return KopimGlassFab(
         enableGradientHighlight: false,
-        icon: Icon(
-          Icons.add,
-          color: colorScheme.primary,
-        ),
+        icon: Icon(Icons.add, color: colorScheme.primary),
         foregroundColor: colorScheme.primary,
         onPressed: () async {
           await Navigator.of(context).push(
@@ -131,10 +129,12 @@ NavigationTabContent buildBudgetsTabContent(
         computeBudgetProgressUseCaseProvider,
       );
 
-      final bool isLoading = budgetsAsync.isLoading ||
+      final bool isLoading =
+          budgetsAsync.isLoading ||
           transactionsAsync.isLoading ||
           categoriesAsync.isLoading;
-      final Object? error = budgetsAsync.error ??
+      final Object? error =
+          budgetsAsync.error ??
           transactionsAsync.error ??
           categoriesAsync.error;
 
@@ -164,11 +164,11 @@ NavigationTabContent buildBudgetsTabContent(
             final BudgetProgress progress = items[index];
             final List<BudgetCategorySpend> spendByCategory =
                 _computeBudgetCategorySpend(
-              budget: progress.budget,
-              transactions: transactions,
-              categories: categories,
-              compute: compute,
-            );
+                  budget: progress.budget,
+                  transactions: transactions,
+                  categories: categories,
+                  compute: compute,
+                );
             budgetCards.add(
               BudgetCard(
                 progress: progress,
@@ -180,6 +180,39 @@ NavigationTabContent buildBudgetsTabContent(
                           BudgetDetailScreen(budgetId: progress.budget.id),
                     ),
                   );
+                },
+                onEdit: () async {
+                  await Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (BuildContext context) =>
+                          BudgetFormScreen(initialBudget: progress.budget),
+                    ),
+                  );
+                },
+                onDelete: () async {
+                  final bool? confirmed = await showDialog<bool>(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: Text(strings.budgetDeleteTitle),
+                        content: Text(strings.budgetDeleteMessage),
+                        actions: <Widget>[
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pop(false),
+                            child: Text(strings.cancelButtonLabel),
+                          ),
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pop(true),
+                            child: Text(strings.deleteButtonLabel),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                  if (confirmed != true) return;
+                  await ref
+                      .read(deleteBudgetUseCaseProvider)
+                      .call(progress.budget.id);
                 },
               ),
             );

@@ -4,6 +4,8 @@ import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/core/domain/icons/phosphor_icon_descriptor.dart';
 import 'package:kopim/core/utils/helpers.dart';
 import 'package:kopim/core/widgets/kopim_floating_action_button.dart';
+import 'package:kopim/core/widgets/kopim_segmented_control.dart';
+import 'package:kopim/core/widgets/kopim_text_field.dart';
 import 'package:kopim/core/widgets/phosphor_icon_picker.dart';
 import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
@@ -406,7 +408,7 @@ class _ErrorView extends StatelessWidget {
   }
 }
 
-class _CategoryEditorSheet extends ConsumerWidget {
+class _CategoryEditorSheet extends ConsumerStatefulWidget {
   const _CategoryEditorSheet({
     this.category,
     required this.parents,
@@ -418,20 +420,51 @@ class _CategoryEditorSheet extends ConsumerWidget {
   final String? defaultParentId;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final AppLocalizations strings = AppLocalizations.of(context)!;
-    final CategoryFormParams params = CategoryFormParams(
-      initial: category,
-      parents: parents,
-      defaultParentId: defaultParentId,
+  ConsumerState<_CategoryEditorSheet> createState() =>
+      _CategoryEditorSheetState();
+}
+
+class _CategoryEditorSheetState extends ConsumerState<_CategoryEditorSheet> {
+  late final CategoryFormParams _params;
+  late final TextEditingController _nameController;
+
+  @override
+  void initState() {
+    super.initState();
+    _params = CategoryFormParams(
+      initial: widget.category,
+      parents: widget.parents,
+      defaultParentId: widget.defaultParentId,
     );
-    ref.listen<CategoryFormState>(categoryFormControllerProvider(params), (
+    final CategoryFormState initialState = ref.read(
+      categoryFormControllerProvider(_params),
+    );
+    _nameController = TextEditingController(text: initialState.name);
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final AppLocalizations strings = AppLocalizations.of(context)!;
+    ref.listen<CategoryFormState>(categoryFormControllerProvider(_params), (
       CategoryFormState? previous,
       CategoryFormState next,
     ) {
+      if (previous?.name != next.name &&
+          _nameController.text != next.name) {
+        _nameController.value = _nameController.value.copyWith(
+          text: next.name,
+          selection: TextSelection.collapsed(offset: next.name.length),
+        );
+      }
       if (next.isSuccess && previous?.isSuccess != next.isSuccess) {
         ref
-            .read(categoryFormControllerProvider(params).notifier)
+            .read(categoryFormControllerProvider(_params).notifier)
             .resetSuccess();
         Navigator.of(context).pop(true);
       } else if (next.errorMessage != null &&
@@ -449,14 +482,14 @@ class _CategoryEditorSheet extends ConsumerWidget {
     });
 
     final CategoryFormState state = ref.watch(
-      categoryFormControllerProvider(params),
+      categoryFormControllerProvider(_params),
     );
     final CategoryFormController controller = ref.read(
-      categoryFormControllerProvider(params).notifier,
+      categoryFormControllerProvider(_params).notifier,
     );
 
     final ThemeData theme = Theme.of(context);
-    final String title = category == null
+    final String title = widget.category == null
         ? strings.manageCategoriesCreateTitle
         : strings.manageCategoriesEditTitle;
     final PhosphorIconData? iconData = resolvePhosphorIconData(state.icon);
@@ -511,6 +544,7 @@ class _CategoryEditorSheet extends ConsumerWidget {
         context: context,
         labels: pickerLabels,
         initial: state.icon,
+        allowedStyles: const <PhosphorIconStyle>{PhosphorIconStyle.fill},
       );
       if (selection != null) {
         controller.updateIcon(selection.isEmpty ? null : selection);
@@ -532,10 +566,15 @@ class _CategoryEditorSheet extends ConsumerWidget {
         context,
         ref,
         strings: strings,
-        parents: parents,
+        parents: widget.parents,
         defaultParentId: state.id,
       );
     }
+
+    final bool isFormComplete = state.name.trim().isNotEmpty &&
+        (state.icon?.isNotEmpty ?? false) &&
+        state.color.trim().isNotEmpty;
+    final bool canSubmit = !state.isSaving && state.hasChanges && isFormComplete;
 
     return Padding(
       padding: EdgeInsets.only(bottom: viewInsets.bottom),
@@ -547,106 +586,92 @@ class _CategoryEditorSheet extends ConsumerWidget {
           children: <Widget>[
             Text(title, style: theme.textTheme.titleLarge),
             const SizedBox(height: 16),
-            TextFormField(
-              key: ValueKey<String>(
-                'category-name-${state.id}-${state.updatedAt.millisecondsSinceEpoch}',
-              ),
-              initialValue: state.name,
-              decoration: InputDecoration(
-                labelText: strings.manageCategoriesNameLabel,
-                errorText: state.nameHasError
-                    ? strings.manageCategoriesNameRequired
-                    : null,
-              ),
+            Text(
+              strings.manageCategoriesNameLabel,
+              style: theme.textTheme.labelLarge,
+            ),
+            const SizedBox(height: 8),
+            KopimTextField(
+              controller: _nameController,
+              placeholder: strings.manageCategoriesNameLabel,
               textInputAction: TextInputAction.next,
               onChanged: controller.updateName,
             ),
+            if (state.nameHasError) ...<Widget>[
+              const SizedBox(height: 6),
+              Text(
+                strings.manageCategoriesNameRequired,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.error,
+                ),
+              ),
+            ],
             const SizedBox(height: 16),
-            InputDecorator(
-              decoration: InputDecoration(
-                labelText: strings.manageCategoriesTypeLabel,
-              ),
-              child: SegmentedButton<String>(
-                segments: <ButtonSegment<String>>[
-                  ButtonSegment<String>(
-                    value: 'expense',
-                    label: Text(strings.manageCategoriesTypeExpense),
-                  ),
-                  ButtonSegment<String>(
-                    value: 'income',
-                    label: Text(strings.manageCategoriesTypeIncome),
-                  ),
-                ],
-                selected: <String>{state.type},
-                onSelectionChanged: (Set<String> values) {
-                  if (values.isEmpty) return;
-                  controller.updateType(values.first);
-                },
-              ),
+            Text(
+              strings.manageCategoriesTypeLabel,
+              style: theme.textTheme.labelLarge,
+            ),
+            const SizedBox(height: 8),
+            KopimSegmentedControl<String>(
+              options: <KopimSegmentedOption<String>>[
+                KopimSegmentedOption<String>(
+                  value: 'expense',
+                  label: strings.manageCategoriesTypeExpense,
+                ),
+                KopimSegmentedOption<String>(
+                  value: 'income',
+                  label: strings.manageCategoriesTypeIncome,
+                ),
+              ],
+              selectedValue: state.type,
+              onChanged: controller.updateType,
             ),
             const SizedBox(height: 16),
             ListTile(
               contentPadding: EdgeInsets.zero,
-              leading: CircleAvatar(
-                backgroundColor: theme.colorScheme.surfaceContainerHighest,
-                child: iconData != null
-                    ? Icon(iconData)
-                    : const Icon(Icons.category_outlined),
-              ),
               title: Text(strings.manageCategoriesIconLabel),
               subtitle: Text(iconSubtitle),
               onTap: selectIcon,
-              trailing: Wrap(
-                spacing: 8,
-                children: <Widget>[
-                  if (state.icon?.isNotEmpty == true)
-                    IconButton(
-                      icon: const Icon(Icons.close),
-                      tooltip: strings.manageCategoriesIconClear,
-                      onPressed: () => controller.updateIcon(null),
-                    ),
-                  IconButton(
-                    icon: const Icon(Icons.grid_view),
-                    tooltip: strings.manageCategoriesIconSelect,
-                    onPressed: selectIcon,
-                  ),
-                ],
+              trailing: CircleAvatar(
+                backgroundColor: theme.colorScheme.surfaceContainerHigh,
+                foregroundColor: theme.colorScheme.onSurface,
+                child: iconData != null
+                    ? Icon(iconData, color: theme.colorScheme.onSurface)
+                    : const Icon(Icons.category_outlined),
               ),
             ),
+            if (state.icon?.isNotEmpty == true)
+              Align(
+                alignment: Alignment.centerLeft,
+                child: TextButton(
+                  onPressed: () => controller.updateIcon(null),
+                  child: Text(strings.manageCategoriesIconClear),
+                ),
+              ),
             const SizedBox(height: 16),
             ListTile(
               contentPadding: EdgeInsets.zero,
-              leading: CircleAvatar(
-                key: const ValueKey<String>('category-color-preview'),
-                backgroundColor:
-                    selectedColor ?? theme.colorScheme.surfaceContainerHighest,
-                child: selectedColor == null
-                    ? Icon(
-                        Icons.palette_outlined,
-                        color: theme.colorScheme.onSurface,
-                      )
-                    : null,
-              ),
               title: Text(strings.manageCategoriesColorLabel),
               subtitle: Text(colorSubtitle),
               onTap: selectColor,
-              trailing: Wrap(
-                spacing: 8,
-                children: <Widget>[
-                  if (selectedColor != null)
-                    IconButton(
-                      icon: const Icon(Icons.close),
-                      tooltip: strings.manageCategoriesColorClear,
-                      onPressed: () => controller.updateColor(null),
-                    ),
-                  IconButton(
-                    icon: const Icon(Icons.color_lens_outlined),
-                    tooltip: strings.manageCategoriesColorSelect,
-                    onPressed: selectColor,
-                  ),
-                ],
+              trailing: CircleAvatar(
+                key: const ValueKey<String>('category-color-preview'),
+                backgroundColor:
+                    selectedColor ?? theme.colorScheme.surfaceContainerHigh,
+                foregroundColor: theme.colorScheme.onSurface,
+                child: selectedColor == null
+                    ? const Icon(Icons.palette_outlined)
+                    : null,
               ),
             ),
+            if (selectedColor != null)
+              Align(
+                alignment: Alignment.centerLeft,
+                child: TextButton(
+                  onPressed: () => controller.updateColor(null),
+                  child: Text(strings.manageCategoriesColorClear),
+                ),
+              ),
             const SizedBox(height: 8),
             SwitchListTile.adaptive(
               contentPadding: EdgeInsets.zero,
@@ -666,9 +691,16 @@ class _CategoryEditorSheet extends ConsumerWidget {
               const SizedBox(height: 24),
             ],
             FilledButton.icon(
-              onPressed: state.isSaving || !state.hasChanges
-                  ? null
-                  : () => controller.submit(),
+              style: FilledButton.styleFrom(
+                minimumSize: const Size.fromHeight(56),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                shape: const StadiumBorder(),
+                textStyle: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              onPressed: canSubmit ? controller.submit : null,
               icon: state.isSaving
                   ? const SizedBox(
                       width: 16,

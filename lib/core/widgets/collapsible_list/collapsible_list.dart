@@ -5,6 +5,7 @@ class KopimExpandableSectionPlayful extends StatefulWidget {
     super.key,
     this.title,
     this.header,
+    this.bottomHeader,
     required this.child,
     this.initiallyExpanded = false,
     this.duration = const Duration(milliseconds: 260),
@@ -14,6 +15,7 @@ class KopimExpandableSectionPlayful extends StatefulWidget {
 
   final String? title;
   final Widget? header;
+  final Widget? bottomHeader;
   final Widget child;
   final bool initiallyExpanded;
   final Duration duration;
@@ -127,36 +129,46 @@ class _KopimExpandableSectionPlayfulState
                   borderRadius: BorderRadius.circular(28),
                   child: Padding(
                     padding: const EdgeInsets.all(24),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.center,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: <Widget>[
-                        if (widget.leading != null) ...<Widget>[
-                          Padding(
-                            padding: const EdgeInsets.only(right: 12),
-                            child: widget.leading!,
-                          ),
-                        ],
-                        Expanded(
-                          child: widget.header ??
-                              Text(
-                                widget.title ?? '',
-                                style: theme.textTheme.bodyLarge?.copyWith(
-                                  fontWeight: FontWeight.w400,
-                                  letterSpacing: 0.2,
-                                  color: colors.onSurface,
-                                ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: <Widget>[
+                            if (widget.leading != null) ...<Widget>[
+                              Padding(
+                                padding: const EdgeInsets.only(right: 12),
+                                child: widget.leading!,
                               ),
+                            ],
+                            Expanded(
+                              child:
+                                  widget.header ??
+                                  Text(
+                                    widget.title ?? '',
+                                    style: theme.textTheme.bodyLarge?.copyWith(
+                                      fontWeight: FontWeight.w400,
+                                      letterSpacing: 0.2,
+                                      color: colors.onSurface,
+                                    ),
+                                  ),
+                            ),
+                            RotationTransition(
+                              turns: Tween<double>(
+                                begin: 0.0,
+                                end: 0.5,
+                              ).animate(_curve),
+                              child: Icon(
+                                Icons.keyboard_arrow_down_rounded,
+                                color: colors.onSurface,
+                                size: 21,
+                              ),
+                            ),
+                          ],
                         ),
-                        RotationTransition(
-                          turns: Tween<double>(begin: 0.0, end: 0.5)
-                              .animate(_curve),
-                          child: Icon(
-                            Icons.keyboard_arrow_down_rounded,
-                            color: colors.onSurface,
-                            size: 21,
-                          ),
-                        ),
+                        if (widget.bottomHeader != null) widget.bottomHeader!,
                       ],
                     ),
                   ),

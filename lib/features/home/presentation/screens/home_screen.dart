@@ -514,11 +514,9 @@ class _AddTransactionButton extends StatelessWidget {
         if (!context.mounted || result == null) {
           return;
         }
-        final ScaffoldMessengerState messenger = ScaffoldMessenger.of(
-          context,
-        )..hideCurrentSnackBar();
-        final TransactionEntity? createdTransaction =
-            result.createdTransaction;
+        final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar();
+        final TransactionEntity? createdTransaction = result.createdTransaction;
         if (createdTransaction == null) {
           messenger.showSnackBar(
             SnackBar(content: Text(strings.addTransactionSuccess)),
@@ -531,8 +529,9 @@ class _AddTransactionButton extends StatelessWidget {
             action: SnackBarAction(
               label: strings.commonUndo,
               onPressed: () {
-                final ProviderContainer container =
-                    ProviderScope.containerOf(context);
+                final ProviderContainer container = ProviderScope.containerOf(
+                  context,
+                );
                 container
                     .read(transactionActionsControllerProvider.notifier)
                     .deleteTransaction(createdTransaction.id)
@@ -783,6 +782,7 @@ class _AccountsListState extends State<_AccountsList> {
                   }),
                 ),
               ),
+            const SizedBox(height: 8),
           ],
         );
       },

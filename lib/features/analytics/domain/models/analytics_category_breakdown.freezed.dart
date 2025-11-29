@@ -11,10 +11,11 @@ part of 'analytics_category_breakdown.dart';
 
 // dart format off
 T _$identity<T>(T value) => value;
+const DeepCollectionEquality _deepEquality = DeepCollectionEquality();
 /// @nodoc
 mixin _$AnalyticsCategoryBreakdown {
 
- String? get categoryId; double get amount;
+ String? get categoryId; double get amount; List<AnalyticsCategoryBreakdown> get children;
 /// Create a copy of AnalyticsCategoryBreakdown
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +26,16 @@ $AnalyticsCategoryBreakdownCopyWith<AnalyticsCategoryBreakdown> get copyWith => 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AnalyticsCategoryBreakdown&&(identical(other.categoryId, categoryId) || other.categoryId == categoryId)&&(identical(other.amount, amount) || other.amount == amount));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AnalyticsCategoryBreakdown&&(identical(other.categoryId, categoryId) || other.categoryId == categoryId)&&(identical(other.amount, amount) || other.amount == amount)&&_deepEquality.equals(other.children, children));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,categoryId,amount);
+int get hashCode => Object.hash(runtimeType,categoryId,amount,_deepEquality.hash(children));
 
 @override
 String toString() {
-  return 'AnalyticsCategoryBreakdown(categoryId: $categoryId, amount: $amount)';
+  return 'AnalyticsCategoryBreakdown(categoryId: $categoryId, amount: $amount, children: $children)';
 }
 
 
@@ -45,7 +46,7 @@ abstract mixin class $AnalyticsCategoryBreakdownCopyWith<$Res>  {
   factory $AnalyticsCategoryBreakdownCopyWith(AnalyticsCategoryBreakdown value, $Res Function(AnalyticsCategoryBreakdown) _then) = _$AnalyticsCategoryBreakdownCopyWithImpl;
 @useResult
 $Res call({
- String? categoryId, double amount
+ String? categoryId, double amount, List<AnalyticsCategoryBreakdown> children
 });
 
 
@@ -62,11 +63,12 @@ class _$AnalyticsCategoryBreakdownCopyWithImpl<$Res>
 
 /// Create a copy of AnalyticsCategoryBreakdown
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? categoryId = freezed,Object? amount = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? categoryId = freezed,Object? amount = null,Object? children = null,}) {
   return _then(_self.copyWith(
 categoryId: freezed == categoryId ? _self.categoryId : categoryId // ignore: cast_nullable_to_non_nullable
 as String?,amount: null == amount ? _self.amount : amount // ignore: cast_nullable_to_non_nullable
-as double,
+as double,children: null == children ? _self.children : children // ignore: cast_nullable_to_non_nullable
+as List<AnalyticsCategoryBreakdown>,
   ));
 }
 
@@ -207,11 +209,17 @@ return $default(_that.categoryId,_that.amount);case _:
 
 
 class _AnalyticsCategoryBreakdown extends AnalyticsCategoryBreakdown {
-  const _AnalyticsCategoryBreakdown({this.categoryId, required this.amount}): super._();
+  const _AnalyticsCategoryBreakdown({this.categoryId, required this.amount, final List<AnalyticsCategoryBreakdown> children = const <AnalyticsCategoryBreakdown>[]}): _children = children, super._();
   
 
 @override final  String? categoryId;
 @override final  double amount;
+ final  List<AnalyticsCategoryBreakdown> _children;
+@override List<AnalyticsCategoryBreakdown> get children {
+  if (_children is EqualUnmodifiableListView) return _children;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_children);
+}
 
 /// Create a copy of AnalyticsCategoryBreakdown
 /// with the given fields replaced by the non-null parameter values.
@@ -223,16 +231,16 @@ _$AnalyticsCategoryBreakdownCopyWith<_AnalyticsCategoryBreakdown> get copyWith =
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AnalyticsCategoryBreakdown&&(identical(other.categoryId, categoryId) || other.categoryId == categoryId)&&(identical(other.amount, amount) || other.amount == amount));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AnalyticsCategoryBreakdown&&(identical(other.categoryId, categoryId) || other.categoryId == categoryId)&&(identical(other.amount, amount) || other.amount == amount)&&_deepEquality.equals(other._children, _children));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,categoryId,amount);
+int get hashCode => Object.hash(runtimeType,categoryId,amount,_deepEquality.hash(_children));
 
 @override
 String toString() {
-  return 'AnalyticsCategoryBreakdown(categoryId: $categoryId, amount: $amount)';
+  return 'AnalyticsCategoryBreakdown(categoryId: $categoryId, amount: $amount, children: $children)';
 }
 
 
@@ -243,7 +251,7 @@ abstract mixin class _$AnalyticsCategoryBreakdownCopyWith<$Res> implements $Anal
   factory _$AnalyticsCategoryBreakdownCopyWith(_AnalyticsCategoryBreakdown value, $Res Function(_AnalyticsCategoryBreakdown) _then) = __$AnalyticsCategoryBreakdownCopyWithImpl;
 @override @useResult
 $Res call({
- String? categoryId, double amount
+ String? categoryId, double amount, List<AnalyticsCategoryBreakdown> children
 });
 
 
@@ -260,11 +268,12 @@ class __$AnalyticsCategoryBreakdownCopyWithImpl<$Res>
 
 /// Create a copy of AnalyticsCategoryBreakdown
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? categoryId = freezed,Object? amount = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? categoryId = freezed,Object? amount = null,Object? children = null,}) {
   return _then(_AnalyticsCategoryBreakdown(
 categoryId: freezed == categoryId ? _self.categoryId : categoryId // ignore: cast_nullable_to_non_nullable
 as String?,amount: null == amount ? _self.amount : amount // ignore: cast_nullable_to_non_nullable
-as double,
+as double,children: null == children ? _self.children : children // ignore: cast_nullable_to_non_nullable
+as List<AnalyticsCategoryBreakdown>,
   ));
 }
 

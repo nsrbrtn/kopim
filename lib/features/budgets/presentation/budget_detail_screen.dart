@@ -397,7 +397,7 @@ class _BudgetFilters extends StatelessWidget {
           child: ListView.separated(
             shrinkWrap: true,
             itemCount: categories.length + 1,
-            separatorBuilder: (_, __) => const Divider(height: 1),
+            separatorBuilder: (_, int _index) => const Divider(height: 1),
             itemBuilder: (BuildContext context, int index) {
               if (index == 0) {
                 return ListTile(

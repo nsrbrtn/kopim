@@ -16,8 +16,9 @@ import 'package:kopim/features/analytics/presentation/widgets/analytics_chart.da
 import 'package:kopim/features/analytics/presentation/widgets/total_money_chart_widget.dart';
 import 'package:kopim/features/app_shell/presentation/models/navigation_tab_content.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
-import 'package:kopim/features/categories/presentation/widgets/category_chip.dart';
 import 'package:kopim/l10n/app_localizations.dart';
+
+const String _othersCategoryKey = '_others';
 
 class AnalyticsScreen extends ConsumerWidget {
   const AnalyticsScreen({super.key});
@@ -1088,26 +1089,36 @@ class _TopCategoriesPagerState extends State<_TopCategoriesPager> {
     AppLocalizations strings,
     ThemeData theme,
   ) {
-    return breakdowns
-        .map((AnalyticsCategoryBreakdown breakdown) {
-          final Category? category = breakdown.categoryId == null
-              ? null
-              : categoriesById[breakdown.categoryId!];
-          final Color color =
-              parseHexColor(category?.color) ?? theme.colorScheme.primary;
-          final String title =
-              category?.name ?? strings.analyticsCategoryUncategorized;
-          final IconData? iconData = resolvePhosphorIconData(category?.icon);
-          final String key = breakdown.categoryId ?? '_uncategorized';
-          return AnalyticsChartItem(
-            key: key,
-            title: title,
-            amount: breakdown.amount,
-            color: color,
-            icon: iconData,
-          );
-        })
-        .toList(growable: false);
+    AnalyticsChartItem mapBreakdown(AnalyticsCategoryBreakdown breakdown) {
+      final bool isOthers = breakdown.categoryId == _othersCategoryKey;
+      final Category? category = breakdown.categoryId == null || isOthers
+          ? null
+          : categoriesById[breakdown.categoryId!];
+      final Color color = isOthers
+          ? theme.colorScheme.outlineVariant
+          : parseHexColor(category?.color) ?? theme.colorScheme.primary;
+      final String title = isOthers
+          ? strings.analyticsTopCategoriesOthers
+          : category?.name ?? strings.analyticsCategoryUncategorized;
+      final IconData? iconData = isOthers
+          ? Icons.more_horiz
+          : resolvePhosphorIconData(category?.icon);
+      final String key = breakdown.categoryId ?? '_uncategorized';
+      final List<AnalyticsChartItem> children = breakdown.children
+          .map(mapBreakdown)
+          .toList(growable: false);
+
+      return AnalyticsChartItem(
+        key: key,
+        title: title,
+        amount: breakdown.amount,
+        color: color,
+        icon: iconData,
+        children: children,
+      );
+    }
+
+    return breakdowns.map(mapBreakdown).toList(growable: false);
   }
 }
 
@@ -1207,28 +1218,7 @@ class _TopCategoriesPageState extends State<_TopCategoriesPage> {
       final Color backgroundColor = theme.colorScheme.surfaceContainerHighest
           .withValues(alpha: 0.32);
       final double capturedTotal = widget.data.total;
-      final List<AnalyticsChartItem> chartItems = <AnalyticsChartItem>[
-        ...widget.data.items,
-      ];
-      final double sumOfItems = chartItems.fold<double>(
-        0,
-        (double previous, AnalyticsChartItem item) =>
-            previous + item.absoluteAmount,
-      );
-      final double remainder = (capturedTotal - sumOfItems).clamp(
-        0,
-        double.infinity,
-      );
-      if (remainder > 0.01) {
-        chartItems.add(
-          AnalyticsChartItem(
-            key: '_others',
-            title: widget.strings.analyticsTopCategoriesOthers,
-            amount: remainder,
-            color: theme.colorScheme.outlineVariant,
-          ),
-        );
-      }
+      final List<AnalyticsChartItem> chartItems = widget.data.items;
 
       AnalyticsChartItem? focusedItem;
       if (_highlightKey != null) {
@@ -1404,35 +1394,194 @@ class _TopCategoriesLegend extends StatelessWidget {
     if (items.isEmpty || total <= 0) {
       return const SizedBox.shrink();
     }
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      children: List<Widget>.generate(items.length, (int index) {
+    final AnalyticsChartItem? othersItem = items.firstWhereOrNull(
+      (AnalyticsChartItem item) => item.key == _othersCategoryKey,
+    );
+    final bool showOthersChildren = highlightedKey == othersItem?.key &&
+        (othersItem?.children.isNotEmpty ?? false);
+    final List<Widget> legendItems = List<Widget>.generate(
+      items.length,
+      (int index) {
         final AnalyticsChartItem item = items[index];
         final String amountText = currencyFormat.format(item.absoluteAmount);
         final bool isSelected = highlightedKey == item.key;
-        return Tooltip(
-          message: currencyFormat.format(item.absoluteAmount),
-          waitDuration: const Duration(milliseconds: 400),
-          child: CategoryChip(
-            label: item.title,
-            iconBackgroundColor: item.color,
-            selected: isSelected,
-            size: CategoryChipSize.small,
-            onTap: () => onToggle(item),
-            leading: Icon(item.icon ?? Icons.pie_chart_outline, size: 16),
-            trailing: Text(
-              amountText,
-              style: TextStyle(
-                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                fontSize: 12,
-                letterSpacing: 0.2,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
+        return _TopCategoryLegendItem(
+          item: item,
+          amountText: amountText,
+          isSelected: isSelected,
+          onTap: () => onToggle(item),
+        );
+      },
+    );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: legendItems,
+        ),
+        if (showOthersChildren) ...<Widget>[
+          const SizedBox(height: 8),
+          _OthersBreakdownList(
+            items: othersItem!.children,
+            currencyFormat: currencyFormat,
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _TopCategoryLegendItem extends StatelessWidget {
+  const _TopCategoryLegendItem({
+    required this.item,
+    required this.amountText,
+    required this.isSelected,
+    this.onTap,
+    this.compact = false,
+  });
+
+  final AnalyticsChartItem item;
+  final String amountText;
+  final bool isSelected;
+  final VoidCallback? onTap;
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final ColorScheme colors = theme.colorScheme;
+    final KopimLayout layout = context.kopimLayout;
+    final double height = compact ? 48 : 56;
+
+    final TextStyle titleStyle =
+        theme.textTheme.labelSmall?.copyWith(
+          fontWeight: FontWeight.w500,
+          letterSpacing: 0.5,
+          color: colors.onSurfaceVariant,
+        ) ??
+        TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w500,
+          letterSpacing: 0.5,
+          color: colors.onSurfaceVariant,
+        );
+    final TextStyle amountStyle =
+        theme.textTheme.labelLarge?.copyWith(
+          fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+          letterSpacing: 0.1,
+          color: colors.onSurfaceVariant,
+        ) ??
+        TextStyle(
+          fontSize: 14,
+          fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+          letterSpacing: 0.1,
+          color: colors.onSurfaceVariant,
+        );
+
+    return Tooltip(
+      message: amountText,
+      waitDuration: const Duration(milliseconds: 400),
+      child: Material(
+        type: MaterialType.transparency,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(16),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 160),
+            height: height,
+            padding: const EdgeInsets.only(right: 12),
+            decoration: BoxDecoration(
+              color: colors.surfaceContainerHigh,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: isSelected ? colors.primary : Colors.transparent,
+                width: isSelected ? 1.1 : 1,
               ),
             ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                Container(
+                  width: 36,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    color: item.color,
+                    borderRadius: BorderRadius.circular(9999),
+                  ),
+                  alignment: Alignment.center,
+                  child: Icon(
+                    item.icon ?? Icons.pie_chart_outline,
+                    size: layout.iconSizes.sm,
+                  color: colors.surface,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Flexible(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(
+                    minHeight: 40,
+                    maxWidth: 200,
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      Text(
+                        item.title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: titleStyle,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        amountText,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: amountStyle,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
+        ),
+      ),
+      ),
+    );
+  }
+}
+
+class _OthersBreakdownList extends StatelessWidget {
+  const _OthersBreakdownList({
+    required this.items,
+    required this.currencyFormat,
+  });
+
+  final List<AnalyticsChartItem> items;
+  final NumberFormat currencyFormat;
+
+  @override
+  Widget build(BuildContext context) {
+    if (items.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: items.map((AnalyticsChartItem item) {
+        return _TopCategoryLegendItem(
+          item: item,
+          amountText: currencyFormat.format(item.absoluteAmount),
+          isSelected: false,
+          onTap: null,
+          compact: true,
         );
-      }),
+      }).toList(growable: false),
     );
   }
 }

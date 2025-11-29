@@ -190,22 +190,32 @@ Future<PhosphorIconDescriptor?> showPhosphorIconPicker({
   required BuildContext context,
   required PhosphorIconPickerLabels labels,
   PhosphorIconDescriptor? initial,
+  Set<PhosphorIconStyle>? allowedStyles,
 }) {
   return showModalBottomSheet<PhosphorIconDescriptor?>(
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
     builder: (BuildContext context) {
-      return _PhosphorIconPickerSheet(labels: labels, initial: initial);
+      return _PhosphorIconPickerSheet(
+        labels: labels,
+        initial: initial,
+        allowedStyles: allowedStyles,
+      );
     },
   );
 }
 
 class _PhosphorIconPickerSheet extends StatefulWidget {
-  const _PhosphorIconPickerSheet({required this.labels, this.initial});
+  const _PhosphorIconPickerSheet({
+    required this.labels,
+    this.initial,
+    this.allowedStyles,
+  });
 
   final PhosphorIconPickerLabels labels;
   final PhosphorIconDescriptor? initial;
+  final Set<PhosphorIconStyle>? allowedStyles;
 
   @override
   State<_PhosphorIconPickerSheet> createState() =>
@@ -214,13 +224,15 @@ class _PhosphorIconPickerSheet extends StatefulWidget {
 
 class _PhosphorIconPickerSheetState extends State<_PhosphorIconPickerSheet>
     with SingleTickerProviderStateMixin {
+  late final List<PhosphorIconStyle> _availableStyles;
   late PhosphorIconStyle _selectedStyle;
   late final TabController _tabController;
 
   @override
   void initState() {
     super.initState();
-    _selectedStyle = widget.initial?.style ?? PhosphorIconStyle.regular;
+    _availableStyles = _resolveAllowedStyles();
+    _selectedStyle = _resolveInitialStyle();
     _tabController = TabController(
       length: _iconGroups.length,
       vsync: this,
@@ -240,6 +252,23 @@ class _PhosphorIconPickerSheetState extends State<_PhosphorIconPickerSheet>
   void dispose() {
     _tabController.dispose();
     super.dispose();
+  }
+
+  List<PhosphorIconStyle> _resolveAllowedStyles() {
+    final Set<PhosphorIconStyle> styles = widget.allowedStyles ??
+        Set<PhosphorIconStyle>.from(PhosphorIconStyle.values);
+    // Сохраняем порядок, совпадающий со стандартным перечислением.
+    return PhosphorIconStyle.values
+        .where(styles.contains)
+        .toList(growable: false);
+  }
+
+  PhosphorIconStyle _resolveInitialStyle() {
+    final PhosphorIconStyle initialStyle =
+        widget.initial?.style ?? PhosphorIconStyle.regular;
+    return _availableStyles.contains(initialStyle)
+        ? initialStyle
+        : _availableStyles.first;
   }
 
   int _findInitialGroupIndex() {
@@ -297,12 +326,15 @@ class _PhosphorIconPickerSheetState extends State<_PhosphorIconPickerSheet>
                   ],
                 ),
                 const SizedBox(height: 16),
-                _StyleSelector(
-                  selected: _selectedStyle,
-                  labels: widget.labels.styleLabels,
-                  onSelected: _selectStyle,
-                ),
-                const SizedBox(height: 12),
+                if (_availableStyles.length > 1) ...<Widget>[
+                  _StyleSelector(
+                    selected: _selectedStyle,
+                    labels: widget.labels.styleLabels,
+                    onSelected: _selectStyle,
+                    allowedStyles: _availableStyles,
+                  ),
+                  const SizedBox(height: 12),
+                ],
                 TabBar(
                   controller: _tabController,
                   isScrollable: true,
@@ -390,11 +422,13 @@ class _StyleSelector extends StatelessWidget {
     required this.selected,
     required this.labels,
     required this.onSelected,
+    required this.allowedStyles,
   });
 
   final PhosphorIconStyle selected;
   final Map<PhosphorIconStyle, String> labels;
   final ValueChanged<PhosphorIconStyle> onSelected;
+  final List<PhosphorIconStyle> allowedStyles;
 
   @override
   Widget build(BuildContext context) {
@@ -402,7 +436,7 @@ class _StyleSelector extends StatelessWidget {
     return Wrap(
       spacing: 8,
       runSpacing: 8,
-      children: PhosphorIconStyle.values
+      children: allowedStyles
           .map((PhosphorIconStyle style) {
             final bool isSelected = style == selected;
             final String label = labels[style] ?? style.name;

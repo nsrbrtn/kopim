@@ -12,7 +12,7 @@ abstract class MonthlyBalanceData with _$MonthlyBalanceData {
   }) = _MonthlyBalanceData;
 
   String get monthLabel {
-    final List<String> monthNames = [
+    const List<String> monthNames = <String>[
       'Янв',
       'Фев',
       'Мар',
