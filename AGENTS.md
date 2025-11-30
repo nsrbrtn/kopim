@@ -1,140 +1,516 @@
-Готово. Ниже обновлённый `AGENTS.md` с правилом о языке.
+# AGENTS.md
+
+**Проект:** kopim  
+**Стек:** Flutter, Riverpod, Freezed, Drift, Firebase  
+**Цели:** Android, iOS, Web, Desktop  
 
 ---
 
-# AGENTS.md
-
-**Project:** kopim
-**Stack:** Flutter, Riverpod, Freezed, Drift, Firebase
-**Targets:** Android, iOS, Web, Desktop
-
 ## 0) Language Policy
 
-* Все ответы ИИ — **на русском языке**.
-* Любые пояснения к коду, комментарии в PR, описания коммитов и документация — **на русском языке**.
+- Все ответы ИИ — **на русском языке**.
+- Комментарии в коде, тексты в PR, описания коммитов, документация — **на русском языке**.
+- В названиях классов/переменных/файлов — общепринятый **английский** (Flutter/Dart-идиомы).
 
-## 1) Objectives
+---
 
-* Ship a modern, scalable, secure finance app.
-* Follow Clean Architecture + DDD and feature-first modularity.
-* Offline-first with robust sync.
-* Measure and improve performance with real profiling.
+## 1) Objectives (что мы строим)
 
-## 2) Architecture Rules
+- Современное, масштабируемое и безопасное финансовое приложение.
+- Clean Architecture + DDD, модульность по фичам.
+- **Offline-first** с надёжной синхронизацией (Drift ↔ Firebase).
+- Измеримая производительность (DevTools, Firebase Performance).
+- Нормальная аналитика, логирование и мониторинг ошибок.
 
-* Layers per feature: `presentation/`, `domain/`, `data/`.
-* Domain is UI/infra-free. All entities immutable (Freezed).
-* DI via Riverpod. Use `.select` to cut rebuilds on hot paths.
-* Local DB = Drift. Open DB off the UI isolate.
-* Remote = Firebase (Auth, Firestore, Performance).
+---
 
-## 3) Performance Ground Rules
+## 2) Repo map / Where to start
 
-* Profile on device in **profile** mode; do not measure in debug.
-* Lists: use `itemExtent` or `prototypeItem` when possible; keep rows light; cache formatters.
-* Reduce shader jank with SkSL warm-up for release builds.
-* Move I/O and heavy CPU off the UI isolate (Drift background open).
-* Add Firebase Performance traces for cold start and first scroll.
+> Если структура немного отличается — ориентируйся на принципы, а не на дословные пути.
 
-## 4) Offline-first + Sync
+- Точка входа:
+  - `lib/main.dart`
+  - `lib/app/app.dart` (инициализация приложения и темing)
+- Фичи (каждая фича — отдельный модуль с тремя слоями):
+  - `lib/features/accounts/` — счета
+  - `lib/features/transactions/` — транзакции
+  - `lib/features/categories/` — категории
+  - `lib/features/analytics/` — аналитика
+  - `lib/features/auth/` — вход/профиль
+  - `lib/features/budgets/` — бюджеты
+  - `lib/features/recurring/` — повторяющиеся транзакции
+  - `lib/features/assistant/` — ИИ-финансовый ассистент
+- Внутри фичи:
+  - `presentation/` — UI, виджеты, state management (Riverpod).
+  - `domain/` — сущности (Freezed), value-объекты, use cases, интерфейсы репозиториев.
+  - `data/` — реализации репозиториев, Drift DAO, Firebase-адаптеры.
+- Общие вещи:
+  - `lib/core/` — дизайн-система, тема, DI, общие сервисы.
+  - `lib/core/db/` — Drift, миграции, адаптеры.
+  - `docs/components/` — документация по UI-компонентам.
+  - `docs/logic/` — документация по бизнес-логике и архитектурным решениям.
 
-* Write to Drift first. Sync to Firestore when online.
-* Conflict policy: `last-write-wins` unless domain specifies merge.
-* Idempotent upserts; exponential backoff on retries.
+---
 
-## 5) Testing Policy
+## 3) Архитектура и принципы проектирования
 
-* **Unit:** entities, mappers, use cases.
-* **Widget:** list rows, empty states, error UI.
-* **Integration:** DB + sync; transaction insert updates account balance and appears in analytics.
-* Tests must run headless and pass on CI.
+- **Слои по фичам:** `presentation/`, `domain/`, `data/` внутри каждой фичи.
+- **Domain**:
+  - Не зависит от Flutter, Firebase, Drift и прочей инфраструктуры.
+  - Все сущности/состояния — **immutable**, генерируются через Freezed.
+  - Вся бизнес-логика — в use cases и доменных сервисах.
+- **DI:** Riverpod
+  - Глобальные провайдеры для репозиториев, use cases, сервисов.
+  - В горячих путях (списки, графики) использовать `.select()` для уменьшения перерисовок.
+- **Local DB:** Drift
+  - Открывать базу **не** на UI isolate.
+  - Использовать миграции; никакого «удалить БД, чтобы завелось».
+- **Remote:** Firebase
+  - Auth (Google, Email).
+  - Firestore как удалённый source-of-truth для синка.
+  - Firebase Analytics, Crashlytics, Performance.
 
-## 6) Source of Truth: repo structure
+---
 
-* See current tree and modules in the repository root. Keep new code within its feature module.
+## 4) Performance Ground Rules
 
-## 7) Agent Operating Procedure (AOP)
+- Профилировать на **реальном устройстве** в `profile`-режиме, не в `debug`.
+- Списки:
+  - Использовать `itemExtent` или `prototypeItem`, если возможно.
+  - Роуты списка — лёгкие, без тяжёлых вычислений в `build`.
+  - Форматтеры дат/денег кэшировать (например, через провайдер или `final` поля).
+- Шейдеры:
+  - Для релиза — прогревать SkSL (shader warm-up), если есть анимации/blur.
+- CPU & I/O:
+  - Любые тяжёлые операции (Drift, JSON, агрегации) — вне UI isolate.
+- Firebase Performance:
+  - Добавлять кастомные трейсы:
+    - холодный старт;
+    - первый рендер домашнего экрана;
+    - первый скролл длинного списка.
 
-**Goal:** maximize AI efficiency, minimize risk.
+---
 
-* Work in small, focused PRs. One concern per commit.
-* Always start with a profile trace or a failing test, then fix, then re-measure.
-* Prefer additive changes over refactors unless metrics demand it.
-* Generate code that compiles, is formatted, and covered by tests.
-* Human-in-the-loop: require review for any data-deleting or schema-changing action; keep change logs. Enforce least privilege and observability.
-* Expectation management: use AI for scaffolding, boilerplate, exploration; humans own final judgment.
-* Prompt hygiene: provide context, constraints, acceptance tests, and repo paths; iterate with short cycles.
-* **Documentation:** при создании кастомного компонента/виджета или архитектурного решения — обязательно создать документ в `docs/components/` (для UI-виджетов) или `docs/logic/` (для бизнес-логики) с описанием назначения, параметров, примеров использования и ссылками на исходный код.
+## 5) Offline-first & Sync
 
-## 8) Definition of Done (per PR)
+- Истина **сначала в Drift**:
+  - Любые изменения (счета, транзакции, категории, бюджеты и т.п.) сначала пишутся в локальную БД.
+- Синхронизация:
+  - Фоновый сервис синка синхронизирует Drift ↔ Firestore при наличии сети.
+  - Конфликт по умолчанию: `last-write-wins`, но домен может задать более умную стратегию (merge).
+- Повторяемость:
+  - Upsert-операции должны быть идемпотентными (повторный вызов не ломает данные).
+  - Для ретраев — экспоненциальный backoff.
+- Состояния сети:
+  - UI должен корректно работать в офлайне (без крэшей).
+  - Явные состояния: offline, syncing, up-to-date.
 
-* `flutter analyze` clean and formatted.
-* All tests pass. New logic covered by unit and at least one widget or integration test.
-* No sync or heavy CPU on the UI isolate.
-* For perf PRs: attach before/after DevTools traces and explain wins.
-* Public APIs unchanged unless explicitly scoped.
+---
 
-## 9) Tasks by Functional Groups
+## 6) Testing Policy
 
-### Accounts
+- **Unit-тесты**:
+  - Доменные сущности, value-объекты, use cases.
+  - Мапперы (Drift ↔ domain ↔ Firebase).
+- **Widget-тесты**:
+  - Элементы списков (item row), пустые состояния, экраны ошибок.
+  - Критичные виджеты с логикой (формы, фильтры).
+- **Integration-тесты**:
+  - DB + sync:
+    - вставка транзакции обновляет баланс счёта;
+    - транзакция отображается в аналитике.
+  - Повторяющиеся транзакции (time travel).
+- Все тесты должны:
+  - запускаться headless (CI-friendly);
+  - проходить на CI **без** ручных шагов.
 
-* Entity: `Account { id, name, balance, currency, type }` (Freezed).
-* Repo contracts in `domain/`, Drift DAO in `data/`, Firebase adapter in `data/remote/`.
-* List screen: fixed-height rows, memoized formatters, `.select` on row leaves.
+---
 
-### Transactions
-
-* Entity: `Transaction { id, accountId, categoryId, amount, date, note, type }`.
-* Invariants: positive `amount`; account/category exist; debit/credit logic correct.
-* Insert/update inside a DB transaction that also updates account balance.
-* Home feed performance: `itemExtent` или `prototypeItem`, leaf `ConsumerWidget`s, cached `DateFormat/NumberFormat`.
-
-### Categories
-
-* Entity: `Category { id, name, type, icon, color }`.
-* Icon registry: curated set only, no runtime search across thousands.
-
-### Analytics
-
-* Aggregation queries in Drift; ensure they run off the UI isolate.
-
-### Auth/Profile
-
-* Initialize Firebase after first frame; show skeleton UI until ready.
-* Add Firebase Performance custom traces.
-
-### Budgets
-
-* Model budget and compute utilization via Drift queries; unit tests for edge cases.
-
-### Recurring Transactions
-
-* Store RRULE-like fields; deterministic next-occurrence; pause/resume; integration tests with time travel.
-
-### AI Financial Assistant
-
-* Local service reads Drift data. Privacy-safe. Answers simple queries like “spend on Food this month”.
-
-## 10) Commands
+## 7) Setup commands
 
 ```bash
-# Format, analyze, build code-gen, test, dependency health
-dart format --set-exit-if-changed .
-flutter analyze
+# Установка зависимостей
+flutter pub get
+
+# Генерация кода (Freezed, Drift и др.)
 dart run build_runner build --delete-conflicting-outputs
+Если меняются схемы Drift или модели Freezed — обязательно прогонять build_runner.
+
+## 8) Build & Test commands
+
+bash
+Копировать код
+# Форматирование
+dart format --set-exit-if-changed .
+
+# Анализ
+flutter analyze
+
+# Генерация кода
+dart run build_runner build --delete-conflicting-outputs
+
+# Тесты
 flutter test --reporter expanded
+
+# Проверка зависимостей
 flutter pub outdated
-```
+Перед любым PR агент должен ориентироваться на этот набор команд.
+
+##9) Agent Operating Procedure (AOP)
+
+Цель: максимально полезный ИИ, минимальные риски.
+
+Работай маленькими шагами:
+
+Один PR = одна понятная задача (feature, фикс, оптимизация).
+
+Сначала сигнал → потом правка:
+
+Начни с профиля / падающего теста / ошибки.
+
+Потом изменения.
+
+Потом повторное измерение/запуск тестов.
+
+Минимизируй рефакторинг без необходимости:
+
+Предпочитай добавление кода вместо массовых перестроек.
+
+Большой рефакторинг только при явных метриках/выгоде.
+
+Код должен:
+
+компилироваться;
+
+проходить flutter analyze;
+
+быть отформатирован (dart format);
+
+иметь тесты для новой логики.
+
+Человек в цикле:
+
+Любые изменения схемы БД, миграции, удаление данных — только с явным описанием и для ревью человека.
+
+Prompt hygiene:
+
+Для конкретной задачи указывай:
+
+цель,
+
+файлы/директории,
+
+ожидаемые acceptance tests,
+
+ограничения.
+
+Документация:
+
+При создании нового кастомного компонента/виджета — документ в docs/components/….
+
+При введении нового архитектурного решения/сервиса — документ в docs/logic/… с:
+
+назначением;
+
+параметрами;
+
+примером использования;
+
+ссылками на код.
+
+## 10) Definition of Done (per PR)
+PR считается законченным, если:
+
+dart format --set-exit-if-changed . — без изменений.
+
+flutter analyze — без ошибок.
+
+dart run build_runner build --delete-conflicting-outputs — проходит.
+
+flutter test — все тесты зелёные.
+
+Новая логика покрыта unit-тестами и хотя бы одним widget или integration тестом.
+
+Нет тяжёлого CPU или синка на UI isolate.
+
+Для PR по производительности:
+
+приложены до/после трейсы DevTools или объяснение прироста.
+
+Публичные API-модули (domain, публичные виджеты) не меняются без явного описания и согласования.
+
+##11) Задачи по функциональным блокам
+
+11.1. Accounts (Счета)
+
+Сущность:
+
+Account { id, name, balance, currency, type } (Freezed).
+
+Структура:
+
+Интерфейсы репозиториев — в domain/.
+
+Drift DAO — в data/local/.
+
+Firebase-адаптер — в data/remote/.
+
+Инварианты:
+
+balance соответствует сумме транзакций по счёту (или согласован с доменной логикой).
+
+UI:
+
+Экран списка счетов:
+
+фиксированная высота строк (для производительности);
+
+форматирование сумм и валют кэшируется;
+
+использовать .select на уровне листовых виджетов.
+
+Детальный экран счёта — не ломать инварианты баланса при ручных операциях.
+
+11.2. Transactions (Транзакции)
+Сущность:
+
+Transaction { id, accountId, categoryId, amount, date, note, type }.
+
+Инварианты:
+
+amount > 0 (знак задаётся через type или отдельное поле).
+
+accountId и categoryId ссылаются на существующие записи.
+
+Дебет/кредит-логика корректна (не переворачивать знаки без необходимости).
+
+Операции в БД:
+
+Вставка/обновление транзакции должно происходить в рамках одной DB-транзакции, которая:
+
+обновляет запись транзакции;
+
+обновляет balance соответствующего счёта;
+
+при необходимости, обновляет агрегаты для аналитики.
+
+Дом/лента:
+
+Для домашнего фида и длинных списков:
+
+itemExtent или prototypeItem;
+
+листовые ConsumerWidget с .select;
+
+кэшированные DateFormat / NumberFormat.
+
+11.3. Categories (Категории)
+Сущность:
+
+Category { id, name, type, icon, color }.
+
+Инварианты:
+
+type может определять расход/доход/другое.
+
+Иконки:
+
+Используется ограниченный, курируемый набор иконок.
+
+Никаких runtime-поисков по тысячам иконок в горячих путях.
+
+Связи:
+
+Категории привязаны к транзакциям и аналитике, удаление требует миграционной стратегии (soft delete, remap и т.п.).
+
+11.4. Analytics (Аналитика)
+Агрегации:
+
+Агрегационные запросы (суммы по категориям, периодам, счетам) — в Drift.
+
+Запросы должны выполняться вне UI isolate.
+
+UI:
+
+Графики/диаграммы работают с заранее подготовленными DTO.
+
+Не делать сложные вычисления внутри build.
+
+Тесты:
+
+Юнит-тесты для агрегаций с edge-cases (нулевые периоды, без категорий, много валют и т.п.).
+
+11.5. Auth / Profile (Профиль и вход)
+Firebase:
+
+Инициализацию Firebase делать после первого кадра (чтобы не блокировать старт UI).
+
+UI:
+
+Пока Firebase не готов — показывать скелетон/экран загрузки, а не пустой экран.
+
+Синк:
+
+При входе — запуск логики синхронизации локальных данных с облаком.
+
+Performance:
+
+Firebase Performance — кастомные трейсы вокруг логики входа и первой загрузки данных пользователя.
+
+11.6. Budgets (Бюджеты)
+Модель:
+
+Бюджеты по категориям или общие.
+
+Поля: лимит, период, привязка к категориям/счетам, статус.
+
+Логика:
+
+Расчёт выполнения бюджета через запросы Drift (сумма расходов за период).
+
+Инварианты: бюджет не уходит в неконсистентные состояния (нельзя считать выполненным, если не посчитаны расходы).
+
+Тесты:
+
+Юнит-тесты для краевых случаев:
+
+пересечение периодов;
+
+изменения бюджета в середине периода.
+
+11.7. Recurring Transactions (Повторяющиеся транзакции)
+Модель:
+
+RRULE-подобные поля (тип повторения, интервал, дата начала/конца).
+
+Флаг pause/resume.
+
+Логика:
+
+Детерминированный расчёт следующего срабатывания.
+
+Генерация транзакции по расписанию не должна дублировать запись при повторном запуске (идемпотентность).
+
+Тесты:
+
+Интеграционные тесты с «time travel» (моки времени).
+
+11.8. AI Financial Assistant (ИИ-финансовый ассистент)
+Доступ к данным:
+
+Только через локальный сервис, читающий Drift.
+
+Без прямых запросов к Firebase из ассистента.
+
+Конфиденциальность:
+
+Не отдавать идентифицирующие данные пользователя.
+
+Аггрегированные ответы: «сколько потратил на X в этом месяце», «топ категорий расходов».
+
+Функциональность:
+
+Простые вопросы:
+
+«Сколько я потратил на еду в этом месяце?»
+
+«Какие у меня самые большие расходы?»
+
+Ассистент не должен сам изменять данные — только читать и рекомендовать.
+
+##12) Code Quality & Flutter/Dart Standards
+
+Версия Flutter:
+
+Проект рассчитан на Flutter 3.38+ (обновить запись при апгрейде SDK).
+
+Иммутабельность:
+
+Все модели и состояния — через Freezed, с value equality.
+
+Riverpod:
+
+Использовать Provider, StateNotifierProvider, AsyncNotifier и т.п. согласно best practices.
+
+Локальное состояние — ближе к виджету; глобальное — только для тем, авторизации, глобальных настроек.
+
+UI-микрооптимизации:
+
+Использовать const где возможно.
+
+Разбивать большие деревья виджетов на мелкие.
+
+Избегать тяжёлой логики в build и в initState.
+
+Списки:
+
+Стабильные Key.
+
+Минимум работы на элемент.
+
+Не грузить большие SVG/изображения без кэширования.
+
+Современные фичи Flutter 3.38+:
+
+Тестировать анимации и Impeller-рендеринг на реальных устройствах.
+
+Для Web — учитывать настройки в web_dev_config.yaml (прокси, хост, порт), если файл используется.
+
+## 13) Safety & Permissions for Agents
+
+Агент МОЖЕТ:
 
 
-## 11) Code Quality Conventions
+Запускать:
 
-* Enforce immutability with Freezed; value equality required.
-* Widget micro-optimizations: use `const`, split large trees, avoid heavy work in `build`.
-* For lists: stable keys, minimal work per item, avoid large SVGs in hot paths.
+flutter pub get
 
-## 12) Observability & Safety for AI Changes
+dart format --set-exit-if-changed .
 
-* Restrict credentials and destructive permissions in automation.
-* Log agent actions and keep rollback plans for schema/data ops.
-* Require post-merge validation against benchmarks.
+flutter analyze
+
+dart run build_runner build --delete-conflicting-outputs
+
+flutter test --reporter expanded
+
+flutter pub outdated
+
+Агент НЕ ДОЛЖЕН:
+
+Запускать любые команды деплоя без явного запроса человека:
+
+firebase deploy, flutter build ipa, flutter build appbundle и т.п.
+
+Удалять пользовательские данные или править схемы Drift:
+
+без миграций;
+
+без документации изменений;
+
+без запланированного rollback-плана.
+
+Трогать файлы с секретами:
+
+.env, firebase_options.dart, ключи и конфигурации, генерируемые внешними сервисами.
+
+## 14) Observability & Rollback
+Логи:
+
+Логировать критичные действия (миграции, операции с балансом, массовые обновления).
+
+Для агентских изменений — оставлять понятные описания в PR и CHANGELOG (при необходимости).
+
+Rollback:
+
+Для изменений схемы БД — продумывать план отката (миграции назад или fallback).
+
+Post-merge:
+
+После слияния PR с существенными изменениями:
+
+проверить основные user flows (быстрый smoke-test);
+
+убедиться, что аналитика и логирование продолжают работать.
+
+Этот файл — единственный источник правил для ИИ при работе с репозиторием.
+При изменении архитектуры, процессов сборки или тестирования — обновлять AGENTS.md вместе с кодом.

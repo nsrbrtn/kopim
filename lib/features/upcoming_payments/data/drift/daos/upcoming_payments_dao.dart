@@ -116,13 +116,14 @@ class UpcomingPaymentsDao {
   }
 
   bool _isValidHhmm(String value) {
-    final RegExp pattern = RegExp(r'^(\d{2}):(\d{2})$');
-    final Match? match = pattern.firstMatch(value);
-    if (match == null) {
+    if (value.length != 5 || value[2] != ':') {
       return false;
     }
-    final int hour = int.parse(match.group(1)!);
-    final int minute = int.parse(match.group(2)!);
+    final int? hour = int.tryParse(value.substring(0, 2));
+    final int? minute = int.tryParse(value.substring(3, 5));
+    if (hour == null || minute == null) {
+      return false;
+    }
     return hour >= 0 && hour < 24 && minute >= 0 && minute < 60;
   }
 }

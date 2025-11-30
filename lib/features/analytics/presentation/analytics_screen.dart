@@ -1253,34 +1253,35 @@ class _TopCategoriesPageState extends State<_TopCategoriesPage> {
           const SizedBox(height: 8),
           LayoutBuilder(
             builder: (BuildContext context, BoxConstraints constraints) {
-              final Size screenSize = MediaQuery.of(context).size;
-              final double availableWidth =
-                  constraints.maxWidth.isFinite && constraints.maxWidth > 0
+              final Size screenSize = MediaQuery.sizeOf(context);
+              final double availableWidth = constraints.hasBoundedWidth &&
+                      constraints.maxWidth.isFinite &&
+                      constraints.maxWidth > 0
                   ? constraints.maxWidth
                   : screenSize.width;
               final double baseExtent = availableWidth * 0.7;
-              final double chartExtent = baseExtent
-                  .clamp(220.0, 360.0)
-                  .toDouble();
-              final double targetWidth = availableWidth
-                  .clamp(240.0, screenSize.width)
-                  .toDouble();
+              final double chartExtent =
+                  baseExtent.clamp(220.0, 360.0).toDouble();
+              final double targetWidth =
+                  availableWidth.clamp(240.0, screenSize.width).toDouble();
 
-              final Widget chart = SizedBox(
-                height: chartExtent,
-                child: AnalyticsDonutChart(
-                  items: displayItems,
-                  backgroundColor: backgroundColor,
-                  totalAmount: capturedTotal,
-                  selectedIndex: selectedIndex,
-                  onSegmentSelected: (int index) {
-                    if (index >= 0 && index < displayItems.length) {
-                      setState(() {
-                        final String key = displayItems[index].key;
-                        _highlightKey = _highlightKey == key ? null : key;
-                      });
-                    }
-                  },
+              final Widget chart = RepaintBoundary(
+                child: SizedBox(
+                  height: chartExtent,
+                  child: AnalyticsDonutChart(
+                    items: displayItems,
+                    backgroundColor: backgroundColor,
+                    totalAmount: capturedTotal,
+                    selectedIndex: selectedIndex,
+                    onSegmentSelected: (int index) {
+                      if (index >= 0 && index < displayItems.length) {
+                        setState(() {
+                          final String key = displayItems[index].key;
+                          _highlightKey = _highlightKey == key ? null : key;
+                        });
+                      }
+                    },
+                  ),
                 ),
               );
 
@@ -1342,9 +1343,10 @@ class _EmptyMonthChart extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
-        final Size screenSize = MediaQuery.of(context).size;
-        final double availableWidth =
-            constraints.maxWidth.isFinite && constraints.maxWidth > 0
+        final Size screenSize = MediaQuery.sizeOf(context);
+        final double availableWidth = constraints.hasBoundedWidth &&
+                constraints.maxWidth.isFinite &&
+                constraints.maxWidth > 0
             ? constraints.maxWidth
             : screenSize.width;
         final double baseExtent = availableWidth * 0.7;
@@ -1357,14 +1359,16 @@ class _EmptyMonthChart extends StatelessWidget {
           alignment: Alignment.center,
           child: ConstrainedBox(
             constraints: BoxConstraints(maxWidth: targetWidth),
-            child: SizedBox(
-              height: chartExtent,
-              child: AnalyticsDonutChart(
-                items: items,
-                backgroundColor: color.withValues(alpha: 0.2),
-                totalAmount: 1,
-                selectedIndex: null,
-                onSegmentSelected: null,
+            child: RepaintBoundary(
+              child: SizedBox(
+                height: chartExtent,
+                child: AnalyticsDonutChart(
+                  items: items,
+                  backgroundColor: color.withValues(alpha: 0.2),
+                  totalAmount: 1,
+                  selectedIndex: null,
+                  onSegmentSelected: null,
+                ),
               ),
             ),
           ),

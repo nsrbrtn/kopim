@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/core/services/analytics_service.dart';
 import 'package:kopim/core/services/logger_service.dart';
+import 'package:kopim/core/utils/text_input_formatters.dart';
 import 'package:kopim/features/upcoming_payments/application/upcoming_notifications_controller.dart';
 import 'package:kopim/features/upcoming_payments/data/services/upcoming_payments_work_scheduler.dart';
 import 'package:kopim/features/upcoming_payments/domain/entities/payment_reminder.dart';
@@ -145,7 +146,7 @@ class _EditPaymentReminderScreenState
                         decimal: true,
                       ),
                       inputFormatters: <TextInputFormatter>[
-                        FilteringTextInputFormatter.allow(RegExp(r'[0-9,.]')),
+                        digitsAndSeparatorsFormatter(),
                       ],
                       validator: (String? value) {
                         final double? parsed = _parseAmount(value);

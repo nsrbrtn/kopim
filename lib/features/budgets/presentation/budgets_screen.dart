@@ -7,9 +7,9 @@ import 'package:kopim/core/widgets/kopim_glass_fab.dart';
 import 'package:kopim/features/app_shell/presentation/models/navigation_tab_content.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/features/budgets/domain/entities/budget.dart';
+import 'package:kopim/features/budgets/domain/entities/budget_category_allocation.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_progress.dart';
 import 'package:kopim/features/budgets/domain/use_cases/compute_budget_progress_use_case.dart';
-import 'package:kopim/features/budgets/domain/use_cases/delete_budget_use_case.dart';
 import 'package:kopim/features/budgets/presentation/controllers/budgets_providers.dart';
 import 'package:kopim/features/budgets/presentation/models/budget_category_spend.dart';
 import 'package:kopim/features/budgets/presentation/widgets/budget_card.dart';
@@ -50,10 +50,6 @@ List<BudgetCategorySpend> _computeBudgetCategorySpend({
     transactions: transactions,
   );
 
-  if (scopedTransactions.isEmpty) {
-    return const <BudgetCategorySpend>[];
-  }
-
   final Map<String, double> spentByCategory = <String, double>{};
   for (final TransactionEntity transaction in scopedTransactions) {
     if (transaction.type == TransactionType.income.storageValue) {
@@ -67,10 +63,21 @@ List<BudgetCategorySpend> _computeBudgetCategorySpend({
         (spentByCategory[categoryId] ?? 0) + transaction.amount.abs();
   }
 
+  final Set<String> categoryIds = <String>{
+    ...spentByCategory.keys,
+    ...budget.categories,
+    ...budget.categoryAllocations.map(
+      (BudgetCategoryAllocation allocation) => allocation.categoryId,
+    ),
+  };
+  if (categoryIds.isEmpty) {
+    return const <BudgetCategorySpend>[];
+  }
+
   final List<BudgetCategorySpend> items = <BudgetCategorySpend>[];
-  for (final MapEntry<String, double> entry in spentByCategory.entries) {
+  for (final String categoryId in categoryIds) {
     final Category? category = categories.firstWhereOrNull(
-      (Category item) => item.id == entry.key,
+      (Category item) => item.id == categoryId,
     );
     if (category == null) {
       continue;
@@ -78,14 +85,16 @@ List<BudgetCategorySpend> _computeBudgetCategorySpend({
     items.add(
       BudgetCategorySpend(
         category: category,
-        spent: entry.value,
-        limit: resolveBudgetCategoryLimit(budget, entry.key),
+        spent: spentByCategory[categoryId] ?? 0,
+        limit: resolveBudgetCategoryLimit(budget, categoryId),
       ),
     );
   }
 
   items.sort((BudgetCategorySpend a, BudgetCategorySpend b) {
-    return b.spent.compareTo(a.spent);
+    final int spentComparison = b.spent.compareTo(a.spent);
+    if (spentComparison != 0) return spentComparison;
+    return a.category.name.compareTo(b.category.name);
   });
   return items;
 }

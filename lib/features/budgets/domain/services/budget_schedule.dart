@@ -10,7 +10,7 @@ class BudgetSchedule {
     required Budget budget,
     DateTime? reference,
   }) {
-    final DateTime ref = (reference ?? DateTime.now()).toUtc();
+    final DateTime ref = _normalizeStart(reference ?? DateTime.now());
     final DateTime initialStart = _normalizeStart(budget.startDate);
     if (!budget.period.isRecurring) {
       final DateTime? rawEnd = budget.endDate;
@@ -25,7 +25,8 @@ class BudgetSchedule {
 
     DateTime start = initialStart;
     DateTime end = _advance(budget.period, start);
-    final DateTime? cutoff = budget.endDate?.toUtc();
+    final DateTime? cutoff =
+        budget.endDate != null ? _normalizeStart(budget.endDate!) : null;
 
     while (!ref.isBefore(end)) {
       final DateTime nextStart = end;
@@ -110,14 +111,12 @@ class BudgetSchedule {
     final DateTime normalized = _normalizeStart(start);
     switch (period) {
       case BudgetPeriod.monthly:
-        final DateTime firstOfNextMonth = DateTime.utc(
+        final DateTime firstOfNextMonth = DateTime(
           normalized.year,
           normalized.month + 1,
           1,
-          0,
-          1,
         );
-        final int lastDayOfNextMonth = DateTime.utc(
+        final int lastDayOfNextMonth = DateTime(
           firstOfNextMonth.year,
           firstOfNextMonth.month + 1,
           0,
@@ -125,12 +124,10 @@ class BudgetSchedule {
         final int resolvedDay = normalized.day > lastDayOfNextMonth
             ? lastDayOfNextMonth
             : normalized.day;
-        return DateTime.utc(
+        return DateTime(
           firstOfNextMonth.year,
           firstOfNextMonth.month,
           resolvedDay,
-          0,
-          1,
         );
       case BudgetPeriod.weekly:
         return normalized.add(const Duration(days: 7));
@@ -140,8 +137,7 @@ class BudgetSchedule {
   }
 
   DateTime _normalizeStart(DateTime date) {
-    final DateTime utc = date.toUtc();
-    return DateTime.utc(utc.year, utc.month, utc.day, 0, 1);
+    return DateTime(date.year, date.month, date.day);
   }
 
   BudgetInstanceStatus statusFor({

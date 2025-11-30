@@ -9,6 +9,7 @@ import 'package:intl/intl.dart';
 import 'package:kopim/core/config/theme_extensions.dart';
 import 'package:kopim/core/formatting/currency_symbols.dart';
 import 'package:kopim/core/utils/helpers.dart';
+import 'package:kopim/core/utils/text_input_formatters.dart';
 import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
@@ -1545,7 +1546,7 @@ class _AmountFieldState extends ConsumerState<_AmountField> {
       enabled: !isSubmitting,
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
       inputFormatters: <TextInputFormatter>[
-        FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
+        digitsAndSeparatorsFormatter(),
       ],
       decoration: _transactionTextFieldDecoration(
         context,

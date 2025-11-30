@@ -12,6 +12,7 @@ import 'package:kopim/features/accounts/presentation/accounts_add_screen.dart';
 import 'package:kopim/features/app_shell/presentation/models/navigation_tab_content.dart';
 import 'package:kopim/features/app_shell/presentation/widgets/navigation_responsive_breakpoints.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
+import 'package:kopim/core/domain/icons/phosphor_icon_descriptor.dart';
 import 'package:kopim/features/home/domain/entities/home_dashboard_preferences.dart';
 import 'package:kopim/features/home/domain/models/day_section.dart';
 import 'package:kopim/features/home/domain/models/home_account_monthly_summary.dart';
@@ -601,7 +602,7 @@ class _AccountsListState extends State<_AccountsList> {
     }
     final int initialPage = _pageController.hasClients
         ? _pageController.page?.round().clamp(0, widget.accounts.length - 1) ??
-              0
+            0
         : _currentPage.clamp(0, widget.accounts.length - 1);
     final PageController oldController = _pageController;
     final PageController newController = PageController(
@@ -1151,19 +1152,17 @@ class _TransactionsSectionCardState extends State<_TransactionsSectionCard> {
           const SizedBox(height: 16),
           Align(
             alignment: Alignment.centerLeft,
-            child: FilledButton(
+            child: TextButton(
               onPressed: widget.onSeeAll,
-              style: FilledButton.styleFrom(
-                backgroundColor: theme.colorScheme.secondary,
-                foregroundColor: theme.colorScheme.onSecondary,
-                minimumSize: const Size(91, 56),
+              style: TextButton.styleFrom(
+                foregroundColor: theme.colorScheme.primary,
                 padding: const EdgeInsets.symmetric(
-                  vertical: 16,
-                  horizontal: 24,
+                  vertical: 12,
+                  horizontal: 20,
                 ),
-                shape: const StadiumBorder(),
                 textStyle: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w500,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.1,
                 ),
               ),
               child: Text(widget.strings.homeTransactionsSeeAll),
@@ -1430,18 +1429,14 @@ class _TransactionListItem extends ConsumerWidget {
     final String? note = transaction.note;
 
     final ThemeData theme = Theme.of(context);
-    final String? accountName = ref.watch(
-      homeAccountByIdProvider(
-        accountId,
-      ).select((AccountEntity? account) => account?.name),
+    final ({String? name, String? currency}) accountData = ref.watch(
+      homeAccountByIdProvider(accountId).select(
+        (AccountEntity? account) =>
+            (name: account?.name, currency: account?.currency),
+      ),
     );
-    final String? accountCurrency = ref.watch(
-      homeAccountByIdProvider(
-        accountId,
-      ).select((AccountEntity? account) => account?.currency),
-    );
-    final String currencySymbol = accountCurrency != null
-        ? resolveCurrencySymbol(accountCurrency, locale: localeName)
+    final String currencySymbol = accountData.currency != null
+        ? resolveCurrencySymbol(accountData.currency!, locale: localeName)
         : TransactionTileFormatters.fallbackCurrencySymbol(localeName);
     final NumberFormat moneyFormat = TransactionTileFormatters.currency(
       localeName,
@@ -1449,17 +1444,24 @@ class _TransactionListItem extends ConsumerWidget {
       decimalDigits: 0,
     );
 
-    final Category? category = categoryId == null
-        ? null
-        : ref.watch(
-            homeCategoryByIdProvider(categoryId).select((Category? cat) => cat),
-          );
+    final ({
+      String? name,
+      PhosphorIconDescriptor? icon,
+      String? color,
+    }) categoryData =
+        categoryId == null
+            ? (name: null, icon: null, color: null)
+            : ref.watch(
+                homeCategoryByIdProvider(categoryId).select(
+                  (Category? cat) =>
+                      (name: cat?.name, icon: cat?.icon, color: cat?.color),
+                ),
+              );
     final String categoryName =
-        category?.name ?? strings.homeTransactionsUncategorized;
-    final PhosphorIconData? categoryIcon = resolvePhosphorIconData(
-      category?.icon,
-    );
-    final Color? categoryColor = parseHexColor(category?.color);
+        categoryData.name ?? strings.homeTransactionsUncategorized;
+    final PhosphorIconData? categoryIcon =
+        resolvePhosphorIconData(categoryData.icon);
+    final Color? categoryColor = parseHexColor(categoryData.color);
     final Color avatarIconColor = categoryColor != null
         ? (ThemeData.estimateBrightnessForColor(categoryColor) ==
                   Brightness.dark
@@ -1572,9 +1574,9 @@ class _TransactionListItem extends ConsumerWidget {
                           fontWeight: FontWeight.w400,
                         ),
                       ),
-                      if (accountName != null)
+                      if (accountData.name != null)
                         Text(
-                          accountName,
+                          accountData.name!,
                           style: Theme.of(context).textTheme.labelSmall
                               ?.copyWith(
                                 color: Theme.of(context).colorScheme.outline,
