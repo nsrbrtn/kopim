@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:kopim/core/config/theme_extensions.dart';
+import 'package:kopim/core/widgets/animated_fab.dart';
 import 'package:kopim/core/widgets/kopim_glass_fab.dart';
 import 'package:kopim/features/app_shell/presentation/models/navigation_tab_content.dart';
 import 'package:kopim/core/di/injectors.dart';
@@ -109,17 +110,19 @@ NavigationTabContent buildBudgetsTabContent(
         AppBar(title: Text(strings.budgetsTitle)),
     floatingActionButtonBuilder: (BuildContext context, WidgetRef ref) {
       final ColorScheme colorScheme = Theme.of(context).colorScheme;
-      return KopimGlassFab(
-        enableGradientHighlight: false,
-        icon: Icon(Icons.add, color: colorScheme.primary),
-        foregroundColor: colorScheme.primary,
-        onPressed: () async {
-          await Navigator.of(context).push(
-            MaterialPageRoute<void>(
-              builder: (BuildContext context) => const BudgetFormScreen(),
-            ),
-          );
-        },
+      return AnimatedFab(
+        child: KopimGlassFab(
+          enableGradientHighlight: false,
+          icon: Icon(Icons.add, color: colorScheme.primary),
+          foregroundColor: colorScheme.primary,
+          onPressed: () async {
+            await Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (BuildContext context) => const BudgetFormScreen(),
+              ),
+            );
+          },
+        ),
       );
     },
     bodyBuilder: (BuildContext context, WidgetRef ref) {

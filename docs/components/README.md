@@ -26,6 +26,8 @@
 ### UI-компоненты и контейнеры
 - [KopimFloatingActionButton](KopimFloatingActionButton.md) — кнопка действия с поддержкой обычного и расширенного режима
 - [KopimGlassSurface](KopimGlassSurface.md) — стеклянный эффект (glassmorphism) для премиум-дизайна
+- [TransactionFormOpenContainer](TransactionFormOpenContainer.md) — fade-through переход для открытия формы транзакции из карточки или FAB
+- [AnimatedFab](AnimatedFab.md) — анимированное появление FAB с масштабом и fade
 
 ### Карточки и элементы списков
 - [BudgetCard](BudgetCard.md) — карточка бюджета с прогресс-индикатором

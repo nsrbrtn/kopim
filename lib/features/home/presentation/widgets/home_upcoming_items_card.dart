@@ -96,19 +96,17 @@ class _HomeUpcomingItemsCardState extends State<HomeUpcomingItemsCard> {
       color: theme.colorScheme.onSurface,
       fontWeight: FontWeight.w500,
     );
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Container(
-        margin: EdgeInsets.zero,
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surfaceContainer,
-          borderRadius: borderRadius,
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
+    return Container(
+      margin: EdgeInsets.zero,
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainer,
+        borderRadius: borderRadius,
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.center,
@@ -134,8 +132,7 @@ class _HomeUpcomingItemsCardState extends State<HomeUpcomingItemsCard> {
             ),
             const SizedBox(height: 8),
             content,
-            ],
-          ),
+          ],
         ),
       ),
     );
@@ -233,7 +230,7 @@ class _UpcomingBadge extends StatelessWidget {
               textColor: badgeTextColor,
               child: Icon(icon, color: color),
             ),
-                        const SizedBox(width: 4),
+            const SizedBox(width: 4),
             Text(
               label,
               style: theme.textTheme.bodyMedium?.copyWith(
@@ -263,8 +260,7 @@ class _UpcomingListRow extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final ThemeData theme = Theme.of(context);
     final DateTime whenLocal = timeService.toLocal(item.whenMs);
-    final DateFormat dateFormat =
-        DateFormat('dd.MM.yyyy', strings.localeName);
+    final DateFormat dateFormat = DateFormat('dd.MM.yyyy', strings.localeName);
     final NumberFormat amountFormat = NumberFormat.currency(
       locale: strings.localeName,
       symbol: '',
@@ -272,15 +268,12 @@ class _UpcomingListRow extends ConsumerWidget {
     );
     final String amountText = amountFormat.format(item.amount.abs()).trim();
     final bool isReminder = item.type == UpcomingItemType.reminder;
-    final MarkReminderDoneUC markDone =
-        ref.read(markReminderDoneUCProvider);
+    final MarkReminderDoneUC markDone = ref.read(markReminderDoneUCProvider);
 
     Future<void> markReminderDone() async {
       final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
       try {
-        await markDone(
-          MarkReminderDoneInput(id: item.id, isDone: true),
-        );
+        await markDone(MarkReminderDoneInput(id: item.id, isDone: true));
         if (!context.mounted) {
           return;
         }
@@ -296,9 +289,7 @@ class _UpcomingListRow extends ConsumerWidget {
         messenger.showSnackBar(
           SnackBar(
             content: Text(
-              strings.upcomingPaymentsReminderMarkPaidError(
-                error.toString(),
-              ),
+              strings.upcomingPaymentsReminderMarkPaidError(error.toString()),
             ),
           ),
         );

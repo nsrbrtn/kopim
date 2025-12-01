@@ -20,6 +20,9 @@ class AddAccountScreen extends ConsumerStatefulWidget {
 }
 
 class _AddAccountScreenState extends ConsumerState<AddAccountScreen> {
+  static const String _namePlaceholder = 'Основной';
+  static const String _balancePlaceholder = 'Введите сумму';
+  static const String _currencyPlaceholder = 'Название валюты';
   late final TextEditingController _nameController;
   late final TextEditingController _balanceController;
   late final TextEditingController _customTypeController;
@@ -118,68 +121,15 @@ class _AddAccountScreenState extends ConsumerState<AddAccountScreen> {
     final Color? selectedColor = parseHexColor(state.color);
     final BorderRadius containerRadius =
         BorderRadius.circular(layout.radius.xxl);
-    final ColorScheme expandableColors = colorScheme.copyWith(
+    final ColorScheme innerExpandableColors = colorScheme.copyWith(
       surfaceContainer: colorScheme.surfaceContainerHigh,
     );
 
-    Future<void> openTypeSelector() async {
-      final String currentValue = state.useCustomType
-          ? customTypeValue
-          : (state.type.isEmpty ? '' : state.type);
-      final String? selected = await showDialog<String>(
-        context: context,
-        builder: (BuildContext dialogContext) {
-          return AlertDialog(
-            title: Text(strings.addAccountTypeLabel),
-            content: StatefulBuilder(
-              builder: (
-                BuildContext context,
-                void Function(void Function()) setStateDialog,
-              ) {
-                String tempSelection = currentValue;
-
-                void handleTap(String value) {
-                  Navigator.of(dialogContext).pop(value);
-                }
-
-                final List<MapEntry<String, String>> items =
-                    <MapEntry<String, String>>[
-                  ...accountTypeLabels.entries,
-                  MapEntry<String, String>(
-                    customTypeValue,
-                    strings.addAccountTypeCustom,
-                  ),
-                ];
-
-                return Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: items
-                      .map(
-                        (MapEntry<String, String> entry) => CheckboxListTile(
-                          value: tempSelection == entry.key,
-                          onChanged: (bool? _) => handleTap(entry.key),
-                          title: Text(entry.value),
-                        ),
-                      )
-                      .toList(),
-                );
-              },
-            ),
-            actions: <Widget>[
-              TextButton(
-                onPressed: () => Navigator.of(dialogContext).pop(),
-                child: Text(strings.dialogCancel),
-              ),
-            ],
-          );
-        },
-      );
-
-      if (selected == null) return;
-      if (selected == customTypeValue) {
+    void onTypeSelected(String value) {
+      if (value == customTypeValue) {
         controller.enableCustomType();
       } else {
-        controller.updateType(selected);
+        controller.updateType(value);
       }
     }
 
@@ -237,290 +187,77 @@ class _AddAccountScreenState extends ConsumerState<AddAccountScreen> {
                       ),
                     ),
                     SizedBox(height: layout.spacing.sectionLarge),
-                    Text(
-                      strings.addAccountNameLabel,
-                      style: theme.textTheme.labelLarge?.copyWith(
-                        color: colorScheme.onSurface,
-                      ),
-                    ),
-                    SizedBox(height: layout.spacing.between),
-                    KopimTextField(
+                    _NameField(
                       controller: _nameController,
-                      placeholder: strings.addAccountNameLabel,
-                      enabled: !state.isSaving,
-                      textInputAction: TextInputAction.next,
+                      isSaving: state.isSaving,
+                      strings: strings,
+                      layout: layout,
+                      colorScheme: colorScheme,
+                      theme: theme,
                       onChanged: controller.updateName,
-                      fillColor: colorScheme.surfaceContainerHigh,
-                      placeholderColor: colorScheme.onSurfaceVariant,
+                      placeholder: _namePlaceholder,
+                      hasError:
+                          state.nameError == AddAccountFieldError.emptyName,
                     ),
-                    if (state.nameError == AddAccountFieldError.emptyName)
-                      Padding(
-                        padding:
-                            EdgeInsets.only(top: layout.spacing.between),
-                        child: Text(
-                          strings.addAccountNameRequired,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: colorScheme.error,
-                          ),
-                        ),
-                      ),
                     SizedBox(height: layout.spacing.sectionLarge),
-                    Text(
-                      strings.addAccountBalanceLabel,
-                      style: theme.textTheme.labelLarge?.copyWith(
-                        color: colorScheme.onSurface,
-                      ),
-                    ),
-                    SizedBox(height: layout.spacing.between),
-                    KopimTextField(
+                    _BalanceField(
                       controller: _balanceController,
-                      placeholder: strings.addAccountBalanceLabel,
-                      enabled: !state.isSaving,
-                      keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true,
-                      ),
+                      isSaving: state.isSaving,
+                      strings: strings,
+                      layout: layout,
+                      colorScheme: colorScheme,
+                      theme: theme,
                       onChanged: controller.updateBalance,
-                      fillColor: colorScheme.surfaceContainerHigh,
-                      placeholderColor: colorScheme.onSurfaceVariant,
-                    ),
-                    if (state.balanceError ==
-                        AddAccountFieldError.invalidBalance)
-                      Padding(
-                        padding:
-                            EdgeInsets.only(top: layout.spacing.between),
-                        child: Text(
-                          strings.addAccountBalanceInvalid,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: colorScheme.error,
-                          ),
-                        ),
-                      ),
-                    SizedBox(height: layout.spacing.sectionLarge),
-                    Text(
-                      strings.addAccountTypeLabel,
-                      style: theme.textTheme.labelLarge?.copyWith(
-                        color: colorScheme.onSurface,
-                      ),
-                    ),
-                    SizedBox(height: layout.spacing.section),
-                    Theme(
-                      data: theme.copyWith(colorScheme: expandableColors),
-                      child: KopimExpandableSectionPlayful(
-                        title: strings.addAccountTypeLabel,
-                        initiallyExpanded: true,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            InkWell(
-                              onTap: state.isSaving ? null : openTypeSelector,
-                              borderRadius:
-                                  BorderRadius.circular(layout.radius.card),
-                              child: Container(
-                                width: double.infinity,
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 20,
-                                  vertical: 16,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: colorScheme.surfaceContainerHigh,
-                                  borderRadius: BorderRadius.circular(
-                                    layout.radius.card,
-                                  ),
-                                ),
-                                child: Row(
-                                  children: <Widget>[
-                                    Icon(
-                                      Icons.credit_card,
-                                      color: colorScheme.onSurface,
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: Text(
-                                        selectedTypeValue ==
-                                                customTypeValue
-                                            ? (state.customType.isNotEmpty
-                                                ? state.customType
-                                                : strings
-                                                    .addAccountCustomTypeLabel)
-                                            : (selectedTypeValue != null
-                                                ? accountTypeLabels[
-                                                    selectedTypeValue]
-                                                : strings
-                                                    .addAccountTypeLabel) ??
-                                                strings
-                                                    .addAccountTypeLabel,
-                                        style: theme.textTheme.bodyLarge
-                                            ?.copyWith(
-                                          color: colorScheme.onSurface,
-                                        ),
-                                      ),
-                                    ),
-                                    Icon(
-                                      Icons.keyboard_arrow_down_rounded,
-                                      color: colorScheme.onSurface,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            if (state.useCustomType) ...<Widget>[
-                              SizedBox(height: layout.spacing.between),
-                              KopimTextField(
-                                controller: _customTypeController,
-                                placeholder:
-                                    strings.addAccountCustomTypeLabel,
-                                enabled: !state.isSaving,
-                                textCapitalization:
-                                    TextCapitalization.sentences,
-                                textInputAction: TextInputAction.done,
-                                onChanged: controller.updateCustomType,
-                                fillColor:
-                                    colorScheme.surfaceContainerHigh,
-                                placeholderColor:
-                                    colorScheme.onSurfaceVariant,
-                              ),
-                            ],
-                            if (showTypeError)
-                              Padding(
-                                padding: EdgeInsets.only(
-                                  top: layout.spacing.between,
-                                ),
-                                child: Text(
-                                  dropdownErrorText ??
-                                      strings.addAccountTypeRequired,
-                                  style:
-                                      theme.textTheme.bodySmall?.copyWith(
-                                    color: colorScheme.error,
-                                  ),
-                                ),
-                              ),
-                            SizedBox(height: layout.spacing.sectionLarge),
-                            Text(
-                              strings.addAccountCurrencyLabel,
-                              style: theme.textTheme.labelLarge?.copyWith(
-                                color: colorScheme.onSurface,
-                              ),
-                            ),
-                            SizedBox(height: layout.spacing.between),
-                            KopimTextField(
-                              controller: _currencySearchController,
-                              placeholder: strings.addAccountCurrencyLabel,
-                              enabled: !state.isSaving,
-                              onChanged: (String value) {
-                                setState(() {
-                                  _currencyQuery = value;
-                                });
-                              },
-                              prefixIcon: Icon(
-                                Icons.search,
-                                color: colorScheme.onSurfaceVariant,
-                              ),
-                              fillColor: colorScheme.surfaceContainerHigh,
-                              placeholderColor:
-                                  colorScheme.onSurfaceVariant,
-                            ),
-                            SizedBox(height: layout.spacing.section),
-                            Wrap(
-                              spacing: layout.spacing.between,
-                              runSpacing: layout.spacing.between,
-                              children: filteredCurrencies
-                                  .map(
-                                    (String code) => RawChip(
-                                      label: Text(
-                                        code,
-                                        style: theme.textTheme.labelLarge
-                                            ?.copyWith(
-                                          color: state.currency == code
-                                              ? colorScheme.onPrimary
-                                              : colorScheme
-                                                  .onSurfaceVariant,
-                                        ),
-                                      ),
-                                      avatar: _CurrencyAvatar(
-                                        code: code,
-                                        selected: state.currency == code,
-                                      ),
-                                      selected: state.currency == code,
-                                      onSelected: state.isSaving
-                                          ? null
-                                          : (_) => controller
-                                              .updateCurrency(code),
-                                      selectedColor: colorScheme.primary,
-                                      backgroundColor: colorScheme
-                                          .surfaceContainerHigh,
-                                      showCheckmark: false,
-                                      padding:
-                                          const EdgeInsets.symmetric(
-                                        horizontal: 8,
-                                      ),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius:
-                                            BorderRadius.circular(
-                                          layout.radius.card,
-                                        ),
-                                      ),
-                                    ),
-                                  )
-                                  .toList(),
-                            ),
-                          ],
-                        ),
-                      ),
+                      placeholder: _balancePlaceholder,
+                      hasError: state.balanceError ==
+                          AddAccountFieldError.invalidBalance,
                     ),
                     SizedBox(height: layout.spacing.sectionLarge),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: <Widget>[
-                        Expanded(
-                          child: Text(
-                            strings.accountColorLabel,
-                            style:
-                                theme.textTheme.labelLarge?.copyWith(
-                              color: colorScheme.onSurface,
-                            ),
-                          ),
-                        ),
-                        InkWell(
-                          onTap: state.isSaving
-                              ? null
-                              : () async {
-                                  final Color? picked =
-                                      await showAccountColorPickerDialog(
-                                    context: context,
-                                    strings: strings,
-                                    initialColor: selectedColor,
-                                  );
-                                  if (picked != null) {
-                                    controller.updateColor(
-                                      colorToHex(
-                                        picked,
-                                        includeAlpha: false,
-                                      ),
-                                    );
-                                  }
-                                },
-                          borderRadius: BorderRadius.circular(28),
-                          child: Container(
-                            width: 56,
-                            height: 56,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: selectedColor ??
-                                  colorScheme.surfaceContainerHighest,
-                              border: Border.all(
-                                color: colorScheme.onSurfaceVariant
-                                    .withOpacity(0.4),
-                              ),
-                            ),
-                            child: selectedColor == null
-                                ? Icon(
-                                    Icons.palette_outlined,
-                                    color: colorScheme.onSurface,
-                                  )
-                                : null,
-                          ),
-                        ),
-                      ],
+                    _TypeSection(
+                      accountTypeLabels: accountTypeLabels,
+                      colorScheme: colorScheme,
+                      controller: controller,
+                      customTypeController: _customTypeController,
+                      customTypeValue: customTypeValue,
+                      dropdownErrorText: dropdownErrorText,
+                      innerExpandableColors: innerExpandableColors,
+                      isSaving: state.isSaving,
+                      layout: layout,
+                      selectedTypeValue: selectedTypeValue,
+                      showTypeError: showTypeError,
+                      state: state,
+                      strings: strings,
+                      theme: theme,
+                      onTypeSelected: onTypeSelected,
+                    ),
+                    SizedBox(height: layout.spacing.sectionLarge),
+                    _CurrencySection(
+                      colorScheme: colorScheme,
+                      controller: controller,
+                      filteredCurrencies: filteredCurrencies,
+                      innerExpandableColors: innerExpandableColors,
+                      isSaving: state.isSaving,
+                      layout: layout,
+                      onQueryChanged: (String value) {
+                        setState(() {
+                          _currencyQuery = value;
+                        });
+                      },
+                      placeholder: _currencyPlaceholder,
+                      selectedCurrency: state.currency,
+                      strings: strings,
+                      theme: theme,
+                      currencySearchController: _currencySearchController,
+                    ),
+                    SizedBox(height: layout.spacing.sectionLarge),
+                    _ColorPickerRow(
+                      colorScheme: colorScheme,
+                      controller: controller,
+                      layout: layout,
+                      selectedColor: selectedColor,
+                      strings: strings,
+                      theme: theme,
+                      isSaving: state.isSaving,
                     ),
                     SizedBox(height: layout.spacing.sectionLarge),
                     SwitchListTile.adaptive(
@@ -572,6 +309,400 @@ class _AddAccountScreenState extends ConsumerState<AddAccountScreen> {
   }
 }
 
+class _NameField extends StatelessWidget {
+  const _NameField({
+    required this.controller,
+    required this.isSaving,
+    required this.strings,
+    required this.layout,
+    required this.colorScheme,
+    required this.theme,
+    required this.onChanged,
+    required this.placeholder,
+    required this.hasError,
+  });
+
+  final TextEditingController controller;
+  final bool isSaving;
+  final AppLocalizations strings;
+  final KopimLayout layout;
+  final ColorScheme colorScheme;
+  final ThemeData theme;
+  final ValueChanged<String> onChanged;
+  final String placeholder;
+  final bool hasError;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Text(
+          strings.addAccountNameLabel,
+          style: theme.textTheme.labelLarge?.copyWith(
+            color: colorScheme.onSurface,
+          ),
+        ),
+        SizedBox(height: layout.spacing.between),
+        KopimTextField(
+          controller: controller,
+          placeholder: placeholder,
+          enabled: !isSaving,
+          textInputAction: TextInputAction.next,
+          onChanged: onChanged,
+          fillColor: colorScheme.surfaceContainerHigh,
+          placeholderColor: colorScheme.onSurfaceVariant,
+        ),
+        if (hasError)
+          Padding(
+            padding: EdgeInsets.only(top: layout.spacing.between),
+            child: Text(
+              strings.addAccountNameRequired,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: colorScheme.error,
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _BalanceField extends StatelessWidget {
+  const _BalanceField({
+    required this.controller,
+    required this.isSaving,
+    required this.strings,
+    required this.layout,
+    required this.colorScheme,
+    required this.theme,
+    required this.onChanged,
+    required this.placeholder,
+    required this.hasError,
+  });
+
+  final TextEditingController controller;
+  final bool isSaving;
+  final AppLocalizations strings;
+  final KopimLayout layout;
+  final ColorScheme colorScheme;
+  final ThemeData theme;
+  final ValueChanged<String> onChanged;
+  final String placeholder;
+  final bool hasError;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Text(
+          strings.addAccountBalanceLabel,
+          style: theme.textTheme.labelLarge?.copyWith(
+            color: colorScheme.onSurface,
+          ),
+        ),
+        SizedBox(height: layout.spacing.between),
+        KopimTextField(
+          controller: controller,
+          placeholder: placeholder,
+          enabled: !isSaving,
+          keyboardType: const TextInputType.numberWithOptions(
+            decimal: true,
+          ),
+          onChanged: onChanged,
+          fillColor: colorScheme.surfaceContainerHigh,
+          placeholderColor: colorScheme.onSurfaceVariant,
+        ),
+        if (hasError)
+          Padding(
+            padding: EdgeInsets.only(top: layout.spacing.between),
+            child: Text(
+              strings.addAccountBalanceInvalid,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: colorScheme.error,
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _TypeSection extends StatelessWidget {
+  const _TypeSection({
+    required this.accountTypeLabels,
+    required this.colorScheme,
+    required this.controller,
+    required this.customTypeController,
+    required this.customTypeValue,
+    required this.dropdownErrorText,
+    required this.innerExpandableColors,
+    required this.isSaving,
+    required this.layout,
+    required this.selectedTypeValue,
+    required this.showTypeError,
+    required this.state,
+    required this.strings,
+    required this.theme,
+    required this.onTypeSelected,
+  });
+
+  final Map<String, String> accountTypeLabels;
+  final ColorScheme colorScheme;
+  final AddAccountFormController controller;
+  final TextEditingController customTypeController;
+  final String customTypeValue;
+  final String? dropdownErrorText;
+  final ColorScheme innerExpandableColors;
+  final bool isSaving;
+  final KopimLayout layout;
+  final String? selectedTypeValue;
+  final bool showTypeError;
+  final AddAccountFormState state;
+  final AppLocalizations strings;
+  final ThemeData theme;
+  final ValueChanged<String> onTypeSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return Theme(
+      data: theme.copyWith(
+        colorScheme: innerExpandableColors,
+      ),
+      child: KopimExpandableSectionPlayful(
+        title: strings.addAccountTypeLabel,
+        initiallyExpanded: false,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            ...<MapEntry<String, String>>[
+              ...accountTypeLabels.entries,
+              MapEntry<String, String>(
+                customTypeValue,
+                strings.addAccountTypeCustom,
+              ),
+            ].map(
+              (MapEntry<String, String> entry) => RadioListTile<String>(
+                value: entry.key,
+                groupValue: selectedTypeValue,
+                onChanged: isSaving
+                    ? null
+                    : (String? value) {
+                        if (value != null) {
+                          onTypeSelected(value);
+                        }
+                      },
+                title: Text(entry.value),
+                activeColor: colorScheme.primary,
+                shape: const CircleBorder(),
+                contentPadding: EdgeInsets.zero,
+              ),
+            ),
+            if (state.useCustomType) ...<Widget>[
+              SizedBox(height: layout.spacing.between),
+              KopimTextField(
+                controller: customTypeController,
+                placeholder: strings.addAccountCustomTypeLabel,
+                enabled: !isSaving,
+                textCapitalization: TextCapitalization.sentences,
+                textInputAction: TextInputAction.done,
+                onChanged: controller.updateCustomType,
+                fillColor: colorScheme.surfaceContainerHighest,
+                placeholderColor: colorScheme.onSurfaceVariant,
+              ),
+            ],
+            if (showTypeError)
+              Padding(
+                padding: EdgeInsets.only(
+                  top: layout.spacing.between,
+                ),
+                child: Text(
+                  dropdownErrorText ?? strings.addAccountTypeRequired,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colorScheme.error,
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _CurrencySection extends StatelessWidget {
+  const _CurrencySection({
+    required this.colorScheme,
+    required this.controller,
+    required this.filteredCurrencies,
+    required this.innerExpandableColors,
+    required this.isSaving,
+    required this.layout,
+    required this.onQueryChanged,
+    required this.placeholder,
+    required this.selectedCurrency,
+    required this.strings,
+    required this.theme,
+    required this.currencySearchController,
+  });
+
+  final ColorScheme colorScheme;
+  final AddAccountFormController controller;
+  final List<String> filteredCurrencies;
+  final ColorScheme innerExpandableColors;
+  final bool isSaving;
+  final KopimLayout layout;
+  final ValueChanged<String> onQueryChanged;
+  final String placeholder;
+  final String selectedCurrency;
+  final AppLocalizations strings;
+  final ThemeData theme;
+  final TextEditingController currencySearchController;
+
+  @override
+  Widget build(BuildContext context) {
+    return Theme(
+      data: theme.copyWith(
+        colorScheme: innerExpandableColors,
+      ),
+      child: KopimExpandableSectionPlayful(
+        title: strings.addAccountCurrencyLabel,
+        initiallyExpanded: false,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            KopimTextField(
+              controller: currencySearchController,
+              placeholder: placeholder,
+              enabled: !isSaving,
+              onChanged: onQueryChanged,
+              prefixIcon: Icon(
+                Icons.search,
+                color: colorScheme.onSurfaceVariant,
+              ),
+              fillColor: colorScheme.surfaceContainerHighest,
+              placeholderColor: colorScheme.onSurfaceVariant,
+            ),
+            SizedBox(height: layout.spacing.section),
+            Wrap(
+              spacing: layout.spacing.between,
+              runSpacing: layout.spacing.between,
+              children: filteredCurrencies
+                  .map(
+                    (String code) => RawChip(
+                      label: Text(
+                        code,
+                        style: theme.textTheme.labelLarge?.copyWith(
+                          color: selectedCurrency == code
+                              ? colorScheme.onPrimary
+                              : colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      avatar: _CurrencyAvatar(
+                        code: code,
+                        selected: selectedCurrency == code,
+                      ),
+                      selected: selectedCurrency == code,
+                      onSelected: isSaving
+                          ? null
+                          : (_) => controller.updateCurrency(code),
+                      selectedColor: colorScheme.primary,
+                      backgroundColor: colorScheme.surfaceContainerHigh,
+                      showCheckmark: false,
+                      padding: EdgeInsets.symmetric(
+                        horizontal: layout.spacing.between / 2,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(
+                          layout.radius.card,
+                        ),
+                      ),
+                    ),
+                  )
+                  .toList(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ColorPickerRow extends StatelessWidget {
+  const _ColorPickerRow({
+    required this.colorScheme,
+    required this.controller,
+    required this.layout,
+    required this.selectedColor,
+    required this.strings,
+    required this.theme,
+    required this.isSaving,
+  });
+
+  final ColorScheme colorScheme;
+  final AddAccountFormController controller;
+  final KopimLayout layout;
+  final Color? selectedColor;
+  final AppLocalizations strings;
+  final ThemeData theme;
+  final bool isSaving;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: <Widget>[
+        Expanded(
+          child: Text(
+            strings.accountColorLabel,
+            style: theme.textTheme.labelLarge?.copyWith(
+              color: colorScheme.onSurface,
+            ),
+          ),
+        ),
+        InkWell(
+          onTap: isSaving
+              ? null
+              : () async {
+                  final Color? picked = await showAccountColorPickerDialog(
+                    context: context,
+                    strings: strings,
+                    initialColor: selectedColor,
+                  );
+                  if (picked != null) {
+                    controller.updateColor(
+                      colorToHex(
+                        picked,
+                        includeAlpha: false,
+                      ),
+                    );
+                  }
+                },
+          borderRadius: BorderRadius.circular(28),
+          child: Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: selectedColor ?? colorScheme.surfaceContainerHighest,
+              border: Border.all(
+                color: colorScheme.onSurfaceVariant.withOpacity(0.4),
+              ),
+            ),
+            child: selectedColor == null
+                ? Icon(
+                    Icons.palette_outlined,
+                    color: colorScheme.onSurface,
+                  )
+                : null,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class _CurrencyAvatar extends StatelessWidget {
   const _CurrencyAvatar({
     required this.code,
@@ -598,10 +729,14 @@ class _CurrencyAvatar extends StatelessWidget {
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
     final ColorScheme colors = theme.colorScheme;
-    return CircleAvatar(
-      radius: 16,
-      backgroundColor:
-          selected ? colors.primary : colors.surfaceContainerHighest,
+    return Container(
+      width: 32,
+      height: 32,
+      decoration: BoxDecoration(
+        color: selected ? colors.primary : colors.surfaceContainerHighest,
+        shape: BoxShape.circle,
+      ),
+      alignment: Alignment.center,
       child: Text(
         _symbol,
         style: theme.textTheme.labelLarge?.copyWith(

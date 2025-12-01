@@ -53,8 +53,7 @@ dependencies:
   image_picker: ^1.2.0
   image: ^4.5.4
   flutter_markdown_plus: ^1.0.0+1
-
-
+  animations: ^2.0.11
   # Analytics UI (charts) - merged, use syncfusion as advanced alternative
   syncfusion_flutter_charts: ^31.1.21  # Instead of fl_chart for richer features
 

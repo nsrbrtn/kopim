@@ -1,51 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/presentation/controllers/transaction_actions_controller.dart';
-import 'package:kopim/features/transactions/presentation/controllers/transaction_form_controller.dart';
-import 'package:kopim/features/transactions/presentation/widgets/transaction_form_view.dart';
 import 'package:kopim/l10n/app_localizations.dart';
-
-Future<void> showTransactionEditorSheet({
-  required BuildContext context,
-  required WidgetRef ref,
-  required TransactionEntity transaction,
-  required String submitLabel,
-}) async {
-  final GlobalKey<FormState> formKey = GlobalKey<FormState>();
-  final TransactionFormArgs args = TransactionFormArgs(
-    initialTransaction: transaction,
-  );
-
-  await showModalBottomSheet<void>(
-    context: context,
-    isScrollControlled: true,
-    useSafeArea: true,
-    shape: const RoundedRectangleBorder(),
-    clipBehavior: Clip.hardEdge,
-    builder: (BuildContext modalContext) {
-      return Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(modalContext).viewInsets.bottom,
-        ),
-        child: FractionallySizedBox(
-          heightFactor: 0.95,
-          child: TransactionFormView(
-            formKey: formKey,
-            formArgs: args,
-            submitLabel: submitLabel,
-            onSuccess: (_) {
-              if (Navigator.of(modalContext).canPop()) {
-                Navigator.of(modalContext).pop();
-              }
-            },
-          ),
-        ),
-      );
-    },
-  );
-}
 
 Future<bool> deleteTransactionWithFeedback({
   required BuildContext context,

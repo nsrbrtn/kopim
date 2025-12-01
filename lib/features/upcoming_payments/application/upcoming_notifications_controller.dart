@@ -257,12 +257,18 @@ class UpcomingNotificationsController
     required List<PaymentReminder> reminders,
     required String markPaidLabel,
   }) async {
+    logger.logInfo(
+      'Syncing reminder notifications: ${reminders.length} reminders',
+    );
     final tz.TZDateTime now = tz.TZDateTime.now(tz.local);
     final Set<int> currentIds = <int>{};
     for (final PaymentReminder reminder in reminders) {
       if (reminder.isDone) {
         final int id = _hashId('rem_${reminder.id}');
         await notifications.cancel(id);
+        logger.logInfo(
+          'Cancelled notification for done reminder ${reminder.id} (id=$id)',
+        );
         continue;
       }
       final int notificationId = _hashId('rem_${reminder.id}');
@@ -274,6 +280,9 @@ class UpcomingNotificationsController
       );
       if (when == null) {
         await notifications.cancel(notificationId);
+        logger.logInfo(
+          'Cancelled notification for past reminder ${reminder.id} (id=$notificationId)',
+        );
         continue;
       }
       await notifications.scheduleAt(
@@ -289,11 +298,22 @@ class UpcomingNotificationsController
           ),
         ],
       );
+      logger.logInfo(
+        'Scheduled notification for reminder ${reminder.id} '
+        '(id=$notificationId) at ${when.toIso8601String()}',
+      );
     }
 
-    for (final int id in _activeReminderIds.difference(currentIds)) {
+    final Set<int> toCancel = _activeReminderIds.difference(currentIds);
+    for (final int id in toCancel) {
       await notifications.cancel(id);
+      logger.logInfo('Cancelled stale notification id=$id');
     }
+
+    logger.logInfo(
+      'Reminder sync complete: ${currentIds.length} active, '
+      '${toCancel.length} cancelled',
+    );
 
     _activeReminderIds
       ..clear()

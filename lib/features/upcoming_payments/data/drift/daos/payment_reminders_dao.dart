@@ -48,6 +48,7 @@ class PaymentRemindersDao {
       db.PaymentReminderRow
     >
     query = _db.select(_db.paymentReminders)
+      ..where((db.$PaymentRemindersTable tbl) => tbl.isDone.equals(false))
       ..orderBy(<OrderClauseGenerator<db.$PaymentRemindersTable>>[
         (db.$PaymentRemindersTable tbl) =>
             OrderingTerm(expression: tbl.whenAt, mode: OrderingMode.asc),

@@ -89,10 +89,7 @@ class _HomeSavingsEmptyState extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        Text(
-          strings.homeSavingsWidgetTitle,
-          style: theme.textTheme.titleLarge,
-        ),
+        Text(strings.homeSavingsWidgetTitle, style: theme.textTheme.titleLarge),
         const SizedBox(height: 8),
         Text(
           strings.homeSavingsWidgetEmpty,
@@ -197,17 +194,14 @@ class _HomeSavingsCardContainer extends StatelessWidget {
     final ThemeData theme = Theme.of(context);
     final double cardRadius = context.kopimLayout.radius.xxl;
     final BorderRadius borderRadius = BorderRadius.circular(cardRadius);
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Material(
-        color: theme.colorScheme.surfaceContainer,
-        borderRadius: borderRadius,
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(minWidth: double.infinity),
-            child: child,
-          ),
+    return Material(
+      color: theme.colorScheme.surfaceContainer,
+      borderRadius: borderRadius,
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minWidth: double.infinity),
+          child: child,
         ),
       ),
     );

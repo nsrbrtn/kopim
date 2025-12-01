@@ -22,6 +22,7 @@ import 'package:kopim/features/home/presentation/widgets/home_budget_progress_ca
 import 'package:kopim/features/home/presentation/widgets/home_gamification_app_bar.dart';
 import 'package:kopim/features/home/presentation/widgets/home_savings_overview_card.dart';
 import 'package:kopim/features/home/presentation/widgets/home_upcoming_items_card.dart';
+import 'package:kopim/core/widgets/animated_fab.dart';
 import 'package:kopim/core/widgets/kopim_glass_fab.dart';
 import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -31,11 +32,12 @@ import 'package:kopim/features/profile/domain/entities/profile.dart';
 import 'package:kopim/features/profile/presentation/controllers/auth_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/profile_controller.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
-import 'package:kopim/features/transactions/presentation/add_transaction_screen.dart';
 import 'package:kopim/features/transactions/presentation/controllers/transaction_actions_controller.dart';
+import 'package:kopim/features/transactions/presentation/controllers/transaction_form_controller.dart';
 import 'package:kopim/features/transactions/presentation/widgets/transaction_editor.dart';
-import 'package:kopim/features/transactions/presentation/widgets/transaction_tile_formatters.dart';
+import 'package:kopim/features/transactions/presentation/widgets/transaction_form_open_container.dart';
 import 'package:kopim/features/transactions/presentation/widgets/transaction_form_view.dart';
+import 'package:kopim/features/transactions/presentation/widgets/transaction_tile_formatters.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 import 'package:kopim/core/formatting/currency_symbols.dart';
 import 'package:kopim/core/utils/helpers.dart';
@@ -152,7 +154,7 @@ class _HomeBody extends StatelessWidget {
               );
             }
 
-            double nextTopPadding = 24;
+            double nextTopPadding = 8;
 
             void addBoxSection(Widget child) {
               slivers.add(
@@ -166,10 +168,10 @@ class _HomeBody extends StatelessWidget {
                   sliver: SliverToBoxAdapter(child: child),
                 ),
               );
-              nextTopPadding = 0;
+              nextTopPadding = 8;
             }
 
-            const EdgeInsets accountsPadding = EdgeInsets.fromLTRB(8, 16, 8, 0);
+            const EdgeInsets accountsPadding = EdgeInsets.fromLTRB(8, 8, 8, 0);
             final Widget accountsSection = accountsAsync.when(
               data: (List<AccountEntity> accounts) => _AccountsList(
                 accounts: accounts,
@@ -210,7 +212,10 @@ class _HomeBody extends StatelessWidget {
                     _SectionHeader(
                       title: strings.homeAccountsSection,
                       action: IconButton(
-                        icon: const Icon(Icons.add),
+                        icon: Icon(
+                          Icons.add,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
                         tooltip: strings.homeAccountsAddTooltip,
                         onPressed: () =>
                             context.push(AddAccountScreen.routeName),
@@ -280,7 +285,7 @@ class _HomeBody extends StatelessWidget {
             }
             slivers.add(
               SliverPadding(
-                padding: const EdgeInsets.fromLTRB(8, 0, 8, 20),
+                padding: const EdgeInsets.fromLTRB(8, 8, 8, 20),
                 sliver: SliverToBoxAdapter(child: transactionsSection),
               ),
             );
@@ -316,7 +321,7 @@ class _HomeSecondaryPanel extends StatelessWidget {
     final List<Widget> children = <Widget>[];
     void addSection(Widget widget) {
       if (children.isNotEmpty) {
-        children.add(const SizedBox(height: 16));
+        children.add(const SizedBox(height: 8));
       }
       children.add(widget);
     }
@@ -502,16 +507,17 @@ class _AddTransactionButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
-    return KopimGlassFab(
-      icon: Icon(Icons.add, color: colorScheme.primary),
-      foregroundColor: colorScheme.primary,
-      onPressed: () async {
-        final TransactionFormResult? result = await Navigator.of(context)
-            .push<TransactionFormResult>(
-              MaterialPageRoute<TransactionFormResult>(
-                builder: (_) => const AddTransactionScreen(),
-              ),
-            );
+    return TransactionFormOpenContainer(
+      closedBuilder: (BuildContext context, VoidCallback openContainer) {
+        return AnimatedFab(
+          child: KopimGlassFab(
+            icon: Icon(Icons.add, color: colorScheme.primary),
+            foregroundColor: colorScheme.primary,
+            onPressed: openContainer,
+          ),
+        );
+      },
+      onClosed: (TransactionFormResult? result) {
         if (!context.mounted || result == null) {
           return;
         }
@@ -586,7 +592,7 @@ class _AccountsListState extends State<_AccountsList> {
   @override
   void initState() {
     super.initState();
-    _viewportFraction = 0.85;
+    _viewportFraction = widget.accounts.length == 1 ? 1.0 : 0.65;
     _pageController = PageController(viewportFraction: _viewportFraction);
   }
 
@@ -602,7 +608,7 @@ class _AccountsListState extends State<_AccountsList> {
     }
     final int initialPage = _pageController.hasClients
         ? _pageController.page?.round().clamp(0, widget.accounts.length - 1) ??
-            0
+              0
         : _currentPage.clamp(0, widget.accounts.length - 1);
     final PageController oldController = _pageController;
     final PageController newController = PageController(
@@ -691,16 +697,18 @@ class _AccountsListState extends State<_AccountsList> {
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
         final bool isCarouselWide = constraints.maxWidth >= 720;
-        final double baseFraction = widget.accounts.length == 1
-            ? 0.95
-            : (isCarouselWide ? 0.45 : 0.85);
+
+        final bool isSingleAccount = widget.accounts.length == 1;
+        final double baseFraction = isSingleAccount
+            ? 1.0
+            : (isCarouselWide ? 0.45 : 0.65);
         final double requiredFraction = _calculateRequiredFraction(
           context: context,
           constraints: constraints,
           localeName: localeName,
         );
         final double targetFraction = math.min(
-          0.98,
+          isSingleAccount ? 1.0 : 0.98,
           math.max(baseFraction, requiredFraction),
         );
         final double baseHeight = _AccountCardLayout.estimateHeight(context);
@@ -783,7 +791,6 @@ class _AccountsListState extends State<_AccountsList> {
                   }),
                 ),
               ),
-            const SizedBox(height: 8),
           ],
         );
       },
@@ -1444,23 +1451,20 @@ class _TransactionListItem extends ConsumerWidget {
       decimalDigits: 0,
     );
 
-    final ({
-      String? name,
-      PhosphorIconDescriptor? icon,
-      String? color,
-    }) categoryData =
-        categoryId == null
-            ? (name: null, icon: null, color: null)
-            : ref.watch(
-                homeCategoryByIdProvider(categoryId).select(
-                  (Category? cat) =>
-                      (name: cat?.name, icon: cat?.icon, color: cat?.color),
-                ),
-              );
+    final ({String? name, PhosphorIconDescriptor? icon, String? color})
+    categoryData = categoryId == null
+        ? (name: null, icon: null, color: null)
+        : ref.watch(
+            homeCategoryByIdProvider(categoryId).select(
+              (Category? cat) =>
+                  (name: cat?.name, icon: cat?.icon, color: cat?.color),
+            ),
+          );
     final String categoryName =
         categoryData.name ?? strings.homeTransactionsUncategorized;
-    final PhosphorIconData? categoryIcon =
-        resolvePhosphorIconData(categoryData.icon);
+    final PhosphorIconData? categoryIcon = resolvePhosphorIconData(
+      categoryData.icon,
+    );
     final Color? categoryColor = parseHexColor(categoryData.color);
     final Color avatarIconColor = categoryColor != null
         ? (ThemeData.estimateBrightnessForColor(categoryColor) ==
@@ -1485,109 +1489,110 @@ class _TransactionListItem extends ConsumerWidget {
         );
       },
       child: RepaintBoundary(
-        child: Card(
-          margin: const EdgeInsets.symmetric(vertical: 4),
-          elevation: 0,
-          color: Theme.of(context).colorScheme.surfaceContainerHigh,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(18),
-          ),
-          surfaceTintColor: Colors.transparent,
-          child: InkWell(
-            borderRadius: const BorderRadius.all(Radius.circular(18)),
-            onTap: () {
-              final TransactionEntity? transaction = ref.read(
-                homeTransactionByIdProvider(transactionId),
-              );
-              if (transaction == null) {
-                return;
-              }
-              showTransactionEditorSheet(
-                context: context,
-                ref: ref,
-                transaction: transaction,
-                submitLabel: strings.editTransactionSubmit,
-              );
-            },
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(8, 8, 16, 8),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color:
-                          categoryColor ??
-                          Theme.of(context).colorScheme.surfaceContainerHighest,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Center(
-                      child: Icon(
-                        categoryIcon ?? Icons.category_outlined,
-                        size: 22,
-                        color: avatarIconColor,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: <Widget>[
-                        Text(
-                          categoryName,
-                          style: Theme.of(context).textTheme.labelMedium
-                              ?.copyWith(
-                                fontWeight: FontWeight.w500,
-                                color: Theme.of(context).colorScheme.onSurface,
-                              ),
+        child: TransactionFormOpenContainer(
+          formArgs: TransactionFormArgs(initialTransaction: transaction),
+          closedBuilder: (BuildContext context, VoidCallback openContainer) {
+            return Card(
+              margin: const EdgeInsets.symmetric(vertical: 4),
+              elevation: 0,
+              color: Theme.of(context).colorScheme.surfaceContainerHigh,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(18),
+              ),
+              surfaceTintColor: Colors.transparent,
+              child: InkWell(
+                borderRadius: const BorderRadius.all(Radius.circular(18)),
+                onTap: openContainer,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(8, 8, 16, 8),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Container(
+                        width: 48,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color:
+                              categoryColor ??
+                              Theme.of(
+                                context,
+                              ).colorScheme.surfaceContainerHighest,
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                        if (note != null && note.isNotEmpty)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 4),
-                            child: Text(
-                              note,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: Theme.of(context).textTheme.bodySmall
+                        child: Center(
+                          child: Icon(
+                            categoryIcon ?? Icons.category_outlined,
+                            size: 22,
+                            color: avatarIconColor,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: <Widget>[
+                            Text(
+                              categoryName,
+                              style: Theme.of(context).textTheme.labelMedium
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.w500,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurface,
+                                  ),
+                            ),
+                            if (note != null && note.isNotEmpty)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 4),
+                                child: Text(
+                                  note,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: Theme.of(context).textTheme.bodySmall
+                                      ?.copyWith(
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.onSurfaceVariant,
+                                      ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                          Text(
+                            moneyFormat.format(amount.abs()),
+                            style: Theme.of(context).textTheme.titleLarge
+                                ?.copyWith(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurface,
+                                  fontWeight: FontWeight.w400,
+                                ),
+                          ),
+                          if (accountData.name != null)
+                            Text(
+                              accountData.name!,
+                              style: Theme.of(context).textTheme.labelSmall
                                   ?.copyWith(
                                     color: Theme.of(
                                       context,
-                                    ).colorScheme.onSurfaceVariant,
+                                    ).colorScheme.outline,
                                   ),
                             ),
-                          ),
-                      ],
-                    ),
-                  ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      Text(
-                        moneyFormat.format(amount.abs()),
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurface,
-                          fontWeight: FontWeight.w400,
-                        ),
+                        ],
                       ),
-                      if (accountData.name != null)
-                        Text(
-                          accountData.name!,
-                          style: Theme.of(context).textTheme.labelSmall
-                              ?.copyWith(
-                                color: Theme.of(context).colorScheme.outline,
-                              ),
-                        ),
                     ],
                   ),
-                ],
+                ),
               ),
-            ),
-          ),
+            );
+          },
         ),
       ),
     );
@@ -1653,11 +1658,15 @@ class _SectionHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final TextStyle? style = Theme.of(context).textTheme.titleLarge;
     if (action == null) {
-      return Text(title, style: style);
+      return Padding(
+        padding: const EdgeInsets.only(left: 24),
+        child: Text(title, style: style),
+      );
     }
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: <Widget>[
+        const SizedBox(width: 24),
         Expanded(child: Text(title, style: style)),
         const SizedBox(width: 8),
         action!,

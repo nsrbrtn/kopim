@@ -209,7 +209,13 @@ Future<void> _executeUpcomingPaymentsWorkflow({
   }
 
   final List<PaymentReminder> reminders = await remindersDao.getAll();
+  logger.logInfo('Processing ${reminders.length} active reminders');
+  int skippedDone = 0;
   for (final PaymentReminder reminder in reminders) {
+    if (reminder.isDone) {
+      skippedDone++;
+      continue;
+    }
     await _handleReminder(
       reminder: reminder,
       notifications: notifications,
@@ -218,6 +224,9 @@ Future<void> _executeUpcomingPaymentsWorkflow({
       logger: logger,
       markPaidActionLabel: markPaidActionLabel,
     );
+  }
+  if (skippedDone > 0) {
+    logger.logInfo('Skipped $skippedDone done reminders');
   }
 }
 

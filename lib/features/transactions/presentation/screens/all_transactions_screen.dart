@@ -11,7 +11,9 @@ import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
 import 'package:kopim/features/transactions/presentation/controllers/all_transactions_filter_controller.dart';
 import 'package:kopim/features/transactions/presentation/controllers/all_transactions_providers.dart';
+import 'package:kopim/features/transactions/presentation/controllers/transaction_form_controller.dart';
 import 'package:kopim/features/transactions/presentation/widgets/transaction_editor.dart';
+import 'package:kopim/features/transactions/presentation/widgets/transaction_form_open_container.dart';
 import 'package:kopim/features/transactions/presentation/widgets/transaction_tile_formatters.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:kopim/l10n/app_localizations.dart';
@@ -408,71 +410,71 @@ class _TransactionListTile extends ConsumerWidget {
             transactionId: transaction.id,
             strings: strings,
           ),
-      child: Card(
-        elevation: 0,
-        margin: EdgeInsets.zero,
-        surfaceTintColor: Colors.transparent,
-        child: InkWell(
-          borderRadius: const BorderRadius.all(Radius.circular(12)),
-          onTap: () => showTransactionEditorSheet(
-            context: context,
-            ref: ref,
-            transaction: transaction,
-            submitLabel: strings.editTransactionSubmit,
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                CircleAvatar(
-                  backgroundColor:
-                      categoryColor ??
-                      theme.colorScheme.surfaceContainerHighest,
-                  foregroundColor: avatarForeground,
-                  child: iconData != null
-                      ? Icon(iconData)
-                      : const Icon(Icons.category_outlined),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Text(categoryName, style: theme.textTheme.bodyMedium),
-                      if (note != null && note.isNotEmpty)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 4),
-                          child: Text(
-                            note,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: theme.textTheme.bodySmall,
+      child: TransactionFormOpenContainer(
+        formArgs: TransactionFormArgs(initialTransaction: transaction),
+        closedBuilder: (BuildContext context, VoidCallback openContainer) {
+          return Card(
+            elevation: 0,
+            margin: EdgeInsets.zero,
+            surfaceTintColor: Colors.transparent,
+            child: InkWell(
+              borderRadius: const BorderRadius.all(Radius.circular(12)),
+              onTap: openContainer,
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    CircleAvatar(
+                      backgroundColor:
+                          categoryColor ??
+                          theme.colorScheme.surfaceContainerHighest,
+                      foregroundColor: avatarForeground,
+                      child: iconData != null
+                          ? Icon(iconData)
+                          : const Icon(Icons.category_outlined),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Text(categoryName, style: theme.textTheme.bodyMedium),
+                          if (note != null && note.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 4),
+                              child: Text(
+                                note,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: theme.textTheme.bodySmall,
+                              ),
+                            ),
+                          Padding(
+                            padding: const EdgeInsets.only(top: 4),
+                            child: Text(
+                              subtitle,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
+                            ),
                           ),
-                        ),
-                      Padding(
-                        padding: const EdgeInsets.only(top: 4),
-                        child: Text(
-                          subtitle,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                        ),
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      moneyFormat.format(transaction.amount.abs()),
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color: amountColor,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 12),
-                Text(
-                  moneyFormat.format(transaction.amount.abs()),
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    color: amountColor,
-                  ),
-                ),
-              ],
+              ),
             ),
-          ),
-        ),
+          );
+        },
       ),
     );
   }

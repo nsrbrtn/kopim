@@ -21,10 +21,7 @@ import 'package:kopim/l10n/app_localizations.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class HomeBudgetProgressCard extends ConsumerWidget {
-  const HomeBudgetProgressCard({
-    required this.preferences,
-    super.key,
-  });
+  const HomeBudgetProgressCard({required this.preferences, super.key});
 
   final HomeDashboardPreferences preferences;
 
@@ -32,24 +29,23 @@ class HomeBudgetProgressCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final ThemeData theme = Theme.of(context);
     final AppLocalizations strings = AppLocalizations.of(context)!;
-    final AsyncValue<List<Budget>> budgetsAsync =
-        ref.watch(budgetsStreamProvider);
+    final AsyncValue<List<Budget>> budgetsAsync = ref.watch(
+      budgetsStreamProvider,
+    );
 
     final String? budgetId = preferences.budgetId;
     Future<void> openBudgetPicker(List<Budget> budgets) async {
-      final NumberFormat currencyFormat =
-          NumberFormat.simpleCurrency(locale: strings.localeName);
+      final NumberFormat currencyFormat = NumberFormat.simpleCurrency(
+        locale: strings.localeName,
+      );
       final String? selectedBudgetId = await showModalBottomSheet<String>(
         context: context,
         isScrollControlled: true,
         shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(
-            top: Radius.circular(28),
-          ),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
         ),
         builder: (BuildContext sheetContext) {
-          final double maxHeight =
-              math.min(budgets.length * 72 + 120, 400);
+          final double maxHeight = math.min(budgets.length * 72 + 120, 400);
           return SafeArea(
             child: SizedBox(
               height: maxHeight,
@@ -82,9 +78,7 @@ class HomeBudgetProgressCard extends ConsumerWidget {
                         final Budget budget = budgets[index];
                         return ListTile(
                           title: Text(budget.title),
-                          subtitle: Text(
-                            currencyFormat.format(budget.amount),
-                          ),
+                          subtitle: Text(currencyFormat.format(budget.amount)),
                           onTap: () {
                             Navigator.pop(sheetContext, budget.id);
                           },
@@ -140,24 +134,18 @@ class HomeBudgetProgressCard extends ConsumerWidget {
       );
     }
 
-    Widget wrapWithContainer({
-      required Widget child,
-      VoidCallback? onTap,
-    }) {
+    Widget wrapWithContainer({required Widget child, VoidCallback? onTap}) {
       final double cardRadius = context.kopimLayout.radius.xxl;
       final BorderRadius borderRadius = BorderRadius.circular(cardRadius);
-      return Padding(
-        padding: const EdgeInsets.only(bottom: 8),
-        child: Material(
-          color: theme.colorScheme.surfaceContainer,
+      return Material(
+        color: theme.colorScheme.surfaceContainer,
+        borderRadius: borderRadius,
+        child: InkWell(
           borderRadius: borderRadius,
-          child: InkWell(
-            borderRadius: borderRadius,
-            onTap: onTap,
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(minWidth: double.infinity),
-              child: child,
-            ),
+          onTap: onTap,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minWidth: double.infinity),
+            child: child,
           ),
         ),
       );
@@ -225,8 +213,9 @@ class HomeBudgetProgressCard extends ConsumerWidget {
             const SizedBox(height: 4),
             progressAsync.when(
               data: (BudgetProgress progress) {
-                final NumberFormat currencyFormat =
-                    NumberFormat.simpleCurrency(locale: strings.localeName);
+                final NumberFormat currencyFormat = NumberFormat.simpleCurrency(
+                  locale: strings.localeName,
+                );
                 final double limit = progress.budget.amount;
                 final double spent = progress.spent;
                 final double remaining = progress.remaining;
@@ -323,10 +312,7 @@ class _BudgetStat extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 4),
-        Text(
-          value,
-          style: valueStyle ?? theme.textTheme.labelMedium,
-        ),
+        Text(value, style: valueStyle ?? theme.textTheme.labelMedium),
       ],
     );
   }
@@ -407,7 +393,9 @@ class _BudgetCategoriesBreakdown extends ConsumerWidget {
               );
             }
             final List<_CategoryBreakdown> highBreakdowns = breakdowns
-                .where((_CategoryBreakdown breakdown) => breakdown.percent >= 80)
+                .where(
+                  (_CategoryBreakdown breakdown) => breakdown.percent >= 80,
+                )
                 .toList(growable: false);
             if (highBreakdowns.isEmpty) {
               return const SizedBox.shrink();

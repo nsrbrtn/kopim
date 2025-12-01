@@ -14,7 +14,9 @@ import 'package:kopim/features/budgets/presentation/controllers/budgets_provider
 import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
+import 'package:kopim/features/transactions/presentation/controllers/transaction_form_controller.dart';
 import 'package:kopim/features/transactions/presentation/widgets/transaction_editor.dart';
+import 'package:kopim/features/transactions/presentation/widgets/transaction_form_open_container.dart';
 import 'package:kopim/features/transactions/presentation/widgets/transaction_tile_formatters.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
@@ -491,98 +493,100 @@ class _BudgetTransactionTile extends ConsumerWidget {
             transactionId: transaction.id,
             strings: strings,
           ),
-      child: Card(
-        margin: const EdgeInsets.symmetric(vertical: 6),
-        elevation: 0,
-        color: theme.colorScheme.surfaceContainerHigh,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-        surfaceTintColor: Colors.transparent,
-        child: InkWell(
-          borderRadius: const BorderRadius.all(Radius.circular(18)),
-          onTap: () => showTransactionEditorSheet(
-            context: context,
-            ref: ref,
-            transaction: transaction,
-            submitLabel: strings.editTransactionSubmit,
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                CircleAvatar(
-                  radius: 24,
-                  backgroundColor: avatarColor,
-                  foregroundColor: avatarForeground,
-                  child: categoryIcon != null
-                      ? Icon(categoryIcon, size: 22)
-                      : const Icon(Icons.category_outlined, size: 22),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Text(
-                        categoryName,
-                        style: theme.textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.only(top: 4),
-                        child: Text(
-                          '${dateFormat.format(transaction.date)} · '
-                          '${timeFormat.format(transaction.date)}',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
+      child: TransactionFormOpenContainer(
+        formArgs: TransactionFormArgs(initialTransaction: transaction),
+        closedBuilder: (BuildContext context, VoidCallback openContainer) {
+          return Card(
+            margin: const EdgeInsets.symmetric(vertical: 6),
+            elevation: 0,
+            color: theme.colorScheme.surfaceContainerHigh,
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+            surfaceTintColor: Colors.transparent,
+            child: InkWell(
+              borderRadius: const BorderRadius.all(Radius.circular(18)),
+              onTap: openContainer,
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    CircleAvatar(
+                      radius: 24,
+                      backgroundColor: avatarColor,
+                      foregroundColor: avatarForeground,
+                      child: categoryIcon != null
+                          ? Icon(categoryIcon, size: 22)
+                          : const Icon(Icons.category_outlined, size: 22),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Text(
+                            categoryName,
+                            style: theme.textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
-                        ),
-                      ),
-                      if (transaction.note != null &&
-                          transaction.note!.isNotEmpty)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 4),
-                          child: Text(
-                            transaction.note!,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.colorScheme.onSurface.withValues(
-                                alpha: 0.68,
+                          Padding(
+                            padding: const EdgeInsets.only(top: 4),
+                            child: Text(
+                              '${dateFormat.format(transaction.date)} · '
+                              '${timeFormat.format(transaction.date)}',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
                               ),
                             ),
                           ),
-                        ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: <Widget>[
-                    Text(
-                      moneyFormat.format(transaction.amount.abs()),
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        color: amountColor,
-                        fontWeight: FontWeight.w700,
+                          if (transaction.note != null &&
+                              transaction.note!.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 4),
+                              child: Text(
+                                transaction.note!,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: theme.colorScheme.onSurface.withValues(
+                                    alpha: 0.68,
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      account.name,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurface.withValues(
-                          alpha: 0.68,
+                    const SizedBox(width: 12),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: <Widget>[
+                        Text(
+                          moneyFormat.format(transaction.amount.abs()),
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            color: amountColor,
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
-                      ),
+                        const SizedBox(height: 4),
+                        Text(
+                          account.name,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurface.withValues(
+                              alpha: 0.68,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
-              ],
+              ),
             ),
-          ),
-        ),
+          );
+        },
       ),
     );
   }
