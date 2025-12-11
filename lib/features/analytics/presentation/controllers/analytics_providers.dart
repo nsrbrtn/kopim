@@ -1,3 +1,4 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/analytics/domain/models/analytics_filter.dart';
@@ -42,8 +43,10 @@ Stream<List<AccountEntity>> analyticsAccounts(Ref ref) {
 
 @riverpod
 Stream<List<MonthlyBalanceData>> monthlyBalanceData(Ref ref) {
-  final AnalyticsFilterState filterState = ref.watch(
-    analyticsFilterControllerProvider,
+  final Set<String> selectedAccountIds = ref.watch(
+    analyticsFilterControllerProvider.select(
+      (AnalyticsFilterState s) => s.accountIds,
+    ),
   );
   final AsyncValue<List<AccountEntity>> accountsAsync = ref.watch(
     analyticsAccountsProvider,
@@ -51,7 +54,6 @@ Stream<List<MonthlyBalanceData>> monthlyBalanceData(Ref ref) {
 
   final List<AccountEntity> accounts =
       accountsAsync.value ?? const <AccountEntity>[];
-  final Set<String> selectedAccountIds = filterState.accountIds;
 
   return ref.watch(transactionRepositoryProvider).watchTransactions().map((
     List<TransactionEntity> transactions,
@@ -59,8 +61,44 @@ Stream<List<MonthlyBalanceData>> monthlyBalanceData(Ref ref) {
     final DateTime now = DateTime.now();
     final List<MonthlyBalanceData> result = <MonthlyBalanceData>[];
 
-    // Генерируем данные за последние 6 месяцев
-    for (int i = 5; i >= 0; i--) {
+    // Фильтруем счета
+    final List<AccountEntity> relevantAccounts = accounts.where((
+      AccountEntity account,
+    ) {
+      if (selectedAccountIds.isEmpty) {
+        return true;
+      }
+      return selectedAccountIds.contains(account.id);
+    }).toList();
+
+    // Начальный баланс (текущий)
+    double currentBalance = 0;
+    for (final AccountEntity account in relevantAccounts) {
+      currentBalance += account.balance;
+    }
+
+    // Сортируем транзакции по дате (от новых к старым)
+    // Предполагаем, что репозиторий может возвращать не сортированные
+    final List<TransactionEntity> sortedTransactions =
+        transactions.where((TransactionEntity t) {
+          if (selectedAccountIds.isEmpty) {
+            return true;
+          }
+          return selectedAccountIds.contains(t.accountId);
+        }).toList()..sort(
+          (TransactionEntity a, TransactionEntity b) =>
+              b.date.compareTo(a.date),
+        );
+
+    int txIndex = 0;
+    double runningBalance = currentBalance;
+
+    // Генерируем данные за последние 6 месяцев (от текущего назад)
+    for (int i = 0; i < 6; i++) {
+      // Для текущего месяца берем now как конец диапазона, чтобы не учитывать будущие транзакции (если они есть)
+      // Но для алгоритма "отката" нам нужно просто знать границы месяца.
+      // Если есть транзакции в будущем (позже now), их нужно откатить до начала обработки.
+
       final DateTime monthDate = DateTime(now.year, now.month - i, 1);
       final DateTime monthEnd = DateTime(
         monthDate.year,
@@ -70,46 +108,72 @@ Stream<List<MonthlyBalanceData>> monthlyBalanceData(Ref ref) {
         59,
         59,
       );
+      final DateTime monthStart = DateTime(
+        monthDate.year,
+        monthDate.month,
+        1,
+        0,
+        0,
+        0,
+      );
 
-      // Фильтруем счета
-      final List<AccountEntity> relevantAccounts = accounts.where((
-        AccountEntity account,
-      ) {
-        if (selectedAccountIds.isEmpty) {
-          return true;
+      // 1. Откатываем транзакции, которые произошли ПОЗЖЕ конца этого месяца
+      while (txIndex < sortedTransactions.length &&
+          sortedTransactions[txIndex].date.isAfter(monthEnd)) {
+        final TransactionEntity t = sortedTransactions[txIndex];
+        if (t.type == TransactionType.income.storageValue) {
+          runningBalance -= t.amount;
+        } else if (t.type == TransactionType.expense.storageValue) {
+          runningBalance += t.amount;
         }
-        return selectedAccountIds.contains(account.id);
-      }).toList();
-
-      // Начинаем с текущего баланса счетов
-      double totalBalance = 0;
-      for (final AccountEntity account in relevantAccounts) {
-        totalBalance += account.balance;
+        txIndex++;
       }
 
-      // Вычитаем транзакции после конца месяца
-      for (final TransactionEntity transaction in transactions) {
-        if (transaction.date.isAfter(monthEnd)) {
-          // Фильтруем по счетам
-          if (selectedAccountIds.isNotEmpty &&
-              !selectedAccountIds.contains(transaction.accountId)) {
-            continue;
-          }
+      // Теперь runningBalance соответствует балансу на конец месяца (monthEnd)
+      double maxBalanceInMonth = runningBalance;
 
-          // Вычитаем будущие транзакции
-          if (transaction.type == TransactionType.income.storageValue) {
-            totalBalance -= transaction.amount.abs();
-          } else if (transaction.type == TransactionType.expense.storageValue) {
-            totalBalance += transaction.amount.abs();
-          }
+      // 2. Проходим по транзакциям ВНУТРИ месяца, отслеживая макс. баланс
+      while (txIndex < sortedTransactions.length &&
+          sortedTransactions[txIndex].date.isAfter(
+            monthStart.subtract(const Duration(microseconds: 1)),
+          )) {
+        // runningBalance здесь - это баланс ПОСЛЕ транзакции t
+        if (runningBalance > maxBalanceInMonth) {
+          maxBalanceInMonth = runningBalance;
         }
+
+        final TransactionEntity t = sortedTransactions[txIndex];
+        // Откатываем транзакцию
+        if (t.type == TransactionType.income.storageValue) {
+          runningBalance -= t.amount;
+        } else if (t.type == TransactionType.expense.storageValue) {
+          runningBalance += t.amount;
+        }
+
+        // runningBalance теперь - это баланс ДО транзакции t
+        // Проверяем его тоже, так как это могло быть пиковое значение до списания
+        if (runningBalance > maxBalanceInMonth) {
+          maxBalanceInMonth = runningBalance;
+        }
+
+        txIndex++;
       }
 
+      // После цикла runningBalance соответствует балансу на начало месяца
+      if (runningBalance > maxBalanceInMonth) {
+        maxBalanceInMonth = runningBalance;
+      }
+
+      // Добавляем в начало списка, чтобы порядок был хронологический (если нужно)
+      // Но исходный код добавлял через .add в цикле 5..0, то есть от старого к новому.
+      // Здесь мы идем 0..5 (от нового к старому).
+      // Значит, результат будет [Текущий, -1 мес, -2 мес...].
+      // Если график ожидает хронологический порядок, нужно будет развернуть.
       result.add(
-        MonthlyBalanceData(month: monthDate, totalBalance: totalBalance),
+        MonthlyBalanceData(month: monthDate, totalBalance: maxBalanceInMonth),
       );
     }
 
-    return result;
+    return result.reversed.toList();
   });
 }

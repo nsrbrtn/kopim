@@ -13,18 +13,9 @@ class WatchRecentTransactionsUseCaseImpl
 
   @override
   Stream<List<TransactionEntity>> call({int limit = 50}) {
-    return _repository.watchTransactions().map((
-      List<TransactionEntity> transactions,
-    ) {
-      final List<TransactionEntity> sorted =
-          List<TransactionEntity>.from(transactions)..sort(
-            (TransactionEntity a, TransactionEntity b) =>
-                b.date.compareTo(a.date),
-          );
-      if (sorted.length <= limit) {
-        return List<TransactionEntity>.unmodifiable(sorted);
-      }
-      return List<TransactionEntity>.unmodifiable(sorted.take(limit));
-    });
+    final int? normalizedLimit = limit > 0 ? limit : null;
+    return _repository
+        .watchRecentTransactions(limit: normalizedLimit)
+        .map(List<TransactionEntity>.unmodifiable);
   }
 }

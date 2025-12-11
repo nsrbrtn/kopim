@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:developer' as developer;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:timezone/timezone.dart' as tz;
@@ -20,10 +22,51 @@ Future<void> main() async {
   final String timeZoneId = resolveCurrentTimeZoneId();
   tz.setLocalLocation(tz.getLocation(timeZoneId));
 
-  final ProviderContainer container = ProviderContainer();
+  const bool enableProviderTimelineTracing = true;
+  final ProviderContainer container = ProviderContainer(
+    observers: <ProviderObserver>[
+      if (kDebugMode || kProfileMode)
+        DevToolsProviderObserver(enabled: enableProviderTimelineTracing),
+    ],
+  );
   unawaited(container.read(firebaseInitializationProvider.future));
 
   runApp(UncontrolledProviderScope(container: container, child: const MyApp()));
+}
+
+/// Отправляет события провайдеров в DevTools Timeline, чтобы понять,
+/// что активируется при открытии модалки добавления/редактирования транзакции.
+final class DevToolsProviderObserver extends ProviderObserver {
+  const DevToolsProviderObserver({this.enabled = false});
+
+  final bool enabled;
+
+  void _trace(String phase, ProviderObserverContext context) {
+    if (!enabled) return;
+    final String name =
+        context.provider.name ?? context.provider.runtimeType.toString();
+    developer.Timeline.instantSync(
+      'provider:$phase',
+      arguments: <String, Object?>{'provider': name},
+    );
+  }
+
+  @override
+  void didAddProvider(ProviderObserverContext context, Object? value) {
+    _trace('add', context);
+  }
+
+  @override
+  void didUpdateProvider(
+    ProviderObserverContext context,
+    Object? previousValue,
+    Object? newValue,
+  ) {
+    _trace('update', context);
+  }
+
+  @override
+  void didDisposeProvider(ProviderObserverContext context) {}
 }
 
 class MyApp extends ConsumerStatefulWidget {

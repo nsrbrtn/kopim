@@ -300,6 +300,13 @@ class _AnalyticsContent extends StatelessWidget {
                   child: TotalMoneyChartWidget(
                     data: data,
                     currencySymbol: currencyFormat.currencySymbol,
+                    selectedMonth: activeAnchor,
+                    localeName: strings.localeName,
+                    onMonthSelected: (DateTime month) {
+                      ref
+                          .read(analyticsFilterControllerProvider.notifier)
+                          .selectMonth(month);
+                    },
                   ),
                 );
               },
@@ -1254,16 +1261,19 @@ class _TopCategoriesPageState extends State<_TopCategoriesPage> {
           LayoutBuilder(
             builder: (BuildContext context, BoxConstraints constraints) {
               final Size screenSize = MediaQuery.sizeOf(context);
-              final double availableWidth = constraints.hasBoundedWidth &&
+              final double availableWidth =
+                  constraints.hasBoundedWidth &&
                       constraints.maxWidth.isFinite &&
                       constraints.maxWidth > 0
                   ? constraints.maxWidth
                   : screenSize.width;
               final double baseExtent = availableWidth * 0.7;
-              final double chartExtent =
-                  baseExtent.clamp(220.0, 360.0).toDouble();
-              final double targetWidth =
-                  availableWidth.clamp(240.0, screenSize.width).toDouble();
+              final double chartExtent = baseExtent
+                  .clamp(220.0, 360.0)
+                  .toDouble();
+              final double targetWidth = availableWidth
+                  .clamp(240.0, screenSize.width)
+                  .toDouble();
 
               final Widget chart = RepaintBoundary(
                 child: SizedBox(
@@ -1344,7 +1354,8 @@ class _EmptyMonthChart extends StatelessWidget {
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
         final Size screenSize = MediaQuery.sizeOf(context);
-        final double availableWidth = constraints.hasBoundedWidth &&
+        final double availableWidth =
+            constraints.hasBoundedWidth &&
                 constraints.maxWidth.isFinite &&
                 constraints.maxWidth > 0
             ? constraints.maxWidth
@@ -1401,31 +1412,27 @@ class _TopCategoriesLegend extends StatelessWidget {
     final AnalyticsChartItem? othersItem = items.firstWhereOrNull(
       (AnalyticsChartItem item) => item.key == _othersCategoryKey,
     );
-    final bool showOthersChildren = highlightedKey == othersItem?.key &&
+    final bool showOthersChildren =
+        highlightedKey == othersItem?.key &&
         (othersItem?.children.isNotEmpty ?? false);
-    final List<Widget> legendItems = List<Widget>.generate(
-      items.length,
-      (int index) {
-        final AnalyticsChartItem item = items[index];
-        final String amountText = currencyFormat.format(item.absoluteAmount);
-        final bool isSelected = highlightedKey == item.key;
-        return _TopCategoryLegendItem(
-          item: item,
-          amountText: amountText,
-          isSelected: isSelected,
-          onTap: () => onToggle(item),
-        );
-      },
-    );
+    final List<Widget> legendItems = List<Widget>.generate(items.length, (
+      int index,
+    ) {
+      final AnalyticsChartItem item = items[index];
+      final String amountText = currencyFormat.format(item.absoluteAmount);
+      final bool isSelected = highlightedKey == item.key;
+      return _TopCategoryLegendItem(
+        item: item,
+        amountText: amountText,
+        isSelected: isSelected,
+        onTap: () => onToggle(item),
+      );
+    });
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: legendItems,
-        ),
+        Wrap(spacing: 8, runSpacing: 8, children: legendItems),
         if (showOthersChildren) ...<Widget>[
           const SizedBox(height: 8),
           _OthersBreakdownList(
@@ -1519,42 +1526,42 @@ class _TopCategoryLegendItem extends StatelessWidget {
                   child: Icon(
                     item.icon ?? Icons.pie_chart_outline,
                     size: layout.iconSizes.sm,
-                  color: colors.surface,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Flexible(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(
-                    minHeight: 40,
-                    maxWidth: 200,
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      Text(
-                        item.title,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: titleStyle,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        amountText,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: amountStyle,
-                      ),
-                    ],
+                    color: colors.surface,
                   ),
                 ),
-              ),
-            ],
+                const SizedBox(width: 8),
+                Flexible(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(
+                      minHeight: 40,
+                      maxWidth: 200,
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        Text(
+                          item.title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: titleStyle,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          amountText,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: amountStyle,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
-      ),
       ),
     );
   }
@@ -1577,15 +1584,17 @@ class _OthersBreakdownList extends StatelessWidget {
     return Wrap(
       spacing: 8,
       runSpacing: 8,
-      children: items.map((AnalyticsChartItem item) {
-        return _TopCategoryLegendItem(
-          item: item,
-          amountText: currencyFormat.format(item.absoluteAmount),
-          isSelected: false,
-          onTap: null,
-          compact: true,
-        );
-      }).toList(growable: false),
+      children: items
+          .map((AnalyticsChartItem item) {
+            return _TopCategoryLegendItem(
+              item: item,
+              amountText: currencyFormat.format(item.absoluteAmount),
+              isSelected: false,
+              onTap: null,
+              compact: true,
+            );
+          })
+          .toList(growable: false),
     );
   }
 }

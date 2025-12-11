@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:kopim/features/analytics/domain/models/monthly_balance_data.dart';
@@ -8,10 +9,16 @@ class TotalMoneyChartWidget extends StatelessWidget {
     super.key,
     required this.data,
     required this.currencySymbol,
+    required this.selectedMonth,
+    required this.onMonthSelected,
+    required this.localeName,
   });
 
   final List<MonthlyBalanceData> data;
   final String currencySymbol;
+  final DateTime selectedMonth;
+  final ValueChanged<DateTime> onMonthSelected;
+  final String localeName;
 
   @override
   Widget build(BuildContext context) {
@@ -21,6 +28,17 @@ class TotalMoneyChartWidget extends StatelessWidget {
     if (data.isEmpty) {
       return const SizedBox.shrink();
     }
+
+    // Найти данные для выбранного месяца
+    final MonthlyBalanceData? selectedData = data.firstWhereOrNull(
+      (MonthlyBalanceData d) =>
+          d.month.year == selectedMonth.year &&
+          d.month.month == selectedMonth.month,
+    );
+
+    // Если данные не найдены (например, выбрана дата вне диапазона графика),
+    // берем последние доступные (текущий месяц) или первые.
+    final MonthlyBalanceData displayData = selectedData ?? data.first;
 
     // Найти минимальное и максимальное значение для настройки осей
     final double minBalance = data
@@ -35,6 +53,12 @@ class TotalMoneyChartWidget extends StatelessWidget {
     final double yMin = minBalance - range * 0.1;
     final double yMax = maxBalance + range * 0.1;
 
+    final NumberFormat formatter = NumberFormat.compact(locale: localeName);
+    final String monthName = DateFormat(
+      'LLLL',
+      localeName,
+    ).format(displayData.month);
+
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -44,19 +68,76 @@ class TotalMoneyChartWidget extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Text(
-            'Денег всего',
-            style: TextStyle(
-              fontFamily: 'Onest',
-              fontSize: 28,
-              height: 36 / 28,
-              fontWeight: FontWeight.w400,
-              color: colors.onSurface,
-            ),
+          // Title and Help
+          Row(
+            children: <Widget>[
+              Text(
+                'Денег всего',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: colors.onSurface,
+                ),
+              ),
+              const SizedBox(width: 8),
+              IconButton(
+                icon: Icon(
+                  Icons.help_outline,
+                  size: 20,
+                  color: colors.onSurfaceVariant,
+                ),
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: const Text('О графике'),
+                        content: const Text(
+                          'Этот график показывает максимальную сумму денег, которая была у вас на счетах в течение каждого месяца. Учитываются только выбранные счета.',
+                        ),
+                        actions: <Widget>[
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pop(),
+                            child: const Text('Понятно'),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                },
+              ),
+            ],
           ),
           const SizedBox(height: 16),
+          // Selected Month Info
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Text(
+                monthName.capitalize(),
+                style: TextStyle(
+                  fontFamily: 'Inter',
+                  fontSize: 14,
+                  height: 20 / 14,
+                  fontWeight: FontWeight.w500,
+                  color: colors.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                '${formatter.format(displayData.totalBalance)} $currencySymbol',
+                style: TextStyle(
+                  fontFamily: 'Onest',
+                  fontSize: 32,
+                  height: 40 / 32,
+                  fontWeight: FontWeight.w400,
+                  color: colors.onSurface,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
           SizedBox(
-            height: 137,
+            height: 150,
             child: SfCartesianChart(
               plotAreaBorderWidth: 0,
               margin: const EdgeInsets.all(0),
@@ -86,47 +167,29 @@ class TotalMoneyChartWidget extends StatelessWidget {
                   width: 2,
                   markerSettings: MarkerSettings(
                     isVisible: true,
-                    height: 6,
-                    width: 6,
+                    height: 8,
+                    width: 8,
                     shape: DataMarkerType.circle,
                     borderWidth: 2,
-                    borderColor: colors.primary,
+                    borderColor: colors.surfaceContainer,
+                    color: colors.primary,
                   ),
-                  dataLabelSettings: DataLabelSettings(
-                    isVisible: true,
-                    labelAlignment: ChartDataLabelAlignment.top,
-                    textStyle: TextStyle(
-                      fontFamily: 'Inter',
-                      fontSize: 12,
-                      height: 16 / 12,
-                      fontWeight: FontWeight.w400,
-                      letterSpacing: 0.4,
-                      color: colors.onSurfaceVariant,
-                    ),
-                    builder:
-                        (
-                          dynamic data,
-                          dynamic point,
-                          dynamic series,
-                          int pointIndex,
-                          int seriesIndex,
-                        ) {
-                          final MonthlyBalanceData balanceData =
-                              data as MonthlyBalanceData;
-                          final NumberFormat formatter = NumberFormat.compact();
-                          return Text(
-                            '${formatter.format(balanceData.totalBalance)} $currencySymbol',
-                            style: TextStyle(
-                              fontFamily: 'Inter',
-                              fontSize: 12,
-                              height: 16 / 12,
-                              fontWeight: FontWeight.w400,
-                              letterSpacing: 0.4,
-                              color: colors.onSurfaceVariant,
-                            ),
-                          );
-                        },
+                  // Включаем выбор точек
+                  selectionBehavior: SelectionBehavior(
+                    enable: true,
+                    selectedColor: colors.primary,
+                    unselectedColor: colors.primary.withOpacity(0.5),
+                    selectedBorderColor: colors.surfaceContainer,
+                    selectedBorderWidth: 2,
+                    unselectedBorderColor: colors.surfaceContainer,
+                    unselectedBorderWidth: 2,
                   ),
+                  onPointTap: (ChartPointDetails details) {
+                    if (details.pointIndex != null &&
+                        details.pointIndex! < data.length) {
+                      onMonthSelected(data[details.pointIndex!].month);
+                    }
+                  },
                 ),
               ],
             ),
@@ -134,5 +197,12 @@ class TotalMoneyChartWidget extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+extension StringExtension on String {
+  String capitalize() {
+    if (isEmpty) return this;
+    return '${this[0].toUpperCase()}${substring(1)}';
   }
 }

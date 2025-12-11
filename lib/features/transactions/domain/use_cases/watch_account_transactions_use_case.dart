@@ -7,18 +7,13 @@ class WatchAccountTransactionsUseCase {
   final TransactionRepository _repository;
 
   Stream<List<TransactionEntity>> call({required String accountId}) {
-    return _repository.watchTransactions().map((
+    return _repository.watchRecentTransactions().map((
       List<TransactionEntity> transactions,
     ) {
       final Iterable<TransactionEntity> filtered = transactions.where(
         (TransactionEntity transaction) => transaction.accountId == accountId,
       );
-      final List<TransactionEntity> sorted = filtered.toList()
-        ..sort(
-          (TransactionEntity a, TransactionEntity b) =>
-              b.date.compareTo(a.date),
-        );
-      return List<TransactionEntity>.unmodifiable(sorted);
+      return List<TransactionEntity>.unmodifiable(filtered);
     });
   }
 }
