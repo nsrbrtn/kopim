@@ -176,7 +176,7 @@ class TotalMoneyChartWidget extends StatelessWidget {
                   ),
                   // Включаем выбор точек
                   selectionBehavior: SelectionBehavior(
-                    enable: true,
+                    enable: false, // Disabled to fix disappearing line bug
                     selectedColor: colors.primary,
                     unselectedColor: colors.primary.withOpacity(0.5),
                     selectedBorderColor: colors.surfaceContainer,

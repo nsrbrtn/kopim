@@ -5,7 +5,7 @@ import 'package:kopim/core/utils/helpers.dart';
 import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
-import 'package:kopim/features/transactions/presentation/controllers/transaction_form_controller.dart';
+import 'package:kopim/features/transactions/presentation/controllers/transaction_draft_controller.dart';
 import 'package:kopim/features/transactions/presentation/widgets/transaction_editor.dart';
 import 'package:kopim/features/transactions/presentation/widgets/transaction_form_open_container.dart';
 import 'package:kopim/features/transactions/presentation/widgets/transaction_tile_formatters.dart';

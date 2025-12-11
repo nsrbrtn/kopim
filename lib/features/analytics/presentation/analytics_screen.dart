@@ -1257,7 +1257,7 @@ class _TopCategoriesPageState extends State<_TopCategoriesPage> {
             isIncome: widget.data.isIncome,
             focusedItem: focusedItem,
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 32),
           LayoutBuilder(
             builder: (BuildContext context, BoxConstraints constraints) {
               final Size screenSize = MediaQuery.sizeOf(context);

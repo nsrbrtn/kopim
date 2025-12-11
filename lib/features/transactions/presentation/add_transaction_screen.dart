@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:kopim/features/transactions/presentation/controllers/transaction_form_controller.dart';
+import 'package:kopim/features/transactions/presentation/controllers/transaction_draft_controller.dart';
 import 'package:kopim/features/transactions/presentation/widgets/transaction_form_view.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
@@ -27,11 +27,9 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
   @override
   Widget build(BuildContext context) {
     final AppLocalizations strings = AppLocalizations.of(context)!;
-    final TransactionFormControllerProvider transactionProvider =
-        transactionFormControllerProvider(widget.formArgs);
     final bool isSubmitting = ref.watch(
-      transactionProvider.select(
-        (TransactionFormState state) => state.isSubmitting,
+      transactionDraftControllerProvider.select(
+        (TransactionDraftState state) => state.isSubmitting,
       ),
     );
     final bool isEditing = widget.formArgs.initialTransaction != null;
@@ -69,7 +67,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                   return;
                 }
                 await ref
-                    .read(transactionProvider.notifier)
+                    .read(transactionDraftControllerProvider.notifier)
                     .submit();
               },
         child: isSubmitting

@@ -2,7 +2,7 @@ import 'package:animations/animations.dart';
 import 'package:flutter/material.dart';
 
 import 'package:kopim/features/transactions/presentation/add_transaction_screen.dart';
-import 'package:kopim/features/transactions/presentation/controllers/transaction_form_controller.dart';
+import 'package:kopim/features/transactions/presentation/controllers/transaction_draft_controller.dart';
 import 'package:kopim/features/transactions/presentation/widgets/transaction_form_view.dart';
 
 class TransactionFormOpenContainer extends StatelessWidget {

@@ -16,7 +16,7 @@ import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/categories/presentation/widgets/category_chip.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
-import 'package:kopim/features/transactions/presentation/controllers/transaction_form_controller.dart';
+import 'package:kopim/features/transactions/presentation/controllers/transaction_draft_controller.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
 const EdgeInsets _kFormOuterPadding = EdgeInsets.symmetric(
@@ -120,6 +120,7 @@ class TransactionFormView extends ConsumerWidget {
     required this.onSuccess,
     this.submitLabel,
     this.showSubmitButton = true,
+    this.autofocusAmount = false,
   });
 
   final GlobalKey<FormState> formKey;
@@ -127,6 +128,7 @@ class TransactionFormView extends ConsumerWidget {
   final void Function(TransactionFormResult result) onSuccess;
   final String? submitLabel;
   final bool showSubmitButton;
+  final bool autofocusAmount;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -138,13 +140,13 @@ class TransactionFormView extends ConsumerWidget {
       transactionFormCategoriesProvider,
     );
 
-    ref.listen<TransactionFormState>(
-      transactionFormControllerProvider(formArgs),
-      (TransactionFormState? previous, TransactionFormState next) {
+    ref.listen<TransactionDraftState>(
+      transactionDraftControllerProvider,
+      (TransactionDraftState? previous, TransactionDraftState next) {
         if (next.isSuccess && previous?.isSuccess != next.isSuccess) {
           final TransactionEntity? created = next.lastCreatedTransaction;
-          final TransactionFormController notifier = ref.read(
-            transactionFormControllerProvider(formArgs).notifier,
+          final TransactionDraftController notifier = ref.read(
+            transactionDraftControllerProvider.notifier,
           );
           notifier
             ..acknowledgeSuccess()
@@ -152,16 +154,16 @@ class TransactionFormView extends ConsumerWidget {
           if (context.mounted) {
             onSuccess(
               TransactionFormResult(
-                isEditing: formArgs.initialTransaction != null,
+                isEditing: next.isEditing,
                 createdTransaction: created,
               ),
             );
           }
         } else if (next.error != null && next.error != previous?.error) {
           final String message = switch (next.error) {
-            TransactionFormError.accountMissing =>
+            TransactionDraftError.accountMissing =>
               strings.addTransactionAccountMissingError,
-            TransactionFormError.transactionMissing =>
+            TransactionDraftError.transactionMissing =>
               strings.transactionFormMissingError,
             _ => strings.addTransactionUnknownError,
           };
@@ -188,6 +190,7 @@ class TransactionFormView extends ConsumerWidget {
           formArgs: formArgs,
           submitLabel: submitLabel ?? strings.addTransactionSubmit,
           showSubmitButton: showSubmitButton,
+          autofocusAmount: autofocusAmount,
         );
       },
     );
@@ -202,6 +205,7 @@ class _TransactionForm extends ConsumerStatefulWidget {
     required this.formArgs,
     required this.submitLabel,
     required this.showSubmitButton,
+    required this.autofocusAmount,
   });
 
   final GlobalKey<FormState> formKey;
@@ -210,14 +214,42 @@ class _TransactionForm extends ConsumerStatefulWidget {
   final TransactionFormArgs formArgs;
   final String submitLabel;
   final bool showSubmitButton;
+  final bool autofocusAmount;
 
   @override
-  ConsumerState<_TransactionForm> createState() => _TransactionFormState();
+  ConsumerState<_TransactionForm> createState() => _TransactionDraftState();
 }
 
-class _TransactionFormState extends ConsumerState<_TransactionForm> {
+class _TransactionDraftState extends ConsumerState<_TransactionForm> {
   bool _isAmountSectionCollapsed = false;
   final Map<String, NumberFormat> _formatterCache = <String, NumberFormat>{};
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(transactionDraftControllerProvider.notifier).applyArgs(
+            widget.formArgs,
+          );
+    });
+  }
+
+  @override
+  void didUpdateWidget(covariant _TransactionForm oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final String? oldTransactionId =
+        oldWidget.formArgs.initialTransaction?.id;
+    final String? newTransactionId = widget.formArgs.initialTransaction?.id;
+    if (oldTransactionId != newTransactionId ||
+        oldWidget.formArgs.defaultAccountId !=
+            widget.formArgs.defaultAccountId) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref
+            .read(transactionDraftControllerProvider.notifier)
+            .applyArgs(widget.formArgs);
+      });
+    }
+  }
 
   void _handleAmountCommitted(bool hasValidAmount) {
     if (hasValidAmount && !_isAmountSectionCollapsed) {
@@ -255,8 +287,6 @@ class _TransactionFormState extends ConsumerState<_TransactionForm> {
   @override
   Widget build(BuildContext context) {
     final AppLocalizations strings = AppLocalizations.of(context)!;
-    final TransactionFormControllerProvider transactionProvider =
-        transactionFormControllerProvider(widget.formArgs);
     final ThemeData theme = Theme.of(context);
     final KopimLayout layout = context.kopimLayout;
     final KopimSpacingScale spacing = layout.spacing;
@@ -274,19 +304,19 @@ class _TransactionFormState extends ConsumerState<_TransactionForm> {
         theme.textTheme.bodySmall!;
 
     final bool isSubmitting = ref.watch(
-      transactionProvider.select(
-        (TransactionFormState state) => state.isSubmitting,
+      transactionDraftControllerProvider.select(
+        (TransactionDraftState state) => state.isSubmitting,
       ),
     );
     final double? parsedAmount = ref.watch(
-      transactionProvider.select(
-        (TransactionFormState state) => state.parsedAmount,
+      transactionDraftControllerProvider.select(
+        (TransactionDraftState state) => state.parsedAmount,
       ),
     );
     final bool hasValidAmount = parsedAmount != null;
     final String? selectedAccountId = ref.watch(
-      transactionProvider.select(
-        (TransactionFormState state) => state.accountId,
+      transactionDraftControllerProvider.select(
+        (TransactionDraftState state) => state.accountId,
       ),
     );
 
@@ -325,7 +355,6 @@ class _TransactionFormState extends ConsumerState<_TransactionForm> {
                 labelStyle: labelStyle,
                 helperStyle: helperStyle,
                 spacing: spacing,
-                transactionProvider: transactionProvider,
                 formattedAmount: formattedAmount,
                 summaryAccount: summaryAccount,
                 showCollapsed: showCollapsed,
@@ -391,7 +420,6 @@ class _TransactionFormState extends ConsumerState<_TransactionForm> {
     required TextStyle labelStyle,
     required TextStyle helperStyle,
     required KopimSpacingScale spacing,
-    required TransactionFormControllerProvider transactionProvider,
     required String formattedAmount,
     required AccountEntity summaryAccount,
     required bool showCollapsed,
@@ -427,6 +455,7 @@ class _TransactionFormState extends ConsumerState<_TransactionForm> {
           _AmountField(
             formArgs: widget.formArgs,
             strings: strings,
+            autofocus: widget.autofocusAmount,
             onAmountCommitted: _handleAmountCommitted,
           ),
         ],
@@ -546,19 +575,17 @@ class _AccountDropdownField extends ConsumerStatefulWidget {
 class _AccountDropdownFieldState extends ConsumerState<_AccountDropdownField> {
   void _selectAccount(String accountId) {
     ref
-        .read(transactionFormControllerProvider(widget.formArgs).notifier)
+        .read(transactionDraftControllerProvider.notifier)
         .updateAccount(accountId);
   }
 
   @override
   Widget build(BuildContext context) {
-    final TransactionFormControllerProvider transactionProvider =
-        transactionFormControllerProvider(widget.formArgs);
     final AppLocalizations strings = widget.strings;
     final List<AccountEntity> accounts = widget.accounts;
     final String? selectedAccountId = ref.watch(
-      transactionProvider.select(
-        (TransactionFormState state) => state.accountId,
+      transactionDraftControllerProvider.select(
+        (TransactionDraftState state) => state.accountId,
       ),
     );
 
@@ -567,7 +594,9 @@ class _AccountDropdownFieldState extends ConsumerState<_AccountDropdownField> {
         _resolveDefaultAccountId(accounts, widget.formArgs.defaultAccountId);
     if (selectedAccountId == null && resolvedAccountId != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        ref.read(transactionProvider.notifier).updateAccount(resolvedAccountId);
+        ref
+            .read(transactionDraftControllerProvider.notifier)
+            .updateAccount(resolvedAccountId);
       });
     }
 
@@ -955,10 +984,10 @@ class _TransactionTypeSelector extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final TransactionFormControllerProvider transactionProvider =
-        transactionFormControllerProvider(formArgs);
     final TransactionType type = ref.watch(
-      transactionProvider.select((TransactionFormState state) => state.type),
+      transactionDraftControllerProvider.select(
+        (TransactionDraftState state) => state.type,
+      ),
     );
 
     final ThemeData theme = Theme.of(context);
@@ -1013,7 +1042,7 @@ class _TransactionTypeSelector extends ConsumerWidget {
                         label: strings.addTransactionTypeExpense,
                         selected: type == TransactionType.expense,
                         onTap: () => ref
-                            .read(transactionProvider.notifier)
+                            .read(transactionDraftControllerProvider.notifier)
                             .updateType(TransactionType.expense),
                         selectedTextColor: theme.colorScheme.onPrimary,
                       ),
@@ -1023,7 +1052,7 @@ class _TransactionTypeSelector extends ConsumerWidget {
                         label: strings.addTransactionTypeIncome,
                         selected: type == TransactionType.income,
                         onTap: () => ref
-                            .read(transactionProvider.notifier)
+                            .read(transactionDraftControllerProvider.notifier)
                             .updateType(TransactionType.income),
                         selectedTextColor: theme.colorScheme.onPrimary,
                       ),
@@ -1095,9 +1124,9 @@ class _CategoryDropdownFieldState
   }
 
   void _selectCategory(String? categoryId) {
-    ref
-        .read(transactionFormControllerProvider(widget.formArgs).notifier)
-        .updateCategory(categoryId);
+    ref.read(transactionDraftControllerProvider.notifier).updateCategory(
+          categoryId,
+        );
     setState(() {
       _showAll = false;
     });
@@ -1182,15 +1211,13 @@ class _CategoryDropdownFieldState
     final KopimLayout layout = context.kopimLayout;
     final KopimSpacingScale spacing = layout.spacing;
     final double containerRadius = layout.radius.xxl;
-    final TransactionFormControllerProvider transactionProvider =
-        transactionFormControllerProvider(widget.formArgs);
     final String? selectedCategoryId = ref.watch(
-      transactionProvider.select(
-        (TransactionFormState state) => state.categoryId,
+      transactionDraftControllerProvider.select(
+        (TransactionDraftState state) => state.categoryId,
       ),
     );
     final TransactionType type = ref.watch(
-      transactionProvider.select((TransactionFormState state) => state.type),
+      transactionDraftControllerProvider.select((TransactionDraftState state) => state.type),
     );
     final String normalizedQuery = _query.trim().toLowerCase();
     final List<Category> filtered = categories
@@ -1365,8 +1392,6 @@ class _SubmitButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final TransactionFormControllerProvider transactionProvider =
-        transactionFormControllerProvider(formArgs);
     final ThemeData theme = Theme.of(context);
     return SizedBox(
       height: 56,
@@ -1394,7 +1419,9 @@ class _SubmitButton extends ConsumerWidget {
                 if (!(formKey.currentState?.validate() ?? false)) {
                   return;
                 }
-                await ref.read(transactionProvider.notifier).submit();
+                await ref.read(
+                  transactionDraftControllerProvider.notifier,
+                ).submit();
               },
         child: isSubmitting
             ? SizedBox(
@@ -1423,11 +1450,13 @@ class _AmountField extends ConsumerStatefulWidget {
   const _AmountField({
     required this.formArgs,
     required this.strings,
+    this.autofocus = false,
     this.onAmountCommitted,
   });
 
   final TransactionFormArgs formArgs;
   final AppLocalizations strings;
+  final bool autofocus;
   final ValueChanged<bool>? onAmountCommitted;
 
   @override
@@ -1440,28 +1469,25 @@ class _AmountFieldState extends ConsumerState<_AmountField> {
   Timer? _debounce;
   String _lastSyncedValue = '';
   late final FocusNode _focusNode;
+  bool _hasAutofocused = false;
 
   @override
   void initState() {
     super.initState();
-    final TransactionFormState initialState = ref.read(
-      transactionFormControllerProvider(widget.formArgs),
+    final TransactionDraftState initialState = ref.read(
+      transactionDraftControllerProvider,
     );
     _controller = TextEditingController(text: initialState.amount);
     _lastSyncedValue = initialState.amount;
     _focusNode = FocusNode();
     _focusNode.addListener(_handleFocusChange);
-    if (!initialState.isEditing && initialState.amount.isEmpty) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          _focusNode.requestFocus();
-        }
-      });
+    if (widget.autofocus && !_focusNode.hasFocus) {
+      _scheduleFocus();
     }
     _subscription = ref.listenManual<String>(
-      transactionFormControllerProvider(
-        widget.formArgs,
-      ).select((TransactionFormState state) => state.amount),
+      transactionDraftControllerProvider.select(
+        (TransactionDraftState state) => state.amount,
+      ),
       (String? previous, String next) {
         if (next == _controller.text) {
           _lastSyncedValue = next;
@@ -1496,7 +1522,26 @@ class _AmountFieldState extends ConsumerState<_AmountField> {
   void _handleFocusChange() {
     if (!_focusNode.hasFocus) {
       _flushPendingUpdate();
+      _hasAutofocused = false;
     }
+  }
+
+  @override
+  void didUpdateWidget(covariant _AmountField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.autofocus && !_focusNode.hasFocus && !_hasAutofocused) {
+      _scheduleFocus();
+    } else if (!widget.autofocus && oldWidget.autofocus && _hasAutofocused) {
+      _hasAutofocused = false;
+    }
+  }
+
+  void _scheduleFocus() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _focusNode.hasFocus) return;
+      _hasAutofocused = true;
+      _focusNode.requestFocus();
+    });
   }
 
   void _pushUpdate(String value) {
@@ -1505,9 +1550,9 @@ class _AmountFieldState extends ConsumerState<_AmountField> {
       return;
     }
     _lastSyncedValue = normalized;
-    ref
-        .read(transactionFormControllerProvider(widget.formArgs).notifier)
-        .updateAmount(normalized);
+    ref.read(transactionDraftControllerProvider.notifier).updateAmount(
+          normalized,
+        );
   }
 
   void _flushPendingUpdate() {
@@ -1525,19 +1570,16 @@ class _AmountFieldState extends ConsumerState<_AmountField> {
 
   void _notifyAmountCommitted() {
     final bool isValid =
-        ref
-            .read(transactionFormControllerProvider(widget.formArgs))
-            .parsedAmount !=
-        null;
+        ref.read(transactionDraftControllerProvider).parsedAmount != null;
     widget.onAmountCommitted?.call(isValid);
   }
 
   @override
   Widget build(BuildContext context) {
     final bool isSubmitting = ref.watch(
-      transactionFormControllerProvider(
-        widget.formArgs,
-      ).select((TransactionFormState state) => state.isSubmitting),
+      transactionDraftControllerProvider.select(
+        (TransactionDraftState state) => state.isSubmitting,
+      ),
     );
 
     return TextFormField(
@@ -1559,9 +1601,8 @@ class _AmountFieldState extends ConsumerState<_AmountField> {
       },
       onTapOutside: (_) => _flushPendingUpdate(),
       validator: (_) {
-        final double? value = ref
-            .read(transactionFormControllerProvider(widget.formArgs))
-            .parsedAmount;
+        final double? value =
+            ref.read(transactionDraftControllerProvider).parsedAmount;
         if (value == null) {
           return widget.strings.addTransactionAmountInvalid;
         }
@@ -1580,9 +1621,9 @@ class _NoteField extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final AppLocalizations strings = AppLocalizations.of(context)!;
     final String note = ref.watch(
-      transactionFormControllerProvider(
-        formArgs,
-      ).select((TransactionFormState state) => state.note),
+      transactionDraftControllerProvider.select(
+        (TransactionDraftState state) => state.note,
+      ),
     );
 
     return TextFormField(
@@ -1593,9 +1634,8 @@ class _NoteField extends ConsumerWidget {
         context,
         labelText: strings.addTransactionNoteLabel,
       ),
-      onChanged: ref
-          .read(transactionFormControllerProvider(formArgs).notifier)
-          .updateNote,
+      onChanged:
+          ref.read(transactionDraftControllerProvider.notifier).updateNote,
     );
   }
 }
@@ -1699,10 +1739,8 @@ class _DateTimeSelectorRow extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final AppLocalizations strings = AppLocalizations.of(context)!;
-    final TransactionFormControllerProvider transactionProvider =
-        transactionFormControllerProvider(formArgs);
     final DateTime selectedDate = ref.watch(
-      transactionProvider.select((TransactionFormState state) => state.date),
+      transactionDraftControllerProvider.select((TransactionDraftState state) => state.date),
     );
     final TimeOfDay selectedTime = TimeOfDay.fromDateTime(selectedDate);
     final ThemeData theme = Theme.of(context);
@@ -1717,9 +1755,7 @@ class _DateTimeSelectorRow extends ConsumerWidget {
         lastDate: DateTime(2100),
       );
       if (picked != null) {
-        ref
-            .read(transactionProvider.notifier)
-            .updateDate(
+        ref.read(transactionDraftControllerProvider.notifier).updateDate(
               DateTime(
                 picked.year,
                 picked.month,
@@ -1738,9 +1774,10 @@ class _DateTimeSelectorRow extends ConsumerWidget {
         initialEntryMode: TimePickerEntryMode.input,
       );
       if (picked != null) {
-        ref
-            .read(transactionProvider.notifier)
-            .updateTime(hour: picked.hour, minute: picked.minute);
+        ref.read(transactionDraftControllerProvider.notifier).updateTime(
+              hour: picked.hour,
+              minute: picked.minute,
+            );
       }
     }
 

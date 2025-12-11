@@ -94,7 +94,7 @@ class _HomeUpcomingItemsCardState extends State<HomeUpcomingItemsCard> {
 
     final TextStyle? headerStyle = theme.textTheme.titleLarge?.copyWith(
       color: theme.colorScheme.onSurface,
-      fontWeight: FontWeight.w500,
+      fontWeight: FontWeight.w400,
     );
     return Container(
       margin: EdgeInsets.zero,

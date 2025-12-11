@@ -24,6 +24,7 @@ import 'package:kopim/features/home/presentation/widgets/home_savings_overview_c
 import 'package:kopim/features/home/presentation/widgets/home_upcoming_items_card.dart';
 import 'package:kopim/core/widgets/animated_fab.dart';
 import 'package:kopim/core/widgets/kopim_glass_fab.dart';
+import 'package:kopim/features/home/presentation/widgets/quick_add_transaction.dart';
 import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -32,11 +33,9 @@ import 'package:kopim/features/profile/domain/entities/profile.dart';
 import 'package:kopim/features/profile/presentation/controllers/auth_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/profile_controller.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
-import 'package:kopim/features/transactions/presentation/controllers/transaction_actions_controller.dart';
-import 'package:kopim/features/transactions/presentation/controllers/transaction_form_controller.dart';
+import 'package:kopim/features/transactions/presentation/controllers/transaction_sheet_controller.dart';
 import 'package:kopim/features/transactions/presentation/widgets/transaction_editor.dart';
-import 'package:kopim/features/transactions/presentation/widgets/transaction_form_open_container.dart';
-import 'package:kopim/features/transactions/presentation/widgets/transaction_form_view.dart';
+import 'package:kopim/features/transactions/presentation/widgets/transaction_form_overlay.dart';
 import 'package:kopim/features/transactions/presentation/widgets/transaction_tile_formatters.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 import 'package:kopim/core/formatting/currency_symbols.dart';
@@ -74,21 +73,34 @@ NavigationTabContent buildHomeTabContent(BuildContext context, WidgetRef ref) {
       .watch(homeDashboardPreferencesControllerProvider);
 
   return NavigationTabContent(
-    bodyBuilder: (BuildContext context, WidgetRef ref) => SafeArea(
-      bottom: false,
-      child: _HomeBody(
-        authState: authState,
-        accountsAsync: accountsAsync,
-        strings: strings,
-        accountSummariesAsync: accountSummariesAsync,
-        groupedTransactionsAsync: groupedTransactionsAsync,
-        upcomingItemsAsync: upcomingItemsAsync,
-        timeService: timeService,
-        dashboardPreferencesAsync: dashboardPreferencesAsync,
-      ),
+    bodyBuilder: (BuildContext context, WidgetRef ref) => Stack(
+      children: <Widget>[
+        SafeArea(
+          bottom: false,
+          child: _HomeBody(
+            authState: authState,
+            accountsAsync: accountsAsync,
+            strings: strings,
+            accountSummariesAsync: accountSummariesAsync,
+            groupedTransactionsAsync: groupedTransactionsAsync,
+            upcomingItemsAsync: upcomingItemsAsync,
+            timeService: timeService,
+            dashboardPreferencesAsync: dashboardPreferencesAsync,
+          ),
+        ),
+        const TransactionFormOverlay(),
+      ],
     ),
-    floatingActionButtonBuilder: (BuildContext context, WidgetRef ref) =>
-        _AddTransactionButton(strings: strings),
+    floatingActionButtonBuilder: (BuildContext context, WidgetRef ref) {
+      final bool isTransactionSheetVisible = ref.watch(
+        transactionSheetControllerProvider
+            .select((TransactionSheetState state) => state.isVisible),
+      );
+      if (isTransactionSheetVisible) {
+        return null;
+      }
+      return _AddTransactionButton(strings: strings);
+    },
     secondaryBodyBuilder: (BuildContext context, WidgetRef ref) =>
         _HomeSecondaryPanel(
           dashboardPreferencesAsync: dashboardPreferencesAsync,
@@ -227,6 +239,8 @@ class _HomeBody extends StatelessWidget {
                 ),
               ),
             );
+
+            addBoxSection(QuickAddTransactionCard(strings: strings));
 
             if (!showSecondaryPanel && dashboardPreferencesAsync.hasError) {
               addBoxSection(
@@ -499,70 +513,22 @@ class _HomePinnedTitleAppBar extends ConsumerWidget {
   }
 }
 
-class _AddTransactionButton extends StatelessWidget {
+class _AddTransactionButton extends ConsumerWidget {
   const _AddTransactionButton({required this.strings});
 
   final AppLocalizations strings;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
-    return TransactionFormOpenContainer(
-      closedBuilder: (BuildContext context, VoidCallback openContainer) {
-        return AnimatedFab(
-          child: KopimGlassFab(
-            icon: Icon(Icons.add, color: colorScheme.primary),
-            foregroundColor: colorScheme.primary,
-            onPressed: openContainer,
-          ),
-        );
-      },
-      onClosed: (TransactionFormResult? result) {
-        if (!context.mounted || result == null) {
-          return;
-        }
-        final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context)
-          ..hideCurrentSnackBar();
-        final TransactionEntity? createdTransaction = result.createdTransaction;
-        if (createdTransaction == null) {
-          messenger.showSnackBar(
-            SnackBar(content: Text(strings.addTransactionSuccess)),
-          );
-          return;
-        }
-        messenger.showSnackBar(
-          SnackBar(
-            content: Text(strings.addTransactionSuccess),
-            action: SnackBarAction(
-              label: strings.commonUndo,
-              onPressed: () {
-                final ProviderContainer container = ProviderScope.containerOf(
-                  context,
-                );
-                container
-                    .read(transactionActionsControllerProvider.notifier)
-                    .deleteTransaction(createdTransaction.id)
-                    .then((bool undone) {
-                      if (!context.mounted) {
-                        return;
-                      }
-                      ScaffoldMessenger.of(context)
-                        ..hideCurrentSnackBar()
-                        ..showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              undone
-                                  ? strings.addTransactionUndoSuccess
-                                  : strings.addTransactionUndoError,
-                            ),
-                          ),
-                        );
-                    });
-              },
-            ),
-          ),
-        );
-      },
+    return AnimatedFab(
+      child: KopimGlassFab(
+        icon: Icon(Icons.add, color: colorScheme.primary),
+        foregroundColor: colorScheme.primary,
+        onPressed: () => ref
+            .read(transactionSheetControllerProvider.notifier)
+            .openForAdd(),
+      ),
     );
   }
 }
@@ -1489,110 +1455,104 @@ class _TransactionListItem extends ConsumerWidget {
         );
       },
       child: RepaintBoundary(
-        child: TransactionFormOpenContainer(
-          formArgs: TransactionFormArgs(initialTransaction: transaction),
-          closedBuilder: (BuildContext context, VoidCallback openContainer) {
-            return Card(
-              margin: const EdgeInsets.symmetric(vertical: 4),
-              elevation: 0,
-              color: Theme.of(context).colorScheme.surfaceContainerHigh,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(18),
-              ),
-              surfaceTintColor: Colors.transparent,
-              child: InkWell(
-                borderRadius: const BorderRadius.all(Radius.circular(18)),
-                onTap: openContainer,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(8, 8, 16, 8),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Container(
-                        width: 48,
-                        height: 48,
-                        decoration: BoxDecoration(
-                          color:
-                              categoryColor ??
-                              Theme.of(
-                                context,
-                              ).colorScheme.surfaceContainerHighest,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Center(
-                          child: Icon(
-                            categoryIcon ?? Icons.category_outlined,
-                            size: 22,
-                            color: avatarIconColor,
-                          ),
-                        ),
+        child: Card(
+          margin: const EdgeInsets.symmetric(vertical: 4),
+          elevation: 0,
+          color: Theme.of(context).colorScheme.surfaceContainerHigh,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+          ),
+          surfaceTintColor: Colors.transparent,
+          child: InkWell(
+            borderRadius: const BorderRadius.all(Radius.circular(18)),
+            onTap: () => ref
+                .read(transactionSheetControllerProvider.notifier)
+                .openForEdit(transaction),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(8, 8, 16, 8),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: categoryColor ??
+                          Theme.of(
+                            context,
+                          ).colorScheme.surfaceContainerHighest,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Center(
+                      child: Icon(
+                        categoryIcon ?? Icons.category_outlined,
+                        size: 22,
+                        color: avatarIconColor,
                       ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: <Widget>[
-                            Text(
-                              categoryName,
-                              style: Theme.of(context).textTheme.labelMedium
-                                  ?.copyWith(
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: <Widget>[
+                        Text(
+                          categoryName,
+                          style:
+                              Theme.of(context).textTheme.labelMedium?.copyWith(
                                     fontWeight: FontWeight.w500,
                                     color: Theme.of(
                                       context,
                                     ).colorScheme.onSurface,
                                   ),
-                            ),
-                            if (note != null && note.isNotEmpty)
-                              Padding(
-                                padding: const EdgeInsets.only(top: 4),
-                                child: Text(
-                                  note,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: Theme.of(context).textTheme.bodySmall
-                                      ?.copyWith(
-                                        color: Theme.of(
-                                          context,
-                                        ).colorScheme.onSurfaceVariant,
-                                      ),
-                                ),
-                              ),
-                          ],
                         ),
-                      ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: <Widget>[
-                          Text(
-                            moneyFormat.format(amount.abs()),
-                            style: Theme.of(context).textTheme.titleLarge
-                                ?.copyWith(
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onSurface,
-                                  fontWeight: FontWeight.w400,
-                                ),
-                          ),
-                          if (accountData.name != null)
-                            Text(
-                              accountData.name!,
-                              style: Theme.of(context).textTheme.labelSmall
+                        if (note != null && note.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 4),
+                            child: Text(
+                              note,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context).textTheme.bodySmall
                                   ?.copyWith(
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.outline,
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurfaceVariant,
                                   ),
                             ),
-                        ],
+                          ),
+                      ],
+                    ),
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      Text(
+                        moneyFormat.format(amount.abs()),
+                        style:
+                            Theme.of(context).textTheme.titleLarge?.copyWith(
+                                  color:
+                                      Theme.of(context).colorScheme.onSurface,
+                                  fontWeight: FontWeight.w400,
+                                ),
                       ),
+                      if (accountData.name != null)
+                        Text(
+                          accountData.name!,
+                          style:
+                              Theme.of(context).textTheme.labelSmall?.copyWith(
+                                    color:
+                                        Theme.of(context).colorScheme.outline,
+                                  ),
+                        ),
                     ],
                   ),
-                ),
+                ],
               ),
-            );
-          },
+            ),
+          ),
         ),
       ),
     );
