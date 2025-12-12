@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:kopim/core/config/theme_extensions.dart';
 import 'package:kopim/l10n/app_localizations.dart';
+import 'package:kopim/features/transactions/presentation/controllers/transaction_sheet_controller.dart';
 
 import '../controllers/main_navigation_controller.dart';
 import '../models/navigation_tab_config.dart';
@@ -43,19 +44,33 @@ class MainNavigationShell extends ConsumerWidget {
     final Widget? floatingActionButton = activeContent
         .floatingActionButtonBuilder
         ?.call(context, ref);
+    final NavigatorState rootNavigator =
+        Navigator.of(context, rootNavigator: true);
 
-    final NavigatorState? activeNavigator =
-        activeContent.navigatorKey?.currentState;
-
-    final bool canPopNestedRoute = activeNavigator?.canPop() ?? false;
     final bool isOnHomeTab = currentIndex == 0;
-    final bool allowSystemPop = canPopNestedRoute;
 
     return PopScope(
-      canPop: allowSystemPop,
+      canPop: true,
       onPopInvokedWithResult: (bool didPop, Object? _) async {
         if (didPop) {
           return;
+        }
+
+        final bool isTransactionSheetVisible =
+            ref.read(transactionSheetControllerProvider).isVisible;
+        if (isTransactionSheetVisible) {
+          ref.read(transactionSheetControllerProvider.notifier).close();
+          return;
+        }
+
+        if (rootNavigator.canPop()) {
+          final bool rootDidPop = await rootNavigator.maybePop();
+          if (!context.mounted) {
+            return;
+          }
+          if (rootDidPop) {
+            return;
+          }
         }
 
         final NavigatorState? currentNavigator =

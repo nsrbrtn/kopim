@@ -1,15 +1,11 @@
-import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/home/domain/models/day_section.dart';
 import 'package:kopim/features/home/domain/models/home_account_monthly_summary.dart';
-import 'package:kopim/features/home/domain/models/upcoming_payment.dart';
 import 'package:kopim/features/home/domain/use_cases/group_transactions_by_day_use_case.dart';
-import 'package:kopim/features/home/domain/use_cases/watch_upcoming_payments_use_case.dart';
 import 'package:kopim/features/home/presentation/controllers/home_transactions_filter_controller.dart';
-import 'package:kopim/features/recurring_transactions/domain/entities/recurring_rule.dart';
 import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
 import 'package:kopim/features/savings/domain/value_objects/goal_progress.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
@@ -70,21 +66,6 @@ Category? homeCategoryById(Ref ref, String id) {
 }
 
 @riverpod
-Stream<List<RecurringRule>> homeRecurringRules(Ref ref) {
-  return ref.watch(watchRecurringRulesUseCaseProvider).call();
-}
-
-@riverpod
-Stream<List<UpcomingPayment>> homeUpcomingPayments(Ref ref) {
-  final WatchUpcomingPaymentsUseCase useCase = ref.watch(
-    watchUpcomingPaymentsUseCaseProvider,
-  );
-  final DateTime now = DateTime.now();
-  final DateTime end = now.add(const Duration(days: 30));
-  return useCase(from: now, to: end);
-}
-
-@riverpod
 Stream<List<SavingGoal>> homeSavingGoals(Ref ref) {
   return ref
       .watch(watchSavingGoalsUseCaseProvider)
@@ -100,17 +81,6 @@ AsyncValue<List<GoalProgress>> homeSavingGoalProgress(Ref ref) {
             .where((SavingGoal goal) => !goal.isArchived)
             .map(GoalProgress.fromGoal)
             .toList(growable: false),
-      );
-}
-
-@riverpod
-RecurringRule? homeRecurringRuleById(Ref ref, String id) {
-  return ref
-      .watch(homeRecurringRulesProvider)
-      .maybeWhen(
-        data: (List<RecurringRule> rules) =>
-            rules.firstWhereOrNull((RecurringRule rule) => rule.id == id),
-        orElse: () => null,
       );
 }
 

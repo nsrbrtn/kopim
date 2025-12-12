@@ -1,7 +1,6 @@
 import 'package:riverpod/riverpod.dart';
 import 'package:riverpod/legacy.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
-import 'package:kopim/features/transactions/presentation/controllers/transaction_draft_controller.dart';
 
 enum TransactionSheetMode { add, edit }
 
@@ -50,9 +49,6 @@ class TransactionSheetController extends StateNotifier<TransactionSheetState> {
   final Ref ref;
 
   void openForAdd({String? defaultAccountId}) {
-    ref
-        .read(transactionDraftControllerProvider.notifier)
-        .setDraftForAdd(defaultAccountId: defaultAccountId);
     state = state.copyWith(
       isVisible: true,
       mode: TransactionSheetMode.add,
@@ -63,9 +59,6 @@ class TransactionSheetController extends StateNotifier<TransactionSheetState> {
   }
 
   void openForEdit(TransactionEntity transaction) {
-    ref
-        .read(transactionDraftControllerProvider.notifier)
-        .setDraftForEdit(transaction);
     state = state.copyWith(
       isVisible: true,
       mode: TransactionSheetMode.edit,

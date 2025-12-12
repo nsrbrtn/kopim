@@ -31,9 +31,9 @@ final TransactionFormControllerFamily transactionFormControllerProvider =
 
 class TransactionFormController extends TransactionDraftController {
   TransactionFormController(
-    Ref ref, {
+    super.ref, {
     required this.args,
-  }) : super(ref) {
+  }) {
     applyArgs(args);
   }
 

@@ -26,7 +26,7 @@ Future<void> main() async {
   final ProviderContainer container = ProviderContainer(
     observers: <ProviderObserver>[
       if (kDebugMode || kProfileMode)
-        DevToolsProviderObserver(enabled: enableProviderTimelineTracing),
+        const DevToolsProviderObserver(enabled: enableProviderTimelineTracing),
     ],
   );
   unawaited(container.read(firebaseInitializationProvider.future));

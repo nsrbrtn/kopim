@@ -71,6 +71,10 @@ NavigationTabContent buildHomeTabContent(BuildContext context, WidgetRef ref) {
   final TimeService timeService = ref.watch(timeServiceProvider);
   final AsyncValue<HomeDashboardPreferences> dashboardPreferencesAsync = ref
       .watch(homeDashboardPreferencesControllerProvider);
+  final bool isTransactionSheetVisible = ref.watch(
+    transactionSheetControllerProvider
+        .select((TransactionSheetState state) => state.isVisible),
+  );
 
   return NavigationTabContent(
     bodyBuilder: (BuildContext context, WidgetRef ref) => Stack(
@@ -88,14 +92,10 @@ NavigationTabContent buildHomeTabContent(BuildContext context, WidgetRef ref) {
             dashboardPreferencesAsync: dashboardPreferencesAsync,
           ),
         ),
-        const TransactionFormOverlay(),
+        if (isTransactionSheetVisible) const TransactionFormOverlay(),
       ],
     ),
     floatingActionButtonBuilder: (BuildContext context, WidgetRef ref) {
-      final bool isTransactionSheetVisible = ref.watch(
-        transactionSheetControllerProvider
-            .select((TransactionSheetState state) => state.isVisible),
-      );
       if (isTransactionSheetVisible) {
         return null;
       }

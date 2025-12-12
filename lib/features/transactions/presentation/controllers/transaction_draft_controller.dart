@@ -19,6 +19,17 @@ class TransactionFormArgs {
 
   final TransactionEntity? initialTransaction;
   final String? defaultAccountId;
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is TransactionFormArgs &&
+        other.initialTransaction == initialTransaction &&
+        other.defaultAccountId == defaultAccountId;
+  }
+
+  @override
+  int get hashCode => Object.hash(initialTransaction, defaultAccountId);
 }
 
 enum TransactionDraftError { accountMissing, transactionMissing, unknown }

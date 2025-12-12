@@ -23,7 +23,6 @@ import 'package:kopim/features/categories/domain/use_cases/watch_category_tree_u
 import 'package:kopim/features/categories/presentation/controllers/categories_list_controller.dart';
 import 'package:kopim/features/home/domain/entities/home_dashboard_preferences.dart';
 import 'package:kopim/features/home/presentation/controllers/home_dashboard_preferences_controller.dart';
-import 'package:kopim/features/home/presentation/controllers/home_providers.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
 import 'package:kopim/features/profile/presentation/controllers/auth_controller.dart';
 import 'package:kopim/features/profile/presentation/screens/menu_screen.dart';
@@ -32,7 +31,6 @@ import 'package:kopim/features/savings/domain/repositories/saving_goal_repositor
 import 'package:kopim/features/savings/domain/use_cases/archive_saving_goal_use_case.dart';
 import 'package:kopim/features/savings/domain/use_cases/get_saving_goals_use_case.dart';
 import 'package:kopim/features/savings/domain/use_cases/watch_saving_goals_use_case.dart';
-import 'package:kopim/features/recurring_transactions/domain/entities/recurring_rule.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/repositories/transaction_repository.dart';
 import 'package:kopim/features/transactions/domain/use_cases/watch_recent_transactions_use_case.dart';
@@ -240,10 +238,6 @@ void main() {
         manageCategoryTreeProvider.overrideWith(
           (Ref ref) =>
               Stream<List<CategoryTreeNode>>.value(const <CategoryTreeNode>[]),
-        ),
-        homeRecurringRulesProvider.overrideWith(
-          (Ref ref) =>
-              Stream<List<RecurringRule>>.value(const <RecurringRule>[]),
         ),
         homeUpcomingItemsProvider.overrideWith(
           (Ref ref, int limit) =>

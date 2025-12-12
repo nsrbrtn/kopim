@@ -11,7 +11,6 @@ part of 'analytics_category_breakdown.dart';
 
 // dart format off
 T _$identity<T>(T value) => value;
-const DeepCollectionEquality _deepEquality = DeepCollectionEquality();
 /// @nodoc
 mixin _$AnalyticsCategoryBreakdown {
 
@@ -26,12 +25,12 @@ $AnalyticsCategoryBreakdownCopyWith<AnalyticsCategoryBreakdown> get copyWith => 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AnalyticsCategoryBreakdown&&(identical(other.categoryId, categoryId) || other.categoryId == categoryId)&&(identical(other.amount, amount) || other.amount == amount)&&_deepEquality.equals(other.children, children));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AnalyticsCategoryBreakdown&&(identical(other.categoryId, categoryId) || other.categoryId == categoryId)&&(identical(other.amount, amount) || other.amount == amount)&&const DeepCollectionEquality().equals(other.children, children));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,categoryId,amount,_deepEquality.hash(children));
+int get hashCode => Object.hash(runtimeType,categoryId,amount,const DeepCollectionEquality().hash(children));
 
 @override
 String toString() {
@@ -153,10 +152,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? categoryId,  double amount)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? categoryId,  double amount,  List<AnalyticsCategoryBreakdown> children)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _AnalyticsCategoryBreakdown() when $default != null:
-return $default(_that.categoryId,_that.amount);case _:
+return $default(_that.categoryId,_that.amount,_that.children);case _:
   return orElse();
 
 }
@@ -174,10 +173,10 @@ return $default(_that.categoryId,_that.amount);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? categoryId,  double amount)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? categoryId,  double amount,  List<AnalyticsCategoryBreakdown> children)  $default,) {final _that = this;
 switch (_that) {
 case _AnalyticsCategoryBreakdown():
-return $default(_that.categoryId,_that.amount);case _:
+return $default(_that.categoryId,_that.amount,_that.children);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -194,10 +193,10 @@ return $default(_that.categoryId,_that.amount);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? categoryId,  double amount)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? categoryId,  double amount,  List<AnalyticsCategoryBreakdown> children)?  $default,) {final _that = this;
 switch (_that) {
 case _AnalyticsCategoryBreakdown() when $default != null:
-return $default(_that.categoryId,_that.amount);case _:
+return $default(_that.categoryId,_that.amount,_that.children);case _:
   return null;
 
 }
@@ -209,17 +208,18 @@ return $default(_that.categoryId,_that.amount);case _:
 
 
 class _AnalyticsCategoryBreakdown extends AnalyticsCategoryBreakdown {
-  const _AnalyticsCategoryBreakdown({this.categoryId, required this.amount, final List<AnalyticsCategoryBreakdown> children = const <AnalyticsCategoryBreakdown>[]}): _children = children, super._();
+  const _AnalyticsCategoryBreakdown({this.categoryId, required this.amount, final  List<AnalyticsCategoryBreakdown> children = const <AnalyticsCategoryBreakdown>[]}): _children = children,super._();
   
 
 @override final  String? categoryId;
 @override final  double amount;
  final  List<AnalyticsCategoryBreakdown> _children;
-@override List<AnalyticsCategoryBreakdown> get children {
+@override@JsonKey() List<AnalyticsCategoryBreakdown> get children {
   if (_children is EqualUnmodifiableListView) return _children;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_children);
 }
+
 
 /// Create a copy of AnalyticsCategoryBreakdown
 /// with the given fields replaced by the non-null parameter values.
@@ -231,12 +231,12 @@ _$AnalyticsCategoryBreakdownCopyWith<_AnalyticsCategoryBreakdown> get copyWith =
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AnalyticsCategoryBreakdown&&(identical(other.categoryId, categoryId) || other.categoryId == categoryId)&&(identical(other.amount, amount) || other.amount == amount)&&_deepEquality.equals(other._children, _children));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AnalyticsCategoryBreakdown&&(identical(other.categoryId, categoryId) || other.categoryId == categoryId)&&(identical(other.amount, amount) || other.amount == amount)&&const DeepCollectionEquality().equals(other._children, _children));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,categoryId,amount,_deepEquality.hash(_children));
+int get hashCode => Object.hash(runtimeType,categoryId,amount,const DeepCollectionEquality().hash(_children));
 
 @override
 String toString() {
@@ -272,7 +272,7 @@ class __$AnalyticsCategoryBreakdownCopyWithImpl<$Res>
   return _then(_AnalyticsCategoryBreakdown(
 categoryId: freezed == categoryId ? _self.categoryId : categoryId // ignore: cast_nullable_to_non_nullable
 as String?,amount: null == amount ? _self.amount : amount // ignore: cast_nullable_to_non_nullable
-as double,children: null == children ? _self.children : children // ignore: cast_nullable_to_non_nullable
+as double,children: null == children ? _self._children : children // ignore: cast_nullable_to_non_nullable
 as List<AnalyticsCategoryBreakdown>,
   ));
 }

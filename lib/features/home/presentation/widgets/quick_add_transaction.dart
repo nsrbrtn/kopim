@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:kopim/core/config/theme_extensions.dart';
 import 'package:kopim/core/utils/helpers.dart';
+import 'package:kopim/core/utils/text_input_formatters.dart';
 import 'package:kopim/core/widgets/kopim_text_field.dart';
 import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
@@ -87,7 +88,7 @@ class QuickAddTransactionCard extends ConsumerWidget {
                       scrollDirection: Axis.horizontal,
                       physics: const BouncingScrollPhysics(),
                       itemCount: topSelection.length,
-                      separatorBuilder: (_, __) =>
+                      separatorBuilder: (BuildContext context, int index) =>
                           SizedBox(width: layout.spacing.section),
                       itemBuilder: (BuildContext _, int index) {
                         final Category category = topSelection.elementAt(index);
@@ -170,6 +171,7 @@ class QuickAddTransactionCard extends ConsumerWidget {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       backgroundColor: Colors.transparent,
       builder: (BuildContext context) => _QuickTransactionSheet(
         category: category,
@@ -235,27 +237,68 @@ class _QuickTransactionSheet extends ConsumerStatefulWidget {
 
 class _QuickTransactionSheetState
     extends ConsumerState<_QuickTransactionSheet> {
-  late final TextEditingController _amountController =
-      TextEditingController(text: ref.read(quickTransactionControllerProvider).amount);
+  late final TextEditingController _amountController;
+  late final FocusNode _amountFocusNode;
+  ProviderSubscription<QuickTransactionState>? _stateSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+    final QuickTransactionState initialState =
+        ref.read(quickTransactionControllerProvider);
+    _amountController = TextEditingController(text: initialState.amount);
+    _amountFocusNode = FocusNode();
+
+    _stateSubscription = ref.listenManual<QuickTransactionState>(
+      quickTransactionControllerProvider,
+      (QuickTransactionState? _, QuickTransactionState next) {
+        if (_amountController.text == next.amount) {
+          return;
+        }
+        _amountController.value = TextEditingValue(
+          text: next.amount,
+          selection: TextSelection.collapsed(offset: next.amount.length),
+        );
+      },
+    );
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _amountFocusNode.requestFocus();
+      }
+    });
+  }
 
   @override
   void dispose() {
+    _stateSubscription?.close();
+    _amountFocusNode.dispose();
     _amountController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final QuickTransactionState state =
-        ref.watch(quickTransactionControllerProvider);
+    final bool isSubmitting = ref.watch(
+      quickTransactionControllerProvider.select(
+        (QuickTransactionState state) => state.isSubmitting,
+      ),
+    );
+    final QuickTransactionError? error = ref.watch(
+      quickTransactionControllerProvider.select(
+        (QuickTransactionState state) => state.error,
+      ),
+    );
     final ThemeData theme = Theme.of(context);
     final ColorScheme colorScheme = theme.colorScheme;
     final KopimLayout layout = context.kopimLayout;
     final double bottomInset = MediaQuery.viewInsetsOf(context).bottom;
 
-    return SafeArea(
-      child: Padding(
-        padding: EdgeInsets.only(bottom: bottomInset),
+    return AnimatedPadding(
+      duration: const Duration(milliseconds: 200),
+      curve: Curves.easeOut,
+      padding: EdgeInsets.only(bottom: bottomInset),
+      child: SafeArea(
         child: Container(
           decoration: BoxDecoration(
             color: colorScheme.surface,
@@ -263,12 +306,7 @@ class _QuickTransactionSheetState
               top: Radius.circular(layout.radius.xxl),
             ),
           ),
-          padding: EdgeInsets.fromLTRB(
-            layout.spacing.section,
-            layout.spacing.section,
-            layout.spacing.section,
-            layout.spacing.section + layout.spacing.between,
-          ),
+          padding: EdgeInsets.all(layout.spacing.section),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -301,16 +339,16 @@ class _QuickTransactionSheetState
               SizedBox(height: layout.spacing.section),
               KopimTextField(
                 controller: _amountController,
-                autofocus: true,
+                focusNode: _amountFocusNode,
                 keyboardType:
                     const TextInputType.numberWithOptions(decimal: true),
                 placeholder: widget.strings.addTransactionAmountHint,
                 onChanged: (String value) => ref
                     .read(quickTransactionControllerProvider.notifier)
                     .updateAmount(value),
-                onSubmitted: (_) => _submit(),
-                inputFormatters: <TextInputFormatter>[
-                  FilteringTextInputFormatter.allow(RegExp(r'[0-9,\\.]+')),
+              onSubmitted: (_) => _submit(),
+              inputFormatters: <TextInputFormatter>[
+                  digitsAndSeparatorsFormatter(),
                 ],
                 prefixIcon: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -320,10 +358,10 @@ class _QuickTransactionSheetState
                   ),
                 ),
               ),
-              if (state.error != null) ...<Widget>[
+              if (error != null) ...<Widget>[
                 SizedBox(height: layout.spacing.between / 2),
                 Text(
-                  _errorMessage(widget.strings, state.error!),
+                  _errorMessage(widget.strings, error),
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: colorScheme.error,
                   ),
@@ -331,8 +369,8 @@ class _QuickTransactionSheetState
               ],
               SizedBox(height: layout.spacing.section),
               FilledButton.icon(
-                onPressed: state.isSubmitting ? null : _submit,
-                icon: state.isSubmitting
+                onPressed: isSubmitting ? null : _submit,
+                icon: isSubmitting
                     ? SizedBox(
                         width: 18,
                         height: 18,
@@ -344,7 +382,9 @@ class _QuickTransactionSheetState
                     : const Icon(Icons.check),
                 label: Text(widget.strings.addTransactionSubmit),
                 style: FilledButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  padding: EdgeInsets.symmetric(
+                    vertical: layout.spacing.between,
+                  ),
                   textStyle: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
@@ -391,6 +431,7 @@ class _QuickTransactionSheetState
       return;
     }
 
+    FocusScope.of(context).unfocus();
     Navigator.of(context).pop();
     final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar();

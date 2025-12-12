@@ -278,8 +278,18 @@ class _AddAccountScreenState extends ConsumerState<AddAccountScreen> {
                           color: colorScheme.onSurfaceVariant,
                         ),
                       ),
-                      activeColor: colorScheme.onPrimary,
-                      activeTrackColor: colorScheme.primary,
+                      thumbColor: WidgetStateProperty.resolveWith(
+                        (Set<WidgetState> states) =>
+                            states.contains(WidgetState.selected)
+                                ? colorScheme.onPrimary
+                                : colorScheme.onSurfaceVariant,
+                      ),
+                      trackColor: WidgetStateProperty.resolveWith(
+                        (Set<WidgetState> states) =>
+                            states.contains(WidgetState.selected)
+                                ? colorScheme.primary
+                                : colorScheme.surfaceContainerHighest,
+                      ),
                     ),
                     if (state.errorMessage != null) ...<Widget>[
                       SizedBox(height: layout.spacing.sectionLarge),
@@ -485,7 +495,9 @@ class _TypeSection extends StatelessWidget {
             ].map(
               (MapEntry<String, String> entry) => RadioListTile<String>(
                 value: entry.key,
+                // ignore: deprecated_member_use
                 groupValue: selectedTypeValue,
+                // ignore: deprecated_member_use
                 onChanged: isSaving
                     ? null
                     : (String? value) {
@@ -494,6 +506,7 @@ class _TypeSection extends StatelessWidget {
                         }
                       },
                 title: Text(entry.value),
+                // ignore: deprecated_member_use
                 activeColor: colorScheme.primary,
                 shape: const CircleBorder(),
                 contentPadding: EdgeInsets.zero,
@@ -687,7 +700,7 @@ class _ColorPickerRow extends StatelessWidget {
               shape: BoxShape.circle,
               color: selectedColor ?? colorScheme.surfaceContainerHighest,
               border: Border.all(
-                color: colorScheme.onSurfaceVariant.withOpacity(0.4),
+                color: colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
               ),
             ),
             child: selectedColor == null
