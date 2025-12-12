@@ -42,9 +42,43 @@
 
   <title>kopim</title>
   <link rel="manifest" href="manifest.json">
+  <style>
+    #splash {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #ffffff;
+      z-index: 9999;
+    }
+    @media (prefers-color-scheme: dark) {
+      #splash { background: #121212; }
+    }
+    #splash img {
+      width: 160px;
+      height: 160px;
+      object-fit: contain;
+    }
+    #splash .logo-dark { display: none; }
+    @media (prefers-color-scheme: dark) {
+      #splash .logo-light { display: none; }
+      #splash .logo-dark { display: block; }
+    }
+  </style>
 </head>
 <body>
+  <div id="splash" aria-label="Загрузка приложения">
+    <img class="logo-light" src="assets/icons/logo_light.png" alt="Kopim" />
+    <img class="logo-dark" src="assets/icons/logo_dark.png" alt="Kopim" />
+  </div>
   <script defer src="pwa_register.js"></script>
   <script src="flutter_bootstrap.js" async></script>
+  <script>
+    window.addEventListener('flutter-first-frame', function () {
+      var splash = document.getElementById('splash');
+      if (splash) splash.remove();
+    });
+  </script>
 </body>
 </html>

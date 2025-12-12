@@ -1565,7 +1565,6 @@ class _AmountFieldState extends ConsumerState<_AmountField> {
   void _handleFocusChange() {
     if (!_focusNode.hasFocus) {
       _flushPendingUpdate();
-      _hasAutofocused = false;
     }
   }
 
@@ -1580,9 +1579,12 @@ class _AmountFieldState extends ConsumerState<_AmountField> {
   }
 
   void _scheduleFocus() {
+    if (_hasAutofocused) {
+      return;
+    }
+    _hasAutofocused = true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted || _focusNode.hasFocus) return;
-      _hasAutofocused = true;
       _focusNode.requestFocus();
     });
   }

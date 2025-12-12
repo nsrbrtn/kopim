@@ -96,6 +96,7 @@ flutter:
   assets:
     - assets/avatars/
     - assets/fonts/
+    - assets/icons/
   # Добавьте assets, fonts если нужно для UI kit
   fonts:
     - family: Onest

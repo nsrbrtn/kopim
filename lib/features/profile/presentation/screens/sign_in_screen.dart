@@ -192,14 +192,9 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
         ? signUpState.errorMessage
         : formState.errorMessage;
 
-    // Styles from design
-    final TextStyle headerStyle = TextStyle(
-      fontFamily: 'Onest',
-      fontWeight: FontWeight.w200,
-      fontSize: 45,
-      height: 52 / 45,
-      color: theme.colorScheme.onSurface,
-    );
+    final String logoAsset = theme.brightness == Brightness.dark
+        ? 'assets/icons/logo_dark.png'
+        : 'assets/icons/logo_light.png';
 
     final TextStyle subHeaderStyle = TextStyle(
       fontFamily: 'Inter',
@@ -252,17 +247,29 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              // Header
-              SizedBox(
-                width: 348,
-                child: Text(
-                  'Привет!\nДавай копить\nвместе.',
-                  style: headerStyle,
+              Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    Image.asset(
+                      logoAsset,
+                      width: 160,
+                      height: 160,
+                      fit: BoxFit.contain,
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Привет!\nДавай копить\nвместе.',
+                      style: theme.textTheme.headlineSmall?.copyWith(
+                        color: theme.colorScheme.onSurface,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
                 ),
               ),
 
-              // Spacing to push content down (approximate 255px from design, but flexible)
-              const SizedBox(height: 120),
+              const SizedBox(height: 32),
 
               // Subheader
               Text(
