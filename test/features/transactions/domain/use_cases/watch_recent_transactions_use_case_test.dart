@@ -101,5 +101,15 @@ class _InMemoryTransactionRepository implements TransactionRepository {
   }
 
   @override
+  Stream<List<TransactionEntity>> watchRecentTransactions({int? limit}) {
+    return _stream.map((List<TransactionEntity> items) {
+      if (limit == null || limit >= items.length) {
+        return items;
+      }
+      return items.take(limit).toList(growable: false);
+    });
+  }
+
+  @override
   Stream<List<TransactionEntity>> watchTransactions() => _stream;
 }

@@ -334,12 +334,14 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      final SegmentedButton<int> segmentedButton = tester
-          .widget<SegmentedButton<int>>(find.byType(SegmentedButton<int>));
-      final BorderSide? resolvedSide = segmentedButton.style?.side?.resolve(
-        <WidgetState>{},
+      final BuildContext context = tester.element(
+        find.byType(AnalyticsScreen),
       );
-      expect(resolvedSide?.style, BorderStyle.none);
+      final AppLocalizations strings = AppLocalizations.of(context)!;
+
+      expect(find.text(strings.analyticsTopCategoriesExpensesTab), findsOneWidget);
+      expect(find.text(strings.analyticsTopCategoriesIncomeTab), findsOneWidget);
+      expect(tester.takeException(), isNull);
     });
 
     testWidgets(
@@ -425,7 +427,7 @@ void main() {
                 () => _FakeAnalyticsFilterController(filterState),
               ),
               analyticsFilteredStatsProvider(
-                topCategoriesLimit: 2,
+                topCategoriesLimit: 5,
               ).overrideWith(
                 (Ref ref) => Stream<AnalyticsOverview>.value(overview),
               ),

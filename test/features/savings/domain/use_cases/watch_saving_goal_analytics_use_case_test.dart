@@ -16,6 +16,16 @@ class _FakeTransactionRepository implements TransactionRepository {
   Stream<List<TransactionEntity>> watchTransactions() => _controller.stream;
 
   @override
+  Stream<List<TransactionEntity>> watchRecentTransactions({int? limit}) {
+    return _controller.stream.map((List<TransactionEntity> items) {
+      if (limit == null || limit >= items.length) {
+        return items;
+      }
+      return items.take(limit).toList(growable: false);
+    });
+  }
+
+  @override
   Future<List<TransactionEntity>> loadTransactions() {
     throw UnimplementedError();
   }

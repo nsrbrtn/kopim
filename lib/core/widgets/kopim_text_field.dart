@@ -7,6 +7,7 @@ import '../config/theme_extensions.dart';
 class KopimTextField extends StatefulWidget {
   const KopimTextField({
     super.key,
+    this.textFieldKey,
     this.controller,
     this.focusNode,
     this.placeholder,
@@ -31,6 +32,8 @@ class KopimTextField extends StatefulWidget {
     this.placeholderColor,
   });
 
+  /// Ключ для внутреннего [TextField]. Нужен в тестах и для точного поиска поля.
+  final Key? textFieldKey;
   final TextEditingController? controller;
   final FocusNode? focusNode;
   final String? placeholder;
@@ -129,6 +132,7 @@ class _KopimTextFieldState extends State<KopimTextField> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         TextField(
+          key: widget.textFieldKey,
           controller: widget.controller,
           focusNode: _focusNode,
           autofocus: widget.autofocus,

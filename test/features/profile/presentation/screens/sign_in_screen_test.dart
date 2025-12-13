@@ -71,15 +71,18 @@ void main() {
 
     await tester.pumpAndSettle();
 
-    expect(find.text('Sign in'), findsOneWidget);
-    expect(find.text('Sign up'), findsNothing);
+    final BuildContext context = tester.element(find.byType(SignInScreen));
+    final AppLocalizations strings = AppLocalizations.of(context)!;
 
-    await tester.tap(find.text('Create an account'));
+    expect(find.text(strings.signInSubmitCta), findsOneWidget);
+    expect(find.text(strings.signUpSubmitCta), findsNothing);
+
+    await tester.tap(find.text(strings.signInNoAccountCta));
     await tester.pumpAndSettle();
 
-    expect(find.text('Sign up'), findsOneWidget);
-    expect(find.text('Confirm password'), findsOneWidget);
-    expect(find.text('Name (optional)'), findsOneWidget);
+    expect(find.text(strings.signUpSubmitCta), findsOneWidget);
+    expect(find.text(strings.signUpConfirmPasswordLabel), findsOneWidget);
+    expect(find.text(strings.signUpDisplayNameLabel), findsOneWidget);
 
     await connectivityStream.close();
   });
@@ -115,9 +118,12 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      expect(find.text('Sign up'), findsOneWidget);
-      expect(find.text('Confirm password'), findsOneWidget);
-      expect(find.text('Name (optional)'), findsOneWidget);
+      final BuildContext context = tester.element(find.byType(SignInScreen));
+      final AppLocalizations strings = AppLocalizations.of(context)!;
+
+      expect(find.text(strings.signUpSubmitCta), findsOneWidget);
+      expect(find.text(strings.signUpConfirmPasswordLabel), findsOneWidget);
+      expect(find.text(strings.signUpDisplayNameLabel), findsOneWidget);
 
       await connectivityStream.close();
     },
@@ -154,27 +160,30 @@ void main() {
 
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Create an account'));
+    final BuildContext context = tester.element(find.byType(SignInScreen));
+    final AppLocalizations strings = AppLocalizations.of(context)!;
+
+    await tester.tap(find.text(strings.signInNoAccountCta));
     await tester.pumpAndSettle();
 
     await tester.enterText(
-      find.widgetWithText(TextFormField, 'Email'),
+      find.byKey(const ValueKey<String>('sign_up_email_field')),
       'user@example.com',
     );
     await tester.enterText(
-      find.widgetWithText(TextFormField, 'Password'),
+      find.byKey(const ValueKey<String>('sign_up_password_field')),
       'secret123',
     );
     await tester.enterText(
-      find.widgetWithText(TextFormField, 'Confirm password'),
+      find.byKey(const ValueKey<String>('sign_up_confirm_password_field')),
       'secret123',
     );
     await tester.enterText(
-      find.widgetWithText(TextFormField, 'Name (optional)'),
+      find.byKey(const ValueKey<String>('sign_up_name_field')),
       'Test User',
     );
 
-    await tester.tap(find.text('Sign up'));
+    await tester.tap(find.text(strings.signUpSubmitCta));
     await tester.pumpAndSettle();
 
     expect(

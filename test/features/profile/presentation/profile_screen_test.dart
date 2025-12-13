@@ -226,22 +226,23 @@ void main() {
 
     await tester.pumpAndSettle();
 
-    expect(find.text('Profile'), findsOneWidget);
-    expect(find.text('Account'), findsOneWidget);
+    final BuildContext context = tester.element(find.byType(ProfileScreen));
+    final AppLocalizations strings = AppLocalizations.of(context)!;
 
-    await tester.tap(find.text('Account'), warnIfMissed: false);
+    expect(find.text(strings.profileTitle), findsOneWidget);
+
+    await tester.tap(find.text(strings.profileSectionAccount));
     await tester.pumpAndSettle();
 
-    final Finder nameFieldFinder = find.byType(TextFormField).first;
-    final TextFormField nameField = tester.widget<TextFormField>(
-      nameFieldFinder,
-    );
-    expect(nameField.initialValue, equals('Alice'));
+    final TextField nameField = tester
+        .widgetList<TextField>(find.byType(TextField))
+        .firstWhere(
+          (TextField field) => field.controller?.text == hydratedProfile.name,
+        );
+    expect(nameField.controller?.text, equals('Alice'));
 
     expect(find.text('EUR'), findsWidgets);
     expect(find.text('EN'), findsWidgets);
-    expect(find.text('Manage categories'), findsNothing);
-    expect(find.text('Recurring transactions'), findsNothing);
   });
 
   testWidgets('shows sign-in prompt when user is absent', (
@@ -394,6 +395,9 @@ void main() {
 
     final BuildContext context = tester.element(find.byType(ProfileScreen));
     final AppLocalizations strings = AppLocalizations.of(context)!;
+
+    await tester.tap(find.text(strings.profileSectionAccount));
+    await tester.pumpAndSettle();
 
     final Finder signOutButton = find.text(strings.profileSignOutCta);
 

@@ -144,8 +144,7 @@ void main() {
     final ProviderContainer container = ProviderScope.containerOf(context);
     final GoRouter router = container.read(appRouterProvider);
     router.go(AnalyticsScreen.routeName);
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 100));
+    await tester.pumpAndSettle();
     expect(find.byType(AnalyticsScreen), findsOneWidget);
   });
 
@@ -157,8 +156,7 @@ void main() {
     final ProviderContainer container = ProviderScope.containerOf(context);
     final GoRouter router = container.read(appRouterProvider);
     router.go(AllTransactionsScreen.routeName);
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 100));
+    await tester.pumpAndSettle();
     expect(find.byType(AllTransactionsScreen), findsOneWidget);
   });
 }
