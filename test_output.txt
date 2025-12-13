@@ -1,0 +1,482 @@
+00:00 +0: loading /home/artem/StudioProjects/kopim/test/features/analytics/presentation/widgets/total_money_chart_widget_test.dart                                                                     00:00 +0: TotalMoneyChartWidget renders correctly with data                                                                                                                                            00:01 +0: TotalMoneyChartWidget renders correctly with data                                                                                                                                            00:01 +0: TotalMoneyChartWidget renders correctly with data                                                                                                                                            
+Building TotalMoneyChartWidget with 2 items. yMin: 900.0, yMax: 2100.0
+══╡ EXCEPTION CAUGHT BY WIDGETS LIBRARY ╞═══════════════════════════════════════════════════════════
+The following LocaleDataException was thrown building TotalMoneyChartWidget(dirty, dependencies:
+[InheritedCupertinoTheme, _InheritedTheme, _LocalizationsScope-[GlobalKey#44495]], state:
+_TotalMoneyChartWidgetState#e0db7):
+Locale data has not been initialized, call initializeDateFormatting(<locale>).
+
+The relevant error-causing widget was:
+  TotalMoneyChartWidget
+  TotalMoneyChartWidget:file:///home/artem/StudioProjects/kopim/test/features/analytics/presentation/widgets/total_money_chart_widget_test.dart:23:17
+
+When the exception was thrown, this was the stack:
+#0      UninitializedLocaleData._throwException (package:intl/src/intl_helpers.dart:79:5)
+#1      UninitializedLocaleData.containsKey (package:intl/src/intl_helpers.dart:73:7)
+#2      DateFormat.localeExists (package:intl/src/intl/date_format.dart:902:28)
+#3      verifiedLocale (package:intl/src/intl_helpers.dart:184:19)
+#4      new DateFormat (package:intl/src/intl/date_format.dart:267:27)
+#5      _TotalMoneyChartWidgetState.build (package:kopim/features/analytics/presentation/widgets/total_money_chart_widget.dart:85:30)
+#6      StatefulElement.build (package:flutter/src/widgets/framework.dart:5934:27)
+#7      ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5820:15)
+#8      StatefulElement.performRebuild (package:flutter/src/widgets/framework.dart:5985:11)
+#9      Element.rebuild (package:flutter/src/widgets/framework.dart:5532:7)
+#10     ComponentElement._firstBuild (package:flutter/src/widgets/framework.dart:5802:5)
+#11     StatefulElement._firstBuild (package:flutter/src/widgets/framework.dart:5976:11)
+#12     ComponentElement.mount (package:flutter/src/widgets/framework.dart:5796:5)
+...     Normal element mounting (25 frames)
+#37     Element.inflateWidget (package:flutter/src/widgets/framework.dart:4590:20)
+#38     MultiChildRenderObjectElement.inflateWidget (package:flutter/src/widgets/framework.dart:7269:36)
+#39     MultiChildRenderObjectElement.mount (package:flutter/src/widgets/framework.dart:7285:32)
+...     Normal element mounting (364 frames)
+#403    Element.inflateWidget (package:flutter/src/widgets/framework.dart:4590:20)
+#404    MultiChildRenderObjectElement.inflateWidget (package:flutter/src/widgets/framework.dart:7269:36)
+#405    MultiChildRenderObjectElement.mount (package:flutter/src/widgets/framework.dart:7285:32)
+...     Normal element mounting (465 frames)
+#870    Element.inflateWidget (package:flutter/src/widgets/framework.dart:4590:20)
+#871    Element.updateChild (package:flutter/src/widgets/framework.dart:4053:20)
+#872    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5844:16)
+#873    Element.rebuild (package:flutter/src/widgets/framework.dart:5532:7)
+#874    ProxyElement.update (package:flutter/src/widgets/framework.dart:6152:5)
+#875    _InheritedNotifierElement.update (package:flutter/src/widgets/inherited_notifier.dart:108:11)
+#876    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#877    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5844:16)
+#878    StatefulElement.performRebuild (package:flutter/src/widgets/framework.dart:5985:11)
+#879    Element.rebuild (package:flutter/src/widgets/framework.dart:5532:7)
+#880    StatefulElement.update (package:flutter/src/widgets/framework.dart:6010:5)
+#881    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#882    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5844:16)
+#883    Element.rebuild (package:flutter/src/widgets/framework.dart:5532:7)
+#884    ProxyElement.update (package:flutter/src/widgets/framework.dart:6152:5)
+#885    _InheritedNotifierElement.update (package:flutter/src/widgets/inherited_notifier.dart:108:11)
+#886    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#887    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5844:16)
+#888    StatefulElement.performRebuild (package:flutter/src/widgets/framework.dart:5985:11)
+#889    Element.rebuild (package:flutter/src/widgets/framework.dart:5532:7)
+#890    StatefulElement.update (package:flutter/src/widgets/framework.dart:6010:5)
+#891    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#892    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5844:16)
+#893    StatefulElement.performRebuild (package:flutter/src/widgets/framework.dart:5985:11)
+#894    Element.rebuild (package:flutter/src/widgets/framework.dart:5532:7)
+#895    StatefulElement.update (package:flutter/src/widgets/framework.dart:6010:5)
+#896    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#897    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5844:16)
+#898    Element.rebuild (package:flutter/src/widgets/framework.dart:5532:7)
+#899    ProxyElement.update (package:flutter/src/widgets/framework.dart:6152:5)
+#900    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#901    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5844:16)
+#902    StatefulElement.performRebuild (package:flutter/src/widgets/framework.dart:5985:11)
+#903    Element.rebuild (package:flutter/src/widgets/framework.dart:5532:7)
+#904    StatefulElement.update (package:flutter/src/widgets/framework.dart:6010:5)
+#905    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#906    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5844:16)
+#907    Element.rebuild (package:flutter/src/widgets/framework.dart:5532:7)
+#908    ProxyElement.update (package:flutter/src/widgets/framework.dart:6152:5)
+#909    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#910    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5844:16)
+#911    Element.rebuild (package:flutter/src/widgets/framework.dart:5532:7)
+#912    ProxyElement.update (package:flutter/src/widgets/framework.dart:6152:5)
+#913    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#914    _RawViewElement._updateChild (package:flutter/src/widgets/view.dart:481:16)
+#915    _RawViewElement.update (package:flutter/src/widgets/view.dart:568:5)
+#916    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#917    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5844:16)
+#918    Element.rebuild (package:flutter/src/widgets/framework.dart:5532:7)
+#919    StatelessElement.update (package:flutter/src/widgets/framework.dart:5898:5)
+#920    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#921    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5844:16)
+#922    StatefulElement.performRebuild (package:flutter/src/widgets/framework.dart:5985:11)
+#923    Element.rebuild (package:flutter/src/widgets/framework.dart:5532:7)
+#924    StatefulElement.update (package:flutter/src/widgets/framework.dart:6010:5)
+#925    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#926    RootElement._rebuild (package:flutter/src/widgets/binding.dart:1782:16)
+#927    RootElement.update (package:flutter/src/widgets/binding.dart:1760:5)
+#928    RootElement.performRebuild (package:flutter/src/widgets/binding.dart:1774:7)
+#929    Element.rebuild (package:flutter/src/widgets/framework.dart:5532:7)
+#930    BuildScope._tryRebuild (package:flutter/src/widgets/framework.dart:2750:15)
+#931    BuildScope._flushDirtyElements (package:flutter/src/widgets/framework.dart:2807:11)
+#932    BuildOwner.buildScope (package:flutter/src/widgets/framework.dart:3111:18)
+#933    AutomatedTestWidgetsFlutterBinding.drawFrame (package:flutter_test/src/binding.dart:1506:19)
+#934    RendererBinding._handlePersistentFrameCallback (package:flutter/src/rendering/binding.dart:495:5)
+#935    SchedulerBinding._invokeFrameCallback (package:flutter/src/scheduler/binding.dart:1434:15)
+#936    SchedulerBinding.handleDrawFrame (package:flutter/src/scheduler/binding.dart:1347:9)
+#937    AutomatedTestWidgetsFlutterBinding.pump.<anonymous closure> (package:flutter_test/src/binding.dart:1335:9)
+#940    TestAsyncUtils.guard (package:flutter_test/src/test_async_utils.dart:74:41)
+#941    AutomatedTestWidgetsFlutterBinding.pump (package:flutter_test/src/binding.dart:1324:27)
+#942    WidgetTester.pumpWidget.<anonymous closure> (package:flutter_test/src/widget_tester.dart:598:22)
+#945    TestAsyncUtils.guard (package:flutter_test/src/test_async_utils.dart:74:41)
+#946    WidgetTester.pumpWidget (package:flutter_test/src/widget_tester.dart:595:27)
+#947    main.<anonymous closure> (file:///home/artem/StudioProjects/kopim/test/features/analytics/presentation/widgets/total_money_chart_widget_test.dart:20:18)
+#948    testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:29)
+<asynchronous suspension>
+#949    TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1059:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided 5 frames from dart:async and package:stack_trace)
+
+════════════════════════════════════════════════════════════════════════════════════════════════════
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: exactly one matching candidate
+  Actual: _TypeWidgetFinder:<Found 0 widgets with type "SfCartesianChart": []>
+   Which: means none were found but one was expected
+
+When the exception was thrown, this was the stack:
+#4      main.<anonymous closure> (file:///home/artem/StudioProjects/kopim/test/features/analytics/presentation/widgets/total_money_chart_widget_test.dart:37:5)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1059:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///home/artem/StudioProjects/kopim/test/features/analytics/presentation/widgets/total_money_chart_widget_test.dart line 37
+The test description was:
+  TotalMoneyChartWidget renders correctly with data
+════════════════════════════════════════════════════════════════════════════════════════════════════
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following message was thrown:
+Multiple exceptions (2) were detected during the running of the current test, and at least one was
+unexpected.
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:01 +0 -1: TotalMoneyChartWidget renders correctly with data [E]                                                                                                                                     
+  Test failed. See exception logs above.
+  The test description was: TotalMoneyChartWidget renders correctly with data
+  
+
+To run this test again: /home/artem/Android/Flutter/flutter/bin/cache/dart-sdk/bin/dart test /home/artem/StudioProjects/kopim/test/features/analytics/presentation/widgets/total_money_chart_widget_test.dart -p vm --plain-name 'TotalMoneyChartWidget renders correctly with data'
+00:01 +0 -1: TotalMoneyChartWidget has 2 series when data is selected                                                                                                                                  00:01 +0 -1: TotalMoneyChartWidget has 2 series when data is selected                                                                                                                                  
+Building TotalMoneyChartWidget with 1 items. yMin: 1960.0, yMax: 2040.0
+SfCartesianChart not found!
+No error text found either.
+AutomatedTestWidgetsFlutterBinding - DEBUG MODE
+[root]
+└View(state: _ViewState#7ca52)
+ └RawView
+  └_RawViewInternal-[_DeprecatedRawViewKey TestFlutterView#1a470](renderObject: _ReusableRenderView#fb03e)
+   └_ViewScope
+    └_PipelineOwnerScope
+     └_MediaQueryFromView(state: _MediaQueryFromViewState#0f71d)
+      └MediaQuery(MediaQueryData(size: Size(800.0, 600.0), devicePixelRatio: 3.0, textScaler: SystemTextScaler (no scaling), platformBrightness: Brightness.light, padding: EdgeInsets.zero, viewPadding: EdgeInsets.zero, viewInsets: EdgeInsets.zero, systemGestureInsets: EdgeInsets.zero, alwaysUse24HourFormat: false, accessibleNavigation: false, highContrast: false, onOffSwitchLabels: false, disableAnimations: false, invertColors: false, boldText: false, navigationMode: traditional, gestureSettings: DeviceGestureSettings(touchSlop: null), displayFeatures: [], supportsShowingSystemContextMenu: false))
+       └FocusTraversalGroup(policy: ReadingOrderTraversalPolicy#719ee, state: _FocusTraversalGroupState#852d9)
+        └Focus(debugLabel: "FocusTraversalGroup", focusNode: _FocusTraversalGroupNode#be908(FocusTraversalGroup [IN FOCUS PATH]), state: _FocusState#23f3e)
+         └_FocusInheritedScope
+          └_FocusScopeWithExternalFocusNode(debugLabel: "View Scope", focusNode: FocusScopeNode#0dde3(View Scope [IN FOCUS PATH]), dependencies: [_FocusInheritedScope], state: _FocusScopeState#f10d5)
+           └_FocusInheritedScope
+            └MaterialApp(state: _MaterialAppState#f46dc)
+             └ScrollConfiguration(behavior: MaterialScrollBehavior)
+              └HeroControllerScope
+               └Focus(dependencies: [_FocusInheritedScope], state: _FocusState#3d2a8)
+                └_FocusInheritedScope
+                 └Semantics(container: false, properties: SemanticsProperties, renderObject: RenderSemanticsAnnotations#558c6)
+                  └WidgetsApp-[GlobalObjectKey _MaterialAppState#f46dc](state: _WidgetsAppState#e45c4)
+                   └RootRestorationScope(state: _RootRestorationScopeState#d0927)
+                    └UnmanagedRestorationScope
+                     └RestorationScope(dependencies: [UnmanagedRestorationScope], state: _RestorationScopeState#9e783)
+                      └UnmanagedRestorationScope
+                       └SharedAppData(state: _SharedAppDataState#04325)
+                        └_SharedAppModel
+                         └NotificationListener<NavigationNotification>
+                          └Shortcuts(shortcuts: <Default WidgetsApp Shortcuts>, state: _ShortcutsState#bc7e6)
+                           └Focus(debugLabel: "Shortcuts", dependencies: [_FocusInheritedScope], state: _FocusState#acdfb)
+                            └_FocusInheritedScope
+                             └Semantics(container: false, properties: SemanticsProperties, renderObject: RenderSemanticsAnnotations#07391)
+                              └DefaultTextEditingShortcuts
+                               └Shortcuts(shortcuts: <Default Text Editing Shortcuts>, state: _ShortcutsState#ef568)
+                                └Focus(debugLabel: "Shortcuts", dependencies: [_FocusInheritedScope], state: _FocusState#de48c)
+                                 └_FocusInheritedScope
+                                  └Semantics(container: false, properties: SemanticsProperties, renderObject: RenderSemanticsAnnotations#5add0)
+                                   └Actions(dispatcher: null, actions: {DoNothingIntent: DoNothingAction#05883, DoNothingAndStopPropagationIntent: DoNothingAction#bc501, RequestFocusIntent: RequestFocusAction#7b956, NextFocusIntent: NextFocusAction#63692, PreviousFocusIntent: PreviousFocusAction#8a5b8, DirectionalFocusIntent: DirectionalFocusAction#3a55b, ScrollIntent: _OverridableContextAction<ScrollIntent>#aa9b6(defaultAction: ScrollAction#7d544), PrioritizedIntents: PrioritizedAction#29599, VoidCallbackIntent: VoidCallbackAction#4b2c5}, state: _ActionsState#54f0e)
+                                    └_ActionsScope
+                                     └FocusTraversalGroup(policy: ReadingOrderTraversalPolicy#ea97b, state: _FocusTraversalGroupState#b416c)
+                                      └Focus(debugLabel: "FocusTraversalGroup", focusNode: _FocusTraversalGroupNode#03752(FocusTraversalGroup [IN FOCUS PATH]), dependencies: [_FocusInheritedScope], state: _FocusState#c4a66)
+                                       └_FocusInheritedScope
+                                        └TapRegionSurface(renderObject: RenderTapRegionSurface#8289c)
+                                         └ShortcutRegistrar(state: _ShortcutRegistrarState#c70f0)
+                                          └_ShortcutRegistrarScope
+                                           └Shortcuts(manager: ShortcutManager#b3d6f(shortcuts: {}), shortcuts: {}, state: _ShortcutsState#022bd)
+                                            └Focus(debugLabel: "Shortcuts", dependencies: [_FocusInheritedScope], state: _FocusState#04a14)
+                                             └_FocusInheritedScope
+                                              └Semantics(container: false, properties: SemanticsProperties, renderObject: RenderSemanticsAnnotations#d1f27)
+                                               └ListenableBuilder(listenable: LocalizationsResolver, state: _AnimatedState#92a69)
+                                                └Localizations(locale: en_US, delegates: [DefaultMaterialLocalizations.delegate(en_US), DefaultCupertinoLocalizations.delegate(en_US), DefaultWidgetsLocalizations.delegate(en_US)], state: _LocalizationsState#a7581)
+                                                 └Semantics(container: false, properties: SemanticsProperties, textDirection: ltr, renderObject: RenderSemanticsAnnotations#e7b90)
+                                                  └_LocalizationsScope-[GlobalKey#ffb9e]
+                                                   └Directionality(textDirection: ltr)
+                                                    └Title(color: Color(alpha: 1.0000, red: 0.1294, green: 0.5882, blue: 0.9529, colorSpace: ColorSpace.sRGB))
+                                                     └CheckedModeBanner("DEBUG")
+                                                      └Banner(dependencies: [Directionality], state: _BannerState#fd4d4("DEBUG", textDirection: ltr, location: topEnd, Color(alpha: 0.6275, red: 0.7176, green: 0.1098, blue: 0.1098, colorSpace: ColorSpace.sRGB), text inherit: true, text color: Color(alpha: 1.0000, red: 1.0000, green: 1.0000, blue: 1.0000, colorSpace: ColorSpace.sRGB), text size: 10.2, text weight: 900, text height: 1.0x))
+                                                       └CustomPaint(renderObject: RenderCustomPaint#29d39)
+                                                        └ValueListenableBuilder<bool>(state: _ValueListenableBuilderState<bool>#6958d)
+                                                         └DefaultTextStyle(debugLabel: fallback style; consider putting your text in a Material, inherit: true, color: Color(alpha: 0.8157, red: 1.0000, green: 0.0000, blue: 0.0000, colorSpace: ColorSpace.sRGB), family: monospace, size: 48.0, weight: 900, decoration: double Color(alpha: 1.0000, red: 1.0000, green: 1.0000, blue: 0.0000, colorSpace: ColorSpace.sRGB) TextDecoration.underline, softWrap: wrapping at box width, overflow: clip)
+                                                          └Builder(dependencies: [MediaQuery])
+                                                           └AnimatedTheme(duration: 200ms, state: _AnimatedThemeState#6b06b(ticker inactive, ThemeDataTween(ThemeData#e71ec → ThemeData#e71ec)))
+                                                            └Theme(ThemeData#e71ec, dependencies: [MediaQuery])
+                                                             └_InheritedTheme
+                                                              └CupertinoTheme(brightness: light, primaryColor: Color(alpha: 1.0000, red: 0.4039, green: 0.3137, blue: 0.6431, colorSpace: ColorSpace.sRGB), scaffoldBackgroundColor: Color(alpha: 1.0000, red: 0.9961, green: 0.9686, blue: 1.0000, colorSpace: ColorSpace.sRGB), actionTextStyle: TextStyle(inherit: false, color: Color(alpha: 1.0000, red: 0.4039, green: 0.3137, blue: 0.6431, colorSpace: ColorSpace.sRGB), family: CupertinoSystemText, size: 17.0, letterSpacing: -0.4, decoration: TextDecoration.none), actionSmallTextStyle: TextStyle(inherit: false, color: Color(alpha: 1.0000, red: 0.4039, green: 0.3137, blue: 0.6431, colorSpace: ColorSpace.sRGB), family: CupertinoSystemText, size: 15.0, letterSpacing: -0.2, decoration: TextDecoration.none), navActionTextStyle: TextStyle(inherit: false, color: Color(alpha: 1.0000, red: 0.4039, green: 0.3137, blue: 0.6431, colorSpace: ColorSpace.sRGB), family: CupertinoSystemText, size: 17.0, letterSpacing: -0.4, decoration: TextDecoration.none))
+                                                               └InheritedCupertinoTheme
+                                                                └IconTheme(color: Color(alpha: 1.0000, red: 0.4039, green: 0.3137, blue: 0.6431, colorSpace: ColorSpace.sRGB))
+                                                                 └IconTheme(color: Color(alpha: 0.8667, red: 0.0000, green: 0.0000, blue: 0.0000, colorSpace: ColorSpace.sRGB))
+                                                                  └DefaultSelectionStyle
+                                                                   └ScaffoldMessenger(dependencies: [MediaQuery], state: ScaffoldMessengerState#b8c8d)
+                                                                    └_ScaffoldMessengerScope
+                                                                     └DefaultSelectionStyle
+                                                                      └FocusScope(debugLabel: "Navigator Scope", AUTOFOCUS, dependencies: [_FocusInheritedScope], state: _FocusScopeState#9d100)
+                                                                       └Semantics(container: false, properties: SemanticsProperties, renderObject: RenderSemanticsAnnotations#db568)
+                                                                        └_FocusInheritedScope
+                                                                         └Navigator-[GlobalObjectKey<NavigatorState> _WidgetsAppState#e45c4](dependencies: [HeroControllerScope, InheritedCupertinoTheme, UnmanagedRestorationScope, _InheritedTheme, _LocalizationsScope-[GlobalKey#ffb9e]], state: NavigatorState#58fee(tickers: tracking 1 ticker))
+                                                                          └HeroControllerScope
+                                                                           └NotificationListener<NavigationNotification>
+                                                                            └Listener(listeners: [down, up, cancel], behavior: deferToChild, renderObject: RenderPointerListener#e041f)
+                                                                             └AbsorbPointer(absorbing: false, renderObject: RenderAbsorbPointer#08793)
+                                                                              └FocusTraversalGroup(policy: ReadingOrderTraversalPolicy#ea97b, state: _FocusTraversalGroupState#190c5)
+                                                                               └Focus(debugLabel: "FocusTraversalGroup", focusNode: _FocusTraversalGroupNode#d60ea(FocusTraversalGroup [IN FOCUS PATH]), dependencies: [_FocusInheritedScope], state: _FocusState#b1f59)
+                                                                                └_FocusInheritedScope
+                                                                                 └Focus(debugLabel: "Navigator", AUTOFOCUS, focusNode: FocusNode#edfd0(Navigator [IN FOCUS PATH]), dependencies: [_FocusInheritedScope], state: _FocusState#12038)
+                                                                                  └_FocusInheritedScope
+                                                                                   └UnmanagedRestorationScope
+                                                                                    └Overlay-[LabeledGlobalKey<OverlayState>#9cb1b](state: OverlayState#fe526(entries: [OverlayEntry#339bd(opaque: true; maintainState: false), OverlayEntry#69890(opaque: false; maintainState: true)]))
+                                                                                     └_Theater(skipCount: 0, dependencies: [Directionality], renderObject: _RenderTheater#da1f6)
+                                                                                      ├_OverlayEntryWidget-[LabeledGlobalKey<_OverlayEntryWidgetState>#e0136](state: _OverlayEntryWidgetState#64f32)
+                                                                                      │└TickerMode(state: _TickerModeState#02379(requested mode: enabled))
+                                                                                      │ └_EffectiveTickerMode(effective mode: enabled)
+                                                                                      │  └_RenderTheaterMarker
+                                                                                      │   └Builder
+                                                                                      │    └IgnorePointer(ignoring: false, renderObject: RenderIgnorePointer#fb316)
+                                                                                      │     └ModalBarrier
+                                                                                      │      └BlockSemantics(blocking: true, renderObject: RenderBlockSemantics#da18d)
+                                                                                      │       └ExcludeSemantics(excluding: true, renderObject: RenderExcludeSemantics#eea0b)
+                                                                                      │        └_ModalBarrierGestureDetector
+                                                                                      │         └RawGestureDetector(state: RawGestureDetectorState#69a9b(gestures: [any tap], behavior: opaque))
+                                                                                      │          └_GestureSemantics(renderObject: RenderSemanticsGestureHandler#c61ba)
+                                                                                      │           └Listener(listeners: [down, panZoomStart], behavior: opaque, renderObject: RenderPointerListener#604c4)
+                                                                                      │            └Semantics(container: false, properties: SemanticsProperties, renderObject: RenderSemanticsAnnotations#f04ce)
+                                                                                      │             └MouseRegion(listeners: <none>, cursor: SystemMouseCursor(basic), renderObject: RenderMouseRegion#029e4)
+                                                                                      │              └ConstrainedBox(BoxConstraints(biggest), renderObject: RenderConstrainedBox#706a6)
+                                                                                      └_OverlayEntryWidget-[LabeledGlobalKey<_OverlayEntryWidgetState>#9879b](state: _OverlayEntryWidgetState#cf3d1)
+                                                                                       └TickerMode(state: _TickerModeState#e50ed(requested mode: enabled))
+                                                                                        └_EffectiveTickerMode(effective mode: enabled)
+                                                                                         └_RenderTheaterMarker
+                                                                                          └Builder
+                                                                                           └Semantics(container: false, properties: SemanticsProperties, sortKey: OrdinalSortKey#8d3b6(order: 0.0), renderObject: RenderSemanticsAnnotations#65c88)
+                                                                                            └_ModalScope<dynamic>-[LabeledGlobalKey<_ModalScopeState<dynamic>>#7e282](state: _ModalScopeState<dynamic>#b0f2e)
+                                                                                             └AnimatedBuilder(listenable: ValueNotifier<String?>#6260a(null), state: _AnimatedState#9f40c)
+                                                                                              └RestorationScope(dependencies: [UnmanagedRestorationScope], state: _RestorationScopeState#1d014)
+                                                                                               └UnmanagedRestorationScope
+                                                                                                └_ModalScopeStatus(active)
+                                                                                                 └Offstage(offstage: false, renderObject: RenderOffstage#6bd0b)
+                                                                                                  └PageStorage
+                                                                                                   └Builder
+                                                                                                    └Actions(dispatcher: null, actions: {DismissIntent: _DismissModalAction#c1421}, state: _ActionsState#fc8dd)
+                                                                                                     └_ActionsScope
+                                                                                                      └PrimaryScrollController(ScrollController#1047a(no clients))
+                                                                                                       └_FocusScopeWithExternalFocusNode(debugLabel: "_ModalScopeState<dynamic> Focus Scope", focusNode: FocusScopeNode#361d6(_ModalScopeState<dynamic> Focus Scope [PRIMARY FOCUS]), dependencies: [_FocusInheritedScope], state: _FocusScopeState#85881)
+                                                                                                        └Semantics(container: false, properties: SemanticsProperties, renderObject: RenderSemanticsAnnotations#75beb)
+                                                                                                         └_FocusInheritedScope
+                                                                                                          └RepaintBoundary(renderObject: RenderRepaintBoundary#d32b0)
+                                                                                                           └ListenableBuilder(listenable: Listenable.merge([AnimationController#15622(⏭ 1.000; paused; for MaterialPageRoute<dynamic>(/))➩ProxyAnimation, kAlwaysDismissedAnimation➩ProxyAnimation➩ProxyAnimation]), dependencies: [InheritedCupertinoTheme, _InheritedTheme, _LocalizationsScope-[GlobalKey#ffb9e]], state: _AnimatedState#3ba93)
+                                                                                                            └_PageTransitionsThemeTransitions<dynamic>(dependencies: [InheritedCupertinoTheme, _InheritedTheme, _LocalizationsScope-[GlobalKey#ffb9e]], state: _PageTransitionsThemeTransitionsState<dynamic>#5c792)
+                                                                                                             └_PredictiveBackGestureDetector(state: _PredictiveBackGestureDetectorState#23495)
+                                                                                                              └_FadeForwardsPageTransition(dependencies: [_ModalScopeStatus])
+                                                                                                               └DualTransitionBuilder(state: _DualTransitionBuilderState#d7218)
+                                                                                                                └FadeTransition(opacity: kAlwaysCompleteAnimation➩ProxyAnimation➩CurveTween(curve: Interval(0.0⋯0.75))➩Tween<double>(0.0 → 1.0)➩1.0, renderObject: RenderAnimatedOpacity#459de)
+                                                                                                                 └SlideTransition(listenable: kAlwaysCompleteAnimation➩ProxyAnimation➩CurveTween(curve: ThreePointCubic )➩Tween<Offset>(Offset(0.3, 0.0) → Offset(0.0, 0.0))➩Offset(0.0, 0.0), state: _AnimatedState#79fc1)
+                                                                                                                  └FractionalTranslation(renderObject: RenderFractionalTranslation#ad397)
+                                                                                                                   └IgnorePointer(ignoring: false, renderObject: RenderIgnorePointer#f292b)
+                                                                                                                    └FadeTransition(opacity: AnimationController#15622(⏭ 1.000; paused; for MaterialPageRoute<dynamic>(/))➩ProxyAnimation➪ReverseAnimation➩ProxyAnimation➩CurveTween(curve: Interval(0.0⋯0.25))➩Tween<double>(1.0 → 0.0)➩1.0, renderObject: RenderAnimatedOpacity#c6821)
+                                                                                                                     └SlideTransition(listenable: AnimationController#15622(⏭ 1.000; paused; for MaterialPageRoute<dynamic>(/))➩ProxyAnimation➪ReverseAnimation➩ProxyAnimation➩CurveTween(curve: ThreePointCubic )➩Tween<Offset>(Offset(0.0, 0.0) → Offset(0.3, 0.0))➩Offset(0.0, 0.0), state: _AnimatedState#fa363)
+                                                                                                                      └FractionalTranslation(renderObject: RenderFractionalTranslation#cf649)
+                                                                                                                       └ColoredBox(color: Color(alpha: 0.0000, red: 0.0000, green: 0.0000, blue: 0.0000, colorSpace: ColorSpace.sRGB), renderObject: _RenderColoredBox#9a2f9)
+                                                                                                                        └DualTransitionBuilder(state: _DualTransitionBuilderState#2a620)
+                                                                                                                         └FadeTransition(opacity: kAlwaysCompleteAnimation➩ProxyAnimation➩CurveTween(curve: Interval(0.0⋯0.75))➩Tween<double>(0.0 → 1.0)➩1.0, renderObject: RenderAnimatedOpacity#88c8c)
+                                                                                                                          └SlideTransition(listenable: kAlwaysCompleteAnimation➩ProxyAnimation➩CurveTween(curve: ThreePointCubic )➩Tween<Offset>(Offset(-0.3, 0.0) → Offset(0.0, 0.0))➩Offset(0.0, 0.0), state: _AnimatedState#006d7)
+                                                                                                                           └FractionalTranslation(renderObject: RenderFractionalTranslation#1bede)
+                                                                                                                            └FadeTransition(opacity: kAlwaysDismissedAnimation➩ProxyAnimation➩ProxyAnimation➪ReverseAnimation➪ReverseAnimation➩ProxyAnimation➩CurveTween(curve: Interval(0.0⋯0.25))➩Tween<double>(1.0 → 0.0)➩1.0, renderObject: RenderAnimatedOpacity#be4e6)
+                                                                                                                             └SlideTransition(listenable: kAlwaysDismissedAnimation➩ProxyAnimation➩ProxyAnimation➪ReverseAnimation➪ReverseAnimation➩ProxyAnimation➩CurveTween(curve: ThreePointCubic )➩Tween<Offset>(Offset(0.0, 0.0) → Offset(-0.3, 0.0))➩Offset(0.0, 0.0), state: _AnimatedState#eaf2d)
+                                                                                                                              └FractionalTranslation(renderObject: RenderFractionalTranslation#7008f)
+                                                                                                                               └ListenableBuilder(listenable: ValueNotifier<bool>#3aee6(false), state: _AnimatedState#61fee)
+                                                                                                                                └IgnorePointer(ignoring: false, renderObject: RenderIgnorePointer#861a9)
+                                                                                                                                 └RepaintBoundary-[GlobalKey#b7b0c](renderObject: RenderRepaintBoundary#406ba)
+                                                                                                                                  └Builder
+                                                                                                                                   └Semantics(container: false, properties: SemanticsProperties, renderObject: RenderSemanticsAnnotations#f3a5f)
+                                                                                                                                    └Scaffold(dependencies: [Directionality, InheritedCupertinoTheme, MediaQuery, UnmanagedRestorationScope, _InheritedTheme, _LocalizationsScope-[GlobalKey#ffb9e], _ScaffoldMessengerScope], state: ScaffoldState#46f84(tickers: tracking 3 tickers))
+                                                                                                                                     └_ScaffoldScope
+                                                                                                                                      └ScrollNotificationObserver(state: ScrollNotificationObserverState#f09f5)
+                                                                                                                                       └NotificationListener<ScrollMetricsNotification>
+                                                                                                                                        └NotificationListener<ScrollNotification>
+                                                                                                                                         └_ScrollNotificationObserverScope
+                                                                                                                                          └Material(type: canvas, color: Color(alpha: 1.0000, red: 0.9961, green: 0.9686, blue: 1.0000, colorSpace: ColorSpace.sRGB), dependencies: [InheritedCupertinoTheme, _InheritedTheme, _LocalizationsScope-[GlobalKey#ffb9e]], state: _MaterialState#78112)
+                                                                                                                                           └AnimatedPhysicalModel(duration: 200ms, shape: rectangle, borderRadius: null, elevation: 0.0, color: Color(alpha: 1.0000, red: 0.9961, green: 0.9686, blue: 1.0000, colorSpace: ColorSpace.sRGB), animateColor: false, shadowColor: Color(alpha: 1.0000, red: 0.0000, green: 0.0000, blue: 0.0000, colorSpace: ColorSpace.sRGB), animateShadowColor: true, state: _AnimatedPhysicalModelState#d25f5(ticker inactive))
+                                                                                                                                            └PhysicalModel(shape: rectangle, borderRadius: BorderRadius.zero, elevation: 0.0, color: Color(alpha: 1.0000, red: 0.9961, green: 0.9686, blue: 1.0000, colorSpace: ColorSpace.sRGB), shadowColor: Color(alpha: 1.0000, red: 0.0000, green: 0.0000, blue: 0.0000, colorSpace: ColorSpace.sRGB), renderObject: RenderPhysicalModel#e22d9)
+                                                                                                                                             └NotificationListener<LayoutChangedNotification>
+                                                                                                                                              └_InkFeatures-[GlobalKey#dc09e ink renderer](renderObject: _RenderInkFeatures#65b40)
+                                                                                                                                               └AnimatedDefaultTextStyle(duration: 200ms, debugLabel: (englishLike bodyMedium 2021).merge((blackMountainView bodyMedium).apply), inherit: false, color: Color(alpha: 1.0000, red: 0.1137, green: 0.1059, blue: 0.1255, colorSpace: ColorSpace.sRGB), family: Roboto, size: 14.0, weight: 400, letterSpacing: 0.3, baseline: alphabetic, height: 1.4x, leadingDistribution: even, decoration: Color(alpha: 1.0000, red: 0.1137, green: 0.1059, blue: 0.1255, colorSpace: ColorSpace.sRGB) TextDecoration.none, softWrap: wrapping at box width, overflow: clip, state: _AnimatedDefaultTextStyleState#b9976(ticker inactive))
+                                                                                                                                                └DefaultTextStyle(debugLabel: (englishLike bodyMedium 2021).merge((blackMountainView bodyMedium).apply), inherit: false, color: Color(alpha: 1.0000, red: 0.1137, green: 0.1059, blue: 0.1255, colorSpace: ColorSpace.sRGB), family: Roboto, size: 14.0, weight: 400, letterSpacing: 0.3, baseline: alphabetic, height: 1.4x, leadingDistribution: even, decoration: Color(alpha: 1.0000, red: 0.1137, green: 0.1059, blue: 0.1255, colorSpace: ColorSpace.sRGB) TextDecoration.none, softWrap: wrapping at box width, overflow: clip)
+                                                                                                                                                 └AnimatedBuilder(listenable: AnimationController#b2c9a(⏭ 1.000; paused), state: _AnimatedState#b4154)
+                                                                                                                                                  └Actions(dispatcher: null, actions: {DismissIntent: _DismissDrawerAction#ccc4c}, state: _ActionsState#34127)
+                                                                                                                                                   └_ActionsScope
+                                                                                                                                                    └CustomMultiChildLayout(renderObject: RenderCustomMultiChildLayoutBox#b0795)
+                                                                                                                                                     ├LayoutId-[<_ScaffoldSlot.body>](id: _ScaffoldSlot.body)
+                                                                                                                                                     │└MediaQuery(MediaQueryData(size: Size(800.0, 600.0), devicePixelRatio: 3.0, textScaler: SystemTextScaler (no scaling), platformBrightness: Brightness.light, padding: EdgeInsets.zero, viewPadding: EdgeInsets.zero, viewInsets: EdgeInsets.zero, systemGestureInsets: EdgeInsets.zero, alwaysUse24HourFormat: false, accessibleNavigation: false, highContrast: false, onOffSwitchLabels: false, disableAnimations: false, invertColors: false, boldText: false, navigationMode: traditional, gestureSettings: DeviceGestureSettings(touchSlop: null), displayFeatures: [], supportsShowingSystemContextMenu: false))
+                                                                                                                                                     │ └_BodyBuilder
+                                                                                                                                                     │  └KeyedSubtree-[GlobalKey#15dbf]
+                                                                                                                                                     │   └TotalMoneyChartWidget(dependencies: [InheritedCupertinoTheme, _InheritedTheme, _LocalizationsScope-[GlobalKey#ffb9e]], state: _TotalMoneyChartWidgetState#4e7dd)
+                                                                                                                                                     │    └ErrorWidget-[#0eec2](message: LocaleDataException: Locale data has not been initialized, call initializeDateFormatting(<locale>).\nSee also: https://docs.flutter.dev/testing/errors, renderObject: RenderErrorBox#c47e6)
+                                                                                                                                                     └LayoutId-[<_ScaffoldSlot.floatingActionButton>](id: _ScaffoldSlot.floatingActionButton)
+                                                                                                                                                      └MediaQuery(MediaQueryData(size: Size(800.0, 600.0), devicePixelRatio: 3.0, textScaler: SystemTextScaler (no scaling), platformBrightness: Brightness.light, padding: EdgeInsets.zero, viewPadding: EdgeInsets.zero, viewInsets: EdgeInsets.zero, systemGestureInsets: EdgeInsets.zero, alwaysUse24HourFormat: false, accessibleNavigation: false, highContrast: false, onOffSwitchLabels: false, disableAnimations: false, invertColors: false, boldText: false, navigationMode: traditional, gestureSettings: DeviceGestureSettings(touchSlop: null), displayFeatures: [], supportsShowingSystemContextMenu: false))
+                                                                                                                                                       └_FloatingActionButtonTransition(state: _FloatingActionButtonTransitionState#72325(tickers: tracking 1 ticker))
+                                                                                                                                                        └Stack(alignment: Alignment.centerRight, fit: loose, dependencies: [Directionality], renderObject: RenderStack#58a0b relayoutBoundary=up1)
+                                                                                                                                                         └ScaleTransition(listenable: AnimationMin<double>(_AnimationSwap<double>(AnimationController#b2c9a(⏭ 1.000; paused)➩CurveTween(curve: FlippedCurve(Interval(0.5⋯1.0)➩Cubic(0.25, 0.10, 0.25, 1.00)))➩1.0➪ReverseAnimation, AnimationController#b2c9a(⏭ 1.000; paused)➩CurveTween(curve: Interval(0.5⋯1.0)➩Cubic(0.25, 0.10, 0.25, 1.00))➩1.0), AnimationController#49c26(⏮ 0.000; paused)➩Cubic(0.42, 0.00, 1.00, 1.00)), state: _AnimatedState#c3ade)
+                                                                                                                                                          └Transform(dependencies: [Directionality], renderObject: RenderTransform#25c25 relayoutBoundary=up2)
+                                                                                                                                                           └RotationTransition(listenable: AnimationController#49c26(⏮ 0.000; paused)➩CurveTween(curve: Cubic(0.42, 0.00, 1.00, 1.00))➩Tween<double>(0.875 → 1.0)➩0.875➩TrainHoppingAnimation(next: _AnimationSwap<double>(AnimationController#b2c9a(⏭ 1.000; paused)➩Tween<double>(0.75 → 1.0)➩1.0, AnimationController#b2c9a(⏭ 1.000; paused)➩CurveTween(curve: Threshold)➩1.0➪ReverseAnimation)), state: _AnimatedState#e234e)
+                                                                                                                                                            └Transform(dependencies: [Directionality], renderObject: RenderTransform#be8d6 relayoutBoundary=up3 NEEDS-PAINT)
+
+
+══╡ EXCEPTION CAUGHT BY WIDGETS LIBRARY ╞═══════════════════════════════════════════════════════════
+The following LocaleDataException was thrown building TotalMoneyChartWidget(dirty, dependencies:
+[InheritedCupertinoTheme, _InheritedTheme, _LocalizationsScope-[GlobalKey#ffb9e]], state:
+_TotalMoneyChartWidgetState#4e7dd):
+Locale data has not been initialized, call initializeDateFormatting(<locale>).
+
+The relevant error-causing widget was:
+  TotalMoneyChartWidget
+  TotalMoneyChartWidget:file:///home/artem/StudioProjects/kopim/test/features/analytics/presentation/widgets/total_money_chart_widget_test.dart:57:17
+
+When the exception was thrown, this was the stack:
+#0      UninitializedLocaleData._throwException (package:intl/src/intl_helpers.dart:79:5)
+#1      UninitializedLocaleData.containsKey (package:intl/src/intl_helpers.dart:73:7)
+#2      DateFormat.localeExists (package:intl/src/intl/date_format.dart:902:28)
+#3      verifiedLocale (package:intl/src/intl_helpers.dart:184:19)
+#4      new DateFormat (package:intl/src/intl/date_format.dart:267:27)
+#5      _TotalMoneyChartWidgetState.build (package:kopim/features/analytics/presentation/widgets/total_money_chart_widget.dart:85:30)
+#6      StatefulElement.build (package:flutter/src/widgets/framework.dart:5934:27)
+#7      ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5820:15)
+#8      StatefulElement.performRebuild (package:flutter/src/widgets/framework.dart:5985:11)
+#9      Element.rebuild (package:flutter/src/widgets/framework.dart:5532:7)
+#10     ComponentElement._firstBuild (package:flutter/src/widgets/framework.dart:5802:5)
+#11     StatefulElement._firstBuild (package:flutter/src/widgets/framework.dart:5976:11)
+#12     ComponentElement.mount (package:flutter/src/widgets/framework.dart:5796:5)
+...     Normal element mounting (25 frames)
+#37     Element.inflateWidget (package:flutter/src/widgets/framework.dart:4590:20)
+#38     MultiChildRenderObjectElement.inflateWidget (package:flutter/src/widgets/framework.dart:7269:36)
+#39     MultiChildRenderObjectElement.mount (package:flutter/src/widgets/framework.dart:7285:32)
+...     Normal element mounting (364 frames)
+#403    Element.inflateWidget (package:flutter/src/widgets/framework.dart:4590:20)
+#404    MultiChildRenderObjectElement.inflateWidget (package:flutter/src/widgets/framework.dart:7269:36)
+#405    MultiChildRenderObjectElement.mount (package:flutter/src/widgets/framework.dart:7285:32)
+...     Normal element mounting (465 frames)
+#870    Element.inflateWidget (package:flutter/src/widgets/framework.dart:4590:20)
+#871    Element.updateChild (package:flutter/src/widgets/framework.dart:4053:20)
+#872    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5844:16)
+#873    Element.rebuild (package:flutter/src/widgets/framework.dart:5532:7)
+#874    ProxyElement.update (package:flutter/src/widgets/framework.dart:6152:5)
+#875    _InheritedNotifierElement.update (package:flutter/src/widgets/inherited_notifier.dart:108:11)
+#876    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#877    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5844:16)
+#878    StatefulElement.performRebuild (package:flutter/src/widgets/framework.dart:5985:11)
+#879    Element.rebuild (package:flutter/src/widgets/framework.dart:5532:7)
+#880    StatefulElement.update (package:flutter/src/widgets/framework.dart:6010:5)
+#881    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#882    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5844:16)
+#883    Element.rebuild (package:flutter/src/widgets/framework.dart:5532:7)
+#884    ProxyElement.update (package:flutter/src/widgets/framework.dart:6152:5)
+#885    _InheritedNotifierElement.update (package:flutter/src/widgets/inherited_notifier.dart:108:11)
+#886    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#887    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5844:16)
+#888    StatefulElement.performRebuild (package:flutter/src/widgets/framework.dart:5985:11)
+#889    Element.rebuild (package:flutter/src/widgets/framework.dart:5532:7)
+#890    StatefulElement.update (package:flutter/src/widgets/framework.dart:6010:5)
+#891    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#892    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5844:16)
+#893    StatefulElement.performRebuild (package:flutter/src/widgets/framework.dart:5985:11)
+#894    Element.rebuild (package:flutter/src/widgets/framework.dart:5532:7)
+#895    StatefulElement.update (package:flutter/src/widgets/framework.dart:6010:5)
+#896    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#897    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5844:16)
+#898    Element.rebuild (package:flutter/src/widgets/framework.dart:5532:7)
+#899    ProxyElement.update (package:flutter/src/widgets/framework.dart:6152:5)
+#900    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#901    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5844:16)
+#902    StatefulElement.performRebuild (package:flutter/src/widgets/framework.dart:5985:11)
+#903    Element.rebuild (package:flutter/src/widgets/framework.dart:5532:7)
+#904    StatefulElement.update (package:flutter/src/widgets/framework.dart:6010:5)
+#905    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#906    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5844:16)
+#907    Element.rebuild (package:flutter/src/widgets/framework.dart:5532:7)
+#908    ProxyElement.update (package:flutter/src/widgets/framework.dart:6152:5)
+#909    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#910    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5844:16)
+#911    Element.rebuild (package:flutter/src/widgets/framework.dart:5532:7)
+#912    ProxyElement.update (package:flutter/src/widgets/framework.dart:6152:5)
+#913    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#914    _RawViewElement._updateChild (package:flutter/src/widgets/view.dart:481:16)
+#915    _RawViewElement.update (package:flutter/src/widgets/view.dart:568:5)
+#916    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#917    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5844:16)
+#918    Element.rebuild (package:flutter/src/widgets/framework.dart:5532:7)
+#919    StatelessElement.update (package:flutter/src/widgets/framework.dart:5898:5)
+#920    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#921    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5844:16)
+#922    StatefulElement.performRebuild (package:flutter/src/widgets/framework.dart:5985:11)
+#923    Element.rebuild (package:flutter/src/widgets/framework.dart:5532:7)
+#924    StatefulElement.update (package:flutter/src/widgets/framework.dart:6010:5)
+#925    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#926    RootElement._rebuild (package:flutter/src/widgets/binding.dart:1782:16)
+#927    RootElement.update (package:flutter/src/widgets/binding.dart:1760:5)
+#928    RootElement.performRebuild (package:flutter/src/widgets/binding.dart:1774:7)
+#929    Element.rebuild (package:flutter/src/widgets/framework.dart:5532:7)
+#930    BuildScope._tryRebuild (package:flutter/src/widgets/framework.dart:2750:15)
+#931    BuildScope._flushDirtyElements (package:flutter/src/widgets/framework.dart:2807:11)
+#932    BuildOwner.buildScope (package:flutter/src/widgets/framework.dart:3111:18)
+#933    AutomatedTestWidgetsFlutterBinding.drawFrame (package:flutter_test/src/binding.dart:1506:19)
+#934    RendererBinding._handlePersistentFrameCallback (package:flutter/src/rendering/binding.dart:495:5)
+#935    SchedulerBinding._invokeFrameCallback (package:flutter/src/scheduler/binding.dart:1434:15)
+#936    SchedulerBinding.handleDrawFrame (package:flutter/src/scheduler/binding.dart:1347:9)
+#937    AutomatedTestWidgetsFlutterBinding.pump.<anonymous closure> (package:flutter_test/src/binding.dart:1335:9)
+#940    TestAsyncUtils.guard (package:flutter_test/src/test_async_utils.dart:74:41)
+#941    AutomatedTestWidgetsFlutterBinding.pump (package:flutter_test/src/binding.dart:1324:27)
+#942    WidgetTester.pumpWidget.<anonymous closure> (package:flutter_test/src/widget_tester.dart:598:22)
+#945    TestAsyncUtils.guard (package:flutter_test/src/test_async_utils.dart:74:41)
+#946    WidgetTester.pumpWidget (package:flutter_test/src/widget_tester.dart:595:27)
+#947    main.<anonymous closure> (file:///home/artem/StudioProjects/kopim/test/features/analytics/presentation/widgets/total_money_chart_widget_test.dart:54:18)
+#948    testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:29)
+<asynchronous suspension>
+#949    TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1059:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided 5 frames from dart:async and package:stack_trace)
+
+════════════════════════════════════════════════════════════════════════════════════════════════════
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following StateError was thrown running a test:
+Bad state: No element
+
+When the exception was thrown, this was the stack:
+#0      Iterable.single (dart:core/iterable.dart:694:25)
+#1      WidgetController.widget (package:flutter_test/src/controller.dart:808:30)
+#2      main.<anonymous closure> (file:///home/artem/StudioProjects/kopim/test/features/analytics/presentation/widgets/total_money_chart_widget_test.dart:83:43)
+<asynchronous suspension>
+#3      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#4      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1059:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+The test description was:
+  TotalMoneyChartWidget has 2 series when data is selected
+════════════════════════════════════════════════════════════════════════════════════════════════════
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following message was thrown:
+Multiple exceptions (2) were detected during the running of the current test, and at least one was
+unexpected.
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:01 +0 -2: TotalMoneyChartWidget has 2 series when data is selected [E]                                                                                                                              
+  Test failed. See exception logs above.
+  The test description was: TotalMoneyChartWidget has 2 series when data is selected
+  
+
+To run this test again: /home/artem/Android/Flutter/flutter/bin/cache/dart-sdk/bin/dart test /home/artem/StudioProjects/kopim/test/features/analytics/presentation/widgets/total_money_chart_widget_test.dart -p vm --plain-name 'TotalMoneyChartWidget has 2 series when data is selected'
+00:01 +0 -2: Some tests failed.                                                                                                                                                                        

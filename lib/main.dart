@@ -15,6 +15,7 @@ import 'core/di/injectors.dart';
 import 'core/navigation/app_router.dart';
 import 'core/theme/application/theme_mode_controller.dart';
 import 'core/theme/domain/app_theme_mode.dart';
+import 'core/widgets/app_splash_placeholder.dart';
 import 'core/widgets/notification_fallback_listener.dart';
 
 Future<void> main() async {
@@ -144,21 +145,22 @@ class _MyAppState extends ConsumerState<MyApp> {
   }
 }
 
-class _FirebaseInitializationLoadingApp extends StatelessWidget {
+class _FirebaseInitializationLoadingApp extends ConsumerWidget {
   const _FirebaseInitializationLoadingApp();
 
   @override
-  Widget build(BuildContext context) {
-    return const MaterialApp(
-      home: Scaffold(
-        body: Center(
-          child: SizedBox(
-            width: 72,
-            height: 72,
-            child: CircularProgressIndicator(),
-          ),
-        ),
-      ),
+  Widget build(BuildContext context, WidgetRef ref) {
+    final ThemeData lightTheme = ref.watch(appThemeProvider);
+    final ThemeData darkTheme = ref.watch(appDarkThemeProvider);
+    final AppThemeMode appThemeMode = ref.watch(themeModeControllerProvider);
+    final ThemeMode themeMode = appThemeMode.toMaterialThemeMode();
+
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      theme: lightTheme,
+      darkTheme: darkTheme,
+      themeMode: themeMode,
+      home: const Scaffold(body: AppSplashPlaceholder()),
     );
   }
 }

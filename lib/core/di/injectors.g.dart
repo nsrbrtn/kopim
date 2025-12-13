@@ -3979,6 +3979,57 @@ final class WatchRecentTransactionsUseCaseProvider
 String _$watchRecentTransactionsUseCaseHash() =>
     r'b8f01a6912efa1d95b04dd015e398b978beee58e';
 
+@ProviderFor(watchAccountMonthlyTotalsUseCase)
+const watchAccountMonthlyTotalsUseCaseProvider =
+    WatchAccountMonthlyTotalsUseCaseProvider._();
+
+final class WatchAccountMonthlyTotalsUseCaseProvider
+    extends
+        $FunctionalProvider<
+          WatchAccountMonthlyTotalsUseCase,
+          WatchAccountMonthlyTotalsUseCase,
+          WatchAccountMonthlyTotalsUseCase
+        >
+    with $Provider<WatchAccountMonthlyTotalsUseCase> {
+  const WatchAccountMonthlyTotalsUseCaseProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'watchAccountMonthlyTotalsUseCaseProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$watchAccountMonthlyTotalsUseCaseHash();
+
+  @$internal
+  @override
+  $ProviderElement<WatchAccountMonthlyTotalsUseCase> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  WatchAccountMonthlyTotalsUseCase create(Ref ref) {
+    return watchAccountMonthlyTotalsUseCase(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(WatchAccountMonthlyTotalsUseCase value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<WatchAccountMonthlyTotalsUseCase>(
+        value,
+      ),
+    );
+  }
+}
+
+String _$watchAccountMonthlyTotalsUseCaseHash() =>
+    r'394a565c6c63c6f2e5687cf49c10c170c9f4142f';
+
 @ProviderFor(watchMonthlyAnalyticsUseCase)
 const watchMonthlyAnalyticsUseCaseProvider =
     WatchMonthlyAnalyticsUseCaseProvider._();

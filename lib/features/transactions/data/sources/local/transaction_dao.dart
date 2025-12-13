@@ -1,6 +1,19 @@
 import 'package:drift/drift.dart';
 import 'package:kopim/core/data/database.dart' as db;
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
+import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
+
+class AccountMonthlyTotalsRow {
+  const AccountMonthlyTotalsRow({
+    required this.accountId,
+    required this.income,
+    required this.expense,
+  });
+
+  final String accountId;
+  final double income;
+  final double expense;
+}
 
 class TransactionDao {
   TransactionDao(this._db);
@@ -12,6 +25,47 @@ class TransactionDao {
     query = _db.select(_db.transactions)
       ..where((db.$TransactionsTable tbl) => tbl.isDeleted.equals(false));
     return query.watch();
+  }
+
+  Stream<List<AccountMonthlyTotalsRow>> watchAccountMonthlyTotals({
+    required DateTime start,
+    required DateTime end,
+  }) {
+    final String incomeType = TransactionType.income.storageValue;
+    final String expenseType = TransactionType.expense.storageValue;
+    return _db
+        .customSelect(
+          '''
+SELECT
+  account_id AS account_id,
+  COALESCE(SUM(CASE WHEN type = ?1 THEN ABS(amount) ELSE 0 END), 0) AS income,
+  COALESCE(SUM(CASE WHEN type = ?2 THEN ABS(amount) ELSE 0 END), 0) AS expense
+FROM transactions
+WHERE is_deleted = 0
+  AND date >= ?3
+  AND date < ?4
+GROUP BY account_id
+''',
+          variables: <Variable<Object>>[
+            Variable<String>(incomeType),
+            Variable<String>(expenseType),
+            Variable<DateTime>(start),
+            Variable<DateTime>(end),
+          ],
+          readsFrom: <TableInfo<dynamic, dynamic>>{_db.transactions},
+        )
+        .watch()
+        .map((List<QueryRow> rows) {
+          return rows
+              .map(
+                (QueryRow row) => AccountMonthlyTotalsRow(
+                  accountId: row.read<String>('account_id'),
+                  income: row.read<double>('income'),
+                  expense: row.read<double>('expense'),
+                ),
+              )
+              .toList(growable: false);
+        });
   }
 
   Stream<List<db.TransactionRow>> watchRecentTransactions({

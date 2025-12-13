@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:kopim/core/application/app_startup_controller.dart';
 import 'package:kopim/core/di/injectors.dart';
+import 'package:kopim/core/widgets/app_splash_placeholder.dart';
 import 'package:kopim/features/accounts/presentation/account_details_screen.dart';
 import 'package:kopim/features/accounts/presentation/accounts_add_screen.dart';
 import 'package:kopim/features/accounts/presentation/edit_account_screen.dart';
@@ -298,15 +299,7 @@ class _StartupPlaceholder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(
-        child: SizedBox(
-          width: 72,
-          height: 72,
-          child: CircularProgressIndicator(),
-        ),
-      ),
-    );
+    return const AppSplashPlaceholder();
   }
 }
 

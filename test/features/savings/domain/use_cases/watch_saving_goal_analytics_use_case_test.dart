@@ -5,6 +5,7 @@ import 'package:kopim/features/savings/domain/models/saving_goal_analytics.dart'
 import 'package:kopim/features/savings/domain/use_cases/watch_saving_goal_analytics_use_case.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
+import 'package:kopim/features/transactions/domain/models/account_monthly_totals.dart';
 import 'package:kopim/features/transactions/domain/repositories/transaction_repository.dart';
 
 class _FakeTransactionRepository implements TransactionRepository {
@@ -23,6 +24,14 @@ class _FakeTransactionRepository implements TransactionRepository {
       }
       return items.take(limit).toList(growable: false);
     });
+  }
+
+  @override
+  Stream<List<AccountMonthlyTotals>> watchAccountMonthlyTotals({
+    required DateTime start,
+    required DateTime end,
+  }) {
+    return const Stream<List<AccountMonthlyTotals>>.empty();
   }
 
   @override

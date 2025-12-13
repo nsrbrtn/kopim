@@ -4,7 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:kopim/features/analytics/domain/models/monthly_balance_data.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
-class TotalMoneyChartWidget extends StatelessWidget {
+class TotalMoneyChartWidget extends StatefulWidget {
   const TotalMoneyChartWidget({
     super.key,
     required this.data,
@@ -21,42 +21,64 @@ class TotalMoneyChartWidget extends StatelessWidget {
   final String localeName;
 
   @override
+  State<TotalMoneyChartWidget> createState() => _TotalMoneyChartWidgetState();
+}
+
+class _TotalMoneyChartWidgetState extends State<TotalMoneyChartWidget> {
+  @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
     final ColorScheme colors = theme.colorScheme;
 
-    if (data.isEmpty) {
+    if (widget.data.isEmpty) {
       return const SizedBox.shrink();
     }
 
     // Найти данные для выбранного месяца
-    final MonthlyBalanceData? selectedData = data.firstWhereOrNull(
+    final MonthlyBalanceData? selectedData = widget.data.firstWhereOrNull(
       (MonthlyBalanceData d) =>
-          d.month.year == selectedMonth.year &&
-          d.month.month == selectedMonth.month,
+          d.month.year == widget.selectedMonth.year &&
+          d.month.month == widget.selectedMonth.month,
     );
 
     // Если данные не найдены (например, выбрана дата вне диапазона графика),
     // берем последние доступные (текущий месяц) или первые.
-    final MonthlyBalanceData displayData = selectedData ?? data.first;
+    final MonthlyBalanceData displayData = selectedData ?? widget.data.first;
 
     // Найти минимальное и максимальное значение для настройки осей
-    final double minBalance = data
+    final double minBalance = widget.data
         .map((MonthlyBalanceData d) => d.totalBalance)
         .reduce((double a, double b) => a < b ? a : b);
-    final double maxBalance = data
+    final double maxBalance = widget.data
         .map((MonthlyBalanceData d) => d.totalBalance)
         .reduce((double a, double b) => a > b ? a : b);
 
-    // Добавить отступы для лучшей визуализации
-    final double range = maxBalance - minBalance;
-    final double yMin = minBalance - range * 0.1;
-    final double yMax = maxBalance + range * 0.1;
+    // Настройка отступов в пикселях
+    const double chartHeight = 160;
+    const double topPadding = 32;
+    const double bottomPadding = 16;
+    const double availableHeight = chartHeight - topPadding - bottomPadding;
 
-    final NumberFormat formatter = NumberFormat.compact(locale: localeName);
+    final double range = maxBalance - minBalance;
+    // Если диапазон 0, задаем дефолтный
+    final double effectiveRange = range == 0
+        ? (maxBalance == 0 ? 100 : maxBalance * 0.2)
+        : range;
+
+    // Рассчитываем диапазон оси Y так, чтобы данные занимали availableHeight
+    // R = (max - min) * H / (H - Top - Bottom)
+    final double axisRange = effectiveRange * chartHeight / availableHeight;
+
+    // axisMax = max + (Top / H) * R
+    final double yMax = maxBalance + (topPadding / chartHeight) * axisRange;
+    final double yMin = yMax - axisRange;
+
+    final NumberFormat formatter = NumberFormat.compact(
+      locale: widget.localeName,
+    );
     final String monthName = DateFormat(
       'LLLL',
-      localeName,
+      widget.localeName,
     ).format(displayData.month);
 
     return Container(
@@ -124,7 +146,7 @@ class TotalMoneyChartWidget extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                '${formatter.format(displayData.totalBalance)} $currencySymbol',
+                '${formatter.format(displayData.totalBalance)} ${widget.currencySymbol}',
                 style: TextStyle(
                   fontFamily: 'Onest',
                   fontSize: 32,
@@ -137,10 +159,10 @@ class TotalMoneyChartWidget extends StatelessWidget {
           ),
           const SizedBox(height: 24),
           SizedBox(
-            height: 150,
+            height: chartHeight,
             child: SfCartesianChart(
               plotAreaBorderWidth: 0,
-              margin: const EdgeInsets.all(0),
+              margin: EdgeInsets.zero,
               primaryXAxis: CategoryAxis(
                 majorGridLines: const MajorGridLines(width: 0),
                 axisLine: const AxisLine(width: 0),
@@ -158,13 +180,36 @@ class TotalMoneyChartWidget extends StatelessWidget {
                 minimum: yMin,
                 maximum: yMax,
               ),
+              annotations: <CartesianChartAnnotation>[
+                if (selectedData != null)
+                  CartesianChartAnnotation(
+                    widget: Container(
+                      width: 20,
+                      height: 20,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        boxShadow: <BoxShadow>[
+                          BoxShadow(
+                            color: colors.primary.withValues(alpha: 0.5),
+                            blurRadius: 10,
+                            spreadRadius: 2.5,
+                          ),
+                        ],
+                      ),
+                    ),
+                    coordinateUnit: CoordinateUnit.point,
+                    x: selectedData.monthLabel,
+                    y: selectedData.totalBalance,
+                  ),
+              ],
               series: <CartesianSeries<MonthlyBalanceData, String>>[
                 SplineSeries<MonthlyBalanceData, String>(
-                  dataSource: data,
+                  dataSource: widget.data,
                   xValueMapper: (MonthlyBalanceData d, _) => d.monthLabel,
                   yValueMapper: (MonthlyBalanceData d, _) => d.totalBalance,
                   color: colors.primary,
                   width: 2,
+                  animationDuration: 0,
                   markerSettings: MarkerSettings(
                     isVisible: true,
                     height: 8,
@@ -174,9 +219,8 @@ class TotalMoneyChartWidget extends StatelessWidget {
                     borderColor: colors.surfaceContainer,
                     color: colors.primary,
                   ),
-                  // Включаем выбор точек
                   selectionBehavior: SelectionBehavior(
-                    enable: false, // Disabled to fix disappearing line bug
+                    enable: false,
                     selectedColor: colors.primary,
                     unselectedColor: colors.primary.withValues(alpha: 0.5),
                     selectedBorderColor: colors.surfaceContainer,
@@ -184,10 +228,28 @@ class TotalMoneyChartWidget extends StatelessWidget {
                     unselectedBorderColor: colors.surfaceContainer,
                     unselectedBorderWidth: 2,
                   ),
+                ),
+                // Прозрачная серия для увеличения зоны нажатия
+                ScatterSeries<MonthlyBalanceData, String>(
+                  dataSource: widget.data,
+                  xValueMapper: (MonthlyBalanceData d, _) => d.monthLabel,
+                  yValueMapper: (MonthlyBalanceData d, _) => d.totalBalance,
+                  color: Colors.transparent,
+                  markerSettings: const MarkerSettings(
+                    isVisible: true,
+                    height: 40, // Большая зона клика
+                    width: 40,
+                    shape: DataMarkerType.circle,
+                    borderWidth: 0,
+                    color: Colors.transparent,
+                    borderColor: Colors.transparent,
+                  ),
                   onPointTap: (ChartPointDetails details) {
                     if (details.pointIndex != null &&
-                        details.pointIndex! < data.length) {
-                      onMonthSelected(data[details.pointIndex!].month);
+                        details.pointIndex! < widget.data.length) {
+                      widget.onMonthSelected(
+                        widget.data[details.pointIndex!].month,
+                      );
                     }
                   },
                 ),

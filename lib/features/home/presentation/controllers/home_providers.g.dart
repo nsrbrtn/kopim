@@ -552,10 +552,12 @@ final class HomeAccountMonthlySummariesProvider
     extends
         $FunctionalProvider<
           AsyncValue<Map<String, HomeAccountMonthlySummary>>,
-          AsyncValue<Map<String, HomeAccountMonthlySummary>>,
-          AsyncValue<Map<String, HomeAccountMonthlySummary>>
+          Map<String, HomeAccountMonthlySummary>,
+          Stream<Map<String, HomeAccountMonthlySummary>>
         >
-    with $Provider<AsyncValue<Map<String, HomeAccountMonthlySummary>>> {
+    with
+        $FutureModifier<Map<String, HomeAccountMonthlySummary>>,
+        $StreamProvider<Map<String, HomeAccountMonthlySummary>> {
   const HomeAccountMonthlySummariesProvider._()
     : super(
         from: null,
@@ -572,25 +574,13 @@ final class HomeAccountMonthlySummariesProvider
 
   @$internal
   @override
-  $ProviderElement<AsyncValue<Map<String, HomeAccountMonthlySummary>>>
-  $createElement($ProviderPointer pointer) => $ProviderElement(pointer);
+  $StreamProviderElement<Map<String, HomeAccountMonthlySummary>> $createElement(
+    $ProviderPointer pointer,
+  ) => $StreamProviderElement(pointer);
 
   @override
-  AsyncValue<Map<String, HomeAccountMonthlySummary>> create(Ref ref) {
+  Stream<Map<String, HomeAccountMonthlySummary>> create(Ref ref) {
     return homeAccountMonthlySummaries(ref);
-  }
-
-  /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(
-    AsyncValue<Map<String, HomeAccountMonthlySummary>> value,
-  ) {
-    return $ProviderOverride(
-      origin: this,
-      providerOverride:
-          $SyncValueProvider<
-            AsyncValue<Map<String, HomeAccountMonthlySummary>>
-          >(value),
-    );
   }
 }
 

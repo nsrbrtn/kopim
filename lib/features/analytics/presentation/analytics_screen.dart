@@ -159,10 +159,11 @@ NavigationTabContent buildAnalyticsTabContent(
           categoriesAsync.value ?? const <Category>[];
       final List<AccountEntity> accounts =
           accountsAsync.value ?? const <AccountEntity>[];
-      final bool isLoading =
-          overviewAsync.isLoading ||
-          categoriesAsync.isLoading ||
-          accountsAsync.isLoading;
+      final bool showFullScreenLoading =
+          (overviewAsync.isLoading && !overviewAsync.hasValue) ||
+          (categoriesAsync.isLoading && !categoriesAsync.hasValue) ||
+          (accountsAsync.isLoading && !accountsAsync.hasValue);
+
       final Object? error =
           overviewAsync.error ?? categoriesAsync.error ?? accountsAsync.error;
       final AnalyticsOverview? overview = overviewAsync.value;
@@ -201,7 +202,7 @@ NavigationTabContent buildAnalyticsTabContent(
                 ),
               ),
             ),
-            if (isLoading)
+            if (showFullScreenLoading)
               const SliverFillRemaining(
                 hasScrollBody: false,
                 child: Center(child: CircularProgressIndicator()),
@@ -1283,6 +1284,7 @@ class _TopCategoriesPageState extends State<_TopCategoriesPage> {
                     backgroundColor: backgroundColor,
                     totalAmount: capturedTotal,
                     selectedIndex: selectedIndex,
+                    animate: false,
                     onSegmentSelected: (int index) {
                       if (index >= 0 && index < displayItems.length) {
                         setState(() {

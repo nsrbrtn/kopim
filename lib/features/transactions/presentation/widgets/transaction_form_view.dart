@@ -73,9 +73,6 @@ String? _resolveDefaultAccountId(
   return accounts.isNotEmpty ? accounts.first.id : null;
 }
 
-const Color _kPrimaryButtonBackground = Color(0xFFAEF75F);
-const Color _kPrimaryButtonForeground = Color(0xFF1D3700);
-
 InputDecoration _transactionTextFieldDecoration(
   BuildContext context, {
   String? labelText,
@@ -1434,13 +1431,14 @@ class _SubmitButton extends ConsumerWidget {
     final TransactionFormProvider formProvider =
         transactionFormControllerProvider(formArgs);
     final ThemeData theme = Theme.of(context);
+    final ColorScheme colors = theme.colorScheme;
     return SizedBox(
       height: 56,
       child: ElevatedButton(
         key: key,
         style: ElevatedButton.styleFrom(
-          backgroundColor: _kPrimaryButtonBackground,
-          foregroundColor: _kPrimaryButtonForeground,
+          backgroundColor: colors.primary,
+          foregroundColor: colors.onPrimary,
           minimumSize: const Size(0, 56),
           padding: const EdgeInsets.symmetric(horizontal: 32),
           shape: RoundedRectangleBorder(
@@ -1470,7 +1468,7 @@ class _SubmitButton extends ConsumerWidget {
                 height: 16,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  color: _kPrimaryButtonForeground,
+                  color: colors.onPrimary,
                   semanticsLabel: submitLabel,
                 ),
               )
@@ -1479,7 +1477,7 @@ class _SubmitButton extends ConsumerWidget {
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w500,
                   letterSpacing: 0.15,
-                  color: _kPrimaryButtonForeground,
+                  color: colors.onPrimary,
                 ),
               ),
       ),

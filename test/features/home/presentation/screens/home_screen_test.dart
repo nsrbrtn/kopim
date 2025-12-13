@@ -9,7 +9,9 @@ import 'package:kopim/features/home/domain/models/home_account_monthly_summary.d
 import 'package:kopim/features/home/presentation/controllers/home_providers.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/repositories/transaction_repository.dart';
+import 'package:kopim/features/transactions/domain/models/account_monthly_totals.dart';
 import 'package:kopim/features/transactions/domain/use_cases/watch_recent_transactions_use_case.dart';
+import 'package:kopim/features/transactions/domain/use_cases/watch_account_monthly_totals_use_case.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
 import 'package:riverpod/src/framework.dart';
 
@@ -33,6 +35,11 @@ void main() {
           ),
           watchRecentTransactionsUseCaseProvider.overrideWithValue(
             WatchRecentTransactionsUseCase(
+              _InMemoryTransactionRepository(transactionsController.stream),
+            ),
+          ),
+          watchAccountMonthlyTotalsUseCaseProvider.overrideWithValue(
+            WatchAccountMonthlyTotalsUseCase(
               _InMemoryTransactionRepository(transactionsController.stream),
             ),
           ),
@@ -293,6 +300,45 @@ class _InMemoryTransactionRepository implements TransactionRepository {
   final Stream<List<TransactionEntity>> _stream;
 
   @override
+  Stream<List<AccountMonthlyTotals>> watchAccountMonthlyTotals({
+    required DateTime start,
+    required DateTime end,
+  }) {
+    return _stream.map((List<TransactionEntity> items) {
+      final Map<String, ({double income, double expense})> acc =
+          <String, ({double income, double expense})>{};
+      for (final TransactionEntity transaction in items) {
+        if (transaction.date.isBefore(start) || !transaction.date.isBefore(end)) {
+          continue;
+        }
+        final ({double income, double expense}) current =
+            acc[transaction.accountId] ?? (income: 0, expense: 0);
+        if (transaction.type == TransactionType.income.storageValue) {
+          acc[transaction.accountId] = (
+            income: current.income + transaction.amount.abs(),
+            expense: current.expense,
+          );
+        } else if (transaction.type == TransactionType.expense.storageValue) {
+          acc[transaction.accountId] = (
+            income: current.income,
+            expense: current.expense + transaction.amount.abs(),
+          );
+        }
+      }
+      return acc.entries
+          .map(
+            (MapEntry<String, ({double income, double expense})> entry) =>
+                AccountMonthlyTotals(
+                  accountId: entry.key,
+                  income: entry.value.income,
+                  expense: entry.value.expense,
+                ),
+          )
+          .toList(growable: false);
+    });
+  }
+
+  @override
   Future<TransactionEntity?> findById(String id) {
     throw UnimplementedError();
   }
@@ -372,6 +418,14 @@ class _DummyTransactionRepository implements TransactionRepository {
 
   @override
   Stream<List<TransactionEntity>> watchRecentTransactions({int? limit}) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Stream<List<AccountMonthlyTotals>> watchAccountMonthlyTotals({
+    required DateTime start,
+    required DateTime end,
+  }) {
     throw UnimplementedError();
   }
 }

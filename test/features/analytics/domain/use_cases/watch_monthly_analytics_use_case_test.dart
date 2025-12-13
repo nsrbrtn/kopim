@@ -6,6 +6,7 @@ import 'package:kopim/features/analytics/domain/models/analytics_overview.dart';
 import 'package:kopim/features/analytics/domain/use_cases/watch_monthly_analytics_use_case.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
+import 'package:kopim/features/transactions/domain/models/account_monthly_totals.dart';
 import 'package:kopim/features/transactions/domain/repositories/transaction_repository.dart';
 
 void main() {
@@ -181,6 +182,14 @@ class FakeTransactionRepository implements TransactionRepository {
       }
       return items.take(limit).toList(growable: false);
     });
+  }
+
+  @override
+  Stream<List<AccountMonthlyTotals>> watchAccountMonthlyTotals({
+    required DateTime start,
+    required DateTime end,
+  }) {
+    return const Stream<List<AccountMonthlyTotals>>.empty();
   }
 
   Future<void> emit(List<TransactionEntity> transactions) async {

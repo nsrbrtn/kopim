@@ -14,9 +14,9 @@
 - [low][fixed] Быстрый ввод использует общий `digitsAndSeparatorsFormatter`, валидация совпадает с основной формой.
 
 # Performance findings
-- [med] `homeAccountMonthlySummariesProvider` грузит **все** транзакции (`watchRecentTransactionsUseCase(limit: 0)`) и агрегирует на UI-isolate через `computeCurrentMonthSummaries`. На большом истории (офлайн-режим) это блокирует главный изолят и удлиняет первый рендер home (lib/features/home/presentation/controllers/home_providers.dart). Нужен запрос по месяцу на уровне Drift/DAO или ограничение выборки.
-- [low] `TransactionFormOverlay` кладет полноэкранный `BackdropFilter.blur` при каждом показе; на слабых девайсах может давать прыжок FPS. Можно кешировать слой или снижать sigma в зависимости от платформы.
-- [low] Кнопки сохранения формы и FAB в `AddTransactionScreen` используют жестко заданные цвета (`_kPrimaryButtonBackground`, `_kFabBackgroundColor`) вместо токенов `ColorScheme`, что может ломать контраст/тему и мешает глобальной смене схемы (transaction_form_view.dart, add_transaction_screen.dart).
+- [med][fixed] `homeAccountMonthlySummariesProvider` больше не грузит всю историю. Агрегация вынесена в Drift (`TransactionDao.watchAccountMonthlyTotals`) и отдает суммы только за текущий месяц.
+- [low][fixed] `TransactionFormOverlay` теперь оборачивает blur в `ClipRect` и адаптирует `sigma` по платформе (на Web blur отключён), чтобы уменьшить просадки FPS.
+- [low][fixed] Кнопки сохранения формы и FAB больше не используют хардкоды цветов — опираются на `ThemeData.colorScheme`.
 
 # Refactor plan
 - **Быстрые (до 2ч):**

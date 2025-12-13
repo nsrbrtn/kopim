@@ -5,6 +5,7 @@ import 'package:kopim/features/savings/data/sources/local/saving_goal_dao.dart';
 import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
 import 'package:kopim/features/transactions/data/sources/local/transaction_dao.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
+import 'package:kopim/features/transactions/domain/models/account_monthly_totals.dart';
 import 'package:kopim/features/transactions/domain/repositories/transaction_repository.dart';
 
 class TransactionRepositoryImpl implements TransactionRepository {
@@ -49,6 +50,26 @@ class TransactionRepositoryImpl implements TransactionRepository {
         rows.map(_mapToDomain),
       ),
     );
+  }
+
+  @override
+  Stream<List<AccountMonthlyTotals>> watchAccountMonthlyTotals({
+    required DateTime start,
+    required DateTime end,
+  }) {
+    return _transactionDao
+        .watchAccountMonthlyTotals(start: start, end: end)
+        .map(
+          (List<AccountMonthlyTotalsRow> rows) => rows
+              .map(
+                (AccountMonthlyTotalsRow row) => AccountMonthlyTotals(
+                  accountId: row.accountId,
+                  income: row.income,
+                  expense: row.expense,
+                ),
+              )
+              .toList(growable: false),
+        );
   }
 
   @override

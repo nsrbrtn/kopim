@@ -257,14 +257,6 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                       height: 160,
                       fit: BoxFit.contain,
                     ),
-                    const SizedBox(height: 12),
-                    Text(
-                      'Привет!\nДавай копить\nвместе.',
-                      style: theme.textTheme.headlineSmall?.copyWith(
-                        color: theme.colorScheme.onSurface,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
                   ],
                 ),
               ),

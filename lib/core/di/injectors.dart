@@ -116,6 +116,7 @@ import 'package:kopim/features/transactions/domain/use_cases/add_transaction_use
 import 'package:kopim/features/transactions/domain/use_cases/delete_transaction_use_case.dart';
 import 'package:kopim/features/transactions/domain/use_cases/update_transaction_use_case.dart';
 import 'package:uuid/uuid.dart';
+import 'package:kopim/features/transactions/domain/use_cases/watch_account_monthly_totals_use_case.dart';
 import 'package:kopim/features/transactions/domain/use_cases/watch_account_transactions_use_case.dart';
 import 'package:kopim/features/transactions/domain/use_cases/watch_recent_transactions_use_case.dart';
 import 'package:kopim/features/home/data/repositories/home_dashboard_preferences_repository_impl.dart';
@@ -654,6 +655,10 @@ WatchAccountTransactionsUseCase watchAccountTransactionsUseCase(Ref ref) =>
 @riverpod
 WatchRecentTransactionsUseCase watchRecentTransactionsUseCase(Ref ref) =>
     WatchRecentTransactionsUseCase(ref.watch(transactionRepositoryProvider));
+
+@riverpod
+WatchAccountMonthlyTotalsUseCase watchAccountMonthlyTotalsUseCase(Ref ref) =>
+    WatchAccountMonthlyTotalsUseCase(ref.watch(transactionRepositoryProvider));
 
 @riverpod
 WatchMonthlyAnalyticsUseCase watchMonthlyAnalyticsUseCase(Ref ref) =>

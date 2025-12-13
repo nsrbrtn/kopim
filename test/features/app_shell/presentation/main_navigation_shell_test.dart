@@ -32,6 +32,7 @@ import 'package:kopim/features/savings/domain/use_cases/archive_saving_goal_use_
 import 'package:kopim/features/savings/domain/use_cases/get_saving_goals_use_case.dart';
 import 'package:kopim/features/savings/domain/use_cases/watch_saving_goals_use_case.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
+import 'package:kopim/features/transactions/domain/models/account_monthly_totals.dart';
 import 'package:kopim/features/transactions/domain/repositories/transaction_repository.dart';
 import 'package:kopim/features/transactions/domain/use_cases/watch_recent_transactions_use_case.dart';
 import 'package:kopim/features/upcoming_payments/domain/models/upcoming_item.dart';
@@ -95,6 +96,14 @@ class _StreamTransactionRepository implements TransactionRepository {
       }
       return items.take(limit).toList(growable: false);
     });
+  }
+
+  @override
+  Stream<List<AccountMonthlyTotals>> watchAccountMonthlyTotals({
+    required DateTime start,
+    required DateTime end,
+  }) {
+    return const Stream<List<AccountMonthlyTotals>>.empty();
   }
 
   @override

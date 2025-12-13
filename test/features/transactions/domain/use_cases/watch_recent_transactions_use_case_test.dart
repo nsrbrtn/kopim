@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
+import 'package:kopim/features/transactions/domain/models/account_monthly_totals.dart';
 import 'package:kopim/features/transactions/domain/repositories/transaction_repository.dart';
 import 'package:kopim/features/transactions/domain/use_cases/watch_recent_transactions_use_case.dart';
 
@@ -79,6 +80,14 @@ class _InMemoryTransactionRepository implements TransactionRepository {
   _InMemoryTransactionRepository(this._stream);
 
   final Stream<List<TransactionEntity>> _stream;
+
+  @override
+  Stream<List<AccountMonthlyTotals>> watchAccountMonthlyTotals({
+    required DateTime start,
+    required DateTime end,
+  }) {
+    return const Stream<List<AccountMonthlyTotals>>.empty();
+  }
 
   @override
   Future<TransactionEntity?> findById(String id) {

@@ -888,7 +888,27 @@ class _AssistantEmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const SizedBox.shrink();
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+    final String assetName = isDark
+        ? 'assets/icons/robot_darktheme.png'
+        : 'assets/icons/robot_lighttheme.png';
+
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          Image.asset(assetName, width: 200, height: 200, fit: BoxFit.contain),
+          const SizedBox(height: 16),
+          Text(
+            strings.assistantEmptyStateTitle,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
   }
 }
 

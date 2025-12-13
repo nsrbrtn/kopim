@@ -1,5 +1,8 @@
+import 'dart:async';
 import 'dart:ui';
 
+import 'package:flutter/foundation.dart'
+    show TargetPlatform, defaultTargetPlatform, kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
@@ -21,10 +24,32 @@ class _TransactionFormOverlayState
     extends ConsumerState<TransactionFormOverlay> {
   bool _allowAutofocus = false;
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  bool _shouldRenderForm = false;
+  TransactionFormArgs _lastFormArgs = const TransactionFormArgs();
+  Timer? _hideTimer;
 
   void _closeWithUnfocus(WidgetRef ref) {
     FocusScope.of(context).unfocus();
     ref.read(transactionSheetControllerProvider.notifier).close();
+  }
+
+  TransactionFormArgs _buildFormArgs(TransactionSheetState sheetState) {
+    return sheetState.mode == TransactionSheetMode.edit &&
+            sheetState.transaction != null
+        ? TransactionFormArgs(initialTransaction: sheetState.transaction)
+        : TransactionFormArgs(defaultAccountId: sheetState.defaultAccountId);
+  }
+
+  double _resolveBackdropBlurSigma() {
+    if (kIsWeb) {
+      return 0;
+    }
+    return switch (defaultTargetPlatform) {
+      TargetPlatform.iOS || TargetPlatform.macOS => 16,
+      TargetPlatform.android => 12,
+      TargetPlatform.linux || TargetPlatform.windows => 8,
+      _ => 12,
+    };
   }
 
   Future<void> _submitForm(
@@ -43,6 +68,10 @@ class _TransactionFormOverlayState
 
   void _handleVisibilityChanged(TransactionSheetState state) {
     if (state.isVisible && !_allowAutofocus) {
+      _hideTimer?.cancel();
+      _hideTimer = null;
+      _shouldRenderForm = true;
+      _lastFormArgs = _buildFormArgs(state);
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           setState(() {
@@ -50,7 +79,7 @@ class _TransactionFormOverlayState
           });
         }
       });
-    } else if (!state.isVisible && _allowAutofocus) {
+    } else if (!state.isVisible && _shouldRenderForm) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           setState(() {
@@ -58,7 +87,22 @@ class _TransactionFormOverlayState
           });
         }
       });
+      _hideTimer?.cancel();
+      _hideTimer = Timer(const Duration(milliseconds: 250), () {
+        if (!mounted) {
+          return;
+        }
+        setState(() {
+          _shouldRenderForm = false;
+        });
+      });
     }
+  }
+
+  @override
+  void dispose() {
+    _hideTimer?.cancel();
+    super.dispose();
   }
 
   @override
@@ -68,21 +112,24 @@ class _TransactionFormOverlayState
     final AppLocalizations strings = AppLocalizations.of(context)!;
     _handleVisibilityChanged(sheetState);
 
-    final TransactionFormArgs formArgs = sheetState.mode ==
-            TransactionSheetMode.edit &&
-        sheetState.transaction != null
-        ? TransactionFormArgs(initialTransaction: sheetState.transaction)
+    final TransactionFormArgs formArgs = _shouldRenderForm
+        ? _lastFormArgs
         : TransactionFormArgs(defaultAccountId: sheetState.defaultAccountId);
-    final TransactionFormProvider formProvider =
-        transactionFormControllerProvider(formArgs);
-    final bool isSubmitting = ref.watch(
-      formProvider.select((TransactionDraftState state) => state.isSubmitting),
-    );
+    final TransactionFormProvider? formProvider =
+        _shouldRenderForm ? transactionFormControllerProvider(formArgs) : null;
+    final bool isSubmitting = formProvider == null
+        ? false
+        : ref.watch(
+            formProvider.select(
+              (TransactionDraftState state) => state.isSubmitting,
+            ),
+          );
     final MediaQueryData mq = MediaQuery.of(context);
     final double viewInsetsBottom = mq.viewInsets.bottom;
     final double viewPaddingBottom = mq.viewPadding.bottom;
     final double effectiveBottomPadding =
         viewInsetsBottom > 0 ? 0 : viewPaddingBottom;
+    final double blurSigma = _resolveBackdropBlurSigma();
 
     return PopScope(
       canPop: !sheetState.isVisible,
@@ -100,14 +147,26 @@ class _TransactionFormOverlayState
                 child: GestureDetector(
                   onTap:
                       isSubmitting ? null : () => _closeWithUnfocus(ref),
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-                    child: Container(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .surface
-                          .withValues(alpha: 0.72),
-                    ),
+                  child: ClipRect(
+                    child: blurSigma <= 0
+                        ? Container(
+                            color: Theme.of(context)
+                                .colorScheme
+                                .surface
+                                .withValues(alpha: 0.72),
+                          )
+                        : BackdropFilter(
+                            filter: ImageFilter.blur(
+                              sigmaX: blurSigma,
+                              sigmaY: blurSigma,
+                            ),
+                            child: Container(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .surface
+                                  .withValues(alpha: 0.72),
+                            ),
+                          ),
                   ),
                 ),
               ),
@@ -126,95 +185,99 @@ class _TransactionFormOverlayState
                     padding: EdgeInsets.only(bottom: effectiveBottomPadding),
                     child: Stack(
                       children: <Widget>[
-                        Center(
-                          child: ConstrainedBox(
-                            constraints: const BoxConstraints(maxWidth: 520),
-                            child: TransactionFormView(
-                              formKey: _formKey,
-                              formArgs: formArgs,
-                              autofocusAmount: _allowAutofocus,
-                              showSubmitButton: false,
-                              onSuccess: (TransactionFormResult result) {
-                                _closeWithUnfocus(ref);
-                                ref
-                                    .read(formProvider.notifier)
-                                    .resetDraft(
-                                      defaultAccountId:
-                                          sheetState.defaultAccountId,
-                                    );
-                                final ScaffoldMessengerState messenger =
-                                    ScaffoldMessenger.of(context)
-                                      ..hideCurrentSnackBar();
-                                final Widget content =
-                                    Text(strings.addTransactionSuccess);
-                                final TransactionEntity? created =
-                                    result.createdTransaction;
-                                messenger.showSnackBar(
-                                  SnackBar(
-                                    content: content,
-                                    action: created == null
-                                        ? null
-                                        : SnackBarAction(
-                                            label: strings.commonUndo,
-                                            onPressed: () {
-                                              ref
-                                                  .read(
-                                                    transactionActionsControllerProvider
-                                                        .notifier,
-                                                  )
-                                                  .deleteTransaction(created.id)
-                                                  .then((bool undone) {
-                                                    if (!mounted) {
-                                                      return;
-                                                    }
-                                                    // ignore: use_build_context_synchronously
-                                                    ScaffoldMessenger.of(
-                                                      context,
+                        if (_shouldRenderForm) ...<Widget>[
+                          Center(
+                            child: ConstrainedBox(
+                              constraints: const BoxConstraints(maxWidth: 520),
+                              child: TransactionFormView(
+                                formKey: _formKey,
+                                formArgs: formArgs,
+                                autofocusAmount: _allowAutofocus,
+                                showSubmitButton: false,
+                                onSuccess: (TransactionFormResult result) {
+                                  _closeWithUnfocus(ref);
+                                  ref
+                                      .read(formProvider!.notifier)
+                                      .resetDraft(
+                                        defaultAccountId:
+                                            sheetState.defaultAccountId,
+                                      );
+                                  final ScaffoldMessengerState messenger =
+                                      ScaffoldMessenger.of(context)
+                                        ..hideCurrentSnackBar();
+                                  final Widget content =
+                                      Text(strings.addTransactionSuccess);
+                                  final TransactionEntity? created =
+                                      result.createdTransaction;
+                                  messenger.showSnackBar(
+                                    SnackBar(
+                                      content: content,
+                                      action: created == null
+                                          ? null
+                                          : SnackBarAction(
+                                              label: strings.commonUndo,
+                                              onPressed: () {
+                                                ref
+                                                    .read(
+                                                      transactionActionsControllerProvider
+                                                          .notifier,
                                                     )
-                                                      ..hideCurrentSnackBar()
-                                                      ..showSnackBar(
-                                                        SnackBar(
-                                                          content: Text(
-                                                            undone
-                                                                ? strings
-                                                                    .addTransactionUndoSuccess
-                                                                : strings
-                                                                    .addTransactionUndoError,
+                                                    .deleteTransaction(
+                                                      created.id,
+                                                    )
+                                                    .then((bool undone) {
+                                                      if (!mounted) {
+                                                        return;
+                                                      }
+                                                      // ignore: use_build_context_synchronously
+                                                      ScaffoldMessenger.of(
+                                                        context,
+                                                      )
+                                                        ..hideCurrentSnackBar()
+                                                        ..showSnackBar(
+                                                          SnackBar(
+                                                            content: Text(
+                                                              undone
+                                                                  ? strings
+                                                                      .addTransactionUndoSuccess
+                                                                  : strings
+                                                                      .addTransactionUndoError,
+                                                            ),
                                                           ),
-                                                        ),
-                                                      );
-                                                  });
-                                            },
-                                          ),
-                                  ),
-                                );
-                              },
+                                                        );
+                                                    });
+                                              },
+                                            ),
+                                    ),
+                                  );
+                                },
+                              ),
                             ),
                           ),
-                        ),
-                        Positioned(
-                          right: 24,
-                          bottom: 16 + effectiveBottomPadding,
-                          child: FloatingActionButton.extended(
-                            heroTag: 'transaction_form_submit_fab',
-                            onPressed: isSubmitting
-                                ? null
-                                : () async => _submitForm(ref, formArgs),
-                            icon: isSubmitting
-                                ? SizedBox(
-                                    width: 18,
-                                    height: 18,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .onPrimary,
-                                    ),
-                                  )
-                                : const Icon(Icons.check),
-                            label: Text(strings.addTransactionSubmit),
+                          Positioned(
+                            right: 24,
+                            bottom: 16 + effectiveBottomPadding,
+                            child: FloatingActionButton.extended(
+                              heroTag: 'transaction_form_submit_fab',
+                              onPressed: isSubmitting
+                                  ? null
+                                  : () async => _submitForm(ref, formArgs),
+                              icon: isSubmitting
+                                  ? SizedBox(
+                                      width: 18,
+                                      height: 18,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onPrimary,
+                                      ),
+                                    )
+                                  : const Icon(Icons.check),
+                              label: Text(strings.addTransactionSubmit),
+                            ),
                           ),
-                        ),
+                        ],
                       ],
                     ),
                   ),

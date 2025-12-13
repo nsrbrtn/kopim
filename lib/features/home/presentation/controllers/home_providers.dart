@@ -8,6 +8,7 @@ import 'package:kopim/features/home/domain/use_cases/group_transactions_by_day_u
 import 'package:kopim/features/home/presentation/controllers/home_transactions_filter_controller.dart';
 import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
 import 'package:kopim/features/savings/domain/value_objects/goal_progress.dart';
+import 'package:kopim/features/transactions/domain/models/account_monthly_totals.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -106,17 +107,26 @@ AsyncValue<List<DaySection>> homeGroupedTransactions(Ref ref) {
 }
 
 @riverpod
-AsyncValue<Map<String, HomeAccountMonthlySummary>> homeAccountMonthlySummaries(
+Stream<Map<String, HomeAccountMonthlySummary>> homeAccountMonthlySummaries(
   Ref ref,
 ) {
-  final AsyncValue<List<TransactionEntity>> transactionsAsync = ref.watch(
-    homeRecentTransactionsProvider(limit: 0),
-  );
-
-  return transactionsAsync.whenData(
-    (List<TransactionEntity> transactions) =>
-        computeCurrentMonthSummaries(transactions: transactions),
-  );
+  final Stream<List<AccountMonthlyTotals>> totalsStream = ref
+      .watch(watchAccountMonthlyTotalsUseCaseProvider)
+      .call();
+  return totalsStream.map((List<AccountMonthlyTotals> totals) {
+    if (totals.isEmpty) {
+      return const <String, HomeAccountMonthlySummary>{};
+    }
+    final Map<String, HomeAccountMonthlySummary> mapped =
+        <String, HomeAccountMonthlySummary>{};
+    for (final AccountMonthlyTotals item in totals) {
+      mapped[item.accountId] = HomeAccountMonthlySummary(
+        income: item.income,
+        expense: item.expense,
+      );
+    }
+    return Map<String, HomeAccountMonthlySummary>.unmodifiable(mapped);
+  });
 }
 
 @visibleForTesting
