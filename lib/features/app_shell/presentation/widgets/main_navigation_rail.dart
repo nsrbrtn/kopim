@@ -24,7 +24,9 @@ class MainNavigationRail extends ConsumerWidget {
         ? surfaces.navigationBarDark
         : surfaces.navigationBarLight;
     final int currentIndex = ref.watch(
-      mainNavigationControllerProvider.select((int value) => value),
+      mainNavigationControllerProvider.select(
+        (MainNavigationState value) => value.currentIndex,
+      ),
     );
 
     return SafeArea(

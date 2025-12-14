@@ -33,6 +33,9 @@ class _MainNavigationShellState extends ConsumerState<MainNavigationShell> {
   String? _cachedLocaleTag;
   bool? _cachedEnableTwoPane;
   List<Widget?> _cachedPanes = <Widget?>[];
+  bool _freezeScaffoldViewInsets = false;
+  Timer? _freezeScaffoldViewInsetsTimer;
+  ProviderSubscription<bool>? _transactionSheetVisibilitySubscription;
 
   void _invalidateCache() {
     _cachedPanes = List<Widget?>.filled(_cachedTabIds.length, null);
@@ -56,9 +59,9 @@ class _MainNavigationShellState extends ConsumerState<MainNavigationShell> {
     final bool twoPaneChanged = _cachedEnableTwoPane != enableTwoPane;
 
     if (tabIdsChanged) {
-      _cachedTabIds = tabs.map((NavigationTabConfig e) => e.id).toList(
-            growable: false,
-          );
+      _cachedTabIds = tabs
+          .map((NavigationTabConfig e) => e.id)
+          .toList(growable: false);
       _cachedPanes = List<Widget?>.filled(_cachedTabIds.length, null);
     }
 
@@ -85,6 +88,56 @@ class _MainNavigationShellState extends ConsumerState<MainNavigationShell> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _freezeScaffoldViewInsets = ref.read(
+      transactionSheetControllerProvider.select(
+        (TransactionSheetState state) => state.isVisible,
+      ),
+    );
+    _transactionSheetVisibilitySubscription = ref.listenManual<bool>(
+      transactionSheetControllerProvider.select(
+        (TransactionSheetState state) => state.isVisible,
+      ),
+      (bool? previous, bool next) {
+        if (next) {
+          _freezeScaffoldViewInsetsTimer?.cancel();
+          if (_freezeScaffoldViewInsets) {
+            return;
+          }
+          setState(() {
+            _freezeScaffoldViewInsets = true;
+          });
+          return;
+        }
+
+        if (!_freezeScaffoldViewInsets) {
+          return;
+        }
+        _freezeScaffoldViewInsetsTimer?.cancel();
+        _freezeScaffoldViewInsetsTimer = Timer(
+          const Duration(milliseconds: 300),
+          () {
+            if (!mounted) {
+              return;
+            }
+            setState(() {
+              _freezeScaffoldViewInsets = false;
+            });
+          },
+        );
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    _freezeScaffoldViewInsetsTimer?.cancel();
+    _transactionSheetVisibilitySubscription?.close();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final AppLocalizations strings = AppLocalizations.of(context)!;
     final KopimLayout layoutTokens = Theme.of(context).kopimLayout;
@@ -92,9 +145,13 @@ class _MainNavigationShellState extends ConsumerState<MainNavigationShell> {
     final List<NavigationTabConfig> tabs = ref.watch(
       mainNavigationTabsProvider,
     );
-    final int currentIndex = ref.watch(mainNavigationControllerProvider);
-    final NavigationTabContent activeContent =
-        tabs[currentIndex].contentBuilder(context, ref);
+    final int currentIndex = ref.watch(
+      mainNavigationControllerProvider.select(
+        (MainNavigationState state) => state.currentIndex,
+      ),
+    );
+    final NavigationTabContent activeContent = tabs[currentIndex]
+        .contentBuilder(context, ref);
     final bool isCurrentRoute = ModalRoute.of(context)?.isCurrent ?? true;
     final PreferredSizeWidget? appBar = activeContent.appBarBuilder?.call(
       context,
@@ -103,20 +160,23 @@ class _MainNavigationShellState extends ConsumerState<MainNavigationShell> {
     final Widget? floatingActionButton = activeContent
         .floatingActionButtonBuilder
         ?.call(context, ref);
-    final NavigatorState rootNavigator =
-        Navigator.of(context, rootNavigator: true);
+    final NavigatorState rootNavigator = Navigator.of(
+      context,
+      rootNavigator: true,
+    );
 
     final bool isOnHomeTab = currentIndex == 0;
 
     return PopScope(
-      canPop: true,
+      canPop: false,
       onPopInvokedWithResult: (bool didPop, Object? _) async {
         if (didPop) {
           return;
         }
 
-        final bool isTransactionSheetVisible =
-            ref.read(transactionSheetControllerProvider).isVisible;
+        final bool isTransactionSheetVisible = ref
+            .read(transactionSheetControllerProvider)
+            .isVisible;
         if (isTransactionSheetVisible) {
           ref.read(transactionSheetControllerProvider.notifier).close();
           return;
@@ -137,13 +197,19 @@ class _MainNavigationShellState extends ConsumerState<MainNavigationShell> {
         final bool nestedCanPop = currentNavigator?.canPop() ?? false;
 
         if (nestedCanPop && currentNavigator != null) {
-          unawaited(
-            currentNavigator.maybePop().then((bool nestedDidPop) {
-              if (!nestedDidPop && !isOnHomeTab) {
-                ref.read(mainNavigationControllerProvider.notifier).setIndex(0);
-              }
-            }),
-          );
+          final bool nestedDidPop = await currentNavigator.maybePop();
+          if (!context.mounted) {
+            return;
+          }
+          if (nestedDidPop) {
+            return;
+          }
+        }
+
+        final bool poppedTabHistory = ref
+            .read(mainNavigationControllerProvider.notifier)
+            .popHistory();
+        if (poppedTabHistory) {
           return;
         }
 
@@ -165,8 +231,9 @@ class _MainNavigationShellState extends ConsumerState<MainNavigationShell> {
       },
       child: LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {
-          final String localeTag =
-              Localizations.localeOf(context).toLanguageTag();
+          final String localeTag = Localizations.localeOf(
+            context,
+          ).toLanguageTag();
           final _MainNavigationLayout layout = _MainNavigationLayout.fromWidth(
             constraints.maxWidth,
           );
@@ -228,10 +295,17 @@ class _MainNavigationShellState extends ConsumerState<MainNavigationShell> {
                   )
                 : null,
           );
+          final Widget scaffoldWithFrozenInsets = _freezeScaffoldViewInsets
+              ? MediaQuery.removeViewInsets(
+                  context: context,
+                  removeBottom: true,
+                  child: scaffold,
+                )
+              : scaffold;
 
           return Stack(
             children: <Widget>[
-              scaffold,
+              scaffoldWithFrozenInsets,
               const Material(
                 type: MaterialType.transparency,
                 child: TransactionFormOverlay(),

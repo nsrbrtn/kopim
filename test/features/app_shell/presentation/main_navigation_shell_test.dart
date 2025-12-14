@@ -8,6 +8,7 @@ import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/accounts/domain/repositories/account_repository.dart';
 import 'package:kopim/features/accounts/domain/use_cases/watch_accounts_use_case.dart';
 import 'package:kopim/features/analytics/domain/use_cases/watch_monthly_analytics_use_case.dart';
+import 'package:kopim/features/app_shell/presentation/controllers/main_navigation_controller.dart';
 import 'package:kopim/features/app_shell/presentation/widgets/main_navigation_bar.dart';
 import 'package:kopim/features/app_shell/presentation/widgets/main_navigation_shell.dart';
 import 'package:kopim/features/budgets/domain/entities/budget.dart';
@@ -330,8 +331,7 @@ void main() {
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           routes: <String, WidgetBuilder>{
-            MenuScreen.routeName: (_) =>
-                const MenuScreen(),
+            MenuScreen.routeName: (_) => const MenuScreen(),
           },
           home: const MainNavigationShell(),
         ),
@@ -363,8 +363,7 @@ void main() {
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           routes: <String, WidgetBuilder>{
-            MenuScreen.routeName: (_) =>
-                const MenuScreen(),
+            MenuScreen.routeName: (_) => const MenuScreen(),
           },
           home: const MainNavigationShell(),
         ),
@@ -380,8 +379,20 @@ void main() {
 
     final AppLocalizations strings = AppLocalizationsEn();
 
-    expect(find.text(strings.profileMenuTitle), findsOneWidget);
-    expect(find.text(strings.profileManageCategoriesCta), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byType(MenuScreen),
+        matching: find.text(strings.profileMenuTitle),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: find.byType(MenuScreen),
+        matching: find.text(strings.profileManageCategoriesCta),
+      ),
+      findsOneWidget,
+    );
 
     await tester.tap(find.text('Home'));
     await tester.pumpAndSettle();
@@ -401,8 +412,7 @@ void main() {
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           routes: <String, WidgetBuilder>{
-            MenuScreen.routeName: (_) =>
-                const MenuScreen(),
+            MenuScreen.routeName: (_) => const MenuScreen(),
           },
           home: const MainNavigationShell(),
         ),
@@ -439,8 +449,7 @@ void main() {
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           routes: <String, WidgetBuilder>{
-            MenuScreen.routeName: (_) =>
-                const MenuScreen(),
+            MenuScreen.routeName: (_) => const MenuScreen(),
           },
           home: const MainNavigationShell(),
         ),
@@ -464,8 +473,7 @@ void main() {
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           routes: <String, WidgetBuilder>{
-            MenuScreen.routeName: (_) =>
-                const MenuScreen(),
+            MenuScreen.routeName: (_) => const MenuScreen(),
           },
           home: const MainNavigationShell(),
         ),
@@ -478,5 +486,87 @@ void main() {
       find.byType(NavigationRail),
     );
     expect(rail.extended, isTrue);
+  });
+
+  testWidgets('back returns to previous bottom-nav tab', (
+    WidgetTester tester,
+  ) async {
+    await setWindowSize(tester, const Size(800, 1200));
+    await tester.pumpWidget(
+      buildShell(
+        MaterialApp(
+          navigatorKey: navigatorKey,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          routes: <String, WidgetBuilder>{
+            MenuScreen.routeName: (_) => const MenuScreen(),
+          },
+          home: const MainNavigationShell(),
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    final ProviderContainer container = ProviderScope.containerOf(
+      tester.element(find.byType(MainNavigationShell)),
+    );
+
+    expect(container.read(mainNavigationControllerProvider).currentIndex, 0);
+    expect(container.read(mainNavigationControllerProvider).history, isEmpty);
+
+    await tester.tap(find.text('Analytics'));
+    await tester.pumpAndSettle();
+    expect(container.read(mainNavigationControllerProvider).currentIndex, 1);
+    expect(container.read(mainNavigationControllerProvider).history, <int>[0]);
+
+    await tester.tap(find.text('Assistant'));
+    await tester.pumpAndSettle();
+    expect(container.read(mainNavigationControllerProvider).currentIndex, 2);
+    expect(container.read(mainNavigationControllerProvider).history, <int>[
+      0,
+      1,
+    ]);
+
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+    expect(container.read(mainNavigationControllerProvider).currentIndex, 1);
+    expect(container.read(mainNavigationControllerProvider).history, <int>[0]);
+
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+    expect(container.read(mainNavigationControllerProvider).currentIndex, 0);
+    expect(container.read(mainNavigationControllerProvider).history, isEmpty);
+  });
+
+  testWidgets('rail switching does not record bottom-nav history', (
+    WidgetTester tester,
+  ) async {
+    await setWindowSize(tester, const Size(1200, 1200));
+    await tester.pumpWidget(
+      buildShell(
+        MaterialApp(
+          navigatorKey: navigatorKey,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          routes: <String, WidgetBuilder>{
+            MenuScreen.routeName: (_) => const MenuScreen(),
+          },
+          home: const MainNavigationShell(),
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    final ProviderContainer container = ProviderScope.containerOf(
+      tester.element(find.byType(MainNavigationShell)),
+    );
+    expect(container.read(mainNavigationControllerProvider).history, isEmpty);
+
+    await tester.tap(find.text('Analytics'));
+    await tester.pumpAndSettle();
+    expect(container.read(mainNavigationControllerProvider).currentIndex, 1);
+    expect(container.read(mainNavigationControllerProvider).history, isEmpty);
   });
 }

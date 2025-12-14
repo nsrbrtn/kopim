@@ -10,7 +10,8 @@ class MainNavigationBar extends ConsumerWidget {
 
   final List<NavigationTabConfig> tabs;
 
-  static const double height = 84; // Эмпирическая высота контента бара без safe-area.
+  static const double height =
+      84; // Эмпирическая высота контента бара без safe-area.
   static const Duration _animationDuration = Duration(milliseconds: 200);
 
   @override
@@ -25,7 +26,9 @@ class MainNavigationBar extends ConsumerWidget {
     final Color inactiveColor = onSurface;
 
     final int currentIndex = ref.watch(
-      mainNavigationControllerProvider.select((int value) => value),
+      mainNavigationControllerProvider.select(
+        (MainNavigationState value) => value.currentIndex,
+      ),
     );
     return SizedBox(
       height: height,
@@ -68,12 +71,13 @@ class MainNavigationBar extends ConsumerWidget {
     int currentIndex,
   ) {
     if (index == currentIndex) {
-      final NavigationTabSelectionCallback? onSelected =
-          tabs[index].onSelected;
+      final NavigationTabSelectionCallback? onSelected = tabs[index].onSelected;
       onSelected?.call(context, ref);
       return;
     }
-    ref.read(mainNavigationControllerProvider.notifier).setIndex(index);
+    ref
+        .read(mainNavigationControllerProvider.notifier)
+        .selectFromBottomNav(index);
     final NavigationTabSelectionCallback? onSelected = tabs[index].onSelected;
     onSelected?.call(context, ref);
   }
