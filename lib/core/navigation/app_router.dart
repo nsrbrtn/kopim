@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:kopim/core/application/app_startup_controller.dart';
-import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/core/widgets/app_splash_placeholder.dart';
 import 'package:kopim/features/accounts/presentation/account_details_screen.dart';
 import 'package:kopim/features/accounts/presentation/accounts_add_screen.dart';
@@ -263,11 +262,11 @@ class AppRouterNotifier extends ChangeNotifier {
     final bool isOnSignIn = state.matchedLocation == SignInScreen.routeName;
 
     if (_startupState.isLoading || _startupState.hasError) {
-      return (isOnHome || isOnSignIn) ? null : MainNavigationShell.routeName;
+      return isOnHome ? null : MainNavigationShell.routeName;
     }
 
     if (_authState.hasError) {
-      return (isOnHome || isOnSignIn) ? null : MainNavigationShell.routeName;
+      return isOnHome ? null : MainNavigationShell.routeName;
     }
 
     if (_authState.isLoading) {
@@ -279,12 +278,26 @@ class AppRouterNotifier extends ChangeNotifier {
     }
 
     final AuthUser? user = _authState.asData?.value;
-    if (user == null && !(isOnHome || isOnSignIn)) {
-      _capturePendingLocation(state);
+    if (user == null) {
+      if (isOnSignIn) {
+        return null;
+      }
+      if (!isOnHome) {
+        _capturePendingLocation(state);
+      }
+      return SignInScreen.routeName;
+    }
+
+    if (isOnSignIn) {
+      if (_pendingLocation != null) {
+        final String target = _pendingLocation!;
+        _pendingLocation = null;
+        return target;
+      }
       return MainNavigationShell.routeName;
     }
 
-    if (user != null && isOnHome && _pendingLocation != null) {
+    if (isOnHome && _pendingLocation != null) {
       final String target = _pendingLocation!;
       _pendingLocation = null;
       return target;
@@ -310,12 +323,7 @@ class _AppShell extends ConsumerWidget {
         );
         return authState.when(
           data: (AuthUser? user) {
-            if (user != null && !user.isGuest) {
-              ref.watch(syncServiceProvider);
-            }
-            if (user == null) {
-              return const SignInScreen();
-            }
+            if (user == null) return const _StartupPlaceholder();
             return const MainNavigationShell();
           },
           loading: () => const _StartupPlaceholder(),

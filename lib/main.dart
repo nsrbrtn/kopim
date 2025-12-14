@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:kopim/l10n/app_localizations.dart';
 import 'core/application/app_startup_controller.dart';
+import 'core/application/sync_coordinator.dart';
 import 'core/config/app_config.dart';
 import 'core/di/injectors.dart';
 import 'core/navigation/app_router.dart';
@@ -122,6 +123,8 @@ class _MyAppState extends ConsumerState<MyApp> {
 
     return initializationState.when(
       data: (_) {
+        ref.watch(syncCoordinatorProvider);
+
         final Locale appLocale = ref.watch(appLocaleProvider);
         final ThemeData lightTheme = ref.watch(appThemeProvider);
         final ThemeData darkTheme = ref.watch(appDarkThemeProvider);

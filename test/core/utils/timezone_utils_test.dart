@@ -21,12 +21,12 @@ void main() {
     int callCount = 0;
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(channel, (MethodCall call) async {
-      callCount += 1;
-      if (call.method == 'getLocalTimezone') {
-        return 'UTC';
-      }
-      throw PlatformException(code: 'unimplemented', message: call.method);
-    });
+          callCount += 1;
+          if (call.method == 'getLocalTimezone') {
+            return 'UTC';
+          }
+          throw PlatformException(code: 'unimplemented', message: call.method);
+        });
 
     final String timeZoneId = await loadCurrentTimeZoneId();
     expect(timeZoneId, 'UTC');
@@ -47,9 +47,9 @@ void main() {
     int callCount = 0;
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(channel, (MethodCall call) async {
-      callCount += 1;
-      return 'Europe/Berlin';
-    });
+          callCount += 1;
+          return 'Europe/Berlin';
+        });
 
     final String timeZoneId = await loadCurrentTimeZoneId();
     expect(timeZoneId, 'UTC');
@@ -59,13 +59,15 @@ void main() {
   test('falls back to heuristic when platform timezone is invalid', () async {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(channel, (MethodCall call) async {
-      if (call.method == 'getLocalTimezone') {
-        return 'Invalid/Timezone';
-      }
-      throw PlatformException(code: 'unimplemented', message: call.method);
-    });
+          if (call.method == 'getLocalTimezone') {
+            return 'Invalid/Timezone';
+          }
+          throw PlatformException(code: 'unimplemented', message: call.method);
+        });
 
-    final String timeZoneId = await loadCurrentTimeZoneId();
+    await initializeLocalTimeZone();
+
+    final String timeZoneId = resolveCurrentTimeZoneId();
     expect(timeZoneId, isNotEmpty);
     expect(() => tz.getLocation(timeZoneId), returnsNormally);
   });

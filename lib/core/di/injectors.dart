@@ -823,18 +823,6 @@ SyncService syncService(Ref ref) {
     firebaseAuth: ref.watch(firebaseAuthProvider),
     connectivity: ref.watch(connectivityProvider),
   );
-  unawaited(
-    service.initialize().catchError((Object error, StackTrace stackTrace) {
-      FlutterError.reportError(
-        FlutterErrorDetails(
-          exception: error,
-          stack: stackTrace,
-          library: 'injectors',
-          context: ErrorDescription('while initializing SyncService'),
-        ),
-      );
-    }),
-  );
   ref.onDispose(service.dispose);
   return service;
 }

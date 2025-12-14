@@ -132,6 +132,7 @@
 ### Medium
 
 #### 5) Потенциальный холодный старт: синхронная инициализация tzdata и поиск по всем локациям
+- ✅ **ГОТОВО**
 - Где:
   - `lib/main.dart:23-24`
   - `lib/core/utils/timezone_utils.dart` (скан `timeZoneDatabase.locations`)
@@ -141,8 +142,18 @@
   - Ленивая инициализация timezone (когда реально нужна), либо кеширование результата, либо перенос в startup-этап с метрикой.
 - Возможные последствия, если не исправить:
   - медленный старт → падение retention, ухудшение Core Web Vitals (на web).
+- Что сделано:
+  - Убран ранний вызов `tzdata.initializeTimeZones()` из `loadCurrentTimeZoneId()` для обычного пути (prefs/platform).
+  - Тяжёлый fallback (инициализация tzdb + `_resolveHeuristically()` со сканом `timeZoneDatabase.locations`) выполняется только если:
+    - нет значения в persisted storage и платформа не вернула timezone id, либо
+    - при установке `tz.local` кандидаты оказались невалидными.
+  - `initializeLocalTimeZone()` оборачивается в `TimelineTask` (debug/profile), чтобы видеть стоимость старта в DevTools Timeline.
+- Как проверить:
+  - `flutter test test/core/utils/timezone_utils_test.dart --reporter expanded`
+  - Ручной сценарий: на устройстве/эмуляторе сменить TZ → перезапустить приложение → убедиться, что `tz.local` корректно установлен, а в обычном случае не выполняется долгий fallback-поиск.
 
 #### 6) `SignInScreen` как route почти недостижим/лишний при текущей логике
+- ✅ **ГОТОВО**
 - Где:
   - route: `lib/core/navigation/app_router.dart:185-191`
   - показ sign-in: `lib/core/navigation/app_router.dart:281-283`
@@ -153,8 +164,17 @@
   - либо убрать route и оставить только вложенный экран в shell (но тогда осторожно с web URL).
 - Возможные последствия, если не исправить:
   - накопление “мертвых” маршрутов, неожиданные переходы при будущих изменениях auth.
+- Что сделано:
+  - `SignInScreen` сделан полноценным gate-route (`/sign-in`), а не вложенным экраном внутри `/home`:
+    - при `user == null` после завершения auth-loading редирект идёт на `/sign-in`;
+    - после логина возвращаемся на сохранённый deep link (`_pendingLocation`) или на `/home`.
+  - В `_AppShell` убран embedded-показ `SignInScreen`, чтобы не было двух конкурирующих вариантов навигации.
+- Как проверить:
+  - Web: открыть `.../sign-in` напрямую → должен открыться экран входа.
+  - Открыть deep link на произвольный экран при `auth` loading → после завершения auth остаёмся на целевом экране.
 
 #### 7) Инициализация `SyncService` из UI + `unawaited(initialize())` внутри провайдера
+- ✅ **ГОТОВО**
 - Где:
   - вызов из UI: `lib/core/navigation/app_router.dart:278-280`
   - провайдер: `lib/core/di/injectors.dart:835`
@@ -165,8 +185,19 @@
   - В UI вместо `watch` ради сайд-эффекта — рассмотреть явный coordinator/provider, который управляет жизненным циклом.
 - Возможные последствия, если не исправить:
   - редкие “фантомные” падения/ошибки синка, трудная диагностика проблем офлайн-очереди.
+- Что сделано:
+  - Убран сайд-эффект `ref.watch(syncServiceProvider)` из UI (`_AppShell`).
+  - Убран `unawaited(service.initialize())` из `syncServiceProvider`, чтобы DI не запускал async-работу “сам по себе”.
+  - Добавлен `syncCoordinatorProvider`, который слушает `authControllerProvider` и:
+    - стартует `SyncService.initialize()` только для не-гостя;
+    - останавливает синк при logout (через закрытие подписки на `syncServiceProvider`, позволяя autoDispose освободить ресурсы);
+    - на Web не запускается (web-синк управляется `AppStartupController`).
+- Как проверить:
+  - Войти под не-гостем → синк должен стартовать без вызовов из UI.
+  - Выйти → синк должен быть остановлен (подписки должны освобождаться).
 
 #### 8) Provider tracing включён в profile; возможен лишний overhead
+- ✅ **ГОТОВО**
 - Где: `lib/main.dart:26-31`, `lib/main.dart:45-52`
 - На что влияет: производительность в profile-режиме, объём timeline-данных.
 - Приоритет: **Medium**
@@ -174,6 +205,12 @@
   - Управляемый флаг (например, `bool.fromEnvironment`) и выключено по умолчанию.
 - Возможные последствия, если не исправить:
   - шум в профилировке и небольшой overhead в горячих сценариях.
+- Что сделано:
+  - Provider tracing выключен по умолчанию и включается только флагом `--dart-define=KOPIM_PROVIDER_TRACE=true`.
+  - Включение возможно только в `debug/profile` (в release наблюдатель не подключается).
+- Как проверить:
+  - Запустить в profile с флагом: `flutter run --profile --dart-define=KOPIM_PROVIDER_TRACE=true`.
+  - Открыть DevTools → Timeline и убедиться, что появляются события `provider:add`/`provider:update`.
 
 ## Рекомендуемая проверка (минимум)
 
