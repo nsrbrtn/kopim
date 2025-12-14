@@ -171,7 +171,7 @@ class QuickAddTransactionCard extends ConsumerWidget {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      useSafeArea: true,
+      useSafeArea: false,
       backgroundColor: Colors.transparent,
       builder: (BuildContext context) => _QuickTransactionSheet(
         category: category,
@@ -294,11 +294,12 @@ class _QuickTransactionSheetState
     final KopimLayout layout = context.kopimLayout;
     final double bottomInset = MediaQuery.viewInsetsOf(context).bottom;
 
-    return AnimatedPadding(
-      duration: const Duration(milliseconds: 200),
-      curve: Curves.easeOut,
-      padding: EdgeInsets.only(bottom: bottomInset),
-      child: SafeArea(
+    return SafeArea(
+      top: false,
+      left: false,
+      right: false,
+      child: Padding(
+        padding: EdgeInsets.only(bottom: bottomInset),
         child: Container(
           decoration: BoxDecoration(
             color: colorScheme.surface,
@@ -340,14 +341,15 @@ class _QuickTransactionSheetState
               KopimTextField(
                 controller: _amountController,
                 focusNode: _amountFocusNode,
-                keyboardType:
-                    const TextInputType.numberWithOptions(decimal: true),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
                 placeholder: widget.strings.addTransactionAmountHint,
                 onChanged: (String value) => ref
                     .read(quickTransactionControllerProvider.notifier)
                     .updateAmount(value),
-              onSubmitted: (_) => _submit(),
-              inputFormatters: <TextInputFormatter>[
+                onSubmitted: (_) => _submit(),
+                inputFormatters: <TextInputFormatter>[
                   digitsAndSeparatorsFormatter(),
                 ],
                 prefixIcon: Padding(

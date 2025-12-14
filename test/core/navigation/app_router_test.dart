@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -41,6 +43,28 @@ class _FakeAuthController extends AuthController {
   Future<AuthUser?> build() async => user;
 }
 
+class _DelayedAuthController extends AuthController {
+  _DelayedAuthController(this._future);
+
+  final Future<AuthUser?> _future;
+
+  @override
+  Future<AuthUser?> build() => _future;
+}
+
+class _MutableAuthController extends AuthController {
+  _MutableAuthController(this._initialUser);
+
+  final AuthUser? _initialUser;
+
+  @override
+  Future<AuthUser?> build() async => _initialUser;
+
+  void setUser(AuthUser? user) {
+    state = AsyncValue<AuthUser?>.data(user);
+  }
+}
+
 class _FakeAnalyticsFilterController extends AnalyticsFilterController {
   _FakeAnalyticsFilterController(this._state);
 
@@ -54,7 +78,10 @@ Widget _emptyTabBody(BuildContext context, WidgetRef ref) =>
     const SizedBox.shrink();
 
 void main() {
-  Future<void> pumpApp(WidgetTester tester) async {
+  Future<void> pumpApp(
+    WidgetTester tester, {
+    required dynamic authOverride,
+  }) async {
     final AnalyticsFilterState analyticsFilterState = AnalyticsFilterState(
       dateRange: DateTimeRange(
         start: DateTime(2024, 1, 1),
@@ -96,9 +123,7 @@ void main() {
           appStartupControllerProvider.overrideWith(
             _FakeAppStartupController.new,
           ),
-          authControllerProvider.overrideWith(
-            () => _FakeAuthController(AuthUser.guest()),
-          ),
+          authOverride,
           analyticsFilterControllerProvider.overrideWith(
             () => _FakeAnalyticsFilterController(analyticsFilterState),
           ),
@@ -134,12 +159,22 @@ void main() {
   testWidgets('renders MainNavigationShell on /home', (
     WidgetTester tester,
   ) async {
-    await pumpApp(tester);
+    await pumpApp(
+      tester,
+      authOverride: authControllerProvider.overrideWith(
+        () => _FakeAuthController(AuthUser.guest()),
+      ),
+    );
     expect(find.byType(MainNavigationShell), findsOneWidget);
   });
 
   testWidgets('navigates to analytics route', (WidgetTester tester) async {
-    await pumpApp(tester);
+    await pumpApp(
+      tester,
+      authOverride: authControllerProvider.overrideWith(
+        () => _FakeAuthController(AuthUser.guest()),
+      ),
+    );
     final BuildContext context = tester.element(find.byType(MaterialApp));
     final ProviderContainer container = ProviderScope.containerOf(context);
     final GoRouter router = container.read(appRouterProvider);
@@ -151,12 +186,67 @@ void main() {
   testWidgets('navigates to all transactions route', (
     WidgetTester tester,
   ) async {
-    await pumpApp(tester);
+    await pumpApp(
+      tester,
+      authOverride: authControllerProvider.overrideWith(
+        () => _FakeAuthController(AuthUser.guest()),
+      ),
+    );
     final BuildContext context = tester.element(find.byType(MaterialApp));
     final ProviderContainer container = ProviderScope.containerOf(context);
     final GoRouter router = container.read(appRouterProvider);
     router.go(AllTransactionsScreen.routeName);
     await tester.pumpAndSettle();
     expect(find.byType(AllTransactionsScreen), findsOneWidget);
+  });
+
+  testWidgets('restores deep link after auth loading', (
+    WidgetTester tester,
+  ) async {
+    final Completer<AuthUser?> completer = Completer<AuthUser?>();
+    await pumpApp(
+      tester,
+      authOverride: authControllerProvider.overrideWith(
+        () => _DelayedAuthController(completer.future),
+      ),
+    );
+
+    final BuildContext context = tester.element(find.byType(MaterialApp));
+    final ProviderContainer container = ProviderScope.containerOf(context);
+    final GoRouter router = container.read(appRouterProvider);
+
+    router.go(AnalyticsScreen.routeName);
+    await tester.pump(const Duration(milliseconds: 50));
+    expect(find.byType(AnalyticsScreen), findsNothing);
+
+    completer.complete(AuthUser.guest());
+    await tester.pumpAndSettle();
+    expect(find.byType(AnalyticsScreen), findsOneWidget);
+  });
+
+  testWidgets('restores deep link after login when user was null', (
+    WidgetTester tester,
+  ) async {
+    await pumpApp(
+      tester,
+      authOverride: authControllerProvider.overrideWith(
+        () => _MutableAuthController(null),
+      ),
+    );
+
+    final BuildContext context = tester.element(find.byType(MaterialApp));
+    final ProviderContainer container = ProviderScope.containerOf(context);
+    final GoRouter router = container.read(appRouterProvider);
+
+    router.go(AnalyticsScreen.routeName);
+    await tester.pumpAndSettle();
+    expect(find.byType(AnalyticsScreen), findsNothing);
+
+    final AuthController authController = container.read(
+      authControllerProvider.notifier,
+    );
+    (authController as _MutableAuthController).setUser(AuthUser.guest());
+    await tester.pumpAndSettle();
+    expect(find.byType(AnalyticsScreen), findsOneWidget);
   });
 }

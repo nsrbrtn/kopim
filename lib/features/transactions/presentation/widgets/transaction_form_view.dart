@@ -701,7 +701,6 @@ class _AccountSelectionCard extends StatelessWidget {
         isSelected ? const EdgeInsets.all(4) : EdgeInsets.zero;
     final double paddedWidth = cardWidth + outerPadding.horizontal;
     final double paddedHeight = cardHeight + outerPadding.vertical;
-
     return SizedBox(
       width: paddedWidth,
       height: paddedHeight,

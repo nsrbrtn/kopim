@@ -35,7 +35,6 @@ import 'package:kopim/features/profile/presentation/controllers/profile_controll
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/presentation/controllers/transaction_sheet_controller.dart';
 import 'package:kopim/features/transactions/presentation/widgets/transaction_editor.dart';
-import 'package:kopim/features/transactions/presentation/widgets/transaction_form_overlay.dart';
 import 'package:kopim/features/transactions/presentation/widgets/transaction_tile_formatters.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 import 'package:kopim/core/formatting/currency_symbols.dart';
@@ -71,31 +70,26 @@ NavigationTabContent buildHomeTabContent(BuildContext context, WidgetRef ref) {
   final TimeService timeService = ref.watch(timeServiceProvider);
   final AsyncValue<HomeDashboardPreferences> dashboardPreferencesAsync = ref
       .watch(homeDashboardPreferencesControllerProvider);
-  final bool isTransactionSheetVisible = ref.watch(
-    transactionSheetControllerProvider
-        .select((TransactionSheetState state) => state.isVisible),
-  );
 
   return NavigationTabContent(
-    bodyBuilder: (BuildContext context, WidgetRef ref) => Stack(
-      children: <Widget>[
-        SafeArea(
-          bottom: false,
-          child: _HomeBody(
-            authState: authState,
-            accountsAsync: accountsAsync,
-            strings: strings,
-            accountSummariesAsync: accountSummariesAsync,
-            groupedTransactionsAsync: groupedTransactionsAsync,
-            upcomingItemsAsync: upcomingItemsAsync,
-            timeService: timeService,
-            dashboardPreferencesAsync: dashboardPreferencesAsync,
-          ),
-        ),
-        if (isTransactionSheetVisible) const TransactionFormOverlay(),
-      ],
+    bodyBuilder: (BuildContext context, WidgetRef ref) => SafeArea(
+      bottom: false,
+      child: _HomeBody(
+        authState: authState,
+        accountsAsync: accountsAsync,
+        strings: strings,
+        accountSummariesAsync: accountSummariesAsync,
+        groupedTransactionsAsync: groupedTransactionsAsync,
+        upcomingItemsAsync: upcomingItemsAsync,
+        timeService: timeService,
+        dashboardPreferencesAsync: dashboardPreferencesAsync,
+      ),
     ),
     floatingActionButtonBuilder: (BuildContext context, WidgetRef ref) {
+      final bool isTransactionSheetVisible = ref.watch(
+        transactionSheetControllerProvider
+            .select((TransactionSheetState state) => state.isVisible),
+      );
       if (isTransactionSheetVisible) {
         return null;
       }

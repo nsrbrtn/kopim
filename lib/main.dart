@@ -20,7 +20,7 @@ import 'core/widgets/notification_fallback_listener.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  final String timeZoneId = resolveCurrentTimeZoneId();
+  final String timeZoneId = await loadCurrentTimeZoneId();
   tz.setLocalLocation(tz.getLocation(timeZoneId));
 
   const bool enableProviderTimelineTracing = true;
@@ -30,7 +30,21 @@ Future<void> main() async {
         const DevToolsProviderObserver(enabled: enableProviderTimelineTracing),
     ],
   );
-  unawaited(container.read(firebaseInitializationProvider.future));
+  unawaited(
+    container.read(firebaseInitializationProvider.future).catchError((
+      Object error,
+      StackTrace stackTrace,
+    ) {
+      FlutterError.reportError(
+        FlutterErrorDetails(
+          exception: error,
+          stack: stackTrace,
+          library: 'main',
+          context: ErrorDescription('while prewarming Firebase initialization'),
+        ),
+      );
+    }),
+  );
 
   runApp(UncontrolledProviderScope(container: container, child: const MyApp()));
 }
@@ -174,8 +188,14 @@ class _FirebaseInitializationErrorApp extends StatelessWidget {
   final Object error;
   final VoidCallback onRetry;
 
+  String _errorCode(Object error) {
+    final int hash = Object.hash(error.runtimeType, error.toString());
+    return hash.toUnsigned(32).toRadixString(16).padLeft(8, '0').toUpperCase();
+  }
+
   @override
   Widget build(BuildContext context) {
+    final String code = _errorCode(error);
     return MaterialApp(
       home: Scaffold(
         body: Center(
@@ -193,7 +213,14 @@ class _FirebaseInitializationErrorApp extends StatelessWidget {
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 12),
-                  Text('$error', textAlign: TextAlign.center),
+                  Text(
+                    'Произошла ошибка. Код: $code',
+                    textAlign: TextAlign.center,
+                  ),
+                  if (kDebugMode) ...<Widget>[
+                    const SizedBox(height: 12),
+                    Text('$error', textAlign: TextAlign.center),
+                  ],
                   const SizedBox(height: 24),
                   FilledButton(
                     onPressed: onRetry,

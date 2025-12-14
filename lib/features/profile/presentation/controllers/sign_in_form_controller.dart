@@ -2,7 +2,9 @@ import 'dart:async';
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:kopim/features/profile/domain/entities/sign_in_request.dart';
+import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/features/profile/domain/failures/auth_failure.dart';
+
 import 'package:kopim/features/profile/presentation/controllers/auth_controller.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -90,6 +92,34 @@ class SignInFormController extends _$SignInFormController {
   void clearError() {
     if (state.errorMessage != null) {
       state = state.copyWith(errorMessage: null);
+    }
+  }
+
+  Future<void> resetPassword() async {
+    if (!state.isEmailValid) {
+      state = state.copyWith(
+        errorMessage: 'Введите корректный email для сброса пароля.',
+      );
+      return;
+    }
+
+    state = state.copyWith(isSubmitting: true, errorMessage: null);
+    try {
+      await ref
+          .read(authRepositoryProvider)
+          .sendPasswordResetEmail(state.email.trim());
+
+      if (!ref.mounted) return;
+      state = state.copyWith(isSubmitting: false);
+    } on AuthFailure catch (error) {
+      if (!ref.mounted) return;
+      state = state.copyWith(isSubmitting: false, errorMessage: error.message);
+    } catch (_) {
+      if (!ref.mounted) return;
+      state = state.copyWith(
+        isSubmitting: false,
+        errorMessage: AuthFailure.unknown().message,
+      );
     }
   }
 }

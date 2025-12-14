@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -210,6 +211,24 @@ class AppRouterNotifier extends ChangeNotifier {
   AppStartupResult _startupState;
   AsyncValue<AuthUser?> _authState;
   bool _initialized = false;
+  String? _pendingLocation;
+
+  void _capturePendingLocation(GoRouterState state) {
+    if (_pendingLocation != null) {
+      return;
+    }
+    final String location = state.uri.toString();
+    if (!location.startsWith('/')) {
+      return;
+    }
+    if (location == MainNavigationShell.routeName) {
+      return;
+    }
+    if (location == SignInScreen.routeName) {
+      return;
+    }
+    _pendingLocation = location;
+  }
 
   void _handleStartupChange(AppStartupResult? _, AppStartupResult next) {
     _startupState = next;
@@ -250,9 +269,24 @@ class AppRouterNotifier extends ChangeNotifier {
       return isOnHome ? null : MainNavigationShell.routeName;
     }
 
+    if (_authState.isLoading) {
+      if (!isOnHome) {
+        _capturePendingLocation(state);
+        return MainNavigationShell.routeName;
+      }
+      return null;
+    }
+
     final AuthUser? user = _authState.asData?.value;
     if (user == null && !isOnHome) {
+      _capturePendingLocation(state);
       return MainNavigationShell.routeName;
+    }
+
+    if (user != null && isOnHome && _pendingLocation != null) {
+      final String target = _pendingLocation!;
+      _pendingLocation = null;
+      return target;
     }
 
     return null;
@@ -308,13 +342,33 @@ class _StartupErrorView extends StatelessWidget {
 
   final Object error;
 
+  String _errorCode(Object error) {
+    final int hash = Object.hash(error.runtimeType, error.toString());
+    return hash.toUnsigned(32).toRadixString(16).padLeft(8, '0').toUpperCase();
+  }
+
   @override
   Widget build(BuildContext context) {
+    final String code = _errorCode(error);
     return Scaffold(
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
-          child: Text('Startup error: $error'),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              const Text(
+                'Не удалось запустить приложение.',
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 12),
+              Text('Код ошибки: $code', textAlign: TextAlign.center),
+              if (kDebugMode) ...<Widget>[
+                const SizedBox(height: 12),
+                Text('$error', textAlign: TextAlign.center),
+              ],
+            ],
+          ),
         ),
       ),
     );
@@ -326,13 +380,33 @@ class _AuthenticationErrorView extends StatelessWidget {
 
   final Object error;
 
+  String _errorCode(Object error) {
+    final int hash = Object.hash(error.runtimeType, error.toString());
+    return hash.toUnsigned(32).toRadixString(16).padLeft(8, '0').toUpperCase();
+  }
+
   @override
   Widget build(BuildContext context) {
+    final String code = _errorCode(error);
     return Scaffold(
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(16),
-          child: Text('Authentication error: $error'),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              const Text(
+                'Не удалось выполнить авторизацию.',
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 12),
+              Text('Код ошибки: $code', textAlign: TextAlign.center),
+              if (kDebugMode) ...<Widget>[
+                const SizedBox(height: 12),
+                Text('$error', textAlign: TextAlign.center),
+              ],
+            ],
+          ),
         ),
       ),
     );

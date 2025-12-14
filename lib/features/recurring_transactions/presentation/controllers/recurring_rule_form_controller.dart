@@ -271,7 +271,7 @@ class RecurringRuleFormController extends _$RecurringRuleFormController {
       state.applyHour,
       state.applyMinute,
     );
-    final String timezoneId = resolveCurrentTimeZoneId();
+    final String timezoneId = await loadCurrentTimeZoneId();
     final bool remindOnce = state.remindOnce;
     final bool autoPost = remindOnce ? false : state.autoPost;
     final String recurrenceRule = remindOnce

@@ -345,8 +345,19 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                   children: <Widget>[
                     Text('Введите ваш пароль', style: labelStyle),
                     GestureDetector(
-                      onTap: () {
-                        // TODO: Implement forgot password
+                      onTap: () async {
+                        await controller.resetPassword();
+                        if (context.mounted &&
+                            formState.errorMessage == null &&
+                            !formState.isSubmitting) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Письмо для сброса пароля отправлено на вашу почту',
+                              ),
+                            ),
+                          );
+                        }
                       },
                       child: Text('Забыли пароль?', style: linkStyle),
                     ),
