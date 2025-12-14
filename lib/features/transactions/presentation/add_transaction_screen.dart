@@ -52,30 +52,41 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
           showSubmitButton: false,
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        heroTag: '${AddTransactionScreen.routeName}_save_fab',
-        tooltip: submitLabel,
-        onPressed: isSubmitting
-            ? null
-            : () async {
-                FocusManager.instance.primaryFocus?.unfocus();
-                await Future<void>.delayed(Duration.zero);
-                if (!(_formKey.currentState?.validate() ?? false)) {
-                  return;
-                }
-                await ref
-                    .read(formProvider.notifier)
-                    .submit();
-              },
-        child: isSubmitting
-            ? const SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                ),
-              )
-            : const Icon(Icons.save_rounded),
+      floatingActionButton: Builder(
+        builder: (BuildContext context) {
+          final MediaQueryData mq = MediaQuery.of(context);
+          final double viewPaddingBottom = mq.viewPadding.bottom;
+          final double systemGestureBottom = mq.systemGestureInsets.bottom;
+          final double bottomSafeArea = viewPaddingBottom > systemGestureBottom
+              ? viewPaddingBottom
+              : systemGestureBottom;
+          return Padding(
+            padding: EdgeInsets.only(bottom: bottomSafeArea + 16),
+            child: FloatingActionButton(
+              heroTag: '${AddTransactionScreen.routeName}_save_fab',
+              tooltip: submitLabel,
+              onPressed: isSubmitting
+                  ? null
+                  : () async {
+                      FocusManager.instance.primaryFocus?.unfocus();
+                      await Future<void>.delayed(Duration.zero);
+                      if (!(_formKey.currentState?.validate() ?? false)) {
+                        return;
+                      }
+                      await ref.read(formProvider.notifier).submit();
+                    },
+              child: isSubmitting
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                      ),
+                    )
+                  : const Icon(Icons.save_rounded),
+            ),
+          );
+        },
       ),
     );
   }
