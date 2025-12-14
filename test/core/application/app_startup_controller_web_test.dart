@@ -4,10 +4,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fake_async/fake_async.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_core_platform_interface/firebase_core_platform_interface.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:riverpod/riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:kopim/core/application/app_startup_controller.dart';
 import 'package:kopim/core/di/injectors.dart';
@@ -105,6 +106,8 @@ class _FakeFirebasePlatform extends FirebasePlatform {
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
+  const MethodChannel timeZoneChannel = MethodChannel('flutter_timezone');
+
   setUpAll(() {
     registerFallbackValue(
       const Settings(
@@ -120,11 +123,21 @@ void main() {
     previousFirebaseDelegate = Firebase.delegatePackingProperty;
     Firebase.delegatePackingProperty = _FakeFirebasePlatform();
     AppStartupController.debugIsWebOverride = true;
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(timeZoneChannel, (MethodCall call) async {
+          if (call.method == 'getLocalTimezone') {
+            return 'UTC';
+          }
+          throw PlatformException(code: 'unimplemented', message: call.method);
+        });
   });
 
   tearDown(() {
     Firebase.delegatePackingProperty = previousFirebaseDelegate;
     AppStartupController.debugIsWebOverride = null;
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(timeZoneChannel, null);
   });
 
   test(

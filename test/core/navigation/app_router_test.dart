@@ -6,7 +6,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:kopim/core/navigation/app_router.dart';
-import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/analytics/domain/models/analytics_category_breakdown.dart';
 import 'package:kopim/features/analytics/domain/models/analytics_overview.dart';
@@ -23,8 +22,8 @@ import 'package:kopim/features/profile/presentation/controllers/auth_controller.
 import 'package:kopim/features/transactions/presentation/screens/all_transactions_screen.dart';
 import 'package:kopim/features/transactions/presentation/controllers/all_transactions_providers.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
-import 'package:kopim/main.dart';
 import 'package:kopim/core/application/app_startup_controller.dart';
+import 'package:kopim/l10n/app_localizations.dart';
 
 class _FakeAppStartupController extends AppStartupController {
   @override
@@ -77,7 +76,27 @@ class _FakeAnalyticsFilterController extends AnalyticsFilterController {
 Widget _emptyTabBody(BuildContext context, WidgetRef ref) =>
     const SizedBox.shrink();
 
+class _TestApp extends ConsumerWidget {
+  const _TestApp();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final GoRouter router = ref.watch(appRouterProvider);
+    return MaterialApp.router(
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      routerConfig: router,
+    );
+  }
+}
+
 void main() {
+  Future<void> disposeApp(WidgetTester tester) async {
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 1));
+  }
+
   Future<void> pumpApp(
     WidgetTester tester, {
     required dynamic authOverride,
@@ -99,9 +118,6 @@ void main() {
       ProviderScope(
         // ignore: always_specify_types
         overrides: [
-          firebaseInitializationProvider.overrideWith(
-            (Ref ref) => Future<void>.value(),
-          ),
           mainNavigationTabsProvider.overrideWithValue(<NavigationTabConfig>[
             NavigationTabConfig(
               id: 'test-home',
@@ -149,7 +165,7 @@ void main() {
             const AsyncValue<List<Category>>.data(<Category>[]),
           ),
         ],
-        child: const MyApp(),
+        child: const _TestApp(),
       ),
     );
     await tester.pump();
@@ -166,6 +182,7 @@ void main() {
       ),
     );
     expect(find.byType(MainNavigationShell), findsOneWidget);
+    await disposeApp(tester);
   });
 
   testWidgets('navigates to analytics route', (WidgetTester tester) async {
@@ -181,6 +198,7 @@ void main() {
     router.go(AnalyticsScreen.routeName);
     await tester.pumpAndSettle();
     expect(find.byType(AnalyticsScreen), findsOneWidget);
+    await disposeApp(tester);
   });
 
   testWidgets('navigates to all transactions route', (
@@ -198,6 +216,7 @@ void main() {
     router.go(AllTransactionsScreen.routeName);
     await tester.pumpAndSettle();
     expect(find.byType(AllTransactionsScreen), findsOneWidget);
+    await disposeApp(tester);
   });
 
   testWidgets('restores deep link after auth loading', (
@@ -222,6 +241,7 @@ void main() {
     completer.complete(AuthUser.guest());
     await tester.pumpAndSettle();
     expect(find.byType(AnalyticsScreen), findsOneWidget);
+    await disposeApp(tester);
   });
 
   testWidgets('restores deep link after login when user was null', (
@@ -248,5 +268,6 @@ void main() {
     (authController as _MutableAuthController).setUser(AuthUser.guest());
     await tester.pumpAndSettle();
     expect(find.byType(AnalyticsScreen), findsOneWidget);
+    await disposeApp(tester);
   });
 }

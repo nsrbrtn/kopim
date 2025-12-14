@@ -5,9 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:timezone/timezone.dart' as tz;
 
-import 'package:kopim/core/utils/timezone_utils.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 import 'core/application/app_startup_controller.dart';
 import 'core/config/app_config.dart';
@@ -20,13 +18,14 @@ import 'core/widgets/notification_fallback_listener.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  final String timeZoneId = await loadCurrentTimeZoneId();
-  tz.setLocalLocation(tz.getLocation(timeZoneId));
 
-  const bool enableProviderTimelineTracing = true;
+  const bool enableProviderTimelineTracing = bool.fromEnvironment(
+    'KOPIM_PROVIDER_TRACE',
+    defaultValue: false,
+  );
   final ProviderContainer container = ProviderContainer(
     observers: <ProviderObserver>[
-      if (kDebugMode || kProfileMode)
+      if (enableProviderTimelineTracing && (kDebugMode || kProfileMode))
         const DevToolsProviderObserver(enabled: enableProviderTimelineTracing),
     ],
   );

@@ -14,6 +14,11 @@ void resetCachedTimeZoneIdForTests() {
   _timeZoneDatabaseInitialized = false;
 }
 
+Future<void> initializeLocalTimeZone() async {
+  final String timeZoneId = await loadCurrentTimeZoneId();
+  tz.setLocalLocation(tz.getLocation(timeZoneId));
+}
+
 Future<String> loadCurrentTimeZoneId() async {
   if (_cachedTimeZoneId != null) {
     return _cachedTimeZoneId!;

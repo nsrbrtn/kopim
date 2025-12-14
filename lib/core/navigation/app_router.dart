@@ -260,13 +260,14 @@ class AppRouterNotifier extends ChangeNotifier {
   String? redirect(BuildContext context, GoRouterState state) {
     final bool isOnHome =
         state.matchedLocation == MainNavigationShell.routeName;
+    final bool isOnSignIn = state.matchedLocation == SignInScreen.routeName;
 
     if (_startupState.isLoading || _startupState.hasError) {
-      return isOnHome ? null : MainNavigationShell.routeName;
+      return (isOnHome || isOnSignIn) ? null : MainNavigationShell.routeName;
     }
 
     if (_authState.hasError) {
-      return isOnHome ? null : MainNavigationShell.routeName;
+      return (isOnHome || isOnSignIn) ? null : MainNavigationShell.routeName;
     }
 
     if (_authState.isLoading) {
@@ -278,7 +279,7 @@ class AppRouterNotifier extends ChangeNotifier {
     }
 
     final AuthUser? user = _authState.asData?.value;
-    if (user == null && !isOnHome) {
+    if (user == null && !(isOnHome || isOnSignIn)) {
       _capturePendingLocation(state);
       return MainNavigationShell.routeName;
     }

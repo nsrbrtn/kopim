@@ -6,6 +6,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/core/services/sync_service.dart';
+import 'package:kopim/core/utils/timezone_utils.dart';
 import 'package:kopim/core/services/recurring_work_scheduler.dart';
 import 'package:kopim/features/recurring_transactions/data/services/recurring_window_service.dart';
 import 'package:kopim/features/upcoming_payments/application/upcoming_notifications_controller.dart';
@@ -42,7 +43,10 @@ class AppStartupController extends _$AppStartupController {
     state = const AsyncValue<void>.loading();
 
     try {
-      await ref.read(firebaseInitializationProvider.future);
+      await Future.wait(<Future<void>>[
+        ref.read(firebaseInitializationProvider.future),
+        initializeLocalTimeZone(),
+      ]);
 
       final FirebaseFirestore firestore = ref.read(firestoreProvider);
       firestore.settings = const Settings(
@@ -78,19 +82,30 @@ class AppStartupController extends _$AppStartupController {
   }
 
   Future<void> _initializeWebServices() async {
-    final SyncService syncService = ref.read(syncServiceProvider);
-    await syncService.initialize();
-    await syncService.syncPending();
+    try {
+      final SyncService syncService = ref.read(syncServiceProvider);
+      await syncService.initialize();
+      await syncService.syncPending();
 
-    ref.onDispose(() {
+      ref.onDispose(() {
+        _webSyncTimer?.cancel();
+        _webSyncTimer = null;
+      });
+
       _webSyncTimer?.cancel();
-      _webSyncTimer = null;
-    });
-
-    _webSyncTimer?.cancel();
-    _webSyncTimer = Timer.periodic(_webSyncInterval, (Timer _) {
-      unawaited(syncService.syncPending());
-    });
+      _webSyncTimer = Timer.periodic(_webSyncInterval, (Timer _) {
+        unawaited(syncService.syncPending());
+      });
+    } catch (error, stackTrace) {
+      FlutterError.reportError(
+        FlutterErrorDetails(
+          exception: error,
+          stack: stackTrace,
+          library: 'app_startup_controller',
+          context: ErrorDescription('while warming up web sync services'),
+        ),
+      );
+    }
   }
 
   Future<void> _warmUpRecurringWorkScheduler() async {

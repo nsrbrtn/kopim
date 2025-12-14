@@ -54,7 +54,7 @@ void main() {
       ),
     );
 
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 300));
 
     final BuildContext context = tester.element(find.byType(Scaffold));
     final AppLocalizations strings = AppLocalizations.of(context)!;
@@ -63,7 +63,7 @@ void main() {
       find.byWidgetPredicate(
         (Widget widget) =>
             widget is InputDecorator &&
-            widget.decoration.labelText == strings.addTransactionAmountLabel,
+            widget.decoration.hintText == strings.addTransactionAmountHint,
       ),
     );
     final InputDecoration decoration = decorator.decoration;
