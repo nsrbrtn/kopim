@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:drift/drift.dart';
+import 'package:intl/intl.dart';
 import 'package:kopim/core/data/database.dart' as db;
 import 'package:kopim/features/ai/domain/entities/ai_financial_overview_entity.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
@@ -103,15 +104,7 @@ class AiAnalyticsDao {
 
   Selectable<QueryRow> _monthlyExpenseQuery(AiDataFilter filter) {
     final StringBuffer sql = StringBuffer('''
-SELECT strftime('%Y-%m-01', CASE
-         WHEN typeof(date) IN ('integer', 'real') AND ABS(date) >= 1000000000000
-           THEN datetime(date / 1000000.0, 'unixepoch')
-         WHEN typeof(date) IN ('integer', 'real') AND ABS(date) >= 10000000000
-           THEN datetime(date / 1000.0, 'unixepoch')
-         WHEN typeof(date) IN ('integer', 'real')
-           THEN datetime(date, 'unixepoch')
-         ELSE datetime(date)
-       END) AS month,
+SELECT strftime('%Y-%m-01', ${_getNormalizedDateExpr('date')}) AS month,
        SUM(amount) AS total
 FROM transactions
 WHERE is_deleted = 0 AND type = ?
@@ -202,13 +195,16 @@ WHERE t.is_deleted = 0 AND t.type = ?
     String tableAlias = 'transactions',
   }) {
     final String prefix = tableAlias.isEmpty ? '' : '$tableAlias.';
+    final String dateField = '${prefix}date';
+    final String normalizedDate = _getNormalizedDateExpr(dateField);
+
     if (filter.startDate != null) {
-      sql.write('AND ${prefix}date >= ? ');
-      variables.add(Variable<DateTime>(filter.startDate!));
+      sql.write('AND $normalizedDate >= ? ');
+      variables.add(Variable<String>(_formatDate(filter.startDate!)));
     }
     if (filter.endDate != null) {
-      sql.write('AND ${prefix}date <= ? ');
-      variables.add(Variable<DateTime>(filter.endDate!));
+      sql.write('AND $normalizedDate <= ? ');
+      variables.add(Variable<String>(_formatDate(filter.endDate!)));
     }
     if (filter.accountIds.isNotEmpty) {
       final String placeholders = List<String>.filled(
@@ -274,6 +270,37 @@ WHERE t.is_deleted = 0 AND t.type = ?
       accountIds: accounts,
       categoryIds: categories,
     );
+  }
+
+  Future<Map<String, String>> getCategoryNames(List<String> ids) async {
+    if (ids.isEmpty) {
+      return <String, String>{};
+    }
+    final List<db.CategoryRow> rows = await (_db.select(
+      _db.categories,
+    )..where((db.Categories tbl) => tbl.id.isIn(ids))).get();
+
+    return <String, String>{
+      for (final db.CategoryRow row in rows) row.id: row.name,
+    };
+  }
+
+  String _getNormalizedDateExpr(String field) {
+    return '''
+CASE
+  WHEN typeof($field) IN ('integer', 'real') AND ABS($field) >= 1000000000000
+    THEN datetime($field / 1000000.0, 'unixepoch')
+  WHEN typeof($field) IN ('integer', 'real') AND ABS($field) >= 10000000000
+    THEN datetime($field / 1000.0, 'unixepoch')
+  WHEN typeof($field) IN ('integer', 'real')
+    THEN datetime($field, 'unixepoch')
+  ELSE datetime($field)
+END
+''';
+  }
+
+  String _formatDate(DateTime date) {
+    return DateFormat('yyyy-MM-dd HH:mm:ss').format(date.toUtc());
   }
 }
 

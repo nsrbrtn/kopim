@@ -12,7 +12,10 @@ import 'package:kopim/features/analytics/domain/models/analytics_overview.dart';
 import 'package:kopim/features/analytics/domain/models/monthly_balance_data.dart';
 import 'package:kopim/features/analytics/presentation/controllers/analytics_filter_controller.dart';
 import 'package:kopim/features/analytics/presentation/controllers/analytics_providers.dart';
+import 'package:kopim/features/analytics/presentation/models/monthly_cashflow_data.dart';
 import 'package:kopim/features/analytics/presentation/widgets/analytics_chart.dart';
+import 'package:kopim/features/analytics/presentation/widgets/monthly_cashflow_bar_chart_widget.dart';
+import 'package:kopim/features/analytics/presentation/widgets/swipe_hint_arrows.dart';
 import 'package:kopim/features/analytics/presentation/widgets/total_money_chart_widget.dart';
 import 'package:kopim/features/app_shell/presentation/models/navigation_tab_content.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
@@ -170,90 +173,134 @@ NavigationTabContent buildAnalyticsTabContent(
 
       return SafeArea(
         bottom: false,
-        child: CustomScrollView(
-          slivers: <Widget>[
-            SliverPadding(
-              padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
-              sliver: SliverToBoxAdapter(
-                child: KeyedSubtree(
-                  key: ValueKey<int>(
-                    Object.hashAll(<Object?>[
-                      filterState,
-                      accounts.length,
-                      categories.length,
-                    ]),
-                  ),
-                  child: _AnalyticsFiltersCard(
-                    filterState: filterState,
-                    accounts: accounts,
-                    strings: strings,
+        child: DefaultTabController(
+          length: 2,
+          child: NestedScrollView(
+            headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
+              final ThemeData theme = Theme.of(context);
+              return <Widget>[
+                SliverPersistentHeader(
+                  pinned: true,
+                  delegate: _AnalyticsTabsHeaderDelegate(
+                    backgroundColor: theme.scaffoldBackgroundColor,
+                    tabBar: const TabBar(
+                      isScrollable: true,
+                      tabs: <Widget>[
+                        Tab(text: 'Траты по категориям'),
+                        Tab(text: 'Статистика'),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ),
-            SliverPadding(
-              padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
-              sliver: SliverToBoxAdapter(
-                child: _AnalyticsQuickSelectors(
-                  filterState: filterState,
-                  accounts: accounts,
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
+                  sliver: SliverToBoxAdapter(
+                    child: KeyedSubtree(
+                      key: ValueKey<int>(
+                        Object.hashAll(<Object?>[
+                          filterState,
+                          accounts.length,
+                          categories.length,
+                        ]),
+                      ),
+                      child: _AnalyticsFiltersCard(
+                        filterState: filterState,
+                        accounts: accounts,
+                        strings: strings,
+                      ),
+                    ),
+                  ),
+                ),
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
+                  sliver: SliverToBoxAdapter(
+                    child: _AnalyticsQuickSelectors(
+                      filterState: filterState,
+                      accounts: accounts,
+                      categories: categories,
+                      strings: strings,
+                    ),
+                  ),
+                ),
+              ];
+            },
+            body: TabBarView(
+              children: <Widget>[
+                _AnalyticsCategoriesTabView(
+                  showFullScreenLoading: showFullScreenLoading,
+                  error: error,
+                  overview: overview,
                   categories: categories,
                   strings: strings,
+                  activeAnchor: activeAnchor,
+                  canGoNextRange: canGoNextRange,
+                  canGoPreviousRange: canGoPreviousRange,
+                  onGoPreviousRange: () => ref
+                      .read(analyticsFilterControllerProvider.notifier)
+                      .goToPreviousRangeStep(),
+                  onGoNextRange: () => ref
+                      .read(analyticsFilterControllerProvider.notifier)
+                      .goToNextRangeStep(),
                 ),
-              ),
-            ),
-            if (showFullScreenLoading)
-              const SliverFillRemaining(
-                hasScrollBody: false,
-                child: Center(child: CircularProgressIndicator()),
-              )
-            else if (error != null)
-              SliverFillRemaining(
-                hasScrollBody: false,
-                child: _AnalyticsError(
-                  message: error.toString(),
+                _AnalyticsStatsTabView(
+                  showFullScreenLoading: showFullScreenLoading,
+                  error: error,
+                  overview: overview,
                   strings: strings,
+                  activeAnchor: activeAnchor,
                 ),
-              )
-            else if (overview == null)
-              SliverFillRemaining(
-                hasScrollBody: false,
-                child: _AnalyticsEmpty(strings: strings),
-              )
-            else
-              SliverPadding(
-                padding: const EdgeInsets.fromLTRB(8, 8, 8, 16),
-                sliver: SliverToBoxAdapter(
-                  child: _AnalyticsContent(
-                    overview: overview,
-                    categories: categories,
-                    filterState: filterState,
-                    strings: strings,
-                    activeAnchor: activeAnchor,
-                    canGoNextRange: canGoNextRange,
-                    canGoPreviousRange: canGoPreviousRange,
-                    onGoPreviousRange: () => ref
-                        .read(analyticsFilterControllerProvider.notifier)
-                        .goToPreviousRangeStep(),
-                    onGoNextRange: () => ref
-                        .read(analyticsFilterControllerProvider.notifier)
-                        .goToNextRangeStep(),
-                  ),
-                ),
-              ),
-            const SliverToBoxAdapter(child: SizedBox(height: 80)),
-          ],
+              ],
+            ),
+          ),
         ),
       );
     },
   );
 }
 
-class _AnalyticsContent extends StatelessWidget {
-  const _AnalyticsContent({
+class _AnalyticsTabsHeaderDelegate extends SliverPersistentHeaderDelegate {
+  _AnalyticsTabsHeaderDelegate({
+    required this.tabBar,
+    required this.backgroundColor,
+  });
+
+  final TabBar tabBar;
+  final Color backgroundColor;
+
+  @override
+  double get minExtent => tabBar.preferredSize.height;
+
+  @override
+  double get maxExtent => tabBar.preferredSize.height;
+
+  @override
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
+    return Material(
+      color: backgroundColor,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        child: Align(alignment: Alignment.centerLeft, child: tabBar),
+      ),
+    );
+  }
+
+  @override
+  bool shouldRebuild(covariant _AnalyticsTabsHeaderDelegate oldDelegate) {
+    return oldDelegate.tabBar != tabBar ||
+        oldDelegate.backgroundColor != backgroundColor;
+  }
+}
+
+class _AnalyticsCategoriesTabView extends StatelessWidget {
+  const _AnalyticsCategoriesTabView({
+    required this.showFullScreenLoading,
+    required this.error,
     required this.overview,
     required this.categories,
-    required this.filterState,
     required this.strings,
     required this.activeAnchor,
     required this.canGoNextRange,
@@ -262,9 +309,10 @@ class _AnalyticsContent extends StatelessWidget {
     required this.onGoNextRange,
   });
 
-  final AnalyticsOverview overview;
+  final bool showFullScreenLoading;
+  final Object? error;
+  final AnalyticsOverview? overview;
   final List<Category> categories;
-  final AnalyticsFilterState filterState;
   final AppLocalizations strings;
   final DateTime activeAnchor;
   final bool canGoNextRange;
@@ -274,49 +322,127 @@ class _AnalyticsContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (showFullScreenLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (error != null) {
+      return _AnalyticsError(message: error.toString(), strings: strings);
+    }
+    if (overview == null) {
+      return _AnalyticsEmpty(strings: strings);
+    }
+
     final NumberFormat currencyFormat = NumberFormat.simpleCurrency(
       locale: strings.localeName,
     );
     final Map<String, Category> categoriesById = <String, Category>{
       for (final Category category in categories) category.id: category,
     };
+
+    return CustomScrollView(
+      slivers: <Widget>[
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(8, 8, 8, 16),
+          sliver: SliverToBoxAdapter(
+            child: _TopCategoriesTabContent(
+              overview: overview!,
+              categoriesById: categoriesById,
+              currencyFormat: currencyFormat,
+              strings: strings,
+              activeAnchor: activeAnchor,
+              canGoNextRange: canGoNextRange,
+              canGoPreviousRange: canGoPreviousRange,
+              onGoPreviousRange: onGoPreviousRange,
+              onGoNextRange: onGoNextRange,
+            ),
+          ),
+        ),
+        const SliverToBoxAdapter(child: SizedBox(height: 80)),
+      ],
+    );
+  }
+}
+
+class _AnalyticsStatsTabView extends StatelessWidget {
+  const _AnalyticsStatsTabView({
+    required this.showFullScreenLoading,
+    required this.error,
+    required this.overview,
+    required this.strings,
+    required this.activeAnchor,
+  });
+
+  final bool showFullScreenLoading;
+  final Object? error;
+  final AnalyticsOverview? overview;
+  final AppLocalizations strings;
+  final DateTime activeAnchor;
+
+  @override
+  Widget build(BuildContext context) {
+    if (showFullScreenLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (error != null) {
+      return _AnalyticsError(message: error.toString(), strings: strings);
+    }
+    if (overview == null) {
+      return _AnalyticsEmpty(strings: strings);
+    }
+
+    final NumberFormat currencyFormat = NumberFormat.simpleCurrency(
+      locale: strings.localeName,
+    );
+
+    return CustomScrollView(
+      slivers: <Widget>[
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(8, 8, 8, 16),
+          sliver: SliverToBoxAdapter(
+            child: _TotalMoneyTabContent(
+              currencyFormat: currencyFormat,
+              strings: strings,
+              activeAnchor: activeAnchor,
+            ),
+          ),
+        ),
+        const SliverToBoxAdapter(child: SizedBox(height: 80)),
+      ],
+    );
+  }
+}
+
+class _TopCategoriesTabContent extends StatelessWidget {
+  const _TopCategoriesTabContent({
+    required this.overview,
+    required this.categoriesById,
+    required this.currencyFormat,
+    required this.strings,
+    required this.activeAnchor,
+    required this.canGoNextRange,
+    required this.canGoPreviousRange,
+    required this.onGoPreviousRange,
+    required this.onGoNextRange,
+  });
+
+  final AnalyticsOverview overview;
+  final Map<String, Category> categoriesById;
+  final NumberFormat currencyFormat;
+  final AppLocalizations strings;
+  final DateTime activeAnchor;
+  final bool canGoNextRange;
+  final bool canGoPreviousRange;
+  final VoidCallback onGoPreviousRange;
+  final VoidCallback onGoNextRange;
+
+  @override
+  Widget build(BuildContext context) {
     final double totalExpense = overview.totalExpense;
     final double totalIncome = overview.totalIncome;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        Consumer(
-          builder: (BuildContext context, WidgetRef ref, Widget? child) {
-            final AsyncValue<List<MonthlyBalanceData>> monthlyDataAsync = ref
-                .watch(monthlyBalanceDataProvider);
-
-            return monthlyDataAsync.when(
-              data: (List<MonthlyBalanceData> data) {
-                if (data.isEmpty) {
-                  return const SizedBox.shrink();
-                }
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 16),
-                  child: TotalMoneyChartWidget(
-                    data: data,
-                    currencySymbol: currencyFormat.currencySymbol,
-                    selectedMonth: activeAnchor,
-                    localeName: strings.localeName,
-                    onMonthSelected: (DateTime month) {
-                      ref
-                          .read(analyticsFilterControllerProvider.notifier)
-                          .selectMonth(month);
-                    },
-                  ),
-                );
-              },
-              loading: () => const SizedBox.shrink(),
-              error: (Object error, StackTrace stack) =>
-                  const SizedBox.shrink(),
-            );
-          },
-        ),
         AnimatedSwitcher(
           duration: const Duration(milliseconds: 250),
           transitionBuilder: (Widget child, Animation<double> animation) {
@@ -349,6 +475,72 @@ class _AnalyticsContent extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _TotalMoneyTabContent extends StatelessWidget {
+  const _TotalMoneyTabContent({
+    required this.currencyFormat,
+    required this.strings,
+    required this.activeAnchor,
+  });
+
+  final NumberFormat currencyFormat;
+  final AppLocalizations strings;
+  final DateTime activeAnchor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer(
+      builder: (BuildContext context, WidgetRef ref, Widget? child) {
+        final AsyncValue<List<MonthlyCashflowData>> cashflowAsync = ref.watch(
+          monthlyCashflowDataProvider,
+        );
+        final AsyncValue<List<MonthlyBalanceData>> monthlyDataAsync = ref.watch(
+          monthlyBalanceDataProvider,
+        );
+
+        return Column(
+          children: <Widget>[
+            Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: MonthlyCashflowBarChartWidget(
+                data: cashflowAsync.value ?? const <MonthlyCashflowData>[],
+                currencySymbol: currencyFormat.currencySymbol,
+                selectedMonth: activeAnchor,
+                localeName: strings.localeName,
+                onMonthSelected: (DateTime month) {
+                  ref
+                      .read(analyticsFilterControllerProvider.notifier)
+                      .selectMonth(month);
+                },
+              ),
+            ),
+            monthlyDataAsync.when(
+              data: (List<MonthlyBalanceData> data) {
+                if (data.isEmpty) {
+                  return const SizedBox.shrink();
+                }
+                return TotalMoneyChartWidget(
+                  data: data,
+                  currencySymbol: currencyFormat.currencySymbol,
+                  selectedMonth: activeAnchor,
+                  localeName: strings.localeName,
+                  onMonthSelected: (DateTime month) {
+                    ref
+                        .read(analyticsFilterControllerProvider.notifier)
+                        .selectMonth(month);
+                  },
+                );
+              },
+              loading: () => const SizedBox.shrink(),
+              error: (Object error, StackTrace stack) =>
+                  const SizedBox.shrink(),
+            ),
+          ],
+        );
+      },
     );
   }
 }
@@ -1210,7 +1402,16 @@ class _TopCategoriesPageState extends State<_TopCategoriesPage> {
             focusedItem: null,
           ),
           const SizedBox(height: 8),
-          _EmptyMonthChart(items: placeholderItems, color: placeholderColor),
+          _EmptyMonthChart(
+            items: placeholderItems,
+            color: placeholderColor,
+            canGoPreviousRange: widget.canGoPreviousRange,
+            canGoNextRange: widget.canGoNextRange,
+            onPreviousRange: widget.canGoPreviousRange
+                ? widget.onPreviousRange
+                : null,
+            onNextRange: widget.canGoNextRange ? widget.onNextRange : null,
+          ),
           const SizedBox(height: 16),
           Center(
             child: Text(
@@ -1279,20 +1480,38 @@ class _TopCategoriesPageState extends State<_TopCategoriesPage> {
               final Widget chart = RepaintBoundary(
                 child: SizedBox(
                   height: chartExtent,
-                  child: AnalyticsDonutChart(
-                    items: displayItems,
-                    backgroundColor: backgroundColor,
-                    totalAmount: capturedTotal,
-                    selectedIndex: selectedIndex,
-                    animate: false,
-                    onSegmentSelected: (int index) {
-                      if (index >= 0 && index < displayItems.length) {
-                        setState(() {
-                          final String key = displayItems[index].key;
-                          _highlightKey = _highlightKey == key ? null : key;
-                        });
-                      }
-                    },
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: <Widget>[
+                      AnalyticsDonutChart(
+                        items: displayItems,
+                        backgroundColor: backgroundColor,
+                        totalAmount: capturedTotal,
+                        selectedIndex: selectedIndex,
+                        animate: false,
+                        onSegmentSelected: (int index) {
+                          if (index >= 0 && index < displayItems.length) {
+                            setState(() {
+                              final String key = displayItems[index].key;
+                              _highlightKey =
+                                  _highlightKey == key ? null : key;
+                            });
+                          }
+                        },
+                      ),
+                      Positioned.fill(
+                        child: SwipeHintArrows(
+                          canGoPreviousRange: widget.canGoPreviousRange,
+                          canGoNextRange: widget.canGoNextRange,
+                          onPrevious: widget.canGoPreviousRange
+                              ? widget.onPreviousRange
+                              : null,
+                          onNext: widget.canGoNextRange
+                              ? widget.onNextRange
+                              : null,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               );
@@ -1318,24 +1537,7 @@ class _TopCategoriesPageState extends State<_TopCategoriesPage> {
       );
     }
 
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onHorizontalDragEnd: _handleChartHorizontalDragEnd,
-      child: content,
-    );
-  }
-
-  void _handleChartHorizontalDragEnd(DragEndDetails details) {
-    const double threshold = 150;
-    final double velocityX = details.velocity.pixelsPerSecond.dx;
-    if (velocityX.abs() < threshold) {
-      return;
-    }
-    if (velocityX > 0 && widget.canGoPreviousRange) {
-      widget.onPreviousRange();
-    } else if (velocityX < 0 && widget.canGoNextRange) {
-      widget.onNextRange();
-    }
+    return content;
   }
 
   void _handleToggle(AnalyticsChartItem item) {
@@ -1346,10 +1548,21 @@ class _TopCategoriesPageState extends State<_TopCategoriesPage> {
 }
 
 class _EmptyMonthChart extends StatelessWidget {
-  const _EmptyMonthChart({required this.items, required this.color});
+  const _EmptyMonthChart({
+    required this.items,
+    required this.color,
+    required this.canGoPreviousRange,
+    required this.canGoNextRange,
+    required this.onPreviousRange,
+    required this.onNextRange,
+  });
 
   final List<AnalyticsChartItem> items;
   final Color color;
+  final bool canGoPreviousRange;
+  final bool canGoNextRange;
+  final VoidCallback? onPreviousRange;
+  final VoidCallback? onNextRange;
 
   @override
   Widget build(BuildContext context) {
@@ -1375,12 +1588,25 @@ class _EmptyMonthChart extends StatelessWidget {
             child: RepaintBoundary(
               child: SizedBox(
                 height: chartExtent,
-                child: AnalyticsDonutChart(
-                  items: items,
-                  backgroundColor: color.withValues(alpha: 0.2),
-                  totalAmount: 1,
-                  selectedIndex: null,
-                  onSegmentSelected: null,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: <Widget>[
+                    AnalyticsDonutChart(
+                      items: items,
+                      backgroundColor: color.withValues(alpha: 0.2),
+                      totalAmount: 1,
+                      selectedIndex: null,
+                      onSegmentSelected: null,
+                    ),
+                    Positioned.fill(
+                      child: SwipeHintArrows(
+                        canGoPreviousRange: canGoPreviousRange,
+                        canGoNextRange: canGoNextRange,
+                        onPrevious: onPreviousRange,
+                        onNext: onNextRange,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),

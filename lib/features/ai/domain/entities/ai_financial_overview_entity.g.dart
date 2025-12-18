@@ -81,6 +81,16 @@ _BudgetForecastInsight _$BudgetForecastInsightFromJson(
   remaining: (json['remaining'] as num).toDouble(),
   completionRate: (json['completionRate'] as num).toDouble(),
   status: $enumDecode(_$BudgetForecastStatusEnumMap, json['status']),
+  categoryNames:
+      (json['categoryNames'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList() ??
+      const <String>[],
+  accountIds:
+      (json['accountIds'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList() ??
+      const <String>[],
 );
 
 Map<String, dynamic> _$BudgetForecastInsightToJson(
@@ -96,6 +106,8 @@ Map<String, dynamic> _$BudgetForecastInsightToJson(
   'remaining': instance.remaining,
   'completionRate': instance.completionRate,
   'status': _$BudgetForecastStatusEnumMap[instance.status]!,
+  'categoryNames': instance.categoryNames,
+  'accountIds': instance.accountIds,
 };
 
 const _$BudgetForecastStatusEnumMap = {

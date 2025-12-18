@@ -227,9 +227,13 @@ class AiAssistantRepositoryImpl implements AiAssistantRepository {
     final NumberFormat percent = NumberFormat.percentPattern(locale);
 
     const String systemPrompt =
-        'Ты — финансовый ассистент финтех-приложения Kopim. '
-        'Отвечай профессионально и на русском языке, ссылайся на предоставленные данные. '
-        'Если данных недостаточно, подскажи, какие метрики нужны пользователю.';
+        'Ты — умный финансовый помощник в приложении "Копим". '
+        'Твоя цель — помогать пользователю управлять деньгами осознанно. '
+        'Правила: '
+        '1. Отвечай на русском языке, используй Markdown (выделяй суммы **жирным**). '
+        '2. Ссылайся на предоставленные данные (бюджеты, категории). Не выдумывай цифры. '
+        '3. Если бюджет превышен или есть негативный тренд, вежливо предупреди и предложи решение. '
+        '4. Будь кратким, дружелюбным и конкретным.';
 
     final StringBuffer userBuffer = StringBuffer()
       ..writeln(
@@ -259,11 +263,15 @@ class AiAssistantRepositoryImpl implements AiAssistantRepository {
       userBuffer.writeln('--- Прогнозы по бюджетам ---');
       for (final BudgetForecastInsight forecast in overview.budgetForecasts) {
         final String completion = percent.format(forecast.completionRate);
-        userBuffer.writeln(
+        userBuffer.write(
           '${forecast.title}: потрачено ${currency.format(forecast.spent)} '
           'из ${currency.format(forecast.allocated)} '
           '($completion), статус: ${forecast.status.name}',
         );
+        if (forecast.categoryNames.isNotEmpty) {
+          userBuffer.write('. Категории: ${forecast.categoryNames.join(', ')}');
+        }
+        userBuffer.writeln();
       }
     }
 

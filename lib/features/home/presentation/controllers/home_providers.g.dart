@@ -585,4 +585,4 @@ final class HomeAccountMonthlySummariesProvider
 }
 
 String _$homeAccountMonthlySummariesHash() =>
-    r'52e12225d2d10dd284fc74428aeebbe2640e425e';
+    r'246f0197a9ea556d55ae637f052a7b25991561da';

@@ -84,6 +84,8 @@ abstract class BudgetForecastInsight with _$BudgetForecastInsight {
     required double remaining,
     required double completionRate,
     required BudgetForecastStatus status,
+    @Default(<String>[]) List<String> categoryNames,
+    @Default(<String>[]) List<String> accountIds,
   }) = _BudgetForecastInsight;
 
   factory BudgetForecastInsight.fromJson(Map<String, dynamic> json) =>

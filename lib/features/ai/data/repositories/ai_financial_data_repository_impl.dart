@@ -30,10 +30,18 @@ class AiFinancialDataRepositoryImpl implements AiFinancialDataRepository {
         .getTopCategories(filter);
     final List<BudgetInstanceAggregate> budgetInstances = await _analyticsDao
         .getBudgetForecasts(filter);
+
+    final Set<String> allCategoryIds = budgetInstances
+        .expand((BudgetInstanceAggregate b) => b.categoryIds)
+        .toSet();
+    final Map<String, String> categoryNames = await _analyticsDao
+        .getCategoryNames(allCategoryIds.toList(growable: false));
+
     return _composeOverview(
       monthlyExpenses: monthlyExpenses,
       topCategories: topCategories,
       budgetInstances: budgetInstances,
+      categoryNamesMap: categoryNames,
       filter: filter,
     );
   }
@@ -48,18 +56,31 @@ class AiFinancialDataRepositoryImpl implements AiFinancialDataRepository {
       List<BudgetInstanceAggregate>? budgets;
       bool isClosed = false;
 
-      void emitIfReady() {
+      void emitIfReady() async {
         if (isClosed ||
             monthly == null ||
             categories == null ||
             budgets == null) {
           return;
         }
+
+        // Note: For streaming, we are doing an async fetch inside the stream callback.
+        //Ideally, this should be reactive too, but for now fetching names on demand is acceptable
+        // strictly speaking this might introduce a small race or delay, but acceptable for this feature.
+        final Set<String> allCategoryIds = budgets!
+            .expand((BudgetInstanceAggregate b) => b.categoryIds)
+            .toSet();
+        final Map<String, String> categoryNames = await _analyticsDao
+            .getCategoryNames(allCategoryIds.toList(growable: false));
+
+        if (isClosed) return;
+
         controller.add(
           _composeOverview(
             monthlyExpenses: monthly!,
             topCategories: categories!,
             budgetInstances: budgets!,
+            categoryNamesMap: categoryNames,
             filter: filter,
           ),
         );
@@ -102,6 +123,7 @@ class AiFinancialDataRepositoryImpl implements AiFinancialDataRepository {
     required List<MonthlyExpenseAggregate> monthlyExpenses,
     required List<CategoryExpenseAggregate> topCategories,
     required List<BudgetInstanceAggregate> budgetInstances,
+    required Map<String, String> categoryNamesMap,
     required AiDataFilter filter,
   }) {
     final DateTime generatedAt = _nowProvider();
@@ -133,7 +155,7 @@ class AiFinancialDataRepositoryImpl implements AiFinancialDataRepository {
         )
         .map(
           (BudgetInstanceAggregate aggregate) =>
-              _mapBudgetForecast(aggregate, generatedAt),
+              _mapBudgetForecast(aggregate, generatedAt, categoryNamesMap),
         )
         .toList(growable: false);
 
@@ -162,6 +184,7 @@ class AiFinancialDataRepositoryImpl implements AiFinancialDataRepository {
   BudgetForecastInsight _mapBudgetForecast(
     BudgetInstanceAggregate aggregate,
     DateTime now,
+    Map<String, String> categoryNamesMap,
   ) {
     final DateTime periodStart = aggregate.periodStart;
     final DateTime periodEnd = aggregate.periodEnd;
@@ -188,6 +211,10 @@ class AiFinancialDataRepositoryImpl implements AiFinancialDataRepository {
       status = BudgetForecastStatus.onTrack;
     }
 
+    final List<String> categoryNames = aggregate.categoryIds
+        .map((String id) => categoryNamesMap[id] ?? 'Unknown')
+        .toList(growable: false);
+
     return BudgetForecastInsight(
       budgetId: aggregate.budgetId,
       title: aggregate.title,
@@ -199,6 +226,8 @@ class AiFinancialDataRepositoryImpl implements AiFinancialDataRepository {
       remaining: remaining,
       completionRate: completionRate,
       status: status,
+      categoryNames: categoryNames,
+      accountIds: aggregate.accountIds,
     );
   }
 }

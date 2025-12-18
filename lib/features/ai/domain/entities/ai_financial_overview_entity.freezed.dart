@@ -840,7 +840,7 @@ as String?,
 /// @nodoc
 mixin _$BudgetForecastInsight {
 
- String get budgetId; String get title; DateTime get periodStart; DateTime get periodEnd; double get allocated; double get spent; double get projectedSpent; double get remaining; double get completionRate; BudgetForecastStatus get status;
+ String get budgetId; String get title; DateTime get periodStart; DateTime get periodEnd; double get allocated; double get spent; double get projectedSpent; double get remaining; double get completionRate; BudgetForecastStatus get status; List<String> get categoryNames; List<String> get accountIds;
 /// Create a copy of BudgetForecastInsight
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -853,16 +853,16 @@ $BudgetForecastInsightCopyWith<BudgetForecastInsight> get copyWith => _$BudgetFo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is BudgetForecastInsight&&(identical(other.budgetId, budgetId) || other.budgetId == budgetId)&&(identical(other.title, title) || other.title == title)&&(identical(other.periodStart, periodStart) || other.periodStart == periodStart)&&(identical(other.periodEnd, periodEnd) || other.periodEnd == periodEnd)&&(identical(other.allocated, allocated) || other.allocated == allocated)&&(identical(other.spent, spent) || other.spent == spent)&&(identical(other.projectedSpent, projectedSpent) || other.projectedSpent == projectedSpent)&&(identical(other.remaining, remaining) || other.remaining == remaining)&&(identical(other.completionRate, completionRate) || other.completionRate == completionRate)&&(identical(other.status, status) || other.status == status));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is BudgetForecastInsight&&(identical(other.budgetId, budgetId) || other.budgetId == budgetId)&&(identical(other.title, title) || other.title == title)&&(identical(other.periodStart, periodStart) || other.periodStart == periodStart)&&(identical(other.periodEnd, periodEnd) || other.periodEnd == periodEnd)&&(identical(other.allocated, allocated) || other.allocated == allocated)&&(identical(other.spent, spent) || other.spent == spent)&&(identical(other.projectedSpent, projectedSpent) || other.projectedSpent == projectedSpent)&&(identical(other.remaining, remaining) || other.remaining == remaining)&&(identical(other.completionRate, completionRate) || other.completionRate == completionRate)&&(identical(other.status, status) || other.status == status)&&const DeepCollectionEquality().equals(other.categoryNames, categoryNames)&&const DeepCollectionEquality().equals(other.accountIds, accountIds));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,budgetId,title,periodStart,periodEnd,allocated,spent,projectedSpent,remaining,completionRate,status);
+int get hashCode => Object.hash(runtimeType,budgetId,title,periodStart,periodEnd,allocated,spent,projectedSpent,remaining,completionRate,status,const DeepCollectionEquality().hash(categoryNames),const DeepCollectionEquality().hash(accountIds));
 
 @override
 String toString() {
-  return 'BudgetForecastInsight(budgetId: $budgetId, title: $title, periodStart: $periodStart, periodEnd: $periodEnd, allocated: $allocated, spent: $spent, projectedSpent: $projectedSpent, remaining: $remaining, completionRate: $completionRate, status: $status)';
+  return 'BudgetForecastInsight(budgetId: $budgetId, title: $title, periodStart: $periodStart, periodEnd: $periodEnd, allocated: $allocated, spent: $spent, projectedSpent: $projectedSpent, remaining: $remaining, completionRate: $completionRate, status: $status, categoryNames: $categoryNames, accountIds: $accountIds)';
 }
 
 
@@ -873,7 +873,7 @@ abstract mixin class $BudgetForecastInsightCopyWith<$Res>  {
   factory $BudgetForecastInsightCopyWith(BudgetForecastInsight value, $Res Function(BudgetForecastInsight) _then) = _$BudgetForecastInsightCopyWithImpl;
 @useResult
 $Res call({
- String budgetId, String title, DateTime periodStart, DateTime periodEnd, double allocated, double spent, double projectedSpent, double remaining, double completionRate, BudgetForecastStatus status
+ String budgetId, String title, DateTime periodStart, DateTime periodEnd, double allocated, double spent, double projectedSpent, double remaining, double completionRate, BudgetForecastStatus status, List<String> categoryNames, List<String> accountIds
 });
 
 
@@ -890,7 +890,7 @@ class _$BudgetForecastInsightCopyWithImpl<$Res>
 
 /// Create a copy of BudgetForecastInsight
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? budgetId = null,Object? title = null,Object? periodStart = null,Object? periodEnd = null,Object? allocated = null,Object? spent = null,Object? projectedSpent = null,Object? remaining = null,Object? completionRate = null,Object? status = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? budgetId = null,Object? title = null,Object? periodStart = null,Object? periodEnd = null,Object? allocated = null,Object? spent = null,Object? projectedSpent = null,Object? remaining = null,Object? completionRate = null,Object? status = null,Object? categoryNames = null,Object? accountIds = null,}) {
   return _then(_self.copyWith(
 budgetId: null == budgetId ? _self.budgetId : budgetId // ignore: cast_nullable_to_non_nullable
 as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
@@ -902,7 +902,9 @@ as double,projectedSpent: null == projectedSpent ? _self.projectedSpent : projec
 as double,remaining: null == remaining ? _self.remaining : remaining // ignore: cast_nullable_to_non_nullable
 as double,completionRate: null == completionRate ? _self.completionRate : completionRate // ignore: cast_nullable_to_non_nullable
 as double,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
-as BudgetForecastStatus,
+as BudgetForecastStatus,categoryNames: null == categoryNames ? _self.categoryNames : categoryNames // ignore: cast_nullable_to_non_nullable
+as List<String>,accountIds: null == accountIds ? _self.accountIds : accountIds // ignore: cast_nullable_to_non_nullable
+as List<String>,
   ));
 }
 
@@ -987,10 +989,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String budgetId,  String title,  DateTime periodStart,  DateTime periodEnd,  double allocated,  double spent,  double projectedSpent,  double remaining,  double completionRate,  BudgetForecastStatus status)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String budgetId,  String title,  DateTime periodStart,  DateTime periodEnd,  double allocated,  double spent,  double projectedSpent,  double remaining,  double completionRate,  BudgetForecastStatus status,  List<String> categoryNames,  List<String> accountIds)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _BudgetForecastInsight() when $default != null:
-return $default(_that.budgetId,_that.title,_that.periodStart,_that.periodEnd,_that.allocated,_that.spent,_that.projectedSpent,_that.remaining,_that.completionRate,_that.status);case _:
+return $default(_that.budgetId,_that.title,_that.periodStart,_that.periodEnd,_that.allocated,_that.spent,_that.projectedSpent,_that.remaining,_that.completionRate,_that.status,_that.categoryNames,_that.accountIds);case _:
   return orElse();
 
 }
@@ -1008,10 +1010,10 @@ return $default(_that.budgetId,_that.title,_that.periodStart,_that.periodEnd,_th
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String budgetId,  String title,  DateTime periodStart,  DateTime periodEnd,  double allocated,  double spent,  double projectedSpent,  double remaining,  double completionRate,  BudgetForecastStatus status)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String budgetId,  String title,  DateTime periodStart,  DateTime periodEnd,  double allocated,  double spent,  double projectedSpent,  double remaining,  double completionRate,  BudgetForecastStatus status,  List<String> categoryNames,  List<String> accountIds)  $default,) {final _that = this;
 switch (_that) {
 case _BudgetForecastInsight():
-return $default(_that.budgetId,_that.title,_that.periodStart,_that.periodEnd,_that.allocated,_that.spent,_that.projectedSpent,_that.remaining,_that.completionRate,_that.status);case _:
+return $default(_that.budgetId,_that.title,_that.periodStart,_that.periodEnd,_that.allocated,_that.spent,_that.projectedSpent,_that.remaining,_that.completionRate,_that.status,_that.categoryNames,_that.accountIds);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -1028,10 +1030,10 @@ return $default(_that.budgetId,_that.title,_that.periodStart,_that.periodEnd,_th
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String budgetId,  String title,  DateTime periodStart,  DateTime periodEnd,  double allocated,  double spent,  double projectedSpent,  double remaining,  double completionRate,  BudgetForecastStatus status)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String budgetId,  String title,  DateTime periodStart,  DateTime periodEnd,  double allocated,  double spent,  double projectedSpent,  double remaining,  double completionRate,  BudgetForecastStatus status,  List<String> categoryNames,  List<String> accountIds)?  $default,) {final _that = this;
 switch (_that) {
 case _BudgetForecastInsight() when $default != null:
-return $default(_that.budgetId,_that.title,_that.periodStart,_that.periodEnd,_that.allocated,_that.spent,_that.projectedSpent,_that.remaining,_that.completionRate,_that.status);case _:
+return $default(_that.budgetId,_that.title,_that.periodStart,_that.periodEnd,_that.allocated,_that.spent,_that.projectedSpent,_that.remaining,_that.completionRate,_that.status,_that.categoryNames,_that.accountIds);case _:
   return null;
 
 }
@@ -1043,7 +1045,7 @@ return $default(_that.budgetId,_that.title,_that.periodStart,_that.periodEnd,_th
 @JsonSerializable()
 
 class _BudgetForecastInsight extends BudgetForecastInsight {
-  const _BudgetForecastInsight({required this.budgetId, required this.title, required this.periodStart, required this.periodEnd, required this.allocated, required this.spent, required this.projectedSpent, required this.remaining, required this.completionRate, required this.status}): super._();
+  const _BudgetForecastInsight({required this.budgetId, required this.title, required this.periodStart, required this.periodEnd, required this.allocated, required this.spent, required this.projectedSpent, required this.remaining, required this.completionRate, required this.status, final  List<String> categoryNames = const <String>[], final  List<String> accountIds = const <String>[]}): _categoryNames = categoryNames,_accountIds = accountIds,super._();
   factory _BudgetForecastInsight.fromJson(Map<String, dynamic> json) => _$BudgetForecastInsightFromJson(json);
 
 @override final  String budgetId;
@@ -1056,6 +1058,20 @@ class _BudgetForecastInsight extends BudgetForecastInsight {
 @override final  double remaining;
 @override final  double completionRate;
 @override final  BudgetForecastStatus status;
+ final  List<String> _categoryNames;
+@override@JsonKey() List<String> get categoryNames {
+  if (_categoryNames is EqualUnmodifiableListView) return _categoryNames;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_categoryNames);
+}
+
+ final  List<String> _accountIds;
+@override@JsonKey() List<String> get accountIds {
+  if (_accountIds is EqualUnmodifiableListView) return _accountIds;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_accountIds);
+}
+
 
 /// Create a copy of BudgetForecastInsight
 /// with the given fields replaced by the non-null parameter values.
@@ -1070,16 +1086,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _BudgetForecastInsight&&(identical(other.budgetId, budgetId) || other.budgetId == budgetId)&&(identical(other.title, title) || other.title == title)&&(identical(other.periodStart, periodStart) || other.periodStart == periodStart)&&(identical(other.periodEnd, periodEnd) || other.periodEnd == periodEnd)&&(identical(other.allocated, allocated) || other.allocated == allocated)&&(identical(other.spent, spent) || other.spent == spent)&&(identical(other.projectedSpent, projectedSpent) || other.projectedSpent == projectedSpent)&&(identical(other.remaining, remaining) || other.remaining == remaining)&&(identical(other.completionRate, completionRate) || other.completionRate == completionRate)&&(identical(other.status, status) || other.status == status));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _BudgetForecastInsight&&(identical(other.budgetId, budgetId) || other.budgetId == budgetId)&&(identical(other.title, title) || other.title == title)&&(identical(other.periodStart, periodStart) || other.periodStart == periodStart)&&(identical(other.periodEnd, periodEnd) || other.periodEnd == periodEnd)&&(identical(other.allocated, allocated) || other.allocated == allocated)&&(identical(other.spent, spent) || other.spent == spent)&&(identical(other.projectedSpent, projectedSpent) || other.projectedSpent == projectedSpent)&&(identical(other.remaining, remaining) || other.remaining == remaining)&&(identical(other.completionRate, completionRate) || other.completionRate == completionRate)&&(identical(other.status, status) || other.status == status)&&const DeepCollectionEquality().equals(other._categoryNames, _categoryNames)&&const DeepCollectionEquality().equals(other._accountIds, _accountIds));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,budgetId,title,periodStart,periodEnd,allocated,spent,projectedSpent,remaining,completionRate,status);
+int get hashCode => Object.hash(runtimeType,budgetId,title,periodStart,periodEnd,allocated,spent,projectedSpent,remaining,completionRate,status,const DeepCollectionEquality().hash(_categoryNames),const DeepCollectionEquality().hash(_accountIds));
 
 @override
 String toString() {
-  return 'BudgetForecastInsight(budgetId: $budgetId, title: $title, periodStart: $periodStart, periodEnd: $periodEnd, allocated: $allocated, spent: $spent, projectedSpent: $projectedSpent, remaining: $remaining, completionRate: $completionRate, status: $status)';
+  return 'BudgetForecastInsight(budgetId: $budgetId, title: $title, periodStart: $periodStart, periodEnd: $periodEnd, allocated: $allocated, spent: $spent, projectedSpent: $projectedSpent, remaining: $remaining, completionRate: $completionRate, status: $status, categoryNames: $categoryNames, accountIds: $accountIds)';
 }
 
 
@@ -1090,7 +1106,7 @@ abstract mixin class _$BudgetForecastInsightCopyWith<$Res> implements $BudgetFor
   factory _$BudgetForecastInsightCopyWith(_BudgetForecastInsight value, $Res Function(_BudgetForecastInsight) _then) = __$BudgetForecastInsightCopyWithImpl;
 @override @useResult
 $Res call({
- String budgetId, String title, DateTime periodStart, DateTime periodEnd, double allocated, double spent, double projectedSpent, double remaining, double completionRate, BudgetForecastStatus status
+ String budgetId, String title, DateTime periodStart, DateTime periodEnd, double allocated, double spent, double projectedSpent, double remaining, double completionRate, BudgetForecastStatus status, List<String> categoryNames, List<String> accountIds
 });
 
 
@@ -1107,7 +1123,7 @@ class __$BudgetForecastInsightCopyWithImpl<$Res>
 
 /// Create a copy of BudgetForecastInsight
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? budgetId = null,Object? title = null,Object? periodStart = null,Object? periodEnd = null,Object? allocated = null,Object? spent = null,Object? projectedSpent = null,Object? remaining = null,Object? completionRate = null,Object? status = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? budgetId = null,Object? title = null,Object? periodStart = null,Object? periodEnd = null,Object? allocated = null,Object? spent = null,Object? projectedSpent = null,Object? remaining = null,Object? completionRate = null,Object? status = null,Object? categoryNames = null,Object? accountIds = null,}) {
   return _then(_BudgetForecastInsight(
 budgetId: null == budgetId ? _self.budgetId : budgetId // ignore: cast_nullable_to_non_nullable
 as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
@@ -1119,7 +1135,9 @@ as double,projectedSpent: null == projectedSpent ? _self.projectedSpent : projec
 as double,remaining: null == remaining ? _self.remaining : remaining // ignore: cast_nullable_to_non_nullable
 as double,completionRate: null == completionRate ? _self.completionRate : completionRate // ignore: cast_nullable_to_non_nullable
 as double,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
-as BudgetForecastStatus,
+as BudgetForecastStatus,categoryNames: null == categoryNames ? _self._categoryNames : categoryNames // ignore: cast_nullable_to_non_nullable
+as List<String>,accountIds: null == accountIds ? _self._accountIds : accountIds // ignore: cast_nullable_to_non_nullable
+as List<String>,
   ));
 }
 

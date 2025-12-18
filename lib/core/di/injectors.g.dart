@@ -4028,7 +4028,7 @@ final class WatchAccountMonthlyTotalsUseCaseProvider
 }
 
 String _$watchAccountMonthlyTotalsUseCaseHash() =>
-    r'394a565c6c63c6f2e5687cf49c10c170c9f4142f';
+    r'a5569d61e878be286b9092f8b9861885b2d6b35a';
 
 @ProviderFor(watchMonthlyAnalyticsUseCase)
 const watchMonthlyAnalyticsUseCaseProvider =
@@ -5147,7 +5147,7 @@ final class SyncServiceProvider
   }
 }
 
-String _$syncServiceHash() => r'1c5a44db41601ecaa14ed9f79b980d42eff82db7';
+String _$syncServiceHash() => r'372a76dacb2c6545e5ca4c92f7f0fc13b09bcc5e';
 
 @ProviderFor(authRepository)
 const authRepositoryProvider = AuthRepositoryProvider._();

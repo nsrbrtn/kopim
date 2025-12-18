@@ -26,13 +26,16 @@ class QuickAddTransactionCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final ThemeData theme = Theme.of(context);
-    final AsyncValue<List<Category>> categoriesAsync =
-        ref.watch(homeCategoriesProvider);
-    final AsyncValue<List<AccountEntity>> accountsAsync =
-        ref.watch(homeAccountsProvider);
+    final AsyncValue<List<Category>> categoriesAsync = ref.watch(
+      homeCategoriesProvider,
+    );
+    final AsyncValue<List<AccountEntity>> accountsAsync = ref.watch(
+      homeAccountsProvider,
+    );
     final List<AccountEntity>? accounts = accountsAsync.asData?.value;
-    final String? defaultAccountId =
-        (accounts != null && accounts.isNotEmpty) ? accounts.first.id : null;
+    final String? defaultAccountId = (accounts != null && accounts.isNotEmpty)
+        ? accounts.first.id
+        : null;
     final bool hasAccounts = defaultAccountId != null;
     final KopimLayout layout = context.kopimLayout;
 
@@ -58,64 +61,66 @@ class QuickAddTransactionCard extends ConsumerWidget {
                       style: theme.textTheme.titleLarge,
                     ),
                   ),
-                  Icon(Icons.flash_on_rounded,
-                      color: theme.colorScheme.primary, size: 20),
+                  Icon(
+                    Icons.flash_on_rounded,
+                    color: theme.colorScheme.primary,
+                    size: 20,
+                  ),
                 ],
               ),
               SizedBox(height: layout.spacing.between),
-              categoriesAsync.when(
-                data: (List<Category> categories) {
-                  final List<Category> available = categories
-                      .where((Category category) => !category.isDeleted)
-                      .toList(growable: false);
-                  if (available.isEmpty) {
-                    return _EmptyState(
-                      message: strings.addTransactionCategoriesLoading,
+              SizedBox(height: layout.spacing.between),
+              RepaintBoundary(
+                child: categoriesAsync.when(
+                  data: (List<Category> categories) {
+                    final List<Category> topSelection = _filterCategories(
+                      categories,
                     );
-                  }
 
-                  final List<Category> favorites = available
-                      .where((Category category) => category.isFavorite)
-                      .toList(growable: false);
-                  final List<Category> selection =
-                      favorites.isNotEmpty ? favorites : available;
-                  final Iterable<Category> topSelection =
-                      selection.take(12).toList();
+                    if (topSelection.isEmpty) {
+                      return _EmptyState(
+                        message: strings.addTransactionCategoriesLoading,
+                      );
+                    }
 
-                  return SizedBox(
-                    height: 84,
-                    child: ListView.separated(
-                      scrollDirection: Axis.horizontal,
-                      physics: const BouncingScrollPhysics(),
-                      itemCount: topSelection.length,
-                      separatorBuilder: (BuildContext context, int index) =>
-                          SizedBox(width: layout.spacing.section),
-                      itemBuilder: (BuildContext _, int index) {
-                        final Category category = topSelection.elementAt(index);
-                        return _QuickCategoryIcon(
-                          category: category,
-                          onTap: hasAccounts
-                              ? () => _openQuickForm(
+                    return SizedBox(
+                      height: 84,
+                      child: ListView.separated(
+                        scrollDirection: Axis.horizontal,
+                        physics: const BouncingScrollPhysics(),
+                        itemCount: topSelection.length,
+                        separatorBuilder: (BuildContext context, int index) =>
+                            SizedBox(width: layout.spacing.section),
+                        itemBuilder: (BuildContext _, int index) {
+                          final Category category = topSelection.elementAt(
+                            index,
+                          );
+                          return _QuickCategoryIcon(
+                            category: category,
+                            onTap: hasAccounts
+                                ? () => _openQuickForm(
                                     context,
                                     ref,
                                     category,
                                     defaultAccountId,
                                     strings,
                                   )
-                              : null,
-                        );
-                      },
+                                : null,
+                          );
+                        },
+                      ),
+                    );
+                  },
+                  loading: () => const SizedBox(
+                    height: 64,
+                    child: Center(
+                      child: CircularProgressIndicator(strokeWidth: 2),
                     ),
-                  );
-                },
-                loading: () => const SizedBox(
-                  height: 64,
-                  child:
-                      Center(child: CircularProgressIndicator(strokeWidth: 2)),
-                ),
-                error: (Object error, _) => _EmptyState(
-                  message: strings.addTransactionCategoriesError(
-                    error.toString(),
+                  ),
+                  error: (Object error, _) => _EmptyState(
+                    message: strings.addTransactionCategoriesError(
+                      error.toString(),
+                    ),
                   ),
                 ),
               ),
@@ -128,8 +133,9 @@ class QuickAddTransactionCard extends ConsumerWidget {
                         child: Text(
                           strings.addTransactionNoAccounts,
                           style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurface
-                                .withValues(alpha: 0.72),
+                            color: theme.colorScheme.onSurface.withValues(
+                              alpha: 0.72,
+                            ),
                           ),
                         ),
                       ),
@@ -149,6 +155,25 @@ class QuickAddTransactionCard extends ConsumerWidget {
     );
   }
 
+  List<Category> _filterCategories(List<Category> categories) {
+    // Используем простой фильтр, так как он достаточно быстр для небольшого количества категорий.
+    // Если категорий станет очень много (сотни), стоит вынести это в Provider.
+    final List<Category> available = categories
+        .where((Category category) => !category.isDeleted)
+        .toList(growable: false);
+
+    if (available.isEmpty) return const <Category>[];
+
+    final List<Category> favorites = available
+        .where((Category category) => category.isFavorite)
+        .toList(growable: false);
+
+    final List<Category> selection = favorites.isNotEmpty
+        ? favorites
+        : available;
+    return selection.take(12).toList(growable: false);
+  }
+
   TransactionType _mapType(String? value) {
     final String normalized = value?.toLowerCase().trim() ?? '';
     return normalized == TransactionType.income.storageValue
@@ -163,7 +188,9 @@ class QuickAddTransactionCard extends ConsumerWidget {
     String? defaultAccountId,
     AppLocalizations strings,
   ) {
-    ref.read(quickTransactionControllerProvider.notifier).prepare(
+    ref
+        .read(quickTransactionControllerProvider.notifier)
+        .prepare(
           categoryId: category.id,
           categoryType: _mapType(category.type),
           defaultAccountId: defaultAccountId,
@@ -173,10 +200,8 @@ class QuickAddTransactionCard extends ConsumerWidget {
       isScrollControlled: true,
       useSafeArea: false,
       backgroundColor: Colors.transparent,
-      builder: (BuildContext context) => _QuickTransactionSheet(
-        category: category,
-        strings: strings,
-      ),
+      builder: (BuildContext context) =>
+          _QuickTransactionSheet(category: category, strings: strings),
     );
   }
 }
@@ -193,9 +218,7 @@ class _QuickCategoryIcon extends StatelessWidget {
     final Color background =
         parseHexColor(category.color) ?? theme.colorScheme.surfaceContainerHigh;
     const Color iconColor = Color(0xFF101010);
-    final PhosphorIconData? iconData = resolvePhosphorIconData(
-      category.icon,
-    );
+    final PhosphorIconData? iconData = resolvePhosphorIconData(category.icon);
 
     return Material(
       color: Colors.transparent,
@@ -205,10 +228,7 @@ class _QuickCategoryIcon extends StatelessWidget {
         child: Container(
           width: 68,
           height: 68,
-          decoration: BoxDecoration(
-            color: background,
-            shape: BoxShape.circle,
-          ),
+          decoration: BoxDecoration(color: background, shape: BoxShape.circle),
           alignment: Alignment.center,
           child: Icon(
             iconData ?? Icons.category_outlined,
@@ -222,10 +242,7 @@ class _QuickCategoryIcon extends StatelessWidget {
 }
 
 class _QuickTransactionSheet extends ConsumerStatefulWidget {
-  const _QuickTransactionSheet({
-    required this.category,
-    required this.strings,
-  });
+  const _QuickTransactionSheet({required this.category, required this.strings});
 
   final Category category;
   final AppLocalizations strings;
@@ -244,8 +261,9 @@ class _QuickTransactionSheetState
   @override
   void initState() {
     super.initState();
-    final QuickTransactionState initialState =
-        ref.read(quickTransactionControllerProvider);
+    final QuickTransactionState initialState = ref.read(
+      quickTransactionControllerProvider,
+    );
     _amountController = TextEditingController(text: initialState.amount);
     _amountFocusNode = FocusNode();
 
@@ -370,27 +388,25 @@ class _QuickTransactionSheetState
                 ),
               ],
               SizedBox(height: layout.spacing.section),
-              FilledButton.icon(
+              FilledButton(
                 onPressed: isSubmitting ? null : _submit,
-                icon: isSubmitting
+                style: FilledButton.styleFrom(
+                  minimumSize: const Size.fromHeight(56),
+                  shape: const StadiumBorder(),
+                  textStyle: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                child: isSubmitting
                     ? SizedBox(
-                        width: 18,
-                        height: 18,
+                        width: 24,
+                        height: 24,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
                           color: colorScheme.onPrimary,
                         ),
                       )
-                    : const Icon(Icons.check),
-                label: Text(widget.strings.addTransactionSubmit),
-                style: FilledButton.styleFrom(
-                  padding: EdgeInsets.symmetric(
-                    vertical: layout.spacing.between,
-                  ),
-                  textStyle: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
+                    : Text(widget.strings.addTransactionSubmit),
               ),
             ],
           ),
@@ -399,10 +415,7 @@ class _QuickTransactionSheetState
     );
   }
 
-  String _errorMessage(
-    AppLocalizations strings,
-    QuickTransactionError error,
-  ) {
+  String _errorMessage(AppLocalizations strings, QuickTransactionError error) {
     switch (error) {
       case QuickTransactionError.accountMissing:
         return strings.addTransactionAccountMissingError;
@@ -414,8 +427,9 @@ class _QuickTransactionSheetState
   }
 
   Future<void> _submit() async {
-    final double? parsedAmount =
-        ref.read(quickTransactionControllerProvider).parsedAmount;
+    final double? parsedAmount = ref
+        .read(quickTransactionControllerProvider)
+        .parsedAmount;
     if (parsedAmount == null) {
       ref
           .read(quickTransactionControllerProvider.notifier)
@@ -447,19 +461,19 @@ class _QuickTransactionSheetState
                 .read(transactionActionsControllerProvider.notifier)
                 .deleteTransaction(created.id)
                 .then((bool undone) {
-              if (!mounted) return;
-              ScaffoldMessenger.of(context)
-                ..hideCurrentSnackBar()
-                ..showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      undone
-                          ? widget.strings.addTransactionUndoSuccess
-                          : widget.strings.addTransactionUndoError,
-                    ),
-                  ),
-                );
-            });
+                  if (!mounted) return;
+                  ScaffoldMessenger.of(context)
+                    ..hideCurrentSnackBar()
+                    ..showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          undone
+                              ? widget.strings.addTransactionUndoSuccess
+                              : widget.strings.addTransactionUndoError,
+                        ),
+                      ),
+                    );
+                });
           },
         ),
       ),
@@ -475,16 +489,12 @@ class _EmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final TextStyle? style = Theme.of(context).textTheme.bodySmall?.copyWith(
-          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.68),
-        );
+      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.68),
+    );
     return SizedBox(
       height: 64,
       child: Center(
-        child: Text(
-          message,
-          style: style,
-          textAlign: TextAlign.center,
-        ),
+        child: Text(message, style: style, textAlign: TextAlign.center),
       ),
     );
   }

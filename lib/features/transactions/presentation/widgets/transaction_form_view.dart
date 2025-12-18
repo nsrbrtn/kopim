@@ -699,6 +699,7 @@ class _AccountSelectionCard extends StatelessWidget {
     const double cardWidth = 160;
     final EdgeInsets outerPadding =
         isSelected ? const EdgeInsets.all(4) : EdgeInsets.zero;
+    final double outerInset = outerPadding.left;
     final double paddedWidth = cardWidth + outerPadding.horizontal;
     final double paddedHeight = cardHeight + outerPadding.vertical;
     return SizedBox(
@@ -706,7 +707,7 @@ class _AccountSelectionCard extends StatelessWidget {
       height: paddedHeight,
       child: GlowingAccountCard(
         glowColor: accountColor ?? theme.colorScheme.primary,
-        borderRadius: cardRadius.toDouble(),
+        borderRadius: cardRadius + outerInset,
         enabled: isSelected,
         child: Padding(
           padding: outerPadding,
@@ -888,13 +889,18 @@ class _GlowBorderPainter extends CustomPainter {
 
     final Rect rect = Offset.zero & size;
     final double guideThickness = math.min(thickness, 2.0);
+    final double waveInset = thickness / 2;
+    final double guideInset = guideThickness / 2;
+
+    final double waveRadius = math.max(0.0, borderRadius - waveInset);
+    final double guideRadius = math.max(0.0, borderRadius - guideInset);
     final RRect waveRrect = RRect.fromRectAndRadius(
-      rect.deflate(thickness / 2),
-      Radius.circular(borderRadius),
+      rect.deflate(waveInset),
+      Radius.circular(waveRadius),
     );
     final RRect guideRrect = RRect.fromRectAndRadius(
-      rect.deflate(guideThickness / 2),
-      Radius.circular(borderRadius),
+      rect.deflate(guideInset),
+      Radius.circular(guideRadius),
     );
     final SweepGradient gradient = SweepGradient(
       startAngle: 0.0,
@@ -1661,7 +1667,8 @@ class _NoteField extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final formProvider = transactionFormControllerProvider(formArgs);
+    final TransactionFormProvider formProvider =
+        transactionFormControllerProvider(formArgs);
     final AppLocalizations strings = AppLocalizations.of(context)!;
     final String note = ref.watch(
       formProvider.select(
@@ -1780,7 +1787,8 @@ class _DateTimeSelectorRow extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final formProvider = transactionFormControllerProvider(formArgs);
+    final TransactionFormProvider formProvider =
+        transactionFormControllerProvider(formArgs);
     final AppLocalizations strings = AppLocalizations.of(context)!;
     final DateTime selectedDate = ref.watch(
       formProvider.select((TransactionDraftState state) => state.date),

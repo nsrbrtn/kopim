@@ -1,5 +1,4 @@
-import 'package:flutter/foundation.dart'
-    show TargetPlatform, defaultTargetPlatform, kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
@@ -131,22 +130,20 @@ class _TransactionFormOverlayState
                                     : SnackBarAction(
                                         label: strings.commonUndo,
                                         onPressed: () {
+                                          final ScaffoldMessengerState undoMessenger =
+                                              ScaffoldMessenger.of(context)
+                                                ..hideCurrentSnackBar();
                                           ref
                                               .read(
                                                 transactionActionsControllerProvider
                                                     .notifier,
                                               )
-                                              .deleteTransaction(
-                                                created.id,
-                                              )
+                                              .deleteTransaction(created.id)
                                               .then((bool undone) {
                                             if (!mounted) {
                                               return;
                                             }
-                                            // ignore: use_build_context_synchronously
-                                            ScaffoldMessenger.of(
-                                              context,
-                                            )
+                                            undoMessenger
                                               ..hideCurrentSnackBar()
                                               ..showSnackBar(
                                                 SnackBar(

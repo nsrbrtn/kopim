@@ -42,7 +42,7 @@ final class SignInFormControllerProvider
 }
 
 String _$signInFormControllerHash() =>
-    r'4652ff79ff65dba0b22bc634d3d2ff4e5a57f815';
+    r'd09cf20bd3f6adc7bb75e4d0effecd6144935f55';
 
 abstract class _$SignInFormController extends $Notifier<SignInFormState> {
   SignInFormState build();

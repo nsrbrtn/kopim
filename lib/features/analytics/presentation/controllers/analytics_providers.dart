@@ -4,6 +4,7 @@ import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/analytics/domain/models/analytics_filter.dart';
 import 'package:kopim/features/analytics/domain/models/analytics_overview.dart';
 import 'package:kopim/features/analytics/domain/models/monthly_balance_data.dart';
+import 'package:kopim/features/analytics/presentation/models/monthly_cashflow_data.dart';
 import 'package:kopim/features/analytics/presentation/controllers/analytics_filter_controller.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
@@ -177,3 +178,76 @@ Stream<List<MonthlyBalanceData>> monthlyBalanceData(Ref ref) {
     return result.reversed.toList();
   });
 }
+
+final StreamProvider<List<MonthlyCashflowData>> monthlyCashflowDataProvider =
+    StreamProvider<List<MonthlyCashflowData>>((Ref ref) {
+      final Set<String> selectedAccountIds = ref.watch(
+        analyticsFilterControllerProvider.select(
+          (AnalyticsFilterState s) => s.accountIds,
+        ),
+      );
+
+      final DateTime now = DateTime.now();
+      final DateTime currentMonth = DateTime(now.year, now.month);
+
+      final List<DateTime> months = List<DateTime>.generate(
+        12,
+        (int index) => DateTime(
+          currentMonth.year,
+          currentMonth.month - (11 - index),
+        ),
+        growable: false,
+      );
+      final Map<int, int> monthIndexByKey = <int, int>{
+        for (int i = 0; i < months.length; i++)
+          _monthKey(months[i]): i,
+      };
+
+      return ref.watch(transactionRepositoryProvider).watchTransactions().map((
+        List<TransactionEntity> transactions,
+      ) {
+        final List<double> incomes = List<double>.filled(12, 0);
+        final List<double> expenses = List<double>.filled(12, 0);
+        final DateTime nowInclusive = now.add(const Duration(microseconds: 1));
+
+        for (final TransactionEntity transaction in transactions) {
+          if (selectedAccountIds.isNotEmpty &&
+              !selectedAccountIds.contains(transaction.accountId)) {
+            continue;
+          }
+
+          final DateTime monthStart = DateTime(
+            transaction.date.year,
+            transaction.date.month,
+          );
+          final int? index = monthIndexByKey[_monthKey(monthStart)];
+          if (index == null) {
+            continue;
+          }
+
+          // Для текущего месяца показываем данные "на сегодня", без будущих транзакций.
+          if (monthStart == currentMonth &&
+              transaction.date.isAfter(nowInclusive)) {
+            continue;
+          }
+
+          if (transaction.type == TransactionType.income.storageValue) {
+            incomes[index] += transaction.amount;
+          } else if (transaction.type == TransactionType.expense.storageValue) {
+            expenses[index] += transaction.amount;
+          }
+        }
+
+        return List<MonthlyCashflowData>.generate(
+          12,
+          (int index) => MonthlyCashflowData(
+            month: months[index],
+            income: incomes[index],
+            expense: expenses[index],
+          ),
+          growable: false,
+        );
+      });
+    });
+
+int _monthKey(DateTime monthStart) => monthStart.year * 100 + monthStart.month;
