@@ -28,27 +28,27 @@ class HomeDashboardVisibilityCard extends StatefulWidget {
 class _HomeDashboardVisibilityCardState
     extends State<HomeDashboardVisibilityCard> {
   List<_DashboardToggleConfig> get _toggles => <_DashboardToggleConfig>[
-        _DashboardToggleConfig(
-          label: widget.strings.settingsHomeGamificationTitle,
-          value: widget.preferences.showGamificationWidget,
-          onChanged: widget.onToggleGamification,
-        ),
-        _DashboardToggleConfig(
-          label: widget.strings.settingsHomeBudgetTitle,
-          value: widget.preferences.showBudgetWidget,
-          onChanged: widget.onToggleBudget,
-        ),
-        _DashboardToggleConfig(
-          label: widget.strings.settingsHomeRecurringTitle,
-          value: widget.preferences.showRecurringWidget,
-          onChanged: widget.onToggleRecurring,
-        ),
-        _DashboardToggleConfig(
-          label: widget.strings.settingsHomeSavingsTitle,
-          value: widget.preferences.showSavingsWidget,
-          onChanged: widget.onToggleSavings,
-        ),
-      ];
+    _DashboardToggleConfig(
+      label: widget.strings.settingsHomeGamificationTitle,
+      value: widget.preferences.showGamificationWidget,
+      onChanged: widget.onToggleGamification,
+    ),
+    _DashboardToggleConfig(
+      label: widget.strings.settingsHomeBudgetTitle,
+      value: widget.preferences.showBudgetWidget,
+      onChanged: widget.onToggleBudget,
+    ),
+    _DashboardToggleConfig(
+      label: widget.strings.settingsHomeRecurringTitle,
+      value: widget.preferences.showRecurringWidget,
+      onChanged: widget.onToggleRecurring,
+    ),
+    _DashboardToggleConfig(
+      label: widget.strings.settingsHomeSavingsTitle,
+      value: widget.preferences.showSavingsWidget,
+      onChanged: widget.onToggleSavings,
+    ),
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -104,10 +104,7 @@ class _DashboardToggleTile extends StatelessWidget {
               ),
             ),
           ),
-          Switch.adaptive(
-            value: config.value,
-            onChanged: config.onChanged,
-          ),
+          Switch.adaptive(value: config.value, onChanged: config.onChanged),
         ],
       ),
     );

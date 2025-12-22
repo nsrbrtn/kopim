@@ -48,8 +48,7 @@ class KopimFloatingActionButton extends StatelessWidget {
     final ThemeData theme = Theme.of(context);
     final ColorScheme colorScheme = theme.colorScheme;
     final KopimLayout layout = theme.kopimLayout;
-    final BorderRadius borderRadius =
-        BorderRadius.circular(layout.radius.card);
+    final BorderRadius borderRadius = BorderRadius.circular(layout.radius.card);
     final double resolvedIconSize = iconSize ?? layout.iconSizes.xl;
     final ShapeBorder shape = RoundedRectangleBorder(
       borderRadius: borderRadius,

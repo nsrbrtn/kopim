@@ -32,4 +32,3 @@ class MonthlyCashflowData {
     return monthNames[month.month - 1];
   }
 }
-

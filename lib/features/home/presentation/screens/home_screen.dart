@@ -87,8 +87,9 @@ NavigationTabContent buildHomeTabContent(BuildContext context, WidgetRef ref) {
     ),
     floatingActionButtonBuilder: (BuildContext context, WidgetRef ref) {
       final bool isTransactionSheetVisible = ref.watch(
-        transactionSheetControllerProvider
-            .select((TransactionSheetState state) => state.isVisible),
+        transactionSheetControllerProvider.select(
+          (TransactionSheetState state) => state.isVisible,
+        ),
       );
       if (isTransactionSheetVisible) {
         return null;
@@ -519,9 +520,8 @@ class _AddTransactionButton extends ConsumerWidget {
       child: KopimGlassFab(
         icon: Icon(Icons.add, color: colorScheme.primary),
         foregroundColor: colorScheme.primary,
-        onPressed: () => ref
-            .read(transactionSheetControllerProvider.notifier)
-            .openForAdd(),
+        onPressed: () =>
+            ref.read(transactionSheetControllerProvider.notifier).openForAdd(),
       ),
     );
   }
@@ -1471,10 +1471,9 @@ class _TransactionListItem extends ConsumerWidget {
                     width: 48,
                     height: 48,
                     decoration: BoxDecoration(
-                      color: categoryColor ??
-                          Theme.of(
-                            context,
-                          ).colorScheme.surfaceContainerHighest,
+                      color:
+                          categoryColor ??
+                          Theme.of(context).colorScheme.surfaceContainerHighest,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Center(
@@ -1493,13 +1492,11 @@ class _TransactionListItem extends ConsumerWidget {
                       children: <Widget>[
                         Text(
                           categoryName,
-                          style:
-                              Theme.of(context).textTheme.labelMedium?.copyWith(
-                                    fontWeight: FontWeight.w500,
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.onSurface,
-                                  ),
+                          style: Theme.of(context).textTheme.labelMedium
+                              ?.copyWith(
+                                fontWeight: FontWeight.w500,
+                                color: Theme.of(context).colorScheme.onSurface,
+                              ),
                         ),
                         if (note != null && note.isNotEmpty)
                           Padding(
@@ -1510,9 +1507,9 @@ class _TransactionListItem extends ConsumerWidget {
                               overflow: TextOverflow.ellipsis,
                               style: Theme.of(context).textTheme.bodySmall
                                   ?.copyWith(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .onSurfaceVariant,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant,
                                   ),
                             ),
                           ),
@@ -1525,21 +1522,18 @@ class _TransactionListItem extends ConsumerWidget {
                     children: <Widget>[
                       Text(
                         moneyFormat.format(amount.abs()),
-                        style:
-                            Theme.of(context).textTheme.titleLarge?.copyWith(
-                                  color:
-                                      Theme.of(context).colorScheme.onSurface,
-                                  fontWeight: FontWeight.w400,
-                                ),
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurface,
+                          fontWeight: FontWeight.w400,
+                        ),
                       ),
                       if (accountData.name != null)
                         Text(
                           accountData.name!,
-                          style:
-                              Theme.of(context).textTheme.labelSmall?.copyWith(
-                                    color:
-                                        Theme.of(context).colorScheme.outline,
-                                  ),
+                          style: Theme.of(context).textTheme.labelSmall
+                              ?.copyWith(
+                                color: Theme.of(context).colorScheme.outline,
+                              ),
                         ),
                     ],
                   ),

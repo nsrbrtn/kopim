@@ -92,7 +92,8 @@ class AccountTransactionListTile extends ConsumerWidget {
                         width: 48,
                         height: 48,
                         decoration: BoxDecoration(
-                          color: categoryColor ??
+                          color:
+                              categoryColor ??
                               theme.colorScheme.surfaceContainerHighest,
                           borderRadius: BorderRadius.circular(12),
                         ),

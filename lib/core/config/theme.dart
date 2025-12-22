@@ -224,10 +224,7 @@ ThemeData buildAppTheme({
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(_spacing(radius, 'xl', 24)),
       ),
-      sizeConstraints: const BoxConstraints.tightFor(
-        width: 72,
-        height: 72,
-      ),
+      sizeConstraints: const BoxConstraints.tightFor(width: 72, height: 72),
     ),
     filledButtonTheme: FilledButtonThemeData(
       style: ButtonStyle(
@@ -279,10 +276,7 @@ ThemeData buildAppTheme({
       ),
     ),
     iconTheme: IconThemeData(color: colorScheme.onSurfaceVariant),
-    extensions: <ThemeExtension<dynamic>>[
-      motionExtension,
-      layoutExtension,
-    ],
+    extensions: <ThemeExtension<dynamic>>[motionExtension, layoutExtension],
   );
 }
 

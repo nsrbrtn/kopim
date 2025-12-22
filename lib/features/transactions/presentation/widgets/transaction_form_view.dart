@@ -33,8 +33,8 @@ const EdgeInsets _kDateTimeSectionPadding = EdgeInsets.symmetric(
 );
 const SizedBox _kGap8 = SizedBox(height: 8);
 
-typedef TransactionFormProvider
-    = StateNotifierProvider<TransactionFormController, TransactionDraftState>;
+typedef TransactionFormProvider =
+    StateNotifierProvider<TransactionFormController, TransactionDraftState>;
 
 AccountEntity _resolveSummaryAccount(
   List<AccountEntity> accounts,
@@ -144,39 +144,39 @@ class TransactionFormView extends ConsumerWidget {
     final TransactionFormProvider formProvider =
         transactionFormControllerProvider(formArgs);
 
-    ref.listen<TransactionDraftState>(
-      formProvider,
-      (TransactionDraftState? previous, TransactionDraftState next) {
-        if (next.isSuccess && previous?.isSuccess != next.isSuccess) {
-          final TransactionEntity? created = next.lastCreatedTransaction;
-          final TransactionDraftController notifier = ref.read(
-            formProvider.notifier,
+    ref.listen<TransactionDraftState>(formProvider, (
+      TransactionDraftState? previous,
+      TransactionDraftState next,
+    ) {
+      if (next.isSuccess && previous?.isSuccess != next.isSuccess) {
+        final TransactionEntity? created = next.lastCreatedTransaction;
+        final TransactionDraftController notifier = ref.read(
+          formProvider.notifier,
+        );
+        notifier
+          ..acknowledgeSuccess()
+          ..clearLastCreatedTransaction();
+        if (context.mounted) {
+          onSuccess(
+            TransactionFormResult(
+              isEditing: next.isEditing,
+              createdTransaction: created,
+            ),
           );
-          notifier
-            ..acknowledgeSuccess()
-            ..clearLastCreatedTransaction();
-          if (context.mounted) {
-            onSuccess(
-              TransactionFormResult(
-                isEditing: next.isEditing,
-                createdTransaction: created,
-              ),
-            );
-          }
-        } else if (next.error != null && next.error != previous?.error) {
-          final String message = switch (next.error) {
-            TransactionDraftError.accountMissing =>
-              strings.addTransactionAccountMissingError,
-            TransactionDraftError.transactionMissing =>
-              strings.transactionFormMissingError,
-            _ => strings.addTransactionUnknownError,
-          };
-          ScaffoldMessenger.of(context)
-            ..hideCurrentSnackBar()
-            ..showSnackBar(SnackBar(content: Text(message)));
         }
-      },
-    );
+      } else if (next.error != null && next.error != previous?.error) {
+        final String message = switch (next.error) {
+          TransactionDraftError.accountMissing =>
+            strings.addTransactionAccountMissingError,
+          TransactionDraftError.transactionMissing =>
+            strings.transactionFormMissingError,
+          _ => strings.addTransactionUnknownError,
+        };
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(SnackBar(content: Text(message)));
+      }
+    });
 
     return accountsAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
@@ -234,25 +234,20 @@ class _TransactionDraftState extends ConsumerState<_TransactionForm> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(_formProvider.notifier).applyArgs(
-            widget.formArgs,
-          );
+      ref.read(_formProvider.notifier).applyArgs(widget.formArgs);
     });
   }
 
   @override
   void didUpdateWidget(covariant _TransactionForm oldWidget) {
     super.didUpdateWidget(oldWidget);
-    final String? oldTransactionId =
-        oldWidget.formArgs.initialTransaction?.id;
+    final String? oldTransactionId = oldWidget.formArgs.initialTransaction?.id;
     final String? newTransactionId = widget.formArgs.initialTransaction?.id;
     if (oldTransactionId != newTransactionId ||
         oldWidget.formArgs.defaultAccountId !=
             widget.formArgs.defaultAccountId) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        ref
-            .read(_formProvider.notifier)
-            .applyArgs(widget.formArgs);
+        ref.read(_formProvider.notifier).applyArgs(widget.formArgs);
       });
     }
   }
@@ -310,20 +305,14 @@ class _TransactionDraftState extends ConsumerState<_TransactionForm> {
         theme.textTheme.bodySmall!;
 
     final bool isSubmitting = ref.watch(
-      _formProvider.select(
-        (TransactionDraftState state) => state.isSubmitting,
-      ),
+      _formProvider.select((TransactionDraftState state) => state.isSubmitting),
     );
     final double? parsedAmount = ref.watch(
-      _formProvider.select(
-        (TransactionDraftState state) => state.parsedAmount,
-      ),
+      _formProvider.select((TransactionDraftState state) => state.parsedAmount),
     );
     final bool hasValidAmount = parsedAmount != null;
     final String? selectedAccountId = ref.watch(
-      _formProvider.select(
-        (TransactionDraftState state) => state.accountId,
-      ),
+      _formProvider.select((TransactionDraftState state) => state.accountId),
     );
 
     final AccountEntity summaryAccount = _resolveSummaryAccount(
@@ -441,10 +430,7 @@ class _TransactionDraftState extends ConsumerState<_TransactionForm> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          _SectionHeader(
-            label: 'Выбери счёт',
-            labelStyle: labelStyle,
-          ),
+          _SectionHeader(label: 'Выбери счёт', labelStyle: labelStyle),
           SizedBox(height: spacing.between / 2),
           _AccountDropdownField(
             key: const ValueKey<String>('transaction_account_field'),
@@ -583,9 +569,7 @@ class _AccountDropdownFieldState extends ConsumerState<_AccountDropdownField> {
       transactionFormControllerProvider(widget.formArgs);
 
   void _selectAccount(String accountId) {
-    ref
-        .read(_formProvider.notifier)
-        .updateAccount(accountId);
+    ref.read(_formProvider.notifier).updateAccount(accountId);
   }
 
   @override
@@ -593,9 +577,7 @@ class _AccountDropdownFieldState extends ConsumerState<_AccountDropdownField> {
     final AppLocalizations strings = widget.strings;
     final List<AccountEntity> accounts = widget.accounts;
     final String? selectedAccountId = ref.watch(
-      _formProvider.select(
-        (TransactionDraftState state) => state.accountId,
-      ),
+      _formProvider.select((TransactionDraftState state) => state.accountId),
     );
 
     final String? resolvedAccountId =
@@ -603,9 +585,7 @@ class _AccountDropdownFieldState extends ConsumerState<_AccountDropdownField> {
         _resolveDefaultAccountId(accounts, widget.formArgs.defaultAccountId);
     if (selectedAccountId == null && resolvedAccountId != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        ref
-            .read(_formProvider.notifier)
-            .updateAccount(resolvedAccountId);
+        ref.read(_formProvider.notifier).updateAccount(resolvedAccountId);
       });
     }
 
@@ -697,8 +677,9 @@ class _AccountSelectionCard extends StatelessWidget {
 
     const double cardHeight = 72;
     const double cardWidth = 160;
-    final EdgeInsets outerPadding =
-        isSelected ? const EdgeInsets.all(4) : EdgeInsets.zero;
+    final EdgeInsets outerPadding = isSelected
+        ? const EdgeInsets.all(4)
+        : EdgeInsets.zero;
     final double outerInset = outerPadding.left;
     final double paddedWidth = cardWidth + outerPadding.horizontal;
     final double paddedHeight = cardHeight + outerPadding.vertical;
@@ -799,15 +780,9 @@ class _GlowingAccountCardState extends State<GlowingAccountCard>
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: widget.duration,
-    );
+    _controller = AnimationController(vsync: this, duration: widget.duration);
 
-    _curve = CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeInOut,
-    );
+    _curve = CurvedAnimation(parent: _controller, curve: Curves.easeInOut);
 
     if (_isEnabled) {
       _controller.repeat();
@@ -1001,9 +976,7 @@ class _TransactionTypeSelector extends ConsumerWidget {
     final TransactionFormProvider formProvider =
         transactionFormControllerProvider(formArgs);
     final TransactionType type = ref.watch(
-      formProvider.select(
-        (TransactionDraftState state) => state.type,
-      ),
+      formProvider.select((TransactionDraftState state) => state.type),
     );
 
     final ThemeData theme = Theme.of(context);
@@ -1036,8 +1009,8 @@ class _TransactionTypeSelector extends ConsumerWidget {
                 AnimatedPositioned(
                   duration: duration,
                   curve: Curves.easeOutBack,
-                  left: (type == TransactionType.expense ? 0 : 1) *
-                      segmentWidth,
+                  left:
+                      (type == TransactionType.expense ? 0 : 1) * segmentWidth,
                   top: 0,
                   bottom: 0,
                   width: segmentWidth,
@@ -1165,9 +1138,8 @@ class _CategoryDropdownFieldState
   }
 
   void _selectCategory(String? categoryId) {
-    ref.read(_formProvider.notifier).updateCategory(
-          categoryId,
-        );
+    ref.read(_formProvider.notifier).updateCategory(categoryId);
+    FocusManager.instance.primaryFocus?.unfocus();
     setState(() {
       _showAll = false;
     });
@@ -1253,9 +1225,7 @@ class _CategoryDropdownFieldState
     final KopimSpacingScale spacing = layout.spacing;
     final double containerRadius = layout.radius.xxl;
     final String? selectedCategoryId = ref.watch(
-      _formProvider.select(
-        (TransactionDraftState state) => state.categoryId,
-      ),
+      _formProvider.select((TransactionDraftState state) => state.categoryId),
     );
     final TransactionType type = ref.watch(
       _formProvider.select((TransactionDraftState state) => state.type),
@@ -1463,9 +1433,7 @@ class _SubmitButton extends ConsumerWidget {
                 if (!(formKey.currentState?.validate() ?? false)) {
                   return;
                 }
-                await ref.read(
-                  formProvider.notifier,
-                ).submit();
+                await ref.read(formProvider.notifier).submit();
               },
         child: isSubmitting
             ? SizedBox(
@@ -1520,9 +1488,7 @@ class _AmountFieldState extends ConsumerState<_AmountField> {
   @override
   void initState() {
     super.initState();
-    final TransactionDraftState initialState = ref.read(
-      _formProvider,
-    );
+    final TransactionDraftState initialState = ref.read(_formProvider);
     _controller = TextEditingController(text: initialState.amount);
     _lastSyncedValue = initialState.amount;
     _focusNode = FocusNode();
@@ -1531,9 +1497,7 @@ class _AmountFieldState extends ConsumerState<_AmountField> {
       _scheduleFocus();
     }
     _subscription = ref.listenManual<String>(
-      _formProvider.select(
-        (TransactionDraftState state) => state.amount,
-      ),
+      _formProvider.select((TransactionDraftState state) => state.amount),
       (String? previous, String next) {
         if (next == _controller.text) {
           _lastSyncedValue = next;
@@ -1598,9 +1562,7 @@ class _AmountFieldState extends ConsumerState<_AmountField> {
       return;
     }
     _lastSyncedValue = normalized;
-    ref.read(_formProvider.notifier).updateAmount(
-          normalized,
-        );
+    ref.read(_formProvider.notifier).updateAmount(normalized);
   }
 
   void _flushPendingUpdate() {
@@ -1617,17 +1579,14 @@ class _AmountFieldState extends ConsumerState<_AmountField> {
   }
 
   void _notifyAmountCommitted() {
-    final bool isValid =
-        ref.read(_formProvider).parsedAmount != null;
+    final bool isValid = ref.read(_formProvider).parsedAmount != null;
     widget.onAmountCommitted?.call(isValid);
   }
 
   @override
   Widget build(BuildContext context) {
     final bool isSubmitting = ref.watch(
-      _formProvider.select(
-        (TransactionDraftState state) => state.isSubmitting,
-      ),
+      _formProvider.select((TransactionDraftState state) => state.isSubmitting),
     );
 
     return TextFormField(
@@ -1635,9 +1594,7 @@ class _AmountFieldState extends ConsumerState<_AmountField> {
       focusNode: _focusNode,
       enabled: !isSubmitting,
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
-      inputFormatters: <TextInputFormatter>[
-        digitsAndSeparatorsFormatter(),
-      ],
+      inputFormatters: <TextInputFormatter>[digitsAndSeparatorsFormatter()],
       decoration: _transactionTextFieldDecoration(
         context,
         hintText: widget.strings.addTransactionAmountHint,
@@ -1649,8 +1606,7 @@ class _AmountFieldState extends ConsumerState<_AmountField> {
       },
       onTapOutside: (_) => _flushPendingUpdate(),
       validator: (_) {
-        final double? value =
-            ref.read(_formProvider).parsedAmount;
+        final double? value = ref.read(_formProvider).parsedAmount;
         if (value == null) {
           return widget.strings.addTransactionAmountInvalid;
         }
@@ -1671,9 +1627,7 @@ class _NoteField extends ConsumerWidget {
         transactionFormControllerProvider(formArgs);
     final AppLocalizations strings = AppLocalizations.of(context)!;
     final String note = ref.watch(
-      formProvider.select(
-        (TransactionDraftState state) => state.note,
-      ),
+      formProvider.select((TransactionDraftState state) => state.note),
     );
 
     return TextFormField(
@@ -1722,10 +1676,7 @@ class _ErrorMessage extends StatelessWidget {
 }
 
 class _SectionHeader extends StatelessWidget {
-  const _SectionHeader({
-    required this.label,
-    required this.labelStyle,
-  });
+  const _SectionHeader({required this.label, required this.labelStyle});
 
   final String label;
   final TextStyle labelStyle;
@@ -1806,7 +1757,9 @@ class _DateTimeSelectorRow extends ConsumerWidget {
         lastDate: DateTime(2100),
       );
       if (picked != null) {
-        ref.read(formProvider.notifier).updateDate(
+        ref
+            .read(formProvider.notifier)
+            .updateDate(
               DateTime(
                 picked.year,
                 picked.month,
@@ -1825,10 +1778,9 @@ class _DateTimeSelectorRow extends ConsumerWidget {
         initialEntryMode: TimePickerEntryMode.input,
       );
       if (picked != null) {
-        ref.read(formProvider.notifier).updateTime(
-              hour: picked.hour,
-              minute: picked.minute,
-            );
+        ref
+            .read(formProvider.notifier)
+            .updateTime(hour: picked.hour, minute: picked.minute);
       }
     }
 

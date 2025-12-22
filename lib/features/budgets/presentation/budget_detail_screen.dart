@@ -92,9 +92,7 @@ class BudgetDetailScreen extends ConsumerWidget {
       ),
       body: progressAsync.when<Widget>(
         data: (BudgetProgress progress) {
-          return _BudgetDetailBody(
-            transactionsAsync: transactionsAsync,
-          );
+          return _BudgetDetailBody(transactionsAsync: transactionsAsync);
         },
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (Object error, StackTrace stackTrace) {
@@ -111,9 +109,7 @@ class BudgetDetailScreen extends ConsumerWidget {
 }
 
 class _BudgetDetailBody extends ConsumerStatefulWidget {
-  const _BudgetDetailBody({
-    required this.transactionsAsync,
-  });
+  const _BudgetDetailBody({required this.transactionsAsync});
 
   final AsyncValue<List<TransactionEntity>> transactionsAsync;
 
@@ -140,10 +136,12 @@ class _BudgetDetailBodyState extends ConsumerState<_BudgetDetailBody> {
         widget.transactionsAsync.value ?? const <TransactionEntity>[];
     final List<Category> categories =
         categoriesAsync.value ?? const <Category>[];
-    final List<TransactionEntity> filteredByRange =
-        _applyRange(scopedTransactions);
-    final List<TransactionEntity> filteredTransactions =
-        _applyCategory(filteredByRange);
+    final List<TransactionEntity> filteredByRange = _applyRange(
+      scopedTransactions,
+    );
+    final List<TransactionEntity> filteredTransactions = _applyCategory(
+      filteredByRange,
+    );
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -203,11 +201,11 @@ class _BudgetDetailBodyState extends ConsumerState<_BudgetDetailBody> {
               };
               final List<TransactionEntity> visibleTransactions =
                   filteredTransactions
-                  .where(
-                    (TransactionEntity tx) =>
-                        accountsById.containsKey(tx.accountId),
-                  )
-                  .toList(growable: false);
+                      .where(
+                        (TransactionEntity tx) =>
+                            accountsById.containsKey(tx.accountId),
+                      )
+                      .toList(growable: false);
               if (visibleTransactions.isEmpty) {
                 return Text(
                   strings.budgetTransactionsEmpty,
@@ -259,8 +257,9 @@ class _BudgetDetailBodyState extends ConsumerState<_BudgetDetailBody> {
     final DateTimeRange? range = _selectedRange;
     if (range == null) return items;
     final DateTime start = DateUtils.dateOnly(range.start);
-    final DateTime end =
-        DateUtils.dateOnly(range.end).add(const Duration(days: 1));
+    final DateTime end = DateUtils.dateOnly(
+      range.end,
+    ).add(const Duration(days: 1));
     return items
         .where(
           (TransactionEntity tx) =>
@@ -315,7 +314,8 @@ class _BudgetFilters extends StatelessWidget {
               context: context,
               firstDate: DateTime(2000),
               lastDate: DateTime(DateTime.now().year + 5, 12, 31),
-              initialDateRange: selectedRange ??
+              initialDateRange:
+                  selectedRange ??
                   DateTimeRange(
                     start: DateTime.now().subtract(const Duration(days: 30)),
                     end: DateTime.now(),
@@ -358,10 +358,7 @@ class _BudgetFilters extends StatelessWidget {
     );
   }
 
-  String _formatRangeLabel(
-    DateTimeRange? range,
-    DateFormat format,
-  ) {
+  String _formatRangeLabel(DateTimeRange? range, DateFormat format) {
     if (range == null) {
       return 'Весь период';
     }
@@ -500,15 +497,18 @@ class _BudgetTransactionTile extends ConsumerWidget {
             margin: const EdgeInsets.symmetric(vertical: 6),
             elevation: 0,
             color: theme.colorScheme.surfaceContainerHigh,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(18),
+            ),
             surfaceTintColor: Colors.transparent,
             child: InkWell(
               borderRadius: const BorderRadius.all(Radius.circular(18)),
               onTap: openContainer,
               child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[

@@ -15,6 +15,7 @@
 ### Синхронизация и данные
 
 - [**Синхронизация с Firebase**](firebase_sync.md) — механизм offline-first синхронизации между Drift и Firestore, Outbox pattern, алгоритмы слияния данных
+- [**Web fallback**](web_fallback.md) — поведение при недоступности Firebase в браузере и ручная выгрузка данных
 
 ---
 

@@ -25,9 +25,7 @@ void main() {
     importUserDataControllerProvider.overrideWith(
       () => _FakeImportUserDataController(),
     ),
-    themeModeControllerProvider.overrideWith(
-      () => _FakeThemeModeController(),
-    ),
+    themeModeControllerProvider.overrideWith(() => _FakeThemeModeController()),
   ];
 
   testWidgets('shows appearance and exact reminder sections', (
@@ -74,9 +72,14 @@ void main() {
     );
     final AppLocalizations strings = AppLocalizations.of(context)!;
 
-    expect(find.text(strings.profileGeneralSettingsManagementSection), findsOneWidget);
+    expect(
+      find.text(strings.profileGeneralSettingsManagementSection),
+      findsOneWidget,
+    );
 
-    await tester.tap(find.text(strings.profileGeneralSettingsManagementSection));
+    await tester.tap(
+      find.text(strings.profileGeneralSettingsManagementSection),
+    );
     await tester.pumpAndSettle();
 
     expect(find.text(strings.profileExportDataCta), findsOneWidget);

@@ -25,8 +25,9 @@ class BudgetSchedule {
 
     DateTime start = initialStart;
     DateTime end = _advance(budget.period, start);
-    final DateTime? cutoff =
-        budget.endDate != null ? _normalizeStart(budget.endDate!) : null;
+    final DateTime? cutoff = budget.endDate != null
+        ? _normalizeStart(budget.endDate!)
+        : null;
 
     while (!ref.isBefore(end)) {
       final DateTime nextStart = end;

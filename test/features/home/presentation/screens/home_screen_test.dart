@@ -308,7 +308,8 @@ class _InMemoryTransactionRepository implements TransactionRepository {
       final Map<String, ({double income, double expense})> acc =
           <String, ({double income, double expense})>{};
       for (final TransactionEntity transaction in items) {
-        if (transaction.date.isBefore(start) || !transaction.date.isBefore(end)) {
+        if (transaction.date.isBefore(start) ||
+            !transaction.date.isBefore(end)) {
           continue;
         }
         final ({double income, double expense}) current =

@@ -18,8 +18,9 @@ class TransactionTileFormatters {
     String symbol, {
     int? decimalDigits,
   }) {
-    final String decimalDigitsKey =
-        decimalDigits == null ? 'default' : decimalDigits.toString();
+    final String decimalDigitsKey = decimalDigits == null
+        ? 'default'
+        : decimalDigits.toString();
     final String cacheKey = '$locale|$symbol|$decimalDigitsKey';
     return _currencyCache.putIfAbsent(
       cacheKey,

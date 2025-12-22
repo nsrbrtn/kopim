@@ -375,49 +375,101 @@
   "@manageCategoriesIconStyleFill": {
     "description": "Подпись фильтра заливного стиля"
   },
-  "manageCategoriesIconGroupFinance": "Финансы и работа",
-  "@manageCategoriesIconGroupFinance": {
-    "description": "Название вкладки с иконками финансов"
+  "manageCategoriesIconGroupGroceries": "Продукты и еда",
+  "@manageCategoriesIconGroupGroceries": {
+    "description": "Название вкладки с иконками продуктов"
   },
-  "manageCategoriesIconGroupShopping": "Покупки и одежда",
-  "@manageCategoriesIconGroupShopping": {
-    "description": "Название вкладки с иконками для покупок и одежды"
+  "manageCategoriesIconGroupDining": "Кафе и рестораны",
+  "@manageCategoriesIconGroupDining": {
+    "description": "Название вкладки с иконками кафе и ресторанов"
   },
-  "manageCategoriesIconGroupFood": "Еда и кафе",
-  "@manageCategoriesIconGroupFood": {
-    "description": "Название вкладки с иконками питания"
+  "manageCategoriesIconGroupClothing": "Одежда и уход",
+  "@manageCategoriesIconGroupClothing": {
+    "description": "Название вкладки с иконками одежды и красоты"
   },
-  "manageCategoriesIconGroupTransport": "Транспорт и поездки",
-  "@manageCategoriesIconGroupTransport": {
+  "manageCategoriesIconGroupHome": "Дом и мебель",
+  "@manageCategoriesIconGroupHome": {
+    "description": "Название вкладки с иконками дома"
+  },
+  "manageCategoriesIconGroupUtilities": "Коммунальные услуги",
+  "@manageCategoriesIconGroupUtilities": {
+    "description": "Название вкладки с иконками услуг"
+  },
+  "manageCategoriesIconGroupCommunication": "Связь и гаджеты",
+  "@manageCategoriesIconGroupCommunication": {
+    "description": "Название вкладки с иконками связи"
+  },
+  "manageCategoriesIconGroupSubscriptions": "Подписки и медиа",
+  "@manageCategoriesIconGroupSubscriptions": {
+    "description": "Название вкладки с иконками подписок"
+  },
+  "manageCategoriesIconGroupPublicTransport": "Общественный транспорт",
+  "@manageCategoriesIconGroupPublicTransport": {
     "description": "Название вкладки с иконками транспорта"
   },
-  "manageCategoriesIconGroupHome": "Дом и быт",
-  "@manageCategoriesIconGroupHome": {
-    "description": "Название вкладки с иконками для дома"
+  "manageCategoriesIconGroupCar": "Автомобиль",
+  "@manageCategoriesIconGroupCar": {
+    "description": "Название вкладки с иконками авто"
   },
-  "manageCategoriesIconGroupLeisure": "Развлечения и спорт",
-  "@manageCategoriesIconGroupLeisure": {
-    "description": "Название вкладки с иконками досуга"
+  "manageCategoriesIconGroupTaxi": "Такси и парковки",
+  "@manageCategoriesIconGroupTaxi": {
+    "description": "Название вкладки с иконками такси"
   },
-  "manageCategoriesIconGroupBeauty": "Красота и уход",
-  "@manageCategoriesIconGroupBeauty": {
-    "description": "Название вкладки с иконками для красоты и ухода"
+  "manageCategoriesIconGroupTravel": "Путешествия",
+  "@manageCategoriesIconGroupTravel": {
+    "description": "Название вкладки с иконками путешествий"
   },
-  "manageCategoriesIconGroupHealth": "Здоровье",
+  "manageCategoriesIconGroupHealth": "Здоровье и медицина",
   "@manageCategoriesIconGroupHealth": {
-    "description": "Название вкладки с медицинскими и оздоровительными иконками"
+    "description": "Название вкладки с иконками здоровья"
   },
-  "manageCategoriesIconGroupSports": "Спорт",
+  "manageCategoriesIconGroupSecurity": "Безопасность",
+  "@manageCategoriesIconGroupSecurity": {
+    "description": "Название вкладки с иконками безопасности"
+  },
+  "manageCategoriesIconGroupEducation": "Образование",
+  "@manageCategoriesIconGroupEducation": {
+    "description": "Название вкладки с иконками образования"
+  },
+  "manageCategoriesIconGroupFamily": "Семья и дети",
+  "@manageCategoriesIconGroupFamily": {
+    "description": "Название вкладки с иконками семьи"
+  },
+  "manageCategoriesIconGroupPets": "Питомцы",
+  "@manageCategoriesIconGroupPets": {
+    "description": "Название вкладки с иконками питомцев"
+  },
+  "manageCategoriesIconGroupMaintenance": "Ремонт и инструменты",
+  "@manageCategoriesIconGroupMaintenance": {
+    "description": "Название вкладки с иконками инструментов"
+  },
+  "manageCategoriesIconGroupEntertainment": "Развлечения и досуг",
+  "@manageCategoriesIconGroupEntertainment": {
+    "description": "Название вкладки с иконками развлечений"
+  },
+  "manageCategoriesIconGroupSports": "Спорт и фитнес",
   "@manageCategoriesIconGroupSports": {
     "description": "Название вкладки с иконками спорта"
   },
-  "manageCategoriesIconGroupMaintenance": "Ремонт и быт",
-  "@manageCategoriesIconGroupMaintenance": {
-    "description": "Название вкладки с иконками ремонта и бытовых дел"
+  "manageCategoriesIconGroupFinance": "Финансы и банки",
+  "@manageCategoriesIconGroupFinance": {
+    "description": "Название вкладки с иконками финансов"
   },
-  "manageCategoriesIconGroupTech": "Техника и гаджеты",
-  "@manageCategoriesIconGroupTech": {
-    "description": "Название вкладки с иконками техники и гаджетов"
+  "manageCategoriesIconGroupLoans": "Кредиты и долги",
+  "@manageCategoriesIconGroupLoans": {
+    "description": "Название вкладки с иконками долгов"
+  },
+  "manageCategoriesIconGroupDocuments": "Документы и налоги",
+  "@manageCategoriesIconGroupDocuments": {
+    "description": "Название вкладки с иконками документов"
+  },
+  "manageCategoriesIconGroupSettings": "Настройки и системные",
+  "@manageCategoriesIconGroupSettings": {
+    "description": "Название вкладки с иконками системных настроек"
+  },
+  "manageCategoriesIconGroupTransactionTypes": "Типы транзакций",
+  "@manageCategoriesIconGroupTransactionTypes": {
+    "description": "Название вкладки с иконками типов транзакций"
   },
   "manageCategoriesColorLabel": "Цвет",
   "@manageCategoriesColorLabel": {

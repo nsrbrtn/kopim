@@ -68,17 +68,13 @@ GROUP BY account_id
         });
   }
 
-  Stream<List<db.TransactionRow>> watchRecentTransactions({
-    int? limit,
-  }) {
+  Stream<List<db.TransactionRow>> watchRecentTransactions({int? limit}) {
     final SimpleSelectStatement<db.$TransactionsTable, db.TransactionRow>
     query = _db.select(_db.transactions)
       ..where((db.$TransactionsTable tbl) => tbl.isDeleted.equals(false))
-      ..orderBy(
-        <OrderingTerm Function(db.$TransactionsTable)>[
-          (db.$TransactionsTable tbl) => OrderingTerm.desc(tbl.date),
-        ],
-      );
+      ..orderBy(<OrderingTerm Function(db.$TransactionsTable)>[
+        (db.$TransactionsTable tbl) => OrderingTerm.desc(tbl.date),
+      ]);
     if (limit != null && limit > 0) {
       query.limit(limit);
     }

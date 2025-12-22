@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import 'package:kopim/core/application/firebase_availability.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/core/services/sync_service.dart';
 import 'package:kopim/core/utils/timezone_utils.dart';
@@ -48,13 +49,24 @@ class AppStartupController extends _$AppStartupController {
         initializeLocalTimeZone(),
       ]);
 
-      final FirebaseFirestore firestore = ref.read(firestoreProvider);
-      firestore.settings = const Settings(
-        persistenceEnabled: true,
-        cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
+      final FirebaseAvailabilityState availability = ref.read(
+        firebaseAvailabilityProvider,
       );
+      final bool firebaseAvailable = availability.isAvailable != false;
+      if (firebaseAvailable) {
+        final FirebaseFirestore firestore = ref.read(firestoreProvider);
+        firestore.settings = const Settings(
+          persistenceEnabled: true,
+          cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
+        );
+      }
 
       if (_isRunningOnWeb) {
+        if (!firebaseAvailable) {
+          state = const AsyncValue<void>.data(null);
+          completer.complete();
+          return;
+        }
         await _initializeWebServices();
       } else {
         unawaited(_initializeBackgroundServices());

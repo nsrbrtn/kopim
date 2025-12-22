@@ -15,7 +15,9 @@ void main() {
     );
     dao = TransactionDao(database);
 
-    await database.into(database.accounts).insert(
+    await database
+        .into(database.accounts)
+        .insert(
           AccountsCompanion(
             id: const drift.Value<String>('a1'),
             name: const drift.Value<String>('Main'),
@@ -28,7 +30,9 @@ void main() {
             isPrimary: const drift.Value<bool>(true),
           ),
         );
-    await database.into(database.accounts).insert(
+    await database
+        .into(database.accounts)
+        .insert(
           AccountsCompanion(
             id: const drift.Value<String>('a2'),
             name: const drift.Value<String>('Secondary'),
@@ -41,7 +45,9 @@ void main() {
             isPrimary: const drift.Value<bool>(false),
           ),
         );
-    await database.into(database.categories).insert(
+    await database
+        .into(database.categories)
+        .insert(
           CategoriesCompanion(
             id: const drift.Value<String>('c1'),
             name: const drift.Value<String>('Food'),
@@ -67,7 +73,9 @@ void main() {
     required TransactionType type,
     bool isDeleted = false,
   }) async {
-    await database.into(database.transactions).insert(
+    await database
+        .into(database.transactions)
+        .insert(
           TransactionsCompanion(
             id: drift.Value<String>(id),
             accountId: drift.Value<String>(accountId),
@@ -82,71 +90,76 @@ void main() {
         );
   }
 
-  test('watchAccountMonthlyTotals агрегирует суммы по счетам за месяц', () async {
-    final DateTime start = DateTime(2025, 1, 1);
-    final DateTime end = DateTime(2025, 2, 1);
+  test(
+    'watchAccountMonthlyTotals агрегирует суммы по счетам за месяц',
+    () async {
+      final DateTime start = DateTime(2025, 1, 1);
+      final DateTime end = DateTime(2025, 2, 1);
 
-    await insertTx(
-      id: 't1',
-      accountId: 'a1',
-      date: DateTime(2025, 1, 1, 0, 0),
-      amount: 100,
-      type: TransactionType.income,
-    );
-    await insertTx(
-      id: 't2',
-      accountId: 'a1',
-      date: DateTime(2025, 1, 15, 12, 0),
-      amount: 40,
-      type: TransactionType.expense,
-    );
-    await insertTx(
-      id: 't3',
-      accountId: 'a1',
-      date: DateTime(2025, 2, 1, 0, 0),
-      amount: 5,
-      type: TransactionType.expense,
-    );
-    await insertTx(
-      id: 't4',
-      accountId: 'a2',
-      date: DateTime(2025, 1, 20),
-      amount: -50,
-      type: TransactionType.income,
-    );
-    await insertTx(
-      id: 't5',
-      accountId: 'a2',
-      date: DateTime(2025, 1, 25),
-      amount: 999,
-      type: TransactionType.expense,
-      isDeleted: true,
-    );
+      await insertTx(
+        id: 't1',
+        accountId: 'a1',
+        date: DateTime(2025, 1, 1, 0, 0),
+        amount: 100,
+        type: TransactionType.income,
+      );
+      await insertTx(
+        id: 't2',
+        accountId: 'a1',
+        date: DateTime(2025, 1, 15, 12, 0),
+        amount: 40,
+        type: TransactionType.expense,
+      );
+      await insertTx(
+        id: 't3',
+        accountId: 'a1',
+        date: DateTime(2025, 2, 1, 0, 0),
+        amount: 5,
+        type: TransactionType.expense,
+      );
+      await insertTx(
+        id: 't4',
+        accountId: 'a2',
+        date: DateTime(2025, 1, 20),
+        amount: -50,
+        type: TransactionType.income,
+      );
+      await insertTx(
+        id: 't5',
+        accountId: 'a2',
+        date: DateTime(2025, 1, 25),
+        amount: 999,
+        type: TransactionType.expense,
+        isDeleted: true,
+      );
 
-    final List<AccountMonthlyTotalsRow> rows = await dao
-        .watchAccountMonthlyTotals(start: start, end: end)
-        .first;
+      final List<AccountMonthlyTotalsRow> rows = await dao
+          .watchAccountMonthlyTotals(start: start, end: end)
+          .first;
 
-    final Map<String, AccountMonthlyTotalsRow> byAccount =
-        <String, AccountMonthlyTotalsRow>{
-      for (final AccountMonthlyTotalsRow row in rows) row.accountId: row,
-    };
+      final Map<String, AccountMonthlyTotalsRow> byAccount =
+          <String, AccountMonthlyTotalsRow>{
+            for (final AccountMonthlyTotalsRow row in rows) row.accountId: row,
+          };
 
-    expect(byAccount.keys.toSet(), <String>{'a1', 'a2'});
-    expect(byAccount['a1']!.income, 100);
-    expect(byAccount['a1']!.expense, 40);
-    expect(byAccount['a2']!.income, 50);
-    expect(byAccount['a2']!.expense, 0);
-  });
+      expect(byAccount.keys.toSet(), <String>{'a1', 'a2'});
+      expect(byAccount['a1']!.income, 100);
+      expect(byAccount['a1']!.expense, 40);
+      expect(byAccount['a2']!.income, 50);
+      expect(byAccount['a2']!.expense, 0);
+    },
+  );
 
-  test('watchAccountMonthlyTotals возвращает пустой список без транзакций', () async {
-    final List<AccountMonthlyTotalsRow> rows = await dao
-        .watchAccountMonthlyTotals(
-          start: DateTime(2025, 3, 1),
-          end: DateTime(2025, 4, 1),
-        )
-        .first;
-    expect(rows, isEmpty);
-  });
+  test(
+    'watchAccountMonthlyTotals возвращает пустой список без транзакций',
+    () async {
+      final List<AccountMonthlyTotalsRow> rows = await dao
+          .watchAccountMonthlyTotals(
+            start: DateTime(2025, 3, 1),
+            end: DateTime(2025, 4, 1),
+          )
+          .first;
+      expect(rows, isEmpty);
+    },
+  );
 }
-

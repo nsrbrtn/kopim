@@ -76,10 +76,7 @@ class BudgetCategorySpendingView extends StatelessWidget {
           ),
         );
       }
-      return Padding(
-        padding: resolvedPadding,
-        child: empty,
-      );
+      return Padding(padding: resolvedPadding, child: empty);
     }
 
     final NumberFormat currencyFormat = NumberFormat.simpleCurrency(
@@ -98,9 +95,7 @@ class BudgetCategorySpendingView extends StatelessWidget {
 
     final Widget chart = LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
-        final double chartHeight = _resolveChartHeight(
-          constraints.maxWidth,
-        );
+        final double chartHeight = _resolveChartHeight(constraints.maxWidth);
         final double maxBarHeight = math.max(
           0,
           chartHeight - _BudgetCategoryBar.extraHeight,
@@ -109,35 +104,32 @@ class BudgetCategorySpendingView extends StatelessWidget {
         return SizedBox(
           height: chartHeight,
           child: ScrollConfiguration(
-            behavior: const ScrollBehavior().copyWith(
-              overscroll: false,
-            ),
+            behavior: const ScrollBehavior().copyWith(overscroll: false),
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
-              padding: EdgeInsets.symmetric(
-                horizontal: spacing.between,
-              ),
+              padding: EdgeInsets.symmetric(horizontal: spacing.between),
               child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  minWidth: constraints.maxWidth,
-                ),
+                constraints: BoxConstraints(minWidth: constraints.maxWidth),
                 child: Align(
                   alignment: Alignment.bottomLeft,
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: <Widget>[
-                      for (int index = 0; index < metrics.length; index++)
-                        ...<Widget>[
-                          if (index > 0) SizedBox(width: spacing.section),
-                          SizedBox(
-                            width: 28,
-                            child: _BudgetCategoryBar(
-                              metrics: metrics[index],
-                              maxBarHeight: maxBarHeight,
-                              percentFormat: percentFormat,
-                            ),
+                      for (
+                        int index = 0;
+                        index < metrics.length;
+                        index++
+                      ) ...<Widget>[
+                        if (index > 0) SizedBox(width: spacing.section),
+                        SizedBox(
+                          width: 28,
+                          child: _BudgetCategoryBar(
+                            metrics: metrics[index],
+                            maxBarHeight: maxBarHeight,
+                            percentFormat: percentFormat,
                           ),
-                        ],
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -163,10 +155,7 @@ class BudgetCategorySpendingView extends StatelessWidget {
               child: chart,
             ),
             SizedBox(height: spacing.between),
-            _budgetSectionContainer(
-              context: context,
-              child: breakdown,
-            ),
+            _budgetSectionContainer(context: context, child: breakdown),
           ]
         : <Widget>[
             if (showSectionTitles)
@@ -590,37 +579,38 @@ class _BudgetCategoryBar extends StatelessWidget {
     );
     final double safeMaxBarHeight = math.max(0, maxBarHeight);
     final bool isExceeded = metrics.isExceeded && metrics.utilization.isFinite;
-    final double baseFillFraction =
-        metrics.spentFractionWithinLimit.clamp(0, 1);
+    final double baseFillFraction = metrics.spentFractionWithinLimit.clamp(
+      0,
+      1,
+    );
     final double baseFillHeight = safeMaxBarHeight * baseFillFraction;
     final String percentLabel = percentFormat.format(
       metrics.hasLimit
           ? metrics.utilization.isFinite
-              ? metrics.utilization.clamp(0, 9.99)
-              : 0
+                ? metrics.utilization.clamp(0, 9.99)
+                : 0
           : 0,
     );
     final BorderRadiusGeometry barRadius = BorderRadius.circular(
       layout.radius.card,
     );
-    final Color fillColor =
-        isExceeded ? theme.colorScheme.error : categoryColor;
+    final Color fillColor = isExceeded
+        ? theme.colorScheme.error
+        : categoryColor;
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.end,
       children: <Widget>[
         Text(
           percentLabel,
-          style: (theme.textTheme.labelLarge ??
-                  const TextStyle(fontSize: 14))
+          style: (theme.textTheme.labelLarge ?? const TextStyle(fontSize: 14))
               .copyWith(
-            fontSize:
-                (theme.textTheme.labelLarge?.fontSize ?? 14) / 1.5,
-            fontWeight: FontWeight.w700,
-            color: isExceeded
-                ? theme.colorScheme.error
-                : theme.colorScheme.onSurface,
-          ),
+                fontSize: (theme.textTheme.labelLarge?.fontSize ?? 14) / 1.5,
+                fontWeight: FontWeight.w700,
+                color: isExceeded
+                    ? theme.colorScheme.error
+                    : theme.colorScheme.onSurface,
+              ),
           textAlign: TextAlign.center,
         ),
         SizedBox(height: spacing.between),

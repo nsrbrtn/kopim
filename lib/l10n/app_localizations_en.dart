@@ -285,37 +285,76 @@ class AppLocalizationsEn extends AppLocalizations {
   String get manageCategoriesIconStyleFill => 'Fill';
 
   @override
-  String get manageCategoriesIconGroupFinance => 'Finance & work';
+  String get manageCategoriesIconGroupGroceries => 'Groceries';
 
   @override
-  String get manageCategoriesIconGroupShopping => 'Shopping & clothing';
+  String get manageCategoriesIconGroupDining => 'Dining Out';
 
   @override
-  String get manageCategoriesIconGroupFood => 'Food & dining';
+  String get manageCategoriesIconGroupClothing => 'Clothing & Care';
 
   @override
-  String get manageCategoriesIconGroupTransport => 'Transport & travel';
+  String get manageCategoriesIconGroupHome => 'Home & Furniture';
 
   @override
-  String get manageCategoriesIconGroupHome => 'Home & utilities';
+  String get manageCategoriesIconGroupUtilities => 'Utilities';
 
   @override
-  String get manageCategoriesIconGroupLeisure => 'Leisure & sports';
+  String get manageCategoriesIconGroupCommunication => 'Comm & Gadgets';
 
   @override
-  String get manageCategoriesIconGroupBeauty => 'Beauty & care';
+  String get manageCategoriesIconGroupSubscriptions => 'Subscriptions';
 
   @override
-  String get manageCategoriesIconGroupHealth => 'Health';
+  String get manageCategoriesIconGroupPublicTransport => 'Public Transit';
+
+  @override
+  String get manageCategoriesIconGroupCar => 'Car';
+
+  @override
+  String get manageCategoriesIconGroupTaxi => 'Taxi & Parking';
+
+  @override
+  String get manageCategoriesIconGroupTravel => 'Travel';
+
+  @override
+  String get manageCategoriesIconGroupHealth => 'Health & Med';
+
+  @override
+  String get manageCategoriesIconGroupSecurity => 'Security';
+
+  @override
+  String get manageCategoriesIconGroupEducation => 'Education';
+
+  @override
+  String get manageCategoriesIconGroupFamily => 'Family';
+
+  @override
+  String get manageCategoriesIconGroupPets => 'Pets';
+
+  @override
+  String get manageCategoriesIconGroupMaintenance => 'Maintenance';
+
+  @override
+  String get manageCategoriesIconGroupEntertainment => 'Entertainment';
 
   @override
   String get manageCategoriesIconGroupSports => 'Sports';
 
   @override
-  String get manageCategoriesIconGroupMaintenance => 'Repairs & chores';
+  String get manageCategoriesIconGroupFinance => 'Finance';
 
   @override
-  String get manageCategoriesIconGroupTech => 'Tech & gadgets';
+  String get manageCategoriesIconGroupLoans => 'Loans & Debts';
+
+  @override
+  String get manageCategoriesIconGroupDocuments => 'Documents';
+
+  @override
+  String get manageCategoriesIconGroupSettings => 'Settings';
+
+  @override
+  String get manageCategoriesIconGroupTransactionTypes => 'Transaction Types';
 
   @override
   String get manageCategoriesColorLabel => 'Color';

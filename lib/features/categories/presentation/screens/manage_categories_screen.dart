@@ -46,27 +46,31 @@ class _ManageCategoriesScreenState extends ConsumerState<ManageCategoriesScreen>
     );
     _swipeHintDx = TweenSequence<double>(<TweenSequenceItem<double>>[
       TweenSequenceItem<double>(
-        tween: Tween<double>(begin: 0, end: -18).chain(
-          CurveTween(curve: Curves.easeOutCubic),
-        ),
+        tween: Tween<double>(
+          begin: 0,
+          end: -18,
+        ).chain(CurveTween(curve: Curves.easeOutCubic)),
         weight: 1,
       ),
       TweenSequenceItem<double>(
-        tween: Tween<double>(begin: -18, end: 0).chain(
-          CurveTween(curve: Curves.easeInCubic),
-        ),
+        tween: Tween<double>(
+          begin: -18,
+          end: 0,
+        ).chain(CurveTween(curve: Curves.easeInCubic)),
         weight: 1,
       ),
       TweenSequenceItem<double>(
-        tween: Tween<double>(begin: 0, end: 18).chain(
-          CurveTween(curve: Curves.easeOutCubic),
-        ),
+        tween: Tween<double>(
+          begin: 0,
+          end: 18,
+        ).chain(CurveTween(curve: Curves.easeOutCubic)),
         weight: 1,
       ),
       TweenSequenceItem<double>(
-        tween: Tween<double>(begin: 18, end: 0).chain(
-          CurveTween(curve: Curves.easeInCubic),
-        ),
+        tween: Tween<double>(
+          begin: 18,
+          end: 0,
+        ).chain(CurveTween(curve: Curves.easeInCubic)),
         weight: 1,
       ),
     ]).animate(_swipeHintController);
@@ -529,8 +533,9 @@ class _CategoryCardState extends State<_CategoryCard> {
                       children: <Widget>[
                         IconButton(
                           icon: const Icon(Icons.add),
-                          tooltip:
-                              widget.strings.manageCategoriesAddSubcategoryAction,
+                          tooltip: widget
+                              .strings
+                              .manageCategoriesAddSubcategoryAction,
                           onPressed: () =>
                               unawaited(widget.onAddSubcategory(category)),
                         ),
@@ -542,10 +547,12 @@ class _CategoryCardState extends State<_CategoryCard> {
                               child: const Icon(Icons.keyboard_arrow_down),
                             ),
                             tooltip: isExpanded
-                                ? MaterialLocalizations.of(context)
-                                    .expandedIconTapHint
-                                : MaterialLocalizations.of(context)
-                                    .collapsedIconTapHint,
+                                ? MaterialLocalizations.of(
+                                    context,
+                                  ).expandedIconTapHint
+                                : MaterialLocalizations.of(
+                                    context,
+                                  ).collapsedIconTapHint,
                             onPressed: _toggleExpanded,
                           ),
                       ],
@@ -570,9 +577,11 @@ class _CategoryCardState extends State<_CategoryCard> {
                             padding: const EdgeInsets.all(4),
                             child: Column(
                               children: <Widget>[
-                                for (int index = 0;
-                                    index < widget.node.children.length;
-                                    index++) ...<Widget>[
+                                for (
+                                  int index = 0;
+                                  index < widget.node.children.length;
+                                  index++
+                                ) ...<Widget>[
                                   _SubcategoryTile(
                                     node: widget.node.children[index],
                                     strings: widget.strings,
@@ -681,10 +690,7 @@ class _CategoryIcon extends StatelessWidget {
         borderRadius: borderRadius,
       ),
       alignment: Alignment.center,
-      child: Icon(
-        iconData ?? Icons.category_outlined,
-        color: avatarForeground,
-      ),
+      child: Icon(iconData ?? Icons.category_outlined, color: avatarForeground),
     );
   }
 }
@@ -776,8 +782,7 @@ class _CategoryEditorSheetState extends ConsumerState<_CategoryEditorSheet> {
       CategoryFormState? previous,
       CategoryFormState next,
     ) {
-      if (previous?.name != next.name &&
-          _nameController.text != next.name) {
+      if (previous?.name != next.name && _nameController.text != next.name) {
         _nameController.value = _nameController.value.copyWith(
           text: next.name,
           selection: TextSelection.collapsed(offset: next.name.length),
@@ -833,17 +838,30 @@ class _CategoryEditorSheetState extends ConsumerState<_CategoryEditorSheet> {
         PhosphorIconStyle.fill: strings.manageCategoriesIconStyleFill,
       },
       groupLabels: <String, String>{
-        'finance': strings.manageCategoriesIconGroupFinance,
-        'shopping': strings.manageCategoriesIconGroupShopping,
-        'food': strings.manageCategoriesIconGroupFood,
-        'transport': strings.manageCategoriesIconGroupTransport,
+        'groceries': strings.manageCategoriesIconGroupGroceries,
+        'dining': strings.manageCategoriesIconGroupDining,
+        'clothing': strings.manageCategoriesIconGroupClothing,
         'home': strings.manageCategoriesIconGroupHome,
-        'leisure': strings.manageCategoriesIconGroupLeisure,
-        'beauty': strings.manageCategoriesIconGroupBeauty,
+        'utilities': strings.manageCategoriesIconGroupUtilities,
+        'communication': strings.manageCategoriesIconGroupCommunication,
+        'subscriptions': strings.manageCategoriesIconGroupSubscriptions,
+        'publicTransport': strings.manageCategoriesIconGroupPublicTransport,
+        'car': strings.manageCategoriesIconGroupCar,
+        'taxi': strings.manageCategoriesIconGroupTaxi,
+        'travel': strings.manageCategoriesIconGroupTravel,
         'health': strings.manageCategoriesIconGroupHealth,
-        'sports': strings.manageCategoriesIconGroupSports,
+        'security': strings.manageCategoriesIconGroupSecurity,
+        'education': strings.manageCategoriesIconGroupEducation,
+        'family': strings.manageCategoriesIconGroupFamily,
+        'pets': strings.manageCategoriesIconGroupPets,
         'maintenance': strings.manageCategoriesIconGroupMaintenance,
-        'tech': strings.manageCategoriesIconGroupTech,
+        'entertainment': strings.manageCategoriesIconGroupEntertainment,
+        'sports': strings.manageCategoriesIconGroupSports,
+        'finance': strings.manageCategoriesIconGroupFinance,
+        'loans': strings.manageCategoriesIconGroupLoans,
+        'documents': strings.manageCategoriesIconGroupDocuments,
+        'settings': strings.manageCategoriesIconGroupSettings,
+        'transactionTypes': strings.manageCategoriesIconGroupTransactionTypes,
       },
     );
 
@@ -892,10 +910,12 @@ class _CategoryEditorSheetState extends ConsumerState<_CategoryEditorSheet> {
       );
     }
 
-    final bool isFormComplete = state.name.trim().isNotEmpty &&
+    final bool isFormComplete =
+        state.name.trim().isNotEmpty &&
         (state.icon?.isNotEmpty ?? false) &&
         state.color.trim().isNotEmpty;
-    final bool canSubmit = !state.isSaving && state.hasChanges && isFormComplete;
+    final bool canSubmit =
+        !state.isSaving && state.hasChanges && isFormComplete;
 
     return Padding(
       padding: EdgeInsets.only(bottom: viewInsets.bottom),
@@ -1014,8 +1034,10 @@ class _CategoryEditorSheetState extends ConsumerState<_CategoryEditorSheet> {
             FilledButton.icon(
               style: FilledButton.styleFrom(
                 minimumSize: const Size.fromHeight(56),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 16,
+                ),
                 shape: const StadiumBorder(),
                 textStyle: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w600,

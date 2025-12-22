@@ -36,12 +36,12 @@ class AnalyticsFilter {
   final String? categoryId;
 
   Map<String, Object?> toJson() => <String, Object?>{
-        'start': start.toIso8601String(),
-        'end': end.toIso8601String(),
-        'accountId': accountId,
-        'accountIds': accountIds,
-        'categoryId': categoryId,
-      };
+    'start': start.toIso8601String(),
+    'end': end.toIso8601String(),
+    'accountId': accountId,
+    'accountIds': accountIds,
+    'categoryId': categoryId,
+  };
 
   AnalyticsFilter copyWith({
     DateTime? start,
@@ -72,12 +72,12 @@ class AnalyticsFilter {
 
   @override
   int get hashCode => Object.hash(
-        start,
-        end,
-        accountId,
-        accountIds == null ? null : Object.hashAll(accountIds!),
-        categoryId,
-      );
+    start,
+    end,
+    accountId,
+    accountIds == null ? null : Object.hashAll(accountIds!),
+    categoryId,
+  );
 }
 
 extension AnalyticsFilterX on AnalyticsFilter {

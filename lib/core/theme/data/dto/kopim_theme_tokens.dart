@@ -188,8 +188,6 @@ abstract class KopimMotionEasing with _$KopimMotionEasing {
       _$KopimMotionEasingFromJson(json);
 }
 
-
-
 class ColorConverter implements JsonConverter<Color, String> {
   const ColorConverter();
 

@@ -22,9 +22,7 @@ class GeneralSettingsScreen extends ConsumerWidget {
     final AppLocalizations strings = AppLocalizations.of(context)!;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(strings.profileGeneralSettingsTitle),
-      ),
+      appBar: AppBar(title: Text(strings.profileGeneralSettingsTitle)),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(16),
@@ -50,9 +48,8 @@ class _SettingsSectionContainer extends StatelessWidget {
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
     final bool isDark = theme.brightness == Brightness.dark;
-    final Color background = theme.colorScheme.surfaceContainerHighest.withAlpha(
-      (255 * (isDark ? 0.4 : 0.8)).round(),
-    );
+    final Color background = theme.colorScheme.surfaceContainerHighest
+        .withAlpha((255 * (isDark ? 0.4 : 0.8)).round());
     return Container(
       decoration: BoxDecoration(
         color: background,
@@ -108,9 +105,8 @@ class _ExactRemindersSection extends ConsumerWidget {
                 ),
                 Switch.adaptive(
                   value: isEnabled,
-                  onChanged: (_) => ref
-                      .read(exactAlarmControllerProvider.notifier)
-                      .request(),
+                  onChanged: (_) =>
+                      ref.read(exactAlarmControllerProvider.notifier).request(),
                 ),
               ],
             ),
@@ -118,9 +114,8 @@ class _ExactRemindersSection extends ConsumerWidget {
             Align(
               alignment: Alignment.centerRight,
               child: TextButton.icon(
-                onPressed: () => ref
-                    .read(exactAlarmControllerProvider.notifier)
-                    .refresh(),
+                onPressed: () =>
+                    ref.read(exactAlarmControllerProvider.notifier).refresh(),
                 icon: const Icon(Icons.refresh),
                 label: Text(strings.settingsNotificationsRetryTooltip),
               ),
@@ -167,9 +162,8 @@ class _ExactRemindersSection extends ConsumerWidget {
             Align(
               alignment: Alignment.centerRight,
               child: FilledButton.icon(
-                onPressed: () => ref
-                    .read(exactAlarmControllerProvider.notifier)
-                    .refresh(),
+                onPressed: () =>
+                    ref.read(exactAlarmControllerProvider.notifier).refresh(),
                 icon: const Icon(Icons.refresh),
                 label: Text(strings.settingsNotificationsRetryTooltip),
               ),
@@ -234,10 +228,11 @@ class _DataTransferSectionState extends ConsumerState<_DataTransferSection> {
                         const SizedBox(height: 4),
                         Text(
                           strings.profileImportDataCta,
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .onSurfaceVariant,
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
                               ),
                         ),
                       ],
@@ -265,50 +260,51 @@ class _DataTransferSectionState extends ConsumerState<_DataTransferSection> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: <Widget>[
                     LayoutBuilder(
-                      builder: (BuildContext context, BoxConstraints constraints) {
-                        final bool stacked = constraints.maxWidth < 360;
-                        final double buttonWidth = stacked
-                            ? constraints.maxWidth
-                            : (constraints.maxWidth - 12) / 2;
-                        final Widget exportButton = SizedBox(
-                          width: buttonWidth,
-                          child: _RoundedActionButton(
-                            label: strings.profileExportDataCta,
-                            icon: Icons.upload_file_outlined,
-                            onPressed: isExporting
-                                ? null
-                                : () => _handleExport(context, ref),
-                            isLoading: isExporting,
-                          ),
-                        );
-                        final Widget importButton = SizedBox(
-                          width: buttonWidth,
-                          child: _RoundedActionButton(
-                            label: strings.profileImportDataCta,
-                            icon: Icons.download_for_offline_outlined,
-                            onPressed: isImporting
-                                ? null
-                                : () => _handleImport(context, ref),
-                            isLoading: isImporting,
-                          ),
-                        );
-                        if (stacked) {
-                          return Column(
-                            children: <Widget>[
-                              exportButton,
-                              const SizedBox(height: 12),
-                              importButton,
-                            ],
-                          );
-                        }
-                        return Row(
-                          children: <Widget>[
-                            exportButton,
-                            const SizedBox(width: 12),
-                            importButton,
-                          ],
-                        );
-                      },
+                      builder:
+                          (BuildContext context, BoxConstraints constraints) {
+                            final bool stacked = constraints.maxWidth < 360;
+                            final double buttonWidth = stacked
+                                ? constraints.maxWidth
+                                : (constraints.maxWidth - 12) / 2;
+                            final Widget exportButton = SizedBox(
+                              width: buttonWidth,
+                              child: _RoundedActionButton(
+                                label: strings.profileExportDataCta,
+                                icon: Icons.upload_file_outlined,
+                                onPressed: isExporting
+                                    ? null
+                                    : () => _handleExport(context, ref),
+                                isLoading: isExporting,
+                              ),
+                            );
+                            final Widget importButton = SizedBox(
+                              width: buttonWidth,
+                              child: _RoundedActionButton(
+                                label: strings.profileImportDataCta,
+                                icon: Icons.download_for_offline_outlined,
+                                onPressed: isImporting
+                                    ? null
+                                    : () => _handleImport(context, ref),
+                                isLoading: isImporting,
+                              ),
+                            );
+                            if (stacked) {
+                              return Column(
+                                children: <Widget>[
+                                  exportButton,
+                                  const SizedBox(height: 12),
+                                  importButton,
+                                ],
+                              );
+                            }
+                            return Row(
+                              children: <Widget>[
+                                exportButton,
+                                const SizedBox(width: 12),
+                                importButton,
+                              ],
+                            );
+                          },
                     ),
                     if (canSelectDirectory) ...<Widget>[
                       const SizedBox(height: 16),
@@ -402,14 +398,15 @@ class _DataTransferSectionState extends ConsumerState<_DataTransferSection> {
     state.when(
       data: (ExportFileSaveResult? result) {
         if (result == null) {
-          messenger
-              .showSnackBar(SnackBar(content: Text(strings.genericErrorMessage)));
+          messenger.showSnackBar(
+            SnackBar(content: Text(strings.genericErrorMessage)),
+          );
           return;
         }
         final String message = result.isSuccess
             ? (result.filePath?.isNotEmpty == true
-                ? strings.profileExportDataSuccessWithPath(result.filePath!)
-                : strings.profileExportDataSuccess)
+                  ? strings.profileExportDataSuccessWithPath(result.filePath!)
+                  : strings.profileExportDataSuccess)
             : strings.profileExportDataFailure(
                 result.errorMessage ?? strings.genericErrorMessage,
               );
@@ -423,9 +420,7 @@ class _DataTransferSectionState extends ConsumerState<_DataTransferSection> {
           ..hideCurrentSnackBar()
           ..showSnackBar(
             SnackBar(
-              content: Text(
-                strings.profileExportDataFailure(error.toString()),
-              ),
+              content: Text(strings.profileExportDataFailure(error.toString())),
             ),
           );
         controller.clearResult();
@@ -447,8 +442,9 @@ class _DataTransferSectionState extends ConsumerState<_DataTransferSection> {
     state.when(
       data: (ImportUserDataResult? result) {
         if (result == null) {
-          messenger
-              .showSnackBar(SnackBar(content: Text(strings.genericErrorMessage)));
+          messenger.showSnackBar(
+            SnackBar(content: Text(strings.genericErrorMessage)),
+          );
           return;
         }
         final String message = result.map(
@@ -472,9 +468,7 @@ class _DataTransferSectionState extends ConsumerState<_DataTransferSection> {
           ..hideCurrentSnackBar()
           ..showSnackBar(
             SnackBar(
-              content: Text(
-                strings.profileImportDataFailure(error.toString()),
-              ),
+              content: Text(strings.profileImportDataFailure(error.toString())),
             ),
           );
         controller.clearResult();

@@ -140,6 +140,7 @@ class HomeGamificationAppBar extends ConsumerWidget {
     );
   }
 }
+
 class _HomeGamificationCard extends StatelessWidget {
   const _HomeGamificationCard({
     required this.progressAsync,

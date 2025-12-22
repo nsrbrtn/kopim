@@ -334,147 +334,140 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      final BuildContext context = tester.element(
-        find.byType(AnalyticsScreen),
-      );
+      final BuildContext context = tester.element(find.byType(AnalyticsScreen));
       final AppLocalizations strings = AppLocalizations.of(context)!;
 
-      expect(find.text(strings.analyticsTopCategoriesExpensesTab), findsOneWidget);
-      expect(find.text(strings.analyticsTopCategoriesIncomeTab), findsOneWidget);
+      expect(
+        find.text(strings.analyticsTopCategoriesExpensesTab),
+        findsOneWidget,
+      );
+      expect(
+        find.text(strings.analyticsTopCategoriesIncomeTab),
+        findsOneWidget,
+      );
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets(
-      'раскрывает детали "Остальные" при выборе категории',
-      (WidgetTester tester) async {
-        final AnalyticsFilterState filterState = AnalyticsFilterState(
-          dateRange: DateTimeRange(
-            start: DateTime(2024, 5, 1),
-            end: DateTime(2024, 5, 31),
-          ),
-        );
+    testWidgets('раскрывает детали "Остальные" при выборе категории', (
+      WidgetTester tester,
+    ) async {
+      final AnalyticsFilterState filterState = AnalyticsFilterState(
+        dateRange: DateTimeRange(
+          start: DateTime(2024, 5, 1),
+          end: DateTime(2024, 5, 31),
+        ),
+      );
 
-        const AnalyticsOverview overview = AnalyticsOverview(
-          totalIncome: 0.0,
-          totalExpense: 150.0,
-          netBalance: -150.0,
-          topExpenseCategories: <AnalyticsCategoryBreakdown>[
-            AnalyticsCategoryBreakdown(categoryId: 'food', amount: 60.0),
-            AnalyticsCategoryBreakdown(categoryId: 'transport', amount: 40.0),
-            AnalyticsCategoryBreakdown(
-              categoryId: '_others',
-              amount: 50.0,
-              children: <AnalyticsCategoryBreakdown>[
-                AnalyticsCategoryBreakdown(
-                  categoryId: 'coffee',
-                  amount: 20.0,
+      const AnalyticsOverview overview = AnalyticsOverview(
+        totalIncome: 0.0,
+        totalExpense: 150.0,
+        netBalance: -150.0,
+        topExpenseCategories: <AnalyticsCategoryBreakdown>[
+          AnalyticsCategoryBreakdown(categoryId: 'food', amount: 60.0),
+          AnalyticsCategoryBreakdown(categoryId: 'transport', amount: 40.0),
+          AnalyticsCategoryBreakdown(
+            categoryId: '_others',
+            amount: 50.0,
+            children: <AnalyticsCategoryBreakdown>[
+              AnalyticsCategoryBreakdown(categoryId: 'coffee', amount: 20.0),
+              AnalyticsCategoryBreakdown(categoryId: 'books', amount: 30.0),
+            ],
+          ),
+        ],
+        topIncomeCategories: <AnalyticsCategoryBreakdown>[],
+      );
+
+      final Category foodCategory = Category(
+        id: 'food',
+        name: 'Food',
+        type: 'expense',
+        color: '#FF9800',
+        icon: null,
+        parentId: null,
+        createdAt: DateTime(2023, 1, 1),
+        updatedAt: DateTime(2023, 1, 1),
+      );
+      final Category transportCategory = Category(
+        id: 'transport',
+        name: 'Transport',
+        type: 'expense',
+        color: '#03A9F4',
+        icon: null,
+        parentId: null,
+        createdAt: DateTime(2023, 1, 1),
+        updatedAt: DateTime(2023, 1, 1),
+      );
+      final Category coffeeCategory = Category(
+        id: 'coffee',
+        name: 'Coffee',
+        type: 'expense',
+        color: '#795548',
+        icon: null,
+        parentId: null,
+        createdAt: DateTime(2023, 1, 1),
+        updatedAt: DateTime(2023, 1, 1),
+      );
+      final Category booksCategory = Category(
+        id: 'books',
+        name: 'Books',
+        type: 'expense',
+        color: '#9C27B0',
+        icon: null,
+        parentId: null,
+        createdAt: DateTime(2023, 1, 1),
+        updatedAt: DateTime(2023, 1, 1),
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: <Override>[
+            analyticsFilterControllerProvider.overrideWith(
+              () => _FakeAnalyticsFilterController(filterState),
+            ),
+            analyticsFilteredStatsProvider(topCategoriesLimit: 5).overrideWith(
+              (Ref ref) => Stream<AnalyticsOverview>.value(overview),
+            ),
+            analyticsCategoriesProvider.overrideWith(
+              (Ref ref) => Stream<List<Category>>.value(<Category>[
+                foodCategory,
+                transportCategory,
+                coffeeCategory,
+                booksCategory,
+              ]),
+            ),
+            analyticsAccountsProvider.overrideWith(
+              (Ref ref) => Stream<List<AccountEntity>>.value(<AccountEntity>[
+                AccountEntity(
+                  id: 'acc',
+                  name: 'Main',
+                  balance: 0,
+                  currency: 'USD',
+                  type: 'checking',
+                  createdAt: DateTime(2023, 1, 1),
+                  updatedAt: DateTime(2023, 1, 1),
+                  isDeleted: false,
                 ),
-                AnalyticsCategoryBreakdown(
-                  categoryId: 'books',
-                  amount: 30.0,
-                ),
-              ],
+              ]),
             ),
           ],
-          topIncomeCategories: <AnalyticsCategoryBreakdown>[],
-        );
-
-        final Category foodCategory = Category(
-          id: 'food',
-          name: 'Food',
-          type: 'expense',
-          color: '#FF9800',
-          icon: null,
-          parentId: null,
-          createdAt: DateTime(2023, 1, 1),
-          updatedAt: DateTime(2023, 1, 1),
-        );
-        final Category transportCategory = Category(
-          id: 'transport',
-          name: 'Transport',
-          type: 'expense',
-          color: '#03A9F4',
-          icon: null,
-          parentId: null,
-          createdAt: DateTime(2023, 1, 1),
-          updatedAt: DateTime(2023, 1, 1),
-        );
-        final Category coffeeCategory = Category(
-          id: 'coffee',
-          name: 'Coffee',
-          type: 'expense',
-          color: '#795548',
-          icon: null,
-          parentId: null,
-          createdAt: DateTime(2023, 1, 1),
-          updatedAt: DateTime(2023, 1, 1),
-        );
-        final Category booksCategory = Category(
-          id: 'books',
-          name: 'Books',
-          type: 'expense',
-          color: '#9C27B0',
-          icon: null,
-          parentId: null,
-          createdAt: DateTime(2023, 1, 1),
-          updatedAt: DateTime(2023, 1, 1),
-        );
-
-        await tester.pumpWidget(
-          ProviderScope(
-            overrides: <Override>[
-              analyticsFilterControllerProvider.overrideWith(
-                () => _FakeAnalyticsFilterController(filterState),
-              ),
-              analyticsFilteredStatsProvider(
-                topCategoriesLimit: 5,
-              ).overrideWith(
-                (Ref ref) => Stream<AnalyticsOverview>.value(overview),
-              ),
-              analyticsCategoriesProvider.overrideWith(
-                (Ref ref) => Stream<List<Category>>.value(<Category>[
-                  foodCategory,
-                  transportCategory,
-                  coffeeCategory,
-                  booksCategory,
-                ]),
-              ),
-              analyticsAccountsProvider.overrideWith(
-                (Ref ref) => Stream<List<AccountEntity>>.value(<AccountEntity>[
-                  AccountEntity(
-                    id: 'acc',
-                    name: 'Main',
-                    balance: 0,
-                    currency: 'USD',
-                    type: 'checking',
-                    createdAt: DateTime(2023, 1, 1),
-                    updatedAt: DateTime(2023, 1, 1),
-                    isDeleted: false,
-                  ),
-                ]),
-              ),
-            ],
-            child: const MaterialApp(
-              localizationsDelegates: AppLocalizations.localizationsDelegates,
-              supportedLocales: AppLocalizations.supportedLocales,
-              home: AnalyticsScreen(),
-            ),
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: AnalyticsScreen(),
           ),
-        );
+        ),
+      );
 
-        await tester.pumpAndSettle();
+      await tester.pumpAndSettle();
 
-        final BuildContext context = tester.element(
-          find.byType(AnalyticsScreen),
-        );
-        final AppLocalizations strings = AppLocalizations.of(context)!;
+      final BuildContext context = tester.element(find.byType(AnalyticsScreen));
+      final AppLocalizations strings = AppLocalizations.of(context)!;
 
-        await tester.tap(find.text(strings.analyticsTopCategoriesOthers));
-        await tester.pumpAndSettle();
+      await tester.tap(find.text(strings.analyticsTopCategoriesOthers));
+      await tester.pumpAndSettle();
 
-        expect(find.text('Coffee'), findsOneWidget);
-        expect(find.text('Books'), findsOneWidget);
-      },
-    );
+      expect(find.text('Coffee'), findsOneWidget);
+      expect(find.text('Books'), findsOneWidget);
+    });
   });
 }

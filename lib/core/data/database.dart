@@ -633,8 +633,7 @@ class AppDatabase extends _$AppDatabase {
         }
       }
       if (from < 19) {
-        final bool hasColorColumn =
-            await _columnExists('accounts', 'color');
+        final bool hasColorColumn = await _columnExists('accounts', 'color');
         if (!hasColorColumn) {
           await m.addColumn(accounts, accounts.color);
         }

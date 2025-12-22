@@ -27,9 +27,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
     final TransactionFormProvider formProvider =
         transactionFormControllerProvider(widget.formArgs);
     final bool isSubmitting = ref.watch(
-      formProvider.select(
-        (TransactionDraftState state) => state.isSubmitting,
-      ),
+      formProvider.select((TransactionDraftState state) => state.isSubmitting),
     );
     final bool isEditing = widget.formArgs.initialTransaction != null;
     final String submitLabel = isEditing
@@ -79,9 +77,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                   ? const SizedBox(
                       width: 20,
                       height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                      ),
+                      child: CircularProgressIndicator(strokeWidth: 2),
                     )
                   : const Icon(Icons.save_rounded),
             ),

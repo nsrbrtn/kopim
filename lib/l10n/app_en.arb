@@ -375,49 +375,101 @@
   "@manageCategoriesIconStyleFill": {
     "description": "Label for the fill icon style filter"
   },
-  "manageCategoriesIconGroupFinance": "Finance & work",
-  "@manageCategoriesIconGroupFinance": {
-    "description": "Tab label for finance-related icons"
+  "manageCategoriesIconGroupGroceries": "Groceries",
+  "@manageCategoriesIconGroupGroceries": {
+    "description": "Tab label for grocery icons"
   },
-  "manageCategoriesIconGroupShopping": "Shopping & clothing",
-  "@manageCategoriesIconGroupShopping": {
-    "description": "Tab label for shopping and clothing icons"
+  "manageCategoriesIconGroupDining": "Dining Out",
+  "@manageCategoriesIconGroupDining": {
+    "description": "Tab label for dining and cafe icons"
   },
-  "manageCategoriesIconGroupFood": "Food & dining",
-  "@manageCategoriesIconGroupFood": {
-    "description": "Tab label for food-related icons"
+  "manageCategoriesIconGroupClothing": "Clothing & Care",
+  "@manageCategoriesIconGroupClothing": {
+    "description": "Tab label for clothing and beauty icons"
   },
-  "manageCategoriesIconGroupTransport": "Transport & travel",
-  "@manageCategoriesIconGroupTransport": {
-    "description": "Tab label for transport icons"
-  },
-  "manageCategoriesIconGroupHome": "Home & utilities",
+  "manageCategoriesIconGroupHome": "Home & Furniture",
   "@manageCategoriesIconGroupHome": {
-    "description": "Tab label for home and utility icons"
+    "description": "Tab label for home icons"
   },
-  "manageCategoriesIconGroupLeisure": "Leisure & sports",
-  "@manageCategoriesIconGroupLeisure": {
-    "description": "Tab label for leisure icons"
+  "manageCategoriesIconGroupUtilities": "Utilities",
+  "@manageCategoriesIconGroupUtilities": {
+    "description": "Tab label for utility icons"
   },
-  "manageCategoriesIconGroupBeauty": "Beauty & care",
-  "@manageCategoriesIconGroupBeauty": {
-    "description": "Tab label for beauty-related icons"
+  "manageCategoriesIconGroupCommunication": "Comm & Gadgets",
+  "@manageCategoriesIconGroupCommunication": {
+    "description": "Tab label for communication icons"
   },
-  "manageCategoriesIconGroupHealth": "Health",
+  "manageCategoriesIconGroupSubscriptions": "Subscriptions",
+  "@manageCategoriesIconGroupSubscriptions": {
+    "description": "Tab label for subscription icons"
+  },
+  "manageCategoriesIconGroupPublicTransport": "Public Transit",
+  "@manageCategoriesIconGroupPublicTransport": {
+    "description": "Tab label for public transport icons"
+  },
+  "manageCategoriesIconGroupCar": "Car",
+  "@manageCategoriesIconGroupCar": {
+    "description": "Tab label for car icons"
+  },
+  "manageCategoriesIconGroupTaxi": "Taxi & Parking",
+  "@manageCategoriesIconGroupTaxi": {
+    "description": "Tab label for taxi icons"
+  },
+  "manageCategoriesIconGroupTravel": "Travel",
+  "@manageCategoriesIconGroupTravel": {
+    "description": "Tab label for travel icons"
+  },
+  "manageCategoriesIconGroupHealth": "Health & Med",
   "@manageCategoriesIconGroupHealth": {
-    "description": "Tab label for health and wellness icons"
+    "description": "Tab label for health icons"
+  },
+  "manageCategoriesIconGroupSecurity": "Security",
+  "@manageCategoriesIconGroupSecurity": {
+    "description": "Tab label for security icons"
+  },
+  "manageCategoriesIconGroupEducation": "Education",
+  "@manageCategoriesIconGroupEducation": {
+    "description": "Tab label for education icons"
+  },
+  "manageCategoriesIconGroupFamily": "Family",
+  "@manageCategoriesIconGroupFamily": {
+    "description": "Tab label for family icons"
+  },
+  "manageCategoriesIconGroupPets": "Pets",
+  "@manageCategoriesIconGroupPets": {
+    "description": "Tab label for pet icons"
+  },
+  "manageCategoriesIconGroupMaintenance": "Maintenance",
+  "@manageCategoriesIconGroupMaintenance": {
+    "description": "Tab label for maintenance icons"
+  },
+  "manageCategoriesIconGroupEntertainment": "Entertainment",
+  "@manageCategoriesIconGroupEntertainment": {
+    "description": "Tab label for entertainment icons"
   },
   "manageCategoriesIconGroupSports": "Sports",
   "@manageCategoriesIconGroupSports": {
-    "description": "Tab label for dedicated sports icons"
+    "description": "Tab label for sports icons"
   },
-  "manageCategoriesIconGroupMaintenance": "Repairs & chores",
-  "@manageCategoriesIconGroupMaintenance": {
-    "description": "Tab label for maintenance and household icons"
+  "manageCategoriesIconGroupFinance": "Finance",
+  "@manageCategoriesIconGroupFinance": {
+    "description": "Tab label for finance icons"
   },
-  "manageCategoriesIconGroupTech": "Tech & gadgets",
-  "@manageCategoriesIconGroupTech": {
-    "description": "Tab label for electronics and gadget icons"
+  "manageCategoriesIconGroupLoans": "Loans & Debts",
+  "@manageCategoriesIconGroupLoans": {
+    "description": "Tab label for loan icons"
+  },
+  "manageCategoriesIconGroupDocuments": "Documents",
+  "@manageCategoriesIconGroupDocuments": {
+    "description": "Tab label for document icons"
+  },
+  "manageCategoriesIconGroupSettings": "Settings",
+  "@manageCategoriesIconGroupSettings": {
+    "description": "Tab label for system setting icons"
+  },
+  "manageCategoriesIconGroupTransactionTypes": "Transaction Types",
+  "@manageCategoriesIconGroupTransactionTypes": {
+    "description": "Tab label for transaction types icons"
   },
   "manageCategoriesColorLabel": "Color",
   "@manageCategoriesColorLabel": {

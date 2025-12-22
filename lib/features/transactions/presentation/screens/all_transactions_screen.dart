@@ -367,10 +367,11 @@ class _TransactionListTile extends ConsumerWidget {
     final ThemeData theme = Theme.of(context);
     final AccountEntity? accountValue = account;
     final String currencySymbol = accountValue != null
-        ? resolveCurrencySymbol(accountValue.currency, locale: strings.localeName)
-        : TransactionTileFormatters.fallbackCurrencySymbol(
-            strings.localeName,
-          );
+        ? resolveCurrencySymbol(
+            accountValue.currency,
+            locale: strings.localeName,
+          )
+        : TransactionTileFormatters.fallbackCurrencySymbol(strings.localeName);
     final NumberFormat moneyFormat = TransactionTileFormatters.currency(
       strings.localeName,
       currencySymbol,

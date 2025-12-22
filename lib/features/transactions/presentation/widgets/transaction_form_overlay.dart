@@ -39,10 +39,7 @@ class _TransactionFormOverlayState
     return theme.colorScheme.surfaceContainerLowest;
   }
 
-  Future<void> _submitForm(
-    WidgetRef ref,
-    TransactionFormArgs formArgs,
-  ) async {
+  Future<void> _submitForm(WidgetRef ref, TransactionFormArgs formArgs) async {
     FocusManager.instance.primaryFocus?.unfocus();
     await Future<void>.delayed(Duration.zero);
     if (!(_formKey.currentState?.validate() ?? false)) {
@@ -55,8 +52,9 @@ class _TransactionFormOverlayState
 
   @override
   Widget build(BuildContext context) {
-    final TransactionSheetState sheetState =
-        ref.watch(transactionSheetControllerProvider);
+    final TransactionSheetState sheetState = ref.watch(
+      transactionSheetControllerProvider,
+    );
     if (!sheetState.isVisible) {
       return const SizedBox.shrink();
     }
@@ -65,9 +63,7 @@ class _TransactionFormOverlayState
     final TransactionFormProvider formProvider =
         transactionFormControllerProvider(formArgs);
     final bool isSubmitting = ref.watch(
-      formProvider.select(
-        (TransactionDraftState state) => state.isSubmitting,
-      ),
+      formProvider.select((TransactionDraftState state) => state.isSubmitting),
     );
     final ThemeData theme = Theme.of(context);
     final Color backdropColor = _resolveBackdropColor(theme);
@@ -112,14 +108,14 @@ class _TransactionFormOverlayState
                             ref
                                 .read(formProvider.notifier)
                                 .resetDraft(
-                                  defaultAccountId:
-                                      sheetState.defaultAccountId,
+                                  defaultAccountId: sheetState.defaultAccountId,
                                 );
                             final ScaffoldMessengerState messenger =
                                 ScaffoldMessenger.of(context)
                                   ..hideCurrentSnackBar();
-                            final Widget content =
-                                Text(strings.addTransactionSuccess);
+                            final Widget content = Text(
+                              strings.addTransactionSuccess,
+                            );
                             final TransactionEntity? created =
                                 result.createdTransaction;
                             messenger.showSnackBar(
@@ -130,9 +126,10 @@ class _TransactionFormOverlayState
                                     : SnackBarAction(
                                         label: strings.commonUndo,
                                         onPressed: () {
-                                          final ScaffoldMessengerState undoMessenger =
-                                              ScaffoldMessenger.of(context)
-                                                ..hideCurrentSnackBar();
+                                          final ScaffoldMessengerState
+                                          undoMessenger = ScaffoldMessenger.of(
+                                            context,
+                                          )..hideCurrentSnackBar();
                                           ref
                                               .read(
                                                 transactionActionsControllerProvider
@@ -140,23 +137,23 @@ class _TransactionFormOverlayState
                                               )
                                               .deleteTransaction(created.id)
                                               .then((bool undone) {
-                                            if (!mounted) {
-                                              return;
-                                            }
-                                            undoMessenger
-                                              ..hideCurrentSnackBar()
-                                              ..showSnackBar(
-                                                SnackBar(
-                                                  content: Text(
-                                                    undone
-                                                        ? strings
-                                                            .addTransactionUndoSuccess
-                                                        : strings
-                                                            .addTransactionUndoError,
-                                                  ),
-                                                ),
-                                              );
-                                          });
+                                                if (!mounted) {
+                                                  return;
+                                                }
+                                                undoMessenger
+                                                  ..hideCurrentSnackBar()
+                                                  ..showSnackBar(
+                                                    SnackBar(
+                                                      content: Text(
+                                                        undone
+                                                            ? strings
+                                                                  .addTransactionUndoSuccess
+                                                            : strings
+                                                                  .addTransactionUndoError,
+                                                      ),
+                                                    ),
+                                                  );
+                                              });
                                         },
                                       ),
                               ),
@@ -179,9 +176,9 @@ class _TransactionFormOverlayState
                                 height: 18,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .onPrimary,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onPrimary,
                                 ),
                               )
                             : const Icon(Icons.check),

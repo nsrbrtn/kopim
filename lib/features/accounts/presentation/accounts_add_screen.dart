@@ -113,14 +113,14 @@ class _AddAccountScreenState extends ConsumerState<AddAccountScreen> {
         : (state.type.isEmpty ? null : state.type);
     final List<String> filteredCurrencies = currencyOptions
         .where(
-          (String code) => code
-              .toLowerCase()
-              .contains(_currencyQuery.toLowerCase()),
+          (String code) =>
+              code.toLowerCase().contains(_currencyQuery.toLowerCase()),
         )
         .toList();
     final Color? selectedColor = parseHexColor(state.color);
-    final BorderRadius containerRadius =
-        BorderRadius.circular(layout.radius.xxl);
+    final BorderRadius containerRadius = BorderRadius.circular(
+      layout.radius.xxl,
+    );
     final ColorScheme innerExpandableColors = colorScheme.copyWith(
       surfaceContainer: colorScheme.surfaceContainerHigh,
     );
@@ -134,10 +134,7 @@ class _AddAccountScreenState extends ConsumerState<AddAccountScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
+      appBar: AppBar(backgroundColor: Colors.transparent, elevation: 0),
       floatingActionButton: AnimatedFab(
         child: KopimFloatingActionButton(
           onPressed: state.isSaving
@@ -209,7 +206,8 @@ class _AddAccountScreenState extends ConsumerState<AddAccountScreen> {
                       theme: theme,
                       onChanged: controller.updateBalance,
                       placeholder: _balancePlaceholder,
-                      hasError: state.balanceError ==
+                      hasError:
+                          state.balanceError ==
                           AddAccountFieldError.invalidBalance,
                     ),
                     SizedBox(height: layout.spacing.sectionLarge),
@@ -281,14 +279,14 @@ class _AddAccountScreenState extends ConsumerState<AddAccountScreen> {
                       thumbColor: WidgetStateProperty.resolveWith(
                         (Set<WidgetState> states) =>
                             states.contains(WidgetState.selected)
-                                ? colorScheme.onPrimary
-                                : colorScheme.onSurfaceVariant,
+                            ? colorScheme.onPrimary
+                            : colorScheme.onSurfaceVariant,
                       ),
                       trackColor: WidgetStateProperty.resolveWith(
                         (Set<WidgetState> states) =>
                             states.contains(WidgetState.selected)
-                                ? colorScheme.primary
-                                : colorScheme.surfaceContainerHighest,
+                            ? colorScheme.primary
+                            : colorScheme.surfaceContainerHighest,
                       ),
                     ),
                     if (state.errorMessage != null) ...<Widget>[
@@ -417,9 +415,7 @@ class _BalanceField extends StatelessWidget {
           controller: controller,
           placeholder: placeholder,
           enabled: !isSaving,
-          keyboardType: const TextInputType.numberWithOptions(
-            decimal: true,
-          ),
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
           onChanged: onChanged,
           fillColor: colorScheme.surfaceContainerHigh,
           placeholderColor: colorScheme.onSurfaceVariant,
@@ -477,9 +473,7 @@ class _TypeSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Theme(
-      data: theme.copyWith(
-        colorScheme: innerExpandableColors,
-      ),
+      data: theme.copyWith(colorScheme: innerExpandableColors),
       child: KopimExpandableSectionPlayful(
         title: strings.addAccountTypeLabel,
         initiallyExpanded: false,
@@ -527,9 +521,7 @@ class _TypeSection extends StatelessWidget {
             ],
             if (showTypeError)
               Padding(
-                padding: EdgeInsets.only(
-                  top: layout.spacing.between,
-                ),
+                padding: EdgeInsets.only(top: layout.spacing.between),
                 child: Text(
                   dropdownErrorText ?? strings.addAccountTypeRequired,
                   style: theme.textTheme.bodySmall?.copyWith(
@@ -576,9 +568,7 @@ class _CurrencySection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Theme(
-      data: theme.copyWith(
-        colorScheme: innerExpandableColors,
-      ),
+      data: theme.copyWith(colorScheme: innerExpandableColors),
       child: KopimExpandableSectionPlayful(
         title: strings.addAccountCurrencyLabel,
         initiallyExpanded: false,
@@ -627,9 +617,7 @@ class _CurrencySection extends StatelessWidget {
                         horizontal: layout.spacing.between / 2,
                       ),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(
-                          layout.radius.card,
-                        ),
+                        borderRadius: BorderRadius.circular(layout.radius.card),
                       ),
                     ),
                   )
@@ -685,10 +673,7 @@ class _ColorPickerRow extends StatelessWidget {
                   );
                   if (picked != null) {
                     controller.updateColor(
-                      colorToHex(
-                        picked,
-                        includeAlpha: false,
-                      ),
+                      colorToHex(picked, includeAlpha: false),
                     );
                   }
                 },
@@ -704,10 +689,7 @@ class _ColorPickerRow extends StatelessWidget {
               ),
             ),
             child: selectedColor == null
-                ? Icon(
-                    Icons.palette_outlined,
-                    color: colorScheme.onSurface,
-                  )
+                ? Icon(Icons.palette_outlined, color: colorScheme.onSurface)
                 : null,
           ),
         ),
@@ -717,10 +699,7 @@ class _ColorPickerRow extends StatelessWidget {
 }
 
 class _CurrencyAvatar extends StatelessWidget {
-  const _CurrencyAvatar({
-    required this.code,
-    required this.selected,
-  });
+  const _CurrencyAvatar({required this.code, required this.selected});
 
   final String code;
   final bool selected;

@@ -286,37 +286,77 @@ class AppLocalizationsRu extends AppLocalizations {
   String get manageCategoriesIconStyleFill => 'Заливка';
 
   @override
-  String get manageCategoriesIconGroupFinance => 'Финансы и работа';
+  String get manageCategoriesIconGroupGroceries => 'Продукты и еда';
 
   @override
-  String get manageCategoriesIconGroupShopping => 'Покупки и одежда';
+  String get manageCategoriesIconGroupDining => 'Кафе и рестораны';
 
   @override
-  String get manageCategoriesIconGroupFood => 'Еда и кафе';
+  String get manageCategoriesIconGroupClothing => 'Одежда и уход';
 
   @override
-  String get manageCategoriesIconGroupTransport => 'Транспорт и поездки';
+  String get manageCategoriesIconGroupHome => 'Дом и мебель';
 
   @override
-  String get manageCategoriesIconGroupHome => 'Дом и быт';
+  String get manageCategoriesIconGroupUtilities => 'Коммунальные услуги';
 
   @override
-  String get manageCategoriesIconGroupLeisure => 'Развлечения и спорт';
+  String get manageCategoriesIconGroupCommunication => 'Связь и гаджеты';
 
   @override
-  String get manageCategoriesIconGroupBeauty => 'Красота и уход';
+  String get manageCategoriesIconGroupSubscriptions => 'Подписки и медиа';
 
   @override
-  String get manageCategoriesIconGroupHealth => 'Здоровье';
+  String get manageCategoriesIconGroupPublicTransport =>
+      'Общественный транспорт';
 
   @override
-  String get manageCategoriesIconGroupSports => 'Спорт';
+  String get manageCategoriesIconGroupCar => 'Автомобиль';
 
   @override
-  String get manageCategoriesIconGroupMaintenance => 'Ремонт и быт';
+  String get manageCategoriesIconGroupTaxi => 'Такси и парковки';
 
   @override
-  String get manageCategoriesIconGroupTech => 'Техника и гаджеты';
+  String get manageCategoriesIconGroupTravel => 'Путешествия';
+
+  @override
+  String get manageCategoriesIconGroupHealth => 'Здоровье и медицина';
+
+  @override
+  String get manageCategoriesIconGroupSecurity => 'Безопасность';
+
+  @override
+  String get manageCategoriesIconGroupEducation => 'Образование';
+
+  @override
+  String get manageCategoriesIconGroupFamily => 'Семья и дети';
+
+  @override
+  String get manageCategoriesIconGroupPets => 'Питомцы';
+
+  @override
+  String get manageCategoriesIconGroupMaintenance => 'Ремонт и инструменты';
+
+  @override
+  String get manageCategoriesIconGroupEntertainment => 'Развлечения и досуг';
+
+  @override
+  String get manageCategoriesIconGroupSports => 'Спорт и фитнес';
+
+  @override
+  String get manageCategoriesIconGroupFinance => 'Финансы и банки';
+
+  @override
+  String get manageCategoriesIconGroupLoans => 'Кредиты и долги';
+
+  @override
+  String get manageCategoriesIconGroupDocuments => 'Документы и налоги';
+
+  @override
+  String get manageCategoriesIconGroupSettings => 'Настройки и системные';
+
+  @override
+  String get manageCategoriesIconGroupTransactionTypes => 'Типы транзакций';
 
   @override
   String get manageCategoriesColorLabel => 'Цвет';

@@ -11,6 +11,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:riverpod/riverpod.dart' as rp;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:workmanager/workmanager.dart';
+import 'package:kopim/core/application/firebase_availability.dart';
 import 'package:kopim/core/data/database.dart';
 import 'package:kopim/core/data/database/database_factory.dart';
 import 'package:kopim/core/data/outbox/outbox_dao.dart';
@@ -72,6 +73,7 @@ import 'package:kopim/features/savings/domain/use_cases/update_saving_goal_use_c
 import 'package:kopim/features/savings/domain/use_cases/watch_saving_goal_analytics_use_case.dart';
 import 'package:kopim/features/savings/domain/use_cases/watch_saving_goals_use_case.dart';
 import 'package:kopim/features/profile/data/auth_repository_impl.dart';
+import 'package:kopim/features/profile/data/offline_auth_repository.dart';
 import 'package:kopim/features/profile/data/local/profile_dao.dart';
 import 'package:kopim/features/profile/data/profile_avatar_repository_impl.dart';
 import 'package:kopim/features/profile/data/profile_repository_impl.dart';
@@ -160,8 +162,13 @@ AnalyticsService analyticsService(Ref ref) => const AnalyticsService();
 @Riverpod(keepAlive: true)
 Future<void> firebaseInitialization(Ref ref) async {
   final LoggerService logger = ref.watch(loggerServiceProvider);
+  final FirebaseAvailabilityNotifier availability = ref.watch(
+    firebaseAvailabilityProvider.notifier,
+  );
+  availability.setUnknown();
 
   if (Firebase.apps.isNotEmpty) {
+    availability.setAvailable();
     return;
   }
 
@@ -169,13 +176,32 @@ Future<void> firebaseInitialization(Ref ref) async {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
+    availability.setAvailable();
   } on FirebaseException catch (error, stackTrace) {
     if (error.code == 'duplicate-app' && Firebase.apps.isNotEmpty) {
+      availability.setAvailable();
+      return;
+    }
+    if (kIsWeb) {
+      availability.setUnavailable(
+        'Облачные функции недоступны в этом браузере. Вход и синхронизация выключены, данные сохраняются локально. Есть риск потери данных — сделайте выгрузку в настройках приложения.',
+      );
+      logger.logError(
+        'Сбой инициализации Firebase (web): ${error.code}',
+        error,
+      );
       return;
     }
     logger.logError('Сбой инициализации Firebase: ${error.code}', error);
     Error.throwWithStackTrace(error, stackTrace);
   } catch (error, stackTrace) {
+    if (kIsWeb) {
+      availability.setUnavailable(
+        'Облачные функции недоступны в этом браузере. Вход и синхронизация выключены, данные сохраняются локально. Есть риск потери данных — сделайте выгрузку в настройках приложения.',
+      );
+      logger.logError('Неожиданная ошибка инициализации Firebase (web)', error);
+      return;
+    }
     logger.logError('Неожиданная ошибка инициализации Firebase', error);
     Error.throwWithStackTrace(error, stackTrace);
   }
@@ -828,11 +854,23 @@ SyncService syncService(Ref ref) {
 }
 
 @riverpod
-AuthRepository authRepository(Ref ref) => AuthRepositoryImpl(
-  firebaseAuth: ref.watch(firebaseAuthProvider),
-  loggerService: ref.watch(loggerServiceProvider),
-  analyticsService: ref.watch(analyticsServiceProvider),
-);
+AuthRepository authRepository(Ref ref) {
+  final FirebaseAvailabilityState availability = ref.watch(
+    firebaseAvailabilityProvider,
+  );
+  if (kIsWeb && availability.isAvailable == false) {
+    final OfflineAuthRepository repository = OfflineAuthRepository(
+      loggerService: ref.watch(loggerServiceProvider),
+    );
+    ref.onDispose(repository.dispose);
+    return repository;
+  }
+  return AuthRepositoryImpl(
+    firebaseAuth: ref.watch(firebaseAuthProvider),
+    loggerService: ref.watch(loggerServiceProvider),
+    analyticsService: ref.watch(analyticsServiceProvider),
+  );
+}
 
 @riverpod
 AuthSyncService authSyncService(Ref ref) => AuthSyncService(

@@ -99,10 +99,11 @@ class TransactionListTile extends ConsumerWidget {
                         width: 48,
                         height: 48,
                         decoration: BoxDecoration(
-                          color: categoryColor ??
-                              Theme.of(context)
-                                  .colorScheme
-                                  .surfaceContainerHighest,
+                          color:
+                              categoryColor ??
+                              Theme.of(
+                                context,
+                              ).colorScheme.surfaceContainerHighest,
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Center(
@@ -124,7 +125,9 @@ class TransactionListTile extends ConsumerWidget {
                               style: Theme.of(context).textTheme.labelMedium
                                   ?.copyWith(
                                     fontWeight: FontWeight.w500,
-                                    color: Theme.of(context).colorScheme.onSurface,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurface,
                                   ),
                             ),
                             if (note != null && note.isNotEmpty)
@@ -167,19 +170,22 @@ class TransactionListTile extends ConsumerWidget {
                         children: <Widget>[
                           Text(
                             moneyFormat.format(transaction.amount.abs()),
-                            style:
-                                Theme.of(context).textTheme.titleLarge?.copyWith(
-                                      color: Theme.of(context).colorScheme.onSurface,
-                                      fontWeight: FontWeight.w400,
-                                    ),
+                            style: Theme.of(context).textTheme.titleLarge
+                                ?.copyWith(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurface,
+                                  fontWeight: FontWeight.w400,
+                                ),
                           ),
                           if (accountName != null)
                             Text(
                               accountName!,
                               style: Theme.of(context).textTheme.labelSmall
                                   ?.copyWith(
-                                    color:
-                                        Theme.of(context).colorScheme.outline,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.outline,
                                   ),
                             ),
                         ],

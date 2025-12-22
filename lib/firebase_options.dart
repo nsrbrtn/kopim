@@ -46,7 +46,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '219578876393',
     projectId: 'device-streaming-74c1af8e',
     authDomain: 'device-streaming-74c1af8e.firebaseapp.com',
-    databaseURL: 'https://device-streaming-74c1af8e-default-rtdb.europe-west1.firebasedatabase.app',
+    databaseURL:
+        'https://device-streaming-74c1af8e-default-rtdb.europe-west1.firebasedatabase.app',
     storageBucket: 'device-streaming-74c1af8e.firebasestorage.app',
   );
 
@@ -55,7 +56,8 @@ class DefaultFirebaseOptions {
     appId: '1:219578876393:android:30e897e33871f8ec3bcb78',
     messagingSenderId: '219578876393',
     projectId: 'device-streaming-74c1af8e',
-    databaseURL: 'https://device-streaming-74c1af8e-default-rtdb.europe-west1.firebasedatabase.app',
+    databaseURL:
+        'https://device-streaming-74c1af8e-default-rtdb.europe-west1.firebasedatabase.app',
     storageBucket: 'device-streaming-74c1af8e.firebasestorage.app',
   );
 
@@ -64,7 +66,8 @@ class DefaultFirebaseOptions {
     appId: '1:219578876393:ios:03dedf8dd0f7af9f3bcb78',
     messagingSenderId: '219578876393',
     projectId: 'device-streaming-74c1af8e',
-    databaseURL: 'https://device-streaming-74c1af8e-default-rtdb.europe-west1.firebasedatabase.app',
+    databaseURL:
+        'https://device-streaming-74c1af8e-default-rtdb.europe-west1.firebasedatabase.app',
     storageBucket: 'device-streaming-74c1af8e.firebasestorage.app',
     iosBundleId: 'qmodo.ru.kopim',
   );
@@ -74,7 +77,8 @@ class DefaultFirebaseOptions {
     appId: '1:219578876393:ios:03dedf8dd0f7af9f3bcb78',
     messagingSenderId: '219578876393',
     projectId: 'device-streaming-74c1af8e',
-    databaseURL: 'https://device-streaming-74c1af8e-default-rtdb.europe-west1.firebasedatabase.app',
+    databaseURL:
+        'https://device-streaming-74c1af8e-default-rtdb.europe-west1.firebasedatabase.app',
     storageBucket: 'device-streaming-74c1af8e.firebasestorage.app',
     iosBundleId: 'qmodo.ru.kopim',
   );
@@ -85,8 +89,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '219578876393',
     projectId: 'device-streaming-74c1af8e',
     authDomain: 'device-streaming-74c1af8e.firebaseapp.com',
-    databaseURL: 'https://device-streaming-74c1af8e-default-rtdb.europe-west1.firebasedatabase.app',
+    databaseURL:
+        'https://device-streaming-74c1af8e-default-rtdb.europe-west1.firebasedatabase.app',
     storageBucket: 'device-streaming-74c1af8e.firebasestorage.app',
   );
-
 }

@@ -6,6 +6,7 @@ import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:kopim/core/application/firebase_availability.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/core/theme/data/app_theme_factory.dart';
 import 'package:kopim/core/theme/data/dto/kopim_theme_tokens.dart';
@@ -184,11 +185,19 @@ final Provider<ThemeData> appDarkThemeProvider = Provider<ThemeData>((Ref ref) {
 final FutureProvider<AppConfig> appConfigProvider = FutureProvider<AppConfig>((
   Ref ref,
 ) async {
+  final LoggerService logger = ref.watch(loggerServiceProvider);
+  final AnalyticsService analytics = ref.watch(analyticsServiceProvider);
+  final FirebaseAvailabilityState availability = ref.watch(
+    firebaseAvailabilityProvider,
+  );
+
+  if (availability.isAvailable == false) {
+    return AppConfig(generativeAi: _buildDefaultGenerativeAiConfig());
+  }
+
   final FirebaseRemoteConfig remoteConfig = ref.watch(
     firebaseRemoteConfigProvider,
   );
-  final LoggerService logger = ref.watch(loggerServiceProvider);
-  final AnalyticsService analytics = ref.watch(analyticsServiceProvider);
 
   try {
     await remoteConfig.ensureInitialized();
@@ -269,5 +278,24 @@ GenerativeAiConfig _buildGenerativeAiConfig(FirebaseRemoteConfig remoteConfig) {
     retryMultiplier: multiplier,
     referer: refererValue.isNotEmpty ? refererValue : null,
     appTitle: titleValue.isNotEmpty ? titleValue : null,
+  );
+}
+
+GenerativeAiConfig _buildDefaultGenerativeAiConfig() {
+  const String envKey = String.fromEnvironment(
+    'OPENROUTER_API_KEY',
+    defaultValue: '',
+  );
+  final String? apiKey = envKey.isNotEmpty ? envKey : null;
+  return GenerativeAiConfig(
+    apiKey: apiKey,
+    model: _kDefaultAiModel,
+    baseUrl: _kDefaultAiBaseUrl,
+    requestTimeout: _kDefaultAiRequestTimeout,
+    throttleInterval: _kDefaultAiThrottleInterval,
+    isEnabled: true,
+    maxRetries: _kDefaultAiMaxRetries,
+    retryBaseDelay: _kDefaultAiRetryBaseDelay,
+    retryMultiplier: _kDefaultAiRetryMultiplier,
   );
 }

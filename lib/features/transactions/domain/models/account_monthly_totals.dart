@@ -9,4 +9,3 @@ class AccountMonthlyTotals {
   final double income;
   final double expense;
 }
-

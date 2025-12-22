@@ -257,14 +257,8 @@ class KopimRadiusScale {
   final double card;
   final double xxl;
 
-  KopimRadiusScale copyWith({
-    double? card,
-    double? xxl,
-  }) {
-    return KopimRadiusScale(
-      card: card ?? this.card,
-      xxl: xxl ?? this.xxl,
-    );
+  KopimRadiusScale copyWith({double? card, double? xxl}) {
+    return KopimRadiusScale(card: card ?? this.card, xxl: xxl ?? this.xxl);
   }
 
   static KopimRadiusScale lerp(

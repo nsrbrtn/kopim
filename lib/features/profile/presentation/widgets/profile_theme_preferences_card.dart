@@ -18,16 +18,16 @@ class ProfileThemePreferencesCard extends ConsumerWidget {
       themeModeControllerProvider.notifier,
     );
     final ThemeData theme = Theme.of(context);
-    final bool isDark =
-        mode.maybeWhen(dark: () => true, orElse: () => false);
+    final bool isDark = mode.maybeWhen(dark: () => true, orElse: () => false);
     final Color iconColor = theme.colorScheme.onSurfaceVariant;
     final String subtitle = isDark
         ? strings.profileThemeDarkDescription
         : strings.profileThemeLightDescription;
 
     void handleToggle(bool value) {
-      final AppThemeMode target =
-          value ? const AppThemeMode.dark() : const AppThemeMode.light();
+      final AppThemeMode target = value
+          ? const AppThemeMode.dark()
+          : const AppThemeMode.light();
       unawaited(controller.setMode(target));
     }
 
@@ -57,10 +57,7 @@ class ProfileThemePreferencesCard extends ConsumerWidget {
                 ],
               ),
             ),
-            Switch.adaptive(
-              value: isDark,
-              onChanged: handleToggle,
-            ),
+            Switch.adaptive(value: isDark, onChanged: handleToggle),
           ],
         ),
       ],

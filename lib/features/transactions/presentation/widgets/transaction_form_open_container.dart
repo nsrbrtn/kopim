@@ -18,7 +18,7 @@ class TransactionFormOpenContainer extends StatelessWidget {
   final Duration transitionDuration;
   final void Function(TransactionFormResult? result)? onClosed;
   final Widget Function(BuildContext context, VoidCallback openContainer)
-      closedBuilder;
+  closedBuilder;
 
   @override
   Widget build(BuildContext context) {
@@ -33,9 +33,7 @@ class TransactionFormOpenContainer extends StatelessWidget {
       closedShape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(24),
       ),
-      openShape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.zero,
-      ),
+      openShape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
       tappable: false,
       onClosed: onClosed,
       closedBuilder: (BuildContext context, VoidCallback openContainer) {

@@ -45,9 +45,7 @@ void main() {
     importUserDataControllerProvider.overrideWith(
       () => _FakeImportUserDataController(),
     ),
-    themeModeControllerProvider.overrideWith(
-      () => _FakeThemeModeController(),
-    ),
+    themeModeControllerProvider.overrideWith(() => _FakeThemeModeController()),
   ];
 
   testWidgets('displays management actions', (WidgetTester tester) async {
@@ -64,9 +62,7 @@ void main() {
 
     await tester.pumpAndSettle();
 
-    final BuildContext context = tester.element(
-      find.byType(MenuScreen),
-    );
+    final BuildContext context = tester.element(find.byType(MenuScreen));
     final AppLocalizations strings = AppLocalizations.of(context)!;
 
     expect(find.text(strings.profileManageCategoriesCta), findsOneWidget);
@@ -101,9 +97,7 @@ void main() {
 
     await tester.pumpAndSettle();
 
-    final BuildContext context = tester.element(
-      find.byType(MenuScreen),
-    );
+    final BuildContext context = tester.element(find.byType(MenuScreen));
     final AppLocalizations strings = AppLocalizations.of(context)!;
 
     await tester.tap(find.text(strings.profileManageCategoriesCta));

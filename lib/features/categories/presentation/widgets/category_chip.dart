@@ -36,13 +36,10 @@ class CategoryChip extends StatelessWidget {
     final ColorScheme colors = theme.colorScheme;
     final Color resolvedBackground =
         backgroundColor ?? colors.surfaceContainerHighest;
-    final Color resolvedForeground =
-        foregroundColor ?? colors.onSurfaceVariant;
-    final Color resolvedIconBackground =
-        iconBackgroundColor ?? colors.primary;
+    final Color resolvedForeground = foregroundColor ?? colors.onSurfaceVariant;
+    final Color resolvedIconBackground = iconBackgroundColor ?? colors.primary;
     final Color resolvedIconColor = iconColor ?? colors.surface;
-    final Color selectedBorder =
-        selected ? colors.primary : Colors.transparent;
+    final Color selectedBorder = selected ? colors.primary : Colors.transparent;
 
     return Material(
       type: MaterialType.transparency,

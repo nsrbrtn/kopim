@@ -34,9 +34,11 @@ class KopimSegmentedControl<T> extends StatelessWidget {
     final ThemeData theme = Theme.of(context);
     final ColorScheme colors = theme.colorScheme;
     final KopimLayout layout = context.kopimLayout;
-    final int selectedIndex = options.indexWhere(
-      (KopimSegmentedOption<T> option) => option.value == selectedValue,
-    ).clamp(0, options.length - 1);
+    final int selectedIndex = options
+        .indexWhere(
+          (KopimSegmentedOption<T> option) => option.value == selectedValue,
+        )
+        .clamp(0, options.length - 1);
 
     const Duration duration = Duration(milliseconds: 260);
 
@@ -78,19 +80,21 @@ class KopimSegmentedControl<T> extends StatelessWidget {
                   ),
                 ),
                 Row(
-                  children: options.map((KopimSegmentedOption<T> option) {
-                    final bool isSelected =
-                        option.value == options[selectedIndex].value;
-                    return Expanded(
-                      child: _SegmentItem(
-                        label: option.label,
-                        icon: option.icon,
-                        selected: isSelected,
-                        selectedTextColor: colors.onPrimary,
-                        onTap: () => onChanged(option.value),
-                      ),
-                    );
-                  }).toList(growable: false),
+                  children: options
+                      .map((KopimSegmentedOption<T> option) {
+                        final bool isSelected =
+                            option.value == options[selectedIndex].value;
+                        return Expanded(
+                          child: _SegmentItem(
+                            label: option.label,
+                            icon: option.icon,
+                            selected: isSelected,
+                            selectedTextColor: colors.onPrimary,
+                            onTap: () => onChanged(option.value),
+                          ),
+                        );
+                      })
+                      .toList(growable: false),
                 ),
               ],
             ),
@@ -144,7 +148,11 @@ class _SegmentItem extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 if (icon != null) ...<Widget>[
-                  Icon(icon, size: 18, color: selected ? selectedTextColor : null),
+                  Icon(
+                    icon,
+                    size: 18,
+                    color: selected ? selectedTextColor : null,
+                  ),
                   const SizedBox(width: 6),
                 ],
                 Flexible(

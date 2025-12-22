@@ -37,14 +37,14 @@ class TransactionSheetState {
 }
 
 final StateNotifierProvider<TransactionSheetController, TransactionSheetState>
-    transactionSheetControllerProvider = StateNotifierProvider<
-        TransactionSheetController, TransactionSheetState>(
-  (Ref ref) => TransactionSheetController(ref),
-);
+transactionSheetControllerProvider =
+    StateNotifierProvider<TransactionSheetController, TransactionSheetState>(
+      (Ref ref) => TransactionSheetController(ref),
+    );
 
 class TransactionSheetController extends StateNotifier<TransactionSheetState> {
   TransactionSheetController(this.ref)
-      : super(const TransactionSheetState(isVisible: false));
+    : super(const TransactionSheetState(isVisible: false));
 
   final Ref ref;
 

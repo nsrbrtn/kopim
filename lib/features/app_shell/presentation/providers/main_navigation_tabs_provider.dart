@@ -56,10 +56,7 @@ final Provider<List<NavigationTabConfig>> mainNavigationTabsProvider =
       ];
     });
 
-NavigationTabContent _buildMenuTabContent(
-  BuildContext context,
-  WidgetRef ref,
-) {
+NavigationTabContent _buildMenuTabContent(BuildContext context, WidgetRef ref) {
   return const NavigationTabContent(bodyBuilder: _menuBodyBuilder);
 }
 

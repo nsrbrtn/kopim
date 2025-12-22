@@ -58,10 +58,7 @@ class AccountColorSelector extends StatelessWidget {
         backgroundColor:
             resolvedColor ?? theme.colorScheme.surfaceContainerHighest,
         child: resolvedColor == null
-            ? Icon(
-                Icons.palette_outlined,
-                color: theme.colorScheme.onSurface,
-              )
+            ? Icon(Icons.palette_outlined, color: theme.colorScheme.onSurface)
             : null,
       ),
       title: Text(strings.accountColorLabel),
@@ -90,10 +87,7 @@ class AccountColorSelector extends StatelessWidget {
 const List<Color> _accountColorPalette = kCategoryPastelPalette;
 
 class _AccountColorPickerDialog extends StatefulWidget {
-  const _AccountColorPickerDialog({
-    this.initialColor,
-    required this.strings,
-  });
+  const _AccountColorPickerDialog({this.initialColor, required this.strings});
 
   final Color? initialColor;
   final AppLocalizations strings;
@@ -159,7 +153,8 @@ class _AccountColorPickerDialogState extends State<_AccountColorPickerDialog> {
                     child: _draftColor == paletteColor
                         ? Icon(
                             Icons.check,
-                            color: brightnessForColor(paletteColor) ==
+                            color:
+                                brightnessForColor(paletteColor) ==
                                     Brightness.dark
                                 ? Colors.white
                                 : Colors.black,

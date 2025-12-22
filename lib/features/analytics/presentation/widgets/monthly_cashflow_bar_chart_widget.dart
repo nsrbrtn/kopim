@@ -81,12 +81,15 @@ class _MonthlyCashflowBarChartWidgetState
     }
 
     final double yMax = maxPositive <= 0 ? 100 : maxPositive * 1.15;
-    final double yMin = 0;
+    const double yMin = 0;
 
-    final NumberFormat compact = NumberFormat.compact(locale: widget.localeName);
-    final String monthName = DateFormat('LLLL', widget.localeName).format(
-      displayData.month,
+    final NumberFormat compact = NumberFormat.compact(
+      locale: widget.localeName,
     );
+    final String monthName = DateFormat(
+      'LLLL',
+      widget.localeName,
+    ).format(displayData.month);
 
     final Color incomeColor = colors.primary;
     final Color expenseColor = colors.error;
@@ -195,7 +198,10 @@ class _MonthlyCashflowBarChartWidgetState
                   return;
                 }
                 final bool goOlder = velocityX > 0;
-                _shiftWindow(goOlder: goOlder, dataLength: effectiveData.length);
+                _shiftWindow(
+                  goOlder: goOlder,
+                  dataLength: effectiveData.length,
+                );
               },
               child: SfCartesianChart(
                 plotAreaBorderWidth: 0,

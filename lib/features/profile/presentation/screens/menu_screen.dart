@@ -38,8 +38,9 @@ class MenuScreen extends ConsumerWidget {
     final double bottomInset = MediaQuery.viewPaddingOf(context).bottom;
     final double width = MediaQuery.sizeOf(context).width;
     final bool usesBottomNav = width < kMainNavigationRailBreakpoint;
-    final double navigationClearance =
-        usesBottomNav ? MainNavigationBar.height : 0;
+    final double navigationClearance = usesBottomNav
+        ? MainNavigationBar.height
+        : 0;
     return bottomInset + navigationClearance + _actionButtonGap;
   }
 
@@ -197,8 +198,10 @@ class _SettingsMenuItem extends StatelessWidget {
     this.onTap,
     this.backgroundColor,
     this.borderRadius = 16,
-    this.contentPadding =
-        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+    this.contentPadding = const EdgeInsets.symmetric(
+      horizontal: 12,
+      vertical: 8,
+    ),
   });
 
   final IconData icon;
@@ -230,9 +233,7 @@ class _SettingsMenuItem extends StatelessWidget {
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(label, style: textStyle),
-                  ],
+                  children: <Widget>[Text(label, style: textStyle)],
                 ),
               ),
             ],
@@ -244,10 +245,7 @@ class _SettingsMenuItem extends StatelessWidget {
 }
 
 class _SettingsActionButton extends StatelessWidget {
-  const _SettingsActionButton({
-    required this.tooltip,
-    required this.onPressed,
-  });
+  const _SettingsActionButton({required this.tooltip, required this.onPressed});
 
   final String tooltip;
   final VoidCallback onPressed;
@@ -321,11 +319,10 @@ class _SettingsErrorMessage extends StatelessWidget {
   }
 }
 
-
-  Future<void> _openGeneralSettings(BuildContext context) async {
-    await Navigator.of(context, rootNavigator: true).push(
-      MaterialPageRoute<void>(
-        builder: (BuildContext context) => const GeneralSettingsScreen(),
-      ),
-    );
-  }
+Future<void> _openGeneralSettings(BuildContext context) async {
+  await Navigator.of(context, rootNavigator: true).push(
+    MaterialPageRoute<void>(
+      builder: (BuildContext context) => const GeneralSettingsScreen(),
+    ),
+  );
+}

@@ -326,8 +326,7 @@ void main() {
           supportedLocales: AppLocalizations.supportedLocales,
           home: const ProfileScreen(),
           routes: <String, WidgetBuilder>{
-            MenuScreen.routeName: (_) =>
-                const MenuScreen(),
+            MenuScreen.routeName: (_) => const MenuScreen(),
           },
         ),
       ),

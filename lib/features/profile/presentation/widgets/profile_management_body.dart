@@ -162,18 +162,17 @@ class _ProfileFormState extends ConsumerState<_ProfileForm> {
     final AppLocalizations strings = AppLocalizations.of(context)!;
     final ProfileFormControllerProvider profileFormProvider =
         _profileFormProvider;
-    ref.listen<ProfileFormState>(
-      profileFormProvider,
-      (ProfileFormState? previous, ProfileFormState next) {
-        if (previous?.name != next.name &&
-            _nameController.text != next.name) {
-          _nameController.value = TextEditingValue(
-            text: next.name,
-            selection: TextSelection.collapsed(offset: next.name.length),
-          );
-        }
-      },
-    );
+    ref.listen<ProfileFormState>(profileFormProvider, (
+      ProfileFormState? previous,
+      ProfileFormState next,
+    ) {
+      if (previous?.name != next.name && _nameController.text != next.name) {
+        _nameController.value = TextEditingValue(
+          text: next.name,
+          selection: TextSelection.collapsed(offset: next.name.length),
+        );
+      }
+    });
 
     final ProfileCurrency currency = ref.watch(
       profileFormProvider.select((ProfileFormState state) => state.currency),
@@ -264,15 +263,18 @@ class _ProfileFormState extends ConsumerState<_ProfileForm> {
                 ),
                 const SizedBox(height: 16),
                 KopimDropdownField<ProfileCurrency>(
-                  key: ValueKey<String>('currency-$initialKey-${currency.name}'),
+                  key: ValueKey<String>(
+                    'currency-$initialKey-${currency.name}',
+                  ),
                   value: currency,
                   label: strings.profileCurrencyLabel,
                   items: ProfileCurrency.values
                       .map(
-                        (ProfileCurrency value) => DropdownMenuItem<ProfileCurrency>(
-                          value: value,
-                          child: Text(value.name.toUpperCase()),
-                        ),
+                        (ProfileCurrency value) =>
+                            DropdownMenuItem<ProfileCurrency>(
+                              value: value,
+                              child: Text(value.name.toUpperCase()),
+                            ),
                       )
                       .toList(),
                   onChanged: formController.updateCurrency,
@@ -297,7 +299,8 @@ class _ProfileFormState extends ConsumerState<_ProfileForm> {
                       formController.updateLocale(value);
                     }
                   },
-                  valueLabelBuilder: (String? value) => value?.toUpperCase() ?? '',
+                  valueLabelBuilder: (String? value) =>
+                      value?.toUpperCase() ?? '',
                 ),
                 if (widget.profileAsync.hasError) ...<Widget>[
                   const SizedBox(height: 12),

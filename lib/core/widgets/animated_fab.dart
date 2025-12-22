@@ -47,10 +47,7 @@ class _AnimatedFabState extends State<AnimatedFab>
   Widget build(BuildContext context) {
     return FadeTransition(
       opacity: _opacity,
-      child: ScaleTransition(
-        scale: _scale,
-        child: widget.child,
-      ),
+      child: ScaleTransition(scale: _scale, child: widget.child),
     );
   }
 }

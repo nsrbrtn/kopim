@@ -33,7 +33,6 @@ class _TokenBundle {
     required this.sizes,
     required this.motionDurations,
     required this.motionCurves,
-
   });
 
   factory _TokenBundle.fromRaw(Map<String, dynamic> raw) {
@@ -75,8 +74,7 @@ class _TokenBundle {
         ((kopim['motion'] as Map<String, dynamic>)['easing']
                 as Map<String, dynamic>)
             .cast<String, dynamic>(),
-
-      )
+      ),
     );
   }
 
@@ -89,7 +87,6 @@ class _TokenBundle {
   final Map<String, Map<String, double>> sizes;
   final Map<String, int> motionDurations;
   final Map<String, List<double>> motionCurves;
-
 
   String render() {
     final StringBuffer buffer = StringBuffer()
@@ -212,8 +209,6 @@ class _TokenBundle {
       ..write('  )');
     return buffer.toString();
   }
-
-
 }
 
 Map<String, String> _mapSystemColors(Map<String, dynamic> source) {
@@ -359,8 +354,6 @@ Map<String, List<double>> _mapMotionCurves(Map<String, dynamic> easing) {
       ),
   };
 }
-
-
 
 Map<String, dynamic> _readTokenGroup(Map<String, dynamic> kopim, String key) {
   final List<String> parts = key.split('.');

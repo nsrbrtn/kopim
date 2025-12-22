@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ru">
+
 <head>
   <!--
     If you are serving your web app in a path other than the root, change the
@@ -21,7 +22,7 @@
   <meta name="description" content="kopim — современное финансовое приложение с офлайн-доступом и синхронизацией.">
   <meta name="application-name" content="kopim">
   <meta name="viewport"
-        content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+    content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
   <meta name="theme-color" content="#51AFF7" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#0F131A" media="(prefers-color-scheme: dark)">
 
@@ -32,7 +33,7 @@
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
   <!-- Favicon -->
-  <link rel="icon" type="image/png" href="favicon.png"/>
+  <link rel="icon" type="image/png" href="favicon.png" />
 
   <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
@@ -52,25 +53,39 @@
       background: #ffffff;
       z-index: 9999;
     }
+
     @media (prefers-color-scheme: dark) {
-      #splash { background: #121212; }
+      #splash {
+        background: #121212;
+      }
     }
+
     #splash img {
       width: 160px;
       height: 160px;
       object-fit: contain;
     }
-    #splash .logo-dark { display: none; }
+
+    #splash .logo-dark {
+      display: none;
+    }
+
     @media (prefers-color-scheme: dark) {
-      #splash .logo-light { display: none; }
-      #splash .logo-dark { display: block; }
+      #splash .logo-light {
+        display: none;
+      }
+
+      #splash .logo-dark {
+        display: block;
+      }
     }
   </style>
 </head>
+
 <body>
   <div id="splash" aria-label="Загрузка приложения">
-    <img class="logo-light" src="assets/icons/logo_light.png" alt="Kopim" />
-    <img class="logo-dark" src="assets/icons/logo_dark.png" alt="Kopim" />
+    <img class="logo-light" src="icons/logo_light.png" alt="Kopim" />
+    <img class="logo-dark" src="icons/logo_dark.png" alt="Kopim" />
   </div>
   <script defer src="pwa_register.js"></script>
   <script src="flutter_bootstrap.js" async></script>
@@ -81,4 +96,5 @@
     });
   </script>
 </body>
+
 </html>

@@ -69,8 +69,8 @@ class TransactionDraftState {
   factory TransactionDraftState.forEdit(TransactionEntity transaction) {
     final TransactionType initialType =
         transaction.type == TransactionType.income.storageValue
-            ? TransactionType.income
-            : TransactionType.expense;
+        ? TransactionType.income
+        : TransactionType.expense;
     return TransactionDraftState(
       amount: transaction.amount.toStringAsFixed(2),
       accountId: transaction.accountId,
@@ -101,7 +101,8 @@ class TransactionDraftState {
 
   bool get isEditing => initialTransaction != null;
 
-  DateTime get date => selectedDate ?? initialTransaction?.date ?? DateTime.now();
+  DateTime get date =>
+      selectedDate ?? initialTransaction?.date ?? DateTime.now();
 
   double? get parsedAmount {
     final String normalized = amount.replaceAll(',', '.');
@@ -112,7 +113,8 @@ class TransactionDraftState {
     return value;
   }
 
-  bool get canSubmit => !isSubmitting && accountId != null && parsedAmount != null;
+  bool get canSubmit =>
+      !isSubmitting && accountId != null && parsedAmount != null;
 
   TransactionDraftState copyWith({
     String? amount,
@@ -154,23 +156,23 @@ class TransactionDraftState {
 
 final StreamProvider<List<AccountEntity>> transactionFormAccountsProvider =
     StreamProvider.autoDispose<List<AccountEntity>>((Ref ref) {
-  return ref.watch(watchAccountsUseCaseProvider).call();
-});
+      return ref.watch(watchAccountsUseCaseProvider).call();
+    });
 
 final StreamProvider<List<Category>> transactionFormCategoriesProvider =
     StreamProvider.autoDispose<List<Category>>((Ref ref) {
-  return ref.watch(watchCategoriesUseCaseProvider).call();
-});
+      return ref.watch(watchCategoriesUseCaseProvider).call();
+    });
 
 final StateNotifierProvider<TransactionDraftController, TransactionDraftState>
-    transactionDraftControllerProvider = StateNotifierProvider<
-        TransactionDraftController, TransactionDraftState>(
-  (Ref ref) => TransactionDraftController(ref),
-);
+transactionDraftControllerProvider =
+    StateNotifierProvider<TransactionDraftController, TransactionDraftState>(
+      (Ref ref) => TransactionDraftController(ref),
+    );
 
 class TransactionDraftController extends StateNotifier<TransactionDraftState> {
   TransactionDraftController(this.ref)
-      : super(const TransactionDraftState(hasInitialized: false));
+    : super(const TransactionDraftState(hasInitialized: false));
 
   final Ref ref;
 
@@ -188,14 +190,16 @@ class TransactionDraftController extends StateNotifier<TransactionDraftState> {
 
   void resetDraft({String? defaultAccountId}) {
     state = TransactionDraftState.forAdd(
-      defaultAccountId: state.accountId ?? state.preferredAccountId ?? defaultAccountId,
+      defaultAccountId:
+          state.accountId ?? state.preferredAccountId ?? defaultAccountId,
     );
   }
 
   void setDraftForAdd({String? defaultAccountId, bool resetAmount = true}) {
     state = TransactionDraftState(
       amount: resetAmount ? '' : state.amount,
-      accountId: state.accountId ?? state.preferredAccountId ?? defaultAccountId,
+      accountId:
+          state.accountId ?? state.preferredAccountId ?? defaultAccountId,
       categoryId: null,
       note: '',
       type: TransactionType.expense,
@@ -295,8 +299,9 @@ class TransactionDraftController extends StateNotifier<TransactionDraftState> {
           UpdateTransactionRequest(
             transactionId: initial.id,
             accountId: state.accountId!,
-            categoryId:
-                state.categoryId?.isEmpty ?? true ? null : state.categoryId,
+            categoryId: state.categoryId?.isEmpty ?? true
+                ? null
+                : state.categoryId,
             amount: state.parsedAmount!,
             date: state.date,
             note: state.note,
@@ -318,16 +323,17 @@ class TransactionDraftController extends StateNotifier<TransactionDraftState> {
       );
       final TransactionCommandResult<TransactionEntity> createdResult =
           await addUseCase(
-        AddTransactionRequest(
-          accountId: state.accountId!,
-          categoryId:
-              state.categoryId?.isEmpty ?? true ? null : state.categoryId,
-          amount: state.parsedAmount!,
-          date: state.date,
-          note: state.note,
-          type: state.type,
-        ),
-      );
+            AddTransactionRequest(
+              accountId: state.accountId!,
+              categoryId: state.categoryId?.isEmpty ?? true
+                  ? null
+                  : state.categoryId,
+              amount: state.parsedAmount!,
+              date: state.date,
+              note: state.note,
+              type: state.type,
+            ),
+          );
       unawaited(recorder.record(createdResult.profileEvents));
       final TransactionEntity created = createdResult.value;
       state = state.copyWith(

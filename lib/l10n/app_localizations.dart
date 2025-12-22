@@ -588,71 +588,149 @@ abstract class AppLocalizations {
   /// **'Fill'**
   String get manageCategoriesIconStyleFill;
 
-  /// Tab label for finance-related icons
+  /// Tab label for grocery icons
   ///
   /// In en, this message translates to:
-  /// **'Finance & work'**
-  String get manageCategoriesIconGroupFinance;
+  /// **'Groceries'**
+  String get manageCategoriesIconGroupGroceries;
 
-  /// Tab label for shopping and clothing icons
+  /// Tab label for dining and cafe icons
   ///
   /// In en, this message translates to:
-  /// **'Shopping & clothing'**
-  String get manageCategoriesIconGroupShopping;
+  /// **'Dining Out'**
+  String get manageCategoriesIconGroupDining;
 
-  /// Tab label for food-related icons
+  /// Tab label for clothing and beauty icons
   ///
   /// In en, this message translates to:
-  /// **'Food & dining'**
-  String get manageCategoriesIconGroupFood;
+  /// **'Clothing & Care'**
+  String get manageCategoriesIconGroupClothing;
 
-  /// Tab label for transport icons
+  /// Tab label for home icons
   ///
   /// In en, this message translates to:
-  /// **'Transport & travel'**
-  String get manageCategoriesIconGroupTransport;
-
-  /// Tab label for home and utility icons
-  ///
-  /// In en, this message translates to:
-  /// **'Home & utilities'**
+  /// **'Home & Furniture'**
   String get manageCategoriesIconGroupHome;
 
-  /// Tab label for leisure icons
+  /// Tab label for utility icons
   ///
   /// In en, this message translates to:
-  /// **'Leisure & sports'**
-  String get manageCategoriesIconGroupLeisure;
+  /// **'Utilities'**
+  String get manageCategoriesIconGroupUtilities;
 
-  /// Tab label for beauty-related icons
+  /// Tab label for communication icons
   ///
   /// In en, this message translates to:
-  /// **'Beauty & care'**
-  String get manageCategoriesIconGroupBeauty;
+  /// **'Comm & Gadgets'**
+  String get manageCategoriesIconGroupCommunication;
 
-  /// Tab label for health and wellness icons
+  /// Tab label for subscription icons
   ///
   /// In en, this message translates to:
-  /// **'Health'**
+  /// **'Subscriptions'**
+  String get manageCategoriesIconGroupSubscriptions;
+
+  /// Tab label for public transport icons
+  ///
+  /// In en, this message translates to:
+  /// **'Public Transit'**
+  String get manageCategoriesIconGroupPublicTransport;
+
+  /// Tab label for car icons
+  ///
+  /// In en, this message translates to:
+  /// **'Car'**
+  String get manageCategoriesIconGroupCar;
+
+  /// Tab label for taxi icons
+  ///
+  /// In en, this message translates to:
+  /// **'Taxi & Parking'**
+  String get manageCategoriesIconGroupTaxi;
+
+  /// Tab label for travel icons
+  ///
+  /// In en, this message translates to:
+  /// **'Travel'**
+  String get manageCategoriesIconGroupTravel;
+
+  /// Tab label for health icons
+  ///
+  /// In en, this message translates to:
+  /// **'Health & Med'**
   String get manageCategoriesIconGroupHealth;
 
-  /// Tab label for dedicated sports icons
+  /// Tab label for security icons
+  ///
+  /// In en, this message translates to:
+  /// **'Security'**
+  String get manageCategoriesIconGroupSecurity;
+
+  /// Tab label for education icons
+  ///
+  /// In en, this message translates to:
+  /// **'Education'**
+  String get manageCategoriesIconGroupEducation;
+
+  /// Tab label for family icons
+  ///
+  /// In en, this message translates to:
+  /// **'Family'**
+  String get manageCategoriesIconGroupFamily;
+
+  /// Tab label for pet icons
+  ///
+  /// In en, this message translates to:
+  /// **'Pets'**
+  String get manageCategoriesIconGroupPets;
+
+  /// Tab label for maintenance icons
+  ///
+  /// In en, this message translates to:
+  /// **'Maintenance'**
+  String get manageCategoriesIconGroupMaintenance;
+
+  /// Tab label for entertainment icons
+  ///
+  /// In en, this message translates to:
+  /// **'Entertainment'**
+  String get manageCategoriesIconGroupEntertainment;
+
+  /// Tab label for sports icons
   ///
   /// In en, this message translates to:
   /// **'Sports'**
   String get manageCategoriesIconGroupSports;
 
-  /// Tab label for maintenance and household icons
+  /// Tab label for finance icons
   ///
   /// In en, this message translates to:
-  /// **'Repairs & chores'**
-  String get manageCategoriesIconGroupMaintenance;
+  /// **'Finance'**
+  String get manageCategoriesIconGroupFinance;
 
-  /// Tab label for electronics and gadget icons
+  /// Tab label for loan icons
   ///
   /// In en, this message translates to:
-  /// **'Tech & gadgets'**
-  String get manageCategoriesIconGroupTech;
+  /// **'Loans & Debts'**
+  String get manageCategoriesIconGroupLoans;
+
+  /// Tab label for document icons
+  ///
+  /// In en, this message translates to:
+  /// **'Documents'**
+  String get manageCategoriesIconGroupDocuments;
+
+  /// Tab label for system setting icons
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get manageCategoriesIconGroupSettings;
+
+  /// Tab label for transaction types icons
+  ///
+  /// In en, this message translates to:
+  /// **'Transaction Types'**
+  String get manageCategoriesIconGroupTransactionTypes;
 
   /// Label for the color input
   ///

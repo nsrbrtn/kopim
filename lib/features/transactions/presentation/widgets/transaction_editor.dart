@@ -64,10 +64,7 @@ Future<bool> deleteTransactionWithFeedback({
   return deleted;
 }
 
-Widget buildDeleteBackground(
-  Color color, {
-  Color? iconColor,
-}) {
+Widget buildDeleteBackground(Color color, {Color? iconColor}) {
   return Container(
     margin: const EdgeInsets.symmetric(vertical: 6),
     decoration: BoxDecoration(
@@ -76,9 +73,6 @@ Widget buildDeleteBackground(
     ),
     alignment: Alignment.centerRight,
     padding: const EdgeInsets.symmetric(horizontal: 24),
-    child: Icon(
-      Icons.delete_outline,
-      color: iconColor ?? Colors.white,
-    ),
+    child: Icon(Icons.delete_outline, color: iconColor ?? Colors.white),
   );
 }

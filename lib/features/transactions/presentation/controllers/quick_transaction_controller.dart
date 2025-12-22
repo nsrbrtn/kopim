@@ -43,7 +43,10 @@ class QuickTransactionState {
   }
 
   bool get canSubmit =>
-      !isSubmitting && accountId != null && categoryId != null && parsedAmount != null;
+      !isSubmitting &&
+      accountId != null &&
+      categoryId != null &&
+      parsedAmount != null;
 
   QuickTransactionState copyWith({
     String? amount,
@@ -73,10 +76,10 @@ class QuickTransactionState {
 }
 
 final StateNotifierProvider<QuickTransactionController, QuickTransactionState>
-    quickTransactionControllerProvider =
+quickTransactionControllerProvider =
     StateNotifierProvider<QuickTransactionController, QuickTransactionState>(
-  (Ref ref) => QuickTransactionController(ref),
-);
+      (Ref ref) => QuickTransactionController(ref),
+    );
 
 class QuickTransactionController extends StateNotifier<QuickTransactionState> {
   QuickTransactionController(this.ref) : super(const QuickTransactionState());
@@ -90,7 +93,8 @@ class QuickTransactionController extends StateNotifier<QuickTransactionState> {
   }) {
     state = QuickTransactionState(
       amount: '',
-      accountId: state.accountId ?? state.preferredAccountId ?? defaultAccountId,
+      accountId:
+          state.accountId ?? state.preferredAccountId ?? defaultAccountId,
       categoryId: categoryId,
       type: categoryType,
       preferredAccountId: state.preferredAccountId ?? defaultAccountId,
@@ -98,7 +102,11 @@ class QuickTransactionController extends StateNotifier<QuickTransactionState> {
   }
 
   void updateAmount(String value) {
-    state = state.copyWith(amount: value, clearError: true, clearLastCreatedTransaction: true);
+    state = state.copyWith(
+      amount: value,
+      clearError: true,
+      clearLastCreatedTransaction: true,
+    );
   }
 
   Future<TransactionEntity?> submit() async {
@@ -119,15 +127,15 @@ class QuickTransactionController extends StateNotifier<QuickTransactionState> {
       );
       final TransactionCommandResult<TransactionEntity> createdResult =
           await addUseCase(
-        AddTransactionRequest(
-          accountId: state.accountId!,
-          categoryId: state.categoryId,
-          amount: amount,
-          date: DateTime.now(),
-          note: '',
-          type: state.type,
-        ),
-      );
+            AddTransactionRequest(
+              accountId: state.accountId!,
+              categoryId: state.categoryId,
+              amount: amount,
+              date: DateTime.now(),
+              note: '',
+              type: state.type,
+            ),
+          );
       unawaited(recorder.record(createdResult.profileEvents));
       final TransactionEntity created = createdResult.value;
       state = state.copyWith(

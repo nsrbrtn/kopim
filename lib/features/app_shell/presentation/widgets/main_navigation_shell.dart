@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:kopim/core/application/firebase_availability.dart';
 import 'package:kopim/core/config/theme_extensions.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 import 'package:kopim/features/transactions/presentation/controllers/transaction_sheet_controller.dart';
@@ -34,6 +35,7 @@ class _MainNavigationShellState extends ConsumerState<MainNavigationShell> {
   bool? _cachedEnableTwoPane;
   List<Widget?> _cachedPanes = <Widget?>[];
   bool _freezeScaffoldViewInsets = false;
+  bool _hideFirebaseWarning = false;
   Timer? _freezeScaffoldViewInsetsTimer;
   ProviderSubscription<bool>? _transactionSheetVisibilitySubscription;
 
@@ -139,6 +141,12 @@ class _MainNavigationShellState extends ConsumerState<MainNavigationShell> {
 
   @override
   Widget build(BuildContext context) {
+    final FirebaseAvailabilityState firebaseState = ref.watch(
+      firebaseAvailabilityProvider,
+    );
+    final String? firebaseWarning = firebaseState.warningMessage;
+    final bool showFirebaseWarning =
+        firebaseWarning != null && !_hideFirebaseWarning;
     final AppLocalizations strings = AppLocalizations.of(context)!;
     final KopimLayout layoutTokens = Theme.of(context).kopimLayout;
     final double dividerThickness = layoutTokens.divider.thickness;
@@ -280,11 +288,25 @@ class _MainNavigationShellState extends ConsumerState<MainNavigationShell> {
                   ],
                 )
               : stackedContent;
+          final Widget resolvedBody = firebaseWarning == null
+              ? body
+              : Column(
+                  children: <Widget>[
+                    if (showFirebaseWarning)
+                      _FirebaseWarningBanner(
+                        message: firebaseWarning,
+                        onDismiss: () {
+                          setState(() => _hideFirebaseWarning = true);
+                        },
+                      ),
+                    Expanded(child: body),
+                  ],
+                );
 
           final Widget scaffold = Scaffold(
             extendBody: useBottomBar,
             appBar: appBar,
-            body: body,
+            body: resolvedBody,
             floatingActionButton: floatingActionButton,
             bottomNavigationBar: useBottomBar
                 ? SafeArea(
@@ -306,6 +328,14 @@ class _MainNavigationShellState extends ConsumerState<MainNavigationShell> {
           return Stack(
             children: <Widget>[
               scaffoldWithFrozenInsets,
+              if (firebaseWarning != null)
+                const Positioned(
+                  top: 0,
+                  right: 0,
+                  child: SafeArea(
+                    child: _OfflineModeBadge(),
+                  ),
+                ),
               const Material(
                 type: MaterialType.transparency,
                 child: TransactionFormOverlay(),
@@ -342,6 +372,81 @@ Future<bool> _showExitConfirmationDialog(
     },
   );
   return result ?? false;
+}
+
+class _FirebaseWarningBanner extends StatelessWidget {
+  const _FirebaseWarningBanner({
+    required this.message,
+    required this.onDismiss,
+  });
+
+  final String message;
+  final VoidCallback onDismiss;
+
+  @override
+  Widget build(BuildContext context) {
+    final ColorScheme colors = Theme.of(context).colorScheme;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: colors.surfaceContainerHighest,
+        border: Border(
+          bottom: BorderSide(color: colors.outlineVariant),
+        ),
+      ),
+      child: Row(
+        children: <Widget>[
+          Icon(Icons.info_outline, color: colors.onSurfaceVariant),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              message,
+              style: TextStyle(color: colors.onSurfaceVariant),
+            ),
+          ),
+          IconButton(
+            onPressed: onDismiss,
+            icon: const Icon(Icons.close),
+            color: colors.onSurfaceVariant,
+            tooltip: 'Закрыть',
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _OfflineModeBadge extends StatelessWidget {
+  const _OfflineModeBadge();
+
+  @override
+  Widget build(BuildContext context) {
+    final ColorScheme colors = Theme.of(context).colorScheme;
+    return Container(
+      margin: const EdgeInsets.all(12),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: colors.tertiaryContainer,
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: colors.outlineVariant),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          Icon(Icons.cloud_off, color: colors.onTertiaryContainer, size: 16),
+          const SizedBox(width: 6),
+          Text(
+            'Офлайн',
+            style: TextStyle(
+              color: colors.onTertiaryContainer,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _NavigationTabPane extends StatelessWidget {

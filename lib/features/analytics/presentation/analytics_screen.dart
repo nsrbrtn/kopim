@@ -176,54 +176,55 @@ NavigationTabContent buildAnalyticsTabContent(
         child: DefaultTabController(
           length: 2,
           child: NestedScrollView(
-            headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
-              final ThemeData theme = Theme.of(context);
-              return <Widget>[
-                SliverPersistentHeader(
-                  pinned: true,
-                  delegate: _AnalyticsTabsHeaderDelegate(
-                    backgroundColor: theme.scaffoldBackgroundColor,
-                    tabBar: const TabBar(
-                      isScrollable: true,
-                      tabs: <Widget>[
-                        Tab(text: 'Траты по категориям'),
-                        Tab(text: 'Статистика'),
-                      ],
-                    ),
-                  ),
-                ),
-                SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
-                  sliver: SliverToBoxAdapter(
-                    child: KeyedSubtree(
-                      key: ValueKey<int>(
-                        Object.hashAll(<Object?>[
-                          filterState,
-                          accounts.length,
-                          categories.length,
-                        ]),
-                      ),
-                      child: _AnalyticsFiltersCard(
-                        filterState: filterState,
-                        accounts: accounts,
-                        strings: strings,
+            headerSliverBuilder:
+                (BuildContext context, bool innerBoxIsScrolled) {
+                  final ThemeData theme = Theme.of(context);
+                  return <Widget>[
+                    SliverPersistentHeader(
+                      pinned: true,
+                      delegate: _AnalyticsTabsHeaderDelegate(
+                        backgroundColor: theme.scaffoldBackgroundColor,
+                        tabBar: const TabBar(
+                          isScrollable: true,
+                          tabs: <Widget>[
+                            Tab(text: 'Траты по категориям'),
+                            Tab(text: 'Статистика'),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                ),
-                SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
-                  sliver: SliverToBoxAdapter(
-                    child: _AnalyticsQuickSelectors(
-                      filterState: filterState,
-                      accounts: accounts,
-                      categories: categories,
-                      strings: strings,
+                    SliverPadding(
+                      padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
+                      sliver: SliverToBoxAdapter(
+                        child: KeyedSubtree(
+                          key: ValueKey<int>(
+                            Object.hashAll(<Object?>[
+                              filterState,
+                              accounts.length,
+                              categories.length,
+                            ]),
+                          ),
+                          child: _AnalyticsFiltersCard(
+                            filterState: filterState,
+                            accounts: accounts,
+                            strings: strings,
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-              ];
-            },
+                    SliverPadding(
+                      padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
+                      sliver: SliverToBoxAdapter(
+                        child: _AnalyticsQuickSelectors(
+                          filterState: filterState,
+                          accounts: accounts,
+                          categories: categories,
+                          strings: strings,
+                        ),
+                      ),
+                    ),
+                  ];
+                },
             body: TabBarView(
               children: <Widget>[
                 _AnalyticsCategoriesTabView(
@@ -1493,8 +1494,7 @@ class _TopCategoriesPageState extends State<_TopCategoriesPage> {
                           if (index >= 0 && index < displayItems.length) {
                             setState(() {
                               final String key = displayItems[index].key;
-                              _highlightKey =
-                                  _highlightKey == key ? null : key;
+                              _highlightKey = _highlightKey == key ? null : key;
                             });
                           }
                         },

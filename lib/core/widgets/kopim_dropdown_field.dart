@@ -41,10 +41,7 @@ class _KopimDropdownFieldState<T> extends State<KopimDropdownField<T>>
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: widget.duration,
-    );
+    _controller = AnimationController(vsync: this, duration: widget.duration);
     _curve = CurvedAnimation(
       parent: _controller,
       curve: Curves.easeOutBack,
@@ -120,9 +117,9 @@ class _KopimDropdownFieldState<T> extends State<KopimDropdownField<T>>
                   children: <Widget>[
                     Expanded(
                       child: DefaultTextStyle(
-                        style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-                              color: textColor,
-                            ),
+                        style: Theme.of(
+                          context,
+                        ).textTheme.bodyLarge!.copyWith(color: textColor),
                         child: Align(
                           alignment: Alignment.centerLeft,
                           child: item.child,

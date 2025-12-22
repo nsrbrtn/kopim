@@ -170,7 +170,10 @@ class AnalyticsFilterController extends _$AnalyticsFilterController {
 
   void goToNextMonth() {
     final DateTime active = _resolveActiveMonth();
-    final DateTime currentMonth = DateTime(DateTime.now().year, DateTime.now().month);
+    final DateTime currentMonth = DateTime(
+      DateTime.now().year,
+      DateTime.now().month,
+    );
     final DateTime next = DateTime(active.year, active.month + 1);
     if (next.isAfter(currentMonth)) {
       return;
@@ -181,7 +184,8 @@ class AnalyticsFilterController extends _$AnalyticsFilterController {
   void goToPreviousRangeStep() {
     final DateTime start = state.dateRange.start;
     final DateTime end = state.dateRange.end;
-    if (start.isBefore(_kMinSupportedDate) || start.isAtSameMomentAs(_kMinSupportedDate)) {
+    if (start.isBefore(_kMinSupportedDate) ||
+        start.isAtSameMomentAs(_kMinSupportedDate)) {
       return;
     }
     if (_isMonthBased()) {

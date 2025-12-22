@@ -70,12 +70,10 @@ class KopimGlassSurface extends StatelessWidget {
     final ColorScheme scheme = theme.colorScheme;
     final bool isDark = theme.brightness == Brightness.dark;
 
-    final double opacity =
-        baseOpacity ?? (isDark ? 0.78 : 0.82);
-    final Color baseColor = (isDark
-            ? scheme.surfaceContainerHighest
-            : scheme.surfaceContainerHigh)
-        .withValues(alpha: _alphaForOpacity(opacity));
+    final double opacity = baseOpacity ?? (isDark ? 0.78 : 0.82);
+    final Color baseColor =
+        (isDark ? scheme.surfaceContainerHighest : scheme.surfaceContainerHigh)
+            .withValues(alpha: _alphaForOpacity(opacity));
 
     final Color borderColor = scheme.onSurface.withValues(
       alpha: enableBorder ? _alphaForOpacity(isDark ? 0.22 : 0.18) : 0,
@@ -108,7 +106,8 @@ class KopimGlassSurface extends StatelessWidget {
           (isDark ? 0.28 : 0.32) * gradientHighlightIntensity,
         ),
       );
-      final Color tintedBase = gradientTintColor ??
+      final Color tintedBase =
+          gradientTintColor ??
           (isDark ? scheme.primary : scheme.secondaryContainer);
       final Color tintedGlow = tintedBase.withValues(
         alpha: _alphaForOpacity(
@@ -124,11 +123,7 @@ class KopimGlassSurface extends StatelessWidget {
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors: <Color>[
-                    lightGlare,
-                    Colors.transparent,
-                    tintedGlow,
-                  ],
+                  colors: <Color>[lightGlare, Colors.transparent, tintedGlow],
                   stops: const <double>[0.0, 0.45, 1.0],
                 ),
               ),
@@ -138,18 +133,12 @@ class KopimGlassSurface extends StatelessWidget {
       );
     }
     stackChildren.add(
-      Padding(
-        padding: padding ?? const EdgeInsets.all(16),
-        child: child,
-      ),
+      Padding(padding: padding ?? const EdgeInsets.all(16), child: child),
     );
 
     Widget content = DecoratedBox(
       decoration: decoration,
-      child: Stack(
-        fit: StackFit.expand,
-        children: stackChildren,
-      ),
+      child: Stack(fit: StackFit.expand, children: stackChildren),
     );
 
     if (onTap != null) {
@@ -170,19 +159,13 @@ class KopimGlassSurface extends StatelessWidget {
     content = ClipRRect(
       borderRadius: borderRadius,
       child: BackdropFilter(
-        filter: ImageFilter.blur(
-          sigmaX: blurSigma,
-          sigmaY: blurSigma,
-        ),
+        filter: ImageFilter.blur(sigmaX: blurSigma, sigmaY: blurSigma),
         child: content,
       ),
     );
 
     if (margin != null) {
-      content = Padding(
-        padding: margin!,
-        child: content,
-      );
+      content = Padding(padding: margin!, child: content);
     }
 
     return RepaintBoundary(child: content);

@@ -37,8 +37,8 @@ String resolveCurrencySymbol(
   final String localeKey = (locale?.isNotEmpty ?? false)
       ? locale!
       : ((Intl.getCurrentLocale().isNotEmpty
-          ? Intl.getCurrentLocale()
-          : Intl.defaultLocale ?? 'en_US'));
+            ? Intl.getCurrentLocale()
+            : Intl.defaultLocale ?? 'en_US'));
   final String cacheKey = '$code|$localeKey';
 
   return _currencySymbolCache.putIfAbsent(cacheKey, () {

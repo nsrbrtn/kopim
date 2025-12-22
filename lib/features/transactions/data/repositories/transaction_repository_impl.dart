@@ -33,22 +33,18 @@ class TransactionRepositoryImpl implements TransactionRepository {
   @override
   Stream<List<TransactionEntity>> watchTransactions() {
     return _transactionDao.watchActiveTransactions().map(
-      (List<db.TransactionRow> rows) => List<TransactionEntity>.unmodifiable(
-        rows.map(_mapToDomain),
-      ),
+      (List<db.TransactionRow> rows) =>
+          List<TransactionEntity>.unmodifiable(rows.map(_mapToDomain)),
     );
   }
 
   @override
-  Stream<List<TransactionEntity>> watchRecentTransactions({
-    int? limit,
-  }) {
-    final Stream<List<db.TransactionRow>> rowsStream =
-        _transactionDao.watchRecentTransactions(limit: limit);
+  Stream<List<TransactionEntity>> watchRecentTransactions({int? limit}) {
+    final Stream<List<db.TransactionRow>> rowsStream = _transactionDao
+        .watchRecentTransactions(limit: limit);
     return rowsStream.map(
-      (List<db.TransactionRow> rows) => List<TransactionEntity>.unmodifiable(
-        rows.map(_mapToDomain),
-      ),
+      (List<db.TransactionRow> rows) =>
+          List<TransactionEntity>.unmodifiable(rows.map(_mapToDomain)),
     );
   }
 

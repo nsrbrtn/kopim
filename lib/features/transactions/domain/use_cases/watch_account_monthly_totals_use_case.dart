@@ -19,4 +19,3 @@ class WatchAccountMonthlyTotalsUseCase {
     return _repository.watchAccountMonthlyTotals(start: start, end: end);
   }
 }
-

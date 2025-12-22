@@ -3,16 +3,17 @@ import 'package:flutter/foundation.dart';
 /// Управляет состоянием раскрытия секций свернутого списка.
 class CollapsibleListController extends ChangeNotifier {
   CollapsibleListController({Map<String, bool>? initialState})
-      : _expansionState = Map<String, bool>.from(
-          initialState ?? const <String, bool>{},
-        );
+    : _expansionState = Map<String, bool>.from(
+        initialState ?? const <String, bool>{},
+      );
 
   final Map<String, bool> _expansionState;
 
   bool isExpanded(String sectionId) => _expansionState[sectionId] ?? false;
 
   /// Переключает состояние секции и уведомляет слушателей.
-  void toggle(String sectionId) => setExpanded(sectionId, !isExpanded(sectionId));
+  void toggle(String sectionId) =>
+      setExpanded(sectionId, !isExpanded(sectionId));
 
   /// Устанавливает состояние секции, если оно изменилось.
   void setExpanded(String sectionId, bool expanded) {

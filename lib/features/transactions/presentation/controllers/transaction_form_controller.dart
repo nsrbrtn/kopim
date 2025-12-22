@@ -16,24 +16,28 @@ import 'transaction_draft_controller.dart';
 typedef TransactionFormState = TransactionDraftState;
 typedef TransactionFormError = TransactionDraftError;
 
-typedef TransactionFormControllerProvider
-    = StateNotifierProvider<TransactionFormController, TransactionDraftState>;
+typedef TransactionFormControllerProvider =
+    StateNotifierProvider<TransactionFormController, TransactionDraftState>;
 
-typedef TransactionFormControllerFamily
-    = StateNotifierProviderFamily<TransactionFormController,
-        TransactionDraftState, TransactionFormArgs>;
+typedef TransactionFormControllerFamily =
+    StateNotifierProviderFamily<
+      TransactionFormController,
+      TransactionDraftState,
+      TransactionFormArgs
+    >;
 
 final TransactionFormControllerFamily transactionFormControllerProvider =
-    StateNotifierProvider.autoDispose.family<TransactionFormController,
-        TransactionDraftState, TransactionFormArgs>(
-  (Ref ref, TransactionFormArgs args) => TransactionFormController(ref, args: args),
-);
+    StateNotifierProvider.autoDispose.family<
+      TransactionFormController,
+      TransactionDraftState,
+      TransactionFormArgs
+    >(
+      (Ref ref, TransactionFormArgs args) =>
+          TransactionFormController(ref, args: args),
+    );
 
 class TransactionFormController extends TransactionDraftController {
-  TransactionFormController(
-    super.ref, {
-    required this.args,
-  }) {
+  TransactionFormController(super.ref, {required this.args}) {
     applyArgs(args);
   }
 
