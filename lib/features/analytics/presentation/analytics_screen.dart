@@ -127,136 +127,143 @@ NavigationTabContent buildAnalyticsTabContent(
         ),
       ],
     ),
-    bodyBuilder: (BuildContext context, WidgetRef ref) {
-      final AsyncValue<AnalyticsOverview> overviewAsync = ref.watch(
-        analyticsFilteredStatsProvider(topCategoriesLimit: 5),
-      );
-      final AsyncValue<List<Category>> categoriesAsync = ref.watch(
-        analyticsCategoriesProvider,
-      );
-      final AsyncValue<List<AccountEntity>> accountsAsync = ref.watch(
-        analyticsAccountsProvider,
-      );
-      final AnalyticsFilterState filterState = ref.watch(
-        analyticsFilterControllerProvider,
-      );
-      final DateTime activeAnchor =
-          filterState.monthAnchor ?? filterState.dateRange.start;
-      final DateTime currentMonthStart = DateTime(
-        DateTime.now().year,
-        DateTime.now().month,
-      );
-      final DateTime today = DateUtils.dateOnly(DateTime.now());
-      final bool isMonthBased =
-          filterState.period == AnalyticsPeriodPreset.thisMonth ||
-          filterState.period == AnalyticsPeriodPreset.customMonth;
-      final DateTime anchorForBounds = isMonthBased
-          ? DateTime(activeAnchor.year, activeAnchor.month)
-          : DateUtils.dateOnly(activeAnchor);
-      final bool canGoNextRange = isMonthBased
-          ? anchorForBounds.isBefore(currentMonthStart)
-          : filterState.dateRange.end.isBefore(today);
-      final bool canGoPreviousRange = anchorForBounds.isAfter(DateTime(2000));
+    bodyBuilder: (BuildContext context, WidgetRef ref) =>
+        const _AnalyticsBody(),
+  );
+}
 
-      final List<Category> categories =
-          categoriesAsync.value ?? const <Category>[];
-      final List<AccountEntity> accounts =
-          accountsAsync.value ?? const <AccountEntity>[];
-      final bool showFullScreenLoading =
-          (overviewAsync.isLoading && !overviewAsync.hasValue) ||
-          (categoriesAsync.isLoading && !categoriesAsync.hasValue) ||
-          (accountsAsync.isLoading && !accountsAsync.hasValue);
+class _AnalyticsBody extends ConsumerWidget {
+  const _AnalyticsBody();
 
-      final Object? error =
-          overviewAsync.error ?? categoriesAsync.error ?? accountsAsync.error;
-      final AnalyticsOverview? overview = overviewAsync.value;
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final AppLocalizations strings = AppLocalizations.of(context)!;
+    final AsyncValue<AnalyticsOverview> overviewAsync = ref.watch(
+      analyticsFilteredStatsProvider(topCategoriesLimit: 5),
+    );
+    final AsyncValue<List<Category>> categoriesAsync = ref.watch(
+      analyticsCategoriesProvider,
+    );
+    final AsyncValue<List<AccountEntity>> accountsAsync = ref.watch(
+      analyticsAccountsProvider,
+    );
+    final AnalyticsFilterState filterState = ref.watch(
+      analyticsFilterControllerProvider,
+    );
+    final DateTime activeAnchor =
+        filterState.monthAnchor ?? filterState.dateRange.start;
+    final DateTime currentMonthStart = DateTime(
+      DateTime.now().year,
+      DateTime.now().month,
+    );
+    final DateTime today = DateUtils.dateOnly(DateTime.now());
+    final bool isMonthBased =
+        filterState.period == AnalyticsPeriodPreset.thisMonth ||
+        filterState.period == AnalyticsPeriodPreset.customMonth;
+    final DateTime anchorForBounds = isMonthBased
+        ? DateTime(activeAnchor.year, activeAnchor.month)
+        : DateUtils.dateOnly(activeAnchor);
+    final bool canGoNextRange = isMonthBased
+        ? anchorForBounds.isBefore(currentMonthStart)
+        : filterState.dateRange.end.isBefore(today);
+    final bool canGoPreviousRange = anchorForBounds.isAfter(DateTime(2000));
 
-      return SafeArea(
-        bottom: false,
-        child: DefaultTabController(
-          length: 2,
-          child: NestedScrollView(
-            headerSliverBuilder:
-                (BuildContext context, bool innerBoxIsScrolled) {
-                  final ThemeData theme = Theme.of(context);
-                  return <Widget>[
-                    SliverPersistentHeader(
-                      pinned: true,
-                      delegate: _AnalyticsTabsHeaderDelegate(
-                        backgroundColor: theme.scaffoldBackgroundColor,
-                        tabBar: const TabBar(
-                          isScrollable: true,
-                          tabs: <Widget>[
-                            Tab(text: 'Траты по категориям'),
-                            Tab(text: 'Статистика'),
-                          ],
-                        ),
+    final List<Category> categories =
+        categoriesAsync.value ?? const <Category>[];
+    final List<AccountEntity> accounts =
+        accountsAsync.value ?? const <AccountEntity>[];
+    final bool showFullScreenLoading =
+        overviewAsync.isLoading && !overviewAsync.hasValue;
+
+    final Object? error =
+        overviewAsync.error ?? categoriesAsync.error ?? accountsAsync.error;
+    final AnalyticsOverview? overview = overviewAsync.value;
+
+    return SafeArea(
+      bottom: false,
+      child: DefaultTabController(
+        length: 2,
+        child: NestedScrollView(
+          headerSliverBuilder:
+              (BuildContext context, bool innerBoxIsScrolled) {
+                final ThemeData theme = Theme.of(context);
+                return <Widget>[
+                  SliverPersistentHeader(
+                    pinned: true,
+                    delegate: _AnalyticsTabsHeaderDelegate(
+                      backgroundColor: theme.scaffoldBackgroundColor,
+                      tabBar: const TabBar(
+                        isScrollable: true,
+                        tabs: <Widget>[
+                          Tab(text: 'Траты по категориям'),
+                          Tab(text: 'Статистика'),
+                        ],
                       ),
                     ),
-                    SliverPadding(
-                      padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
-                      sliver: SliverToBoxAdapter(
-                        child: KeyedSubtree(
-                          key: ValueKey<int>(
-                            Object.hashAll(<Object?>[
-                              filterState,
-                              accounts.length,
-                              categories.length,
-                            ]),
-                          ),
-                          child: _AnalyticsFiltersCard(
-                            filterState: filterState,
-                            accounts: accounts,
-                            strings: strings,
-                          ),
+                  ),
+                  SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
+                    sliver: SliverToBoxAdapter(
+                      child: KeyedSubtree(
+                        key: ValueKey<int>(
+                          Object.hashAll(<Object?>[
+                            filterState,
+                            accounts.length,
+                            categories.length,
+                          ]),
                         ),
-                      ),
-                    ),
-                    SliverPadding(
-                      padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
-                      sliver: SliverToBoxAdapter(
-                        child: _AnalyticsQuickSelectors(
+                        child: _AnalyticsFiltersCard(
                           filterState: filterState,
                           accounts: accounts,
-                          categories: categories,
                           strings: strings,
                         ),
                       ),
                     ),
-                  ];
-                },
-            body: TabBarView(
-              children: <Widget>[
-                _AnalyticsCategoriesTabView(
-                  showFullScreenLoading: showFullScreenLoading,
-                  error: error,
-                  overview: overview,
-                  categories: categories,
-                  strings: strings,
-                  activeAnchor: activeAnchor,
-                  canGoNextRange: canGoNextRange,
-                  canGoPreviousRange: canGoPreviousRange,
-                  onGoPreviousRange: () => ref
-                      .read(analyticsFilterControllerProvider.notifier)
-                      .goToPreviousRangeStep(),
-                  onGoNextRange: () => ref
-                      .read(analyticsFilterControllerProvider.notifier)
-                      .goToNextRangeStep(),
-                ),
-                _AnalyticsStatsTabView(
-                  showFullScreenLoading: showFullScreenLoading,
-                  error: error,
-                  overview: overview,
-                  strings: strings,
-                  activeAnchor: activeAnchor,
-                ),
-              ],
-            ),
+                  ),
+                  SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
+                    sliver: SliverToBoxAdapter(
+                      child: _AnalyticsQuickSelectors(
+                        filterState: filterState,
+                        accounts: accounts,
+                        categories: categories,
+                        strings: strings,
+                      ),
+                    ),
+                  ),
+                ];
+              },
+          body: TabBarView(
+            children: <Widget>[
+              _AnalyticsCategoriesTabView(
+                showFullScreenLoading: showFullScreenLoading,
+                error: error,
+                overview: overview,
+                categories: categories,
+                strings: strings,
+                activeAnchor: activeAnchor,
+                canGoNextRange: canGoNextRange,
+                canGoPreviousRange: canGoPreviousRange,
+                onGoPreviousRange: () => ref
+                    .read(analyticsFilterControllerProvider.notifier)
+                    .goToPreviousRangeStep(),
+                onGoNextRange: () => ref
+                    .read(analyticsFilterControllerProvider.notifier)
+                    .goToNextRangeStep(),
+              ),
+              _AnalyticsStatsTabView(
+                showFullScreenLoading: showFullScreenLoading,
+                error: error,
+                overview: overview,
+                strings: strings,
+                activeAnchor: activeAnchor,
+              ),
+            ],
           ),
         ),
-      );
-    },
-  );
+      ),
+    );
+  }
 }
 
 class _AnalyticsTabsHeaderDelegate extends SliverPersistentHeaderDelegate {

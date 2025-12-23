@@ -5,9 +5,11 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import 'package:kopim/core/di/injectors.dart';
+import 'package:kopim/core/config/theme_extensions.dart';
 import 'package:kopim/core/services/analytics_service.dart';
 import 'package:kopim/core/services/logger_service.dart';
 import 'package:kopim/core/utils/text_input_formatters.dart';
+import 'package:kopim/core/widgets/kopim_text_field.dart';
 import 'package:kopim/features/upcoming_payments/application/upcoming_notifications_controller.dart';
 import 'package:kopim/features/upcoming_payments/data/services/upcoming_payments_work_scheduler.dart';
 import 'package:kopim/features/upcoming_payments/domain/entities/payment_reminder.dart';
@@ -62,13 +64,15 @@ class EditPaymentReminderScreen extends ConsumerStatefulWidget {
 
 class _EditPaymentReminderScreenState
     extends ConsumerState<EditPaymentReminderScreen> {
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   late final TextEditingController _titleController;
   late final TextEditingController _amountController;
   late final TextEditingController _noteController;
+  late final TextEditingController _whenController;
   late DateTime _whenLocal;
   bool _appliedInitial = false;
   bool _isSubmitting = false;
+  bool _titleHasError = false;
+  bool _amountHasError = false;
 
   @override
   void initState() {
@@ -76,6 +80,7 @@ class _EditPaymentReminderScreenState
     _titleController = TextEditingController();
     _amountController = TextEditingController();
     _noteController = TextEditingController();
+    _whenController = TextEditingController();
     _whenLocal = DateTime.now().add(const Duration(days: 1));
     if (widget.args.initialReminder != null) {
       _applyInitial(widget.args.initialReminder!);
@@ -87,12 +92,18 @@ class _EditPaymentReminderScreenState
     _titleController.dispose();
     _amountController.dispose();
     _noteController.dispose();
+    _whenController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final AppLocalizations strings = AppLocalizations.of(context)!;
+    final ThemeData theme = Theme.of(context);
+    final ColorScheme colors = theme.colorScheme;
+    final KopimLayout layout = context.kopimLayout;
+
+    _syncWhenController(strings.localeName);
 
     final AsyncValue<PaymentReminder?> reminderAsync;
     if (widget.args.initialReminder != null || widget.args.reminderId == null) {
@@ -119,78 +130,110 @@ class _EditPaymentReminderScreenState
           body: SafeArea(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(24),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    TextFormField(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  _LabeledField(
+                    label: strings.upcomingPaymentsFieldTitle,
+                    theme: theme,
+                    colors: colors,
+                    layout: layout,
+                    errorText:
+                        _titleHasError
+                            ? strings.upcomingPaymentsValidationTitle
+                            : null,
+                    field: KopimTextField(
                       controller: _titleController,
-                      decoration: InputDecoration(
-                        labelText: strings.upcomingPaymentsFieldTitle,
-                      ),
-                      validator: (String? value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return strings.upcomingPaymentsValidationTitle;
+                      placeholder: strings.upcomingPaymentsFieldTitle,
+                      enabled: !_isSubmitting,
+                      textInputAction: TextInputAction.next,
+                      onChanged: (_) {
+                        if (_titleHasError) {
+                          setState(() => _titleHasError = false);
                         }
-                        return null;
                       },
+                      fillColor: colors.surfaceContainerHigh,
+                      placeholderColor: colors.onSurfaceVariant,
                     ),
-                    const SizedBox(height: 16),
-                    TextFormField(
+                  ),
+                  SizedBox(height: layout.spacing.section),
+                  _LabeledField(
+                    label: strings.upcomingPaymentsFieldAmount,
+                    theme: theme,
+                    colors: colors,
+                    layout: layout,
+                    errorText:
+                        _amountHasError
+                            ? strings.upcomingPaymentsValidationAmount
+                            : null,
+                    field: KopimTextField(
                       controller: _amountController,
-                      decoration: InputDecoration(
-                        labelText: strings.upcomingPaymentsFieldAmount,
-                      ),
+                      placeholder: strings.upcomingPaymentsFieldAmount,
+                      enabled: !_isSubmitting,
                       keyboardType: const TextInputType.numberWithOptions(
                         decimal: true,
                       ),
                       inputFormatters: <TextInputFormatter>[
                         digitsAndSeparatorsFormatter(),
                       ],
-                      validator: (String? value) {
-                        final double? parsed = _parseAmount(value);
-                        if (parsed == null || parsed <= 0) {
-                          return strings.upcomingPaymentsValidationAmount;
+                      onChanged: (_) {
+                        if (_amountHasError) {
+                          setState(() => _amountHasError = false);
                         }
-                        return null;
                       },
+                      fillColor: colors.surfaceContainerHigh,
+                      placeholderColor: colors.onSurfaceVariant,
                     ),
-                    const SizedBox(height: 16),
-                    _DateField(
-                      label: strings.upcomingPaymentsFieldReminderWhen,
-                      selected: _whenLocal,
-                      onSelect: _onSelectDate,
-                      locale: strings.localeName,
+                  ),
+                  SizedBox(height: layout.spacing.section),
+                  _LabeledField(
+                    label: strings.upcomingPaymentsFieldReminderWhen,
+                    theme: theme,
+                    colors: colors,
+                    layout: layout,
+                    field: KopimTextField(
+                      controller: _whenController,
+                      placeholder: strings.upcomingPaymentsFieldReminderWhen,
+                      enabled: !_isSubmitting,
+                      readOnly: true,
+                      onTap: _onSelectDate,
+                      fillColor: colors.surfaceContainerHigh,
+                      placeholderColor: colors.onSurfaceVariant,
                     ),
-                    const SizedBox(height: 16),
-                    TextFormField(
+                  ),
+                  SizedBox(height: layout.spacing.section),
+                  _LabeledField(
+                    label: strings.upcomingPaymentsFieldNote,
+                    theme: theme,
+                    colors: colors,
+                    layout: layout,
+                    field: KopimTextField(
                       controller: _noteController,
-                      decoration: InputDecoration(
-                        labelText: strings.upcomingPaymentsFieldNote,
-                      ),
+                      placeholder: strings.upcomingPaymentsFieldNote,
+                      enabled: !_isSubmitting,
                       maxLines: 3,
+                      fillColor: colors.surfaceContainerHigh,
+                      placeholderColor: colors.onSurfaceVariant,
                     ),
-                    const SizedBox(height: 24),
-                    SizedBox(
-                      width: double.infinity,
-                      child: FilledButton(
-                        onPressed: _isSubmitting
-                            ? null
-                            : () => _onSubmit(strings),
-                        child: _isSubmitting
-                            ? const SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : Text(strings.upcomingPaymentsSubmit),
-                      ),
+                  ),
+                  SizedBox(height: layout.spacing.sectionLarge),
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton(
+                      onPressed:
+                          _isSubmitting ? null : () => _onSubmit(strings),
+                      child: _isSubmitting
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : Text(strings.upcomingPaymentsSubmit),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -272,7 +315,7 @@ class _EditPaymentReminderScreenState
   }
 
   Future<void> _onSubmit(AppLocalizations strings) async {
-    if (!_formKey.currentState!.validate()) {
+    if (!_validateForm()) {
       return;
     }
     final double amount = _parseAmount(_amountController.text)!;
@@ -371,6 +414,17 @@ class _EditPaymentReminderScreenState
     }
   }
 
+  bool _validateForm() {
+    final bool titleValid = _titleController.text.trim().isNotEmpty;
+    final double? parsedAmount = _parseAmount(_amountController.text);
+    final bool amountValid = parsedAmount != null && parsedAmount > 0;
+    setState(() {
+      _titleHasError = !titleValid;
+      _amountHasError = !amountValid;
+    });
+    return titleValid && amountValid;
+  }
+
   Future<void> _refreshSchedulers(
     PaymentReminder reminder,
     AnalyticsService analytics,
@@ -410,47 +464,61 @@ class _EditPaymentReminderScreenState
   String _shortId(String value) {
     return value.length <= 8 ? value : value.substring(0, 8);
   }
+
+  void _syncWhenController(String locale) {
+    final String formatted = _formatWhenLocal(_whenLocal, locale);
+    if (_whenController.text != formatted) {
+      _whenController.text = formatted;
+    }
+  }
+
+  String _formatWhenLocal(DateTime value, String locale) {
+    final DateFormat dateFormat = DateFormat.yMMMMd(locale);
+    final DateFormat timeFormat = DateFormat.Hm(locale);
+    return '${dateFormat.format(value)} - ${timeFormat.format(value)}';
+  }
 }
 
-class _DateField extends StatelessWidget {
-  const _DateField({
+class _LabeledField extends StatelessWidget {
+  const _LabeledField({
     required this.label,
-    required this.selected,
-    required this.onSelect,
-    required this.locale,
+    required this.field,
+    required this.theme,
+    required this.colors,
+    required this.layout,
+    this.errorText,
   });
 
   final String label;
-  final DateTime selected;
-  final VoidCallback onSelect;
-  final String locale;
+  final Widget field;
+  final ThemeData theme;
+  final ColorScheme colors;
+  final KopimLayout layout;
+  final String? errorText;
 
   @override
   Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
-    final DateFormat dateFormat = DateFormat.yMMMMd(locale);
-    final DateFormat timeFormat = DateFormat.Hm(locale);
-    return InkWell(
-      onTap: onSelect,
-      borderRadius: BorderRadius.circular(12),
-      child: InputDecorator(
-        decoration: InputDecoration(labelText: label),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: <Widget>[
-            Text(
-              dateFormat.format(selected),
-              style: theme.textTheme.bodyMedium,
-            ),
-            Text(
-              timeFormat.format(selected),
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Text(
+          label,
+          style: theme.textTheme.labelLarge?.copyWith(
+            color: colors.onSurface,
+          ),
         ),
-      ),
+        SizedBox(height: layout.spacing.between),
+        field,
+        if (errorText != null) ...<Widget>[
+          SizedBox(height: layout.spacing.between),
+          Text(
+            errorText!,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: colors.error,
+            ),
+          ),
+        ],
+      ],
     );
   }
 }

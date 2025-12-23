@@ -198,6 +198,9 @@ class _FirebaseInitializationErrorApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final String code = _errorCode(error);
+    final bool showDebugMessage =
+        kDebugMode ||
+        (kIsWeb && Uri.base.queryParameters['firebaseDebug'] == '1');
     return MaterialApp(
       home: Scaffold(
         body: Center(
@@ -219,7 +222,7 @@ class _FirebaseInitializationErrorApp extends StatelessWidget {
                     'Произошла ошибка. Код: $code',
                     textAlign: TextAlign.center,
                   ),
-                  if (kDebugMode) ...<Widget>[
+                  if (showDebugMessage) ...<Widget>[
                     const SizedBox(height: 12),
                     Text('$error', textAlign: TextAlign.center),
                   ],

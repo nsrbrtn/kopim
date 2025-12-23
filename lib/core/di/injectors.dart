@@ -16,6 +16,7 @@ import 'package:kopim/core/data/database.dart';
 import 'package:kopim/core/data/database/database_factory.dart';
 import 'package:kopim/core/data/outbox/outbox_dao.dart';
 import 'package:kopim/core/config/app_config.dart';
+import 'package:kopim/core/utils/web_platform_utils.dart';
 import 'package:kopim/core/services/ai_assistant_service.dart';
 import 'package:kopim/core/services/analytics_service.dart';
 import 'package:kopim/core/services/auth_sync_service.dart';
@@ -162,29 +163,52 @@ AnalyticsService analyticsService(Ref ref) => const AnalyticsService();
 @Riverpod(keepAlive: true)
 Future<void> firebaseInitialization(Ref ref) async {
   final LoggerService logger = ref.watch(loggerServiceProvider);
-  final FirebaseAvailabilityNotifier availability = ref.watch(
+  final FirebaseAvailabilityNotifier availability = ref.read(
     firebaseAvailabilityProvider.notifier,
   );
-  availability.setUnknown();
+  final bool isWebIosSafari = isWebSafari();
+  Future<void>.microtask(availability.setUnknown);
 
   if (Firebase.apps.isNotEmpty) {
-    availability.setAvailable();
+    Future<void>.microtask(availability.setAvailable);
     return;
+  }
+
+  final FirebaseOptions options;
+  try {
+    options = DefaultFirebaseOptions.currentPlatform;
+  } catch (error, stackTrace) {
+    if (isWebIosSafari) {
+      Future<void>.microtask(
+        () => availability.setUnavailable(
+          'Облачные функции недоступны в этом браузере. Вход и синхронизация выключены, данные сохраняются локально. Есть риск потери данных — сделайте выгрузку в настройках приложения.',
+        ),
+      );
+      logger.logError(
+        'Сбой подготовки Firebase настроек (web): $error',
+        error,
+      );
+      return;
+    }
+    logger.logError('Сбой подготовки Firebase настроек', error);
+    Error.throwWithStackTrace(error, stackTrace);
   }
 
   try {
     await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
+      options: options,
     );
-    availability.setAvailable();
+    Future<void>.microtask(availability.setAvailable);
   } on FirebaseException catch (error, stackTrace) {
     if (error.code == 'duplicate-app' && Firebase.apps.isNotEmpty) {
-      availability.setAvailable();
+      Future<void>.microtask(availability.setAvailable);
       return;
     }
-    if (kIsWeb) {
-      availability.setUnavailable(
-        'Облачные функции недоступны в этом браузере. Вход и синхронизация выключены, данные сохраняются локально. Есть риск потери данных — сделайте выгрузку в настройках приложения.',
+    if (isWebIosSafari) {
+      Future<void>.microtask(
+        () => availability.setUnavailable(
+          'Облачные функции недоступны в этом браузере. Вход и синхронизация выключены, данные сохраняются локально. Есть риск потери данных — сделайте выгрузку в настройках приложения.',
+        ),
       );
       logger.logError(
         'Сбой инициализации Firebase (web): ${error.code}',
@@ -195,9 +219,11 @@ Future<void> firebaseInitialization(Ref ref) async {
     logger.logError('Сбой инициализации Firebase: ${error.code}', error);
     Error.throwWithStackTrace(error, stackTrace);
   } catch (error, stackTrace) {
-    if (kIsWeb) {
-      availability.setUnavailable(
-        'Облачные функции недоступны в этом браузере. Вход и синхронизация выключены, данные сохраняются локально. Есть риск потери данных — сделайте выгрузку в настройках приложения.',
+    if (isWebIosSafari) {
+      Future<void>.microtask(
+        () => availability.setUnavailable(
+          'Облачные функции недоступны в этом браузере. Вход и синхронизация выключены, данные сохраняются локально. Есть риск потери данных — сделайте выгрузку в настройках приложения.',
+        ),
       );
       logger.logError('Неожиданная ошибка инициализации Firebase (web)', error);
       return;

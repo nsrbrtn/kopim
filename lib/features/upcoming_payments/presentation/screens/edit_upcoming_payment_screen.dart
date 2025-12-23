@@ -5,9 +5,11 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import 'package:kopim/core/di/injectors.dart';
+import 'package:kopim/core/config/theme_extensions.dart';
 import 'package:kopim/core/services/analytics_service.dart';
 import 'package:kopim/core/services/logger_service.dart';
 import 'package:kopim/core/utils/text_input_formatters.dart';
+import 'package:kopim/core/widgets/kopim_text_field.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/upcoming_payments/application/upcoming_notifications_controller.dart';
@@ -65,7 +67,6 @@ class EditUpcomingPaymentScreen extends ConsumerStatefulWidget {
 
 class _EditUpcomingPaymentScreenState
     extends ConsumerState<EditUpcomingPaymentScreen> {
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   late final TextEditingController _titleController;
   late final TextEditingController _amountController;
   late final TextEditingController _dayController;
@@ -78,15 +79,19 @@ class _EditUpcomingPaymentScreenState
   String? _selectedCategoryId;
   bool _isSubmitting = false;
   bool _appliedInitial = false;
+  bool _titleHasError = false;
+  bool _amountHasError = false;
+  bool _dayHasError = false;
+  bool _notifyDaysHasError = false;
 
   @override
   void initState() {
     super.initState();
     _titleController = TextEditingController();
     _amountController = TextEditingController();
-    _dayController = TextEditingController(text: '1');
-    _notifyDaysController = TextEditingController(text: '0');
-    _notifyTimeController = TextEditingController(text: '09:00');
+    _dayController = TextEditingController();
+    _notifyDaysController = TextEditingController();
+    _notifyTimeController = TextEditingController();
     _noteController = TextEditingController();
     if (widget.args.initialPayment != null) {
       _applyInitial(widget.args.initialPayment!);
@@ -212,126 +217,165 @@ class _EditUpcomingPaymentScreenState
   }) {
     _selectedAccountId ??= accounts.first.id;
     _selectedCategoryId ??= categories.first.id;
+    final ColorScheme colors = theme.colorScheme;
+    final KopimLayout layout = context.kopimLayout;
     return SafeArea(
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              TextFormField(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            _LabeledField(
+              label: strings.upcomingPaymentsFieldTitle,
+              theme: theme,
+              colors: colors,
+              layout: layout,
+              errorText:
+                  _titleHasError
+                      ? strings.upcomingPaymentsValidationTitle
+                      : null,
+              field: KopimTextField(
                 controller: _titleController,
-                decoration: InputDecoration(
-                  labelText: strings.upcomingPaymentsFieldTitle,
-                ),
+                placeholder: strings.upcomingPaymentsFieldTitle,
+                enabled: !_isSubmitting,
                 textInputAction: TextInputAction.next,
-                validator: (String? value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return strings.upcomingPaymentsValidationTitle;
+                onChanged: (_) {
+                  if (_titleHasError) {
+                    setState(() => _titleHasError = false);
                   }
-                  return null;
                 },
+                fillColor: colors.surfaceContainerHigh,
+                placeholderColor: colors.onSurfaceVariant,
               ),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                initialValue: _selectedAccountId,
-                items: accounts
-                    .map(
-                      (AccountEntity account) => DropdownMenuItem<String>(
-                        value: account.id,
-                        child: Text(account.name),
-                      ),
-                    )
-                    .toList(growable: false),
-                decoration: InputDecoration(
-                  labelText: strings.upcomingPaymentsFieldAccount,
-                ),
-                onChanged: (String? value) {
-                  setState(() => _selectedAccountId = value);
-                },
+            ),
+            SizedBox(height: layout.spacing.section),
+            DropdownButtonFormField<String>(
+              initialValue: _selectedAccountId,
+              items: accounts
+                  .map(
+                    (AccountEntity account) => DropdownMenuItem<String>(
+                      value: account.id,
+                      child: Text(account.name),
+                    ),
+                  )
+                  .toList(growable: false),
+              decoration: InputDecoration(
+                labelText: strings.upcomingPaymentsFieldAccount,
               ),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                initialValue: _selectedCategoryId,
-                items: categories
-                    .map(
-                      (Category category) => DropdownMenuItem<String>(
-                        value: category.id,
-                        child: Text(category.name),
-                      ),
-                    )
-                    .toList(growable: false),
-                decoration: InputDecoration(
-                  labelText: strings.upcomingPaymentsFieldCategory,
-                ),
-                onChanged: (String? value) {
-                  setState(() => _selectedCategoryId = value);
-                },
+              onChanged: (String? value) {
+                setState(() => _selectedAccountId = value);
+              },
+            ),
+            SizedBox(height: layout.spacing.section),
+            DropdownButtonFormField<String>(
+              initialValue: _selectedCategoryId,
+              items: categories
+                  .map(
+                    (Category category) => DropdownMenuItem<String>(
+                      value: category.id,
+                      child: Text(category.name),
+                    ),
+                  )
+                  .toList(growable: false),
+              decoration: InputDecoration(
+                labelText: strings.upcomingPaymentsFieldCategory,
               ),
-              const SizedBox(height: 16),
-              TextFormField(
+              onChanged: (String? value) {
+                setState(() => _selectedCategoryId = value);
+              },
+            ),
+            SizedBox(height: layout.spacing.section),
+            _LabeledField(
+              label: strings.upcomingPaymentsFieldAmount,
+              theme: theme,
+              colors: colors,
+              layout: layout,
+              errorText:
+                  _amountHasError
+                      ? strings.upcomingPaymentsValidationAmount
+                      : null,
+              field: KopimTextField(
                 controller: _amountController,
-                decoration: InputDecoration(
-                  labelText: strings.upcomingPaymentsFieldAmount,
-                ),
+                placeholder: strings.upcomingPaymentsFieldAmount,
+                enabled: !_isSubmitting,
                 keyboardType: const TextInputType.numberWithOptions(
                   decimal: true,
                 ),
                 inputFormatters: <TextInputFormatter>[
                   digitsAndSeparatorsFormatter(),
                 ],
-                validator: (String? value) {
-                  final double? parsed = _parseAmount(value);
-                  if (parsed == null || parsed <= 0) {
-                    return strings.upcomingPaymentsValidationAmount;
+                onChanged: (_) {
+                  if (_amountHasError) {
+                    setState(() => _amountHasError = false);
                   }
-                  return null;
                 },
+                fillColor: colors.surfaceContainerHigh,
+                placeholderColor: colors.onSurfaceVariant,
               ),
-              const SizedBox(height: 16),
-              TextFormField(
+            ),
+            SizedBox(height: layout.spacing.section),
+            _LabeledField(
+              label: strings.upcomingPaymentsFieldDayOfMonth,
+              theme: theme,
+              colors: colors,
+              layout: layout,
+              errorText:
+                  _dayHasError ? strings.upcomingPaymentsValidationDay : null,
+              field: KopimTextField(
                 controller: _dayController,
-                decoration: InputDecoration(
-                  labelText: strings.upcomingPaymentsFieldDayOfMonth,
-                ),
+                placeholder: strings.upcomingPaymentsFieldDayOfMonth,
+                enabled: !_isSubmitting,
                 keyboardType: TextInputType.number,
                 inputFormatters: <TextInputFormatter>[
                   FilteringTextInputFormatter.digitsOnly,
                 ],
-                validator: (String? value) {
-                  final int? day = int.tryParse(value ?? '');
-                  if (day == null || day < 1 || day > 31) {
-                    return strings.upcomingPaymentsValidationDay;
+                onChanged: (_) {
+                  if (_dayHasError) {
+                    setState(() => _dayHasError = false);
                   }
-                  return null;
                 },
+                fillColor: colors.surfaceContainerHigh,
+                placeholderColor: colors.onSurfaceVariant,
               ),
-              const SizedBox(height: 16),
-              TextFormField(
+            ),
+            SizedBox(height: layout.spacing.section),
+            _LabeledField(
+              label: strings.upcomingPaymentsFieldNotifyDaysBefore,
+              theme: theme,
+              colors: colors,
+              layout: layout,
+              errorText:
+                  _notifyDaysHasError
+                      ? strings.upcomingPaymentsValidationNotifyDays
+                      : null,
+              field: KopimTextField(
                 controller: _notifyDaysController,
-                decoration: InputDecoration(
-                  labelText: strings.upcomingPaymentsFieldNotifyDaysBefore,
-                ),
+                placeholder: strings.upcomingPaymentsFieldNotifyDaysBefore,
+                enabled: !_isSubmitting,
                 keyboardType: TextInputType.number,
                 inputFormatters: <TextInputFormatter>[
                   FilteringTextInputFormatter.digitsOnly,
                 ],
-                validator: (String? value) {
-                  final int? days = int.tryParse(value ?? '');
-                  if (days == null || days < 0) {
-                    return strings.upcomingPaymentsValidationNotifyDays;
+                onChanged: (_) {
+                  if (_notifyDaysHasError) {
+                    setState(() => _notifyDaysHasError = false);
                   }
-                  return null;
                 },
+                fillColor: colors.surfaceContainerHigh,
+                placeholderColor: colors.onSurfaceVariant,
               ),
-              const SizedBox(height: 16),
-              TextFormField(
+            ),
+            SizedBox(height: layout.spacing.section),
+            _LabeledField(
+              label: strings.upcomingPaymentsFieldNotifyTime,
+              theme: theme,
+              colors: colors,
+              layout: layout,
+              field: KopimTextField(
                 controller: _notifyTimeController,
+                placeholder: strings.upcomingPaymentsFieldNotifyTime,
+                enabled: !_isSubmitting,
                 readOnly: true,
-                decoration: InputDecoration(
-                  labelText: strings.upcomingPaymentsFieldNotifyTime,
-                ),
                 onTap: () async {
                   final TimeOfDay initialTime = _parseTime(
                     _notifyTimeController.text,
@@ -346,38 +390,47 @@ class _EditUpcomingPaymentScreenState
                     });
                   }
                 },
+                fillColor: colors.surfaceContainerHigh,
+                placeholderColor: colors.onSurfaceVariant,
               ),
-              const SizedBox(height: 16),
-              SwitchListTile.adaptive(
-                contentPadding: EdgeInsets.zero,
-                value: _autoPost,
-                onChanged: (bool value) => setState(() => _autoPost = value),
-                title: Text(strings.upcomingPaymentsFieldAutoPost),
-              ),
-              const SizedBox(height: 8),
-              TextFormField(
+            ),
+            SizedBox(height: layout.spacing.section),
+            SwitchListTile.adaptive(
+              contentPadding: EdgeInsets.zero,
+              value: _autoPost,
+              onChanged: (bool value) => setState(() => _autoPost = value),
+              title: Text(strings.upcomingPaymentsFieldAutoPost),
+            ),
+            SizedBox(height: layout.spacing.between),
+            _LabeledField(
+              label: strings.upcomingPaymentsFieldNote,
+              theme: theme,
+              colors: colors,
+              layout: layout,
+              field: KopimTextField(
                 controller: _noteController,
-                decoration: InputDecoration(
-                  labelText: strings.upcomingPaymentsFieldNote,
-                ),
+                placeholder: strings.upcomingPaymentsFieldNote,
+                enabled: !_isSubmitting,
                 maxLines: 3,
+                fillColor: colors.surfaceContainerHigh,
+                placeholderColor: colors.onSurfaceVariant,
               ),
-              const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton(
-                  onPressed: _isSubmitting ? null : () => _onSubmit(strings),
-                  child: _isSubmitting
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : Text(strings.upcomingPaymentsSubmit),
-                ),
+            ),
+            SizedBox(height: layout.spacing.sectionLarge),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton(
+                onPressed: _isSubmitting ? null : () => _onSubmit(strings),
+                child: _isSubmitting
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : Text(strings.upcomingPaymentsSubmit),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -397,7 +450,7 @@ class _EditUpcomingPaymentScreenState
   }
 
   void _onSubmit(AppLocalizations strings) async {
-    if (!_formKey.currentState!.validate()) {
+    if (!_validateForm()) {
       return;
     }
     final double amount = _parseAmount(_amountController.text)!;
@@ -509,6 +562,23 @@ class _EditUpcomingPaymentScreenState
     }
   }
 
+  bool _validateForm() {
+    final bool titleValid = _titleController.text.trim().isNotEmpty;
+    final double? parsedAmount = _parseAmount(_amountController.text);
+    final bool amountValid = parsedAmount != null && parsedAmount > 0;
+    final int? day = int.tryParse(_dayController.text);
+    final bool dayValid = day != null && day >= 1 && day <= 31;
+    final int? notifyDays = int.tryParse(_notifyDaysController.text);
+    final bool notifyDaysValid = notifyDays != null && notifyDays >= 0;
+    setState(() {
+      _titleHasError = !titleValid;
+      _amountHasError = !amountValid;
+      _dayHasError = !dayValid;
+      _notifyDaysHasError = !notifyDaysValid;
+    });
+    return titleValid && amountValid && dayValid && notifyDaysValid;
+  }
+
   Future<void> _refreshSchedulers(
     UpcomingPayment payment,
     AnalyticsService analytics,
@@ -564,5 +634,49 @@ class _EditUpcomingPaymentScreenState
 
   String _shortId(String value) {
     return value.length <= 8 ? value : value.substring(0, 8);
+  }
+}
+
+class _LabeledField extends StatelessWidget {
+  const _LabeledField({
+    required this.label,
+    required this.field,
+    required this.theme,
+    required this.colors,
+    required this.layout,
+    this.errorText,
+  });
+
+  final String label;
+  final Widget field;
+  final ThemeData theme;
+  final ColorScheme colors;
+  final KopimLayout layout;
+  final String? errorText;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Text(
+          label,
+          style: theme.textTheme.labelLarge?.copyWith(
+            color: colors.onSurface,
+          ),
+        ),
+        SizedBox(height: layout.spacing.between),
+        field,
+        if (errorText != null) ...<Widget>[
+          SizedBox(height: layout.spacing.between),
+          Text(
+            errorText!,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: colors.error,
+            ),
+          ),
+        ],
+      ],
+    );
   }
 }

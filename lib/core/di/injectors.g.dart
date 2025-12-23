@@ -128,7 +128,7 @@ final class FirebaseInitializationProvider
 }
 
 String _$firebaseInitializationHash() =>
-    r'0cfe6d5149ac705fd63d606d00e439e719552efc';
+    r'b52eae79f1972b294ed038d64bb4fbe0ddc09e7a';
 
 @ProviderFor(firestore)
 const firestoreProvider = FirestoreProvider._();
@@ -5188,7 +5188,7 @@ final class AuthRepositoryProvider
   }
 }
 
-String _$authRepositoryHash() => r'7c64f3ffafdd910af07c1c9cfd72a9550534f646';
+String _$authRepositoryHash() => r'0858a9ebc2c242fa18a3e41f811bfa09fc8f510c';
 
 @ProviderFor(authSyncService)
 const authSyncServiceProvider = AuthSyncServiceProvider._();

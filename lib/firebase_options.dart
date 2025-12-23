@@ -41,14 +41,15 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyDx-Bk8U_a-_HZAw-0t3RnophFfVkL6qho',
-    appId: '1:219578876393:web:2c648e51b2c9f89a3bcb78',
+    apiKey: 'AIzaSyCjaRNTdt3AmjuACYX9eFNEwabQz4zXNXQ',
+    appId: '1:219578876393:web:a5b345ff908a31a23bcb78',
     messagingSenderId: '219578876393',
     projectId: 'device-streaming-74c1af8e',
     authDomain: 'device-streaming-74c1af8e.firebaseapp.com',
     databaseURL:
         'https://device-streaming-74c1af8e-default-rtdb.europe-west1.firebasedatabase.app',
     storageBucket: 'device-streaming-74c1af8e.firebasestorage.app',
+    measurementId: 'G-MHST920GJC',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
@@ -84,8 +85,8 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyDx-Bk8U_a-_HZAw-0t3RnophFfVkL6qho',
-    appId: '1:219578876393:web:2c648e51b2c9f89a3bcb78',
+    apiKey: 'AIzaSyCjaRNTdt3AmjuACYX9eFNEwabQz4zXNXQ',
+    appId: '1:219578876393:web:a5b345ff908a31a23bcb78',
     messagingSenderId: '219578876393',
     projectId: 'device-streaming-74c1af8e',
     authDomain: 'device-streaming-74c1af8e.firebaseapp.com',
