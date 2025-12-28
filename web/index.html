@@ -87,6 +87,72 @@
     <img class="logo-light" src="icons/logo_light.png" alt="Kopim" />
     <img class="logo-dark" src="icons/logo_dark.png" alt="Kopim" />
   </div>
+  <script>
+    (function () {
+      var params = new URLSearchParams(window.location.search);
+      if (params.get('eruda') !== '1') return;
+      var script = document.createElement('script');
+      script.src = 'eruda.min.js';
+      script.onload = function () {
+        if (window.eruda && window.eruda.init) {
+          window.eruda.init();
+        }
+      };
+      document.head.appendChild(script);
+    })();
+  </script>
+  <script>
+    (function () {
+      var params = new URLSearchParams(window.location.search);
+      if (params.get('firebaseDebug') !== '1') return;
+
+      function ensureOverlay() {
+        var overlay = document.getElementById('web-debug-overlay');
+        if (overlay) return overlay;
+        overlay = document.createElement('div');
+        overlay.id = 'web-debug-overlay';
+        overlay.style.position = 'fixed';
+        overlay.style.left = '12px';
+        overlay.style.right = '12px';
+        overlay.style.bottom = '12px';
+        overlay.style.maxHeight = '40vh';
+        overlay.style.overflow = 'auto';
+        overlay.style.padding = '12px';
+        overlay.style.background = 'rgba(0, 0, 0, 0.86)';
+        overlay.style.color = '#ffffff';
+        overlay.style.fontFamily = 'monospace';
+        overlay.style.fontSize = '12px';
+        overlay.style.lineHeight = '1.25';
+        overlay.style.borderRadius = '12px';
+        overlay.style.zIndex = '2147483647';
+        document.body.appendChild(overlay);
+        return overlay;
+      }
+
+      function appendMessage(message) {
+        var overlay = ensureOverlay();
+        var entry = document.createElement('div');
+        entry.textContent = message;
+        entry.style.whiteSpace = 'pre-wrap';
+        entry.style.marginBottom = '8px';
+        overlay.appendChild(entry);
+      }
+
+      window.addEventListener('error', function (event) {
+        var message = event.message || 'Неизвестная ошибка';
+        var location = event.filename
+          ? '\n' + event.filename + ':' + event.lineno + ':' + event.colno
+          : '';
+        appendMessage('[window.onerror] ' + message + location);
+      });
+
+      window.addEventListener('unhandledrejection', function (event) {
+        var reason = event.reason;
+        var message = reason && reason.stack ? reason.stack : String(reason);
+        appendMessage('[unhandledrejection] ' + message);
+      });
+    })();
+  </script>
   <script defer src="pwa_register.js"></script>
   <script src="flutter_bootstrap.js" async></script>
   <script>
