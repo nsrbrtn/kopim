@@ -1134,6 +1134,48 @@ abstract class AppLocalizations {
   /// **'Permission check failed'**
   String get recurringExactAlarmErrorTitle;
 
+  /// Sign in error: user not found
+  ///
+  /// In en, this message translates to:
+  /// **'User not found associated with this email.'**
+  String get authErrorUserNotFound;
+
+  /// Sign in error: wrong password
+  ///
+  /// In en, this message translates to:
+  /// **'Wrong password. Please try again.'**
+  String get authErrorWrongPassword;
+
+  /// Sign in error: invalid email format
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid email format.'**
+  String get authErrorInvalidEmail;
+
+  /// Sign in error: user disabled
+  ///
+  /// In en, this message translates to:
+  /// **'This user account has been disabled.'**
+  String get authErrorUserDisabled;
+
+  /// Sign in error: too many requests
+  ///
+  /// In en, this message translates to:
+  /// **'Too many unsuccessful attempts. Please try again later.'**
+  String get authErrorTooManyRequests;
+
+  /// Sign in error: network failure
+  ///
+  /// In en, this message translates to:
+  /// **'Network connection error. Please check your connection.'**
+  String get authErrorNetworkFailed;
+
+  /// Generic sign in error
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in failed. Please try again later.'**
+  String get authErrorDefault;
+
   /// Error subtitle with the thrown message
   ///
   /// In en, this message translates to:

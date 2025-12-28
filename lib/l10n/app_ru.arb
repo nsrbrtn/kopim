@@ -798,6 +798,34 @@
   "@recurringExactAlarmErrorTitle": {
     "description": "Error card title when the permission check throws"
   },
+  "authErrorUserNotFound": "Пользователь с таким email не найден.",
+  "@authErrorUserNotFound": {
+    "description": "Ошибка при входе: пользователь не найден"
+  },
+  "authErrorWrongPassword": "Неверный пароль. Попробуйте снова.",
+  "@authErrorWrongPassword": {
+    "description": "Ошибка при входе: неверный пароль"
+  },
+  "authErrorInvalidEmail": "Некорректный формат email.",
+  "@authErrorInvalidEmail": {
+    "description": "Ошибка при входе: неверный формат почты"
+  },
+  "authErrorUserDisabled": "Этот аккаунт был отключен.",
+  "@authErrorUserDisabled": {
+    "description": "Ошибка при входе: аккаунт отключен"
+  },
+  "authErrorTooManyRequests": "Слишком много неудачных попыток. Попробуйте позже.",
+  "@authErrorTooManyRequests": {
+    "description": "Ошибка при входе: слишком много попыток"
+  },
+  "authErrorNetworkFailed": "Ошибка сети. Проверьте подключение.",
+  "@authErrorNetworkFailed": {
+    "description": "Ошибка при входе: проблема с сетью"
+  },
+  "authErrorDefault": "Произошла ошибка входа. Попробуйте позже.",
+  "@authErrorDefault": {
+    "description": "Общая ошибка входа"
+  },
   "recurringExactAlarmErrorSubtitle": "Повторите попытку: {error}",
   "@recurringExactAlarmErrorSubtitle": {
     "description": "Error subtitle with the thrown message",

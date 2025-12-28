@@ -588,6 +588,28 @@ class AppLocalizationsRu extends AppLocalizations {
   String get recurringExactAlarmErrorTitle => 'Не удалось проверить разрешение';
 
   @override
+  String get authErrorUserNotFound => 'Пользователь с таким email не найден.';
+
+  @override
+  String get authErrorWrongPassword => 'Неверный пароль. Попробуйте снова.';
+
+  @override
+  String get authErrorInvalidEmail => 'Некорректный формат email.';
+
+  @override
+  String get authErrorUserDisabled => 'Этот аккаунт был отключен.';
+
+  @override
+  String get authErrorTooManyRequests =>
+      'Слишком много неудачных попыток. Попробуйте позже.';
+
+  @override
+  String get authErrorNetworkFailed => 'Ошибка сети. Проверьте подключение.';
+
+  @override
+  String get authErrorDefault => 'Произошла ошибка входа. Попробуйте позже.';
+
+  @override
   String recurringExactAlarmErrorSubtitle(String error) {
     return 'Повторите попытку: $error';
   }

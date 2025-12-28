@@ -10,6 +10,7 @@ import 'package:kopim/core/data/outbox/outbox_dao.dart';
 import 'package:kopim/core/data/outbox/outbox_payload_normalizer.dart';
 import 'package:kopim/core/services/analytics_service.dart';
 import 'package:kopim/core/services/logger_service.dart';
+import 'package:kopim/core/services/sync/sync_data_sanitizer.dart';
 import 'package:kopim/features/accounts/data/sources/local/account_dao.dart';
 import 'package:kopim/features/accounts/data/sources/remote/account_remote_data_source.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
@@ -59,6 +60,7 @@ class AuthSyncService {
     required FirebaseFirestore firestore,
     required LoggerService loggerService,
     required AnalyticsService analyticsService,
+    required SyncDataSanitizer dataSanitizer,
     OutboxPayloadNormalizer payloadNormalizer = const OutboxPayloadNormalizer(),
   }) : _database = database,
        _outboxDao = outboxDao,
@@ -81,6 +83,7 @@ class AuthSyncService {
        _firestore = firestore,
        _logger = loggerService,
        _analyticsService = analyticsService,
+       _dataSanitizer = dataSanitizer,
        _payloadNormalizer = payloadNormalizer;
 
   static const int _outboxBatchSize = 500;
@@ -107,6 +110,7 @@ class AuthSyncService {
   final LoggerService _logger;
   final AnalyticsService _analyticsService;
   final OutboxPayloadNormalizer _payloadNormalizer;
+  final SyncDataSanitizer _dataSanitizer;
 
   bool _inProgress = false;
 
@@ -461,15 +465,75 @@ class AuthSyncService {
       final _NormalizedRecurringRules normalizedRecurringRules =
           _normalizeRecurringRules(mergedRecurringRules, categoryIdMapping);
 
-      await _accountDao.upsertAll(mergedAccounts);
-      await _categoryDao.upsertAll(normalizedCategories);
-      await _transactionDao.upsertAll(normalizedTransactions);
-      await _budgetDao.upsertAll(normalizedBudgets);
-      await _budgetInstanceDao.upsertAll(mergedBudgetInstances);
-      await _savingGoalDao.upsertAll(mergedSavingGoals);
-      for (final RecurringRule rule in normalizedRecurringRules.rules) {
-        await _recurringRuleDao.upsert(rule);
-      }
+      final Profile? mergedProfile = _mergeProfile(
+        await _profileDao.getProfile(userId),
+        remoteSnapshot.profile,
+      );
+
+      // --- Tiered Insertion Strategy ---
+
+      await _database.transaction(() async {
+        // Tier 1: Base Entities (Accounts & Categories)
+        await _accountDao.upsertAll(mergedAccounts);
+        await _categoryDao.upsertAll(normalizedCategories);
+
+        final Set<String> validAccountIds = mergedAccounts
+            .map((AccountEntity e) => e.id)
+            .toSet();
+        final Set<String> validCategoryIds = normalizedCategories
+            .map((Category e) => e.id)
+            .toSet();
+
+        // Tier 2: Dependent Entities - Goals
+        await _savingGoalDao.upsertAll(mergedSavingGoals);
+        final Set<String> validSavingGoalIds = mergedSavingGoals
+            .map((SavingGoal e) => e.id)
+            .toSet();
+
+        // Tier 3: Core Entities (Transactions, Rules, Budgets)
+        // Sanitize transactions
+        final List<TransactionEntity> sanitizedTransactions = _dataSanitizer
+            .sanitizeTransactions(
+              transactions: normalizedTransactions,
+              validAccountIds: validAccountIds,
+              validCategoryIds: validCategoryIds,
+              validSavingGoalIds: validSavingGoalIds,
+            );
+
+        // Sanitize recurring rules
+        final List<RecurringRule> sanitizedRules = _dataSanitizer
+            .sanitizeRecurringRules(
+              rules: normalizedRecurringRules.rules,
+              validAccountIds: validAccountIds,
+              validCategoryIds: validCategoryIds,
+            );
+
+        await _transactionDao.upsertAll(sanitizedTransactions);
+
+        for (final RecurringRule rule in sanitizedRules) {
+          await _recurringRuleDao.upsert(rule);
+        }
+
+        await _budgetDao.upsertAll(normalizedBudgets);
+        final Set<String> validBudgetIds = normalizedBudgets
+            .map((Budget e) => e.id)
+            .toSet();
+
+        // Tier 4: Strongly Dependent Entities (Budget Instances)
+        // Sanitize budget instances
+        final List<BudgetInstance> sanitizedBudgetInstances = _dataSanitizer
+            .sanitizeBudgetInstances(
+              instances: mergedBudgetInstances,
+              validBudgetIds: validBudgetIds,
+            );
+
+        await _budgetInstanceDao.upsertAll(sanitizedBudgetInstances);
+
+        // Upsert profile last (least dependent, mostly meta)
+        if (mergedProfile != null) {
+          await _profileDao.upsert(mergedProfile);
+        }
+      });
       if (normalizedRecurringRules.skippedRuleIds.isNotEmpty) {
         _logger.logInfo(
           'AuthSyncService: skipped ${normalizedRecurringRules.skippedRuleIds.length} '

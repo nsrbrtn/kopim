@@ -585,6 +585,30 @@ class AppLocalizationsEn extends AppLocalizations {
   String get recurringExactAlarmErrorTitle => 'Permission check failed';
 
   @override
+  String get authErrorUserNotFound =>
+      'User not found associated with this email.';
+
+  @override
+  String get authErrorWrongPassword => 'Wrong password. Please try again.';
+
+  @override
+  String get authErrorInvalidEmail => 'Invalid email format.';
+
+  @override
+  String get authErrorUserDisabled => 'This user account has been disabled.';
+
+  @override
+  String get authErrorTooManyRequests =>
+      'Too many unsuccessful attempts. Please try again later.';
+
+  @override
+  String get authErrorNetworkFailed =>
+      'Network connection error. Please check your connection.';
+
+  @override
+  String get authErrorDefault => 'Sign in failed. Please try again later.';
+
+  @override
   String recurringExactAlarmErrorSubtitle(String error) {
     return 'Try again: $error';
   }

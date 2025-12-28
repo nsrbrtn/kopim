@@ -30,6 +30,7 @@ class KopimTextField extends StatefulWidget {
     this.textStyle,
     this.fillColor,
     this.placeholderColor,
+    this.hasError = false,
   });
 
   /// Ключ для внутреннего [TextField]. Нужен в тестах и для точного поиска поля.
@@ -56,6 +57,7 @@ class KopimTextField extends StatefulWidget {
   final TextStyle? textStyle;
   final Color? fillColor;
   final Color? placeholderColor;
+  final bool hasError;
 
   @override
   State<KopimTextField> createState() => _KopimTextFieldState();
@@ -159,8 +161,18 @@ class _KopimTextFieldState extends State<KopimTextField> {
             suffixIcon: widget.suffixIcon,
             contentPadding: padding,
             border: baseBorder,
-            enabledBorder: baseBorder,
-            focusedBorder: focusBorder,
+            enabledBorder: widget.hasError
+                ? OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(borderRadius),
+                    borderSide: BorderSide(color: colors.error),
+                  )
+                : baseBorder,
+            focusedBorder: widget.hasError
+                ? OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(borderRadius),
+                    borderSide: BorderSide(color: colors.error, width: 2),
+                  )
+                : focusBorder,
             disabledBorder: baseBorder,
           ),
         ),

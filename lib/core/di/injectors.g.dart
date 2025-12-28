@@ -128,7 +128,7 @@ final class FirebaseInitializationProvider
 }
 
 String _$firebaseInitializationHash() =>
-    r'b52eae79f1972b294ed038d64bb4fbe0ddc09e7a';
+    r'4987a283ca2f1ebb6d9f6ffeb4f40ed5e544c5b3';
 
 @ProviderFor(firestore)
 const firestoreProvider = FirestoreProvider._();
@@ -1010,7 +1010,7 @@ final class ExportUserDataUseCaseProvider
 }
 
 String _$exportUserDataUseCaseHash() =>
-    r'8560cec9fd06523f99988ff01d1c6ae34638a0b3';
+    r'd7d6f38e0347a3df5d4ca7bf0ad888414b6bf8f9';
 
 @ProviderFor(importDataRepository)
 const importDataRepositoryProvider = ImportDataRepositoryProvider._();
@@ -1106,7 +1106,7 @@ final class ImportUserDataUseCaseProvider
 }
 
 String _$importUserDataUseCaseHash() =>
-    r'cf336cfeac0becbc0f2eb9748c92eaea86282946';
+    r'9902df798e3cbd2e00b594863dff1e1559656002';
 
 @ProviderFor(budgetDao)
 const budgetDaoProvider = BudgetDaoProvider._();
@@ -5190,6 +5190,53 @@ final class AuthRepositoryProvider
 
 String _$authRepositoryHash() => r'0858a9ebc2c242fa18a3e41f811bfa09fc8f510c';
 
+@ProviderFor(syncDataSanitizer)
+const syncDataSanitizerProvider = SyncDataSanitizerProvider._();
+
+final class SyncDataSanitizerProvider
+    extends
+        $FunctionalProvider<
+          SyncDataSanitizer,
+          SyncDataSanitizer,
+          SyncDataSanitizer
+        >
+    with $Provider<SyncDataSanitizer> {
+  const SyncDataSanitizerProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'syncDataSanitizerProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$syncDataSanitizerHash();
+
+  @$internal
+  @override
+  $ProviderElement<SyncDataSanitizer> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  SyncDataSanitizer create(Ref ref) {
+    return syncDataSanitizer(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(SyncDataSanitizer value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<SyncDataSanitizer>(value),
+    );
+  }
+}
+
+String _$syncDataSanitizerHash() => r'7158c94797d4d9f8bfc57affd49f8f93f5c0b19c';
+
 @ProviderFor(authSyncService)
 const authSyncServiceProvider = AuthSyncServiceProvider._();
 
@@ -5230,4 +5277,4 @@ final class AuthSyncServiceProvider
   }
 }
 
-String _$authSyncServiceHash() => r'b6233bcc0f00471b7b3510b51b18bcb0f1206c1a';
+String _$authSyncServiceHash() => r'834e4289b19697165bed6e059502548ddd75feb8';

@@ -8,6 +8,7 @@ import 'package:kopim/core/data/outbox/outbox_dao.dart';
 import 'package:kopim/core/services/analytics_service.dart';
 import 'package:kopim/core/services/auth_sync_service.dart';
 import 'package:kopim/core/services/logger_service.dart';
+import 'package:kopim/core/services/sync/sync_data_sanitizer.dart';
 import 'package:kopim/features/accounts/data/sources/local/account_dao.dart';
 import 'package:kopim/features/accounts/data/sources/remote/account_remote_data_source.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
@@ -20,7 +21,6 @@ import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/profile/data/local/profile_dao.dart';
 import 'package:kopim/features/profile/data/remote/profile_remote_data_source.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
-import 'package:kopim/features/profile/domain/entities/profile.dart';
 import 'package:kopim/features/recurring_transactions/data/sources/local/recurring_rule_dao.dart';
 import 'package:kopim/features/recurring_transactions/data/sources/remote/recurring_rule_remote_data_source.dart';
 import 'package:kopim/features/savings/data/sources/local/saving_goal_dao.dart';
@@ -49,6 +49,7 @@ void main() {
   late FakeFirebaseFirestore firestore;
   late MockLoggerService logger;
   late MockAnalyticsService analytics;
+  late SyncDataSanitizer sanitizer;
 
   setUpAll(() {
     registerFallbackValue(<String, dynamic>{});
@@ -71,6 +72,7 @@ void main() {
     firestore = FakeFirebaseFirestore();
     logger = MockLoggerService();
     analytics = MockAnalyticsService();
+    sanitizer = SyncDataSanitizer(logger: logger);
 
     when(() => analytics.logEvent(any(), any())).thenAnswer((_) async {});
     when(() => analytics.reportError(any(), any())).thenReturn(null);
@@ -83,7 +85,14 @@ void main() {
   test(
     'Should reproduce FK error when transaction is synced before its saving goal',
     () async {
-      final service = AuthSyncService(
+      // With the FIX enabled (sanitizer + reordering), this test should actually PASS now,
+      // or fail differently if we want to confirm the fix works.
+      // The original user intent was to REPRODUCE the error.
+      // But now that we implemented the fix, we expect it to NOT THROW.
+      // Wait, the reproduction test was designed to fail.
+      // Now I should update it to expect SUCCESS because I expect my code to fix it.
+
+      final AuthSyncService service = AuthSyncService(
         database: database,
         outboxDao: outboxDao,
         accountDao: accountDao,
@@ -107,17 +116,18 @@ void main() {
         firestore: firestore,
         loggerService: logger,
         analyticsService: analytics,
+        dataSanitizer: sanitizer,
       );
 
-      const userId = 'user-repro';
-      const accId = 'acc-1';
-      const catId = 'cat-1';
-      const goalId = 'goal-1';
+      const String userId = 'user-repro';
+      const String accountId = 'acc_1';
+      const String categoryId = 'cat_1';
+      const String savingGoalId = 'goal_1';
 
       // 1. Setup remote data
-      final now = DateTime.now().toUtc();
-      final account = AccountEntity(
-        id: accId,
+      final DateTime now = DateTime.utc(2025, 1, 1);
+      final AccountEntity account = AccountEntity(
+        id: accountId,
         name: 'Account',
         balance: 1000,
         currency: 'RUB',
@@ -125,15 +135,15 @@ void main() {
         createdAt: now,
         updatedAt: now,
       );
-      final category = Category(
-        id: catId,
+      final Category category = Category(
+        id: categoryId,
         name: 'Category',
         type: 'expense',
         createdAt: now,
         updatedAt: now,
       );
-      final goal = SavingGoal(
-        id: goalId,
+      final SavingGoal savingGoal = SavingGoal(
+        id: savingGoalId,
         userId: userId,
         name: 'Goal',
         targetAmount: 10000,
@@ -141,11 +151,11 @@ void main() {
         createdAt: now,
         updatedAt: now,
       );
-      final transaction = TransactionEntity(
+      final TransactionEntity transaction = TransactionEntity(
         id: 'tx-1',
-        accountId: accId,
-        categoryId: catId,
-        savingGoalId: goalId,
+        accountId: accountId,
+        categoryId: categoryId,
+        savingGoalId: savingGoalId,
         amount: 100,
         date: now,
         type: 'expense',
@@ -154,10 +164,12 @@ void main() {
       );
 
       // Write to fake firestore
-      final userRef = firestore.collection('users').doc(userId);
+      final DocumentReference<Map<String, dynamic>> userRef = firestore
+          .collection('users')
+          .doc(userId);
       await userRef
           .collection('accounts')
-          .doc(accId)
+          .doc(accountId)
           .set(
             account.toJson()
               ..['updatedAt'] = Timestamp.fromDate(account.updatedAt)
@@ -165,7 +177,7 @@ void main() {
           );
       await userRef
           .collection('categories')
-          .doc(catId)
+          .doc(categoryId)
           .set(
             category.toJson()
               ..['updatedAt'] = Timestamp.fromDate(category.updatedAt)
@@ -173,11 +185,11 @@ void main() {
           );
       await userRef
           .collection('saving_goals')
-          .doc(goalId)
+          .doc(savingGoalId)
           .set(
-            goal.toJson()
-              ..['updatedAt'] = Timestamp.fromDate(goal.updatedAt)
-              ..['createdAt'] = Timestamp.fromDate(goal.createdAt),
+            savingGoal.toJson()
+              ..['updatedAt'] = Timestamp.fromDate(savingGoal.updatedAt)
+              ..['createdAt'] = Timestamp.fromDate(savingGoal.createdAt),
           );
       await userRef
           .collection('transactions')
@@ -188,7 +200,7 @@ void main() {
               ..['createdAt'] = Timestamp.fromDate(transaction.createdAt),
           );
 
-      final authUser = AuthUser(
+      final AuthUser authUser = AuthUser(
         uid: userId,
         isAnonymous: false,
         emailVerified: true,
@@ -196,19 +208,19 @@ void main() {
         lastSignInTime: DateTime.now(),
       );
 
-      // This should fail with FK error
-      try {
-        await service.synchronizeOnLogin(user: authUser);
-        fail('Should have thrown an error');
-      } catch (e) {
-        print('CAUGHT ERROR: $e');
-        expect(e.toString(), contains('FOREIGN KEY constraint failed'));
-      }
+      // This previously failed. Now it should succeed.
+      await service.synchronizeOnLogin(user: authUser);
+
+      final db.TransactionRow? savedTx = await transactionDao.findById(
+        transaction.id,
+      );
+      expect(savedTx, isNotNull);
+      expect(savedTx?.savingGoalId, savingGoalId);
     },
   );
 
   test('Should sanitize transaction when saving goal is missing', () async {
-    final service = AuthSyncService(
+    final AuthSyncService service = AuthSyncService(
       database: database,
       outboxDao: outboxDao,
       accountDao: accountDao,
@@ -230,16 +242,17 @@ void main() {
       firestore: firestore,
       loggerService: logger,
       analyticsService: analytics,
+      dataSanitizer: sanitizer,
     );
 
-    const userId = 'user-sanitize';
-    const accId = 'acc-2';
-    const catId = 'cat-2';
-    const goalId = 'goal-missing';
+    const String userId = 'user-sanitize';
+    const String accId = 'acc-2';
+    const String catId = 'cat-2';
+    const String goalId = 'goal-missing';
 
     // 1. Setup remote data WITHOUT the goal
-    final now = DateTime.now().toUtc();
-    final account = AccountEntity(
+    final DateTime now = DateTime.now().toUtc();
+    final AccountEntity account = AccountEntity(
       id: accId,
       name: 'Account',
       balance: 1000,
@@ -248,14 +261,14 @@ void main() {
       createdAt: now,
       updatedAt: now,
     );
-    final category = Category(
+    final Category category = Category(
       id: catId,
       name: 'Category',
       type: 'expense',
       createdAt: now,
       updatedAt: now,
     );
-    final transaction = TransactionEntity(
+    final TransactionEntity transaction = TransactionEntity(
       id: 'tx-2',
       accountId: accId,
       categoryId: catId,
@@ -268,7 +281,9 @@ void main() {
     );
 
     // Write to fake firestore
-    final userRef = firestore.collection('users').doc(userId);
+    final DocumentReference<Map<String, dynamic>> userRef = firestore
+        .collection('users')
+        .doc(userId);
     await userRef
         .collection('accounts')
         .doc(accId)
@@ -295,7 +310,7 @@ void main() {
             ..['createdAt'] = Timestamp.fromDate(transaction.createdAt),
         );
 
-    final authUser = AuthUser(
+    final AuthUser authUser = AuthUser(
       uid: userId,
       isAnonymous: false,
       emailVerified: true,
@@ -307,13 +322,13 @@ void main() {
     // The transaction should be saved with savingGoalId = null.
     await service.synchronizeOnLogin(user: authUser);
 
-    final savedTx = await transactionDao.findById(transaction.id);
+    final db.TransactionRow? savedTx = await transactionDao.findById(transaction.id);
     expect(savedTx, isNotNull);
     expect(savedTx?.savingGoalId, isNull);
   });
 
   test('Should skip transaction when account is missing', () async {
-    final service = AuthSyncService(
+    final AuthSyncService service = AuthSyncService(
       database: database,
       outboxDao: outboxDao,
       accountDao: accountDao,
@@ -335,12 +350,13 @@ void main() {
       firestore: firestore,
       loggerService: logger,
       analyticsService: analytics,
+      dataSanitizer: sanitizer,
     );
 
-    const userId = 'user-skip-tx';
-    const accId = 'acc-missing'; // Missing!
+    const String userId = 'user-skip-tx';
+    const String accId = 'acc-missing'; // Missing!
 
-    final transaction = TransactionEntity(
+    final TransactionEntity transaction = TransactionEntity(
       id: 'tx-skip',
       accountId: accId,
       amount: 100,
@@ -362,7 +378,7 @@ void main() {
             ..['createdAt'] = Timestamp.fromDate(transaction.createdAt),
         );
 
-    final authUser = AuthUser(
+    final AuthUser authUser = AuthUser(
       uid: userId,
       isAnonymous: false,
       emailVerified: true,
@@ -372,7 +388,7 @@ void main() {
 
     await service.synchronizeOnLogin(user: authUser);
 
-    final savedTx = await transactionDao.findById(transaction.id);
+    final db.TransactionRow? savedTx = await transactionDao.findById(transaction.id);
     expect(
       savedTx,
       isNull,

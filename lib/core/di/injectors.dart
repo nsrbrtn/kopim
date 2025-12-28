@@ -25,6 +25,7 @@ import 'package:kopim/core/services/logger_service.dart';
 import 'package:kopim/core/services/notification_fallback_presenter.dart';
 import 'package:kopim/core/services/notifications_gateway.dart';
 import 'package:kopim/core/services/push_permission_service.dart';
+import 'package:kopim/core/services/sync/sync_data_sanitizer.dart';
 import 'package:kopim/core/services/sync_service.dart';
 import 'package:kopim/features/ai/data/repositories/ai_assistant_repository_impl.dart';
 import 'package:kopim/features/ai/data/repositories/ai_financial_data_repository_impl.dart';
@@ -151,7 +152,6 @@ import 'package:kopim/features/upcoming_payments/data/drift/repositories/payment
 import 'package:kopim/features/upcoming_payments/data/drift/repositories/upcoming_payments_repository_impl.dart';
 import 'package:kopim/features/upcoming_payments/domain/repositories/payment_reminders_repository.dart';
 import 'package:kopim/features/upcoming_payments/domain/repositories/upcoming_payments_repository.dart';
-import 'package:kopim/core/services/web_debug_logger.dart';
 
 part 'injectors.g.dart';
 
@@ -170,23 +170,12 @@ Future<void> firebaseInitialization(Ref ref) async {
     firebaseAvailabilityProvider.notifier,
   );
   final bool isWebIosSafari = isWebSafari();
-  final bool debugWebFirebase =
-      kIsWeb && Uri.base.queryParameters['firebaseDebug'] == '1';
   Future<void>.microtask(availability.setUnknown);
 
   if (_hasFirebaseAppsSafely(
     logger: logger,
-    debugWebFirebase: debugWebFirebase,
     isWebIosSafari: isWebIosSafari,
   )) {
-    if (debugWebFirebase) {
-      logger.logInfo(
-        'Firebase уже инициализирован (apps=${Firebase.apps.length}).',
-      );
-      addWebDebugMessage(
-        'Firebase уже инициализирован (apps=${Firebase.apps.length}).',
-      );
-    }
     Future<void>.microtask(availability.setAvailable);
     return;
   }
@@ -194,20 +183,6 @@ Future<void> firebaseInitialization(Ref ref) async {
   final FirebaseOptions options;
   try {
     options = DefaultFirebaseOptions.currentPlatform;
-    if (debugWebFirebase) {
-      logger.logInfo(
-        'Firebase init: platform=web, safari=$isWebIosSafari, uri=${Uri.base}',
-      );
-      addWebDebugMessage(
-        'Firebase init: platform=web, safari=$isWebIosSafari, uri=${Uri.base}',
-      );
-      logger.logInfo(
-        'Firebase options: projectId=${options.projectId}, appId=${options.appId}, authDomain=${options.authDomain}, storageBucket=${options.storageBucket}, databaseURL=${options.databaseURL}',
-      );
-      addWebDebugMessage(
-        'Firebase options: projectId=${options.projectId}, appId=${options.appId}, authDomain=${options.authDomain}, storageBucket=${options.storageBucket}, databaseURL=${options.databaseURL}',
-      );
-    }
   } catch (error, stackTrace) {
     if (isWebIosSafari) {
       Future<void>.microtask(
@@ -215,14 +190,7 @@ Future<void> firebaseInitialization(Ref ref) async {
           'Облачные функции недоступны в этом браузере. Вход и синхронизация выключены, данные сохраняются локально. Есть риск потери данных — сделайте выгрузку в настройках приложения.',
         ),
       );
-      if (debugWebFirebase) {
-        addWebDebugMessage('Сбой подготовки Firebase настроек (web): $error');
-        addWebDebugMessage('$stackTrace');
-      }
-      logger.logError(
-        'Сбой подготовки Firebase настроек (web): $error',
-        error,
-      );
+      logger.logError('Сбой подготовки Firebase настроек (web): $error', error);
       return;
     }
     logger.logError('Сбой подготовки Firebase настроек', error);
@@ -230,20 +198,7 @@ Future<void> firebaseInitialization(Ref ref) async {
   }
 
   try {
-    if (debugWebFirebase) {
-      logger.logInfo('Firebase init: начинаем initializeApp');
-      addWebDebugMessage('Firebase init: начинаем initializeApp');
-    }
-    await Firebase.initializeApp(
-      options: options,
-    );
-    if (debugWebFirebase) {
-      final String appsInfo = isWebIosSafari
-          ? 'apps=unknown'
-          : 'apps=${Firebase.apps.length}';
-      logger.logInfo('Firebase init: успешно ($appsInfo).');
-      addWebDebugMessage('Firebase init: успешно ($appsInfo).');
-    }
+    await Firebase.initializeApp(options: options);
     Future<void>.microtask(availability.setAvailable);
   } on FirebaseException catch (error, stackTrace) {
     if (error.code == 'duplicate-app') {
@@ -256,12 +211,6 @@ Future<void> firebaseInitialization(Ref ref) async {
           'Облачные функции недоступны в этом браузере. Вход и синхронизация выключены, данные сохраняются локально. Есть риск потери данных — сделайте выгрузку в настройках приложения.',
         ),
       );
-      if (debugWebFirebase) {
-        addWebDebugMessage(
-          'Сбой инициализации Firebase (web): ${error.code} ${error.message}',
-        );
-        addWebDebugMessage('$stackTrace');
-      }
       logger.logError(
         'Сбой инициализации Firebase (web): ${error.code}',
         error,
@@ -277,12 +226,6 @@ Future<void> firebaseInitialization(Ref ref) async {
           'Облачные функции недоступны в этом браузере. Вход и синхронизация выключены, данные сохраняются локально. Есть риск потери данных — сделайте выгрузку в настройках приложения.',
         ),
       );
-      if (debugWebFirebase) {
-        addWebDebugMessage(
-          'Неожиданная ошибка инициализации Firebase (web): $error',
-        );
-        addWebDebugMessage('$stackTrace');
-      }
       logger.logError('Неожиданная ошибка инициализации Firebase (web)', error);
       return;
     }
@@ -291,9 +234,10 @@ Future<void> firebaseInitialization(Ref ref) async {
   }
 }
 
+/// На iOS Web доступ к Firebase.apps может падать из-за JS interop, поэтому
+/// избегаем этого вызова и всегда инициализируем Firebase вручную.
 bool _hasFirebaseAppsSafely({
   required LoggerService logger,
-  required bool debugWebFirebase,
   required bool isWebIosSafari,
 }) {
   if (isWebIosSafari) {
@@ -301,11 +245,7 @@ bool _hasFirebaseAppsSafely({
   }
   try {
     return Firebase.apps.isNotEmpty;
-  } catch (error, stackTrace) {
-    if (debugWebFirebase) {
-      addWebDebugMessage('Firebase.apps недоступен: $error');
-      addWebDebugMessage('$stackTrace');
-    }
+  } catch (error) {
     logger.logError('Firebase.apps недоступен', error);
     if (isWebIosSafari) {
       return false;
@@ -982,6 +922,10 @@ AuthRepository authRepository(Ref ref) {
 }
 
 @riverpod
+SyncDataSanitizer syncDataSanitizer(Ref ref) =>
+    SyncDataSanitizer(logger: ref.watch(loggerServiceProvider));
+
+@riverpod
 AuthSyncService authSyncService(Ref ref) => AuthSyncService(
   database: ref.watch(appDatabaseProvider),
   outboxDao: ref.watch(outboxDaoProvider),
@@ -1008,4 +952,5 @@ AuthSyncService authSyncService(Ref ref) => AuthSyncService(
   firestore: ref.watch(firestoreProvider),
   loggerService: ref.watch(loggerServiceProvider),
   analyticsService: ref.watch(analyticsServiceProvider),
+  dataSanitizer: ref.watch(syncDataSanitizerProvider),
 );

@@ -8,6 +8,7 @@ import 'package:kopim/core/widgets/kopim_text_field.dart';
 import 'package:kopim/features/profile/presentation/controllers/sign_in_form_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/sign_up_form_controller.dart';
 import 'package:kopim/l10n/app_localizations.dart';
+import 'package:kopim/features/profile/presentation/utils/auth_error_mapper.dart';
 
 bool _isOffline(List<ConnectivityResult> results) {
   if (results.isEmpty) {
@@ -192,6 +193,17 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
         ? signUpState.errorMessage
         : formState.errorMessage;
 
+    // Determine field-specific errors for visual feedback
+    final bool emailHasError =
+        !_isSignUpMode &&
+        errorMessage != null &&
+        (errorMessage == 'user-not-found' || errorMessage == 'invalid-email');
+
+    final bool passwordHasError =
+        !_isSignUpMode &&
+        errorMessage != null &&
+        errorMessage == 'wrong-password';
+
     final String logoAsset = theme.brightness == Brightness.dark
         ? 'assets/icons/logo_dark.png'
         : 'assets/icons/logo_light.png';
@@ -336,6 +348,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                   enabled: !isSubmitting,
                   onSubmitted: (_) => _passwordFocusNode.requestFocus(),
                   placeholder: 'name@example.com',
+                  hasError: emailHasError,
                 ),
                 const SizedBox(height: 16),
 
@@ -372,6 +385,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                   enabled: !isSubmitting,
                   onSubmitted: (_) => _onSubmit(controller),
                   placeholder: '••••••••',
+                  hasError: passwordHasError,
                 ),
               ],
 
@@ -380,7 +394,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
               // Error Message
               if (errorMessage != null) ...<Widget>[
                 Text(
-                  errorMessage,
+                  AuthErrorMapper.map(errorMessage, strings),
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.error,
                   ),

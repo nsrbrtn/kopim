@@ -60,12 +60,12 @@ class SignInFormController extends _$SignInFormController {
       state = state.copyWith(isSubmitting: false);
     } on AuthFailure catch (error) {
       if (!ref.mounted) return;
-      state = state.copyWith(isSubmitting: false, errorMessage: error.message);
+      state = state.copyWith(isSubmitting: false, errorMessage: error.code);
     } catch (_) {
       if (!ref.mounted) return;
       state = state.copyWith(
         isSubmitting: false,
-        errorMessage: AuthFailure.unknown().message,
+        errorMessage: AuthFailure.unknown().code,
       );
     }
   }
@@ -79,12 +79,12 @@ class SignInFormController extends _$SignInFormController {
       state = state.copyWith(isSubmitting: false);
     } on AuthFailure catch (error) {
       if (!ref.mounted) return;
-      state = state.copyWith(isSubmitting: false, errorMessage: error.message);
+      state = state.copyWith(isSubmitting: false, errorMessage: error.code);
     } catch (_) {
       if (!ref.mounted) return;
       state = state.copyWith(
         isSubmitting: false,
-        errorMessage: AuthFailure.unknown().message,
+        errorMessage: AuthFailure.unknown().code,
       );
     }
   }
@@ -113,12 +113,12 @@ class SignInFormController extends _$SignInFormController {
       state = state.copyWith(isSubmitting: false);
     } on AuthFailure catch (error) {
       if (!ref.mounted) return;
-      state = state.copyWith(isSubmitting: false, errorMessage: error.message);
+      state = state.copyWith(isSubmitting: false, errorMessage: error.code);
     } catch (_) {
       if (!ref.mounted) return;
       state = state.copyWith(
         isSubmitting: false,
-        errorMessage: AuthFailure.unknown().message,
+        errorMessage: AuthFailure.unknown().code,
       );
     }
   }

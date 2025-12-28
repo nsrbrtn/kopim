@@ -800,6 +800,34 @@
   "@recurringExactAlarmErrorTitle": {
     "description": "Error card title when the permission check throws"
   },
+  "authErrorUserNotFound": "User not found associated with this email.",
+  "@authErrorUserNotFound": {
+    "description": "Sign in error: user not found"
+  },
+  "authErrorWrongPassword": "Wrong password. Please try again.",
+  "@authErrorWrongPassword": {
+    "description": "Sign in error: wrong password"
+  },
+  "authErrorInvalidEmail": "Invalid email format.",
+  "@authErrorInvalidEmail": {
+    "description": "Sign in error: invalid email format"
+  },
+  "authErrorUserDisabled": "This user account has been disabled.",
+  "@authErrorUserDisabled": {
+    "description": "Sign in error: user disabled"
+  },
+  "authErrorTooManyRequests": "Too many unsuccessful attempts. Please try again later.",
+  "@authErrorTooManyRequests": {
+    "description": "Sign in error: too many requests"
+  },
+  "authErrorNetworkFailed": "Network connection error. Please check your connection.",
+  "@authErrorNetworkFailed": {
+    "description": "Sign in error: network failure"
+  },
+  "authErrorDefault": "Sign in failed. Please try again later.",
+  "@authErrorDefault": {
+    "description": "Generic sign in error"
+  },
   "recurringExactAlarmErrorSubtitle": "Try again: {error}",
   "@recurringExactAlarmErrorSubtitle": {
     "description": "Error subtitle with the thrown message",

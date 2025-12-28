@@ -11,6 +11,7 @@ import 'package:kopim/core/services/logger_service.dart';
 import 'package:kopim/features/accounts/data/sources/local/account_dao.dart';
 import 'package:kopim/features/accounts/data/sources/remote/account_remote_data_source.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
+import 'package:kopim/core/services/sync/sync_data_sanitizer.dart';
 import 'package:kopim/features/budgets/data/sources/local/budget_dao.dart';
 import 'package:kopim/features/budgets/data/sources/remote/budget_instance_remote_data_source.dart';
 import 'package:kopim/features/budgets/data/sources/remote/budget_remote_data_source.dart';
@@ -71,6 +72,7 @@ void main() {
   late BudgetInstanceRemoteDataSource budgetInstanceRemote;
   late SavingGoalRemoteDataSource savingGoalRemote;
   late RecurringRuleRemoteDataSource recurringRuleRemote;
+  late SyncDataSanitizer sanitizer;
 
   AuthSyncService buildService({
     AccountRemoteDataSource? accountRemoteDataSource,
@@ -105,6 +107,7 @@ void main() {
       firestore: firestore,
       loggerService: logger,
       analyticsService: analytics,
+      dataSanitizer: sanitizer,
     );
   }
 
@@ -132,10 +135,14 @@ void main() {
     budgetRemote = BudgetRemoteDataSource(firestore);
     budgetInstanceRemote = BudgetInstanceRemoteDataSource(firestore);
     savingGoalRemote = SavingGoalRemoteDataSource(firestore);
+    savingGoalRemote = SavingGoalRemoteDataSource(firestore);
     recurringRuleRemote = RecurringRuleRemoteDataSource(firestore);
+    sanitizer = SyncDataSanitizer(logger: logger);
 
     when(() => analytics.logEvent(any(), any())).thenAnswer((_) async {});
     when(() => analytics.reportError(any(), any())).thenReturn(null);
+    when(() => logger.logInfo(any())).thenReturn(null);
+    when(() => logger.logError(any(), any())).thenReturn(null);
   });
 
   tearDown(() async {
