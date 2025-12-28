@@ -17,6 +17,8 @@
 ### Графики и визуализация
 - [AnalyticsBarChart](AnalyticsBarChart.md) — столбчатая диаграмма для аналитики
 - [AnalyticsDonutChart](AnalyticsDonutChart.md) — круговая диаграмма с интерактивной подсветкой
+- [MonthlyCashflowBarChartWidget](MonthlyCashflowBarChartWidget.md) — сравнение доходов и расходов по месяцам
+- [TotalMoneyChartWidget](TotalMoneyChartWidget.md) — график динамики общего баланса
 
 ### Формы и ввод данных
 - [KopimTextField](KopimTextField.md) — кастомное текстовое поле с поддержкой иконок, валидации и многострочного режима

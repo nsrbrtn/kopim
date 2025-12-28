@@ -66,14 +66,14 @@ AnalyticsDonutChart(
 ## Модель данных AnalyticsChartItem
 
 Оба графика используют одну и ту же модель данных:
-
 ```dart
 class AnalyticsChartItem {
-  final String key;           // Уникальный ключ элемента
-  final String title;         // Название категории
-  final double amount;        // Сумма (может быть отрицательной)
-  final Color color;          // Цвет сегмента
-  final IconData? icon;       // Иконка категории (опционально)
+  final String key;                   // Уникальный ключ элемента
+  final String title;                 // Название категории
+  final double amount;                // Сумма
+  final Color color;                  // Цвет сегмента
+  final IconData? icon;               // Иконка категории (опционально)
+  final List<AnalyticsChartItem> children; // Дочерние элементы (для детализации)
   
   double get absoluteAmount => amount.abs();
 }

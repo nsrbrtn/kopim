@@ -50,6 +50,20 @@ Map<String, dynamic> _$MonthlyExpenseInsightToJson(
   'totalExpense': instance.totalExpense,
 };
 
+_MonthlyIncomeInsight _$MonthlyIncomeInsightFromJson(
+  Map<String, dynamic> json,
+) => _MonthlyIncomeInsight(
+  month: DateTime.parse(json['month'] as String),
+  totalIncome: (json['totalIncome'] as num).toDouble(),
+);
+
+Map<String, dynamic> _$MonthlyIncomeInsightToJson(
+  _MonthlyIncomeInsight instance,
+) => <String, dynamic>{
+  'month': instance.month.toIso8601String(),
+  'totalIncome': instance.totalIncome,
+};
+
 _CategoryExpenseInsight _$CategoryExpenseInsightFromJson(
   Map<String, dynamic> json,
 ) => _CategoryExpenseInsight(
@@ -65,6 +79,24 @@ Map<String, dynamic> _$CategoryExpenseInsightToJson(
   'categoryId': instance.categoryId,
   'displayName': instance.displayName,
   'totalExpense': instance.totalExpense,
+  'color': instance.color,
+};
+
+_CategoryIncomeInsight _$CategoryIncomeInsightFromJson(
+  Map<String, dynamic> json,
+) => _CategoryIncomeInsight(
+  categoryId: json['categoryId'] as String?,
+  displayName: json['displayName'] as String,
+  totalIncome: (json['totalIncome'] as num).toDouble(),
+  color: json['color'] as String?,
+);
+
+Map<String, dynamic> _$CategoryIncomeInsightToJson(
+  _CategoryIncomeInsight instance,
+) => <String, dynamic>{
+  'categoryId': instance.categoryId,
+  'displayName': instance.displayName,
+  'totalIncome': instance.totalIncome,
   'color': instance.color,
 };
 
@@ -121,10 +153,16 @@ _AiFinancialOverview _$AiFinancialOverviewFromJson(Map<String, dynamic> json) =>
       monthlyExpenses: (json['monthlyExpenses'] as List<dynamic>)
           .map((e) => MonthlyExpenseInsight.fromJson(e as Map<String, dynamic>))
           .toList(),
+      monthlyIncomes: (json['monthlyIncomes'] as List<dynamic>)
+          .map((e) => MonthlyIncomeInsight.fromJson(e as Map<String, dynamic>))
+          .toList(),
       topCategories: (json['topCategories'] as List<dynamic>)
           .map(
             (e) => CategoryExpenseInsight.fromJson(e as Map<String, dynamic>),
           )
+          .toList(),
+      topIncomeCategories: (json['topIncomeCategories'] as List<dynamic>)
+          .map((e) => CategoryIncomeInsight.fromJson(e as Map<String, dynamic>))
           .toList(),
       budgetForecasts: (json['budgetForecasts'] as List<dynamic>)
           .map((e) => BudgetForecastInsight.fromJson(e as Map<String, dynamic>))
@@ -136,7 +174,9 @@ Map<String, dynamic> _$AiFinancialOverviewToJson(
   _AiFinancialOverview instance,
 ) => <String, dynamic>{
   'monthlyExpenses': instance.monthlyExpenses,
+  'monthlyIncomes': instance.monthlyIncomes,
   'topCategories': instance.topCategories,
+  'topIncomeCategories': instance.topIncomeCategories,
   'budgetForecasts': instance.budgetForecasts,
   'generatedAt': instance.generatedAt.toIso8601String(),
 };

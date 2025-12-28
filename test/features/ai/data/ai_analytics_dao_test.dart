@@ -53,12 +53,29 @@ void main() {
         );
   }
 
+  Future<void> insertIncomeCategory({
+    required String id,
+    required String name,
+  }) {
+    return database
+        .into(database.categories)
+        .insert(
+          db.CategoriesCompanion(
+            id: drift.Value<String>(id),
+            name: drift.Value<String>(name),
+            type: const drift.Value<String>('income'),
+          ),
+          mode: drift.InsertMode.insertOrReplace,
+        );
+  }
+
   Future<void> insertTransaction({
     required String id,
     required String accountId,
     String? categoryId,
     required double amount,
     required DateTime date,
+    String type = 'expense',
   }) {
     return database
         .into(database.transactions)
@@ -69,7 +86,7 @@ void main() {
             categoryId: drift.Value<String?>(categoryId),
             amount: drift.Value<double>(amount),
             date: drift.Value<DateTime>(date),
-            type: const drift.Value<String>('expense'),
+            type: drift.Value<String>(type),
           ),
           mode: drift.InsertMode.insertOrReplace,
         );
@@ -191,6 +208,56 @@ void main() {
     },
   );
 
+  test(
+    'watchMonthlyIncome агрегирует доходы по месяцам и фильтру по счету',
+    () async {
+      await insertAccount(id: 'a1');
+      await insertAccount(id: 'a2');
+
+      final Stream<List<MonthlyIncomeAggregate>> stream = dao
+          .watchMonthlyIncome(
+            AiDataFilter(
+              startDate: DateTime(2024, 1, 1),
+              endDate: DateTime(2024, 12, 31),
+              accountIds: <String>['a1'],
+            ),
+          );
+
+      final Future<void> expectation = expectLater(
+        stream,
+        emitsInOrder(<dynamic>[
+          isEmpty,
+          predicate<List<MonthlyIncomeAggregate>>((
+            List<MonthlyIncomeAggregate> values,
+          ) {
+            if (values.length != 1) return false;
+            final MonthlyIncomeAggregate first = values.first;
+            return first.totalIncome == 800 &&
+                first.month.year == 2024 &&
+                first.month.month == 3;
+          }),
+        ]),
+      );
+
+      await insertTransaction(
+        id: 't_income_1',
+        accountId: 'a1',
+        amount: 800,
+        date: DateTime(2024, 3, 2),
+        type: 'income',
+      );
+      await insertTransaction(
+        id: 't_income_2',
+        accountId: 'a2',
+        amount: 500,
+        date: DateTime(2024, 3, 5),
+        type: 'income',
+      );
+
+      await expectation;
+    },
+  );
+
   test('getTopCategories ограничивает выборку и учитывает фильтры', () async {
     await insertAccount(id: 'a1');
     await insertCategory(id: 'c1', name: 'Продукты');
@@ -234,6 +301,45 @@ void main() {
     expect(result[1].displayName, 'Транспорт');
     expect(result[1].totalExpense, 80);
   });
+
+  test(
+    'getTopIncomeCategories ограничивает выборку и учитывает фильтры',
+    () async {
+      await insertAccount(id: 'a1');
+      await insertIncomeCategory(id: 'i1', name: 'Зарплата');
+      await insertIncomeCategory(id: 'i2', name: 'Фриланс');
+
+      await insertTransaction(
+        id: 't_income_1',
+        accountId: 'a1',
+        categoryId: 'i1',
+        amount: 1200,
+        date: DateTime(2024, 2, 1),
+        type: 'income',
+      );
+      await insertTransaction(
+        id: 't_income_2',
+        accountId: 'a1',
+        categoryId: 'i2',
+        amount: 500,
+        date: DateTime(2024, 2, 2),
+        type: 'income',
+      );
+
+      final List<CategoryIncomeAggregate> result = await dao
+          .getTopIncomeCategories(
+            AiDataFilter(
+              startDate: DateTime(2024, 2, 1),
+              endDate: DateTime(2024, 2, 28),
+              topCategoriesLimit: 1,
+            ),
+          );
+
+      expect(result, hasLength(1));
+      expect(result.first.displayName, 'Зарплата');
+      expect(result.first.totalIncome, 1200);
+    },
+  );
 
   test('getBudgetForecasts возвращает экземпляры бюджета в периоде', () async {
     await insertBudget(

@@ -147,10 +147,13 @@ class AiAssistantRepositoryImpl implements AiAssistantRepository {
     final List<String> categoryIds = <String>[];
 
     for (final String signal in query.contextSignals) {
-      if (signal.startsWith('period:')) {
-        final String value = signal.substring('period:'.length);
+      if (signal.startsWith('period:') || signal.startsWith('timeframe:')) {
+        final String value = signal.contains(':')
+            ? signal.substring(signal.indexOf(':') + 1)
+            : '';
         switch (value) {
           case 'current_month':
+          case 'month_to_date':
             startDate = DateTime(now.year, now.month, 1);
             endDate = DateTime(now.year, now.month + 1, 0, 23, 59, 59);
             break;
@@ -165,6 +168,10 @@ class AiAssistantRepositoryImpl implements AiAssistantRepository {
               59,
               59,
             );
+            break;
+          case 'last_30_days':
+            startDate = now.subtract(const Duration(days: 30));
+            endDate = now;
             break;
           case 'last_90_days':
             startDate = now.subtract(const Duration(days: 90));
@@ -252,10 +259,28 @@ class AiAssistantRepositoryImpl implements AiAssistantRepository {
       );
     }
 
+    userBuffer.writeln('--- Доходы по месяцам ---');
+    for (final MonthlyIncomeInsight insight
+        in overview.monthlyIncomes.sortedBy(
+          (MonthlyIncomeInsight item) => item.normalizedMonth,
+        )) {
+      userBuffer.writeln(
+        '${DateFormat.yMMMM(locale).format(insight.normalizedMonth)}: '
+        '${currency.format(insight.totalIncome)}',
+      );
+    }
+
     userBuffer.writeln('--- Топ категории расходов ---');
     for (final CategoryExpenseInsight category in overview.topCategories) {
       userBuffer.writeln(
         '${category.displayName}: ${currency.format(category.totalExpense)}',
+      );
+    }
+
+    userBuffer.writeln('--- Топ категории доходов ---');
+    for (final CategoryIncomeInsight category in overview.topIncomeCategories) {
+      userBuffer.writeln(
+        '${category.displayName}: ${currency.format(category.totalIncome)}',
       );
     }
 

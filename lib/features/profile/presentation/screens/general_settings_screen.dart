@@ -5,6 +5,8 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:kopim/features/profile/presentation/widgets/profile_theme_preferences_card.dart';
+import 'package:kopim/core/widgets/kopim_segmented_control.dart';
+import 'package:kopim/features/settings/domain/entities/data_transfer_format.dart';
 import 'package:kopim/features/settings/domain/repositories/export_file_saver.dart';
 import 'package:kopim/features/settings/domain/use_cases/import_user_data_result.dart';
 import 'package:kopim/features/settings/presentation/controllers/exact_alarm_controller.dart';
@@ -187,6 +189,7 @@ class _DataTransferSectionState extends ConsumerState<_DataTransferSection> {
   bool _isExpanded = false;
   String? _exportDirectoryPath;
   bool _isPickingDirectory = false;
+  DataTransferFormat _format = DataTransferFormat.csv;
 
   @override
   Widget build(BuildContext context) {
@@ -259,6 +262,32 @@ class _DataTransferSectionState extends ConsumerState<_DataTransferSection> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: <Widget>[
+                    Text(
+                      strings.profileDataTransferFormatLabel,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    KopimSegmentedControl<DataTransferFormat>(
+                      options: <KopimSegmentedOption<DataTransferFormat>>[
+                        KopimSegmentedOption<DataTransferFormat>(
+                          value: DataTransferFormat.csv,
+                          label: strings.profileDataTransferFormatCsv,
+                          icon: Icons.table_chart_outlined,
+                        ),
+                        KopimSegmentedOption<DataTransferFormat>(
+                          value: DataTransferFormat.json,
+                          label: strings.profileDataTransferFormatJson,
+                          icon: Icons.code_outlined,
+                        ),
+                      ],
+                      selectedValue: _format,
+                      onChanged: (DataTransferFormat value) {
+                        setState(() => _format = value);
+                      },
+                    ),
+                    const SizedBox(height: 16),
                     LayoutBuilder(
                       builder:
                           (BuildContext context, BoxConstraints constraints) {
@@ -391,7 +420,10 @@ class _DataTransferSectionState extends ConsumerState<_DataTransferSection> {
       exportUserDataControllerProvider.notifier,
     );
     final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
-    await controller.export(directoryPath: _exportDirectoryPath);
+    await controller.export(
+      directoryPath: _exportDirectoryPath,
+      format: _format,
+    );
     final AsyncValue<ExportFileSaveResult?> state = ref.read(
       exportUserDataControllerProvider,
     );
@@ -435,7 +467,7 @@ class _DataTransferSectionState extends ConsumerState<_DataTransferSection> {
       importUserDataControllerProvider.notifier,
     );
     final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
-    await controller.importData();
+    await controller.importData(format: _format);
     final AsyncValue<ImportUserDataResult?> state = ref.read(
       importUserDataControllerProvider,
     );

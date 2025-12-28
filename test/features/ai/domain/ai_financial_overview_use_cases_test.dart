@@ -66,12 +66,29 @@ void main() {
         );
   }
 
+  Future<void> insertIncomeCategory({
+    required String id,
+    required String name,
+  }) {
+    return database
+        .into(database.categories)
+        .insert(
+          db.CategoriesCompanion(
+            id: drift.Value<String>(id),
+            name: drift.Value<String>(name),
+            type: const drift.Value<String>('income'),
+          ),
+          mode: drift.InsertMode.insertOrReplace,
+        );
+  }
+
   Future<void> insertTransaction({
     required String id,
     required String accountId,
     String? categoryId,
     required double amount,
     required DateTime date,
+    String type = 'expense',
   }) {
     return database
         .into(database.transactions)
@@ -82,7 +99,7 @@ void main() {
             categoryId: drift.Value<String?>(categoryId),
             amount: drift.Value<double>(amount),
             date: drift.Value<DateTime>(date),
-            type: const drift.Value<String>('expense'),
+            type: drift.Value<String>(type),
           ),
           mode: drift.InsertMode.insertOrReplace,
         );
@@ -131,6 +148,7 @@ void main() {
   Future<void> seedBaseData() async {
     await insertAccount(id: 'a1');
     await insertCategory(id: 'c1', name: 'Продукты');
+    await insertIncomeCategory(id: 'c2', name: 'Зарплата');
     await insertBudget(
       id: 'b1',
       amount: 500,
@@ -146,6 +164,14 @@ void main() {
       categoryId: 'c1',
       amount: 200,
       date: DateTime(2024, 2, 5),
+    );
+    await insertTransaction(
+      id: 't_income_1',
+      accountId: 'a1',
+      categoryId: 'c2',
+      amount: 1200,
+      date: DateTime(2024, 2, 3),
+      type: 'income',
     );
   }
 
@@ -164,9 +190,14 @@ void main() {
 
       expect(overview.monthlyExpenses, hasLength(1));
       expect(overview.monthlyExpenses.first.totalExpense, 200);
+      expect(overview.monthlyIncomes, hasLength(1));
+      expect(overview.monthlyIncomes.first.totalIncome, 1200);
       expect(overview.topCategories, hasLength(1));
       expect(overview.topCategories.first.displayName, 'Продукты');
       expect(overview.topCategories.first.totalExpense, 200);
+      expect(overview.topIncomeCategories, hasLength(1));
+      expect(overview.topIncomeCategories.first.displayName, 'Зарплата');
+      expect(overview.topIncomeCategories.first.totalIncome, 1200);
       expect(overview.budgetForecasts, hasLength(1));
       final BudgetForecastInsight forecast = overview.budgetForecasts.first;
       expect(forecast.allocated, 500);
@@ -194,12 +225,16 @@ void main() {
         emitsInOrder(<dynamic>[
           predicate<AiFinancialOverview>((AiFinancialOverview value) {
             return value.monthlyExpenses.single.totalExpense == 200 &&
-                value.topCategories.single.totalExpense == 200;
+                value.monthlyIncomes.single.totalIncome == 1200 &&
+                value.topCategories.single.totalExpense == 200 &&
+                value.topIncomeCategories.single.totalIncome == 1200;
           }),
           emitsThrough(
             predicate<AiFinancialOverview>((AiFinancialOverview value) {
               return value.monthlyExpenses.single.totalExpense == 260 &&
-                  value.topCategories.single.totalExpense == 260;
+                  value.monthlyIncomes.single.totalIncome == 1200 &&
+                  value.topCategories.single.totalExpense == 260 &&
+                  value.topIncomeCategories.single.totalIncome == 1200;
             }),
           ),
         ]),

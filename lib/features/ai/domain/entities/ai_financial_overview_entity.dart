@@ -46,6 +46,23 @@ abstract class MonthlyExpenseInsight with _$MonthlyExpenseInsight {
   DateTime get normalizedMonth => DateTime(month.year, month.month);
 }
 
+/// Сводка доходов за месяц.
+@freezed
+abstract class MonthlyIncomeInsight with _$MonthlyIncomeInsight {
+  const MonthlyIncomeInsight._();
+
+  const factory MonthlyIncomeInsight({
+    required DateTime month,
+    required double totalIncome,
+  }) = _MonthlyIncomeInsight;
+
+  factory MonthlyIncomeInsight.fromJson(Map<String, dynamic> json) =>
+      _$MonthlyIncomeInsightFromJson(json);
+
+  /// Возвращает месяц, округляя дату к первому числу.
+  DateTime get normalizedMonth => DateTime(month.year, month.month);
+}
+
 /// Данные по расходам в категории.
 @freezed
 abstract class CategoryExpenseInsight with _$CategoryExpenseInsight {
@@ -62,6 +79,25 @@ abstract class CategoryExpenseInsight with _$CategoryExpenseInsight {
       _$CategoryExpenseInsightFromJson(json);
 
   /// Истина, если расходы не привязаны к конкретной категории.
+  bool get isUncategorized => categoryId == null || categoryId!.isEmpty;
+}
+
+/// Данные по доходам в категории.
+@freezed
+abstract class CategoryIncomeInsight with _$CategoryIncomeInsight {
+  const CategoryIncomeInsight._();
+
+  const factory CategoryIncomeInsight({
+    String? categoryId,
+    required String displayName,
+    required double totalIncome,
+    String? color,
+  }) = _CategoryIncomeInsight;
+
+  factory CategoryIncomeInsight.fromJson(Map<String, dynamic> json) =>
+      _$CategoryIncomeInsightFromJson(json);
+
+  /// Истина, если доходы не привязаны к конкретной категории.
   bool get isUncategorized => categoryId == null || categoryId!.isEmpty;
 }
 
@@ -107,7 +143,9 @@ abstract class AiFinancialOverview with _$AiFinancialOverview {
 
   const factory AiFinancialOverview({
     required List<MonthlyExpenseInsight> monthlyExpenses,
+    required List<MonthlyIncomeInsight> monthlyIncomes,
     required List<CategoryExpenseInsight> topCategories,
+    required List<CategoryIncomeInsight> topIncomeCategories,
     required List<BudgetForecastInsight> budgetForecasts,
     required DateTime generatedAt,
   }) = _AiFinancialOverview;
@@ -120,4 +158,7 @@ abstract class AiFinancialOverview with _$AiFinancialOverview {
 
   /// Указывает, доступны ли данные по топовым категориям расходов.
   bool get hasCategoryBreakdown => topCategories.isNotEmpty;
+
+  /// Указывает, доступны ли данные по топовым категориям доходов.
+  bool get hasIncomeBreakdown => topIncomeCategories.isNotEmpty;
 }

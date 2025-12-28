@@ -566,6 +566,272 @@ as double,
 
 
 /// @nodoc
+mixin _$MonthlyIncomeInsight {
+
+ DateTime get month; double get totalIncome;
+/// Create a copy of MonthlyIncomeInsight
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$MonthlyIncomeInsightCopyWith<MonthlyIncomeInsight> get copyWith => _$MonthlyIncomeInsightCopyWithImpl<MonthlyIncomeInsight>(this as MonthlyIncomeInsight, _$identity);
+
+  /// Serializes this MonthlyIncomeInsight to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is MonthlyIncomeInsight&&(identical(other.month, month) || other.month == month)&&(identical(other.totalIncome, totalIncome) || other.totalIncome == totalIncome));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,month,totalIncome);
+
+@override
+String toString() {
+  return 'MonthlyIncomeInsight(month: $month, totalIncome: $totalIncome)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $MonthlyIncomeInsightCopyWith<$Res>  {
+  factory $MonthlyIncomeInsightCopyWith(MonthlyIncomeInsight value, $Res Function(MonthlyIncomeInsight) _then) = _$MonthlyIncomeInsightCopyWithImpl;
+@useResult
+$Res call({
+ DateTime month, double totalIncome
+});
+
+
+
+
+}
+/// @nodoc
+class _$MonthlyIncomeInsightCopyWithImpl<$Res>
+    implements $MonthlyIncomeInsightCopyWith<$Res> {
+  _$MonthlyIncomeInsightCopyWithImpl(this._self, this._then);
+
+  final MonthlyIncomeInsight _self;
+  final $Res Function(MonthlyIncomeInsight) _then;
+
+/// Create a copy of MonthlyIncomeInsight
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? month = null,Object? totalIncome = null,}) {
+  return _then(_self.copyWith(
+month: null == month ? _self.month : month // ignore: cast_nullable_to_non_nullable
+as DateTime,totalIncome: null == totalIncome ? _self.totalIncome : totalIncome // ignore: cast_nullable_to_non_nullable
+as double,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [MonthlyIncomeInsight].
+extension MonthlyIncomeInsightPatterns on MonthlyIncomeInsight {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _MonthlyIncomeInsight value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _MonthlyIncomeInsight() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _MonthlyIncomeInsight value)  $default,){
+final _that = this;
+switch (_that) {
+case _MonthlyIncomeInsight():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _MonthlyIncomeInsight value)?  $default,){
+final _that = this;
+switch (_that) {
+case _MonthlyIncomeInsight() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( DateTime month,  double totalIncome)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _MonthlyIncomeInsight() when $default != null:
+return $default(_that.month,_that.totalIncome);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( DateTime month,  double totalIncome)  $default,) {final _that = this;
+switch (_that) {
+case _MonthlyIncomeInsight():
+return $default(_that.month,_that.totalIncome);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( DateTime month,  double totalIncome)?  $default,) {final _that = this;
+switch (_that) {
+case _MonthlyIncomeInsight() when $default != null:
+return $default(_that.month,_that.totalIncome);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _MonthlyIncomeInsight extends MonthlyIncomeInsight {
+  const _MonthlyIncomeInsight({required this.month, required this.totalIncome}): super._();
+  factory _MonthlyIncomeInsight.fromJson(Map<String, dynamic> json) => _$MonthlyIncomeInsightFromJson(json);
+
+@override final  DateTime month;
+@override final  double totalIncome;
+
+/// Create a copy of MonthlyIncomeInsight
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$MonthlyIncomeInsightCopyWith<_MonthlyIncomeInsight> get copyWith => __$MonthlyIncomeInsightCopyWithImpl<_MonthlyIncomeInsight>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$MonthlyIncomeInsightToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _MonthlyIncomeInsight&&(identical(other.month, month) || other.month == month)&&(identical(other.totalIncome, totalIncome) || other.totalIncome == totalIncome));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,month,totalIncome);
+
+@override
+String toString() {
+  return 'MonthlyIncomeInsight(month: $month, totalIncome: $totalIncome)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$MonthlyIncomeInsightCopyWith<$Res> implements $MonthlyIncomeInsightCopyWith<$Res> {
+  factory _$MonthlyIncomeInsightCopyWith(_MonthlyIncomeInsight value, $Res Function(_MonthlyIncomeInsight) _then) = __$MonthlyIncomeInsightCopyWithImpl;
+@override @useResult
+$Res call({
+ DateTime month, double totalIncome
+});
+
+
+
+
+}
+/// @nodoc
+class __$MonthlyIncomeInsightCopyWithImpl<$Res>
+    implements _$MonthlyIncomeInsightCopyWith<$Res> {
+  __$MonthlyIncomeInsightCopyWithImpl(this._self, this._then);
+
+  final _MonthlyIncomeInsight _self;
+  final $Res Function(_MonthlyIncomeInsight) _then;
+
+/// Create a copy of MonthlyIncomeInsight
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? month = null,Object? totalIncome = null,}) {
+  return _then(_MonthlyIncomeInsight(
+month: null == month ? _self.month : month // ignore: cast_nullable_to_non_nullable
+as DateTime,totalIncome: null == totalIncome ? _self.totalIncome : totalIncome // ignore: cast_nullable_to_non_nullable
+as double,
+  ));
+}
+
+
+}
+
+
+/// @nodoc
 mixin _$CategoryExpenseInsight {
 
  String? get categoryId; String get displayName; double get totalExpense; String? get color;
@@ -828,6 +1094,278 @@ class __$CategoryExpenseInsightCopyWithImpl<$Res>
 categoryId: freezed == categoryId ? _self.categoryId : categoryId // ignore: cast_nullable_to_non_nullable
 as String?,displayName: null == displayName ? _self.displayName : displayName // ignore: cast_nullable_to_non_nullable
 as String,totalExpense: null == totalExpense ? _self.totalExpense : totalExpense // ignore: cast_nullable_to_non_nullable
+as double,color: freezed == color ? _self.color : color // ignore: cast_nullable_to_non_nullable
+as String?,
+  ));
+}
+
+
+}
+
+
+/// @nodoc
+mixin _$CategoryIncomeInsight {
+
+ String? get categoryId; String get displayName; double get totalIncome; String? get color;
+/// Create a copy of CategoryIncomeInsight
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$CategoryIncomeInsightCopyWith<CategoryIncomeInsight> get copyWith => _$CategoryIncomeInsightCopyWithImpl<CategoryIncomeInsight>(this as CategoryIncomeInsight, _$identity);
+
+  /// Serializes this CategoryIncomeInsight to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CategoryIncomeInsight&&(identical(other.categoryId, categoryId) || other.categoryId == categoryId)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.totalIncome, totalIncome) || other.totalIncome == totalIncome)&&(identical(other.color, color) || other.color == color));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,categoryId,displayName,totalIncome,color);
+
+@override
+String toString() {
+  return 'CategoryIncomeInsight(categoryId: $categoryId, displayName: $displayName, totalIncome: $totalIncome, color: $color)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $CategoryIncomeInsightCopyWith<$Res>  {
+  factory $CategoryIncomeInsightCopyWith(CategoryIncomeInsight value, $Res Function(CategoryIncomeInsight) _then) = _$CategoryIncomeInsightCopyWithImpl;
+@useResult
+$Res call({
+ String? categoryId, String displayName, double totalIncome, String? color
+});
+
+
+
+
+}
+/// @nodoc
+class _$CategoryIncomeInsightCopyWithImpl<$Res>
+    implements $CategoryIncomeInsightCopyWith<$Res> {
+  _$CategoryIncomeInsightCopyWithImpl(this._self, this._then);
+
+  final CategoryIncomeInsight _self;
+  final $Res Function(CategoryIncomeInsight) _then;
+
+/// Create a copy of CategoryIncomeInsight
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? categoryId = freezed,Object? displayName = null,Object? totalIncome = null,Object? color = freezed,}) {
+  return _then(_self.copyWith(
+categoryId: freezed == categoryId ? _self.categoryId : categoryId // ignore: cast_nullable_to_non_nullable
+as String?,displayName: null == displayName ? _self.displayName : displayName // ignore: cast_nullable_to_non_nullable
+as String,totalIncome: null == totalIncome ? _self.totalIncome : totalIncome // ignore: cast_nullable_to_non_nullable
+as double,color: freezed == color ? _self.color : color // ignore: cast_nullable_to_non_nullable
+as String?,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [CategoryIncomeInsight].
+extension CategoryIncomeInsightPatterns on CategoryIncomeInsight {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _CategoryIncomeInsight value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _CategoryIncomeInsight() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _CategoryIncomeInsight value)  $default,){
+final _that = this;
+switch (_that) {
+case _CategoryIncomeInsight():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _CategoryIncomeInsight value)?  $default,){
+final _that = this;
+switch (_that) {
+case _CategoryIncomeInsight() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? categoryId,  String displayName,  double totalIncome,  String? color)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _CategoryIncomeInsight() when $default != null:
+return $default(_that.categoryId,_that.displayName,_that.totalIncome,_that.color);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? categoryId,  String displayName,  double totalIncome,  String? color)  $default,) {final _that = this;
+switch (_that) {
+case _CategoryIncomeInsight():
+return $default(_that.categoryId,_that.displayName,_that.totalIncome,_that.color);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? categoryId,  String displayName,  double totalIncome,  String? color)?  $default,) {final _that = this;
+switch (_that) {
+case _CategoryIncomeInsight() when $default != null:
+return $default(_that.categoryId,_that.displayName,_that.totalIncome,_that.color);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _CategoryIncomeInsight extends CategoryIncomeInsight {
+  const _CategoryIncomeInsight({this.categoryId, required this.displayName, required this.totalIncome, this.color}): super._();
+  factory _CategoryIncomeInsight.fromJson(Map<String, dynamic> json) => _$CategoryIncomeInsightFromJson(json);
+
+@override final  String? categoryId;
+@override final  String displayName;
+@override final  double totalIncome;
+@override final  String? color;
+
+/// Create a copy of CategoryIncomeInsight
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$CategoryIncomeInsightCopyWith<_CategoryIncomeInsight> get copyWith => __$CategoryIncomeInsightCopyWithImpl<_CategoryIncomeInsight>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$CategoryIncomeInsightToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CategoryIncomeInsight&&(identical(other.categoryId, categoryId) || other.categoryId == categoryId)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.totalIncome, totalIncome) || other.totalIncome == totalIncome)&&(identical(other.color, color) || other.color == color));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,categoryId,displayName,totalIncome,color);
+
+@override
+String toString() {
+  return 'CategoryIncomeInsight(categoryId: $categoryId, displayName: $displayName, totalIncome: $totalIncome, color: $color)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$CategoryIncomeInsightCopyWith<$Res> implements $CategoryIncomeInsightCopyWith<$Res> {
+  factory _$CategoryIncomeInsightCopyWith(_CategoryIncomeInsight value, $Res Function(_CategoryIncomeInsight) _then) = __$CategoryIncomeInsightCopyWithImpl;
+@override @useResult
+$Res call({
+ String? categoryId, String displayName, double totalIncome, String? color
+});
+
+
+
+
+}
+/// @nodoc
+class __$CategoryIncomeInsightCopyWithImpl<$Res>
+    implements _$CategoryIncomeInsightCopyWith<$Res> {
+  __$CategoryIncomeInsightCopyWithImpl(this._self, this._then);
+
+  final _CategoryIncomeInsight _self;
+  final $Res Function(_CategoryIncomeInsight) _then;
+
+/// Create a copy of CategoryIncomeInsight
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? categoryId = freezed,Object? displayName = null,Object? totalIncome = null,Object? color = freezed,}) {
+  return _then(_CategoryIncomeInsight(
+categoryId: freezed == categoryId ? _self.categoryId : categoryId // ignore: cast_nullable_to_non_nullable
+as String?,displayName: null == displayName ? _self.displayName : displayName // ignore: cast_nullable_to_non_nullable
+as String,totalIncome: null == totalIncome ? _self.totalIncome : totalIncome // ignore: cast_nullable_to_non_nullable
 as double,color: freezed == color ? _self.color : color // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
@@ -1148,7 +1686,7 @@ as List<String>,
 /// @nodoc
 mixin _$AiFinancialOverview {
 
- List<MonthlyExpenseInsight> get monthlyExpenses; List<CategoryExpenseInsight> get topCategories; List<BudgetForecastInsight> get budgetForecasts; DateTime get generatedAt;
+ List<MonthlyExpenseInsight> get monthlyExpenses; List<MonthlyIncomeInsight> get monthlyIncomes; List<CategoryExpenseInsight> get topCategories; List<CategoryIncomeInsight> get topIncomeCategories; List<BudgetForecastInsight> get budgetForecasts; DateTime get generatedAt;
 /// Create a copy of AiFinancialOverview
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1161,16 +1699,16 @@ $AiFinancialOverviewCopyWith<AiFinancialOverview> get copyWith => _$AiFinancialO
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AiFinancialOverview&&const DeepCollectionEquality().equals(other.monthlyExpenses, monthlyExpenses)&&const DeepCollectionEquality().equals(other.topCategories, topCategories)&&const DeepCollectionEquality().equals(other.budgetForecasts, budgetForecasts)&&(identical(other.generatedAt, generatedAt) || other.generatedAt == generatedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AiFinancialOverview&&const DeepCollectionEquality().equals(other.monthlyExpenses, monthlyExpenses)&&const DeepCollectionEquality().equals(other.monthlyIncomes, monthlyIncomes)&&const DeepCollectionEquality().equals(other.topCategories, topCategories)&&const DeepCollectionEquality().equals(other.topIncomeCategories, topIncomeCategories)&&const DeepCollectionEquality().equals(other.budgetForecasts, budgetForecasts)&&(identical(other.generatedAt, generatedAt) || other.generatedAt == generatedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(monthlyExpenses),const DeepCollectionEquality().hash(topCategories),const DeepCollectionEquality().hash(budgetForecasts),generatedAt);
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(monthlyExpenses),const DeepCollectionEquality().hash(monthlyIncomes),const DeepCollectionEquality().hash(topCategories),const DeepCollectionEquality().hash(topIncomeCategories),const DeepCollectionEquality().hash(budgetForecasts),generatedAt);
 
 @override
 String toString() {
-  return 'AiFinancialOverview(monthlyExpenses: $monthlyExpenses, topCategories: $topCategories, budgetForecasts: $budgetForecasts, generatedAt: $generatedAt)';
+  return 'AiFinancialOverview(monthlyExpenses: $monthlyExpenses, monthlyIncomes: $monthlyIncomes, topCategories: $topCategories, topIncomeCategories: $topIncomeCategories, budgetForecasts: $budgetForecasts, generatedAt: $generatedAt)';
 }
 
 
@@ -1181,7 +1719,7 @@ abstract mixin class $AiFinancialOverviewCopyWith<$Res>  {
   factory $AiFinancialOverviewCopyWith(AiFinancialOverview value, $Res Function(AiFinancialOverview) _then) = _$AiFinancialOverviewCopyWithImpl;
 @useResult
 $Res call({
- List<MonthlyExpenseInsight> monthlyExpenses, List<CategoryExpenseInsight> topCategories, List<BudgetForecastInsight> budgetForecasts, DateTime generatedAt
+ List<MonthlyExpenseInsight> monthlyExpenses, List<MonthlyIncomeInsight> monthlyIncomes, List<CategoryExpenseInsight> topCategories, List<CategoryIncomeInsight> topIncomeCategories, List<BudgetForecastInsight> budgetForecasts, DateTime generatedAt
 });
 
 
@@ -1198,11 +1736,13 @@ class _$AiFinancialOverviewCopyWithImpl<$Res>
 
 /// Create a copy of AiFinancialOverview
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? monthlyExpenses = null,Object? topCategories = null,Object? budgetForecasts = null,Object? generatedAt = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? monthlyExpenses = null,Object? monthlyIncomes = null,Object? topCategories = null,Object? topIncomeCategories = null,Object? budgetForecasts = null,Object? generatedAt = null,}) {
   return _then(_self.copyWith(
 monthlyExpenses: null == monthlyExpenses ? _self.monthlyExpenses : monthlyExpenses // ignore: cast_nullable_to_non_nullable
-as List<MonthlyExpenseInsight>,topCategories: null == topCategories ? _self.topCategories : topCategories // ignore: cast_nullable_to_non_nullable
-as List<CategoryExpenseInsight>,budgetForecasts: null == budgetForecasts ? _self.budgetForecasts : budgetForecasts // ignore: cast_nullable_to_non_nullable
+as List<MonthlyExpenseInsight>,monthlyIncomes: null == monthlyIncomes ? _self.monthlyIncomes : monthlyIncomes // ignore: cast_nullable_to_non_nullable
+as List<MonthlyIncomeInsight>,topCategories: null == topCategories ? _self.topCategories : topCategories // ignore: cast_nullable_to_non_nullable
+as List<CategoryExpenseInsight>,topIncomeCategories: null == topIncomeCategories ? _self.topIncomeCategories : topIncomeCategories // ignore: cast_nullable_to_non_nullable
+as List<CategoryIncomeInsight>,budgetForecasts: null == budgetForecasts ? _self.budgetForecasts : budgetForecasts // ignore: cast_nullable_to_non_nullable
 as List<BudgetForecastInsight>,generatedAt: null == generatedAt ? _self.generatedAt : generatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,
   ));
@@ -1289,10 +1829,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( List<MonthlyExpenseInsight> monthlyExpenses,  List<CategoryExpenseInsight> topCategories,  List<BudgetForecastInsight> budgetForecasts,  DateTime generatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( List<MonthlyExpenseInsight> monthlyExpenses,  List<MonthlyIncomeInsight> monthlyIncomes,  List<CategoryExpenseInsight> topCategories,  List<CategoryIncomeInsight> topIncomeCategories,  List<BudgetForecastInsight> budgetForecasts,  DateTime generatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _AiFinancialOverview() when $default != null:
-return $default(_that.monthlyExpenses,_that.topCategories,_that.budgetForecasts,_that.generatedAt);case _:
+return $default(_that.monthlyExpenses,_that.monthlyIncomes,_that.topCategories,_that.topIncomeCategories,_that.budgetForecasts,_that.generatedAt);case _:
   return orElse();
 
 }
@@ -1310,10 +1850,10 @@ return $default(_that.monthlyExpenses,_that.topCategories,_that.budgetForecasts,
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( List<MonthlyExpenseInsight> monthlyExpenses,  List<CategoryExpenseInsight> topCategories,  List<BudgetForecastInsight> budgetForecasts,  DateTime generatedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( List<MonthlyExpenseInsight> monthlyExpenses,  List<MonthlyIncomeInsight> monthlyIncomes,  List<CategoryExpenseInsight> topCategories,  List<CategoryIncomeInsight> topIncomeCategories,  List<BudgetForecastInsight> budgetForecasts,  DateTime generatedAt)  $default,) {final _that = this;
 switch (_that) {
 case _AiFinancialOverview():
-return $default(_that.monthlyExpenses,_that.topCategories,_that.budgetForecasts,_that.generatedAt);case _:
+return $default(_that.monthlyExpenses,_that.monthlyIncomes,_that.topCategories,_that.topIncomeCategories,_that.budgetForecasts,_that.generatedAt);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -1330,10 +1870,10 @@ return $default(_that.monthlyExpenses,_that.topCategories,_that.budgetForecasts,
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( List<MonthlyExpenseInsight> monthlyExpenses,  List<CategoryExpenseInsight> topCategories,  List<BudgetForecastInsight> budgetForecasts,  DateTime generatedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( List<MonthlyExpenseInsight> monthlyExpenses,  List<MonthlyIncomeInsight> monthlyIncomes,  List<CategoryExpenseInsight> topCategories,  List<CategoryIncomeInsight> topIncomeCategories,  List<BudgetForecastInsight> budgetForecasts,  DateTime generatedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _AiFinancialOverview() when $default != null:
-return $default(_that.monthlyExpenses,_that.topCategories,_that.budgetForecasts,_that.generatedAt);case _:
+return $default(_that.monthlyExpenses,_that.monthlyIncomes,_that.topCategories,_that.topIncomeCategories,_that.budgetForecasts,_that.generatedAt);case _:
   return null;
 
 }
@@ -1345,7 +1885,7 @@ return $default(_that.monthlyExpenses,_that.topCategories,_that.budgetForecasts,
 @JsonSerializable()
 
 class _AiFinancialOverview extends AiFinancialOverview {
-  const _AiFinancialOverview({required final  List<MonthlyExpenseInsight> monthlyExpenses, required final  List<CategoryExpenseInsight> topCategories, required final  List<BudgetForecastInsight> budgetForecasts, required this.generatedAt}): _monthlyExpenses = monthlyExpenses,_topCategories = topCategories,_budgetForecasts = budgetForecasts,super._();
+  const _AiFinancialOverview({required final  List<MonthlyExpenseInsight> monthlyExpenses, required final  List<MonthlyIncomeInsight> monthlyIncomes, required final  List<CategoryExpenseInsight> topCategories, required final  List<CategoryIncomeInsight> topIncomeCategories, required final  List<BudgetForecastInsight> budgetForecasts, required this.generatedAt}): _monthlyExpenses = monthlyExpenses,_monthlyIncomes = monthlyIncomes,_topCategories = topCategories,_topIncomeCategories = topIncomeCategories,_budgetForecasts = budgetForecasts,super._();
   factory _AiFinancialOverview.fromJson(Map<String, dynamic> json) => _$AiFinancialOverviewFromJson(json);
 
  final  List<MonthlyExpenseInsight> _monthlyExpenses;
@@ -1355,11 +1895,25 @@ class _AiFinancialOverview extends AiFinancialOverview {
   return EqualUnmodifiableListView(_monthlyExpenses);
 }
 
+ final  List<MonthlyIncomeInsight> _monthlyIncomes;
+@override List<MonthlyIncomeInsight> get monthlyIncomes {
+  if (_monthlyIncomes is EqualUnmodifiableListView) return _monthlyIncomes;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_monthlyIncomes);
+}
+
  final  List<CategoryExpenseInsight> _topCategories;
 @override List<CategoryExpenseInsight> get topCategories {
   if (_topCategories is EqualUnmodifiableListView) return _topCategories;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_topCategories);
+}
+
+ final  List<CategoryIncomeInsight> _topIncomeCategories;
+@override List<CategoryIncomeInsight> get topIncomeCategories {
+  if (_topIncomeCategories is EqualUnmodifiableListView) return _topIncomeCategories;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_topIncomeCategories);
 }
 
  final  List<BudgetForecastInsight> _budgetForecasts;
@@ -1384,16 +1938,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AiFinancialOverview&&const DeepCollectionEquality().equals(other._monthlyExpenses, _monthlyExpenses)&&const DeepCollectionEquality().equals(other._topCategories, _topCategories)&&const DeepCollectionEquality().equals(other._budgetForecasts, _budgetForecasts)&&(identical(other.generatedAt, generatedAt) || other.generatedAt == generatedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AiFinancialOverview&&const DeepCollectionEquality().equals(other._monthlyExpenses, _monthlyExpenses)&&const DeepCollectionEquality().equals(other._monthlyIncomes, _monthlyIncomes)&&const DeepCollectionEquality().equals(other._topCategories, _topCategories)&&const DeepCollectionEquality().equals(other._topIncomeCategories, _topIncomeCategories)&&const DeepCollectionEquality().equals(other._budgetForecasts, _budgetForecasts)&&(identical(other.generatedAt, generatedAt) || other.generatedAt == generatedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_monthlyExpenses),const DeepCollectionEquality().hash(_topCategories),const DeepCollectionEquality().hash(_budgetForecasts),generatedAt);
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_monthlyExpenses),const DeepCollectionEquality().hash(_monthlyIncomes),const DeepCollectionEquality().hash(_topCategories),const DeepCollectionEquality().hash(_topIncomeCategories),const DeepCollectionEquality().hash(_budgetForecasts),generatedAt);
 
 @override
 String toString() {
-  return 'AiFinancialOverview(monthlyExpenses: $monthlyExpenses, topCategories: $topCategories, budgetForecasts: $budgetForecasts, generatedAt: $generatedAt)';
+  return 'AiFinancialOverview(monthlyExpenses: $monthlyExpenses, monthlyIncomes: $monthlyIncomes, topCategories: $topCategories, topIncomeCategories: $topIncomeCategories, budgetForecasts: $budgetForecasts, generatedAt: $generatedAt)';
 }
 
 
@@ -1404,7 +1958,7 @@ abstract mixin class _$AiFinancialOverviewCopyWith<$Res> implements $AiFinancial
   factory _$AiFinancialOverviewCopyWith(_AiFinancialOverview value, $Res Function(_AiFinancialOverview) _then) = __$AiFinancialOverviewCopyWithImpl;
 @override @useResult
 $Res call({
- List<MonthlyExpenseInsight> monthlyExpenses, List<CategoryExpenseInsight> topCategories, List<BudgetForecastInsight> budgetForecasts, DateTime generatedAt
+ List<MonthlyExpenseInsight> monthlyExpenses, List<MonthlyIncomeInsight> monthlyIncomes, List<CategoryExpenseInsight> topCategories, List<CategoryIncomeInsight> topIncomeCategories, List<BudgetForecastInsight> budgetForecasts, DateTime generatedAt
 });
 
 
@@ -1421,11 +1975,13 @@ class __$AiFinancialOverviewCopyWithImpl<$Res>
 
 /// Create a copy of AiFinancialOverview
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? monthlyExpenses = null,Object? topCategories = null,Object? budgetForecasts = null,Object? generatedAt = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? monthlyExpenses = null,Object? monthlyIncomes = null,Object? topCategories = null,Object? topIncomeCategories = null,Object? budgetForecasts = null,Object? generatedAt = null,}) {
   return _then(_AiFinancialOverview(
 monthlyExpenses: null == monthlyExpenses ? _self._monthlyExpenses : monthlyExpenses // ignore: cast_nullable_to_non_nullable
-as List<MonthlyExpenseInsight>,topCategories: null == topCategories ? _self._topCategories : topCategories // ignore: cast_nullable_to_non_nullable
-as List<CategoryExpenseInsight>,budgetForecasts: null == budgetForecasts ? _self._budgetForecasts : budgetForecasts // ignore: cast_nullable_to_non_nullable
+as List<MonthlyExpenseInsight>,monthlyIncomes: null == monthlyIncomes ? _self._monthlyIncomes : monthlyIncomes // ignore: cast_nullable_to_non_nullable
+as List<MonthlyIncomeInsight>,topCategories: null == topCategories ? _self._topCategories : topCategories // ignore: cast_nullable_to_non_nullable
+as List<CategoryExpenseInsight>,topIncomeCategories: null == topIncomeCategories ? _self._topIncomeCategories : topIncomeCategories // ignore: cast_nullable_to_non_nullable
+as List<CategoryIncomeInsight>,budgetForecasts: null == budgetForecasts ? _self._budgetForecasts : budgetForecasts // ignore: cast_nullable_to_non_nullable
 as List<BudgetForecastInsight>,generatedAt: null == generatedAt ? _self.generatedAt : generatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,
   ));

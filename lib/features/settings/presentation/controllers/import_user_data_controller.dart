@@ -1,7 +1,9 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:kopim/core/di/injectors.dart';
+import 'package:kopim/features/settings/domain/entities/data_transfer_format.dart';
 import 'package:kopim/features/settings/domain/use_cases/import_user_data_result.dart';
+import 'package:kopim/features/settings/domain/use_cases/import_user_data_use_case.dart';
 
 part 'import_user_data_controller.g.dart';
 
@@ -12,7 +14,9 @@ class ImportUserDataController extends _$ImportUserDataController {
     return const AsyncValue<ImportUserDataResult?>.data(null);
   }
 
-  Future<void> importData() async {
+  Future<void> importData({
+    DataTransferFormat format = DataTransferFormat.csv,
+  }) async {
     if (state.isLoading) {
       return;
     }
@@ -20,7 +24,7 @@ class ImportUserDataController extends _$ImportUserDataController {
     try {
       final ImportUserDataResult result = await ref
           .read(importUserDataUseCaseProvider)
-          .call();
+          .call(ImportUserDataParams(format: format));
       if (!ref.mounted) {
         return;
       }

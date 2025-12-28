@@ -34,17 +34,23 @@
 AnalyticsBarChart(
   items: [
     AnalyticsChartItem(
-      absoluteAmount: 1500.0,
+      key: 'shopping',
+      title: 'Покупки',
+      amount: 1500.0,
       color: Colors.blue,
       icon: Icons.shopping_cart,
     ),
     AnalyticsChartItem(
-      absoluteAmount: 2300.0,
+      key: 'restaurant',
+      title: 'Рестораны',
+      amount: 2300.0,
       color: Colors.green,
       icon: Icons.restaurant,
     ),
     AnalyticsChartItem(
-      absoluteAmount: 800.0,
+      key: 'car',
+      title: 'Транспорт',
+      amount: 800.0,
       color: Colors.orange,
       icon: Icons.directions_car,
     ),

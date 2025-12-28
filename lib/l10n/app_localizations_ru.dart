@@ -50,6 +50,15 @@ class AppLocalizationsRu extends AppLocalizations {
   String get profileExportDataCta => 'Экспортировать данные';
 
   @override
+  String get profileDataTransferFormatLabel => 'Формат файла';
+
+  @override
+  String get profileDataTransferFormatCsv => 'CSV';
+
+  @override
+  String get profileDataTransferFormatJson => 'JSON';
+
+  @override
   String get profileExportDataSuccess => 'Экспорт завершён успешно.';
 
   @override

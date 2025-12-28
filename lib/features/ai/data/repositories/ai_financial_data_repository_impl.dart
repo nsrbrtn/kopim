@@ -26,8 +26,12 @@ class AiFinancialDataRepositoryImpl implements AiFinancialDataRepository {
   }) async {
     final List<MonthlyExpenseAggregate> monthlyExpenses = await _analyticsDao
         .getMonthlyExpenses(filter);
+    final List<MonthlyIncomeAggregate> monthlyIncome = await _analyticsDao
+        .getMonthlyIncome(filter);
     final List<CategoryExpenseAggregate> topCategories = await _analyticsDao
         .getTopCategories(filter);
+    final List<CategoryIncomeAggregate> topIncomeCategories =
+        await _analyticsDao.getTopIncomeCategories(filter);
     final List<BudgetInstanceAggregate> budgetInstances = await _analyticsDao
         .getBudgetForecasts(filter);
 
@@ -39,7 +43,9 @@ class AiFinancialDataRepositoryImpl implements AiFinancialDataRepository {
 
     return _composeOverview(
       monthlyExpenses: monthlyExpenses,
+      monthlyIncome: monthlyIncome,
       topCategories: topCategories,
+      topIncomeCategories: topIncomeCategories,
       budgetInstances: budgetInstances,
       categoryNamesMap: categoryNames,
       filter: filter,
@@ -52,14 +58,18 @@ class AiFinancialDataRepositoryImpl implements AiFinancialDataRepository {
       StreamController<AiFinancialOverview> controller,
     ) {
       List<MonthlyExpenseAggregate>? monthly;
+      List<MonthlyIncomeAggregate>? incomes;
       List<CategoryExpenseAggregate>? categories;
+      List<CategoryIncomeAggregate>? incomeCategories;
       List<BudgetInstanceAggregate>? budgets;
       bool isClosed = false;
 
       void emitIfReady() async {
         if (isClosed ||
             monthly == null ||
+            incomes == null ||
             categories == null ||
+            incomeCategories == null ||
             budgets == null) {
           return;
         }
@@ -78,7 +88,9 @@ class AiFinancialDataRepositoryImpl implements AiFinancialDataRepository {
         controller.add(
           _composeOverview(
             monthlyExpenses: monthly!,
+            monthlyIncome: incomes!,
             topCategories: categories!,
+            topIncomeCategories: incomeCategories!,
             budgetInstances: budgets!,
             categoryNamesMap: categoryNames,
             filter: filter,
@@ -93,6 +105,13 @@ class AiFinancialDataRepositoryImpl implements AiFinancialDataRepository {
             monthly = data;
             emitIfReady();
           });
+      final StreamSubscription<List<MonthlyIncomeAggregate>> incomeSub =
+          _analyticsDao.watchMonthlyIncome(filter).listen((
+            List<MonthlyIncomeAggregate> data,
+          ) {
+            incomes = data;
+            emitIfReady();
+          });
       final StreamSubscription<List<CategoryExpenseAggregate>> categoriesSub =
           _analyticsDao.watchTopCategories(filter).listen((
             List<CategoryExpenseAggregate> data,
@@ -100,6 +119,13 @@ class AiFinancialDataRepositoryImpl implements AiFinancialDataRepository {
             categories = data;
             emitIfReady();
           });
+      final StreamSubscription<List<CategoryIncomeAggregate>>
+      incomeCategoriesSub = _analyticsDao.watchTopIncomeCategories(filter).listen((
+        List<CategoryIncomeAggregate> data,
+      ) {
+        incomeCategories = data;
+        emitIfReady();
+      });
       final StreamSubscription<List<BudgetInstanceAggregate>> budgetsSub =
           _analyticsDao.watchBudgetForecasts(filter).listen((
             List<BudgetInstanceAggregate> data,
@@ -112,7 +138,9 @@ class AiFinancialDataRepositoryImpl implements AiFinancialDataRepository {
         isClosed = true;
         await Future.wait<void>(<Future<void>>[
           monthlySub.cancel(),
+          incomeSub.cancel(),
           categoriesSub.cancel(),
+          incomeCategoriesSub.cancel(),
           budgetsSub.cancel(),
         ]);
       };
@@ -121,7 +149,9 @@ class AiFinancialDataRepositoryImpl implements AiFinancialDataRepository {
 
   AiFinancialOverview _composeOverview({
     required List<MonthlyExpenseAggregate> monthlyExpenses,
+    required List<MonthlyIncomeAggregate> monthlyIncome,
     required List<CategoryExpenseAggregate> topCategories,
+    required List<CategoryIncomeAggregate> topIncomeCategories,
     required List<BudgetInstanceAggregate> budgetInstances,
     required Map<String, String> categoryNamesMap,
     required AiDataFilter filter,
@@ -137,12 +167,33 @@ class AiFinancialDataRepositoryImpl implements AiFinancialDataRepository {
         )
         .toList(growable: false);
 
+    final List<MonthlyIncomeInsight> monthlyIncomeInsights = monthlyIncome
+        .sortedBy<DateTime>((MonthlyIncomeAggregate value) => value.month)
+        .map(
+          (MonthlyIncomeAggregate aggregate) => MonthlyIncomeInsight(
+            month: DateTime(aggregate.month.year, aggregate.month.month),
+            totalIncome: aggregate.totalIncome,
+          ),
+        )
+        .toList(growable: false);
+
     final List<CategoryExpenseInsight> categoryInsights = topCategories
         .map(
           (CategoryExpenseAggregate aggregate) => CategoryExpenseInsight(
             categoryId: aggregate.categoryId,
             displayName: aggregate.displayName,
             totalExpense: aggregate.totalExpense,
+            color: aggregate.color,
+          ),
+        )
+        .toList(growable: false);
+
+    final List<CategoryIncomeInsight> incomeInsights = topIncomeCategories
+        .map(
+          (CategoryIncomeAggregate aggregate) => CategoryIncomeInsight(
+            categoryId: aggregate.categoryId,
+            displayName: aggregate.displayName,
+            totalIncome: aggregate.totalIncome,
             color: aggregate.color,
           ),
         )
@@ -161,7 +212,9 @@ class AiFinancialDataRepositoryImpl implements AiFinancialDataRepository {
 
     return AiFinancialOverview(
       monthlyExpenses: monthlyInsights,
+      monthlyIncomes: monthlyIncomeInsights,
       topCategories: categoryInsights,
+      topIncomeCategories: incomeInsights,
       budgetForecasts: budgetForecasts,
       generatedAt: generatedAt,
     );

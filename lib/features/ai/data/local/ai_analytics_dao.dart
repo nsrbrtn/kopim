@@ -13,6 +13,13 @@ class MonthlyExpenseAggregate {
   final double totalExpense;
 }
 
+class MonthlyIncomeAggregate {
+  MonthlyIncomeAggregate({required this.month, required this.totalIncome});
+
+  final DateTime month;
+  final double totalIncome;
+}
+
 class CategoryExpenseAggregate {
   CategoryExpenseAggregate({
     required this.categoryId,
@@ -24,6 +31,20 @@ class CategoryExpenseAggregate {
   final String? categoryId;
   final String displayName;
   final double totalExpense;
+  final String? color;
+}
+
+class CategoryIncomeAggregate {
+  CategoryIncomeAggregate({
+    required this.categoryId,
+    required this.displayName,
+    required this.totalIncome,
+    required this.color,
+  });
+
+  final String? categoryId;
+  final String displayName;
+  final double totalIncome;
   final String? color;
 }
 
@@ -70,6 +91,20 @@ class AiAnalyticsDao {
     );
   }
 
+  Future<List<MonthlyIncomeAggregate>> getMonthlyIncome(
+    AiDataFilter filter,
+  ) async {
+    final QueryResult rows = await _monthlyIncomeQuery(filter).get();
+    return rows.map(_mapMonthlyIncome).toList(growable: false);
+  }
+
+  Stream<List<MonthlyIncomeAggregate>> watchMonthlyIncome(AiDataFilter filter) {
+    return _monthlyIncomeQuery(filter).watch().map(
+      (QueryResult rows) =>
+          rows.map(_mapMonthlyIncome).toList(growable: false),
+    );
+  }
+
   Future<List<CategoryExpenseAggregate>> getTopCategories(
     AiDataFilter filter,
   ) async {
@@ -83,6 +118,22 @@ class AiAnalyticsDao {
     return _topCategoriesQuery(filter).watch().map(
       (QueryResult rows) =>
           rows.map(_mapCategoryExpense).toList(growable: false),
+    );
+  }
+
+  Future<List<CategoryIncomeAggregate>> getTopIncomeCategories(
+    AiDataFilter filter,
+  ) async {
+    final QueryResult rows = await _topIncomeCategoriesQuery(filter).get();
+    return rows.map(_mapCategoryIncome).toList(growable: false);
+  }
+
+  Stream<List<CategoryIncomeAggregate>> watchTopIncomeCategories(
+    AiDataFilter filter,
+  ) {
+    return _topIncomeCategoriesQuery(filter).watch().map(
+      (QueryResult rows) =>
+          rows.map(_mapCategoryIncome).toList(growable: false),
     );
   }
 
@@ -122,6 +173,26 @@ WHERE is_deleted = 0 AND type = ?
     );
   }
 
+  Selectable<QueryRow> _monthlyIncomeQuery(AiDataFilter filter) {
+    final StringBuffer sql = StringBuffer('''
+SELECT strftime('%Y-%m-01', ${_getNormalizedDateExpr('date')}) AS month,
+       SUM(amount) AS total
+FROM transactions
+WHERE is_deleted = 0 AND type = ?
+''');
+    // ignore: always_specify_types
+    final List<Variable> variables = <Variable>[
+      Variable<String>(TransactionType.income.storageValue),
+    ];
+    _applyTransactionFilters(sql, variables, filter);
+    sql.write('GROUP BY month ORDER BY month DESC');
+    return _db.customSelect(
+      sql.toString(),
+      variables: variables,
+      readsFrom: <TableInfo<dynamic, dynamic>>{_db.transactions},
+    );
+  }
+
   Selectable<QueryRow> _topCategoriesQuery(AiDataFilter filter) {
     final StringBuffer sql = StringBuffer('''
 SELECT c.id AS category_id,
@@ -135,6 +206,35 @@ WHERE t.is_deleted = 0 AND t.type = ?
     // ignore: always_specify_types
     final List<Variable> variables = <Variable>[
       Variable<String>(TransactionType.expense.storageValue),
+    ];
+    _applyTransactionFilters(sql, variables, filter, tableAlias: 't');
+    sql
+      ..write(' GROUP BY c.id, c.name, c.color ')
+      ..write('ORDER BY total DESC ')
+      ..write('LIMIT ${filter.topCategoriesLimit}');
+    return _db.customSelect(
+      sql.toString(),
+      variables: variables,
+      readsFrom: <TableInfo<dynamic, dynamic>>{
+        _db.transactions,
+        _db.categories,
+      },
+    );
+  }
+
+  Selectable<QueryRow> _topIncomeCategoriesQuery(AiDataFilter filter) {
+    final StringBuffer sql = StringBuffer('''
+SELECT c.id AS category_id,
+       COALESCE(c.name, 'Без категории') AS display_name,
+       COALESCE(c.color, '') AS color,
+       SUM(t.amount) AS total
+FROM transactions t
+LEFT JOIN categories c ON c.id = t.category_id
+WHERE t.is_deleted = 0 AND t.type = ?
+''');
+    // ignore: always_specify_types
+    final List<Variable> variables = <Variable>[
+      Variable<String>(TransactionType.income.storageValue),
     ];
     _applyTransactionFilters(sql, variables, filter, tableAlias: 't');
     sql
@@ -238,6 +338,13 @@ WHERE t.is_deleted = 0 AND t.type = ?
     return MonthlyExpenseAggregate(month: month, totalExpense: total);
   }
 
+  MonthlyIncomeAggregate _mapMonthlyIncome(QueryRow row) {
+    final String monthValue = row.read<String>('month');
+    final DateTime month = DateTime.parse(monthValue);
+    final double total = row.read<double?>('total') ?? 0;
+    return MonthlyIncomeAggregate(month: month, totalIncome: total);
+  }
+
   CategoryExpenseAggregate _mapCategoryExpense(QueryRow row) {
     final String? categoryId = row.read<String?>('category_id');
     final String displayName = row.read<String>('display_name');
@@ -247,6 +354,19 @@ WHERE t.is_deleted = 0 AND t.type = ?
       categoryId: categoryId?.isEmpty ?? true ? null : categoryId,
       displayName: displayName,
       totalExpense: total,
+      color: color.isEmpty ? null : color,
+    );
+  }
+
+  CategoryIncomeAggregate _mapCategoryIncome(QueryRow row) {
+    final String? categoryId = row.read<String?>('category_id');
+    final String displayName = row.read<String>('display_name');
+    final String color = row.read<String>('color');
+    final double total = row.read<double?>('total') ?? 0;
+    return CategoryIncomeAggregate(
+      categoryId: categoryId?.isEmpty ?? true ? null : categoryId,
+      displayName: displayName,
+      totalIncome: total,
       color: color.isEmpty ? null : color,
     );
   }

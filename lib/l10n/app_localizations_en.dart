@@ -49,6 +49,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileExportDataCta => 'Export data';
 
   @override
+  String get profileDataTransferFormatLabel => 'File format';
+
+  @override
+  String get profileDataTransferFormatCsv => 'CSV';
+
+  @override
+  String get profileDataTransferFormatJson => 'JSON';
+
+  @override
   String get profileExportDataSuccess => 'Data exported successfully.';
 
   @override

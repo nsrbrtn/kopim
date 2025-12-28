@@ -49,6 +49,18 @@
   "@profileExportDataCta": {
     "description": "Кнопка запуска экспорта пользовательских данных"
   },
+  "profileDataTransferFormatLabel": "Формат файла",
+  "@profileDataTransferFormatLabel": {
+    "description": "Подпись для выбора формата импорта/экспорта"
+  },
+  "profileDataTransferFormatCsv": "CSV",
+  "@profileDataTransferFormatCsv": {
+    "description": "Подпись формата CSV"
+  },
+  "profileDataTransferFormatJson": "JSON",
+  "@profileDataTransferFormatJson": {
+    "description": "Подпись формата JSON"
+  },
   "profileExportDataSuccess": "Экспорт завершён успешно.",
   "@profileExportDataSuccess": {
     "description": "Сообщение при успешном экспорте без пути к файлу"

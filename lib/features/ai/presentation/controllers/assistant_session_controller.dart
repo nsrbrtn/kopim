@@ -377,9 +377,9 @@ class AssistantSessionController extends _$AssistantSessionController {
     for (final AssistantFilter filter in filters) {
       switch (filter) {
         case AssistantFilter.currentMonth:
-          signals.add('timeframe:month_to_date');
+          signals.add('period:current_month');
         case AssistantFilter.last30Days:
-          signals.add('timeframe:last_30_days');
+          signals.add('period:last_30_days');
         case AssistantFilter.budgetsOnly:
           signals.add('focus:budgets');
       }

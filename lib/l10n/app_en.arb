@@ -49,6 +49,18 @@
   "@profileExportDataCta": {
     "description": "Button that starts the user data export flow"
   },
+  "profileDataTransferFormatLabel": "File format",
+  "@profileDataTransferFormatLabel": {
+    "description": "Label for selecting the import/export file format"
+  },
+  "profileDataTransferFormatCsv": "CSV",
+  "@profileDataTransferFormatCsv": {
+    "description": "CSV format label"
+  },
+  "profileDataTransferFormatJson": "JSON",
+  "@profileDataTransferFormatJson": {
+    "description": "JSON format label"
+  },
   "profileExportDataSuccess": "Data exported successfully.",
   "@profileExportDataSuccess": {
     "description": "Shown when export finishes without a target path"

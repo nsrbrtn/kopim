@@ -84,6 +84,7 @@ void main() {
 
     expect(find.text(strings.profileExportDataCta), findsOneWidget);
     expect(find.text(strings.profileImportDataCta), findsOneWidget);
+    expect(find.text(strings.profileDataTransferFormatLabel), findsOneWidget);
   });
 }
 

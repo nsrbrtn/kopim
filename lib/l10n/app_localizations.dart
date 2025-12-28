@@ -176,6 +176,24 @@ abstract class AppLocalizations {
   /// **'Export data'**
   String get profileExportDataCta;
 
+  /// Label for selecting the import/export file format
+  ///
+  /// In en, this message translates to:
+  /// **'File format'**
+  String get profileDataTransferFormatLabel;
+
+  /// CSV format label
+  ///
+  /// In en, this message translates to:
+  /// **'CSV'**
+  String get profileDataTransferFormatCsv;
+
+  /// JSON format label
+  ///
+  /// In en, this message translates to:
+  /// **'JSON'**
+  String get profileDataTransferFormatJson;
+
   /// Shown when export finishes without a target path
   ///
   /// In en, this message translates to:

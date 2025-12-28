@@ -6,11 +6,14 @@ import 'package:mocktail/mocktail.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/settings/domain/entities/export_bundle.dart';
+import 'package:kopim/features/settings/domain/entities/data_transfer_format.dart';
 import 'package:kopim/features/settings/domain/entities/picked_import_file.dart';
 import 'package:kopim/features/settings/domain/repositories/import_data_repository.dart';
+import 'package:kopim/features/settings/domain/services/export_bundle_csv_decoder.dart';
 import 'package:kopim/features/settings/domain/services/export_bundle_json_decoder.dart';
 import 'package:kopim/features/settings/domain/services/import_file_picker.dart';
 import 'package:kopim/features/settings/domain/use_cases/import_user_data_result.dart';
+import 'package:kopim/features/settings/domain/use_cases/import_user_data_use_case.dart';
 import 'package:kopim/features/settings/domain/use_cases/import_user_data_use_case_impl.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 
@@ -19,33 +22,44 @@ class _MockImportFilePicker extends Mock implements ImportFilePicker {}
 class _MockExportBundleJsonDecoder extends Mock
     implements ExportBundleJsonDecoder {}
 
+class _MockExportBundleCsvDecoder extends Mock
+    implements ExportBundleCsvDecoder {}
+
 class _MockImportDataRepository extends Mock implements ImportDataRepository {}
 
 void main() {
   late _MockImportFilePicker filePicker;
   late _MockExportBundleJsonDecoder decoder;
+  late _MockExportBundleCsvDecoder csvDecoder;
   late _MockImportDataRepository repository;
   late ImportUserDataUseCaseImpl useCase;
 
   setUp(() {
     filePicker = _MockImportFilePicker();
     decoder = _MockExportBundleJsonDecoder();
+    csvDecoder = _MockExportBundleCsvDecoder();
     repository = _MockImportDataRepository();
     useCase = ImportUserDataUseCaseImpl(
       filePicker: filePicker,
-      decoder: decoder,
+      jsonDecoder: decoder,
+      csvDecoder: csvDecoder,
       repository: repository,
     );
   });
 
   test('returns cancelled when user dismisses picker', () async {
-    when(() => filePicker.pickJsonFile()).thenAnswer((_) async => null);
+    when(
+      () => filePicker.pickFile(DataTransferFormat.csv),
+    ).thenAnswer((_) async => null);
 
-    final ImportUserDataResult result = await useCase();
+    final ImportUserDataResult result = await useCase(
+      const ImportUserDataParams(),
+    );
 
     expect(result, const ImportUserDataResult.cancelled());
-    verify(() => filePicker.pickJsonFile()).called(1);
+    verify(() => filePicker.pickFile(DataTransferFormat.csv)).called(1);
     verifyNoMoreInteractions(decoder);
+    verifyNoMoreInteractions(csvDecoder);
     verifyNoMoreInteractions(repository);
   });
 
@@ -92,7 +106,9 @@ void main() {
       ],
     );
 
-    when(() => filePicker.pickJsonFile()).thenAnswer((_) async => pickedFile);
+    when(
+      () => filePicker.pickFile(DataTransferFormat.json),
+    ).thenAnswer((_) async => pickedFile);
     when(() => decoder.decode(pickedFile.bytes)).thenReturn(bundle);
     when(
       () => repository.upsertAccounts(bundle.accounts),
@@ -104,7 +120,9 @@ void main() {
       () => repository.upsertTransactions(bundle.transactions),
     ).thenAnswer((_) async {});
 
-    final ImportUserDataResult result = await useCase();
+    final ImportUserDataResult result = await useCase(
+      const ImportUserDataParams(format: DataTransferFormat.json),
+    );
 
     expect(result, isA<ImportUserDataResultSuccess>());
     result.map(
@@ -122,18 +140,55 @@ void main() {
     verify(() => repository.upsertTransactions(bundle.transactions)).called(1);
   });
 
+  test('uses csv decoder by default', () async {
+    final PickedImportFile pickedFile = PickedImportFile(
+      fileName: 'backup.csv',
+      bytes: Uint8List(0),
+    );
+    final ExportBundle bundle = ExportBundle(
+      schemaVersion: '1.0.0',
+      generatedAt: DateTime.utc(2024, 1, 1),
+    );
+
+    when(
+      () => filePicker.pickFile(DataTransferFormat.csv),
+    ).thenAnswer((_) async => pickedFile);
+    when(() => csvDecoder.decode(pickedFile.bytes)).thenReturn(bundle);
+    when(
+      () => repository.upsertAccounts(bundle.accounts),
+    ).thenAnswer((_) async {});
+    when(
+      () => repository.upsertCategories(bundle.categories),
+    ).thenAnswer((_) async {});
+    when(
+      () => repository.upsertTransactions(bundle.transactions),
+    ).thenAnswer((_) async {});
+
+    final ImportUserDataResult result = await useCase(
+      const ImportUserDataParams(),
+    );
+
+    expect(result, isA<ImportUserDataResultSuccess>());
+    verify(() => csvDecoder.decode(pickedFile.bytes)).called(1);
+    verifyNever(() => decoder.decode(pickedFile.bytes));
+  });
+
   test('returns failure when decoder throws FormatException', () async {
     final PickedImportFile pickedFile = PickedImportFile(
       fileName: 'backup.json',
       bytes: Uint8List(0),
     );
 
-    when(() => filePicker.pickJsonFile()).thenAnswer((_) async => pickedFile);
+    when(
+      () => filePicker.pickFile(DataTransferFormat.json),
+    ).thenAnswer((_) async => pickedFile);
     when(
       () => decoder.decode(pickedFile.bytes),
     ).thenThrow(const FormatException('Invalid JSON'));
 
-    final ImportUserDataResult result = await useCase();
+    final ImportUserDataResult result = await useCase(
+      const ImportUserDataParams(format: DataTransferFormat.json),
+    );
 
     expect(result, const ImportUserDataResult.failure('Invalid JSON'));
   });
@@ -148,13 +203,17 @@ void main() {
       generatedAt: DateTime.utc(2024, 1, 1),
     );
 
-    when(() => filePicker.pickJsonFile()).thenAnswer((_) async => pickedFile);
+    when(
+      () => filePicker.pickFile(DataTransferFormat.json),
+    ).thenAnswer((_) async => pickedFile);
     when(() => decoder.decode(pickedFile.bytes)).thenReturn(bundle);
     when(
       () => repository.upsertAccounts(bundle.accounts),
     ).thenThrow(Exception('db error'));
 
-    final ImportUserDataResult result = await useCase();
+    final ImportUserDataResult result = await useCase(
+      const ImportUserDataParams(format: DataTransferFormat.json),
+    );
 
     expect(result, const ImportUserDataResult.failure('Exception: db error'));
   });

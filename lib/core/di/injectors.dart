@@ -99,6 +99,8 @@ import 'package:kopim/features/settings/data/services/import_file_picker/import_
 import 'package:kopim/features/settings/domain/repositories/export_data_repository.dart';
 import 'package:kopim/features/settings/domain/repositories/export_file_saver.dart';
 import 'package:kopim/features/settings/domain/repositories/import_data_repository.dart';
+import 'package:kopim/features/settings/domain/services/export_bundle_csv_decoder.dart';
+import 'package:kopim/features/settings/domain/services/export_bundle_csv_encoder.dart';
 import 'package:kopim/features/settings/domain/services/export_bundle_json_decoder.dart';
 import 'package:kopim/features/settings/domain/services/export_bundle_json_encoder.dart';
 import 'package:kopim/features/settings/domain/services/import_file_picker.dart';
@@ -335,7 +337,8 @@ PrepareExportBundleUseCase prepareExportBundleUseCase(Ref ref) =>
 ExportUserDataUseCase exportUserDataUseCase(Ref ref) =>
     ExportUserDataUseCaseImpl(
       prepareExportBundle: ref.watch(prepareExportBundleUseCaseProvider),
-      encoder: ref.watch(exportBundleJsonEncoderProvider),
+      jsonEncoder: ref.watch(exportBundleJsonEncoderProvider),
+      csvEncoder: const ExportBundleCsvEncoder(),
       fileSaver: ref.watch(exportFileSaverProvider),
     );
 
@@ -350,7 +353,8 @@ ImportDataRepository importDataRepository(Ref ref) => ImportDataRepositoryImpl(
 ImportUserDataUseCase importUserDataUseCase(Ref ref) =>
     ImportUserDataUseCaseImpl(
       filePicker: ref.watch(importFilePickerProvider),
-      decoder: ref.watch(exportBundleJsonDecoderProvider),
+      jsonDecoder: ref.watch(exportBundleJsonDecoderProvider),
+      csvDecoder: const ExportBundleCsvDecoder(),
       repository: ref.watch(importDataRepositoryProvider),
     );
 
