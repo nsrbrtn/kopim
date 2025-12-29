@@ -156,7 +156,11 @@ class TransactionDraftState {
 
 final StreamProvider<List<AccountEntity>> transactionFormAccountsProvider =
     StreamProvider.autoDispose<List<AccountEntity>>((Ref ref) {
-      return ref.watch(watchAccountsUseCaseProvider).call();
+      return ref.watch(watchAccountsUseCaseProvider).call().map((
+        List<AccountEntity> accounts,
+      ) {
+        return accounts.where((AccountEntity a) => a.type != 'credit').toList();
+      });
     });
 
 final StreamProvider<List<Category>> transactionFormCategoriesProvider =

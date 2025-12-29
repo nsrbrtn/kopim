@@ -7,12 +7,15 @@ import 'package:kopim/features/transactions/domain/entities/transaction_type.dar
 import 'package:kopim/features/transactions/domain/repositories/transaction_repository.dart';
 import 'package:kopim/features/transactions/domain/models/transaction_command_result.dart';
 import 'package:kopim/features/transactions/domain/use_cases/add_transaction_use_case.dart';
+import 'package:kopim/features/credits/domain/repositories/credit_repository.dart';
 import 'package:mocktail/mocktail.dart';
 
 class _MockTransactionRepository extends Mock
     implements TransactionRepository {}
 
 class _MockAccountRepository extends Mock implements AccountRepository {}
+
+class _MockCreditRepository extends Mock implements CreditRepository {}
 
 void main() {
   setUpAll(() {
@@ -44,18 +47,25 @@ void main() {
 
   late _MockTransactionRepository transactionRepository;
   late _MockAccountRepository accountRepository;
+  late _MockCreditRepository creditRepository;
   late AddTransactionUseCase useCase;
   final DateTime fixedNow = DateTime.utc(2024, 1, 1, 12);
 
   setUp(() {
     transactionRepository = _MockTransactionRepository();
     accountRepository = _MockAccountRepository();
+    creditRepository = _MockCreditRepository();
     useCase = AddTransactionUseCase(
       transactionRepository: transactionRepository,
       accountRepository: accountRepository,
+      creditRepository: creditRepository,
       idGenerator: () => 'generated-id',
       clock: () => fixedNow,
     );
+    // По умолчанию категория не связана с кредитом
+    when(
+      () => creditRepository.getCreditByCategoryId(any()),
+    ).thenAnswer((_) async => null);
   });
 
   AccountEntity account0({double balance = 100}) {

@@ -22,6 +22,8 @@ import 'package:kopim/features/transactions/data/sources/local/transaction_dao.d
 import 'package:kopim/features/transactions/domain/entities/add_transaction_request.dart';
 import 'package:kopim/features/transactions/domain/repositories/transaction_repository.dart';
 import 'package:kopim/features/transactions/domain/use_cases/add_transaction_use_case.dart';
+import 'package:kopim/features/credits/data/repositories/credit_repository_impl.dart';
+import 'package:kopim/features/credits/data/sources/local/credit_dao.dart';
 import 'package:uuid/uuid.dart';
 
 void main() {
@@ -114,11 +116,17 @@ void main() {
             goalContributionDao: goalContributionDao,
             outboxDao: outboxDao,
           );
+      final CreditRepositoryImpl creditRepository = CreditRepositoryImpl(
+        database: database,
+        creditDao: CreditDao(database),
+        outboxDao: outboxDao,
+      );
 
       String? lastId;
       final AddTransactionUseCase addTransaction = AddTransactionUseCase(
         transactionRepository: transactionRepository,
         accountRepository: accountRepository,
+        creditRepository: creditRepository,
         idGenerator: () {
           final String generated = const Uuid().v4();
           lastId = generated;

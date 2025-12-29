@@ -17,6 +17,9 @@ import 'package:kopim/features/profile/presentation/controllers/auth_controller.
 import 'package:kopim/features/profile/presentation/screens/general_settings_screen.dart';
 import 'package:kopim/features/profile/presentation/screens/menu_screen.dart';
 import 'package:kopim/features/profile/presentation/screens/profile_management_screen.dart';
+import 'package:kopim/features/credits/domain/entities/credit_entity.dart';
+import 'package:kopim/features/credits/presentation/screens/credits_screen.dart';
+import 'package:kopim/features/credits/presentation/screens/add_edit_credit_screen.dart';
 import 'package:kopim/features/profile/presentation/screens/profile_screen.dart';
 import 'package:kopim/features/profile/presentation/screens/sign_in_screen.dart';
 import 'package:kopim/features/recurring_transactions/presentation/screens/add_recurring_rule_screen.dart';
@@ -151,6 +154,24 @@ final Provider<GoRouter> appRouterProvider = Provider<GoRouter>((Ref ref) {
         },
       ),
       GoRoute(
+        path: '/credits',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const CreditsScreen(),
+      ),
+      GoRoute(
+        path: '/credits/add',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const AddEditCreditScreen(),
+      ),
+      GoRoute(
+        path: '/credits/edit',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final credit = state.extra as CreditEntity?;
+          return AddEditCreditScreen(credit: credit);
+        },
+      ),
+      GoRoute(
         path: UpcomingPaymentsScreen.routeName,
         parentNavigatorKey: _rootNavigatorKey,
         builder: (BuildContext context, GoRouterState state) {
@@ -270,6 +291,9 @@ class AppRouterNotifier extends ChangeNotifier {
     }
 
     if (_authState.isLoading) {
+      if (isOnSignIn) {
+        return null;
+      }
       if (!isOnHome) {
         _capturePendingLocation(state);
         return MainNavigationShell.routeName;

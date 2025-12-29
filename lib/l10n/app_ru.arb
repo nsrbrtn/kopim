@@ -33,6 +33,26 @@
   "@profileMenuTitle": {
     "description": "Заголовок экрана меню"
   },
+  "creditsTitle": "Кредиты и долги",
+  "creditsAddTitle": "Добавить кредит",
+  "creditsEditTitle": "Редактировать кредит",
+  "creditsNameLabel": "Название",
+  "creditsAmountLabel": "Сумма кредита",
+  "creditsInterestRateLabel": "Процентная ставка (%)",
+  "creditsTermMonthsLabel": "Срок (месяцев)",
+  "creditsStartDateLabel": "Дата начала",
+  "creditsHiddenOnDashboardLabel": "Скрывать счет на главном экране",
+  "creditsRemainingAmount": "Осталось выплатить",
+  "creditsTotalAmount": "Из {total}",
+  "@creditsTotalAmount": {
+    "placeholders": {
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "creditsEmptyList": "У вас пока нет активных кредитов",
+  "creditsSaveAction": "Сохранить кредит",
   "profileGeneralSettingsManagementSection": "Управление данными",
   "@profileGeneralSettingsManagementSection": {
     "description": "Заголовок секции с действиями для категорий и повторяющихся операций"
@@ -806,9 +826,21 @@
   "@authErrorWrongPassword": {
     "description": "Ошибка при входе: неверный пароль"
   },
+  "authErrorInvalidCredentials": "Неверный логин или пароль. Попробуйте снова.",
+  "@authErrorInvalidCredentials": {
+    "description": "Ошибка при входе: неверные учетные данные"
+  },
   "authErrorInvalidEmail": "Некорректный формат email.",
   "@authErrorInvalidEmail": {
     "description": "Ошибка при входе: неверный формат почты"
+  },
+  "authErrorEmailAlreadyInUse": "Аккаунт с таким email уже существует.",
+  "@authErrorEmailAlreadyInUse": {
+    "description": "Ошибка при регистрации: email уже используется"
+  },
+  "authErrorWeakPassword": "Слишком простой пароль. Минимум 6 символов.",
+  "@authErrorWeakPassword": {
+    "description": "Ошибка при регистрации: слабый пароль"
   },
   "authErrorUserDisabled": "Этот аккаунт был отключен.",
   "@authErrorUserDisabled": {

@@ -101,6 +101,9 @@ class AccountDao {
       updatedAt: Value<DateTime>(account.updatedAt),
       isDeleted: Value<bool>(account.isDeleted),
       isPrimary: Value<bool>(account.isPrimary),
+      isHidden: Value<bool>(account.isHidden),
+      iconName: Value<String?>(account.iconName),
+      iconStyle: Value<String?>(account.iconStyle),
     );
   }
 
@@ -116,6 +119,9 @@ class AccountDao {
       updatedAt: row.updatedAt,
       isDeleted: row.isDeleted,
       isPrimary: row.isPrimary,
+      isHidden: row.isHidden,
+      iconName: row.iconName,
+      iconStyle: row.iconStyle,
     );
   }
 }

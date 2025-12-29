@@ -33,6 +33,26 @@
   "@profileMenuTitle": {
     "description": "App bar title for the menu screen"
   },
+  "creditsTitle": "Loans & Debts",
+  "creditsAddTitle": "Add loan",
+  "creditsEditTitle": "Edit loan",
+  "creditsNameLabel": "Name",
+  "creditsAmountLabel": "Loan amount",
+  "creditsInterestRateLabel": "Interest rate (%)",
+  "creditsTermMonthsLabel": "Term (months)",
+  "creditsStartDateLabel": "Start date",
+  "creditsHiddenOnDashboardLabel": "Hide account on home screen",
+  "creditsRemainingAmount": "Remaining to pay",
+  "creditsTotalAmount": "Of {total}",
+  "@creditsTotalAmount": {
+    "placeholders": {
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "creditsEmptyList": "You don't have any active loans yet",
+  "creditsSaveAction": "Save loan",
   "profileGeneralSettingsManagementSection": "Data management",
   "@profileGeneralSettingsManagementSection": {
     "description": "Section title for category and recurring actions on general settings"
@@ -808,9 +828,21 @@
   "@authErrorWrongPassword": {
     "description": "Sign in error: wrong password"
   },
+  "authErrorInvalidCredentials": "Incorrect email or password. Please try again.",
+  "@authErrorInvalidCredentials": {
+    "description": "Sign in error: invalid credentials"
+  },
   "authErrorInvalidEmail": "Invalid email format.",
   "@authErrorInvalidEmail": {
     "description": "Sign in error: invalid email format"
+  },
+  "authErrorEmailAlreadyInUse": "An account with this email already exists.",
+  "@authErrorEmailAlreadyInUse": {
+    "description": "Sign up error: email already in use"
+  },
+  "authErrorWeakPassword": "Password is too weak. Use at least 6 characters.",
+  "@authErrorWeakPassword": {
+    "description": "Sign up error: weak password"
   },
   "authErrorUserDisabled": "This user account has been disabled.",
   "@authErrorUserDisabled": {

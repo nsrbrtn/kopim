@@ -22,6 +22,10 @@ class Accounts extends Table {
       boolean().withDefault(const Constant<bool>(false))();
   BoolColumn get isPrimary =>
       boolean().withDefault(const Constant<bool>(false))();
+  BoolColumn get isHidden =>
+      boolean().withDefault(const Constant<bool>(false))();
+  TextColumn get iconName => text().nullable()();
+  TextColumn get iconStyle => text().nullable()();
   @override
   Set<Column<Object>> get primaryKey => <Column<Object>>{id};
 }
@@ -258,6 +262,29 @@ class JobQueue extends Table {
   TextColumn get lastError => text().nullable()();
 }
 
+@DataClassName('CreditRow')
+class Credits extends Table {
+  TextColumn get id => text().withLength(min: 1, max: 50)();
+  TextColumn get accountId =>
+      text().references(Accounts, #id, onDelete: KeyAction.cascade)();
+  TextColumn get categoryId => text().nullable().references(
+    Categories,
+    #id,
+    onDelete: KeyAction.setNull,
+  )();
+  RealColumn get totalAmount => real()();
+  RealColumn get interestRate => real()();
+  IntColumn get termMonths => integer()();
+  DateTimeColumn get startDate => dateTime()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  BoolColumn get isDeleted =>
+      boolean().withDefault(const Constant<bool>(false))();
+
+  @override
+  Set<Column<Object>> get primaryKey => <Column<Object>>{id};
+}
+
 @DriftDatabase(
   tables: <Type>[
     Accounts,
@@ -275,6 +302,7 @@ class JobQueue extends Table {
     GoalContributions,
     UpcomingPayments,
     PaymentReminders,
+    Credits,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -283,7 +311,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.connect(DatabaseConnection super.connection);
 
   @override
-  int get schemaVersion => 19;
+  int get schemaVersion => 22;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -636,6 +664,38 @@ class AppDatabase extends _$AppDatabase {
         final bool hasColorColumn = await _columnExists('accounts', 'color');
         if (!hasColorColumn) {
           await m.addColumn(accounts, accounts.color);
+        }
+      }
+      if (from < 20) {
+        await m.createTable(credits);
+        final bool hasIsHiddenColumn = await _columnExists(
+          'accounts',
+          'is_hidden',
+        );
+        if (!hasIsHiddenColumn) {
+          await m.addColumn(accounts, accounts.isHidden);
+        }
+      }
+      if (from < 21) {
+        if (!await _columnExists('accounts', 'icon_name')) {
+          await m.addColumn(accounts, accounts.iconName);
+        }
+        if (!await _columnExists('accounts', 'icon_style')) {
+          await m.addColumn(accounts, accounts.iconStyle);
+        }
+      }
+      if (from < 22) {
+        if (!await _tableExists('credits')) {
+          await m.createTable(credits);
+        }
+        if (!await _columnExists('categories', 'icon_name')) {
+          await m.addColumn(categories, categories.iconName);
+        }
+        if (!await _columnExists('categories', 'icon_style')) {
+          await m.addColumn(categories, categories.iconStyle);
+        }
+        if (!await _columnExists('credits', 'category_id')) {
+          await m.addColumn(this.credits, this.credits.categoryId);
         }
       }
     },

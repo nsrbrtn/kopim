@@ -82,11 +82,13 @@ import 'package:kopim/features/profile/data/profile_repository_impl.dart';
 import 'package:kopim/features/profile/data/remote/avatar_remote_data_source.dart';
 import 'package:kopim/features/profile/data/remote/profile_remote_data_source.dart';
 import 'package:kopim/features/profile/data/remote/user_progress_remote_data_source.dart';
+import 'package:kopim/features/profile/data/services/profile_sync_error_reporter_logger.dart';
 import 'package:kopim/features/profile/data/user_progress_repository_impl.dart';
 import 'package:kopim/features/profile/domain/repositories/profile_repository.dart';
 import 'package:kopim/features/profile/domain/policies/level_policy.dart';
 import 'package:kopim/features/profile/domain/repositories/profile_avatar_repository.dart';
 import 'package:kopim/features/profile/domain/repositories/user_progress_repository.dart';
+import 'package:kopim/features/profile/domain/services/profile_sync_error_reporter.dart';
 import 'package:kopim/features/profile/domain/usecases/on_transaction_created_use_case.dart';
 import 'package:kopim/features/profile/domain/usecases/on_transaction_deleted_use_case.dart';
 import 'package:kopim/features/profile/domain/usecases/recompute_user_progress_use_case.dart';
@@ -144,6 +146,9 @@ import 'package:kopim/features/recurring_transactions/domain/use_cases/save_recu
 import 'package:kopim/features/recurring_transactions/domain/use_cases/toggle_recurring_rule_use_case.dart';
 import 'package:kopim/features/recurring_transactions/domain/use_cases/watch_recurring_rules_use_case.dart';
 import 'package:kopim/features/recurring_transactions/domain/use_cases/watch_upcoming_occurrences_use_case.dart';
+import 'package:kopim/features/credits/domain/use_cases/add_credit_use_case.dart';
+import 'package:kopim/features/credits/domain/use_cases/delete_credit_use_case.dart';
+import 'package:kopim/features/credits/domain/use_cases/watch_credits_use_case.dart';
 import 'package:kopim/features/upcoming_payments/data/services/upcoming_payments_work_scheduler.dart';
 import 'package:kopim/firebase_options.dart';
 import 'package:kopim/features/upcoming_payments/data/drift/daos/payment_reminders_dao.dart';
@@ -152,6 +157,9 @@ import 'package:kopim/features/upcoming_payments/data/drift/repositories/payment
 import 'package:kopim/features/upcoming_payments/data/drift/repositories/upcoming_payments_repository_impl.dart';
 import 'package:kopim/features/upcoming_payments/domain/repositories/payment_reminders_repository.dart';
 import 'package:kopim/features/upcoming_payments/domain/repositories/upcoming_payments_repository.dart';
+import 'package:kopim/features/credits/data/sources/local/credit_dao.dart';
+import 'package:kopim/features/credits/data/repositories/credit_repository_impl.dart';
+import 'package:kopim/features/credits/domain/repositories/credit_repository.dart';
 
 part 'injectors.g.dart';
 
@@ -172,10 +180,7 @@ Future<void> firebaseInitialization(Ref ref) async {
   final bool isWebIosSafari = isWebSafari();
   Future<void>.microtask(availability.setUnknown);
 
-  if (_hasFirebaseAppsSafely(
-    logger: logger,
-    isWebIosSafari: isWebIosSafari,
-  )) {
+  if (_hasFirebaseAppsSafely(logger: logger, isWebIosSafari: isWebIosSafari)) {
     Future<void>.microtask(availability.setAvailable);
     return;
   }
@@ -411,6 +416,9 @@ RecurringRuleExecutionDao recurringRuleExecutionDao(Ref ref) =>
 JobQueueDao jobQueueDao(Ref ref) => JobQueueDao(ref.watch(appDatabaseProvider));
 
 @riverpod
+CreditDao creditDao(Ref ref) => CreditDao(ref.watch(appDatabaseProvider));
+
+@riverpod
 UpcomingPaymentsDao upcomingPaymentsDao(Ref ref) =>
     UpcomingPaymentsDao(ref.watch(appDatabaseProvider));
 
@@ -545,6 +553,13 @@ AccountRepository accountRepository(Ref ref) => AccountRepositoryImpl(
 );
 
 @riverpod
+CreditRepository creditRepository(Ref ref) => CreditRepositoryImpl(
+  database: ref.watch(appDatabaseProvider),
+  creditDao: ref.watch(creditDaoProvider),
+  outboxDao: ref.watch(outboxDaoProvider),
+);
+
+@riverpod
 AddAccountUseCase addAccountUseCase(Ref ref) =>
     AddAccountUseCase(ref.watch(accountRepositoryProvider));
 
@@ -555,6 +570,25 @@ DeleteAccountUseCase deleteAccountUseCase(Ref ref) =>
 @riverpod
 WatchAccountsUseCase watchAccountsUseCase(Ref ref) =>
     WatchAccountsUseCase(ref.watch(accountRepositoryProvider));
+
+@riverpod
+AddCreditUseCase addCreditUseCase(Ref ref) => AddCreditUseCase(
+  creditRepository: ref.watch(creditRepositoryProvider),
+  accountRepository: ref.watch(accountRepositoryProvider),
+  saveCategoryUseCase: ref.watch(saveCategoryUseCaseProvider),
+  uuid: ref.watch(uuidGeneratorProvider),
+);
+
+@riverpod
+DeleteCreditUseCase deleteCreditUseCase(Ref ref) => DeleteCreditUseCase(
+  ref.watch(creditRepositoryProvider),
+  ref.watch(deleteAccountUseCaseProvider),
+  ref.watch(deleteCategoryUseCaseProvider),
+);
+
+@riverpod
+WatchCreditsUseCase watchCreditsUseCase(Ref ref) =>
+    WatchCreditsUseCase(ref.watch(creditRepositoryProvider));
 
 @riverpod
 WatchBudgetsUseCase watchBudgetsUseCase(Ref ref) =>
@@ -698,6 +732,7 @@ final rp.Provider<AddTransactionUseCase> addTransactionUseCaseProvider =
       return AddTransactionUseCase(
         transactionRepository: ref.watch(transactionRepositoryProvider),
         accountRepository: ref.watch(accountRepositoryProvider),
+        creditRepository: ref.watch(creditRepositoryProvider),
         onTransactionCreatedUseCase: ref.watch(
           onTransactionCreatedUseCaseProvider,
         ),
@@ -709,6 +744,7 @@ final rp.Provider<UpdateTransactionUseCase> updateTransactionUseCaseProvider =
       return UpdateTransactionUseCase(
         transactionRepository: ref.watch(transactionRepositoryProvider),
         accountRepository: ref.watch(accountRepositoryProvider),
+        creditRepository: ref.watch(creditRepositoryProvider),
       );
     });
 
@@ -717,6 +753,7 @@ final rp.Provider<DeleteTransactionUseCase> deleteTransactionUseCaseProvider =
       return DeleteTransactionUseCase(
         transactionRepository: ref.watch(transactionRepositoryProvider),
         accountRepository: ref.watch(accountRepositoryProvider),
+        creditRepository: ref.watch(creditRepositoryProvider),
         onTransactionDeletedUseCase: ref.watch(
           onTransactionDeletedUseCaseProvider,
         ),
@@ -843,6 +880,13 @@ UserProgressRepository userProgressRepository(Ref ref) {
   return repository;
 }
 
+final rp.Provider<ProfileSyncErrorReporter> profileSyncErrorReporterProvider =
+    rp.Provider<ProfileSyncErrorReporter>((rp.Ref ref) {
+      return LoggerProfileSyncErrorReporter(
+        logger: ref.watch(loggerServiceProvider),
+      );
+    });
+
 @riverpod
 UpdateProfileUseCase updateProfileUseCase(Ref ref) =>
     UpdateProfileUseCaseImpl(repository: ref.watch(profileRepositoryProvider));
@@ -853,6 +897,7 @@ RecomputeUserProgressUseCase recomputeUserProgressUseCase(Ref ref) =>
       repository: ref.watch(userProgressRepositoryProvider),
       levelPolicy: ref.watch(levelPolicyProvider),
       authRepository: ref.watch(authRepositoryProvider),
+      syncErrorReporter: ref.watch(profileSyncErrorReporterProvider),
     );
 
 @riverpod

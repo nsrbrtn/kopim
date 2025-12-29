@@ -6,15 +6,21 @@ class AuthErrorMapper {
   static String map(String code, AppLocalizations strings) {
     switch (code) {
       case 'user-not-found':
-        return strings.authErrorUserNotFound;
+        return strings.authErrorInvalidCredentials;
       case 'wrong-password':
         return strings.authErrorWrongPassword;
       case 'invalid-email':
         return strings.authErrorInvalidEmail;
+      case 'email-already-in-use':
+        return strings.authErrorEmailAlreadyInUse;
+      case 'weak-password':
+        return strings.authErrorWeakPassword;
       case 'user-disabled':
         return strings.authErrorUserDisabled;
       case 'too-many-requests':
         return strings.authErrorTooManyRequests;
+      case 'invalid-credential':
+        return strings.authErrorInvalidCredentials;
       case 'network-request-failed':
       case 'network_error':
         return strings.authErrorNetworkFailed;

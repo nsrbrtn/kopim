@@ -53,13 +53,6 @@ class AppStartupController extends _$AppStartupController {
         firebaseAvailabilityProvider,
       );
       final bool firebaseAvailable = availability.isAvailable != false;
-      if (firebaseAvailable) {
-        final FirebaseFirestore firestore = ref.read(firestoreProvider);
-        firestore.settings = const Settings(
-          persistenceEnabled: true,
-          cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
-        );
-      }
 
       if (_isRunningOnWeb) {
         if (!firebaseAvailable) {
@@ -69,6 +62,13 @@ class AppStartupController extends _$AppStartupController {
         }
         await _initializeWebServices();
       } else {
+        if (firebaseAvailable) {
+          final FirebaseFirestore firestore = ref.read(firestoreProvider);
+          firestore.settings = const Settings(
+            persistenceEnabled: true,
+            cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
+          );
+        }
         unawaited(_initializeBackgroundServices());
       }
       state = const AsyncValue<void>.data(null);
@@ -97,7 +97,9 @@ class AppStartupController extends _$AppStartupController {
     try {
       final SyncService syncService = ref.read(syncServiceProvider);
       await syncService.initialize();
-      await syncService.syncPending();
+      // Оптимизация: не ждем завершения первичной синхронизации на вебе,
+      // чтобы быстрее показать интерфейс.
+      unawaited(syncService.syncPending());
 
       ref.onDispose(() {
         _webSyncTimer?.cancel();

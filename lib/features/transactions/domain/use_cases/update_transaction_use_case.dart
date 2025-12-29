@@ -4,18 +4,23 @@ import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
 import 'package:kopim/features/transactions/domain/entities/update_transaction_request.dart';
 import 'package:kopim/features/transactions/domain/repositories/transaction_repository.dart';
+import 'package:kopim/features/credits/domain/repositories/credit_repository.dart';
+import 'package:kopim/features/credits/domain/entities/credit_entity.dart';
 
 class UpdateTransactionUseCase {
   UpdateTransactionUseCase({
     required TransactionRepository transactionRepository,
     required AccountRepository accountRepository,
+    required CreditRepository creditRepository,
     DateTime Function()? clock,
   }) : _transactionRepository = transactionRepository,
        _accountRepository = accountRepository,
+       _creditRepository = creditRepository,
        _clock = clock ?? DateTime.now;
 
   final TransactionRepository _transactionRepository;
   final AccountRepository _accountRepository;
+  final CreditRepository _creditRepository;
   final DateTime Function() _clock;
 
   Future<void> call(UpdateTransactionRequest request) async {
@@ -74,6 +79,54 @@ class UpdateTransactionUseCase {
         updatedAt: now,
       );
       await _accountRepository.upsert(updatedTargetAccount);
+    }
+
+    // Логика пересчета баланса кредита
+    if (existing.categoryId != request.categoryId ||
+        existing.amount != normalizedAmount ||
+        existing.type != newType.storageValue) {
+      // 1. Отменяем старый эффект на баланс кредита (если он был)
+      if (existing.categoryId != null) {
+        final CreditEntity? oldCredit = await _creditRepository
+            .getCreditByCategoryId(existing.categoryId!);
+        if (oldCredit != null) {
+          final AccountEntity? oldCreditAccount = await _accountRepository
+              .findById(oldCredit.accountId);
+          if (oldCreditAccount != null) {
+            final double oldRepaymentDelta =
+                (existing.type == TransactionType.expense.storageValue)
+                ? existing.amount
+                : -existing.amount;
+            await _accountRepository.upsert(
+              oldCreditAccount.copyWith(
+                balance: oldCreditAccount.balance - oldRepaymentDelta,
+                updatedAt: now,
+              ),
+            );
+          }
+        }
+      }
+
+      // 2. Применяем новый эффект на баланс кредита (если он есть)
+      if (request.categoryId != null) {
+        final CreditEntity? newCredit = await _creditRepository
+            .getCreditByCategoryId(request.categoryId!);
+        if (newCredit != null) {
+          final AccountEntity? newCreditAccount = await _accountRepository
+              .findById(newCredit.accountId);
+          if (newCreditAccount != null) {
+            final double newRepaymentDelta = newType.isExpense
+                ? normalizedAmount
+                : -normalizedAmount;
+            await _accountRepository.upsert(
+              newCreditAccount.copyWith(
+                balance: newCreditAccount.balance + newRepaymentDelta,
+                updatedAt: now,
+              ),
+            );
+          }
+        }
+      }
     }
 
     final TransactionEntity updatedTransaction = existing.copyWith(

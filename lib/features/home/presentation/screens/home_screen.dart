@@ -33,6 +33,7 @@ import 'package:kopim/features/profile/domain/entities/profile.dart';
 import 'package:kopim/features/profile/presentation/controllers/auth_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/profile_controller.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
+import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
 import 'package:kopim/features/transactions/presentation/controllers/transaction_sheet_controller.dart';
 import 'package:kopim/features/transactions/presentation/widgets/transaction_editor.dart';
 import 'package:kopim/features/transactions/presentation/widgets/transaction_tile_formatters.dart';
@@ -1010,7 +1011,8 @@ List<_TransactionSliverEntry> _buildTransactionEntries(
       dateFormat: headerFormat,
       strings: strings,
     );
-    entries.add(_TransactionHeaderEntry(title: title));
+    final double netAmount = _calculateDayNet(section.transactions);
+    entries.add(_TransactionHeaderEntry(title: title, netAmount: netAmount));
     for (final TransactionEntity transaction in section.transactions) {
       entries.add(_TransactionItemEntry(transactionId: transaction.id));
     }
@@ -1064,6 +1066,21 @@ class _TransactionsSectionCardState extends State<_TransactionsSectionCard> {
 
   Widget _buildEntryList(BuildContext context) {
     final ThemeData theme = Theme.of(context);
+    final NumberFormat moneyFormat = TransactionTileFormatters.currency(
+      widget.localeName,
+      TransactionTileFormatters.fallbackCurrencySymbol(widget.localeName),
+      decimalDigits: 0,
+    );
+    final TextStyle dateStyle =
+        theme.textTheme.titleMedium?.copyWith(
+          color: theme.colorScheme.onSurface,
+        ) ??
+        const TextStyle(fontSize: 16, height: 24 / 16);
+    final TextStyle amountStyle =
+        theme.textTheme.titleSmall?.copyWith(
+          color: theme.colorScheme.onSurfaceVariant,
+        ) ??
+        const TextStyle(fontSize: 14, height: 20 / 14);
     final bool hasTransactions = _entries.any(
       (_TransactionSliverEntry entry) => entry is _TransactionItemEntry,
     );
@@ -1074,10 +1091,35 @@ class _TransactionsSectionCardState extends State<_TransactionsSectionCard> {
     for (int i = 0; i < _entries.length; i++) {
       final _TransactionSliverEntry entry = _entries[i];
       if (entry is _TransactionHeaderEntry) {
+        final double netAmount = entry.netAmount;
+        final String formattedAmount = moneyFormat.format(netAmount.abs());
+        final String amountLabel = netAmount < 0
+            ? '- $formattedAmount'
+            : formattedAmount;
         widgets.add(
           Padding(
             padding: EdgeInsets.only(top: i == 0 ? 0 : 24, bottom: 8),
-            child: Text(entry.title, style: theme.textTheme.titleMedium),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(8, 0, 16, 0),
+              child: SizedBox(
+                height: 24,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    Expanded(
+                      child: Text(
+                        entry.title,
+                        style: dateStyle,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Text(amountLabel, style: amountStyle),
+                  ],
+                ),
+              ),
+            ),
           ),
         );
         continue;
@@ -1339,9 +1381,13 @@ sealed class _TransactionSliverEntry {
 }
 
 class _TransactionHeaderEntry extends _TransactionSliverEntry {
-  const _TransactionHeaderEntry({required this.title});
+  const _TransactionHeaderEntry({
+    required this.title,
+    required this.netAmount,
+  });
 
   final String title;
+  final double netAmount;
 }
 
 class _TransactionItemEntry extends _TransactionSliverEntry {
@@ -1365,6 +1411,19 @@ String _formatSectionTitle({
   }
   final String formatted = dateFormat.format(date);
   return toBeginningOfSentenceCase(formatted) ?? formatted;
+}
+
+double _calculateDayNet(List<TransactionEntity> transactions) {
+  double income = 0;
+  double expense = 0;
+  for (final TransactionEntity transaction in transactions) {
+    if (transaction.type == TransactionType.income.storageValue) {
+      income += transaction.amount.abs();
+    } else if (transaction.type == TransactionType.expense.storageValue) {
+      expense += transaction.amount.abs();
+    }
+  }
+  return income - expense;
 }
 
 class _TransactionListItem extends ConsumerWidget {

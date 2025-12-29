@@ -121,130 +121,97 @@ class _MyAppState extends ConsumerState<MyApp> {
       firebaseInitializationProvider,
     );
 
-    return initializationState.when(
-      data: (_) {
-        ref.watch(syncCoordinatorProvider);
-
-        final Locale appLocale = ref.watch(appLocaleProvider);
-        final ThemeData lightTheme = ref.watch(appThemeProvider);
-        final ThemeData darkTheme = ref.watch(appDarkThemeProvider);
-        final AppThemeMode appThemeMode = ref.watch(
-          themeModeControllerProvider,
-        );
-        final ThemeMode themeMode = appThemeMode.toMaterialThemeMode();
-        final GoRouter router = ref.watch(appRouterProvider);
-
-        return MaterialApp.router(
-          title: 'Kopim',
-          theme: lightTheme,
-          darkTheme: darkTheme,
-          themeMode: themeMode,
-          locale: appLocale,
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          routerConfig: router,
-          builder: (BuildContext context, Widget? child) {
-            return NotificationFallbackListener(
-              child: child ?? const SizedBox.shrink(),
-            );
-          },
-        );
-      },
-      loading: () => const _FirebaseInitializationLoadingApp(),
-      error: (Object error, StackTrace stackTrace) {
-        return _FirebaseInitializationErrorApp(
-          error: error,
-          stackTrace: stackTrace,
-          onRetry: () {
-            ref.invalidate(firebaseInitializationProvider);
-          },
-        );
-      },
+    final Locale? appLocale = initializationState.whenOrNull(
+      data: (_) => ref.watch(appLocaleProvider),
     );
-  }
-}
-
-class _FirebaseInitializationLoadingApp extends ConsumerWidget {
-  const _FirebaseInitializationLoadingApp();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
     final ThemeData lightTheme = ref.watch(appThemeProvider);
     final ThemeData darkTheme = ref.watch(appDarkThemeProvider);
     final AppThemeMode appThemeMode = ref.watch(themeModeControllerProvider);
     final ThemeMode themeMode = appThemeMode.toMaterialThemeMode();
 
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
+    return MaterialApp.router(
+      title: 'Kopim',
       theme: lightTheme,
       darkTheme: darkTheme,
       themeMode: themeMode,
-      home: const Scaffold(body: AppSplashPlaceholder()),
+      locale: appLocale,
+      debugShowCheckedModeBanner: false,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      routerConfig: initializationState.when(
+        data: (_) {
+          ref.watch(syncCoordinatorProvider);
+          return ref.watch(appRouterProvider);
+        },
+        loading: () => _LoadingRouter.instance,
+        error: (Object error, StackTrace stackTrace) => _ErrorRouter(
+          onRetry: () {
+            ref.invalidate(firebaseInitializationProvider);
+          },
+        ).instance,
+      ),
+      builder: (BuildContext context, Widget? child) {
+        return NotificationFallbackListener(
+          child: child ?? const SizedBox.shrink(),
+        );
+      },
     );
   }
 }
 
-class _FirebaseInitializationErrorApp extends StatelessWidget {
-  const _FirebaseInitializationErrorApp({
-    required this.error,
-    required this.stackTrace,
-    required this.onRetry,
-  });
+/// Фейковый роутер для состояния загрузки, чтобы не пересоздавать MaterialApp.
+class _LoadingRouter {
+  _LoadingRouter._();
+  static final GoRouter instance = GoRouter(
+    routes: <RouteBase>[
+      GoRoute(
+        path: '/',
+        builder: (BuildContext context, GoRouterState state) =>
+            const Scaffold(body: AppSplashPlaceholder()),
+      ),
+    ],
+  );
+}
 
-  final Object error;
-  final StackTrace stackTrace;
+/// Роутер для состояния ошибки.
+class _ErrorRouter {
+  _ErrorRouter({required this.onRetry});
   final VoidCallback onRetry;
 
-  String _errorCode(Object error) {
-    final int hash = Object.hash(error.runtimeType, error.toString());
-    return hash.toUnsigned(32).toRadixString(16).padLeft(8, '0').toUpperCase();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final String code = _errorCode(error);
-    const bool showDebugMessage = kDebugMode;
-    return MaterialApp(
-      home: Scaffold(
-        body: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 400),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: <Widget>[
-                  const Text(
-                    'Не удалось инициализировать Firebase.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    'Произошла ошибка. Код: $code',
-                    textAlign: TextAlign.center,
-                  ),
-                  if (showDebugMessage) ...<Widget>[
-                    const SizedBox(height: 12),
-                    Text('$error', textAlign: TextAlign.center),
-                    const SizedBox(height: 12),
-                    Text(
-                      '$stackTrace',
+  late final GoRouter instance = GoRouter(
+    routes: <RouteBase>[
+      GoRoute(
+        path: '/',
+        builder: (BuildContext context, GoRouterState state) => Scaffold(
+          body: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 400),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: <Widget>[
+                    const Text(
+                      'Не удалось инициализировать Firebase.',
                       textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    FilledButton(
+                      onPressed: onRetry,
+                      child: const Text('Повторить попытку'),
                     ),
                   ],
-                  const SizedBox(height: 24),
-                  FilledButton(
-                    onPressed: onRetry,
-                    child: const Text('Повторить попытку'),
-                  ),
-                ],
+                ),
               ),
             ),
           ),
         ),
       ),
-    );
-  }
+    ],
+  );
 }

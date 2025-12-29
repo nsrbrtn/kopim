@@ -38,6 +38,47 @@ class AppLocalizationsRu extends AppLocalizations {
   String get profileMenuTitle => 'Меню';
 
   @override
+  String get creditsTitle => 'Кредиты и долги';
+
+  @override
+  String get creditsAddTitle => 'Добавить кредит';
+
+  @override
+  String get creditsEditTitle => 'Редактировать кредит';
+
+  @override
+  String get creditsNameLabel => 'Название';
+
+  @override
+  String get creditsAmountLabel => 'Сумма кредита';
+
+  @override
+  String get creditsInterestRateLabel => 'Процентная ставка (%)';
+
+  @override
+  String get creditsTermMonthsLabel => 'Срок (месяцев)';
+
+  @override
+  String get creditsStartDateLabel => 'Дата начала';
+
+  @override
+  String get creditsHiddenOnDashboardLabel => 'Скрывать счет на главном экране';
+
+  @override
+  String get creditsRemainingAmount => 'Осталось выплатить';
+
+  @override
+  String creditsTotalAmount(String total) {
+    return 'Из $total';
+  }
+
+  @override
+  String get creditsEmptyList => 'У вас пока нет активных кредитов';
+
+  @override
+  String get creditsSaveAction => 'Сохранить кредит';
+
+  @override
   String get profileGeneralSettingsManagementSection => 'Управление данными';
 
   @override
@@ -594,7 +635,19 @@ class AppLocalizationsRu extends AppLocalizations {
   String get authErrorWrongPassword => 'Неверный пароль. Попробуйте снова.';
 
   @override
+  String get authErrorInvalidCredentials =>
+      'Неверный логин или пароль. Попробуйте снова.';
+
+  @override
   String get authErrorInvalidEmail => 'Некорректный формат email.';
+
+  @override
+  String get authErrorEmailAlreadyInUse =>
+      'Аккаунт с таким email уже существует.';
+
+  @override
+  String get authErrorWeakPassword =>
+      'Слишком простой пароль. Минимум 6 символов.';
 
   @override
   String get authErrorUserDisabled => 'Этот аккаунт был отключен.';

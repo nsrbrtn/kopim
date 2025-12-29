@@ -24,10 +24,21 @@ import 'package:kopim/features/upcoming_payments/presentation/providers/upcoming
 import 'package:kopim/l10n/app_localizations.dart';
 
 class EditUpcomingPaymentScreenArgs {
-  const EditUpcomingPaymentScreenArgs({this.paymentId, this.initialPayment});
+  const EditUpcomingPaymentScreenArgs({
+    this.paymentId,
+    this.initialPayment,
+    this.initialTitle,
+    this.initialAmount,
+    this.initialAccountId,
+    this.initialCategoryId,
+  });
 
   final String? paymentId;
   final UpcomingPayment? initialPayment;
+  final String? initialTitle;
+  final double? initialAmount;
+  final String? initialAccountId;
+  final String? initialCategoryId;
 
   static EditUpcomingPaymentScreenArgs fromState(GoRouterState state) {
     final Object? extra = state.extra;
@@ -95,6 +106,24 @@ class _EditUpcomingPaymentScreenState
     _noteController = TextEditingController();
     if (widget.args.initialPayment != null) {
       _applyInitial(widget.args.initialPayment!);
+    } else if (widget.args.paymentId == null) {
+      // Предзаполнение для нового платежа
+      if (widget.args.initialTitle != null) {
+        _titleController.text = widget.args.initialTitle!;
+      }
+      if (widget.args.initialAmount != null) {
+        _amountController.text = widget.args.initialAmount!.toStringAsFixed(2);
+      }
+      if (widget.args.initialAccountId != null) {
+        _selectedAccountId = widget.args.initialAccountId;
+      }
+      if (widget.args.initialCategoryId != null) {
+        _selectedCategoryId = widget.args.initialCategoryId;
+      }
+      final DateTime now = DateTime.now();
+      _dayController.text = now.day.toString();
+      _notifyDaysController.text = '1';
+      _notifyTimeController.text = '10:00';
     }
   }
 
@@ -215,7 +244,12 @@ class _EditUpcomingPaymentScreenState
     required List<AccountEntity> accounts,
     required List<Category> categories,
   }) {
-    _selectedAccountId ??= accounts.first.id;
+    _selectedAccountId ??= accounts
+        .firstWhere(
+          (AccountEntity a) => a.isPrimary,
+          orElse: () => accounts.first,
+        )
+        .id;
     _selectedCategoryId ??= categories.first.id;
     final ColorScheme colors = theme.colorScheme;
     final KopimLayout layout = context.kopimLayout;
@@ -230,10 +264,9 @@ class _EditUpcomingPaymentScreenState
               theme: theme,
               colors: colors,
               layout: layout,
-              errorText:
-                  _titleHasError
-                      ? strings.upcomingPaymentsValidationTitle
-                      : null,
+              errorText: _titleHasError
+                  ? strings.upcomingPaymentsValidationTitle
+                  : null,
               field: KopimTextField(
                 controller: _titleController,
                 placeholder: strings.upcomingPaymentsFieldTitle,
@@ -290,10 +323,9 @@ class _EditUpcomingPaymentScreenState
               theme: theme,
               colors: colors,
               layout: layout,
-              errorText:
-                  _amountHasError
-                      ? strings.upcomingPaymentsValidationAmount
-                      : null,
+              errorText: _amountHasError
+                  ? strings.upcomingPaymentsValidationAmount
+                  : null,
               field: KopimTextField(
                 controller: _amountController,
                 placeholder: strings.upcomingPaymentsFieldAmount,
@@ -319,8 +351,9 @@ class _EditUpcomingPaymentScreenState
               theme: theme,
               colors: colors,
               layout: layout,
-              errorText:
-                  _dayHasError ? strings.upcomingPaymentsValidationDay : null,
+              errorText: _dayHasError
+                  ? strings.upcomingPaymentsValidationDay
+                  : null,
               field: KopimTextField(
                 controller: _dayController,
                 placeholder: strings.upcomingPaymentsFieldDayOfMonth,
@@ -344,10 +377,9 @@ class _EditUpcomingPaymentScreenState
               theme: theme,
               colors: colors,
               layout: layout,
-              errorText:
-                  _notifyDaysHasError
-                      ? strings.upcomingPaymentsValidationNotifyDays
-                      : null,
+              errorText: _notifyDaysHasError
+                  ? strings.upcomingPaymentsValidationNotifyDays
+                  : null,
               field: KopimTextField(
                 controller: _notifyDaysController,
                 placeholder: strings.upcomingPaymentsFieldNotifyDaysBefore,
@@ -661,9 +693,7 @@ class _LabeledField extends StatelessWidget {
       children: <Widget>[
         Text(
           label,
-          style: theme.textTheme.labelLarge?.copyWith(
-            color: colors.onSurface,
-          ),
+          style: theme.textTheme.labelLarge?.copyWith(color: colors.onSurface),
         ),
         SizedBox(height: layout.spacing.between),
         field,
@@ -671,9 +701,7 @@ class _LabeledField extends StatelessWidget {
           SizedBox(height: layout.spacing.between),
           Text(
             errorText!,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: colors.error,
-            ),
+            style: theme.textTheme.bodySmall?.copyWith(color: colors.error),
           ),
         ],
       ],

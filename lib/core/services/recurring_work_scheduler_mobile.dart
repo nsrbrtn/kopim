@@ -20,6 +20,9 @@ import 'package:kopim/features/recurring_transactions/data/sources/local/recurri
 import 'package:kopim/features/recurring_transactions/domain/repositories/recurring_transactions_repository.dart';
 import 'package:kopim/features/recurring_transactions/domain/services/recurring_rule_engine.dart';
 import 'package:kopim/features/recurring_transactions/domain/services/recurring_rule_scheduler.dart';
+import 'package:kopim/features/credits/data/repositories/credit_repository_impl.dart';
+import 'package:kopim/features/credits/data/sources/local/credit_dao.dart';
+import 'package:kopim/features/credits/domain/repositories/credit_repository.dart';
 import 'package:kopim/features/recurring_transactions/domain/use_cases/apply_recurring_rules_use_case.dart';
 import 'package:kopim/features/savings/data/sources/local/goal_contribution_dao.dart';
 import 'package:kopim/features/savings/data/sources/local/saving_goal_dao.dart';
@@ -211,6 +214,7 @@ Future<void> _applyRecurringRules({
   final OutboxDao outboxDao = OutboxDao(database);
   final AccountDao accountDao = AccountDao(database);
   final TransactionDao transactionDao = TransactionDao(database);
+  final CreditDao creditDao = CreditDao(database);
   final SavingGoalDao savingGoalDao = SavingGoalDao(database);
   final GoalContributionDao goalContributionDao = GoalContributionDao(database);
   final AccountRepository accountRepository = AccountRepositoryImpl(
@@ -229,10 +233,16 @@ Future<void> _applyRecurringRules({
     analyticsService: const AnalyticsService(),
     loggerService: logger,
   );
+  final CreditRepository creditRepository = CreditRepositoryImpl(
+    database: database,
+    creditDao: creditDao,
+    outboxDao: outboxDao,
+  );
   String? lastGeneratedId;
   final AddTransactionUseCase addTransaction = AddTransactionUseCase(
     transactionRepository: transactionRepository,
     accountRepository: accountRepository,
+    creditRepository: creditRepository,
     idGenerator: () {
       final String generated = const Uuid().v4();
       lastGeneratedId = generated;

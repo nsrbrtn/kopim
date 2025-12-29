@@ -6,6 +6,7 @@ import 'package:kopim/features/transactions/domain/entities/transaction_type.dar
 import 'package:kopim/features/transactions/domain/repositories/transaction_repository.dart';
 import 'package:kopim/features/transactions/domain/models/transaction_command_result.dart';
 import 'package:kopim/features/transactions/domain/use_cases/delete_transaction_use_case.dart';
+import 'package:kopim/features/credits/domain/repositories/credit_repository.dart';
 import 'package:mocktail/mocktail.dart';
 
 class _MockTransactionRepository extends Mock
@@ -13,9 +14,12 @@ class _MockTransactionRepository extends Mock
 
 class _MockAccountRepository extends Mock implements AccountRepository {}
 
+class _MockCreditRepository extends Mock implements CreditRepository {}
+
 void main() {
   late _MockTransactionRepository transactionRepository;
   late _MockAccountRepository accountRepository;
+  late _MockCreditRepository creditRepository;
   late DeleteTransactionUseCase useCase;
   final DateTime fixedNow = DateTime.utc(2024, 3, 1, 9, 0);
 
@@ -49,11 +53,17 @@ void main() {
   setUp(() {
     transactionRepository = _MockTransactionRepository();
     accountRepository = _MockAccountRepository();
+    creditRepository = _MockCreditRepository();
     useCase = DeleteTransactionUseCase(
       transactionRepository: transactionRepository,
       accountRepository: accountRepository,
+      creditRepository: creditRepository,
       clock: () => fixedNow,
     );
+    // По умолчанию категория не связана с кредитом
+    when(
+      () => creditRepository.getCreditByCategoryId(any()),
+    ).thenAnswer((_) async => null);
   });
 
   AccountEntity account({required double balance}) {

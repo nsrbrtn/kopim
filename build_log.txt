@@ -1,0 +1,18 @@
+  0s riverpod_generator on 532 inputs; lib/core/application/app_startup_controller.dart
+  0s riverpod_generator on 532 inputs: 1 skipped; lib/core/application/firebase_availability.dart
+  0s riverpod_generator on 532 inputs: 532 skipped
+  0s freezed on 532 inputs; lib/core/application/app_startup_controller.dart
+  0s freezed on 532 inputs: 532 skipped
+  0s json_serializable on 1064 inputs; lib/core/application/app_startup_controller.dart
+  0s json_serializable on 1064 inputs: 1064 skipped
+  0s drift_dev on 4256 inputs; lib/core/application/app_startup_controller.dart
+  0s drift_dev on 4256 inputs: 4256 skipped
+  0s source_gen:combining_builder on 2128 inputs; lib/core/application/app_startup_controller.dart
+  0s source_gen:combining_builder on 2128 inputs: 2128 skipped
+  0s mockito:mockBuilder on 792 inputs; test/core/application/app_startup_controller_web_test.dart
+  0s mockito:mockBuilder on 792 inputs: 792 skipped
+  0s build_web_compilers:entrypoint_marker on 1 input; web/$web$
+  0s build_web_compilers:entrypoint_marker on 1 input: 1 skipped
+E riverpod_generator on lib/core/di/injectors.dart:
+  InvalidTypeException: The type is invalid and cannot be converted to code.
+  Failed to build with build_runner/jit in 7s; wrote 0 outputs.

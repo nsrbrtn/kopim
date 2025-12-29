@@ -69,6 +69,11 @@ class MenuScreen extends ConsumerWidget {
         onTap: () => _pushRoute(context, UpcomingPaymentsScreen.routeName),
       ),
       _SettingsMenuConfig(
+        label: strings.creditsTitle,
+        icon: Icons.account_balance_outlined,
+        onTap: () => _pushRoute(context, '/credits'),
+      ),
+      _SettingsMenuConfig(
         label: strings.profileManageCategoriesCta,
         icon: Icons.category_outlined,
         onTap: () => _pushRoute(context, ManageCategoriesScreen.routeName),

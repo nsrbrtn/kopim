@@ -128,7 +128,7 @@ final class FirebaseInitializationProvider
 }
 
 String _$firebaseInitializationHash() =>
-    r'4987a283ca2f1ebb6d9f6ffeb4f40ed5e544c5b3';
+    r'5516e8c9fa208f8a8894bf2b8b9393685dead851';
 
 @ProviderFor(firestore)
 const firestoreProvider = FirestoreProvider._();
@@ -1509,6 +1509,47 @@ final class JobQueueDaoProvider
 
 String _$jobQueueDaoHash() => r'8c93af9c3b09afed591a9c33c68b501b7878a2c9';
 
+@ProviderFor(creditDao)
+const creditDaoProvider = CreditDaoProvider._();
+
+final class CreditDaoProvider
+    extends $FunctionalProvider<CreditDao, CreditDao, CreditDao>
+    with $Provider<CreditDao> {
+  const CreditDaoProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'creditDaoProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$creditDaoHash();
+
+  @$internal
+  @override
+  $ProviderElement<CreditDao> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  CreditDao create(Ref ref) {
+    return creditDao(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(CreditDao value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<CreditDao>(value),
+    );
+  }
+}
+
+String _$creditDaoHash() => r'86d365c0fcf0bc0bfc07c7b0e07a9b816321725b';
+
 @ProviderFor(upcomingPaymentsDao)
 const upcomingPaymentsDaoProvider = UpcomingPaymentsDaoProvider._();
 
@@ -2716,6 +2757,52 @@ final class AccountRepositoryProvider
 
 String _$accountRepositoryHash() => r'35504303f5e7045ab7c337f1041ee01cffb06875';
 
+@ProviderFor(creditRepository)
+const creditRepositoryProvider = CreditRepositoryProvider._();
+
+final class CreditRepositoryProvider
+    extends
+        $FunctionalProvider<
+          CreditRepository,
+          CreditRepository,
+          CreditRepository
+        >
+    with $Provider<CreditRepository> {
+  const CreditRepositoryProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'creditRepositoryProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$creditRepositoryHash();
+
+  @$internal
+  @override
+  $ProviderElement<CreditRepository> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  CreditRepository create(Ref ref) {
+    return creditRepository(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(CreditRepository value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<CreditRepository>(value),
+    );
+  }
+}
+
+String _$creditRepositoryHash() => r'98ae4c66427bc1bc6d98dd8682e0f9f2fe7eaa58';
+
 @ProviderFor(addAccountUseCase)
 const addAccountUseCaseProvider = AddAccountUseCaseProvider._();
 
@@ -2858,6 +2945,148 @@ final class WatchAccountsUseCaseProvider
 
 String _$watchAccountsUseCaseHash() =>
     r'1e591c8756219ebead3e51c5a37138b7013df854';
+
+@ProviderFor(addCreditUseCase)
+const addCreditUseCaseProvider = AddCreditUseCaseProvider._();
+
+final class AddCreditUseCaseProvider
+    extends
+        $FunctionalProvider<
+          AddCreditUseCase,
+          AddCreditUseCase,
+          AddCreditUseCase
+        >
+    with $Provider<AddCreditUseCase> {
+  const AddCreditUseCaseProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'addCreditUseCaseProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$addCreditUseCaseHash();
+
+  @$internal
+  @override
+  $ProviderElement<AddCreditUseCase> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  AddCreditUseCase create(Ref ref) {
+    return addCreditUseCase(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(AddCreditUseCase value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<AddCreditUseCase>(value),
+    );
+  }
+}
+
+String _$addCreditUseCaseHash() => r'b24cba083a57c9f3367c1792a9c97fe27e727152';
+
+@ProviderFor(deleteCreditUseCase)
+const deleteCreditUseCaseProvider = DeleteCreditUseCaseProvider._();
+
+final class DeleteCreditUseCaseProvider
+    extends
+        $FunctionalProvider<
+          DeleteCreditUseCase,
+          DeleteCreditUseCase,
+          DeleteCreditUseCase
+        >
+    with $Provider<DeleteCreditUseCase> {
+  const DeleteCreditUseCaseProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'deleteCreditUseCaseProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$deleteCreditUseCaseHash();
+
+  @$internal
+  @override
+  $ProviderElement<DeleteCreditUseCase> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  DeleteCreditUseCase create(Ref ref) {
+    return deleteCreditUseCase(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(DeleteCreditUseCase value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<DeleteCreditUseCase>(value),
+    );
+  }
+}
+
+String _$deleteCreditUseCaseHash() =>
+    r'0a7f653ed07ab0ce040f4f75258b77ceff2d28ee';
+
+@ProviderFor(watchCreditsUseCase)
+const watchCreditsUseCaseProvider = WatchCreditsUseCaseProvider._();
+
+final class WatchCreditsUseCaseProvider
+    extends
+        $FunctionalProvider<
+          WatchCreditsUseCase,
+          WatchCreditsUseCase,
+          WatchCreditsUseCase
+        >
+    with $Provider<WatchCreditsUseCase> {
+  const WatchCreditsUseCaseProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'watchCreditsUseCaseProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$watchCreditsUseCaseHash();
+
+  @$internal
+  @override
+  $ProviderElement<WatchCreditsUseCase> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  WatchCreditsUseCase create(Ref ref) {
+    return watchCreditsUseCase(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(WatchCreditsUseCase value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<WatchCreditsUseCase>(value),
+    );
+  }
+}
+
+String _$watchCreditsUseCaseHash() =>
+    r'502cf233c1f6419405d36ec0f5d567526ab114f6';
 
 @ProviderFor(watchBudgetsUseCase)
 const watchBudgetsUseCaseProvider = WatchBudgetsUseCaseProvider._();
@@ -4959,7 +5188,7 @@ final class RecomputeUserProgressUseCaseProvider
 }
 
 String _$recomputeUserProgressUseCaseHash() =>
-    r'351f72a8ecfdd69a2709660e08779b3681970718';
+    r'9c78bde92d3ca19749aa137022dd0157c4a7975d';
 
 @ProviderFor(onTransactionCreatedUseCase)
 const onTransactionCreatedUseCaseProvider =

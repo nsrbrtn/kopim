@@ -3,6 +3,8 @@ import 'package:kopim/features/accounts/domain/repositories/account_repository.d
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
 import 'package:kopim/features/transactions/domain/repositories/transaction_repository.dart';
+import 'package:kopim/features/credits/domain/repositories/credit_repository.dart';
+import 'package:kopim/features/credits/domain/entities/credit_entity.dart';
 import 'package:kopim/features/profile/domain/entities/user_progress.dart';
 import 'package:kopim/features/profile/domain/events/profile_domain_event.dart';
 import 'package:kopim/features/profile/domain/models/profile_command_result.dart';
@@ -13,15 +15,18 @@ class DeleteTransactionUseCase {
   DeleteTransactionUseCase({
     required TransactionRepository transactionRepository,
     required AccountRepository accountRepository,
+    required CreditRepository creditRepository,
     OnTransactionDeletedUseCase? onTransactionDeletedUseCase,
     DateTime Function()? clock,
   }) : _transactionRepository = transactionRepository,
        _accountRepository = accountRepository,
+       _creditRepository = creditRepository,
        _onTransactionDeletedUseCase = onTransactionDeletedUseCase,
        _clock = clock ?? DateTime.now;
 
   final TransactionRepository _transactionRepository;
   final AccountRepository _accountRepository;
+  final CreditRepository _creditRepository;
   final OnTransactionDeletedUseCase? _onTransactionDeletedUseCase;
   final DateTime Function() _clock;
 
@@ -50,6 +55,27 @@ class DeleteTransactionUseCase {
       updatedAt: now,
     );
     await _accountRepository.upsert(updatedAccount);
+
+    // Логика отмены обновления баланса кредита
+    if (existing.categoryId != null) {
+      final CreditEntity? relatedCredit = await _creditRepository
+          .getCreditByCategoryId(existing.categoryId!);
+      if (relatedCredit != null) {
+        final AccountEntity? creditAccount = await _accountRepository.findById(
+          relatedCredit.accountId,
+        );
+        if (creditAccount != null) {
+          final double repaymentDelta = type.isExpense
+              ? existing.amount
+              : -existing.amount;
+          final AccountEntity updatedCreditAccount = creditAccount.copyWith(
+            balance: creditAccount.balance - repaymentDelta,
+            updatedAt: now,
+          );
+          await _accountRepository.upsert(updatedCreditAccount);
+        }
+      }
+    }
 
     await _transactionRepository.softDelete(transactionId);
     final List<ProfileDomainEvent> events = <ProfileDomainEvent>[];

@@ -100,6 +100,7 @@ class AccountRepositoryImpl implements AccountRepository {
       updatedAt: row.updatedAt,
       isDeleted: row.isDeleted,
       isPrimary: row.isPrimary,
+      isHidden: row.isHidden,
     );
   }
 }

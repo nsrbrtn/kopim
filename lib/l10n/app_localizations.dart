@@ -152,6 +152,84 @@ abstract class AppLocalizations {
   /// **'Menu'**
   String get profileMenuTitle;
 
+  /// No description provided for @creditsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Loans & Debts'**
+  String get creditsTitle;
+
+  /// No description provided for @creditsAddTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add loan'**
+  String get creditsAddTitle;
+
+  /// No description provided for @creditsEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit loan'**
+  String get creditsEditTitle;
+
+  /// No description provided for @creditsNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get creditsNameLabel;
+
+  /// No description provided for @creditsAmountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Loan amount'**
+  String get creditsAmountLabel;
+
+  /// No description provided for @creditsInterestRateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Interest rate (%)'**
+  String get creditsInterestRateLabel;
+
+  /// No description provided for @creditsTermMonthsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Term (months)'**
+  String get creditsTermMonthsLabel;
+
+  /// No description provided for @creditsStartDateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Start date'**
+  String get creditsStartDateLabel;
+
+  /// No description provided for @creditsHiddenOnDashboardLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide account on home screen'**
+  String get creditsHiddenOnDashboardLabel;
+
+  /// No description provided for @creditsRemainingAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Remaining to pay'**
+  String get creditsRemainingAmount;
+
+  /// No description provided for @creditsTotalAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Of {total}'**
+  String creditsTotalAmount(String total);
+
+  /// No description provided for @creditsEmptyList.
+  ///
+  /// In en, this message translates to:
+  /// **'You don\'t have any active loans yet'**
+  String get creditsEmptyList;
+
+  /// No description provided for @creditsSaveAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Save loan'**
+  String get creditsSaveAction;
+
   /// Section title for category and recurring actions on general settings
   ///
   /// In en, this message translates to:
@@ -1146,11 +1224,29 @@ abstract class AppLocalizations {
   /// **'Wrong password. Please try again.'**
   String get authErrorWrongPassword;
 
+  /// Sign in error: invalid credentials
+  ///
+  /// In en, this message translates to:
+  /// **'Incorrect email or password. Please try again.'**
+  String get authErrorInvalidCredentials;
+
   /// Sign in error: invalid email format
   ///
   /// In en, this message translates to:
   /// **'Invalid email format.'**
   String get authErrorInvalidEmail;
+
+  /// Sign up error: email already in use
+  ///
+  /// In en, this message translates to:
+  /// **'An account with this email already exists.'**
+  String get authErrorEmailAlreadyInUse;
+
+  /// Sign up error: weak password
+  ///
+  /// In en, this message translates to:
+  /// **'Password is too weak. Use at least 6 characters.'**
+  String get authErrorWeakPassword;
 
   /// Sign in error: user disabled
   ///

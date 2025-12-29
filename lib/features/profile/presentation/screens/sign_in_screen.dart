@@ -124,6 +124,15 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
             _passwordController.clear();
           }
         }
+        if (!mounted) {
+          return;
+        }
+        final String? previousError = previous?.errorMessage;
+        final String? nextError = next.errorMessage;
+        if (nextError != null && nextError != previousError) {
+          final AppLocalizations strings = AppLocalizations.of(context)!;
+          _showErrorSnackBar(AuthErrorMapper.map(nextError, strings));
+        }
       },
     );
     _signUpFormSubscription = ref.listenManual<SignUpFormState>(
@@ -137,6 +146,15 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
             _signUpPasswordController.clear();
             _signUpConfirmPasswordController.clear();
           }
+        }
+        if (!mounted) {
+          return;
+        }
+        final String? previousError = previous?.errorMessage;
+        final String? nextError = next.errorMessage;
+        if (nextError != null && nextError != previousError) {
+          final AppLocalizations strings = AppLocalizations.of(context)!;
+          _showErrorSnackBar(AuthErrorMapper.map(nextError, strings));
         }
       },
     );
@@ -202,7 +220,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
     final bool passwordHasError =
         !_isSignUpMode &&
         errorMessage != null &&
-        errorMessage == 'wrong-password';
+        (errorMessage == 'wrong-password' || errorMessage == 'invalid-credential');
 
     final String logoAsset = theme.brightness == Brightness.dark
         ? 'assets/icons/logo_dark.png'
@@ -360,9 +378,14 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                     GestureDetector(
                       onTap: () async {
                         await controller.resetPassword();
-                        if (context.mounted &&
-                            formState.errorMessage == null &&
-                            !formState.isSubmitting) {
+                        if (!context.mounted) {
+                          return;
+                        }
+                        final SignInFormState latestState = ref.read(
+                          signInFormControllerProvider,
+                        );
+                        if (latestState.errorMessage == null &&
+                            !latestState.isSubmitting) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                               content: Text(
@@ -537,5 +560,11 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
     });
     controller.clearError();
     signUpController.clearError();
+  }
+
+  void _showErrorSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
   }
 }

@@ -37,6 +37,47 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileMenuTitle => 'Menu';
 
   @override
+  String get creditsTitle => 'Loans & Debts';
+
+  @override
+  String get creditsAddTitle => 'Add loan';
+
+  @override
+  String get creditsEditTitle => 'Edit loan';
+
+  @override
+  String get creditsNameLabel => 'Name';
+
+  @override
+  String get creditsAmountLabel => 'Loan amount';
+
+  @override
+  String get creditsInterestRateLabel => 'Interest rate (%)';
+
+  @override
+  String get creditsTermMonthsLabel => 'Term (months)';
+
+  @override
+  String get creditsStartDateLabel => 'Start date';
+
+  @override
+  String get creditsHiddenOnDashboardLabel => 'Hide account on home screen';
+
+  @override
+  String get creditsRemainingAmount => 'Remaining to pay';
+
+  @override
+  String creditsTotalAmount(String total) {
+    return 'Of $total';
+  }
+
+  @override
+  String get creditsEmptyList => 'You don\'t have any active loans yet';
+
+  @override
+  String get creditsSaveAction => 'Save loan';
+
+  @override
   String get profileGeneralSettingsManagementSection => 'Data management';
 
   @override
@@ -592,7 +633,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get authErrorWrongPassword => 'Wrong password. Please try again.';
 
   @override
+  String get authErrorInvalidCredentials =>
+      'Incorrect email or password. Please try again.';
+
+  @override
   String get authErrorInvalidEmail => 'Invalid email format.';
+
+  @override
+  String get authErrorEmailAlreadyInUse =>
+      'An account with this email already exists.';
+
+  @override
+  String get authErrorWeakPassword =>
+      'Password is too weak. Use at least 6 characters.';
 
   @override
   String get authErrorUserDisabled => 'This user account has been disabled.';

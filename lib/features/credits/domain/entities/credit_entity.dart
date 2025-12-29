@@ -1,0 +1,23 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+part 'credit_entity.freezed.dart';
+part 'credit_entity.g.dart';
+
+@freezed
+abstract class CreditEntity with _$CreditEntity {
+  const factory CreditEntity({
+    required String id,
+    required String accountId,
+    String? categoryId,
+    required double totalAmount,
+    required double interestRate,
+    required int termMonths,
+    required DateTime startDate,
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    @Default(false) bool isDeleted,
+  }) = _CreditEntity;
+
+  factory CreditEntity.fromJson(Map<String, Object?> json) =>
+      _$CreditEntityFromJson(json);
+}

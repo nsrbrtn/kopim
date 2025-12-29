@@ -29,3 +29,16 @@ String? colorToHex(
 
   return leadingHashSign ? '#${buffer.toUpperCase()}' : buffer.toUpperCase();
 }
+
+String getCurrencySymbol(String currencyCode) {
+  switch (currencyCode.toUpperCase()) {
+    case 'RUB':
+      return '₽';
+    case 'USD':
+      return '\$';
+    case 'EUR':
+      return '€';
+    default:
+      return currencyCode;
+  }
+}

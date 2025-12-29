@@ -31,6 +31,9 @@ import 'package:kopim/features/upcoming_payments/data/drift/daos/payment_reminde
 import 'package:kopim/features/upcoming_payments/data/drift/daos/upcoming_payments_dao.dart';
 import 'package:kopim/features/upcoming_payments/data/drift/repositories/payment_reminders_repository_impl.dart';
 import 'package:kopim/features/upcoming_payments/data/drift/repositories/upcoming_payments_repository_impl.dart';
+import 'package:kopim/features/credits/data/repositories/credit_repository_impl.dart';
+import 'package:kopim/features/credits/data/sources/local/credit_dao.dart';
+import 'package:kopim/features/credits/domain/repositories/credit_repository.dart';
 import 'package:kopim/features/upcoming_payments/domain/entities/payment_reminder.dart';
 import 'package:kopim/features/upcoming_payments/domain/entities/upcoming_payment.dart';
 import 'package:kopim/features/upcoming_payments/domain/repositories/payment_reminders_repository.dart';
@@ -163,6 +166,7 @@ Future<void> _executeUpcomingPaymentsWorkflow({
   final OutboxDao outboxDao = OutboxDao(database);
   final AccountDao accountDao = AccountDao(database);
   final TransactionDao transactionDao = TransactionDao(database);
+  final CreditDao creditDao = CreditDao(database);
   final SavingGoalDao savingGoalDao = SavingGoalDao(database);
   final GoalContributionDao goalContributionDao = GoalContributionDao(database);
 
@@ -178,9 +182,15 @@ Future<void> _executeUpcomingPaymentsWorkflow({
     goalContributionDao: goalContributionDao,
     outboxDao: outboxDao,
   );
+  final CreditRepository creditRepository = CreditRepositoryImpl(
+    database: database,
+    creditDao: creditDao,
+    outboxDao: outboxDao,
+  );
   final AddTransactionUseCase addTransaction = AddTransactionUseCase(
     transactionRepository: transactionRepository,
     accountRepository: accountRepository,
+    creditRepository: creditRepository,
   );
   final ProfileEventRecorder eventRecorder = ProfileEventRecorder(
     analyticsService: const AnalyticsService(),
