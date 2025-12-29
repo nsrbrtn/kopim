@@ -13,6 +13,7 @@ abstract class CreditEntity with _$CreditEntity {
     required double interestRate,
     required int termMonths,
     required DateTime startDate,
+    @Default(1) int paymentDay,
     required DateTime createdAt,
     required DateTime updatedAt,
     @Default(false) bool isDeleted,

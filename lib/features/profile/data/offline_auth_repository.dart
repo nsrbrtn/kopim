@@ -53,8 +53,8 @@ class OfflineAuthRepository implements AuthRepository {
 
   @override
   Future<void> signOut() async {
-    _currentUser = AuthUser.guest();
-    _controller.add(_currentUser);
+    _currentUser = null;
+    _controller.add(null);
   }
 
   @override

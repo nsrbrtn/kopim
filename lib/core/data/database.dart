@@ -276,6 +276,7 @@ class Credits extends Table {
   RealColumn get interestRate => real()();
   IntColumn get termMonths => integer()();
   DateTimeColumn get startDate => dateTime()();
+  IntColumn get paymentDay => integer().withDefault(const Constant<int>(1))();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
   BoolColumn get isDeleted =>
@@ -311,7 +312,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.connect(DatabaseConnection super.connection);
 
   @override
-  int get schemaVersion => 22;
+  int get schemaVersion => 23;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -696,6 +697,11 @@ class AppDatabase extends _$AppDatabase {
         }
         if (!await _columnExists('credits', 'category_id')) {
           await m.addColumn(this.credits, this.credits.categoryId);
+        }
+      }
+      if (from < 23) {
+        if (!await _columnExists('credits', 'payment_day')) {
+          await m.addColumn(this.credits, this.credits.paymentDay);
         }
       }
     },

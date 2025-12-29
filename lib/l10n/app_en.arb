@@ -53,6 +53,9 @@
   },
   "creditsEmptyList": "You don't have any active loans yet",
   "creditsSaveAction": "Save loan",
+  "creditsPaymentDayLabel": "Payment day (1-31)",
+  "creditsNextPaymentLabel": "Next payment",
+  "creditsRemainingPaymentsLabel": "Remaining",
   "profileGeneralSettingsManagementSection": "Data management",
   "@profileGeneralSettingsManagementSection": {
     "description": "Section title for category and recurring actions on general settings"
@@ -1119,6 +1122,26 @@
   "homeProfileTooltip": "Profile",
   "@homeProfileTooltip": {
     "description": "Tooltip for the profile action in the home app bar"
+  },
+  "homeSyncStatusSuccess": "Sync complete.",
+  "@homeSyncStatusSuccess": {
+    "description": "Shown after manual sync completes successfully"
+  },
+  "homeSyncStatusOffline": "You are offline. Sync is unavailable.",
+  "@homeSyncStatusOffline": {
+    "description": "Shown when sync is requested while offline"
+  },
+  "homeSyncStatusInProgress": "Sync is already running.",
+  "@homeSyncStatusInProgress": {
+    "description": "Shown when sync is already running"
+  },
+  "homeSyncStatusNoChanges": "Nothing to sync.",
+  "@homeSyncStatusNoChanges": {
+    "description": "Shown when there are no pending changes to sync"
+  },
+  "homeSyncStatusAuthRequired": "Sign in to sync your data.",
+  "@homeSyncStatusAuthRequired": {
+    "description": "Shown when user is not authenticated for sync"
   },
   "homeTotalBalance": "Total balance: {amount}",
   "@homeTotalBalance": {

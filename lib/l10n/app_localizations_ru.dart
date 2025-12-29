@@ -79,6 +79,15 @@ class AppLocalizationsRu extends AppLocalizations {
   String get creditsSaveAction => 'Сохранить кредит';
 
   @override
+  String get creditsPaymentDayLabel => 'День платежа (1-31)';
+
+  @override
+  String get creditsNextPaymentLabel => 'Следующий платеж';
+
+  @override
+  String get creditsRemainingPaymentsLabel => 'Осталось';
+
+  @override
   String get profileGeneralSettingsManagementSection => 'Управление данными';
 
   @override
@@ -880,6 +889,22 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get homeProfileTooltip => 'Профиль';
+
+  @override
+  String get homeSyncStatusSuccess => 'Синхронизация завершена.';
+
+  @override
+  String get homeSyncStatusOffline => 'Вы офлайн. Синхронизация недоступна.';
+
+  @override
+  String get homeSyncStatusInProgress => 'Синхронизация уже выполняется.';
+
+  @override
+  String get homeSyncStatusNoChanges => 'Нет изменений для синхронизации.';
+
+  @override
+  String get homeSyncStatusAuthRequired =>
+      'Войдите, чтобы синхронизировать данные.';
 
   @override
   String homeTotalBalance(String amount) {

@@ -28,6 +28,7 @@ class _AddEditCreditScreenState extends ConsumerState<AddEditCreditScreen> {
   final TextEditingController _amountController = TextEditingController();
   final TextEditingController _rateController = TextEditingController();
   final TextEditingController _termController = TextEditingController();
+  final TextEditingController _paymentDayController = TextEditingController();
   bool _isHidden = false;
   PhosphorIconDescriptor? _icon;
   String? _color;
@@ -37,6 +38,7 @@ class _AddEditCreditScreenState extends ConsumerState<AddEditCreditScreen> {
   bool _amountError = false;
   bool _rateError = false;
   bool _termError = false;
+  bool _paymentDayError = false;
 
   @override
   void initState() {
@@ -45,6 +47,7 @@ class _AddEditCreditScreenState extends ConsumerState<AddEditCreditScreen> {
       _amountController.text = widget.credit!.totalAmount.toString();
       _rateController.text = widget.credit!.interestRate.toString();
       _termController.text = widget.credit!.termMonths.toString();
+      _paymentDayController.text = widget.credit!.paymentDay.toString();
 
       // Загружаем данные счета
       Future<void>.microtask(() async {
@@ -77,6 +80,7 @@ class _AddEditCreditScreenState extends ConsumerState<AddEditCreditScreen> {
     _amountController.dispose();
     _rateController.dispose();
     _termController.dispose();
+    _paymentDayController.dispose();
     super.dispose();
   }
 
@@ -86,8 +90,14 @@ class _AddEditCreditScreenState extends ConsumerState<AddEditCreditScreen> {
       _amountError = double.tryParse(_amountController.text) == null;
       _rateError = double.tryParse(_rateController.text) == null;
       _termError = int.tryParse(_termController.text) == null;
+      final int? day = int.tryParse(_paymentDayController.text);
+      _paymentDayError = day == null || day < 1 || day > 31;
     });
-    return !(_nameError || _amountError || _rateError || _termError);
+    return !(_nameError ||
+        _amountError ||
+        _rateError ||
+        _termError ||
+        _paymentDayError);
   }
 
   Future<void> _save() async {
@@ -102,6 +112,7 @@ class _AddEditCreditScreenState extends ConsumerState<AddEditCreditScreen> {
               interestRate: double.parse(_rateController.text),
               termMonths: int.parse(_termController.text),
               startDate: DateTime.now(),
+              paymentDay: int.parse(_paymentDayController.text),
               color: _color,
               iconName: _icon?.name,
               iconStyle: _icon?.style.name,
@@ -128,6 +139,7 @@ class _AddEditCreditScreenState extends ConsumerState<AddEditCreditScreen> {
               interestRate: double.parse(_rateController.text),
               termMonths: int.parse(_termController.text),
               startDate: DateTime.now(),
+              paymentDay: int.parse(_paymentDayController.text),
               color: _color,
               iconName: _icon?.name,
               iconStyle: _icon?.style.name,
@@ -166,8 +178,8 @@ class _AddEditCreditScreenState extends ConsumerState<AddEditCreditScreen> {
   Future<void> _selectIcon() async {
     final PhosphorIconDescriptor? selection = await showPhosphorIconPicker(
       context: context,
-      labels: const PhosphorIconPickerLabels(
-        title: 'Выберите иконку', // TODO: Localize
+      labels: PhosphorIconPickerLabels(
+        title: context.loc.manageCategoriesIconPickerTitle,
         emptyStateLabel: 'Ничего не найдено',
         styleLabels: <PhosphorIconStyle, String>{
           PhosphorIconStyle.thin: 'Тонкий',
@@ -199,8 +211,8 @@ class _AddEditCreditScreenState extends ConsumerState<AddEditCreditScreen> {
         title: Text(
           widget.credit == null
               ? context.loc.creditsAddTitle
-              : 'Редактировать кредит',
-        ), // TODO: Localize
+              : context.loc.creditsEditTitle,
+        ),
         actions: [
           if (widget.credit != null)
             IconButton(
@@ -267,9 +279,17 @@ class _AddEditCreditScreenState extends ConsumerState<AddEditCreditScreen> {
               keyboardType: TextInputType.number,
               hasError: _termError,
             ),
+            const SizedBox(height: 16),
+            KopimTextField(
+              controller: _paymentDayController,
+              placeholder: context.loc.creditsPaymentDayLabel,
+              prefixIcon: const Icon(Icons.event_outlined),
+              keyboardType: TextInputType.number,
+              hasError: _paymentDayError,
+            ),
             const SizedBox(height: 24),
             Text(
-              'Оформление', // TODO: Localize
+              context.loc.profileThemeHeader,
               style: theme.textTheme.labelLarge,
             ),
             const SizedBox(height: 8),
@@ -287,7 +307,7 @@ class _AddEditCreditScreenState extends ConsumerState<AddEditCreditScreen> {
                         color: theme.colorScheme.onSurface,
                       ),
               ),
-              title: const Text('Иконка'), // TODO: Localize
+              title: Text(context.loc.manageCategoriesIconLabel),
               subtitle: Text(_icon != null ? 'Выбрана' : 'Не выбрана'),
               trailing: const Icon(Icons.chevron_right),
               onTap: _selectIcon,

@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
 import 'package:kopim/features/profile/domain/entities/profile.dart';
@@ -347,9 +348,14 @@ class _ProfileFormState extends ConsumerState<_ProfileForm> {
                 FilledButton.icon(
                   onPressed: () async {
                     final NavigatorState navigator = Navigator.of(context);
+                    final GoRouter? router = GoRouter.maybeOf(context);
                     try {
                       await ref.read(authControllerProvider.notifier).signOut();
                       if (!context.mounted) {
+                        return;
+                      }
+                      if (router != null) {
+                        router.go(SignInScreen.routeName);
                         return;
                       }
                       navigator.popUntil(

@@ -53,6 +53,9 @@
   },
   "creditsEmptyList": "У вас пока нет активных кредитов",
   "creditsSaveAction": "Сохранить кредит",
+  "creditsPaymentDayLabel": "День платежа (1-31)",
+  "creditsNextPaymentLabel": "Следующий платеж",
+  "creditsRemainingPaymentsLabel": "Осталось",
   "profileGeneralSettingsManagementSection": "Управление данными",
   "@profileGeneralSettingsManagementSection": {
     "description": "Заголовок секции с действиями для категорий и повторяющихся операций"
@@ -1117,6 +1120,26 @@
   "homeProfileTooltip": "Профиль",
   "@homeProfileTooltip": {
     "description": "Подсказка к кнопке профиля на главном экране"
+  },
+  "homeSyncStatusSuccess": "Синхронизация завершена.",
+  "@homeSyncStatusSuccess": {
+    "description": "Показывается после успешной ручной синхронизации"
+  },
+  "homeSyncStatusOffline": "Вы офлайн. Синхронизация недоступна.",
+  "@homeSyncStatusOffline": {
+    "description": "Показывается при попытке синхронизации без сети"
+  },
+  "homeSyncStatusInProgress": "Синхронизация уже выполняется.",
+  "@homeSyncStatusInProgress": {
+    "description": "Показывается, когда синхронизация уже запущена"
+  },
+  "homeSyncStatusNoChanges": "Нет изменений для синхронизации.",
+  "@homeSyncStatusNoChanges": {
+    "description": "Показывается, когда нечего синхронизировать"
+  },
+  "homeSyncStatusAuthRequired": "Войдите, чтобы синхронизировать данные.",
+  "@homeSyncStatusAuthRequired": {
+    "description": "Показывается, когда нет авторизации для синхронизации"
   },
   "homeTotalBalance": "Суммарный баланс: {amount}",
   "@homeTotalBalance": {

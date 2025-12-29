@@ -22,6 +22,7 @@ import 'package:kopim/features/profile/data/remote/profile_remote_data_source.da
 import 'package:kopim/features/profile/domain/entities/profile.dart';
 import 'package:kopim/features/transactions/data/sources/remote/transaction_remote_data_source.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
+import 'package:kopim/core/services/sync_status.dart';
 
 class SyncService {
   SyncService({
@@ -65,10 +66,16 @@ class SyncService {
 
   StreamSubscription<List<db.OutboxEntryRow>>? _outboxSubscription;
   StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
+  final StreamController<SyncStatus> _statusController =
+      StreamController<SyncStatus>.broadcast();
 
   bool _isOnline = false;
   bool _isSyncing = false;
   bool _initialized = false;
+  SyncStatus _status = SyncStatus.offline;
+
+  Stream<SyncStatus> get statusStream => _statusController.stream;
+  SyncStatus get status => _status;
 
   Future<void> initialize() async {
     if (_initialized) return;
@@ -89,14 +96,17 @@ class SyncService {
   Future<void> dispose() async {
     await _outboxSubscription?.cancel();
     await _connectivitySubscription?.cancel();
+    await _statusController.close();
   }
 
   Future<void> syncPending() async {
+    _updateStatus();
     if (_isSyncing || !_isOnline) return;
     final User? user = _auth.currentUser;
     if (user == null) return;
 
     _isSyncing = true;
+    _updateStatus();
     try {
       final List<db.OutboxEntryRow> pendingEntries = await _outboxDao
           .fetchPending(limit: 100);
@@ -109,7 +119,21 @@ class SyncService {
       await _outboxDao.pruneSent();
     } finally {
       _isSyncing = false;
+      _updateStatus();
     }
+  }
+
+  Future<SyncActionResult> triggerSync() async {
+    await initialize();
+    if (!_isOnline) return SyncActionResult.offline;
+    final User? user = _auth.currentUser;
+    if (user == null) return SyncActionResult.unauthenticated;
+    if (_isSyncing) return SyncActionResult.alreadySyncing;
+    final bool hasPending =
+        (await _outboxDao.fetchPending(limit: 1)).isNotEmpty;
+    if (!hasPending) return SyncActionResult.noChanges;
+    await syncPending();
+    return SyncActionResult.synced;
   }
 
   Future<void> _syncEntry(String userId, db.OutboxEntryRow entry) async {
@@ -291,8 +315,19 @@ class SyncService {
     );
     final bool changed = isNowOnline != _isOnline;
     _isOnline = isNowOnline;
+    _updateStatus();
     if (_isOnline && changed) {
       await syncPending();
     }
+  }
+
+  void _updateStatus() {
+    final SyncStatus nextStatus = !_isOnline
+        ? SyncStatus.offline
+        : (_isSyncing ? SyncStatus.syncing : SyncStatus.upToDate);
+    if (nextStatus == _status) return;
+    _status = nextStatus;
+    if (_statusController.isClosed) return;
+    _statusController.add(nextStatus);
   }
 }

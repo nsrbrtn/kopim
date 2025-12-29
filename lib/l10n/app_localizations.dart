@@ -230,6 +230,24 @@ abstract class AppLocalizations {
   /// **'Save loan'**
   String get creditsSaveAction;
 
+  /// No description provided for @creditsPaymentDayLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment day (1-31)'**
+  String get creditsPaymentDayLabel;
+
+  /// No description provided for @creditsNextPaymentLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Next payment'**
+  String get creditsNextPaymentLabel;
+
+  /// No description provided for @creditsRemainingPaymentsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Remaining'**
+  String get creditsRemainingPaymentsLabel;
+
   /// Section title for category and recurring actions on general settings
   ///
   /// In en, this message translates to:
@@ -1631,6 +1649,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Profile'**
   String get homeProfileTooltip;
+
+  /// Shown after manual sync completes successfully
+  ///
+  /// In en, this message translates to:
+  /// **'Sync complete.'**
+  String get homeSyncStatusSuccess;
+
+  /// Shown when sync is requested while offline
+  ///
+  /// In en, this message translates to:
+  /// **'You are offline. Sync is unavailable.'**
+  String get homeSyncStatusOffline;
+
+  /// Shown when sync is already running
+  ///
+  /// In en, this message translates to:
+  /// **'Sync is already running.'**
+  String get homeSyncStatusInProgress;
+
+  /// Shown when there are no pending changes to sync
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing to sync.'**
+  String get homeSyncStatusNoChanges;
+
+  /// Shown when user is not authenticated for sync
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to sync your data.'**
+  String get homeSyncStatusAuthRequired;
 
   /// App bar title showing the aggregated balance
   ///

@@ -33,6 +33,7 @@ class AddCreditUseCase {
     String? color,
     String? iconName,
     String? iconStyle,
+    int paymentDay = 1,
     bool isHidden = false,
   }) async {
     final String creditId = _uuid.v4();
@@ -82,6 +83,7 @@ class AddCreditUseCase {
       interestRate: interestRate,
       termMonths: termMonths,
       startDate: startDate,
+      paymentDay: paymentDay,
       createdAt: now,
       updatedAt: now,
     );

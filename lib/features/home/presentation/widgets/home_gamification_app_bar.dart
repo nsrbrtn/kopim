@@ -12,6 +12,7 @@ import 'package:kopim/features/profile/presentation/controllers/profile_controll
 import 'package:kopim/features/profile/presentation/controllers/user_progress_controller.dart';
 import 'package:kopim/features/profile/presentation/screens/profile_management_screen.dart';
 import 'package:kopim/features/home/presentation/widgets/top_bar_avatar_icon.dart';
+import 'package:kopim/features/home/presentation/widgets/sync_status_indicator.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
 class HomeGamificationAppBar extends ConsumerWidget {
@@ -74,6 +75,8 @@ class HomeGamificationAppBar extends ConsumerWidget {
             style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
           ),
           actions: <Widget>[
+            const Center(child: SyncStatusIndicator()),
+            const SizedBox(width: 12),
             Semantics(
               label: strings.homeProfileTooltip,
               button: true,

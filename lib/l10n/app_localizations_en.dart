@@ -78,6 +78,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get creditsSaveAction => 'Save loan';
 
   @override
+  String get creditsPaymentDayLabel => 'Payment day (1-31)';
+
+  @override
+  String get creditsNextPaymentLabel => 'Next payment';
+
+  @override
+  String get creditsRemainingPaymentsLabel => 'Remaining';
+
+  @override
   String get profileGeneralSettingsManagementSection => 'Data management';
 
   @override
@@ -873,6 +882,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeProfileTooltip => 'Profile';
+
+  @override
+  String get homeSyncStatusSuccess => 'Sync complete.';
+
+  @override
+  String get homeSyncStatusOffline => 'You are offline. Sync is unavailable.';
+
+  @override
+  String get homeSyncStatusInProgress => 'Sync is already running.';
+
+  @override
+  String get homeSyncStatusNoChanges => 'Nothing to sync.';
+
+  @override
+  String get homeSyncStatusAuthRequired => 'Sign in to sync your data.';
 
   @override
   String homeTotalBalance(String amount) {

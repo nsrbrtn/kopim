@@ -12,6 +12,8 @@ import 'package:kopim/features/accounts/presentation/accounts_add_screen.dart';
 import 'package:kopim/features/app_shell/presentation/models/navigation_tab_content.dart';
 import 'package:kopim/features/app_shell/presentation/widgets/navigation_responsive_breakpoints.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
+import 'package:kopim/core/di/injectors.dart';
+import 'package:kopim/features/credits/domain/entities/credit_entity.dart';
 import 'package:kopim/core/domain/icons/phosphor_icon_descriptor.dart';
 import 'package:kopim/features/home/domain/entities/home_dashboard_preferences.dart';
 import 'package:kopim/features/home/domain/models/day_section.dart';
@@ -43,6 +45,7 @@ import 'package:kopim/core/utils/helpers.dart';
 import 'package:kopim/core/widgets/collapsible_list/collapsible_list.dart';
 import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
 import 'package:kopim/core/config/theme_extensions.dart';
+import 'package:kopim/core/services/sync_status.dart';
 import 'package:kopim/features/profile/presentation/screens/profile_management_screen.dart';
 import 'package:kopim/features/transactions/presentation/screens/all_transactions_screen.dart';
 import 'package:kopim/features/savings/presentation/screens/saving_goal_details_screen.dart';
@@ -51,6 +54,7 @@ import 'package:kopim/features/upcoming_payments/domain/providers/upcoming_payme
 import 'package:kopim/features/upcoming_payments/domain/services/time_service.dart';
 import 'package:kopim/features/upcoming_payments/presentation/screens/upcoming_payments_screen.dart';
 import 'package:kopim/features/home/presentation/widgets/top_bar_avatar_icon.dart';
+import 'package:kopim/features/home/presentation/widgets/sync_status_indicator.dart';
 
 import '../controllers/home_providers.dart';
 
@@ -107,7 +111,7 @@ NavigationTabContent buildHomeTabContent(BuildContext context, WidgetRef ref) {
   );
 }
 
-class _HomeBody extends StatelessWidget {
+class _HomeBody extends ConsumerWidget {
   const _HomeBody({
     required this.authState,
     required this.accountsAsync,
@@ -130,7 +134,7 @@ class _HomeBody extends StatelessWidget {
   final AsyncValue<HomeDashboardPreferences> dashboardPreferencesAsync;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return authState.when(
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (Object error, _) => Center(
@@ -301,11 +305,35 @@ class _HomeBody extends StatelessWidget {
             );
             slivers.add(const SliverToBoxAdapter(child: SizedBox(height: 80)));
 
-            return CustomScrollView(slivers: slivers);
+            return RefreshIndicator.adaptive(
+              onRefresh: () => _handleRefresh(context, ref),
+              child: CustomScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                slivers: slivers,
+              ),
+            );
           },
         );
       },
     );
+  }
+
+  Future<void> _handleRefresh(BuildContext context, WidgetRef ref) async {
+    final syncService = ref.read(syncServiceProvider);
+    final SyncActionResult result = await syncService.triggerSync();
+    if (!context.mounted) return;
+    final AppLocalizations strings = AppLocalizations.of(context)!;
+    final String message = switch (result) {
+      SyncActionResult.synced => strings.homeSyncStatusSuccess,
+      SyncActionResult.offline => strings.homeSyncStatusOffline,
+      SyncActionResult.unauthenticated =>
+        strings.homeSyncStatusAuthRequired,
+      SyncActionResult.alreadySyncing => strings.homeSyncStatusInProgress,
+      SyncActionResult.noChanges => strings.homeSyncStatusNoChanges,
+    };
+    final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar();
+    messenger.showSnackBar(SnackBar(content: Text(message)));
   }
 }
 
@@ -459,6 +487,8 @@ class _HomePinnedTitleAppBar extends ConsumerWidget {
         ),
       ),
       actions: <Widget>[
+        const Center(child: SyncStatusIndicator()),
+        const SizedBox(width: 12),
         Semantics(
           label: strings.homeProfileTooltip,
           button: true,
@@ -759,7 +789,7 @@ class _AccountsListState extends State<_AccountsList> {
   }
 }
 
-class _AccountCard extends StatelessWidget {
+class _AccountCard extends ConsumerWidget {
   const _AccountCard({
     required this.account,
     required this.strings,
@@ -775,7 +805,7 @@ class _AccountCard extends StatelessWidget {
   final bool isHighlighted;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final ThemeData theme = Theme.of(context);
     final Color? accountColor = parseHexColor(account.color);
     final _AccountCardPalette palette = _AccountCardPalette.fromAccount(
@@ -831,49 +861,229 @@ class _AccountCard extends StatelessWidget {
           ),
           child: Padding(
             padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text(
-                  account.name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: labelStyle,
+            child: account.type == 'credit'
+                ? _CreditCardContent(
+                    account: account,
+                    strings: strings,
+                    currencyFormat: currencyFormat,
+                    palette: palette,
+                    labelStyle: labelStyle,
+                    balanceStyle: balanceStyle,
+                    summaryTextStyle: summaryTextStyle,
+                    summaryHeaderStyle: summaryHeaderStyle,
+                  )
+                : Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text(
+                        account.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: labelStyle,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        currencyFormat.format(account.balance),
+                        style: balanceStyle,
+                        softWrap: true,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        strings.analyticsCurrentMonthTitle,
+                        style: summaryHeaderStyle,
+                      ),
+                      const SizedBox(height: 8),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          _AccountMonthlyValue(
+                            label: strings.homeAccountMonthlyIncomeLabel,
+                            value: currencyFormat.format(summary.income),
+                            textStyle: summaryTextStyle,
+                          ),
+                          const SizedBox(height: 4),
+                          _AccountMonthlyValue(
+                            label: strings.homeAccountMonthlyExpenseLabel,
+                            value: currencyFormat.format(summary.expense),
+                            textStyle: summaryTextStyle,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CreditCardContent extends ConsumerWidget {
+  const _CreditCardContent({
+    required this.account,
+    required this.strings,
+    required this.currencyFormat,
+    required this.palette,
+    required this.labelStyle,
+    required this.balanceStyle,
+    required this.summaryTextStyle,
+    required this.summaryHeaderStyle,
+  });
+
+  final AccountEntity account;
+  final AppLocalizations strings;
+  final NumberFormat currencyFormat;
+  final _AccountCardPalette palette;
+  final TextStyle labelStyle;
+  final TextStyle balanceStyle;
+  final TextStyle summaryTextStyle;
+  final TextStyle summaryHeaderStyle;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final creditsAsync = ref.watch(watchCreditsUseCaseProvider).call();
+
+    return StreamBuilder<List<CreditEntity>>(
+      stream: creditsAsync,
+      builder: (context, snapshot) {
+        final credit = snapshot.data?.firstWhere(
+          (c) => c.accountId == account.id,
+          orElse: () => null as dynamic,
+        );
+
+        if (credit == null) {
+          return const SizedBox();
+        }
+
+        final nextPaymentDate = _calculateNextPaymentDate(credit);
+        final remainingPayments = _calculateRemainingPayments(credit);
+        final progress =
+            (credit.totalAmount + account.balance).abs() / credit.totalAmount;
+
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    account.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: labelStyle,
+                  ),
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  currencyFormat.format(account.balance),
-                  style: balanceStyle,
-                  softWrap: true,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  strings.analyticsCurrentMonthTitle,
-                  style: summaryHeaderStyle,
-                ),
-                const SizedBox(height: 8),
+                if (credit.categoryId != null)
+                  _CreditCategoryIcon(
+                    categoryId: credit.categoryId!,
+                    color: palette.emphasis,
+                  ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              currencyFormat.format(account.balance.abs()),
+              style: balanceStyle,
+              softWrap: true,
+            ),
+            const SizedBox(height: 16),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              child: LinearProgressIndicator(
+                value: progress.clamp(0.0, 1.0),
+                backgroundColor: palette.support.withValues(alpha: 0.2),
+                valueColor: AlwaysStoppedAnimation<Color>(palette.emphasis),
+                minHeight: 6,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    _AccountMonthlyValue(
-                      label: strings.homeAccountMonthlyIncomeLabel,
-                      value: currencyFormat.format(summary.income),
-                      textStyle: summaryTextStyle,
+                  children: [
+                    Text(
+                      strings.creditsNextPaymentLabel,
+                      style: summaryHeaderStyle,
                     ),
                     const SizedBox(height: 4),
-                    _AccountMonthlyValue(
-                      label: strings.homeAccountMonthlyExpenseLabel,
-                      value: currencyFormat.format(summary.expense),
-                      textStyle: summaryTextStyle,
+                    Text(
+                      DateFormat.yMd(
+                        strings.localeName,
+                      ).format(nextPaymentDate),
+                      style: summaryTextStyle,
                     ),
+                  ],
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      strings.creditsRemainingPaymentsLabel,
+                      style: summaryHeaderStyle,
+                    ),
+                    const SizedBox(height: 4),
+                    Text('$remainingPayments', style: summaryTextStyle),
                   ],
                 ),
               ],
             ),
-          ),
-        ),
-      ),
+          ],
+        );
+      },
+    );
+  }
+
+  DateTime _calculateNextPaymentDate(CreditEntity credit) {
+    final now = DateTime.now();
+    final paymentDay = credit.paymentDay;
+
+    // Пробуем текущий месяц
+    DateTime candidate = DateTime(now.year, now.month, paymentDay);
+
+    // Если дата уже прошла, берем следующий месяц
+    if (candidate.isBefore(now) || candidate.isAtSameMomentAs(now)) {
+      candidate = DateTime(now.year, now.month + 1, paymentDay);
+    }
+
+    return candidate;
+  }
+
+  int _calculateRemainingPayments(CreditEntity credit) {
+    final now = DateTime.now();
+    final monthsPassed = _monthsBetween(credit.startDate, now);
+    final remaining = credit.termMonths - monthsPassed;
+    return remaining > 0 ? remaining : 0;
+  }
+
+  int _monthsBetween(DateTime start, DateTime end) {
+    return (end.year - start.year) * 12 + end.month - start.month;
+  }
+}
+
+class _CreditCategoryIcon extends ConsumerWidget {
+  const _CreditCategoryIcon({required this.categoryId, required this.color});
+
+  final String categoryId;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return FutureBuilder<Category?>(
+      future: ref.read(categoryRepositoryProvider).findById(categoryId),
+      builder: (context, snapshot) {
+        final category = snapshot.data;
+        if (category == null || category.icon == null) return const SizedBox();
+        return Icon(
+          resolvePhosphorIconData(category.icon!),
+          color: color,
+          size: 20,
+        );
+      },
     );
   }
 }
@@ -1381,10 +1591,7 @@ sealed class _TransactionSliverEntry {
 }
 
 class _TransactionHeaderEntry extends _TransactionSliverEntry {
-  const _TransactionHeaderEntry({
-    required this.title,
-    required this.netAmount,
-  });
+  const _TransactionHeaderEntry({required this.title, required this.netAmount});
 
   final String title;
   final double netAmount;

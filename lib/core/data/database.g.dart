@@ -9719,6 +9719,18 @@ class $CreditsTable extends Credits with TableInfo<$CreditsTable, CreditRow> {
     type: DriftSqlType.dateTime,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _paymentDayMeta = const VerificationMeta(
+    'paymentDay',
+  );
+  @override
+  late final GeneratedColumn<int> paymentDay = GeneratedColumn<int>(
+    'payment_day',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant<int>(1),
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -9767,6 +9779,7 @@ class $CreditsTable extends Credits with TableInfo<$CreditsTable, CreditRow> {
     interestRate,
     termMonths,
     startDate,
+    paymentDay,
     createdAt,
     updatedAt,
     isDeleted,
@@ -9840,6 +9853,12 @@ class $CreditsTable extends Credits with TableInfo<$CreditsTable, CreditRow> {
     } else if (isInserting) {
       context.missing(_startDateMeta);
     }
+    if (data.containsKey('payment_day')) {
+      context.handle(
+        _paymentDayMeta,
+        paymentDay.isAcceptableOrUnknown(data['payment_day']!, _paymentDayMeta),
+      );
+    }
     if (data.containsKey('created_at')) {
       context.handle(
         _createdAtMeta,
@@ -9895,6 +9914,10 @@ class $CreditsTable extends Credits with TableInfo<$CreditsTable, CreditRow> {
         DriftSqlType.dateTime,
         data['${effectivePrefix}start_date'],
       )!,
+      paymentDay: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}payment_day'],
+      )!,
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -9924,6 +9947,7 @@ class CreditRow extends DataClass implements Insertable<CreditRow> {
   final double interestRate;
   final int termMonths;
   final DateTime startDate;
+  final int paymentDay;
   final DateTime createdAt;
   final DateTime updatedAt;
   final bool isDeleted;
@@ -9935,6 +9959,7 @@ class CreditRow extends DataClass implements Insertable<CreditRow> {
     required this.interestRate,
     required this.termMonths,
     required this.startDate,
+    required this.paymentDay,
     required this.createdAt,
     required this.updatedAt,
     required this.isDeleted,
@@ -9951,6 +9976,7 @@ class CreditRow extends DataClass implements Insertable<CreditRow> {
     map['interest_rate'] = Variable<double>(interestRate);
     map['term_months'] = Variable<int>(termMonths);
     map['start_date'] = Variable<DateTime>(startDate);
+    map['payment_day'] = Variable<int>(paymentDay);
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
     map['is_deleted'] = Variable<bool>(isDeleted);
@@ -9968,6 +9994,7 @@ class CreditRow extends DataClass implements Insertable<CreditRow> {
       interestRate: Value(interestRate),
       termMonths: Value(termMonths),
       startDate: Value(startDate),
+      paymentDay: Value(paymentDay),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
       isDeleted: Value(isDeleted),
@@ -9987,6 +10014,7 @@ class CreditRow extends DataClass implements Insertable<CreditRow> {
       interestRate: serializer.fromJson<double>(json['interestRate']),
       termMonths: serializer.fromJson<int>(json['termMonths']),
       startDate: serializer.fromJson<DateTime>(json['startDate']),
+      paymentDay: serializer.fromJson<int>(json['paymentDay']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       isDeleted: serializer.fromJson<bool>(json['isDeleted']),
@@ -10003,6 +10031,7 @@ class CreditRow extends DataClass implements Insertable<CreditRow> {
       'interestRate': serializer.toJson<double>(interestRate),
       'termMonths': serializer.toJson<int>(termMonths),
       'startDate': serializer.toJson<DateTime>(startDate),
+      'paymentDay': serializer.toJson<int>(paymentDay),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'isDeleted': serializer.toJson<bool>(isDeleted),
@@ -10017,6 +10046,7 @@ class CreditRow extends DataClass implements Insertable<CreditRow> {
     double? interestRate,
     int? termMonths,
     DateTime? startDate,
+    int? paymentDay,
     DateTime? createdAt,
     DateTime? updatedAt,
     bool? isDeleted,
@@ -10028,6 +10058,7 @@ class CreditRow extends DataClass implements Insertable<CreditRow> {
     interestRate: interestRate ?? this.interestRate,
     termMonths: termMonths ?? this.termMonths,
     startDate: startDate ?? this.startDate,
+    paymentDay: paymentDay ?? this.paymentDay,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
     isDeleted: isDeleted ?? this.isDeleted,
@@ -10049,6 +10080,9 @@ class CreditRow extends DataClass implements Insertable<CreditRow> {
           ? data.termMonths.value
           : this.termMonths,
       startDate: data.startDate.present ? data.startDate.value : this.startDate,
+      paymentDay: data.paymentDay.present
+          ? data.paymentDay.value
+          : this.paymentDay,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       isDeleted: data.isDeleted.present ? data.isDeleted.value : this.isDeleted,
@@ -10065,6 +10099,7 @@ class CreditRow extends DataClass implements Insertable<CreditRow> {
           ..write('interestRate: $interestRate, ')
           ..write('termMonths: $termMonths, ')
           ..write('startDate: $startDate, ')
+          ..write('paymentDay: $paymentDay, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('isDeleted: $isDeleted')
@@ -10081,6 +10116,7 @@ class CreditRow extends DataClass implements Insertable<CreditRow> {
     interestRate,
     termMonths,
     startDate,
+    paymentDay,
     createdAt,
     updatedAt,
     isDeleted,
@@ -10096,6 +10132,7 @@ class CreditRow extends DataClass implements Insertable<CreditRow> {
           other.interestRate == this.interestRate &&
           other.termMonths == this.termMonths &&
           other.startDate == this.startDate &&
+          other.paymentDay == this.paymentDay &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
           other.isDeleted == this.isDeleted);
@@ -10109,6 +10146,7 @@ class CreditsCompanion extends UpdateCompanion<CreditRow> {
   final Value<double> interestRate;
   final Value<int> termMonths;
   final Value<DateTime> startDate;
+  final Value<int> paymentDay;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<bool> isDeleted;
@@ -10121,6 +10159,7 @@ class CreditsCompanion extends UpdateCompanion<CreditRow> {
     this.interestRate = const Value.absent(),
     this.termMonths = const Value.absent(),
     this.startDate = const Value.absent(),
+    this.paymentDay = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.isDeleted = const Value.absent(),
@@ -10134,6 +10173,7 @@ class CreditsCompanion extends UpdateCompanion<CreditRow> {
     required double interestRate,
     required int termMonths,
     required DateTime startDate,
+    this.paymentDay = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.isDeleted = const Value.absent(),
@@ -10152,6 +10192,7 @@ class CreditsCompanion extends UpdateCompanion<CreditRow> {
     Expression<double>? interestRate,
     Expression<int>? termMonths,
     Expression<DateTime>? startDate,
+    Expression<int>? paymentDay,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<bool>? isDeleted,
@@ -10165,6 +10206,7 @@ class CreditsCompanion extends UpdateCompanion<CreditRow> {
       if (interestRate != null) 'interest_rate': interestRate,
       if (termMonths != null) 'term_months': termMonths,
       if (startDate != null) 'start_date': startDate,
+      if (paymentDay != null) 'payment_day': paymentDay,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (isDeleted != null) 'is_deleted': isDeleted,
@@ -10180,6 +10222,7 @@ class CreditsCompanion extends UpdateCompanion<CreditRow> {
     Value<double>? interestRate,
     Value<int>? termMonths,
     Value<DateTime>? startDate,
+    Value<int>? paymentDay,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
     Value<bool>? isDeleted,
@@ -10193,6 +10236,7 @@ class CreditsCompanion extends UpdateCompanion<CreditRow> {
       interestRate: interestRate ?? this.interestRate,
       termMonths: termMonths ?? this.termMonths,
       startDate: startDate ?? this.startDate,
+      paymentDay: paymentDay ?? this.paymentDay,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       isDeleted: isDeleted ?? this.isDeleted,
@@ -10224,6 +10268,9 @@ class CreditsCompanion extends UpdateCompanion<CreditRow> {
     if (startDate.present) {
       map['start_date'] = Variable<DateTime>(startDate.value);
     }
+    if (paymentDay.present) {
+      map['payment_day'] = Variable<int>(paymentDay.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -10249,6 +10296,7 @@ class CreditsCompanion extends UpdateCompanion<CreditRow> {
           ..write('interestRate: $interestRate, ')
           ..write('termMonths: $termMonths, ')
           ..write('startDate: $startDate, ')
+          ..write('paymentDay: $paymentDay, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('isDeleted: $isDeleted, ')
@@ -17871,6 +17919,7 @@ typedef $$CreditsTableCreateCompanionBuilder =
       required double interestRate,
       required int termMonths,
       required DateTime startDate,
+      Value<int> paymentDay,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<bool> isDeleted,
@@ -17885,6 +17934,7 @@ typedef $$CreditsTableUpdateCompanionBuilder =
       Value<double> interestRate,
       Value<int> termMonths,
       Value<DateTime> startDate,
+      Value<int> paymentDay,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<bool> isDeleted,
@@ -17963,6 +18013,11 @@ class $$CreditsTableFilterComposer
 
   ColumnFilters<DateTime> get startDate => $composableBuilder(
     column: $table.startDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get paymentDay => $composableBuilder(
+    column: $table.paymentDay,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -18062,6 +18117,11 @@ class $$CreditsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get paymentDay => $composableBuilder(
+    column: $table.paymentDay,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -18154,6 +18214,11 @@ class $$CreditsTableAnnotationComposer
   GeneratedColumn<DateTime> get startDate =>
       $composableBuilder(column: $table.startDate, builder: (column) => column);
 
+  GeneratedColumn<int> get paymentDay => $composableBuilder(
+    column: $table.paymentDay,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
@@ -18245,6 +18310,7 @@ class $$CreditsTableTableManager
                 Value<double> interestRate = const Value.absent(),
                 Value<int> termMonths = const Value.absent(),
                 Value<DateTime> startDate = const Value.absent(),
+                Value<int> paymentDay = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<bool> isDeleted = const Value.absent(),
@@ -18257,6 +18323,7 @@ class $$CreditsTableTableManager
                 interestRate: interestRate,
                 termMonths: termMonths,
                 startDate: startDate,
+                paymentDay: paymentDay,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 isDeleted: isDeleted,
@@ -18271,6 +18338,7 @@ class $$CreditsTableTableManager
                 required double interestRate,
                 required int termMonths,
                 required DateTime startDate,
+                Value<int> paymentDay = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<bool> isDeleted = const Value.absent(),
@@ -18283,6 +18351,7 @@ class $$CreditsTableTableManager
                 interestRate: interestRate,
                 termMonths: termMonths,
                 startDate: startDate,
+                paymentDay: paymentDay,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 isDeleted: isDeleted,
