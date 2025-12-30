@@ -367,6 +367,12 @@ class _AvatarPreview extends StatelessWidget {
       return null;
     }
     final String value = photoUrl!;
+    if (value.startsWith('assets/')) {
+      return AssetImage(value);
+    }
+    if (value.startsWith('asset:')) {
+      return AssetImage(value.substring('asset:'.length));
+    }
     if (value.startsWith('data:image/')) {
       final int commaIndex = value.indexOf(',');
       if (commaIndex == -1) {

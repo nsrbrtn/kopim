@@ -1,4 +1,4 @@
-﻿{
+{
   "@@locale": "ru",
   "profileTitle": "Профиль",
   "@profileTitle": {
@@ -64,7 +64,7 @@
   "@profileManageCategoriesCta": {
     "description": "Подпись кнопки, открывающей экран управления категориями из настроек профиля"
   },
-  "profileUpcomingPaymentsCta": "Предстоящие платежи",
+  "profileUpcomingPaymentsCta": "Повторяющиеся платежи",
   "@profileUpcomingPaymentsCta": {
     "description": "Подпись кнопки, открывающей экран предстоящих платежей из настроек профиля"
   },
@@ -1254,15 +1254,15 @@
   "@homeTransactionsUncategorized": {
     "description": "Подпись при отсутствии категории"
   },
-  "homeUpcomingPaymentsTitle": "Ближайшие платежи",
+  "homeUpcomingPaymentsTitle": "Повторяющиеся платежи",
   "@homeUpcomingPaymentsTitle": {
     "description": "Заголовок виджета с ближайшими платежами"
   },
-  "homeUpcomingPaymentsEmpty": "Ничего нет.",
+  "homeUpcomingPaymentsEmpty": "Пока нет повторяющихся платежей.",
   "@homeUpcomingPaymentsEmpty": {
     "description": "Состояние, когда ближайших платежей нет"
   },
-  "homeUpcomingPaymentsEmptyHeader": "Нет ближайших платежей",
+  "homeUpcomingPaymentsEmptyHeader": "Нет повторяющихся платежей",
   "@homeUpcomingPaymentsEmptyHeader": {
     "description": "Подзаголовок, когда платежей нет"
   },
@@ -1292,7 +1292,7 @@
       }
     }
   },
-  "homeUpcomingPaymentsError": "Не удалось загрузить ближайшие платежи: {error}",
+  "homeUpcomingPaymentsError": "Не удалось загрузить повторяющиеся платежи: {error}",
   "@homeUpcomingPaymentsError": {
     "description": "Ошибка загрузки ближайших платежей",
     "placeholders": {
@@ -1314,7 +1314,7 @@
       }
     }
   },
-  "homeUpcomingPaymentsCountSemantics": "{count, plural, =0 {Нет запланированных платежей} one {# запланированный платеж} few {# запланированных платежа} many {# запланированных платежей} other {# запланированных платежей}}",
+  "homeUpcomingPaymentsCountSemantics": "{count, plural, =0 {Нет повторяющихся платежей} one {# повторяющийся платеж} few {# повторяющихся платежа} many {# повторяющихся платежей} other {# повторяющихся платежей}}",
   "@homeUpcomingPaymentsCountSemantics": {
     "description": "Подпись для бейджа количества ближайших платежей",
     "placeholders": {
@@ -1335,7 +1335,7 @@
   "@homeUpcomingPaymentsBadgeRemindersLabel": {
     "description": "Метка для счетчика напоминаний"
   },
-  "homeUpcomingPaymentsBadgePaymentsSemantics": "{count, plural, =0 {Нет предстоящих платежей} one {# предстоящий платеж} few {# предстоящих платежа} many {# предстоящих платежей} other {# предстоящих платежей}}",
+  "homeUpcomingPaymentsBadgePaymentsSemantics": "{count, plural, =0 {Нет повторяющихся платежей} one {# повторяющийся платеж} few {# повторяющихся платежа} many {# повторяющихся платежей} other {# повторяющихся платежей}}",
   "@homeUpcomingPaymentsBadgePaymentsSemantics": {
     "description": "Озвучивание количества предстоящих платежей",
     "placeholders": {
@@ -1353,11 +1353,11 @@
       }
     }
   },
-  "upcomingPaymentsTitle": "Предстоящие платежи",
+  "upcomingPaymentsTitle": "Повторяющиеся платежи",
   "@upcomingPaymentsTitle": {
     "description": "Заголовок экрана предстоящих платежей"
   },
-  "upcomingPaymentsTabPayments": "Платежи",
+  "upcomingPaymentsTabPayments": "Повторяющиеся",
   "@upcomingPaymentsTabPayments": {
     "description": "Название вкладки с правилами платежей"
   },
@@ -1365,11 +1365,11 @@
   "@upcomingPaymentsTabReminders": {
     "description": "Название вкладки с напоминаниями"
   },
-  "upcomingPaymentsEmptyPaymentsTitle": "Правила ещё не созданы",
+  "upcomingPaymentsEmptyPaymentsTitle": "Повторяющиеся платежи ещё не настроены",
   "@upcomingPaymentsEmptyPaymentsTitle": {
     "description": "Заголовок пустого состояния списка правил"
   },
-  "upcomingPaymentsEmptyPaymentsDescription": "Настройте автоматические платежи и держите счета под контролем.",
+  "upcomingPaymentsEmptyPaymentsDescription": "Настройте повторяющиеся платежи и держите счета под контролем.",
   "@upcomingPaymentsEmptyPaymentsDescription": {
     "description": "Описание пустого состояния списка правил"
   },
@@ -1381,7 +1381,7 @@
   "@upcomingPaymentsEmptyRemindersDescription": {
     "description": "Описание пустого состояния списка напоминаний"
   },
-  "upcomingPaymentsAddPayment": "Добавить платёж",
+  "upcomingPaymentsAddPayment": "Добавить повторяющийся платёж",
   "@upcomingPaymentsAddPayment": {
     "description": "Подпись действия создания правила платежа"
   },
@@ -1389,11 +1389,11 @@
   "@upcomingPaymentsAddReminder": {
     "description": "Подпись действия создания напоминания"
   },
-  "upcomingPaymentsNewPaymentTitle": "Новый платёж",
+  "upcomingPaymentsNewPaymentTitle": "Новый повторяющийся платёж",
   "@upcomingPaymentsNewPaymentTitle": {
     "description": "Заголовок формы создания платежа"
   },
-  "upcomingPaymentsEditPaymentTitle": "Редактирование платежа",
+  "upcomingPaymentsEditPaymentTitle": "Редактирование повторяющегося платежа",
   "@upcomingPaymentsEditPaymentTitle": {
     "description": "Заголовок формы редактирования платежа"
   },
@@ -1453,7 +1453,7 @@
   "@upcomingPaymentsCancel": {
     "description": "Кнопка отмены в формах"
   },
-  "upcomingPaymentsSaveSuccess": "Правило сохранено",
+  "upcomingPaymentsSaveSuccess": "Повторяющийся платёж сохранён",
   "@upcomingPaymentsSaveSuccess": {
     "description": "Сообщение об успешном сохранении правила"
   },
@@ -1461,7 +1461,7 @@
   "@upcomingPaymentsReminderSaveSuccess": {
     "description": "Сообщение об успешном сохранении напоминания"
   },
-  "upcomingPaymentsSaveError": "Не удалось сохранить платёж: {error}",
+  "upcomingPaymentsSaveError": "Не удалось сохранить повторяющийся платёж: {error}",
   "@upcomingPaymentsSaveError": {
     "description": "Сообщение об ошибке при сохранении правила",
     "placeholders": {
@@ -1584,11 +1584,11 @@
   "@upcomingPaymentsValidationNotifyDays": {
     "description": "Ошибочное состояние поля дней до уведомления"
   },
-  "upcomingPaymentsNoAccounts": "Добавьте счёт, чтобы создать платёж.",
+  "upcomingPaymentsNoAccounts": "Добавьте счёт, чтобы создать повторяющийся платёж.",
   "@upcomingPaymentsNoAccounts": {
     "description": "Сообщение при отсутствии доступных счетов"
   },
-  "upcomingPaymentsNoCategories": "Создайте категорию, чтобы выбрать её для платежа.",
+  "upcomingPaymentsNoCategories": "Создайте категорию, чтобы выбрать её для повторяющегося платежа.",
   "@upcomingPaymentsNoCategories": {
     "description": "Сообщение при отсутствии доступных категорий"
   },
@@ -1877,7 +1877,6 @@
   "@addTransactionComingSoon": {
     "description": "Заглушка для экрана добавления транзакции"
   },
-
   "addTransactionAccountLabel": "Счёт",
   "@addTransactionAccountLabel": {
     "description": "Подпись поля выбора счёта"
@@ -2739,7 +2738,6 @@
   "@transactionDefaultTitle": {
     "description": "Резервный заголовок транзакции без примечания"
   },
-
   "allTransactionsTitle": "Все транзакции",
   "@allTransactionsTitle": {
     "description": "Заголовок экрана со всеми транзакциями"
@@ -2973,5 +2971,4 @@
   "@assistantFaqAnswerImproveResults": {
     "description": "Ответ FAQ с советами по уточнению запроса"
   }
-
 }

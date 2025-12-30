@@ -93,7 +93,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileManageCategoriesCta => 'Manage categories';
 
   @override
-  String get profileUpcomingPaymentsCta => 'Upcoming payments';
+  String get profileUpcomingPaymentsCta => 'Recurring payments';
 
   @override
   String get profileExportDataCta => 'Export data';
@@ -976,13 +976,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeTransactionsUncategorized => 'Uncategorized';
 
   @override
-  String get homeUpcomingPaymentsTitle => 'Upcoming payments';
+  String get homeUpcomingPaymentsTitle => 'Recurring payments';
 
   @override
   String get homeUpcomingPaymentsEmpty => 'Nothing here.';
 
   @override
-  String get homeUpcomingPaymentsEmptyHeader => 'No upcoming payments';
+  String get homeUpcomingPaymentsEmptyHeader => 'No recurring payments';
 
   @override
   String homeUpcomingPaymentsCollapsedSummary(int count) {
@@ -1009,7 +1009,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String homeUpcomingPaymentsError(String error) {
-    return 'Couldn\'t load upcoming payments: $error';
+    return 'Couldn\'t load recurring payments: $error';
   }
 
   @override
@@ -1026,9 +1026,9 @@ class AppLocalizationsEn extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '# upcoming payments',
-      one: '# upcoming payment',
-      zero: 'No scheduled payments',
+      other: '# recurring payments',
+      one: '# recurring payment',
+      zero: 'No recurring payments',
     );
     return '$_temp0';
   }
@@ -1047,9 +1047,9 @@ class AppLocalizationsEn extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '# upcoming payments',
-      one: '# upcoming payment',
-      zero: 'No upcoming payments',
+      other: '# recurring payments',
+      one: '# recurring payment',
+      zero: 'No recurring payments',
     );
     return '$_temp0';
   }
@@ -1067,10 +1067,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get upcomingPaymentsTitle => 'Upcoming payments';
+  String get upcomingPaymentsTitle => 'Recurring payments';
 
   @override
-  String get upcomingPaymentsTabPayments => 'Payments';
+  String get upcomingPaymentsTabPayments => 'Recurring';
 
   @override
   String get upcomingPaymentsTabReminders => 'Reminders';
@@ -1090,16 +1090,16 @@ class AppLocalizationsEn extends AppLocalizations {
       'Set reminders so you never miss a manual payment.';
 
   @override
-  String get upcomingPaymentsAddPayment => 'Add payment';
+  String get upcomingPaymentsAddPayment => 'Add recurring payment';
 
   @override
   String get upcomingPaymentsAddReminder => 'Add reminder';
 
   @override
-  String get upcomingPaymentsNewPaymentTitle => 'New payment';
+  String get upcomingPaymentsNewPaymentTitle => 'New recurring payment';
 
   @override
-  String get upcomingPaymentsEditPaymentTitle => 'Edit payment';
+  String get upcomingPaymentsEditPaymentTitle => 'Edit recurring payment';
 
   @override
   String get upcomingPaymentsNewReminderTitle => 'New reminder';
@@ -1144,14 +1144,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get upcomingPaymentsCancel => 'Cancel';
 
   @override
-  String get upcomingPaymentsSaveSuccess => 'Upcoming payment saved';
+  String get upcomingPaymentsSaveSuccess => 'Recurring payment saved';
 
   @override
   String get upcomingPaymentsReminderSaveSuccess => 'Reminder saved';
 
   @override
   String upcomingPaymentsSaveError(String error) {
-    return 'Failed to save payment: $error';
+    return 'Failed to save recurring payment: $error';
   }
 
   @override

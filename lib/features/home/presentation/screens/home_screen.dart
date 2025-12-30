@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:collection/collection.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/accounts/presentation/account_details_screen.dart';
 import 'package:kopim/features/accounts/presentation/accounts_add_screen.dart';
@@ -45,6 +46,7 @@ import 'package:kopim/core/utils/helpers.dart';
 import 'package:kopim/core/widgets/collapsible_list/collapsible_list.dart';
 import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
 import 'package:kopim/core/config/theme_extensions.dart';
+import 'package:kopim/core/services/sync_service.dart';
 import 'package:kopim/core/services/sync_status.dart';
 import 'package:kopim/features/profile/presentation/screens/profile_management_screen.dart';
 import 'package:kopim/features/transactions/presentation/screens/all_transactions_screen.dart';
@@ -319,7 +321,7 @@ class _HomeBody extends ConsumerWidget {
   }
 
   Future<void> _handleRefresh(BuildContext context, WidgetRef ref) async {
-    final syncService = ref.read(syncServiceProvider);
+    final SyncService syncService = ref.read(syncServiceProvider);
     final SyncActionResult result = await syncService.triggerSync();
     if (!context.mounted) return;
     final AppLocalizations strings = AppLocalizations.of(context)!;
@@ -693,6 +695,9 @@ class _AccountsListState extends State<_AccountsList> {
         final double baseFraction = isSingleAccount
             ? 1.0
             : (isCarouselWide ? 0.45 : 0.65);
+        final double minScrollableFraction = isSingleAccount
+            ? 1.0
+            : (1 / widget.accounts.length) + 0.02;
         final double requiredFraction = _calculateRequiredFraction(
           context: context,
           constraints: constraints,
@@ -700,7 +705,10 @@ class _AccountsListState extends State<_AccountsList> {
         );
         final double targetFraction = math.min(
           isSingleAccount ? 1.0 : 0.98,
-          math.max(baseFraction, requiredFraction),
+          math.max(
+            baseFraction,
+            math.max(requiredFraction, minScrollableFraction),
+          ),
         );
         final double baseHeight = _AccountCardLayout.estimateHeight(context);
         final double cardHeight = math.max(
@@ -942,23 +950,26 @@ class _CreditCardContent extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final creditsAsync = ref.watch(watchCreditsUseCaseProvider).call();
+    final Stream<List<CreditEntity>> creditsAsync =
+        ref.watch(watchCreditsUseCaseProvider).call();
 
     return StreamBuilder<List<CreditEntity>>(
       stream: creditsAsync,
-      builder: (context, snapshot) {
-        final credit = snapshot.data?.firstWhere(
-          (c) => c.accountId == account.id,
-          orElse: () => null as dynamic,
+      builder: (
+        BuildContext context,
+        AsyncSnapshot<List<CreditEntity>> snapshot,
+      ) {
+        final CreditEntity? credit = snapshot.data?.firstWhereOrNull(
+          (CreditEntity item) => item.accountId == account.id,
         );
 
         if (credit == null) {
           return const SizedBox();
         }
 
-        final nextPaymentDate = _calculateNextPaymentDate(credit);
-        final remainingPayments = _calculateRemainingPayments(credit);
-        final progress =
+        final DateTime nextPaymentDate = _calculateNextPaymentDate(credit);
+        final int remainingPayments = _calculateRemainingPayments(credit);
+        final double progress =
             (credit.totalAmount + account.balance).abs() / credit.totalAmount;
 
         return Column(
@@ -967,7 +978,7 @@ class _CreditCardContent extends ConsumerWidget {
           children: <Widget>[
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
+              children: <Widget>[
                 Expanded(
                   child: Text(
                     account.name,
@@ -1002,10 +1013,10 @@ class _CreditCardContent extends ConsumerWidget {
             const SizedBox(height: 16),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
+              children: <Widget>[
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+                  children: <Widget>[
                     Text(
                       strings.creditsNextPaymentLabel,
                       style: summaryHeaderStyle,
@@ -1021,7 +1032,7 @@ class _CreditCardContent extends ConsumerWidget {
                 ),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
+                  children: <Widget>[
                     Text(
                       strings.creditsRemainingPaymentsLabel,
                       style: summaryHeaderStyle,
@@ -1039,8 +1050,8 @@ class _CreditCardContent extends ConsumerWidget {
   }
 
   DateTime _calculateNextPaymentDate(CreditEntity credit) {
-    final now = DateTime.now();
-    final paymentDay = credit.paymentDay;
+    final DateTime now = DateTime.now();
+    final int paymentDay = credit.paymentDay;
 
     // Пробуем текущий месяц
     DateTime candidate = DateTime(now.year, now.month, paymentDay);
@@ -1054,9 +1065,9 @@ class _CreditCardContent extends ConsumerWidget {
   }
 
   int _calculateRemainingPayments(CreditEntity credit) {
-    final now = DateTime.now();
-    final monthsPassed = _monthsBetween(credit.startDate, now);
-    final remaining = credit.termMonths - monthsPassed;
+    final DateTime now = DateTime.now();
+    final int monthsPassed = _monthsBetween(credit.startDate, now);
+    final int remaining = credit.termMonths - monthsPassed;
     return remaining > 0 ? remaining : 0;
   }
 
@@ -1075,8 +1086,8 @@ class _CreditCategoryIcon extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return FutureBuilder<Category?>(
       future: ref.read(categoryRepositoryProvider).findById(categoryId),
-      builder: (context, snapshot) {
-        final category = snapshot.data;
+      builder: (BuildContext context, AsyncSnapshot<Category?> snapshot) {
+        final Category? category = snapshot.data;
         if (category == null || category.icon == null) return const SizedBox();
         return Icon(
           resolvePhosphorIconData(category.icon!),

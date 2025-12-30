@@ -86,8 +86,7 @@ class AvatarController extends _$AvatarController {
   }) async {
     state = const AsyncValue<void>.loading();
     try {
-      // Пресетные картинки храним только локально, чтобы не трогать Firebase.
-      const bool storeOfflineOnly = true;
+      const bool storeOfflineOnly = false;
       final ByteData data = await rootBundle.load(assetPath);
       final Uint8List bytes = data.buffer.asUint8List();
       final String contentType = _guessContentType(assetPath) ?? 'image/png';
@@ -100,6 +99,7 @@ class AvatarController extends _$AvatarController {
           bytes: bytes,
           contentType: contentType,
           source: AvatarImageSource.predefined,
+          presetAssetPath: assetPath,
           storeOfflineOnly: storeOfflineOnly,
         ),
       );

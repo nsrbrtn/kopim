@@ -14,14 +14,16 @@ import 'package:kopim/features/budgets/domain/entities/budget.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_instance.dart';
 import 'package:kopim/features/categories/data/sources/remote/category_remote_data_source.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
-import 'package:kopim/features/recurring_transactions/data/sources/remote/recurring_rule_remote_data_source.dart';
-import 'package:kopim/features/recurring_transactions/domain/entities/recurring_rule.dart';
 import 'package:kopim/features/savings/data/sources/remote/saving_goal_remote_data_source.dart';
 import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
 import 'package:kopim/features/profile/data/remote/profile_remote_data_source.dart';
 import 'package:kopim/features/profile/domain/entities/profile.dart';
 import 'package:kopim/features/transactions/data/sources/remote/transaction_remote_data_source.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
+import 'package:kopim/features/upcoming_payments/data/sources/remote/payment_reminder_remote_data_source.dart';
+import 'package:kopim/features/upcoming_payments/data/sources/remote/upcoming_payment_remote_data_source.dart';
+import 'package:kopim/features/upcoming_payments/domain/entities/payment_reminder.dart';
+import 'package:kopim/features/upcoming_payments/domain/entities/upcoming_payment.dart';
 import 'package:kopim/core/services/sync_status.dart';
 
 class SyncService {
@@ -34,7 +36,8 @@ class SyncService {
     required BudgetRemoteDataSource budgetRemoteDataSource,
     required BudgetInstanceRemoteDataSource budgetInstanceRemoteDataSource,
     required SavingGoalRemoteDataSource savingGoalRemoteDataSource,
-    required RecurringRuleRemoteDataSource recurringRuleRemoteDataSource,
+    required UpcomingPaymentRemoteDataSource upcomingPaymentRemoteDataSource,
+    required PaymentReminderRemoteDataSource paymentReminderRemoteDataSource,
     required FirebaseAuth firebaseAuth,
     Connectivity? connectivity,
     OutboxPayloadNormalizer payloadNormalizer = const OutboxPayloadNormalizer(),
@@ -46,7 +49,8 @@ class SyncService {
        _budgetRemoteDataSource = budgetRemoteDataSource,
        _budgetInstanceRemoteDataSource = budgetInstanceRemoteDataSource,
        _savingGoalRemoteDataSource = savingGoalRemoteDataSource,
-       _recurringRuleRemoteDataSource = recurringRuleRemoteDataSource,
+       _upcomingPaymentRemoteDataSource = upcomingPaymentRemoteDataSource,
+       _paymentReminderRemoteDataSource = paymentReminderRemoteDataSource,
        _auth = firebaseAuth,
        _connectivity = connectivity ?? Connectivity(),
        _payloadNormalizer = payloadNormalizer;
@@ -59,7 +63,8 @@ class SyncService {
   final BudgetRemoteDataSource _budgetRemoteDataSource;
   final BudgetInstanceRemoteDataSource _budgetInstanceRemoteDataSource;
   final SavingGoalRemoteDataSource _savingGoalRemoteDataSource;
-  final RecurringRuleRemoteDataSource _recurringRuleRemoteDataSource;
+  final UpcomingPaymentRemoteDataSource _upcomingPaymentRemoteDataSource;
+  final PaymentReminderRemoteDataSource _paymentReminderRemoteDataSource;
   final FirebaseAuth _auth;
   final Connectivity _connectivity;
   final OutboxPayloadNormalizer _payloadNormalizer;
@@ -178,9 +183,13 @@ class SyncService {
           final SavingGoal goal = SavingGoal.fromJson(payload);
           await _dispatchSavingGoal(userId, goal, operation);
           break;
-        case 'recurring_rule':
-          final RecurringRule rule = RecurringRule.fromJson(payload);
-          await _dispatchRecurringRule(userId, rule, operation);
+        case 'upcoming_payment':
+          final UpcomingPayment payment = UpcomingPayment.fromJson(payload);
+          await _dispatchUpcomingPayment(userId, payment, operation);
+          break;
+        case 'payment_reminder':
+          final PaymentReminder reminder = PaymentReminder.fromJson(payload);
+          await _dispatchPaymentReminder(userId, reminder, operation);
           break;
         default:
           throw UnsupportedError(
@@ -298,15 +307,26 @@ class SyncService {
     return _savingGoalRemoteDataSource.upsert(userId, goal);
   }
 
-  Future<void> _dispatchRecurringRule(
+  Future<void> _dispatchUpcomingPayment(
     String userId,
-    RecurringRule rule,
+    UpcomingPayment payment,
     OutboxOperation operation,
   ) {
     if (operation == OutboxOperation.delete) {
-      return _recurringRuleRemoteDataSource.delete(userId, rule);
+      return _upcomingPaymentRemoteDataSource.delete(userId, payment);
     }
-    return _recurringRuleRemoteDataSource.upsert(userId, rule);
+    return _upcomingPaymentRemoteDataSource.upsert(userId, payment);
+  }
+
+  Future<void> _dispatchPaymentReminder(
+    String userId,
+    PaymentReminder reminder,
+    OutboxOperation operation,
+  ) {
+    if (operation == OutboxOperation.delete) {
+      return _paymentReminderRemoteDataSource.delete(userId, reminder);
+    }
+    return _paymentReminderRemoteDataSource.upsert(userId, reminder);
   }
 
   Future<void> _handleConnectivity(List<ConnectivityResult> results) async {

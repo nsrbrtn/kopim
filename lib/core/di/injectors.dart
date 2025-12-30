@@ -53,7 +53,6 @@ import 'package:kopim/features/budgets/domain/use_cases/delete_budget_use_case.d
 import 'package:kopim/features/budgets/domain/use_cases/save_budget_use_case.dart';
 import 'package:kopim/features/budgets/domain/use_cases/watch_budgets_use_case.dart';
 import 'package:kopim/features/analytics/domain/use_cases/watch_monthly_analytics_use_case.dart';
-import 'package:kopim/features/home/domain/use_cases/watch_upcoming_payments_use_case.dart';
 import 'package:kopim/features/categories/data/repositories/category_repository_impl.dart';
 import 'package:kopim/features/categories/data/sources/local/category_dao.dart';
 import 'package:kopim/features/categories/data/sources/remote/category_remote_data_source.dart';
@@ -130,31 +129,18 @@ import 'package:kopim/features/transactions/domain/use_cases/watch_recent_transa
 import 'package:kopim/features/home/data/repositories/home_dashboard_preferences_repository_impl.dart';
 import 'package:kopim/features/home/domain/repositories/home_dashboard_preferences_repository.dart';
 import 'package:kopim/features/home/domain/use_cases/group_transactions_by_day_use_case.dart';
-import 'package:kopim/features/recurring_transactions/data/repositories/recurring_transactions_repository_impl.dart';
-import 'package:kopim/features/recurring_transactions/data/services/recurring_window_service.dart';
-import 'package:kopim/core/services/recurring_work_scheduler.dart';
-import 'package:kopim/features/recurring_transactions/data/sources/local/job_queue_dao.dart';
-import 'package:kopim/features/recurring_transactions/data/sources/local/recurring_occurrence_dao.dart';
-import 'package:kopim/features/recurring_transactions/data/sources/local/recurring_rule_dao.dart';
-import 'package:kopim/features/recurring_transactions/data/sources/local/recurring_rule_execution_dao.dart';
-import 'package:kopim/features/recurring_transactions/data/sources/remote/recurring_rule_remote_data_source.dart';
-import 'package:kopim/features/recurring_transactions/domain/repositories/recurring_transactions_repository.dart';
-import 'package:kopim/features/recurring_transactions/domain/services/recurring_rule_engine.dart';
-import 'package:kopim/features/recurring_transactions/domain/use_cases/delete_recurring_rule_use_case.dart';
-import 'package:kopim/features/recurring_transactions/domain/use_cases/regenerate_rule_window_use_case.dart';
-import 'package:kopim/features/recurring_transactions/domain/use_cases/save_recurring_rule_use_case.dart';
-import 'package:kopim/features/recurring_transactions/domain/use_cases/toggle_recurring_rule_use_case.dart';
-import 'package:kopim/features/recurring_transactions/domain/use_cases/watch_recurring_rules_use_case.dart';
-import 'package:kopim/features/recurring_transactions/domain/use_cases/watch_upcoming_occurrences_use_case.dart';
 import 'package:kopim/features/credits/domain/use_cases/add_credit_use_case.dart';
 import 'package:kopim/features/credits/domain/use_cases/delete_credit_use_case.dart';
 import 'package:kopim/features/credits/domain/use_cases/watch_credits_use_case.dart';
 import 'package:kopim/features/upcoming_payments/data/services/upcoming_payments_work_scheduler.dart';
 import 'package:kopim/firebase_options.dart';
+import 'package:kopim/features/credits/data/sources/remote/credit_remote_data_source.dart';
 import 'package:kopim/features/upcoming_payments/data/drift/daos/payment_reminders_dao.dart';
 import 'package:kopim/features/upcoming_payments/data/drift/daos/upcoming_payments_dao.dart';
 import 'package:kopim/features/upcoming_payments/data/drift/repositories/payment_reminders_repository_impl.dart';
 import 'package:kopim/features/upcoming_payments/data/drift/repositories/upcoming_payments_repository_impl.dart';
+import 'package:kopim/features/upcoming_payments/data/sources/remote/payment_reminder_remote_data_source.dart';
+import 'package:kopim/features/upcoming_payments/data/sources/remote/upcoming_payment_remote_data_source.dart';
 import 'package:kopim/features/upcoming_payments/domain/repositories/payment_reminders_repository.dart';
 import 'package:kopim/features/upcoming_payments/domain/repositories/upcoming_payments_repository.dart';
 import 'package:kopim/features/credits/data/sources/local/credit_dao.dart';
@@ -401,21 +387,6 @@ GoalContributionDao goalContributionDao(Ref ref) =>
 ProfileDao profileDao(Ref ref) => ProfileDao(ref.watch(appDatabaseProvider));
 
 @riverpod
-RecurringRuleDao recurringRuleDao(Ref ref) =>
-    RecurringRuleDao(ref.watch(appDatabaseProvider));
-
-@riverpod
-RecurringOccurrenceDao recurringOccurrenceDao(Ref ref) =>
-    RecurringOccurrenceDao(ref.watch(appDatabaseProvider));
-
-@riverpod
-RecurringRuleExecutionDao recurringRuleExecutionDao(Ref ref) =>
-    RecurringRuleExecutionDao(ref.watch(appDatabaseProvider));
-
-@riverpod
-JobQueueDao jobQueueDao(Ref ref) => JobQueueDao(ref.watch(appDatabaseProvider));
-
-@riverpod
 CreditDao creditDao(Ref ref) => CreditDao(ref.watch(appDatabaseProvider));
 
 @riverpod
@@ -426,9 +397,22 @@ UpcomingPaymentsDao upcomingPaymentsDao(Ref ref) =>
 PaymentRemindersDao paymentRemindersDao(Ref ref) =>
     PaymentRemindersDao(ref.watch(appDatabaseProvider));
 
-@riverpod
-RecurringRuleRemoteDataSource recurringRuleRemoteDataSource(Ref ref) =>
-    RecurringRuleRemoteDataSource(ref.watch(firestoreProvider));
+final rp.Provider<UpcomingPaymentRemoteDataSource>
+    upcomingPaymentRemoteDataSourceProvider =
+    rp.Provider<UpcomingPaymentRemoteDataSource>((rp.Ref ref) {
+  return UpcomingPaymentRemoteDataSource(ref.watch(firestoreProvider));
+});
+
+final rp.Provider<PaymentReminderRemoteDataSource>
+    paymentReminderRemoteDataSourceProvider =
+    rp.Provider<PaymentReminderRemoteDataSource>((rp.Ref ref) {
+  return PaymentReminderRemoteDataSource(ref.watch(firestoreProvider));
+});
+
+final rp.Provider<CreditRemoteDataSource> creditRemoteDataSourceProvider =
+    rp.Provider<CreditRemoteDataSource>((rp.Ref ref) {
+  return CreditRemoteDataSource(ref.watch(firestoreProvider));
+});
 
 @riverpod
 FlutterLocalNotificationsPlugin? flutterLocalNotificationsPlugin(Ref ref) {
@@ -480,8 +464,6 @@ UpcomingPaymentsWorkScheduler upcomingPaymentsWorkScheduler(Ref ref) =>
       logger: ref.watch(loggerServiceProvider),
     );
 
-@riverpod
-RecurringRuleEngine recurringRuleEngine(Ref ref) => RecurringRuleEngine();
 
 @riverpod
 BudgetSchedule budgetSchedule(Ref ref) => const BudgetSchedule();
@@ -708,24 +690,22 @@ SavingGoalRepository savingGoalRepository(Ref ref) => SavingGoalRepositoryImpl(
   uuidGenerator: ref.watch(uuidGeneratorProvider),
 );
 
+
 @riverpod
-RecurringTransactionsRepository recurringTransactionsRepository(Ref ref) =>
-    RecurringTransactionsRepositoryImpl(
-      ruleDao: ref.watch(recurringRuleDaoProvider),
-      occurrenceDao: ref.watch(recurringOccurrenceDaoProvider),
-      executionDao: ref.watch(recurringRuleExecutionDaoProvider),
-      jobQueueDao: ref.watch(jobQueueDaoProvider),
+UpcomingPaymentsRepository upcomingPaymentsRepository(Ref ref) =>
+    UpcomingPaymentsRepositoryImpl(
       database: ref.watch(appDatabaseProvider),
+      dao: ref.watch(upcomingPaymentsDaoProvider),
       outboxDao: ref.watch(outboxDaoProvider),
     );
 
 @riverpod
-UpcomingPaymentsRepository upcomingPaymentsRepository(Ref ref) =>
-    UpcomingPaymentsRepositoryImpl(dao: ref.watch(upcomingPaymentsDaoProvider));
-
-@riverpod
 PaymentRemindersRepository paymentRemindersRepository(Ref ref) =>
-    PaymentRemindersRepositoryImpl(dao: ref.watch(paymentRemindersDaoProvider));
+    PaymentRemindersRepositoryImpl(
+      database: ref.watch(appDatabaseProvider),
+      dao: ref.watch(paymentRemindersDaoProvider),
+      outboxDao: ref.watch(outboxDaoProvider),
+    );
 
 final rp.Provider<AddTransactionUseCase> addTransactionUseCaseProvider =
     rp.Provider<AddTransactionUseCase>((rp.Ref ref) {
@@ -792,65 +772,14 @@ WatchAiFinancialOverviewUseCase watchAiFinancialOverviewUseCase(Ref ref) =>
       ref.watch(aiFinancialDataRepositoryProvider),
     );
 
-@riverpod
-WatchRecurringRulesUseCase watchRecurringRulesUseCase(Ref ref) =>
-    WatchRecurringRulesUseCase(
-      ref.watch(recurringTransactionsRepositoryProvider),
-    );
 
-@riverpod
-WatchUpcomingPaymentsUseCase watchUpcomingPaymentsUseCase(Ref ref) =>
-    WatchUpcomingPaymentsUseCase(
-      recurringRepository: ref.watch(recurringTransactionsRepositoryProvider),
-    );
 
-@riverpod
-WatchUpcomingOccurrencesUseCase watchUpcomingOccurrencesUseCase(Ref ref) =>
-    WatchUpcomingOccurrencesUseCase(
-      ref.watch(recurringTransactionsRepositoryProvider),
-    );
 
-@riverpod
-SaveRecurringRuleUseCase saveRecurringRuleUseCase(Ref ref) =>
-    SaveRecurringRuleUseCase(
-      ref.watch(recurringTransactionsRepositoryProvider),
-    );
 
-@riverpod
-DeleteRecurringRuleUseCase deleteRecurringRuleUseCase(Ref ref) =>
-    DeleteRecurringRuleUseCase(
-      ref.watch(recurringTransactionsRepositoryProvider),
-    );
 
-@riverpod
-ToggleRecurringRuleUseCase toggleRecurringRuleUseCase(Ref ref) =>
-    ToggleRecurringRuleUseCase(
-      ref.watch(recurringTransactionsRepositoryProvider),
-    );
 
-@riverpod
-RegenerateRuleWindowUseCase regenerateRuleWindowUseCase(Ref ref) =>
-    RegenerateRuleWindowUseCase(
-      ref.watch(recurringTransactionsRepositoryProvider),
-      ref.watch(recurringRuleEngineProvider),
-    );
 
-@riverpod
-RecurringWindowService recurringWindowService(Ref ref) =>
-    RecurringWindowService(
-      repository: ref.watch(recurringTransactionsRepositoryProvider),
-      engine: ref.watch(recurringRuleEngineProvider),
-    );
 
-@riverpod
-RecurringWorkScheduler recurringWorkScheduler(Ref ref) =>
-    createRecurringWorkScheduler(
-      workmanager: ref.watch(workmanagerProvider),
-      logger: ref.watch(loggerServiceProvider),
-      recurringWindowService: kIsWeb
-          ? ref.watch(recurringWindowServiceProvider)
-          : null,
-    );
 
 @riverpod
 ExactAlarmPermissionService exactAlarmPermissionService(Ref ref) =>
@@ -937,8 +866,11 @@ SyncService syncService(Ref ref) {
       budgetInstanceRemoteDataSourceProvider,
     ),
     savingGoalRemoteDataSource: ref.watch(savingGoalRemoteDataSourceProvider),
-    recurringRuleRemoteDataSource: ref.watch(
-      recurringRuleRemoteDataSourceProvider,
+    upcomingPaymentRemoteDataSource: ref.watch(
+      upcomingPaymentRemoteDataSourceProvider,
+    ),
+    paymentReminderRemoteDataSource: ref.watch(
+      paymentReminderRemoteDataSourceProvider,
     ),
     firebaseAuth: ref.watch(firebaseAuthProvider),
     connectivity: ref.watch(connectivityProvider),
@@ -977,21 +909,27 @@ AuthSyncService authSyncService(Ref ref) => AuthSyncService(
   accountDao: ref.watch(accountDaoProvider),
   categoryDao: ref.watch(categoryDaoProvider),
   transactionDao: ref.watch(transactionDaoProvider),
+  creditDao: ref.watch(creditDaoProvider),
   budgetDao: ref.watch(budgetDaoProvider),
   budgetInstanceDao: ref.watch(budgetInstanceDaoProvider),
   savingGoalDao: ref.watch(savingGoalDaoProvider),
-  recurringRuleDao: ref.watch(recurringRuleDaoProvider),
+  upcomingPaymentsDao: ref.watch(upcomingPaymentsDaoProvider),
+  paymentRemindersDao: ref.watch(paymentRemindersDaoProvider),
   profileDao: ref.watch(profileDaoProvider),
   accountRemoteDataSource: ref.watch(accountRemoteDataSourceProvider),
   categoryRemoteDataSource: ref.watch(categoryRemoteDataSourceProvider),
   transactionRemoteDataSource: ref.watch(transactionRemoteDataSourceProvider),
+  creditRemoteDataSource: ref.watch(creditRemoteDataSourceProvider),
   budgetRemoteDataSource: ref.watch(budgetRemoteDataSourceProvider),
   budgetInstanceRemoteDataSource: ref.watch(
     budgetInstanceRemoteDataSourceProvider,
   ),
   savingGoalRemoteDataSource: ref.watch(savingGoalRemoteDataSourceProvider),
-  recurringRuleRemoteDataSource: ref.watch(
-    recurringRuleRemoteDataSourceProvider,
+  upcomingPaymentRemoteDataSource: ref.watch(
+    upcomingPaymentRemoteDataSourceProvider,
+  ),
+  paymentReminderRemoteDataSource: ref.watch(
+    paymentReminderRemoteDataSourceProvider,
   ),
   profileRemoteDataSource: ref.watch(profileRemoteDataSourceProvider),
   firestore: ref.watch(firestoreProvider),

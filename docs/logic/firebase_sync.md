@@ -51,9 +51,11 @@ enum OutboxOperation {
 - Счета (`account`)
 - Категории (`category`)
 - Транзакции (`transaction`)
+- Кредиты (`credit`)
 - Бюджеты (`budget`, `budget_instance`)
 - Цели накоплений (`saving_goal`)
-- Регулярные транзакции (`recurring_rule`)
+- Повторяющиеся платежи (`upcoming_payment`)
+- Напоминания (`payment_reminder`)
 - Профиль пользователя (`profile`)
 
 ### 2. SyncService (Фоновая синхронизация)

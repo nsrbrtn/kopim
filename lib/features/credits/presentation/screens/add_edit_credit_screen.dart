@@ -130,7 +130,7 @@ class _AddEditCreditScreenState extends ConsumerState<AddEditCreditScreen> {
   Future<void> _saveAndConfigurePayment() async {
     if (_validate()) {
       if (widget.credit == null) {
-        final credit = await ref
+        final CreditEntity credit = await ref
             .read(addCreditUseCaseProvider)
             .call(
               name: _nameController.text,
@@ -151,8 +151,8 @@ class _AddEditCreditScreenState extends ConsumerState<AddEditCreditScreen> {
               (double.tryParse(_amountController.text) ?? 0) /
               (int.tryParse(_termController.text) ?? 1);
 
-          final EditUpcomingPaymentScreenArgs
-          args = EditUpcomingPaymentScreenArgs(
+          final EditUpcomingPaymentScreenArgs args =
+              EditUpcomingPaymentScreenArgs(
             initialTitle: _nameController.text,
             initialAmount: amount,
             initialCategoryId: credit.categoryId,
@@ -213,7 +213,7 @@ class _AddEditCreditScreenState extends ConsumerState<AddEditCreditScreen> {
               ? context.loc.creditsAddTitle
               : context.loc.creditsEditTitle,
         ),
-        actions: [
+        actions: <Widget>[
           if (widget.credit != null)
             IconButton(
               icon: const Icon(Icons.delete_outline),
@@ -346,7 +346,7 @@ class _AddEditCreditScreenState extends ConsumerState<AddEditCreditScreen> {
                 style: const TextStyle(fontWeight: FontWeight.bold),
               ),
             ),
-            if (widget.credit == null) ...[
+            if (widget.credit == null) ...<Widget>[
               const SizedBox(height: 12),
               OutlinedButton(
                 onPressed: _saveAndConfigurePayment,

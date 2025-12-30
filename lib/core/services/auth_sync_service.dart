@@ -21,9 +21,6 @@ import 'package:kopim/features/budgets/domain/entities/budget.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_instance.dart';
 import 'package:kopim/features/categories/data/sources/local/category_dao.dart';
 import 'package:kopim/features/categories/data/sources/remote/category_remote_data_source.dart';
-import 'package:kopim/features/recurring_transactions/data/sources/local/recurring_rule_dao.dart';
-import 'package:kopim/features/recurring_transactions/data/sources/remote/recurring_rule_remote_data_source.dart';
-import 'package:kopim/features/recurring_transactions/domain/entities/recurring_rule.dart';
 import 'package:kopim/features/savings/data/sources/local/saving_goal_dao.dart';
 import 'package:kopim/features/savings/data/sources/remote/saving_goal_remote_data_source.dart';
 import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
@@ -31,6 +28,15 @@ import 'package:kopim/features/profile/data/local/profile_dao.dart';
 import 'package:kopim/features/profile/data/remote/profile_remote_data_source.dart';
 import 'package:kopim/features/profile/domain/entities/profile.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
+import 'package:kopim/features/credits/data/sources/local/credit_dao.dart';
+import 'package:kopim/features/credits/data/sources/remote/credit_remote_data_source.dart';
+import 'package:kopim/features/credits/domain/entities/credit_entity.dart';
+import 'package:kopim/features/upcoming_payments/data/drift/daos/payment_reminders_dao.dart';
+import 'package:kopim/features/upcoming_payments/data/drift/daos/upcoming_payments_dao.dart';
+import 'package:kopim/features/upcoming_payments/data/sources/remote/payment_reminder_remote_data_source.dart';
+import 'package:kopim/features/upcoming_payments/data/sources/remote/upcoming_payment_remote_data_source.dart';
+import 'package:kopim/features/upcoming_payments/domain/entities/payment_reminder.dart';
+import 'package:kopim/features/upcoming_payments/domain/entities/upcoming_payment.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
 import 'package:kopim/features/profile/domain/failures/auth_failure.dart';
 import 'package:kopim/features/transactions/data/sources/local/transaction_dao.dart';
@@ -44,17 +50,21 @@ class AuthSyncService {
     required AccountDao accountDao,
     required CategoryDao categoryDao,
     required TransactionDao transactionDao,
+    required CreditDao creditDao,
     required BudgetDao budgetDao,
     required BudgetInstanceDao budgetInstanceDao,
     required SavingGoalDao savingGoalDao,
-    required RecurringRuleDao recurringRuleDao,
+    required UpcomingPaymentsDao upcomingPaymentsDao,
+    required PaymentRemindersDao paymentRemindersDao,
     required AccountRemoteDataSource accountRemoteDataSource,
     required CategoryRemoteDataSource categoryRemoteDataSource,
     required TransactionRemoteDataSource transactionRemoteDataSource,
+    required CreditRemoteDataSource creditRemoteDataSource,
     required BudgetRemoteDataSource budgetRemoteDataSource,
     required BudgetInstanceRemoteDataSource budgetInstanceRemoteDataSource,
     required SavingGoalRemoteDataSource savingGoalRemoteDataSource,
-    required RecurringRuleRemoteDataSource recurringRuleRemoteDataSource,
+    required UpcomingPaymentRemoteDataSource upcomingPaymentRemoteDataSource,
+    required PaymentReminderRemoteDataSource paymentReminderRemoteDataSource,
     required ProfileDao profileDao,
     required ProfileRemoteDataSource profileRemoteDataSource,
     required FirebaseFirestore firestore,
@@ -67,18 +77,22 @@ class AuthSyncService {
        _accountDao = accountDao,
        _categoryDao = categoryDao,
        _transactionDao = transactionDao,
+       _creditDao = creditDao,
        _budgetDao = budgetDao,
        _budgetInstanceDao = budgetInstanceDao,
        _savingGoalDao = savingGoalDao,
-       _recurringRuleDao = recurringRuleDao,
+       _upcomingPaymentsDao = upcomingPaymentsDao,
+       _paymentRemindersDao = paymentRemindersDao,
        _profileDao = profileDao,
        _accountRemoteDataSource = accountRemoteDataSource,
        _categoryRemoteDataSource = categoryRemoteDataSource,
        _transactionRemoteDataSource = transactionRemoteDataSource,
+       _creditRemoteDataSource = creditRemoteDataSource,
        _budgetRemoteDataSource = budgetRemoteDataSource,
        _budgetInstanceRemoteDataSource = budgetInstanceRemoteDataSource,
        _savingGoalRemoteDataSource = savingGoalRemoteDataSource,
-       _recurringRuleRemoteDataSource = recurringRuleRemoteDataSource,
+       _upcomingPaymentRemoteDataSource = upcomingPaymentRemoteDataSource,
+       _paymentReminderRemoteDataSource = paymentReminderRemoteDataSource,
        _profileRemoteDataSource = profileRemoteDataSource,
        _firestore = firestore,
        _logger = loggerService,
@@ -93,17 +107,21 @@ class AuthSyncService {
   final AccountDao _accountDao;
   final CategoryDao _categoryDao;
   final TransactionDao _transactionDao;
+  final CreditDao _creditDao;
   final BudgetDao _budgetDao;
   final BudgetInstanceDao _budgetInstanceDao;
   final SavingGoalDao _savingGoalDao;
-  final RecurringRuleDao _recurringRuleDao;
+  final UpcomingPaymentsDao _upcomingPaymentsDao;
+  final PaymentRemindersDao _paymentRemindersDao;
   final AccountRemoteDataSource _accountRemoteDataSource;
   final CategoryRemoteDataSource _categoryRemoteDataSource;
   final TransactionRemoteDataSource _transactionRemoteDataSource;
+  final CreditRemoteDataSource _creditRemoteDataSource;
   final BudgetRemoteDataSource _budgetRemoteDataSource;
   final BudgetInstanceRemoteDataSource _budgetInstanceRemoteDataSource;
   final SavingGoalRemoteDataSource _savingGoalRemoteDataSource;
-  final RecurringRuleRemoteDataSource _recurringRuleRemoteDataSource;
+  final UpcomingPaymentRemoteDataSource _upcomingPaymentRemoteDataSource;
+  final PaymentReminderRemoteDataSource _paymentReminderRemoteDataSource;
   final ProfileDao _profileDao;
   final ProfileRemoteDataSource _profileRemoteDataSource;
   final FirebaseFirestore _firestore;
@@ -161,19 +179,21 @@ class AuthSyncService {
         'remoteAccounts': remoteSnapshot.accounts.length,
         'remoteCategories': remoteSnapshot.categories.length,
         'remoteTransactions': remoteSnapshot.transactions.length,
+        'remoteCredits': remoteSnapshot.credits.length,
         'remoteBudgets': remoteSnapshot.budgets.length,
         'remoteBudgetInstances': remoteSnapshot.budgetInstances.length,
         'remoteSavingGoals': remoteSnapshot.savingGoals.length,
-        'remoteRecurringRules': remoteSnapshot.recurringRules.length,
+        'remoteRecurringPayments': remoteSnapshot.upcomingPayments.length,
       });
       _logger.logInfo(
         'AuthSyncService: login sync completed for ${user.uid}. '
         'Accounts: ${remoteSnapshot.accounts.length}, '
         'Categories: ${remoteSnapshot.categories.length}, '
         'Transactions: ${remoteSnapshot.transactions.length}, '
+        'Credits: ${remoteSnapshot.credits.length}, '
         'Budgets: ${remoteSnapshot.budgets.length}, '
         'Savings goals: ${remoteSnapshot.savingGoals.length}, '
-        'Recurring rules: ${remoteSnapshot.recurringRules.length}.',
+        'Recurring payments: ${remoteSnapshot.upcomingPayments.length}.',
       );
     } catch (error, stackTrace) {
       _logger.logError(
@@ -275,6 +295,22 @@ class AuthSyncService {
               );
             }
             break;
+          case 'credit':
+            final CreditEntity credit = CreditEntity.fromJson(payload);
+            if (operation == OutboxOperation.delete) {
+              _creditRemoteDataSource.deleteInTransaction(
+                transaction,
+                userId,
+                credit,
+              );
+            } else {
+              _creditRemoteDataSource.upsertInTransaction(
+                transaction,
+                userId,
+                credit,
+              );
+            }
+            break;
           case 'profile':
             if (operation == OutboxOperation.delete) {
               continue;
@@ -326,19 +362,35 @@ class AuthSyncService {
               goal,
             );
             break;
-          case 'recurring_rule':
-            final RecurringRule rule = RecurringRule.fromJson(payload);
+          case 'upcoming_payment':
+            final UpcomingPayment payment = UpcomingPayment.fromJson(payload);
             if (operation == OutboxOperation.delete) {
-              _recurringRuleRemoteDataSource.deleteInTransaction(
+              _upcomingPaymentRemoteDataSource.deleteInTransaction(
                 transaction,
                 userId,
-                rule,
+                payment,
               );
             } else {
-              _recurringRuleRemoteDataSource.upsertInTransaction(
+              _upcomingPaymentRemoteDataSource.upsertInTransaction(
                 transaction,
                 userId,
-                rule,
+                payment,
+              );
+            }
+            break;
+          case 'payment_reminder':
+            final PaymentReminder reminder = PaymentReminder.fromJson(payload);
+            if (operation == OutboxOperation.delete) {
+              _paymentReminderRemoteDataSource.deleteInTransaction(
+                transaction,
+                userId,
+                reminder,
+              );
+            } else {
+              _paymentReminderRemoteDataSource.upsertInTransaction(
+                transaction,
+                userId,
+                reminder,
               );
             }
             break;
@@ -356,20 +408,24 @@ class AuthSyncService {
       _accountRemoteDataSource.fetchAll(userId),
       _categoryRemoteDataSource.fetchAll(userId),
       _transactionRemoteDataSource.fetchAll(userId),
+      _creditRemoteDataSource.fetchAll(userId),
       _budgetRemoteDataSource.fetchAll(userId),
       _budgetInstanceRemoteDataSource.fetchAll(userId),
       _savingGoalRemoteDataSource.fetchAll(userId),
-      _recurringRuleRemoteDataSource.fetchAll(userId),
+      _upcomingPaymentRemoteDataSource.fetchAll(userId),
+      _paymentReminderRemoteDataSource.fetchAll(userId),
     ]);
     final Profile? profile = await _profileRemoteDataSource.fetch(userId);
     return _RemoteSnapshot(
       accounts: results[0] as List<AccountEntity>,
       categories: results[1] as List<Category>,
       transactions: results[2] as List<TransactionEntity>,
-      budgets: results[3] as List<Budget>,
-      budgetInstances: results[4] as List<BudgetInstance>,
-      savingGoals: results[5] as List<SavingGoal>,
-      recurringRules: results[6] as List<RecurringRule>,
+      credits: results[3] as List<CreditEntity>,
+      budgets: results[4] as List<Budget>,
+      budgetInstances: results[5] as List<BudgetInstance>,
+      savingGoals: results[6] as List<SavingGoal>,
+      upcomingPayments: results[7] as List<UpcomingPayment>,
+      paymentReminders: results[8] as List<PaymentReminder>,
       profile: profile,
     );
   }
@@ -395,14 +451,19 @@ class AuthSyncService {
           .getAllCategories();
       final List<TransactionEntity> localTransactions = await _transactionDao
           .getAllTransactions();
+      final List<CreditEntity> localCredits = (await _creditDao.getAllCredits())
+          .map(_creditDao.mapRowToEntity)
+          .toList();
       final List<Budget> localBudgets = await _budgetDao.getAllBudgets();
       final List<BudgetInstance> localBudgetInstances = await _budgetInstanceDao
           .getAllInstances();
       final List<SavingGoal> localSavingGoals = await _savingGoalDao.getGoals(
         includeArchived: true,
       );
-      final List<RecurringRule> localRecurringRules =
-          (await _recurringRuleDao.getAll()).map(_mapRuleRowToEntity).toList();
+      final List<UpcomingPayment> localUpcomingPayments =
+          await _upcomingPaymentsDao.getAll();
+      final List<PaymentReminder> localPaymentReminders =
+          await _paymentRemindersDao.getAll();
 
       final List<AccountEntity> mergedAccounts = _mergeEntities<AccountEntity>(
         local: localAccounts,
@@ -432,6 +493,12 @@ class AuthSyncService {
           );
       final List<TransactionEntity> normalizedTransactions =
           _normalizeTransactions(mergedTransactions, categoryIdMapping);
+      final List<CreditEntity> mergedCredits = _mergeEntities<CreditEntity>(
+        local: localCredits,
+        remote: remoteSnapshot.credits,
+        getId: (CreditEntity entity) => entity.id,
+        getUpdatedAt: (CreditEntity entity) => entity.updatedAt,
+      );
       final List<Budget> mergedBudgets = _mergeEntities<Budget>(
         local: localBudgets,
         remote: remoteSnapshot.budgets,
@@ -455,15 +522,22 @@ class AuthSyncService {
         getId: (SavingGoal goal) => goal.id,
         getUpdatedAt: (SavingGoal goal) => goal.updatedAt,
       );
-      final List<RecurringRule> mergedRecurringRules =
-          _mergeEntities<RecurringRule>(
-            local: localRecurringRules,
-            remote: remoteSnapshot.recurringRules,
-            getId: (RecurringRule rule) => rule.id,
-            getUpdatedAt: (RecurringRule rule) => rule.updatedAt,
+      final List<UpcomingPayment> mergedUpcomingPayments =
+          _mergeEntities<UpcomingPayment>(
+            local: localUpcomingPayments,
+            remote: remoteSnapshot.upcomingPayments,
+            getId: (UpcomingPayment payment) => payment.id,
+            getUpdatedAt: (UpcomingPayment payment) =>
+                DateTime.fromMillisecondsSinceEpoch(payment.updatedAtMs),
           );
-      final _NormalizedRecurringRules normalizedRecurringRules =
-          _normalizeRecurringRules(mergedRecurringRules, categoryIdMapping);
+      final List<PaymentReminder> mergedPaymentReminders =
+          _mergeEntities<PaymentReminder>(
+            local: localPaymentReminders,
+            remote: remoteSnapshot.paymentReminders,
+            getId: (PaymentReminder reminder) => reminder.id,
+            getUpdatedAt: (PaymentReminder reminder) =>
+                DateTime.fromMillisecondsSinceEpoch(reminder.updatedAtMs),
+          );
 
       final Profile? mergedProfile = _mergeProfile(
         await _profileDao.getProfile(userId),
@@ -485,6 +559,14 @@ class AuthSyncService {
             .toSet();
 
         // Tier 2: Dependent Entities - Goals
+        final List<CreditEntity> sanitizedCredits = _dataSanitizer
+            .sanitizeCredits(
+              credits: mergedCredits,
+              validAccountIds: validAccountIds,
+              validCategoryIds: validCategoryIds,
+            );
+        await _creditDao.upsertAll(sanitizedCredits);
+
         await _savingGoalDao.upsertAll(mergedSavingGoals);
         final Set<String> validSavingGoalIds = mergedSavingGoals
             .map((SavingGoal e) => e.id)
@@ -500,18 +582,20 @@ class AuthSyncService {
               validSavingGoalIds: validSavingGoalIds,
             );
 
-        // Sanitize recurring rules
-        final List<RecurringRule> sanitizedRules = _dataSanitizer
-            .sanitizeRecurringRules(
-              rules: normalizedRecurringRules.rules,
+        final List<UpcomingPayment> sanitizedUpcomingPayments = _dataSanitizer
+            .sanitizeUpcomingPayments(
+              payments: mergedUpcomingPayments,
               validAccountIds: validAccountIds,
               validCategoryIds: validCategoryIds,
             );
 
         await _transactionDao.upsertAll(sanitizedTransactions);
 
-        for (final RecurringRule rule in sanitizedRules) {
-          await _recurringRuleDao.upsert(rule);
+        for (final UpcomingPayment payment in sanitizedUpcomingPayments) {
+          await _upcomingPaymentsDao.upsert(payment);
+        }
+        for (final PaymentReminder reminder in mergedPaymentReminders) {
+          await _paymentRemindersDao.upsert(reminder);
         }
 
         await _budgetDao.upsertAll(normalizedBudgets);
@@ -534,14 +618,6 @@ class AuthSyncService {
           await _profileDao.upsert(mergedProfile);
         }
       });
-      if (normalizedRecurringRules.skippedRuleIds.isNotEmpty) {
-        _logger.logInfo(
-          'AuthSyncService: skipped ${normalizedRecurringRules.skippedRuleIds.length} '
-          'recurring rules with missing categories: '
-          '${normalizedRecurringRules.skippedRuleIds.join(', ')}.',
-        );
-      }
-
       final Profile? profile = _mergeProfile(
         await _profileDao.getProfile(userId),
         remoteSnapshot.profile,
@@ -614,35 +690,6 @@ class AuthSyncService {
       return local;
     }
     return local.updatedAt.isAfter(remote.updatedAt) ? local : remote;
-  }
-
-  RecurringRule _mapRuleRowToEntity(db.RecurringRuleRow row) {
-    return RecurringRule(
-      id: row.id,
-      title: row.title,
-      accountId: row.accountId,
-      categoryId: row.categoryId,
-      amount: row.amount,
-      currency: row.currency,
-      startAt: row.startAt.toUtc(),
-      endAt: row.endAt?.toUtc(),
-      timezone: row.timezone,
-      rrule: row.rrule,
-      notes: row.notes,
-      dayOfMonth: row.dayOfMonth,
-      applyAtLocalHour: row.applyAtLocalHour,
-      applyAtLocalMinute: row.applyAtLocalMinute,
-      lastRunAt: row.lastRunAt?.toLocal(),
-      nextDueLocalDate: row.nextDueLocalDate?.toLocal(),
-      isActive: row.isActive,
-      autoPost: row.autoPost,
-      reminderMinutesBefore: row.reminderMinutesBefore,
-      shortMonthPolicy: RecurringRuleShortMonthPolicy.fromValue(
-        row.shortMonthPolicy,
-      ),
-      createdAt: row.createdAt.toUtc(),
-      updatedAt: row.updatedAt.toUtc(),
-    );
   }
 
   _CategorySanitizationResult _sanitizeCategories(List<Category> categories) {
@@ -863,36 +910,6 @@ class AuthSyncService {
     return normalized;
   }
 
-  _NormalizedRecurringRules _normalizeRecurringRules(
-    List<RecurringRule> rules,
-    Map<String, String> categoryIdMapping,
-  ) {
-    if (rules.isEmpty || categoryIdMapping.isEmpty) {
-      return _NormalizedRecurringRules(rules: rules);
-    }
-
-    final List<RecurringRule> normalized = <RecurringRule>[];
-    final List<String> skipped = <String>[];
-
-    for (final RecurringRule rule in rules) {
-      final String? canonicalId = categoryIdMapping[rule.categoryId];
-      if (canonicalId == null) {
-        skipped.add(rule.id);
-        continue;
-      }
-      if (canonicalId == rule.categoryId) {
-        normalized.add(rule);
-      } else {
-        normalized.add(rule.copyWith(categoryId: canonicalId));
-      }
-    }
-
-    return _NormalizedRecurringRules(
-      rules: normalized,
-      skippedRuleIds: skipped,
-    );
-  }
-
   bool _listsEqual(List<String> a, List<String> b) {
     if (a.length != b.length) {
       return false;
@@ -922,34 +939,28 @@ class _CategorySanitizationResult {
   final Map<String, String> idMapping;
 }
 
-class _NormalizedRecurringRules {
-  const _NormalizedRecurringRules({
-    required this.rules,
-    this.skippedRuleIds = const <String>[],
-  });
-
-  final List<RecurringRule> rules;
-  final List<String> skippedRuleIds;
-}
-
 class _RemoteSnapshot {
   _RemoteSnapshot({
     required this.accounts,
     required this.categories,
     required this.transactions,
+    required this.credits,
     required this.budgets,
     required this.budgetInstances,
     required this.savingGoals,
-    required this.recurringRules,
+    required this.upcomingPayments,
+    required this.paymentReminders,
     required this.profile,
   });
 
   final List<AccountEntity> accounts;
   final List<Category> categories;
   final List<TransactionEntity> transactions;
+  final List<CreditEntity> credits;
   final List<Budget> budgets;
   final List<BudgetInstance> budgetInstances;
   final List<SavingGoal> savingGoals;
-  final List<RecurringRule> recurringRules;
+  final List<UpcomingPayment> upcomingPayments;
+  final List<PaymentReminder> paymentReminders;
   final Profile? profile;
 }

@@ -22,8 +22,6 @@ import 'package:kopim/features/credits/presentation/screens/credits_screen.dart'
 import 'package:kopim/features/credits/presentation/screens/add_edit_credit_screen.dart';
 import 'package:kopim/features/profile/presentation/screens/profile_screen.dart';
 import 'package:kopim/features/profile/presentation/screens/sign_in_screen.dart';
-import 'package:kopim/features/recurring_transactions/presentation/screens/add_recurring_rule_screen.dart';
-import 'package:kopim/features/recurring_transactions/presentation/screens/recurring_transactions_screen.dart';
 import 'package:kopim/features/savings/presentation/screens/savings_list_screen.dart';
 import 'package:kopim/features/transactions/presentation/add_transaction_screen.dart';
 import 'package:kopim/features/transactions/presentation/screens/all_transactions_screen.dart';
@@ -140,34 +138,22 @@ final Provider<GoRouter> appRouterProvider = Provider<GoRouter>((Ref ref) {
         },
       ),
       GoRoute(
-        path: RecurringTransactionsScreen.routeName,
-        parentNavigatorKey: _rootNavigatorKey,
-        builder: (BuildContext context, GoRouterState state) {
-          return const RecurringTransactionsScreen();
-        },
-      ),
-      GoRoute(
-        path: AddRecurringRuleScreen.routeName,
-        parentNavigatorKey: _rootNavigatorKey,
-        builder: (BuildContext context, GoRouterState state) {
-          return const AddRecurringRuleScreen();
-        },
-      ),
-      GoRoute(
         path: '/credits',
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => const CreditsScreen(),
+        builder: (BuildContext context, GoRouterState state) =>
+            const CreditsScreen(),
       ),
       GoRoute(
         path: '/credits/add',
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => const AddEditCreditScreen(),
+        builder: (BuildContext context, GoRouterState state) =>
+            const AddEditCreditScreen(),
       ),
       GoRoute(
         path: '/credits/edit',
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) {
-          final credit = state.extra as CreditEntity?;
+        builder: (BuildContext context, GoRouterState state) {
+          final CreditEntity? credit = state.extra as CreditEntity?;
           return AddEditCreditScreen(credit: credit);
         },
       ),

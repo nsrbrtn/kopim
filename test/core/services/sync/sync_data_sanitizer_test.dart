@@ -3,9 +3,9 @@ import 'package:kopim/core/services/logger_service.dart';
 import 'package:kopim/core/services/sync/sync_data_sanitizer.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_instance.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_instance_status.dart';
-import 'package:kopim/features/recurring_transactions/domain/entities/recurring_rule.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
+import 'package:kopim/features/upcoming_payments/domain/entities/upcoming_payment.dart';
 import 'package:mocktail/mocktail.dart';
 
 class MockLoggerService extends Mock implements LoggerService {}
@@ -89,15 +89,15 @@ void main() {
     });
   });
 
-  group('SyncDataSanitizer - RecurringRules', () {
-    test('Should skip rule if account is missing', () {
-      final RecurringRule rule = _createRule(
+  group('SyncDataSanitizer - UpcomingPayments', () {
+    test('Should skip payment if account is missing', () {
+      final UpcomingPayment payment = _createUpcomingPayment(
         id: '1',
         accountId: 'acc1',
         categoryId: 'cat1',
       );
-      final List<RecurringRule> result = sanitizer.sanitizeRecurringRules(
-        rules: <RecurringRule>[rule],
+      final List<UpcomingPayment> result = sanitizer.sanitizeUpcomingPayments(
+        payments: <UpcomingPayment>[payment],
         validAccountIds: <String>{},
         validCategoryIds: <String>{},
       );
@@ -106,14 +106,14 @@ void main() {
       verify(() => logger.logInfo(any())).called(1);
     });
 
-    test('Should skip rule if category is missing', () {
-      final RecurringRule rule = _createRule(
+    test('Should skip payment if category is missing', () {
+      final UpcomingPayment payment = _createUpcomingPayment(
         id: '1',
         accountId: 'acc1',
         categoryId: 'cat1',
       );
-      final List<RecurringRule> result = sanitizer.sanitizeRecurringRules(
-        rules: <RecurringRule>[rule],
+      final List<UpcomingPayment> result = sanitizer.sanitizeUpcomingPayments(
+        payments: <UpcomingPayment>[payment],
         validAccountIds: <String>{'acc1'},
         validCategoryIds: <String>{}, // Missing cat1
       );
@@ -173,23 +173,24 @@ TransactionEntity _createTx({
   );
 }
 
-RecurringRule _createRule({
+UpcomingPayment _createUpcomingPayment({
   required String id,
   required String accountId,
   required String categoryId,
 }) {
-  return RecurringRule(
+  return UpcomingPayment(
     id: id,
-    title: 'Rule',
+    title: 'Payment',
     accountId: accountId,
     categoryId: categoryId,
     amount: 100,
-    currency: 'RUB',
-    startAt: DateTime.now(),
-    timezone: 'UTC',
-    rrule: 'FREQ=MONTHLY',
-    createdAt: DateTime.now(),
-    updatedAt: DateTime.now(),
+    dayOfMonth: 10,
+    notifyDaysBefore: 3,
+    notifyTimeHhmm: '09:00',
+    autoPost: false,
+    isActive: true,
+    createdAtMs: DateTime.now().millisecondsSinceEpoch,
+    updatedAtMs: DateTime.now().millisecondsSinceEpoch,
   );
 }
 

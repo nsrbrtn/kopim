@@ -18,17 +18,21 @@ import 'package:kopim/features/budgets/data/sources/remote/budget_remote_data_so
 import 'package:kopim/features/categories/data/sources/local/category_dao.dart';
 import 'package:kopim/features/categories/data/sources/remote/category_remote_data_source.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
+import 'package:kopim/features/credits/data/sources/local/credit_dao.dart';
+import 'package:kopim/features/credits/data/sources/remote/credit_remote_data_source.dart';
 import 'package:kopim/features/profile/data/local/profile_dao.dart';
 import 'package:kopim/features/profile/data/remote/profile_remote_data_source.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
-import 'package:kopim/features/recurring_transactions/data/sources/local/recurring_rule_dao.dart';
-import 'package:kopim/features/recurring_transactions/data/sources/remote/recurring_rule_remote_data_source.dart';
 import 'package:kopim/features/savings/data/sources/local/saving_goal_dao.dart';
 import 'package:kopim/features/savings/data/sources/remote/saving_goal_remote_data_source.dart';
 import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
 import 'package:kopim/features/transactions/data/sources/local/transaction_dao.dart';
 import 'package:kopim/features/transactions/data/sources/remote/transaction_remote_data_source.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
+import 'package:kopim/features/upcoming_payments/data/drift/daos/payment_reminders_dao.dart';
+import 'package:kopim/features/upcoming_payments/data/drift/daos/upcoming_payments_dao.dart';
+import 'package:kopim/features/upcoming_payments/data/sources/remote/payment_reminder_remote_data_source.dart';
+import 'package:kopim/features/upcoming_payments/data/sources/remote/upcoming_payment_remote_data_source.dart';
 import 'package:mocktail/mocktail.dart';
 
 class MockLoggerService extends Mock implements LoggerService {}
@@ -41,10 +45,12 @@ void main() {
   late AccountDao accountDao;
   late CategoryDao categoryDao;
   late TransactionDao transactionDao;
+  late CreditDao creditDao;
   late BudgetDao budgetDao;
   late BudgetInstanceDao budgetInstanceDao;
   late SavingGoalDao savingGoalDao;
-  late RecurringRuleDao recurringRuleDao;
+  late UpcomingPaymentsDao upcomingPaymentsDao;
+  late PaymentRemindersDao paymentRemindersDao;
   late ProfileDao profileDao;
   late FakeFirebaseFirestore firestore;
   late MockLoggerService logger;
@@ -64,10 +70,12 @@ void main() {
     accountDao = AccountDao(database);
     categoryDao = CategoryDao(database);
     transactionDao = TransactionDao(database);
+    creditDao = CreditDao(database);
     budgetDao = BudgetDao(database);
     budgetInstanceDao = BudgetInstanceDao(database);
     savingGoalDao = SavingGoalDao(database);
-    recurringRuleDao = RecurringRuleDao(database);
+    upcomingPaymentsDao = UpcomingPaymentsDao(database);
+    paymentRemindersDao = PaymentRemindersDao(database);
     profileDao = ProfileDao(database);
     firestore = FakeFirebaseFirestore();
     logger = MockLoggerService();
@@ -98,20 +106,28 @@ void main() {
         accountDao: accountDao,
         categoryDao: categoryDao,
         transactionDao: transactionDao,
+        creditDao: creditDao,
         budgetDao: budgetDao,
         budgetInstanceDao: budgetInstanceDao,
         savingGoalDao: savingGoalDao,
-        recurringRuleDao: recurringRuleDao,
+        upcomingPaymentsDao: upcomingPaymentsDao,
+        paymentRemindersDao: paymentRemindersDao,
         profileDao: profileDao,
         accountRemoteDataSource: AccountRemoteDataSource(firestore),
         categoryRemoteDataSource: CategoryRemoteDataSource(firestore),
         transactionRemoteDataSource: TransactionRemoteDataSource(firestore),
+        creditRemoteDataSource: CreditRemoteDataSource(firestore),
         budgetRemoteDataSource: BudgetRemoteDataSource(firestore),
         budgetInstanceRemoteDataSource: BudgetInstanceRemoteDataSource(
           firestore,
         ),
         savingGoalRemoteDataSource: SavingGoalRemoteDataSource(firestore),
-        recurringRuleRemoteDataSource: RecurringRuleRemoteDataSource(firestore),
+        upcomingPaymentRemoteDataSource: UpcomingPaymentRemoteDataSource(
+          firestore,
+        ),
+        paymentReminderRemoteDataSource: PaymentReminderRemoteDataSource(
+          firestore,
+        ),
         profileRemoteDataSource: ProfileRemoteDataSource(firestore),
         firestore: firestore,
         loggerService: logger,
@@ -226,18 +242,22 @@ void main() {
       accountDao: accountDao,
       categoryDao: categoryDao,
       transactionDao: transactionDao,
+      creditDao: creditDao,
       budgetDao: budgetDao,
       budgetInstanceDao: budgetInstanceDao,
       savingGoalDao: savingGoalDao,
-      recurringRuleDao: recurringRuleDao,
+      upcomingPaymentsDao: upcomingPaymentsDao,
+      paymentRemindersDao: paymentRemindersDao,
       profileDao: profileDao,
       accountRemoteDataSource: AccountRemoteDataSource(firestore),
       categoryRemoteDataSource: CategoryRemoteDataSource(firestore),
       transactionRemoteDataSource: TransactionRemoteDataSource(firestore),
+      creditRemoteDataSource: CreditRemoteDataSource(firestore),
       budgetRemoteDataSource: BudgetRemoteDataSource(firestore),
       budgetInstanceRemoteDataSource: BudgetInstanceRemoteDataSource(firestore),
       savingGoalRemoteDataSource: SavingGoalRemoteDataSource(firestore),
-      recurringRuleRemoteDataSource: RecurringRuleRemoteDataSource(firestore),
+      upcomingPaymentRemoteDataSource: UpcomingPaymentRemoteDataSource(firestore),
+      paymentReminderRemoteDataSource: PaymentReminderRemoteDataSource(firestore),
       profileRemoteDataSource: ProfileRemoteDataSource(firestore),
       firestore: firestore,
       loggerService: logger,
@@ -334,18 +354,22 @@ void main() {
       accountDao: accountDao,
       categoryDao: categoryDao,
       transactionDao: transactionDao,
+      creditDao: creditDao,
       budgetDao: budgetDao,
       budgetInstanceDao: budgetInstanceDao,
       savingGoalDao: savingGoalDao,
-      recurringRuleDao: recurringRuleDao,
+      upcomingPaymentsDao: upcomingPaymentsDao,
+      paymentRemindersDao: paymentRemindersDao,
       profileDao: profileDao,
       accountRemoteDataSource: AccountRemoteDataSource(firestore),
       categoryRemoteDataSource: CategoryRemoteDataSource(firestore),
       transactionRemoteDataSource: TransactionRemoteDataSource(firestore),
+      creditRemoteDataSource: CreditRemoteDataSource(firestore),
       budgetRemoteDataSource: BudgetRemoteDataSource(firestore),
       budgetInstanceRemoteDataSource: BudgetInstanceRemoteDataSource(firestore),
       savingGoalRemoteDataSource: SavingGoalRemoteDataSource(firestore),
-      recurringRuleRemoteDataSource: RecurringRuleRemoteDataSource(firestore),
+      upcomingPaymentRemoteDataSource: UpcomingPaymentRemoteDataSource(firestore),
+      paymentReminderRemoteDataSource: PaymentReminderRemoteDataSource(firestore),
       profileRemoteDataSource: ProfileRemoteDataSource(firestore),
       firestore: firestore,
       loggerService: logger,

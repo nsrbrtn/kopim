@@ -94,7 +94,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get profileManageCategoriesCta => 'Управлять категориями';
 
   @override
-  String get profileUpcomingPaymentsCta => 'Предстоящие платежи';
+  String get profileUpcomingPaymentsCta => 'Повторяющиеся платежи';
 
   @override
   String get profileExportDataCta => 'Экспортировать данные';
@@ -984,13 +984,13 @@ class AppLocalizationsRu extends AppLocalizations {
   String get homeTransactionsUncategorized => 'Без категории';
 
   @override
-  String get homeUpcomingPaymentsTitle => 'Ближайшие платежи';
+  String get homeUpcomingPaymentsTitle => 'Повторяющиеся платежи';
 
   @override
-  String get homeUpcomingPaymentsEmpty => 'Ничего нет.';
+  String get homeUpcomingPaymentsEmpty => 'Пока нет повторяющихся платежей.';
 
   @override
-  String get homeUpcomingPaymentsEmptyHeader => 'Нет ближайших платежей';
+  String get homeUpcomingPaymentsEmptyHeader => 'Нет повторяющихся платежей';
 
   @override
   String homeUpcomingPaymentsCollapsedSummary(int count) {
@@ -1019,7 +1019,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String homeUpcomingPaymentsError(String error) {
-    return 'Не удалось загрузить ближайшие платежи: $error';
+    return 'Не удалось загрузить повторяющиеся платежи: $error';
   }
 
   @override
@@ -1035,11 +1035,11 @@ class AppLocalizationsRu extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '# запланированных платежей',
-      many: '# запланированных платежей',
-      few: '# запланированных платежа',
-      one: '# запланированный платеж',
-      zero: 'Нет запланированных платежей',
+      other: '# повторяющихся платежей',
+      many: '# повторяющихся платежей',
+      few: '# повторяющихся платежа',
+      one: '# повторяющийся платеж',
+      zero: 'Нет повторяющихся платежей',
     );
     return '$_temp0';
   }
@@ -1058,11 +1058,11 @@ class AppLocalizationsRu extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '# предстоящих платежей',
-      many: '# предстоящих платежей',
-      few: '# предстоящих платежа',
-      one: '# предстоящий платеж',
-      zero: 'Нет предстоящих платежей',
+      other: '# повторяющихся платежей',
+      many: '# повторяющихся платежей',
+      few: '# повторяющихся платежа',
+      one: '# повторяющийся платеж',
+      zero: 'Нет повторяющихся платежей',
     );
     return '$_temp0';
   }
@@ -1082,20 +1082,20 @@ class AppLocalizationsRu extends AppLocalizations {
   }
 
   @override
-  String get upcomingPaymentsTitle => 'Предстоящие платежи';
+  String get upcomingPaymentsTitle => 'Повторяющиеся платежи';
 
   @override
-  String get upcomingPaymentsTabPayments => 'Платежи';
+  String get upcomingPaymentsTabPayments => 'Повторяющиеся';
 
   @override
   String get upcomingPaymentsTabReminders => 'Напоминания';
 
   @override
-  String get upcomingPaymentsEmptyPaymentsTitle => 'Правила ещё не созданы';
+  String get upcomingPaymentsEmptyPaymentsTitle => 'Повторяющиеся платежи ещё не настроены';
 
   @override
   String get upcomingPaymentsEmptyPaymentsDescription =>
-      'Настройте автоматические платежи и держите счета под контролем.';
+      'Настройте повторяющиеся платежи и держите счета под контролем.';
 
   @override
   String get upcomingPaymentsEmptyRemindersTitle => 'Напоминаний пока нет';
@@ -1105,16 +1105,16 @@ class AppLocalizationsRu extends AppLocalizations {
       'Создайте напоминания, чтобы не пропустить ручные платежи.';
 
   @override
-  String get upcomingPaymentsAddPayment => 'Добавить платёж';
+  String get upcomingPaymentsAddPayment => 'Добавить повторяющийся платёж';
 
   @override
   String get upcomingPaymentsAddReminder => 'Добавить напоминание';
 
   @override
-  String get upcomingPaymentsNewPaymentTitle => 'Новый платёж';
+  String get upcomingPaymentsNewPaymentTitle => 'Новый повторяющийся платёж';
 
   @override
-  String get upcomingPaymentsEditPaymentTitle => 'Редактирование платежа';
+  String get upcomingPaymentsEditPaymentTitle => 'Редактирование повторяющегося платежа';
 
   @override
   String get upcomingPaymentsNewReminderTitle => 'Новое напоминание';
@@ -1160,14 +1160,14 @@ class AppLocalizationsRu extends AppLocalizations {
   String get upcomingPaymentsCancel => 'Отмена';
 
   @override
-  String get upcomingPaymentsSaveSuccess => 'Правило сохранено';
+  String get upcomingPaymentsSaveSuccess => 'Повторяющийся платёж сохранён';
 
   @override
   String get upcomingPaymentsReminderSaveSuccess => 'Напоминание сохранено';
 
   @override
   String upcomingPaymentsSaveError(String error) {
-    return 'Не удалось сохранить платёж: $error';
+    return 'Не удалось сохранить повторяющийся платёж: $error';
   }
 
   @override

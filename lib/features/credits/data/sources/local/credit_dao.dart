@@ -8,32 +8,42 @@ class CreditDao {
   final db.AppDatabase _db;
 
   Stream<List<db.CreditRow>> watchActiveCredits() {
-    final query = _db.select(_db.credits)
-      ..where((tbl) => tbl.isDeleted.equals(false));
+    final SimpleSelectStatement<db.Credits, db.CreditRow> query =
+        _db.select(_db.credits)
+          ..where((db.Credits tbl) => tbl.isDeleted.equals(false));
     return query.watch();
   }
 
   Future<List<db.CreditRow>> getActiveCredits() {
-    final query = _db.select(_db.credits)
-      ..where((tbl) => tbl.isDeleted.equals(false));
+    final SimpleSelectStatement<db.Credits, db.CreditRow> query =
+        _db.select(_db.credits)
+          ..where((db.Credits tbl) => tbl.isDeleted.equals(false));
     return query.get();
   }
 
   Future<db.CreditRow?> findById(String id) {
-    final query = _db.select(_db.credits)..where((tbl) => tbl.id.equals(id));
+    final SimpleSelectStatement<db.Credits, db.CreditRow> query =
+        _db.select(_db.credits)
+          ..where((db.Credits tbl) => tbl.id.equals(id));
     return query.getSingleOrNull();
   }
 
   Future<db.CreditRow?> findByAccountId(String accountId) {
-    final query = _db.select(_db.credits)
-      ..where((tbl) => tbl.accountId.equals(accountId));
+    final SimpleSelectStatement<db.Credits, db.CreditRow> query =
+        _db.select(_db.credits)
+          ..where((db.Credits tbl) => tbl.accountId.equals(accountId));
     return query.getSingleOrNull();
   }
 
   Future<db.CreditRow?> findByCategoryId(String categoryId) {
-    final query = _db.select(_db.credits)
-      ..where((tbl) => tbl.categoryId.equals(categoryId));
+    final SimpleSelectStatement<db.Credits, db.CreditRow> query =
+        _db.select(_db.credits)
+          ..where((db.Credits tbl) => tbl.categoryId.equals(categoryId));
     return query.getSingleOrNull();
+  }
+
+  Future<List<db.CreditRow>> getAllCredits() {
+    return _db.select(_db.credits).get();
   }
 
   Future<void> upsert(CreditEntity credit) {
@@ -42,8 +52,21 @@ class CreditDao {
         .insertOnConflictUpdate(_mapToCompanion(credit));
   }
 
+  Future<void> upsertAll(List<CreditEntity> credits) {
+    if (credits.isEmpty) return Future<void>.value();
+    return _db.batch((Batch batch) {
+      batch.insertAllOnConflictUpdate(
+        _db.credits,
+        credits.map(_mapToCompanion).toList(),
+      );
+    });
+  }
+
   Future<void> markDeleted(String id, DateTime deletedAt) async {
-    await (_db.update(_db.credits)..where((tbl) => tbl.id.equals(id))).write(
+    final UpdateStatement<db.Credits, db.CreditRow> query =
+        _db.update(_db.credits)
+          ..where((db.Credits tbl) => tbl.id.equals(id));
+    await query.write(
       db.CreditsCompanion(
         isDeleted: const Value<bool>(true),
         updatedAt: Value<DateTime>(deletedAt),

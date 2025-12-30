@@ -108,75 +108,6 @@ class Profiles extends Table {
   Set<Column<Object>> get primaryKey => <Column<Object>>{uid};
 }
 
-@DataClassName('RecurringRuleRow')
-class RecurringRules extends Table {
-  TextColumn get id => text().withLength(min: 1, max: 50)();
-  TextColumn get title => text().withLength(min: 1, max: 120)();
-  TextColumn get accountId =>
-      text().references(Accounts, #id, onDelete: KeyAction.cascade)();
-  TextColumn get categoryId =>
-      text().references(Categories, #id, onDelete: KeyAction.cascade)();
-  RealColumn get amount => real()();
-  TextColumn get currency => text().withLength(min: 3, max: 3)();
-  DateTimeColumn get startAt => dateTime()();
-  TextColumn get timezone => text().withLength(min: 1, max: 60)();
-  TextColumn get rrule => text()();
-  DateTimeColumn get endAt => dateTime().nullable()();
-  TextColumn get notes => text().nullable()();
-  IntColumn get dayOfMonth => integer().withDefault(const Constant<int>(1))();
-  IntColumn get applyAtLocalHour =>
-      integer().withDefault(const Constant<int>(0))();
-  IntColumn get applyAtLocalMinute =>
-      integer().withDefault(const Constant<int>(1))();
-  DateTimeColumn get lastRunAt => dateTime().nullable()();
-  DateTimeColumn get nextDueLocalDate => dateTime().nullable()();
-  BoolColumn get isActive =>
-      boolean().withDefault(const Constant<bool>(true))();
-  BoolColumn get autoPost =>
-      boolean().withDefault(const Constant<bool>(false))();
-  IntColumn get reminderMinutesBefore => integer().nullable()();
-  TextColumn get shortMonthPolicy => text()
-      .withLength(min: 1, max: 32)
-      .withDefault(const Constant<String>('clip_to_last_day'))();
-  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
-  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
-
-  @override
-  Set<Column<Object>> get primaryKey => <Column<Object>>{id};
-}
-
-@DataClassName('RecurringRuleExecutionRow')
-class RecurringRuleExecutions extends Table {
-  TextColumn get occurrenceId => text().withLength(min: 1, max: 120)();
-  TextColumn get ruleId =>
-      text().references(RecurringRules, #id, onDelete: KeyAction.cascade)();
-  DateTimeColumn get localDate => dateTime()();
-  DateTimeColumn get appliedAt => dateTime()();
-  TextColumn get transactionId => text().nullable()();
-  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
-  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
-
-  @override
-  Set<Column<Object>> get primaryKey => <Column<Object>>{occurrenceId};
-}
-
-@DataClassName('RecurringOccurrenceRow')
-class RecurringOccurrences extends Table {
-  TextColumn get id => text()
-      .withLength(min: 1, max: 60)
-      .clientDefault(() => const Uuid().v4())();
-  TextColumn get ruleId =>
-      text().references(RecurringRules, #id, onDelete: KeyAction.cascade)();
-  DateTimeColumn get dueAt => dateTime()();
-  TextColumn get status => text().withLength(min: 1, max: 16)();
-  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
-  TextColumn get postedTxId => text().nullable()();
-  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
-
-  @override
-  Set<Column<Object>> get primaryKey => <Column<Object>>{id};
-}
-
 @DataClassName('BudgetRow')
 class Budgets extends Table {
   TextColumn get id => text().withLength(min: 1, max: 60)();
@@ -251,17 +182,6 @@ class GoalContributions extends Table {
   Set<Column<Object>> get primaryKey => <Column<Object>>{id};
 }
 
-@DataClassName('JobQueueRow')
-class JobQueue extends Table {
-  IntColumn get id => integer().autoIncrement()();
-  TextColumn get type => text().withLength(min: 1, max: 80)();
-  TextColumn get payload => text()();
-  DateTimeColumn get runAt => dateTime()();
-  IntColumn get attempts => integer().withDefault(const Constant<int>(0))();
-  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
-  TextColumn get lastError => text().nullable()();
-}
-
 @DataClassName('CreditRow')
 class Credits extends Table {
   TextColumn get id => text().withLength(min: 1, max: 50)();
@@ -293,10 +213,6 @@ class Credits extends Table {
     Transactions,
     OutboxEntries,
     Profiles,
-    RecurringRules,
-    RecurringOccurrences,
-    RecurringRuleExecutions,
-    JobQueue,
     Budgets,
     BudgetInstances,
     SavingGoals,
@@ -312,19 +228,12 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.connect(DatabaseConnection super.connection);
 
   @override
-  int get schemaVersion => 23;
+  int get schemaVersion => 24;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
     onCreate: (Migrator m) async {
       await m.createAll();
-      await m.createIndex(
-        Index(
-          'recurring_occurrences_rule_due_idx',
-          'CREATE UNIQUE INDEX IF NOT EXISTS recurring_occurrences_rule_due_idx '
-              'ON recurring_occurrences(rule_id, due_at)',
-        ),
-      );
       await m.createIndex(
         Index(
           'budget_instances_budget_period_idx',
@@ -440,74 +349,6 @@ class AppDatabase extends _$AppDatabase {
           "UPDATE categories SET icon_style = 'regular' WHERE icon_name IS NOT NULL AND (icon_style IS NULL OR icon_style = '')",
         );
       }
-      if (from < 5) {
-        await m.createTable(recurringRules);
-        await m.createTable(recurringOccurrences);
-        await m.createTable(jobQueue);
-        await m.createIndex(
-          Index(
-            'recurring_occurrences_rule_due_idx',
-            'CREATE INDEX IF NOT EXISTS recurring_occurrences_rule_due_idx '
-                'ON recurring_occurrences(rule_id, due_at)',
-          ),
-        );
-      }
-      if (from < 6) {
-        await m.addColumn(recurringRules, recurringRules.dayOfMonth);
-        await m.addColumn(recurringRules, recurringRules.applyAtLocalHour);
-        await m.addColumn(recurringRules, recurringRules.applyAtLocalMinute);
-        await m.addColumn(recurringRules, recurringRules.lastRunAt);
-        await m.addColumn(recurringRules, recurringRules.nextDueLocalDate);
-        await m.createTable(recurringRuleExecutions);
-        await m.createIndex(
-          Index(
-            'recurring_rule_executions_rule_local_date_idx',
-            'CREATE UNIQUE INDEX IF NOT EXISTS '
-                'recurring_rule_executions_rule_local_date_idx '
-                'ON recurring_rule_executions(rule_id, local_date)',
-          ),
-        );
-        await m.database.customStatement(
-          'UPDATE recurring_rules SET '
-          "day_of_month = CAST(strftime('%d', start_at) AS INTEGER), "
-          "apply_at_local_hour = CAST(strftime('%H', start_at) AS INTEGER), "
-          "apply_at_local_minute = CAST(strftime('%M', start_at) AS INTEGER)",
-        );
-        await m.database.customStatement(
-          'UPDATE recurring_rules SET next_due_local_date = '
-          "CASE WHEN next_due_local_date IS NULL THEN datetime(strftime('%Y-%m-%d', start_at) || ' 00:01:00') ELSE next_due_local_date END",
-        );
-      }
-      if (from < 7) {
-        const String defaultExpenseCategoryId = 'recurring_default_expense';
-        const String defaultIncomeCategoryId = 'recurring_default_income';
-
-        await m.database.customStatement('PRAGMA foreign_keys = ON');
-        await m.database.transaction(() async {
-          await m.database.customStatement(
-            'INSERT INTO categories (id, name, type) VALUES (\'$defaultExpenseCategoryId\', \'Автоплатежи\', \'expense\') '
-            'ON CONFLICT(id) DO NOTHING',
-          );
-          await m.database.customStatement(
-            'INSERT INTO categories (id, name, type) VALUES (\'$defaultIncomeCategoryId\', \'Автоплатежи (доход)\', \'income\') '
-            'ON CONFLICT(id) DO NOTHING',
-          );
-
-          await m.alterTable(
-            TableMigration(
-              recurringRules,
-              newColumns: <GeneratedColumn<String>>[recurringRules.categoryId],
-              columnTransformer: <GeneratedColumn<String>, Expression<String>>{
-                recurringRules.categoryId: const CustomExpression<String>(
-                  "CASE WHEN amount >= 0 THEN '$defaultExpenseCategoryId' ELSE '$defaultIncomeCategoryId' END",
-                ),
-              },
-            ),
-          );
-
-          await m.database.customStatement('PRAGMA foreign_key_check');
-        });
-      }
       if (from < 8) {
         final bool hasBudgetsTable = await _tableExists('budgets');
         if (!hasBudgetsTable) {
@@ -590,18 +431,6 @@ class AppDatabase extends _$AppDatabase {
         await m.addColumn(accounts, accounts.isPrimary);
         await m.addColumn(categories, categories.isFavorite);
       }
-      if (from < 14) {
-        await m.database.customStatement(
-          'DROP INDEX IF EXISTS recurring_occurrences_rule_due_idx',
-        );
-        await m.createIndex(
-          Index(
-            'recurring_occurrences_rule_due_idx',
-            'CREATE UNIQUE INDEX IF NOT EXISTS recurring_occurrences_rule_due_idx '
-                'ON recurring_occurrences(rule_id, due_at)',
-          ),
-        );
-      }
       if (from < 15) {
         await m.createTable(upcomingPayments);
         await m.createTable(paymentReminders);
@@ -633,8 +462,6 @@ class AppDatabase extends _$AppDatabase {
                 'ON payment_reminders(when_at)',
           ),
         );
-        await _disableOneShotRecurringRules();
-        await _migrateRecurringRulesToUpcomingPayments();
       }
       if (from < 16) {
         await _ensureUpcomingPaymentsIndexes();
@@ -696,12 +523,18 @@ class AppDatabase extends _$AppDatabase {
           await m.addColumn(categories, categories.iconStyle);
         }
         if (!await _columnExists('credits', 'category_id')) {
-          await m.addColumn(this.credits, this.credits.categoryId);
+          await m.addColumn(credits, credits.categoryId);
         }
+      }
+      if (from < 24) {
+        await m.database.customStatement('DROP TABLE IF EXISTS recurring_rule_executions');
+        await m.database.customStatement('DROP TABLE IF EXISTS recurring_occurrences');
+        await m.database.customStatement('DROP TABLE IF EXISTS recurring_rules');
+        await m.database.customStatement('DROP TABLE IF EXISTS job_queue');
       }
       if (from < 23) {
         if (!await _columnExists('credits', 'payment_day')) {
-          await m.addColumn(this.credits, this.credits.paymentDay);
+          await m.addColumn(credits, credits.paymentDay);
         }
       }
     },
@@ -709,86 +542,6 @@ class AppDatabase extends _$AppDatabase {
       await customStatement('PRAGMA foreign_keys = ON');
     },
   );
-
-  Future<void> _disableOneShotRecurringRules() async {
-    const List<String> candidateColumns = <String>[
-      'one_shot',
-      'is_one_time',
-      'is_single_use',
-    ];
-    for (final String column in candidateColumns) {
-      final bool exists = await _columnExists('recurring_rules', column);
-      if (!exists) {
-        continue;
-      }
-      await customStatement(
-        'UPDATE recurring_rules SET $column = 0 WHERE $column IS NOT NULL',
-      );
-    }
-  }
-
-  Future<void> _migrateRecurringRulesToUpcomingPayments() async {
-    final bool hasRecurringRules = await _tableExists('recurring_rules');
-    if (!hasRecurringRules) {
-      return;
-    }
-
-    final List<QueryRow> rows = await customSelect(
-      'SELECT title, account_id, category_id, amount, day_of_month, notes, '
-      'auto_post, is_active, next_due_local_date, created_at, updated_at '
-      'FROM recurring_rules '
-      "WHERE is_active = 1 AND instr(upper(rrule), 'FREQ=MONTHLY') > 0",
-    ).get();
-    if (rows.isEmpty) {
-      return;
-    }
-
-    const Uuid uuid = Uuid();
-    final List<Insertable<UpcomingPaymentRow>> entries =
-        <Insertable<UpcomingPaymentRow>>[];
-
-    for (final QueryRow row in rows) {
-      final int dayOfMonth = row.read<int>('day_of_month');
-      final double amount = row.read<double>('amount');
-      if (dayOfMonth < 1 || dayOfMonth > 31 || amount <= 0) {
-        continue;
-      }
-      final DateTime createdAt = row.read<DateTime>('created_at');
-      final DateTime updatedAt = row.read<DateTime>('updated_at');
-      final DateTime? nextDue = row.read<DateTime?>('next_due_local_date');
-      entries.add(
-        UpcomingPaymentsCompanion(
-          id: Value<String>(uuid.v4()),
-          title: Value<String>(row.read<String>('title')),
-          accountId: Value<String>(row.read<String>('account_id')),
-          categoryId: Value<String>(row.read<String>('category_id')),
-          amount: Value<double>(amount),
-          dayOfMonth: Value<int>(dayOfMonth),
-          notifyDaysBefore: const Value<int>(1),
-          notifyTimeHhmm: const Value<String>('12:00'),
-          note: Value<String?>(row.read<String?>('notes')),
-          autoPost: Value<bool>(row.read<bool>('auto_post')),
-          isActive: Value<bool>(row.read<bool>('is_active')),
-          nextRunAt: Value<int?>(nextDue?.toUtc().millisecondsSinceEpoch),
-          nextNotifyAt: const Value<int?>(null),
-          createdAt: Value<int>(createdAt.toUtc().millisecondsSinceEpoch),
-          updatedAt: Value<int>(updatedAt.toUtc().millisecondsSinceEpoch),
-        ),
-      );
-    }
-
-    if (entries.isEmpty) {
-      return;
-    }
-
-    await batch((Batch batch) {
-      batch.insertAll(
-        upcomingPayments,
-        entries,
-        mode: InsertMode.insertOrIgnore,
-      );
-    });
-  }
 
   Future<void> _ensureUpcomingPaymentsIndexes() async {
     await customStatement(

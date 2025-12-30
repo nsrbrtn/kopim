@@ -25,8 +25,7 @@ lib/
     ├── budgets/            # Бюджеты
     ├── analytics/          # Аналитика
     ├── savings/            # Цели накоплений
-    ├── recurring_transactions/  # Регулярные транзакции
-    ├── upcoming_payments/  # Предстоящие платежи
+    ├── upcoming_payments/  # Повторяющиеся платежи и напоминания
     ├── profile/            # Профиль пользователя
     ├── settings/           # Настройки
     ├── home/               # Главный экран

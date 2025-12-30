@@ -23,26 +23,27 @@ class CreditRepositoryImpl implements CreditRepository {
   @override
   Stream<List<CreditEntity>> watchCredits() {
     return _creditDao.watchActiveCredits().map(
-      (rows) => rows.map(_creditDao.mapRowToEntity).toList(),
+      (List<db.CreditRow> rows) =>
+          rows.map(_creditDao.mapRowToEntity).toList(),
     );
   }
 
   @override
   Future<List<CreditEntity>> getCredits() async {
-    final rows = await _creditDao.getActiveCredits();
+    final List<db.CreditRow> rows = await _creditDao.getActiveCredits();
     return rows.map(_creditDao.mapRowToEntity).toList();
   }
 
   @override
   Future<CreditEntity?> getCreditByAccountId(String accountId) async {
-    final row = await _creditDao.findByAccountId(accountId);
+    final db.CreditRow? row = await _creditDao.findByAccountId(accountId);
     if (row == null) return null;
     return _creditDao.mapRowToEntity(row);
   }
 
   @override
   Future<CreditEntity?> getCreditByCategoryId(String categoryId) async {
-    final row = await _creditDao.findByCategoryId(categoryId);
+    final db.CreditRow? row = await _creditDao.findByCategoryId(categoryId);
     if (row == null) return null;
     return _creditDao.mapRowToEntity(row);
   }
@@ -62,9 +63,9 @@ class CreditRepositoryImpl implements CreditRepository {
     final DateTime now = DateTime.now();
     await _database.transaction(() async {
       await _creditDao.markDeleted(id, now);
-      final row = await _creditDao.findById(id);
+      final db.CreditRow? row = await _creditDao.findById(id);
       if (row == null) return;
-      final entity = _creditDao
+      final CreditEntity entity = _creditDao
           .mapRowToEntity(row)
           .copyWith(isDeleted: true, updatedAt: now);
       await _outboxDao.enqueue(
@@ -91,7 +92,7 @@ class CreditRepositoryImpl implements CreditRepository {
   }
 
   Map<String, dynamic> _mapCreditPayload(CreditEntity credit) {
-    final json = credit.toJson();
+    final Map<String, dynamic> json = credit.toJson();
     json['startDate'] = credit.startDate.toIso8601String();
     json['updatedAt'] = credit.updatedAt.toIso8601String();
     json['createdAt'] = credit.createdAt.toIso8601String();

@@ -1,7 +1,8 @@
 import 'package:kopim/core/services/logger_service.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_instance.dart';
-import 'package:kopim/features/recurring_transactions/domain/entities/recurring_rule.dart';
+import 'package:kopim/features/credits/domain/entities/credit_entity.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
+import 'package:kopim/features/upcoming_payments/domain/entities/upcoming_payment.dart';
 
 class SyncDataSanitizer {
   const SyncDataSanitizer({required this.logger});
@@ -67,58 +68,74 @@ class SyncDataSanitizer {
     return sanitized;
   }
 
-  List<RecurringRule> sanitizeRecurringRules({
-    required List<RecurringRule> rules,
+  List<UpcomingPayment> sanitizeUpcomingPayments({
+    required List<UpcomingPayment> payments,
     required Set<String> validAccountIds,
     required Set<String> validCategoryIds,
   }) {
-    if (rules.isEmpty) return rules;
+    if (payments.isEmpty) return payments;
 
-    final List<RecurringRule> sanitized = <RecurringRule>[];
+    final List<UpcomingPayment> sanitized = <UpcomingPayment>[];
     int skippedCount = 0;
 
-    for (final RecurringRule rule in rules) {
-      // 1. Check mandatory Account dependency
-      if (!validAccountIds.contains(rule.accountId)) {
+    for (final UpcomingPayment payment in payments) {
+      if (!validAccountIds.contains(payment.accountId)) {
         skippedCount++;
         continue;
       }
 
-      String? categoryId = rule.categoryId;
-      bool changed = false;
-
-      // 2. Check optional Category dependency
-      if (categoryId != null && !validCategoryIds.contains(categoryId)) {
-        categoryId = null;
-        changed = true;
-      }
-
-      if (changed) {
-        // RecurringRule categoryId is NOT nullable in the entity definition we saw (required String categoryId)
-        // BUT wait, looking at the file viewed: required String categoryId.
-        // So we CANNOT set it to null if it's missing?
-        // Let's re-read the recurring_rule.dart carefully.
-        // It says: required String categoryId.
-        // So if category is missing, we MUST SKIP the rule?
-        // Or is there a "None" category ID?
-        // Re-reading implementation plan: "Category: Уже реализовано (пропуск правила)".
-        // Ah, so if category is missing for a rule, we skip it?
-        // But implementation plan says "Category: Уже реализовано (пропуск правила)" for rules.
-        // Wait, in my sanitizer implementation I tried to set it to null.
-        // Since it is non-nullable, I must SKIP the rule if category is missing.
-
-        // CORRECTION: Since categoryId is required String, and we don't have it (it's invalid),
-        // we must treat it as a broken dependency -> SKIP RULE.
+      if (!validCategoryIds.contains(payment.categoryId)) {
         skippedCount++;
         continue;
-      } else {
-        sanitized.add(rule);
       }
+
+      sanitized.add(payment);
     }
 
     if (skippedCount > 0) {
       logger.logInfo(
-        'SyncDataSanitizer: skipped $skippedCount recurring rules due to missing accounts or categories.',
+        'SyncDataSanitizer: skipped $skippedCount recurring payments due to missing accounts or categories.',
+      );
+    }
+
+    return sanitized;
+  }
+
+  List<CreditEntity> sanitizeCredits({
+    required List<CreditEntity> credits,
+    required Set<String> validAccountIds,
+    required Set<String> validCategoryIds,
+  }) {
+    if (credits.isEmpty) return credits;
+
+    final List<CreditEntity> sanitized = <CreditEntity>[];
+    int skippedCount = 0;
+    int clearedCategories = 0;
+
+    for (final CreditEntity credit in credits) {
+      if (!validAccountIds.contains(credit.accountId)) {
+        skippedCount++;
+        continue;
+      }
+
+      final String? categoryId = credit.categoryId;
+      if (categoryId != null && !validCategoryIds.contains(categoryId)) {
+        clearedCategories++;
+        sanitized.add(credit.copyWith(categoryId: null));
+        continue;
+      }
+
+      sanitized.add(credit);
+    }
+
+    if (skippedCount > 0) {
+      logger.logInfo(
+        'SyncDataSanitizer: skipped $skippedCount credits due to missing accounts.',
+      );
+    }
+    if (clearedCategories > 0) {
+      logger.logInfo(
+        'SyncDataSanitizer: cleared $clearedCategories credit categories due to missing references.',
       );
     }
 

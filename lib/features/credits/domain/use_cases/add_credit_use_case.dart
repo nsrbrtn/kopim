@@ -50,7 +50,7 @@ class AddCreditUseCase {
           ? PhosphorIconDescriptor(
               name: iconName,
               style: PhosphorIconStyle.values.firstWhere(
-                (s) => s.name == iconStyle,
+                (PhosphorIconStyle style) => style.name == iconStyle,
                 orElse: () => PhosphorIconStyle.fill,
               ),
             )

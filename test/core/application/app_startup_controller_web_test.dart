@@ -13,12 +13,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:kopim/core/application/app_startup_controller.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/core/services/sync_service.dart';
-import 'package:kopim/core/services/recurring_work_scheduler.dart';
 import 'package:kopim/features/upcoming_payments/application/upcoming_notifications_controller.dart';
 import 'package:kopim/features/upcoming_payments/data/services/upcoming_payments_work_scheduler.dart';
-
-class _MockRecurringWorkScheduler extends Mock
-    implements RecurringWorkScheduler {}
 
 class _MockUpcomingPaymentsWorkScheduler extends Mock
     implements UpcomingPaymentsWorkScheduler {}
@@ -144,8 +140,6 @@ void main() {
     'initialize skips background schedulers on web but warms sync service',
     () {
       fakeAsync((FakeAsync async) {
-        final _MockRecurringWorkScheduler recurringScheduler =
-            _MockRecurringWorkScheduler();
         final _MockUpcomingPaymentsWorkScheduler upcomingScheduler =
             _MockUpcomingPaymentsWorkScheduler();
         final _MockSyncService syncService = _MockSyncService();
@@ -170,9 +164,6 @@ void main() {
                 ),
               );
             }),
-            recurringWorkSchedulerProvider.overrideWithValue(
-              recurringScheduler,
-            ),
             upcomingPaymentsWorkSchedulerProvider.overrideWithValue(
               upcomingScheduler,
             ),
@@ -209,11 +200,6 @@ void main() {
         expect(syncCallCount, 1);
 
         verify(() => syncService.initialize()).called(1);
-
-        verifyNever(() => recurringScheduler.initialize());
-        verifyNever(() => recurringScheduler.scheduleDailyWindowGeneration());
-        verifyNever(() => recurringScheduler.scheduleMaintenance());
-        verifyNever(() => recurringScheduler.scheduleApplyRecurringRules());
 
         verifyNever(() => upcomingScheduler.scheduleDailyCatchUp());
         verifyNever(() => upcomingScheduler.triggerOneOffCatchUp());

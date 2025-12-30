@@ -17,6 +17,7 @@ class UpdateProfileAvatarRequest {
     required this.bytes,
     required this.contentType,
     required this.source,
+    this.presetAssetPath,
     this.storeOfflineOnly = false,
   });
 
@@ -24,6 +25,7 @@ class UpdateProfileAvatarRequest {
   final Uint8List bytes;
   final String contentType;
   final AvatarImageSource source;
+  final String? presetAssetPath;
   final bool storeOfflineOnly;
 }
 
@@ -49,29 +51,40 @@ class UpdateProfileAvatarUseCase {
       throw StateError('Profile not found for uid ${request.uid}');
     }
 
-    final _CompressionResult compression = await _compress(
-      request.bytes,
-      onWarning: (String message) {
-        events.add(
-          ProfileDomainEvent.avatarProcessingWarning(message: message),
-        );
-      },
-    );
-    final Uint8List processedBytes = compression.bytes;
-    final String resolvedContentType = compression.convertedToJpeg
-        ? 'image/jpeg'
-        : request.contentType;
+    final String? presetAssetPath = request.presetAssetPath?.trim();
+    final bool usePreset =
+        presetAssetPath != null && presetAssetPath.isNotEmpty;
 
+    Uint8List processedBytes = request.bytes;
+    String resolvedContentType = request.contentType;
     String downloadUrl;
-    if (request.storeOfflineOnly) {
-      downloadUrl = _encodeAsDataUrl(processedBytes, resolvedContentType);
+
+    if (usePreset) {
+      downloadUrl = presetAssetPath;
     } else {
-      downloadUrl = await _avatarRepository.upload(
-        uid: request.uid,
-        data: processedBytes,
-        contentType: resolvedContentType,
+      final _CompressionResult compression = await _compress(
+        request.bytes,
+        onWarning: (String message) {
+          events.add(
+            ProfileDomainEvent.avatarProcessingWarning(message: message),
+          );
+        },
       );
-      downloadUrl = _withCacheBuster(downloadUrl);
+      processedBytes = compression.bytes;
+      resolvedContentType = compression.convertedToJpeg
+          ? 'image/jpeg'
+          : request.contentType;
+
+      if (request.storeOfflineOnly) {
+        downloadUrl = _encodeAsDataUrl(processedBytes, resolvedContentType);
+      } else {
+        downloadUrl = await _avatarRepository.upload(
+          uid: request.uid,
+          data: processedBytes,
+          contentType: resolvedContentType,
+        );
+        downloadUrl = _withCacheBuster(downloadUrl);
+      }
     }
 
     final Profile updated = existing.copyWith(
@@ -87,7 +100,7 @@ class UpdateProfileAvatarUseCase {
           uid: request.uid,
           source: request.source,
           sizeBytes: processedBytes.lengthInBytes,
-          offlineOnly: request.storeOfflineOnly,
+          offlineOnly: request.storeOfflineOnly && !usePreset,
         ),
       );
 

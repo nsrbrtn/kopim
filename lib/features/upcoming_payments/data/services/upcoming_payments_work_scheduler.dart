@@ -158,12 +158,19 @@ Future<void> _executeUpcomingPaymentsWorkflow({
 }) async {
   final UpcomingPaymentsDao upcomingDao = UpcomingPaymentsDao(database);
   final PaymentRemindersDao remindersDao = PaymentRemindersDao(database);
-  final UpcomingPaymentsRepository upcomingRepository =
-      UpcomingPaymentsRepositoryImpl(dao: upcomingDao);
-  final PaymentRemindersRepository remindersRepository =
-      PaymentRemindersRepositoryImpl(dao: remindersDao);
-
   final OutboxDao outboxDao = OutboxDao(database);
+  final UpcomingPaymentsRepository upcomingRepository =
+      UpcomingPaymentsRepositoryImpl(
+        database: database,
+        dao: upcomingDao,
+        outboxDao: outboxDao,
+      );
+  final PaymentRemindersRepository remindersRepository =
+      PaymentRemindersRepositoryImpl(
+        database: database,
+        dao: remindersDao,
+        outboxDao: outboxDao,
+      );
   final AccountDao accountDao = AccountDao(database);
   final TransactionDao transactionDao = TransactionDao(database);
   final CreditDao creditDao = CreditDao(database);

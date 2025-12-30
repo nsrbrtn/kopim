@@ -410,22 +410,15 @@ class _PhosphorIconPickerSheet extends StatefulWidget {
       _PhosphorIconPickerSheetState();
 }
 
-class _PhosphorIconPickerSheetState extends State<_PhosphorIconPickerSheet>
-    with SingleTickerProviderStateMixin {
+class _PhosphorIconPickerSheetState extends State<_PhosphorIconPickerSheet> {
   late final List<PhosphorIconStyle> _availableStyles;
   late PhosphorIconStyle _selectedStyle;
-  late final TabController _tabController;
 
   @override
   void initState() {
     super.initState();
     _availableStyles = _resolveAllowedStyles();
     _selectedStyle = _resolveInitialStyle();
-    _tabController = TabController(
-      length: _iconGroups.length,
-      vsync: this,
-      initialIndex: _findInitialGroupIndex(),
-    );
     assert(
       _iconGroups.fold<int>(
             0,
@@ -434,12 +427,6 @@ class _PhosphorIconPickerSheetState extends State<_PhosphorIconPickerSheet>
           _kPhosphorIconPickerLimit,
       'Icon groups must contain exactly $_kPhosphorIconPickerLimit icons.',
     );
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
   }
 
   List<PhosphorIconStyle> _resolveAllowedStyles() {
@@ -458,17 +445,6 @@ class _PhosphorIconPickerSheetState extends State<_PhosphorIconPickerSheet>
     return _availableStyles.contains(initialStyle)
         ? initialStyle
         : _availableStyles.first;
-  }
-
-  int _findInitialGroupIndex() {
-    final String? initialName = widget.initial?.name;
-    if (initialName == null) {
-      return 0;
-    }
-    final int index = _iconGroups.indexWhere(
-      (_IconGroup group) => group.iconNames.contains(initialName),
-    );
-    return index >= 0 ? index : 0;
   }
 
   void _selectStyle(PhosphorIconStyle style) {
@@ -524,25 +500,32 @@ class _PhosphorIconPickerSheetState extends State<_PhosphorIconPickerSheet>
                   ),
                   const SizedBox(height: 12),
                 ],
-                TabBar(
-                  controller: _tabController,
-                  isScrollable: true,
-                  labelPadding: const EdgeInsets.symmetric(horizontal: 12),
-                  tabs: _iconGroups
-                      .map(
-                        (_IconGroup group) => Tab(
-                          text: widget.labels.groupLabels[group.id] ?? group.id,
-                        ),
-                      )
-                      .toList(growable: false),
-                ),
-                const SizedBox(height: 12),
                 Expanded(
-                  child: TabBarView(
-                    controller: _tabController,
-                    children: _iconGroups
-                        .map(_buildGroupGrid)
-                        .toList(growable: false),
+                  child: ListView.separated(
+                    itemCount: _iconGroups.length,
+                    separatorBuilder: (BuildContext context, int index) {
+                      return const SizedBox(height: 8);
+                    },
+                    itemBuilder: (BuildContext context, int index) {
+                      final _IconGroup group = _iconGroups[index];
+                      final String title =
+                          widget.labels.groupLabels[group.id] ?? group.id;
+                      return ExpansionTile(
+                        title: Text(title),
+                        initiallyExpanded: false,
+                        childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                        children: <Widget>[
+                          LayoutBuilder(
+                            builder: (BuildContext context, BoxConstraints constraints) {
+                              return _buildGroupGrid(
+                                group: group,
+                                maxWidth: constraints.maxWidth,
+                              );
+                            },
+                          ),
+                        ],
+                      );
+                    },
                   ),
                 ),
               ],
@@ -553,7 +536,10 @@ class _PhosphorIconPickerSheetState extends State<_PhosphorIconPickerSheet>
     );
   }
 
-  Widget _buildGroupGrid(_IconGroup group) {
+  Widget _buildGroupGrid({
+    required _IconGroup group,
+    required double maxWidth,
+  }) {
     final ThemeData theme = Theme.of(context);
     final List<String> icons = group.iconNames;
     if (icons.isEmpty) {
@@ -565,41 +551,36 @@ class _PhosphorIconPickerSheetState extends State<_PhosphorIconPickerSheet>
         ),
       );
     }
-    return LayoutBuilder(
-      builder: (BuildContext context, BoxConstraints constraints) {
-        final double maxWidth = constraints.maxWidth;
-        final int crossAxisCount = maxWidth < 480
-            ? 4
-            : (maxWidth ~/ 72).clamp(4, 10);
-        return GridView.builder(
-          padding: const EdgeInsets.symmetric(vertical: 4),
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: crossAxisCount,
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
-            childAspectRatio: 1,
-          ),
-          itemCount: icons.length,
-          itemBuilder: (BuildContext context, int index) {
-            final String name = icons[index];
-            final PhosphorIconDescriptor descriptor = PhosphorIconDescriptor(
-              name: name,
-              style: _selectedStyle,
-            );
-            final PhosphorIconData? iconData = resolvePhosphorIconData(
-              descriptor,
-            );
-            final bool isCurrent =
-                widget.initial != null &&
-                widget.initial!.name == name &&
-                widget.initial!.style == _selectedStyle;
-            return _IconGridTile(
-              iconData: iconData,
-              name: name,
-              isSelected: isCurrent,
-              onTap: () => _selectIcon(name),
-            );
-          },
+    final int crossAxisCount = maxWidth < 480
+        ? 4
+        : (maxWidth ~/ 72).clamp(4, 10);
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: crossAxisCount,
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
+        childAspectRatio: 1,
+      ),
+      itemCount: icons.length,
+      itemBuilder: (BuildContext context, int index) {
+        final String name = icons[index];
+        final PhosphorIconDescriptor descriptor = PhosphorIconDescriptor(
+          name: name,
+          style: _selectedStyle,
+        );
+        final PhosphorIconData? iconData = resolvePhosphorIconData(descriptor);
+        final bool isCurrent =
+            widget.initial != null &&
+            widget.initial!.name == name &&
+            widget.initial!.style == _selectedStyle;
+        return _IconGridTile(
+          iconData: iconData,
+          name: name,
+          isSelected: isCurrent,
+          onTap: () => _selectIcon(name),
         );
       },
     );

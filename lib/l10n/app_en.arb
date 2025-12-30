@@ -1,4 +1,4 @@
-﻿{
+{
   "@@locale": "en",
   "profileTitle": "Profile",
   "@profileTitle": {
@@ -64,7 +64,7 @@
   "@profileManageCategoriesCta": {
     "description": "Button label that opens the category management screen from the profile settings"
   },
-  "profileUpcomingPaymentsCta": "Upcoming payments",
+  "profileUpcomingPaymentsCta": "Recurring payments",
   "@profileUpcomingPaymentsCta": {
     "description": "Button label that opens the upcoming payments screen from the profile settings"
   },
@@ -677,15 +677,13 @@
   "@profilePresetAvatarTitle": {
     "description": "Title shown at the top of the preset avatar picker sheet"
   },
-  "profilePresetAvatarSubtitle":
-      "Use one of the curated illustrations bundled with the app.",
+  "profilePresetAvatarSubtitle": "Use one of the curated illustrations bundled with the app.",
   "@profilePresetAvatarSubtitle": {
     "description": "Helper text describing the preset avatar picker"
   },
   "profilePresetAvatarLabel": "Avatar {index}",
   "@profilePresetAvatarLabel": {
-    "description":
-        "Short label under each preset avatar used for accessibility",
+    "description": "Short label under each preset avatar used for accessibility",
     "placeholders": {
       "index": {
         "type": "int"
@@ -1256,7 +1254,7 @@
   "@homeTransactionsUncategorized": {
     "description": "Fallback text when a transaction has no category"
   },
-  "homeUpcomingPaymentsTitle": "Upcoming payments",
+  "homeUpcomingPaymentsTitle": "Recurring payments",
   "@homeUpcomingPaymentsTitle": {
     "description": "Header for the upcoming payments widget"
   },
@@ -1264,7 +1262,7 @@
   "@homeUpcomingPaymentsEmpty": {
     "description": "Empty state when there are no upcoming payments"
   },
-  "homeUpcomingPaymentsEmptyHeader": "No upcoming payments",
+  "homeUpcomingPaymentsEmptyHeader": "No recurring payments",
   "@homeUpcomingPaymentsEmptyHeader": {
     "description": "Subtitle shown when no upcoming payment is scheduled"
   },
@@ -1294,7 +1292,7 @@
       }
     }
   },
-  "homeUpcomingPaymentsError": "Couldn't load upcoming payments: {error}",
+  "homeUpcomingPaymentsError": "Couldn't load recurring payments: {error}",
   "@homeUpcomingPaymentsError": {
     "description": "Error shown when loading upcoming payments fails",
     "placeholders": {
@@ -1316,7 +1314,7 @@
       }
     }
   },
-  "homeUpcomingPaymentsCountSemantics": "{count, plural, =0 {No scheduled payments} one {# upcoming payment} other {# upcoming payments}}",
+  "homeUpcomingPaymentsCountSemantics": "{count, plural, =0 {No recurring payments} one {# recurring payment} other {# recurring payments}}",
   "@homeUpcomingPaymentsCountSemantics": {
     "description": "Accessibility label for the upcoming payments badge",
     "placeholders": {
@@ -1337,7 +1335,7 @@
   "@homeUpcomingPaymentsBadgeRemindersLabel": {
     "description": "Label for the reminders badge"
   },
-  "homeUpcomingPaymentsBadgePaymentsSemantics": "{count, plural, =0 {No upcoming payments} one {# upcoming payment} other {# upcoming payments}}",
+  "homeUpcomingPaymentsBadgePaymentsSemantics": "{count, plural, =0 {No recurring payments} one {# recurring payment} other {# recurring payments}}",
   "@homeUpcomingPaymentsBadgePaymentsSemantics": {
     "description": "Accessibility label for the number of upcoming payments",
     "placeholders": {
@@ -1355,11 +1353,11 @@
       }
     }
   },
-  "upcomingPaymentsTitle": "Upcoming payments",
+  "upcomingPaymentsTitle": "Recurring payments",
   "@upcomingPaymentsTitle": {
     "description": "Title for the upcoming payments screen"
   },
-  "upcomingPaymentsTabPayments": "Payments",
+  "upcomingPaymentsTabPayments": "Recurring",
   "@upcomingPaymentsTabPayments": {
     "description": "Tab label for recurring payment rules"
   },
@@ -1367,11 +1365,11 @@
   "@upcomingPaymentsTabReminders": {
     "description": "Tab label for manual payment reminders"
   },
-  "upcomingPaymentsEmptyPaymentsTitle": "No payment rules yet",
+  "upcomingPaymentsEmptyPaymentsTitle": "No recurring payments yet",
   "@upcomingPaymentsEmptyPaymentsTitle": {
     "description": "Headline for empty state of the payment rules list"
   },
-  "upcomingPaymentsEmptyPaymentsDescription": "Create automated payment rules to keep bills under control.",
+  "upcomingPaymentsEmptyPaymentsDescription": "Set up recurring payments to stay on top of your bills.",
   "@upcomingPaymentsEmptyPaymentsDescription": {
     "description": "Description for empty state of the payment rules list"
   },
@@ -1383,7 +1381,7 @@
   "@upcomingPaymentsEmptyRemindersDescription": {
     "description": "Description for empty state of the reminders list"
   },
-  "upcomingPaymentsAddPayment": "Add payment",
+  "upcomingPaymentsAddPayment": "Add recurring payment",
   "@upcomingPaymentsAddPayment": {
     "description": "Action label for creating a new upcoming payment"
   },
@@ -1391,11 +1389,11 @@
   "@upcomingPaymentsAddReminder": {
     "description": "Action label for creating a new payment reminder"
   },
-  "upcomingPaymentsNewPaymentTitle": "New payment",
+  "upcomingPaymentsNewPaymentTitle": "New recurring payment",
   "@upcomingPaymentsNewPaymentTitle": {
     "description": "Title for the create payment form"
   },
-  "upcomingPaymentsEditPaymentTitle": "Edit payment",
+  "upcomingPaymentsEditPaymentTitle": "Edit recurring payment",
   "@upcomingPaymentsEditPaymentTitle": {
     "description": "Title for the edit payment form"
   },
@@ -1455,7 +1453,7 @@
   "@upcomingPaymentsCancel": {
     "description": "Secondary action for dismissing a form"
   },
-  "upcomingPaymentsSaveSuccess": "Upcoming payment saved",
+  "upcomingPaymentsSaveSuccess": "Recurring payment saved",
   "@upcomingPaymentsSaveSuccess": {
     "description": "Snackbar message shown when a payment rule is saved"
   },
@@ -1463,7 +1461,7 @@
   "@upcomingPaymentsReminderSaveSuccess": {
     "description": "Snackbar message shown when a reminder is saved"
   },
-  "upcomingPaymentsSaveError": "Failed to save payment: {error}",
+  "upcomingPaymentsSaveError": "Failed to save recurring payment: {error}",
   "@upcomingPaymentsSaveError": {
     "description": "Error message shown when saving a payment rule fails",
     "placeholders": {
@@ -1586,11 +1584,11 @@
   "@upcomingPaymentsValidationNotifyDays": {
     "description": "Validation error for notify days"
   },
-  "upcomingPaymentsNoAccounts": "Add an account to schedule payments.",
+  "upcomingPaymentsNoAccounts": "Add an account before creating a recurring payment.",
   "@upcomingPaymentsNoAccounts": {
     "description": "Message shown when there are no accounts available"
   },
-  "upcomingPaymentsNoCategories": "Create a category to schedule payments.",
+  "upcomingPaymentsNoCategories": "Create a category to use it for a recurring payment.",
   "@upcomingPaymentsNoCategories": {
     "description": "Message shown when there are no categories available"
   },
@@ -1879,7 +1877,6 @@
   "@addTransactionComingSoon": {
     "description": "Placeholder message for add transaction screen"
   },
-
   "addTransactionAccountLabel": "Account",
   "@addTransactionAccountLabel": {
     "description": "Label for account selector on add transaction form"
@@ -2741,7 +2738,6 @@
   "@transactionDefaultTitle": {
     "description": "Fallback title for transactions without a note"
   },
-
   "allTransactionsTitle": "All transactions",
   "@allTransactionsTitle": {
     "description": "Title for the screen listing all transactions"
@@ -2975,5 +2971,4 @@
   "@assistantFaqAnswerImproveResults": {
     "description": "FAQ answer with tips for better assistant queries"
   }
-
 }
