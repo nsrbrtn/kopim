@@ -77,7 +77,7 @@ class BudgetFormController extends _$BudgetFormController {
     final DateTime now = DateTime.now();
     return BudgetFormState(
       title: '',
-      amountText: '0',
+      amountText: '',
       period: BudgetPeriod.monthly,
       scope: BudgetScope.all,
       startDate: DateTime(now.year, now.month, now.day, 0, 1),
@@ -133,7 +133,7 @@ class BudgetFormController extends _$BudgetFormController {
       categoryAmounts.remove(categoryId);
     } else {
       categories.add(categoryId);
-      categoryAmounts.putIfAbsent(categoryId, () => '0');
+      categoryAmounts.putIfAbsent(categoryId, () => '');
     }
     state = state.copyWith(
       categoryIds: categories,
@@ -276,14 +276,23 @@ class BudgetFormController extends _$BudgetFormController {
 
   String _formatCategoryTotal(Map<String, String> categoryAmounts) {
     if (categoryAmounts.isEmpty) {
-      return '0.00';
+      return '';
     }
     double total = 0;
+    bool hasValue = false;
     for (final String value in categoryAmounts.values) {
-      final double? parsed = double.tryParse(value.replaceAll(',', '.').trim());
+      final String trimmed = value.replaceAll(',', '.').trim();
+      if (trimmed.isEmpty) {
+        continue;
+      }
+      final double? parsed = double.tryParse(trimmed);
       if (parsed != null && parsed >= 0) {
         total += parsed;
+        hasValue = true;
       }
+    }
+    if (!hasValue) {
+      return '';
     }
     return total.toStringAsFixed(2);
   }

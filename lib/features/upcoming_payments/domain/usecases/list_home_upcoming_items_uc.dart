@@ -97,13 +97,8 @@ class ListHomeUpcomingItemsUC {
     final List<UpcomingItem> items = <UpcomingItem>[];
 
     for (final UpcomingPayment payment in payments) {
-      final int? notifyAt = payment.nextNotifyAtMs;
       final int? runAt = payment.nextRunAtMs;
-      int? when = notifyAt;
-      if (when == null || (runAt != null && runAt < when)) {
-        when = runAt;
-      }
-      if (when == null) {
+      if (runAt == null) {
         continue;
       }
       items.add(
@@ -112,7 +107,7 @@ class ListHomeUpcomingItemsUC {
           id: payment.id,
           title: payment.title,
           amount: payment.amount,
-          whenMs: when,
+          whenMs: runAt,
           note: payment.note,
         ),
       );

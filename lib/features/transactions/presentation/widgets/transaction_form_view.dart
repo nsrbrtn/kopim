@@ -174,7 +174,12 @@ class TransactionFormView extends ConsumerWidget {
         };
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
-          ..showSnackBar(SnackBar(content: Text(message)));
+          ..showSnackBar(
+            SnackBar(
+              content: Text(message),
+              duration: const Duration(seconds: 4),
+            ),
+          );
       }
     });
 

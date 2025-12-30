@@ -314,7 +314,7 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
       _categoryControllers.remove(key)?.dispose();
     }
     for (final String id in ids) {
-      final String value = state.categoryAmounts[id] ?? '0';
+      final String value = state.categoryAmounts[id] ?? '';
       final TextEditingController controller =
           _categoryControllers[id] ?? TextEditingController();
       if (!_categoryControllers.containsKey(id)) {
