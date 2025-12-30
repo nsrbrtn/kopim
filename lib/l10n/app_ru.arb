@@ -1802,6 +1802,19 @@
   "@analyticsCategoryUncategorized": {
     "description": "Подпись для неразмеченных расходов"
   },
+  "analyticsCategoryTransactionsTitle": "Транзакции: {category}",
+  "@analyticsCategoryTransactionsTitle": {
+    "description": "Заголовок списка транзакций по выбранной категории в аналитике",
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
+  },
+  "analyticsCategoryTransactionsEmpty": "Для этой категории нет транзакций за выбранный период.",
+  "@analyticsCategoryTransactionsEmpty": {
+    "description": "Пустое состояние списка транзакций по категории в аналитике"
+  },
   "analyticsOverviewRangeTitle": "Обзор за {range}",
   "@analyticsOverviewRangeTitle": {
     "description": "Заголовок аналитики с учётом выбранного периода",

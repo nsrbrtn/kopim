@@ -1802,6 +1802,19 @@
   "@analyticsCategoryUncategorized": {
     "description": "Label for expenses without a category"
   },
+  "analyticsCategoryTransactionsTitle": "Transactions: {category}",
+  "@analyticsCategoryTransactionsTitle": {
+    "description": "Title for the transaction list by selected category in analytics",
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
+  },
+  "analyticsCategoryTransactionsEmpty": "No transactions for this category in the selected period.",
+  "@analyticsCategoryTransactionsEmpty": {
+    "description": "Empty state for category transactions list in analytics"
+  },
   "analyticsOverviewRangeTitle": "Overview for {range}",
   "@analyticsOverviewRangeTitle": {
     "description": "Heading for analytics overview showing selected range",

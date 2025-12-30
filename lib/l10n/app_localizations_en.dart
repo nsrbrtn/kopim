@@ -1076,11 +1076,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get upcomingPaymentsTabReminders => 'Reminders';
 
   @override
-  String get upcomingPaymentsEmptyPaymentsTitle => 'No payment rules yet';
+  String get upcomingPaymentsEmptyPaymentsTitle => 'No recurring payments yet';
 
   @override
   String get upcomingPaymentsEmptyPaymentsDescription =>
-      'Create automated payment rules to keep bills under control.';
+      'Set up recurring payments to stay on top of your bills.';
 
   @override
   String get upcomingPaymentsEmptyRemindersTitle => 'No reminders yet';
@@ -1233,11 +1233,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get upcomingPaymentsNoAccounts =>
-      'Add an account to schedule payments.';
+      'Add an account before creating a recurring payment.';
 
   @override
   String get upcomingPaymentsNoCategories =>
-      'Create a category to schedule payments.';
+      'Create a category to use it for a recurring payment.';
 
   @override
   String upcomingPaymentsMonthlySummary(int day) {
@@ -1394,6 +1394,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get analyticsCategoryUncategorized => 'Uncategorized';
+
+  @override
+  String analyticsCategoryTransactionsTitle(String category) {
+    return 'Transactions: $category';
+  }
+
+  @override
+  String get analyticsCategoryTransactionsEmpty =>
+      'No transactions for this category in the selected period.';
 
   @override
   String analyticsOverviewRangeTitle(String range) {

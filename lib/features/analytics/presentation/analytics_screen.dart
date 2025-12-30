@@ -19,9 +19,13 @@ import 'package:kopim/features/analytics/presentation/widgets/swipe_hint_arrows.
 import 'package:kopim/features/analytics/presentation/widgets/total_money_chart_widget.dart';
 import 'package:kopim/features/app_shell/presentation/models/navigation_tab_content.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
+import 'package:kopim/features/transactions/domain/entities/transaction.dart';
+import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
+import 'package:kopim/features/transactions/presentation/widgets/transaction_list_tile.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
 const String _othersCategoryKey = '_others';
+const String _uncategorizedCategoryKey = '_uncategorized';
 
 class AnalyticsScreen extends ConsumerWidget {
   const AnalyticsScreen({super.key});
@@ -240,6 +244,7 @@ class _AnalyticsBody extends ConsumerWidget {
                 error: error,
                 overview: overview,
                 categories: categories,
+                accounts: accounts,
                 strings: strings,
                 activeAnchor: activeAnchor,
                 canGoNextRange: canGoNextRange,
@@ -309,6 +314,7 @@ class _AnalyticsCategoriesTabView extends StatelessWidget {
     required this.error,
     required this.overview,
     required this.categories,
+    required this.accounts,
     required this.strings,
     required this.activeAnchor,
     required this.canGoNextRange,
@@ -321,6 +327,7 @@ class _AnalyticsCategoriesTabView extends StatelessWidget {
   final Object? error;
   final AnalyticsOverview? overview;
   final List<Category> categories;
+  final List<AccountEntity> accounts;
   final AppLocalizations strings;
   final DateTime activeAnchor;
   final bool canGoNextRange;
@@ -346,6 +353,9 @@ class _AnalyticsCategoriesTabView extends StatelessWidget {
     final Map<String, Category> categoriesById = <String, Category>{
       for (final Category category in categories) category.id: category,
     };
+    final Map<String, AccountEntity> accountsById = <String, AccountEntity>{
+      for (final AccountEntity account in accounts) account.id: account,
+    };
 
     return CustomScrollView(
       slivers: <Widget>[
@@ -355,6 +365,7 @@ class _AnalyticsCategoriesTabView extends StatelessWidget {
             child: _TopCategoriesTabContent(
               overview: overview!,
               categoriesById: categoriesById,
+              accountsById: accountsById,
               currencyFormat: currencyFormat,
               strings: strings,
               activeAnchor: activeAnchor,
@@ -424,6 +435,7 @@ class _TopCategoriesTabContent extends StatelessWidget {
   const _TopCategoriesTabContent({
     required this.overview,
     required this.categoriesById,
+    required this.accountsById,
     required this.currencyFormat,
     required this.strings,
     required this.activeAnchor,
@@ -435,6 +447,7 @@ class _TopCategoriesTabContent extends StatelessWidget {
 
   final AnalyticsOverview overview;
   final Map<String, Category> categoriesById;
+  final Map<String, AccountEntity> accountsById;
   final NumberFormat currencyFormat;
   final AppLocalizations strings;
   final DateTime activeAnchor;
@@ -471,6 +484,7 @@ class _TopCategoriesTabContent extends StatelessWidget {
             expenseBreakdowns: overview.topExpenseCategories,
             incomeBreakdowns: overview.topIncomeCategories,
             categoriesById: categoriesById,
+            accountsById: accountsById,
             totalExpense: totalExpense,
             totalIncome: totalIncome,
             currencyFormat: currencyFormat,
@@ -1167,6 +1181,7 @@ class _TopCategoriesPager extends StatefulWidget {
     required this.expenseBreakdowns,
     required this.incomeBreakdowns,
     required this.categoriesById,
+    required this.accountsById,
     required this.totalExpense,
     required this.totalIncome,
     required this.currencyFormat,
@@ -1181,6 +1196,7 @@ class _TopCategoriesPager extends StatefulWidget {
   final List<AnalyticsCategoryBreakdown> expenseBreakdowns;
   final List<AnalyticsCategoryBreakdown> incomeBreakdowns;
   final Map<String, Category> categoriesById;
+  final Map<String, AccountEntity> accountsById;
   final double totalExpense;
   final double totalIncome;
   final NumberFormat currencyFormat;
@@ -1265,6 +1281,8 @@ class _TopCategoriesPagerState extends State<_TopCategoriesPager> {
                       data: pages[safeIndex],
                       currencyFormat: widget.currencyFormat,
                       strings: widget.strings,
+                      categoriesById: widget.categoriesById,
+                      accountsById: widget.accountsById,
                       activeAnchor: widget.activeAnchor,
                       canGoNextRange: widget.canGoNextRange,
                       canGoPreviousRange: widget.canGoPreviousRange,
@@ -1311,7 +1329,7 @@ class _TopCategoriesPagerState extends State<_TopCategoriesPager> {
       final IconData? iconData = isOthers
           ? Icons.more_horiz
           : resolvePhosphorIconData(category?.icon);
-      final String key = breakdown.categoryId ?? '_uncategorized';
+      final String key = breakdown.categoryId ?? _uncategorizedCategoryKey;
       final List<AnalyticsChartItem> children = breakdown.children
           .map(mapBreakdown)
           .toList(growable: false);
@@ -1350,6 +1368,8 @@ class _TopCategoriesPage extends StatefulWidget {
     required this.data,
     required this.currencyFormat,
     required this.strings,
+    required this.categoriesById,
+    required this.accountsById,
     required this.activeAnchor,
     required this.canGoNextRange,
     required this.canGoPreviousRange,
@@ -1360,6 +1380,8 @@ class _TopCategoriesPage extends StatefulWidget {
   final _TopCategoriesPageData data;
   final NumberFormat currencyFormat;
   final AppLocalizations strings;
+  final Map<String, Category> categoriesById;
+  final Map<String, AccountEntity> accountsById;
   final DateTime activeAnchor;
   final bool canGoNextRange;
   final bool canGoPreviousRange;
@@ -1438,23 +1460,44 @@ class _TopCategoriesPageState extends State<_TopCategoriesPage> {
       final List<AnalyticsChartItem> chartItems = widget.data.items;
 
       AnalyticsChartItem? focusedItem;
+      bool focusedIsOthersChild = false;
       if (_highlightKey != null) {
         focusedItem = chartItems.firstWhereOrNull(
           (AnalyticsChartItem item) => item.key == _highlightKey,
         );
+        if (focusedItem == null) {
+          final AnalyticsChartItem? othersItem = chartItems.firstWhereOrNull(
+            (AnalyticsChartItem item) => item.key == _othersCategoryKey,
+          );
+          focusedItem = othersItem?.children.firstWhereOrNull(
+            (AnalyticsChartItem item) => item.key == _highlightKey,
+          );
+          focusedIsOthersChild = focusedItem != null;
+        }
       }
 
       int? selectedIndex;
       final String? focusKey = focusedItem?.key;
       if (focusKey != null) {
-        final int candidateIndex = chartItems.indexWhere(
-          (AnalyticsChartItem item) => item.key == focusKey,
-        );
-        if (candidateIndex >= 0) {
-          selectedIndex = candidateIndex;
+        if (focusedIsOthersChild) {
+          final int othersIndex = chartItems.indexWhere(
+            (AnalyticsChartItem item) => item.key == _othersCategoryKey,
+          );
+          if (othersIndex >= 0) {
+            selectedIndex = othersIndex;
+          }
+        } else {
+          final int candidateIndex = chartItems.indexWhere(
+            (AnalyticsChartItem item) => item.key == focusKey,
+          );
+          if (candidateIndex >= 0) {
+            selectedIndex = candidateIndex;
+          }
         }
       }
       final List<AnalyticsChartItem> displayItems = chartItems;
+      final _CategoryTransactionsSelection? selection =
+          _resolveTransactionsSelection(focusedItem);
 
       content = Column(
         mainAxisSize: MainAxisSize.min,
@@ -1540,6 +1583,25 @@ class _TopCategoriesPageState extends State<_TopCategoriesPage> {
             highlightedKey: _highlightKey,
             onToggle: _handleToggle,
           ),
+          AnimatedSize(
+            alignment: Alignment.topCenter,
+            duration: const Duration(milliseconds: 220),
+            curve: Curves.easeInOut,
+            child: selection == null
+                ? const SizedBox.shrink()
+                : Padding(
+                    padding: const EdgeInsets.only(top: 24),
+                    child: _CategoryTransactionsSection(
+                      selection: selection,
+                      type: widget.data.isIncome
+                          ? TransactionType.income
+                          : TransactionType.expense,
+                      categoriesById: widget.categoriesById,
+                      accountsById: widget.accountsById,
+                      strings: widget.strings,
+                    ),
+                  ),
+          ),
         ],
       );
     }
@@ -1551,6 +1613,160 @@ class _TopCategoriesPageState extends State<_TopCategoriesPage> {
     setState(() {
       _highlightKey = _highlightKey == item.key ? null : item.key;
     });
+  }
+
+  _CategoryTransactionsSelection? _resolveTransactionsSelection(
+    AnalyticsChartItem? focusedItem,
+  ) {
+    if (focusedItem == null) {
+      return null;
+    }
+    if (focusedItem.key == _othersCategoryKey) {
+      if (focusedItem.children.isEmpty) {
+        return null;
+      }
+      return _selectionFromKeys(
+        title: focusedItem.title,
+        keys: focusedItem.children.map((AnalyticsChartItem item) => item.key),
+      );
+    }
+    return _selectionFromKeys(
+      title: focusedItem.title,
+      keys: <String>[focusedItem.key],
+    );
+  }
+
+  _CategoryTransactionsSelection? _selectionFromKeys({
+    required String title,
+    required Iterable<String> keys,
+  }) {
+    bool includeUncategorized = false;
+    final List<String> categoryIds = <String>[];
+    for (final String key in keys) {
+      if (key == _uncategorizedCategoryKey) {
+        includeUncategorized = true;
+        continue;
+      }
+      if (key == _othersCategoryKey) {
+        continue;
+      }
+      categoryIds.add(key);
+    }
+    if (categoryIds.isEmpty && !includeUncategorized) {
+      return null;
+    }
+    return _CategoryTransactionsSelection(
+      title: title,
+      categoryIds: categoryIds,
+      includeUncategorized: includeUncategorized,
+    );
+  }
+}
+
+class _CategoryTransactionsSelection {
+  const _CategoryTransactionsSelection({
+    required this.title,
+    required this.categoryIds,
+    required this.includeUncategorized,
+  });
+
+  final String title;
+  final List<String> categoryIds;
+  final bool includeUncategorized;
+}
+
+class _CategoryTransactionsSection extends ConsumerWidget {
+  const _CategoryTransactionsSection({
+    required this.selection,
+    required this.type,
+    required this.categoriesById,
+    required this.accountsById,
+    required this.strings,
+  });
+
+  final _CategoryTransactionsSelection selection;
+  final TransactionType type;
+  final Map<String, Category> categoriesById;
+  final Map<String, AccountEntity> accountsById;
+  final AppLocalizations strings;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final AnalyticsCategoryTransactionsFilter filter =
+        AnalyticsCategoryTransactionsFilter(
+          categoryIds: selection.categoryIds,
+          includeUncategorized: selection.includeUncategorized,
+          type: type,
+        );
+    final AsyncValue<List<TransactionEntity>> transactionsAsync = ref.watch(
+      analyticsCategoryTransactionsProvider(filter),
+    );
+    final ThemeData theme = Theme.of(context);
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(22),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Text(
+            strings.analyticsCategoryTransactionsTitle(selection.title),
+            style: theme.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: theme.colorScheme.onSurface,
+            ),
+          ),
+          const SizedBox(height: 12),
+          transactionsAsync.when(
+            data: (List<TransactionEntity> transactions) {
+              if (transactions.isEmpty) {
+                return Text(
+                  strings.analyticsCategoryTransactionsEmpty,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                );
+              }
+              return ListView.separated(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: transactions.length,
+                separatorBuilder: (BuildContext context, int index) =>
+                    const SizedBox(height: 4),
+                itemBuilder: (BuildContext context, int index) {
+                  final TransactionEntity transaction = transactions[index];
+                  final AccountEntity? account =
+                      accountsById[transaction.accountId];
+                  final Category? category = transaction.categoryId == null
+                      ? null
+                      : categoriesById[transaction.categoryId!];
+                  return TransactionListTile(
+                    transaction: transaction,
+                    category: category,
+                    currency: account?.currency ?? '',
+                    accountName: account?.name,
+                    strings: strings,
+                  );
+                },
+              );
+            },
+            loading: () => const Padding(
+              padding: EdgeInsets.symmetric(vertical: 16),
+              child: Center(child: CircularProgressIndicator()),
+            ),
+            error: (Object error, StackTrace stackTrace) => Text(
+              error.toString(),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.error,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -1647,9 +1863,16 @@ class _TopCategoriesLegend extends StatelessWidget {
     final AnalyticsChartItem? othersItem = items.firstWhereOrNull(
       (AnalyticsChartItem item) => item.key == _othersCategoryKey,
     );
+    final Set<String> othersChildrenKeys = othersItem == null
+        ? <String>{}
+        : othersItem.children
+            .map((AnalyticsChartItem item) => item.key)
+            .toSet();
     final bool showOthersChildren =
-        highlightedKey == othersItem?.key &&
-        (othersItem?.children.isNotEmpty ?? false);
+        (othersItem?.children.isNotEmpty ?? false) &&
+        (highlightedKey == othersItem?.key ||
+            (highlightedKey != null &&
+                othersChildrenKeys.contains(highlightedKey)));
     final List<Widget> legendItems = List<Widget>.generate(items.length, (
       int index,
     ) {
@@ -1673,6 +1896,8 @@ class _TopCategoriesLegend extends StatelessWidget {
           _OthersBreakdownList(
             items: othersItem!.children,
             currencyFormat: currencyFormat,
+            highlightedKey: highlightedKey,
+            onToggle: onToggle,
           ),
         ],
       ],
@@ -1806,10 +2031,14 @@ class _OthersBreakdownList extends StatelessWidget {
   const _OthersBreakdownList({
     required this.items,
     required this.currencyFormat,
+    required this.highlightedKey,
+    required this.onToggle,
   });
 
   final List<AnalyticsChartItem> items;
   final NumberFormat currencyFormat;
+  final String? highlightedKey;
+  final ValueChanged<AnalyticsChartItem> onToggle;
 
   @override
   Widget build(BuildContext context) {
@@ -1821,11 +2050,12 @@ class _OthersBreakdownList extends StatelessWidget {
       runSpacing: 8,
       children: items
           .map((AnalyticsChartItem item) {
+            final bool isSelected = highlightedKey == item.key;
             return _TopCategoryLegendItem(
               item: item,
               amountText: currencyFormat.format(item.absoluteAmount),
-              isSelected: false,
-              onTap: null,
+              isSelected: isSelected,
+              onTap: () => onToggle(item),
               compact: true,
             );
           })

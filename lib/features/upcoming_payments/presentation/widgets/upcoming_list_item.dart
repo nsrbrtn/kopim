@@ -46,13 +46,9 @@ class UpcomingPaymentListItem extends StatelessWidget {
         ? theme.colorScheme.error
         : theme.colorScheme.primary;
 
-    final DateTime? nextRun = payment.nextRunAtMs != null
+    final DateTime? nextDate = payment.nextRunAtMs != null
         ? timeService.toLocal(payment.nextRunAtMs!)
         : null;
-    final DateTime? nextNotify = payment.nextNotifyAtMs != null
-        ? timeService.toLocal(payment.nextNotifyAtMs!)
-        : null;
-    final DateTime? nextDate = _pickSoonest(nextRun, nextNotify);
     final DateFormat dateFormat = DateFormat.yMMMMd(strings.localeName);
 
     final List<String> subtitleParts = <String>[
@@ -158,11 +154,6 @@ class UpcomingPaymentListItem extends StatelessWidget {
     );
   }
 
-  DateTime? _pickSoonest(DateTime? a, DateTime? b) {
-    if (a == null) return b;
-    if (b == null) return a;
-    return a.isBefore(b) ? a : b;
-  }
 }
 
 enum _UpcomingPaymentAction { edit, delete }

@@ -263,7 +263,7 @@ abstract class AppLocalizations {
   /// Button label that opens the upcoming payments screen from the profile settings
   ///
   /// In en, this message translates to:
-  /// **'Upcoming payments'**
+  /// **'Recurring payments'**
   String get profileUpcomingPaymentsCta;
 
   /// Button that starts the user data export flow
@@ -1815,7 +1815,7 @@ abstract class AppLocalizations {
   /// Header for the upcoming payments widget
   ///
   /// In en, this message translates to:
-  /// **'Upcoming payments'**
+  /// **'Recurring payments'**
   String get homeUpcomingPaymentsTitle;
 
   /// Empty state when there are no upcoming payments
@@ -1827,7 +1827,7 @@ abstract class AppLocalizations {
   /// Subtitle shown when no upcoming payment is scheduled
   ///
   /// In en, this message translates to:
-  /// **'No upcoming payments'**
+  /// **'No recurring payments'**
   String get homeUpcomingPaymentsEmptyHeader;
 
   /// Summary shown while the upcoming payments list is collapsed
@@ -1857,7 +1857,7 @@ abstract class AppLocalizations {
   /// Error shown when loading upcoming payments fails
   ///
   /// In en, this message translates to:
-  /// **'Couldn\'t load upcoming payments: {error}'**
+  /// **'Couldn\'t load recurring payments: {error}'**
   String homeUpcomingPaymentsError(String error);
 
   /// Snackbar message when the source recurring rule is missing
@@ -1875,7 +1875,7 @@ abstract class AppLocalizations {
   /// Accessibility label for the upcoming payments badge
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =0 {No scheduled payments} one {# upcoming payment} other {# upcoming payments}}'**
+  /// **'{count, plural, =0 {No recurring payments} one {# recurring payment} other {# recurring payments}}'**
   String homeUpcomingPaymentsCountSemantics(int count);
 
   /// Button label that opens the upcoming payments screen from the home widget
@@ -1899,7 +1899,7 @@ abstract class AppLocalizations {
   /// Accessibility label for the number of upcoming payments
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =0 {No upcoming payments} one {# upcoming payment} other {# upcoming payments}}'**
+  /// **'{count, plural, =0 {No recurring payments} one {# recurring payment} other {# recurring payments}}'**
   String homeUpcomingPaymentsBadgePaymentsSemantics(int count);
 
   /// Accessibility label for the number of reminders
@@ -1911,13 +1911,13 @@ abstract class AppLocalizations {
   /// Title for the upcoming payments screen
   ///
   /// In en, this message translates to:
-  /// **'Upcoming payments'**
+  /// **'Recurring payments'**
   String get upcomingPaymentsTitle;
 
   /// Tab label for recurring payment rules
   ///
   /// In en, this message translates to:
-  /// **'Payments'**
+  /// **'Recurring'**
   String get upcomingPaymentsTabPayments;
 
   /// Tab label for manual payment reminders
@@ -1929,13 +1929,13 @@ abstract class AppLocalizations {
   /// Headline for empty state of the payment rules list
   ///
   /// In en, this message translates to:
-  /// **'No payment rules yet'**
+  /// **'No recurring payments yet'**
   String get upcomingPaymentsEmptyPaymentsTitle;
 
   /// Description for empty state of the payment rules list
   ///
   /// In en, this message translates to:
-  /// **'Create automated payment rules to keep bills under control.'**
+  /// **'Set up recurring payments to stay on top of your bills.'**
   String get upcomingPaymentsEmptyPaymentsDescription;
 
   /// Headline for empty state of the reminders list
@@ -1953,7 +1953,7 @@ abstract class AppLocalizations {
   /// Action label for creating a new upcoming payment
   ///
   /// In en, this message translates to:
-  /// **'Add payment'**
+  /// **'Add recurring payment'**
   String get upcomingPaymentsAddPayment;
 
   /// Action label for creating a new payment reminder
@@ -1965,13 +1965,13 @@ abstract class AppLocalizations {
   /// Title for the create payment form
   ///
   /// In en, this message translates to:
-  /// **'New payment'**
+  /// **'New recurring payment'**
   String get upcomingPaymentsNewPaymentTitle;
 
   /// Title for the edit payment form
   ///
   /// In en, this message translates to:
-  /// **'Edit payment'**
+  /// **'Edit recurring payment'**
   String get upcomingPaymentsEditPaymentTitle;
 
   /// Title for the create reminder form
@@ -2061,7 +2061,7 @@ abstract class AppLocalizations {
   /// Snackbar message shown when a payment rule is saved
   ///
   /// In en, this message translates to:
-  /// **'Upcoming payment saved'**
+  /// **'Recurring payment saved'**
   String get upcomingPaymentsSaveSuccess;
 
   /// Snackbar message shown when a reminder is saved
@@ -2073,7 +2073,7 @@ abstract class AppLocalizations {
   /// Error message shown when saving a payment rule fails
   ///
   /// In en, this message translates to:
-  /// **'Failed to save payment: {error}'**
+  /// **'Failed to save recurring payment: {error}'**
   String upcomingPaymentsSaveError(String error);
 
   /// Error message shown when saving a reminder fails
@@ -2205,13 +2205,13 @@ abstract class AppLocalizations {
   /// Message shown when there are no accounts available
   ///
   /// In en, this message translates to:
-  /// **'Add an account to schedule payments.'**
+  /// **'Add an account before creating a recurring payment.'**
   String get upcomingPaymentsNoAccounts;
 
   /// Message shown when there are no categories available
   ///
   /// In en, this message translates to:
-  /// **'Create a category to schedule payments.'**
+  /// **'Create a category to use it for a recurring payment.'**
   String get upcomingPaymentsNoCategories;
 
   /// Summary text describing the recurring schedule
@@ -2471,6 +2471,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Uncategorized'**
   String get analyticsCategoryUncategorized;
+
+  /// Title for the transaction list by selected category in analytics
+  ///
+  /// In en, this message translates to:
+  /// **'Transactions: {category}'**
+  String analyticsCategoryTransactionsTitle(String category);
+
+  /// Empty state for category transactions list in analytics
+  ///
+  /// In en, this message translates to:
+  /// **'No transactions for this category in the selected period.'**
+  String get analyticsCategoryTransactionsEmpty;
 
   /// Heading for analytics overview showing selected range
   ///

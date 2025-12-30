@@ -1091,7 +1091,8 @@ class AppLocalizationsRu extends AppLocalizations {
   String get upcomingPaymentsTabReminders => 'Напоминания';
 
   @override
-  String get upcomingPaymentsEmptyPaymentsTitle => 'Повторяющиеся платежи ещё не настроены';
+  String get upcomingPaymentsEmptyPaymentsTitle =>
+      'Повторяющиеся платежи ещё не настроены';
 
   @override
   String get upcomingPaymentsEmptyPaymentsDescription =>
@@ -1114,7 +1115,8 @@ class AppLocalizationsRu extends AppLocalizations {
   String get upcomingPaymentsNewPaymentTitle => 'Новый повторяющийся платёж';
 
   @override
-  String get upcomingPaymentsEditPaymentTitle => 'Редактирование повторяющегося платежа';
+  String get upcomingPaymentsEditPaymentTitle =>
+      'Редактирование повторяющегося платежа';
 
   @override
   String get upcomingPaymentsNewReminderTitle => 'Новое напоминание';
@@ -1251,11 +1253,11 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get upcomingPaymentsNoAccounts =>
-      'Добавьте счёт, чтобы создать платёж.';
+      'Добавьте счёт, чтобы создать повторяющийся платёж.';
 
   @override
   String get upcomingPaymentsNoCategories =>
-      'Создайте категорию, чтобы выбрать её для платежа.';
+      'Создайте категорию, чтобы выбрать её для повторяющегося платежа.';
 
   @override
   String upcomingPaymentsMonthlySummary(int day) {
@@ -1415,6 +1417,15 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get analyticsCategoryUncategorized => 'Без категории';
+
+  @override
+  String analyticsCategoryTransactionsTitle(String category) {
+    return 'Транзакции: $category';
+  }
+
+  @override
+  String get analyticsCategoryTransactionsEmpty =>
+      'Для этой категории нет транзакций за выбранный период.';
 
   @override
   String analyticsOverviewRangeTitle(String range) {

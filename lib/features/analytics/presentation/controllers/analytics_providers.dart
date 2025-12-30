@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart' show immutable, listEquals;
+import 'package:flutter/material.dart' show DateTimeRange, DateUtils;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
@@ -41,6 +43,92 @@ Stream<List<Category>> analyticsCategories(Ref ref) {
 Stream<List<AccountEntity>> analyticsAccounts(Ref ref) {
   return ref.watch(watchAccountsUseCaseProvider).call();
 }
+
+@immutable
+class AnalyticsCategoryTransactionsFilter {
+  AnalyticsCategoryTransactionsFilter({
+    required Iterable<String> categoryIds,
+    required this.includeUncategorized,
+    required this.type,
+  }) : categoryIds = List<String>.unmodifiable(
+         (categoryIds.toSet().toList()..sort()),
+       );
+
+  final List<String> categoryIds;
+  final bool includeUncategorized;
+  final TransactionType type;
+
+  bool matchesCategory(String? categoryId) {
+    if (categoryId == null) {
+      return includeUncategorized;
+    }
+    return categoryIds.contains(categoryId);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) {
+      return true;
+    }
+    return other is AnalyticsCategoryTransactionsFilter &&
+        listEquals(other.categoryIds, categoryIds) &&
+        other.includeUncategorized == includeUncategorized &&
+        other.type == type;
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(Object.hashAll(categoryIds), includeUncategorized, type);
+}
+
+final analyticsCategoryTransactionsProvider =
+    StreamProvider.family<List<TransactionEntity>, AnalyticsCategoryTransactionsFilter>((
+      Ref ref,
+      AnalyticsCategoryTransactionsFilter filter,
+    ) {
+      if (filter.categoryIds.isEmpty && !filter.includeUncategorized) {
+        return Stream<List<TransactionEntity>>.value(
+          const <TransactionEntity>[],
+        );
+      }
+
+      final AnalyticsFilterState state = ref.watch(
+        analyticsFilterControllerProvider,
+      );
+      final DateTimeRange range = state.dateRange;
+      final DateTime start = DateUtils.dateOnly(range.start);
+      final DateTime end = DateUtils.dateOnly(range.end);
+
+      return ref
+          .watch(transactionRepositoryProvider)
+          .watchTransactions()
+          .map((List<TransactionEntity> transactions) {
+            final List<TransactionEntity> filtered = transactions
+                .where((TransactionEntity transaction) {
+                  final DateTime date = DateUtils.dateOnly(transaction.date);
+                  if (date.isBefore(start) || date.isAfter(end)) {
+                    return false;
+                  }
+                  if (state.accountIds.isNotEmpty &&
+                      !state.accountIds.contains(transaction.accountId)) {
+                    return false;
+                  }
+                  if (transaction.type != filter.type.storageValue) {
+                    return false;
+                  }
+                  if (!filter.matchesCategory(transaction.categoryId)) {
+                    return false;
+                  }
+                  return true;
+                })
+                .toList(growable: false)
+              ..sort(
+                (TransactionEntity a, TransactionEntity b) =>
+                    b.date.compareTo(a.date),
+              );
+            return filtered;
+          });
+    });
 
 @riverpod
 Stream<List<MonthlyBalanceData>> monthlyBalanceData(Ref ref) {
