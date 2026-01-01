@@ -27,8 +27,11 @@ import 'package:kopim/core/services/notifications_gateway.dart';
 import 'package:kopim/core/services/push_permission_service.dart';
 import 'package:kopim/core/services/sync/sync_data_sanitizer.dart';
 import 'package:kopim/core/services/sync_service.dart';
+import 'package:kopim/features/ai/data/local/ai_assistant_tool_dao.dart';
 import 'package:kopim/features/ai/data/repositories/ai_assistant_repository_impl.dart';
 import 'package:kopim/features/ai/data/repositories/ai_financial_data_repository_impl.dart';
+import 'package:kopim/features/ai/data/tools/ai_assistant_tool_router.dart';
+import 'package:kopim/features/ai/data/tools/ai_assistant_tools.dart';
 import 'package:kopim/features/ai/domain/repositories/ai_assistant_repository.dart';
 import 'package:kopim/features/ai/domain/use_cases/get_ai_financial_overview_use_case.dart';
 import 'package:kopim/features/ai/domain/use_cases/ask_financial_assistant_use_case.dart';
@@ -506,9 +509,17 @@ SavingGoalRemoteDataSource savingGoalRemoteDataSource(Ref ref) =>
 
 @Riverpod(keepAlive: true)
 AiAssistantRepository aiAssistantRepository(Ref ref) {
+  final AiAssistantToolRouter toolRouter = AiAssistantToolRouter(
+    toolDao: AiAssistantToolDao(ref.watch(appDatabaseProvider)),
+    analyticsDao: ref.watch(aiAnalyticsDaoProvider),
+    loggerService: ref.watch(loggerServiceProvider),
+  );
+  const AiAssistantToolsRegistry toolsRegistry = AiAssistantToolsRegistry();
   return AiAssistantRepositoryImpl(
     service: ref.watch(aiAssistantServiceProvider),
     financialDataRepository: ref.watch(aiFinancialDataRepositoryProvider),
+    toolRouter: toolRouter,
+    toolsRegistry: toolsRegistry,
     analyticsService: ref.watch(analyticsServiceProvider),
     loggerService: ref.watch(loggerServiceProvider),
     uuid: ref.watch(uuidGeneratorProvider),

@@ -7,6 +7,8 @@ import 'package:uuid/uuid.dart';
 import 'package:kopim/core/services/ai_assistant_service.dart';
 import 'package:kopim/core/services/analytics_service.dart';
 import 'package:kopim/core/services/logger_service.dart';
+import 'package:kopim/features/ai/data/tools/ai_assistant_tool_router.dart';
+import 'package:kopim/features/ai/data/tools/ai_assistant_tools.dart';
 import 'package:kopim/features/ai/domain/entities/ai_financial_overview_entity.dart';
 import 'package:kopim/features/ai/domain/entities/ai_llm_result_entity.dart';
 import 'package:kopim/features/ai/domain/entities/ai_recommendation_entity.dart';
@@ -18,12 +20,16 @@ class AiAssistantRepositoryImpl implements AiAssistantRepository {
   AiAssistantRepositoryImpl({
     required AiAssistantService service,
     required AiFinancialDataRepository financialDataRepository,
+    required AiAssistantToolRouter toolRouter,
+    required AiAssistantToolsRegistry toolsRegistry,
     required AnalyticsService analyticsService,
     required LoggerService loggerService,
     required Uuid uuid,
     DateTime Function()? nowProvider,
   }) : _service = service,
        _financialDataRepository = financialDataRepository,
+       _toolRouter = toolRouter,
+       _toolsRegistry = toolsRegistry,
        _analyticsService = analyticsService,
        _loggerService = loggerService,
        _uuid = uuid,
@@ -31,6 +37,8 @@ class AiAssistantRepositoryImpl implements AiAssistantRepository {
 
   final AiAssistantService _service;
   final AiFinancialDataRepository _financialDataRepository;
+  final AiAssistantToolRouter _toolRouter;
+  final AiAssistantToolsRegistry _toolsRegistry;
   final AnalyticsService _analyticsService;
   final LoggerService _loggerService;
   final Uuid _uuid;
@@ -40,10 +48,54 @@ class AiAssistantRepositoryImpl implements AiAssistantRepository {
   Future<AiLlmResultEntity> sendUserQuery(AiUserQueryEntity query) async {
     final Stopwatch stopwatch = Stopwatch()..start();
     try {
+      final _ToolWorkflowOutcome? toolOutcome = await _tryToolWorkflow(query);
+      if (toolOutcome != null) {
+        stopwatch.stop();
+        final String answer = _extractAnswer(toolOutcome.result.response);
+        final List<String> sources = _extractSources(
+          toolOutcome.result.response,
+        );
+        final double confidence = _estimateConfidence(
+          toolOutcome.result.response,
+        );
+        final AiLlmResultEntity entity = AiLlmResultEntity(
+          id: _uuid.v4(),
+          queryId: query.id,
+          content: answer,
+          citedSources: sources,
+          confidence: confidence,
+          metadata: _composeMetadata(
+            query: query,
+            filter: null,
+            overview: null,
+            result: toolOutcome.result,
+            duration: stopwatch.elapsed,
+            toolLogs: toolOutcome.toolLogs,
+            usedTools: toolOutcome.usedTools,
+          ),
+          createdAt: _nowProvider(),
+          model: toolOutcome.result.config.model,
+          promptTokens: toolOutcome.result.response.usage?.promptTokens,
+          completionTokens: toolOutcome.result.response.usage?.completionTokens,
+          totalTokens: toolOutcome.result.response.usage?.totalTokens,
+        );
+        await _analyticsService.logEvent(
+          'ai_assistant_answer',
+          <String, Object?>{
+            'intent': query.intent.name,
+            'model': toolOutcome.result.config.model,
+            'duration_ms': stopwatch.elapsedMilliseconds,
+            'confidence': confidence,
+            'tools_used': toolOutcome.usedTools,
+          },
+        );
+        return entity;
+      }
+
       final AiDataFilter filter = _buildFilter(query);
       final AiFinancialOverview overview = await _financialDataRepository
           .loadOverview(filter: filter);
-      final List<AiAssistantMessage> prompt = _buildPrompt(
+      final List<AiAssistantMessage> prompt = _buildOverviewPrompt(
         query: query,
         overview: overview,
         filter: filter,
@@ -69,6 +121,8 @@ class AiAssistantRepositoryImpl implements AiAssistantRepository {
           overview: overview,
           result: result,
           duration: stopwatch.elapsed,
+          toolLogs: const <AiAssistantToolCallLog>[],
+          usedTools: false,
         ),
         createdAt: _nowProvider(),
         model: result.config.model,
@@ -82,6 +136,7 @@ class AiAssistantRepositoryImpl implements AiAssistantRepository {
         'model': result.config.model,
         'duration_ms': stopwatch.elapsedMilliseconds,
         'confidence': confidence,
+        'tools_used': false,
       });
 
       return entity;
@@ -224,7 +279,7 @@ class AiAssistantRepositoryImpl implements AiAssistantRepository {
     );
   }
 
-  List<AiAssistantMessage> _buildPrompt({
+  List<AiAssistantMessage> _buildOverviewPrompt({
     required AiUserQueryEntity query,
     required AiFinancialOverview overview,
     required AiDataFilter filter,
@@ -314,6 +369,30 @@ class AiAssistantRepositoryImpl implements AiAssistantRepository {
     ];
   }
 
+  List<AiAssistantMessage> _buildToolPrompt({
+    required AiUserQueryEntity query,
+  }) {
+    const String systemPrompt =
+        'Ты — финансовый помощник в приложении "Копим". '
+        'Если нужно получить данные, используй инструменты. '
+        'Не выдумывай суммы и факты. '
+        'Отвечай на русском языке, используй Markdown (суммы выделяй **жирным**).';
+
+    final StringBuffer userBuffer = StringBuffer()
+      ..writeln('Текущая дата: ${_nowProvider().toIso8601String()}')
+      ..writeln('Вопрос пользователя: ${query.content}');
+    if (query.contextSignals.isNotEmpty) {
+      userBuffer
+        ..writeln('Контекстные сигналы:')
+        ..writeln(query.contextSignals.join(', '));
+    }
+
+    return <AiAssistantMessage>[
+      AiAssistantMessage.system(systemPrompt),
+      AiAssistantMessage.user(userBuffer.toString()),
+    ];
+  }
+
   String _describeFilter(AiDataFilter filter) {
     final StringBuffer buffer = StringBuffer();
     if (filter.startDate != null) {
@@ -359,10 +438,12 @@ class AiAssistantRepositoryImpl implements AiAssistantRepository {
 
   Map<String, dynamic> _composeMetadata({
     required AiUserQueryEntity query,
-    required AiDataFilter filter,
-    required AiFinancialOverview overview,
+    required AiDataFilter? filter,
+    required AiFinancialOverview? overview,
     required AiAssistantServiceResult result,
     required Duration duration,
+    required List<AiAssistantToolCallLog> toolLogs,
+    required bool usedTools,
   }) {
     return <String, dynamic>{
       'query': <String, Object?>{
@@ -370,18 +451,22 @@ class AiAssistantRepositoryImpl implements AiAssistantRepository {
         'locale': query.locale,
         'context_signals': query.contextSignals,
       },
-      'filter': <String, Object?>{
-        'start': filter.startDate?.toIso8601String(),
-        'end': filter.endDate?.toIso8601String(),
-        'accounts': filter.accountIds,
-        'categories': filter.categoryIds,
-        'top_limit': filter.topCategoriesLimit,
-      },
-      'overview': <String, Object?>{
-        'has_budgets': overview.hasBudgetSignals,
-        'has_categories': overview.hasCategoryBreakdown,
-        'generated_at': overview.generatedAt.toIso8601String(),
-      },
+      'filter': filter == null
+          ? null
+          : <String, Object?>{
+              'start': filter.startDate?.toIso8601String(),
+              'end': filter.endDate?.toIso8601String(),
+              'accounts': filter.accountIds,
+              'categories': filter.categoryIds,
+              'top_limit': filter.topCategoriesLimit,
+            },
+      'overview': overview == null
+          ? null
+          : <String, Object?>{
+              'has_budgets': overview.hasBudgetSignals,
+              'has_categories': overview.hasCategoryBreakdown,
+              'generated_at': overview.generatedAt.toIso8601String(),
+            },
       'model': <String, Object?>{
         'name': result.config.model,
         'timeout_ms': result.config.requestTimeout.inMilliseconds,
@@ -391,7 +476,84 @@ class AiAssistantRepositoryImpl implements AiAssistantRepository {
         'latency_ms': duration.inMilliseconds,
         'call_latency_ms': result.elapsed.inMilliseconds,
       },
+      'tools': <String, Object?>{
+        'used': usedTools,
+        'calls': toolLogs
+            .map(
+              (AiAssistantToolCallLog log) => <String, Object?>{
+                'name': log.name,
+                'call_id': log.callId,
+                'duration_ms': log.durationMs,
+                'success': log.success,
+                'error': log.errorMessage,
+              },
+            )
+            .toList(growable: false),
+      },
     };
+  }
+
+  Future<_ToolWorkflowOutcome?> _tryToolWorkflow(
+    AiUserQueryEntity query,
+  ) async {
+    final List<AiAssistantMessage> prompt = _buildToolPrompt(query: query);
+    final AiAssistantServiceResult firstResult = await _service.generateAnswer(
+      messages: prompt,
+      requestOptions: _toolsRegistry.buildRequestOptions(),
+    );
+    final AiCompletionMessage? firstMessage = _firstAssistantMessage(
+      firstResult.response,
+    );
+    if (firstMessage == null) {
+      return null;
+    }
+    if (firstMessage.toolCalls.isEmpty) {
+      if (firstMessage.content.trim().isEmpty) {
+        return null;
+      }
+      return _ToolWorkflowOutcome(
+        result: firstResult,
+        toolLogs: const <AiAssistantToolCallLog>[],
+        usedTools: false,
+      );
+    }
+
+    final AiAssistantToolExecutionResult toolResult = await _toolRouter
+        .runToolCalls(firstMessage.toolCalls);
+    for (final AiAssistantToolCallLog log in toolResult.logs) {
+      unawaited(
+        _analyticsService.logEvent('ai_tool_call', <String, Object?>{
+          'tool': log.name,
+          'duration_ms': log.durationMs,
+          'success': log.success,
+        }),
+      );
+    }
+    final List<AiAssistantMessage> followUp = <AiAssistantMessage>[
+      ...prompt,
+      AiAssistantMessage.assistantWithToolCalls(firstMessage.toolCalls),
+      ...toolResult.messages,
+    ];
+    final AiAssistantServiceResult finalResult = await _service.generateAnswer(
+      messages: followUp,
+      requestOptions: _toolsRegistry.buildRequestOptions(allowTools: false),
+    );
+
+    return _ToolWorkflowOutcome(
+      result: finalResult,
+      toolLogs: toolResult.logs,
+      usedTools: true,
+    );
+  }
+
+  AiCompletionMessage? _firstAssistantMessage(AiCompletionResponse response) {
+    for (final AiCompletionChoice choice in response.choices) {
+      final AiCompletionMessage? message = choice.message;
+      if (message != null) {
+        return message;
+      }
+    }
+    return null;
   }
 
   List<AiRecommendationEntity> _buildRecommendations({
@@ -529,4 +691,16 @@ class AiAssistantRepositoryImpl implements AiAssistantRepository {
       },
     };
   }
+}
+
+class _ToolWorkflowOutcome {
+  const _ToolWorkflowOutcome({
+    required this.result,
+    required this.toolLogs,
+    required this.usedTools,
+  });
+
+  final AiAssistantServiceResult result;
+  final List<AiAssistantToolCallLog> toolLogs;
+  final bool usedTools;
 }

@@ -125,7 +125,12 @@ class AiAssistantUnknownException extends AiAssistantException {
 
 /// Сообщение для отправки в OpenRouter.
 class AiAssistantMessage {
-  const AiAssistantMessage({required this.role, required this.content});
+  const AiAssistantMessage({
+    required this.role,
+    required this.content,
+    this.toolCalls,
+    this.toolCallId,
+  });
 
   factory AiAssistantMessage.system(String content) =>
       AiAssistantMessage(role: 'system', content: content);
@@ -133,13 +138,74 @@ class AiAssistantMessage {
   factory AiAssistantMessage.user(String content) =>
       AiAssistantMessage(role: 'user', content: content);
 
+  factory AiAssistantMessage.assistantWithToolCalls(
+    List<AiToolCall> toolCalls,
+  ) => AiAssistantMessage(
+    role: 'assistant',
+    content: '',
+    toolCalls: toolCalls,
+  );
+
+  factory AiAssistantMessage.tool({
+    required String toolCallId,
+    required String content,
+  }) => AiAssistantMessage(
+    role: 'tool',
+    content: content,
+    toolCallId: toolCallId,
+  );
+
   final String role;
   final String content;
+  final List<AiToolCall>? toolCalls;
+  final String? toolCallId;
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> json = <String, dynamic>{
+      'role': role,
+      'content': content,
+    };
+    if (toolCalls != null && toolCalls!.isNotEmpty) {
+      json['tool_calls'] = toolCalls!
+          .map((AiToolCall call) => call.toJson())
+          .toList(growable: false);
+    }
+    if (toolCallId != null) {
+      json['tool_call_id'] = toolCallId;
+    }
+    return json;
+  }
+}
+
+class AiToolCall {
+  const AiToolCall({
+    required this.id,
+    required this.name,
+    required this.arguments,
+  });
+
+  factory AiToolCall.fromJson(Map<String, dynamic> json) {
+    final Map<String, dynamic>? function =
+        json['function'] as Map<String, dynamic>?;
+    return AiToolCall(
+      id: json['id'] as String? ?? '',
+      name: function?['name'] as String? ?? '',
+      arguments: function?['arguments'] as String? ?? '',
+    );
+  }
 
   Map<String, dynamic> toJson() => <String, dynamic>{
-    'role': role,
-    'content': content,
+    'id': id,
+    'type': 'function',
+    'function': <String, dynamic>{
+      'name': name,
+      'arguments': arguments,
+    },
   };
+
+  final String id;
+  final String name;
+  final String arguments;
 }
 
 /// Данные об использовании токенов из ответа OpenRouter.
@@ -169,16 +235,19 @@ class AiCompletionMessage {
     required this.role,
     required this.content,
     this.rawContent,
+    this.toolCalls = const <AiToolCall>[],
   });
 
   factory AiCompletionMessage.fromJson(Map<String, dynamic> json) {
     final Map<String, dynamic>? delta = json['delta'] as Map<String, dynamic>?;
     final Object? rawContent = json['content'] ?? delta?['content'];
     final String text = _sanitizeContent(_extractContentText(rawContent));
+    final List<AiToolCall> toolCalls = _extractToolCalls(json, delta);
     return AiCompletionMessage(
       role: json['role'] as String? ?? delta?['role'] as String? ?? 'assistant',
       content: text,
       rawContent: rawContent,
+      toolCalls: toolCalls,
     );
   }
 
@@ -218,6 +287,35 @@ class AiCompletionMessage {
   final String role;
   final String content;
   final Object? rawContent;
+  final List<AiToolCall> toolCalls;
+
+  static List<AiToolCall> _extractToolCalls(
+    Map<String, dynamic> json,
+    Map<String, dynamic>? delta,
+  ) {
+    final Object? toolCallsRaw =
+        json['tool_calls'] ?? delta?['tool_calls'];
+    if (toolCallsRaw is List<dynamic>) {
+      return toolCallsRaw
+          .whereType<Map<String, dynamic>>()
+          .map(AiToolCall.fromJson)
+          .toList(growable: false);
+    }
+    final Object? functionRaw = json['function_call'] ?? delta?['function_call'];
+    final Map<String, dynamic>? functionCall = functionRaw is Map<String, dynamic>
+        ? functionRaw
+        : null;
+    if (functionCall != null) {
+      final String name = functionCall['name'] as String? ?? '';
+      final String arguments = functionCall['arguments'] as String? ?? '';
+      if (name.isNotEmpty) {
+        return <AiToolCall>[
+          AiToolCall(id: 'legacy_call', name: name, arguments: arguments),
+        ];
+      }
+    }
+    return const <AiToolCall>[];
+  }
 }
 
 /// Вариант ответа из OpenRouter.

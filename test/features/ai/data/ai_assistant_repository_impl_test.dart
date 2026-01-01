@@ -7,6 +7,8 @@ import 'package:kopim/core/services/ai_assistant_service.dart';
 import 'package:kopim/core/services/analytics_service.dart';
 import 'package:kopim/core/services/logger_service.dart';
 import 'package:kopim/features/ai/data/repositories/ai_assistant_repository_impl.dart';
+import 'package:kopim/features/ai/data/tools/ai_assistant_tool_router.dart';
+import 'package:kopim/features/ai/data/tools/ai_assistant_tools.dart';
 import 'package:kopim/features/ai/domain/entities/ai_financial_overview_entity.dart';
 import 'package:kopim/features/ai/domain/entities/ai_user_query_entity.dart';
 import 'package:kopim/features/ai/domain/repositories/ai_financial_data_repository.dart';
@@ -20,17 +22,25 @@ class _MockAnalyticsService extends Mock implements AnalyticsService {}
 
 class _MockLoggerService extends Mock implements LoggerService {}
 
+class _MockAiAssistantToolRouter extends Mock
+    implements AiAssistantToolRouter {}
+
 void main() {
   late _MockAiAssistantService assistantService;
   late _MockAiFinancialDataRepository financialRepository;
   late _MockAnalyticsService analyticsService;
   late _MockLoggerService loggerService;
+  late _MockAiAssistantToolRouter toolRouter;
   late AiAssistantRepositoryImpl repository;
+  const AiAssistantToolsRegistry toolsRegistry = AiAssistantToolsRegistry();
 
   final DateTime fixedNow = DateTime(2024, 5, 15, 12, 0, 0);
 
   setUpAll(() {
     registerFallbackValue(<AiAssistantMessage>[]);
+    registerFallbackValue(
+      const AiToolCall(id: 'fallback', name: 'tool', arguments: '{}'),
+    );
   });
 
   setUp(() {
@@ -38,10 +48,13 @@ void main() {
     financialRepository = _MockAiFinancialDataRepository();
     analyticsService = _MockAnalyticsService();
     loggerService = _MockLoggerService();
+    toolRouter = _MockAiAssistantToolRouter();
 
     repository = AiAssistantRepositoryImpl(
       service: assistantService,
       financialDataRepository: financialRepository,
+      toolRouter: toolRouter,
+      toolsRegistry: toolsRegistry,
       analyticsService: analyticsService,
       loggerService: loggerService,
       uuid: const Uuid(),
@@ -49,13 +62,13 @@ void main() {
     );
   });
 
-  AiAssistantServiceResult buildServiceResult() {
+  AiAssistantServiceResult buildServiceResult({String content = 'ok'}) {
     return AiAssistantServiceResult(
       response: AiCompletionResponse(
         id: 'response-1',
         choices: <AiCompletionChoice>[
           AiCompletionChoice(
-            message: AiCompletionMessage(role: 'assistant', content: 'ok'),
+            message: AiCompletionMessage(role: 'assistant', content: content),
           ),
         ],
         raw: const <String, dynamic>{},
@@ -90,12 +103,23 @@ void main() {
         generatedAt: fixedNow,
       );
     });
+    int answerCalls = 0;
     when(
       () => assistantService.generateAnswer(
         messages: any(named: 'messages'),
         requestOptions: any(named: 'requestOptions'),
       ),
-    ).thenAnswer((_) async => buildServiceResult());
+    ).thenAnswer((_) async {
+      answerCalls++;
+      return answerCalls == 1
+          ? buildServiceResult(content: '')
+          : buildServiceResult();
+    });
+    when(() => toolRouter.runToolCalls(any()))
+        .thenAnswer((_) async => const AiAssistantToolExecutionResult(
+              messages: <AiAssistantMessage>[],
+              logs: <AiAssistantToolCallLog>[],
+            ));
     when(() => analyticsService.logEvent(any(), any()))
         .thenAnswer((_) async {});
 
@@ -131,12 +155,23 @@ void main() {
         generatedAt: fixedNow,
       );
     });
+    int answerCalls = 0;
     when(
       () => assistantService.generateAnswer(
         messages: any(named: 'messages'),
         requestOptions: any(named: 'requestOptions'),
       ),
-    ).thenAnswer((_) async => buildServiceResult());
+    ).thenAnswer((_) async {
+      answerCalls++;
+      return answerCalls == 1
+          ? buildServiceResult(content: '')
+          : buildServiceResult();
+    });
+    when(() => toolRouter.runToolCalls(any()))
+        .thenAnswer((_) async => const AiAssistantToolExecutionResult(
+              messages: <AiAssistantMessage>[],
+              logs: <AiAssistantToolCallLog>[],
+            ));
     when(() => analyticsService.logEvent(any(), any()))
         .thenAnswer((_) async {});
 
