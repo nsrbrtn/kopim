@@ -1,5 +1,9 @@
 import 'package:drift/drift.dart';
 import 'package:kopim/core/data/database.dart' as db;
+import 'package:kopim/features/budgets/domain/entities/budget.dart';
+import 'package:kopim/features/budgets/domain/entities/budget_category_allocation.dart';
+import 'package:kopim/features/budgets/domain/entities/budget_period.dart';
+import 'package:kopim/features/budgets/domain/entities/budget_scope.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
 
 class AiToolCurrencyTotal {
@@ -66,6 +70,18 @@ class AiToolAccountMatch {
   final String name;
   final String currency;
   final String type;
+}
+
+class AiToolBudgetCategorySpend {
+  const AiToolBudgetCategorySpend({
+    required this.categoryId,
+    required this.name,
+    required this.spent,
+  });
+
+  final String? categoryId;
+  final String name;
+  final double spent;
 }
 
 class AiAssistantToolDao {
@@ -264,6 +280,178 @@ LIMIT ?
           ),
         )
         .toList(growable: false);
+  }
+
+  Future<List<String>> expandCategoryIds(List<String> categoryIds) async {
+    final List<String> normalized = categoryIds
+        .map((String id) => id.trim())
+        .where((String id) => id.isNotEmpty)
+        .toSet()
+        .toList(growable: false);
+    if (normalized.isEmpty) {
+      return const <String>[];
+    }
+
+    final List<QueryRow> rows = await _db.customSelect(
+      '''
+SELECT id, parent_id
+FROM categories
+WHERE is_deleted = 0
+''',
+      readsFrom: <TableInfo<dynamic, dynamic>>{_db.categories},
+    ).get();
+
+    final Map<String, List<String>> childrenByParent =
+        <String, List<String>>{};
+    for (final QueryRow row in rows) {
+      final String id = row.read<String>('id');
+      final String? parentId = row.read<String?>('parent_id');
+      if (parentId == null || parentId.isEmpty) {
+        continue;
+      }
+      childrenByParent.putIfAbsent(parentId, () => <String>[]).add(id);
+    }
+
+    final Set<String> expanded = <String>{...normalized};
+    final List<String> stack = List<String>.from(normalized);
+    while (stack.isNotEmpty) {
+      final String current = stack.removeLast();
+      final List<String>? children = childrenByParent[current];
+      if (children == null) {
+        continue;
+      }
+      for (final String child in children) {
+        if (expanded.add(child)) {
+          stack.add(child);
+        }
+      }
+    }
+
+    return expanded.toList(growable: false);
+  }
+
+  Future<List<Budget>> getBudgets({String? budgetId}) async {
+    final SimpleSelectStatement<db.$BudgetsTable, db.BudgetRow> query =
+        _db.select(_db.budgets)
+          ..where((db.$BudgetsTable tbl) => tbl.isDeleted.equals(false));
+    if (budgetId != null && budgetId.isNotEmpty) {
+      query.where((db.$BudgetsTable tbl) => tbl.id.equals(budgetId));
+    }
+    final List<db.BudgetRow> rows = await query.get();
+    return rows.map(_mapBudgetRow).toList(growable: false);
+  }
+
+  Future<double> getBudgetTotalSpent({
+    required DateTime startDate,
+    required DateTime endDate,
+    List<String> accountIds = const <String>[],
+    List<String> categoryIds = const <String>[],
+  }) async {
+    final StringBuffer sql = StringBuffer('''
+SELECT COALESCE(SUM(t.amount), 0) AS total
+FROM transactions t
+INNER JOIN accounts a ON a.id = t.account_id
+WHERE t.is_deleted = 0
+  AND a.is_deleted = 0
+  AND t.type = ?
+''');
+    // ignore: always_specify_types
+    final List<Variable> variables = <Variable>[
+      Variable<String>(TransactionType.expense.storageValue),
+    ];
+    _applyTransactionFilters(
+      sql,
+      variables,
+      startDate: startDate,
+      endDate: endDate,
+      accountIds: accountIds,
+      categoryIds: categoryIds,
+      tableAlias: 't',
+    );
+
+    final QueryRow row = await _db.customSelect(
+      sql.toString(),
+      variables: variables,
+      readsFrom: <TableInfo<dynamic, dynamic>>{_db.transactions, _db.accounts},
+    ).getSingle();
+
+    return row.read<double>('total');
+  }
+
+  Future<List<AiToolBudgetCategorySpend>> getBudgetCategorySpending({
+    required DateTime startDate,
+    required DateTime endDate,
+    List<String> accountIds = const <String>[],
+    List<String> categoryIds = const <String>[],
+  }) async {
+    final StringBuffer sql = StringBuffer('''
+SELECT t.category_id AS category_id,
+       COALESCE(c.name, 'Без категории') AS name,
+       COALESCE(SUM(t.amount), 0) AS total
+FROM transactions t
+INNER JOIN accounts a ON a.id = t.account_id
+LEFT JOIN categories c ON c.id = t.category_id
+WHERE t.is_deleted = 0
+  AND a.is_deleted = 0
+  AND t.type = ?
+''');
+    // ignore: always_specify_types
+    final List<Variable> variables = <Variable>[
+      Variable<String>(TransactionType.expense.storageValue),
+    ];
+    _applyTransactionFilters(
+      sql,
+      variables,
+      startDate: startDate,
+      endDate: endDate,
+      accountIds: accountIds,
+      categoryIds: categoryIds,
+      tableAlias: 't',
+    );
+    sql.write('GROUP BY t.category_id, c.name ORDER BY total DESC');
+
+    final List<QueryRow> rows = await _db.customSelect(
+      sql.toString(),
+      variables: variables,
+      readsFrom: <TableInfo<dynamic, dynamic>>{
+        _db.transactions,
+        _db.accounts,
+        _db.categories,
+      },
+    ).get();
+
+    return rows
+        .map(
+          (QueryRow row) => AiToolBudgetCategorySpend(
+            categoryId: row.read<String?>('category_id'),
+            name: row.read<String>('name'),
+            spent: row.read<double>('total'),
+          ),
+        )
+        .toList(growable: false);
+  }
+
+  Budget _mapBudgetRow(db.BudgetRow row) {
+    return Budget(
+      id: row.id,
+      title: row.title,
+      period: BudgetPeriodX.fromStorage(row.period),
+      startDate: row.startDate,
+      endDate: row.endDate,
+      amount: row.amount,
+      scope: BudgetScopeX.fromStorage(row.scope),
+      categories: row.categories,
+      accounts: row.accounts,
+      categoryAllocations: row.categoryAllocations
+          .map(
+            (Map<String, dynamic> json) =>
+                BudgetCategoryAllocation.fromJson(json),
+          )
+          .toList(growable: false),
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+      isDeleted: row.isDeleted,
+    );
   }
 
   void _applyTransactionFilters(

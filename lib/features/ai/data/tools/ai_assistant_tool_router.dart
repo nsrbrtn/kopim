@@ -5,6 +5,12 @@ import 'package:kopim/core/services/logger_service.dart';
 import 'package:kopim/features/ai/data/local/ai_assistant_tool_dao.dart';
 import 'package:kopim/features/ai/data/local/ai_analytics_dao.dart';
 import 'package:kopim/features/ai/domain/entities/ai_financial_overview_entity.dart';
+import 'package:kopim/features/budgets/domain/entities/budget.dart';
+import 'package:kopim/features/budgets/domain/entities/budget_category_allocation.dart';
+import 'package:kopim/features/budgets/domain/entities/budget_instance_status.dart';
+import 'package:kopim/features/budgets/domain/entities/budget_period.dart';
+import 'package:kopim/features/budgets/domain/entities/budget_scope.dart';
+import 'package:kopim/features/budgets/domain/services/budget_schedule.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
 
 class AiAssistantToolExecutionResult {
@@ -50,11 +56,14 @@ class AiAssistantToolRouter {
   static const int _maxRangeDays = 180;
   static const int _defaultTransactionsLimit = 50;
   static const int _defaultTopCategoriesLimit = 5;
+  static const int _maxBudgetCategories = 50;
+  static const int _defaultBudgetCategoriesLimit = 50;
 
   final AiAssistantToolDao _toolDao;
   final AiAnalyticsDao _analyticsDao;
   final LoggerService _loggerService;
   final DateTime Function() _nowProvider;
+  final BudgetSchedule _budgetSchedule = const BudgetSchedule();
 
   Future<AiAssistantToolExecutionResult> runToolCalls(
     List<AiToolCall> toolCalls,
@@ -141,6 +150,8 @@ class AiAssistantToolRouter {
         return _findCategories(args);
       case 'find_accounts':
         return _findAccounts(args);
+      case 'get_budgets':
+        return _getBudgets(args);
       default:
         return <String, Object?>{
           'error': 'Неизвестный инструмент.',
@@ -154,7 +165,7 @@ class AiAssistantToolRouter {
     required String transactionType,
   }) async {
     final _ResolvedRange range = _resolveRange(args);
-    final List<String> categoryIds = _readStringList(args, 'category_ids');
+    final List<String> categoryIds = await _resolveCategoryIds(args);
     final List<String> accountIds = _readStringList(args, 'account_ids');
     final List<AiToolCurrencyTotal> totals = await _toolDao.getTotalsByCurrency(
       transactionType: transactionType,
@@ -249,7 +260,7 @@ class AiAssistantToolRouter {
     final _ResolvedRange range = _resolveRange(args);
     final int requestedLimit = _readInt(args, 'limit', _defaultTransactionsLimit);
     final int limit = requestedLimit.clamp(1, _maxTransactions);
-    final List<String> categoryIds = _readStringList(args, 'category_ids');
+    final List<String> categoryIds = await _resolveCategoryIds(args);
     final List<String> accountIds = _readStringList(args, 'account_ids');
     final String? rawType = _readOptionalString(args, 'transaction_type');
     final String? transactionType = rawType == null
@@ -344,6 +355,205 @@ class AiAssistantToolRouter {
           )
           .toList(growable: false),
     };
+  }
+
+  Future<Map<String, Object?>> _getBudgets(Map<String, dynamic> args) async {
+    final String? budgetId = _readOptionalString(args, 'budget_id');
+    final int requestedLimit = _readInt(
+      args,
+      'category_limit',
+      _defaultBudgetCategoriesLimit,
+    );
+    final int categoryLimit = requestedLimit.clamp(1, _maxBudgetCategories);
+    final DateTime now = _nowProvider();
+    final List<Budget> budgets = await _toolDao.getBudgets(budgetId: budgetId);
+    if (budgets.isEmpty) {
+      return <String, Object?>{
+        'budget_id': budgetId,
+        'generated_at': now.toIso8601String(),
+        'items': const <Object?>[],
+      };
+    }
+
+    final List<Map<String, Object?>> items = <Map<String, Object?>>[];
+    for (final Budget budget in budgets) {
+      final ({DateTime start, DateTime end}) period = _budgetSchedule.periodFor(
+        budget: budget,
+        reference: now,
+      );
+      final DateTime endExclusive =
+          period.end.subtract(const Duration(microseconds: 1));
+      final List<String> accountIds =
+          budget.scope == BudgetScope.byAccount ? budget.accounts : <String>[];
+      final List<String> scopeCategoryIds =
+          budget.scope == BudgetScope.byCategory ? budget.categories : <String>[];
+
+      final double spent = await _toolDao.getBudgetTotalSpent(
+        startDate: period.start,
+        endDate: endExclusive,
+        accountIds: accountIds,
+        categoryIds: scopeCategoryIds,
+      );
+
+      final List<AiToolBudgetCategorySpend> categorySpending = await _toolDao
+          .getBudgetCategorySpending(
+            startDate: period.start,
+            endDate: endExclusive,
+            accountIds: accountIds,
+            categoryIds: scopeCategoryIds,
+          );
+      final Map<String?, AiToolBudgetCategorySpend> spendingByCategory =
+          <String?, AiToolBudgetCategorySpend>{
+            for (final AiToolBudgetCategorySpend item in categorySpending)
+              item.categoryId: item,
+          };
+
+      final Set<String> plannedCategoryIds = <String>{};
+      if (budget.categoryAllocations.isNotEmpty) {
+        plannedCategoryIds.addAll(
+          budget.categoryAllocations.map(
+            (BudgetCategoryAllocation allocation) => allocation.categoryId,
+          ),
+        );
+      } else if (budget.scope == BudgetScope.byCategory &&
+          budget.categories.isNotEmpty) {
+        plannedCategoryIds.addAll(budget.categories);
+      }
+
+      final Set<String> categoryIds = <String>{
+        ...plannedCategoryIds,
+        ...spendingByCategory.keys.whereType<String>(),
+      };
+      final Map<String, String> categoryNames = await _analyticsDao
+          .getCategoryNames(categoryIds.toList(growable: false));
+
+      final List<Map<String, Object?>> categoryItems =
+          _buildBudgetCategoryItems(
+            budget: budget,
+            plannedCategoryIds: plannedCategoryIds,
+            spendingByCategory: spendingByCategory,
+            categoryNames: categoryNames,
+          );
+
+      categoryItems.sort((Map<String, Object?> a, Map<String, Object?> b) {
+        final double spentA = (a['spent'] as num).toDouble();
+        final double spentB = (b['spent'] as num).toDouble();
+        final int spentComparison = spentB.compareTo(spentA);
+        if (spentComparison != 0) {
+          return spentComparison;
+        }
+        final String nameA = (a['name'] as String?) ?? '';
+        final String nameB = (b['name'] as String?) ?? '';
+        return nameA.compareTo(nameB);
+      });
+
+      final List<Map<String, Object?>> limitedCategories = categoryItems
+          .take(categoryLimit)
+          .toList(growable: false);
+
+      final double remaining = budget.amount - spent;
+      final double utilization = budget.amount <= 0
+          ? (spent > 0 ? double.infinity : 0)
+          : spent / budget.amount;
+      final BudgetInstanceStatus status = _budgetSchedule.statusFor(
+        clock: now,
+        start: period.start,
+        end: period.end,
+      );
+
+      items.add(
+        <String, Object?>{
+          'id': budget.id,
+          'title': budget.title,
+          'period': budget.period.storageValue,
+          'scope': budget.scope.storageValue,
+          'amount': budget.amount,
+          'spent': spent,
+          'remaining': remaining,
+          'utilization': utilization.isFinite ? utilization : null,
+          'is_exceeded': spent > budget.amount,
+          'status': status.storageValue,
+          'period_start': period.start.toIso8601String(),
+          'period_end': period.end.toIso8601String(),
+          'accounts': budget.accounts,
+          'categories': limitedCategories,
+          'categories_total': categoryItems.length,
+          'has_allocations': budget.categoryAllocations.isNotEmpty,
+        },
+      );
+    }
+
+    return <String, Object?>{
+      'budget_id': budgetId,
+      'generated_at': now.toIso8601String(),
+      'items': items,
+    };
+  }
+
+  List<Map<String, Object?>> _buildBudgetCategoryItems({
+    required Budget budget,
+    required Set<String> plannedCategoryIds,
+    required Map<String?, AiToolBudgetCategorySpend> spendingByCategory,
+    required Map<String, String> categoryNames,
+  }) {
+    final Set<String?> categoryIds = <String?>{
+      ...plannedCategoryIds,
+      ...spendingByCategory.keys,
+    };
+    final List<Map<String, Object?>> items = <Map<String, Object?>>[];
+    for (final String? categoryId in categoryIds) {
+      final AiToolBudgetCategorySpend? spending =
+          spendingByCategory[categoryId];
+      final double spent = spending?.spent ?? 0;
+      final String name = categoryId == null
+          ? (spending?.name ?? 'Без категории')
+          : (categoryNames[categoryId] ?? spending?.name ?? 'Категория');
+      final double? limit = categoryId == null
+          ? null
+          : _resolveBudgetCategoryLimit(budget, categoryId);
+      final double? remaining = limit == null ? null : limit - spent;
+      items.add(
+        <String, Object?>{
+          'id': categoryId,
+          'name': name,
+          'planned': plannedCategoryIds.contains(categoryId),
+          'spent': spent,
+          'limit': limit,
+          'remaining': remaining,
+        },
+      );
+    }
+    return items;
+  }
+
+  double? _resolveBudgetCategoryLimit(Budget budget, String categoryId) {
+    final Iterable<BudgetCategoryAllocation> allocations = budget
+        .categoryAllocations
+        .where(
+          (BudgetCategoryAllocation allocation) =>
+              allocation.categoryId == categoryId,
+        );
+    if (allocations.isNotEmpty) {
+      return allocations.fold<double>(
+        0,
+        (double previous, BudgetCategoryAllocation allocation) =>
+            previous + allocation.limit,
+      );
+    }
+    if (budget.scope == BudgetScope.byCategory &&
+        budget.categories.length == 1 &&
+        budget.categories.first == categoryId) {
+      return budget.amount;
+    }
+    return null;
+  }
+
+  Future<List<String>> _resolveCategoryIds(Map<String, dynamic> args) async {
+    final List<String> categoryIds = _readStringList(args, 'category_ids');
+    if (categoryIds.isEmpty) {
+      return categoryIds;
+    }
+    return _toolDao.expandCategoryIds(categoryIds);
   }
 
   _ResolvedRange _resolveRange(Map<String, dynamic> args) {

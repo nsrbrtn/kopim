@@ -375,6 +375,7 @@ class AiAssistantRepositoryImpl implements AiAssistantRepository {
     const String systemPrompt =
         'Ты — финансовый помощник в приложении "Копим". '
         'Если нужно получить данные, используй инструменты. '
+        'Если вопрос про бюджеты, лимиты или остатки — используй get_budgets. '
         'Не выдумывай суммы и факты. '
         'Отвечай на русском языке, используй Markdown (суммы выделяй **жирным**).';
 
@@ -508,14 +509,7 @@ class AiAssistantRepositoryImpl implements AiAssistantRepository {
       return null;
     }
     if (firstMessage.toolCalls.isEmpty) {
-      if (firstMessage.content.trim().isEmpty) {
-        return null;
-      }
-      return _ToolWorkflowOutcome(
-        result: firstResult,
-        toolLogs: const <AiAssistantToolCallLog>[],
-        usedTools: false,
-      );
+      return null;
     }
 
     final AiAssistantToolExecutionResult toolResult = await _toolRouter

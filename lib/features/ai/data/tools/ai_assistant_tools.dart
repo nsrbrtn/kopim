@@ -190,6 +190,29 @@ class AiAssistantToolsRegistry {
         <String, Object?>{
           'type': 'function',
           'function': <String, Object?>{
+            'name': 'get_budgets',
+            'description':
+                'Возвращает бюджеты с прогрессом, категориями и остатками. '
+                'Используй при вопросах о бюджетах, лимитах, превышениях и '
+                'остатках по категориям бюджета.',
+            'parameters': <String, Object?>{
+              'type': 'object',
+              'properties': <String, Object?>{
+                'budget_id': <String, Object?>{
+                  'type': 'string',
+                  'description': 'ID конкретного бюджета (если нужен один).',
+                },
+                'category_limit': <String, Object?>{
+                  'type': 'integer',
+                  'description': 'Максимум категорий в деталях (до 50).',
+                },
+              },
+            },
+          },
+        },
+        <String, Object?>{
+          'type': 'function',
+          'function': <String, Object?>{
             'name': 'find_categories',
             'description':
                 'Ищет категории по названию. Используй для получения category_ids.',
