@@ -4,7 +4,6 @@ import 'package:kopim/core/data/converters/json_map_list_converter.dart';
 import 'package:kopim/core/data/converters/string_list_converter.dart';
 import 'package:kopim/features/upcoming_payments/data/drift/tables/payment_reminders_table.dart';
 import 'package:kopim/features/upcoming_payments/data/drift/tables/upcoming_payments_table.dart';
-import 'package:uuid/uuid.dart';
 
 part 'database.g.dart';
 

@@ -1,9 +1,13 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kopim/features/analytics/domain/models/analytics_category_breakdown.dart';
 import 'package:kopim/features/analytics/domain/models/analytics_filter.dart';
 import 'package:kopim/features/analytics/domain/models/analytics_overview.dart';
 import 'package:kopim/features/analytics/domain/use_cases/watch_monthly_analytics_use_case.dart';
+import 'package:kopim/features/categories/domain/entities/category.dart';
+import 'package:kopim/features/categories/domain/entities/category_tree_node.dart';
+import 'package:kopim/features/categories/domain/repositories/category_repository.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
 import 'package:kopim/features/transactions/domain/models/account_monthly_totals.dart';
@@ -12,20 +16,27 @@ import 'package:kopim/features/transactions/domain/repositories/transaction_repo
 void main() {
   group('WatchMonthlyAnalyticsUseCase', () {
     late FakeTransactionRepository repository;
+    late FakeCategoryRepository categoryRepository;
     late WatchMonthlyAnalyticsUseCase useCase;
 
     setUp(() {
       repository = FakeTransactionRepository();
-      useCase = WatchMonthlyAnalyticsUseCase(transactionRepository: repository);
+      categoryRepository = FakeCategoryRepository();
+      useCase = WatchMonthlyAnalyticsUseCase(
+        transactionRepository: repository,
+        categoryRepository: categoryRepository,
+      );
     });
 
     tearDown(() async {
       await repository.dispose();
+      await categoryRepository.dispose();
     });
 
     test('returns zero overview when there are no transactions', () async {
       final Future<AnalyticsOverview> future = useCase.call().first;
 
+      await categoryRepository.emit(<Category>[]);
       await repository.emit(<TransactionEntity>[]);
 
       final AnalyticsOverview overview = await future;
@@ -45,6 +56,11 @@ void main() {
           .call(filter: filter)
           .first;
 
+      await categoryRepository.emit(<Category>[
+        buildCategory(id: 'cat-ent'),
+        buildCategory(id: 'cat-food'),
+        buildCategory(id: 'cat-travel'),
+      ]);
       await repository.emit(<TransactionEntity>[
         buildTransaction(
           id: 't1',
@@ -95,6 +111,10 @@ void main() {
           .call(filter: filter)
           .first;
 
+      await categoryRepository.emit(<Category>[
+        buildCategory(id: 'cat-ent'),
+        buildCategory(id: 'cat-food'),
+      ]);
       await repository.emit(<TransactionEntity>[
         buildTransaction(
           id: 't1',
@@ -141,6 +161,115 @@ void main() {
       expect(overview.topIncomeCategories.first.categoryId, 'cat-ent');
       expect(overview.topIncomeCategories.first.amount, 150);
     });
+
+    test('aggregates parent categories with descendants', () async {
+      final AnalyticsFilter filter = AnalyticsFilter(
+        start: DateTime(2024, 6, 1),
+        end: DateTime(2024, 7, 1),
+      );
+      final Future<AnalyticsOverview> future = useCase
+          .call(filter: filter, topCategoriesLimit: 10)
+          .first;
+
+      await categoryRepository.emit(<Category>[
+        buildCategory(id: 'cat-food'),
+        buildCategory(id: 'cat-veg', parentId: 'cat-food'),
+        buildCategory(id: 'cat-fruit', parentId: 'cat-food'),
+      ]);
+      await repository.emit(<TransactionEntity>[
+        buildTransaction(
+          id: 't1',
+          accountId: 'acc-1',
+          amount: -100,
+          date: DateTime(2024, 6, 10),
+          categoryId: 'cat-food',
+          type: TransactionType.expense,
+        ),
+        buildTransaction(
+          id: 't2',
+          accountId: 'acc-1',
+          amount: -100,
+          date: DateTime(2024, 6, 11),
+          categoryId: 'cat-veg',
+          type: TransactionType.expense,
+        ),
+        buildTransaction(
+          id: 't3',
+          accountId: 'acc-1',
+          amount: -100,
+          date: DateTime(2024, 6, 12),
+          categoryId: 'cat-fruit',
+          type: TransactionType.expense,
+        ),
+      ]);
+
+      final AnalyticsOverview overview = await future;
+      expect(overview.topExpenseCategories, hasLength(1));
+      final AnalyticsCategoryBreakdown parent = overview.topExpenseCategories
+          .first;
+      expect(parent.categoryId, 'cat-food');
+      expect(parent.amount, 300);
+      expect(parent.children, hasLength(3));
+      final AnalyticsCategoryBreakdown direct = parent.children.firstWhere(
+        (AnalyticsCategoryBreakdown item) =>
+            item.categoryId != null &&
+            parseAnalyticsDirectCategoryParentId(item.categoryId!) ==
+                'cat-food',
+      );
+      expect(direct.amount, 100);
+      final AnalyticsCategoryBreakdown veg = parent.children.firstWhere(
+        (AnalyticsCategoryBreakdown item) => item.categoryId == 'cat-veg',
+      );
+      final AnalyticsCategoryBreakdown fruit = parent.children.firstWhere(
+        (AnalyticsCategoryBreakdown item) => item.categoryId == 'cat-fruit',
+      );
+      expect(veg.amount, 100);
+      expect(fruit.amount, 100);
+    });
+
+    test(
+      'category filter can exclude descendants when includeSubcategories is false',
+      () async {
+        final AnalyticsFilter filter = AnalyticsFilter(
+          start: DateTime(2024, 6, 1),
+          end: DateTime(2024, 7, 1),
+          categoryId: 'cat-food',
+          includeSubcategories: false,
+        );
+        final Future<AnalyticsOverview> future = useCase
+            .call(filter: filter)
+            .first;
+
+        await categoryRepository.emit(<Category>[
+          buildCategory(id: 'cat-food'),
+          buildCategory(id: 'cat-veg', parentId: 'cat-food'),
+        ]);
+        await repository.emit(<TransactionEntity>[
+          buildTransaction(
+            id: 't1',
+            accountId: 'acc-1',
+            amount: -100,
+            date: DateTime(2024, 6, 10),
+            categoryId: 'cat-food',
+            type: TransactionType.expense,
+          ),
+          buildTransaction(
+            id: 't2',
+            accountId: 'acc-1',
+            amount: -50,
+            date: DateTime(2024, 6, 11),
+            categoryId: 'cat-veg',
+            type: TransactionType.expense,
+          ),
+        ]);
+
+        final AnalyticsOverview overview = await future;
+        expect(overview.totalExpense, 100);
+        expect(overview.topExpenseCategories, hasLength(1));
+        expect(overview.topExpenseCategories.first.categoryId, 'cat-food');
+        expect(overview.topExpenseCategories.first.amount, 100);
+      },
+    );
   });
 }
 
@@ -162,6 +291,21 @@ TransactionEntity buildTransaction({
     type: type.storageValue,
     createdAt: date,
     updatedAt: date,
+  );
+}
+
+Category buildCategory({
+  required String id,
+  String? parentId,
+}) {
+  final DateTime now = DateTime(2024, 6, 1);
+  return Category(
+    id: id,
+    name: id,
+    type: 'expense',
+    parentId: parentId,
+    createdAt: now,
+    updatedAt: now,
   );
 }
 
@@ -213,6 +357,55 @@ class FakeTransactionRepository implements TransactionRepository {
 
   @override
   Future<void> upsert(TransactionEntity transaction) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> softDelete(String id) {
+    throw UnimplementedError();
+  }
+}
+
+class FakeCategoryRepository implements CategoryRepository {
+  FakeCategoryRepository()
+    : _controller = StreamController<List<Category>>.broadcast();
+
+  final StreamController<List<Category>> _controller;
+
+  @override
+  Stream<List<Category>> watchCategories() => _controller.stream;
+
+  Future<void> emit(List<Category> categories) async {
+    _controller.add(categories);
+    await Future<void>.delayed(Duration.zero);
+  }
+
+  Future<void> dispose() async {
+    await _controller.close();
+  }
+
+  @override
+  Stream<List<CategoryTreeNode>> watchCategoryTree() {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<Category>> loadCategories() {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<CategoryTreeNode>> loadCategoryTree() {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Category?> findById(String id) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> upsert(Category category) {
     throw UnimplementedError();
   }
 

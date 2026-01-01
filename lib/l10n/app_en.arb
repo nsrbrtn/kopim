@@ -1802,6 +1802,10 @@
   "@analyticsCategoryUncategorized": {
     "description": "Label for expenses without a category"
   },
+  "analyticsCategoryDirectLabel": "In this category",
+  "@analyticsCategoryDirectLabel": {
+    "description": "Label for transactions recorded directly in the parent category"
+  },
   "analyticsCategoryTransactionsTitle": "Transactions: {category}",
   "@analyticsCategoryTransactionsTitle": {
     "description": "Title for the transaction list by selected category in analytics",

@@ -239,6 +239,9 @@ void main() {
         watchMonthlyAnalyticsUseCaseProvider.overrideWithValue(
           WatchMonthlyAnalyticsUseCase(
             transactionRepository: transactionRepository,
+            categoryRepository: _StreamCategoryRepository(
+              Stream<List<Category>>.value(const <Category>[]),
+            ),
           ),
         ),
         watchCategoriesUseCaseProvider.overrideWithValue(

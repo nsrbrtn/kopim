@@ -1802,6 +1802,10 @@
   "@analyticsCategoryUncategorized": {
     "description": "Подпись для неразмеченных расходов"
   },
+  "analyticsCategoryDirectLabel": "В этой категории",
+  "@analyticsCategoryDirectLabel": {
+    "description": "Подпись для транзакций, записанных напрямую в родительскую категорию"
+  },
   "analyticsCategoryTransactionsTitle": "Транзакции: {category}",
   "@analyticsCategoryTransactionsTitle": {
     "description": "Заголовок списка транзакций по выбранной категории в аналитике",

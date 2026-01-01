@@ -1316,20 +1316,31 @@ class _TopCategoriesPagerState extends State<_TopCategoriesPager> {
     ThemeData theme,
   ) {
     AnalyticsChartItem mapBreakdown(AnalyticsCategoryBreakdown breakdown) {
-      final bool isOthers = breakdown.categoryId == _othersCategoryKey;
-      final Category? category = breakdown.categoryId == null || isOthers
+      final String? rawId = breakdown.categoryId;
+      final bool isOthers = rawId == _othersCategoryKey;
+      final bool isDirect = rawId != null && isAnalyticsDirectCategoryKey(rawId);
+      final String? resolvedId = isDirect
+          ? parseAnalyticsDirectCategoryParentId(rawId)
+          : rawId;
+      final Category? category = resolvedId == null || isOthers
           ? null
-          : categoriesById[breakdown.categoryId!];
+          : categoriesById[resolvedId];
+      final Color baseColor = parseHexColor(category?.color) ??
+          theme.colorScheme.primary;
       final Color color = isOthers
           ? theme.colorScheme.outlineVariant
-          : parseHexColor(category?.color) ?? theme.colorScheme.primary;
+          : isDirect
+              ? baseColor.withValues(alpha: 0.6)
+              : baseColor;
       final String title = isOthers
           ? strings.analyticsTopCategoriesOthers
-          : category?.name ?? strings.analyticsCategoryUncategorized;
+          : isDirect
+              ? strings.analyticsCategoryDirectLabel
+              : category?.name ?? strings.analyticsCategoryUncategorized;
       final IconData? iconData = isOthers
           ? Icons.more_horiz
           : resolvePhosphorIconData(category?.icon);
-      final String key = breakdown.categoryId ?? _uncategorizedCategoryKey;
+      final String key = rawId ?? _uncategorizedCategoryKey;
       final List<AnalyticsChartItem> children = breakdown.children
           .map(mapBreakdown)
           .toList(growable: false);
@@ -1460,39 +1471,25 @@ class _TopCategoriesPageState extends State<_TopCategoriesPage> {
       final List<AnalyticsChartItem> chartItems = widget.data.items;
 
       AnalyticsChartItem? focusedItem;
-      bool focusedIsOthersChild = false;
+      AnalyticsChartItem? focusedTopLevelItem;
       if (_highlightKey != null) {
-        focusedItem = chartItems.firstWhereOrNull(
-          (AnalyticsChartItem item) => item.key == _highlightKey,
+        final _FocusedItemResult? result = _findFocusedItem(
+          chartItems,
+          _highlightKey!,
         );
-        if (focusedItem == null) {
-          final AnalyticsChartItem? othersItem = chartItems.firstWhereOrNull(
-            (AnalyticsChartItem item) => item.key == _othersCategoryKey,
-          );
-          focusedItem = othersItem?.children.firstWhereOrNull(
-            (AnalyticsChartItem item) => item.key == _highlightKey,
-          );
-          focusedIsOthersChild = focusedItem != null;
+        if (result != null) {
+          focusedItem = result.item;
+          focusedTopLevelItem = result.topLevelItem;
         }
       }
 
       int? selectedIndex;
-      final String? focusKey = focusedItem?.key;
-      if (focusKey != null) {
-        if (focusedIsOthersChild) {
-          final int othersIndex = chartItems.indexWhere(
-            (AnalyticsChartItem item) => item.key == _othersCategoryKey,
-          );
-          if (othersIndex >= 0) {
-            selectedIndex = othersIndex;
-          }
-        } else {
-          final int candidateIndex = chartItems.indexWhere(
-            (AnalyticsChartItem item) => item.key == focusKey,
-          );
-          if (candidateIndex >= 0) {
-            selectedIndex = candidateIndex;
-          }
+      if (focusedTopLevelItem != null) {
+        final int candidateIndex = chartItems.indexWhere(
+          (AnalyticsChartItem item) => item.key == focusedTopLevelItem!.key,
+        );
+        if (candidateIndex >= 0) {
+          selectedIndex = candidateIndex;
         }
       }
       final List<AnalyticsChartItem> displayItems = chartItems;
@@ -1621,46 +1618,109 @@ class _TopCategoriesPageState extends State<_TopCategoriesPage> {
     if (focusedItem == null) {
       return null;
     }
-    if (focusedItem.key == _othersCategoryKey) {
-      if (focusedItem.children.isEmpty) {
-        return null;
-      }
-      return _selectionFromKeys(
-        title: focusedItem.title,
-        keys: focusedItem.children.map((AnalyticsChartItem item) => item.key),
-      );
+    final _SelectionPayload payload = _collectSelectionPayload(focusedItem);
+    if (payload.categoryIds.isEmpty && !payload.includeUncategorized) {
+      return null;
     }
-    return _selectionFromKeys(
-      title: focusedItem.title,
-      keys: <String>[focusedItem.key],
+    final String title = _resolveSelectionTitle(focusedItem);
+    return _CategoryTransactionsSelection(
+      title: title,
+      categoryIds: payload.categoryIds.toList()..sort(),
+      includeUncategorized: payload.includeUncategorized,
     );
   }
 
-  _CategoryTransactionsSelection? _selectionFromKeys({
-    required String title,
-    required Iterable<String> keys,
-  }) {
+  String _resolveSelectionTitle(AnalyticsChartItem item) {
+    final String? parentId = parseAnalyticsDirectCategoryParentId(item.key);
+    if (parentId == null) {
+      return item.title;
+    }
+    final Category? parent = widget.categoriesById[parentId];
+    if (parent == null) {
+      return item.title;
+    }
+    return '${parent.name} · ${widget.strings.analyticsCategoryDirectLabel}';
+  }
+
+  _SelectionPayload _collectSelectionPayload(AnalyticsChartItem item) {
     bool includeUncategorized = false;
-    final List<String> categoryIds = <String>[];
-    for (final String key in keys) {
+    final Set<String> categoryIds = <String>{};
+
+    void visit(AnalyticsChartItem node) {
+      final String key = node.key;
+      if (key == _othersCategoryKey) {
+        for (final AnalyticsChartItem child in node.children) {
+          visit(child);
+        }
+        return;
+      }
       if (key == _uncategorizedCategoryKey) {
         includeUncategorized = true;
-        continue;
+        return;
       }
-      if (key == _othersCategoryKey) {
-        continue;
+      final String? directParentId = parseAnalyticsDirectCategoryParentId(key);
+      if (directParentId != null) {
+        categoryIds.add(directParentId);
+        return;
       }
       categoryIds.add(key);
+      for (final AnalyticsChartItem child in node.children) {
+        visit(child);
+      }
     }
-    if (categoryIds.isEmpty && !includeUncategorized) {
-      return null;
-    }
-    return _CategoryTransactionsSelection(
-      title: title,
+
+    visit(item);
+    return _SelectionPayload(
       categoryIds: categoryIds,
       includeUncategorized: includeUncategorized,
     );
   }
+}
+
+class _SelectionPayload {
+  const _SelectionPayload({
+    required this.categoryIds,
+    required this.includeUncategorized,
+  });
+
+  final Set<String> categoryIds;
+  final bool includeUncategorized;
+}
+
+class _FocusedItemResult {
+  const _FocusedItemResult({
+    required this.item,
+    required this.topLevelItem,
+  });
+
+  final AnalyticsChartItem item;
+  final AnalyticsChartItem topLevelItem;
+}
+
+_FocusedItemResult? _findFocusedItem(
+  List<AnalyticsChartItem> items,
+  String key,
+) {
+  for (final AnalyticsChartItem item in items) {
+    final AnalyticsChartItem? found = _findItemInTree(item, key);
+    if (found != null) {
+      return _FocusedItemResult(item: found, topLevelItem: item);
+    }
+  }
+  return null;
+}
+
+AnalyticsChartItem? _findItemInTree(AnalyticsChartItem item, String key) {
+  if (item.key == key) {
+    return item;
+  }
+  for (final AnalyticsChartItem child in item.children) {
+    final AnalyticsChartItem? found = _findItemInTree(child, key);
+    if (found != null) {
+      return found;
+    }
+  }
+  return null;
 }
 
 class _CategoryTransactionsSelection {
@@ -1860,19 +1920,12 @@ class _TopCategoriesLegend extends StatelessWidget {
     if (items.isEmpty || total <= 0) {
       return const SizedBox.shrink();
     }
-    final AnalyticsChartItem? othersItem = items.firstWhereOrNull(
-      (AnalyticsChartItem item) => item.key == _othersCategoryKey,
-    );
-    final Set<String> othersChildrenKeys = othersItem == null
-        ? <String>{}
-        : othersItem.children
-            .map((AnalyticsChartItem item) => item.key)
-            .toSet();
-    final bool showOthersChildren =
-        (othersItem?.children.isNotEmpty ?? false) &&
-        (highlightedKey == othersItem?.key ||
-            (highlightedKey != null &&
-                othersChildrenKeys.contains(highlightedKey)));
+    final _FocusedItemResult? focused = highlightedKey == null
+        ? null
+        : _findFocusedItem(items, highlightedKey!);
+    final AnalyticsChartItem? expandedItem = focused?.topLevelItem;
+    final bool showExpandedChildren =
+        expandedItem != null && expandedItem.children.isNotEmpty;
     final List<Widget> legendItems = List<Widget>.generate(items.length, (
       int index,
     ) {
@@ -1891,10 +1944,10 @@ class _TopCategoriesLegend extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         Wrap(spacing: 8, runSpacing: 8, children: legendItems),
-        if (showOthersChildren) ...<Widget>[
+        if (showExpandedChildren) ...<Widget>[
           const SizedBox(height: 8),
-          _OthersBreakdownList(
-            items: othersItem!.children,
+          _CategoryBreakdownList(
+            items: expandedItem.children,
             currencyFormat: currencyFormat,
             highlightedKey: highlightedKey,
             onToggle: onToggle,
@@ -2027,8 +2080,8 @@ class _TopCategoryLegendItem extends StatelessWidget {
   }
 }
 
-class _OthersBreakdownList extends StatelessWidget {
-  const _OthersBreakdownList({
+class _CategoryBreakdownList extends StatelessWidget {
+  const _CategoryBreakdownList({
     required this.items,
     required this.currencyFormat,
     required this.highlightedKey,

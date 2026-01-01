@@ -2472,6 +2472,12 @@ abstract class AppLocalizations {
   /// **'Uncategorized'**
   String get analyticsCategoryUncategorized;
 
+  /// Label for transactions recorded directly in the parent category
+  ///
+  /// In en, this message translates to:
+  /// **'In this category'**
+  String get analyticsCategoryDirectLabel;
+
   /// Title for the transaction list by selected category in analytics
   ///
   /// In en, this message translates to:

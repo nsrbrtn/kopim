@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart' show immutable, listEquals;
 import 'package:flutter/material.dart' show DateTimeRange, DateUtils;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart' show StreamProviderFamily;
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/analytics/domain/models/analytics_filter.dart';
@@ -81,7 +82,8 @@ class AnalyticsCategoryTransactionsFilter {
       Object.hash(Object.hashAll(categoryIds), includeUncategorized, type);
 }
 
-final analyticsCategoryTransactionsProvider =
+final StreamProviderFamily<List<TransactionEntity>, AnalyticsCategoryTransactionsFilter>
+    analyticsCategoryTransactionsProvider =
     StreamProvider.family<List<TransactionEntity>, AnalyticsCategoryTransactionsFilter>((
       Ref ref,
       AnalyticsCategoryTransactionsFilter filter,

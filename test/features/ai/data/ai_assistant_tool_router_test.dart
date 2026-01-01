@@ -124,12 +124,16 @@ void main() {
     final String content = result.messages.single.content;
     final Map<String, dynamic> payload =
         jsonDecode(content) as Map<String, dynamic>;
-    final List<dynamic> totals = payload['totals'] as List<dynamic>;
+    final List<Map<String, dynamic>> totals =
+        (payload['totals'] as List<dynamic>)
+            .map((dynamic item) => item as Map<String, dynamic>)
+            .toList(growable: false);
 
     expect(payload['total_count'], 2);
     expect(totals.length, 1);
-    expect(totals.first['currency'], 'RUB');
-    expect(totals.first['total'], 200);
+    final Map<String, dynamic> total = totals.first;
+    expect(total['currency'], 'RUB');
+    expect(total['total'], 200);
   });
 
   test('find_categories ищет по названию', () async {
@@ -146,10 +150,14 @@ void main() {
         .runToolCalls(<AiToolCall>[toolCall]);
     final Map<String, dynamic> payload =
         jsonDecode(result.messages.single.content) as Map<String, dynamic>;
-    final List<dynamic> items = payload['items'] as List<dynamic>;
+    final List<Map<String, dynamic>> items =
+        (payload['items'] as List<dynamic>)
+            .map((dynamic item) => item as Map<String, dynamic>)
+            .toList(growable: false);
 
     expect(items.length, 1);
-    expect(items.first['id'], 'c1');
-    expect(items.first['name'], 'Такси');
+    final Map<String, dynamic> item = items.first;
+    expect(item['id'], 'c1');
+    expect(item['name'], 'Такси');
   });
 }

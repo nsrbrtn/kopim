@@ -1396,6 +1396,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get analyticsCategoryUncategorized => 'Uncategorized';
 
   @override
+  String get analyticsCategoryDirectLabel => 'In this category';
+
+  @override
   String analyticsCategoryTransactionsTitle(String category) {
     return 'Transactions: $category';
   }

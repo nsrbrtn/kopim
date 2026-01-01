@@ -8,6 +8,7 @@ class AnalyticsFilter {
     this.accountId,
     this.accountIds,
     this.categoryId,
+    this.includeSubcategories = true,
   });
 
   factory AnalyticsFilter.monthly({DateTime? reference}) {
@@ -26,6 +27,8 @@ class AnalyticsFilter {
           ?.map((dynamic e) => e as String)
           .toList(),
       categoryId: json['categoryId'] as String?,
+      includeSubcategories:
+          json['includeSubcategories'] as bool? ?? true,
     );
   }
 
@@ -34,6 +37,7 @@ class AnalyticsFilter {
   final String? accountId;
   final List<String>? accountIds;
   final String? categoryId;
+  final bool includeSubcategories;
 
   Map<String, Object?> toJson() => <String, Object?>{
     'start': start.toIso8601String(),
@@ -41,6 +45,7 @@ class AnalyticsFilter {
     'accountId': accountId,
     'accountIds': accountIds,
     'categoryId': categoryId,
+    'includeSubcategories': includeSubcategories,
   };
 
   AnalyticsFilter copyWith({
@@ -49,6 +54,7 @@ class AnalyticsFilter {
     String? accountId,
     List<String>? accountIds,
     String? categoryId,
+    bool? includeSubcategories,
   }) {
     return AnalyticsFilter(
       start: start ?? this.start,
@@ -56,6 +62,7 @@ class AnalyticsFilter {
       accountId: accountId ?? this.accountId,
       accountIds: accountIds ?? this.accountIds,
       categoryId: categoryId ?? this.categoryId,
+      includeSubcategories: includeSubcategories ?? this.includeSubcategories,
     );
   }
 
@@ -67,7 +74,8 @@ class AnalyticsFilter {
         other.end == end &&
         other.accountId == accountId &&
         listEquals(other.accountIds, accountIds) &&
-        other.categoryId == categoryId;
+        other.categoryId == categoryId &&
+        other.includeSubcategories == includeSubcategories;
   }
 
   @override
@@ -77,6 +85,7 @@ class AnalyticsFilter {
     accountId,
     accountIds == null ? null : Object.hashAll(accountIds!),
     categoryId,
+    includeSubcategories,
   );
 }
 

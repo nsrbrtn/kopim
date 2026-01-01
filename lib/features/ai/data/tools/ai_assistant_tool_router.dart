@@ -375,7 +375,7 @@ class AiAssistantToolRouter {
     final int rangeDays = end.difference(start).inDays.abs();
     if (rangeDays > _maxRangeDays) {
       final DateTime clampedStart = end.subtract(
-        Duration(days: _maxRangeDays),
+        const Duration(days: _maxRangeDays),
       );
       return _ResolvedRange(
         start: clampedStart,
@@ -474,7 +474,7 @@ class AiAssistantToolRouter {
     if (decoded is Map<String, dynamic>) {
       return decoded;
     }
-    throw FormatException('Ожидался объект аргументов инструмента.');
+    throw const FormatException('Ожидался объект аргументов инструмента.');
   }
 
   DateTime? _parseDate(String? value) {

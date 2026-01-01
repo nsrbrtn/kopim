@@ -767,6 +767,7 @@ WatchAccountMonthlyTotalsUseCase watchAccountMonthlyTotalsUseCase(Ref ref) =>
 WatchMonthlyAnalyticsUseCase watchMonthlyAnalyticsUseCase(Ref ref) =>
     WatchMonthlyAnalyticsUseCase(
       transactionRepository: ref.watch(transactionRepositoryProvider),
+      categoryRepository: ref.watch(categoryRepositoryProvider),
     );
 
 @riverpod

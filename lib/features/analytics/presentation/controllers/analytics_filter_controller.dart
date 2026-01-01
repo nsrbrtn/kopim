@@ -13,6 +13,7 @@ class AnalyticsFilterState {
     required this.dateRange,
     this.accountIds = const <String>{},
     this.categoryId,
+    this.includeSubcategories = true,
     this.period = AnalyticsPeriodPreset.thisMonth,
     this.monthAnchor,
   });
@@ -35,6 +36,7 @@ class AnalyticsFilterState {
   final DateTimeRange dateRange;
   final Set<String> accountIds;
   final String? categoryId;
+  final bool includeSubcategories;
   final AnalyticsPeriodPreset period;
   final DateTime? monthAnchor;
 
@@ -42,6 +44,7 @@ class AnalyticsFilterState {
     DateTimeRange? dateRange,
     Object? accountIds = _unset,
     Object? categoryId = _unset,
+    Object? includeSubcategories = _unset,
     AnalyticsPeriodPreset? period,
     DateTime? monthAnchor,
   }) {
@@ -53,6 +56,9 @@ class AnalyticsFilterState {
       categoryId: categoryId == _unset
           ? this.categoryId
           : categoryId as String?,
+      includeSubcategories: includeSubcategories == _unset
+          ? this.includeSubcategories
+          : includeSubcategories as bool,
       period: period ?? this.period,
       monthAnchor: monthAnchor ?? this.monthAnchor,
     );
@@ -65,6 +71,7 @@ class AnalyticsFilterState {
         other.dateRange == dateRange &&
         setEquals(other.accountIds, accountIds) &&
         other.categoryId == categoryId &&
+        other.includeSubcategories == includeSubcategories &&
         other.period == period &&
         other.monthAnchor == monthAnchor;
   }
@@ -74,6 +81,7 @@ class AnalyticsFilterState {
     dateRange,
     Object.hashAll(accountIds),
     categoryId,
+    includeSubcategories,
     period,
     monthAnchor,
   );
@@ -93,6 +101,7 @@ extension AnalyticsFilterStateX on AnalyticsFilterState {
       accountId: accountIds.length == 1 ? accountIds.first : null,
       accountIds: accountIds.isEmpty ? null : accountIds.toList(),
       categoryId: categoryId,
+      includeSubcategories: includeSubcategories,
     );
   }
 }
@@ -265,6 +274,13 @@ class AnalyticsFilterController extends _$AnalyticsFilterController {
 
   void updateCategory(String? categoryId) {
     state = state.copyWith(categoryId: categoryId);
+  }
+
+  void updateIncludeSubcategories(bool include) {
+    if (state.includeSubcategories == include) {
+      return;
+    }
+    state = state.copyWith(includeSubcategories: include);
   }
 
   void clearCategory() {

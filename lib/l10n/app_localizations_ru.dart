@@ -1419,6 +1419,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get analyticsCategoryUncategorized => 'Без категории';
 
   @override
+  String get analyticsCategoryDirectLabel => 'В этой категории';
+
+  @override
   String analyticsCategoryTransactionsTitle(String category) {
     return 'Транзакции: $category';
   }
