@@ -87,6 +87,48 @@ class AppLocalizationsEn extends AppLocalizations {
   String get creditsRemainingPaymentsLabel => 'Remaining';
 
   @override
+  String get creditsSegmentCredits => 'Loans';
+
+  @override
+  String get creditsSegmentDebts => 'Debts';
+
+  @override
+  String get debtsAddTitle => 'Add debt';
+
+  @override
+  String get debtsEditTitle => 'Edit debt';
+
+  @override
+  String get debtsAccountLabel => 'Account';
+
+  @override
+  String get debtsAccountHint => 'Select account';
+
+  @override
+  String get debtsAccountError => 'Choose an account for the debt';
+
+  @override
+  String get debtsAmountLabel => 'Debt amount';
+
+  @override
+  String get debtsDueDateLabel => 'Payment date';
+
+  @override
+  String get debtsNoteLabel => 'Description';
+
+  @override
+  String get debtsSaveAction => 'Save debt';
+
+  @override
+  String get debtsSaveAndScheduleAction => 'Save and schedule payment';
+
+  @override
+  String get debtsEmptyList => 'You have no debts yet';
+
+  @override
+  String get debtsDefaultTitle => 'Debt';
+
+  @override
   String get profileGeneralSettingsManagementSection => 'Data management';
 
   @override

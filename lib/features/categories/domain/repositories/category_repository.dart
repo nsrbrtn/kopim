@@ -7,6 +7,7 @@ abstract class CategoryRepository {
   Future<List<Category>> loadCategories();
   Future<List<CategoryTreeNode>> loadCategoryTree();
   Future<Category?> findById(String id);
+  Future<Category?> findByName(String name);
   Future<void> upsert(Category category);
   Future<void> softDelete(String id);
 }

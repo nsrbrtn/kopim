@@ -29,8 +29,11 @@ import 'package:kopim/features/profile/data/remote/profile_remote_data_source.da
 import 'package:kopim/features/profile/domain/entities/profile.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/credits/data/sources/local/credit_dao.dart';
+import 'package:kopim/features/credits/data/sources/local/debt_dao.dart';
 import 'package:kopim/features/credits/data/sources/remote/credit_remote_data_source.dart';
+import 'package:kopim/features/credits/data/sources/remote/debt_remote_data_source.dart';
 import 'package:kopim/features/credits/domain/entities/credit_entity.dart';
+import 'package:kopim/features/credits/domain/entities/debt_entity.dart';
 import 'package:kopim/features/upcoming_payments/data/drift/daos/payment_reminders_dao.dart';
 import 'package:kopim/features/upcoming_payments/data/drift/daos/upcoming_payments_dao.dart';
 import 'package:kopim/features/upcoming_payments/data/sources/remote/payment_reminder_remote_data_source.dart';
@@ -51,6 +54,7 @@ class AuthSyncService {
     required CategoryDao categoryDao,
     required TransactionDao transactionDao,
     required CreditDao creditDao,
+    required DebtDao debtDao,
     required BudgetDao budgetDao,
     required BudgetInstanceDao budgetInstanceDao,
     required SavingGoalDao savingGoalDao,
@@ -60,6 +64,7 @@ class AuthSyncService {
     required CategoryRemoteDataSource categoryRemoteDataSource,
     required TransactionRemoteDataSource transactionRemoteDataSource,
     required CreditRemoteDataSource creditRemoteDataSource,
+    required DebtRemoteDataSource debtRemoteDataSource,
     required BudgetRemoteDataSource budgetRemoteDataSource,
     required BudgetInstanceRemoteDataSource budgetInstanceRemoteDataSource,
     required SavingGoalRemoteDataSource savingGoalRemoteDataSource,
@@ -78,6 +83,7 @@ class AuthSyncService {
        _categoryDao = categoryDao,
        _transactionDao = transactionDao,
        _creditDao = creditDao,
+       _debtDao = debtDao,
        _budgetDao = budgetDao,
        _budgetInstanceDao = budgetInstanceDao,
        _savingGoalDao = savingGoalDao,
@@ -88,6 +94,7 @@ class AuthSyncService {
        _categoryRemoteDataSource = categoryRemoteDataSource,
        _transactionRemoteDataSource = transactionRemoteDataSource,
        _creditRemoteDataSource = creditRemoteDataSource,
+       _debtRemoteDataSource = debtRemoteDataSource,
        _budgetRemoteDataSource = budgetRemoteDataSource,
        _budgetInstanceRemoteDataSource = budgetInstanceRemoteDataSource,
        _savingGoalRemoteDataSource = savingGoalRemoteDataSource,
@@ -108,6 +115,7 @@ class AuthSyncService {
   final CategoryDao _categoryDao;
   final TransactionDao _transactionDao;
   final CreditDao _creditDao;
+  final DebtDao _debtDao;
   final BudgetDao _budgetDao;
   final BudgetInstanceDao _budgetInstanceDao;
   final SavingGoalDao _savingGoalDao;
@@ -117,6 +125,7 @@ class AuthSyncService {
   final CategoryRemoteDataSource _categoryRemoteDataSource;
   final TransactionRemoteDataSource _transactionRemoteDataSource;
   final CreditRemoteDataSource _creditRemoteDataSource;
+  final DebtRemoteDataSource _debtRemoteDataSource;
   final BudgetRemoteDataSource _budgetRemoteDataSource;
   final BudgetInstanceRemoteDataSource _budgetInstanceRemoteDataSource;
   final SavingGoalRemoteDataSource _savingGoalRemoteDataSource;
@@ -180,6 +189,7 @@ class AuthSyncService {
         'remoteCategories': remoteSnapshot.categories.length,
         'remoteTransactions': remoteSnapshot.transactions.length,
         'remoteCredits': remoteSnapshot.credits.length,
+        'remoteDebts': remoteSnapshot.debts.length,
         'remoteBudgets': remoteSnapshot.budgets.length,
         'remoteBudgetInstances': remoteSnapshot.budgetInstances.length,
         'remoteSavingGoals': remoteSnapshot.savingGoals.length,
@@ -191,6 +201,7 @@ class AuthSyncService {
         'Categories: ${remoteSnapshot.categories.length}, '
         'Transactions: ${remoteSnapshot.transactions.length}, '
         'Credits: ${remoteSnapshot.credits.length}, '
+        'Debts: ${remoteSnapshot.debts.length}, '
         'Budgets: ${remoteSnapshot.budgets.length}, '
         'Savings goals: ${remoteSnapshot.savingGoals.length}, '
         'Recurring payments: ${remoteSnapshot.upcomingPayments.length}.',
@@ -311,6 +322,22 @@ class AuthSyncService {
               );
             }
             break;
+          case 'debt':
+            final DebtEntity debt = DebtEntity.fromJson(payload);
+            if (operation == OutboxOperation.delete) {
+              _debtRemoteDataSource.deleteInTransaction(
+                transaction,
+                userId,
+                debt,
+              );
+            } else {
+              _debtRemoteDataSource.upsertInTransaction(
+                transaction,
+                userId,
+                debt,
+              );
+            }
+            break;
           case 'profile':
             if (operation == OutboxOperation.delete) {
               continue;
@@ -409,6 +436,7 @@ class AuthSyncService {
       _categoryRemoteDataSource.fetchAll(userId),
       _transactionRemoteDataSource.fetchAll(userId),
       _creditRemoteDataSource.fetchAll(userId),
+      _debtRemoteDataSource.fetchAll(userId),
       _budgetRemoteDataSource.fetchAll(userId),
       _budgetInstanceRemoteDataSource.fetchAll(userId),
       _savingGoalRemoteDataSource.fetchAll(userId),
@@ -421,11 +449,12 @@ class AuthSyncService {
       categories: results[1] as List<Category>,
       transactions: results[2] as List<TransactionEntity>,
       credits: results[3] as List<CreditEntity>,
-      budgets: results[4] as List<Budget>,
-      budgetInstances: results[5] as List<BudgetInstance>,
-      savingGoals: results[6] as List<SavingGoal>,
-      upcomingPayments: results[7] as List<UpcomingPayment>,
-      paymentReminders: results[8] as List<PaymentReminder>,
+      debts: results[4] as List<DebtEntity>,
+      budgets: results[5] as List<Budget>,
+      budgetInstances: results[6] as List<BudgetInstance>,
+      savingGoals: results[7] as List<SavingGoal>,
+      upcomingPayments: results[8] as List<UpcomingPayment>,
+      paymentReminders: results[9] as List<PaymentReminder>,
       profile: profile,
     );
   }
@@ -453,6 +482,9 @@ class AuthSyncService {
           .getAllTransactions();
       final List<CreditEntity> localCredits = (await _creditDao.getAllCredits())
           .map(_creditDao.mapRowToEntity)
+          .toList();
+      final List<DebtEntity> localDebts = (await _debtDao.getAllDebts())
+          .map(_debtDao.mapRowToEntity)
           .toList();
       final List<Budget> localBudgets = await _budgetDao.getAllBudgets();
       final List<BudgetInstance> localBudgetInstances = await _budgetInstanceDao
@@ -498,6 +530,12 @@ class AuthSyncService {
         remote: remoteSnapshot.credits,
         getId: (CreditEntity entity) => entity.id,
         getUpdatedAt: (CreditEntity entity) => entity.updatedAt,
+      );
+      final List<DebtEntity> mergedDebts = _mergeEntities<DebtEntity>(
+        local: localDebts,
+        remote: remoteSnapshot.debts,
+        getId: (DebtEntity entity) => entity.id,
+        getUpdatedAt: (DebtEntity entity) => entity.updatedAt,
       );
       final List<Budget> mergedBudgets = _mergeEntities<Budget>(
         local: localBudgets,
@@ -566,6 +604,12 @@ class AuthSyncService {
               validCategoryIds: validCategoryIds,
             );
         await _creditDao.upsertAll(sanitizedCredits);
+
+        final List<DebtEntity> sanitizedDebts = _dataSanitizer.sanitizeDebts(
+          debts: mergedDebts,
+          validAccountIds: validAccountIds,
+        );
+        await _debtDao.upsertAll(sanitizedDebts);
 
         await _savingGoalDao.upsertAll(mergedSavingGoals);
         final Set<String> validSavingGoalIds = mergedSavingGoals
@@ -945,6 +989,7 @@ class _RemoteSnapshot {
     required this.categories,
     required this.transactions,
     required this.credits,
+    required this.debts,
     required this.budgets,
     required this.budgetInstances,
     required this.savingGoals,
@@ -957,6 +1002,7 @@ class _RemoteSnapshot {
   final List<Category> categories;
   final List<TransactionEntity> transactions;
   final List<CreditEntity> credits;
+  final List<DebtEntity> debts;
   final List<Budget> budgets;
   final List<BudgetInstance> budgetInstances;
   final List<SavingGoal> savingGoals;

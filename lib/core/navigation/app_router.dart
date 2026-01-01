@@ -18,8 +18,10 @@ import 'package:kopim/features/profile/presentation/screens/general_settings_scr
 import 'package:kopim/features/profile/presentation/screens/menu_screen.dart';
 import 'package:kopim/features/profile/presentation/screens/profile_management_screen.dart';
 import 'package:kopim/features/credits/domain/entities/credit_entity.dart';
+import 'package:kopim/features/credits/domain/entities/debt_entity.dart';
 import 'package:kopim/features/credits/presentation/screens/credits_screen.dart';
 import 'package:kopim/features/credits/presentation/screens/add_edit_credit_screen.dart';
+import 'package:kopim/features/credits/presentation/screens/add_edit_debt_screen.dart';
 import 'package:kopim/features/profile/presentation/screens/profile_screen.dart';
 import 'package:kopim/features/profile/presentation/screens/sign_in_screen.dart';
 import 'package:kopim/features/savings/presentation/screens/savings_list_screen.dart';
@@ -155,6 +157,20 @@ final Provider<GoRouter> appRouterProvider = Provider<GoRouter>((Ref ref) {
         builder: (BuildContext context, GoRouterState state) {
           final CreditEntity? credit = state.extra as CreditEntity?;
           return AddEditCreditScreen(credit: credit);
+        },
+      ),
+      GoRoute(
+        path: '/credits/debts/add',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (BuildContext context, GoRouterState state) =>
+            const AddEditDebtScreen(),
+      ),
+      GoRoute(
+        path: '/credits/debts/edit',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (BuildContext context, GoRouterState state) {
+          final DebtEntity? debt = state.extra as DebtEntity?;
+          return AddEditDebtScreen(debt: debt);
         },
       ),
       GoRoute(

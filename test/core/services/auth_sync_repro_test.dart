@@ -20,6 +20,8 @@ import 'package:kopim/features/categories/data/sources/remote/category_remote_da
 import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/credits/data/sources/local/credit_dao.dart';
 import 'package:kopim/features/credits/data/sources/remote/credit_remote_data_source.dart';
+import 'package:kopim/features/credits/data/sources/local/debt_dao.dart';
+import 'package:kopim/features/credits/data/sources/remote/debt_remote_data_source.dart';
 import 'package:kopim/features/profile/data/local/profile_dao.dart';
 import 'package:kopim/features/profile/data/remote/profile_remote_data_source.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
@@ -46,6 +48,7 @@ void main() {
   late CategoryDao categoryDao;
   late TransactionDao transactionDao;
   late CreditDao creditDao;
+  late DebtDao debtDao;
   late BudgetDao budgetDao;
   late BudgetInstanceDao budgetInstanceDao;
   late SavingGoalDao savingGoalDao;
@@ -71,6 +74,7 @@ void main() {
     categoryDao = CategoryDao(database);
     transactionDao = TransactionDao(database);
     creditDao = CreditDao(database);
+    debtDao = DebtDao(database);
     budgetDao = BudgetDao(database);
     budgetInstanceDao = BudgetInstanceDao(database);
     savingGoalDao = SavingGoalDao(database);
@@ -107,6 +111,7 @@ void main() {
         categoryDao: categoryDao,
         transactionDao: transactionDao,
         creditDao: creditDao,
+        debtDao: debtDao,
         budgetDao: budgetDao,
         budgetInstanceDao: budgetInstanceDao,
         savingGoalDao: savingGoalDao,
@@ -117,6 +122,7 @@ void main() {
         categoryRemoteDataSource: CategoryRemoteDataSource(firestore),
         transactionRemoteDataSource: TransactionRemoteDataSource(firestore),
         creditRemoteDataSource: CreditRemoteDataSource(firestore),
+        debtRemoteDataSource: DebtRemoteDataSource(firestore),
         budgetRemoteDataSource: BudgetRemoteDataSource(firestore),
         budgetInstanceRemoteDataSource: BudgetInstanceRemoteDataSource(
           firestore,
@@ -243,6 +249,7 @@ void main() {
       categoryDao: categoryDao,
       transactionDao: transactionDao,
       creditDao: creditDao,
+      debtDao: debtDao,
       budgetDao: budgetDao,
       budgetInstanceDao: budgetInstanceDao,
       savingGoalDao: savingGoalDao,
@@ -253,6 +260,7 @@ void main() {
       categoryRemoteDataSource: CategoryRemoteDataSource(firestore),
       transactionRemoteDataSource: TransactionRemoteDataSource(firestore),
       creditRemoteDataSource: CreditRemoteDataSource(firestore),
+      debtRemoteDataSource: DebtRemoteDataSource(firestore),
       budgetRemoteDataSource: BudgetRemoteDataSource(firestore),
       budgetInstanceRemoteDataSource: BudgetInstanceRemoteDataSource(firestore),
       savingGoalRemoteDataSource: SavingGoalRemoteDataSource(firestore),
@@ -355,6 +363,7 @@ void main() {
       categoryDao: categoryDao,
       transactionDao: transactionDao,
       creditDao: creditDao,
+      debtDao: debtDao,
       budgetDao: budgetDao,
       budgetInstanceDao: budgetInstanceDao,
       savingGoalDao: savingGoalDao,
@@ -365,6 +374,7 @@ void main() {
       categoryRemoteDataSource: CategoryRemoteDataSource(firestore),
       transactionRemoteDataSource: TransactionRemoteDataSource(firestore),
       creditRemoteDataSource: CreditRemoteDataSource(firestore),
+      debtRemoteDataSource: DebtRemoteDataSource(firestore),
       budgetRemoteDataSource: BudgetRemoteDataSource(firestore),
       budgetInstanceRemoteDataSource: BudgetInstanceRemoteDataSource(firestore),
       savingGoalRemoteDataSource: SavingGoalRemoteDataSource(firestore),

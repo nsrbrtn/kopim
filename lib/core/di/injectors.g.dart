@@ -2278,7 +2278,7 @@ final class AiAssistantRepositoryProvider
 }
 
 String _$aiAssistantRepositoryHash() =>
-    r'6cc7c01d45e7c0405fdb2c1cfb21751d3c868661';
+    r'6df5de595411164b44e91c22f758d29e8fe853ad';
 
 @ProviderFor(askFinancialAssistantUseCase)
 const askFinancialAssistantUseCaseProvider =
@@ -3973,7 +3973,7 @@ final class WatchMonthlyAnalyticsUseCaseProvider
 }
 
 String _$watchMonthlyAnalyticsUseCaseHash() =>
-    r'f1d7c52a9a4fc256b1bd3ae0fff4e7e8666f58e9';
+    r'7f6780907a54c8d34be985056032d47bb088868c';
 
 @ProviderFor(groupTransactionsByDayUseCase)
 const groupTransactionsByDayUseCaseProvider =
@@ -4603,7 +4603,7 @@ final class SyncServiceProvider
   }
 }
 
-String _$syncServiceHash() => r'7dc83f2b72ca744db7e11fbd11bb3405e3ac27e4';
+String _$syncServiceHash() => r'66867cef24f2b0ab01280a640323220827a8897d';
 
 @ProviderFor(authRepository)
 const authRepositoryProvider = AuthRepositoryProvider._();
@@ -4733,4 +4733,4 @@ final class AuthSyncServiceProvider
   }
 }
 
-String _$authSyncServiceHash() => r'3accf98b2167f47b28c9c5fd661c7664b2ebb14d';
+String _$authSyncServiceHash() => r'762d3f9d9ed2a8b71abf77b939f5a261bb5aa578';

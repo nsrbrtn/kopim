@@ -14,6 +14,8 @@ import 'package:kopim/features/budgets/domain/entities/budget.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_instance.dart';
 import 'package:kopim/features/categories/data/sources/remote/category_remote_data_source.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
+import 'package:kopim/features/credits/data/sources/remote/debt_remote_data_source.dart';
+import 'package:kopim/features/credits/domain/entities/debt_entity.dart';
 import 'package:kopim/features/savings/data/sources/remote/saving_goal_remote_data_source.dart';
 import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
 import 'package:kopim/features/profile/data/remote/profile_remote_data_source.dart';
@@ -32,6 +34,7 @@ class SyncService {
     required AccountRemoteDataSource accountRemoteDataSource,
     required CategoryRemoteDataSource categoryRemoteDataSource,
     required TransactionRemoteDataSource transactionRemoteDataSource,
+    required DebtRemoteDataSource debtRemoteDataSource,
     required ProfileRemoteDataSource profileRemoteDataSource,
     required BudgetRemoteDataSource budgetRemoteDataSource,
     required BudgetInstanceRemoteDataSource budgetInstanceRemoteDataSource,
@@ -45,6 +48,7 @@ class SyncService {
        _accountRemoteDataSource = accountRemoteDataSource,
        _categoryRemoteDataSource = categoryRemoteDataSource,
        _transactionRemoteDataSource = transactionRemoteDataSource,
+       _debtRemoteDataSource = debtRemoteDataSource,
        _profileRemoteDataSource = profileRemoteDataSource,
        _budgetRemoteDataSource = budgetRemoteDataSource,
        _budgetInstanceRemoteDataSource = budgetInstanceRemoteDataSource,
@@ -59,6 +63,7 @@ class SyncService {
   final AccountRemoteDataSource _accountRemoteDataSource;
   final CategoryRemoteDataSource _categoryRemoteDataSource;
   final TransactionRemoteDataSource _transactionRemoteDataSource;
+  final DebtRemoteDataSource _debtRemoteDataSource;
   final ProfileRemoteDataSource _profileRemoteDataSource;
   final BudgetRemoteDataSource _budgetRemoteDataSource;
   final BudgetInstanceRemoteDataSource _budgetInstanceRemoteDataSource;
@@ -167,6 +172,10 @@ class SyncService {
           );
           await _dispatchTransaction(userId, transaction, operation);
           break;
+        case 'debt':
+          final DebtEntity debt = DebtEntity.fromJson(payload);
+          await _dispatchDebt(userId, debt, operation);
+          break;
         case 'profile':
           final Profile profile = Profile.fromJson(payload);
           await _dispatchProfile(userId, profile, operation);
@@ -256,6 +265,23 @@ class SyncService {
     return _transactionRemoteDataSource.upsert(
       userId,
       transaction.copyWith(isDeleted: false),
+    );
+  }
+
+  Future<void> _dispatchDebt(
+    String userId,
+    DebtEntity debt,
+    OutboxOperation operation,
+  ) {
+    if (operation == OutboxOperation.delete) {
+      return _debtRemoteDataSource.delete(
+        userId,
+        debt.copyWith(isDeleted: true),
+      );
+    }
+    return _debtRemoteDataSource.upsert(
+      userId,
+      debt.copyWith(isDeleted: false),
     );
   }
 

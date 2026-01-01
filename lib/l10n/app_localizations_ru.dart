@@ -88,6 +88,48 @@ class AppLocalizationsRu extends AppLocalizations {
   String get creditsRemainingPaymentsLabel => 'Осталось';
 
   @override
+  String get creditsSegmentCredits => 'Кредиты';
+
+  @override
+  String get creditsSegmentDebts => 'Долги';
+
+  @override
+  String get debtsAddTitle => 'Добавить долг';
+
+  @override
+  String get debtsEditTitle => 'Редактировать долг';
+
+  @override
+  String get debtsAccountLabel => 'Счет';
+
+  @override
+  String get debtsAccountHint => 'Выберите счет';
+
+  @override
+  String get debtsAccountError => 'Выберите счет для долга';
+
+  @override
+  String get debtsAmountLabel => 'Сумма долга';
+
+  @override
+  String get debtsDueDateLabel => 'Дата платежа';
+
+  @override
+  String get debtsNoteLabel => 'Описание';
+
+  @override
+  String get debtsSaveAction => 'Сохранить долг';
+
+  @override
+  String get debtsSaveAndScheduleAction => 'Сохранить и настроить платеж';
+
+  @override
+  String get debtsEmptyList => 'У вас пока нет долгов';
+
+  @override
+  String get debtsDefaultTitle => 'Долг';
+
+  @override
   String get profileGeneralSettingsManagementSection => 'Управление данными';
 
   @override

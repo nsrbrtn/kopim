@@ -405,6 +405,11 @@ class FakeCategoryRepository implements CategoryRepository {
   }
 
   @override
+  Future<Category?> findByName(String name) {
+    throw UnimplementedError();
+  }
+
+  @override
   Future<void> upsert(Category category) {
     throw UnimplementedError();
   }

@@ -31,6 +31,7 @@ class EditUpcomingPaymentScreenArgs {
     this.initialAmount,
     this.initialAccountId,
     this.initialCategoryId,
+    this.initialDayOfMonth,
   });
 
   final String? paymentId;
@@ -39,6 +40,7 @@ class EditUpcomingPaymentScreenArgs {
   final double? initialAmount;
   final String? initialAccountId;
   final String? initialCategoryId;
+  final int? initialDayOfMonth;
 
   static EditUpcomingPaymentScreenArgs fromState(GoRouterState state) {
     final Object? extra = state.extra;
@@ -121,7 +123,8 @@ class _EditUpcomingPaymentScreenState
         _selectedCategoryId = widget.args.initialCategoryId;
       }
       final DateTime now = DateTime.now();
-      _dayController.text = now.day.toString();
+      final int resolvedDay = widget.args.initialDayOfMonth ?? now.day;
+      _dayController.text = resolvedDay.toString();
       _notifyDaysController.text = '1';
       _notifyTimeController.text = '10:00';
     }

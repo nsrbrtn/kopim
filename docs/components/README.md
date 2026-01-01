@@ -34,6 +34,7 @@
 ### Карточки и элементы списков
 - [BudgetCard](BudgetCard.md) — карточка бюджета с прогресс-индикатором
 - [BudgetMetric](BudgetMetric.md) — метрика бюджета (лейбл + значение)
+- [DebtCard](DebtCard.md) — карточка долга с суммой, счетом и датой платежа
 - [ReminderListItem](ReminderListItem.md) — элемент списка напоминаний
 - [GlowingAccountCard](GlowingAccountCard.md) — анимированная подсветка-змейка вокруг карточки счёта
 - [TransactionTypeSelector](TransactionTypeSelector.md) — сегментированный переключатель «расход/доход» в стиле Kopim

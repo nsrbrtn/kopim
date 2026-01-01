@@ -248,6 +248,90 @@ abstract class AppLocalizations {
   /// **'Remaining'**
   String get creditsRemainingPaymentsLabel;
 
+  /// No description provided for @creditsSegmentCredits.
+  ///
+  /// In en, this message translates to:
+  /// **'Loans'**
+  String get creditsSegmentCredits;
+
+  /// No description provided for @creditsSegmentDebts.
+  ///
+  /// In en, this message translates to:
+  /// **'Debts'**
+  String get creditsSegmentDebts;
+
+  /// No description provided for @debtsAddTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add debt'**
+  String get debtsAddTitle;
+
+  /// No description provided for @debtsEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit debt'**
+  String get debtsEditTitle;
+
+  /// No description provided for @debtsAccountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get debtsAccountLabel;
+
+  /// No description provided for @debtsAccountHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Select account'**
+  String get debtsAccountHint;
+
+  /// No description provided for @debtsAccountError.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose an account for the debt'**
+  String get debtsAccountError;
+
+  /// No description provided for @debtsAmountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Debt amount'**
+  String get debtsAmountLabel;
+
+  /// No description provided for @debtsDueDateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment date'**
+  String get debtsDueDateLabel;
+
+  /// No description provided for @debtsNoteLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Description'**
+  String get debtsNoteLabel;
+
+  /// No description provided for @debtsSaveAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Save debt'**
+  String get debtsSaveAction;
+
+  /// No description provided for @debtsSaveAndScheduleAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Save and schedule payment'**
+  String get debtsSaveAndScheduleAction;
+
+  /// No description provided for @debtsEmptyList.
+  ///
+  /// In en, this message translates to:
+  /// **'You have no debts yet'**
+  String get debtsEmptyList;
+
+  /// No description provided for @debtsDefaultTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Debt'**
+  String get debtsDefaultTitle;
+
   /// Section title for category and recurring actions on general settings
   ///
   /// In en, this message translates to:

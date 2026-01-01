@@ -138,6 +138,9 @@ class _StreamCategoryRepository implements CategoryRepository {
   Future<Category?> findById(String id) => throw UnimplementedError();
 
   @override
+  Future<Category?> findByName(String name) => throw UnimplementedError();
+
+  @override
   Future<List<Category>> loadCategories() => throw UnimplementedError();
 
   @override

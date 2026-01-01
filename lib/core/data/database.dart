@@ -181,6 +181,23 @@ class GoalContributions extends Table {
   Set<Column<Object>> get primaryKey => <Column<Object>>{id};
 }
 
+@DataClassName('DebtRow')
+class Debts extends Table {
+  TextColumn get id => text().withLength(min: 1, max: 50)();
+  TextColumn get accountId =>
+      text().references(Accounts, #id, onDelete: KeyAction.cascade)();
+  RealColumn get amount => real()();
+  DateTimeColumn get dueDate => dateTime()();
+  TextColumn get note => text().nullable()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  BoolColumn get isDeleted =>
+      boolean().withDefault(const Constant<bool>(false))();
+
+  @override
+  Set<Column<Object>> get primaryKey => <Column<Object>>{id};
+}
+
 @DataClassName('CreditRow')
 class Credits extends Table {
   TextColumn get id => text().withLength(min: 1, max: 50)();
@@ -218,6 +235,7 @@ class Credits extends Table {
     GoalContributions,
     UpcomingPayments,
     PaymentReminders,
+    Debts,
     Credits,
   ],
 )
@@ -227,7 +245,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.connect(DatabaseConnection super.connection);
 
   @override
-  int get schemaVersion => 24;
+  int get schemaVersion => 25;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -534,6 +552,11 @@ class AppDatabase extends _$AppDatabase {
       if (from < 23) {
         if (!await _columnExists('credits', 'payment_day')) {
           await m.addColumn(credits, credits.paymentDay);
+        }
+      }
+      if (from < 25) {
+        if (!await _tableExists('debts')) {
+          await m.createTable(debts);
         }
       }
     },

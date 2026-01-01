@@ -54,6 +54,13 @@ class CategoryRepositoryImpl implements CategoryRepository {
   }
 
   @override
+  Future<Category?> findByName(String name) async {
+    final db.CategoryRow? row = await _categoryDao.findByName(name);
+    if (row == null) return null;
+    return _mapToDomain(row);
+  }
+
+  @override
   Future<void> upsert(Category category) async {
     final DateTime now = DateTime.now();
     final Category toPersist = category.copyWith(updatedAt: now);
