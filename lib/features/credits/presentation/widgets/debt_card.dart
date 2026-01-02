@@ -89,9 +89,9 @@ class DebtCard extends ConsumerWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: <Widget>[
                                 Text(
-                                  account.name.isNotEmpty
-                                      ? account.name
-                                      : 'Счет',
+                                  debt.name.isNotEmpty
+                                      ? debt.name
+                                      : context.loc.debtsDefaultTitle,
                                   style: theme.textTheme.titleMedium?.copyWith(
                                     fontWeight: FontWeight.bold,
                                   ),

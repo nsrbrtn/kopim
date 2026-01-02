@@ -26,6 +26,7 @@ class AddDebtUseCase {
 
   Future<DebtEntity> call({
     required String accountId,
+    required String name,
     required double amount,
     required DateTime dueDate,
     String? note,
@@ -44,6 +45,7 @@ class AddDebtUseCase {
     final DebtEntity debt = DebtEntity(
       id: _uuid.v4(),
       accountId: accountId,
+      name: name,
       amount: amount,
       dueDate: dueDate,
       note: note,

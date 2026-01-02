@@ -61,6 +61,7 @@ class DebtDao {
     return db.DebtsCompanion(
       id: Value<String>(debt.id),
       accountId: Value<String>(debt.accountId),
+      name: Value<String?>(debt.name.isEmpty ? null : debt.name),
       amount: Value<double>(debt.amount),
       dueDate: Value<DateTime>(debt.dueDate),
       note: Value<String?>(debt.note),
@@ -74,6 +75,7 @@ class DebtDao {
     return DebtEntity(
       id: row.id,
       accountId: row.accountId,
+      name: row.name ?? '',
       amount: row.amount,
       dueDate: row.dueDate,
       note: row.note,

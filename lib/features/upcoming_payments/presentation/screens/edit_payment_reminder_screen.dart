@@ -21,10 +21,27 @@ import 'package:kopim/features/upcoming_payments/presentation/providers/upcoming
 import 'package:kopim/l10n/app_localizations.dart';
 
 class EditPaymentReminderScreenArgs {
-  const EditPaymentReminderScreenArgs({this.reminderId, this.initialReminder});
+  const EditPaymentReminderScreenArgs({
+    this.reminderId,
+    this.initialReminder,
+    this.initialTitle,
+    this.initialAmount,
+    this.initialWhenLocal,
+    this.initialNote,
+  });
 
   final String? reminderId;
   final PaymentReminder? initialReminder;
+  final String? initialTitle;
+  final double? initialAmount;
+  final DateTime? initialWhenLocal;
+  final String? initialNote;
+
+  bool get hasInitialData =>
+      initialTitle != null ||
+      initialAmount != null ||
+      initialWhenLocal != null ||
+      initialNote != null;
 
   static EditPaymentReminderScreenArgs fromState(GoRouterState state) {
     final Object? extra = state.extra;
@@ -84,6 +101,8 @@ class _EditPaymentReminderScreenState
     _whenLocal = DateTime.now().add(const Duration(days: 1));
     if (widget.args.initialReminder != null) {
       _applyInitial(widget.args.initialReminder!);
+    } else if (widget.args.hasInitialData) {
+      _applyInitialFromArgs(widget.args);
     }
   }
 
@@ -260,6 +279,22 @@ class _EditPaymentReminderScreenState
     _amountController.text = reminder.amount.abs().toStringAsFixed(2);
     _noteController.text = reminder.note ?? '';
     _whenLocal = ref.read(timeServiceProvider).toLocal(reminder.whenAtMs);
+    _appliedInitial = true;
+  }
+
+  void _applyInitialFromArgs(EditPaymentReminderScreenArgs args) {
+    if (args.initialTitle != null) {
+      _titleController.text = args.initialTitle!;
+    }
+    if (args.initialAmount != null) {
+      _amountController.text = args.initialAmount!.toStringAsFixed(2);
+    }
+    if (args.initialNote != null) {
+      _noteController.text = args.initialNote!;
+    }
+    if (args.initialWhenLocal != null) {
+      _whenLocal = args.initialWhenLocal!;
+    }
     _appliedInitial = true;
   }
 

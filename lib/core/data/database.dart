@@ -186,6 +186,7 @@ class Debts extends Table {
   TextColumn get id => text().withLength(min: 1, max: 50)();
   TextColumn get accountId =>
       text().references(Accounts, #id, onDelete: KeyAction.cascade)();
+  TextColumn get name => text().withLength(min: 1, max: 120).nullable()();
   RealColumn get amount => real()();
   DateTimeColumn get dueDate => dateTime()();
   TextColumn get note => text().nullable()();
@@ -245,7 +246,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.connect(DatabaseConnection super.connection);
 
   @override
-  int get schemaVersion => 25;
+  int get schemaVersion => 26;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -557,6 +558,11 @@ class AppDatabase extends _$AppDatabase {
       if (from < 25) {
         if (!await _tableExists('debts')) {
           await m.createTable(debts);
+        }
+      }
+      if (from < 26) {
+        if (!await _columnExists('debts', 'name')) {
+          await m.addColumn(debts, debts.name);
         }
       }
     },

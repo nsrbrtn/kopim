@@ -22,6 +22,7 @@ import 'package:uuid/uuid.dart';
 part 'assistant_session_controller.g.dart';
 
 const String _kOfflineUserFallbackId = 'assistant-offline-user';
+const int _kDialogContextLimit = 10;
 
 @Riverpod(keepAlive: true)
 class AssistantSessionController extends _$AssistantSessionController {
@@ -238,12 +239,15 @@ class AssistantSessionController extends _$AssistantSessionController {
     );
 
     try {
+      final String contentForQuery = _applyDialogContext(
+        currentMessage: userMessage,
+      );
       final AiQueryIntent resolvedIntent =
           intentOverride ?? _resolveIntent(contextFilters, userMessage.content);
       final AiUserQueryEntity query = AiUserQueryEntity(
         id: uuid.v4(),
         userId: userId,
-        content: userMessage.content,
+        content: contentForQuery,
         contextSignals: _buildContextSignals(contextFilters),
         locale: localeTag,
         intent: resolvedIntent,
@@ -385,6 +389,56 @@ class AssistantSessionController extends _$AssistantSessionController {
       }
     }
     return signals;
+  }
+
+  String _applyDialogContext({required AssistantMessage currentMessage}) {
+    final List<AssistantMessage> history = _collectDialogHistory(
+      currentMessageId: currentMessage.id,
+    );
+    if (history.isEmpty) {
+      return currentMessage.content;
+    }
+
+    final StringBuffer buffer = StringBuffer()
+      ..writeln('Контекст диалога (последние $_kDialogContextLimit сообщений):');
+    for (final AssistantMessage message in history) {
+      final String label = message.author == AssistantMessageAuthor.user
+          ? 'Пользователь'
+          : 'Ассистент';
+      buffer.writeln('- $label: ${message.content}');
+    }
+    buffer.writeln();
+    buffer.write('Текущий вопрос: ${currentMessage.content}');
+    return buffer.toString();
+  }
+
+  List<AssistantMessage> _collectDialogHistory({
+    required String currentMessageId,
+  }) {
+    final List<AssistantMessage> candidates = state.messages
+        .where((AssistantMessage message) {
+          if (message.id == currentMessageId) {
+            return false;
+          }
+          if (message.author == AssistantMessageAuthor.system) {
+            return false;
+          }
+          if (message.isStreaming || message.content.trim().isEmpty) {
+            return false;
+          }
+          if (message.author == AssistantMessageAuthor.user &&
+              message.deliveryStatus !=
+                  AssistantMessageDeliveryStatus.delivered) {
+            return false;
+          }
+          return true;
+        })
+        .toList(growable: false);
+
+    if (candidates.length <= _kDialogContextLimit) {
+      return candidates;
+    }
+    return candidates.sublist(candidates.length - _kDialogContextLimit);
   }
 
   AiQueryIntent _resolveIntent(Set<AssistantFilter> filters, String prompt) {

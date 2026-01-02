@@ -272,6 +272,12 @@ abstract class AppLocalizations {
   /// **'Edit debt'**
   String get debtsEditTitle;
 
+  /// No description provided for @debtsNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Debt name'**
+  String get debtsNameLabel;
+
   /// No description provided for @debtsAccountLabel.
   ///
   /// In en, this message translates to:
@@ -317,7 +323,7 @@ abstract class AppLocalizations {
   /// No description provided for @debtsSaveAndScheduleAction.
   ///
   /// In en, this message translates to:
-  /// **'Save and schedule payment'**
+  /// **'Save and remind'**
   String get debtsSaveAndScheduleAction;
 
   /// No description provided for @debtsEmptyList.

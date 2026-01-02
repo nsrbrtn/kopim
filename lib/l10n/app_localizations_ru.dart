@@ -100,6 +100,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get debtsEditTitle => 'Редактировать долг';
 
   @override
+  String get debtsNameLabel => 'Название';
+
+  @override
   String get debtsAccountLabel => 'Счет';
 
   @override
@@ -121,7 +124,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get debtsSaveAction => 'Сохранить долг';
 
   @override
-  String get debtsSaveAndScheduleAction => 'Сохранить и настроить платеж';
+  String get debtsSaveAndScheduleAction => 'Сохранить и напомнить';
 
   @override
   String get debtsEmptyList => 'У вас пока нет долгов';

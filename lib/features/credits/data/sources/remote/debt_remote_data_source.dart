@@ -63,6 +63,7 @@ class DebtRemoteDataSource {
     return <String, dynamic>{
       'id': debt.id,
       'accountId': debt.accountId,
+      'name': debt.name,
       'amount': debt.amount,
       'dueDate': Timestamp.fromDate(debt.dueDate.toUtc()),
       'note': debt.note,
@@ -77,6 +78,7 @@ class DebtRemoteDataSource {
     return DebtEntity(
       id: data['id'] as String? ?? doc.id,
       accountId: data['accountId'] as String? ?? '',
+      name: data['name'] as String? ?? '',
       amount: (data['amount'] as num?)?.toDouble() ?? 0,
       dueDate: _parseTimestamp(data['dueDate']),
       note: data['note'] as String?,

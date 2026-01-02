@@ -99,6 +99,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get debtsEditTitle => 'Edit debt';
 
   @override
+  String get debtsNameLabel => 'Debt name';
+
+  @override
   String get debtsAccountLabel => 'Account';
 
   @override
@@ -120,7 +123,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get debtsSaveAction => 'Save debt';
 
   @override
-  String get debtsSaveAndScheduleAction => 'Save and schedule payment';
+  String get debtsSaveAndScheduleAction => 'Save and remind';
 
   @override
   String get debtsEmptyList => 'You have no debts yet';

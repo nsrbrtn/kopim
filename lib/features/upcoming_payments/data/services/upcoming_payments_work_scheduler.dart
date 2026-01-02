@@ -45,6 +45,12 @@ import 'package:kopim/l10n/app_localizations.dart';
 
 const String kUpcomingPaymentsPeriodicTask = 'upcoming_apply_rules';
 const String kUpcomingPaymentsOneOffTask = 'upcoming_apply_rules_once';
+@pragma('vm:entry-point')
+void upcomingPaymentsCallbackDispatcher() {
+  Workmanager().executeTask((String task, Map<String, dynamic>? inputData) {
+    return runUpcomingPaymentsBackgroundTask(task);
+  });
+}
 
 bool _isMobilePlatform() {
   if (kIsWeb) {
@@ -112,6 +118,7 @@ class UpcomingPaymentsWorkScheduler {
   }) : _workmanager = workmanager,
        _logger = logger;
 
+  static bool _didInitialize = false;
   final Workmanager _workmanager;
   final LoggerService _logger;
 
@@ -119,6 +126,7 @@ class UpcomingPaymentsWorkScheduler {
     if (!_isMobilePlatform()) {
       return;
     }
+    await _ensureInitialized();
     await _workmanager.registerPeriodicTask(
       kUpcomingPaymentsPeriodicTask,
       kUpcomingPaymentsPeriodicTask,
@@ -136,6 +144,7 @@ class UpcomingPaymentsWorkScheduler {
     if (!_isMobilePlatform()) {
       return;
     }
+    await _ensureInitialized();
     final String id =
         '${kUpcomingPaymentsOneOffTask}_${DateTime.now().millisecondsSinceEpoch}';
     await _workmanager.registerOneOffTask(
@@ -147,6 +156,17 @@ class UpcomingPaymentsWorkScheduler {
       constraints: Constraints(networkType: NetworkType.notRequired),
     );
     _logger.logInfo('Enqueued upcoming payments catch-up task: $id');
+  }
+
+  Future<void> _ensureInitialized() async {
+    if (_didInitialize) {
+      return;
+    }
+    await _workmanager.initialize(
+      upcomingPaymentsCallbackDispatcher,
+      isInDebugMode: kDebugMode,
+    );
+    _didInitialize = true;
   }
 }
 

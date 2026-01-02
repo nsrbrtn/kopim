@@ -9,6 +9,7 @@ part of 'debt_entity.dart';
 _DebtEntity _$DebtEntityFromJson(Map<String, dynamic> json) => _DebtEntity(
   id: json['id'] as String,
   accountId: json['accountId'] as String,
+  name: json['name'] as String? ?? '',
   amount: (json['amount'] as num).toDouble(),
   dueDate: DateTime.parse(json['dueDate'] as String),
   note: json['note'] as String?,
@@ -21,6 +22,7 @@ Map<String, dynamic> _$DebtEntityToJson(_DebtEntity instance) =>
     <String, dynamic>{
       'id': instance.id,
       'accountId': instance.accountId,
+      'name': instance.name,
       'amount': instance.amount,
       'dueDate': instance.dueDate.toIso8601String(),
       'note': instance.note,

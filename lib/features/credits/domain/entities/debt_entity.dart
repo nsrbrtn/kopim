@@ -8,6 +8,7 @@ abstract class DebtEntity with _$DebtEntity {
   const factory DebtEntity({
     required String id,
     required String accountId,
+    @Default('') String name,
     required double amount,
     required DateTime dueDate,
     String? note,
