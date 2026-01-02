@@ -16,8 +16,6 @@ import '../models/navigation_tab_config.dart';
 import '../models/navigation_tab_content.dart';
 import '../providers/main_navigation_tabs_provider.dart';
 import 'main_navigation_bar.dart';
-import 'main_navigation_rail.dart';
-import 'navigation_responsive_breakpoints.dart';
 
 class MainNavigationShell extends ConsumerStatefulWidget {
   const MainNavigationShell({super.key});
@@ -148,8 +146,6 @@ class _MainNavigationShellState extends ConsumerState<MainNavigationShell> {
     final bool showFirebaseWarning =
         firebaseWarning != null && !_hideFirebaseWarning;
     final AppLocalizations strings = AppLocalizations.of(context)!;
-    final KopimLayout layoutTokens = Theme.of(context).kopimLayout;
-    final double dividerThickness = layoutTokens.divider.thickness;
     final List<NavigationTabConfig> tabs = ref.watch(
       mainNavigationTabsProvider,
     );
@@ -160,7 +156,6 @@ class _MainNavigationShellState extends ConsumerState<MainNavigationShell> {
     );
     final NavigationTabContent activeContent = tabs[currentIndex]
         .contentBuilder(context, ref);
-    final bool isCurrentRoute = ModalRoute.of(context)?.isCurrent ?? true;
     final PreferredSizeWidget? appBar = activeContent.appBarBuilder?.call(
       context,
       ref,
@@ -242,13 +237,7 @@ class _MainNavigationShellState extends ConsumerState<MainNavigationShell> {
           final String localeTag = Localizations.localeOf(
             context,
           ).toLanguageTag();
-          final _MainNavigationLayout layout = _MainNavigationLayout.fromWidth(
-            constraints.maxWidth,
-          );
-          final bool showNavigation = isCurrentRoute;
-          final bool useRail = showNavigation && layout.usesRail;
-          final bool useBottomBar = showNavigation && layout.usesBottomBar;
-          final bool enableTwoPane = useRail;
+          const bool enableTwoPane = false;
 
           _syncCache(
             tabs: tabs,
@@ -272,22 +261,7 @@ class _MainNavigationShellState extends ConsumerState<MainNavigationShell> {
             ],
           );
 
-          final Widget body = useRail
-              ? Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: <Widget>[
-                    MainNavigationRail(
-                      tabs: tabs,
-                      extended: layout.isExtendedRail,
-                    ),
-                    VerticalDivider(
-                      width: dividerThickness,
-                      thickness: dividerThickness,
-                    ),
-                    Expanded(child: stackedContent),
-                  ],
-                )
-              : stackedContent;
+          final Widget body = stackedContent;
           final Widget resolvedBody = firebaseWarning == null
               ? body
               : Column(
@@ -304,18 +278,22 @@ class _MainNavigationShellState extends ConsumerState<MainNavigationShell> {
                 );
 
           final Widget scaffold = Scaffold(
-            extendBody: useBottomBar,
+            extendBody: true,
             appBar: appBar,
             body: resolvedBody,
             floatingActionButton: floatingActionButton,
-            bottomNavigationBar: useBottomBar
-                ? SafeArea(
-                    top: false,
-                    left: false,
-                    right: false,
-                    child: MainNavigationBar(tabs: tabs),
-                  )
-                : null,
+            bottomNavigationBar: SafeArea(
+              top: false,
+              left: false,
+              right: false,
+              child: Align(
+                alignment: Alignment.bottomCenter,
+                child: FractionallySizedBox(
+                  widthFactor: 0.5,
+                  child: MainNavigationBar(tabs: tabs),
+                ),
+              ),
+            ),
           );
           final Widget scaffoldWithFrozenInsets = _freezeScaffoldViewInsets
               ? MediaQuery.removeViewInsets(
@@ -496,28 +474,4 @@ class _NavigationTabPane extends StatelessWidget {
       },
     );
   }
-}
-
-enum _MainNavigationLayout {
-  bottom,
-  rail,
-  extendedRail;
-
-  static _MainNavigationLayout fromWidth(double width) {
-    if (width >= kMainNavigationExtendedRailBreakpoint) {
-      return _MainNavigationLayout.extendedRail;
-    }
-    if (width >= kMainNavigationRailBreakpoint) {
-      return _MainNavigationLayout.rail;
-    }
-    return _MainNavigationLayout.bottom;
-  }
-
-  bool get usesBottomBar => this == _MainNavigationLayout.bottom;
-
-  bool get usesRail =>
-      this == _MainNavigationLayout.rail ||
-      this == _MainNavigationLayout.extendedRail;
-
-  bool get isExtendedRail => this == _MainNavigationLayout.extendedRail;
 }

@@ -106,7 +106,9 @@ class SavingGoalCard extends StatelessWidget {
                 child: LinearProgressIndicator(
                   value: percentValue,
                   minHeight: 6,
-                  backgroundColor: cardColors.onBackground.withOpacity(0.2),
+                  backgroundColor: cardColors.onBackground.withValues(
+                    alpha: 0.2,
+                  ),
                   valueColor: AlwaysStoppedAnimation<Color>(
                     cardColors.onBackground,
                   ),
@@ -166,7 +168,9 @@ class SavingGoalCard extends StatelessWidget {
                 const SizedBox(height: 12),
                 Chip(
                   label: Text(strings.savingsArchivedBadge),
-                  backgroundColor: cardColors.onBackground.withOpacity(0.12),
+                  backgroundColor: cardColors.onBackground.withValues(
+                    alpha: 0.12,
+                  ),
                   labelStyle: theme.textTheme.labelSmall?.copyWith(
                     color: cardColors.onBackground,
                   ),

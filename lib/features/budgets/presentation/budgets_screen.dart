@@ -106,8 +106,6 @@ NavigationTabContent buildBudgetsTabContent(
 ) {
   final AppLocalizations strings = AppLocalizations.of(context)!;
   return NavigationTabContent(
-    appBarBuilder: (BuildContext context, WidgetRef ref) =>
-        AppBar(title: Text(strings.budgetsTitle)),
     floatingActionButtonBuilder: (BuildContext context, WidgetRef ref) {
       final ColorScheme colorScheme = Theme.of(context).colorScheme;
       return AnimatedFab(
@@ -236,12 +234,33 @@ NavigationTabContent buildBudgetsTabContent(
           );
         }
       }
-      return MediaQuery.removePadding(
-        context: context,
-        removeBottom: true,
-        child: Padding(
-          padding: const EdgeInsets.only(bottom: 80),
-          child: content,
+      return SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            Padding(
+              padding: EdgeInsets.fromLTRB(
+                spacing.screen,
+                spacing.section,
+                spacing.screen,
+                spacing.between,
+              ),
+              child: Text(
+                strings.budgetsTitle,
+                style: Theme.of(context).textTheme.headlineSmall,
+              ),
+            ),
+            Expanded(
+              child: MediaQuery.removePadding(
+                context: context,
+                removeBottom: true,
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 80),
+                  child: content,
+                ),
+              ),
+            ),
+          ],
         ),
       );
     },

@@ -164,7 +164,6 @@ class UpcomingPaymentsWorkScheduler {
     }
     await _workmanager.initialize(
       upcomingPaymentsCallbackDispatcher,
-      isInDebugMode: kDebugMode,
     );
     _didInitialize = true;
   }

@@ -53,7 +53,6 @@ class HomeGamificationAppBar extends ConsumerWidget {
     );
     final LevelPolicy policy = ref.read(levelPolicyProvider);
     final double topPadding = MediaQuery.of(context).padding.top;
-    final TextTheme textTheme = theme.textTheme;
     final String headline = _phraseForDate(DateTime.now());
 
     return SliverMainAxisGroup(

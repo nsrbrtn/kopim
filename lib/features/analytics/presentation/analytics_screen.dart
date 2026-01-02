@@ -119,18 +119,7 @@ NavigationTabContent buildAnalyticsTabContent(
   BuildContext context,
   WidgetRef ref,
 ) {
-  final AppLocalizations strings = AppLocalizations.of(context)!;
   return NavigationTabContent(
-    appBarBuilder: (BuildContext context, WidgetRef ref) => AppBar(
-      title: Text(strings.analyticsTitle),
-      actions: <Widget>[
-        IconButton(
-          tooltip: strings.analyticsTitle,
-          icon: const Icon(Icons.help_outline_outlined),
-          onPressed: () => _showAnalyticsInfo(context),
-        ),
-      ],
-    ),
     bodyBuilder: (BuildContext context, WidgetRef ref) =>
         const _AnalyticsBody(),
   );
@@ -185,87 +174,122 @@ class _AnalyticsBody extends ConsumerWidget {
 
     return SafeArea(
       bottom: false,
-      child: DefaultTabController(
-        length: 2,
-        child: NestedScrollView(
-          headerSliverBuilder:
-              (BuildContext context, bool innerBoxIsScrolled) {
-                final ThemeData theme = Theme.of(context);
-                return <Widget>[
-                  SliverPersistentHeader(
-                    pinned: true,
-                    delegate: _AnalyticsTabsHeaderDelegate(
-                      backgroundColor: theme.scaffoldBackgroundColor,
-                      tabBar: const TabBar(
-                        isScrollable: true,
-                        tabs: <Widget>[
-                          Tab(text: 'Траты по категориям'),
-                          Tab(text: 'Статистика'),
-                        ],
+      child: Column(
+        children: <Widget>[
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+            child: Row(
+              children: <Widget>[
+                Text(
+                  strings.analyticsTitle,
+                  style: Theme.of(context).textTheme.headlineSmall,
+                ),
+                const Spacer(),
+                Material(
+                  color: Colors.transparent,
+                  borderRadius: BorderRadius.circular(14),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(14),
+                    onTap: () => _showAnalyticsInfo(context),
+                    child: SizedBox(
+                      width: 40,
+                      height: 40,
+                      child: Icon(
+                        Icons.help_outline_outlined,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                     ),
                   ),
-                  SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
-                    sliver: SliverToBoxAdapter(
-                      child: KeyedSubtree(
-                        key: ValueKey<int>(
-                          Object.hashAll(<Object?>[
-                            filterState,
-                            accounts.length,
-                            categories.length,
-                          ]),
-                        ),
-                        child: _AnalyticsFiltersCard(
-                          filterState: filterState,
-                          accounts: accounts,
-                          strings: strings,
-                        ),
-                      ),
-                    ),
-                  ),
-                  SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
-                    sliver: SliverToBoxAdapter(
-                      child: _AnalyticsQuickSelectors(
-                        filterState: filterState,
-                        accounts: accounts,
-                        categories: categories,
-                        strings: strings,
-                      ),
-                    ),
-                  ),
-                ];
-              },
-          body: TabBarView(
-            children: <Widget>[
-              _AnalyticsCategoriesTabView(
-                showFullScreenLoading: showFullScreenLoading,
-                error: error,
-                overview: overview,
-                categories: categories,
-                accounts: accounts,
-                strings: strings,
-                activeAnchor: activeAnchor,
-                canGoNextRange: canGoNextRange,
-                canGoPreviousRange: canGoPreviousRange,
-                onGoPreviousRange: () => ref
-                    .read(analyticsFilterControllerProvider.notifier)
-                    .goToPreviousRangeStep(),
-                onGoNextRange: () => ref
-                    .read(analyticsFilterControllerProvider.notifier)
-                    .goToNextRangeStep(),
-              ),
-              _AnalyticsStatsTabView(
-                showFullScreenLoading: showFullScreenLoading,
-                error: error,
-                overview: overview,
-                strings: strings,
-                activeAnchor: activeAnchor,
-              ),
-            ],
+                ),
+              ],
+            ),
           ),
-        ),
+          const SizedBox(height: 8),
+          Expanded(
+            child: DefaultTabController(
+              length: 2,
+              child: NestedScrollView(
+                headerSliverBuilder:
+                    (BuildContext context, bool innerBoxIsScrolled) {
+                      final ThemeData theme = Theme.of(context);
+                      return <Widget>[
+                        SliverPersistentHeader(
+                          pinned: true,
+                          delegate: _AnalyticsTabsHeaderDelegate(
+                            backgroundColor: theme.scaffoldBackgroundColor,
+                            tabBar: const TabBar(
+                              isScrollable: true,
+                              tabs: <Widget>[
+                                Tab(text: 'Траты по категориям'),
+                                Tab(text: 'Статистика'),
+                              ],
+                            ),
+                          ),
+                        ),
+                        SliverPadding(
+                          padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
+                          sliver: SliverToBoxAdapter(
+                            child: KeyedSubtree(
+                              key: ValueKey<int>(
+                                Object.hashAll(<Object?>[
+                                  filterState,
+                                  accounts.length,
+                                  categories.length,
+                                ]),
+                              ),
+                              child: _AnalyticsFiltersCard(
+                                filterState: filterState,
+                                accounts: accounts,
+                                strings: strings,
+                              ),
+                            ),
+                          ),
+                        ),
+                        SliverPadding(
+                          padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
+                          sliver: SliverToBoxAdapter(
+                            child: _AnalyticsQuickSelectors(
+                              filterState: filterState,
+                              accounts: accounts,
+                              categories: categories,
+                              strings: strings,
+                            ),
+                          ),
+                        ),
+                      ];
+                    },
+                body: TabBarView(
+                  children: <Widget>[
+                    _AnalyticsCategoriesTabView(
+                      showFullScreenLoading: showFullScreenLoading,
+                      error: error,
+                      overview: overview,
+                      categories: categories,
+                      accounts: accounts,
+                      strings: strings,
+                      activeAnchor: activeAnchor,
+                      canGoNextRange: canGoNextRange,
+                      canGoPreviousRange: canGoPreviousRange,
+                      onGoPreviousRange: () => ref
+                          .read(analyticsFilterControllerProvider.notifier)
+                          .goToPreviousRangeStep(),
+                      onGoNextRange: () => ref
+                          .read(analyticsFilterControllerProvider.notifier)
+                          .goToNextRangeStep(),
+                    ),
+                    _AnalyticsStatsTabView(
+                      showFullScreenLoading: showFullScreenLoading,
+                      error: error,
+                      overview: overview,
+                      strings: strings,
+                      activeAnchor: activeAnchor,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
