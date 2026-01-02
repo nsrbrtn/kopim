@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import 'package:kopim/core/config/theme_extensions.dart';
+import 'package:kopim/core/widgets/kopim_dropdown_field.dart';
+import 'package:kopim/core/widgets/kopim_text_field.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
 import 'package:kopim/features/savings/domain/value_objects/goal_progress.dart';
@@ -9,27 +12,7 @@ import 'package:kopim/features/savings/presentation/controllers/contribute_contr
 import 'package:kopim/features/savings/presentation/controllers/contribute_state.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
-InputDecoration _contributionFieldDecoration(
-  BuildContext context, {
-  required String label,
-  String? error,
-}) {
-  final ThemeData theme = Theme.of(context);
-  const OutlineInputBorder border = OutlineInputBorder(
-    borderRadius: BorderRadius.all(Radius.circular(12)),
-    borderSide: BorderSide.none,
-  );
-  return InputDecoration(
-    labelText: label,
-    errorText: error,
-    filled: true,
-    fillColor: theme.colorScheme.surfaceContainerHighest,
-    border: border,
-    enabledBorder: border,
-    focusedBorder: border,
-    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
-  );
-}
+const String _noAccountValue = '__no_account__';
 
 class ContributeScreen extends ConsumerStatefulWidget {
   const ContributeScreen({super.key, required this.goal});
@@ -92,25 +75,45 @@ class _ContributeScreenState extends ConsumerState<ContributeScreen> {
     );
     final AppLocalizations strings = AppLocalizations.of(context)!;
     final GoalProgress progress = GoalProgress.fromGoal(widget.goal);
+    final KopimLayout layout = context.kopimLayout;
     final NumberFormat currencyFormat = NumberFormat.simpleCurrency(
       locale: Localizations.localeOf(context).toString(),
     );
     final String remainingLabel = currencyFormat.format(
       progress.remaining.minorUnits / 100,
     );
+    final List<DropdownMenuItem<String>> accountItems =
+        <DropdownMenuItem<String>>[
+      DropdownMenuItem<String>(
+        value: _noAccountValue,
+        child: Text(strings.savingsNoAccountOption),
+      ),
+      ...state.accounts.map(
+        (AccountEntity account) => DropdownMenuItem<String>(
+          value: account.id,
+          child: Text(account.name),
+        ),
+      ),
+    ];
+    final String selectedAccountValue =
+        state.selectedAccountId ?? _noAccountValue;
     return Scaffold(
       appBar: AppBar(
         title: Text(strings.savingsContributeTitle(widget.goal.name)),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(8),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               Card(
                 elevation: 0,
                 color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(layout.radius.card),
+                ),
+                clipBehavior: Clip.antiAlias,
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: Column(
@@ -132,50 +135,37 @@ class _ContributeScreenState extends ConsumerState<ContributeScreen> {
                 ),
               ),
               const SizedBox(height: 24),
-              TextFormField(
+              KopimTextField(
                 controller: _amountController,
-                decoration: _contributionFieldDecoration(
-                  context,
-                  label: strings.savingsAmountLabel,
-                  error: state.amountError,
-                ),
+                placeholder: strings.savingsAmountLabel,
                 keyboardType: const TextInputType.numberWithOptions(
                   decimal: true,
                 ),
+                hasError:
+                    state.amountError != null && state.amountError!.isNotEmpty,
                 onChanged: (String value) => ref
                     .read(contributeControllerProvider(widget.goal).notifier)
                     .updateAmount(value),
               ),
+              if (state.amountError != null && state.amountError!.isNotEmpty)
+                _FieldErrorText(message: state.amountError!),
               const SizedBox(height: 16),
-              DropdownButtonFormField<String?>(
-                initialValue: state.selectedAccountId,
-                decoration: _contributionFieldDecoration(
-                  context,
-                  label: strings.savingsSourceAccountLabel,
-                ),
-                items: <DropdownMenuItem<String?>>[
-                  DropdownMenuItem<String?>(
-                    value: null,
-                    child: Text(strings.savingsNoAccountOption),
-                  ),
-                  ...state.accounts.map(
-                    (AccountEntity account) => DropdownMenuItem<String?>(
-                      value: account.id,
-                      child: Text(account.name),
-                    ),
-                  ),
-                ],
-                onChanged: (String? value) => ref
+              KopimDropdownField<String>(
+                value: selectedAccountValue,
+                items: accountItems,
+                label: strings.savingsSourceAccountLabel,
+                hint: strings.savingsNoAccountOption,
+                enabled: accountItems.isNotEmpty,
+                onChanged: (String value) => ref
                     .read(contributeControllerProvider(widget.goal).notifier)
-                    .selectAccount(value),
+                    .selectAccount(
+                      value == _noAccountValue ? null : value,
+                    ),
               ),
               const SizedBox(height: 16),
-              TextFormField(
+              KopimTextField(
                 controller: _noteController,
-                decoration: _contributionFieldDecoration(
-                  context,
-                  label: strings.savingsContributionNoteLabel,
-                ),
+                placeholder: strings.savingsContributionNoteLabel,
                 maxLines: 3,
                 onChanged: (String value) => ref
                     .read(contributeControllerProvider(widget.goal).notifier)
@@ -206,6 +196,26 @@ class _ContributeScreenState extends ConsumerState<ContributeScreen> {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _FieldErrorText extends StatelessWidget {
+  const _FieldErrorText({required this.message});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: Text(
+        message,
+        style: theme.textTheme.bodySmall?.copyWith(
+          color: theme.colorScheme.error,
         ),
       ),
     );

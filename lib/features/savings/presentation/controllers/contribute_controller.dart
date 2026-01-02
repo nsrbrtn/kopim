@@ -4,6 +4,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
+import 'package:kopim/features/accounts/domain/utils/account_type_utils.dart';
 import 'package:kopim/features/accounts/domain/use_cases/watch_accounts_use_case.dart';
 import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
 import 'package:kopim/features/savings/domain/use_cases/add_contribution_use_case.dart';
@@ -89,13 +90,40 @@ class ContributeController extends _$ContributeController {
       watchAccountsUseCaseProvider,
     );
     _subscription = watchAccounts().listen((List<AccountEntity> accounts) {
-      final String? selected = state.selectedAccountId;
-      final bool stillExists = selected == null
-          ? true
-          : accounts.any((AccountEntity account) => account.id == selected);
+      final List<AccountEntity> filtered = accounts
+          .where(
+            (AccountEntity account) =>
+                normalizeAccountType(account.type).toLowerCase() != 'credit',
+          )
+          .toList(growable: false);
+      final String? previousSelected = state.selectedAccountId;
+      String? nextSelected = previousSelected;
+      final bool selectionRemoved = previousSelected != null &&
+          !filtered.any(
+            (AccountEntity account) => account.id == previousSelected,
+          );
+      if (selectionRemoved) {
+        nextSelected = null;
+      }
+      final bool shouldDefaultToPrimary =
+          selectionRemoved ||
+          (previousSelected == null && state.accounts.isEmpty);
+      if (nextSelected == null && shouldDefaultToPrimary) {
+        bool assigned = false;
+        for (final AccountEntity account in filtered) {
+          if (account.isPrimary) {
+            nextSelected = account.id;
+            assigned = true;
+            break;
+          }
+        }
+        if (!assigned && filtered.isNotEmpty) {
+          nextSelected = filtered.first.id;
+        }
+      }
       state = state.copyWith(
-        accounts: accounts,
-        selectedAccountId: stillExists ? selected : null,
+        accounts: filtered,
+        selectedAccountId: nextSelected,
       );
     });
   }

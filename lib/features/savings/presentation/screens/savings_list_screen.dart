@@ -125,10 +125,12 @@ class _SavingsBodyState extends ConsumerState<_SavingsBody> {
     return RefreshIndicator(
       onRefresh: () =>
           ref.read(savingGoalsControllerProvider.notifier).refresh(),
-      child: ListView.builder(
+      child: ListView.separated(
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.all(8),
         itemCount: progressList.length + 1,
+        separatorBuilder: (BuildContext context, int index) =>
+            const SizedBox(height: 8),
         itemBuilder: (BuildContext context, int index) {
           if (index == 0) {
             return _FilterRow(
@@ -139,28 +141,25 @@ class _SavingsBodyState extends ConsumerState<_SavingsBody> {
             );
           }
           final GoalProgress progress = progressList[index - 1];
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: SavingGoalCard(
-              goal: progress.goal,
-              progress: progress,
-              onContribute: () {
-                Navigator.of(
-                  context,
-                ).push(ContributeScreen.route(progress.goal));
-              },
-              onEdit: () {
-                Navigator.of(
-                  context,
-                ).push(AddEditGoalScreen.route(goal: progress.goal));
-              },
-              onArchive: () => unawaited(_archiveGoal(progress.goal)),
-              onOpen: () {
-                Navigator.of(
-                  context,
-                ).push(SavingGoalDetailsScreen.route(progress.goal.id));
-              },
-            ),
+          return SavingGoalCard(
+            goal: progress.goal,
+            progress: progress,
+            onContribute: () {
+              Navigator.of(
+                context,
+              ).push(ContributeScreen.route(progress.goal));
+            },
+            onEdit: () {
+              Navigator.of(
+                context,
+              ).push(AddEditGoalScreen.route(goal: progress.goal));
+            },
+            onArchive: () => unawaited(_archiveGoal(progress.goal)),
+            onOpen: () {
+              Navigator.of(
+                context,
+              ).push(SavingGoalDetailsScreen.route(progress.goal.id));
+            },
           );
         },
       ),
@@ -197,7 +196,7 @@ class _SavingsEmptyState extends StatelessWidget {
     final ThemeData theme = Theme.of(context);
     return Center(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 32),
+        padding: const EdgeInsets.all(8),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
@@ -242,7 +241,7 @@ class _SavingsErrorState extends StatelessWidget {
     final ThemeData theme = Theme.of(context);
     return Center(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24),
+        padding: const EdgeInsets.all(8),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[

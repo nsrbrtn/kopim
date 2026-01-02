@@ -1,34 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:kopim/core/widgets/kopim_text_field.dart';
 import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
 import 'package:kopim/features/savings/presentation/controllers/edit_goal_controller.dart';
 import 'package:kopim/features/savings/presentation/controllers/edit_goal_state.dart';
 import 'package:kopim/l10n/app_localizations.dart';
-
-InputDecoration _goalFieldDecoration(
-  BuildContext context, {
-  required String label,
-  String? helper,
-  String? error,
-}) {
-  final ThemeData theme = Theme.of(context);
-  const OutlineInputBorder border = OutlineInputBorder(
-    borderRadius: BorderRadius.all(Radius.circular(12)),
-    borderSide: BorderSide.none,
-  );
-  return InputDecoration(
-    labelText: label,
-    helperText: helper,
-    errorText: error,
-    filled: true,
-    fillColor: theme.colorScheme.surfaceContainerHighest,
-    border: border,
-    enabledBorder: border,
-    focusedBorder: border,
-    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
-  );
-}
 
 class AddEditGoalScreen extends ConsumerStatefulWidget {
   const AddEditGoalScreen({super.key, this.goal});
@@ -112,46 +89,45 @@ class _AddEditGoalScreenState extends ConsumerState<AddEditGoalScreen> {
       body: SafeArea(
         child: Form(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(8),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                TextFormField(
+                KopimTextField(
                   controller: _nameController,
-                  decoration: _goalFieldDecoration(
-                    context,
-                    label: strings.savingsNameLabel,
-                    error: state.nameError,
-                  ),
+                  placeholder: strings.savingsNameLabel,
                   textInputAction: TextInputAction.next,
+                  hasError:
+                      state.nameError != null && state.nameError!.isNotEmpty,
                   onChanged: (String value) => ref
                       .read(editGoalControllerProvider(widget.goal).notifier)
                       .updateName(value),
                 ),
+                if (state.nameError != null && state.nameError!.isNotEmpty)
+                  _FieldErrorText(message: state.nameError!),
                 const SizedBox(height: 16),
-                TextFormField(
+                KopimTextField(
                   controller: _targetController,
-                  decoration: _goalFieldDecoration(
-                    context,
-                    label: strings.savingsTargetLabel,
-                    helper: strings.savingsTargetHelper,
-                    error: state.targetError,
-                  ),
+                  placeholder: strings.savingsTargetLabel,
+                  supportingText: state.targetError == null
+                      ? strings.savingsTargetHelper
+                      : null,
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
                   textInputAction: TextInputAction.next,
+                  hasError: state.targetError != null &&
+                      state.targetError!.isNotEmpty,
                   onChanged: (String value) => ref
                       .read(editGoalControllerProvider(widget.goal).notifier)
                       .updateTarget(value),
                 ),
+                if (state.targetError != null && state.targetError!.isNotEmpty)
+                  _FieldErrorText(message: state.targetError!),
                 const SizedBox(height: 16),
-                TextFormField(
+                KopimTextField(
                   controller: _noteController,
-                  decoration: _goalFieldDecoration(
-                    context,
-                    label: strings.savingsNoteLabel,
-                  ),
+                  placeholder: strings.savingsNoteLabel,
                   maxLines: 3,
                   onChanged: (String value) => ref
                       .read(editGoalControllerProvider(widget.goal).notifier)
@@ -182,6 +158,26 @@ class _AddEditGoalScreenState extends ConsumerState<AddEditGoalScreen> {
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _FieldErrorText extends StatelessWidget {
+  const _FieldErrorText({required this.message});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: Text(
+        message,
+        style: theme.textTheme.bodySmall?.copyWith(
+          color: theme.colorScheme.error,
         ),
       ),
     );
