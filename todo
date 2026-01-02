@@ -30,11 +30,3 @@
 ### 5. Персонализация (System Prompt)
 **Предложение:** Дать пользователю выбор "личности" ассистента: "Строгий финансовый советник", "Поддерживающий коуч" или "Лаконичный аналитик".
 
-Developers now have more power when creating pop-ups, dialogs, and other floating UI elements with OverlayPortal. It is now possible to render a child in any Overlay up the widget tree using OverlayPortal.overlayChildLayoutBuilder 
-(174239), making it easier to show an app-wide notification or other UI that needs to escape the layout constraints of its parent widget. The underlying Overlay.of method was also made more robust and efficient
-
-For a more modern Android navigation experience, predictive back route transitions are now enabled by default in MaterialApp (173860). When a user performs the back gesture, they now see a preview of the home 
-screen as the current route animates away. In addition, the default page transition has been updated to FadeForwardsPageTransitionsBuilder from ZoomPageTransitionsBuilder to reflect native behavior.
-
-An Android-specific bug (171973) has been resolved, primarily affecting Samsung devices with hardware keyboards. Previously, after a user interacted with a TextField, the Android Input Method Editor (IME) could get stuck in a stale state. 
-This caused the IME to mistakenly intercept “Enter” or “Space” key presses, preventing non-text widgets like a Checkbox or Radio button from receiving the event. The fix ensures that the InputMethodManager is correctly reset when the text connection closes, clearing the IME’s stale state and restoring predictable hardware keyboard interaction for users.

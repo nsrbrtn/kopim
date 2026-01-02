@@ -136,6 +136,8 @@ import 'package:kopim/features/credits/domain/use_cases/add_credit_use_case.dart
 import 'package:kopim/features/credits/domain/use_cases/add_debt_use_case.dart';
 import 'package:kopim/features/credits/domain/use_cases/delete_credit_use_case.dart';
 import 'package:kopim/features/credits/domain/use_cases/delete_debt_use_case.dart';
+import 'package:kopim/features/credits/domain/use_cases/update_credit_use_case.dart';
+import 'package:kopim/features/credits/domain/use_cases/update_debt_use_case.dart';
 import 'package:kopim/features/credits/domain/use_cases/watch_credits_use_case.dart';
 import 'package:kopim/features/credits/domain/use_cases/watch_debts_use_case.dart';
 import 'package:kopim/features/upcoming_payments/data/services/upcoming_payments_work_scheduler.dart';
@@ -599,6 +601,16 @@ AddCreditUseCase addCreditUseCase(Ref ref) => AddCreditUseCase(
   uuid: ref.watch(uuidGeneratorProvider),
 );
 
+final rp.Provider<UpdateCreditUseCase> updateCreditUseCaseProvider =
+    rp.Provider<UpdateCreditUseCase>((rp.Ref ref) {
+      return UpdateCreditUseCase(
+        creditRepository: ref.watch(creditRepositoryProvider),
+        accountRepository: ref.watch(accountRepositoryProvider),
+        categoryRepository: ref.watch(categoryRepositoryProvider),
+        saveCategoryUseCase: ref.watch(saveCategoryUseCaseProvider),
+      );
+    });
+
 @riverpod
 DeleteCreditUseCase deleteCreditUseCase(Ref ref) => DeleteCreditUseCase(
   ref.watch(creditRepositoryProvider),
@@ -617,6 +629,13 @@ final rp.Provider<AddDebtUseCase> addDebtUseCaseProvider =
         categoryRepository: ref.watch(categoryRepositoryProvider),
         saveCategoryUseCase: ref.watch(saveCategoryUseCaseProvider),
         uuid: ref.watch(uuidGeneratorProvider),
+      );
+    });
+
+final rp.Provider<UpdateDebtUseCase> updateDebtUseCaseProvider =
+    rp.Provider<UpdateDebtUseCase>((rp.Ref ref) {
+      return UpdateDebtUseCase(
+        debtRepository: ref.watch(debtRepositoryProvider),
       );
     });
 

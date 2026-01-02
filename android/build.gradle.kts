@@ -1,13 +1,13 @@
 // android/build.gradle.kts
 buildscript {
-    val kotlin_version = "1.9.25"  // Актуальная для Flutter 3.35.3 и Dart 3.9.2
+    val kotlin_version = "2.1.0"  // Актуальная для Flutter 3.38 и Dart 3.9
     repositories {
         google()
         mavenCentral()
     }
     dependencies {
         // Android Gradle Plugin (AGP) для сборки и desugaring
-        classpath("com.android.tools.build:gradle:8.5.2")
+        classpath("com.android.tools.build:gradle:8.9.1")
         // Kotlin для плагина kotlin-android
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version")
         // Для FlutterFire (Firebase integration)

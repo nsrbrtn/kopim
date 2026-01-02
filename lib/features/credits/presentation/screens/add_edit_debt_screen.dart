@@ -82,7 +82,8 @@ class _AddEditDebtScreenState extends ConsumerState<AddEditDebtScreen> {
   bool _validate() {
     setState(() {
       _nameError = _nameController.text.trim().isEmpty;
-      _amountError = double.tryParse(_amountController.text) == null;
+      final double? amount = double.tryParse(_amountController.text);
+      _amountError = amount == null || amount <= 0;
       _accountError = _selectedAccountId == null;
       _dateError = _selectedDueDate == null;
     });
@@ -91,18 +92,30 @@ class _AddEditDebtScreenState extends ConsumerState<AddEditDebtScreen> {
 
   Future<void> _save() async {
     if (!_validate()) return;
+    final String name = _nameController.text.trim();
+    final double amount = double.parse(_amountController.text);
+    final String? note = _noteController.text.trim().isEmpty
+        ? null
+        : _noteController.text.trim();
     if (widget.debt == null) {
       await ref.read(addDebtUseCaseProvider).call(
         accountId: _selectedAccountId!,
-        name: _nameController.text.trim(),
-        amount: double.parse(_amountController.text),
+        name: name,
+        amount: amount,
         dueDate: _selectedDueDate!,
-        note: _noteController.text.trim().isEmpty
-            ? null
-            : _noteController.text.trim(),
+        note: note,
       );
     } else {
-      // В рамках текущей задачи реализуем только создание и удаление.
+      await ref
+          .read(updateDebtUseCaseProvider)
+          .call(
+            debt: widget.debt!,
+            accountId: _selectedAccountId!,
+            name: name,
+            amount: amount,
+            dueDate: _selectedDueDate!,
+            note: note,
+          );
     }
     if (mounted) context.pop();
   }
@@ -112,10 +125,12 @@ class _AddEditDebtScreenState extends ConsumerState<AddEditDebtScreen> {
     if (widget.debt != null) {
       return;
     }
+    final String name = _nameController.text.trim();
+    final double amount = double.parse(_amountController.text);
     await ref.read(addDebtUseCaseProvider).call(
       accountId: _selectedAccountId!,
-      name: _nameController.text.trim(),
-      amount: double.parse(_amountController.text),
+      name: name,
+      amount: amount,
       dueDate: _selectedDueDate!,
       note: _noteController.text.trim().isEmpty
           ? null
@@ -124,8 +139,8 @@ class _AddEditDebtScreenState extends ConsumerState<AddEditDebtScreen> {
     if (mounted) {
       final EditPaymentReminderScreenArgs args =
           EditPaymentReminderScreenArgs(
-            initialTitle: _nameController.text.trim(),
-            initialAmount: double.parse(_amountController.text),
+            initialTitle: name,
+            initialAmount: amount,
             initialWhenLocal: _selectedDueDate,
           );
 

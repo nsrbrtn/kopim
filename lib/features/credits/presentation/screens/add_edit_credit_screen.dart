@@ -60,6 +60,7 @@ class _AddEditCreditScreenState extends ConsumerState<AddEditCreditScreen> {
             _nameController.text = account.name;
             _color = account.color;
             _gradientId = account.gradientId;
+            _isHidden = account.isHidden;
             if (account.iconName != null) {
               _icon = PhosphorIconDescriptor(
                 name: account.iconName!,
@@ -88,10 +89,13 @@ class _AddEditCreditScreenState extends ConsumerState<AddEditCreditScreen> {
 
   bool _validate() {
     setState(() {
-      _nameError = _nameController.text.isEmpty;
-      _amountError = double.tryParse(_amountController.text) == null;
-      _rateError = double.tryParse(_rateController.text) == null;
-      _termError = int.tryParse(_termController.text) == null;
+      _nameError = _nameController.text.trim().isEmpty;
+      final double? amount = double.tryParse(_amountController.text);
+      _amountError = amount == null || amount <= 0;
+      final double? rate = double.tryParse(_rateController.text);
+      _rateError = rate == null || rate < 0;
+      final int? term = int.tryParse(_termController.text);
+      _termError = term == null || term <= 0;
       final int? day = int.tryParse(_paymentDayController.text);
       _paymentDayError = day == null || day < 1 || day > 31;
     });
@@ -104,17 +108,22 @@ class _AddEditCreditScreenState extends ConsumerState<AddEditCreditScreen> {
 
   Future<void> _save() async {
     if (_validate()) {
+      final String name = _nameController.text.trim();
+      final double amount = double.parse(_amountController.text);
+      final double rate = double.parse(_rateController.text);
+      final int term = int.parse(_termController.text);
+      final int paymentDay = int.parse(_paymentDayController.text);
       if (widget.credit == null) {
         await ref
             .read(addCreditUseCaseProvider)
             .call(
-              name: _nameController.text,
-              totalAmount: double.parse(_amountController.text),
+              name: name,
+              totalAmount: amount,
               currency: 'RUB', // TODO: Брать из настроек
-              interestRate: double.parse(_rateController.text),
-              termMonths: int.parse(_termController.text),
+              interestRate: rate,
+              termMonths: term,
               startDate: DateTime.now(),
-              paymentDay: int.parse(_paymentDayController.text),
+              paymentDay: paymentDay,
               color: _color,
               gradientId: _gradientId,
               iconName: _icon?.name,
@@ -122,9 +131,21 @@ class _AddEditCreditScreenState extends ConsumerState<AddEditCreditScreen> {
               isHidden: _isHidden,
             );
       } else {
-        // В рамках текущей задачи реализуем только создание и удаление.
-        // Обновление параметров кредита (суммы, ставки) — более сложная логика,
-        // затрагивающая пересчет графиков платежей.
+        await ref
+            .read(updateCreditUseCaseProvider)
+            .call(
+              credit: widget.credit!,
+              name: name,
+              totalAmount: amount,
+              interestRate: rate,
+              termMonths: term,
+              paymentDay: paymentDay,
+              color: _color,
+              gradientId: _gradientId,
+              iconName: _icon?.name,
+              iconStyle: _icon?.style.name,
+              isHidden: _isHidden,
+            );
       }
       if (mounted) context.pop();
     }
@@ -132,11 +153,12 @@ class _AddEditCreditScreenState extends ConsumerState<AddEditCreditScreen> {
 
   Future<void> _saveAndConfigurePayment() async {
     if (_validate()) {
+      final String name = _nameController.text.trim();
       if (widget.credit == null) {
         final CreditEntity credit = await ref
             .read(addCreditUseCaseProvider)
             .call(
-              name: _nameController.text,
+              name: name,
               totalAmount: double.parse(_amountController.text),
               currency: 'RUB', // TODO: Брать из настроек
               interestRate: double.parse(_rateController.text),
