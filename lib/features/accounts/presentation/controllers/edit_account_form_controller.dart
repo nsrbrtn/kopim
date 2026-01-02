@@ -5,12 +5,24 @@ import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/accounts/domain/use_cases/add_account_use_case.dart';
 import 'package:kopim/features/accounts/domain/utils/account_type_utils.dart';
 import 'package:kopim/features/accounts/presentation/controllers/account_balance_parser.dart';
+import 'package:kopim/features/credits/domain/entities/credit_card_entity.dart';
+import 'package:kopim/features/credits/domain/use_cases/add_credit_card_use_case.dart';
+import 'package:kopim/features/credits/domain/use_cases/delete_credit_card_use_case.dart';
+import 'package:kopim/features/credits/domain/use_cases/get_credit_card_by_account_id_use_case.dart';
+import 'package:kopim/features/credits/domain/use_cases/update_credit_card_use_case.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'edit_account_form_controller.freezed.dart';
 part 'edit_account_form_controller.g.dart';
 
 enum EditAccountFieldError { emptyName, invalidBalance, emptyType }
+
+enum CreditCardFieldError {
+  invalidLimit,
+  invalidStatementDay,
+  invalidPaymentDueDays,
+  invalidInterestRate,
+}
 
 @freezed
 abstract class EditAccountFormState with _$EditAccountFormState {
@@ -25,6 +37,13 @@ abstract class EditAccountFormState with _$EditAccountFormState {
     @Default(false) bool isSaving,
     @Default(false) bool submissionSuccess,
     @Default(false) bool isPrimary,
+    @Default('') String creditLimitInput,
+    @Default('') String statementDayInput,
+    @Default('') String paymentDueDaysInput,
+    @Default('') String interestRateInput,
+    @Default(false) bool creditCardLoaded,
+    String? creditCardId,
+    DateTime? creditCardCreatedAt,
     String? color,
     String? gradientId,
     String? iconName,
@@ -32,6 +51,10 @@ abstract class EditAccountFormState with _$EditAccountFormState {
     EditAccountFieldError? nameError,
     EditAccountFieldError? balanceError,
     EditAccountFieldError? typeError,
+    CreditCardFieldError? creditLimitError,
+    CreditCardFieldError? statementDayError,
+    CreditCardFieldError? paymentDueDaysError,
+    CreditCardFieldError? interestRateError,
     String? errorMessage,
   }) = _EditAccountFormState;
 
@@ -56,6 +79,10 @@ abstract class EditAccountFormState with _$EditAccountFormState {
       nameError == null &&
       balanceError == null &&
       typeError == null &&
+      creditLimitError == null &&
+      statementDayError == null &&
+      paymentDueDaysError == null &&
+      interestRateError == null &&
       name.trim().isNotEmpty &&
       parsedBalance != null &&
       resolvedType != null;
@@ -64,11 +91,26 @@ abstract class EditAccountFormState with _$EditAccountFormState {
 @riverpod
 class EditAccountFormController extends _$EditAccountFormController {
   late final AddAccountUseCase _addAccountUseCase;
-  static const Set<String> _defaultTypes = <String>{'cash', 'card', 'bank'};
+  static const Set<String> _defaultTypes = <String>{
+    'cash',
+    'card',
+    'bank',
+    'credit_card',
+  };
+  late final GetCreditCardByAccountIdUseCase _getCreditCardByAccountIdUseCase;
+  late final AddCreditCardUseCase _addCreditCardUseCase;
+  late final UpdateCreditCardUseCase _updateCreditCardUseCase;
+  late final DeleteCreditCardUseCase _deleteCreditCardUseCase;
 
   @override
   EditAccountFormState build(AccountEntity account) {
     _addAccountUseCase = ref.watch(addAccountUseCaseProvider);
+    _getCreditCardByAccountIdUseCase = ref.watch(
+      getCreditCardByAccountIdUseCaseProvider,
+    );
+    _addCreditCardUseCase = ref.watch(addCreditCardUseCaseProvider);
+    _updateCreditCardUseCase = ref.watch(updateCreditCardUseCaseProvider);
+    _deleteCreditCardUseCase = ref.watch(deleteCreditCardUseCaseProvider);
     final bool useCustomType = !_defaultTypes.contains(
       account.type.toLowerCase(),
     );
@@ -124,6 +166,10 @@ class EditAccountFormController extends _$EditAccountFormController {
       submissionSuccess: false,
       errorMessage: null,
       typeError: null,
+      creditLimitError: null,
+      statementDayError: null,
+      paymentDueDaysError: null,
+      interestRateError: null,
     );
   }
 
@@ -142,6 +188,42 @@ class EditAccountFormController extends _$EditAccountFormController {
       submissionSuccess: false,
       errorMessage: null,
       typeError: null,
+    );
+  }
+
+  void updateCreditLimit(String value) {
+    state = state.copyWith(
+      creditLimitInput: value,
+      creditLimitError: null,
+      submissionSuccess: false,
+      errorMessage: null,
+    );
+  }
+
+  void updateStatementDay(String value) {
+    state = state.copyWith(
+      statementDayInput: value,
+      statementDayError: null,
+      submissionSuccess: false,
+      errorMessage: null,
+    );
+  }
+
+  void updatePaymentDueDays(String value) {
+    state = state.copyWith(
+      paymentDueDaysInput: value,
+      paymentDueDaysError: null,
+      submissionSuccess: false,
+      errorMessage: null,
+    );
+  }
+
+  void updateInterestRate(String value) {
+    state = state.copyWith(
+      interestRateInput: value,
+      interestRateError: null,
+      submissionSuccess: false,
+      errorMessage: null,
     );
   }
 
@@ -184,6 +266,26 @@ class EditAccountFormController extends _$EditAccountFormController {
     }
   }
 
+  Future<void> loadCreditCard() async {
+    if (state.creditCardLoaded || state.original.type != 'credit_card') {
+      return;
+    }
+    state = state.copyWith(creditCardLoaded: true);
+    final CreditCardEntity? creditCard = await _getCreditCardByAccountIdUseCase
+        .call(state.original.id);
+    if (creditCard == null) {
+      return;
+    }
+    state = state.copyWith(
+      creditCardId: creditCard.id,
+      creditCardCreatedAt: creditCard.createdAt,
+      creditLimitInput: creditCard.creditLimit.toStringAsFixed(2),
+      statementDayInput: creditCard.statementDay.toString(),
+      paymentDueDaysInput: creditCard.paymentDueDays.toString(),
+      interestRateInput: creditCard.interestRateAnnual.toStringAsFixed(2),
+    );
+  }
+
   Future<void> submit() async {
     if (state.isSaving) {
       return;
@@ -215,6 +317,10 @@ class EditAccountFormController extends _$EditAccountFormController {
       nameError: null,
       balanceError: null,
       typeError: null,
+      creditLimitError: null,
+      statementDayError: null,
+      paymentDueDaysError: null,
+      interestRateError: null,
       errorMessage: null,
       submissionSuccess: false,
     );
@@ -235,6 +341,50 @@ class EditAccountFormController extends _$EditAccountFormController {
       return;
     }
 
+    final bool isCreditCard = resolvedType == 'credit_card';
+    CreditCardFieldError? creditLimitError;
+    CreditCardFieldError? statementDayError;
+    CreditCardFieldError? paymentDueDaysError;
+    CreditCardFieldError? interestRateError;
+    double? creditLimit;
+    int? statementDay;
+    int? paymentDueDays;
+    double? interestRateAnnual;
+
+    if (isCreditCard) {
+      creditLimit = parseBalanceInput(state.creditLimitInput);
+      statementDay = int.tryParse(state.statementDayInput);
+      paymentDueDays = int.tryParse(state.paymentDueDaysInput);
+      interestRateAnnual = parseBalanceInput(state.interestRateInput);
+
+      if (creditLimit == null || creditLimit <= 0) {
+        creditLimitError = CreditCardFieldError.invalidLimit;
+      }
+      if (statementDay == null || statementDay < 1 || statementDay > 31) {
+        statementDayError = CreditCardFieldError.invalidStatementDay;
+      }
+      if (paymentDueDays == null || paymentDueDays < 0) {
+        paymentDueDaysError = CreditCardFieldError.invalidPaymentDueDays;
+      }
+      if (interestRateAnnual == null || interestRateAnnual < 0) {
+        interestRateError = CreditCardFieldError.invalidInterestRate;
+      }
+      if (creditLimitError != null ||
+          statementDayError != null ||
+          paymentDueDaysError != null ||
+          interestRateError != null) {
+        state = state.copyWith(
+          isSaving: false,
+          creditLimitError: creditLimitError,
+          statementDayError: statementDayError,
+          paymentDueDaysError: paymentDueDaysError,
+          interestRateError: interestRateError,
+          submissionSuccess: false,
+        );
+        return;
+      }
+    }
+
     final AccountEntity updatedAccount = state.original.copyWith(
       name: trimmedName,
       balance: balance!,
@@ -250,6 +400,13 @@ class EditAccountFormController extends _$EditAccountFormController {
 
     try {
       await _addAccountUseCase(updatedAccount);
+      await _syncCreditCard(
+        updatedAccount: updatedAccount,
+        creditLimit: creditLimit,
+        statementDay: statementDay,
+        paymentDueDays: paymentDueDays,
+        interestRateAnnual: interestRateAnnual,
+      );
       final bool updatedIsCustom = !_defaultTypes.contains(
         updatedAccount.type.toLowerCase(),
       );
@@ -273,5 +430,47 @@ class EditAccountFormController extends _$EditAccountFormController {
         submissionSuccess: false,
       );
     }
+  }
+
+  Future<void> _syncCreditCard({
+    required AccountEntity updatedAccount,
+    required double? creditLimit,
+    required int? statementDay,
+    required int? paymentDueDays,
+    required double? interestRateAnnual,
+  }) async {
+    final bool wasCreditCard = state.original.type == 'credit_card';
+    final bool isCreditCard = updatedAccount.type == 'credit_card';
+    final String? creditCardId = state.creditCardId;
+
+    if (!isCreditCard && wasCreditCard && creditCardId != null) {
+      await _deleteCreditCardUseCase.call(creditCardId);
+      return;
+    }
+
+    if (!isCreditCard) {
+      return;
+    }
+
+    final DateTime now = DateTime.now().toUtc();
+    final DateTime createdAt = state.creditCardCreatedAt ?? now;
+    final CreditCardEntity creditCard = CreditCardEntity(
+      id: creditCardId ?? updatedAccount.id,
+      accountId: updatedAccount.id,
+      creditLimit: creditLimit ?? 0,
+      statementDay: statementDay ?? 1,
+      paymentDueDays: paymentDueDays ?? 0,
+      interestRateAnnual: interestRateAnnual ?? 0,
+      createdAt: createdAt,
+      updatedAt: now,
+    );
+
+    if (creditCardId == null && !wasCreditCard) {
+      await _addCreditCardUseCase.call(creditCard);
+      state = state.copyWith(creditCardId: creditCard.id);
+      return;
+    }
+
+    await _updateCreditCardUseCase.call(creditCard);
   }
 }

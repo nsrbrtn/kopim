@@ -3012,11 +3012,119 @@ abstract class AppLocalizations {
   /// **'Bank account'**
   String get addAccountTypeBank;
 
+  /// Option label for credit card accounts
+  ///
+  /// In en, this message translates to:
+  /// **'Credit card'**
+  String get addAccountTypeCreditCard;
+
   /// Option label for custom account types
   ///
   /// In en, this message translates to:
   /// **'Custom type'**
   String get addAccountTypeCustom;
+
+  /// Title for the credit card settings section
+  ///
+  /// In en, this message translates to:
+  /// **'Credit card settings'**
+  String get addAccountCreditCardSettingsTitle;
+
+  /// Label for the credit limit input
+  ///
+  /// In en, this message translates to:
+  /// **'Credit limit'**
+  String get addAccountCreditCardLimitLabel;
+
+  /// Placeholder for the credit limit input
+  ///
+  /// In en, this message translates to:
+  /// **'Enter limit'**
+  String get addAccountCreditCardLimitPlaceholder;
+
+  /// Validation error for credit limit
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid limit.'**
+  String get addAccountCreditCardLimitError;
+
+  /// Label for the statement day input
+  ///
+  /// In en, this message translates to:
+  /// **'Statement day'**
+  String get addAccountCreditCardStatementDayLabel;
+
+  /// Placeholder for the statement day input
+  ///
+  /// In en, this message translates to:
+  /// **'For example, 5'**
+  String get addAccountCreditCardStatementDayPlaceholder;
+
+  /// Validation error for statement day
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a day between 1 and 31.'**
+  String get addAccountCreditCardStatementDayError;
+
+  /// Help text for statement day
+  ///
+  /// In en, this message translates to:
+  /// **'Day of the month when the statement is generated.'**
+  String get addAccountCreditCardStatementDayHelp;
+
+  /// Label for days until payment input
+  ///
+  /// In en, this message translates to:
+  /// **'Days until payment'**
+  String get addAccountCreditCardPaymentDueDaysLabel;
+
+  /// Placeholder for days until payment input
+  ///
+  /// In en, this message translates to:
+  /// **'For example, 10'**
+  String get addAccountCreditCardPaymentDueDaysPlaceholder;
+
+  /// Validation error for days until payment
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid number of days.'**
+  String get addAccountCreditCardPaymentDueDaysError;
+
+  /// Help text for days until payment
+  ///
+  /// In en, this message translates to:
+  /// **'How many days you have to pay after the statement day.'**
+  String get addAccountCreditCardPaymentDueDaysHelp;
+
+  /// Label for annual interest rate input
+  ///
+  /// In en, this message translates to:
+  /// **'Annual rate, %'**
+  String get addAccountCreditCardInterestRateLabel;
+
+  /// Placeholder for annual interest rate input
+  ///
+  /// In en, this message translates to:
+  /// **'For example, 25'**
+  String get addAccountCreditCardInterestRatePlaceholder;
+
+  /// Validation error for annual interest rate
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid rate.'**
+  String get addAccountCreditCardInterestRateError;
+
+  /// Label for the available credit card limit
+  ///
+  /// In en, this message translates to:
+  /// **'Available limit'**
+  String get creditCardAvailableLimitLabel;
+
+  /// Label for the credit card spent amount
+  ///
+  /// In en, this message translates to:
+  /// **'Spent'**
+  String get creditCardSpentLabel;
 
   /// Label for the custom account type text field
   ///

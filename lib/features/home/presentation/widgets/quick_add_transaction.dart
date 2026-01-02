@@ -33,9 +33,13 @@ class QuickAddTransactionCard extends ConsumerWidget {
       homeAccountsProvider,
     );
     final List<AccountEntity>? accounts = accountsAsync.asData?.value;
-    final String? defaultAccountId = (accounts != null && accounts.isNotEmpty)
-        ? accounts.first.id
-        : null;
+    final List<AccountEntity> visibleAccounts =
+        accounts?.where((AccountEntity account) => !account.isHidden).toList(
+              growable: false,
+            ) ??
+            const <AccountEntity>[];
+    final String? defaultAccountId =
+        visibleAccounts.isNotEmpty ? visibleAccounts.first.id : null;
     final bool hasAccounts = defaultAccountId != null;
     final KopimLayout layout = context.kopimLayout;
 

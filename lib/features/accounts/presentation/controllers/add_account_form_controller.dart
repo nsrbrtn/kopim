@@ -7,6 +7,7 @@ import 'package:kopim/features/accounts/domain/use_cases/add_account_use_case.da
 import 'package:kopim/features/accounts/domain/utils/account_type_utils.dart';
 import 'package:kopim/features/accounts/presentation/controllers/account_balance_parser.dart';
 import 'package:kopim/features/categories/presentation/utils/category_color_palette.dart';
+import 'package:kopim/features/credits/domain/entities/credit_card_entity.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:uuid/uuid.dart';
 
@@ -15,21 +16,36 @@ part 'add_account_form_controller.g.dart';
 
 enum AddAccountFieldError { emptyName, invalidBalance, emptyType }
 
+enum CreditCardFieldError {
+  invalidLimit,
+  invalidStatementDay,
+  invalidPaymentDueDays,
+  invalidInterestRate,
+}
+
 @freezed
 abstract class AddAccountFormState with _$AddAccountFormState {
   const factory AddAccountFormState({
     @Default('') String name,
     @Default('') String balanceInput,
     @Default('RUB') String currency,
-    @Default('cash') String type,
+    @Default('') String type,
     @Default(false) bool useCustomType,
     @Default('') String customType,
     @Default(false) bool isSaving,
     @Default(false) bool submissionSuccess,
     @Default(false) bool isPrimary,
+    @Default('') String creditLimitInput,
+    @Default('') String statementDayInput,
+    @Default('') String paymentDueDaysInput,
+    @Default('') String interestRateInput,
     AddAccountFieldError? nameError,
     AddAccountFieldError? balanceError,
     AddAccountFieldError? typeError,
+    CreditCardFieldError? creditLimitError,
+    CreditCardFieldError? statementDayError,
+    CreditCardFieldError? paymentDueDaysError,
+    CreditCardFieldError? interestRateError,
     String? errorMessage,
     String? color,
     String? gradientId,
@@ -58,8 +74,12 @@ abstract class AddAccountFormState with _$AddAccountFormState {
       nameError == null &&
       balanceError == null &&
       typeError == null &&
+      creditLimitError == null &&
+      statementDayError == null &&
+      paymentDueDaysError == null &&
+      interestRateError == null &&
       name.trim().isNotEmpty &&
-      parsedBalance != null &&
+      (resolvedType == 'credit_card' || parsedBalance != null) &&
       resolvedType != null;
 }
 
@@ -107,6 +127,10 @@ class AddAccountFormController extends _$AddAccountFormController {
       useCustomType: false,
       submissionSuccess: false,
       typeError: null,
+      creditLimitError: null,
+      statementDayError: null,
+      paymentDueDaysError: null,
+      interestRateError: null,
     );
   }
 
@@ -123,6 +147,38 @@ class AddAccountFormController extends _$AddAccountFormController {
       customType: value,
       submissionSuccess: false,
       typeError: null,
+    );
+  }
+
+  void updateCreditLimit(String value) {
+    state = state.copyWith(
+      creditLimitInput: value,
+      creditLimitError: null,
+      submissionSuccess: false,
+    );
+  }
+
+  void updateStatementDay(String value) {
+    state = state.copyWith(
+      statementDayInput: value,
+      statementDayError: null,
+      submissionSuccess: false,
+    );
+  }
+
+  void updatePaymentDueDays(String value) {
+    state = state.copyWith(
+      paymentDueDaysInput: value,
+      paymentDueDaysError: null,
+      submissionSuccess: false,
+    );
+  }
+
+  void updateInterestRate(String value) {
+    state = state.copyWith(
+      interestRateInput: value,
+      interestRateError: null,
+      submissionSuccess: false,
     );
   }
 
@@ -167,11 +223,14 @@ class AddAccountFormController extends _$AddAccountFormController {
       nameError = AddAccountFieldError.emptyName;
     }
 
-    final double? balance = parseBalanceInput(state.balanceInput);
+    final String? resolvedType = state.resolvedType;
+    final bool isCreditCard = resolvedType == 'credit_card';
+    double? balance = parseBalanceInput(state.balanceInput);
     AddAccountFieldError? balanceError;
-    if (balance == null) {
+    if (!isCreditCard && balance == null) {
       balanceError = AddAccountFieldError.invalidBalance;
     }
+    balance ??= isCreditCard ? 0 : null;
 
     if (nameError != null || balanceError != null) {
       state = state.copyWith(
@@ -188,11 +247,14 @@ class AddAccountFormController extends _$AddAccountFormController {
       nameError: null,
       balanceError: null,
       typeError: null,
+      creditLimitError: null,
+      statementDayError: null,
+      paymentDueDaysError: null,
+      interestRateError: null,
       submissionSuccess: false,
     );
 
     final DateTime now = DateTime.now().toUtc();
-    final String? resolvedType = state.resolvedType;
     if (resolvedType == null) {
       state = state.copyWith(
         typeError: AddAccountFieldError.emptyType,
@@ -200,6 +262,49 @@ class AddAccountFormController extends _$AddAccountFormController {
         submissionSuccess: false,
       );
       return;
+    }
+
+    CreditCardFieldError? creditLimitError;
+    CreditCardFieldError? statementDayError;
+    CreditCardFieldError? paymentDueDaysError;
+    CreditCardFieldError? interestRateError;
+    double? creditLimit;
+    int? statementDay;
+    int? paymentDueDays;
+    double? interestRateAnnual;
+
+    if (isCreditCard) {
+      creditLimit = parseBalanceInput(state.creditLimitInput);
+      statementDay = int.tryParse(state.statementDayInput);
+      paymentDueDays = int.tryParse(state.paymentDueDaysInput);
+      interestRateAnnual = parseBalanceInput(state.interestRateInput);
+
+      if (creditLimit == null || creditLimit <= 0) {
+        creditLimitError = CreditCardFieldError.invalidLimit;
+      }
+      if (statementDay == null || statementDay < 1 || statementDay > 31) {
+        statementDayError = CreditCardFieldError.invalidStatementDay;
+      }
+      if (paymentDueDays == null || paymentDueDays < 0) {
+        paymentDueDaysError = CreditCardFieldError.invalidPaymentDueDays;
+      }
+      if (interestRateAnnual == null || interestRateAnnual < 0) {
+        interestRateError = CreditCardFieldError.invalidInterestRate;
+      }
+      if (creditLimitError != null ||
+          statementDayError != null ||
+          paymentDueDaysError != null ||
+          interestRateError != null) {
+        state = state.copyWith(
+          isSaving: false,
+          creditLimitError: creditLimitError,
+          statementDayError: statementDayError,
+          paymentDueDaysError: paymentDueDaysError,
+          interestRateError: interestRateError,
+          submissionSuccess: false,
+        );
+        return;
+      }
     }
 
     final AccountEntity account = AccountEntity(
@@ -219,13 +324,31 @@ class AddAccountFormController extends _$AddAccountFormController {
 
     try {
       await _addAccountUseCase(account);
+      if (isCreditCard) {
+        await ref.read(addCreditCardUseCaseProvider).call(
+          CreditCardEntity(
+            id: account.id,
+            accountId: account.id,
+            creditLimit: creditLimit!,
+            statementDay: statementDay!,
+            paymentDueDays: paymentDueDays!,
+            interestRateAnnual: interestRateAnnual!,
+            createdAt: now,
+            updatedAt: now,
+          ),
+        );
+      }
       state = state.copyWith(
         isSaving: false,
         name: '',
         balanceInput: '',
-        type: 'cash',
+        type: '',
         useCustomType: false,
         customType: '',
+        creditLimitInput: '',
+        statementDayInput: '',
+        paymentDueDaysInput: '',
+        interestRateInput: '',
         submissionSuccess: true,
         isPrimary: state.isPrimary,
       );

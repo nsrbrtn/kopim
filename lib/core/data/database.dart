@@ -227,6 +227,24 @@ class Credits extends Table {
   Set<Column<Object>> get primaryKey => <Column<Object>>{id};
 }
 
+@DataClassName('CreditCardRow')
+class CreditCards extends Table {
+  TextColumn get id => text().withLength(min: 1, max: 50)();
+  TextColumn get accountId =>
+      text().references(Accounts, #id, onDelete: KeyAction.cascade)();
+  RealColumn get creditLimit => real()();
+  IntColumn get statementDay => integer()();
+  IntColumn get paymentDueDays => integer()();
+  RealColumn get interestRateAnnual => real()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  BoolColumn get isDeleted =>
+      boolean().withDefault(const Constant<bool>(false))();
+
+  @override
+  Set<Column<Object>> get primaryKey => <Column<Object>>{id};
+}
+
 @DriftDatabase(
   tables: <Type>[
     Accounts,
@@ -242,6 +260,7 @@ class Credits extends Table {
     PaymentReminders,
     Debts,
     Credits,
+    CreditCards,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -250,7 +269,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.connect(DatabaseConnection super.connection);
 
   @override
-  int get schemaVersion => 28;
+  int get schemaVersion => 29;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -338,6 +357,13 @@ class AppDatabase extends _$AppDatabase {
           'payment_reminders_when_idx',
           'CREATE INDEX IF NOT EXISTS payment_reminders_when_idx '
               'ON payment_reminders(when_at)',
+        ),
+      );
+      await m.createIndex(
+        Index(
+          'credit_cards_account_id_idx',
+          'CREATE INDEX IF NOT EXISTS credit_cards_account_id_idx '
+              'ON credit_cards(account_id)',
         ),
       );
     },
@@ -584,6 +610,18 @@ class AppDatabase extends _$AppDatabase {
         if (!await _columnExists('transactions', 'transfer_account_id')) {
           await m.addColumn(transactions, transactions.transferAccountId);
         }
+      }
+      if (from < 29) {
+        if (!await _tableExists('credit_cards')) {
+          await m.createTable(creditCards);
+        }
+        await m.createIndex(
+          Index(
+            'credit_cards_account_id_idx',
+            'CREATE INDEX IF NOT EXISTS credit_cards_account_id_idx '
+                'ON credit_cards(account_id)',
+          ),
+        );
       }
     },
     beforeOpen: (OpeningDetails details) async {

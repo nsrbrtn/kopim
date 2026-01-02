@@ -53,7 +53,27 @@ class _EditAccountScreenState extends ConsumerState<EditAccountScreen> {
   late final TextEditingController _nameController;
   late final TextEditingController _balanceController;
   late final TextEditingController _customTypeController;
+  late final TextEditingController _creditLimitController;
+  late final TextEditingController _statementDayController;
+  late final TextEditingController _paymentDueDaysController;
+  late final TextEditingController _interestRateController;
   bool _isDeleting = false;
+
+  void _showHelpDialog(String title, String message) {
+    showDialog<void>(
+      context: context,
+      builder: (BuildContext context) => AlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(MaterialLocalizations.of(context).okButtonLabel),
+          ),
+        ],
+      ),
+    );
+  }
 
   PhosphorIconDescriptor? _resolveAccountIcon(String? name, String? style) {
     if (name == null || name.isEmpty) {
@@ -76,6 +96,26 @@ class _EditAccountScreenState extends ConsumerState<EditAccountScreen> {
     _customTypeController = TextEditingController(
       text: initialState.customType,
     );
+    _creditLimitController = TextEditingController(
+      text: initialState.creditLimitInput,
+    );
+    _statementDayController = TextEditingController(
+      text: initialState.statementDayInput,
+    );
+    _paymentDueDaysController = TextEditingController(
+      text: initialState.paymentDueDaysInput,
+    );
+    _interestRateController = TextEditingController(
+      text: initialState.interestRateInput,
+    );
+    if (widget.account.type == 'credit_card') {
+      Future<void>.microtask(
+        () =>
+            ref
+                .read(editAccountFormControllerProvider(widget.account).notifier)
+                .loadCreditCard(),
+      );
+    }
   }
 
   @override
@@ -83,6 +123,10 @@ class _EditAccountScreenState extends ConsumerState<EditAccountScreen> {
     _nameController.dispose();
     _balanceController.dispose();
     _customTypeController.dispose();
+    _creditLimitController.dispose();
+    _statementDayController.dispose();
+    _paymentDueDaysController.dispose();
+    _interestRateController.dispose();
     super.dispose();
   }
 
@@ -125,6 +169,44 @@ class _EditAccountScreenState extends ConsumerState<EditAccountScreen> {
             selection: TextSelection.collapsed(offset: next.customType.length),
           );
         }
+        if (previous?.creditLimitInput != next.creditLimitInput &&
+            _creditLimitController.text != next.creditLimitInput) {
+          _creditLimitController.value = _creditLimitController.value.copyWith(
+            text: next.creditLimitInput,
+            selection: TextSelection.collapsed(
+              offset: next.creditLimitInput.length,
+            ),
+          );
+        }
+        if (previous?.statementDayInput != next.statementDayInput &&
+            _statementDayController.text != next.statementDayInput) {
+          _statementDayController.value = _statementDayController.value.copyWith(
+            text: next.statementDayInput,
+            selection: TextSelection.collapsed(
+              offset: next.statementDayInput.length,
+            ),
+          );
+        }
+        if (previous?.paymentDueDaysInput != next.paymentDueDaysInput &&
+            _paymentDueDaysController.text != next.paymentDueDaysInput) {
+          _paymentDueDaysController.value =
+              _paymentDueDaysController.value.copyWith(
+                text: next.paymentDueDaysInput,
+                selection: TextSelection.collapsed(
+                  offset: next.paymentDueDaysInput.length,
+                ),
+              );
+        }
+        if (previous?.interestRateInput != next.interestRateInput &&
+            _interestRateController.text != next.interestRateInput) {
+          _interestRateController.value =
+              _interestRateController.value.copyWith(
+                text: next.interestRateInput,
+                selection: TextSelection.collapsed(
+                  offset: next.interestRateInput.length,
+                ),
+              );
+        }
         final bool submitted =
             previous?.submissionSuccess != true && next.submissionSuccess;
         if (submitted && mounted) {
@@ -139,6 +221,7 @@ class _EditAccountScreenState extends ConsumerState<EditAccountScreen> {
       'cash': strings.addAccountTypeCash,
       'card': strings.addAccountTypeCard,
       'bank': strings.addAccountTypeBank,
+      'credit_card': strings.addAccountTypeCreditCard,
     };
     const String customTypeValue = '__custom__';
 
@@ -148,6 +231,7 @@ class _EditAccountScreenState extends ConsumerState<EditAccountScreen> {
     final String? dropdownErrorText = showTypeError && !state.useCustomType
         ? strings.editAccountTypeRequired
         : null;
+    final bool isCreditCard = state.resolvedType == 'credit_card';
 
     return Scaffold(
       appBar: AppBar(title: Text(strings.editAccountTitle)),
@@ -172,22 +256,24 @@ class _EditAccountScreenState extends ConsumerState<EditAccountScreen> {
                 onChanged: controller.updateName,
               ),
               const SizedBox(height: 16),
-              TextFormField(
-                controller: _balanceController,
-                decoration: InputDecoration(
-                  labelText: strings.editAccountBalanceLabel,
-                  errorText:
-                      state.balanceError == EditAccountFieldError.invalidBalance
-                      ? strings.editAccountBalanceInvalid
-                      : null,
+              if (!isCreditCard) ...<Widget>[
+                TextFormField(
+                  controller: _balanceController,
+                  decoration: InputDecoration(
+                    labelText: strings.editAccountBalanceLabel,
+                    errorText: state.balanceError ==
+                            EditAccountFieldError.invalidBalance
+                        ? strings.editAccountBalanceInvalid
+                        : null,
+                  ),
+                  enabled: !state.isSaving,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  onChanged: controller.updateBalance,
                 ),
-                enabled: !state.isSaving,
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
-                ),
-                onChanged: controller.updateBalance,
-              ),
-              const SizedBox(height: 16),
+                const SizedBox(height: 16),
+              ],
               DropdownButtonFormField<String>(
                 initialValue: state.currency,
                 decoration: InputDecoration(
@@ -247,6 +333,81 @@ class _EditAccountScreenState extends ConsumerState<EditAccountScreen> {
                         }
                       },
               ),
+              if (isCreditCard) ...<Widget>[
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _creditLimitController,
+                  decoration: InputDecoration(
+                    labelText: strings.addAccountCreditCardLimitLabel,
+                    errorText: state.creditLimitError != null
+                        ? strings.addAccountCreditCardLimitError
+                        : null,
+                  ),
+                  enabled: !state.isSaving,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  onChanged: controller.updateCreditLimit,
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _statementDayController,
+                  decoration: InputDecoration(
+                    labelText: strings.addAccountCreditCardStatementDayLabel,
+                    errorText: state.statementDayError != null
+                        ? strings.addAccountCreditCardStatementDayError
+                        : null,
+                    suffixIcon: IconButton(
+                      onPressed: () => _showHelpDialog(
+                        strings.addAccountCreditCardStatementDayLabel,
+                        strings.addAccountCreditCardStatementDayHelp,
+                      ),
+                      icon: const Icon(Icons.help_outline, size: 18),
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  enabled: !state.isSaving,
+                  keyboardType: TextInputType.number,
+                  onChanged: controller.updateStatementDay,
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _paymentDueDaysController,
+                  decoration: InputDecoration(
+                    labelText:
+                        strings.addAccountCreditCardPaymentDueDaysLabel,
+                    errorText: state.paymentDueDaysError != null
+                        ? strings.addAccountCreditCardPaymentDueDaysError
+                        : null,
+                    suffixIcon: IconButton(
+                      onPressed: () => _showHelpDialog(
+                        strings.addAccountCreditCardPaymentDueDaysLabel,
+                        strings.addAccountCreditCardPaymentDueDaysHelp,
+                      ),
+                      icon: const Icon(Icons.help_outline, size: 18),
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  enabled: !state.isSaving,
+                  keyboardType: TextInputType.number,
+                  onChanged: controller.updatePaymentDueDays,
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _interestRateController,
+                  decoration: InputDecoration(
+                    labelText: strings.addAccountCreditCardInterestRateLabel,
+                    errorText: state.interestRateError != null
+                        ? strings.addAccountCreditCardInterestRateError
+                        : null,
+                  ),
+                  enabled: !state.isSaving,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  onChanged: controller.updateInterestRate,
+                ),
+              ],
               const SizedBox(height: 16),
               AccountIconSelector(
                 icon: selectedIcon,

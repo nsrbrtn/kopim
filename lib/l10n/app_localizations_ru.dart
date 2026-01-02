@@ -1728,7 +1728,66 @@ class AppLocalizationsRu extends AppLocalizations {
   String get addAccountTypeBank => 'Банковский счёт';
 
   @override
+  String get addAccountTypeCreditCard => 'Кредитная карта';
+
+  @override
   String get addAccountTypeCustom => 'Другой тип';
+
+  @override
+  String get addAccountCreditCardSettingsTitle => 'Настройки кредитной карты';
+
+  @override
+  String get addAccountCreditCardLimitLabel => 'Кредитный лимит';
+
+  @override
+  String get addAccountCreditCardLimitPlaceholder => 'Введите лимит';
+
+  @override
+  String get addAccountCreditCardLimitError => 'Введите корректный лимит.';
+
+  @override
+  String get addAccountCreditCardStatementDayLabel => 'День выписки';
+
+  @override
+  String get addAccountCreditCardStatementDayPlaceholder => 'Например, 5';
+
+  @override
+  String get addAccountCreditCardStatementDayError =>
+      'Введите день от 1 до 31.';
+
+  @override
+  String get addAccountCreditCardStatementDayHelp =>
+      'День месяца, когда формируется выписка по карте.';
+
+  @override
+  String get addAccountCreditCardPaymentDueDaysLabel => 'Дней до платежа';
+
+  @override
+  String get addAccountCreditCardPaymentDueDaysPlaceholder => 'Например, 10';
+
+  @override
+  String get addAccountCreditCardPaymentDueDaysError =>
+      'Введите корректное количество дней.';
+
+  @override
+  String get addAccountCreditCardPaymentDueDaysHelp =>
+      'Сколько дней есть на оплату после дня выписки.';
+
+  @override
+  String get addAccountCreditCardInterestRateLabel => 'Годовая ставка, %';
+
+  @override
+  String get addAccountCreditCardInterestRatePlaceholder => 'Например, 25';
+
+  @override
+  String get addAccountCreditCardInterestRateError =>
+      'Введите корректную ставку.';
+
+  @override
+  String get creditCardAvailableLimitLabel => 'Доступный лимит';
+
+  @override
+  String get creditCardSpentLabel => 'Потрачено';
 
   @override
   String get addAccountCustomTypeLabel => 'Собственный тип счёта';

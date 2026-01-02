@@ -1706,7 +1706,65 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addAccountTypeBank => 'Bank account';
 
   @override
+  String get addAccountTypeCreditCard => 'Credit card';
+
+  @override
   String get addAccountTypeCustom => 'Custom type';
+
+  @override
+  String get addAccountCreditCardSettingsTitle => 'Credit card settings';
+
+  @override
+  String get addAccountCreditCardLimitLabel => 'Credit limit';
+
+  @override
+  String get addAccountCreditCardLimitPlaceholder => 'Enter limit';
+
+  @override
+  String get addAccountCreditCardLimitError => 'Enter a valid limit.';
+
+  @override
+  String get addAccountCreditCardStatementDayLabel => 'Statement day';
+
+  @override
+  String get addAccountCreditCardStatementDayPlaceholder => 'For example, 5';
+
+  @override
+  String get addAccountCreditCardStatementDayError =>
+      'Enter a day between 1 and 31.';
+
+  @override
+  String get addAccountCreditCardStatementDayHelp =>
+      'Day of the month when the statement is generated.';
+
+  @override
+  String get addAccountCreditCardPaymentDueDaysLabel => 'Days until payment';
+
+  @override
+  String get addAccountCreditCardPaymentDueDaysPlaceholder => 'For example, 10';
+
+  @override
+  String get addAccountCreditCardPaymentDueDaysError =>
+      'Enter a valid number of days.';
+
+  @override
+  String get addAccountCreditCardPaymentDueDaysHelp =>
+      'How many days you have to pay after the statement day.';
+
+  @override
+  String get addAccountCreditCardInterestRateLabel => 'Annual rate, %';
+
+  @override
+  String get addAccountCreditCardInterestRatePlaceholder => 'For example, 25';
+
+  @override
+  String get addAccountCreditCardInterestRateError => 'Enter a valid rate.';
+
+  @override
+  String get creditCardAvailableLimitLabel => 'Available limit';
+
+  @override
+  String get creditCardSpentLabel => 'Spent';
 
   @override
   String get addAccountCustomTypeLabel => 'Custom account type';

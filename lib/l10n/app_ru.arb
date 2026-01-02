@@ -2168,9 +2168,81 @@
   "@addAccountTypeBank": {
     "description": "Вариант типа счёта для банковского счёта"
   },
+  "addAccountTypeCreditCard": "Кредитная карта",
+  "@addAccountTypeCreditCard": {
+    "description": "Вариант типа счёта для кредитной карты"
+  },
   "addAccountTypeCustom": "Другой тип",
   "@addAccountTypeCustom": {
     "description": "Вариант выбора пользовательского типа счёта"
+  },
+  "addAccountCreditCardSettingsTitle": "Настройки кредитной карты",
+  "@addAccountCreditCardSettingsTitle": {
+    "description": "Заголовок блока настроек кредитной карты"
+  },
+  "addAccountCreditCardLimitLabel": "Кредитный лимит",
+  "@addAccountCreditCardLimitLabel": {
+    "description": "Подпись поля кредитного лимита"
+  },
+  "addAccountCreditCardLimitPlaceholder": "Введите лимит",
+  "@addAccountCreditCardLimitPlaceholder": {
+    "description": "Плейсхолдер поля кредитного лимита"
+  },
+  "addAccountCreditCardLimitError": "Введите корректный лимит.",
+  "@addAccountCreditCardLimitError": {
+    "description": "Сообщение об ошибке для кредитного лимита"
+  },
+  "addAccountCreditCardStatementDayLabel": "День выписки",
+  "@addAccountCreditCardStatementDayLabel": {
+    "description": "Подпись поля дня выписки"
+  },
+  "addAccountCreditCardStatementDayPlaceholder": "Например, 5",
+  "@addAccountCreditCardStatementDayPlaceholder": {
+    "description": "Плейсхолдер поля дня выписки"
+  },
+  "addAccountCreditCardStatementDayError": "Введите день от 1 до 31.",
+  "@addAccountCreditCardStatementDayError": {
+    "description": "Сообщение об ошибке для дня выписки"
+  },
+  "addAccountCreditCardStatementDayHelp": "День месяца, когда формируется выписка по карте.",
+  "@addAccountCreditCardStatementDayHelp": {
+    "description": "Подсказка для поля дня выписки"
+  },
+  "addAccountCreditCardPaymentDueDaysLabel": "Дней до платежа",
+  "@addAccountCreditCardPaymentDueDaysLabel": {
+    "description": "Подпись поля дней до платежа"
+  },
+  "addAccountCreditCardPaymentDueDaysPlaceholder": "Например, 10",
+  "@addAccountCreditCardPaymentDueDaysPlaceholder": {
+    "description": "Плейсхолдер поля дней до платежа"
+  },
+  "addAccountCreditCardPaymentDueDaysError": "Введите корректное количество дней.",
+  "@addAccountCreditCardPaymentDueDaysError": {
+    "description": "Сообщение об ошибке для дней до платежа"
+  },
+  "addAccountCreditCardPaymentDueDaysHelp": "Сколько дней есть на оплату после дня выписки.",
+  "@addAccountCreditCardPaymentDueDaysHelp": {
+    "description": "Подсказка для поля дней до платежа"
+  },
+  "addAccountCreditCardInterestRateLabel": "Годовая ставка, %",
+  "@addAccountCreditCardInterestRateLabel": {
+    "description": "Подпись поля годовой ставки"
+  },
+  "addAccountCreditCardInterestRatePlaceholder": "Например, 25",
+  "@addAccountCreditCardInterestRatePlaceholder": {
+    "description": "Плейсхолдер поля годовой ставки"
+  },
+  "addAccountCreditCardInterestRateError": "Введите корректную ставку.",
+  "@addAccountCreditCardInterestRateError": {
+    "description": "Сообщение об ошибке для годовой ставки"
+  },
+  "creditCardAvailableLimitLabel": "Доступный лимит",
+  "@creditCardAvailableLimitLabel": {
+    "description": "Подпись для доступного лимита кредитной карты"
+  },
+  "creditCardSpentLabel": "Потрачено",
+  "@creditCardSpentLabel": {
+    "description": "Подпись для суммы потраченного по кредитной карте"
   },
   "addAccountCustomTypeLabel": "Собственный тип счёта",
   "@addAccountCustomTypeLabel": {

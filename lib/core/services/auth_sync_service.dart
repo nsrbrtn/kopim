@@ -28,10 +28,13 @@ import 'package:kopim/features/profile/data/local/profile_dao.dart';
 import 'package:kopim/features/profile/data/remote/profile_remote_data_source.dart';
 import 'package:kopim/features/profile/domain/entities/profile.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
+import 'package:kopim/features/credits/data/sources/local/credit_card_dao.dart';
 import 'package:kopim/features/credits/data/sources/local/credit_dao.dart';
 import 'package:kopim/features/credits/data/sources/local/debt_dao.dart';
+import 'package:kopim/features/credits/data/sources/remote/credit_card_remote_data_source.dart';
 import 'package:kopim/features/credits/data/sources/remote/credit_remote_data_source.dart';
 import 'package:kopim/features/credits/data/sources/remote/debt_remote_data_source.dart';
+import 'package:kopim/features/credits/domain/entities/credit_card_entity.dart';
 import 'package:kopim/features/credits/domain/entities/credit_entity.dart';
 import 'package:kopim/features/credits/domain/entities/debt_entity.dart';
 import 'package:kopim/features/upcoming_payments/data/drift/daos/payment_reminders_dao.dart';
@@ -53,6 +56,7 @@ class AuthSyncService {
     required AccountDao accountDao,
     required CategoryDao categoryDao,
     required TransactionDao transactionDao,
+    required CreditCardDao creditCardDao,
     required CreditDao creditDao,
     required DebtDao debtDao,
     required BudgetDao budgetDao,
@@ -63,6 +67,7 @@ class AuthSyncService {
     required AccountRemoteDataSource accountRemoteDataSource,
     required CategoryRemoteDataSource categoryRemoteDataSource,
     required TransactionRemoteDataSource transactionRemoteDataSource,
+    required CreditCardRemoteDataSource creditCardRemoteDataSource,
     required CreditRemoteDataSource creditRemoteDataSource,
     required DebtRemoteDataSource debtRemoteDataSource,
     required BudgetRemoteDataSource budgetRemoteDataSource,
@@ -82,6 +87,7 @@ class AuthSyncService {
        _accountDao = accountDao,
        _categoryDao = categoryDao,
        _transactionDao = transactionDao,
+       _creditCardDao = creditCardDao,
        _creditDao = creditDao,
        _debtDao = debtDao,
        _budgetDao = budgetDao,
@@ -93,6 +99,7 @@ class AuthSyncService {
        _accountRemoteDataSource = accountRemoteDataSource,
        _categoryRemoteDataSource = categoryRemoteDataSource,
        _transactionRemoteDataSource = transactionRemoteDataSource,
+       _creditCardRemoteDataSource = creditCardRemoteDataSource,
        _creditRemoteDataSource = creditRemoteDataSource,
        _debtRemoteDataSource = debtRemoteDataSource,
        _budgetRemoteDataSource = budgetRemoteDataSource,
@@ -114,6 +121,7 @@ class AuthSyncService {
   final AccountDao _accountDao;
   final CategoryDao _categoryDao;
   final TransactionDao _transactionDao;
+  final CreditCardDao _creditCardDao;
   final CreditDao _creditDao;
   final DebtDao _debtDao;
   final BudgetDao _budgetDao;
@@ -124,6 +132,7 @@ class AuthSyncService {
   final AccountRemoteDataSource _accountRemoteDataSource;
   final CategoryRemoteDataSource _categoryRemoteDataSource;
   final TransactionRemoteDataSource _transactionRemoteDataSource;
+  final CreditCardRemoteDataSource _creditCardRemoteDataSource;
   final CreditRemoteDataSource _creditRemoteDataSource;
   final DebtRemoteDataSource _debtRemoteDataSource;
   final BudgetRemoteDataSource _budgetRemoteDataSource;
@@ -189,6 +198,7 @@ class AuthSyncService {
         'remoteCategories': remoteSnapshot.categories.length,
         'remoteTransactions': remoteSnapshot.transactions.length,
         'remoteCredits': remoteSnapshot.credits.length,
+        'remoteCreditCards': remoteSnapshot.creditCards.length,
         'remoteDebts': remoteSnapshot.debts.length,
         'remoteBudgets': remoteSnapshot.budgets.length,
         'remoteBudgetInstances': remoteSnapshot.budgetInstances.length,
@@ -201,6 +211,7 @@ class AuthSyncService {
         'Categories: ${remoteSnapshot.categories.length}, '
         'Transactions: ${remoteSnapshot.transactions.length}, '
         'Credits: ${remoteSnapshot.credits.length}, '
+        'Credit cards: ${remoteSnapshot.creditCards.length}, '
         'Debts: ${remoteSnapshot.debts.length}, '
         'Budgets: ${remoteSnapshot.budgets.length}, '
         'Savings goals: ${remoteSnapshot.savingGoals.length}, '
@@ -322,6 +333,24 @@ class AuthSyncService {
               );
             }
             break;
+          case 'credit_card':
+            final CreditCardEntity creditCard = CreditCardEntity.fromJson(
+              payload,
+            );
+            if (operation == OutboxOperation.delete) {
+              _creditCardRemoteDataSource.deleteInTransaction(
+                transaction,
+                userId,
+                creditCard,
+              );
+            } else {
+              _creditCardRemoteDataSource.upsertInTransaction(
+                transaction,
+                userId,
+                creditCard,
+              );
+            }
+            break;
           case 'debt':
             final DebtEntity debt = DebtEntity.fromJson(payload);
             if (operation == OutboxOperation.delete) {
@@ -436,6 +465,7 @@ class AuthSyncService {
       _categoryRemoteDataSource.fetchAll(userId),
       _transactionRemoteDataSource.fetchAll(userId),
       _creditRemoteDataSource.fetchAll(userId),
+      _creditCardRemoteDataSource.fetchAll(userId),
       _debtRemoteDataSource.fetchAll(userId),
       _budgetRemoteDataSource.fetchAll(userId),
       _budgetInstanceRemoteDataSource.fetchAll(userId),
@@ -449,12 +479,13 @@ class AuthSyncService {
       categories: results[1] as List<Category>,
       transactions: results[2] as List<TransactionEntity>,
       credits: results[3] as List<CreditEntity>,
-      debts: results[4] as List<DebtEntity>,
-      budgets: results[5] as List<Budget>,
-      budgetInstances: results[6] as List<BudgetInstance>,
-      savingGoals: results[7] as List<SavingGoal>,
-      upcomingPayments: results[8] as List<UpcomingPayment>,
-      paymentReminders: results[9] as List<PaymentReminder>,
+      creditCards: results[4] as List<CreditCardEntity>,
+      debts: results[5] as List<DebtEntity>,
+      budgets: results[6] as List<Budget>,
+      budgetInstances: results[7] as List<BudgetInstance>,
+      savingGoals: results[8] as List<SavingGoal>,
+      upcomingPayments: results[9] as List<UpcomingPayment>,
+      paymentReminders: results[10] as List<PaymentReminder>,
       profile: profile,
     );
   }
@@ -482,6 +513,10 @@ class AuthSyncService {
           .getAllTransactions();
       final List<CreditEntity> localCredits = (await _creditDao.getAllCredits())
           .map(_creditDao.mapRowToEntity)
+          .toList();
+      final List<CreditCardEntity> localCreditCards = (await _creditCardDao
+              .getAllCreditCards())
+          .map(_creditCardDao.mapRowToEntity)
           .toList();
       final List<DebtEntity> localDebts = (await _debtDao.getAllDebts())
           .map(_debtDao.mapRowToEntity)
@@ -531,6 +566,13 @@ class AuthSyncService {
         getId: (CreditEntity entity) => entity.id,
         getUpdatedAt: (CreditEntity entity) => entity.updatedAt,
       );
+      final List<CreditCardEntity> mergedCreditCards =
+          _mergeEntities<CreditCardEntity>(
+            local: localCreditCards,
+            remote: remoteSnapshot.creditCards,
+            getId: (CreditCardEntity entity) => entity.id,
+            getUpdatedAt: (CreditCardEntity entity) => entity.updatedAt,
+          );
       final List<DebtEntity> mergedDebts = _mergeEntities<DebtEntity>(
         local: localDebts,
         remote: remoteSnapshot.debts,
@@ -604,6 +646,13 @@ class AuthSyncService {
               validCategoryIds: validCategoryIds,
             );
         await _creditDao.upsertAll(sanitizedCredits);
+
+        final List<CreditCardEntity> sanitizedCreditCards = _dataSanitizer
+            .sanitizeCreditCards(
+              creditCards: mergedCreditCards,
+              validAccountIds: validAccountIds,
+            );
+        await _creditCardDao.upsertAll(sanitizedCreditCards);
 
         final List<DebtEntity> sanitizedDebts = _dataSanitizer.sanitizeDebts(
           debts: mergedDebts,
@@ -989,6 +1038,7 @@ class _RemoteSnapshot {
     required this.categories,
     required this.transactions,
     required this.credits,
+    required this.creditCards,
     required this.debts,
     required this.budgets,
     required this.budgetInstances,
@@ -1002,6 +1052,7 @@ class _RemoteSnapshot {
   final List<Category> categories;
   final List<TransactionEntity> transactions;
   final List<CreditEntity> credits;
+  final List<CreditCardEntity> creditCards;
   final List<DebtEntity> debts;
   final List<Budget> budgets;
   final List<BudgetInstance> budgetInstances;

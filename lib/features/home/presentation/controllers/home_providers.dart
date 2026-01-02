@@ -22,11 +22,7 @@ Stream<List<AccountEntity>> homeAccounts(Ref ref) {
   return ref
       .watch(watchAccountsUseCaseProvider)
       .call()
-      .map(
-        (List<AccountEntity> accounts) => accounts
-            .where((AccountEntity account) => !account.isHidden)
-            .toList(growable: false),
-      );
+      .map(_sortAccounts);
 }
 
 @riverpod
@@ -227,4 +223,30 @@ Category? _findCategoryById(List<Category> categories, String id) {
     }
   }
   return null;
+}
+
+List<AccountEntity> _sortAccounts(List<AccountEntity> accounts) {
+  if (accounts.length < 2) {
+    return accounts;
+  }
+  final List<_IndexedAccount> indexed = <_IndexedAccount>[];
+  for (int i = 0; i < accounts.length; i += 1) {
+    indexed.add(_IndexedAccount(accounts[i], i));
+  }
+  indexed.sort((_IndexedAccount a, _IndexedAccount b) {
+    if (a.account.isPrimary != b.account.isPrimary) {
+      return a.account.isPrimary ? -1 : 1;
+    }
+    return a.index.compareTo(b.index);
+  });
+  return indexed
+      .map((_IndexedAccount item) => item.account)
+      .toList(growable: false);
+}
+
+class _IndexedAccount {
+  const _IndexedAccount(this.account, this.index);
+
+  final AccountEntity account;
+  final int index;
 }

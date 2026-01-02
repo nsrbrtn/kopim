@@ -30,6 +30,10 @@ class _AddAccountScreenState extends ConsumerState<AddAccountScreen> {
   late final TextEditingController _balanceController;
   late final TextEditingController _customTypeController;
   late final TextEditingController _currencySearchController;
+  late final TextEditingController _creditLimitController;
+  late final TextEditingController _statementDayController;
+  late final TextEditingController _paymentDueDaysController;
+  late final TextEditingController _interestRateController;
   String _currencyQuery = '';
 
   PhosphorIconDescriptor? _resolveAccountIcon(String? name, String? style) {
@@ -52,6 +56,18 @@ class _AddAccountScreenState extends ConsumerState<AddAccountScreen> {
     _balanceController = TextEditingController(text: state.balanceInput);
     _customTypeController = TextEditingController(text: state.customType);
     _currencySearchController = TextEditingController();
+    _creditLimitController = TextEditingController(
+      text: state.creditLimitInput,
+    );
+    _statementDayController = TextEditingController(
+      text: state.statementDayInput,
+    );
+    _paymentDueDaysController = TextEditingController(
+      text: state.paymentDueDaysInput,
+    );
+    _interestRateController = TextEditingController(
+      text: state.interestRateInput,
+    );
   }
 
   @override
@@ -60,6 +76,10 @@ class _AddAccountScreenState extends ConsumerState<AddAccountScreen> {
     _balanceController.dispose();
     _customTypeController.dispose();
     _currencySearchController.dispose();
+    _creditLimitController.dispose();
+    _statementDayController.dispose();
+    _paymentDueDaysController.dispose();
+    _interestRateController.dispose();
     super.dispose();
   }
 
@@ -97,6 +117,43 @@ class _AddAccountScreenState extends ConsumerState<AddAccountScreen> {
           selection: TextSelection.collapsed(offset: next.customType.length),
         );
       }
+      if (previous?.creditLimitInput != next.creditLimitInput &&
+          _creditLimitController.text != next.creditLimitInput) {
+        _creditLimitController.value = _creditLimitController.value.copyWith(
+          text: next.creditLimitInput,
+          selection: TextSelection.collapsed(
+            offset: next.creditLimitInput.length,
+          ),
+        );
+      }
+      if (previous?.statementDayInput != next.statementDayInput &&
+          _statementDayController.text != next.statementDayInput) {
+        _statementDayController.value = _statementDayController.value.copyWith(
+          text: next.statementDayInput,
+          selection: TextSelection.collapsed(
+            offset: next.statementDayInput.length,
+          ),
+        );
+      }
+      if (previous?.paymentDueDaysInput != next.paymentDueDaysInput &&
+          _paymentDueDaysController.text != next.paymentDueDaysInput) {
+        _paymentDueDaysController.value =
+            _paymentDueDaysController.value.copyWith(
+              text: next.paymentDueDaysInput,
+              selection: TextSelection.collapsed(
+                offset: next.paymentDueDaysInput.length,
+              ),
+            );
+      }
+      if (previous?.interestRateInput != next.interestRateInput &&
+          _interestRateController.text != next.interestRateInput) {
+        _interestRateController.value = _interestRateController.value.copyWith(
+          text: next.interestRateInput,
+          selection: TextSelection.collapsed(
+            offset: next.interestRateInput.length,
+          ),
+        );
+      }
       final bool submitted =
           previous?.submissionSuccess != true && next.submissionSuccess;
       if (submitted && mounted) {
@@ -109,6 +166,7 @@ class _AddAccountScreenState extends ConsumerState<AddAccountScreen> {
       'cash': strings.addAccountTypeCash,
       'card': strings.addAccountTypeCard,
       'bank': strings.addAccountTypeBank,
+      'credit_card': strings.addAccountTypeCreditCard,
     };
     const List<String> currencyOptions = <String>['USD', 'EUR', 'RUB'];
     const String customTypeValue = '__custom__';
@@ -124,6 +182,11 @@ class _AddAccountScreenState extends ConsumerState<AddAccountScreen> {
     final String? selectedTypeValue = state.useCustomType
         ? customTypeValue
         : (state.type.isEmpty ? null : state.type);
+    final bool isCreditCard = state.resolvedType == 'credit_card';
+    final bool showNameField =
+        state.resolvedType != null && state.currency.trim().isNotEmpty;
+    final bool showDetails =
+        showNameField && state.name.trim().isNotEmpty;
     final List<String> filteredCurrencies = currencyOptions
         .where(
           (String code) =>
@@ -204,33 +267,6 @@ class _AddAccountScreenState extends ConsumerState<AddAccountScreen> {
                       ),
                     ),
                     SizedBox(height: layout.spacing.sectionLarge),
-                    _NameField(
-                      controller: _nameController,
-                      isSaving: state.isSaving,
-                      strings: strings,
-                      layout: layout,
-                      colorScheme: colorScheme,
-                      theme: theme,
-                      onChanged: controller.updateName,
-                      placeholder: _namePlaceholder,
-                      hasError:
-                          state.nameError == AddAccountFieldError.emptyName,
-                    ),
-                    SizedBox(height: layout.spacing.sectionLarge),
-                    _BalanceField(
-                      controller: _balanceController,
-                      isSaving: state.isSaving,
-                      strings: strings,
-                      layout: layout,
-                      colorScheme: colorScheme,
-                      theme: theme,
-                      onChanged: controller.updateBalance,
-                      placeholder: _balancePlaceholder,
-                      hasError:
-                          state.balanceError ==
-                          AddAccountFieldError.invalidBalance,
-                    ),
-                    SizedBox(height: layout.spacing.sectionLarge),
                     _TypeSection(
                       accountTypeLabels: accountTypeLabels,
                       colorScheme: colorScheme,
@@ -267,55 +303,110 @@ class _AddAccountScreenState extends ConsumerState<AddAccountScreen> {
                       theme: theme,
                       currencySearchController: _currencySearchController,
                     ),
-                    SizedBox(height: layout.spacing.sectionLarge),
-                    AccountIconSelector(
-                      icon: selectedIcon,
-                      enabled: !state.isSaving,
-                      onIconChanged: controller.updateIcon,
-                    ),
-                    SizedBox(height: layout.spacing.sectionLarge),
-                    _ColorPickerRow(
-                      colorScheme: colorScheme,
-                      controller: controller,
-                      layout: layout,
-                      selectedColor: selectedColor,
-                      selectedGradient: selectedGradient,
-                      strings: strings,
-                      theme: theme,
-                      isSaving: state.isSaving,
-                    ),
-                    SizedBox(height: layout.spacing.sectionLarge),
-                    SwitchListTile.adaptive(
-                      contentPadding: EdgeInsets.zero,
-                      value: state.isPrimary,
-                      onChanged: state.isSaving
-                          ? null
-                          : controller.updateIsPrimary,
-                      title: Text(
-                        strings.accountPrimaryToggleLabel,
-                        style: theme.textTheme.labelLarge?.copyWith(
-                          color: colorScheme.onSurface,
+                    if (showNameField) ...<Widget>[
+                      SizedBox(height: layout.spacing.sectionLarge),
+                      _NameField(
+                        controller: _nameController,
+                        isSaving: state.isSaving,
+                        strings: strings,
+                        layout: layout,
+                        colorScheme: colorScheme,
+                        theme: theme,
+                        onChanged: controller.updateName,
+                        placeholder: _namePlaceholder,
+                        hasError:
+                            state.nameError == AddAccountFieldError.emptyName,
+                      ),
+                    ],
+                    if (showDetails) ...<Widget>[
+                      SizedBox(height: layout.spacing.sectionLarge),
+                      if (!isCreditCard)
+                        _BalanceField(
+                          controller: _balanceController,
+                          isSaving: state.isSaving,
+                          strings: strings,
+                          layout: layout,
+                          colorScheme: colorScheme,
+                          theme: theme,
+                          onChanged: controller.updateBalance,
+                          placeholder: _balancePlaceholder,
+                          hasError:
+                              state.balanceError ==
+                              AddAccountFieldError.invalidBalance,
+                        ),
+                      if (isCreditCard) ...<Widget>[
+                        SizedBox(height: layout.spacing.sectionLarge),
+                        _CreditCardSettingsSection(
+                          isSaving: state.isSaving,
+                          strings: strings,
+                          layout: layout,
+                          colorScheme: colorScheme,
+                          theme: theme,
+                          creditLimitController: _creditLimitController,
+                          statementDayController: _statementDayController,
+                          paymentDueDaysController: _paymentDueDaysController,
+                          interestRateController: _interestRateController,
+                          onCreditLimitChanged: controller.updateCreditLimit,
+                          onStatementDayChanged: controller.updateStatementDay,
+                          onPaymentDueDaysChanged:
+                              controller.updatePaymentDueDays,
+                          onInterestRateChanged: controller.updateInterestRate,
+                          creditLimitError: state.creditLimitError != null,
+                          statementDayError: state.statementDayError != null,
+                          paymentDueDaysError: state.paymentDueDaysError != null,
+                          interestRateError: state.interestRateError != null,
+                        ),
+                      ],
+                      SizedBox(height: layout.spacing.sectionLarge),
+                      AccountIconSelector(
+                        icon: selectedIcon,
+                        enabled: !state.isSaving,
+                        onIconChanged: controller.updateIcon,
+                      ),
+                      SizedBox(height: layout.spacing.sectionLarge),
+                      _ColorPickerRow(
+                        colorScheme: colorScheme,
+                        controller: controller,
+                        layout: layout,
+                        selectedColor: selectedColor,
+                        selectedGradient: selectedGradient,
+                        strings: strings,
+                        theme: theme,
+                        isSaving: state.isSaving,
+                      ),
+                      SizedBox(height: layout.spacing.sectionLarge),
+                      SwitchListTile.adaptive(
+                        contentPadding: EdgeInsets.zero,
+                        value: state.isPrimary,
+                        onChanged: state.isSaving
+                            ? null
+                            : controller.updateIsPrimary,
+                        title: Text(
+                          strings.accountPrimaryToggleLabel,
+                          style: theme.textTheme.labelLarge?.copyWith(
+                            color: colorScheme.onSurface,
+                          ),
+                        ),
+                        subtitle: Text(
+                          strings.accountPrimaryToggleSubtitle,
+                          style: theme.textTheme.labelMedium?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                        thumbColor: WidgetStateProperty.resolveWith(
+                          (Set<WidgetState> states) =>
+                              states.contains(WidgetState.selected)
+                              ? colorScheme.onPrimary
+                              : colorScheme.onSurfaceVariant,
+                        ),
+                        trackColor: WidgetStateProperty.resolveWith(
+                          (Set<WidgetState> states) =>
+                              states.contains(WidgetState.selected)
+                              ? colorScheme.primary
+                              : colorScheme.surfaceContainerHighest,
                         ),
                       ),
-                      subtitle: Text(
-                        strings.accountPrimaryToggleSubtitle,
-                        style: theme.textTheme.labelMedium?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                      thumbColor: WidgetStateProperty.resolveWith(
-                        (Set<WidgetState> states) =>
-                            states.contains(WidgetState.selected)
-                            ? colorScheme.onPrimary
-                            : colorScheme.onSurfaceVariant,
-                      ),
-                      trackColor: WidgetStateProperty.resolveWith(
-                        (Set<WidgetState> states) =>
-                            states.contains(WidgetState.selected)
-                            ? colorScheme.primary
-                            : colorScheme.surfaceContainerHighest,
-                      ),
-                    ),
+                    ],
                     if (state.errorMessage != null) ...<Widget>[
                       SizedBox(height: layout.spacing.sectionLarge),
                       Text(
@@ -342,6 +433,7 @@ class _AddAccountScreenState extends ConsumerState<AddAccountScreen> {
       ),
     );
   }
+
 }
 
 class _NameField extends StatelessWidget {
@@ -503,7 +595,7 @@ class _TypeSection extends StatelessWidget {
       data: theme.copyWith(colorScheme: innerExpandableColors),
       child: KopimExpandableSectionPlayful(
         title: strings.addAccountTypeLabel,
-        initiallyExpanded: false,
+        initiallyExpanded: true,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
@@ -558,6 +650,220 @@ class _TypeSection extends StatelessWidget {
               ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _CreditCardSettingsSection extends StatelessWidget {
+  const _CreditCardSettingsSection({
+    required this.isSaving,
+    required this.strings,
+    required this.layout,
+    required this.colorScheme,
+    required this.theme,
+    required this.creditLimitController,
+    required this.statementDayController,
+    required this.paymentDueDaysController,
+    required this.interestRateController,
+    required this.onCreditLimitChanged,
+    required this.onStatementDayChanged,
+    required this.onPaymentDueDaysChanged,
+    required this.onInterestRateChanged,
+    required this.creditLimitError,
+    required this.statementDayError,
+    required this.paymentDueDaysError,
+    required this.interestRateError,
+  });
+
+  final bool isSaving;
+  final AppLocalizations strings;
+  final KopimLayout layout;
+  final ColorScheme colorScheme;
+  final ThemeData theme;
+  final TextEditingController creditLimitController;
+  final TextEditingController statementDayController;
+  final TextEditingController paymentDueDaysController;
+  final TextEditingController interestRateController;
+  final ValueChanged<String> onCreditLimitChanged;
+  final ValueChanged<String> onStatementDayChanged;
+  final ValueChanged<String> onPaymentDueDaysChanged;
+  final ValueChanged<String> onInterestRateChanged;
+  final bool creditLimitError;
+  final bool statementDayError;
+  final bool paymentDueDaysError;
+  final bool interestRateError;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(layout.radius.xxl),
+      ),
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Text(
+            strings.addAccountCreditCardSettingsTitle,
+            style: theme.textTheme.titleMedium?.copyWith(
+              color: colorScheme.onSurface,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          SizedBox(height: layout.spacing.section),
+          _CreditCardField(
+            label: strings.addAccountCreditCardLimitLabel,
+            placeholder: strings.addAccountCreditCardLimitPlaceholder,
+            controller: creditLimitController,
+            isSaving: isSaving,
+            errorText:
+                creditLimitError ? strings.addAccountCreditCardLimitError : null,
+            onChanged: onCreditLimitChanged,
+            layout: layout,
+            colorScheme: colorScheme,
+          ),
+          SizedBox(height: layout.spacing.section),
+          _CreditCardField(
+            label: strings.addAccountCreditCardStatementDayLabel,
+            placeholder: strings.addAccountCreditCardStatementDayPlaceholder,
+            controller: statementDayController,
+            isSaving: isSaving,
+            errorText: statementDayError
+                ? strings.addAccountCreditCardStatementDayError
+                : null,
+            tooltipText: strings.addAccountCreditCardStatementDayHelp,
+            onChanged: onStatementDayChanged,
+            layout: layout,
+            colorScheme: colorScheme,
+          ),
+          SizedBox(height: layout.spacing.section),
+          _CreditCardField(
+            label: strings.addAccountCreditCardPaymentDueDaysLabel,
+            placeholder: strings.addAccountCreditCardPaymentDueDaysPlaceholder,
+            controller: paymentDueDaysController,
+            isSaving: isSaving,
+            errorText: paymentDueDaysError
+                ? strings.addAccountCreditCardPaymentDueDaysError
+                : null,
+            tooltipText: strings.addAccountCreditCardPaymentDueDaysHelp,
+            onChanged: onPaymentDueDaysChanged,
+            layout: layout,
+            colorScheme: colorScheme,
+          ),
+          SizedBox(height: layout.spacing.section),
+          _CreditCardField(
+            label: strings.addAccountCreditCardInterestRateLabel,
+            placeholder: strings.addAccountCreditCardInterestRatePlaceholder,
+            controller: interestRateController,
+            isSaving: isSaving,
+            errorText: interestRateError
+                ? strings.addAccountCreditCardInterestRateError
+                : null,
+            onChanged: onInterestRateChanged,
+            layout: layout,
+            colorScheme: colorScheme,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CreditCardField extends StatelessWidget {
+  const _CreditCardField({
+    required this.label,
+    required this.placeholder,
+    required this.controller,
+    required this.isSaving,
+    required this.onChanged,
+    required this.layout,
+    required this.colorScheme,
+    this.errorText,
+    this.tooltipText,
+  });
+
+  final String label;
+  final String placeholder;
+  final TextEditingController controller;
+  final bool isSaving;
+  final ValueChanged<String> onChanged;
+  final KopimLayout layout;
+  final ColorScheme colorScheme;
+  final String? errorText;
+  final String? tooltipText;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Text(
+              label,
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                color: colorScheme.onSurface,
+              ),
+            ),
+            if (tooltipText != null) ...<Widget>[
+              const SizedBox(width: 6),
+              IconButton(
+                visualDensity: VisualDensity.compact,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+                icon: Icon(
+                  Icons.help_outline,
+                  size: 16,
+                  color: colorScheme.onSurfaceVariant,
+                ),
+                onPressed: () => _showHelpDialog(context),
+              ),
+            ],
+          ],
+        ),
+        SizedBox(height: layout.spacing.between),
+        KopimTextField(
+          controller: controller,
+          placeholder: placeholder,
+          enabled: !isSaving,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          onChanged: onChanged,
+          fillColor: colorScheme.surfaceContainerHigh,
+          placeholderColor: colorScheme.onSurfaceVariant,
+        ),
+        if (errorText != null)
+          Padding(
+            padding: EdgeInsets.only(top: layout.spacing.between),
+            child: Text(
+              errorText!,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.error,
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  void _showHelpDialog(BuildContext context) {
+    final String? message = tooltipText;
+    if (message == null || message.isEmpty) {
+      return;
+    }
+    showDialog<void>(
+      context: context,
+      builder: (BuildContext context) => AlertDialog(
+        title: Text(label),
+        content: Text(message),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(MaterialLocalizations.of(context).okButtonLabel),
+          ),
+        ],
       ),
     );
   }

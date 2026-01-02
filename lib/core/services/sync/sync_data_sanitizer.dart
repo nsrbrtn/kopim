@@ -1,5 +1,6 @@
 import 'package:kopim/core/services/logger_service.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_instance.dart';
+import 'package:kopim/features/credits/domain/entities/credit_card_entity.dart';
 import 'package:kopim/features/credits/domain/entities/credit_entity.dart';
 import 'package:kopim/features/credits/domain/entities/debt_entity.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
@@ -137,6 +138,32 @@ class SyncDataSanitizer {
     if (clearedCategories > 0) {
       logger.logInfo(
         'SyncDataSanitizer: cleared $clearedCategories credit categories due to missing references.',
+      );
+    }
+
+    return sanitized;
+  }
+
+  List<CreditCardEntity> sanitizeCreditCards({
+    required List<CreditCardEntity> creditCards,
+    required Set<String> validAccountIds,
+  }) {
+    if (creditCards.isEmpty) return creditCards;
+
+    final List<CreditCardEntity> sanitized = <CreditCardEntity>[];
+    int skippedCount = 0;
+
+    for (final CreditCardEntity creditCard in creditCards) {
+      if (!validAccountIds.contains(creditCard.accountId)) {
+        skippedCount++;
+        continue;
+      }
+      sanitized.add(creditCard);
+    }
+
+    if (skippedCount > 0) {
+      logger.logInfo(
+        'SyncDataSanitizer: skipped $skippedCount credit cards due to missing accounts.',
       );
     }
 

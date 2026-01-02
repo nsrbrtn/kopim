@@ -2168,9 +2168,81 @@
   "@addAccountTypeBank": {
     "description": "Option label for bank accounts"
   },
+  "addAccountTypeCreditCard": "Credit card",
+  "@addAccountTypeCreditCard": {
+    "description": "Option label for credit card accounts"
+  },
   "addAccountTypeCustom": "Custom type",
   "@addAccountTypeCustom": {
     "description": "Option label for custom account types"
+  },
+  "addAccountCreditCardSettingsTitle": "Credit card settings",
+  "@addAccountCreditCardSettingsTitle": {
+    "description": "Title for the credit card settings section"
+  },
+  "addAccountCreditCardLimitLabel": "Credit limit",
+  "@addAccountCreditCardLimitLabel": {
+    "description": "Label for the credit limit input"
+  },
+  "addAccountCreditCardLimitPlaceholder": "Enter limit",
+  "@addAccountCreditCardLimitPlaceholder": {
+    "description": "Placeholder for the credit limit input"
+  },
+  "addAccountCreditCardLimitError": "Enter a valid limit.",
+  "@addAccountCreditCardLimitError": {
+    "description": "Validation error for credit limit"
+  },
+  "addAccountCreditCardStatementDayLabel": "Statement day",
+  "@addAccountCreditCardStatementDayLabel": {
+    "description": "Label for the statement day input"
+  },
+  "addAccountCreditCardStatementDayPlaceholder": "For example, 5",
+  "@addAccountCreditCardStatementDayPlaceholder": {
+    "description": "Placeholder for the statement day input"
+  },
+  "addAccountCreditCardStatementDayError": "Enter a day between 1 and 31.",
+  "@addAccountCreditCardStatementDayError": {
+    "description": "Validation error for statement day"
+  },
+  "addAccountCreditCardStatementDayHelp": "Day of the month when the statement is generated.",
+  "@addAccountCreditCardStatementDayHelp": {
+    "description": "Help text for statement day"
+  },
+  "addAccountCreditCardPaymentDueDaysLabel": "Days until payment",
+  "@addAccountCreditCardPaymentDueDaysLabel": {
+    "description": "Label for days until payment input"
+  },
+  "addAccountCreditCardPaymentDueDaysPlaceholder": "For example, 10",
+  "@addAccountCreditCardPaymentDueDaysPlaceholder": {
+    "description": "Placeholder for days until payment input"
+  },
+  "addAccountCreditCardPaymentDueDaysError": "Enter a valid number of days.",
+  "@addAccountCreditCardPaymentDueDaysError": {
+    "description": "Validation error for days until payment"
+  },
+  "addAccountCreditCardPaymentDueDaysHelp": "How many days you have to pay after the statement day.",
+  "@addAccountCreditCardPaymentDueDaysHelp": {
+    "description": "Help text for days until payment"
+  },
+  "addAccountCreditCardInterestRateLabel": "Annual rate, %",
+  "@addAccountCreditCardInterestRateLabel": {
+    "description": "Label for annual interest rate input"
+  },
+  "addAccountCreditCardInterestRatePlaceholder": "For example, 25",
+  "@addAccountCreditCardInterestRatePlaceholder": {
+    "description": "Placeholder for annual interest rate input"
+  },
+  "addAccountCreditCardInterestRateError": "Enter a valid rate.",
+  "@addAccountCreditCardInterestRateError": {
+    "description": "Validation error for annual interest rate"
+  },
+  "creditCardAvailableLimitLabel": "Available limit",
+  "@creditCardAvailableLimitLabel": {
+    "description": "Label for the available credit card limit"
+  },
+  "creditCardSpentLabel": "Spent",
+  "@creditCardSpentLabel": {
+    "description": "Label for the credit card spent amount"
   },
   "addAccountCustomTypeLabel": "Custom account type",
   "@addAccountCustomTypeLabel": {

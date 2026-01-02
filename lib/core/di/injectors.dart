@@ -133,17 +133,23 @@ import 'package:kopim/features/home/data/repositories/home_dashboard_preferences
 import 'package:kopim/features/home/domain/repositories/home_dashboard_preferences_repository.dart';
 import 'package:kopim/features/home/domain/use_cases/group_transactions_by_day_use_case.dart';
 import 'package:kopim/features/credits/domain/use_cases/add_credit_use_case.dart';
+import 'package:kopim/features/credits/domain/use_cases/add_credit_card_use_case.dart';
 import 'package:kopim/features/credits/domain/use_cases/add_debt_use_case.dart';
+import 'package:kopim/features/credits/domain/use_cases/delete_credit_card_use_case.dart';
 import 'package:kopim/features/credits/domain/use_cases/delete_credit_use_case.dart';
 import 'package:kopim/features/credits/domain/use_cases/delete_debt_use_case.dart';
+import 'package:kopim/features/credits/domain/use_cases/get_credit_card_by_account_id_use_case.dart';
+import 'package:kopim/features/credits/domain/use_cases/update_credit_card_use_case.dart';
 import 'package:kopim/features/credits/domain/use_cases/update_credit_use_case.dart';
 import 'package:kopim/features/credits/domain/use_cases/update_debt_use_case.dart';
+import 'package:kopim/features/credits/domain/use_cases/watch_credit_cards_use_case.dart';
 import 'package:kopim/features/credits/domain/use_cases/watch_credits_use_case.dart';
 import 'package:kopim/features/credits/domain/use_cases/watch_debts_use_case.dart';
 import 'package:kopim/features/upcoming_payments/data/services/upcoming_payments_work_scheduler.dart';
 import 'package:kopim/firebase_options.dart';
 import 'package:kopim/features/credits/data/sources/remote/credit_remote_data_source.dart';
 import 'package:kopim/features/credits/data/sources/remote/debt_remote_data_source.dart';
+import 'package:kopim/features/credits/data/sources/remote/credit_card_remote_data_source.dart';
 import 'package:kopim/features/upcoming_payments/data/drift/daos/payment_reminders_dao.dart';
 import 'package:kopim/features/upcoming_payments/data/drift/daos/upcoming_payments_dao.dart';
 import 'package:kopim/features/upcoming_payments/data/drift/repositories/payment_reminders_repository_impl.dart';
@@ -154,10 +160,13 @@ import 'package:kopim/features/upcoming_payments/domain/repositories/payment_rem
 import 'package:kopim/features/upcoming_payments/domain/repositories/upcoming_payments_repository.dart';
 import 'package:kopim/features/credits/data/sources/local/credit_dao.dart';
 import 'package:kopim/features/credits/data/sources/local/debt_dao.dart';
+import 'package:kopim/features/credits/data/sources/local/credit_card_dao.dart';
 import 'package:kopim/features/credits/data/repositories/credit_repository_impl.dart';
 import 'package:kopim/features/credits/data/repositories/debt_repository_impl.dart';
+import 'package:kopim/features/credits/data/repositories/credit_card_repository_impl.dart';
 import 'package:kopim/features/credits/domain/repositories/credit_repository.dart';
 import 'package:kopim/features/credits/domain/repositories/debt_repository.dart';
+import 'package:kopim/features/credits/domain/repositories/credit_card_repository.dart';
 
 part 'injectors.g.dart';
 
@@ -401,6 +410,10 @@ ProfileDao profileDao(Ref ref) => ProfileDao(ref.watch(appDatabaseProvider));
 @riverpod
 CreditDao creditDao(Ref ref) => CreditDao(ref.watch(appDatabaseProvider));
 
+@riverpod
+CreditCardDao creditCardDao(Ref ref) =>
+    CreditCardDao(ref.watch(appDatabaseProvider));
+
 final rp.Provider<DebtDao> debtDaoProvider = rp.Provider<DebtDao>((rp.Ref ref) {
   return DebtDao(ref.watch(appDatabaseProvider));
 });
@@ -428,6 +441,12 @@ paymentReminderRemoteDataSourceProvider =
 final rp.Provider<CreditRemoteDataSource> creditRemoteDataSourceProvider =
     rp.Provider<CreditRemoteDataSource>((rp.Ref ref) {
       return CreditRemoteDataSource(ref.watch(firestoreProvider));
+    });
+
+final rp.Provider<CreditCardRemoteDataSource>
+creditCardRemoteDataSourceProvider =
+    rp.Provider<CreditCardRemoteDataSource>((rp.Ref ref) {
+      return CreditCardRemoteDataSource(ref.watch(firestoreProvider));
     });
 
 final rp.Provider<DebtRemoteDataSource> debtRemoteDataSourceProvider =
@@ -569,6 +588,14 @@ CreditRepository creditRepository(Ref ref) => CreditRepositoryImpl(
   outboxDao: ref.watch(outboxDaoProvider),
 );
 
+@riverpod
+CreditCardRepository creditCardRepository(Ref ref) =>
+    CreditCardRepositoryImpl(
+      database: ref.watch(appDatabaseProvider),
+      creditCardDao: ref.watch(creditCardDaoProvider),
+      outboxDao: ref.watch(outboxDaoProvider),
+    );
+
 final rp.Provider<DebtRepository> debtRepositoryProvider =
     rp.Provider<DebtRepository>((rp.Ref ref) {
       return DebtRepositoryImpl(
@@ -598,6 +625,22 @@ AddCreditUseCase addCreditUseCase(Ref ref) => AddCreditUseCase(
   uuid: ref.watch(uuidGeneratorProvider),
 );
 
+@riverpod
+AddCreditCardUseCase addCreditCardUseCase(Ref ref) =>
+    AddCreditCardUseCase(ref.watch(creditCardRepositoryProvider));
+
+@riverpod
+UpdateCreditCardUseCase updateCreditCardUseCase(Ref ref) =>
+    UpdateCreditCardUseCase(ref.watch(creditCardRepositoryProvider));
+
+@riverpod
+DeleteCreditCardUseCase deleteCreditCardUseCase(Ref ref) =>
+    DeleteCreditCardUseCase(ref.watch(creditCardRepositoryProvider));
+
+@riverpod
+GetCreditCardByAccountIdUseCase getCreditCardByAccountIdUseCase(Ref ref) =>
+    GetCreditCardByAccountIdUseCase(ref.watch(creditCardRepositoryProvider));
+
 final rp.Provider<UpdateCreditUseCase> updateCreditUseCaseProvider =
     rp.Provider<UpdateCreditUseCase>((rp.Ref ref) {
       return UpdateCreditUseCase(
@@ -618,6 +661,10 @@ DeleteCreditUseCase deleteCreditUseCase(Ref ref) => DeleteCreditUseCase(
 @riverpod
 WatchCreditsUseCase watchCreditsUseCase(Ref ref) =>
     WatchCreditsUseCase(ref.watch(creditRepositoryProvider));
+
+@riverpod
+WatchCreditCardsUseCase watchCreditCardsUseCase(Ref ref) =>
+    WatchCreditCardsUseCase(ref.watch(creditCardRepositoryProvider));
 
 final rp.Provider<AddDebtUseCase> addDebtUseCaseProvider =
     rp.Provider<AddDebtUseCase>((rp.Ref ref) {
@@ -975,6 +1022,7 @@ AuthSyncService authSyncService(Ref ref) => AuthSyncService(
   accountDao: ref.watch(accountDaoProvider),
   categoryDao: ref.watch(categoryDaoProvider),
   transactionDao: ref.watch(transactionDaoProvider),
+  creditCardDao: ref.watch(creditCardDaoProvider),
   creditDao: ref.watch(creditDaoProvider),
   debtDao: ref.watch(debtDaoProvider),
   budgetDao: ref.watch(budgetDaoProvider),
@@ -986,6 +1034,7 @@ AuthSyncService authSyncService(Ref ref) => AuthSyncService(
   accountRemoteDataSource: ref.watch(accountRemoteDataSourceProvider),
   categoryRemoteDataSource: ref.watch(categoryRemoteDataSourceProvider),
   transactionRemoteDataSource: ref.watch(transactionRemoteDataSourceProvider),
+  creditCardRemoteDataSource: ref.watch(creditCardRemoteDataSourceProvider),
   creditRemoteDataSource: ref.watch(creditRemoteDataSourceProvider),
   debtRemoteDataSource: ref.watch(debtRemoteDataSourceProvider),
   budgetRemoteDataSource: ref.watch(budgetRemoteDataSourceProvider),

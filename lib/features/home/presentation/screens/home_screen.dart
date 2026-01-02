@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:collection/collection.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
+import 'package:kopim/features/accounts/domain/use_cases/add_account_use_case.dart';
 import 'package:kopim/features/accounts/presentation/account_details_screen.dart';
 import 'package:kopim/features/accounts/presentation/accounts_add_screen.dart';
 import 'package:kopim/features/accounts/presentation/utils/account_card_gradients.dart';
@@ -15,7 +16,9 @@ import 'package:kopim/features/app_shell/presentation/models/navigation_tab_cont
 import 'package:kopim/features/app_shell/presentation/widgets/navigation_responsive_breakpoints.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/core/di/injectors.dart';
+import 'package:kopim/features/credits/domain/entities/credit_card_entity.dart';
 import 'package:kopim/features/credits/domain/entities/credit_entity.dart';
+import 'package:kopim/features/credits/domain/utils/credit_card_calculations.dart';
 import 'package:kopim/core/domain/icons/phosphor_icon_descriptor.dart';
 import 'package:kopim/features/home/domain/entities/home_dashboard_preferences.dart';
 import 'package:kopim/features/home/domain/models/day_section.dart';
@@ -188,14 +191,41 @@ class _HomeBody extends ConsumerWidget {
 
             const EdgeInsets accountsPadding = EdgeInsets.fromLTRB(8, 8, 8, 0);
             final Widget accountsSection = accountsAsync.when(
-              data: (List<AccountEntity> accounts) => _AccountsList(
-                accounts: accounts,
-                strings: strings,
-                monthlySummaries:
-                    accountSummariesAsync.asData?.value ??
-                    const <String, HomeAccountMonthlySummary>{},
-                isWideLayout: showSecondaryPanel,
-              ),
+              data: (List<AccountEntity> accounts) {
+                final List<AccountEntity> visibleAccounts = accounts
+                    .where((AccountEntity account) => !account.isHidden)
+                    .toList(growable: false);
+                final List<AccountEntity> hiddenAccounts = accounts
+                    .where((AccountEntity account) => account.isHidden)
+                    .toList(growable: false);
+                return _AccountsList(
+                  accounts: visibleAccounts,
+                  hiddenAccounts: hiddenAccounts,
+                  strings: strings,
+                  monthlySummaries:
+                      accountSummariesAsync.asData?.value ??
+                      const <String, HomeAccountMonthlySummary>{},
+                  isWideLayout: showSecondaryPanel,
+                  onRevealHidden: hiddenAccounts.isEmpty
+                      ? null
+                      : () async {
+                          final DateTime now = DateTime.now().toUtc();
+                          final AddAccountUseCase addAccountUseCase = ref.read(
+                            addAccountUseCaseProvider,
+                          );
+                          await Future.wait(
+                            hiddenAccounts.map(
+                              (AccountEntity account) => addAccountUseCase(
+                                account.copyWith(
+                                  isHidden: false,
+                                  updatedAt: now,
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                );
+              },
               loading: () => const _TransactionsSkeletonList(),
               error: (Object error, _) => _ErrorMessage(
                 message: strings.homeAccountsError(error.toString()),
@@ -563,15 +593,19 @@ class _AddTransactionButton extends ConsumerWidget {
 class _AccountsList extends StatefulWidget {
   const _AccountsList({
     required this.accounts,
+    required this.hiddenAccounts,
     required this.strings,
     required this.monthlySummaries,
     required this.isWideLayout,
+    required this.onRevealHidden,
   });
 
   final List<AccountEntity> accounts;
+  final List<AccountEntity> hiddenAccounts;
   final AppLocalizations strings;
   final Map<String, HomeAccountMonthlySummary> monthlySummaries;
   final bool isWideLayout;
+  final Future<void> Function()? onRevealHidden;
 
   @override
   State<_AccountsList> createState() => _AccountsListState();
@@ -582,10 +616,13 @@ class _AccountsListState extends State<_AccountsList> {
   late double _viewportFraction;
   int _currentPage = 0;
 
+  int get _totalItems =>
+      widget.accounts.length + (widget.hiddenAccounts.isNotEmpty ? 1 : 0);
+
   @override
   void initState() {
     super.initState();
-    _viewportFraction = widget.accounts.length == 1 ? 1.0 : 0.65;
+    _viewportFraction = _totalItems == 1 ? 1.0 : 0.65;
     _pageController = PageController(viewportFraction: _viewportFraction);
   }
 
@@ -599,10 +636,10 @@ class _AccountsListState extends State<_AccountsList> {
     if ((_viewportFraction - fraction).abs() < 0.001) {
       return;
     }
+    final int maxIndex = math.max(0, _totalItems - 1);
     final int initialPage = _pageController.hasClients
-        ? _pageController.page?.round().clamp(0, widget.accounts.length - 1) ??
-              0
-        : _currentPage.clamp(0, widget.accounts.length - 1);
+        ? _pageController.page?.round().clamp(0, maxIndex) ?? 0
+        : _currentPage.clamp(0, maxIndex);
     final PageController oldController = _pageController;
     final PageController newController = PageController(
       viewportFraction: fraction,
@@ -643,12 +680,14 @@ class _AccountsListState extends State<_AccountsList> {
 
   @override
   Widget build(BuildContext context) {
-    if (widget.accounts.isEmpty) {
+    final bool hasHiddenAccounts = widget.hiddenAccounts.isNotEmpty;
+    if (widget.accounts.isEmpty && !hasHiddenAccounts) {
       return _EmptyMessage(message: widget.strings.homeAccountsEmpty);
     }
 
     final ThemeData theme = Theme.of(context);
     final String localeName = widget.strings.localeName;
+    final int totalItems = _totalItems;
 
     if (widget.isWideLayout) {
       return LayoutBuilder(
@@ -656,13 +695,23 @@ class _AccountsListState extends State<_AccountsList> {
           final double cardHeight = _AccountCardLayout.estimateHeight(context);
           final double cardWidth =
               math.min(360, constraints.maxWidth * 0.6);
+          final double revealWidth = cardWidth * 0.75;
           return SizedBox(
             height: cardHeight,
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
-              itemCount: widget.accounts.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 12),
+              itemCount: totalItems,
+              separatorBuilder: (BuildContext context, int index) =>
+                  const SizedBox(width: 12),
               itemBuilder: (BuildContext context, int index) {
+                if (index >= widget.accounts.length) {
+                  return SizedBox(
+                    width: revealWidth,
+                    child: _HiddenAccountsRevealCard(
+                      onTap: widget.onRevealHidden,
+                    ),
+                  );
+                }
                 final AccountEntity account = widget.accounts[index];
                 final NumberFormat currencyFormat = NumberFormat.currency(
                   locale: localeName,
@@ -690,7 +739,7 @@ class _AccountsListState extends State<_AccountsList> {
       );
     }
 
-    final int maxIndex = widget.accounts.length - 1;
+    final int maxIndex = math.max(0, totalItems - 1);
     final int activePage = _currentPage.clamp(0, maxIndex);
     if (_currentPage != activePage) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -705,13 +754,13 @@ class _AccountsListState extends State<_AccountsList> {
       builder: (BuildContext context, BoxConstraints constraints) {
         final bool isCarouselWide = constraints.maxWidth >= 720;
 
-        final bool isSingleAccount = widget.accounts.length == 1;
+        final bool isSingleAccount = totalItems == 1;
         final double baseFraction = isSingleAccount
             ? 1.0
             : (isCarouselWide ? 0.45 : 0.65);
         final double minScrollableFraction = isSingleAccount
             ? 1.0
-            : (1 / widget.accounts.length) + 0.02;
+            : (1 / totalItems) + 0.02;
         final double requiredFraction = _calculateRequiredFraction(
           context: context,
           constraints: constraints,
@@ -744,13 +793,35 @@ class _AccountsListState extends State<_AccountsList> {
                 controller: _pageController,
                 physics: const BouncingScrollPhysics(),
                 padEnds: false,
-                itemCount: widget.accounts.length,
+                itemCount: totalItems,
                 onPageChanged: (int index) {
                   setState(() {
                     _currentPage = index;
                   });
                 },
                 itemBuilder: (BuildContext context, int index) {
+                  if (index >= widget.accounts.length) {
+                    final bool isLast = index == totalItems - 1;
+                    return Padding(
+                      padding: EdgeInsets.only(right: isLast ? 0 : 8),
+                      child: LayoutBuilder(
+                        builder: (
+                          BuildContext context,
+                          BoxConstraints constraints,
+                        ) {
+                          return Align(
+                            alignment: Alignment.centerLeft,
+                            child: SizedBox(
+                              width: constraints.maxWidth * 0.82,
+                              child: _HiddenAccountsRevealCard(
+                                onTap: widget.onRevealHidden,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    );
+                  }
                   final AccountEntity account = widget.accounts[index];
                   final NumberFormat currencyFormat = NumberFormat.currency(
                     locale: localeName,
@@ -764,7 +835,7 @@ class _AccountsListState extends State<_AccountsList> {
                       widget.monthlySummaries[account.id] ??
                       const HomeAccountMonthlySummary(income: 0, expense: 0);
 
-                  final bool isLast = index == widget.accounts.length - 1;
+                  final bool isLast = index == totalItems - 1;
                   return Padding(
                     padding: EdgeInsets.only(right: isLast ? 0 : 8),
                     child: _AccountCard(
@@ -778,12 +849,12 @@ class _AccountsListState extends State<_AccountsList> {
                 },
               ),
             ),
-            if (widget.accounts.length > 1)
+            if (totalItems > 1)
               Padding(
                 padding: const EdgeInsets.only(top: 8),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  children: List<Widget>.generate(widget.accounts.length, (
+                  children: List<Widget>.generate(totalItems, (
                     int index,
                   ) {
                     final bool isActive = index == activePage;
@@ -871,6 +942,18 @@ class _AccountCard extends ConsumerWidget {
     final TextStyle summaryHeaderStyle = labelStyle.copyWith(
       color: palette.summaryLabel,
     );
+    final Widget standardContent = _StandardAccountContent(
+      account: account,
+      strings: strings,
+      currencyFormat: currencyFormat,
+      summary: summary,
+      labelStyle: labelStyle,
+      balanceStyle: balanceStyle,
+      summaryTextStyle: summaryTextStyle,
+      summaryHeaderStyle: summaryHeaderStyle,
+      accountIcon: accountIcon,
+      palette: palette,
+    );
 
     return Material(
       color: Colors.transparent,
@@ -887,10 +970,12 @@ class _AccountCard extends ConsumerWidget {
             gradient: gradient?.toGradient(),
             borderRadius: borderRadius,
           ),
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: account.type == 'credit'
-                ? _CreditCardContent(
+          child: Stack(
+            children: <Widget>[
+              Padding(
+                padding: const EdgeInsets.all(24),
+                child: switch (account.type) {
+                  'credit' => _CreditCardContent(
                     account: account,
                     strings: strings,
                     currencyFormat: currencyFormat,
@@ -900,59 +985,102 @@ class _AccountCard extends ConsumerWidget {
                     summaryTextStyle: summaryTextStyle,
                     summaryHeaderStyle: summaryHeaderStyle,
                     accountIcon: accountIcon,
-                  )
-                : Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Row(
-                        children: <Widget>[
-                          if (accountIcon != null)
-                            _AccountIconBadge(
-                              icon: accountIcon,
-                              color: palette.emphasis,
-                            ),
-                          if (accountIcon != null) const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              account.name,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: labelStyle,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        currencyFormat.format(account.balance),
-                        style: balanceStyle,
-                        softWrap: true,
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        strings.analyticsCurrentMonthTitle,
-                        style: summaryHeaderStyle,
-                      ),
-                      const SizedBox(height: 8),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          _AccountMonthlyValue(
-                            label: strings.homeAccountMonthlyIncomeLabel,
-                            value: currencyFormat.format(summary.income),
-                            textStyle: summaryTextStyle,
-                          ),
-                          const SizedBox(height: 4),
-                          _AccountMonthlyValue(
-                            label: strings.homeAccountMonthlyExpenseLabel,
-                            value: currencyFormat.format(summary.expense),
-                            textStyle: summaryTextStyle,
-                          ),
-                        ],
-                      ),
-                    ],
                   ),
+                  'credit_card' => _CreditCardAccountContent(
+                    account: account,
+                    strings: strings,
+                    currencyFormat: currencyFormat,
+                    labelStyle: labelStyle,
+                    balanceStyle: balanceStyle,
+                    summaryTextStyle: summaryTextStyle,
+                    accountIcon: accountIcon,
+                    palette: palette,
+                    fallback: standardContent,
+                  ),
+                  _ => standardContent,
+                },
+              ),
+              Positioned(
+                right: 16,
+                bottom: 16,
+                child: _AccountHideButton(
+                  account: account,
+                  color: palette.support,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _AccountHideButton extends ConsumerWidget {
+  const _AccountHideButton({required this.account, required this.color});
+
+  final AccountEntity account;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Material(
+      type: MaterialType.transparency,
+      child: InkResponse(
+        onTap: () async {
+          final DateTime now = DateTime.now().toUtc();
+          final AddAccountUseCase addAccountUseCase = ref.read(
+            addAccountUseCaseProvider,
+          );
+          await addAccountUseCase(
+            account.copyWith(isHidden: true, updatedAt: now),
+          );
+        },
+        radius: 20,
+        containedInkWell: true,
+        child: SizedBox(
+          width: _AccountIconBadge.size,
+          height: _AccountIconBadge.size,
+          child: Icon(
+            PhosphorIcons.eyeSlash(PhosphorIconsStyle.regular),
+            size: 16,
+            color: color,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _HiddenAccountsRevealCard extends StatelessWidget {
+  const _HiddenAccountsRevealCard({required this.onTap});
+
+  final Future<void> Function()? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final double cardRadius = context.kopimLayout.radius.xxl;
+    final BorderRadius borderRadius = BorderRadius.circular(cardRadius);
+    final Color background = theme.colorScheme.surfaceContainerHighest;
+    final Color iconColor = theme.colorScheme.primary;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: borderRadius,
+        onTap: onTap == null ? null : () => onTap!(),
+        child: Ink(
+          decoration: BoxDecoration(
+            color: background,
+            borderRadius: borderRadius,
+          ),
+          child: Center(
+            child: Icon(
+              PhosphorIcons.eye(PhosphorIconsStyle.regular),
+              size: 48,
+              color: iconColor,
+            ),
           ),
         ),
       ),
@@ -990,6 +1118,179 @@ class _AccountIconBadge extends StatelessWidget {
         shape: BoxShape.circle,
       ),
       child: Icon(icon, size: 16, color: color),
+    );
+  }
+}
+
+class _StandardAccountContent extends StatelessWidget {
+  const _StandardAccountContent({
+    required this.account,
+    required this.strings,
+    required this.currencyFormat,
+    required this.summary,
+    required this.labelStyle,
+    required this.balanceStyle,
+    required this.summaryTextStyle,
+    required this.summaryHeaderStyle,
+    required this.accountIcon,
+    required this.palette,
+  });
+
+  final AccountEntity account;
+  final AppLocalizations strings;
+  final NumberFormat currencyFormat;
+  final HomeAccountMonthlySummary summary;
+  final TextStyle labelStyle;
+  final TextStyle balanceStyle;
+  final TextStyle summaryTextStyle;
+  final TextStyle summaryHeaderStyle;
+  final PhosphorIconData? accountIcon;
+  final _AccountCardPalette palette;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Row(
+          children: <Widget>[
+            if (accountIcon != null)
+              _AccountIconBadge(icon: accountIcon!, color: palette.emphasis),
+            if (accountIcon != null) const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                account.name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: labelStyle,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Text(
+          currencyFormat.format(account.balance),
+          style: balanceStyle,
+          softWrap: true,
+        ),
+        const SizedBox(height: 16),
+        Text(strings.analyticsCurrentMonthTitle, style: summaryHeaderStyle),
+        const SizedBox(height: 8),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            _AccountMonthlyValue(
+              label: strings.homeAccountMonthlyIncomeLabel,
+              value: currencyFormat.format(summary.income),
+              textStyle: summaryTextStyle,
+            ),
+            const SizedBox(height: 4),
+            _AccountMonthlyValue(
+              label: strings.homeAccountMonthlyExpenseLabel,
+              value: currencyFormat.format(summary.expense),
+              textStyle: summaryTextStyle,
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _CreditCardAccountContent extends ConsumerWidget {
+  const _CreditCardAccountContent({
+    required this.account,
+    required this.strings,
+    required this.currencyFormat,
+    required this.labelStyle,
+    required this.balanceStyle,
+    required this.summaryTextStyle,
+    required this.accountIcon,
+    required this.palette,
+    required this.fallback,
+  });
+
+  final AccountEntity account;
+  final AppLocalizations strings;
+  final NumberFormat currencyFormat;
+  final TextStyle labelStyle;
+  final TextStyle balanceStyle;
+  final TextStyle summaryTextStyle;
+  final PhosphorIconData? accountIcon;
+  final _AccountCardPalette palette;
+  final Widget fallback;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final Stream<List<CreditCardEntity>> creditCardsAsync = ref
+        .watch(watchCreditCardsUseCaseProvider)
+        .call();
+
+    return StreamBuilder<List<CreditCardEntity>>(
+      stream: creditCardsAsync,
+      builder:
+          (
+            BuildContext context,
+            AsyncSnapshot<List<CreditCardEntity>> snapshot,
+          ) {
+            final CreditCardEntity? creditCard = snapshot.data?.firstWhereOrNull(
+              (CreditCardEntity item) => item.accountId == account.id,
+            );
+            if (creditCard == null) {
+              return fallback;
+            }
+
+            final double availableLimit = calculateCreditCardAvailableLimit(
+              creditLimit: creditCard.creditLimit,
+              balance: account.balance,
+            );
+            final double debt = calculateCreditCardDebt(account.balance);
+            final TextStyle debtStyle = summaryTextStyle.copyWith(
+              color: palette.support,
+              fontWeight: FontWeight.w500,
+            );
+            final TextStyle limitLabelStyle = labelStyle.copyWith(
+              color: palette.support,
+            );
+
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Row(
+                  children: <Widget>[
+                    if (accountIcon != null)
+                      _AccountIconBadge(
+                        icon: accountIcon!,
+                        color: palette.emphasis,
+                      ),
+                    if (accountIcon != null) const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        account.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: labelStyle,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text(strings.creditCardAvailableLimitLabel, style: limitLabelStyle),
+                const SizedBox(height: 4),
+                Text(
+                  currencyFormat.format(availableLimit),
+                  style: balanceStyle,
+                  softWrap: true,
+                ),
+                const SizedBox(height: 10),
+                Text(strings.creditCardSpentLabel, style: limitLabelStyle),
+                const SizedBox(height: 4),
+                Text(currencyFormat.format(debt), style: debtStyle),
+              ],
+            );
+          },
     );
   }
 }

@@ -24,9 +24,11 @@ import 'package:kopim/features/categories/data/sources/local/category_dao.dart';
 import 'package:kopim/features/categories/data/sources/remote/category_remote_data_source.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/core/domain/icons/phosphor_icon_descriptor.dart';
+import 'package:kopim/features/credits/data/sources/local/credit_card_dao.dart';
 import 'package:kopim/features/credits/data/sources/local/credit_dao.dart';
-import 'package:kopim/features/credits/data/sources/remote/credit_remote_data_source.dart';
 import 'package:kopim/features/credits/data/sources/local/debt_dao.dart';
+import 'package:kopim/features/credits/data/sources/remote/credit_card_remote_data_source.dart';
+import 'package:kopim/features/credits/data/sources/remote/credit_remote_data_source.dart';
 import 'package:kopim/features/credits/data/sources/remote/debt_remote_data_source.dart';
 import 'package:kopim/features/profile/data/local/profile_dao.dart';
 import 'package:kopim/features/profile/data/remote/profile_remote_data_source.dart';
@@ -66,6 +68,7 @@ void main() {
   late AccountDao accountDao;
   late CategoryDao categoryDao;
   late TransactionDao transactionDao;
+  late CreditCardDao creditCardDao;
   late CreditDao creditDao;
   late DebtDao debtDao;
   late BudgetDao budgetDao;
@@ -98,6 +101,7 @@ void main() {
       accountDao: accountDao,
       categoryDao: categoryDao,
       transactionDao: transactionDao,
+      creditCardDao: creditCardDao,
       creditDao: creditDao,
       debtDao: debtDao,
       budgetDao: budgetDao,
@@ -110,6 +114,7 @@ void main() {
           accountRemoteDataSource ?? AccountRemoteDataSource(firestore),
       categoryRemoteDataSource: CategoryRemoteDataSource(firestore),
       transactionRemoteDataSource: TransactionRemoteDataSource(firestore),
+      creditCardRemoteDataSource: CreditCardRemoteDataSource(firestore),
       creditRemoteDataSource: CreditRemoteDataSource(firestore),
       debtRemoteDataSource: DebtRemoteDataSource(firestore),
       budgetRemoteDataSource: budgetRemoteDataSource ?? budgetRemote,
@@ -142,6 +147,7 @@ void main() {
     accountDao = AccountDao(database);
     categoryDao = CategoryDao(database);
     transactionDao = TransactionDao(database);
+    creditCardDao = CreditCardDao(database);
     creditDao = CreditDao(database);
     debtDao = DebtDao(database);
     budgetDao = BudgetDao(database);
