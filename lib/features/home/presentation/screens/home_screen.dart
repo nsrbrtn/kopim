@@ -329,8 +329,7 @@ class _HomeBody extends ConsumerWidget {
     final String message = switch (result) {
       SyncActionResult.synced => strings.homeSyncStatusSuccess,
       SyncActionResult.offline => strings.homeSyncStatusOffline,
-      SyncActionResult.unauthenticated =>
-        strings.homeSyncStatusAuthRequired,
+      SyncActionResult.unauthenticated => strings.homeSyncStatusAuthRequired,
       SyncActionResult.alreadySyncing => strings.homeSyncStatusInProgress,
       SyncActionResult.noChanges => strings.homeSyncStatusNoChanges,
     };
@@ -652,28 +651,42 @@ class _AccountsListState extends State<_AccountsList> {
     final String localeName = widget.strings.localeName;
 
     if (widget.isWideLayout) {
-      return Column(
-        children: <Widget>[
-          for (int i = 0; i < widget.accounts.length; i++)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 6),
-              child: _AccountCard(
-                account: widget.accounts[i],
-                strings: widget.strings,
-                currencyFormat: NumberFormat.currency(
+      return LayoutBuilder(
+        builder: (BuildContext context, BoxConstraints constraints) {
+          final double cardHeight = _AccountCardLayout.estimateHeight(context);
+          final double cardWidth =
+              math.min(360, constraints.maxWidth * 0.6);
+          return SizedBox(
+            height: cardHeight,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: widget.accounts.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 12),
+              itemBuilder: (BuildContext context, int index) {
+                final AccountEntity account = widget.accounts[index];
+                final NumberFormat currencyFormat = NumberFormat.currency(
                   locale: localeName,
                   symbol: resolveCurrencySymbol(
-                    widget.accounts[i].currency,
+                    account.currency,
                     locale: localeName,
                   ),
-                ),
-                summary:
-                    widget.monthlySummaries[widget.accounts[i].id] ??
-                    const HomeAccountMonthlySummary(income: 0, expense: 0),
-                isHighlighted: i == 0,
-              ),
+                );
+                return SizedBox(
+                  width: cardWidth,
+                  child: _AccountCard(
+                    account: account,
+                    strings: widget.strings,
+                    currencyFormat: currencyFormat,
+                    summary:
+                        widget.monthlySummaries[account.id] ??
+                        const HomeAccountMonthlySummary(income: 0, expense: 0),
+                    isHighlighted: index == 0,
+                  ),
+                );
+              },
             ),
-        ],
+          );
+        },
       );
     }
 
@@ -1006,114 +1019,109 @@ class _CreditCardContent extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final Stream<List<CreditEntity>> creditsAsync =
-        ref.watch(watchCreditsUseCaseProvider).call();
+    final Stream<List<CreditEntity>> creditsAsync = ref
+        .watch(watchCreditsUseCaseProvider)
+        .call();
 
     return StreamBuilder<List<CreditEntity>>(
       stream: creditsAsync,
-      builder: (
-        BuildContext context,
-        AsyncSnapshot<List<CreditEntity>> snapshot,
-      ) {
-        final CreditEntity? credit = snapshot.data?.firstWhereOrNull(
-          (CreditEntity item) => item.accountId == account.id,
-        );
+      builder:
+          (BuildContext context, AsyncSnapshot<List<CreditEntity>> snapshot) {
+            final CreditEntity? credit = snapshot.data?.firstWhereOrNull(
+              (CreditEntity item) => item.accountId == account.id,
+            );
 
-        if (credit == null) {
-          return const SizedBox();
-        }
+            if (credit == null) {
+              return const SizedBox();
+            }
 
-        final DateTime nextPaymentDate = _calculateNextPaymentDate(credit);
-        final int remainingPayments = _calculateRemainingPayments(credit);
-        final double progress =
-            (credit.totalAmount + account.balance).abs() / credit.totalAmount;
+            final DateTime nextPaymentDate = _calculateNextPaymentDate(credit);
+            final int remainingPayments = _calculateRemainingPayments(credit);
+            final double progress =
+                (credit.totalAmount + account.balance).abs() /
+                credit.totalAmount;
 
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                Expanded(
-                  child: Row(
-                    children: <Widget>[
-                      if (accountIcon != null)
-                        _AccountIconBadge(
-                          icon: accountIcon!,
-                          color: palette.emphasis,
-                        ),
-                      if (accountIcon != null) const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          account.name,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: labelStyle,
-                        ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    Expanded(
+                      child: Row(
+                        children: <Widget>[
+                          if (accountIcon != null)
+                            _AccountIconBadge(
+                              icon: accountIcon!,
+                              color: palette.emphasis,
+                            ),
+                          if (accountIcon != null) const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              account.name,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: labelStyle,
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                ),
-                if (credit.categoryId != null)
-                  _CreditCategoryIcon(
-                    categoryId: credit.categoryId!,
-                    color: palette.emphasis,
-                  ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text(
-              currencyFormat.format(account.balance.abs()),
-              style: balanceStyle,
-              softWrap: true,
-            ),
-            const SizedBox(height: 16),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(4),
-              child: LinearProgressIndicator(
-                value: progress.clamp(0.0, 1.0),
-                backgroundColor: palette.support.withValues(alpha: 0.2),
-                valueColor: AlwaysStoppedAnimation<Color>(palette.emphasis),
-                minHeight: 6,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(
-                      strings.creditsNextPaymentLabel,
-                      style: summaryHeaderStyle,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      DateFormat.yMd(
-                        strings.localeName,
-                      ).format(nextPaymentDate),
-                      style: summaryTextStyle,
                     ),
                   ],
                 ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
+                const SizedBox(height: 8),
+                Text(
+                  currencyFormat.format(account.balance.abs()),
+                  style: balanceStyle,
+                  softWrap: true,
+                ),
+                const SizedBox(height: 16),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: LinearProgressIndicator(
+                    value: progress.clamp(0.0, 1.0),
+                    backgroundColor: palette.support.withValues(alpha: 0.2),
+                    valueColor: AlwaysStoppedAnimation<Color>(palette.emphasis),
+                    minHeight: 6,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: <Widget>[
-                    Text(
-                      strings.creditsRemainingPaymentsLabel,
-                      style: summaryHeaderStyle,
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Text(
+                          strings.creditsNextPaymentLabel,
+                          style: summaryHeaderStyle,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          DateFormat.yMd(
+                            strings.localeName,
+                          ).format(nextPaymentDate),
+                          style: summaryTextStyle,
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 4),
-                    Text('$remainingPayments', style: summaryTextStyle),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: <Widget>[
+                        Text(
+                          strings.creditsRemainingPaymentsLabel,
+                          style: summaryHeaderStyle,
+                        ),
+                        const SizedBox(height: 4),
+                        Text('$remainingPayments', style: summaryTextStyle),
+                      ],
+                    ),
                   ],
                 ),
               ],
-            ),
-          ],
-        );
-      },
+            );
+          },
     );
   }
 
@@ -1141,29 +1149,6 @@ class _CreditCardContent extends ConsumerWidget {
 
   int _monthsBetween(DateTime start, DateTime end) {
     return (end.year - start.year) * 12 + end.month - start.month;
-  }
-}
-
-class _CreditCategoryIcon extends ConsumerWidget {
-  const _CreditCategoryIcon({required this.categoryId, required this.color});
-
-  final String categoryId;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return FutureBuilder<Category?>(
-      future: ref.read(categoryRepositoryProvider).findById(categoryId),
-      builder: (BuildContext context, AsyncSnapshot<Category?> snapshot) {
-        final Category? category = snapshot.data;
-        if (category == null || category.icon == null) return const SizedBox();
-        return Icon(
-          resolvePhosphorIconData(category.icon!),
-          color: color,
-          size: 20,
-        );
-      },
-    );
   }
 }
 
@@ -1707,6 +1692,23 @@ String _formatSectionTitle({
   return toBeginningOfSentenceCase(formatted) ?? formatted;
 }
 
+String? _buildTransferLabel({
+  required String? sourceAccount,
+  required String? targetAccount,
+  required AppLocalizations strings,
+}) {
+  if (sourceAccount == null && targetAccount == null) {
+    return null;
+  }
+  if (sourceAccount == null) {
+    return strings.transactionTransferAccountSingle(targetAccount!);
+  }
+  if (targetAccount == null) {
+    return strings.transactionTransferAccountSingle(sourceAccount);
+  }
+  return strings.transactionTransferAccountPair(sourceAccount, targetAccount);
+}
+
 double _calculateDayNet(List<TransactionEntity> transactions) {
   double income = 0;
   double expense = 0;
@@ -1747,6 +1749,8 @@ class _TransactionListItem extends ConsumerWidget {
     final String? categoryId = transaction.categoryId;
     final double amount = transaction.amount;
     final String? note = transaction.note;
+    final bool isTransfer =
+        transaction.type == TransactionType.transfer.storageValue;
 
     final ThemeData theme = Theme.of(context);
     final ({String? name, String? currency}) accountData = ref.watch(
@@ -1755,6 +1759,14 @@ class _TransactionListItem extends ConsumerWidget {
             (name: account?.name, currency: account?.currency),
       ),
     );
+    final String? transferAccountId = transaction.transferAccountId;
+    final String? transferAccountName = isTransfer && transferAccountId != null
+        ? ref.watch(
+            homeAccountByIdProvider(
+              transferAccountId,
+            ).select((AccountEntity? account) => account?.name),
+          )
+        : null;
     final String currencySymbol = accountData.currency != null
         ? resolveCurrencySymbol(accountData.currency!, locale: localeName)
         : TransactionTileFormatters.fallbackCurrencySymbol(localeName);
@@ -1775,16 +1787,31 @@ class _TransactionListItem extends ConsumerWidget {
           );
     final String categoryName =
         categoryData.name ?? strings.homeTransactionsUncategorized;
+    final String title = isTransfer
+        ? strings.addTransactionTypeTransfer
+        : categoryName;
     final PhosphorIconData? categoryIcon = resolvePhosphorIconData(
       categoryData.icon,
     );
     final Color? categoryColor = parseHexColor(categoryData.color);
-    final Color avatarIconColor = categoryColor != null
+    final Color avatarIconColor = isTransfer
+        ? theme.colorScheme.onPrimaryContainer
+        : categoryColor != null
         ? (ThemeData.estimateBrightnessForColor(categoryColor) ==
                   Brightness.dark
               ? Colors.white
               : Colors.black87)
-        : Theme.of(context).colorScheme.onSurfaceVariant;
+        : theme.colorScheme.onSurfaceVariant;
+    final Color avatarBackground = isTransfer
+        ? theme.colorScheme.primaryContainer
+        : categoryColor ?? theme.colorScheme.surfaceContainerHighest;
+    final String? accountLabel = isTransfer
+        ? _buildTransferLabel(
+            sourceAccount: accountData.name,
+            targetAccount: transferAccountName,
+            strings: strings,
+          )
+        : accountData.name;
 
     return Dismissible(
       key: ValueKey<String>(transactionId),
@@ -1824,14 +1851,15 @@ class _TransactionListItem extends ConsumerWidget {
                     width: 48,
                     height: 48,
                     decoration: BoxDecoration(
-                      color:
-                          categoryColor ??
-                          Theme.of(context).colorScheme.surfaceContainerHighest,
+                      color: avatarBackground,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Center(
                       child: Icon(
-                        categoryIcon ?? Icons.category_outlined,
+                        categoryIcon ??
+                            (isTransfer
+                                ? Icons.swap_horiz
+                                : Icons.category_outlined),
                         size: 22,
                         color: avatarIconColor,
                       ),
@@ -1844,7 +1872,7 @@ class _TransactionListItem extends ConsumerWidget {
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: <Widget>[
                         Text(
-                          categoryName,
+                          title,
                           style: Theme.of(context).textTheme.labelMedium
                               ?.copyWith(
                                 fontWeight: FontWeight.w500,
@@ -1880,9 +1908,9 @@ class _TransactionListItem extends ConsumerWidget {
                           fontWeight: FontWeight.w400,
                         ),
                       ),
-                      if (accountData.name != null)
+                      if (accountLabel != null && accountLabel.isNotEmpty)
                         Text(
-                          accountData.name!,
+                          accountLabel,
                           style: Theme.of(context).textTheme.labelSmall
                               ?.copyWith(
                                 color: Theme.of(context).colorScheme.outline,

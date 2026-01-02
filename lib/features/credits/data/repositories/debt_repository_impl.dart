@@ -22,8 +22,7 @@ class DebtRepositoryImpl implements DebtRepository {
   @override
   Stream<List<DebtEntity>> watchDebts() {
     return _debtDao.watchActiveDebts().map(
-      (List<db.DebtRow> rows) =>
-          rows.map(_debtDao.mapRowToEntity).toList(),
+      (List<db.DebtRow> rows) => rows.map(_debtDao.mapRowToEntity).toList(),
     );
   }
 

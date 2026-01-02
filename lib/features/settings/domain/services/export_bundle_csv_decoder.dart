@@ -162,8 +162,11 @@ class ExportBundleCsvDecoder {
     int startIndex,
     List<TransactionEntity> transactions,
   ) {
-    final _SectionHeader header =
-        _readHeader(rows, startIndex, '#transactions');
+    final _SectionHeader header = _readHeader(
+      rows,
+      startIndex,
+      '#transactions',
+    );
     int index = header.nextIndex;
     while (index < rows.length && !_isSectionMarker(rows[index])) {
       final List<String> row = rows[index];
@@ -222,8 +225,7 @@ class ExportBundleCsvDecoder {
   }
 
   bool _isEmptyRow(List<String> row) {
-    return row.isEmpty ||
-        row.every((String cell) => cell.trim().isEmpty);
+    return row.isEmpty || row.every((String cell) => cell.trim().isEmpty);
   }
 
   String _readMetaValue(List<String> row, String marker) {
@@ -233,11 +235,7 @@ class ExportBundleCsvDecoder {
     return row[1].trim();
   }
 
-  String _readRequired(
-    Map<String, int> columns,
-    List<String> row,
-    String key,
-  ) {
+  String _readRequired(Map<String, int> columns, List<String> row, String key) {
     final int? index = columns[key];
     if (index == null) {
       throw FormatException('Отсутствует колонка $key.');
@@ -269,29 +267,17 @@ class ExportBundleCsvDecoder {
     return value.isEmpty ? null : value;
   }
 
-  double _readDouble(
-    Map<String, int> columns,
-    List<String> row,
-    String key,
-  ) {
+  double _readDouble(Map<String, int> columns, List<String> row, String key) {
     final String raw = _readRequired(columns, row, key);
     return double.parse(raw.trim());
   }
 
-  DateTime _readDate(
-    Map<String, int> columns,
-    List<String> row,
-    String key,
-  ) {
+  DateTime _readDate(Map<String, int> columns, List<String> row, String key) {
     final String raw = _readRequired(columns, row, key);
     return DateTime.parse(raw.trim());
   }
 
-  bool _readBool(
-    Map<String, int> columns,
-    List<String> row,
-    String key,
-  ) {
+  bool _readBool(Map<String, int> columns, List<String> row, String key) {
     final String? raw = _readOptional(columns, row, key);
     if (raw == null || raw.isEmpty) {
       return false;

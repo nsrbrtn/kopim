@@ -79,16 +79,14 @@ class AiAssistantRepositoryImpl implements AiAssistantRepository {
           completionTokens: toolOutcome.result.response.usage?.completionTokens,
           totalTokens: toolOutcome.result.response.usage?.totalTokens,
         );
-        await _analyticsService.logEvent(
-          'ai_assistant_answer',
-          <String, Object?>{
-            'intent': query.intent.name,
-            'model': toolOutcome.result.config.model,
-            'duration_ms': stopwatch.elapsedMilliseconds,
-            'confidence': confidence,
-            'tools_used': toolOutcome.usedTools,
-          },
-        );
+        await _analyticsService
+            .logEvent('ai_assistant_answer', <String, Object?>{
+              'intent': query.intent.name,
+              'model': toolOutcome.result.config.model,
+              'duration_ms': stopwatch.elapsedMilliseconds,
+              'confidence': confidence,
+              'tools_used': toolOutcome.usedTools,
+            });
         return entity;
       }
 
@@ -315,10 +313,9 @@ class AiAssistantRepositoryImpl implements AiAssistantRepository {
     }
 
     userBuffer.writeln('--- Доходы по месяцам ---');
-    for (final MonthlyIncomeInsight insight
-        in overview.monthlyIncomes.sortedBy(
-          (MonthlyIncomeInsight item) => item.normalizedMonth,
-        )) {
+    for (final MonthlyIncomeInsight insight in overview.monthlyIncomes.sortedBy(
+      (MonthlyIncomeInsight item) => item.normalizedMonth,
+    )) {
       userBuffer.writeln(
         '${DateFormat.yMMMM(locale).format(insight.normalizedMonth)}: '
         '${currency.format(insight.totalIncome)}',

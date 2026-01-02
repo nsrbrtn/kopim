@@ -335,12 +335,17 @@ class _TransactionsList extends StatelessWidget {
       itemBuilder: (BuildContext context, int index) {
         final TransactionEntity transaction = transactions[index];
         final AccountEntity? account = accounts[transaction.accountId];
+        final AccountEntity? transferAccount =
+            transaction.transferAccountId == null
+            ? null
+            : accounts[transaction.transferAccountId!];
         final Category? category = transaction.categoryId == null
             ? null
             : categories[transaction.categoryId!];
         return _TransactionListTile(
           transaction: transaction,
           account: account,
+          transferAccount: transferAccount,
           category: category,
           strings: strings,
         );
@@ -353,12 +358,14 @@ class _TransactionListTile extends ConsumerWidget {
   const _TransactionListTile({
     required this.transaction,
     required this.account,
+    required this.transferAccount,
     required this.category,
     required this.strings,
   });
 
   final TransactionEntity transaction;
   final AccountEntity? account;
+  final AccountEntity? transferAccount;
   final Category? category;
   final AppLocalizations strings;
 
@@ -376,14 +383,18 @@ class _TransactionListTile extends ConsumerWidget {
       strings.localeName,
       currencySymbol,
     );
+    final bool isTransfer =
+        transaction.type == TransactionType.transfer.storageValue;
     final bool isExpense =
         transaction.type == TransactionType.expense.storageValue;
-    final Color amountColor = isExpense
-        ? theme.colorScheme.error
-        : theme.colorScheme.primary;
+    final Color amountColor = isTransfer
+        ? theme.colorScheme.onSurface
+        : (isExpense ? theme.colorScheme.error : theme.colorScheme.primary);
     final PhosphorIconData? iconData = resolvePhosphorIconData(category?.icon);
     final Color? categoryColor = parseHexColor(category?.color);
-    final Color avatarForeground = categoryColor != null
+    final Color avatarForeground = isTransfer
+        ? theme.colorScheme.onPrimaryContainer
+        : categoryColor != null
         ? (ThemeData.estimateBrightnessForColor(categoryColor) ==
                   Brightness.dark
               ? Colors.white
@@ -391,11 +402,18 @@ class _TransactionListTile extends ConsumerWidget {
         : theme.colorScheme.onSurfaceVariant;
     final String categoryName =
         category?.name ?? strings.homeTransactionsUncategorized;
+    final String title = isTransfer
+        ? strings.addTransactionTypeTransfer
+        : categoryName;
     final String? note = transaction.note?.trim();
     final DateFormat dateFormat = DateFormat.yMMMd(strings.localeName);
     final String? accountName = account?.name;
+    final String? transferAccountName = transferAccount?.name;
     final List<String> subtitleParts = <String>[
-      if (accountName != null) accountName,
+      if (isTransfer && accountName != null && transferAccountName != null)
+        strings.transactionTransferAccountPair(accountName, transferAccountName)
+      else if (accountName != null)
+        accountName,
       dateFormat.format(transaction.date),
     ];
     final String subtitle = subtitleParts.join(' • ');
@@ -427,20 +445,25 @@ class _TransactionListTile extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     CircleAvatar(
-                      backgroundColor:
-                          categoryColor ??
-                          theme.colorScheme.surfaceContainerHighest,
+                      backgroundColor: isTransfer
+                          ? theme.colorScheme.primaryContainer
+                          : categoryColor ??
+                                theme.colorScheme.surfaceContainerHighest,
                       foregroundColor: avatarForeground,
                       child: iconData != null
                           ? Icon(iconData)
-                          : const Icon(Icons.category_outlined),
+                          : Icon(
+                              isTransfer
+                                  ? Icons.swap_horiz
+                                  : Icons.category_outlined,
+                            ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
-                          Text(categoryName, style: theme.textTheme.bodyMedium),
+                          Text(title, style: theme.textTheme.bodyMedium),
                           if (note != null && note.isNotEmpty)
                             Padding(
                               padding: const EdgeInsets.only(top: 4),

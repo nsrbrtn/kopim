@@ -220,7 +220,8 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
     final bool passwordHasError =
         !_isSignUpMode &&
         errorMessage != null &&
-        (errorMessage == 'wrong-password' || errorMessage == 'invalid-credential');
+        (errorMessage == 'wrong-password' ||
+            errorMessage == 'invalid-credential');
 
     final String logoAsset = theme.brightness == Brightness.dark
         ? 'assets/icons/logo_dark.png'
@@ -563,8 +564,8 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
   }
 
   void _showErrorSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 }

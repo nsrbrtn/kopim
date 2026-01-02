@@ -319,6 +319,9 @@ class _TransactionDraftState extends ConsumerState<_TransactionForm> {
     final String? selectedAccountId = ref.watch(
       _formProvider.select((TransactionDraftState state) => state.accountId),
     );
+    final TransactionType selectedType = ref.watch(
+      _formProvider.select((TransactionDraftState state) => state.type),
+    );
 
     final AccountEntity summaryAccount = _resolveSummaryAccount(
       widget.accounts,
@@ -360,6 +363,17 @@ class _TransactionDraftState extends ConsumerState<_TransactionForm> {
                 showCollapsed: showCollapsed,
               ),
             ),
+            if (selectedType.isTransfer)
+              RepaintBoundary(
+                child: _TransferAccountSection(
+                  key: const ValueKey<String>(
+                    'transaction_transfer_account_section',
+                  ),
+                  accounts: widget.accounts,
+                  formArgs: widget.formArgs,
+                  strings: strings,
+                ),
+              ),
             RepaintBoundary(
               child: _CategoryDropdownField(
                 key: const ValueKey<String>('transaction_category_field'),
@@ -626,6 +640,135 @@ class _AccountDropdownFieldState extends ConsumerState<_AccountDropdownField> {
         scrollDirection: Axis.horizontal,
         physics: const BouncingScrollPhysics(),
         child: Row(children: accountCards),
+      ),
+    );
+  }
+
+  NumberFormat _resolveFormatter(
+    Map<String, NumberFormat> cache,
+    String currency,
+    String locale,
+  ) {
+    final String symbol = resolveCurrencySymbol(currency, locale: locale);
+    return cache.putIfAbsent(
+      symbol,
+      () => NumberFormat.currency(locale: locale, symbol: symbol),
+    );
+  }
+}
+
+class _TransferAccountSection extends ConsumerWidget {
+  const _TransferAccountSection({
+    super.key,
+    required this.accounts,
+    required this.formArgs,
+    required this.strings,
+  });
+
+  final List<AccountEntity> accounts;
+  final TransactionFormArgs formArgs;
+  final AppLocalizations strings;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final TransactionFormProvider formProvider =
+        transactionFormControllerProvider(formArgs);
+    final String? sourceAccountId = ref.watch(
+      formProvider.select((TransactionDraftState state) => state.accountId),
+    );
+    final String? selectedTransferId = ref.watch(
+      formProvider.select(
+        (TransactionDraftState state) => state.transferAccountId,
+      ),
+    );
+
+    final List<AccountEntity> targetAccounts = accounts
+        .where((AccountEntity account) => account.id != sourceAccountId)
+        .toList(growable: false);
+    final String? resolvedTransferId =
+        selectedTransferId != null &&
+            targetAccounts.any((AccountEntity a) => a.id == selectedTransferId)
+        ? selectedTransferId
+        : (targetAccounts.isNotEmpty ? targetAccounts.first.id : null);
+    if (resolvedTransferId != null &&
+        resolvedTransferId != selectedTransferId) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref
+            .read(formProvider.notifier)
+            .updateTransferAccount(resolvedTransferId);
+      });
+    }
+
+    final ThemeData theme = Theme.of(context);
+    final KopimLayout layout = context.kopimLayout;
+    final KopimSpacingScale spacing = layout.spacing;
+    final TextStyle labelStyle =
+        theme.textTheme.titleSmall?.copyWith(
+          fontWeight: FontWeight.w500,
+          letterSpacing: 0.1,
+          color: theme.colorScheme.onSurfaceVariant,
+        ) ??
+        theme.textTheme.bodyLarge!;
+
+    const double accountRowHeight = 120;
+    final Map<String, NumberFormat> cache = <String, NumberFormat>{};
+    final List<Widget> accountCards = <Widget>[
+      for (int index = 0; index < targetAccounts.length; index++)
+        Padding(
+          padding: EdgeInsets.only(
+            left: 2,
+            right: index == targetAccounts.length - 1
+                ? 2
+                : spacing.between / 2 + 2,
+          ),
+          child: _AccountSelectionCard(
+            account: targetAccounts[index],
+            formatter: _resolveFormatter(
+              cache,
+              targetAccounts[index].currency,
+              strings.localeName,
+            ),
+            isSelected:
+                resolvedTransferId != null &&
+                targetAccounts[index].id == resolvedTransferId,
+            onTap: () => ref
+                .read(formProvider.notifier)
+                .updateTransferAccount(targetAccounts[index].id),
+          ),
+        ),
+    ];
+
+    return Container(
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainer,
+        borderRadius: BorderRadius.circular(layout.radius.xxl),
+      ),
+      padding: _kAccountSectionPadding,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          _SectionHeader(
+            label: strings.addTransactionTransferTargetLabel,
+            labelStyle: labelStyle,
+          ),
+          SizedBox(height: spacing.between / 2),
+          if (targetAccounts.isEmpty)
+            Text(
+              strings.addTransactionTransferNoTargets,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            )
+          else
+            SizedBox(
+              height: accountRowHeight,
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                physics: const BouncingScrollPhysics(),
+                child: Row(children: accountCards),
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -995,9 +1138,15 @@ class _TransactionTypeSelector extends ConsumerWidget {
       padding: const EdgeInsets.all(6),
       child: LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {
-          final double segmentWidth = constraints.maxWidth / 2;
+          const int segmentCount = 3;
+          final double segmentWidth = constraints.maxWidth / segmentCount;
           final Color accent = theme.colorScheme.primary;
           const Duration duration = Duration(milliseconds: 260);
+          final int selectedIndex = switch (type) {
+            TransactionType.expense => 0,
+            TransactionType.income => 1,
+            TransactionType.transfer => 2,
+          };
 
           return SizedBox(
             height: 48,
@@ -1014,8 +1163,7 @@ class _TransactionTypeSelector extends ConsumerWidget {
                 AnimatedPositioned(
                   duration: duration,
                   curve: Curves.easeOutBack,
-                  left:
-                      (type == TransactionType.expense ? 0 : 1) * segmentWidth,
+                  left: selectedIndex * segmentWidth,
                   top: 0,
                   bottom: 0,
                   width: segmentWidth,
@@ -1048,6 +1196,16 @@ class _TransactionTypeSelector extends ConsumerWidget {
                         onTap: () => ref
                             .read(formProvider.notifier)
                             .updateType(TransactionType.income),
+                        selectedTextColor: theme.colorScheme.onPrimary,
+                      ),
+                    ),
+                    Expanded(
+                      child: _TypeSegmentItem(
+                        label: strings.addTransactionTypeTransfer,
+                        selected: type == TransactionType.transfer,
+                        onTap: () => ref
+                            .read(formProvider.notifier)
+                            .updateType(TransactionType.transfer),
                         selectedTextColor: theme.colorScheme.onPrimary,
                       ),
                     ),
@@ -1229,11 +1387,38 @@ class _CategoryDropdownFieldState
     final KopimLayout layout = context.kopimLayout;
     final KopimSpacingScale spacing = layout.spacing;
     final double containerRadius = layout.radius.xxl;
-    final String? selectedCategoryId = ref.watch(
-      _formProvider.select((TransactionDraftState state) => state.categoryId),
-    );
     final TransactionType type = ref.watch(
       _formProvider.select((TransactionDraftState state) => state.type),
+    );
+    if (type.isTransfer) {
+      return Container(
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surfaceContainer,
+          borderRadius: BorderRadius.circular(containerRadius),
+        ),
+        padding: _kCategorySectionPadding,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            _TransactionTypeSelector(
+              key: const ValueKey<String>('transaction_type_selector'),
+              formArgs: widget.formArgs,
+              strings: strings,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              strings.addTransactionTransferCategoryHint,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final String? selectedCategoryId = ref.watch(
+      _formProvider.select((TransactionDraftState state) => state.categoryId),
     );
     final String normalizedQuery = _query.trim().toLowerCase();
     final List<Category> filtered = categories

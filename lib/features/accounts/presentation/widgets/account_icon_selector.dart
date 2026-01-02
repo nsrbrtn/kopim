@@ -55,8 +55,10 @@ class AccountIconSelector extends StatelessWidget {
         backgroundColor: theme.colorScheme.surfaceContainerHighest,
         child: iconData != null
             ? Icon(iconData, color: theme.colorScheme.onSurface)
-            : Icon(Icons.account_balance_wallet_outlined,
-                color: theme.colorScheme.onSurface),
+            : Icon(
+                Icons.account_balance_wallet_outlined,
+                color: theme.colorScheme.onSurface,
+              ),
       ),
       title: Text(strings.accountIconLabel),
       subtitle: Text(
@@ -84,10 +86,7 @@ class AccountIconSelector extends StatelessWidget {
 }
 
 class _AccountIconPickerDialog extends StatefulWidget {
-  const _AccountIconPickerDialog({
-    required this.strings,
-    this.initial,
-  });
+  const _AccountIconPickerDialog({required this.strings, this.initial});
 
   final AppLocalizations strings;
   final PhosphorIconDescriptor? initial;

@@ -121,11 +121,16 @@ WHERE t.is_deleted = 0
     );
     sql.write('GROUP BY a.currency ORDER BY total DESC');
 
-    final List<QueryRow> rows = await _db.customSelect(
-      sql.toString(),
-      variables: variables,
-      readsFrom: <TableInfo<dynamic, dynamic>>{_db.transactions, _db.accounts},
-    ).get();
+    final List<QueryRow> rows = await _db
+        .customSelect(
+          sql.toString(),
+          variables: variables,
+          readsFrom: <TableInfo<dynamic, dynamic>>{
+            _db.transactions,
+            _db.accounts,
+          },
+        )
+        .get();
 
     return rows
         .map(
@@ -181,15 +186,17 @@ WHERE t.is_deleted = 0
     sql.write('ORDER BY t.date DESC LIMIT ?');
     variables.add(Variable<int>(limit));
 
-    final List<QueryRow> rows = await _db.customSelect(
-      sql.toString(),
-      variables: variables,
-      readsFrom: <TableInfo<dynamic, dynamic>>{
-        _db.transactions,
-        _db.accounts,
-        _db.categories,
-      },
-    ).get();
+    final List<QueryRow> rows = await _db
+        .customSelect(
+          sql.toString(),
+          variables: variables,
+          readsFrom: <TableInfo<dynamic, dynamic>>{
+            _db.transactions,
+            _db.accounts,
+            _db.categories,
+          },
+        )
+        .get();
 
     return rows
         .map(
@@ -217,8 +224,9 @@ WHERE t.is_deleted = 0
     if (normalized.isEmpty) {
       return const <AiToolCategoryMatch>[];
     }
-    final List<QueryRow> rows = await _db.customSelect(
-      '''
+    final List<QueryRow> rows = await _db
+        .customSelect(
+          '''
 SELECT id, name, type, color
 FROM categories
 WHERE is_deleted = 0
@@ -226,12 +234,13 @@ WHERE is_deleted = 0
 ORDER BY name ASC
 LIMIT ?
 ''',
-      variables: <Variable<Object>>[
-        Variable<String>('%$normalized%'),
-        Variable<int>(limit),
-      ],
-      readsFrom: <TableInfo<dynamic, dynamic>>{_db.categories},
-    ).get();
+          variables: <Variable<Object>>[
+            Variable<String>('%$normalized%'),
+            Variable<int>(limit),
+          ],
+          readsFrom: <TableInfo<dynamic, dynamic>>{_db.categories},
+        )
+        .get();
 
     return rows
         .map(
@@ -253,8 +262,9 @@ LIMIT ?
     if (normalized.isEmpty) {
       return const <AiToolAccountMatch>[];
     }
-    final List<QueryRow> rows = await _db.customSelect(
-      '''
+    final List<QueryRow> rows = await _db
+        .customSelect(
+          '''
 SELECT id, name, currency, type
 FROM accounts
 WHERE is_deleted = 0
@@ -263,12 +273,13 @@ WHERE is_deleted = 0
 ORDER BY name ASC
 LIMIT ?
 ''',
-      variables: <Variable<Object>>[
-        Variable<String>('%$normalized%'),
-        Variable<int>(limit),
-      ],
-      readsFrom: <TableInfo<dynamic, dynamic>>{_db.accounts},
-    ).get();
+          variables: <Variable<Object>>[
+            Variable<String>('%$normalized%'),
+            Variable<int>(limit),
+          ],
+          readsFrom: <TableInfo<dynamic, dynamic>>{_db.accounts},
+        )
+        .get();
 
     return rows
         .map(
@@ -292,17 +303,18 @@ LIMIT ?
       return const <String>[];
     }
 
-    final List<QueryRow> rows = await _db.customSelect(
-      '''
+    final List<QueryRow> rows = await _db
+        .customSelect(
+          '''
 SELECT id, parent_id
 FROM categories
 WHERE is_deleted = 0
 ''',
-      readsFrom: <TableInfo<dynamic, dynamic>>{_db.categories},
-    ).get();
+          readsFrom: <TableInfo<dynamic, dynamic>>{_db.categories},
+        )
+        .get();
 
-    final Map<String, List<String>> childrenByParent =
-        <String, List<String>>{};
+    final Map<String, List<String>> childrenByParent = <String, List<String>>{};
     for (final QueryRow row in rows) {
       final String id = row.read<String>('id');
       final String? parentId = row.read<String?>('parent_id');
@@ -369,11 +381,16 @@ WHERE t.is_deleted = 0
       tableAlias: 't',
     );
 
-    final QueryRow row = await _db.customSelect(
-      sql.toString(),
-      variables: variables,
-      readsFrom: <TableInfo<dynamic, dynamic>>{_db.transactions, _db.accounts},
-    ).getSingle();
+    final QueryRow row = await _db
+        .customSelect(
+          sql.toString(),
+          variables: variables,
+          readsFrom: <TableInfo<dynamic, dynamic>>{
+            _db.transactions,
+            _db.accounts,
+          },
+        )
+        .getSingle();
 
     return row.read<double>('total');
   }
@@ -410,15 +427,17 @@ WHERE t.is_deleted = 0
     );
     sql.write('GROUP BY t.category_id, c.name ORDER BY total DESC');
 
-    final List<QueryRow> rows = await _db.customSelect(
-      sql.toString(),
-      variables: variables,
-      readsFrom: <TableInfo<dynamic, dynamic>>{
-        _db.transactions,
-        _db.accounts,
-        _db.categories,
-      },
-    ).get();
+    final List<QueryRow> rows = await _db
+        .customSelect(
+          sql.toString(),
+          variables: variables,
+          readsFrom: <TableInfo<dynamic, dynamic>>{
+            _db.transactions,
+            _db.accounts,
+            _db.categories,
+          },
+        )
+        .get();
 
     return rows
         .map(
@@ -501,6 +520,10 @@ WHERE t.is_deleted = 0
     if (type == TransactionType.income.name ||
         type == TransactionType.income.storageValue) {
       return TransactionType.income.storageValue;
+    }
+    if (type == TransactionType.transfer.name ||
+        type == TransactionType.transfer.storageValue) {
+      return TransactionType.transfer.storageValue;
     }
     if (type == TransactionType.expense.name ||
         type == TransactionType.expense.storageValue) {

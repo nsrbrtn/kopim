@@ -14,11 +14,8 @@ class AccountCardGradient {
   final Alignment begin;
   final Alignment end;
 
-  LinearGradient toGradient() => LinearGradient(
-        colors: colors,
-        begin: begin,
-        end: end,
-      );
+  LinearGradient toGradient() =>
+      LinearGradient(colors: colors, begin: begin, end: end);
 
   Color get primaryColor => colors.first;
 
@@ -26,44 +23,28 @@ class AccountCardGradient {
       Color.lerp(colors.first, colors.last, 0.5) ?? colors.first;
 }
 
-final List<AccountCardGradient> kAccountCardGradients =
-    <AccountCardGradient>[
-      AccountCardGradient(
-        id: 'sunrise',
-        colors: <Color>[
-          kCategoryPastelPalette[0],
-          kCategoryPastelPalette[3],
-        ],
-      ),
-      AccountCardGradient(
-        id: 'lavender',
-        colors: <Color>[
-          kCategoryPastelPalette[7],
-          kCategoryPastelPalette[12],
-        ],
-      ),
-      AccountCardGradient(
-        id: 'ocean',
-        colors: <Color>[
-          kCategoryPastelPalette[15],
-          kCategoryPastelPalette[18],
-        ],
-      ),
-      AccountCardGradient(
-        id: 'mint',
-        colors: <Color>[
-          kCategoryPastelPalette[21],
-          kCategoryPastelPalette[25],
-        ],
-      ),
-      AccountCardGradient(
-        id: 'sand',
-        colors: <Color>[
-          kCategoryPastelPalette[27],
-          kCategoryPastelPalette[31],
-        ],
-      ),
-    ];
+final List<AccountCardGradient> kAccountCardGradients = <AccountCardGradient>[
+  AccountCardGradient(
+    id: 'sunrise',
+    colors: <Color>[kCategoryPastelPalette[0], kCategoryPastelPalette[3]],
+  ),
+  AccountCardGradient(
+    id: 'lavender',
+    colors: <Color>[kCategoryPastelPalette[7], kCategoryPastelPalette[12]],
+  ),
+  AccountCardGradient(
+    id: 'ocean',
+    colors: <Color>[kCategoryPastelPalette[15], kCategoryPastelPalette[18]],
+  ),
+  AccountCardGradient(
+    id: 'mint',
+    colors: <Color>[kCategoryPastelPalette[21], kCategoryPastelPalette[25]],
+  ),
+  AccountCardGradient(
+    id: 'sand',
+    colors: <Color>[kCategoryPastelPalette[27], kCategoryPastelPalette[31]],
+  ),
+];
 
 AccountCardGradient? resolveAccountCardGradient(String? id) {
   if (id == null || id.isEmpty) {

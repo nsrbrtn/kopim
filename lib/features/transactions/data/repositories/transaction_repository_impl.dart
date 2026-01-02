@@ -175,6 +175,7 @@ class TransactionRepositoryImpl implements TransactionRepository {
     return TransactionEntity(
       id: row.id,
       accountId: row.accountId,
+      transferAccountId: row.transferAccountId,
       categoryId: row.categoryId,
       savingGoalId: row.savingGoalId,
       amount: row.amount,

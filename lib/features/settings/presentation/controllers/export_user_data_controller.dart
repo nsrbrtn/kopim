@@ -26,10 +26,7 @@ class ExportUserDataController extends _$ExportUserDataController {
       final ExportFileSaveResult result = await ref
           .read(exportUserDataUseCaseProvider)
           .call(
-            ExportUserDataParams(
-              directoryPath: directoryPath,
-              format: format,
-            ),
+            ExportUserDataParams(directoryPath: directoryPath, format: format),
           );
       if (!ref.mounted) {
         return;

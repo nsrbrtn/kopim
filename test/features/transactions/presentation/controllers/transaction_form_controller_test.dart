@@ -94,6 +94,7 @@ void main() {
       final TransactionEntity entity = TransactionEntity(
         id: 'generated',
         accountId: 'acc-1',
+        transferAccountId: null,
         categoryId: 'cat-1',
         amount: 42.5,
         date: DateTime.utc(2024, 4, 1),
@@ -145,6 +146,7 @@ void main() {
     final TransactionEntity transaction = TransactionEntity(
       id: 'tx-1',
       accountId: 'acc-1',
+      transferAccountId: null,
       categoryId: 'cat-1',
       amount: 30,
       date: DateTime.utc(2024, 3, 1),

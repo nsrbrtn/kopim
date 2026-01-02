@@ -55,7 +55,8 @@ class AddTransactionUseCase {
     final TransactionEntity transaction = TransactionEntity(
       id: _generateId(),
       accountId: request.accountId,
-      categoryId: request.categoryId,
+      transferAccountId: request.transferAccountId,
+      categoryId: type.isTransfer ? null : request.categoryId,
       savingGoalId: request.savingGoalId,
       amount: amount,
       date: request.date,
@@ -67,56 +68,78 @@ class AddTransactionUseCase {
 
     await _transactionRepository.upsert(transaction);
 
-    // Логика обновления баланса
-    final DateTime updatedAt = now;
-    CreditEntity? relatedCredit;
-    if (request.categoryId != null) {
-      relatedCredit = await _creditRepository.getCreditByCategoryId(
-        request.categoryId!,
+    if (type.isTransfer) {
+      final String? targetAccountId = request.transferAccountId;
+      if (targetAccountId == null || targetAccountId == request.accountId) {
+        throw StateError('Invalid transfer target account');
+      }
+      final AccountEntity? targetAccount = await _accountRepository.findById(
+        targetAccountId,
       );
-    }
-
-    if (relatedCredit != null) {
-      // Это транзакция погашения кредита
-      final double repaymentDelta = type.isExpense ? amount : -amount;
-
-      // 1. Обновляем основной счет транзакции (например, Банк)
-      // Если это и есть кредитный счет, мы обновим его один раз ниже.
-      if (request.accountId != relatedCredit.accountId) {
-        final double accountDelta = type.isIncome ? amount : -amount;
-        final AccountEntity updatedAccount = account.copyWith(
-          balance: account.balance + accountDelta,
-          updatedAt: updatedAt,
+      if (targetAccount == null) {
+        throw StateError('Account not found for id $targetAccountId');
+      }
+      final AccountEntity updatedSourceAccount = account.copyWith(
+        balance: account.balance - amount,
+        updatedAt: now,
+      );
+      final AccountEntity updatedTargetAccount = targetAccount.copyWith(
+        balance: targetAccount.balance + amount,
+        updatedAt: now,
+      );
+      await _accountRepository.upsert(updatedSourceAccount);
+      await _accountRepository.upsert(updatedTargetAccount);
+    } else {
+      // Логика обновления баланса
+      final DateTime updatedAt = now;
+      CreditEntity? relatedCredit;
+      if (request.categoryId != null) {
+        relatedCredit = await _creditRepository.getCreditByCategoryId(
+          request.categoryId!,
         );
-        await _accountRepository.upsert(updatedAccount);
+      }
 
-        // 2. Обновляем кредитный счет (уменьшаем долг)
-        final AccountEntity? creditAccount = await _accountRepository.findById(
-          relatedCredit.accountId,
-        );
-        if (creditAccount != null) {
-          final AccountEntity updatedCreditAccount = creditAccount.copyWith(
-            balance: creditAccount.balance + repaymentDelta,
+      if (relatedCredit != null) {
+        // Это транзакция погашения кредита
+        final double repaymentDelta = type.isExpense ? amount : -amount;
+
+        // 1. Обновляем основной счет транзакции (например, Банк)
+        // Если это и есть кредитный счет, мы обновим его один раз ниже.
+        if (request.accountId != relatedCredit.accountId) {
+          final double accountDelta = type.isIncome ? amount : -amount;
+          final AccountEntity updatedAccount = account.copyWith(
+            balance: account.balance + accountDelta,
             updatedAt: updatedAt,
           );
-          await _accountRepository.upsert(updatedCreditAccount);
+          await _accountRepository.upsert(updatedAccount);
+
+          // 2. Обновляем кредитный счет (уменьшаем долг)
+          final AccountEntity? creditAccount = await _accountRepository
+              .findById(relatedCredit.accountId);
+          if (creditAccount != null) {
+            final AccountEntity updatedCreditAccount = creditAccount.copyWith(
+              balance: creditAccount.balance + repaymentDelta,
+              updatedAt: updatedAt,
+            );
+            await _accountRepository.upsert(updatedCreditAccount);
+          }
+        } else {
+          // Транзакция на самом кредитном счете
+          final AccountEntity updatedAccount = account.copyWith(
+            balance: account.balance + repaymentDelta,
+            updatedAt: updatedAt,
+          );
+          await _accountRepository.upsert(updatedAccount);
         }
       } else {
-        // Транзакция на самом кредитном счете
+        // Обычная транзакция
+        final double delta = type.isIncome ? amount : -amount;
         final AccountEntity updatedAccount = account.copyWith(
-          balance: account.balance + repaymentDelta,
+          balance: account.balance + delta,
           updatedAt: updatedAt,
         );
         await _accountRepository.upsert(updatedAccount);
       }
-    } else {
-      // Обычная транзакция
-      final double delta = type.isIncome ? amount : -amount;
-      final AccountEntity updatedAccount = account.copyWith(
-        balance: account.balance + delta,
-        updatedAt: updatedAt,
-      );
-      await _accountRepository.upsert(updatedAccount);
     }
 
     final List<ProfileDomainEvent> events = <ProfileDomainEvent>[];

@@ -1,8 +1,5 @@
 /// Поддерживаемые форматы импорта/экспорта данных.
-enum DataTransferFormat {
-  csv,
-  json,
-}
+enum DataTransferFormat { csv, json }
 
 extension DataTransferFormatX on DataTransferFormat {
   /// Расширение файла для выбранного формата.

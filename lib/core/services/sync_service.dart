@@ -139,8 +139,9 @@ class SyncService {
     final User? user = _auth.currentUser;
     if (user == null) return SyncActionResult.unauthenticated;
     if (_isSyncing) return SyncActionResult.alreadySyncing;
-    final bool hasPending =
-        (await _outboxDao.fetchPending(limit: 1)).isNotEmpty;
+    final bool hasPending = (await _outboxDao.fetchPending(
+      limit: 1,
+    )).isNotEmpty;
     if (!hasPending) return SyncActionResult.noChanges;
     await syncPending();
     return SyncActionResult.synced;

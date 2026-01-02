@@ -55,7 +55,9 @@ class CsvCodec {
     }
 
     if (inQuotes) {
-      throw const FormatException('Не удалось разобрать CSV: незакрытая кавычка.');
+      throw const FormatException(
+        'Не удалось разобрать CSV: незакрытая кавычка.',
+      );
     }
 
     if (field.isNotEmpty || currentRow.isNotEmpty) {
@@ -71,7 +73,8 @@ class CsvCodec {
   }
 
   static String _escapeCell(String value) {
-    final bool needsQuotes = value.contains('"') ||
+    final bool needsQuotes =
+        value.contains('"') ||
         value.contains(',') ||
         value.contains('\n') ||
         value.contains('\r') ||

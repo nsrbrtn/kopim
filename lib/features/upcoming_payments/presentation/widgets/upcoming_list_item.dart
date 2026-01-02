@@ -153,7 +153,6 @@ class UpcomingPaymentListItem extends StatelessWidget {
       ),
     );
   }
-
 }
 
 enum _UpcomingPaymentAction { edit, delete }

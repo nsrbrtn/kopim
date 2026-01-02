@@ -10,6 +10,7 @@ _TransactionEntity _$TransactionEntityFromJson(Map<String, dynamic> json) =>
     _TransactionEntity(
       id: json['id'] as String,
       accountId: json['accountId'] as String,
+      transferAccountId: json['transferAccountId'] as String?,
       categoryId: json['categoryId'] as String?,
       savingGoalId: json['savingGoalId'] as String?,
       amount: (json['amount'] as num).toDouble(),
@@ -25,6 +26,7 @@ Map<String, dynamic> _$TransactionEntityToJson(_TransactionEntity instance) =>
     <String, dynamic>{
       'id': instance.id,
       'accountId': instance.accountId,
+      'transferAccountId': instance.transferAccountId,
       'categoryId': instance.categoryId,
       'savingGoalId': instance.savingGoalId,
       'amount': instance.amount,

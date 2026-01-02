@@ -18,10 +18,10 @@ class UpcomingPaymentRemoteDataSource {
   }
 
   Future<void> upsert(String userId, UpcomingPayment payment) async {
-    await _doc(userId, payment.id).set(
-      _mapPayment(payment),
-      SetOptions(merge: true),
-    );
+    await _doc(
+      userId,
+      payment.id,
+    ).set(_mapPayment(payment), SetOptions(merge: true));
   }
 
   Future<void> delete(String userId, UpcomingPayment payment) async {
@@ -77,7 +77,9 @@ class UpcomingPaymentRemoteDataSource {
     }..removeWhere((String key, Object? value) => value == null);
   }
 
-  UpcomingPayment _fromDocument(QueryDocumentSnapshot<Map<String, dynamic>> doc) {
+  UpcomingPayment _fromDocument(
+    QueryDocumentSnapshot<Map<String, dynamic>> doc,
+  ) {
     final Map<String, dynamic> data = doc.data();
     return UpcomingPayment(
       id: data['id'] as String? ?? doc.id,

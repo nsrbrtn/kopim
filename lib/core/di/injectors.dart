@@ -401,9 +401,7 @@ ProfileDao profileDao(Ref ref) => ProfileDao(ref.watch(appDatabaseProvider));
 @riverpod
 CreditDao creditDao(Ref ref) => CreditDao(ref.watch(appDatabaseProvider));
 
-final rp.Provider<DebtDao> debtDaoProvider = rp.Provider<DebtDao>((
-  rp.Ref ref,
-) {
+final rp.Provider<DebtDao> debtDaoProvider = rp.Provider<DebtDao>((rp.Ref ref) {
   return DebtDao(ref.watch(appDatabaseProvider));
 });
 
@@ -416,26 +414,26 @@ PaymentRemindersDao paymentRemindersDao(Ref ref) =>
     PaymentRemindersDao(ref.watch(appDatabaseProvider));
 
 final rp.Provider<UpcomingPaymentRemoteDataSource>
-    upcomingPaymentRemoteDataSourceProvider =
+upcomingPaymentRemoteDataSourceProvider =
     rp.Provider<UpcomingPaymentRemoteDataSource>((rp.Ref ref) {
-  return UpcomingPaymentRemoteDataSource(ref.watch(firestoreProvider));
-});
+      return UpcomingPaymentRemoteDataSource(ref.watch(firestoreProvider));
+    });
 
 final rp.Provider<PaymentReminderRemoteDataSource>
-    paymentReminderRemoteDataSourceProvider =
+paymentReminderRemoteDataSourceProvider =
     rp.Provider<PaymentReminderRemoteDataSource>((rp.Ref ref) {
-  return PaymentReminderRemoteDataSource(ref.watch(firestoreProvider));
-});
+      return PaymentReminderRemoteDataSource(ref.watch(firestoreProvider));
+    });
 
 final rp.Provider<CreditRemoteDataSource> creditRemoteDataSourceProvider =
     rp.Provider<CreditRemoteDataSource>((rp.Ref ref) {
-  return CreditRemoteDataSource(ref.watch(firestoreProvider));
-});
+      return CreditRemoteDataSource(ref.watch(firestoreProvider));
+    });
 
 final rp.Provider<DebtRemoteDataSource> debtRemoteDataSourceProvider =
     rp.Provider<DebtRemoteDataSource>((rp.Ref ref) {
-  return DebtRemoteDataSource(ref.watch(firestoreProvider));
-});
+      return DebtRemoteDataSource(ref.watch(firestoreProvider));
+    });
 
 @riverpod
 FlutterLocalNotificationsPlugin? flutterLocalNotificationsPlugin(Ref ref) {
@@ -486,7 +484,6 @@ UpcomingPaymentsWorkScheduler upcomingPaymentsWorkScheduler(Ref ref) =>
       workmanager: ref.watch(workmanagerProvider),
       logger: ref.watch(loggerServiceProvider),
     );
-
 
 @riverpod
 BudgetSchedule budgetSchedule(Ref ref) => const BudgetSchedule();
@@ -767,7 +764,6 @@ SavingGoalRepository savingGoalRepository(Ref ref) => SavingGoalRepositoryImpl(
   uuidGenerator: ref.watch(uuidGeneratorProvider),
 );
 
-
 @riverpod
 UpcomingPaymentsRepository upcomingPaymentsRepository(Ref ref) =>
     UpcomingPaymentsRepositoryImpl(
@@ -849,15 +845,6 @@ WatchAiFinancialOverviewUseCase watchAiFinancialOverviewUseCase(Ref ref) =>
     WatchAiFinancialOverviewUseCase(
       ref.watch(aiFinancialDataRepositoryProvider),
     );
-
-
-
-
-
-
-
-
-
 
 @riverpod
 ExactAlarmPermissionService exactAlarmPermissionService(Ref ref) =>

@@ -15,10 +15,10 @@ class PaymentReminderRemoteDataSource {
   }
 
   Future<void> upsert(String userId, PaymentReminder reminder) async {
-    await _doc(userId, reminder.id).set(
-      _mapReminder(reminder),
-      SetOptions(merge: true),
-    );
+    await _doc(
+      userId,
+      reminder.id,
+    ).set(_mapReminder(reminder), SetOptions(merge: true));
   }
 
   Future<void> delete(String userId, PaymentReminder reminder) async {
@@ -68,7 +68,9 @@ class PaymentReminderRemoteDataSource {
     }..removeWhere((String key, Object? value) => value == null);
   }
 
-  PaymentReminder _fromDocument(QueryDocumentSnapshot<Map<String, dynamic>> doc) {
+  PaymentReminder _fromDocument(
+    QueryDocumentSnapshot<Map<String, dynamic>> doc,
+  ) {
     final Map<String, dynamic> data = doc.data();
     return PaymentReminder(
       id: data['id'] as String? ?? doc.id,

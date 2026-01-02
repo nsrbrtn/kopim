@@ -8,7 +8,9 @@ import 'package:source_maps/source_maps.dart';
 
 void main(List<String> args) {
   if (args.length != 2) {
-    stderr.writeln('Использование: dart symbolize_stack.dart <stack.txt> <main.dart.js.map>');
+    stderr.writeln(
+      'Использование: dart symbolize_stack.dart <stack.txt> <main.dart.js.map>',
+    );
     exit(64);
   }
   final File stackFile = File(args[0]);

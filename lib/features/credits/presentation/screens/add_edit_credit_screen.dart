@@ -176,8 +176,8 @@ class _AddEditCreditScreenState extends ConsumerState<AddEditCreditScreen> {
               (double.tryParse(_amountController.text) ?? 0) /
               (int.tryParse(_termController.text) ?? 1);
 
-          final EditUpcomingPaymentScreenArgs args =
-              EditUpcomingPaymentScreenArgs(
+          final EditUpcomingPaymentScreenArgs
+          args = EditUpcomingPaymentScreenArgs(
             initialTitle: _nameController.text,
             initialAmount: amount,
             initialCategoryId: credit.categoryId,

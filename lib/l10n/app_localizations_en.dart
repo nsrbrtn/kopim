@@ -93,6 +93,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get creditsSegmentDebts => 'Debts';
 
   @override
+  String get creditsDeleteTitle => 'Delete loan?';
+
+  @override
+  String get creditsDeleteMessage =>
+      'The loan will be deleted and cannot be restored.';
+
+  @override
   String get debtsAddTitle => 'Add debt';
 
   @override
@@ -130,6 +137,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get debtsDefaultTitle => 'Debt';
+
+  @override
+  String get debtsDeleteTitle => 'Delete debt?';
+
+  @override
+  String get debtsDeleteMessage =>
+      'The debt will be deleted and cannot be restored.';
 
   @override
   String get profileGeneralSettingsManagementSection => 'Data management';
@@ -1545,6 +1559,30 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get addTransactionTypeIncome => 'Income';
+
+  @override
+  String get addTransactionTypeTransfer => 'Transfer';
+
+  @override
+  String get addTransactionTransferTargetLabel => 'To account';
+
+  @override
+  String get addTransactionTransferNoTargets =>
+      'Add another account to make a transfer.';
+
+  @override
+  String get addTransactionTransferCategoryHint =>
+      'Transfers don\'t use categories.';
+
+  @override
+  String transactionTransferAccountPair(String from, String to) {
+    return 'From $from -> $to';
+  }
+
+  @override
+  String transactionTransferAccountSingle(String account) {
+    return 'Account: $account';
+  }
 
   @override
   String get addTransactionCategoryLabel => 'Category';

@@ -98,13 +98,15 @@ class _AddEditDebtScreenState extends ConsumerState<AddEditDebtScreen> {
         ? null
         : _noteController.text.trim();
     if (widget.debt == null) {
-      await ref.read(addDebtUseCaseProvider).call(
-        accountId: _selectedAccountId!,
-        name: name,
-        amount: amount,
-        dueDate: _selectedDueDate!,
-        note: note,
-      );
+      await ref
+          .read(addDebtUseCaseProvider)
+          .call(
+            accountId: _selectedAccountId!,
+            name: name,
+            amount: amount,
+            dueDate: _selectedDueDate!,
+            note: note,
+          );
     } else {
       await ref
           .read(updateDebtUseCaseProvider)
@@ -127,22 +129,23 @@ class _AddEditDebtScreenState extends ConsumerState<AddEditDebtScreen> {
     }
     final String name = _nameController.text.trim();
     final double amount = double.parse(_amountController.text);
-    await ref.read(addDebtUseCaseProvider).call(
-      accountId: _selectedAccountId!,
-      name: name,
-      amount: amount,
-      dueDate: _selectedDueDate!,
-      note: _noteController.text.trim().isEmpty
-          ? null
-          : _noteController.text.trim(),
-    );
+    await ref
+        .read(addDebtUseCaseProvider)
+        .call(
+          accountId: _selectedAccountId!,
+          name: name,
+          amount: amount,
+          dueDate: _selectedDueDate!,
+          note: _noteController.text.trim().isEmpty
+              ? null
+              : _noteController.text.trim(),
+        );
     if (mounted) {
-      final EditPaymentReminderScreenArgs args =
-          EditPaymentReminderScreenArgs(
-            initialTitle: name,
-            initialAmount: amount,
-            initialWhenLocal: _selectedDueDate,
-          );
+      final EditPaymentReminderScreenArgs args = EditPaymentReminderScreenArgs(
+        initialTitle: name,
+        initialAmount: amount,
+        initialWhenLocal: _selectedDueDate,
+      );
 
       context.pop();
       context.push(args.location, extra: args);
@@ -198,7 +201,9 @@ class _AddEditDebtScreenState extends ConsumerState<AddEditDebtScreen> {
                   context: context,
                   builder: (BuildContext context) => AlertDialog(
                     title: const Text('Удалить долг?'),
-                    content: const Text('Запись будет удалена без возможности восстановления.'),
+                    content: const Text(
+                      'Запись будет удалена без возможности восстановления.',
+                    ),
                     actions: <Widget>[
                       TextButton(
                         onPressed: () => Navigator.pop(context),
@@ -221,152 +226,160 @@ class _AddEditDebtScreenState extends ConsumerState<AddEditDebtScreen> {
       body: StreamBuilder<List<AccountEntity>>(
         stream: accountsAsync,
         builder:
-            (BuildContext context, AsyncSnapshot<List<AccountEntity>> snapshot) {
+            (
+              BuildContext context,
+              AsyncSnapshot<List<AccountEntity>> snapshot,
+            ) {
               final List<AccountEntity> accounts =
                   snapshot.data ?? <AccountEntity>[];
               return StreamBuilder<List<CreditEntity>>(
                 stream: creditsAsync,
-                builder: (
-                  BuildContext context,
-                  AsyncSnapshot<List<CreditEntity>> creditsSnapshot,
-                ) {
-                  final Set<String> creditAccountIds =
-                      creditsSnapshot.data
-                          ?.map((CreditEntity credit) => credit.accountId)
-                          .toSet() ??
-                      <String>{};
-                  final List<AccountEntity> availableAccounts =
-                      accounts
+                builder:
+                    (
+                      BuildContext context,
+                      AsyncSnapshot<List<CreditEntity>> creditsSnapshot,
+                    ) {
+                      final Set<String> creditAccountIds =
+                          creditsSnapshot.data
+                              ?.map((CreditEntity credit) => credit.accountId)
+                              .toSet() ??
+                          <String>{};
+                      final List<AccountEntity> availableAccounts = accounts
                           .where(
                             (AccountEntity account) =>
                                 !creditAccountIds.contains(account.id),
                           )
                           .toList();
-                  if (availableAccounts.isEmpty) {
-                    return Center(
-                      child: Text(context.loc.addTransactionNoAccounts),
-                    );
-                  }
-                  if (_selectedAccountId == null ||
-                      !availableAccounts.any(
-                        (AccountEntity account) =>
-                            account.id == _selectedAccountId,
-                      )) {
-                    final AccountEntity primary = availableAccounts.firstWhere(
-                      (AccountEntity account) => account.isPrimary,
-                      orElse: () => availableAccounts.first,
-                    );
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      if (mounted) {
-                        setState(() {
-                          _selectedAccountId = primary.id;
-                          _accountError = false;
-                        });
+                      if (availableAccounts.isEmpty) {
+                        return Center(
+                          child: Text(context.loc.addTransactionNoAccounts),
+                        );
                       }
-                    });
-                  }
-                  return Form(
-                    key: _formKey,
-                    child: ListView(
-                      padding: const EdgeInsets.all(24),
-                      children: <Widget>[
-                        KopimTextField(
-                          controller: _nameController,
-                          placeholder: context.loc.debtsNameLabel,
-                          prefixIcon: const Icon(Icons.receipt_long_outlined),
-                          hasError: _nameError,
-                        ),
-                        const SizedBox(height: 16),
-                        KopimDropdownField<String>(
-                          value: _selectedAccountId,
-                          items: availableAccounts
-                              .map(
-                                (AccountEntity account) =>
-                                    DropdownMenuItem<String>(
-                                      value: account.id,
-                                      child: Text(account.name),
-                                    ),
-                              )
-                              .toList(growable: false),
-                          label: context.loc.debtsAccountLabel,
-                          hint: context.loc.debtsAccountHint,
-                          enabled: availableAccounts.isNotEmpty,
-                          onChanged: (String value) {
+                      if (_selectedAccountId == null ||
+                          !availableAccounts.any(
+                            (AccountEntity account) =>
+                                account.id == _selectedAccountId,
+                          )) {
+                        final AccountEntity primary = availableAccounts
+                            .firstWhere(
+                              (AccountEntity account) => account.isPrimary,
+                              orElse: () => availableAccounts.first,
+                            );
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          if (mounted) {
                             setState(() {
-                              _selectedAccountId = value;
+                              _selectedAccountId = primary.id;
                               _accountError = false;
                             });
-                          },
-                        ),
-                        if (_accountError) ...<Widget>[
-                          const SizedBox(height: 8),
-                          Text(
-                            context.loc.debtsAccountError,
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.colorScheme.error,
+                          }
+                        });
+                      }
+                      return Form(
+                        key: _formKey,
+                        child: ListView(
+                          padding: const EdgeInsets.all(24),
+                          children: <Widget>[
+                            KopimTextField(
+                              controller: _nameController,
+                              placeholder: context.loc.debtsNameLabel,
+                              prefixIcon: const Icon(
+                                Icons.receipt_long_outlined,
+                              ),
+                              hasError: _nameError,
                             ),
-                          ),
-                        ],
-                        const SizedBox(height: 16),
-                        KopimTextField(
-                          controller: _amountController,
-                          placeholder: context.loc.debtsAmountLabel,
-                          prefixIcon: const Icon(Icons.payments_outlined),
-                          keyboardType: TextInputType.number,
-                          hasError: _amountError,
-                        ),
-                        const SizedBox(height: 16),
-                        KopimTextField(
-                          controller: _dateController,
-                          placeholder: context.loc.debtsDueDateLabel,
-                          prefixIcon: const Icon(Icons.event_outlined),
-                          readOnly: true,
-                          onTap: _selectDueDate,
-                          hasError: _dateError,
-                        ),
-                        const SizedBox(height: 16),
-                        KopimTextField(
-                          controller: _noteController,
-                          placeholder: context.loc.debtsNoteLabel,
-                          prefixIcon: const Icon(Icons.edit_note_outlined),
-                          maxLines: 2,
-                        ),
-                        const SizedBox(height: 48),
-                        ElevatedButton(
-                          onPressed: _save,
-                          style: ElevatedButton.styleFrom(
-                            minimumSize: const Size.fromHeight(56),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
+                            const SizedBox(height: 16),
+                            KopimDropdownField<String>(
+                              value: _selectedAccountId,
+                              items: availableAccounts
+                                  .map(
+                                    (AccountEntity account) =>
+                                        DropdownMenuItem<String>(
+                                          value: account.id,
+                                          child: Text(account.name),
+                                        ),
+                                  )
+                                  .toList(growable: false),
+                              label: context.loc.debtsAccountLabel,
+                              hint: context.loc.debtsAccountHint,
+                              enabled: availableAccounts.isNotEmpty,
+                              onChanged: (String value) {
+                                setState(() {
+                                  _selectedAccountId = value;
+                                  _accountError = false;
+                                });
+                              },
                             ),
-                          ),
-                          child: Text(
-                            context.loc.debtsSaveAction,
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                        if (widget.debt == null) ...<Widget>[
-                          const SizedBox(height: 12),
-                          OutlinedButton(
-                            onPressed: _saveAndConfigurePayment,
-                            style: OutlinedButton.styleFrom(
-                              minimumSize: const Size.fromHeight(56),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
+                            if (_accountError) ...<Widget>[
+                              const SizedBox(height: 8),
+                              Text(
+                                context.loc.debtsAccountError,
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: theme.colorScheme.error,
+                                ),
+                              ),
+                            ],
+                            const SizedBox(height: 16),
+                            KopimTextField(
+                              controller: _amountController,
+                              placeholder: context.loc.debtsAmountLabel,
+                              prefixIcon: const Icon(Icons.payments_outlined),
+                              keyboardType: TextInputType.number,
+                              hasError: _amountError,
+                            ),
+                            const SizedBox(height: 16),
+                            KopimTextField(
+                              controller: _dateController,
+                              placeholder: context.loc.debtsDueDateLabel,
+                              prefixIcon: const Icon(Icons.event_outlined),
+                              readOnly: true,
+                              onTap: _selectDueDate,
+                              hasError: _dateError,
+                            ),
+                            const SizedBox(height: 16),
+                            KopimTextField(
+                              controller: _noteController,
+                              placeholder: context.loc.debtsNoteLabel,
+                              prefixIcon: const Icon(Icons.edit_note_outlined),
+                              maxLines: 2,
+                            ),
+                            const SizedBox(height: 48),
+                            ElevatedButton(
+                              onPressed: _save,
+                              style: ElevatedButton.styleFrom(
+                                minimumSize: const Size.fromHeight(56),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                              ),
+                              child: Text(
+                                context.loc.debtsSaveAction,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
-                            child: Text(
-                              context.loc.debtsSaveAndScheduleAction,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
+                            if (widget.debt == null) ...<Widget>[
+                              const SizedBox(height: 12),
+                              OutlinedButton(
+                                onPressed: _saveAndConfigurePayment,
+                                style: OutlinedButton.styleFrom(
+                                  minimumSize: const Size.fromHeight(56),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                ),
+                                child: Text(
+                                  context.loc.debtsSaveAndScheduleAction,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                               ),
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  );
-                },
+                            ],
+                          ],
+                        ),
+                      );
+                    },
               );
             },
       ),

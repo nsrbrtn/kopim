@@ -63,7 +63,8 @@ class WatchMonthlyAnalyticsUseCase {
     final Set<String> activeCategoryIds = hierarchy.byId.keys.toSet();
     final DateTime start = filter.start;
     final DateTime end = filter.end;
-    final Set<String> accountIds = filter.accountIds?.toSet() ?? const <String>{};
+    final Set<String> accountIds =
+        filter.accountIds?.toSet() ?? const <String>{};
 
     final Set<String>? categoryFilterIds = _resolveCategoryFilterIds(
       filter,
@@ -320,12 +321,14 @@ class WatchMonthlyAnalyticsUseCase {
         ? sorted.length
         : math.min(topCategoriesLimit, sorted.length);
 
-    final List<AnalyticsCategoryBreakdown> top =
-        sorted.take(limit).toList(growable: true);
+    final List<AnalyticsCategoryBreakdown> top = sorted
+        .take(limit)
+        .toList(growable: true);
 
     if (sorted.length > limit) {
-      final List<AnalyticsCategoryBreakdown> remainder =
-          sorted.skip(limit).toList(growable: false);
+      final List<AnalyticsCategoryBreakdown> remainder = sorted
+          .skip(limit)
+          .toList(growable: false);
       final double remainderAmount = remainder.fold<double>(
         0,
         (double previous, AnalyticsCategoryBreakdown breakdown) =>
@@ -363,22 +366,16 @@ class WatchMonthlyAnalyticsUseCase {
 
     controller = StreamController<T>(
       onListen: () {
-        firstSub = first.listen(
-          (A value) {
-            latestFirst = value;
-            hasFirst = true;
-            emitIfReady();
-          },
-          onError: controller.addError,
-        );
-        secondSub = second.listen(
-          (B value) {
-            latestSecond = value;
-            hasSecond = true;
-            emitIfReady();
-          },
-          onError: controller.addError,
-        );
+        firstSub = first.listen((A value) {
+          latestFirst = value;
+          hasFirst = true;
+          emitIfReady();
+        }, onError: controller.addError);
+        secondSub = second.listen((B value) {
+          latestSecond = value;
+          hasSecond = true;
+          emitIfReady();
+        }, onError: controller.addError);
       },
       onCancel: () async {
         await firstSub.cancel();

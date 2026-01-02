@@ -120,12 +120,12 @@ class AiFinancialDataRepositoryImpl implements AiFinancialDataRepository {
             emitIfReady();
           });
       final StreamSubscription<List<CategoryIncomeAggregate>>
-      incomeCategoriesSub = _analyticsDao.watchTopIncomeCategories(filter).listen((
-        List<CategoryIncomeAggregate> data,
-      ) {
-        incomeCategories = data;
-        emitIfReady();
-      });
+      incomeCategoriesSub = _analyticsDao
+          .watchTopIncomeCategories(filter)
+          .listen((List<CategoryIncomeAggregate> data) {
+            incomeCategories = data;
+            emitIfReady();
+          });
       final StreamSubscription<List<BudgetInstanceAggregate>> budgetsSub =
           _analyticsDao.watchBudgetForecasts(filter).listen((
             List<BudgetInstanceAggregate> data,

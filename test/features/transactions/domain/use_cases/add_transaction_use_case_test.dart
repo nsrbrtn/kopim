@@ -23,6 +23,7 @@ void main() {
       TransactionEntity(
         id: 'fallback',
         accountId: 'acc',
+        transferAccountId: null,
         categoryId: null,
         amount: 0,
         date: DateTime.utc(2000),
@@ -163,4 +164,55 @@ void main() {
     verifyNever(() => transactionRepository.upsert(any()));
     verifyNever(() => accountRepository.upsert(any()));
   });
+
+  test(
+    'saves transfer transaction and moves balance between accounts',
+    () async {
+      final AccountEntity source = account0(balance: 200);
+      final AccountEntity target = account0(balance: 40).copyWith(id: 'acc-2');
+      when(
+        () => accountRepository.findById(source.id),
+      ).thenAnswer((_) async => source);
+      when(
+        () => accountRepository.findById(target.id),
+      ).thenAnswer((_) async => target);
+      when(() => transactionRepository.upsert(any())).thenAnswer((_) async {});
+      when(() => accountRepository.upsert(any())).thenAnswer((_) async {});
+
+      final AddTransactionRequest request = AddTransactionRequest(
+        accountId: source.id,
+        transferAccountId: target.id,
+        amount: 50,
+        date: fixedNow,
+        note: 'Transfer',
+        type: TransactionType.transfer,
+      );
+
+      final TransactionCommandResult<TransactionEntity> createdResult =
+          await useCase(request);
+
+      final TransactionEntity transaction =
+          verify(
+                () => transactionRepository.upsert(captureAny()),
+              ).captured.single
+              as TransactionEntity;
+      expect(transaction.transferAccountId, target.id);
+      expect(transaction.categoryId, isNull);
+      expect(transaction.type, TransactionType.transfer.storageValue);
+      expect(createdResult.value.type, TransactionType.transfer.storageValue);
+
+      final List<AccountEntity> updatedAccounts = verify(
+        () => accountRepository.upsert(captureAny()),
+      ).captured.cast<AccountEntity>();
+      expect(updatedAccounts.length, 2);
+      final AccountEntity updatedSource = updatedAccounts.firstWhere(
+        (AccountEntity account) => account.id == source.id,
+      );
+      final AccountEntity updatedTarget = updatedAccounts.firstWhere(
+        (AccountEntity account) => account.id == target.id,
+      );
+      expect(updatedSource.balance, closeTo(150, 1e-9));
+      expect(updatedTarget.balance, closeTo(90, 1e-9));
+    },
+  );
 }

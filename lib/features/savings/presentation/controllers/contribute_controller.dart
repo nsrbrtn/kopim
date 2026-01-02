@@ -98,7 +98,8 @@ class ContributeController extends _$ContributeController {
           .toList(growable: false);
       final String? previousSelected = state.selectedAccountId;
       String? nextSelected = previousSelected;
-      final bool selectionRemoved = previousSelected != null &&
+      final bool selectionRemoved =
+          previousSelected != null &&
           !filtered.any(
             (AccountEntity account) => account.id == previousSelected,
           );

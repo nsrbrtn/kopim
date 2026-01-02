@@ -1342,25 +1342,26 @@ class _TopCategoriesPagerState extends State<_TopCategoriesPager> {
     AnalyticsChartItem mapBreakdown(AnalyticsCategoryBreakdown breakdown) {
       final String? rawId = breakdown.categoryId;
       final bool isOthers = rawId == _othersCategoryKey;
-      final bool isDirect = rawId != null && isAnalyticsDirectCategoryKey(rawId);
+      final bool isDirect =
+          rawId != null && isAnalyticsDirectCategoryKey(rawId);
       final String? resolvedId = isDirect
           ? parseAnalyticsDirectCategoryParentId(rawId)
           : rawId;
       final Category? category = resolvedId == null || isOthers
           ? null
           : categoriesById[resolvedId];
-      final Color baseColor = parseHexColor(category?.color) ??
-          theme.colorScheme.primary;
+      final Color baseColor =
+          parseHexColor(category?.color) ?? theme.colorScheme.primary;
       final Color color = isOthers
           ? theme.colorScheme.outlineVariant
           : isDirect
-              ? baseColor.withValues(alpha: 0.6)
-              : baseColor;
+          ? baseColor.withValues(alpha: 0.6)
+          : baseColor;
       final String title = isOthers
           ? strings.analyticsTopCategoriesOthers
           : isDirect
-              ? strings.analyticsCategoryDirectLabel
-              : category?.name ?? strings.analyticsCategoryUncategorized;
+          ? strings.analyticsCategoryDirectLabel
+          : category?.name ?? strings.analyticsCategoryUncategorized;
       final IconData? iconData = isOthers
           ? Icons.more_horiz
           : resolvePhosphorIconData(category?.icon);
@@ -1712,10 +1713,7 @@ class _SelectionPayload {
 }
 
 class _FocusedItemResult {
-  const _FocusedItemResult({
-    required this.item,
-    required this.topLevelItem,
-  });
+  const _FocusedItemResult({required this.item, required this.topLevelItem});
 
   final AnalyticsChartItem item;
   final AnalyticsChartItem topLevelItem;

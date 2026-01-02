@@ -27,8 +27,7 @@ class AnalyticsFilter {
           ?.map((dynamic e) => e as String)
           .toList(),
       categoryId: json['categoryId'] as String?,
-      includeSubcategories:
-          json['includeSubcategories'] as bool? ?? true,
+      includeSubcategories: json['includeSubcategories'] as bool? ?? true,
     );
   }
 

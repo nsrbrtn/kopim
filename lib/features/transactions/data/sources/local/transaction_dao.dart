@@ -155,6 +155,7 @@ GROUP BY account_id
     return db.TransactionsCompanion(
       id: Value<String>(transaction.id),
       accountId: Value<String>(transaction.accountId),
+      transferAccountId: Value<String?>(transaction.transferAccountId),
       categoryId: Value<String?>(transaction.categoryId),
       savingGoalId: Value<String?>(transaction.savingGoalId),
       amount: Value<double>(transaction.amount),
@@ -171,6 +172,7 @@ GROUP BY account_id
     return TransactionEntity(
       id: row.id,
       accountId: row.accountId,
+      transferAccountId: row.transferAccountId,
       categoryId: row.categoryId,
       savingGoalId: row.savingGoalId,
       amount: row.amount,

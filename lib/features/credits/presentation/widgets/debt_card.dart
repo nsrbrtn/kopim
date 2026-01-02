@@ -64,7 +64,10 @@ class DebtCard extends ConsumerWidget {
                     ),
                   )
                 : null;
-            final Color primaryColor = accountColor ?? theme.colorScheme.primary;
+            final bool hasAccount = account.id.isNotEmpty;
+            final Color primaryColor = hasAccount
+                ? (accountColor ?? theme.colorScheme.primary)
+                : theme.colorScheme.onSurfaceVariant;
 
             return Card(
               margin: const EdgeInsets.symmetric(vertical: 8),
@@ -106,9 +109,9 @@ class DebtCard extends ConsumerWidget {
                             ),
                           ),
                           CircleAvatar(
-                            backgroundColor:
-                                accountColor?.withValues(alpha: 0.1) ??
-                                theme.colorScheme.primaryContainer,
+                            backgroundColor: accountColor
+                                ?.withValues(alpha: 0.1) ??
+                                theme.colorScheme.surfaceContainerHighest,
                             child: Icon(
                               accountIconData ?? Icons.payments_outlined,
                               color: primaryColor,
@@ -124,7 +127,8 @@ class DebtCard extends ConsumerWidget {
                           color: theme.colorScheme.onSurface,
                         ),
                       ),
-                      if (debt.note != null && debt.note!.isNotEmpty) ...<Widget>[
+                      if (debt.note != null &&
+                          debt.note!.isNotEmpty) ...<Widget>[
                         const SizedBox(height: 8),
                         Text(
                           debt.note!,

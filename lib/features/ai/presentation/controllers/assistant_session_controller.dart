@@ -400,7 +400,9 @@ class AssistantSessionController extends _$AssistantSessionController {
     }
 
     final StringBuffer buffer = StringBuffer()
-      ..writeln('Контекст диалога (последние $_kDialogContextLimit сообщений):');
+      ..writeln(
+        'Контекст диалога (последние $_kDialogContextLimit сообщений):',
+      );
     for (final AssistantMessage message in history) {
       final String label = message.author == AssistantMessageAuthor.user
           ? 'Пользователь'

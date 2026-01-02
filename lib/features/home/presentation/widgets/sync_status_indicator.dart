@@ -28,10 +28,12 @@ class _SyncStatusIndicatorState extends ConsumerState<SyncStatusIndicator>
 
   @override
   Widget build(BuildContext context) {
-    final SyncStatus status = ref.watch(syncStatusProvider).maybeWhen(
-      data: (SyncStatus value) => value,
-      orElse: () => SyncStatus.offline,
-    );
+    final SyncStatus status = ref
+        .watch(syncStatusProvider)
+        .maybeWhen(
+          data: (SyncStatus value) => value,
+          orElse: () => SyncStatus.offline,
+        );
     final ThemeData theme = Theme.of(context);
 
     if (status == SyncStatus.syncing) {

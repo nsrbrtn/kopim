@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workmanager/workmanager.dart';
 import 'package:timezone/timezone.dart' as tz;
 
@@ -13,6 +14,7 @@ import 'package:kopim/core/services/firebase_initializer.dart';
 import 'package:kopim/core/services/logger_service.dart';
 import 'package:kopim/core/services/notification_fallback_presenter.dart';
 import 'package:kopim/core/services/notifications_gateway.dart';
+import 'package:kopim/core/services/recurring_work_scheduler_mobile.dart';
 import 'package:kopim/features/accounts/data/repositories/account_repository_impl.dart';
 import 'package:kopim/features/accounts/data/sources/local/account_dao.dart';
 import 'package:kopim/features/accounts/domain/repositories/account_repository.dart';
@@ -45,12 +47,8 @@ import 'package:kopim/l10n/app_localizations.dart';
 
 const String kUpcomingPaymentsPeriodicTask = 'upcoming_apply_rules';
 const String kUpcomingPaymentsOneOffTask = 'upcoming_apply_rules_once';
-@pragma('vm:entry-point')
-void upcomingPaymentsCallbackDispatcher() {
-  Workmanager().executeTask((String task, Map<String, dynamic>? inputData) {
-    return runUpcomingPaymentsBackgroundTask(task);
-  });
-}
+const String _workCleanupPrefsKey =
+    'upcoming_payments.workmanager_cleanup_v1';
 
 bool _isMobilePlatform() {
   if (kIsWeb) {
@@ -140,6 +138,24 @@ class UpcomingPaymentsWorkScheduler {
     _logger.logInfo('Scheduled upcoming payments daily catch-up');
   }
 
+  Future<void> cleanupLegacyWorkIfNeeded() async {
+    if (!_isMobilePlatform()) {
+      return;
+    }
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    if (prefs.getBool(_workCleanupPrefsKey) == true) {
+      return;
+    }
+    try {
+      await _ensureInitialized();
+      await _workmanager.cancelAll();
+      await prefs.setBool(_workCleanupPrefsKey, true);
+      _logger.logInfo('Cleared legacy workmanager tasks');
+    } catch (error) {
+      _logger.logError('Failed to clear legacy workmanager tasks', error);
+    }
+  }
+
   Future<void> triggerOneOffCatchUp() async {
     if (!_isMobilePlatform()) {
       return;
@@ -162,9 +178,7 @@ class UpcomingPaymentsWorkScheduler {
     if (_didInitialize) {
       return;
     }
-    await _workmanager.initialize(
-      upcomingPaymentsCallbackDispatcher,
-    );
+    await _workmanager.initialize(callbackDispatcher);
     _didInitialize = true;
   }
 }

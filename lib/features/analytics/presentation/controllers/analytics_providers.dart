@@ -82,12 +82,15 @@ class AnalyticsCategoryTransactionsFilter {
       Object.hash(Object.hashAll(categoryIds), includeUncategorized, type);
 }
 
-final StreamProviderFamily<List<TransactionEntity>, AnalyticsCategoryTransactionsFilter>
-    analyticsCategoryTransactionsProvider =
-    StreamProvider.family<List<TransactionEntity>, AnalyticsCategoryTransactionsFilter>((
-      Ref ref,
-      AnalyticsCategoryTransactionsFilter filter,
-    ) {
+final StreamProviderFamily<
+  List<TransactionEntity>,
+  AnalyticsCategoryTransactionsFilter
+>
+analyticsCategoryTransactionsProvider =
+    StreamProvider.family<
+      List<TransactionEntity>,
+      AnalyticsCategoryTransactionsFilter
+    >((Ref ref, AnalyticsCategoryTransactionsFilter filter) {
       if (filter.categoryIds.isEmpty && !filter.includeUncategorized) {
         return Stream<List<TransactionEntity>>.value(
           const <TransactionEntity>[],
@@ -101,11 +104,11 @@ final StreamProviderFamily<List<TransactionEntity>, AnalyticsCategoryTransaction
       final DateTime start = DateUtils.dateOnly(range.start);
       final DateTime end = DateUtils.dateOnly(range.end);
 
-      return ref
-          .watch(transactionRepositoryProvider)
-          .watchTransactions()
-          .map((List<TransactionEntity> transactions) {
-            final List<TransactionEntity> filtered = transactions
+      return ref.watch(transactionRepositoryProvider).watchTransactions().map((
+        List<TransactionEntity> transactions,
+      ) {
+        final List<TransactionEntity> filtered =
+            transactions
                 .where((TransactionEntity transaction) {
                   final DateTime date = DateUtils.dateOnly(transaction.date);
                   if (date.isBefore(start) || date.isAfter(end)) {
@@ -128,8 +131,8 @@ final StreamProviderFamily<List<TransactionEntity>, AnalyticsCategoryTransaction
                 (TransactionEntity a, TransactionEntity b) =>
                     b.date.compareTo(a.date),
               );
-            return filtered;
-          });
+        return filtered;
+      });
     });
 
 @riverpod

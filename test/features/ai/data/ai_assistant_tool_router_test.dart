@@ -42,10 +42,7 @@ void main() {
     await database.close();
   });
 
-  Future<void> insertAccount({
-    required String id,
-    String currency = 'RUB',
-  }) {
+  Future<void> insertAccount({required String id, String currency = 'RUB'}) {
     return database
         .into(database.accounts)
         .insert(
@@ -112,7 +109,9 @@ void main() {
     List<BudgetCategoryAllocation> allocations =
         const <BudgetCategoryAllocation>[],
   }) {
-    return database.into(database.budgets).insert(
+    return database
+        .into(database.budgets)
+        .insert(
           db.BudgetsCompanion(
             id: drift.Value<String>(id),
             title: drift.Value<String>(title),
@@ -160,8 +159,9 @@ void main() {
       arguments: jsonEncode(<String, Object?>{'period': 'last_30_days'}),
     );
 
-    final AiAssistantToolExecutionResult result = await router
-        .runToolCalls(<AiToolCall>[toolCall]);
+    final AiAssistantToolExecutionResult result = await router.runToolCalls(
+      <AiToolCall>[toolCall],
+    );
     final String content = result.messages.single.content;
     final Map<String, dynamic> payload =
         jsonDecode(content) as Map<String, dynamic>;
@@ -187,14 +187,14 @@ void main() {
       arguments: jsonEncode(<String, Object?>{'query': 'Так'}),
     );
 
-    final AiAssistantToolExecutionResult result = await router
-        .runToolCalls(<AiToolCall>[toolCall]);
+    final AiAssistantToolExecutionResult result = await router.runToolCalls(
+      <AiToolCall>[toolCall],
+    );
     final Map<String, dynamic> payload =
         jsonDecode(result.messages.single.content) as Map<String, dynamic>;
-    final List<Map<String, dynamic>> items =
-        (payload['items'] as List<dynamic>)
-            .map((dynamic item) => item as Map<String, dynamic>)
-            .toList(growable: false);
+    final List<Map<String, dynamic>> items = (payload['items'] as List<dynamic>)
+        .map((dynamic item) => item as Map<String, dynamic>)
+        .toList(growable: false);
 
     expect(items.length, 1);
     final Map<String, dynamic> item = items.first;
@@ -205,11 +205,7 @@ void main() {
   test('get_spending_summary учитывает дочерние категории', () async {
     await insertAccount(id: 'a1', currency: 'RUB');
     await insertCategory(id: 'c_parent', name: 'Еда');
-    await insertCategory(
-      id: 'c_child',
-      name: 'Кафе',
-      parentId: 'c_parent',
-    );
+    await insertCategory(id: 'c_child', name: 'Кафе', parentId: 'c_parent');
     await insertTransaction(
       id: 't1',
       accountId: 'a1',
@@ -227,8 +223,9 @@ void main() {
       }),
     );
 
-    final AiAssistantToolExecutionResult result = await router
-        .runToolCalls(<AiToolCall>[toolCall]);
+    final AiAssistantToolExecutionResult result = await router.runToolCalls(
+      <AiToolCall>[toolCall],
+    );
     final Map<String, dynamic> payload =
         jsonDecode(result.messages.single.content) as Map<String, dynamic>;
     final List<Map<String, dynamic>> totals =
@@ -278,8 +275,9 @@ void main() {
       arguments: jsonEncode(<String, Object?>{'budget_id': 'b1'}),
     );
 
-    final AiAssistantToolExecutionResult result = await router
-        .runToolCalls(<AiToolCall>[toolCall]);
+    final AiAssistantToolExecutionResult result = await router.runToolCalls(
+      <AiToolCall>[toolCall],
+    );
     final Map<String, dynamic> payload =
         jsonDecode(result.messages.single.content) as Map<String, dynamic>;
     final List<dynamic> items = payload['items'] as List<dynamic>;

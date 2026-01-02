@@ -38,6 +38,7 @@ class TransactionDraftState {
   const TransactionDraftState({
     this.amount = '',
     this.accountId,
+    this.transferAccountId,
     this.categoryId,
     this.note = '',
     this.type = TransactionType.expense,
@@ -55,6 +56,7 @@ class TransactionDraftState {
     return TransactionDraftState(
       amount: '',
       accountId: defaultAccountId,
+      transferAccountId: null,
       categoryId: null,
       note: '',
       type: TransactionType.expense,
@@ -67,13 +69,11 @@ class TransactionDraftState {
   }
 
   factory TransactionDraftState.forEdit(TransactionEntity transaction) {
-    final TransactionType initialType =
-        transaction.type == TransactionType.income.storageValue
-        ? TransactionType.income
-        : TransactionType.expense;
+    final TransactionType initialType = parseTransactionType(transaction.type);
     return TransactionDraftState(
       amount: transaction.amount.toStringAsFixed(2),
       accountId: transaction.accountId,
+      transferAccountId: transaction.transferAccountId,
       categoryId: transaction.categoryId,
       note: transaction.note ?? '',
       type: initialType,
@@ -87,6 +87,7 @@ class TransactionDraftState {
 
   final String amount;
   final String? accountId;
+  final String? transferAccountId;
   final String? categoryId;
   final String note;
   final TransactionType type;
@@ -114,11 +115,17 @@ class TransactionDraftState {
   }
 
   bool get canSubmit =>
-      !isSubmitting && accountId != null && parsedAmount != null;
+      !isSubmitting &&
+      accountId != null &&
+      parsedAmount != null &&
+      (type.isTransfer
+          ? transferAccountId != null && transferAccountId != accountId
+          : true);
 
   TransactionDraftState copyWith({
     String? amount,
     String? accountId,
+    String? transferAccountId,
     String? categoryId,
     String? note,
     TransactionType? type,
@@ -133,10 +140,14 @@ class TransactionDraftState {
     bool clearLastCreatedTransaction = false,
     bool? hasInitialized,
     String? preferredAccountId,
+    bool clearTransferAccount = false,
   }) {
     return TransactionDraftState(
       amount: amount ?? this.amount,
       accountId: accountId ?? this.accountId,
+      transferAccountId: clearTransferAccount
+          ? null
+          : (transferAccountId ?? this.transferAccountId),
       categoryId: clearCategory ? null : (categoryId ?? this.categoryId),
       note: note ?? this.note,
       type: type ?? this.type,
@@ -204,6 +215,7 @@ class TransactionDraftController extends StateNotifier<TransactionDraftState> {
       amount: resetAmount ? '' : state.amount,
       accountId:
           state.accountId ?? state.preferredAccountId ?? defaultAccountId,
+      transferAccountId: null,
       categoryId: null,
       note: '',
       type: TransactionType.expense,
@@ -231,6 +243,9 @@ class TransactionDraftController extends StateNotifier<TransactionDraftState> {
   void updateAccount(String? accountId) {
     state = state.copyWith(
       accountId: accountId,
+      transferAccountId: state.transferAccountId == accountId
+          ? null
+          : state.transferAccountId,
       preferredAccountId: accountId ?? state.preferredAccountId,
       clearError: true,
       isSuccess: false,
@@ -241,12 +256,24 @@ class TransactionDraftController extends StateNotifier<TransactionDraftState> {
     state = state.copyWith(categoryId: categoryId, clearError: true);
   }
 
+  void updateTransferAccount(String? accountId) {
+    state = state.copyWith(
+      transferAccountId: accountId,
+      clearError: true,
+      isSuccess: false,
+    );
+  }
+
   void updateNote(String value) {
     state = state.copyWith(note: value);
   }
 
   void updateType(TransactionType type) {
-    state = state.copyWith(type: type, clearCategory: true);
+    state = state.copyWith(
+      type: type,
+      clearCategory: true,
+      clearTransferAccount: !type.isTransfer,
+    );
   }
 
   void updateDate(DateTime date) {
@@ -296,6 +323,9 @@ class TransactionDraftController extends StateNotifier<TransactionDraftState> {
           );
           return;
         }
+        final String? resolvedCategoryId = state.type.isTransfer
+            ? null
+            : (state.categoryId?.isEmpty ?? true ? null : state.categoryId);
         final UpdateTransactionUseCase updateUseCase = ref.read(
           updateTransactionUseCaseProvider,
         );
@@ -303,9 +333,8 @@ class TransactionDraftController extends StateNotifier<TransactionDraftState> {
           UpdateTransactionRequest(
             transactionId: initial.id,
             accountId: state.accountId!,
-            categoryId: state.categoryId?.isEmpty ?? true
-                ? null
-                : state.categoryId,
+            transferAccountId: state.transferAccountId,
+            categoryId: resolvedCategoryId,
             amount: state.parsedAmount!,
             date: state.date,
             note: state.note,
@@ -325,13 +354,15 @@ class TransactionDraftController extends StateNotifier<TransactionDraftState> {
       final ProfileEventRecorder recorder = ref.read(
         profileEventRecorderProvider,
       );
+      final String? resolvedCategoryId = state.type.isTransfer
+          ? null
+          : (state.categoryId?.isEmpty ?? true ? null : state.categoryId);
       final TransactionCommandResult<TransactionEntity> createdResult =
           await addUseCase(
             AddTransactionRequest(
               accountId: state.accountId!,
-              categoryId: state.categoryId?.isEmpty ?? true
-                  ? null
-                  : state.categoryId,
+              transferAccountId: state.transferAccountId,
+              categoryId: resolvedCategoryId,
               amount: state.parsedAmount!,
               date: state.date,
               note: state.note,

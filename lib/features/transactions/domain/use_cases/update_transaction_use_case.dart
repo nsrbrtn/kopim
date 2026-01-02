@@ -40,45 +40,53 @@ class UpdateTransactionUseCase {
 
     final DateTime now = _clock().toUtc();
     final double normalizedAmount = request.normalizedAmount;
-    final TransactionType previousType = _parseType(existing.type);
-    final double previousDelta = previousType.isIncome
-        ? existing.amount
-        : -existing.amount;
+    final TransactionType previousType = parseTransactionType(existing.type);
     final TransactionType newType = request.type;
-    final double newDelta = newType.isIncome
-        ? normalizedAmount
-        : -normalizedAmount;
     final String normalizedNote = request.note?.trim() ?? '';
     final String? noteValue = normalizedNote.isEmpty ? null : normalizedNote;
 
-    if (existing.accountId == request.accountId) {
-      final double updatedBalance =
-          originalAccount.balance - previousDelta + newDelta;
-      final AccountEntity updatedAccount = originalAccount.copyWith(
-        balance: updatedBalance,
-        updatedAt: now,
-      );
-      await _accountRepository.upsert(updatedAccount);
-    } else {
-      final double originalUpdatedBalance =
-          originalAccount.balance - previousDelta;
-      final AccountEntity updatedSourceAccount = originalAccount.copyWith(
-        balance: originalUpdatedBalance,
-        updatedAt: now,
-      );
-      await _accountRepository.upsert(updatedSourceAccount);
+    if (newType.isTransfer &&
+        (request.transferAccountId == null ||
+            request.transferAccountId == request.accountId)) {
+      throw StateError('Invalid transfer target account');
+    }
+    if (previousType.isTransfer &&
+        (existing.transferAccountId == null ||
+            existing.transferAccountId == existing.accountId)) {
+      throw StateError('Invalid transfer source account');
+    }
 
-      final AccountEntity? newAccount = await _accountRepository.findById(
-        request.accountId,
-      );
-      if (newAccount == null) {
-        throw StateError('Account not found for id ${request.accountId}');
+    final Map<String, double> previousEffect = _buildBalanceEffect(
+      accountId: existing.accountId,
+      transferAccountId: existing.transferAccountId,
+      amount: existing.amount,
+      type: previousType,
+    );
+    final Map<String, double> newEffect = _buildBalanceEffect(
+      accountId: request.accountId,
+      transferAccountId: request.transferAccountId,
+      amount: normalizedAmount,
+      type: newType,
+    );
+    final Set<String> affectedAccounts = <String>{
+      ...previousEffect.keys,
+      ...newEffect.keys,
+    };
+    for (final String accountId in affectedAccounts) {
+      final AccountEntity? account = accountId == originalAccount.id
+          ? originalAccount
+          : await _accountRepository.findById(accountId);
+      if (account == null) {
+        throw StateError('Account not found for id $accountId');
       }
-      final AccountEntity updatedTargetAccount = newAccount.copyWith(
-        balance: newAccount.balance + newDelta,
-        updatedAt: now,
+      final double delta =
+          (newEffect[accountId] ?? 0) - (previousEffect[accountId] ?? 0);
+      if (delta == 0) {
+        continue;
+      }
+      await _accountRepository.upsert(
+        account.copyWith(balance: account.balance + delta, updatedAt: now),
       );
-      await _accountRepository.upsert(updatedTargetAccount);
     }
 
     // Логика пересчета баланса кредита
@@ -86,7 +94,7 @@ class UpdateTransactionUseCase {
         existing.amount != normalizedAmount ||
         existing.type != newType.storageValue) {
       // 1. Отменяем старый эффект на баланс кредита (если он был)
-      if (existing.categoryId != null) {
+      if (existing.categoryId != null && !previousType.isTransfer) {
         final CreditEntity? oldCredit = await _creditRepository
             .getCreditByCategoryId(existing.categoryId!);
         if (oldCredit != null) {
@@ -108,7 +116,7 @@ class UpdateTransactionUseCase {
       }
 
       // 2. Применяем новый эффект на баланс кредита (если он есть)
-      if (request.categoryId != null) {
+      if (request.categoryId != null && !newType.isTransfer) {
         final CreditEntity? newCredit = await _creditRepository
             .getCreditByCategoryId(request.categoryId!);
         if (newCredit != null) {
@@ -131,7 +139,8 @@ class UpdateTransactionUseCase {
 
     final TransactionEntity updatedTransaction = existing.copyWith(
       accountId: request.accountId,
-      categoryId: request.categoryId,
+      transferAccountId: request.transferAccountId,
+      categoryId: newType.isTransfer ? null : request.categoryId,
       amount: normalizedAmount,
       date: request.date,
       note: noteValue,
@@ -142,9 +151,19 @@ class UpdateTransactionUseCase {
     await _transactionRepository.upsert(updatedTransaction);
   }
 
-  TransactionType _parseType(String raw) {
-    return raw == TransactionType.income.storageValue
-        ? TransactionType.income
-        : TransactionType.expense;
+  Map<String, double> _buildBalanceEffect({
+    required String accountId,
+    required String? transferAccountId,
+    required double amount,
+    required TransactionType type,
+  }) {
+    if (type.isTransfer) {
+      if (transferAccountId == null || transferAccountId == accountId) {
+        return <String, double>{};
+      }
+      return <String, double>{accountId: -amount, transferAccountId: amount};
+    }
+    final double delta = type.isIncome ? amount : -amount;
+    return <String, double>{accountId: delta};
   }
 }

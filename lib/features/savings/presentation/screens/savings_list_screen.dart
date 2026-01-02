@@ -145,9 +145,7 @@ class _SavingsBodyState extends ConsumerState<_SavingsBody> {
             goal: progress.goal,
             progress: progress,
             onContribute: () {
-              Navigator.of(
-                context,
-              ).push(ContributeScreen.route(progress.goal));
+              Navigator.of(context).push(ContributeScreen.route(progress.goal));
             },
             onEdit: () {
               Navigator.of(

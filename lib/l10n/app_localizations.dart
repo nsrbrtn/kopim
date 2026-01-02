@@ -260,6 +260,18 @@ abstract class AppLocalizations {
   /// **'Debts'**
   String get creditsSegmentDebts;
 
+  /// Confirmation dialog title for deleting a loan
+  ///
+  /// In en, this message translates to:
+  /// **'Delete loan?'**
+  String get creditsDeleteTitle;
+
+  /// Confirmation message for deleting a loan
+  ///
+  /// In en, this message translates to:
+  /// **'The loan will be deleted and cannot be restored.'**
+  String get creditsDeleteMessage;
+
   /// No description provided for @debtsAddTitle.
   ///
   /// In en, this message translates to:
@@ -337,6 +349,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Debt'**
   String get debtsDefaultTitle;
+
+  /// Confirmation dialog title for deleting a debt
+  ///
+  /// In en, this message translates to:
+  /// **'Delete debt?'**
+  String get debtsDeleteTitle;
+
+  /// Confirmation message for deleting a debt
+  ///
+  /// In en, this message translates to:
+  /// **'The debt will be deleted and cannot be restored.'**
+  String get debtsDeleteMessage;
 
   /// Section title for category and recurring actions on general settings
   ///
@@ -2723,6 +2747,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Income'**
   String get addTransactionTypeIncome;
+
+  /// Label for selecting transfer type
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer'**
+  String get addTransactionTypeTransfer;
+
+  /// Label for transfer target account selector
+  ///
+  /// In en, this message translates to:
+  /// **'To account'**
+  String get addTransactionTransferTargetLabel;
+
+  /// Hint shown when no target account is available for transfer
+  ///
+  /// In en, this message translates to:
+  /// **'Add another account to make a transfer.'**
+  String get addTransactionTransferNoTargets;
+
+  /// Hint shown instead of category selector for transfers
+  ///
+  /// In en, this message translates to:
+  /// **'Transfers don\'t use categories.'**
+  String get addTransactionTransferCategoryHint;
+
+  /// Subtitle for transfer with source and target accounts
+  ///
+  /// In en, this message translates to:
+  /// **'From {from} -> {to}'**
+  String transactionTransferAccountPair(String from, String to);
+
+  /// Subtitle for transfer when only one account name is available
+  ///
+  /// In en, this message translates to:
+  /// **'Account: {account}'**
+  String transactionTransferAccountSingle(String account);
 
   /// Label for category selector
   ///

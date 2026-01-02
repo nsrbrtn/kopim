@@ -264,8 +264,12 @@ void main() {
       budgetRemoteDataSource: BudgetRemoteDataSource(firestore),
       budgetInstanceRemoteDataSource: BudgetInstanceRemoteDataSource(firestore),
       savingGoalRemoteDataSource: SavingGoalRemoteDataSource(firestore),
-      upcomingPaymentRemoteDataSource: UpcomingPaymentRemoteDataSource(firestore),
-      paymentReminderRemoteDataSource: PaymentReminderRemoteDataSource(firestore),
+      upcomingPaymentRemoteDataSource: UpcomingPaymentRemoteDataSource(
+        firestore,
+      ),
+      paymentReminderRemoteDataSource: PaymentReminderRemoteDataSource(
+        firestore,
+      ),
       profileRemoteDataSource: ProfileRemoteDataSource(firestore),
       firestore: firestore,
       loggerService: logger,
@@ -350,7 +354,9 @@ void main() {
     // The transaction should be saved with savingGoalId = null.
     await service.synchronizeOnLogin(user: authUser);
 
-    final db.TransactionRow? savedTx = await transactionDao.findById(transaction.id);
+    final db.TransactionRow? savedTx = await transactionDao.findById(
+      transaction.id,
+    );
     expect(savedTx, isNotNull);
     expect(savedTx?.savingGoalId, isNull);
   });
@@ -378,8 +384,12 @@ void main() {
       budgetRemoteDataSource: BudgetRemoteDataSource(firestore),
       budgetInstanceRemoteDataSource: BudgetInstanceRemoteDataSource(firestore),
       savingGoalRemoteDataSource: SavingGoalRemoteDataSource(firestore),
-      upcomingPaymentRemoteDataSource: UpcomingPaymentRemoteDataSource(firestore),
-      paymentReminderRemoteDataSource: PaymentReminderRemoteDataSource(firestore),
+      upcomingPaymentRemoteDataSource: UpcomingPaymentRemoteDataSource(
+        firestore,
+      ),
+      paymentReminderRemoteDataSource: PaymentReminderRemoteDataSource(
+        firestore,
+      ),
       profileRemoteDataSource: ProfileRemoteDataSource(firestore),
       firestore: firestore,
       loggerService: logger,
@@ -422,7 +432,9 @@ void main() {
 
     await service.synchronizeOnLogin(user: authUser);
 
-    final db.TransactionRow? savedTx = await transactionDao.findById(transaction.id);
+    final db.TransactionRow? savedTx = await transactionDao.findById(
+      transaction.id,
+    );
     expect(
       savedTx,
       isNull,

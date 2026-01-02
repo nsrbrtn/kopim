@@ -32,10 +32,7 @@ class _AddAccountScreenState extends ConsumerState<AddAccountScreen> {
   late final TextEditingController _currencySearchController;
   String _currencyQuery = '';
 
-  PhosphorIconDescriptor? _resolveAccountIcon(
-    String? name,
-    String? style,
-  ) {
+  PhosphorIconDescriptor? _resolveAccountIcon(String? name, String? style) {
     if (name == null || name.isEmpty) {
       return null;
     }
@@ -700,11 +697,11 @@ class _ColorPickerRow extends StatelessWidget {
               : () async {
                   final AccountCardStyleSelection? picked =
                       await showAccountColorPickerDialog(
-                    context: context,
-                    strings: strings,
-                    initialColor: selectedColor,
-                    initialGradientId: selectedGradient?.id,
-                  );
+                        context: context,
+                        strings: strings,
+                        initialColor: selectedColor,
+                        initialGradientId: selectedGradient?.id,
+                      );
                   if (picked != null) {
                     controller
                       ..updateColor(picked.color)

@@ -33,11 +33,7 @@ class ExportBundleCsvEncoder {
     );
     final String fileName = 'kopim-export-$timestamp.csv';
 
-    return ExportedFile(
-      fileName: fileName,
-      mimeType: 'text/csv',
-      bytes: bytes,
-    );
+    return ExportedFile(fileName: fileName, mimeType: 'text/csv', bytes: bytes);
   }
 
   void _addAccounts(List<List<String>> rows, List<AccountEntity> accounts) {

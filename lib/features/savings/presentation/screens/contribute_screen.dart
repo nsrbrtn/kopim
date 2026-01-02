@@ -84,17 +84,17 @@ class _ContributeScreenState extends ConsumerState<ContributeScreen> {
     );
     final List<DropdownMenuItem<String>> accountItems =
         <DropdownMenuItem<String>>[
-      DropdownMenuItem<String>(
-        value: _noAccountValue,
-        child: Text(strings.savingsNoAccountOption),
-      ),
-      ...state.accounts.map(
-        (AccountEntity account) => DropdownMenuItem<String>(
-          value: account.id,
-          child: Text(account.name),
-        ),
-      ),
-    ];
+          DropdownMenuItem<String>(
+            value: _noAccountValue,
+            child: Text(strings.savingsNoAccountOption),
+          ),
+          ...state.accounts.map(
+            (AccountEntity account) => DropdownMenuItem<String>(
+              value: account.id,
+              child: Text(account.name),
+            ),
+          ),
+        ];
     final String selectedAccountValue =
         state.selectedAccountId ?? _noAccountValue;
     return Scaffold(
@@ -158,9 +158,7 @@ class _ContributeScreenState extends ConsumerState<ContributeScreen> {
                 enabled: accountItems.isNotEmpty,
                 onChanged: (String value) => ref
                     .read(contributeControllerProvider(widget.goal).notifier)
-                    .selectAccount(
-                      value == _noAccountValue ? null : value,
-                    ),
+                    .selectAccount(value == _noAccountValue ? null : value),
               ),
               const SizedBox(height: 16),
               KopimTextField(

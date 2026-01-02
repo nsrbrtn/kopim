@@ -15,17 +15,14 @@ class DebtRemoteDataSource {
   }
 
   Future<void> upsert(String userId, DebtEntity debt) async {
-    await _doc(
-      userId,
-      debt.id,
-    ).set(_mapDebt(debt), SetOptions(merge: true));
+    await _doc(userId, debt.id).set(_mapDebt(debt), SetOptions(merge: true));
   }
 
   Future<void> delete(String userId, DebtEntity debt) async {
-    await _doc(userId, debt.id).set(
-      _mapDebt(debt.copyWith(isDeleted: true)),
-      SetOptions(merge: true),
-    );
+    await _doc(
+      userId,
+      debt.id,
+    ).set(_mapDebt(debt.copyWith(isDeleted: true)), SetOptions(merge: true));
   }
 
   void upsertInTransaction(

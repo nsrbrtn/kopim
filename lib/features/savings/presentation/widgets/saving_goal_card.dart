@@ -54,7 +54,9 @@ class SavingGoalCard extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       color: cardColors.background,
       margin: EdgeInsets.zero,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(radius)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(radius),
+      ),
       child: InkWell(
         onTap: onOpen,
         borderRadius: BorderRadius.circular(radius),
@@ -214,8 +216,9 @@ _SavingGoalCardColors _resolveCardColors(ThemeData theme, SavingGoal goal) {
   final Color onBackground = brightness == Brightness.dark
       ? Colors.white
       : colors.onSurface;
-  final Color muted =
-      brightness == Brightness.dark ? Colors.white70 : colors.onSurfaceVariant;
+  final Color muted = brightness == Brightness.dark
+      ? Colors.white70
+      : colors.onSurfaceVariant;
   return _SavingGoalCardColors(
     background: background,
     onBackground: onBackground,

@@ -58,6 +58,14 @@
   "creditsRemainingPaymentsLabel": "Осталось",
   "creditsSegmentCredits": "Кредиты",
   "creditsSegmentDebts": "Долги",
+  "creditsDeleteTitle": "Удалить кредит?",
+  "@creditsDeleteTitle": {
+    "description": "Заголовок подтверждения удаления кредита"
+  },
+  "creditsDeleteMessage": "Кредит будет удалён без возможности восстановления.",
+  "@creditsDeleteMessage": {
+    "description": "Текст подтверждения удаления кредита"
+  },
   "debtsAddTitle": "Добавить долг",
   "debtsEditTitle": "Редактировать долг",
   "debtsNameLabel": "Название",
@@ -71,6 +79,14 @@
   "debtsSaveAndScheduleAction": "Сохранить и напомнить",
   "debtsEmptyList": "У вас пока нет долгов",
   "debtsDefaultTitle": "Долг",
+  "debtsDeleteTitle": "Удалить долг?",
+  "@debtsDeleteTitle": {
+    "description": "Заголовок подтверждения удаления долга"
+  },
+  "debtsDeleteMessage": "Долг будет удалён без возможности восстановления.",
+  "@debtsDeleteMessage": {
+    "description": "Текст подтверждения удаления долга"
+  },
   "profileGeneralSettingsManagementSection": "Управление данными",
   "@profileGeneralSettingsManagementSection": {
     "description": "Заголовок секции с действиями для категорий и повторяющихся операций"
@@ -1957,6 +1973,43 @@
   "addTransactionTypeIncome": "Доход",
   "@addTransactionTypeIncome": {
     "description": "Подпись варианта доход"
+  },
+  "addTransactionTypeTransfer": "Перевод",
+  "@addTransactionTypeTransfer": {
+    "description": "Подпись варианта перевод"
+  },
+  "addTransactionTransferTargetLabel": "На счет",
+  "@addTransactionTransferTargetLabel": {
+    "description": "Подпись выбора счета получателя перевода"
+  },
+  "addTransactionTransferNoTargets": "Добавьте еще один счет, чтобы сделать перевод.",
+  "@addTransactionTransferNoTargets": {
+    "description": "Подсказка, когда нет доступного счета получателя"
+  },
+  "addTransactionTransferCategoryHint": "Переводы не относятся к категориям.",
+  "@addTransactionTransferCategoryHint": {
+    "description": "Подсказка вместо выбора категории для переводов"
+  },
+  "transactionTransferAccountPair": "Из {from} -> {to}",
+  "@transactionTransferAccountPair": {
+    "description": "Подпись для перевода с указанием счета отправителя и получателя",
+    "placeholders": {
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "transactionTransferAccountSingle": "Счет: {account}",
+  "@transactionTransferAccountSingle": {
+    "description": "Подпись для перевода, когда доступно только одно имя счета",
+    "placeholders": {
+      "account": {
+        "type": "String"
+      }
+    }
   },
   "addTransactionCategoryLabel": "Категория",
   "@addTransactionCategoryLabel": {

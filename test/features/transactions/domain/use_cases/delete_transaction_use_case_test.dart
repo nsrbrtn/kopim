@@ -28,6 +28,7 @@ void main() {
       TransactionEntity(
         id: 'fallback',
         accountId: 'acc',
+        transferAccountId: null,
         categoryId: null,
         amount: 0,
         date: DateTime.utc(2024, 1, 1),
@@ -83,6 +84,7 @@ void main() {
     final TransactionEntity transaction = TransactionEntity(
       id: 'tx-1',
       accountId: 'acc-1',
+      transferAccountId: null,
       categoryId: null,
       amount: 40,
       date: DateTime.utc(2024, 2, 20),
@@ -119,6 +121,7 @@ void main() {
     final TransactionEntity transaction = TransactionEntity(
       id: 'tx-2',
       accountId: 'acc-1',
+      transferAccountId: null,
       categoryId: null,
       amount: 125,
       date: DateTime.utc(2024, 2, 10),
@@ -161,5 +164,57 @@ void main() {
     verifyNever(() => accountRepository.upsert(any()));
     verifyNever(() => transactionRepository.softDelete(any()));
     expect(result.profileEvents, isEmpty);
+  });
+
+  test('restores balances when deleting a transfer transaction', () async {
+    final TransactionEntity transaction = TransactionEntity(
+      id: 'tx-3',
+      accountId: 'acc-1',
+      transferAccountId: 'acc-2',
+      categoryId: null,
+      amount: 60,
+      date: DateTime.utc(2024, 2, 22),
+      note: 'Transfer',
+      type: TransactionType.transfer.storageValue,
+      createdAt: DateTime.utc(2024, 2, 22),
+      updatedAt: DateTime.utc(2024, 2, 22),
+    );
+    final AccountEntity sourceAccount = account(balance: 140);
+    final AccountEntity targetAccount = account(
+      balance: 80,
+    ).copyWith(id: 'acc-2');
+
+    when(
+      () => transactionRepository.findById(transaction.id),
+    ).thenAnswer((_) async => transaction);
+    when(
+      () => accountRepository.findById(transaction.accountId),
+    ).thenAnswer((_) async => sourceAccount);
+    when(
+      () => accountRepository.findById('acc-2'),
+    ).thenAnswer((_) async => targetAccount);
+    when(() => accountRepository.upsert(any())).thenAnswer((_) async {});
+    when(
+      () => transactionRepository.softDelete(transaction.id),
+    ).thenAnswer((_) async {});
+
+    await useCase(transaction.id);
+
+    final List<AccountEntity> updatedAccounts = verify(
+      () => accountRepository.upsert(captureAny()),
+    ).captured.cast<AccountEntity>();
+    expect(updatedAccounts, hasLength(2));
+    expect(
+      updatedAccounts
+          .firstWhere((AccountEntity account) => account.id == 'acc-1')
+          .balance,
+      closeTo(200, 1e-9),
+    );
+    expect(
+      updatedAccounts
+          .firstWhere((AccountEntity account) => account.id == 'acc-2')
+          .balance,
+      closeTo(20, 1e-9),
+    );
   });
 }

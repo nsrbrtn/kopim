@@ -513,15 +513,24 @@ class _PhosphorIconPickerSheetState extends State<_PhosphorIconPickerSheet> {
                       return ExpansionTile(
                         title: Text(title),
                         initiallyExpanded: false,
-                        childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                        childrenPadding: const EdgeInsets.fromLTRB(
+                          16,
+                          0,
+                          16,
+                          16,
+                        ),
                         children: <Widget>[
                           LayoutBuilder(
-                            builder: (BuildContext context, BoxConstraints constraints) {
-                              return _buildGroupGrid(
-                                group: group,
-                                maxWidth: constraints.maxWidth,
-                              );
-                            },
+                            builder:
+                                (
+                                  BuildContext context,
+                                  BoxConstraints constraints,
+                                ) {
+                                  return _buildGroupGrid(
+                                    group: group,
+                                    maxWidth: constraints.maxWidth,
+                                  );
+                                },
                           ),
                         ],
                       );

@@ -16,6 +16,7 @@ part 'auth_controller.g.dart';
 class AuthController extends _$AuthController {
   StreamSubscription<AuthUser?>? _authSubscription;
   bool _initialSyncTriggered = false;
+  bool _upcomingPaymentsWorkScheduled = false;
 
   @override
   FutureOr<AuthUser?> build() async {
@@ -140,6 +141,7 @@ class AuthController extends _$AuthController {
       await ref.read(authRepositoryProvider).signOut();
       state = const AsyncValue<AuthUser?>.data(null);
       _initialSyncTriggered = false;
+      _upcomingPaymentsWorkScheduled = false;
     } on AuthFailure catch (failure, stackTrace) {
       state = AsyncValue<AuthUser?>.error(failure, stackTrace);
       rethrow;
@@ -160,6 +162,18 @@ class AuthController extends _$AuthController {
         .read(authSyncServiceProvider)
         .synchronizeOnLogin(user: user, previousUser: previousUser);
     await ref.read(recomputeUserProgressUseCaseProvider)();
+    if (!_upcomingPaymentsWorkScheduled) {
+      try {
+        await ref
+            .read(upcomingPaymentsWorkSchedulerProvider)
+            .scheduleDailyCatchUp();
+        _upcomingPaymentsWorkScheduled = true;
+      } catch (error) {
+        ref
+            .read(loggerServiceProvider)
+            .logError('Upcoming payments schedule failed: $error', error);
+      }
+    }
     _initialSyncTriggered = true;
   }
 

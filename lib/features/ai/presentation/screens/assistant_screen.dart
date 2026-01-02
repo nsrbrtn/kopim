@@ -893,21 +893,37 @@ class _AssistantEmptyState extends StatelessWidget {
         ? 'assets/icons/robot_darktheme.png'
         : 'assets/icons/robot_lighttheme.png';
 
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          Image.asset(assetName, width: 200, height: 200, fit: BoxFit.contain),
-          const SizedBox(height: 16),
-          Text(
-            strings.assistantEmptyStateTitle,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
+    return LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints constraints) {
+        final double imageSize = (constraints.maxHeight * 0.45).clamp(120, 200);
+        return Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: constraints.maxHeight),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  Image.asset(
+                    assetName,
+                    width: imageSize,
+                    height: imageSize,
+                    fit: BoxFit.contain,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    strings.assistantEmptyStateTitle,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
             ),
-            textAlign: TextAlign.center,
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

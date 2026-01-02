@@ -66,6 +66,7 @@ class TransactionRemoteDataSource {
     return <String, dynamic>{
       'id': transaction.id,
       'accountId': transaction.accountId,
+      'transferAccountId': transaction.transferAccountId,
       'categoryId': transaction.categoryId,
       'savingGoalId': transaction.savingGoalId,
       'amount': transaction.amount,
@@ -85,6 +86,7 @@ class TransactionRemoteDataSource {
     return TransactionEntity(
       id: data['id'] as String? ?? doc.id,
       accountId: data['accountId'] as String,
+      transferAccountId: data['transferAccountId'] as String?,
       categoryId: data['categoryId'] as String?,
       savingGoalId: data['savingGoalId'] as String?,
       amount: (data['amount'] as num?)?.toDouble() ?? 0,

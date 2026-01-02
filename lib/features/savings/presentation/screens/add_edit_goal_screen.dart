@@ -116,7 +116,8 @@ class _AddEditGoalScreenState extends ConsumerState<AddEditGoalScreen> {
                     decimal: true,
                   ),
                   textInputAction: TextInputAction.next,
-                  hasError: state.targetError != null &&
+                  hasError:
+                      state.targetError != null &&
                       state.targetError!.isNotEmpty,
                   onChanged: (String value) => ref
                       .read(editGoalControllerProvider(widget.goal).notifier)

@@ -94,6 +94,13 @@ class AppLocalizationsRu extends AppLocalizations {
   String get creditsSegmentDebts => 'Долги';
 
   @override
+  String get creditsDeleteTitle => 'Удалить кредит?';
+
+  @override
+  String get creditsDeleteMessage =>
+      'Кредит будет удалён без возможности восстановления.';
+
+  @override
   String get debtsAddTitle => 'Добавить долг';
 
   @override
@@ -131,6 +138,13 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get debtsDefaultTitle => 'Долг';
+
+  @override
+  String get debtsDeleteTitle => 'Удалить долг?';
+
+  @override
+  String get debtsDeleteMessage =>
+      'Долг будет удалён без возможности восстановления.';
 
   @override
   String get profileGeneralSettingsManagementSection => 'Управление данными';
@@ -1567,6 +1581,30 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get addTransactionTypeIncome => 'Доход';
+
+  @override
+  String get addTransactionTypeTransfer => 'Перевод';
+
+  @override
+  String get addTransactionTransferTargetLabel => 'На счет';
+
+  @override
+  String get addTransactionTransferNoTargets =>
+      'Добавьте еще один счет, чтобы сделать перевод.';
+
+  @override
+  String get addTransactionTransferCategoryHint =>
+      'Переводы не относятся к категориям.';
+
+  @override
+  String transactionTransferAccountPair(String from, String to) {
+    return 'Из $from -> $to';
+  }
+
+  @override
+  String transactionTransferAccountSingle(String account) {
+    return 'Счет: $account';
+  }
 
   @override
   String get addTransactionCategoryLabel => 'Категория';

@@ -140,11 +140,7 @@ class AiAssistantMessage {
 
   factory AiAssistantMessage.assistantWithToolCalls(
     List<AiToolCall> toolCalls,
-  ) => AiAssistantMessage(
-    role: 'assistant',
-    content: '',
-    toolCalls: toolCalls,
-  );
+  ) => AiAssistantMessage(role: 'assistant', content: '', toolCalls: toolCalls);
 
   factory AiAssistantMessage.tool({
     required String toolCallId,
@@ -197,10 +193,7 @@ class AiToolCall {
   Map<String, dynamic> toJson() => <String, dynamic>{
     'id': id,
     'type': 'function',
-    'function': <String, dynamic>{
-      'name': name,
-      'arguments': arguments,
-    },
+    'function': <String, dynamic>{'name': name, 'arguments': arguments},
   };
 
   final String id;
@@ -293,18 +286,17 @@ class AiCompletionMessage {
     Map<String, dynamic> json,
     Map<String, dynamic>? delta,
   ) {
-    final Object? toolCallsRaw =
-        json['tool_calls'] ?? delta?['tool_calls'];
+    final Object? toolCallsRaw = json['tool_calls'] ?? delta?['tool_calls'];
     if (toolCallsRaw is List<dynamic>) {
       return toolCallsRaw
           .whereType<Map<String, dynamic>>()
           .map(AiToolCall.fromJson)
           .toList(growable: false);
     }
-    final Object? functionRaw = json['function_call'] ?? delta?['function_call'];
-    final Map<String, dynamic>? functionCall = functionRaw is Map<String, dynamic>
-        ? functionRaw
-        : null;
+    final Object? functionRaw =
+        json['function_call'] ?? delta?['function_call'];
+    final Map<String, dynamic>? functionCall =
+        functionRaw is Map<String, dynamic> ? functionRaw : null;
     if (functionCall != null) {
       final String name = functionCall['name'] as String? ?? '';
       final String arguments = functionCall['arguments'] as String? ?? '';

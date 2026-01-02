@@ -74,7 +74,10 @@ class CreditCard extends ConsumerWidget {
                 ),
               )
             : null;
-        final Color primaryColor = accountColor ?? theme.colorScheme.primary;
+        final bool hasAccount = account.id.isNotEmpty;
+        final Color primaryColor = hasAccount
+            ? (accountColor ?? theme.colorScheme.primary)
+            : theme.colorScheme.onSurfaceVariant;
 
         return StreamBuilder<List<Category>>(
           stream: categoryAsync,
@@ -139,9 +142,9 @@ class CreditCard extends ConsumerWidget {
                                 ),
                               ),
                               CircleAvatar(
-                                backgroundColor:
-                                    accountColor?.withValues(alpha: 0.1) ??
-                                    theme.colorScheme.primaryContainer,
+                                backgroundColor: accountColor
+                                    ?.withValues(alpha: 0.1) ??
+                                    theme.colorScheme.surfaceContainerHighest,
                                 child: Icon(
                                   iconToShow ?? Icons.account_balance_outlined,
                                   color: primaryColor,

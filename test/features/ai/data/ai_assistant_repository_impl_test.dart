@@ -115,13 +115,15 @@ void main() {
           ? buildServiceResult(content: '')
           : buildServiceResult();
     });
-    when(() => toolRouter.runToolCalls(any()))
-        .thenAnswer((_) async => const AiAssistantToolExecutionResult(
-              messages: <AiAssistantMessage>[],
-              logs: <AiAssistantToolCallLog>[],
-            ));
-    when(() => analyticsService.logEvent(any(), any()))
-        .thenAnswer((_) async {});
+    when(() => toolRouter.runToolCalls(any())).thenAnswer(
+      (_) async => const AiAssistantToolExecutionResult(
+        messages: <AiAssistantMessage>[],
+        logs: <AiAssistantToolCallLog>[],
+      ),
+    );
+    when(
+      () => analyticsService.logEvent(any(), any()),
+    ).thenAnswer((_) async {});
 
     final AiUserQueryEntity query = AiUserQueryEntity(
       id: 'q1',
@@ -167,13 +169,15 @@ void main() {
           ? buildServiceResult(content: '')
           : buildServiceResult();
     });
-    when(() => toolRouter.runToolCalls(any()))
-        .thenAnswer((_) async => const AiAssistantToolExecutionResult(
-              messages: <AiAssistantMessage>[],
-              logs: <AiAssistantToolCallLog>[],
-            ));
-    when(() => analyticsService.logEvent(any(), any()))
-        .thenAnswer((_) async {});
+    when(() => toolRouter.runToolCalls(any())).thenAnswer(
+      (_) async => const AiAssistantToolExecutionResult(
+        messages: <AiAssistantMessage>[],
+        logs: <AiAssistantToolCallLog>[],
+      ),
+    );
+    when(
+      () => analyticsService.logEvent(any(), any()),
+    ).thenAnswer((_) async {});
 
     final AiUserQueryEntity query = AiUserQueryEntity(
       id: 'q2',

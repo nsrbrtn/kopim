@@ -100,8 +100,7 @@ class AiAnalyticsDao {
 
   Stream<List<MonthlyIncomeAggregate>> watchMonthlyIncome(AiDataFilter filter) {
     return _monthlyIncomeQuery(filter).watch().map(
-      (QueryResult rows) =>
-          rows.map(_mapMonthlyIncome).toList(growable: false),
+      (QueryResult rows) => rows.map(_mapMonthlyIncome).toList(growable: false),
     );
   }
 

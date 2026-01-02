@@ -8,37 +8,37 @@ class CreditDao {
   final db.AppDatabase _db;
 
   Stream<List<db.CreditRow>> watchActiveCredits() {
-    final SimpleSelectStatement<db.Credits, db.CreditRow> query =
-        _db.select(_db.credits)
-          ..where((db.Credits tbl) => tbl.isDeleted.equals(false));
+    final SimpleSelectStatement<db.Credits, db.CreditRow> query = _db.select(
+      _db.credits,
+    )..where((db.Credits tbl) => tbl.isDeleted.equals(false));
     return query.watch();
   }
 
   Future<List<db.CreditRow>> getActiveCredits() {
-    final SimpleSelectStatement<db.Credits, db.CreditRow> query =
-        _db.select(_db.credits)
-          ..where((db.Credits tbl) => tbl.isDeleted.equals(false));
+    final SimpleSelectStatement<db.Credits, db.CreditRow> query = _db.select(
+      _db.credits,
+    )..where((db.Credits tbl) => tbl.isDeleted.equals(false));
     return query.get();
   }
 
   Future<db.CreditRow?> findById(String id) {
-    final SimpleSelectStatement<db.Credits, db.CreditRow> query =
-        _db.select(_db.credits)
-          ..where((db.Credits tbl) => tbl.id.equals(id));
+    final SimpleSelectStatement<db.Credits, db.CreditRow> query = _db.select(
+      _db.credits,
+    )..where((db.Credits tbl) => tbl.id.equals(id));
     return query.getSingleOrNull();
   }
 
   Future<db.CreditRow?> findByAccountId(String accountId) {
-    final SimpleSelectStatement<db.Credits, db.CreditRow> query =
-        _db.select(_db.credits)
-          ..where((db.Credits tbl) => tbl.accountId.equals(accountId));
+    final SimpleSelectStatement<db.Credits, db.CreditRow> query = _db.select(
+      _db.credits,
+    )..where((db.Credits tbl) => tbl.accountId.equals(accountId));
     return query.getSingleOrNull();
   }
 
   Future<db.CreditRow?> findByCategoryId(String categoryId) {
-    final SimpleSelectStatement<db.Credits, db.CreditRow> query =
-        _db.select(_db.credits)
-          ..where((db.Credits tbl) => tbl.categoryId.equals(categoryId));
+    final SimpleSelectStatement<db.Credits, db.CreditRow> query = _db.select(
+      _db.credits,
+    )..where((db.Credits tbl) => tbl.categoryId.equals(categoryId));
     return query.getSingleOrNull();
   }
 
@@ -63,9 +63,9 @@ class CreditDao {
   }
 
   Future<void> markDeleted(String id, DateTime deletedAt) async {
-    final UpdateStatement<db.Credits, db.CreditRow> query =
-        _db.update(_db.credits)
-          ..where((db.Credits tbl) => tbl.id.equals(id));
+    final UpdateStatement<db.Credits, db.CreditRow> query = _db.update(
+      _db.credits,
+    )..where((db.Credits tbl) => tbl.id.equals(id));
     await query.write(
       db.CreditsCompanion(
         isDeleted: const Value<bool>(true),

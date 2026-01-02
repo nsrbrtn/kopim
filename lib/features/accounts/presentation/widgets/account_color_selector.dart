@@ -61,11 +61,11 @@ class AccountColorSelector extends StatelessWidget {
     Future<void> handleSelection() async {
       final AccountCardStyleSelection? picked =
           await showAccountColorPickerDialog(
-        context: context,
-        strings: strings,
-        initialColor: resolvedColor,
-        initialGradientId: gradientId,
-      );
+            context: context,
+            strings: strings,
+            initialColor: resolvedColor,
+            initialGradientId: gradientId,
+          );
       if (picked != null) {
         onStyleChanged(picked);
       }
@@ -186,8 +186,9 @@ class _AccountColorPickerDialogState extends State<_AccountColorPickerDialog> {
                           shape: BoxShape.circle,
                           border: Border.all(
                             color: Colors.white.withValues(
-                              alpha:
-                                  _draftGradientId == gradient.id ? 0.9 : 0.4,
+                              alpha: _draftGradientId == gradient.id
+                                  ? 0.9
+                                  : 0.4,
                             ),
                             width: _draftGradientId == gradient.id ? 3 : 1,
                           ),
@@ -206,9 +207,8 @@ class _AccountColorPickerDialogState extends State<_AccountColorPickerDialog> {
                         child: _draftGradientId == gradient.id
                             ? Icon(
                                 Icons.check,
-                                color: brightnessForColor(
-                                          gradient.sampleColor,
-                                        ) ==
+                                color:
+                                    brightnessForColor(gradient.sampleColor) ==
                                         Brightness.dark
                                     ? Colors.white
                                     : Colors.black,
@@ -249,7 +249,8 @@ class _AccountColorPickerDialogState extends State<_AccountColorPickerDialog> {
                             ),
                             width: _draftColor == paletteColor ? 3 : 1,
                           ),
-                          boxShadow: _draftColor == paletteColor &&
+                          boxShadow:
+                              _draftColor == paletteColor &&
                                   _draftGradientId == null
                               ? <BoxShadow>[
                                   BoxShadow(
@@ -260,15 +261,16 @@ class _AccountColorPickerDialogState extends State<_AccountColorPickerDialog> {
                                 ]
                               : null,
                         ),
-                        child: _draftColor == paletteColor &&
+                        child:
+                            _draftColor == paletteColor &&
                                 _draftGradientId == null
                             ? Icon(
                                 Icons.check,
                                 color:
                                     brightnessForColor(paletteColor) ==
-                                            Brightness.dark
-                                        ? Colors.white
-                                        : Colors.black,
+                                        Brightness.dark
+                                    ? Colors.white
+                                    : Colors.black,
                                 size: 18,
                               )
                             : null,

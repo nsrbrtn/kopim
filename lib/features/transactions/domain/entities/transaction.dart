@@ -10,6 +10,7 @@ abstract class TransactionEntity with _$TransactionEntity {
   const factory TransactionEntity({
     required String id,
     required String accountId,
+    String? transferAccountId,
     String? categoryId,
     String? savingGoalId,
     required double amount,

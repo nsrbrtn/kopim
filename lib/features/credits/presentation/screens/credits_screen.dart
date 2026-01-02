@@ -80,6 +80,29 @@ class _CreditsList extends ConsumerWidget {
 
   final Stream<List<CreditEntity>> creditsAsync;
 
+  Future<bool> _confirmDelete(BuildContext context) async {
+    final bool? result = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(context.loc.creditsDeleteTitle),
+          content: Text(context.loc.creditsDeleteMessage),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(context.loc.cancelButtonLabel),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: Text(context.loc.deleteButtonLabel),
+            ),
+          ],
+        );
+      },
+    );
+    return result ?? false;
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return StreamBuilder<List<CreditEntity>>(
@@ -122,6 +145,7 @@ class _CreditsList extends ConsumerWidget {
                 return Dismissible(
                   key: Key(credit.id),
                   direction: DismissDirection.endToStart,
+                  confirmDismiss: (_) => _confirmDelete(context),
                   background: Container(
                     alignment: Alignment.centerRight,
                     padding: const EdgeInsets.only(right: 20),
@@ -155,6 +179,29 @@ class _DebtsList extends ConsumerWidget {
   const _DebtsList({required this.debtsAsync});
 
   final Stream<List<DebtEntity>> debtsAsync;
+
+  Future<bool> _confirmDelete(BuildContext context) async {
+    final bool? result = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(context.loc.debtsDeleteTitle),
+          content: Text(context.loc.debtsDeleteMessage),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(context.loc.cancelButtonLabel),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: Text(context.loc.deleteButtonLabel),
+            ),
+          ],
+        );
+      },
+    );
+    return result ?? false;
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -197,6 +244,7 @@ class _DebtsList extends ConsumerWidget {
                 return Dismissible(
                   key: Key(debt.id),
                   direction: DismissDirection.endToStart,
+                  confirmDismiss: (_) => _confirmDelete(context),
                   background: Container(
                     alignment: Alignment.centerRight,
                     padding: const EdgeInsets.only(right: 20),

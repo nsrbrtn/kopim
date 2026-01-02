@@ -74,9 +74,7 @@ class AiAssistantToolRouter {
     for (final AiToolCall toolCall in toolCalls) {
       final Stopwatch stopwatch = Stopwatch()..start();
       try {
-        final Map<String, dynamic> args = _decodeArguments(
-          toolCall.arguments,
-        );
+        final Map<String, dynamic> args = _decodeArguments(toolCall.arguments);
         final Map<String, Object?> payload = await _executeTool(
           name: toolCall.name,
           args: args,
@@ -200,7 +198,11 @@ class AiAssistantToolRouter {
     Map<String, dynamic> args,
   ) async {
     final _ResolvedRange range = _resolveRange(args);
-    final int requestedLimit = _readInt(args, 'limit', _defaultTopCategoriesLimit);
+    final int requestedLimit = _readInt(
+      args,
+      'limit',
+      _defaultTopCategoriesLimit,
+    );
     final int limit = requestedLimit.clamp(1, _maxTopCategories);
     final String type = _readString(args, 'type', 'expense');
     final List<String> accountIds = _readStringList(args, 'account_ids');
@@ -212,8 +214,8 @@ class AiAssistantToolRouter {
     );
 
     if (type == 'income') {
-      final List<CategoryIncomeAggregate> items =
-          await _analyticsDao.getTopIncomeCategories(filter);
+      final List<CategoryIncomeAggregate> items = await _analyticsDao
+          .getTopIncomeCategories(filter);
       return <String, Object?>{
         'type': 'income',
         'start_date': range.start.toIso8601String(),
@@ -233,8 +235,8 @@ class AiAssistantToolRouter {
       };
     }
 
-    final List<CategoryExpenseAggregate> items =
-        await _analyticsDao.getTopCategories(filter);
+    final List<CategoryExpenseAggregate> items = await _analyticsDao
+        .getTopCategories(filter);
     return <String, Object?>{
       'type': 'expense',
       'start_date': range.start.toIso8601String(),
@@ -258,7 +260,11 @@ class AiAssistantToolRouter {
     Map<String, dynamic> args,
   ) async {
     final _ResolvedRange range = _resolveRange(args);
-    final int requestedLimit = _readInt(args, 'limit', _defaultTransactionsLimit);
+    final int requestedLimit = _readInt(
+      args,
+      'limit',
+      _defaultTransactionsLimit,
+    );
     final int limit = requestedLimit.clamp(1, _maxTransactions);
     final List<String> categoryIds = await _resolveCategoryIds(args);
     final List<String> accountIds = _readStringList(args, 'account_ids');
@@ -332,9 +338,7 @@ class AiAssistantToolRouter {
     };
   }
 
-  Future<Map<String, Object?>> _findAccounts(
-    Map<String, dynamic> args,
-  ) async {
+  Future<Map<String, Object?>> _findAccounts(Map<String, dynamic> args) async {
     final String query = _readString(args, 'query', '');
     final int requestedLimit = _readInt(args, 'limit', _maxMatches);
     final int limit = requestedLimit.clamp(1, _maxMatches);
@@ -381,12 +385,16 @@ class AiAssistantToolRouter {
         budget: budget,
         reference: now,
       );
-      final DateTime endExclusive =
-          period.end.subtract(const Duration(microseconds: 1));
-      final List<String> accountIds =
-          budget.scope == BudgetScope.byAccount ? budget.accounts : <String>[];
+      final DateTime endExclusive = period.end.subtract(
+        const Duration(microseconds: 1),
+      );
+      final List<String> accountIds = budget.scope == BudgetScope.byAccount
+          ? budget.accounts
+          : <String>[];
       final List<String> scopeCategoryIds =
-          budget.scope == BudgetScope.byCategory ? budget.categories : <String>[];
+          budget.scope == BudgetScope.byCategory
+          ? budget.categories
+          : <String>[];
 
       final double spent = await _toolDao.getBudgetTotalSpent(
         startDate: period.start,
@@ -461,26 +469,24 @@ class AiAssistantToolRouter {
         end: period.end,
       );
 
-      items.add(
-        <String, Object?>{
-          'id': budget.id,
-          'title': budget.title,
-          'period': budget.period.storageValue,
-          'scope': budget.scope.storageValue,
-          'amount': budget.amount,
-          'spent': spent,
-          'remaining': remaining,
-          'utilization': utilization.isFinite ? utilization : null,
-          'is_exceeded': spent > budget.amount,
-          'status': status.storageValue,
-          'period_start': period.start.toIso8601String(),
-          'period_end': period.end.toIso8601String(),
-          'accounts': budget.accounts,
-          'categories': limitedCategories,
-          'categories_total': categoryItems.length,
-          'has_allocations': budget.categoryAllocations.isNotEmpty,
-        },
-      );
+      items.add(<String, Object?>{
+        'id': budget.id,
+        'title': budget.title,
+        'period': budget.period.storageValue,
+        'scope': budget.scope.storageValue,
+        'amount': budget.amount,
+        'spent': spent,
+        'remaining': remaining,
+        'utilization': utilization.isFinite ? utilization : null,
+        'is_exceeded': spent > budget.amount,
+        'status': status.storageValue,
+        'period_start': period.start.toIso8601String(),
+        'period_end': period.end.toIso8601String(),
+        'accounts': budget.accounts,
+        'categories': limitedCategories,
+        'categories_total': categoryItems.length,
+        'has_allocations': budget.categoryAllocations.isNotEmpty,
+      });
     }
 
     return <String, Object?>{
@@ -512,16 +518,14 @@ class AiAssistantToolRouter {
           ? null
           : _resolveBudgetCategoryLimit(budget, categoryId);
       final double? remaining = limit == null ? null : limit - spent;
-      items.add(
-        <String, Object?>{
-          'id': categoryId,
-          'name': name,
-          'planned': plannedCategoryIds.contains(categoryId),
-          'spent': spent,
-          'limit': limit,
-          'remaining': remaining,
-        },
-      );
+      items.add(<String, Object?>{
+        'id': categoryId,
+        'name': name,
+        'planned': plannedCategoryIds.contains(categoryId),
+        'spent': spent,
+        'limit': limit,
+        'remaining': remaining,
+      });
     }
     return items;
   }

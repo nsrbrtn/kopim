@@ -5,21 +5,18 @@ import 'package:riverpod/riverpod.dart';
 class FirebaseAvailabilityState {
   const FirebaseAvailabilityState._(this.isAvailable, this.warningMessage);
 
-  const FirebaseAvailabilityState.available()
-    : this._(true, null);
+  const FirebaseAvailabilityState.available() : this._(true, null);
 
   const FirebaseAvailabilityState.unavailable(String warningMessage)
     : this._(false, warningMessage);
 
-  const FirebaseAvailabilityState.unknown()
-    : this._(null, null);
+  const FirebaseAvailabilityState.unknown() : this._(null, null);
 
   final bool? isAvailable;
   final String? warningMessage;
 }
 
-class FirebaseAvailabilityNotifier
-    extends Notifier<FirebaseAvailabilityState> {
+class FirebaseAvailabilityNotifier extends Notifier<FirebaseAvailabilityState> {
   @override
   FirebaseAvailabilityState build() =>
       const FirebaseAvailabilityState.unknown();
@@ -38,7 +35,7 @@ class FirebaseAvailabilityNotifier
 }
 
 final NotifierProvider<FirebaseAvailabilityNotifier, FirebaseAvailabilityState>
-    firebaseAvailabilityProvider =
+firebaseAvailabilityProvider =
     NotifierProvider<FirebaseAvailabilityNotifier, FirebaseAvailabilityState>(
       FirebaseAvailabilityNotifier.new,
     );

@@ -5,6 +5,7 @@ import 'package:kopim/core/utils/helpers.dart';
 import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
+import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
 import 'package:kopim/features/transactions/presentation/controllers/transaction_draft_controller.dart';
 import 'package:kopim/features/transactions/presentation/widgets/transaction_editor.dart';
 import 'package:kopim/features/transactions/presentation/widgets/transaction_form_open_container.dart';
@@ -40,13 +41,23 @@ class AccountTransactionListTile extends ConsumerWidget {
       decimalDigits: 0,
     );
 
+    final bool isTransfer =
+        transaction.type == TransactionType.transfer.storageValue;
     final String categoryName =
         category?.name ?? strings.homeTransactionsUncategorized;
+    final String title = isTransfer
+        ? strings.addTransactionTypeTransfer
+        : categoryName;
     final PhosphorIconData? categoryIcon = resolvePhosphorIconData(
       category?.icon,
     );
     final Color? categoryColor = parseHexColor(category?.color);
-    final Color avatarIconColor = categoryColor != null
+    final Color avatarBackground = isTransfer
+        ? theme.colorScheme.primaryContainer
+        : (categoryColor ?? theme.colorScheme.surfaceContainerHighest);
+    final Color avatarIconColor = isTransfer
+        ? theme.colorScheme.onPrimaryContainer
+        : categoryColor != null
         ? (ThemeData.estimateBrightnessForColor(categoryColor) ==
                   Brightness.dark
               ? Colors.white
@@ -92,14 +103,15 @@ class AccountTransactionListTile extends ConsumerWidget {
                         width: 48,
                         height: 48,
                         decoration: BoxDecoration(
-                          color:
-                              categoryColor ??
-                              theme.colorScheme.surfaceContainerHighest,
+                          color: avatarBackground,
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Center(
                           child: Icon(
-                            categoryIcon ?? Icons.category_outlined,
+                            categoryIcon ??
+                                (isTransfer
+                                    ? Icons.swap_horiz
+                                    : Icons.category_outlined),
                             size: 22,
                             color: avatarIconColor,
                           ),
@@ -112,7 +124,7 @@ class AccountTransactionListTile extends ConsumerWidget {
                           mainAxisAlignment: MainAxisAlignment.start,
                           children: <Widget>[
                             Text(
-                              categoryName,
+                              title,
                               style: theme.textTheme.labelMedium?.copyWith(
                                 fontWeight: FontWeight.w500,
                                 color: theme.colorScheme.onSurface,

@@ -8,16 +8,16 @@ class DebtDao {
   final db.AppDatabase _db;
 
   Stream<List<db.DebtRow>> watchActiveDebts() {
-    final SimpleSelectStatement<db.Debts, db.DebtRow> query =
-        _db.select(_db.debts)
-          ..where((db.Debts tbl) => tbl.isDeleted.equals(false));
+    final SimpleSelectStatement<db.Debts, db.DebtRow> query = _db.select(
+      _db.debts,
+    )..where((db.Debts tbl) => tbl.isDeleted.equals(false));
     return query.watch();
   }
 
   Future<List<db.DebtRow>> getActiveDebts() {
-    final SimpleSelectStatement<db.Debts, db.DebtRow> query =
-        _db.select(_db.debts)
-          ..where((db.Debts tbl) => tbl.isDeleted.equals(false));
+    final SimpleSelectStatement<db.Debts, db.DebtRow> query = _db.select(
+      _db.debts,
+    )..where((db.Debts tbl) => tbl.isDeleted.equals(false));
     return query.get();
   }
 
@@ -26,9 +26,9 @@ class DebtDao {
   }
 
   Future<db.DebtRow?> findById(String id) {
-    final SimpleSelectStatement<db.Debts, db.DebtRow> query =
-        _db.select(_db.debts)
-          ..where((db.Debts tbl) => tbl.id.equals(id));
+    final SimpleSelectStatement<db.Debts, db.DebtRow> query = _db.select(
+      _db.debts,
+    )..where((db.Debts tbl) => tbl.id.equals(id));
     return query.getSingleOrNull();
   }
 
@@ -47,8 +47,8 @@ class DebtDao {
   }
 
   Future<void> markDeleted(String id, DateTime deletedAt) async {
-    final UpdateStatement<db.Debts, db.DebtRow> query =
-        _db.update(_db.debts)..where((db.Debts tbl) => tbl.id.equals(id));
+    final UpdateStatement<db.Debts, db.DebtRow> query = _db.update(_db.debts)
+      ..where((db.Debts tbl) => tbl.id.equals(id));
     await query.write(
       db.DebtsCompanion(
         isDeleted: const Value<bool>(true),

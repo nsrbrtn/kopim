@@ -204,7 +204,8 @@ class MobileNotificationsGateway implements NotificationsGateway {
     if (_initialized) {
       return;
     }
-    final String timeZoneId = await loadCurrentTimeZoneId();
+    await initializeLocalTimeZone();
+    final String timeZoneId = resolveCurrentTimeZoneId();
     tz.setLocalLocation(tz.getLocation(timeZoneId));
 
     const AndroidInitializationSettings androidSettings =

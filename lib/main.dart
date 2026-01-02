@@ -12,6 +12,7 @@ import 'core/application/sync_coordinator.dart';
 import 'core/config/app_config.dart';
 import 'core/di/injectors.dart';
 import 'core/navigation/app_router.dart';
+import 'core/services/recurring_work_scheduler_mobile.dart';
 import 'core/theme/application/theme_mode_controller.dart';
 import 'core/theme/domain/app_theme_mode.dart';
 import 'core/widgets/app_splash_placeholder.dart';
@@ -19,6 +20,7 @@ import 'core/widgets/notification_fallback_listener.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  ensureRecurringWorkSchedulerLinked();
 
   const bool enableProviderTimelineTracing = bool.fromEnvironment(
     'KOPIM_PROVIDER_TRACE',

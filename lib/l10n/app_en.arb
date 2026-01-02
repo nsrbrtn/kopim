@@ -58,6 +58,14 @@
   "creditsRemainingPaymentsLabel": "Remaining",
   "creditsSegmentCredits": "Loans",
   "creditsSegmentDebts": "Debts",
+  "creditsDeleteTitle": "Delete loan?",
+  "@creditsDeleteTitle": {
+    "description": "Confirmation dialog title for deleting a loan"
+  },
+  "creditsDeleteMessage": "The loan will be deleted and cannot be restored.",
+  "@creditsDeleteMessage": {
+    "description": "Confirmation message for deleting a loan"
+  },
   "debtsAddTitle": "Add debt",
   "debtsEditTitle": "Edit debt",
   "debtsNameLabel": "Debt name",
@@ -71,6 +79,14 @@
   "debtsSaveAndScheduleAction": "Save and remind",
   "debtsEmptyList": "You have no debts yet",
   "debtsDefaultTitle": "Debt",
+  "debtsDeleteTitle": "Delete debt?",
+  "@debtsDeleteTitle": {
+    "description": "Confirmation dialog title for deleting a debt"
+  },
+  "debtsDeleteMessage": "The debt will be deleted and cannot be restored.",
+  "@debtsDeleteMessage": {
+    "description": "Confirmation message for deleting a debt"
+  },
   "profileGeneralSettingsManagementSection": "Data management",
   "@profileGeneralSettingsManagementSection": {
     "description": "Section title for category and recurring actions on general settings"
@@ -1957,6 +1973,43 @@
   "addTransactionTypeIncome": "Income",
   "@addTransactionTypeIncome": {
     "description": "Label for selecting income type"
+  },
+  "addTransactionTypeTransfer": "Transfer",
+  "@addTransactionTypeTransfer": {
+    "description": "Label for selecting transfer type"
+  },
+  "addTransactionTransferTargetLabel": "To account",
+  "@addTransactionTransferTargetLabel": {
+    "description": "Label for transfer target account selector"
+  },
+  "addTransactionTransferNoTargets": "Add another account to make a transfer.",
+  "@addTransactionTransferNoTargets": {
+    "description": "Hint shown when no target account is available for transfer"
+  },
+  "addTransactionTransferCategoryHint": "Transfers don't use categories.",
+  "@addTransactionTransferCategoryHint": {
+    "description": "Hint shown instead of category selector for transfers"
+  },
+  "transactionTransferAccountPair": "From {from} -> {to}",
+  "@transactionTransferAccountPair": {
+    "description": "Subtitle for transfer with source and target accounts",
+    "placeholders": {
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "transactionTransferAccountSingle": "Account: {account}",
+  "@transactionTransferAccountSingle": {
+    "description": "Subtitle for transfer when only one account name is available",
+    "placeholders": {
+      "account": {
+        "type": "String"
+      }
+    }
   },
   "addTransactionCategoryLabel": "Category",
   "@addTransactionCategoryLabel": {

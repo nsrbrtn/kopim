@@ -31,12 +31,19 @@ class TopBarAvatarIcon extends StatelessWidget {
     if (photoUrl == null || photoUrl!.isEmpty) {
       return null;
     }
-    if (photoUrl!.startsWith('data:image/')) {
-      final int commaIndex = photoUrl!.indexOf(',');
+    final String value = photoUrl!;
+    if (value.startsWith('assets/')) {
+      return AssetImage(value);
+    }
+    if (value.startsWith('asset:')) {
+      return AssetImage(value.substring('asset:'.length));
+    }
+    if (value.startsWith('data:image/')) {
+      final int commaIndex = value.indexOf(',');
       if (commaIndex == -1) {
         return null;
       }
-      final String encoded = photoUrl!.substring(commaIndex + 1);
+      final String encoded = value.substring(commaIndex + 1);
       try {
         final Uint8List bytes = base64Decode(encoded);
         return MemoryImage(bytes);
@@ -44,6 +51,6 @@ class TopBarAvatarIcon extends StatelessWidget {
         return null;
       }
     }
-    return NetworkImage(photoUrl!);
+    return NetworkImage(value);
   }
 }

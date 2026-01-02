@@ -9,7 +9,6 @@ import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/core/services/sync_service.dart';
 import 'package:kopim/core/utils/timezone_utils.dart';
 import 'package:kopim/features/upcoming_payments/application/upcoming_notifications_controller.dart';
-import 'package:kopim/features/upcoming_payments/data/services/upcoming_payments_work_scheduler.dart';
 
 part 'app_startup_controller.g.dart';
 
@@ -80,10 +79,9 @@ class AppStartupController extends _$AppStartupController {
   }
 
   Future<void> _initializeBackgroundServices() async {
-    await _warmUpUpcomingPaymentsWork();
-    if (!ref.mounted) {
-      return;
-    }
+    await ref
+        .read(upcomingPaymentsWorkSchedulerProvider)
+        .cleanupLegacyWorkIfNeeded();
     await _activateUpcomingNotificationsSync();
   }
 
@@ -116,27 +114,6 @@ class AppStartupController extends _$AppStartupController {
     }
   }
 
-  Future<void> _warmUpUpcomingPaymentsWork() async {
-    if (!_supportsUpcomingPaymentsWork()) {
-      return;
-    }
-    try {
-      final UpcomingPaymentsWorkScheduler scheduler = ref.read(
-        upcomingPaymentsWorkSchedulerProvider,
-      );
-      await scheduler.scheduleDailyCatchUp();
-      await scheduler.triggerOneOffCatchUp();
-    } catch (error, stackTrace) {
-      FlutterError.reportError(
-        FlutterErrorDetails(
-          exception: error,
-          stack: stackTrace,
-          library: 'app_startup_controller',
-          context: ErrorDescription('while scheduling upcoming payments work'),
-        ),
-      );
-    }
-  }
 
   Future<void> _activateUpcomingNotificationsSync() async {
     if (!ref.mounted) {
@@ -155,19 +132,6 @@ class AppStartupController extends _$AppStartupController {
           ),
         ),
       );
-    }
-  }
-
-  bool _supportsUpcomingPaymentsWork() {
-    if (_isRunningOnWeb) {
-      return false;
-    }
-    switch (defaultTargetPlatform) {
-      case TargetPlatform.android:
-      case TargetPlatform.iOS:
-        return true;
-      default:
-        return false;
     }
   }
 

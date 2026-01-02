@@ -157,10 +157,9 @@ class _EditPaymentReminderScreenState
                     theme: theme,
                     colors: colors,
                     layout: layout,
-                    errorText:
-                        _titleHasError
-                            ? strings.upcomingPaymentsValidationTitle
-                            : null,
+                    errorText: _titleHasError
+                        ? strings.upcomingPaymentsValidationTitle
+                        : null,
                     field: KopimTextField(
                       controller: _titleController,
                       placeholder: strings.upcomingPaymentsFieldTitle,
@@ -181,10 +180,9 @@ class _EditPaymentReminderScreenState
                     theme: theme,
                     colors: colors,
                     layout: layout,
-                    errorText:
-                        _amountHasError
-                            ? strings.upcomingPaymentsValidationAmount
-                            : null,
+                    errorText: _amountHasError
+                        ? strings.upcomingPaymentsValidationAmount
+                        : null,
                     field: KopimTextField(
                       controller: _amountController,
                       placeholder: strings.upcomingPaymentsFieldAmount,
@@ -239,15 +237,14 @@ class _EditPaymentReminderScreenState
                   SizedBox(
                     width: double.infinity,
                     child: FilledButton(
-                      onPressed:
-                          _isSubmitting ? null : () => _onSubmit(strings),
+                      onPressed: _isSubmitting
+                          ? null
+                          : () => _onSubmit(strings),
                       child: _isSubmitting
                           ? const SizedBox(
                               width: 20,
                               height: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                              ),
+                              child: CircularProgressIndicator(strokeWidth: 2),
                             )
                           : Text(strings.upcomingPaymentsSubmit),
                     ),
@@ -538,9 +535,7 @@ class _LabeledField extends StatelessWidget {
       children: <Widget>[
         Text(
           label,
-          style: theme.textTheme.labelLarge?.copyWith(
-            color: colors.onSurface,
-          ),
+          style: theme.textTheme.labelLarge?.copyWith(color: colors.onSurface),
         ),
         SizedBox(height: layout.spacing.between),
         field,
@@ -548,9 +543,7 @@ class _LabeledField extends StatelessWidget {
           SizedBox(height: layout.spacing.between),
           Text(
             errorText!,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: colors.error,
-            ),
+            style: theme.textTheme.bodySmall?.copyWith(color: colors.error),
           ),
         ],
       ],

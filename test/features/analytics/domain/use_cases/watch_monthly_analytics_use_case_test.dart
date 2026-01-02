@@ -205,8 +205,8 @@ void main() {
 
       final AnalyticsOverview overview = await future;
       expect(overview.topExpenseCategories, hasLength(1));
-      final AnalyticsCategoryBreakdown parent = overview.topExpenseCategories
-          .first;
+      final AnalyticsCategoryBreakdown parent =
+          overview.topExpenseCategories.first;
       expect(parent.categoryId, 'cat-food');
       expect(parent.amount, 300);
       expect(parent.children, hasLength(3));
@@ -294,10 +294,7 @@ TransactionEntity buildTransaction({
   );
 }
 
-Category buildCategory({
-  required String id,
-  String? parentId,
-}) {
+Category buildCategory({required String id, String? parentId}) {
   final DateTime now = DateTime(2024, 6, 1);
   return Category(
     id: id,

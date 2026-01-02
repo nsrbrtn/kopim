@@ -14,7 +14,10 @@ class LoggerProfileSyncErrorReporter implements ProfileSyncErrorReporter {
     required Object error,
     required StackTrace stackTrace,
   }) {
-    _logger.logError('Не удалось синхронизировать прогресс для uid=$uid', error);
+    _logger.logError(
+      'Не удалось синхронизировать прогресс для uid=$uid',
+      error,
+    );
     _logger.logError('Стек синка прогресса: $stackTrace');
   }
 }

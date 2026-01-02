@@ -3,6 +3,7 @@ import 'package:kopim/features/transactions/domain/entities/transaction_type.dar
 class AddTransactionRequest {
   const AddTransactionRequest({
     required this.accountId,
+    this.transferAccountId,
     this.categoryId,
     this.savingGoalId,
     required this.amount,
@@ -12,6 +13,7 @@ class AddTransactionRequest {
   });
 
   final String accountId;
+  final String? transferAccountId;
   final String? categoryId;
   final String? savingGoalId;
   final double amount;

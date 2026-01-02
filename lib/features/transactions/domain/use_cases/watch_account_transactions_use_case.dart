@@ -11,7 +11,9 @@ class WatchAccountTransactionsUseCase {
       List<TransactionEntity> transactions,
     ) {
       final Iterable<TransactionEntity> filtered = transactions.where(
-        (TransactionEntity transaction) => transaction.accountId == accountId,
+        (TransactionEntity transaction) =>
+            transaction.accountId == accountId ||
+            transaction.transferAccountId == accountId,
       );
       return List<TransactionEntity>.unmodifiable(filtered);
     });

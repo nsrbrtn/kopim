@@ -46,18 +46,35 @@ class DeleteTransactionUseCase {
     }
 
     final DateTime now = _clock().toUtc();
-    final TransactionType type = _parseType(existing.type);
-    final double balanceDelta = type.isIncome
-        ? -existing.amount
-        : existing.amount;
-    final AccountEntity updatedAccount = account.copyWith(
-      balance: account.balance + balanceDelta,
-      updatedAt: now,
+    final TransactionType type = parseTransactionType(existing.type);
+    if (type.isTransfer &&
+        (existing.transferAccountId == null ||
+            existing.transferAccountId == existing.accountId)) {
+      throw StateError('Invalid transfer source account');
+    }
+    final Map<String, double> balanceDelta = _buildBalanceReversal(
+      accountId: existing.accountId,
+      transferAccountId: existing.transferAccountId,
+      amount: existing.amount,
+      type: type,
     );
-    await _accountRepository.upsert(updatedAccount);
+    for (final MapEntry<String, double> entry in balanceDelta.entries) {
+      final AccountEntity? targetAccount = entry.key == account.id
+          ? account
+          : await _accountRepository.findById(entry.key);
+      if (targetAccount == null) {
+        throw StateError('Account not found for id ${entry.key}');
+      }
+      await _accountRepository.upsert(
+        targetAccount.copyWith(
+          balance: targetAccount.balance + entry.value,
+          updatedAt: now,
+        ),
+      );
+    }
 
     // Логика отмены обновления баланса кредита
-    if (existing.categoryId != null) {
+    if (existing.categoryId != null && !type.isTransfer) {
       final CreditEntity? relatedCredit = await _creditRepository
           .getCreditByCategoryId(existing.categoryId!);
       if (relatedCredit != null) {
@@ -87,9 +104,19 @@ class DeleteTransactionUseCase {
     return TransactionCommandResult<void>(value: null, profileEvents: events);
   }
 
-  TransactionType _parseType(String raw) {
-    return raw == TransactionType.income.storageValue
-        ? TransactionType.income
-        : TransactionType.expense;
+  Map<String, double> _buildBalanceReversal({
+    required String accountId,
+    required String? transferAccountId,
+    required double amount,
+    required TransactionType type,
+  }) {
+    if (type.isTransfer) {
+      if (transferAccountId == null || transferAccountId == accountId) {
+        return <String, double>{};
+      }
+      return <String, double>{accountId: amount, transferAccountId: -amount};
+    }
+    final double delta = type.isIncome ? -amount : amount;
+    return <String, double>{accountId: delta};
   }
 }

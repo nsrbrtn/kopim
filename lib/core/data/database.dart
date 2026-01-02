@@ -60,6 +60,9 @@ class Transactions extends Table {
   TextColumn get id => text().withLength(min: 1, max: 50)();
   TextColumn get accountId =>
       text().references(Accounts, #id, onDelete: KeyAction.cascade)();
+  TextColumn get transferAccountId => text()
+      .references(Accounts, #id, onDelete: KeyAction.setNull)
+      .nullable()();
   TextColumn get categoryId => text()
       .references(Categories, #id, onDelete: KeyAction.setNull)
       .nullable()();
@@ -247,7 +250,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.connect(DatabaseConnection super.connection);
 
   @override
-  int get schemaVersion => 27;
+  int get schemaVersion => 28;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -546,9 +549,15 @@ class AppDatabase extends _$AppDatabase {
         }
       }
       if (from < 24) {
-        await m.database.customStatement('DROP TABLE IF EXISTS recurring_rule_executions');
-        await m.database.customStatement('DROP TABLE IF EXISTS recurring_occurrences');
-        await m.database.customStatement('DROP TABLE IF EXISTS recurring_rules');
+        await m.database.customStatement(
+          'DROP TABLE IF EXISTS recurring_rule_executions',
+        );
+        await m.database.customStatement(
+          'DROP TABLE IF EXISTS recurring_occurrences',
+        );
+        await m.database.customStatement(
+          'DROP TABLE IF EXISTS recurring_rules',
+        );
         await m.database.customStatement('DROP TABLE IF EXISTS job_queue');
       }
       if (from < 23) {
@@ -569,6 +578,11 @@ class AppDatabase extends _$AppDatabase {
       if (from < 27) {
         if (!await _columnExists('accounts', 'gradient_id')) {
           await m.addColumn(accounts, accounts.gradientId);
+        }
+      }
+      if (from < 28) {
+        if (!await _columnExists('transactions', 'transfer_account_id')) {
+          await m.addColumn(transactions, transactions.transferAccountId);
         }
       }
     },

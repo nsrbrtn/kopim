@@ -55,10 +55,7 @@ class _EditAccountScreenState extends ConsumerState<EditAccountScreen> {
   late final TextEditingController _customTypeController;
   bool _isDeleting = false;
 
-  PhosphorIconDescriptor? _resolveAccountIcon(
-    String? name,
-    String? style,
-  ) {
+  PhosphorIconDescriptor? _resolveAccountIcon(String? name, String? style) {
     if (name == null || name.isEmpty) {
       return null;
     }

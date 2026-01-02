@@ -4,6 +4,7 @@ class UpdateTransactionRequest {
   const UpdateTransactionRequest({
     required this.transactionId,
     required this.accountId,
+    this.transferAccountId,
     this.categoryId,
     required this.amount,
     required this.date,
@@ -13,6 +14,7 @@ class UpdateTransactionRequest {
 
   final String transactionId;
   final String accountId;
+  final String? transferAccountId;
   final String? categoryId;
   final double amount;
   final DateTime date;

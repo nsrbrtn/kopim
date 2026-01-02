@@ -2184,6 +2184,21 @@ class $TransactionsTable extends Transactions
       'REFERENCES accounts (id) ON DELETE CASCADE',
     ),
   );
+  static const VerificationMeta _transferAccountIdMeta = const VerificationMeta(
+    'transferAccountId',
+  );
+  @override
+  late final GeneratedColumn<String> transferAccountId =
+      GeneratedColumn<String>(
+        'transfer_account_id',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'REFERENCES accounts (id) ON DELETE SET NULL',
+        ),
+      );
   static const VerificationMeta _categoryIdMeta = const VerificationMeta(
     'categoryId',
   );
@@ -2293,6 +2308,7 @@ class $TransactionsTable extends Transactions
   List<GeneratedColumn> get $columns => [
     id,
     accountId,
+    transferAccountId,
     categoryId,
     amount,
     date,
@@ -2327,6 +2343,15 @@ class $TransactionsTable extends Transactions
       );
     } else if (isInserting) {
       context.missing(_accountIdMeta);
+    }
+    if (data.containsKey('transfer_account_id')) {
+      context.handle(
+        _transferAccountIdMeta,
+        transferAccountId.isAcceptableOrUnknown(
+          data['transfer_account_id']!,
+          _transferAccountIdMeta,
+        ),
+      );
     }
     if (data.containsKey('category_id')) {
       context.handle(
@@ -2408,6 +2433,10 @@ class $TransactionsTable extends Transactions
         DriftSqlType.string,
         data['${effectivePrefix}account_id'],
       )!,
+      transferAccountId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}transfer_account_id'],
+      ),
       categoryId: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}category_id'],
@@ -2456,6 +2485,7 @@ class $TransactionsTable extends Transactions
 class TransactionRow extends DataClass implements Insertable<TransactionRow> {
   final String id;
   final String accountId;
+  final String? transferAccountId;
   final String? categoryId;
   final double amount;
   final DateTime date;
@@ -2468,6 +2498,7 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
   const TransactionRow({
     required this.id,
     required this.accountId,
+    this.transferAccountId,
     this.categoryId,
     required this.amount,
     required this.date,
@@ -2483,6 +2514,9 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
     map['account_id'] = Variable<String>(accountId);
+    if (!nullToAbsent || transferAccountId != null) {
+      map['transfer_account_id'] = Variable<String>(transferAccountId);
+    }
     if (!nullToAbsent || categoryId != null) {
       map['category_id'] = Variable<String>(categoryId);
     }
@@ -2505,6 +2539,9 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
     return TransactionsCompanion(
       id: Value(id),
       accountId: Value(accountId),
+      transferAccountId: transferAccountId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(transferAccountId),
       categoryId: categoryId == null && nullToAbsent
           ? const Value.absent()
           : Value(categoryId),
@@ -2529,6 +2566,9 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
     return TransactionRow(
       id: serializer.fromJson<String>(json['id']),
       accountId: serializer.fromJson<String>(json['accountId']),
+      transferAccountId: serializer.fromJson<String?>(
+        json['transferAccountId'],
+      ),
       categoryId: serializer.fromJson<String?>(json['categoryId']),
       amount: serializer.fromJson<double>(json['amount']),
       date: serializer.fromJson<DateTime>(json['date']),
@@ -2546,6 +2586,7 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
       'accountId': serializer.toJson<String>(accountId),
+      'transferAccountId': serializer.toJson<String?>(transferAccountId),
       'categoryId': serializer.toJson<String?>(categoryId),
       'amount': serializer.toJson<double>(amount),
       'date': serializer.toJson<DateTime>(date),
@@ -2561,6 +2602,7 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
   TransactionRow copyWith({
     String? id,
     String? accountId,
+    Value<String?> transferAccountId = const Value.absent(),
     Value<String?> categoryId = const Value.absent(),
     double? amount,
     DateTime? date,
@@ -2573,6 +2615,9 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
   }) => TransactionRow(
     id: id ?? this.id,
     accountId: accountId ?? this.accountId,
+    transferAccountId: transferAccountId.present
+        ? transferAccountId.value
+        : this.transferAccountId,
     categoryId: categoryId.present ? categoryId.value : this.categoryId,
     amount: amount ?? this.amount,
     date: date ?? this.date,
@@ -2587,6 +2632,9 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
     return TransactionRow(
       id: data.id.present ? data.id.value : this.id,
       accountId: data.accountId.present ? data.accountId.value : this.accountId,
+      transferAccountId: data.transferAccountId.present
+          ? data.transferAccountId.value
+          : this.transferAccountId,
       categoryId: data.categoryId.present
           ? data.categoryId.value
           : this.categoryId,
@@ -2608,6 +2656,7 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
     return (StringBuffer('TransactionRow(')
           ..write('id: $id, ')
           ..write('accountId: $accountId, ')
+          ..write('transferAccountId: $transferAccountId, ')
           ..write('categoryId: $categoryId, ')
           ..write('amount: $amount, ')
           ..write('date: $date, ')
@@ -2625,6 +2674,7 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
   int get hashCode => Object.hash(
     id,
     accountId,
+    transferAccountId,
     categoryId,
     amount,
     date,
@@ -2641,6 +2691,7 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
       (other is TransactionRow &&
           other.id == this.id &&
           other.accountId == this.accountId &&
+          other.transferAccountId == this.transferAccountId &&
           other.categoryId == this.categoryId &&
           other.amount == this.amount &&
           other.date == this.date &&
@@ -2655,6 +2706,7 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
 class TransactionsCompanion extends UpdateCompanion<TransactionRow> {
   final Value<String> id;
   final Value<String> accountId;
+  final Value<String?> transferAccountId;
   final Value<String?> categoryId;
   final Value<double> amount;
   final Value<DateTime> date;
@@ -2668,6 +2720,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionRow> {
   const TransactionsCompanion({
     this.id = const Value.absent(),
     this.accountId = const Value.absent(),
+    this.transferAccountId = const Value.absent(),
     this.categoryId = const Value.absent(),
     this.amount = const Value.absent(),
     this.date = const Value.absent(),
@@ -2682,6 +2735,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionRow> {
   TransactionsCompanion.insert({
     required String id,
     required String accountId,
+    this.transferAccountId = const Value.absent(),
     this.categoryId = const Value.absent(),
     required double amount,
     required DateTime date,
@@ -2700,6 +2754,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionRow> {
   static Insertable<TransactionRow> custom({
     Expression<String>? id,
     Expression<String>? accountId,
+    Expression<String>? transferAccountId,
     Expression<String>? categoryId,
     Expression<double>? amount,
     Expression<DateTime>? date,
@@ -2714,6 +2769,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionRow> {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (accountId != null) 'account_id': accountId,
+      if (transferAccountId != null) 'transfer_account_id': transferAccountId,
       if (categoryId != null) 'category_id': categoryId,
       if (amount != null) 'amount': amount,
       if (date != null) 'date': date,
@@ -2730,6 +2786,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionRow> {
   TransactionsCompanion copyWith({
     Value<String>? id,
     Value<String>? accountId,
+    Value<String?>? transferAccountId,
     Value<String?>? categoryId,
     Value<double>? amount,
     Value<DateTime>? date,
@@ -2744,6 +2801,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionRow> {
     return TransactionsCompanion(
       id: id ?? this.id,
       accountId: accountId ?? this.accountId,
+      transferAccountId: transferAccountId ?? this.transferAccountId,
       categoryId: categoryId ?? this.categoryId,
       amount: amount ?? this.amount,
       date: date ?? this.date,
@@ -2765,6 +2823,9 @@ class TransactionsCompanion extends UpdateCompanion<TransactionRow> {
     }
     if (accountId.present) {
       map['account_id'] = Variable<String>(accountId.value);
+    }
+    if (transferAccountId.present) {
+      map['transfer_account_id'] = Variable<String>(transferAccountId.value);
     }
     if (categoryId.present) {
       map['category_id'] = Variable<String>(categoryId.value);
@@ -2804,6 +2865,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionRow> {
     return (StringBuffer('TransactionsCompanion(')
           ..write('id: $id, ')
           ..write('accountId: $accountId, ')
+          ..write('transferAccountId: $transferAccountId, ')
           ..write('categoryId: $categoryId, ')
           ..write('amount: $amount, ')
           ..write('date: $date, ')
@@ -8331,6 +8393,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     ),
     WritePropagation(
       on: TableUpdateQuery.onTableName(
+        'accounts',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('transactions', kind: UpdateKind.update)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
         'categories',
         limitUpdateKind: UpdateKind.delete,
       ),
@@ -8442,24 +8511,6 @@ typedef $$AccountsTableUpdateCompanionBuilder =
 final class $$AccountsTableReferences
     extends BaseReferences<_$AppDatabase, $AccountsTable, AccountRow> {
   $$AccountsTableReferences(super.$_db, super.$_table, super.$_typedResult);
-
-  static MultiTypedResultKey<$TransactionsTable, List<TransactionRow>>
-  _transactionsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
-    db.transactions,
-    aliasName: $_aliasNameGenerator(db.accounts.id, db.transactions.accountId),
-  );
-
-  $$TransactionsTableProcessedTableManager get transactionsRefs {
-    final manager = $$TransactionsTableTableManager(
-      $_db,
-      $_db.transactions,
-    ).filter((f) => f.accountId.id.sqlEquals($_itemColumn<String>('id')!));
-
-    final cache = $_typedResult.readTableOrNull(_transactionsRefsTable($_db));
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: cache),
-    );
-  }
 
   static MultiTypedResultKey<$UpcomingPaymentsTable, List<UpcomingPaymentRow>>
   _upcomingPaymentsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
@@ -8601,31 +8652,6 @@ class $$AccountsTableFilterComposer
     column: $table.iconStyle,
     builder: (column) => ColumnFilters(column),
   );
-
-  Expression<bool> transactionsRefs(
-    Expression<bool> Function($$TransactionsTableFilterComposer f) f,
-  ) {
-    final $$TransactionsTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.id,
-      referencedTable: $db.transactions,
-      getReferencedColumn: (t) => t.accountId,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$TransactionsTableFilterComposer(
-            $db: $db,
-            $table: $db.transactions,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
 
   Expression<bool> upcomingPaymentsRefs(
     Expression<bool> Function($$UpcomingPaymentsTableFilterComposer f) f,
@@ -8836,31 +8862,6 @@ class $$AccountsTableAnnotationComposer
   GeneratedColumn<String> get iconStyle =>
       $composableBuilder(column: $table.iconStyle, builder: (column) => column);
 
-  Expression<T> transactionsRefs<T extends Object>(
-    Expression<T> Function($$TransactionsTableAnnotationComposer a) f,
-  ) {
-    final $$TransactionsTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.id,
-      referencedTable: $db.transactions,
-      getReferencedColumn: (t) => t.accountId,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$TransactionsTableAnnotationComposer(
-            $db: $db,
-            $table: $db.transactions,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
-
   Expression<T> upcomingPaymentsRefs<T extends Object>(
     Expression<T> Function($$UpcomingPaymentsTableAnnotationComposer a) f,
   ) {
@@ -8951,7 +8952,6 @@ class $$AccountsTableTableManager
           (AccountRow, $$AccountsTableReferences),
           AccountRow,
           PrefetchHooks Function({
-            bool transactionsRefs,
             bool upcomingPaymentsRefs,
             bool debtsRefs,
             bool creditsRefs,
@@ -9046,7 +9046,6 @@ class $$AccountsTableTableManager
               .toList(),
           prefetchHooksCallback:
               ({
-                transactionsRefs = false,
                 upcomingPaymentsRefs = false,
                 debtsRefs = false,
                 creditsRefs = false,
@@ -9054,7 +9053,6 @@ class $$AccountsTableTableManager
                 return PrefetchHooks(
                   db: db,
                   explicitlyWatchedTables: [
-                    if (transactionsRefs) db.transactions,
                     if (upcomingPaymentsRefs) db.upcomingPayments,
                     if (debtsRefs) db.debts,
                     if (creditsRefs) db.credits,
@@ -9062,27 +9060,6 @@ class $$AccountsTableTableManager
                   addJoins: null,
                   getPrefetchedDataCallback: (items) async {
                     return [
-                      if (transactionsRefs)
-                        await $_getPrefetchedData<
-                          AccountRow,
-                          $AccountsTable,
-                          TransactionRow
-                        >(
-                          currentTable: table,
-                          referencedTable: $$AccountsTableReferences
-                              ._transactionsRefsTable(db),
-                          managerFromTypedResult: (p0) =>
-                              $$AccountsTableReferences(
-                                db,
-                                table,
-                                p0,
-                              ).transactionsRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.accountId == item.id,
-                              ),
-                          typedResults: items,
-                        ),
                       if (upcomingPaymentsRefs)
                         await $_getPrefetchedData<
                           AccountRow,
@@ -9167,7 +9144,6 @@ typedef $$AccountsTableProcessedTableManager =
       (AccountRow, $$AccountsTableReferences),
       AccountRow,
       PrefetchHooks Function({
-        bool transactionsRefs,
         bool upcomingPaymentsRefs,
         bool debtsRefs,
         bool creditsRefs,
@@ -10332,6 +10308,7 @@ typedef $$TransactionsTableCreateCompanionBuilder =
     TransactionsCompanion Function({
       required String id,
       required String accountId,
+      Value<String?> transferAccountId,
       Value<String?> categoryId,
       required double amount,
       required DateTime date,
@@ -10347,6 +10324,7 @@ typedef $$TransactionsTableUpdateCompanionBuilder =
     TransactionsCompanion Function({
       Value<String> id,
       Value<String> accountId,
+      Value<String?> transferAccountId,
       Value<String?> categoryId,
       Value<double> amount,
       Value<DateTime> date,
@@ -10376,6 +10354,25 @@ final class $$TransactionsTableReferences
       $_db.accounts,
     ).filter((f) => f.id.sqlEquals($_column));
     final item = $_typedResult.readTableOrNull(_accountIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $AccountsTable _transferAccountIdTable(_$AppDatabase db) =>
+      db.accounts.createAlias(
+        $_aliasNameGenerator(db.transactions.transferAccountId, db.accounts.id),
+      );
+
+  $$AccountsTableProcessedTableManager? get transferAccountId {
+    final $_column = $_itemColumn<String>('transfer_account_id');
+    if ($_column == null) return null;
+    final manager = $$AccountsTableTableManager(
+      $_db,
+      $_db.accounts,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_transferAccountIdTable($_db));
     if (item == null) return manager;
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: [item]),
@@ -10498,6 +10495,29 @@ class $$TransactionsTableFilterComposer
     final $$AccountsTableFilterComposer composer = $composerBuilder(
       composer: this,
       getCurrentColumn: (t) => t.accountId,
+      referencedTable: $db.accounts,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AccountsTableFilterComposer(
+            $db: $db,
+            $table: $db.accounts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$AccountsTableFilterComposer get transferAccountId {
+    final $$AccountsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.transferAccountId,
       referencedTable: $db.accounts,
       getReferencedColumn: (t) => t.id,
       builder:
@@ -10661,6 +10681,29 @@ class $$TransactionsTableOrderingComposer
     return composer;
   }
 
+  $$AccountsTableOrderingComposer get transferAccountId {
+    final $$AccountsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.transferAccountId,
+      referencedTable: $db.accounts,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AccountsTableOrderingComposer(
+            $db: $db,
+            $table: $db.accounts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
   $$CategoriesTableOrderingComposer get categoryId {
     final $$CategoriesTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -10745,6 +10788,29 @@ class $$TransactionsTableAnnotationComposer
     final $$AccountsTableAnnotationComposer composer = $composerBuilder(
       composer: this,
       getCurrentColumn: (t) => t.accountId,
+      referencedTable: $db.accounts,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AccountsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.accounts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$AccountsTableAnnotationComposer get transferAccountId {
+    final $$AccountsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.transferAccountId,
       referencedTable: $db.accounts,
       getReferencedColumn: (t) => t.id,
       builder:
@@ -10852,6 +10918,7 @@ class $$TransactionsTableTableManager
           TransactionRow,
           PrefetchHooks Function({
             bool accountId,
+            bool transferAccountId,
             bool categoryId,
             bool savingGoalId,
             bool goalContributionsRefs,
@@ -10872,6 +10939,7 @@ class $$TransactionsTableTableManager
               ({
                 Value<String> id = const Value.absent(),
                 Value<String> accountId = const Value.absent(),
+                Value<String?> transferAccountId = const Value.absent(),
                 Value<String?> categoryId = const Value.absent(),
                 Value<double> amount = const Value.absent(),
                 Value<DateTime> date = const Value.absent(),
@@ -10885,6 +10953,7 @@ class $$TransactionsTableTableManager
               }) => TransactionsCompanion(
                 id: id,
                 accountId: accountId,
+                transferAccountId: transferAccountId,
                 categoryId: categoryId,
                 amount: amount,
                 date: date,
@@ -10900,6 +10969,7 @@ class $$TransactionsTableTableManager
               ({
                 required String id,
                 required String accountId,
+                Value<String?> transferAccountId = const Value.absent(),
                 Value<String?> categoryId = const Value.absent(),
                 required double amount,
                 required DateTime date,
@@ -10913,6 +10983,7 @@ class $$TransactionsTableTableManager
               }) => TransactionsCompanion.insert(
                 id: id,
                 accountId: accountId,
+                transferAccountId: transferAccountId,
                 categoryId: categoryId,
                 amount: amount,
                 date: date,
@@ -10935,6 +11006,7 @@ class $$TransactionsTableTableManager
           prefetchHooksCallback:
               ({
                 accountId = false,
+                transferAccountId = false,
                 categoryId = false,
                 savingGoalId = false,
                 goalContributionsRefs = false,
@@ -10971,6 +11043,21 @@ class $$TransactionsTableTableManager
                                     referencedColumn:
                                         $$TransactionsTableReferences
                                             ._accountIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
+                        if (transferAccountId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.transferAccountId,
+                                    referencedTable:
+                                        $$TransactionsTableReferences
+                                            ._transferAccountIdTable(db),
+                                    referencedColumn:
+                                        $$TransactionsTableReferences
+                                            ._transferAccountIdTable(db)
                                             .id,
                                   )
                                   as T;
@@ -11053,6 +11140,7 @@ typedef $$TransactionsTableProcessedTableManager =
       TransactionRow,
       PrefetchHooks Function({
         bool accountId,
+        bool transferAccountId,
         bool categoryId,
         bool savingGoalId,
         bool goalContributionsRefs,

@@ -28,6 +28,7 @@ void main() {
     required String accountId,
     required double amount,
     required TransactionType type,
+    String? transferAccountId,
     String? categoryId,
     String? note,
     DateTime? date,
@@ -36,6 +37,7 @@ void main() {
     return TransactionEntity(
       id: id,
       accountId: accountId,
+      transferAccountId: transferAccountId,
       categoryId: categoryId,
       amount: amount,
       date: timestamp,
@@ -64,6 +66,7 @@ void main() {
       TransactionEntity(
         id: 'fallback',
         accountId: 'fallback',
+        transferAccountId: null,
         categoryId: null,
         amount: 0,
         date: DateTime.utc(2024, 1, 1),
@@ -285,4 +288,78 @@ void main() {
     verify(() => accountRepository.upsert(any())).called(1);
     verifyNever(() => transactionRepository.upsert(any()));
   });
+
+  test(
+    'updates transfer transaction and adjusts all affected balances',
+    () async {
+      const String sourceId = 'acc-1';
+      const String oldTargetId = 'acc-2';
+      const String newTargetId = 'acc-3';
+      final TransactionEntity original = existingTransaction(
+        id: 'tx-4',
+        accountId: sourceId,
+        transferAccountId: oldTargetId,
+        amount: 40,
+        type: TransactionType.transfer,
+      );
+      final AccountEntity sourceAccount = account(id: sourceId, balance: 200);
+      final AccountEntity oldTargetAccount = account(
+        id: oldTargetId,
+        balance: 50,
+      );
+      final AccountEntity newTargetAccount = account(
+        id: newTargetId,
+        balance: 30,
+      );
+
+      when(
+        () => transactionRepository.findById(original.id),
+      ).thenAnswer((_) async => original);
+      when(
+        () => accountRepository.findById(sourceId),
+      ).thenAnswer((_) async => sourceAccount);
+      when(
+        () => accountRepository.findById(oldTargetId),
+      ).thenAnswer((_) async => oldTargetAccount);
+      when(
+        () => accountRepository.findById(newTargetId),
+      ).thenAnswer((_) async => newTargetAccount);
+      when(() => transactionRepository.upsert(any())).thenAnswer((_) async {});
+      when(() => accountRepository.upsert(any())).thenAnswer((_) async {});
+
+      final UpdateTransactionRequest request = UpdateTransactionRequest(
+        transactionId: original.id,
+        accountId: sourceId,
+        transferAccountId: newTargetId,
+        amount: 60,
+        date: DateTime.utc(2024, 2, 8),
+        type: TransactionType.transfer,
+      );
+
+      await useCase(request);
+
+      final List<AccountEntity> updatedAccounts = verify(
+        () => accountRepository.upsert(captureAny()),
+      ).captured.cast<AccountEntity>();
+      expect(updatedAccounts, hasLength(3));
+      expect(
+        updatedAccounts
+            .firstWhere((AccountEntity a) => a.id == sourceId)
+            .balance,
+        closeTo(180, 1e-9),
+      );
+      expect(
+        updatedAccounts
+            .firstWhere((AccountEntity a) => a.id == oldTargetId)
+            .balance,
+        closeTo(10, 1e-9),
+      );
+      expect(
+        updatedAccounts
+            .firstWhere((AccountEntity a) => a.id == newTargetId)
+            .balance,
+        closeTo(90, 1e-9),
+      );
+    },
+  );
 }

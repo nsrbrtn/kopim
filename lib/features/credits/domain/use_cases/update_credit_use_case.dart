@@ -101,16 +101,15 @@ class UpdateCreditUseCase {
         final Category updatedCategory = existingCategory.copyWith(
           name: 'Кредит: $trimmedName',
           color: color,
-          icon:
-              iconName == null
-                  ? null
-                  : PhosphorIconDescriptor(
-                      name: iconName,
-                      style: PhosphorIconStyle.values.firstWhere(
-                        (PhosphorIconStyle style) => style.name == iconStyle,
-                        orElse: () => PhosphorIconStyle.fill,
-                      ),
-                    ),
+          icon: iconName == null
+              ? null
+              : PhosphorIconDescriptor(
+                  name: iconName,
+                  style: PhosphorIconStyle.values.firstWhere(
+                    (PhosphorIconStyle style) => style.name == iconStyle,
+                    orElse: () => PhosphorIconStyle.fill,
+                  ),
+                ),
           updatedAt: now,
         );
         await _saveCategoryUseCase.call(updatedCategory);

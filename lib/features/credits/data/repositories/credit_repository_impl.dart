@@ -23,8 +23,7 @@ class CreditRepositoryImpl implements CreditRepository {
   @override
   Stream<List<CreditEntity>> watchCredits() {
     return _creditDao.watchActiveCredits().map(
-      (List<db.CreditRow> rows) =>
-          rows.map(_creditDao.mapRowToEntity).toList(),
+      (List<db.CreditRow> rows) => rows.map(_creditDao.mapRowToEntity).toList(),
     );
   }
 

@@ -16,6 +16,7 @@ import '../models/navigation_tab_config.dart';
 import '../models/navigation_tab_content.dart';
 import '../providers/main_navigation_tabs_provider.dart';
 import 'main_navigation_bar.dart';
+import 'navigation_responsive_breakpoints.dart';
 
 class MainNavigationShell extends ConsumerStatefulWidget {
   const MainNavigationShell({super.key});
@@ -156,6 +157,7 @@ class _MainNavigationShellState extends ConsumerState<MainNavigationShell> {
     );
     final NavigationTabContent activeContent = tabs[currentIndex]
         .contentBuilder(context, ref);
+    final bool showNavigation = ModalRoute.of(context)?.isCurrent ?? true;
     final PreferredSizeWidget? appBar = activeContent.appBarBuilder?.call(
       context,
       ref,
@@ -238,6 +240,12 @@ class _MainNavigationShellState extends ConsumerState<MainNavigationShell> {
             context,
           ).toLanguageTag();
           const bool enableTwoPane = false;
+          final bool isLandscape =
+              constraints.maxWidth > constraints.maxHeight;
+          final bool isWideScreen =
+              constraints.maxWidth >= kMainNavigationRailBreakpoint;
+          final bool shouldConstrainBottomBar = isLandscape || isWideScreen;
+          final bool useBottomBar = showNavigation;
 
           _syncCache(
             tabs: tabs,
@@ -278,22 +286,30 @@ class _MainNavigationShellState extends ConsumerState<MainNavigationShell> {
                 );
 
           final Widget scaffold = Scaffold(
-            extendBody: true,
+            extendBody: useBottomBar,
             appBar: appBar,
             body: resolvedBody,
-            floatingActionButton: floatingActionButton,
-            bottomNavigationBar: SafeArea(
-              top: false,
-              left: false,
-              right: false,
-              child: Align(
-                alignment: Alignment.bottomCenter,
-                child: FractionallySizedBox(
-                  widthFactor: 0.5,
-                  child: MainNavigationBar(tabs: tabs),
-                ),
-              ),
-            ),
+            floatingActionButton: useBottomBar ? floatingActionButton : null,
+            floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+            bottomNavigationBar: useBottomBar
+                ? SafeArea(
+                    top: false,
+                    left: false,
+                    right: false,
+                    child: SizedBox(
+                      height: MainNavigationBar.height,
+                      child: Align(
+                        alignment: Alignment.bottomCenter,
+                        child: shouldConstrainBottomBar
+                            ? FractionallySizedBox(
+                                widthFactor: 0.5,
+                                child: MainNavigationBar(tabs: tabs),
+                              )
+                            : MainNavigationBar(tabs: tabs),
+                      ),
+                    ),
+                  )
+                : null,
           );
           final Widget scaffoldWithFrozenInsets = _freezeScaffoldViewInsets
               ? MediaQuery.removeViewInsets(
@@ -310,9 +326,7 @@ class _MainNavigationShellState extends ConsumerState<MainNavigationShell> {
                 const Positioned(
                   top: 0,
                   right: 0,
-                  child: SafeArea(
-                    child: _OfflineModeBadge(),
-                  ),
+                  child: SafeArea(child: _OfflineModeBadge()),
                 ),
               const Material(
                 type: MaterialType.transparency,
@@ -369,9 +383,7 @@ class _FirebaseWarningBanner extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
         color: colors.surfaceContainerHighest,
-        border: Border(
-          bottom: BorderSide(color: colors.outlineVariant),
-        ),
+        border: Border(bottom: BorderSide(color: colors.outlineVariant)),
       ),
       child: Row(
         children: <Widget>[
