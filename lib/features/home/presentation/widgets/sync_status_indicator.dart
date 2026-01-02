@@ -52,14 +52,18 @@ class _SyncStatusIndicatorState extends ConsumerState<SyncStatusIndicator>
       _rotationController.stop();
     }
 
-    final Color color = status == SyncStatus.offline
-        ? theme.colorScheme.error
-        : const Color(0xFF2E7D32);
+    if (status != SyncStatus.offline) {
+      return const SizedBox.shrink();
+    }
+
     return SizedBox(
       width: widget.size,
       height: widget.size,
       child: DecoratedBox(
-        decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.error,
+          shape: BoxShape.circle,
+        ),
       ),
     );
   }

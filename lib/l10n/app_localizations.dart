@@ -2982,6 +2982,12 @@ abstract class AppLocalizations {
   /// **'Default'**
   String get accountColorDefault;
 
+  /// Label shown when a gradient is selected for the account card
+  ///
+  /// In en, this message translates to:
+  /// **'Gradient'**
+  String get accountColorGradient;
+
   /// Title shown on the account color picker dialog
   ///
   /// In en, this message translates to:
@@ -2999,6 +3005,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Clear color'**
   String get accountColorClear;
+
+  /// Label for the account icon selector
+  ///
+  /// In en, this message translates to:
+  /// **'Account icon'**
+  String get accountIconLabel;
+
+  /// Subtitle shown when no account icon has been selected
+  ///
+  /// In en, this message translates to:
+  /// **'No icon selected'**
+  String get accountIconNone;
+
+  /// Subtitle shown when an account icon has been selected
+  ///
+  /// In en, this message translates to:
+  /// **'Icon selected'**
+  String get accountIconSelected;
+
+  /// Tooltip for the action that opens the account icon picker
+  ///
+  /// In en, this message translates to:
+  /// **'Choose icon'**
+  String get accountIconSelect;
+
+  /// Tooltip for clearing the selected account icon
+  ///
+  /// In en, this message translates to:
+  /// **'Clear icon'**
+  String get accountIconClear;
+
+  /// Title for the account icon picker dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Pick an account icon'**
+  String get accountIconPickerTitle;
 
   /// Label for the switch that marks an account as primary
   ///

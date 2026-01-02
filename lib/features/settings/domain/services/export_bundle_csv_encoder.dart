@@ -52,6 +52,9 @@ class ExportBundleCsvEncoder {
         'created_at',
         'updated_at',
         'color',
+        'gradient_id',
+        'icon_name',
+        'icon_style',
         'is_deleted',
         'is_primary',
       ]);
@@ -66,6 +69,9 @@ class ExportBundleCsvEncoder {
         account.createdAt.toIso8601String(),
         account.updatedAt.toIso8601String(),
         account.color ?? '',
+        account.gradientId ?? '',
+        account.iconName ?? '',
+        account.iconStyle ?? '',
         _bool(account.isDeleted),
         _bool(account.isPrimary),
       ]);

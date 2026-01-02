@@ -2135,6 +2135,10 @@
   "@accountColorDefault": {
     "description": "Label shown when the default card color is used"
   },
+  "accountColorGradient": "Gradient",
+  "@accountColorGradient": {
+    "description": "Label shown when a gradient is selected for the account card"
+  },
   "accountColorPickerTitle": "Pick card color",
   "@accountColorPickerTitle": {
     "description": "Title shown on the account color picker dialog"
@@ -2146,6 +2150,30 @@
   "accountColorClear": "Clear color",
   "@accountColorClear": {
     "description": "Tooltip for clearing the selected card color"
+  },
+  "accountIconLabel": "Account icon",
+  "@accountIconLabel": {
+    "description": "Label for the account icon selector"
+  },
+  "accountIconNone": "No icon selected",
+  "@accountIconNone": {
+    "description": "Subtitle shown when no account icon has been selected"
+  },
+  "accountIconSelected": "Icon selected",
+  "@accountIconSelected": {
+    "description": "Subtitle shown when an account icon has been selected"
+  },
+  "accountIconSelect": "Choose icon",
+  "@accountIconSelect": {
+    "description": "Tooltip for the action that opens the account icon picker"
+  },
+  "accountIconClear": "Clear icon",
+  "@accountIconClear": {
+    "description": "Tooltip for clearing the selected account icon"
+  },
+  "accountIconPickerTitle": "Pick an account icon",
+  "@accountIconPickerTitle": {
+    "description": "Title for the account icon picker dialog"
   },
   "accountPrimaryToggleLabel": "Set as primary account",
   "@accountPrimaryToggleLabel": {

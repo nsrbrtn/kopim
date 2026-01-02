@@ -10,6 +10,7 @@ import 'package:collection/collection.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/accounts/presentation/account_details_screen.dart';
 import 'package:kopim/features/accounts/presentation/accounts_add_screen.dart';
+import 'package:kopim/features/accounts/presentation/utils/account_card_gradients.dart';
 import 'package:kopim/features/app_shell/presentation/models/navigation_tab_content.dart';
 import 'package:kopim/features/app_shell/presentation/widgets/navigation_responsive_breakpoints.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
@@ -816,9 +817,14 @@ class _AccountCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final ThemeData theme = Theme.of(context);
     final Color? accountColor = parseHexColor(account.color);
+    final AccountCardGradient? gradient = resolveAccountCardGradient(
+      account.gradientId,
+    );
+    final PhosphorIconData? accountIcon = _resolveAccountIconData(account);
     final _AccountCardPalette palette = _AccountCardPalette.fromAccount(
       colorScheme: theme.colorScheme,
       accountColor: accountColor,
+      gradient: gradient,
       isHighlighted: isHighlighted,
     );
     final double cardRadius = context.kopimLayout.radius.xxl;
@@ -864,7 +870,8 @@ class _AccountCard extends ConsumerWidget {
         },
         child: Ink(
           decoration: BoxDecoration(
-            color: palette.background,
+            color: gradient == null ? palette.background : null,
+            gradient: gradient?.toGradient(),
             borderRadius: borderRadius,
           ),
           child: Padding(
@@ -879,16 +886,29 @@ class _AccountCard extends ConsumerWidget {
                     balanceStyle: balanceStyle,
                     summaryTextStyle: summaryTextStyle,
                     summaryHeaderStyle: summaryHeaderStyle,
+                    accountIcon: accountIcon,
                   )
                 : Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
-                      Text(
-                        account.name,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: labelStyle,
+                      Row(
+                        children: <Widget>[
+                          if (accountIcon != null)
+                            _AccountIconBadge(
+                              icon: accountIcon,
+                              color: palette.emphasis,
+                            ),
+                          if (accountIcon != null) const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              account.name,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: labelStyle,
+                            ),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 8),
                       Text(
@@ -927,6 +947,40 @@ class _AccountCard extends ConsumerWidget {
   }
 }
 
+PhosphorIconData? _resolveAccountIconData(AccountEntity account) {
+  final String? iconName = account.iconName;
+  if (iconName == null || iconName.isEmpty) {
+    return null;
+  }
+  final PhosphorIconDescriptor descriptor = PhosphorIconDescriptor(
+    name: iconName,
+    style: PhosphorIconStyleX.fromName(account.iconStyle),
+  );
+  return resolvePhosphorIconData(descriptor);
+}
+
+class _AccountIconBadge extends StatelessWidget {
+  const _AccountIconBadge({required this.icon, required this.color});
+
+  static const double size = 28;
+
+  final PhosphorIconData icon;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        shape: BoxShape.circle,
+      ),
+      child: Icon(icon, size: 16, color: color),
+    );
+  }
+}
+
 class _CreditCardContent extends ConsumerWidget {
   const _CreditCardContent({
     required this.account,
@@ -937,6 +991,7 @@ class _CreditCardContent extends ConsumerWidget {
     required this.balanceStyle,
     required this.summaryTextStyle,
     required this.summaryHeaderStyle,
+    required this.accountIcon,
   });
 
   final AccountEntity account;
@@ -947,6 +1002,7 @@ class _CreditCardContent extends ConsumerWidget {
   final TextStyle balanceStyle;
   final TextStyle summaryTextStyle;
   final TextStyle summaryHeaderStyle;
+  final PhosphorIconData? accountIcon;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -980,11 +1036,23 @@ class _CreditCardContent extends ConsumerWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
                 Expanded(
-                  child: Text(
-                    account.name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: labelStyle,
+                  child: Row(
+                    children: <Widget>[
+                      if (accountIcon != null)
+                        _AccountIconBadge(
+                          icon: accountIcon!,
+                          color: palette.emphasis,
+                        ),
+                      if (accountIcon != null) const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          account.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: labelStyle,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 if (credit.categoryId != null)
@@ -1127,12 +1195,14 @@ class _AccountCardPalette {
   factory _AccountCardPalette.fromAccount({
     required ColorScheme colorScheme,
     Color? accountColor,
+    AccountCardGradient? gradient,
     required bool isHighlighted,
   }) {
     final Color defaultBackground = isHighlighted
         ? colorScheme.primary
         : colorScheme.tertiary;
-    final Color background = accountColor ?? defaultBackground;
+    final Color background =
+        gradient?.sampleColor ?? accountColor ?? defaultBackground;
     final Brightness brightness = ThemeData.estimateBrightnessForColor(
       background,
     );
@@ -1164,6 +1234,7 @@ class _AccountCardLayout {
     final double label = _textHeight(
       theme.textTheme.labelSmall ?? const TextStyle(fontSize: 11, height: 1.45),
     );
+    final double header = math.max(label, _AccountIconBadge.size);
     final double balance = _textHeight(
       theme.textTheme.displaySmall ??
           theme.textTheme.headlineMedium ??
@@ -1181,7 +1252,12 @@ class _AccountCardLayout {
     const double padding = 24 * 2;
     const double gaps = 8 + 16 + 8 + 4;
 
-    return padding + label + balance + summaryTitle + (summaryValue * 2) + gaps;
+    return padding +
+        header +
+        balance +
+        summaryTitle +
+        (summaryValue * 2) +
+        gaps;
   }
 
   static double measureBalanceWidth({

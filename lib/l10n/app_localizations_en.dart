@@ -1683,6 +1683,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get accountColorDefault => 'Default';
 
   @override
+  String get accountColorGradient => 'Gradient';
+
+  @override
   String get accountColorPickerTitle => 'Pick card color';
 
   @override
@@ -1690,6 +1693,24 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get accountColorClear => 'Clear color';
+
+  @override
+  String get accountIconLabel => 'Account icon';
+
+  @override
+  String get accountIconNone => 'No icon selected';
+
+  @override
+  String get accountIconSelected => 'Icon selected';
+
+  @override
+  String get accountIconSelect => 'Choose icon';
+
+  @override
+  String get accountIconClear => 'Clear icon';
+
+  @override
+  String get accountIconPickerTitle => 'Pick an account icon';
 
   @override
   String get accountPrimaryToggleLabel => 'Set as primary account';

@@ -83,6 +83,17 @@ class $AccountsTable extends Accounts
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _gradientIdMeta = const VerificationMeta(
+    'gradientId',
+  );
+  @override
+  late final GeneratedColumn<String> gradientId = GeneratedColumn<String>(
+    'gradient_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -182,6 +193,7 @@ class $AccountsTable extends Accounts
     currency,
     type,
     color,
+    gradientId,
     createdAt,
     updatedAt,
     isDeleted,
@@ -243,6 +255,12 @@ class $AccountsTable extends Accounts
       context.handle(
         _colorMeta,
         color.isAcceptableOrUnknown(data['color']!, _colorMeta),
+      );
+    }
+    if (data.containsKey('gradient_id')) {
+      context.handle(
+        _gradientIdMeta,
+        gradientId.isAcceptableOrUnknown(data['gradient_id']!, _gradientIdMeta),
       );
     }
     if (data.containsKey('created_at')) {
@@ -320,6 +338,10 @@ class $AccountsTable extends Accounts
         DriftSqlType.string,
         data['${effectivePrefix}color'],
       ),
+      gradientId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}gradient_id'],
+      ),
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -364,6 +386,7 @@ class AccountRow extends DataClass implements Insertable<AccountRow> {
   final String currency;
   final String type;
   final String? color;
+  final String? gradientId;
   final DateTime createdAt;
   final DateTime updatedAt;
   final bool isDeleted;
@@ -378,6 +401,7 @@ class AccountRow extends DataClass implements Insertable<AccountRow> {
     required this.currency,
     required this.type,
     this.color,
+    this.gradientId,
     required this.createdAt,
     required this.updatedAt,
     required this.isDeleted,
@@ -396,6 +420,9 @@ class AccountRow extends DataClass implements Insertable<AccountRow> {
     map['type'] = Variable<String>(type);
     if (!nullToAbsent || color != null) {
       map['color'] = Variable<String>(color);
+    }
+    if (!nullToAbsent || gradientId != null) {
+      map['gradient_id'] = Variable<String>(gradientId);
     }
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
@@ -421,6 +448,9 @@ class AccountRow extends DataClass implements Insertable<AccountRow> {
       color: color == null && nullToAbsent
           ? const Value.absent()
           : Value(color),
+      gradientId: gradientId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(gradientId),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
       isDeleted: Value(isDeleted),
@@ -447,6 +477,7 @@ class AccountRow extends DataClass implements Insertable<AccountRow> {
       currency: serializer.fromJson<String>(json['currency']),
       type: serializer.fromJson<String>(json['type']),
       color: serializer.fromJson<String?>(json['color']),
+      gradientId: serializer.fromJson<String?>(json['gradientId']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       isDeleted: serializer.fromJson<bool>(json['isDeleted']),
@@ -466,6 +497,7 @@ class AccountRow extends DataClass implements Insertable<AccountRow> {
       'currency': serializer.toJson<String>(currency),
       'type': serializer.toJson<String>(type),
       'color': serializer.toJson<String?>(color),
+      'gradientId': serializer.toJson<String?>(gradientId),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'isDeleted': serializer.toJson<bool>(isDeleted),
@@ -483,6 +515,7 @@ class AccountRow extends DataClass implements Insertable<AccountRow> {
     String? currency,
     String? type,
     Value<String?> color = const Value.absent(),
+    Value<String?> gradientId = const Value.absent(),
     DateTime? createdAt,
     DateTime? updatedAt,
     bool? isDeleted,
@@ -497,6 +530,7 @@ class AccountRow extends DataClass implements Insertable<AccountRow> {
     currency: currency ?? this.currency,
     type: type ?? this.type,
     color: color.present ? color.value : this.color,
+    gradientId: gradientId.present ? gradientId.value : this.gradientId,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
     isDeleted: isDeleted ?? this.isDeleted,
@@ -513,6 +547,9 @@ class AccountRow extends DataClass implements Insertable<AccountRow> {
       currency: data.currency.present ? data.currency.value : this.currency,
       type: data.type.present ? data.type.value : this.type,
       color: data.color.present ? data.color.value : this.color,
+      gradientId: data.gradientId.present
+          ? data.gradientId.value
+          : this.gradientId,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       isDeleted: data.isDeleted.present ? data.isDeleted.value : this.isDeleted,
@@ -532,6 +569,7 @@ class AccountRow extends DataClass implements Insertable<AccountRow> {
           ..write('currency: $currency, ')
           ..write('type: $type, ')
           ..write('color: $color, ')
+          ..write('gradientId: $gradientId, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('isDeleted: $isDeleted, ')
@@ -551,6 +589,7 @@ class AccountRow extends DataClass implements Insertable<AccountRow> {
     currency,
     type,
     color,
+    gradientId,
     createdAt,
     updatedAt,
     isDeleted,
@@ -569,6 +608,7 @@ class AccountRow extends DataClass implements Insertable<AccountRow> {
           other.currency == this.currency &&
           other.type == this.type &&
           other.color == this.color &&
+          other.gradientId == this.gradientId &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
           other.isDeleted == this.isDeleted &&
@@ -585,6 +625,7 @@ class AccountsCompanion extends UpdateCompanion<AccountRow> {
   final Value<String> currency;
   final Value<String> type;
   final Value<String?> color;
+  final Value<String?> gradientId;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<bool> isDeleted;
@@ -600,6 +641,7 @@ class AccountsCompanion extends UpdateCompanion<AccountRow> {
     this.currency = const Value.absent(),
     this.type = const Value.absent(),
     this.color = const Value.absent(),
+    this.gradientId = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.isDeleted = const Value.absent(),
@@ -616,6 +658,7 @@ class AccountsCompanion extends UpdateCompanion<AccountRow> {
     required String currency,
     required String type,
     this.color = const Value.absent(),
+    this.gradientId = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.isDeleted = const Value.absent(),
@@ -636,6 +679,7 @@ class AccountsCompanion extends UpdateCompanion<AccountRow> {
     Expression<String>? currency,
     Expression<String>? type,
     Expression<String>? color,
+    Expression<String>? gradientId,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<bool>? isDeleted,
@@ -652,6 +696,7 @@ class AccountsCompanion extends UpdateCompanion<AccountRow> {
       if (currency != null) 'currency': currency,
       if (type != null) 'type': type,
       if (color != null) 'color': color,
+      if (gradientId != null) 'gradient_id': gradientId,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (isDeleted != null) 'is_deleted': isDeleted,
@@ -670,6 +715,7 @@ class AccountsCompanion extends UpdateCompanion<AccountRow> {
     Value<String>? currency,
     Value<String>? type,
     Value<String?>? color,
+    Value<String?>? gradientId,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
     Value<bool>? isDeleted,
@@ -686,6 +732,7 @@ class AccountsCompanion extends UpdateCompanion<AccountRow> {
       currency: currency ?? this.currency,
       type: type ?? this.type,
       color: color ?? this.color,
+      gradientId: gradientId ?? this.gradientId,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       isDeleted: isDeleted ?? this.isDeleted,
@@ -717,6 +764,9 @@ class AccountsCompanion extends UpdateCompanion<AccountRow> {
     }
     if (color.present) {
       map['color'] = Variable<String>(color.value);
+    }
+    if (gradientId.present) {
+      map['gradient_id'] = Variable<String>(gradientId.value);
     }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
@@ -754,6 +804,7 @@ class AccountsCompanion extends UpdateCompanion<AccountRow> {
           ..write('currency: $currency, ')
           ..write('type: $type, ')
           ..write('color: $color, ')
+          ..write('gradientId: $gradientId, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('isDeleted: $isDeleted, ')
@@ -8359,6 +8410,7 @@ typedef $$AccountsTableCreateCompanionBuilder =
       required String currency,
       required String type,
       Value<String?> color,
+      Value<String?> gradientId,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<bool> isDeleted,
@@ -8376,6 +8428,7 @@ typedef $$AccountsTableUpdateCompanionBuilder =
       Value<String> currency,
       Value<String> type,
       Value<String?> color,
+      Value<String?> gradientId,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<bool> isDeleted,
@@ -8506,6 +8559,11 @@ class $$AccountsTableFilterComposer
 
   ColumnFilters<String> get color => $composableBuilder(
     column: $table.color,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get gradientId => $composableBuilder(
+    column: $table.gradientId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -8684,6 +8742,11 @@ class $$AccountsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get gradientId => $composableBuilder(
+    column: $table.gradientId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -8746,6 +8809,11 @@ class $$AccountsTableAnnotationComposer
 
   GeneratedColumn<String> get color =>
       $composableBuilder(column: $table.color, builder: (column) => column);
+
+  GeneratedColumn<String> get gradientId => $composableBuilder(
+    column: $table.gradientId,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
@@ -8908,6 +8976,7 @@ class $$AccountsTableTableManager
                 Value<String> currency = const Value.absent(),
                 Value<String> type = const Value.absent(),
                 Value<String?> color = const Value.absent(),
+                Value<String?> gradientId = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<bool> isDeleted = const Value.absent(),
@@ -8923,6 +8992,7 @@ class $$AccountsTableTableManager
                 currency: currency,
                 type: type,
                 color: color,
+                gradientId: gradientId,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 isDeleted: isDeleted,
@@ -8940,6 +9010,7 @@ class $$AccountsTableTableManager
                 required String currency,
                 required String type,
                 Value<String?> color = const Value.absent(),
+                Value<String?> gradientId = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<bool> isDeleted = const Value.absent(),
@@ -8955,6 +9026,7 @@ class $$AccountsTableTableManager
                 currency: currency,
                 type: type,
                 color: color,
+                gradientId: gradientId,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 isDeleted: isDeleted,

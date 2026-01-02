@@ -85,6 +85,9 @@ class AccountRepositoryImpl implements AccountRepository {
     json['createdAt'] = account.createdAt.toIso8601String();
     json['isPrimary'] = account.isPrimary;
     json['color'] = account.color;
+    json['gradientId'] = account.gradientId;
+    json['iconName'] = account.iconName;
+    json['iconStyle'] = account.iconStyle;
     return json;
   }
 
@@ -96,11 +99,14 @@ class AccountRepositoryImpl implements AccountRepository {
       currency: row.currency,
       type: row.type,
       color: row.color,
+      gradientId: row.gradientId,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
       isDeleted: row.isDeleted,
       isPrimary: row.isPrimary,
       isHidden: row.isHidden,
+      iconName: row.iconName,
+      iconStyle: row.iconStyle,
     );
   }
 }

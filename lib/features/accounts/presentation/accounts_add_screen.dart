@@ -6,8 +6,11 @@ import 'package:kopim/core/widgets/animated_fab.dart';
 import 'package:kopim/core/widgets/collapsible_list/collapsible_list.dart';
 import 'package:kopim/core/widgets/kopim_floating_action_button.dart';
 import 'package:kopim/core/widgets/kopim_text_field.dart';
+import 'package:kopim/core/domain/icons/phosphor_icon_descriptor.dart';
 import 'package:kopim/features/accounts/presentation/controllers/add_account_form_controller.dart';
 import 'package:kopim/features/accounts/presentation/widgets/account_color_selector.dart';
+import 'package:kopim/features/accounts/presentation/widgets/account_icon_selector.dart';
+import 'package:kopim/features/accounts/presentation/utils/account_card_gradients.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
 class AddAccountScreen extends ConsumerStatefulWidget {
@@ -28,6 +31,19 @@ class _AddAccountScreenState extends ConsumerState<AddAccountScreen> {
   late final TextEditingController _customTypeController;
   late final TextEditingController _currencySearchController;
   String _currencyQuery = '';
+
+  PhosphorIconDescriptor? _resolveAccountIcon(
+    String? name,
+    String? style,
+  ) {
+    if (name == null || name.isEmpty) {
+      return null;
+    }
+    return PhosphorIconDescriptor(
+      name: name,
+      style: PhosphorIconStyleX.fromName(style),
+    );
+  }
 
   @override
   void initState() {
@@ -118,6 +134,13 @@ class _AddAccountScreenState extends ConsumerState<AddAccountScreen> {
         )
         .toList();
     final Color? selectedColor = parseHexColor(state.color);
+    final AccountCardGradient? selectedGradient = resolveAccountCardGradient(
+      state.gradientId,
+    );
+    final PhosphorIconDescriptor? selectedIcon = _resolveAccountIcon(
+      state.iconName,
+      state.iconStyle,
+    );
     final BorderRadius containerRadius = BorderRadius.circular(
       layout.radius.xxl,
     );
@@ -248,11 +271,18 @@ class _AddAccountScreenState extends ConsumerState<AddAccountScreen> {
                       currencySearchController: _currencySearchController,
                     ),
                     SizedBox(height: layout.spacing.sectionLarge),
+                    AccountIconSelector(
+                      icon: selectedIcon,
+                      enabled: !state.isSaving,
+                      onIconChanged: controller.updateIcon,
+                    ),
+                    SizedBox(height: layout.spacing.sectionLarge),
                     _ColorPickerRow(
                       colorScheme: colorScheme,
                       controller: controller,
                       layout: layout,
                       selectedColor: selectedColor,
+                      selectedGradient: selectedGradient,
                       strings: strings,
                       theme: theme,
                       isSaving: state.isSaving,
@@ -636,6 +666,7 @@ class _ColorPickerRow extends StatelessWidget {
     required this.controller,
     required this.layout,
     required this.selectedColor,
+    required this.selectedGradient,
     required this.strings,
     required this.theme,
     required this.isSaving,
@@ -645,6 +676,7 @@ class _ColorPickerRow extends StatelessWidget {
   final AddAccountFormController controller;
   final KopimLayout layout;
   final Color? selectedColor;
+  final AccountCardGradient? selectedGradient;
   final AppLocalizations strings;
   final ThemeData theme;
   final bool isSaving;
@@ -666,15 +698,17 @@ class _ColorPickerRow extends StatelessWidget {
           onTap: isSaving
               ? null
               : () async {
-                  final Color? picked = await showAccountColorPickerDialog(
+                  final AccountCardStyleSelection? picked =
+                      await showAccountColorPickerDialog(
                     context: context,
                     strings: strings,
                     initialColor: selectedColor,
+                    initialGradientId: selectedGradient?.id,
                   );
                   if (picked != null) {
-                    controller.updateColor(
-                      colorToHex(picked, includeAlpha: false),
-                    );
+                    controller
+                      ..updateColor(picked.color)
+                      ..updateGradient(picked.gradientId);
                   }
                 },
           borderRadius: BorderRadius.circular(28),
@@ -683,12 +717,15 @@ class _ColorPickerRow extends StatelessWidget {
             height: 56,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: selectedColor ?? colorScheme.surfaceContainerHighest,
+              color: selectedGradient == null
+                  ? selectedColor ?? colorScheme.surfaceContainerHighest
+                  : null,
+              gradient: selectedGradient?.toGradient(),
               border: Border.all(
                 color: colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
               ),
             ),
-            child: selectedColor == null
+            child: selectedColor == null && selectedGradient == null
                 ? Icon(Icons.palette_outlined, color: colorScheme.onSurface)
                 : null,
           ),

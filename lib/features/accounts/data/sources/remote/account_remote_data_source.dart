@@ -71,6 +71,9 @@ class AccountRemoteDataSource {
       'balance': account.balance,
       'isPrimary': account.isPrimary,
       'color': account.color,
+      'gradientId': account.gradientId,
+      'iconName': account.iconName,
+      'iconStyle': account.iconStyle,
     };
   }
 
@@ -87,6 +90,9 @@ class AccountRemoteDataSource {
       isDeleted: data['isDeleted'] as bool? ?? false,
       isPrimary: data['isPrimary'] as bool? ?? false,
       color: data['color'] as String?,
+      gradientId: data['gradientId'] as String?,
+      iconName: data['iconName'] as String?,
+      iconStyle: data['iconStyle'] as String?,
     );
   }
 

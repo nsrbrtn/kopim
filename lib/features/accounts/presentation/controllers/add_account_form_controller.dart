@@ -1,5 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:kopim/core/di/injectors.dart';
+import 'package:kopim/core/domain/icons/phosphor_icon_descriptor.dart';
 import 'package:kopim/core/utils/helpers.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/accounts/domain/use_cases/add_account_use_case.dart';
@@ -31,6 +32,9 @@ abstract class AddAccountFormState with _$AddAccountFormState {
     AddAccountFieldError? typeError,
     String? errorMessage,
     String? color,
+    String? gradientId,
+    String? iconName,
+    String? iconStyle,
   }) = _AddAccountFormState;
 
   const AddAccountFormState._();
@@ -140,6 +144,18 @@ class AddAccountFormController extends _$AddAccountFormController {
     state = state.copyWith(color: value, submissionSuccess: false);
   }
 
+  void updateGradient(String? value) {
+    state = state.copyWith(gradientId: value, submissionSuccess: false);
+  }
+
+  void updateIcon(PhosphorIconDescriptor? icon) {
+    state = state.copyWith(
+      iconName: icon?.name,
+      iconStyle: icon?.style.name,
+      submissionSuccess: false,
+    );
+  }
+
   Future<void> submit() async {
     if (state.isSaving) {
       return;
@@ -195,6 +211,9 @@ class AddAccountFormController extends _$AddAccountFormController {
       createdAt: now,
       updatedAt: now,
       color: state.color,
+      gradientId: state.gradientId,
+      iconName: state.iconName,
+      iconStyle: state.iconStyle,
       isPrimary: state.isPrimary,
     );
 

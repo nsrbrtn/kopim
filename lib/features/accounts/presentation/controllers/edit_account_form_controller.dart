@@ -1,5 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:kopim/core/di/injectors.dart';
+import 'package:kopim/core/domain/icons/phosphor_icon_descriptor.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/accounts/domain/use_cases/add_account_use_case.dart';
 import 'package:kopim/features/accounts/domain/utils/account_type_utils.dart';
@@ -25,6 +26,9 @@ abstract class EditAccountFormState with _$EditAccountFormState {
     @Default(false) bool submissionSuccess,
     @Default(false) bool isPrimary,
     String? color,
+    String? gradientId,
+    String? iconName,
+    String? iconStyle,
     EditAccountFieldError? nameError,
     EditAccountFieldError? balanceError,
     EditAccountFieldError? typeError,
@@ -81,6 +85,9 @@ class EditAccountFormController extends _$EditAccountFormController {
       customType: customType,
       isPrimary: account.isPrimary,
       color: account.color,
+      gradientId: account.gradientId,
+      iconName: account.iconName,
+      iconStyle: account.iconStyle,
     );
   }
 
@@ -154,6 +161,23 @@ class EditAccountFormController extends _$EditAccountFormController {
     );
   }
 
+  void updateGradient(String? value) {
+    state = state.copyWith(
+      gradientId: value,
+      submissionSuccess: false,
+      errorMessage: null,
+    );
+  }
+
+  void updateIcon(PhosphorIconDescriptor? icon) {
+    state = state.copyWith(
+      iconName: icon?.name,
+      iconStyle: icon?.style.name,
+      submissionSuccess: false,
+      errorMessage: null,
+    );
+  }
+
   void clearSubmissionFlag() {
     if (state.submissionSuccess) {
       state = state.copyWith(submissionSuccess: false);
@@ -219,6 +243,9 @@ class EditAccountFormController extends _$EditAccountFormController {
       updatedAt: updatedAt,
       isPrimary: state.isPrimary,
       color: state.color,
+      gradientId: state.gradientId,
+      iconName: state.iconName,
+      iconStyle: state.iconStyle,
     );
 
     try {

@@ -15,6 +15,7 @@ class Accounts extends Table {
   TextColumn get currency => text().withLength(min: 3, max: 3)();
   TextColumn get type => text().withLength(min: 1, max: 50)();
   TextColumn get color => text().nullable()();
+  TextColumn get gradientId => text().nullable()();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
   BoolColumn get isDeleted =>
@@ -246,7 +247,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.connect(DatabaseConnection super.connection);
 
   @override
-  int get schemaVersion => 26;
+  int get schemaVersion => 27;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -563,6 +564,11 @@ class AppDatabase extends _$AppDatabase {
       if (from < 26) {
         if (!await _columnExists('debts', 'name')) {
           await m.addColumn(debts, debts.name);
+        }
+      }
+      if (from < 27) {
+        if (!await _columnExists('accounts', 'gradient_id')) {
+          await m.addColumn(accounts, accounts.gradientId);
         }
       }
     },

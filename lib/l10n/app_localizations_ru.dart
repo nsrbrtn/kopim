@@ -1705,6 +1705,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get accountColorDefault => 'По умолчанию';
 
   @override
+  String get accountColorGradient => 'Градиент';
+
+  @override
   String get accountColorPickerTitle => 'Выберите цвет карточки';
 
   @override
@@ -1712,6 +1715,24 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get accountColorClear => 'Сбросить цвет';
+
+  @override
+  String get accountIconLabel => 'Иконка счёта';
+
+  @override
+  String get accountIconNone => 'Иконка не выбрана';
+
+  @override
+  String get accountIconSelected => 'Иконка выбрана';
+
+  @override
+  String get accountIconSelect => 'Выбрать иконку';
+
+  @override
+  String get accountIconClear => 'Сбросить иконку';
+
+  @override
+  String get accountIconPickerTitle => 'Выбор иконки счёта';
 
   @override
   String get accountPrimaryToggleLabel => 'Сделать счёт основным';

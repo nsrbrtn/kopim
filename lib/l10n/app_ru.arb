@@ -2135,6 +2135,10 @@
   "@accountColorDefault": {
     "description": "Текст, когда используется цвет по умолчанию"
   },
+  "accountColorGradient": "Градиент",
+  "@accountColorGradient": {
+    "description": "Текст, когда выбран градиент для карточки счёта"
+  },
   "accountColorPickerTitle": "Выберите цвет карточки",
   "@accountColorPickerTitle": {
     "description": "Заголовок диалога выбора цвета счёта"
@@ -2146,6 +2150,30 @@
   "accountColorClear": "Сбросить цвет",
   "@accountColorClear": {
     "description": "Подсказка для кнопки очистки выбранного цвета"
+  },
+  "accountIconLabel": "Иконка счёта",
+  "@accountIconLabel": {
+    "description": "Подпись выбора иконки счёта"
+  },
+  "accountIconNone": "Иконка не выбрана",
+  "@accountIconNone": {
+    "description": "Текст, когда иконка счёта не выбрана"
+  },
+  "accountIconSelected": "Иконка выбрана",
+  "@accountIconSelected": {
+    "description": "Текст, когда иконка счёта выбрана"
+  },
+  "accountIconSelect": "Выбрать иконку",
+  "@accountIconSelect": {
+    "description": "Подсказка для кнопки выбора иконки счёта"
+  },
+  "accountIconClear": "Сбросить иконку",
+  "@accountIconClear": {
+    "description": "Подсказка для кнопки очистки выбранной иконки счёта"
+  },
+  "accountIconPickerTitle": "Выбор иконки счёта",
+  "@accountIconPickerTitle": {
+    "description": "Заголовок диалога выбора иконки счёта"
   },
   "accountPrimaryToggleLabel": "Сделать счёт основным",
   "@accountPrimaryToggleLabel": {

@@ -70,9 +70,11 @@ class HomeGamificationAppBar extends ConsumerWidget {
           surfaceTintColor: theme.colorScheme.surfaceTint,
           elevation: 4,
           titleSpacing: 20,
-          title: Text(
-            'Копим',
-            style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+          title: Image.asset(
+            'assets/icons/logo_dark.png',
+            height: 24,
+            fit: BoxFit.contain,
+            semanticLabel: 'Копим',
           ),
           actions: <Widget>[
             const Center(child: SyncStatusIndicator()),

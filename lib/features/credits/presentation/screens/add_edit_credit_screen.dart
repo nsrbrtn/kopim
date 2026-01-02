@@ -32,6 +32,7 @@ class _AddEditCreditScreenState extends ConsumerState<AddEditCreditScreen> {
   bool _isHidden = false;
   PhosphorIconDescriptor? _icon;
   String? _color;
+  String? _gradientId;
 
   // Состояния ошибок для KopimTextField
   bool _nameError = false;
@@ -58,6 +59,7 @@ class _AddEditCreditScreenState extends ConsumerState<AddEditCreditScreen> {
           setState(() {
             _nameController.text = account.name;
             _color = account.color;
+            _gradientId = account.gradientId;
             if (account.iconName != null) {
               _icon = PhosphorIconDescriptor(
                 name: account.iconName!,
@@ -114,6 +116,7 @@ class _AddEditCreditScreenState extends ConsumerState<AddEditCreditScreen> {
               startDate: DateTime.now(),
               paymentDay: int.parse(_paymentDayController.text),
               color: _color,
+              gradientId: _gradientId,
               iconName: _icon?.name,
               iconStyle: _icon?.style.name,
               isHidden: _isHidden,
@@ -314,8 +317,14 @@ class _AddEditCreditScreenState extends ConsumerState<AddEditCreditScreen> {
             ),
             AccountColorSelector(
               color: _color,
+              gradientId: _gradientId,
               enabled: true,
-              onColorChanged: (String? c) => setState(() => _color = c),
+              onStyleChanged: (AccountCardStyleSelection selection) {
+                setState(() {
+                  _color = selection.color;
+                  _gradientId = selection.gradientId;
+                });
+              },
             ),
             SwitchListTile(
               title: Text(context.loc.creditsHiddenOnDashboardLabel),

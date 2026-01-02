@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:kopim/core/di/injectors.dart';
+import 'package:kopim/core/domain/icons/phosphor_icon_descriptor.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/accounts/domain/use_cases/delete_account_use_case.dart';
 import 'package:kopim/features/accounts/presentation/controllers/edit_account_form_controller.dart';
 import 'package:kopim/features/accounts/presentation/widgets/account_color_selector.dart';
+import 'package:kopim/features/accounts/presentation/widgets/account_icon_selector.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
 class EditAccountScreen extends ConsumerStatefulWidget {
@@ -53,6 +55,19 @@ class _EditAccountScreenState extends ConsumerState<EditAccountScreen> {
   late final TextEditingController _customTypeController;
   bool _isDeleting = false;
 
+  PhosphorIconDescriptor? _resolveAccountIcon(
+    String? name,
+    String? style,
+  ) {
+    if (name == null || name.isEmpty) {
+      return null;
+    }
+    return PhosphorIconDescriptor(
+      name: name,
+      style: PhosphorIconStyleX.fromName(style),
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -82,6 +97,10 @@ class _EditAccountScreenState extends ConsumerState<EditAccountScreen> {
     );
     final EditAccountFormController controller = ref.read(
       editAccountFormControllerProvider(widget.account).notifier,
+    );
+    final PhosphorIconDescriptor? selectedIcon = _resolveAccountIcon(
+      state.iconName,
+      state.iconStyle,
     );
 
     ref.listen<EditAccountFormState>(
@@ -232,10 +251,21 @@ class _EditAccountScreenState extends ConsumerState<EditAccountScreen> {
                       },
               ),
               const SizedBox(height: 16),
+              AccountIconSelector(
+                icon: selectedIcon,
+                enabled: !state.isSaving,
+                onIconChanged: controller.updateIcon,
+              ),
+              const SizedBox(height: 16),
               AccountColorSelector(
                 color: state.color,
+                gradientId: state.gradientId,
                 enabled: !state.isSaving,
-                onColorChanged: controller.updateColor,
+                onStyleChanged: (AccountCardStyleSelection selection) {
+                  controller
+                    ..updateColor(selection.color)
+                    ..updateGradient(selection.gradientId);
+                },
               ),
               if (state.useCustomType) ...<Widget>[
                 const SizedBox(height: 16),
