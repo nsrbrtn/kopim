@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
+import 'package:kopim/features/upcoming_payments/application/upcoming_notifications_controller.dart';
 import 'package:kopim/features/upcoming_payments/domain/entities/payment_reminder.dart';
 import 'package:kopim/features/upcoming_payments/domain/entities/upcoming_payment.dart';
 import 'package:kopim/features/upcoming_payments/domain/providers/upcoming_payments_providers.dart';
@@ -131,6 +132,9 @@ class UpcomingPaymentsList extends ConsumerWidget {
         deleteUpcomingPaymentUCProvider,
       );
       await deleteUc(DeleteUpcomingPaymentInput(id: payment.id));
+      await ref
+          .read(upcomingNotificationsControllerProvider.notifier)
+          .cancelUpcomingPaymentNotification(payment.id);
       if (!context.mounted) {
         return;
       }
@@ -284,6 +288,9 @@ class PaymentRemindersList extends ConsumerWidget {
         deletePaymentReminderUCProvider,
       );
       await deleteUc(DeletePaymentReminderInput(id: reminder.id));
+      await ref
+          .read(upcomingNotificationsControllerProvider.notifier)
+          .cancelReminderNotification(reminder.id);
       if (!context.mounted) {
         return;
       }

@@ -212,6 +212,32 @@ class UpcomingNotificationsController
     }
   }
 
+  Future<void> cancelUpcomingPaymentNotification(String paymentId) async {
+    if (!_ready) {
+      return;
+    }
+    final int notificationId = _hashId('rule_$paymentId');
+    await _notifications.cancel(notificationId);
+    _activePaymentIds.remove(notificationId);
+    _logger.logInfo(
+      'Отменили уведомление для удалённого правила $paymentId '
+      '(id=$notificationId)',
+    );
+  }
+
+  Future<void> cancelReminderNotification(String reminderId) async {
+    if (!_ready) {
+      return;
+    }
+    final int notificationId = _hashId('rem_$reminderId');
+    await _notifications.cancel(notificationId);
+    _activeReminderIds.remove(notificationId);
+    _logger.logInfo(
+      'Отменили уведомление для удалённого напоминания $reminderId '
+      '(id=$notificationId)',
+    );
+  }
+
   Future<void> _syncPaymentNotifications({
     required NotificationsGateway notifications,
     required LoggerService logger,

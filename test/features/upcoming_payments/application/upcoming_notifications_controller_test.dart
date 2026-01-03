@@ -153,4 +153,26 @@ void main() {
 
     verifyNever(() => markReminderDone.call(any()));
   });
+
+  test('cancels notification for deleted upcoming payment', () async {
+    await container.read(upcomingNotificationsControllerProvider.future);
+    final UpcomingNotificationsController controller = container.read(
+      upcomingNotificationsControllerProvider.notifier,
+    );
+
+    await controller.cancelUpcomingPaymentNotification('rule-1');
+
+    verify(() => notifications.cancel(any())).called(1);
+  });
+
+  test('cancels notification for deleted reminder', () async {
+    await container.read(upcomingNotificationsControllerProvider.future);
+    final UpcomingNotificationsController controller = container.read(
+      upcomingNotificationsControllerProvider.notifier,
+    );
+
+    await controller.cancelReminderNotification('rem-1');
+
+    verify(() => notifications.cancel(any())).called(1);
+  });
 }
