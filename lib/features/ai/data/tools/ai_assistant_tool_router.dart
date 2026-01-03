@@ -44,10 +44,12 @@ class AiAssistantToolRouter {
     required AiAssistantToolDao toolDao,
     required AiAnalyticsDao analyticsDao,
     required LoggerService loggerService,
+    BudgetSchedule budgetSchedule = const BudgetSchedule(),
     DateTime Function()? nowProvider,
   }) : _toolDao = toolDao,
        _analyticsDao = analyticsDao,
        _loggerService = loggerService,
+       _budgetSchedule = budgetSchedule,
        _nowProvider = nowProvider ?? DateTime.now;
 
   static const int _maxTransactions = 200;
@@ -62,8 +64,8 @@ class AiAssistantToolRouter {
   final AiAssistantToolDao _toolDao;
   final AiAnalyticsDao _analyticsDao;
   final LoggerService _loggerService;
+  final BudgetSchedule _budgetSchedule;
   final DateTime Function() _nowProvider;
-  final BudgetSchedule _budgetSchedule = const BudgetSchedule();
 
   Future<AiAssistantToolExecutionResult> runToolCalls(
     List<AiToolCall> toolCalls,
@@ -383,7 +385,7 @@ class AiAssistantToolRouter {
     for (final Budget budget in budgets) {
       final ({DateTime start, DateTime end}) period = _budgetSchedule.periodFor(
         budget: budget,
-        reference: now,
+        reference: _nowProvider(),
       );
       final DateTime endExclusive = period.end.subtract(
         const Duration(microseconds: 1),

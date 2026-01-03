@@ -152,6 +152,52 @@ class AiAnalyticsDao {
     );
   }
 
+  Future<List<db.BudgetRow>> getActiveBudgets() async {
+    return (_db.select(
+      _db.budgets,
+    )..where((db.$BudgetsTable tbl) => tbl.isDeleted.equals(false))).get();
+  }
+
+  Stream<List<db.BudgetRow>> watchActiveBudgets() {
+    return (_db.select(
+      _db.budgets,
+    )..where((db.$BudgetsTable tbl) => tbl.isDeleted.equals(false))).watch();
+  }
+
+  Future<double> getBudgetSpent({
+    required List<String> categoryIds,
+    required List<String> accountIds,
+    required DateTime start,
+    required DateTime end,
+  }) async {
+    final SimpleSelectStatement<db.$TransactionsTable, db.TransactionRow>
+    query = _db.select(_db.transactions)
+      ..where(
+        (db.$TransactionsTable tbl) =>
+            tbl.type.equals('expense') &
+            tbl.date.isBiggerOrEqualValue(start) &
+            tbl.date.isSmallerThanValue(end),
+      );
+
+    if (categoryIds.isNotEmpty) {
+      query.where(
+        (db.$TransactionsTable tbl) => tbl.categoryId.isIn(categoryIds),
+      );
+    }
+
+    if (accountIds.isNotEmpty) {
+      query.where(
+        (db.$TransactionsTable tbl) => tbl.accountId.isIn(accountIds),
+      );
+    }
+
+    final List<db.TransactionRow> rows = await query.get();
+    return rows.fold<double>(
+      0,
+      (double prev, db.TransactionRow row) => prev + row.amount.abs(),
+    );
+  }
+
   Selectable<QueryRow> _monthlyExpenseQuery(AiDataFilter filter) {
     final StringBuffer sql = StringBuffer('''
 SELECT strftime('%Y-%m-01', ${_getNormalizedDateExpr('date')}) AS month,

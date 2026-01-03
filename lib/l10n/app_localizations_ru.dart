@@ -150,7 +150,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get profileGeneralSettingsManagementSection => 'Управление данными';
 
   @override
-  String get profileManageCategoriesCta => 'Управлять категориями';
+  String get profileManageCategoriesCta => 'Управлять категориями и тэгами';
 
   @override
   String get profileUpcomingPaymentsCta => 'Повторяющиеся платежи';
@@ -301,7 +301,13 @@ class AppLocalizationsRu extends AppLocalizations {
   String get settingsHomeBudgetPickerClear => 'Сбросить выбор';
 
   @override
-  String get profileManageCategoriesTitle => 'Управление категориями';
+  String get profileManageCategoriesTitle => 'Управление категориями и тэгами';
+
+  @override
+  String get manageCategoriesTabCategories => 'Категории';
+
+  @override
+  String get manageCategoriesTabTags => 'Тэги';
 
   @override
   String get manageCategoriesAddAction => 'Добавить категорию';
@@ -532,6 +538,77 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String manageCategoriesDeleteError(String error) {
     return 'Не удалось удалить категорию: $error';
+  }
+
+  @override
+  String get manageTagsAddAction => 'Добавить тэг';
+
+  @override
+  String get manageTagsEmpty => 'Тэгов пока нет. Добавьте первый.';
+
+  @override
+  String manageTagsListError(String error) {
+    return 'Не удалось загрузить тэги: $error';
+  }
+
+  @override
+  String get manageTagsCreateTitle => 'Новый тэг';
+
+  @override
+  String get manageTagsEditTitle => 'Редактирование тэга';
+
+  @override
+  String get manageTagsNameLabel => 'Название';
+
+  @override
+  String get manageTagsNameRequired => 'Введите название.';
+
+  @override
+  String get manageTagsColorLabel => 'Цвет';
+
+  @override
+  String get manageTagsColorNone => 'Цвет не выбран';
+
+  @override
+  String get manageTagsColorSelected => 'Цвет выбран';
+
+  @override
+  String get manageTagsColorRequired => 'Выберите цвет.';
+
+  @override
+  String get manageTagsColorPickerTitle => 'Выберите цвет тэга';
+
+  @override
+  String get manageTagsSaveCta => 'Сохранить тэг';
+
+  @override
+  String manageTagsSaveError(String error) {
+    return 'Не удалось сохранить тэг: $error';
+  }
+
+  @override
+  String get manageTagsSuccessCreate => 'Тэг успешно создан.';
+
+  @override
+  String get manageTagsSuccessUpdate => 'Тэг обновлён.';
+
+  @override
+  String get manageTagsDeleteAction => 'Удалить';
+
+  @override
+  String get manageTagsDeleteConfirmTitle => 'Удалить тэг';
+
+  @override
+  String manageTagsDeleteConfirmMessage(String name) {
+    return 'Вы действительно хотите удалить тэг «$name»?';
+  }
+
+  @override
+  String get manageTagsDeleteSuccess => 'Тэг удалён.';
+
+  @override
+  String manageTagsDeleteError(String error) {
+    return 'Не удалось удалить тэг: $error';
   }
 
   @override
@@ -1632,6 +1709,21 @@ class AppLocalizationsRu extends AppLocalizations {
   String addTransactionCategoriesError(String error) {
     return 'Не удалось загрузить категории: $error';
   }
+
+  @override
+  String get transactionTagsAddButton => 'Добавить тэг';
+
+  @override
+  String get transactionTagsSearchHint => 'Найти тэг';
+
+  @override
+  String get transactionTagsNone => 'Тэги не найдены';
+
+  @override
+  String get transactionTagsDialogTitle => 'Выбор тэгов';
+
+  @override
+  String get transactionTagsDialogApply => 'Готово';
 
   @override
   String get addTransactionDateLabel => 'Дата';

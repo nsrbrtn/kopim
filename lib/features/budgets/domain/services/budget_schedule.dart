@@ -11,19 +11,23 @@ class BudgetSchedule {
     DateTime? reference,
   }) {
     final DateTime ref = _normalizeStart(reference ?? DateTime.now());
-    final DateTime initialStart = _normalizeStart(budget.startDate);
+    final DateTime baseStart = _alignToPeriodStart(
+      budget.startDate,
+      budget.period,
+    );
+
     if (!budget.period.isRecurring) {
       final DateTime? rawEnd = budget.endDate;
       DateTime normalizedEnd = rawEnd != null
           ? _normalizeStart(rawEnd)
-          : initialStart.add(const Duration(days: 1));
-      if (!normalizedEnd.isAfter(initialStart)) {
-        normalizedEnd = initialStart.add(const Duration(days: 1));
+          : baseStart.add(const Duration(days: 1));
+      if (!normalizedEnd.isAfter(baseStart)) {
+        normalizedEnd = baseStart.add(const Duration(days: 1));
       }
-      return (start: initialStart, end: normalizedEnd);
+      return (start: baseStart, end: normalizedEnd);
     }
 
-    DateTime start = initialStart;
+    DateTime start = baseStart;
     DateTime end = _advance(budget.period, start);
     final DateTime? cutoff = budget.endDate != null
         ? _normalizeStart(budget.endDate!)
@@ -112,26 +116,26 @@ class BudgetSchedule {
     final DateTime normalized = _normalizeStart(start);
     switch (period) {
       case BudgetPeriod.monthly:
-        final DateTime firstOfNextMonth = DateTime(
-          normalized.year,
-          normalized.month + 1,
-          1,
-        );
-        final int lastDayOfNextMonth = DateTime(
-          firstOfNextMonth.year,
-          firstOfNextMonth.month + 1,
-          0,
-        ).day;
-        final int resolvedDay = normalized.day > lastDayOfNextMonth
-            ? lastDayOfNextMonth
-            : normalized.day;
-        return DateTime(
-          firstOfNextMonth.year,
-          firstOfNextMonth.month,
-          resolvedDay,
-        );
+        return DateTime(normalized.year, normalized.month + 1, 1);
       case BudgetPeriod.weekly:
-        return normalized.add(const Duration(days: 7));
+        final DateTime aligned = _alignToPeriodStart(
+          normalized,
+          BudgetPeriod.weekly,
+        );
+        return aligned.add(const Duration(days: 7));
+      case BudgetPeriod.custom:
+        return normalized;
+    }
+  }
+
+  DateTime _alignToPeriodStart(DateTime date, BudgetPeriod period) {
+    final DateTime normalized = _normalizeStart(date);
+    switch (period) {
+      case BudgetPeriod.monthly:
+        return DateTime(normalized.year, normalized.month, 1);
+      case BudgetPeriod.weekly:
+        // DateTime.weekday: 1 (Mon) to 7 (Sun). Move to Monday.
+        return normalized.subtract(Duration(days: normalized.weekday - 1));
       case BudgetPeriod.custom:
         return normalized;
     }

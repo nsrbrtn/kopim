@@ -48,7 +48,7 @@ final class HomeAccountsProvider
   }
 }
 
-String _$homeAccountsHash() => r'6b39969791f39c79831a63d8056e72c3c1c71c4a';
+String _$homeAccountsHash() => r'8945946a53312c5132885e6ec5e57e04735f22c4';
 
 @ProviderFor(homeRecentTransactions)
 const homeRecentTransactionsProvider = HomeRecentTransactionsFamily._();

@@ -3,21 +3,30 @@ import 'dart:async';
 import 'package:collection/collection.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import 'package:kopim/core/data/database.dart' as db;
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/features/ai/data/local/ai_analytics_dao.dart';
 import 'package:kopim/features/ai/domain/entities/ai_financial_overview_entity.dart';
 import 'package:kopim/features/ai/domain/repositories/ai_financial_data_repository.dart';
+import 'package:kopim/features/budgets/domain/entities/budget.dart';
+import 'package:kopim/features/budgets/domain/entities/budget_category_allocation.dart';
+import 'package:kopim/features/budgets/domain/entities/budget_period.dart';
+import 'package:kopim/features/budgets/domain/entities/budget_scope.dart';
+import 'package:kopim/features/budgets/domain/services/budget_schedule.dart';
 
 part 'ai_financial_data_repository_impl.g.dart';
 
 class AiFinancialDataRepositoryImpl implements AiFinancialDataRepository {
   AiFinancialDataRepositoryImpl({
     required AiAnalyticsDao analyticsDao,
+    required BudgetSchedule budgetSchedule,
     DateTime Function()? nowProvider,
   }) : _analyticsDao = analyticsDao,
+       _budgetSchedule = budgetSchedule,
        _nowProvider = nowProvider ?? DateTime.now;
 
   final AiAnalyticsDao _analyticsDao;
+  final BudgetSchedule _budgetSchedule;
   final DateTime Function() _nowProvider;
 
   @override
@@ -34,8 +43,15 @@ class AiFinancialDataRepositoryImpl implements AiFinancialDataRepository {
         await _analyticsDao.getTopIncomeCategories(filter);
     final List<BudgetInstanceAggregate> budgetInstances = await _analyticsDao
         .getBudgetForecasts(filter);
+    final List<db.BudgetRow> activeBudgets = await _analyticsDao
+        .getActiveBudgets();
 
-    final Set<String> allCategoryIds = budgetInstances
+    final List<BudgetInstanceAggregate> mergedBudgets = await _mergeBudgets(
+      budgets: activeBudgets,
+      instances: budgetInstances,
+    );
+
+    final Set<String> allCategoryIds = mergedBudgets
         .expand((BudgetInstanceAggregate b) => b.categoryIds)
         .toSet();
     final Map<String, String> categoryNames = await _analyticsDao
@@ -46,7 +62,7 @@ class AiFinancialDataRepositoryImpl implements AiFinancialDataRepository {
       monthlyIncome: monthlyIncome,
       topCategories: topCategories,
       topIncomeCategories: topIncomeCategories,
-      budgetInstances: budgetInstances,
+      budgetInstances: mergedBudgets,
       categoryNamesMap: categoryNames,
       filter: filter,
     );
@@ -61,7 +77,8 @@ class AiFinancialDataRepositoryImpl implements AiFinancialDataRepository {
       List<MonthlyIncomeAggregate>? incomes;
       List<CategoryExpenseAggregate>? categories;
       List<CategoryIncomeAggregate>? incomeCategories;
-      List<BudgetInstanceAggregate>? budgets;
+      List<BudgetInstanceAggregate>? existingInstances;
+      List<db.BudgetRow>? activeBudgets;
       bool isClosed = false;
 
       void emitIfReady() async {
@@ -70,14 +87,17 @@ class AiFinancialDataRepositoryImpl implements AiFinancialDataRepository {
             incomes == null ||
             categories == null ||
             incomeCategories == null ||
-            budgets == null) {
+            existingInstances == null ||
+            activeBudgets == null) {
           return;
         }
 
-        // Note: For streaming, we are doing an async fetch inside the stream callback.
-        //Ideally, this should be reactive too, but for now fetching names on demand is acceptable
-        // strictly speaking this might introduce a small race or delay, but acceptable for this feature.
-        final Set<String> allCategoryIds = budgets!
+        final List<BudgetInstanceAggregate> mergedBudgets = await _mergeBudgets(
+          budgets: activeBudgets!,
+          instances: existingInstances!,
+        );
+
+        final Set<String> allCategoryIds = mergedBudgets
             .expand((BudgetInstanceAggregate b) => b.categoryIds)
             .toSet();
         final Map<String, String> categoryNames = await _analyticsDao
@@ -91,7 +111,7 @@ class AiFinancialDataRepositoryImpl implements AiFinancialDataRepository {
             monthlyIncome: incomes!,
             topCategories: categories!,
             topIncomeCategories: incomeCategories!,
-            budgetInstances: budgets!,
+            budgetInstances: mergedBudgets,
             categoryNamesMap: categoryNames,
             filter: filter,
           ),
@@ -130,7 +150,12 @@ class AiFinancialDataRepositoryImpl implements AiFinancialDataRepository {
           _analyticsDao.watchBudgetForecasts(filter).listen((
             List<BudgetInstanceAggregate> data,
           ) {
-            budgets = data;
+            existingInstances = data;
+            emitIfReady();
+          });
+      final StreamSubscription<List<db.BudgetRow>> activeBudgetsSub =
+          _analyticsDao.watchActiveBudgets().listen((List<db.BudgetRow> data) {
+            activeBudgets = data;
             emitIfReady();
           });
 
@@ -142,6 +167,7 @@ class AiFinancialDataRepositoryImpl implements AiFinancialDataRepository {
           categoriesSub.cancel(),
           incomeCategoriesSub.cancel(),
           budgetsSub.cancel(),
+          activeBudgetsSub.cancel(),
         ]);
       };
     });
@@ -283,6 +309,74 @@ class AiFinancialDataRepositoryImpl implements AiFinancialDataRepository {
       accountIds: aggregate.accountIds,
     );
   }
+
+  Future<List<BudgetInstanceAggregate>> _mergeBudgets({
+    required List<db.BudgetRow> budgets,
+    required List<BudgetInstanceAggregate> instances,
+  }) async {
+    final List<BudgetInstanceAggregate> results =
+        List<BudgetInstanceAggregate>.from(instances);
+    final Set<String> budgetIdsWithInstances = instances
+        .map((BudgetInstanceAggregate i) => i.budgetId)
+        .toSet();
+
+    for (final db.BudgetRow row in budgets) {
+      if (budgetIdsWithInstances.contains(row.id)) {
+        continue;
+      }
+
+      // If budget has no instance for the period, calculate it on the fly
+      final Budget budget = _mapBudgetRow(row);
+      final ({DateTime start, DateTime end}) period = _budgetSchedule.periodFor(
+        budget: budget,
+        reference: _nowProvider(),
+      );
+
+      final double spent = await _analyticsDao.getBudgetSpent(
+        categoryIds: budget.categories,
+        accountIds: budget.accounts,
+        start: period.start,
+        end: period.end,
+      );
+
+      results.add(
+        BudgetInstanceAggregate(
+          budgetId: budget.id,
+          title: budget.title,
+          periodStart: period.start,
+          periodEnd: period.end,
+          allocated: budget.amount,
+          spent: spent,
+          accountIds: budget.accounts,
+          categoryIds: budget.categories,
+        ),
+      );
+    }
+    return results;
+  }
+
+  Budget _mapBudgetRow(db.BudgetRow row) {
+    return Budget(
+      id: row.id,
+      title: row.title,
+      period: BudgetPeriodX.fromStorage(row.period),
+      startDate: row.startDate,
+      endDate: row.endDate,
+      amount: row.amount,
+      scope: BudgetScopeX.fromStorage(row.scope),
+      categories: row.categories,
+      accounts: row.accounts,
+      categoryAllocations: row.categoryAllocations
+          .map(
+            (Map<String, dynamic> json) =>
+                BudgetCategoryAllocation.fromJson(json),
+          )
+          .toList(growable: false),
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+      isDeleted: row.isDeleted,
+    );
+  }
 }
 
 @riverpod
@@ -294,5 +388,6 @@ AiAnalyticsDao aiAnalyticsDao(Ref ref) {
 AiFinancialDataRepository aiFinancialDataRepository(Ref ref) {
   return AiFinancialDataRepositoryImpl(
     analyticsDao: ref.watch(aiAnalyticsDaoProvider),
+    budgetSchedule: ref.watch(budgetScheduleProvider),
   );
 }

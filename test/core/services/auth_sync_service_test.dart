@@ -37,6 +37,10 @@ import 'package:kopim/features/profile/domain/entities/profile.dart';
 import 'package:kopim/features/profile/domain/failures/auth_failure.dart';
 import 'package:kopim/features/savings/data/sources/local/saving_goal_dao.dart';
 import 'package:kopim/features/savings/data/sources/remote/saving_goal_remote_data_source.dart';
+import 'package:kopim/features/tags/data/sources/local/tag_dao.dart';
+import 'package:kopim/features/tags/data/sources/local/transaction_tags_dao.dart';
+import 'package:kopim/features/tags/data/sources/remote/tag_remote_data_source.dart';
+import 'package:kopim/features/tags/data/sources/remote/transaction_tag_remote_data_source.dart';
 import 'package:kopim/features/transactions/data/sources/local/transaction_dao.dart';
 import 'package:kopim/features/transactions/data/sources/remote/transaction_remote_data_source.dart';
 import 'package:kopim/features/upcoming_payments/data/drift/daos/payment_reminders_dao.dart';
@@ -76,6 +80,8 @@ void main() {
   late SavingGoalDao savingGoalDao;
   late UpcomingPaymentsDao upcomingPaymentsDao;
   late PaymentRemindersDao paymentRemindersDao;
+  late TagDao tagDao;
+  late TransactionTagsDao transactionTagsDao;
   late ProfileDao profileDao;
   late FirebaseFirestore firestore;
   late MockLoggerService logger;
@@ -100,7 +106,9 @@ void main() {
       outboxDao: outboxDao,
       accountDao: accountDao,
       categoryDao: categoryDao,
+      tagDao: tagDao,
       transactionDao: transactionDao,
+      transactionTagsDao: transactionTagsDao,
       creditCardDao: creditCardDao,
       creditDao: creditDao,
       debtDao: debtDao,
@@ -113,7 +121,11 @@ void main() {
       accountRemoteDataSource:
           accountRemoteDataSource ?? AccountRemoteDataSource(firestore),
       categoryRemoteDataSource: CategoryRemoteDataSource(firestore),
+      tagRemoteDataSource: TagRemoteDataSource(firestore),
       transactionRemoteDataSource: TransactionRemoteDataSource(firestore),
+      transactionTagRemoteDataSource: TransactionTagRemoteDataSource(
+        firestore,
+      ),
       creditCardRemoteDataSource: CreditCardRemoteDataSource(firestore),
       creditRemoteDataSource: CreditRemoteDataSource(firestore),
       debtRemoteDataSource: DebtRemoteDataSource(firestore),
@@ -155,6 +167,8 @@ void main() {
     savingGoalDao = SavingGoalDao(database);
     upcomingPaymentsDao = UpcomingPaymentsDao(database);
     paymentRemindersDao = PaymentRemindersDao(database);
+    tagDao = TagDao(database);
+    transactionTagsDao = TransactionTagsDao(database);
     profileDao = ProfileDao(database);
     firestore = FakeFirebaseFirestore();
     logger = MockLoggerService();

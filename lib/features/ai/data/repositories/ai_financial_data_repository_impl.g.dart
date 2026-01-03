@@ -96,4 +96,4 @@ final class AiFinancialDataRepositoryProvider
 }
 
 String _$aiFinancialDataRepositoryHash() =>
-    r'6ef7a46ae1ca3222e856dc8c4512c638c2f543be';
+    r'38d6a504a2ac2bb2657bbe0adf426bfd5d8c3ca7';

@@ -230,7 +230,7 @@ return $default(_that.name,_that.balanceInput,_that.currency,_that.type,_that.us
 
 
 class _AddAccountFormState extends AddAccountFormState {
-  const _AddAccountFormState({this.name = '', this.balanceInput = '', this.currency = 'RUB', this.type = 'cash', this.useCustomType = false, this.customType = '', this.isSaving = false, this.submissionSuccess = false, this.isPrimary = false, this.creditLimitInput = '', this.statementDayInput = '', this.paymentDueDaysInput = '', this.interestRateInput = '', this.nameError, this.balanceError, this.typeError, this.creditLimitError, this.statementDayError, this.paymentDueDaysError, this.interestRateError, this.errorMessage, this.color, this.gradientId, this.iconName, this.iconStyle}): super._();
+  const _AddAccountFormState({this.name = '', this.balanceInput = '', this.currency = 'RUB', this.type = '', this.useCustomType = false, this.customType = '', this.isSaving = false, this.submissionSuccess = false, this.isPrimary = false, this.creditLimitInput = '', this.statementDayInput = '', this.paymentDueDaysInput = '', this.interestRateInput = '', this.nameError, this.balanceError, this.typeError, this.creditLimitError, this.statementDayError, this.paymentDueDaysError, this.interestRateError, this.errorMessage, this.color, this.gradientId, this.iconName, this.iconStyle}): super._();
   
 
 @override@JsonKey() final  String name;

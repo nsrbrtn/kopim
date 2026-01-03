@@ -15,6 +15,7 @@ import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/categories/presentation/widgets/category_chip.dart';
+import 'package:kopim/features/tags/domain/entities/tag.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
 import 'package:kopim/features/transactions/presentation/controllers/transaction_form_controller.dart';
@@ -1308,6 +1309,30 @@ class _CategoryDropdownFieldState
     });
   }
 
+  Future<void> _openTagPicker({
+    required BuildContext context,
+    required AppLocalizations strings,
+    required List<TagEntity> tags,
+    required List<String> selectedIds,
+  }) async {
+    final List<String>? result = await showModalBottomSheet<List<String>>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (BuildContext context) {
+        return _TagPickerSheet(
+          tags: tags,
+          initialSelectedIds: selectedIds,
+          strings: strings,
+        );
+      },
+    );
+
+    if (result != null) {
+      ref.read(_formProvider.notifier).updateTags(result);
+    }
+  }
+
   void _updateCategoryChipCache({
     required List<Category> headerCategories,
     required List<Category> otherCategories,
@@ -1420,6 +1445,13 @@ class _CategoryDropdownFieldState
     final String? selectedCategoryId = ref.watch(
       _formProvider.select((TransactionDraftState state) => state.categoryId),
     );
+    final List<String> selectedTagIds = ref.watch(
+      _formProvider.select((TransactionDraftState state) => state.tagIds),
+    );
+    final AsyncValue<List<TagEntity>> tagsAsync = ref.watch(
+      transactionFormTagsProvider,
+    );
+    final List<TagEntity> tags = tagsAsync.asData?.value ?? const <TagEntity>[];
     final String normalizedQuery = _query.trim().toLowerCase();
     final List<Category> filtered = categories
         .where(
@@ -1544,6 +1576,42 @@ class _CategoryDropdownFieldState
                 style: theme.textTheme.bodySmall,
               ),
             ),
+          const SizedBox(height: 12),
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton(
+              onPressed: tagsAsync.isLoading
+                  ? null
+                  : () => _openTagPicker(
+                        context: context,
+                        strings: strings,
+                        tags: tags,
+                        selectedIds: selectedTagIds,
+                      ),
+              style: TextButton.styleFrom(
+                padding: EdgeInsets.zero,
+                minimumSize: const Size(0, 20),
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              child: Text(
+                strings.transactionTagsAddButton,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  color: theme.colorScheme.primary,
+                  letterSpacing: 0.1,
+                ),
+              ),
+            ),
+          ),
+          if (selectedTagIds.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 12),
+              child: _SelectedTagsWrap(
+                tags: tags,
+                selectedIds: selectedTagIds,
+                onRemoveTag: (String tagId) =>
+                    ref.read(_formProvider.notifier).toggleTag(tagId),
+              ),
+            ),
         ],
       ),
     );
@@ -1573,6 +1641,182 @@ class _CategoryDropdownFieldState
       backgroundColor: theme.colorScheme.surfaceContainerHigh,
       selected: selected,
       onTap: () => _selectCategory(category.id),
+    );
+  }
+}
+
+class _SelectedTagsWrap extends StatelessWidget {
+  const _SelectedTagsWrap({
+    required this.tags,
+    required this.selectedIds,
+    required this.onRemoveTag,
+  });
+
+  final List<TagEntity> tags;
+  final List<String> selectedIds;
+  final ValueChanged<String> onRemoveTag;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final KopimSpacingScale spacing = context.kopimLayout.spacing;
+    final Map<String, TagEntity> byId = <String, TagEntity>{
+      for (final TagEntity tag in tags) tag.id: tag,
+    };
+    final List<TagEntity> selectedTags = <TagEntity>[
+      for (final String id in selectedIds)
+        if (byId.containsKey(id)) byId[id]!,
+    ];
+    return Wrap(
+      spacing: spacing.between,
+      runSpacing: spacing.between,
+      children: selectedTags
+          .map(
+            (TagEntity tag) => InputChip(
+              label: Text(tag.name),
+              avatar: CircleAvatar(
+                backgroundColor:
+                    parseHexColor(tag.color) ??
+                    theme.colorScheme.surfaceContainerHigh,
+              ),
+              onDeleted: () => onRemoveTag(tag.id),
+              backgroundColor: theme.colorScheme.surfaceContainerHigh,
+            ),
+          )
+          .toList(growable: false),
+    );
+  }
+}
+
+class _TagPickerSheet extends StatefulWidget {
+  const _TagPickerSheet({
+    required this.tags,
+    required this.initialSelectedIds,
+    required this.strings,
+  });
+
+  final List<TagEntity> tags;
+  final List<String> initialSelectedIds;
+  final AppLocalizations strings;
+
+  @override
+  State<_TagPickerSheet> createState() => _TagPickerSheetState();
+}
+
+class _TagPickerSheetState extends State<_TagPickerSheet> {
+  late final TextEditingController _searchController;
+  late List<String> _selectedIds;
+  String _query = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController = TextEditingController();
+    _selectedIds = List<String>.from(widget.initialSelectedIds);
+    _searchController.addListener(_onSearchChanged);
+  }
+
+  @override
+  void dispose() {
+    _searchController.removeListener(_onSearchChanged);
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _onSearchChanged() {
+    setState(() => _query = _searchController.text);
+  }
+
+  void _toggleTag(String tagId) {
+    setState(() {
+      if (_selectedIds.contains(tagId)) {
+        _selectedIds.remove(tagId);
+      } else {
+        _selectedIds.add(tagId);
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final List<TagEntity> filtered = widget.tags
+        .where(
+          (TagEntity tag) =>
+              tag.name.toLowerCase().contains(_query.trim().toLowerCase()),
+        )
+        .toList(growable: false);
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          Text(
+            widget.strings.transactionTagsDialogTitle,
+            style: theme.textTheme.titleLarge,
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _searchController,
+            decoration: _transactionTextFieldDecoration(
+              context,
+              hintText: widget.strings.transactionTagsSearchHint,
+              fillColor: theme.colorScheme.surfaceContainerHigh,
+              suffixIcon: const Icon(Icons.search),
+            ),
+          ),
+          const SizedBox(height: 12),
+          if (filtered.isEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 16),
+              child: Text(
+                widget.strings.transactionTagsNone,
+                style: theme.textTheme.bodySmall,
+              ),
+            )
+          else
+            SizedBox(
+              height: math.min(
+                MediaQuery.sizeOf(context).height * 0.4,
+                320,
+              ),
+              child: ListView.builder(
+                itemCount: filtered.length,
+                itemBuilder: (BuildContext context, int index) {
+                  final TagEntity tag = filtered[index];
+                  final bool isSelected = _selectedIds.contains(tag.id);
+                  return CheckboxListTile(
+                    value: isSelected,
+                    controlAffinity: ListTileControlAffinity.leading,
+                    onChanged: (_) => _toggleTag(tag.id),
+                    title: Text(tag.name),
+                    secondary: CircleAvatar(
+                      backgroundColor:
+                          parseHexColor(tag.color) ??
+                          theme.colorScheme.surfaceContainerHigh,
+                    ),
+                  );
+                },
+              ),
+            ),
+          const SizedBox(height: 12),
+          Row(
+            children: <Widget>[
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text(widget.strings.dialogCancel),
+              ),
+              const Spacer(),
+              FilledButton(
+                onPressed: () => Navigator.of(context).pop(_selectedIds),
+                child: Text(widget.strings.transactionTagsDialogApply),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

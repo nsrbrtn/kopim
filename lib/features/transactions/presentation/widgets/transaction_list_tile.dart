@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart' show StreamProviderFamily;
 import 'package:intl/intl.dart';
+import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/core/formatting/currency_symbols.dart';
 import 'package:kopim/core/utils/helpers.dart';
 import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
+import 'package:kopim/features/tags/domain/entities/tag.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
 import 'package:kopim/features/transactions/presentation/controllers/transaction_draft_controller.dart';
@@ -13,6 +16,16 @@ import 'package:kopim/features/transactions/presentation/widgets/transaction_for
 import 'package:kopim/features/transactions/presentation/widgets/transaction_tile_formatters.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+
+final StreamProviderFamily<List<TagEntity>, String> _transactionTagsProvider =
+    StreamProvider.autoDispose.family<List<TagEntity>, String>((
+      Ref ref,
+      String transactionId,
+    ) {
+      return ref
+          .watch(watchTransactionTagsUseCaseProvider)
+          .call(transactionId);
+    });
 
 class TransactionListTile extends ConsumerWidget {
   const TransactionListTile({
@@ -52,6 +65,11 @@ class TransactionListTile extends ConsumerWidget {
 
     final bool isTransfer =
         transaction.type == TransactionType.transfer.storageValue;
+    final List<TagEntity> tags = isTransfer
+        ? const <TagEntity>[]
+        : ref.watch(_transactionTagsProvider(transaction.id)).asData?.value ??
+            const <TagEntity>[];
+    final String tagLabel = tags.map((TagEntity tag) => tag.name).join(', ');
     final String categoryName =
         category?.name ?? strings.homeTransactionsUncategorized;
     final String title = isTransfer
@@ -139,15 +157,9 @@ class TransactionListTile extends ConsumerWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisAlignment: MainAxisAlignment.start,
                           children: <Widget>[
-                            Text(
-                              title,
-                              style: Theme.of(context).textTheme.labelMedium
-                                  ?.copyWith(
-                                    fontWeight: FontWeight.w500,
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.onSurface,
-                                  ),
+                            _TransactionTitleWithTags(
+                              title: title,
+                              tagLabel: tagLabel,
                             ),
                             if (note != null && note.isNotEmpty)
                               Padding(
@@ -217,6 +229,60 @@ class TransactionListTile extends ConsumerWidget {
           },
         ),
       ),
+    );
+  }
+}
+
+class _TransactionTitleWithTags extends StatelessWidget {
+  const _TransactionTitleWithTags({
+    required this.title,
+    required this.tagLabel,
+  });
+
+  final String title;
+  final String tagLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final TextStyle? baseStyle = theme.textTheme.labelMedium?.copyWith(
+      fontWeight: FontWeight.w500,
+      color: theme.colorScheme.onSurface,
+    );
+    if (tagLabel.isEmpty) {
+      return Text(
+        title,
+        style: baseStyle,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      );
+    }
+
+    final TextStyle? tagStyle = baseStyle?.copyWith(
+      color: theme.colorScheme.onSurfaceVariant,
+      fontWeight: FontWeight.w400,
+    );
+
+    return Text.rich(
+      TextSpan(
+        children: <InlineSpan>[
+          TextSpan(text: title),
+          const TextSpan(text: '  '),
+          WidgetSpan(
+            alignment: PlaceholderAlignment.middle,
+            child: Icon(
+              Icons.local_offer_outlined,
+              size: 14,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const TextSpan(text: ' '),
+          TextSpan(text: tagLabel, style: tagStyle),
+        ],
+      ),
+      style: baseStyle,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
     );
   }
 }

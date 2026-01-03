@@ -91,7 +91,7 @@
   "@profileGeneralSettingsManagementSection": {
     "description": "Заголовок секции с действиями для категорий и повторяющихся операций"
   },
-  "profileManageCategoriesCta": "Управлять категориями",
+  "profileManageCategoriesCta": "Управлять категориями и тэгами",
   "@profileManageCategoriesCta": {
     "description": "Подпись кнопки, открывающей экран управления категориями из настроек профиля"
   },
@@ -304,9 +304,17 @@
   "@settingsHomeBudgetPickerClear": {
     "description": "Подпись действия очистки выбранного бюджета"
   },
-  "profileManageCategoriesTitle": "Управление категориями",
+  "profileManageCategoriesTitle": "Управление категориями и тэгами",
   "@profileManageCategoriesTitle": {
     "description": "Заголовок экрана управления категориями"
+  },
+  "manageCategoriesTabCategories": "Категории",
+  "@manageCategoriesTabCategories": {
+    "description": "Название таба со списком категорий"
+  },
+  "manageCategoriesTabTags": "Тэги",
+  "@manageCategoriesTabTags": {
+    "description": "Название таба со списком тэгов"
   },
   "manageCategoriesAddAction": "Добавить категорию",
   "@manageCategoriesAddAction": {
@@ -614,6 +622,110 @@
   "manageCategoriesDeleteError": "Не удалось удалить категорию: {error}",
   "@manageCategoriesDeleteError": {
     "description": "Сообщение об ошибке при удалении категории",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "manageTagsAddAction": "Добавить тэг",
+  "@manageTagsAddAction": {
+    "description": "Подсказка к кнопке добавления нового тэга"
+  },
+  "manageTagsEmpty": "Тэгов пока нет. Добавьте первый.",
+  "@manageTagsEmpty": {
+    "description": "Пустое состояние списка тэгов"
+  },
+  "manageTagsListError": "Не удалось загрузить тэги: {error}",
+  "@manageTagsListError": {
+    "description": "Сообщение об ошибке при загрузке тэгов",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "manageTagsCreateTitle": "Новый тэг",
+  "@manageTagsCreateTitle": {
+    "description": "Заголовок формы создания тэга"
+  },
+  "manageTagsEditTitle": "Редактирование тэга",
+  "@manageTagsEditTitle": {
+    "description": "Заголовок формы редактирования тэга"
+  },
+  "manageTagsNameLabel": "Название",
+  "@manageTagsNameLabel": {
+    "description": "Подпись поля названия тэга"
+  },
+  "manageTagsNameRequired": "Введите название.",
+  "@manageTagsNameRequired": {
+    "description": "Ошибка валидации, когда не задано название тэга"
+  },
+  "manageTagsColorLabel": "Цвет",
+  "@manageTagsColorLabel": {
+    "description": "Подпись выбора цвета тэга"
+  },
+  "manageTagsColorNone": "Цвет не выбран",
+  "@manageTagsColorNone": {
+    "description": "Подзаголовок, когда цвет тэга не выбран"
+  },
+  "manageTagsColorSelected": "Цвет выбран",
+  "@manageTagsColorSelected": {
+    "description": "Подзаголовок, когда цвет тэга выбран"
+  },
+  "manageTagsColorRequired": "Выберите цвет.",
+  "@manageTagsColorRequired": {
+    "description": "Ошибка валидации, когда цвет тэга не выбран"
+  },
+  "manageTagsColorPickerTitle": "Выберите цвет тэга",
+  "@manageTagsColorPickerTitle": {
+    "description": "Заголовок диалога выбора цвета тэга"
+  },
+  "manageTagsSaveCta": "Сохранить тэг",
+  "@manageTagsSaveCta": {
+    "description": "Подпись кнопки сохранения тэга"
+  },
+  "manageTagsSaveError": "Не удалось сохранить тэг: {error}",
+  "@manageTagsSaveError": {
+    "description": "Сообщение об ошибке при сохранении тэга",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "manageTagsSuccessCreate": "Тэг успешно создан.",
+  "@manageTagsSuccessCreate": {
+    "description": "Сообщение после создания тэга"
+  },
+  "manageTagsSuccessUpdate": "Тэг обновлён.",
+  "@manageTagsSuccessUpdate": {
+    "description": "Сообщение после обновления тэга"
+  },
+  "manageTagsDeleteAction": "Удалить",
+  "@manageTagsDeleteAction": {
+    "description": "Действие удаления тэга"
+  },
+  "manageTagsDeleteConfirmTitle": "Удалить тэг",
+  "@manageTagsDeleteConfirmTitle": {
+    "description": "Заголовок диалога подтверждения удаления тэга"
+  },
+  "manageTagsDeleteConfirmMessage": "Вы действительно хотите удалить тэг «{name}»?",
+  "@manageTagsDeleteConfirmMessage": {
+    "description": "Подтверждение удаления тэга",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "manageTagsDeleteSuccess": "Тэг удалён.",
+  "@manageTagsDeleteSuccess": {
+    "description": "Сообщение после удаления тэга"
+  },
+  "manageTagsDeleteError": "Не удалось удалить тэг: {error}",
+  "@manageTagsDeleteError": {
+    "description": "Сообщение об ошибке при удалении тэга",
     "placeholders": {
       "error": {
         "type": "String"
@@ -2047,6 +2159,26 @@
         "type": "String"
       }
     }
+  },
+  "transactionTagsAddButton": "Добавить тэг",
+  "@transactionTagsAddButton": {
+    "description": "Кнопка открытия выбора тэгов для транзакции"
+  },
+  "transactionTagsSearchHint": "Найти тэг",
+  "@transactionTagsSearchHint": {
+    "description": "Подсказка в поле поиска тэгов"
+  },
+  "transactionTagsNone": "Тэги не найдены",
+  "@transactionTagsNone": {
+    "description": "Пустое состояние при отсутствии тэгов"
+  },
+  "transactionTagsDialogTitle": "Выбор тэгов",
+  "@transactionTagsDialogTitle": {
+    "description": "Заголовок попапа выбора тэгов"
+  },
+  "transactionTagsDialogApply": "Готово",
+  "@transactionTagsDialogApply": {
+    "description": "Кнопка подтверждения выбора тэгов"
   },
   "addTransactionDateLabel": "Дата",
   "@addTransactionDateLabel": {

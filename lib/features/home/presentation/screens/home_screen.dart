@@ -4,6 +4,7 @@ import 'dart:ui' as ui show TextDirection;
 import 'package:flutter/foundation.dart' hide Category;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart' show StreamProviderFamily;
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:collection/collection.dart';
@@ -18,6 +19,7 @@ import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/features/credits/domain/entities/credit_card_entity.dart';
 import 'package:kopim/features/credits/domain/entities/credit_entity.dart';
+import 'package:kopim/features/tags/domain/entities/tag.dart';
 import 'package:kopim/features/credits/domain/utils/credit_card_calculations.dart';
 import 'package:kopim/core/domain/icons/phosphor_icon_descriptor.dart';
 import 'package:kopim/features/home/domain/entities/home_dashboard_preferences.dart';
@@ -26,7 +28,7 @@ import 'package:kopim/features/home/domain/models/home_account_monthly_summary.d
 import 'package:kopim/features/home/presentation/controllers/home_dashboard_preferences_controller.dart';
 import 'package:kopim/features/home/presentation/controllers/home_transactions_filter_controller.dart';
 import 'package:kopim/features/home/presentation/widgets/home_budget_progress_card.dart';
-import 'package:kopim/features/home/presentation/widgets/home_gamification_app_bar.dart';
+import 'package:kopim/features/home/presentation/widgets/home_gamification_widget.dart';
 import 'package:kopim/features/home/presentation/widgets/home_savings_overview_card.dart';
 import 'package:kopim/features/home/presentation/widgets/home_upcoming_items_card.dart';
 import 'package:kopim/core/widgets/animated_fab.dart';
@@ -63,6 +65,16 @@ import 'package:kopim/features/home/presentation/widgets/top_bar_avatar_icon.dar
 import 'package:kopim/features/home/presentation/widgets/sync_status_indicator.dart';
 
 import '../controllers/home_providers.dart';
+
+final StreamProviderFamily<List<TagEntity>, String> _homeTransactionTagsProvider =
+    StreamProvider.autoDispose.family<List<TagEntity>, String>((
+      Ref ref,
+      String transactionId,
+    ) {
+      return ref
+          .watch(watchTransactionTagsUseCaseProvider)
+          .call(transactionId);
+    });
 
 NavigationTabContent buildHomeTabContent(BuildContext context, WidgetRef ref) {
   final AppLocalizations strings = AppLocalizations.of(context)!;
@@ -164,13 +176,9 @@ class _HomeBody extends ConsumerWidget {
                 user != null &&
                 (dashboardPreferences?.showGamificationWidget ?? false);
 
-            if (showGamificationHeader) {
-              slivers.add(HomeGamificationAppBar(userId: user.uid));
-            } else {
-              slivers.add(
-                _HomePinnedTitleAppBar(strings: strings, userId: user?.uid),
-              );
-            }
+            slivers.add(
+              _HomePinnedTitleAppBar(strings: strings, userId: user?.uid),
+            );
 
             double nextTopPadding = 8;
 
@@ -187,6 +195,10 @@ class _HomeBody extends ConsumerWidget {
                 ),
               );
               nextTopPadding = 8;
+            }
+
+            if (showGamificationHeader) {
+              addBoxSection(HomeGamificationWidget(userId: user.uid));
             }
 
             const EdgeInsets accountsPadding = EdgeInsets.fromLTRB(8, 8, 8, 0);
@@ -491,6 +503,7 @@ class _HomePinnedTitleAppBar extends ConsumerWidget {
 
   final AppLocalizations strings;
   final String? userId;
+  static const double appBarHeight = 40;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -508,15 +521,15 @@ class _HomePinnedTitleAppBar extends ConsumerWidget {
       elevation: 4,
       backgroundColor: theme.colorScheme.surface,
       surfaceTintColor: theme.colorScheme.surfaceTint,
-      toolbarHeight: HomeGamificationAppBar.appBarHeight,
-      collapsedHeight: topPadding + HomeGamificationAppBar.appBarHeight,
-      expandedHeight: topPadding + HomeGamificationAppBar.appBarHeight,
+      toolbarHeight: appBarHeight,
+      collapsedHeight: topPadding + appBarHeight,
+      expandedHeight: topPadding + appBarHeight,
       titleSpacing: 20,
-      title: Text(
-        'Копим',
-        style: theme.textTheme.titleLarge?.copyWith(
-          fontWeight: FontWeight.w700,
-        ),
+      title: Image.asset(
+        'assets/icons/logo_dark.png',
+        height: 24,
+        fit: BoxFit.contain,
+        semanticLabel: 'Копим',
       ),
       actions: <Widget>[
         const Center(child: SyncStatusIndicator()),
@@ -2010,6 +2023,53 @@ String? _buildTransferLabel({
   return strings.transactionTransferAccountPair(sourceAccount, targetAccount);
 }
 
+Widget _buildTitleWithTags({
+  required BuildContext context,
+  required String title,
+  required String tagLabel,
+}) {
+  final ThemeData theme = Theme.of(context);
+  final TextStyle? baseStyle = theme.textTheme.labelMedium?.copyWith(
+    fontWeight: FontWeight.w500,
+    color: theme.colorScheme.onSurface,
+  );
+  if (tagLabel.isEmpty) {
+    return Text(
+      title,
+      style: baseStyle,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+    );
+  }
+
+  final TextStyle? tagStyle = baseStyle?.copyWith(
+    color: theme.colorScheme.onSurfaceVariant,
+    fontWeight: FontWeight.w400,
+  );
+
+  return Text.rich(
+    TextSpan(
+      children: <InlineSpan>[
+        TextSpan(text: title),
+        const TextSpan(text: '  '),
+        WidgetSpan(
+          alignment: PlaceholderAlignment.middle,
+          child: Icon(
+            Icons.local_offer_outlined,
+            size: 14,
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
+        const TextSpan(text: ' '),
+        TextSpan(text: tagLabel, style: tagStyle),
+      ],
+    ),
+    style: baseStyle,
+    maxLines: 1,
+    overflow: TextOverflow.ellipsis,
+  );
+}
+
 double _calculateDayNet(List<TransactionEntity> transactions) {
   double income = 0;
   double expense = 0;
@@ -2052,6 +2112,14 @@ class _TransactionListItem extends ConsumerWidget {
     final String? note = transaction.note;
     final bool isTransfer =
         transaction.type == TransactionType.transfer.storageValue;
+    final List<TagEntity> tags = isTransfer
+        ? const <TagEntity>[]
+        : ref
+                .watch(_homeTransactionTagsProvider(transactionId))
+                .asData
+                ?.value ??
+            const <TagEntity>[];
+    final String tagLabel = tags.map((TagEntity tag) => tag.name).join(', ');
 
     final ThemeData theme = Theme.of(context);
     final ({String? name, String? currency}) accountData = ref.watch(
@@ -2172,13 +2240,10 @@ class _TransactionListItem extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: <Widget>[
-                        Text(
-                          title,
-                          style: Theme.of(context).textTheme.labelMedium
-                              ?.copyWith(
-                                fontWeight: FontWeight.w500,
-                                color: Theme.of(context).colorScheme.onSurface,
-                              ),
+                        _buildTitleWithTags(
+                          context: context,
+                          title: title,
+                          tagLabel: tagLabel,
                         ),
                         if (note != null && note.isNotEmpty)
                           Padding(

@@ -1,21 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:go_router/go_router.dart';
-import 'package:kopim/features/home/presentation/widgets/home_gamification_app_bar.dart';
+import 'package:kopim/features/home/presentation/widgets/home_gamification_widget.dart';
 import 'package:kopim/features/profile/domain/entities/user_progress.dart';
 import 'package:kopim/features/profile/presentation/controllers/user_progress_controller.dart';
-import 'package:kopim/features/profile/presentation/screens/profile_management_screen.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 import 'package:riverpod/src/framework.dart' show Override;
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  group('HomeGamificationAppBar', () {
+  group('HomeGamificationWidget', () {
     const String userId = 'user-123';
 
-    Future<void> pumpGamificationAppBar(
+    Future<void> pumpGamificationWidget(
       WidgetTester tester, {
       List<Override> overrides = const <Override>[],
     }) async {
@@ -27,12 +25,7 @@ void main() {
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(
-              body: CustomScrollView(
-                slivers: <Widget>[
-                  HomeGamificationAppBar(userId: userId),
-                  SliverToBoxAdapter(child: SizedBox(height: 800)),
-                ],
-              ),
+              body: HomeGamificationWidget(userId: userId),
             ),
           ),
         ),
@@ -52,7 +45,7 @@ void main() {
         updatedAt: DateTime(2024, 1, 1),
       );
 
-      await pumpGamificationAppBar(
+      await pumpGamificationWidget(
         tester,
         overrides: <Override>[
           userProgressProvider(
@@ -69,7 +62,7 @@ void main() {
       expect(indicator.value, closeTo(0.125, 0.001));
     });
 
-    testWidgets('uses fixed heights for app bar and gamification card', (
+    testWidgets('uses fixed minimum height for the card', (
       WidgetTester tester,
     ) async {
       final UserProgress progress = UserProgress(
@@ -80,7 +73,7 @@ void main() {
         updatedAt: DateTime(2024, 1, 1),
       );
 
-      await pumpGamificationAppBar(
+      await pumpGamificationWidget(
         tester,
         overrides: <Override>[
           userProgressProvider(
@@ -89,16 +82,11 @@ void main() {
         ],
       );
 
-      final SliverAppBar appBar = tester.widget(
-        find.byType(SliverAppBar).first,
-      );
-      expect(appBar.toolbarHeight, HomeGamificationAppBar.appBarHeight);
-
       final Finder cardHeightFinder = find.byWidgetPredicate(
         (Widget widget) =>
             widget is ConstrainedBox &&
             widget.constraints.minHeight ==
-                HomeGamificationAppBar.minGamificationHeight,
+                HomeGamificationWidget.minGamificationHeight,
       );
 
       expect(cardHeightFinder, findsOneWidget);
@@ -107,7 +95,7 @@ void main() {
     testWidgets('shows loading indicator while data loads', (
       WidgetTester tester,
     ) async {
-      await pumpGamificationAppBar(
+      await pumpGamificationWidget(
         tester,
         overrides: <Override>[
           userProgressProvider(
@@ -116,11 +104,11 @@ void main() {
         ],
       );
 
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.byType(LinearProgressIndicator), findsOneWidget);
     });
 
     testWidgets('renders error state message', (WidgetTester tester) async {
-      await pumpGamificationAppBar(
+      await pumpGamificationWidget(
         tester,
         overrides: <Override>[
           userProgressProvider(userId).overrideWithValue(
@@ -130,72 +118,6 @@ void main() {
       );
 
       expect(find.text("Can't load progress: boom"), findsOneWidget);
-    });
-
-    testWidgets('profile action navigates to profile management', (
-      WidgetTester tester,
-    ) async {
-      final UserProgress progress = UserProgress(
-        totalTx: 200,
-        level: 3,
-        title: 'Expert',
-        nextThreshold: 800,
-        updatedAt: DateTime(2024, 2, 1),
-      );
-
-      final String profilePath = ProfileManagementScreen.routeName.replaceFirst(
-        '/',
-        '',
-      );
-      final GoRouter router = GoRouter(
-        routes: <RouteBase>[
-          GoRoute(
-            path: '/',
-            builder: (BuildContext context, GoRouterState state) {
-              return const Scaffold(
-                body: CustomScrollView(
-                  slivers: <Widget>[
-                    HomeGamificationAppBar(userId: userId),
-                    SliverToBoxAdapter(child: SizedBox(height: 400)),
-                  ],
-                ),
-              );
-            },
-            routes: <RouteBase>[
-              GoRoute(
-                path: profilePath,
-                builder: (BuildContext context, GoRouterState state) {
-                  return const Scaffold(body: Text('Profile Management'));
-                },
-              ),
-            ],
-          ),
-        ],
-      );
-      addTearDown(router.dispose);
-
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: <Override>[
-            userProgressProvider(
-              userId,
-            ).overrideWithValue(AsyncValue<UserProgress>.data(progress)),
-          ],
-          child: MaterialApp.router(
-            routerConfig: router,
-            locale: const Locale('en'),
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-          ),
-        ),
-      );
-
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.byIcon(Icons.account_circle_outlined));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Profile Management'), findsOneWidget);
     });
   });
 }

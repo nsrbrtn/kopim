@@ -21,6 +21,8 @@ import 'package:kopim/features/profile/data/profile_repository_impl.dart';
 import 'package:kopim/features/profile/data/remote/profile_remote_data_source.dart';
 import 'package:kopim/features/profile/domain/entities/profile.dart';
 import 'package:kopim/features/savings/data/sources/remote/saving_goal_remote_data_source.dart';
+import 'package:kopim/features/tags/data/sources/remote/tag_remote_data_source.dart';
+import 'package:kopim/features/tags/data/sources/remote/transaction_tag_remote_data_source.dart';
 import 'package:kopim/features/transactions/data/sources/remote/transaction_remote_data_source.dart';
 import 'package:kopim/features/upcoming_payments/data/sources/remote/payment_reminder_remote_data_source.dart';
 import 'package:kopim/features/upcoming_payments/data/sources/remote/upcoming_payment_remote_data_source.dart';
@@ -85,6 +87,10 @@ void main() {
       outboxDao: outboxDao,
       accountRemoteDataSource: AccountRemoteDataSource(firestore),
       categoryRemoteDataSource: CategoryRemoteDataSource(firestore),
+      tagRemoteDataSource: TagRemoteDataSource(firestore),
+      transactionTagRemoteDataSource: TransactionTagRemoteDataSource(
+        firestore,
+      ),
       transactionRemoteDataSource: TransactionRemoteDataSource(firestore),
       debtRemoteDataSource: DebtRemoteDataSource(firestore),
       budgetRemoteDataSource: BudgetRemoteDataSource(firestore),

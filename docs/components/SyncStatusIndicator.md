@@ -15,4 +15,3 @@ const SyncStatusIndicator();
 ## Связанные файлы
 - `lib/features/home/presentation/widgets/sync_status_indicator.dart`
 - `lib/features/home/presentation/screens/home_screen.dart`
-- `lib/features/home/presentation/widgets/home_gamification_app_bar.dart`

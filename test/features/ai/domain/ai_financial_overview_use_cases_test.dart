@@ -8,6 +8,7 @@ import 'package:kopim/features/ai/data/repositories/ai_financial_data_repository
 import 'package:kopim/features/ai/domain/entities/ai_financial_overview_entity.dart';
 import 'package:kopim/features/ai/domain/use_cases/get_ai_financial_overview_use_case.dart';
 import 'package:kopim/features/ai/domain/use_cases/watch_ai_financial_overview_use_case.dart';
+import 'package:kopim/features/budgets/domain/services/budget_schedule.dart';
 
 void main() {
   late db.AppDatabase database;
@@ -28,6 +29,7 @@ void main() {
     dao = AiAnalyticsDao(database);
     repository = AiFinancialDataRepositoryImpl(
       analyticsDao: dao,
+      budgetSchedule: const BudgetSchedule(),
       nowProvider: () => fixedNow,
     );
     getUseCase = GetAiFinancialOverviewUseCase(repository);

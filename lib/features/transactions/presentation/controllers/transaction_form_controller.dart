@@ -6,7 +6,8 @@ export 'transaction_draft_controller.dart'
         TransactionFormArgs,
         transactionDraftControllerProvider,
         transactionFormAccountsProvider,
-        transactionFormCategoriesProvider;
+        transactionFormCategoriesProvider,
+        transactionFormTagsProvider;
 
 import 'package:riverpod/riverpod.dart';
 import 'package:riverpod/legacy.dart';

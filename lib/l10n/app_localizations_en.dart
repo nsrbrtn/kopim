@@ -149,7 +149,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileGeneralSettingsManagementSection => 'Data management';
 
   @override
-  String get profileManageCategoriesCta => 'Manage categories';
+  String get profileManageCategoriesCta => 'Manage categories and tags';
 
   @override
   String get profileUpcomingPaymentsCta => 'Recurring payments';
@@ -300,7 +300,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsHomeBudgetPickerClear => 'Clear selection';
 
   @override
-  String get profileManageCategoriesTitle => 'Manage categories';
+  String get profileManageCategoriesTitle => 'Manage categories and tags';
+
+  @override
+  String get manageCategoriesTabCategories => 'Categories';
+
+  @override
+  String get manageCategoriesTabTags => 'Tags';
 
   @override
   String get manageCategoriesAddAction => 'Add category';
@@ -530,6 +536,77 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String manageCategoriesDeleteError(String error) {
     return 'Unable to delete category: $error';
+  }
+
+  @override
+  String get manageTagsAddAction => 'Add tag';
+
+  @override
+  String get manageTagsEmpty => 'No tags yet. Create one to get started.';
+
+  @override
+  String manageTagsListError(String error) {
+    return 'Unable to load tags: $error';
+  }
+
+  @override
+  String get manageTagsCreateTitle => 'New tag';
+
+  @override
+  String get manageTagsEditTitle => 'Edit tag';
+
+  @override
+  String get manageTagsNameLabel => 'Name';
+
+  @override
+  String get manageTagsNameRequired => 'Please enter a name.';
+
+  @override
+  String get manageTagsColorLabel => 'Color';
+
+  @override
+  String get manageTagsColorNone => 'Color not selected';
+
+  @override
+  String get manageTagsColorSelected => 'Color selected';
+
+  @override
+  String get manageTagsColorRequired => 'Choose a color.';
+
+  @override
+  String get manageTagsColorPickerTitle => 'Choose a tag color';
+
+  @override
+  String get manageTagsSaveCta => 'Save tag';
+
+  @override
+  String manageTagsSaveError(String error) {
+    return 'Unable to save tag: $error';
+  }
+
+  @override
+  String get manageTagsSuccessCreate => 'Tag created successfully.';
+
+  @override
+  String get manageTagsSuccessUpdate => 'Tag updated successfully.';
+
+  @override
+  String get manageTagsDeleteAction => 'Delete';
+
+  @override
+  String get manageTagsDeleteConfirmTitle => 'Delete tag';
+
+  @override
+  String manageTagsDeleteConfirmMessage(String name) {
+    return 'Do you really want to delete the tag \"$name\"?';
+  }
+
+  @override
+  String get manageTagsDeleteSuccess => 'Tag deleted successfully.';
+
+  @override
+  String manageTagsDeleteError(String error) {
+    return 'Unable to delete tag: $error';
   }
 
   @override
@@ -1610,6 +1687,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String addTransactionCategoriesError(String error) {
     return 'Unable to load categories: $error';
   }
+
+  @override
+  String get transactionTagsAddButton => 'Add tag';
+
+  @override
+  String get transactionTagsSearchHint => 'Search tags';
+
+  @override
+  String get transactionTagsNone => 'No tags found';
+
+  @override
+  String get transactionTagsDialogTitle => 'Select tags';
+
+  @override
+  String get transactionTagsDialogApply => 'Apply';
 
   @override
   String get addTransactionDateLabel => 'Date';

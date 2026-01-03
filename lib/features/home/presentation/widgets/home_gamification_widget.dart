@@ -2,25 +2,18 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/features/profile/domain/entities/user_progress.dart';
 import 'package:kopim/features/profile/domain/policies/level_policy.dart';
-import 'package:kopim/features/profile/domain/entities/profile.dart';
-import 'package:kopim/features/profile/presentation/controllers/profile_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/user_progress_controller.dart';
-import 'package:kopim/features/profile/presentation/screens/profile_management_screen.dart';
-import 'package:kopim/features/home/presentation/widgets/top_bar_avatar_icon.dart';
-import 'package:kopim/features/home/presentation/widgets/sync_status_indicator.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
-class HomeGamificationAppBar extends ConsumerWidget {
-  const HomeGamificationAppBar({required this.userId, super.key});
+class HomeGamificationWidget extends ConsumerWidget {
+  const HomeGamificationWidget({required this.userId, super.key});
 
   final String userId;
 
-  static const double appBarHeight = 40;
   static const double minGamificationHeight = 80;
 
   static const List<String> _phrases = <String>[
@@ -43,104 +36,19 @@ class HomeGamificationAppBar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final ThemeData theme = Theme.of(context);
-    final AppLocalizations strings = AppLocalizations.of(context)!;
     final AsyncValue<UserProgress> progressAsync = ref.watch(
       userProgressProvider(userId),
     );
-    final AsyncValue<Profile?> profileAsync = ref.watch(
-      profileControllerProvider(userId),
-    );
     final LevelPolicy policy = ref.read(levelPolicyProvider);
-    final double topPadding = MediaQuery.of(context).padding.top;
     final String headline = _phraseForDate(DateTime.now());
 
-    return SliverMainAxisGroup(
-      slivers: <Widget>[
-        SliverAppBar(
-          automaticallyImplyLeading: false,
-          floating: false,
-          pinned: false,
-          snap: false,
-          expandedHeight: topPadding + appBarHeight,
-          collapsedHeight: topPadding + appBarHeight,
-          toolbarHeight: appBarHeight,
-          backgroundColor: theme.colorScheme.surface,
-          surfaceTintColor: theme.colorScheme.surfaceTint,
-          elevation: 4,
-          titleSpacing: 20,
-          title: Image.asset(
-            'assets/icons/logo_dark.png',
-            height: 24,
-            fit: BoxFit.contain,
-            semanticLabel: 'Копим',
-          ),
-          actions: <Widget>[
-            const Center(child: SyncStatusIndicator()),
-            const SizedBox(width: 12),
-            Semantics(
-              label: strings.homeProfileTooltip,
-              button: true,
-              child: profileAsync.when(
-                data: (Profile? profile) => IconButton(
-                  tooltip: strings.homeProfileTooltip,
-                  padding: EdgeInsets.zero,
-                  iconSize: 48,
-                  icon: SizedBox(
-                    width: 48,
-                    height: 48,
-                    child: TopBarAvatarIcon(photoUrl: profile?.photoUrl),
-                  ),
-                  onPressed: () {
-                    context.push(ProfileManagementScreen.routeName);
-                  },
-                ),
-                loading: () => IconButton(
-                  tooltip: strings.homeProfileTooltip,
-                  padding: EdgeInsets.zero,
-                  onPressed: () {
-                    context.push(ProfileManagementScreen.routeName);
-                  },
-                  icon: const SizedBox(
-                    width: 48,
-                    height: 48,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  ),
-                ),
-                error: (Object error, StackTrace? stackTrace) => IconButton(
-                  tooltip: strings.homeProfileTooltip,
-                  padding: EdgeInsets.zero,
-                  iconSize: 48,
-                  icon: const SizedBox(
-                    width: 48,
-                    height: 48,
-                    child: Icon(Icons.account_circle_outlined),
-                  ),
-                  onPressed: () {
-                    context.push(ProfileManagementScreen.routeName);
-                  },
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
-          ],
-        ),
-        SliverPadding(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-          sliver: SliverToBoxAdapter(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(
-                minHeight: minGamificationHeight,
-              ),
-              child: _HomeGamificationCard(
-                progressAsync: progressAsync,
-                policy: policy,
-                headline: headline,
-              ),
-            ),
-          ),
-        ),
-      ],
+    return ConstrainedBox(
+      constraints: const BoxConstraints(minHeight: minGamificationHeight),
+      child: _HomeGamificationCard(
+        progressAsync: progressAsync,
+        policy: policy,
+        headline: headline,
+      ),
     );
   }
 }
@@ -222,20 +130,14 @@ class _HomeGamificationCard extends StatelessWidget {
                 ],
               );
             },
-            loading: () => const Center(
-              child: SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ),
+            loading: () => const Padding(
+              padding: EdgeInsets.all(12),
+              child: LinearProgressIndicator(minHeight: 6),
             ),
-            error: (Object error, _) => Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                strings.homeGamificationError(error.toString()),
-                style: textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.error,
-                ),
+            error: (Object error, StackTrace? stackTrace) => Text(
+              strings.homeGamificationError(error.toString()),
+              style: textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.error,
               ),
             ),
           ),

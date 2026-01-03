@@ -64,6 +64,20 @@ import 'package:kopim/features/categories/domain/use_cases/delete_category_use_c
 import 'package:kopim/features/categories/domain/use_cases/save_category_use_case.dart';
 import 'package:kopim/features/categories/domain/use_cases/watch_categories_use_case.dart';
 import 'package:kopim/features/categories/domain/use_cases/watch_category_tree_use_case.dart';
+import 'package:kopim/features/tags/data/repositories/tag_repository_impl.dart';
+import 'package:kopim/features/tags/data/repositories/transaction_tags_repository_impl.dart';
+import 'package:kopim/features/tags/data/sources/local/tag_dao.dart';
+import 'package:kopim/features/tags/data/sources/local/transaction_tags_dao.dart';
+import 'package:kopim/features/tags/data/sources/remote/tag_remote_data_source.dart';
+import 'package:kopim/features/tags/data/sources/remote/transaction_tag_remote_data_source.dart';
+import 'package:kopim/features/tags/domain/repositories/tag_repository.dart';
+import 'package:kopim/features/tags/domain/repositories/transaction_tags_repository.dart';
+import 'package:kopim/features/tags/domain/use_cases/archive_tag_use_case.dart';
+import 'package:kopim/features/tags/domain/use_cases/get_transaction_tag_ids_use_case.dart';
+import 'package:kopim/features/tags/domain/use_cases/save_tag_use_case.dart';
+import 'package:kopim/features/tags/domain/use_cases/set_transaction_tags_use_case.dart';
+import 'package:kopim/features/tags/domain/use_cases/watch_tags_use_case.dart';
+import 'package:kopim/features/tags/domain/use_cases/watch_transaction_tags_use_case.dart';
 import 'package:kopim/features/savings/data/repositories/saving_goal_repository_impl.dart';
 import 'package:kopim/features/savings/data/sources/local/goal_contribution_dao.dart';
 import 'package:kopim/features/savings/data/sources/local/saving_goal_dao.dart';
@@ -338,6 +352,13 @@ TransactionDao transactionDao(Ref ref) =>
     TransactionDao(ref.watch(appDatabaseProvider));
 
 @riverpod
+TagDao tagDao(Ref ref) => TagDao(ref.watch(appDatabaseProvider));
+
+@riverpod
+TransactionTagsDao transactionTagsDao(Ref ref) =>
+    TransactionTagsDao(ref.watch(appDatabaseProvider));
+
+@riverpod
 ExportDataRepository exportDataRepository(Ref ref) => ExportDataRepositoryImpl(
   accountDao: ref.watch(accountDaoProvider),
   transactionDao: ref.watch(transactionDaoProvider),
@@ -514,6 +535,14 @@ AccountRemoteDataSource accountRemoteDataSource(Ref ref) =>
 @riverpod
 CategoryRemoteDataSource categoryRemoteDataSource(Ref ref) =>
     CategoryRemoteDataSource(ref.watch(firestoreProvider));
+
+@riverpod
+TagRemoteDataSource tagRemoteDataSource(Ref ref) =>
+    TagRemoteDataSource(ref.watch(firestoreProvider));
+
+@riverpod
+TransactionTagRemoteDataSource transactionTagRemoteDataSource(Ref ref) =>
+    TransactionTagRemoteDataSource(ref.watch(firestoreProvider));
 
 @riverpod
 TransactionRemoteDataSource transactionRemoteDataSource(Ref ref) =>
@@ -757,12 +786,52 @@ CategoryRepository categoryRepository(Ref ref) => CategoryRepositoryImpl(
 );
 
 @riverpod
+TagRepository tagRepository(Ref ref) => TagRepositoryImpl(
+  database: ref.watch(appDatabaseProvider),
+  tagDao: ref.watch(tagDaoProvider),
+  outboxDao: ref.watch(outboxDaoProvider),
+);
+
+@riverpod
+TransactionTagsRepository transactionTagsRepository(Ref ref) =>
+    TransactionTagsRepositoryImpl(
+      database: ref.watch(appDatabaseProvider),
+      transactionTagsDao: ref.watch(transactionTagsDaoProvider),
+      tagDao: ref.watch(tagDaoProvider),
+      outboxDao: ref.watch(outboxDaoProvider),
+    );
+
+@riverpod
 SaveCategoryUseCase saveCategoryUseCase(Ref ref) =>
     SaveCategoryUseCase(ref.watch(categoryRepositoryProvider));
 
 @riverpod
 DeleteCategoryUseCase deleteCategoryUseCase(Ref ref) =>
     DeleteCategoryUseCase(ref.watch(categoryRepositoryProvider));
+
+@riverpod
+SaveTagUseCase saveTagUseCase(Ref ref) =>
+    SaveTagUseCase(ref.watch(tagRepositoryProvider));
+
+@riverpod
+ArchiveTagUseCase archiveTagUseCase(Ref ref) =>
+    ArchiveTagUseCase(ref.watch(tagRepositoryProvider));
+
+@riverpod
+WatchTagsUseCase watchTagsUseCase(Ref ref) =>
+    WatchTagsUseCase(ref.watch(tagRepositoryProvider));
+
+@riverpod
+SetTransactionTagsUseCase setTransactionTagsUseCase(Ref ref) =>
+    SetTransactionTagsUseCase(ref.watch(transactionTagsRepositoryProvider));
+
+@riverpod
+WatchTransactionTagsUseCase watchTransactionTagsUseCase(Ref ref) =>
+    WatchTransactionTagsUseCase(ref.watch(transactionTagsRepositoryProvider));
+
+@riverpod
+GetTransactionTagIdsUseCase getTransactionTagIdsUseCase(Ref ref) =>
+    GetTransactionTagIdsUseCase(ref.watch(transactionTagsRepositoryProvider));
 
 final rp.Provider<WatchCategoriesUseCase> watchCategoriesUseCaseProvider =
     rp.Provider<WatchCategoriesUseCase>((rp.Ref ref) {
@@ -971,6 +1040,10 @@ SyncService syncService(Ref ref) {
     outboxDao: ref.watch(outboxDaoProvider),
     accountRemoteDataSource: ref.watch(accountRemoteDataSourceProvider),
     categoryRemoteDataSource: ref.watch(categoryRemoteDataSourceProvider),
+    tagRemoteDataSource: ref.watch(tagRemoteDataSourceProvider),
+    transactionTagRemoteDataSource: ref.watch(
+      transactionTagRemoteDataSourceProvider,
+    ),
     transactionRemoteDataSource: ref.watch(transactionRemoteDataSourceProvider),
     debtRemoteDataSource: ref.watch(debtRemoteDataSourceProvider),
     profileRemoteDataSource: ref.watch(profileRemoteDataSourceProvider),
@@ -1021,7 +1094,9 @@ AuthSyncService authSyncService(Ref ref) => AuthSyncService(
   outboxDao: ref.watch(outboxDaoProvider),
   accountDao: ref.watch(accountDaoProvider),
   categoryDao: ref.watch(categoryDaoProvider),
+  tagDao: ref.watch(tagDaoProvider),
   transactionDao: ref.watch(transactionDaoProvider),
+  transactionTagsDao: ref.watch(transactionTagsDaoProvider),
   creditCardDao: ref.watch(creditCardDaoProvider),
   creditDao: ref.watch(creditDaoProvider),
   debtDao: ref.watch(debtDaoProvider),
@@ -1033,7 +1108,11 @@ AuthSyncService authSyncService(Ref ref) => AuthSyncService(
   profileDao: ref.watch(profileDaoProvider),
   accountRemoteDataSource: ref.watch(accountRemoteDataSourceProvider),
   categoryRemoteDataSource: ref.watch(categoryRemoteDataSourceProvider),
+  tagRemoteDataSource: ref.watch(tagRemoteDataSourceProvider),
   transactionRemoteDataSource: ref.watch(transactionRemoteDataSourceProvider),
+  transactionTagRemoteDataSource: ref.watch(
+    transactionTagRemoteDataSourceProvider,
+  ),
   creditCardRemoteDataSource: ref.watch(creditCardRemoteDataSourceProvider),
   creditRemoteDataSource: ref.watch(creditRemoteDataSourceProvider),
   debtRemoteDataSource: ref.watch(debtRemoteDataSourceProvider),

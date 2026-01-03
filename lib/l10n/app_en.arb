@@ -91,7 +91,7 @@
   "@profileGeneralSettingsManagementSection": {
     "description": "Section title for category and recurring actions on general settings"
   },
-  "profileManageCategoriesCta": "Manage categories",
+  "profileManageCategoriesCta": "Manage categories and tags",
   "@profileManageCategoriesCta": {
     "description": "Button label that opens the category management screen from the profile settings"
   },
@@ -304,9 +304,17 @@
   "@settingsHomeBudgetPickerClear": {
     "description": "Action label for removing the selected budget"
   },
-  "profileManageCategoriesTitle": "Manage categories",
+  "profileManageCategoriesTitle": "Manage categories and tags",
   "@profileManageCategoriesTitle": {
     "description": "Title for the category management screen"
+  },
+  "manageCategoriesTabCategories": "Categories",
+  "@manageCategoriesTabCategories": {
+    "description": "Tab label for the categories list"
+  },
+  "manageCategoriesTabTags": "Tags",
+  "@manageCategoriesTabTags": {
+    "description": "Tab label for the tags list"
   },
   "manageCategoriesAddAction": "Add category",
   "@manageCategoriesAddAction": {
@@ -614,6 +622,110 @@
   "manageCategoriesDeleteError": "Unable to delete category: {error}",
   "@manageCategoriesDeleteError": {
     "description": "Error message shown when deleting a category fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "manageTagsAddAction": "Add tag",
+  "@manageTagsAddAction": {
+    "description": "Tooltip for the button that starts creating a new tag"
+  },
+  "manageTagsEmpty": "No tags yet. Create one to get started.",
+  "@manageTagsEmpty": {
+    "description": "Empty state message when there are no tags"
+  },
+  "manageTagsListError": "Unable to load tags: {error}",
+  "@manageTagsListError": {
+    "description": "Error message shown when tags stream fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "manageTagsCreateTitle": "New tag",
+  "@manageTagsCreateTitle": {
+    "description": "Title for the sheet used to create a new tag"
+  },
+  "manageTagsEditTitle": "Edit tag",
+  "@manageTagsEditTitle": {
+    "description": "Title for the sheet used to edit an existing tag"
+  },
+  "manageTagsNameLabel": "Name",
+  "@manageTagsNameLabel": {
+    "description": "Label for the tag name field"
+  },
+  "manageTagsNameRequired": "Please enter a name.",
+  "@manageTagsNameRequired": {
+    "description": "Validation message shown when tag name is missing"
+  },
+  "manageTagsColorLabel": "Color",
+  "@manageTagsColorLabel": {
+    "description": "Label for the tag color picker"
+  },
+  "manageTagsColorNone": "Color not selected",
+  "@manageTagsColorNone": {
+    "description": "Subtitle when no tag color is selected"
+  },
+  "manageTagsColorSelected": "Color selected",
+  "@manageTagsColorSelected": {
+    "description": "Subtitle when a tag color is selected"
+  },
+  "manageTagsColorRequired": "Choose a color.",
+  "@manageTagsColorRequired": {
+    "description": "Validation message shown when tag color is missing"
+  },
+  "manageTagsColorPickerTitle": "Choose a tag color",
+  "@manageTagsColorPickerTitle": {
+    "description": "Dialog title for the tag color picker"
+  },
+  "manageTagsSaveCta": "Save tag",
+  "@manageTagsSaveCta": {
+    "description": "Call to action for saving tag changes"
+  },
+  "manageTagsSaveError": "Unable to save tag: {error}",
+  "@manageTagsSaveError": {
+    "description": "Error message shown when saving a tag fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "manageTagsSuccessCreate": "Tag created successfully.",
+  "@manageTagsSuccessCreate": {
+    "description": "Snackbar message shown when a tag is created"
+  },
+  "manageTagsSuccessUpdate": "Tag updated successfully.",
+  "@manageTagsSuccessUpdate": {
+    "description": "Snackbar message shown when a tag is updated"
+  },
+  "manageTagsDeleteAction": "Delete",
+  "@manageTagsDeleteAction": {
+    "description": "Action label to delete a tag"
+  },
+  "manageTagsDeleteConfirmTitle": "Delete tag",
+  "@manageTagsDeleteConfirmTitle": {
+    "description": "Confirmation dialog title for deleting a tag"
+  },
+  "manageTagsDeleteConfirmMessage": "Do you really want to delete the tag \"{name}\"?",
+  "@manageTagsDeleteConfirmMessage": {
+    "description": "Confirmation message shown before deleting a tag",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "manageTagsDeleteSuccess": "Tag deleted successfully.",
+  "@manageTagsDeleteSuccess": {
+    "description": "Snackbar message shown when a tag is deleted"
+  },
+  "manageTagsDeleteError": "Unable to delete tag: {error}",
+  "@manageTagsDeleteError": {
+    "description": "Error message shown when deleting a tag fails",
     "placeholders": {
       "error": {
         "type": "String"
@@ -2047,6 +2159,26 @@
         "type": "String"
       }
     }
+  },
+  "transactionTagsAddButton": "Add tag",
+  "@transactionTagsAddButton": {
+    "description": "Button label that opens the tag selection popup"
+  },
+  "transactionTagsSearchHint": "Search tags",
+  "@transactionTagsSearchHint": {
+    "description": "Placeholder text inside the tag search field"
+  },
+  "transactionTagsNone": "No tags found",
+  "@transactionTagsNone": {
+    "description": "Empty state shown when no tags match the search"
+  },
+  "transactionTagsDialogTitle": "Select tags",
+  "@transactionTagsDialogTitle": {
+    "description": "Title for the tag selection popup"
+  },
+  "transactionTagsDialogApply": "Apply",
+  "@transactionTagsDialogApply": {
+    "description": "Call to action for confirming tag selection"
   },
   "addTransactionDateLabel": "Date",
   "@addTransactionDateLabel": {

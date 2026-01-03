@@ -80,7 +80,7 @@ class BudgetFormController extends _$BudgetFormController {
       amountText: '',
       period: BudgetPeriod.monthly,
       scope: BudgetScope.all,
-      startDate: DateTime(now.year, now.month, now.day, 0, 1),
+      startDate: DateTime(now.year, now.month, now.day),
       endDate: null,
       categoryIds: const <String>[],
       accountIds: const <String>[],
@@ -271,7 +271,7 @@ class BudgetFormController extends _$BudgetFormController {
   }
 
   DateTime _normalizeStart(DateTime date) {
-    return DateTime(date.year, date.month, date.day, 0, 1);
+    return DateTime(date.year, date.month, date.day);
   }
 
   String _formatCategoryTotal(Map<String, String> categoryAmounts) {

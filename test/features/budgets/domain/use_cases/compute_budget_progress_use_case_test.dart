@@ -21,7 +21,7 @@ void main() {
     double amount = 100,
     DateTime? start,
   }) {
-    final DateTime startDate = start ?? DateTime.utc(2024, 1, 1, 0, 1);
+    final DateTime startDate = start ?? DateTime(2024, 1, 1);
     return Budget(
       id: 'budget',
       title: 'Budget',
@@ -62,14 +62,14 @@ void main() {
     test('computes utilization and exceeded flag for overspent budget', () {
       final Budget budget = buildBudget(amount: 100);
       final List<TransactionEntity> transactions = <TransactionEntity>[
-        tx(id: 't1', amount: -70, date: DateTime.utc(2024, 1, 10)),
-        tx(id: 't2', amount: -50, date: DateTime.utc(2024, 1, 20)),
+        tx(id: 't1', amount: -70, date: DateTime(2024, 1, 10)),
+        tx(id: 't2', amount: -50, date: DateTime(2024, 1, 20)),
       ];
 
       final BudgetProgress progress = useCase(
         budget: budget,
         transactions: transactions,
-        reference: DateTime.utc(2024, 1, 25),
+        reference: DateTime(2024, 1, 25),
       );
 
       expect(progress.spent, closeTo(120, 0.0001));
@@ -88,20 +88,20 @@ void main() {
           id: 't1',
           amount: -25,
           categoryId: 'food',
-          date: DateTime.utc(2024, 1, 5),
+          date: DateTime(2024, 1, 5),
         ),
         tx(
           id: 't2',
           amount: -30,
           categoryId: 'transport',
-          date: DateTime.utc(2024, 1, 6),
+          date: DateTime(2024, 1, 6),
         ),
       ];
 
       final List<TransactionEntity> filtered = useCase.filterTransactions(
         budget: budget,
         transactions: transactions,
-        reference: DateTime.utc(2024, 1, 10),
+        reference: DateTime(2024, 1, 10),
       );
 
       expect(filtered, hasLength(1));
@@ -109,13 +109,13 @@ void main() {
     });
 
     test('reuses existing instance when period matches', () {
-      final DateTime periodStart = DateTime.utc(2024, 2, 1, 0, 1);
+      final DateTime periodStart = DateTime(2024, 2, 1);
       final Budget budget = buildBudget(start: periodStart);
       final BudgetInstance existing = BudgetInstance(
         id: 'instance',
         budgetId: budget.id,
         periodStart: periodStart,
-        periodEnd: DateTime.utc(2024, 3, 1, 0, 1),
+        periodEnd: DateTime(2024, 3, 1),
         amount: 80,
         spent: 10,
         status: BudgetInstanceStatus.pending,
@@ -126,13 +126,13 @@ void main() {
       final TransactionEntity transaction = tx(
         id: 't1',
         amount: -40,
-        date: DateTime.utc(2024, 2, 10),
+        date: DateTime(2024, 2, 10),
       );
 
       final BudgetProgress progress = useCase(
         budget: budget,
         transactions: <TransactionEntity>[transaction],
-        reference: DateTime.utc(2024, 2, 15),
+        reference: DateTime(2024, 2, 15),
         existingInstance: existing,
       );
 

@@ -5,7 +5,10 @@ import 'package:riverpod/legacy.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
+import 'package:kopim/core/services/logger_service.dart';
 import 'package:kopim/features/profile/presentation/services/profile_event_recorder.dart';
+import 'package:kopim/features/tags/domain/entities/tag.dart';
+import 'package:kopim/features/tags/domain/use_cases/set_transaction_tags_use_case.dart';
 import 'package:kopim/features/transactions/domain/entities/add_transaction_request.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
@@ -40,6 +43,7 @@ class TransactionDraftState {
     this.accountId,
     this.transferAccountId,
     this.categoryId,
+    this.tagIds = const <String>[],
     this.note = '',
     this.type = TransactionType.expense,
     this.isSubmitting = false,
@@ -49,6 +53,7 @@ class TransactionDraftState {
     this.initialTransaction,
     this.lastCreatedTransaction,
     this.hasInitialized = false,
+    this.hasLoadedTags = false,
     this.preferredAccountId,
   });
 
@@ -58,12 +63,14 @@ class TransactionDraftState {
       accountId: defaultAccountId,
       transferAccountId: null,
       categoryId: null,
+      tagIds: const <String>[],
       note: '',
       type: TransactionType.expense,
       selectedDate: null,
       initialTransaction: null,
       lastCreatedTransaction: null,
       hasInitialized: true,
+      hasLoadedTags: false,
       preferredAccountId: defaultAccountId,
     );
   }
@@ -75,12 +82,14 @@ class TransactionDraftState {
       accountId: transaction.accountId,
       transferAccountId: transaction.transferAccountId,
       categoryId: transaction.categoryId,
+      tagIds: const <String>[],
       note: transaction.note ?? '',
       type: initialType,
       selectedDate: transaction.date,
       initialTransaction: transaction,
       lastCreatedTransaction: null,
       hasInitialized: true,
+      hasLoadedTags: false,
       preferredAccountId: transaction.accountId,
     );
   }
@@ -89,6 +98,7 @@ class TransactionDraftState {
   final String? accountId;
   final String? transferAccountId;
   final String? categoryId;
+  final List<String> tagIds;
   final String note;
   final TransactionType type;
   final bool isSubmitting;
@@ -98,6 +108,7 @@ class TransactionDraftState {
   final TransactionEntity? initialTransaction;
   final TransactionEntity? lastCreatedTransaction;
   final bool hasInitialized;
+  final bool hasLoadedTags;
   final String? preferredAccountId;
 
   bool get isEditing => initialTransaction != null;
@@ -127,6 +138,7 @@ class TransactionDraftState {
     String? accountId,
     String? transferAccountId,
     String? categoryId,
+    List<String>? tagIds,
     String? note,
     TransactionType? type,
     bool? isSubmitting,
@@ -139,6 +151,7 @@ class TransactionDraftState {
     TransactionEntity? lastCreatedTransaction,
     bool clearLastCreatedTransaction = false,
     bool? hasInitialized,
+    bool? hasLoadedTags,
     String? preferredAccountId,
     bool clearTransferAccount = false,
   }) {
@@ -149,6 +162,7 @@ class TransactionDraftState {
           ? null
           : (transferAccountId ?? this.transferAccountId),
       categoryId: clearCategory ? null : (categoryId ?? this.categoryId),
+      tagIds: tagIds ?? this.tagIds,
       note: note ?? this.note,
       type: type ?? this.type,
       isSubmitting: isSubmitting ?? this.isSubmitting,
@@ -160,6 +174,7 @@ class TransactionDraftState {
           ? null
           : (lastCreatedTransaction ?? this.lastCreatedTransaction),
       hasInitialized: hasInitialized ?? this.hasInitialized,
+      hasLoadedTags: hasLoadedTags ?? this.hasLoadedTags,
       preferredAccountId: preferredAccountId ?? this.preferredAccountId,
     );
   }
@@ -179,6 +194,11 @@ final StreamProvider<List<Category>> transactionFormCategoriesProvider =
       return ref.watch(watchCategoriesUseCaseProvider).call();
     });
 
+final StreamProvider<List<TagEntity>> transactionFormTagsProvider =
+    StreamProvider.autoDispose<List<TagEntity>>((Ref ref) {
+      return ref.watch(watchTagsUseCaseProvider).call();
+    });
+
 final StateNotifierProvider<TransactionDraftController, TransactionDraftState>
 transactionDraftControllerProvider =
     StateNotifierProvider<TransactionDraftController, TransactionDraftState>(
@@ -194,6 +214,7 @@ class TransactionDraftController extends StateNotifier<TransactionDraftState> {
   void applyArgs(TransactionFormArgs args) {
     if (args.initialTransaction != null) {
       setDraftForEdit(args.initialTransaction!);
+      unawaited(_loadTagIdsForEdit(args.initialTransaction!.id));
       return;
     }
     if (!state.hasInitialized) {
@@ -217,10 +238,12 @@ class TransactionDraftController extends StateNotifier<TransactionDraftState> {
           state.accountId ?? state.preferredAccountId ?? defaultAccountId,
       transferAccountId: null,
       categoryId: null,
+      tagIds: const <String>[],
       note: '',
       type: TransactionType.expense,
       selectedDate: DateTime.now(),
       hasInitialized: true,
+      hasLoadedTags: false,
       preferredAccountId:
           state.preferredAccountId ?? state.accountId ?? defaultAccountId,
     );
@@ -254,6 +277,20 @@ class TransactionDraftController extends StateNotifier<TransactionDraftState> {
 
   void updateCategory(String? categoryId) {
     state = state.copyWith(categoryId: categoryId, clearError: true);
+  }
+
+  void updateTags(List<String> tagIds) {
+    state = state.copyWith(tagIds: List<String>.unmodifiable(tagIds));
+  }
+
+  void toggleTag(String tagId) {
+    final List<String> current = List<String>.from(state.tagIds);
+    if (current.contains(tagId)) {
+      current.remove(tagId);
+    } else {
+      current.add(tagId);
+    }
+    state = state.copyWith(tagIds: List<String>.unmodifiable(current));
   }
 
   void updateTransferAccount(String? accountId) {
@@ -341,6 +378,7 @@ class TransactionDraftController extends StateNotifier<TransactionDraftState> {
             type: state.type,
           ),
         );
+        await _syncTransactionTags(initial.id);
         state = state.copyWith(
           isSubmitting: false,
           isSuccess: true,
@@ -371,6 +409,7 @@ class TransactionDraftController extends StateNotifier<TransactionDraftState> {
           );
       unawaited(recorder.record(createdResult.profileEvents));
       final TransactionEntity created = createdResult.value;
+      await _syncTransactionTags(created.id);
       state = state.copyWith(
         isSubmitting: false,
         isSuccess: true,
@@ -387,6 +426,38 @@ class TransactionDraftController extends StateNotifier<TransactionDraftState> {
         isSubmitting: false,
         error: TransactionDraftError.unknown,
       );
+    }
+  }
+
+  Future<void> _loadTagIdsForEdit(String transactionId) async {
+    if (state.hasLoadedTags) {
+      return;
+    }
+    try {
+      final List<String> tagIds = await ref.read(
+        getTransactionTagIdsUseCaseProvider,
+      )(transactionId);
+      state = state.copyWith(
+        tagIds: List<String>.unmodifiable(tagIds),
+        hasLoadedTags: true,
+      );
+    } catch (_) {
+      state = state.copyWith(hasLoadedTags: true);
+    }
+  }
+
+  Future<void> _syncTransactionTags(String transactionId) async {
+    final SetTransactionTagsUseCase setTagsUseCase = ref.read(
+      setTransactionTagsUseCaseProvider,
+    );
+    final LoggerService logger = ref.read(loggerServiceProvider);
+    try {
+      await setTagsUseCase(
+        transactionId: transactionId,
+        tagIds: state.tagIds,
+      );
+    } catch (error) {
+      logger.logError('Не удалось сохранить тэги транзакции', error);
     }
   }
 }

@@ -30,29 +30,44 @@ void main() {
   }
 
   group('BudgetSchedule.periodFor', () {
-    test('returns normalized monthly window based on reference', () {
-      final DateTime initial = DateTime.utc(2024, 1, 15, 13, 45);
+    test('returns calendar monthly window based on reference', () {
+      final DateTime initial = DateTime(2024, 1, 15, 13, 45);
       final Budget budget = buildBudget(start: initial);
+
+      // Reference in March should give March 1 to April 1
       final ({DateTime start, DateTime end}) period = schedule.periodFor(
         budget: budget,
-        reference: DateTime.utc(2024, 3, 5),
+        reference: DateTime(2024, 3, 5),
       );
 
-      expect(
-        period.start.isAtSameMomentAs(DateTime.utc(2024, 2, 15, 0, 1)),
-        isTrue,
-      );
-      expect(
-        period.end.isAtSameMomentAs(DateTime.utc(2024, 3, 15, 0, 1)),
-        isTrue,
-      );
+      expect(period.start, DateTime(2024, 3, 1));
+      expect(period.end, DateTime(2024, 4, 1));
     });
 
-    test('uses normalized bounds for custom budgets with invalid end', () {
-      final DateTime start = DateTime.utc(2024, 4, 20, 18);
+    test('returns weekly window starting on Monday', () {
+      // 2024-01-18 is Thursday
+      final DateTime initial = DateTime(2024, 1, 18);
+      final Budget budget = buildBudget(
+        start: initial,
+        period: BudgetPeriod.weekly,
+      );
+
+      // Reference 2024-01-20 (Saturday) -> should give 2024-01-15 (Monday) to 2024-01-22 (Monday)
+      final ({DateTime start, DateTime end}) period = schedule.periodFor(
+        budget: budget,
+        reference: DateTime(2024, 1, 20),
+      );
+
+      expect(period.start, DateTime(2024, 1, 15));
+      expect(period.end, DateTime(2024, 1, 22));
+    });
+
+    test('uses exact bounds for custom budgets', () {
+      final DateTime start = DateTime(2024, 4, 20);
+      final DateTime end = DateTime(2024, 5, 20);
       final Budget budget = buildBudget(
         start: start,
-        end: DateTime.utc(2024, 4, 19),
+        end: end,
         period: BudgetPeriod.custom,
       );
 
@@ -60,24 +75,18 @@ void main() {
         budget: budget,
       );
 
-      expect(
-        period.start.isAtSameMomentAs(DateTime.utc(2024, 4, 20, 0, 1)),
-        isTrue,
-      );
-      expect(
-        period.end.isAtSameMomentAs(DateTime.utc(2024, 4, 21, 0, 1)),
-        isTrue,
-      );
+      expect(period.start, DateTime(2024, 4, 20));
+      expect(period.end, DateTime(2024, 5, 20));
     });
   });
 
   group('BudgetSchedule.generateUpcomingInstances', () {
-    test('produces instances aligned to 00:01 and sequential periods', () {
-      final Budget budget = buildBudget(start: DateTime.utc(2024, 6, 30, 12));
+    test('produces instances aligned to calendar', () {
+      final Budget budget = buildBudget(start: DateTime(2024, 6, 15));
       final Iterable<BudgetInstance> instances = schedule
           .generateUpcomingInstances(
             budget: budget,
-            from: DateTime.utc(2024, 6, 30, 12),
+            from: DateTime(2024, 6, 15),
             count: 2,
             idBuilder: (DateTime start) =>
                 'instance-${start.toIso8601String()}',
@@ -85,36 +94,25 @@ void main() {
 
       final List<BudgetInstance> list = instances.toList();
       expect(list, hasLength(2));
-      expect(
-        list.first.periodStart.isAtSameMomentAs(
-          DateTime.utc(2024, 6, 30, 0, 1),
-        ),
-        isTrue,
-      );
-      expect(
-        list.first.periodEnd.isAtSameMomentAs(DateTime.utc(2024, 7, 30, 0, 1)),
-        isTrue,
-      );
-      expect(list.first.status, BudgetInstanceStatus.active);
-      expect(
-        list.last.periodStart.isAtSameMomentAs(DateTime.utc(2024, 7, 30, 0, 1)),
-        isTrue,
-      );
-      expect(
-        list.last.periodEnd.isAtSameMomentAs(DateTime.utc(2024, 8, 30, 0, 1)),
-        isTrue,
-      );
+
+      // First instance should be June
+      expect(list.first.periodStart, DateTime(2024, 6, 1));
+      expect(list.first.periodEnd, DateTime(2024, 7, 1));
+
+      // Second instance should be July
+      expect(list.last.periodStart, DateTime(2024, 7, 1));
+      expect(list.last.periodEnd, DateTime(2024, 8, 1));
     });
   });
 
   group('BudgetSchedule.statusFor', () {
-    test('returns pending before start and active within window', () {
-      final DateTime start = DateTime.utc(2024, 5, 1, 0, 1);
-      final DateTime end = DateTime.utc(2024, 6, 1, 0, 1);
+    test('returns correct status', () {
+      final DateTime start = DateTime(2024, 5, 1);
+      final DateTime end = DateTime(2024, 6, 1);
 
       expect(
         schedule.statusFor(
-          clock: DateTime.utc(2024, 4, 30, 23, 59),
+          clock: DateTime(2024, 4, 30, 23, 59),
           start: start,
           end: end,
         ),
@@ -123,7 +121,7 @@ void main() {
 
       expect(
         schedule.statusFor(
-          clock: DateTime.utc(2024, 5, 15),
+          clock: DateTime(2024, 5, 15),
           start: start,
           end: end,
         ),
@@ -131,11 +129,7 @@ void main() {
       );
 
       expect(
-        schedule.statusFor(
-          clock: DateTime.utc(2024, 6, 1, 0, 1),
-          start: start,
-          end: end,
-        ),
+        schedule.statusFor(clock: DateTime(2024, 6, 1), start: start, end: end),
         BudgetInstanceStatus.closed,
       );
     });

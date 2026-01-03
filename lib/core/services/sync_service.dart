@@ -20,6 +20,10 @@ import 'package:kopim/features/savings/data/sources/remote/saving_goal_remote_da
 import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
 import 'package:kopim/features/profile/data/remote/profile_remote_data_source.dart';
 import 'package:kopim/features/profile/domain/entities/profile.dart';
+import 'package:kopim/features/tags/data/sources/remote/tag_remote_data_source.dart';
+import 'package:kopim/features/tags/data/sources/remote/transaction_tag_remote_data_source.dart';
+import 'package:kopim/features/tags/domain/entities/tag.dart';
+import 'package:kopim/features/tags/domain/entities/transaction_tag.dart';
 import 'package:kopim/features/transactions/data/sources/remote/transaction_remote_data_source.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/upcoming_payments/data/sources/remote/payment_reminder_remote_data_source.dart';
@@ -33,6 +37,8 @@ class SyncService {
     required OutboxDao outboxDao,
     required AccountRemoteDataSource accountRemoteDataSource,
     required CategoryRemoteDataSource categoryRemoteDataSource,
+    required TagRemoteDataSource tagRemoteDataSource,
+    required TransactionTagRemoteDataSource transactionTagRemoteDataSource,
     required TransactionRemoteDataSource transactionRemoteDataSource,
     required DebtRemoteDataSource debtRemoteDataSource,
     required ProfileRemoteDataSource profileRemoteDataSource,
@@ -47,6 +53,8 @@ class SyncService {
   }) : _outboxDao = outboxDao,
        _accountRemoteDataSource = accountRemoteDataSource,
        _categoryRemoteDataSource = categoryRemoteDataSource,
+       _tagRemoteDataSource = tagRemoteDataSource,
+       _transactionTagRemoteDataSource = transactionTagRemoteDataSource,
        _transactionRemoteDataSource = transactionRemoteDataSource,
        _debtRemoteDataSource = debtRemoteDataSource,
        _profileRemoteDataSource = profileRemoteDataSource,
@@ -62,6 +70,8 @@ class SyncService {
   final OutboxDao _outboxDao;
   final AccountRemoteDataSource _accountRemoteDataSource;
   final CategoryRemoteDataSource _categoryRemoteDataSource;
+  final TagRemoteDataSource _tagRemoteDataSource;
+  final TransactionTagRemoteDataSource _transactionTagRemoteDataSource;
   final TransactionRemoteDataSource _transactionRemoteDataSource;
   final DebtRemoteDataSource _debtRemoteDataSource;
   final ProfileRemoteDataSource _profileRemoteDataSource;
@@ -167,6 +177,16 @@ class SyncService {
           final Category category = Category.fromJson(payload);
           await _dispatchCategory(userId, category, operation);
           break;
+        case 'tag':
+          final TagEntity tag = TagEntity.fromJson(payload);
+          await _dispatchTag(userId, tag, operation);
+          break;
+        case 'transaction_tag':
+          final TransactionTagEntity link = TransactionTagEntity.fromJson(
+            payload,
+          );
+          await _dispatchTransactionTag(userId, link, operation);
+          break;
         case 'transaction':
           final TransactionEntity transaction = TransactionEntity.fromJson(
             payload,
@@ -249,6 +269,40 @@ class SyncService {
     return _categoryRemoteDataSource.upsert(
       userId,
       category.copyWith(isDeleted: false),
+    );
+  }
+
+  Future<void> _dispatchTag(
+    String userId,
+    TagEntity tag,
+    OutboxOperation operation,
+  ) {
+    if (operation == OutboxOperation.delete) {
+      return _tagRemoteDataSource.delete(
+        userId,
+        tag.copyWith(isDeleted: true),
+      );
+    }
+    return _tagRemoteDataSource.upsert(
+      userId,
+      tag.copyWith(isDeleted: false),
+    );
+  }
+
+  Future<void> _dispatchTransactionTag(
+    String userId,
+    TransactionTagEntity link,
+    OutboxOperation operation,
+  ) {
+    if (operation == OutboxOperation.delete) {
+      return _transactionTagRemoteDataSource.delete(
+        userId,
+        link.copyWith(isDeleted: true),
+      );
+    }
+    return _transactionTagRemoteDataSource.upsert(
+      userId,
+      link.copyWith(isDeleted: false),
     );
   }
 

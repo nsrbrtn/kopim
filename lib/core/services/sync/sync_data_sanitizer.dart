@@ -3,6 +3,7 @@ import 'package:kopim/features/budgets/domain/entities/budget_instance.dart';
 import 'package:kopim/features/credits/domain/entities/credit_card_entity.dart';
 import 'package:kopim/features/credits/domain/entities/credit_entity.dart';
 import 'package:kopim/features/credits/domain/entities/debt_entity.dart';
+import 'package:kopim/features/tags/domain/entities/transaction_tag.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/upcoming_payments/domain/entities/upcoming_payment.dart';
 
@@ -97,6 +98,34 @@ class SyncDataSanitizer {
     if (skippedCount > 0) {
       logger.logInfo(
         'SyncDataSanitizer: skipped $skippedCount recurring payments due to missing accounts or categories.',
+      );
+    }
+
+    return sanitized;
+  }
+
+  List<TransactionTagEntity> sanitizeTransactionTags({
+    required List<TransactionTagEntity> transactionTags,
+    required Set<String> validTransactionIds,
+    required Set<String> validTagIds,
+  }) {
+    if (transactionTags.isEmpty) return transactionTags;
+
+    final List<TransactionTagEntity> sanitized = <TransactionTagEntity>[];
+    int skippedCount = 0;
+
+    for (final TransactionTagEntity link in transactionTags) {
+      if (!validTransactionIds.contains(link.transactionId) ||
+          !validTagIds.contains(link.tagId)) {
+        skippedCount++;
+        continue;
+      }
+      sanitized.add(link);
+    }
+
+    if (skippedCount > 0) {
+      logger.logInfo(
+        'SyncDataSanitizer: skipped $skippedCount transaction tags due to missing references.',
       );
     }
 

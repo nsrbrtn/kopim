@@ -683,6 +683,94 @@ final class TransactionDaoProvider
 
 String _$transactionDaoHash() => r'6dd75d3118f0e2e23be1b05fe5ebcee148e69f7f';
 
+@ProviderFor(tagDao)
+const tagDaoProvider = TagDaoProvider._();
+
+final class TagDaoProvider extends $FunctionalProvider<TagDao, TagDao, TagDao>
+    with $Provider<TagDao> {
+  const TagDaoProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'tagDaoProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$tagDaoHash();
+
+  @$internal
+  @override
+  $ProviderElement<TagDao> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  TagDao create(Ref ref) {
+    return tagDao(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(TagDao value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<TagDao>(value),
+    );
+  }
+}
+
+String _$tagDaoHash() => r'5d356e0e99632af543980064c22ec7032cc9c17d';
+
+@ProviderFor(transactionTagsDao)
+const transactionTagsDaoProvider = TransactionTagsDaoProvider._();
+
+final class TransactionTagsDaoProvider
+    extends
+        $FunctionalProvider<
+          TransactionTagsDao,
+          TransactionTagsDao,
+          TransactionTagsDao
+        >
+    with $Provider<TransactionTagsDao> {
+  const TransactionTagsDaoProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'transactionTagsDaoProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$transactionTagsDaoHash();
+
+  @$internal
+  @override
+  $ProviderElement<TransactionTagsDao> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  TransactionTagsDao create(Ref ref) {
+    return transactionTagsDao(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(TransactionTagsDao value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<TransactionTagsDao>(value),
+    );
+  }
+}
+
+String _$transactionTagsDaoHash() =>
+    r'2e03fb07d67f9e784e95955d0e185e57bddc9792';
+
 @ProviderFor(exportDataRepository)
 const exportDataRepositoryProvider = ExportDataRepositoryProvider._();
 
@@ -1930,6 +2018,105 @@ final class CategoryRemoteDataSourceProvider
 
 String _$categoryRemoteDataSourceHash() =>
     r'41e23c7c2518c2346671ee5662564b7559ddd941';
+
+@ProviderFor(tagRemoteDataSource)
+const tagRemoteDataSourceProvider = TagRemoteDataSourceProvider._();
+
+final class TagRemoteDataSourceProvider
+    extends
+        $FunctionalProvider<
+          TagRemoteDataSource,
+          TagRemoteDataSource,
+          TagRemoteDataSource
+        >
+    with $Provider<TagRemoteDataSource> {
+  const TagRemoteDataSourceProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'tagRemoteDataSourceProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$tagRemoteDataSourceHash();
+
+  @$internal
+  @override
+  $ProviderElement<TagRemoteDataSource> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  TagRemoteDataSource create(Ref ref) {
+    return tagRemoteDataSource(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(TagRemoteDataSource value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<TagRemoteDataSource>(value),
+    );
+  }
+}
+
+String _$tagRemoteDataSourceHash() =>
+    r'3a0ae36e6c46ad15aaf0015dac04ebb4dfe44531';
+
+@ProviderFor(transactionTagRemoteDataSource)
+const transactionTagRemoteDataSourceProvider =
+    TransactionTagRemoteDataSourceProvider._();
+
+final class TransactionTagRemoteDataSourceProvider
+    extends
+        $FunctionalProvider<
+          TransactionTagRemoteDataSource,
+          TransactionTagRemoteDataSource,
+          TransactionTagRemoteDataSource
+        >
+    with $Provider<TransactionTagRemoteDataSource> {
+  const TransactionTagRemoteDataSourceProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'transactionTagRemoteDataSourceProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$transactionTagRemoteDataSourceHash();
+
+  @$internal
+  @override
+  $ProviderElement<TransactionTagRemoteDataSource> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  TransactionTagRemoteDataSource create(Ref ref) {
+    return transactionTagRemoteDataSource(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(TransactionTagRemoteDataSource value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<TransactionTagRemoteDataSource>(
+        value,
+      ),
+    );
+  }
+}
+
+String _$transactionTagRemoteDataSourceHash() =>
+    r'8668319950c64355b125dd90116b18606d3335f5';
 
 @ProviderFor(transactionRemoteDataSource)
 const transactionRemoteDataSourceProvider =
@@ -3717,6 +3904,95 @@ final class CategoryRepositoryProvider
 String _$categoryRepositoryHash() =>
     r'ea2f9b89aa4534b1f6d340901c364a0ba4a14e19';
 
+@ProviderFor(tagRepository)
+const tagRepositoryProvider = TagRepositoryProvider._();
+
+final class TagRepositoryProvider
+    extends $FunctionalProvider<TagRepository, TagRepository, TagRepository>
+    with $Provider<TagRepository> {
+  const TagRepositoryProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'tagRepositoryProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$tagRepositoryHash();
+
+  @$internal
+  @override
+  $ProviderElement<TagRepository> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  TagRepository create(Ref ref) {
+    return tagRepository(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(TagRepository value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<TagRepository>(value),
+    );
+  }
+}
+
+String _$tagRepositoryHash() => r'dddb65cb3e6adfc367ec6c204b75ca418f74a25f';
+
+@ProviderFor(transactionTagsRepository)
+const transactionTagsRepositoryProvider = TransactionTagsRepositoryProvider._();
+
+final class TransactionTagsRepositoryProvider
+    extends
+        $FunctionalProvider<
+          TransactionTagsRepository,
+          TransactionTagsRepository,
+          TransactionTagsRepository
+        >
+    with $Provider<TransactionTagsRepository> {
+  const TransactionTagsRepositoryProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'transactionTagsRepositoryProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$transactionTagsRepositoryHash();
+
+  @$internal
+  @override
+  $ProviderElement<TransactionTagsRepository> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  TransactionTagsRepository create(Ref ref) {
+    return transactionTagsRepository(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(TransactionTagsRepository value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<TransactionTagsRepository>(value),
+    );
+  }
+}
+
+String _$transactionTagsRepositoryHash() =>
+    r'02a529325a184c6859d80a154289002c99cfe4ba';
+
 @ProviderFor(saveCategoryUseCase)
 const saveCategoryUseCaseProvider = SaveCategoryUseCaseProvider._();
 
@@ -3812,6 +4088,286 @@ final class DeleteCategoryUseCaseProvider
 
 String _$deleteCategoryUseCaseHash() =>
     r'35134c5968610d737615af311aef0bb6b72cefb8';
+
+@ProviderFor(saveTagUseCase)
+const saveTagUseCaseProvider = SaveTagUseCaseProvider._();
+
+final class SaveTagUseCaseProvider
+    extends $FunctionalProvider<SaveTagUseCase, SaveTagUseCase, SaveTagUseCase>
+    with $Provider<SaveTagUseCase> {
+  const SaveTagUseCaseProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'saveTagUseCaseProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$saveTagUseCaseHash();
+
+  @$internal
+  @override
+  $ProviderElement<SaveTagUseCase> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  SaveTagUseCase create(Ref ref) {
+    return saveTagUseCase(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(SaveTagUseCase value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<SaveTagUseCase>(value),
+    );
+  }
+}
+
+String _$saveTagUseCaseHash() => r'87cbb7d0eec826ea57f672cf97e5e3b1438ffd63';
+
+@ProviderFor(archiveTagUseCase)
+const archiveTagUseCaseProvider = ArchiveTagUseCaseProvider._();
+
+final class ArchiveTagUseCaseProvider
+    extends
+        $FunctionalProvider<
+          ArchiveTagUseCase,
+          ArchiveTagUseCase,
+          ArchiveTagUseCase
+        >
+    with $Provider<ArchiveTagUseCase> {
+  const ArchiveTagUseCaseProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'archiveTagUseCaseProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$archiveTagUseCaseHash();
+
+  @$internal
+  @override
+  $ProviderElement<ArchiveTagUseCase> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  ArchiveTagUseCase create(Ref ref) {
+    return archiveTagUseCase(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(ArchiveTagUseCase value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<ArchiveTagUseCase>(value),
+    );
+  }
+}
+
+String _$archiveTagUseCaseHash() => r'c6d141bb19fb1946c9f78252a5abb76b9c64d429';
+
+@ProviderFor(watchTagsUseCase)
+const watchTagsUseCaseProvider = WatchTagsUseCaseProvider._();
+
+final class WatchTagsUseCaseProvider
+    extends
+        $FunctionalProvider<
+          WatchTagsUseCase,
+          WatchTagsUseCase,
+          WatchTagsUseCase
+        >
+    with $Provider<WatchTagsUseCase> {
+  const WatchTagsUseCaseProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'watchTagsUseCaseProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$watchTagsUseCaseHash();
+
+  @$internal
+  @override
+  $ProviderElement<WatchTagsUseCase> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  WatchTagsUseCase create(Ref ref) {
+    return watchTagsUseCase(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(WatchTagsUseCase value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<WatchTagsUseCase>(value),
+    );
+  }
+}
+
+String _$watchTagsUseCaseHash() => r'01618b29a515a33678f50290bed97770a891dff1';
+
+@ProviderFor(setTransactionTagsUseCase)
+const setTransactionTagsUseCaseProvider = SetTransactionTagsUseCaseProvider._();
+
+final class SetTransactionTagsUseCaseProvider
+    extends
+        $FunctionalProvider<
+          SetTransactionTagsUseCase,
+          SetTransactionTagsUseCase,
+          SetTransactionTagsUseCase
+        >
+    with $Provider<SetTransactionTagsUseCase> {
+  const SetTransactionTagsUseCaseProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'setTransactionTagsUseCaseProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$setTransactionTagsUseCaseHash();
+
+  @$internal
+  @override
+  $ProviderElement<SetTransactionTagsUseCase> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  SetTransactionTagsUseCase create(Ref ref) {
+    return setTransactionTagsUseCase(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(SetTransactionTagsUseCase value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<SetTransactionTagsUseCase>(value),
+    );
+  }
+}
+
+String _$setTransactionTagsUseCaseHash() =>
+    r'655a78242350502f0f5a1f919d9e9a81bd551c7c';
+
+@ProviderFor(watchTransactionTagsUseCase)
+const watchTransactionTagsUseCaseProvider =
+    WatchTransactionTagsUseCaseProvider._();
+
+final class WatchTransactionTagsUseCaseProvider
+    extends
+        $FunctionalProvider<
+          WatchTransactionTagsUseCase,
+          WatchTransactionTagsUseCase,
+          WatchTransactionTagsUseCase
+        >
+    with $Provider<WatchTransactionTagsUseCase> {
+  const WatchTransactionTagsUseCaseProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'watchTransactionTagsUseCaseProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$watchTransactionTagsUseCaseHash();
+
+  @$internal
+  @override
+  $ProviderElement<WatchTransactionTagsUseCase> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  WatchTransactionTagsUseCase create(Ref ref) {
+    return watchTransactionTagsUseCase(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(WatchTransactionTagsUseCase value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<WatchTransactionTagsUseCase>(value),
+    );
+  }
+}
+
+String _$watchTransactionTagsUseCaseHash() =>
+    r'7eb947ab964471a43c2a14a12e6b805d851905ce';
+
+@ProviderFor(getTransactionTagIdsUseCase)
+const getTransactionTagIdsUseCaseProvider =
+    GetTransactionTagIdsUseCaseProvider._();
+
+final class GetTransactionTagIdsUseCaseProvider
+    extends
+        $FunctionalProvider<
+          GetTransactionTagIdsUseCase,
+          GetTransactionTagIdsUseCase,
+          GetTransactionTagIdsUseCase
+        >
+    with $Provider<GetTransactionTagIdsUseCase> {
+  const GetTransactionTagIdsUseCaseProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'getTransactionTagIdsUseCaseProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$getTransactionTagIdsUseCaseHash();
+
+  @$internal
+  @override
+  $ProviderElement<GetTransactionTagIdsUseCase> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  GetTransactionTagIdsUseCase create(Ref ref) {
+    return getTransactionTagIdsUseCase(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(GetTransactionTagIdsUseCase value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<GetTransactionTagIdsUseCase>(value),
+    );
+  }
+}
+
+String _$getTransactionTagIdsUseCaseHash() =>
+    r'01b4c7aca72f3c52d0ae398fc207a09819ad6942';
 
 @ProviderFor(transactionRepository)
 const transactionRepositoryProvider = TransactionRepositoryProvider._();
@@ -4935,7 +5491,7 @@ final class SyncServiceProvider
   }
 }
 
-String _$syncServiceHash() => r'66867cef24f2b0ab01280a640323220827a8897d';
+String _$syncServiceHash() => r'ca0e6d617566c9787663b27cd576e445154bd028';
 
 @ProviderFor(authRepository)
 const authRepositoryProvider = AuthRepositoryProvider._();
@@ -5065,4 +5621,4 @@ final class AuthSyncServiceProvider
   }
 }
 
-String _$authSyncServiceHash() => r'92aa8027604326098c85255b1caff8c895df21ae';
+String _$authSyncServiceHash() => r'1249151ebf9c8423fd1aafdacb0b2dfa5754d3e4';

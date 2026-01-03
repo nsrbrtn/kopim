@@ -55,6 +55,20 @@ class Categories extends Table {
   Set<Column<Object>> get primaryKey => <Column<Object>>{id};
 }
 
+@DataClassName('TagRow')
+class Tags extends Table {
+  TextColumn get id => text().withLength(min: 1, max: 50)();
+  TextColumn get name => text().withLength(min: 1, max: 100)();
+  TextColumn get color => text().withLength(min: 1, max: 16)();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  BoolColumn get isDeleted =>
+      boolean().withDefault(const Constant<bool>(false))();
+
+  @override
+  Set<Column<Object>> get primaryKey => <Column<Object>>{id};
+}
+
 @DataClassName('TransactionRow')
 class Transactions extends Table {
   TextColumn get id => text().withLength(min: 1, max: 50)();
@@ -80,6 +94,22 @@ class Transactions extends Table {
 
   @override
   Set<Column<Object>> get primaryKey => <Column<Object>>{id};
+}
+
+@DataClassName('TransactionTagRow')
+class TransactionTags extends Table {
+  TextColumn get transactionId => text()
+      .references(Transactions, #id, onDelete: KeyAction.cascade)();
+  TextColumn get tagId =>
+      text().references(Tags, #id, onDelete: KeyAction.cascade)();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  BoolColumn get isDeleted =>
+      boolean().withDefault(const Constant<bool>(false))();
+
+  @override
+  Set<Column<Object>> get primaryKey =>
+      <Column<Object>>{transactionId, tagId};
 }
 
 @DataClassName('OutboxEntryRow')
@@ -249,7 +279,9 @@ class CreditCards extends Table {
   tables: <Type>[
     Accounts,
     Categories,
+    Tags,
     Transactions,
+    TransactionTags,
     OutboxEntries,
     Profiles,
     Budgets,
@@ -269,7 +301,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.connect(DatabaseConnection super.connection);
 
   @override
-  int get schemaVersion => 29;
+  int get schemaVersion => 30;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -315,6 +347,20 @@ class AppDatabase extends _$AppDatabase {
           'transactions_date_account_category_idx',
           'CREATE INDEX IF NOT EXISTS transactions_date_account_category_idx '
               'ON transactions(date, account_id, category_id)',
+        ),
+      );
+      await m.createIndex(
+        Index(
+          'transaction_tags_transaction_idx',
+          'CREATE INDEX IF NOT EXISTS transaction_tags_transaction_idx '
+              'ON transaction_tags(transaction_id)',
+        ),
+      );
+      await m.createIndex(
+        Index(
+          'transaction_tags_tag_idx',
+          'CREATE INDEX IF NOT EXISTS transaction_tags_tag_idx '
+              'ON transaction_tags(tag_id)',
         ),
       );
       await m.createIndex(
@@ -620,6 +666,28 @@ class AppDatabase extends _$AppDatabase {
             'credit_cards_account_id_idx',
             'CREATE INDEX IF NOT EXISTS credit_cards_account_id_idx '
                 'ON credit_cards(account_id)',
+          ),
+        );
+      }
+      if (from < 30) {
+        if (!await _tableExists('tags')) {
+          await m.createTable(tags);
+        }
+        if (!await _tableExists('transaction_tags')) {
+          await m.createTable(transactionTags);
+        }
+        await m.createIndex(
+          Index(
+            'transaction_tags_transaction_idx',
+            'CREATE INDEX IF NOT EXISTS transaction_tags_transaction_idx '
+                'ON transaction_tags(transaction_id)',
+          ),
+        );
+        await m.createIndex(
+          Index(
+            'transaction_tags_tag_idx',
+            'CREATE INDEX IF NOT EXISTS transaction_tags_tag_idx '
+                'ON transaction_tags(tag_id)',
           ),
         );
       }

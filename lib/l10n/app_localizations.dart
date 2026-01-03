@@ -371,7 +371,7 @@ abstract class AppLocalizations {
   /// Button label that opens the category management screen from the profile settings
   ///
   /// In en, this message translates to:
-  /// **'Manage categories'**
+  /// **'Manage categories and tags'**
   String get profileManageCategoriesCta;
 
   /// Button label that opens the upcoming payments screen from the profile settings
@@ -621,8 +621,20 @@ abstract class AppLocalizations {
   /// Title for the category management screen
   ///
   /// In en, this message translates to:
-  /// **'Manage categories'**
+  /// **'Manage categories and tags'**
   String get profileManageCategoriesTitle;
+
+  /// Tab label for the categories list
+  ///
+  /// In en, this message translates to:
+  /// **'Categories'**
+  String get manageCategoriesTabCategories;
+
+  /// Tab label for the tags list
+  ///
+  /// In en, this message translates to:
+  /// **'Tags'**
+  String get manageCategoriesTabTags;
 
   /// Tooltip for the button that starts creating a new category
   ///
@@ -1061,6 +1073,132 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Unable to delete category: {error}'**
   String manageCategoriesDeleteError(String error);
+
+  /// Tooltip for the button that starts creating a new tag
+  ///
+  /// In en, this message translates to:
+  /// **'Add tag'**
+  String get manageTagsAddAction;
+
+  /// Empty state message when there are no tags
+  ///
+  /// In en, this message translates to:
+  /// **'No tags yet. Create one to get started.'**
+  String get manageTagsEmpty;
+
+  /// Error message shown when tags stream fails
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load tags: {error}'**
+  String manageTagsListError(String error);
+
+  /// Title for the sheet used to create a new tag
+  ///
+  /// In en, this message translates to:
+  /// **'New tag'**
+  String get manageTagsCreateTitle;
+
+  /// Title for the sheet used to edit an existing tag
+  ///
+  /// In en, this message translates to:
+  /// **'Edit tag'**
+  String get manageTagsEditTitle;
+
+  /// Label for the tag name field
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get manageTagsNameLabel;
+
+  /// Validation message shown when tag name is missing
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a name.'**
+  String get manageTagsNameRequired;
+
+  /// Label for the tag color picker
+  ///
+  /// In en, this message translates to:
+  /// **'Color'**
+  String get manageTagsColorLabel;
+
+  /// Subtitle when no tag color is selected
+  ///
+  /// In en, this message translates to:
+  /// **'Color not selected'**
+  String get manageTagsColorNone;
+
+  /// Subtitle when a tag color is selected
+  ///
+  /// In en, this message translates to:
+  /// **'Color selected'**
+  String get manageTagsColorSelected;
+
+  /// Validation message shown when tag color is missing
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a color.'**
+  String get manageTagsColorRequired;
+
+  /// Dialog title for the tag color picker
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a tag color'**
+  String get manageTagsColorPickerTitle;
+
+  /// Call to action for saving tag changes
+  ///
+  /// In en, this message translates to:
+  /// **'Save tag'**
+  String get manageTagsSaveCta;
+
+  /// Error message shown when saving a tag fails
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to save tag: {error}'**
+  String manageTagsSaveError(String error);
+
+  /// Snackbar message shown when a tag is created
+  ///
+  /// In en, this message translates to:
+  /// **'Tag created successfully.'**
+  String get manageTagsSuccessCreate;
+
+  /// Snackbar message shown when a tag is updated
+  ///
+  /// In en, this message translates to:
+  /// **'Tag updated successfully.'**
+  String get manageTagsSuccessUpdate;
+
+  /// Action label to delete a tag
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get manageTagsDeleteAction;
+
+  /// Confirmation dialog title for deleting a tag
+  ///
+  /// In en, this message translates to:
+  /// **'Delete tag'**
+  String get manageTagsDeleteConfirmTitle;
+
+  /// Confirmation message shown before deleting a tag
+  ///
+  /// In en, this message translates to:
+  /// **'Do you really want to delete the tag \"{name}\"?'**
+  String manageTagsDeleteConfirmMessage(String name);
+
+  /// Snackbar message shown when a tag is deleted
+  ///
+  /// In en, this message translates to:
+  /// **'Tag deleted successfully.'**
+  String get manageTagsDeleteSuccess;
+
+  /// Error message shown when deleting a tag fails
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to delete tag: {error}'**
+  String manageTagsDeleteError(String error);
 
   /// Label for the profile name input
   ///
@@ -2831,6 +2969,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Unable to load categories: {error}'**
   String addTransactionCategoriesError(String error);
+
+  /// Button label that opens the tag selection popup
+  ///
+  /// In en, this message translates to:
+  /// **'Add tag'**
+  String get transactionTagsAddButton;
+
+  /// Placeholder text inside the tag search field
+  ///
+  /// In en, this message translates to:
+  /// **'Search tags'**
+  String get transactionTagsSearchHint;
+
+  /// Empty state shown when no tags match the search
+  ///
+  /// In en, this message translates to:
+  /// **'No tags found'**
+  String get transactionTagsNone;
+
+  /// Title for the tag selection popup
+  ///
+  /// In en, this message translates to:
+  /// **'Select tags'**
+  String get transactionTagsDialogTitle;
+
+  /// Call to action for confirming tag selection
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
+  String get transactionTagsDialogApply;
 
   /// Label for the date picker
   ///

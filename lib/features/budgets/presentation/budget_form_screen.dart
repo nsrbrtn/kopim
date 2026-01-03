@@ -181,15 +181,16 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-              _DatePickerTile(
-                label: strings.budgetStartDateLabel,
-                value: state.startDate,
-                onSelected: (DateTime? date) {
-                  if (date != null) {
-                    controller.setStartDate(date);
-                  }
-                },
-              ),
+              if (state.period == BudgetPeriod.custom)
+                _DatePickerTile(
+                  label: strings.budgetStartDateLabel,
+                  value: state.startDate,
+                  onSelected: (DateTime? date) {
+                    if (date != null) {
+                      controller.setStartDate(date);
+                    }
+                  },
+                ),
               if (state.period == BudgetPeriod.custom)
                 _DatePickerTile(
                   label: strings.budgetEndDateLabel,

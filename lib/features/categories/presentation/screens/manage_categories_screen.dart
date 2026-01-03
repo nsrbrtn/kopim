@@ -18,6 +18,7 @@ import 'package:kopim/features/categories/domain/entities/category_tree_node.dar
 import 'package:kopim/features/categories/presentation/controllers/categories_list_controller.dart';
 import 'package:kopim/features/categories/presentation/controllers/category_form_controller.dart';
 import 'package:kopim/features/categories/presentation/utils/category_color_palette.dart';
+import 'package:kopim/features/tags/presentation/screens/manage_tags_tab.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -32,9 +33,10 @@ class ManageCategoriesScreen extends ConsumerStatefulWidget {
 }
 
 class _ManageCategoriesScreenState extends ConsumerState<ManageCategoriesScreen>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   late final AnimationController _swipeHintController;
   late final Animation<double> _swipeHintDx;
+  late final TabController _tabController;
   bool _didPlaySwipeHint = false;
 
   @override
@@ -44,6 +46,8 @@ class _ManageCategoriesScreenState extends ConsumerState<ManageCategoriesScreen>
       vsync: this,
       duration: const Duration(milliseconds: 1100),
     );
+    _tabController = TabController(length: 2, vsync: this)
+      ..addListener(_handleTabChange);
     _swipeHintDx = TweenSequence<double>(<TweenSequenceItem<double>>[
       TweenSequenceItem<double>(
         tween: Tween<double>(
@@ -78,8 +82,17 @@ class _ManageCategoriesScreenState extends ConsumerState<ManageCategoriesScreen>
 
   @override
   void dispose() {
+    _tabController.removeListener(_handleTabChange);
+    _tabController.dispose();
     _swipeHintController.dispose();
     super.dispose();
+  }
+
+  void _handleTabChange() {
+    if (!mounted) {
+      return;
+    }
+    setState(() {});
   }
 
   void _scheduleSwipeHintIfNeeded(bool hasCategories) {
@@ -106,59 +119,79 @@ class _ManageCategoriesScreenState extends ConsumerState<ManageCategoriesScreen>
     _scheduleSwipeHintIfNeeded(tree.isNotEmpty);
 
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
+    final bool isTagsTab = _tabController.index == 1;
     return Scaffold(
-      appBar: AppBar(title: Text(strings.profileManageCategoriesTitle)),
+      appBar: AppBar(
+        title: Text(strings.profileManageCategoriesTitle),
+        bottom: TabBar(
+          controller: _tabController,
+          tabs: <Widget>[
+            Tab(text: strings.manageCategoriesTabCategories),
+            Tab(text: strings.manageCategoriesTabTags),
+          ],
+        ),
+      ),
       floatingActionButton: AnimatedFab(
         child: KopimGlassFab(
-          onPressed: () => _showCategoryEditor(
-            context,
-            ref,
-            strings: strings,
-            parents: rootCategories,
-          ),
-          tooltip: strings.manageCategoriesAddAction,
+          onPressed: isTagsTab
+              ? () => showTagEditor(context, ref, strings: strings)
+              : () => _showCategoryEditor(
+                    context,
+                    ref,
+                    strings: strings,
+                    parents: rootCategories,
+                  ),
+          tooltip: isTagsTab
+              ? strings.manageTagsAddAction
+              : strings.manageCategoriesAddAction,
           icon: Icon(Icons.add, color: colorScheme.primary),
           foregroundColor: colorScheme.primary,
         ),
       ),
       body: SafeArea(
-        child: treeAsync.when(
-          data: (List<CategoryTreeNode> nodes) {
-            if (nodes.isEmpty) {
-              return _EmptyCategoriesView(
-                message: strings.manageCategoriesEmpty,
-              );
-            }
-            return _CategoryTreeList(
-              tree: nodes,
-              strings: strings,
-              swipeHintDx: _swipeHintDx,
-              onEditCategory: (Category category) => _showCategoryEditor(
-                context,
-                ref,
-                strings: strings,
-                parents: rootCategories,
-                category: category,
+        child: TabBarView(
+          controller: _tabController,
+          children: <Widget>[
+            treeAsync.when(
+              data: (List<CategoryTreeNode> nodes) {
+                if (nodes.isEmpty) {
+                  return _EmptyCategoriesView(
+                    message: strings.manageCategoriesEmpty,
+                  );
+                }
+                return _CategoryTreeList(
+                  tree: nodes,
+                  strings: strings,
+                  swipeHintDx: _swipeHintDx,
+                  onEditCategory: (Category category) => _showCategoryEditor(
+                    context,
+                    ref,
+                    strings: strings,
+                    parents: rootCategories,
+                    category: category,
+                  ),
+                  onAddSubcategory: (Category parent) => _showCategoryEditor(
+                    context,
+                    ref,
+                    strings: strings,
+                    parents: rootCategories,
+                    defaultParentId: parent.id,
+                  ),
+                  onDeleteCategory: (Category category) => _deleteCategoryFlow(
+                    context,
+                    ref,
+                    strings: strings,
+                    category: category,
+                  ),
+                );
+              },
+              error: (Object error, StackTrace? stackTrace) => _ErrorView(
+                message: strings.manageCategoriesListError(error.toString()),
               ),
-              onAddSubcategory: (Category parent) => _showCategoryEditor(
-                context,
-                ref,
-                strings: strings,
-                parents: rootCategories,
-                defaultParentId: parent.id,
-              ),
-              onDeleteCategory: (Category category) => _deleteCategoryFlow(
-                context,
-                ref,
-                strings: strings,
-                category: category,
-              ),
-            );
-          },
-          error: (Object error, StackTrace? stackTrace) => _ErrorView(
-            message: strings.manageCategoriesListError(error.toString()),
-          ),
-          loading: () => const Center(child: CircularProgressIndicator()),
+              loading: () => const Center(child: CircularProgressIndicator()),
+            ),
+            const ManageTagsTab(),
+          ],
         ),
       ),
     );

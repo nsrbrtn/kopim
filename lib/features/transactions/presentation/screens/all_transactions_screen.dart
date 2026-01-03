@@ -1,12 +1,15 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart' show StreamProviderFamily;
 import 'package:intl/intl.dart';
+import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/core/formatting/currency_symbols.dart';
 import 'package:kopim/core/utils/helpers.dart';
 import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
+import 'package:kopim/features/tags/domain/entities/tag.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
 import 'package:kopim/features/transactions/presentation/controllers/all_transactions_filter_controller.dart';
@@ -17,6 +20,17 @@ import 'package:kopim/features/transactions/presentation/widgets/transaction_for
 import 'package:kopim/features/transactions/presentation/widgets/transaction_tile_formatters.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:kopim/l10n/app_localizations.dart';
+
+final StreamProviderFamily<List<TagEntity>, String>
+_allTransactionsTagsProvider =
+    StreamProvider.autoDispose.family<List<TagEntity>, String>((
+      Ref ref,
+      String transactionId,
+    ) {
+      return ref
+          .watch(watchTransactionTagsUseCaseProvider)
+          .call(transactionId);
+    });
 
 class AllTransactionsScreen extends ConsumerWidget {
   const AllTransactionsScreen({super.key});
@@ -385,6 +399,14 @@ class _TransactionListTile extends ConsumerWidget {
     );
     final bool isTransfer =
         transaction.type == TransactionType.transfer.storageValue;
+    final List<TagEntity> tags = isTransfer
+        ? const <TagEntity>[]
+        : ref
+                .watch(_allTransactionsTagsProvider(transaction.id))
+                .asData
+                ?.value ??
+            const <TagEntity>[];
+    final String tagLabel = tags.map((TagEntity tag) => tag.name).join(', ');
     final bool isExpense =
         transaction.type == TransactionType.expense.storageValue;
     final Color amountColor = isTransfer
@@ -463,7 +485,11 @@ class _TransactionListTile extends ConsumerWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
-                          Text(title, style: theme.textTheme.bodyMedium),
+                          _buildTitleWithTags(
+                            context: context,
+                            title: title,
+                            tagLabel: tagLabel,
+                          ),
                           if (note != null && note.isNotEmpty)
                             Padding(
                               padding: const EdgeInsets.only(top: 4),
@@ -544,4 +570,47 @@ class _TransactionsError extends StatelessWidget {
       ),
     );
   }
+}
+
+Widget _buildTitleWithTags({
+  required BuildContext context,
+  required String title,
+  required String tagLabel,
+}) {
+  final ThemeData theme = Theme.of(context);
+  final TextStyle? baseStyle = theme.textTheme.bodyMedium;
+  if (tagLabel.isEmpty) {
+    return Text(
+      title,
+      style: baseStyle,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+    );
+  }
+
+  final TextStyle? tagStyle = baseStyle?.copyWith(
+    color: theme.colorScheme.onSurfaceVariant,
+  );
+
+  return Text.rich(
+    TextSpan(
+      children: <InlineSpan>[
+        TextSpan(text: title),
+        const TextSpan(text: '  '),
+        WidgetSpan(
+          alignment: PlaceholderAlignment.middle,
+          child: Icon(
+            Icons.local_offer_outlined,
+            size: 14,
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
+        const TextSpan(text: ' '),
+        TextSpan(text: tagLabel, style: tagStyle),
+      ],
+    ),
+    style: baseStyle,
+    maxLines: 1,
+    overflow: TextOverflow.ellipsis,
+  );
 }
