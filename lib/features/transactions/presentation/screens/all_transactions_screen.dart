@@ -5,10 +5,10 @@ import 'package:flutter_riverpod/misc.dart' show StreamProviderFamily;
 import 'package:intl/intl.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/core/formatting/currency_symbols.dart';
-import 'package:kopim/core/utils/helpers.dart';
 import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
+import 'package:kopim/features/categories/presentation/utils/category_gradients.dart';
 import 'package:kopim/features/tags/domain/entities/tag.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
@@ -238,7 +238,11 @@ class _FiltersPanel extends ConsumerWidget {
                   final PhosphorIconData? iconData = resolvePhosphorIconData(
                     category.icon,
                   );
-                  final Color? categoryColor = parseHexColor(category.color);
+                  final CategoryColorStyle colorStyle =
+                      resolveCategoryColorStyle(category.color);
+                  final Color? categoryColor = colorStyle.sampleColor;
+                  final Gradient? categoryGradient =
+                      colorStyle.backgroundGradient;
                   final Color avatarForeground = categoryColor != null
                       ? (ThemeData.estimateBrightnessForColor(categoryColor) ==
                                 Brightness.dark
@@ -246,14 +250,23 @@ class _FiltersPanel extends ConsumerWidget {
                             : Colors.black87)
                       : theme.colorScheme.onSurfaceVariant;
                   return ListTile(
-                    leading: CircleAvatar(
-                      backgroundColor:
-                          categoryColor ??
-                          theme.colorScheme.surfaceContainerHighest,
-                      foregroundColor: avatarForeground,
-                      child: iconData != null
-                          ? Icon(iconData, size: 20)
-                          : const Icon(Icons.category_outlined, size: 20),
+                    leading: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: categoryGradient,
+                        color: categoryGradient == null
+                            ? (categoryColor ??
+                                theme.colorScheme.surfaceContainerHighest)
+                            : null,
+                      ),
+                      alignment: Alignment.center,
+                      child: Icon(
+                        iconData ?? Icons.category_outlined,
+                        size: 20,
+                        color: avatarForeground,
+                      ),
                     ),
                     title: Text(category.name),
                     selected: filters.categoryId == category.id,
@@ -413,7 +426,10 @@ class _TransactionListTile extends ConsumerWidget {
         ? theme.colorScheme.onSurface
         : (isExpense ? theme.colorScheme.error : theme.colorScheme.primary);
     final PhosphorIconData? iconData = resolvePhosphorIconData(category?.icon);
-    final Color? categoryColor = parseHexColor(category?.color);
+    final CategoryColorStyle colorStyle =
+        resolveCategoryColorStyle(category?.color);
+    final Color? categoryColor = colorStyle.sampleColor;
+    final Gradient? categoryGradient = colorStyle.backgroundGradient;
     final Color avatarForeground = isTransfer
         ? theme.colorScheme.onPrimaryContainer
         : categoryColor != null
@@ -466,19 +482,29 @@ class _TransactionListTile extends ConsumerWidget {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    CircleAvatar(
-                      backgroundColor: isTransfer
-                          ? theme.colorScheme.primaryContainer
-                          : categoryColor ??
-                                theme.colorScheme.surfaceContainerHighest,
-                      foregroundColor: avatarForeground,
-                      child: iconData != null
-                          ? Icon(iconData)
-                          : Icon(
-                              isTransfer
-                                  ? Icons.swap_horiz
-                                  : Icons.category_outlined,
-                            ),
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: isTransfer ? null : categoryGradient,
+                        color: isTransfer
+                            ? theme.colorScheme.primaryContainer
+                            : (categoryGradient == null
+                                  ? (categoryColor ??
+                                      theme
+                                          .colorScheme
+                                          .surfaceContainerHighest)
+                                  : null),
+                      ),
+                      alignment: Alignment.center,
+                      child: Icon(
+                        iconData ??
+                            (isTransfer
+                                ? Icons.swap_horiz
+                                : Icons.category_outlined),
+                        color: avatarForeground,
+                      ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(

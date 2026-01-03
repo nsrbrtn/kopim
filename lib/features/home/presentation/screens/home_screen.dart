@@ -16,6 +16,7 @@ import 'package:kopim/features/accounts/presentation/utils/account_card_gradient
 import 'package:kopim/features/app_shell/presentation/models/navigation_tab_content.dart';
 import 'package:kopim/features/app_shell/presentation/widgets/navigation_responsive_breakpoints.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
+import 'package:kopim/features/categories/presentation/utils/category_gradients.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/features/credits/domain/entities/credit_card_entity.dart';
 import 'package:kopim/features/credits/domain/entities/credit_entity.dart';
@@ -2162,7 +2163,9 @@ class _TransactionListItem extends ConsumerWidget {
     final PhosphorIconData? categoryIcon = resolvePhosphorIconData(
       categoryData.icon,
     );
-    final Color? categoryColor = parseHexColor(categoryData.color);
+    final CategoryColorStyle categoryStyle =
+        resolveCategoryColorStyle(categoryData.color);
+    final Color? categoryColor = categoryStyle.sampleColor;
     final Color avatarIconColor = isTransfer
         ? theme.colorScheme.onPrimaryContainer
         : categoryColor != null
@@ -2220,7 +2223,14 @@ class _TransactionListItem extends ConsumerWidget {
                     width: 48,
                     height: 48,
                     decoration: BoxDecoration(
-                      color: avatarBackground,
+                      color: isTransfer
+                          ? avatarBackground
+                          : (categoryStyle.backgroundGradient == null
+                                ? avatarBackground
+                                : null),
+                      gradient: isTransfer
+                          ? null
+                          : categoryStyle.backgroundGradient,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Center(

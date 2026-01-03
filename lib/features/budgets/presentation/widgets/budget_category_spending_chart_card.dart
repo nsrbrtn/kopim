@@ -3,9 +3,9 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:kopim/core/config/theme_extensions.dart';
-import 'package:kopim/core/utils/helpers.dart';
 import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
 import 'package:kopim/features/budgets/presentation/models/budget_category_spend.dart';
+import 'package:kopim/features/categories/presentation/utils/category_gradients.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -432,7 +432,8 @@ class _BudgetCategoryBreakdownTile extends StatelessWidget {
     final ThemeData theme = Theme.of(context);
     final KopimSpacingScale spacing = context.kopimLayout.spacing;
     final Color categoryColor =
-        parseHexColor(item.category.color) ?? theme.colorScheme.primary;
+        resolveCategoryColorStyle(item.category.color).sampleColor ??
+        theme.colorScheme.primary;
     final PhosphorIconData? iconData = resolvePhosphorIconData(
       item.category.icon,
     );
@@ -573,7 +574,8 @@ class _BudgetCategoryBar extends StatelessWidget {
     final KopimLayout layout = context.kopimLayout;
     final KopimSpacingScale spacing = layout.spacing;
     final Color categoryColor =
-        parseHexColor(metrics.data.category.color) ?? theme.colorScheme.primary;
+        resolveCategoryColorStyle(metrics.data.category.color).sampleColor ??
+        theme.colorScheme.primary;
     final PhosphorIconData? iconData = resolvePhosphorIconData(
       metrics.data.category.icon,
     );

@@ -3,9 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show StreamProviderFamily;
 import 'package:intl/intl.dart';
 import 'package:kopim/core/di/injectors.dart';
-import 'package:kopim/core/utils/helpers.dart';
 import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
+import 'package:kopim/features/categories/presentation/utils/category_gradients.dart';
 import 'package:kopim/features/tags/domain/entities/tag.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
@@ -73,7 +73,9 @@ class AccountTransactionListTile extends ConsumerWidget {
     final PhosphorIconData? categoryIcon = resolvePhosphorIconData(
       category?.icon,
     );
-    final Color? categoryColor = parseHexColor(category?.color);
+    final CategoryColorStyle categoryStyle =
+        resolveCategoryColorStyle(category?.color);
+    final Color? categoryColor = categoryStyle.sampleColor;
     final Color avatarBackground = isTransfer
         ? theme.colorScheme.primaryContainer
         : (categoryColor ?? theme.colorScheme.surfaceContainerHighest);
@@ -125,7 +127,14 @@ class AccountTransactionListTile extends ConsumerWidget {
                         width: 48,
                         height: 48,
                         decoration: BoxDecoration(
-                          color: avatarBackground,
+                          color: isTransfer
+                              ? avatarBackground
+                              : (categoryStyle.backgroundGradient == null
+                                    ? avatarBackground
+                                    : null),
+                          gradient: isTransfer
+                              ? null
+                              : categoryStyle.backgroundGradient,
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Center(

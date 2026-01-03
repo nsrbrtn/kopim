@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
-import 'package:kopim/core/utils/helpers.dart';
 import 'package:kopim/core/widgets/kopim_text_field.dart';
 import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
@@ -12,6 +11,7 @@ import 'package:kopim/features/budgets/domain/entities/budget_scope.dart';
 import 'package:kopim/features/budgets/presentation/controllers/budget_form_controller.dart';
 import 'package:kopim/features/budgets/presentation/controllers/budgets_providers.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
+import 'package:kopim/features/categories/presentation/utils/category_gradients.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
 class BudgetFormScreen extends ConsumerStatefulWidget {
@@ -482,7 +482,10 @@ class _CategoryAllocationsEditor extends StatelessWidget {
               .map((Category category) {
                 final TextEditingController controller =
                     controllers[category.id]!;
-                final Color? background = parseHexColor(category.color);
+                final CategoryColorStyle colorStyle =
+                    resolveCategoryColorStyle(category.color);
+                final Color? background = colorStyle.sampleColor;
+                final Gradient? categoryGradient = colorStyle.backgroundGradient;
                 final Color foreground = background != null
                     ? (ThemeData.estimateBrightnessForColor(background) ==
                               Brightness.dark
@@ -497,14 +500,23 @@ class _CategoryAllocationsEditor extends StatelessWidget {
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: <Widget>[
-                      CircleAvatar(
-                        backgroundColor:
-                            background ??
-                            theme.colorScheme.surfaceContainerHighest,
-                        foregroundColor: foreground,
-                        child: iconData != null
-                            ? Icon(iconData, size: 20)
-                            : const Icon(Icons.category_outlined, size: 20),
+                      Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: categoryGradient,
+                          color: categoryGradient == null
+                              ? (background ??
+                                  theme.colorScheme.surfaceContainerHighest)
+                              : null,
+                        ),
+                        alignment: Alignment.center,
+                        child: Icon(
+                          iconData ?? Icons.category_outlined,
+                          size: 20,
+                          color: foreground,
+                        ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(

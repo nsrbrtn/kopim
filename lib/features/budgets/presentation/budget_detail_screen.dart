@@ -5,13 +5,13 @@ import 'package:intl/intl.dart';
 
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/core/formatting/currency_symbols.dart';
-import 'package:kopim/core/utils/helpers.dart';
 import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_progress.dart';
 import 'package:kopim/features/budgets/presentation/budget_form_screen.dart';
 import 'package:kopim/features/budgets/presentation/controllers/budgets_providers.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
+import 'package:kopim/features/categories/presentation/utils/category_gradients.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
 import 'package:kopim/features/transactions/presentation/controllers/transaction_draft_controller.dart';
@@ -455,7 +455,10 @@ class _BudgetTransactionTile extends ConsumerWidget {
     final bool isExpense =
         transaction.type == TransactionType.expense.storageValue;
     final IconData? categoryIcon = resolvePhosphorIconData(category?.icon);
-    final Color? categoryColor = parseHexColor(category?.color);
+    final CategoryColorStyle colorStyle =
+        resolveCategoryColorStyle(category?.color);
+    final Color? categoryColor = colorStyle.sampleColor;
+    final Gradient? categoryGradient = colorStyle.backgroundGradient;
     final Color avatarColor =
         categoryColor ?? theme.colorScheme.surfaceContainerHighest;
     final Color avatarForeground = categoryColor != null
@@ -512,13 +515,20 @@ class _BudgetTransactionTile extends ConsumerWidget {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    CircleAvatar(
-                      radius: 24,
-                      backgroundColor: avatarColor,
-                      foregroundColor: avatarForeground,
-                      child: categoryIcon != null
-                          ? Icon(categoryIcon, size: 22)
-                          : const Icon(Icons.category_outlined, size: 22),
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: categoryGradient,
+                        color: categoryGradient == null ? avatarColor : null,
+                      ),
+                      alignment: Alignment.center,
+                      child: Icon(
+                        categoryIcon ?? Icons.category_outlined,
+                        size: 22,
+                        color: avatarForeground,
+                      ),
                     ),
                     const SizedBox(width: 14),
                     Expanded(

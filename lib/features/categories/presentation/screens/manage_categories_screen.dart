@@ -18,6 +18,7 @@ import 'package:kopim/features/categories/domain/entities/category_tree_node.dar
 import 'package:kopim/features/categories/presentation/controllers/categories_list_controller.dart';
 import 'package:kopim/features/categories/presentation/controllers/category_form_controller.dart';
 import 'package:kopim/features/categories/presentation/utils/category_color_palette.dart';
+import 'package:kopim/features/categories/presentation/utils/category_gradients.dart';
 import 'package:kopim/features/tags/presentation/screens/manage_tags_tab.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -502,7 +503,8 @@ class _CategoryCardState extends State<_CategoryCard> {
     final bool hasChildren = widget.node.children.isNotEmpty;
     final bool isExpanded = hasChildren && _isExpanded;
 
-    final Color? color = parseHexColor(category.color);
+    final CategoryColorStyle colorStyle =
+        resolveCategoryColorStyle(category.color);
     final IconData? iconData = resolvePhosphorIconData(category.icon);
     final List<String> metadata = _buildMetadata(category, widget.strings);
 
@@ -527,7 +529,9 @@ class _CategoryCardState extends State<_CategoryCard> {
                   children: <Widget>[
                     _CategoryIcon(
                       iconData: iconData,
-                      backgroundColor: color,
+                      backgroundColor: colorStyle.color,
+                      backgroundGradient: colorStyle.backgroundGradient,
+                      sampleColor: colorStyle.sampleColor,
                       size: 48,
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -655,7 +659,8 @@ class _SubcategoryTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final Category category = node.category;
     final IconData? iconData = resolvePhosphorIconData(category.icon);
-    final Color? color = parseHexColor(category.color);
+    final CategoryColorStyle colorStyle =
+        resolveCategoryColorStyle(category.color);
     return _SwipeableCategoryTile(
       radius: 12,
       categoryId: category.id,
@@ -668,7 +673,9 @@ class _SubcategoryTile extends StatelessWidget {
           children: <Widget>[
             _CategoryIcon(
               iconData: iconData,
-              backgroundColor: color,
+              backgroundColor: colorStyle.color,
+              backgroundGradient: colorStyle.backgroundGradient,
+              sampleColor: colorStyle.sampleColor,
               size: 40,
               borderRadius: BorderRadius.circular(12),
             ),
@@ -694,12 +701,16 @@ class _CategoryIcon extends StatelessWidget {
   const _CategoryIcon({
     this.iconData,
     this.backgroundColor,
+    this.backgroundGradient,
+    this.sampleColor,
     required this.size,
     required this.borderRadius,
   });
 
   final IconData? iconData;
   final Color? backgroundColor;
+  final Gradient? backgroundGradient;
+  final Color? sampleColor;
   final double size;
   final BorderRadius borderRadius;
 
@@ -708,18 +719,22 @@ class _CategoryIcon extends StatelessWidget {
     final ThemeData theme = Theme.of(context);
     final Color avatarBackground =
         backgroundColor ?? theme.colorScheme.surfaceContainerHighest;
-    final Color avatarForeground = backgroundColor != null
-        ? (ThemeData.estimateBrightnessForColor(avatarBackground) ==
-                  Brightness.dark
-              ? Colors.white
-              : Colors.black87)
-        : theme.colorScheme.onSurface;
+    final Color resolvedSample =
+        sampleColor ?? backgroundColor ?? theme.colorScheme.surfaceContainerHigh;
+    final Color avatarForeground =
+        (sampleColor != null || backgroundColor != null)
+            ? (ThemeData.estimateBrightnessForColor(resolvedSample) ==
+                      Brightness.dark
+                  ? Colors.white
+                  : Colors.black87)
+            : theme.colorScheme.onSurface;
 
     return Container(
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: avatarBackground,
+        gradient: backgroundGradient,
+        color: backgroundGradient == null ? avatarBackground : null,
         borderRadius: borderRadius,
       ),
       alignment: Alignment.center,
@@ -855,7 +870,9 @@ class _CategoryEditorSheetState extends ConsumerState<_CategoryEditorSheet> {
     final String iconSubtitle = state.icon?.isNotEmpty == true
         ? strings.manageCategoriesIconSelected
         : strings.manageCategoriesIconNone;
-    final Color? selectedColor = parseHexColor(state.color);
+    final CategoryColorStyle colorStyle = resolveCategoryColorStyle(state.color);
+    final CategoryGradient? selectedGradient = colorStyle.gradient;
+    final Color? selectedColor = colorStyle.sampleColor;
     final String colorSubtitle = selectedColor != null
         ? strings.manageCategoriesColorSelected
         : strings.manageCategoriesColorNone;
@@ -904,7 +921,8 @@ class _CategoryEditorSheetState extends ConsumerState<_CategoryEditorSheet> {
       final String? hex = await _showCategoryColorPickerDialog(
         context: context,
         strings: strings,
-        initialColor: selectedColor,
+        initialColor: selectedGradient == null ? selectedColor : null,
+        initialGradientId: selectedGradient?.id,
       );
       if (hex != null) {
         controller.updateColor(hex);
@@ -1028,11 +1046,19 @@ class _CategoryEditorSheetState extends ConsumerState<_CategoryEditorSheet> {
               title: Text(strings.manageCategoriesColorLabel),
               subtitle: Text(colorSubtitle),
               onTap: selectColor,
-              trailing: CircleAvatar(
+              trailing: Container(
                 key: const ValueKey<String>('category-color-preview'),
-                backgroundColor:
-                    selectedColor ?? theme.colorScheme.surfaceContainerHigh,
-                foregroundColor: theme.colorScheme.onSurface,
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: selectedGradient?.toGradient(),
+                  color: selectedGradient == null
+                      ? (selectedColor ??
+                          theme.colorScheme.surfaceContainerHigh)
+                      : null,
+                ),
+                alignment: Alignment.center,
                 child: selectedColor == null
                     ? const Icon(Icons.palette_outlined)
                     : null,
@@ -1106,6 +1132,7 @@ Future<String?> _showCategoryColorPickerDialog({
   required BuildContext context,
   required AppLocalizations strings,
   Color? initialColor,
+  String? initialGradientId,
 }) {
   return showDialog<String>(
     context: context,
@@ -1113,6 +1140,7 @@ Future<String?> _showCategoryColorPickerDialog({
     builder: (BuildContext dialogContext) {
       return _CategoryColorPickerDialog(
         initialColor: initialColor,
+        initialGradientId: initialGradientId,
         strings: strings,
       );
     },
@@ -1120,9 +1148,14 @@ Future<String?> _showCategoryColorPickerDialog({
 }
 
 class _CategoryColorPickerDialog extends StatefulWidget {
-  const _CategoryColorPickerDialog({this.initialColor, required this.strings});
+  const _CategoryColorPickerDialog({
+    this.initialColor,
+    this.initialGradientId,
+    required this.strings,
+  });
 
   final Color? initialColor;
+  final String? initialGradientId;
   final AppLocalizations strings;
 
   @override
@@ -1133,11 +1166,18 @@ class _CategoryColorPickerDialog extends StatefulWidget {
 class _CategoryColorPickerDialogState
     extends State<_CategoryColorPickerDialog> {
   Color? _draftColor;
+  String? _draftGradientId;
 
   @override
   void initState() {
     super.initState();
     _draftColor = widget.initialColor;
+    _draftGradientId = widget.initialGradientId;
+    if (_draftGradientId != null && _draftColor == null) {
+      final CategoryGradient? gradient =
+          resolveCategoryGradient(encodeCategoryGradientId(_draftGradientId!));
+      _draftColor = gradient?.sampleColor;
+    }
   }
 
   @override
@@ -1148,37 +1188,95 @@ class _CategoryColorPickerDialogState
       content: SizedBox(
         width: double.maxFinite,
         child: SingleChildScrollView(
-          child: Wrap(
-            spacing: 12,
-            runSpacing: 12,
-            children: kCategoryPastelPalette
-                .asMap()
-                .entries
-                .map((MapEntry<int, Color> entry) {
-                  final Color color = entry.value;
-                  final bool isSelected = _draftColor == color;
-                  return InkResponse(
-                    key: ValueKey<String>('category-color-${entry.key}'),
-                    radius: 24,
-                    onTap: () => setState(() => _draftColor = color),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 150),
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: color,
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: isSelected
-                              ? theme.colorScheme.primary
-                              : Colors.transparent,
-                          width: 3,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Text(
+                widget.strings.accountColorGradient,
+                style: theme.textTheme.labelSmall,
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                children: kCategoryGradients
+                    .asMap()
+                    .entries
+                    .map((MapEntry<int, CategoryGradient> entry) {
+                      final CategoryGradient gradient = entry.value;
+                      final bool isSelected =
+                          _draftGradientId == gradient.id;
+                      return InkResponse(
+                        key: ValueKey<String>(
+                          'category-gradient-${entry.key}',
                         ),
-                      ),
-                    ),
-                  );
-                })
-                .toList(growable: false),
+                        radius: 24,
+                        onTap: () => setState(() {
+                          _draftGradientId = gradient.id;
+                          _draftColor = gradient.sampleColor;
+                        }),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 150),
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            gradient: gradient.toGradient(),
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: isSelected
+                                  ? theme.colorScheme.primary
+                                  : Colors.transparent,
+                              width: 3,
+                            ),
+                          ),
+                        ),
+                      );
+                    })
+                    .toList(growable: false),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                widget.strings.manageCategoriesColorLabel,
+                style: theme.textTheme.labelSmall,
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                children: kCategoryPastelPalette
+                    .asMap()
+                    .entries
+                    .map((MapEntry<int, Color> entry) {
+                      final Color color = entry.value;
+                      final bool isSelected =
+                          _draftGradientId == null && _draftColor == color;
+                      return InkResponse(
+                        key: ValueKey<String>('category-color-${entry.key}'),
+                        radius: 24,
+                        onTap: () => setState(() {
+                          _draftColor = color;
+                          _draftGradientId = null;
+                        }),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 150),
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: color,
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: isSelected
+                                  ? theme.colorScheme.primary
+                                  : Colors.transparent,
+                              width: 3,
+                            ),
+                          ),
+                        ),
+                      );
+                    })
+                    .toList(growable: false),
+              ),
+            ],
           ),
         ),
       ),
@@ -1190,7 +1288,11 @@ class _CategoryColorPickerDialogState
         FilledButton(
           onPressed: _draftColor == null
               ? null
-              : () => Navigator.of(context).pop(colorToHex(_draftColor!)!),
+              : () => Navigator.of(context).pop(
+                    _draftGradientId != null
+                        ? encodeCategoryGradientId(_draftGradientId!)
+                        : colorToHex(_draftColor!)!,
+                  ),
           child: Text(widget.strings.dialogConfirm),
         ),
       ],

@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
-import 'package:kopim/core/utils/helpers.dart';
 import 'package:kopim/core/config/theme_extensions.dart';
 import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
 import 'package:kopim/features/budgets/domain/entities/budget.dart';
@@ -13,6 +12,7 @@ import 'package:kopim/features/budgets/presentation/budget_detail_screen.dart';
 import 'package:kopim/features/budgets/presentation/controllers/budgets_providers.dart';
 import 'package:kopim/features/budgets/presentation/widgets/budget_progress_indicator.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
+import 'package:kopim/features/categories/presentation/utils/category_gradients.dart';
 import 'package:kopim/features/categories/presentation/widgets/category_chip.dart';
 import 'package:kopim/features/home/domain/entities/home_dashboard_preferences.dart';
 import 'package:kopim/features/home/presentation/controllers/home_dashboard_preferences_controller.dart';
@@ -466,7 +466,9 @@ class _BudgetCategoryChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
     final Category category = breakdown.category;
-    final Color? baseColor = parseHexColor(category.color);
+    final CategoryColorStyle colorStyle =
+        resolveCategoryColorStyle(category.color);
+    final Color? baseColor = colorStyle.sampleColor;
     final Color backgroundColor =
         baseColor ?? theme.colorScheme.surfaceContainerHighest;
     final Brightness brightness = ThemeData.estimateBrightnessForColor(
@@ -489,6 +491,8 @@ class _BudgetCategoryChip extends StatelessWidget {
       label: category.name,
       backgroundColor: backgroundColor,
       foregroundColor: foregroundColor,
+      iconBackgroundColor: backgroundColor,
+      iconBackgroundGradient: colorStyle.backgroundGradient,
       leading: Icon(iconData ?? PhosphorIconsLight.tag, size: 16),
       trailing: Text(
         percentText,

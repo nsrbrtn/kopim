@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
-import 'package:kopim/core/utils/helpers.dart';
 import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
+import 'package:kopim/features/categories/presentation/utils/category_gradients.dart';
 import 'package:kopim/features/categories/presentation/widgets/category_chip.dart';
 import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
 import 'package:kopim/features/savings/domain/models/saving_goal_analytics.dart';
@@ -279,7 +279,7 @@ class _GoalAnalyticsCard extends StatelessWidget {
                       ? null
                       : categoriesById[savingBreakdown.categoryId!];
                   final Color resolvedColor =
-                      parseHexColor(category?.color) ??
+                      resolveCategoryColorStyle(category?.color).sampleColor ??
                       theme.colorScheme.primary;
                   final IconData? iconData = resolvePhosphorIconData(
                     category?.icon,

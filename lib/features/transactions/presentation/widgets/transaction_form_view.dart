@@ -14,6 +14,7 @@ import 'package:kopim/core/utils/text_input_formatters.dart';
 import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
+import 'package:kopim/features/categories/presentation/utils/category_gradients.dart';
 import 'package:kopim/features/categories/presentation/widgets/category_chip.dart';
 import 'package:kopim/features/tags/domain/entities/tag.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
@@ -1632,12 +1633,15 @@ class _CategoryDropdownFieldState
   Widget _buildCategoryChip(Category category, String? selectedCategoryId) {
     final bool selected = category.id == selectedCategoryId;
     final IconData? iconData = resolvePhosphorIconData(category.icon);
-    final Color? categoryColor = parseHexColor(category.color);
+    final CategoryColorStyle colorStyle =
+        resolveCategoryColorStyle(category.color);
+    final Color? categoryColor = colorStyle.sampleColor;
     final ThemeData theme = Theme.of(context);
     return CategoryChip(
       label: category.name,
       leading: Icon(iconData ?? Icons.category_outlined),
       iconBackgroundColor: categoryColor,
+      iconBackgroundGradient: colorStyle.backgroundGradient,
       backgroundColor: theme.colorScheme.surfaceContainerHigh,
       selected: selected,
       onTap: () => _selectCategory(category.id),

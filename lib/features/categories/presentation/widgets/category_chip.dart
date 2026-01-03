@@ -7,6 +7,7 @@ class CategoryChip extends StatelessWidget {
     required this.label,
     this.backgroundColor,
     this.iconBackgroundColor,
+    this.iconBackgroundGradient,
     this.iconColor,
     this.foregroundColor,
     this.leading,
@@ -19,6 +20,7 @@ class CategoryChip extends StatelessWidget {
   final String label;
   final Color? backgroundColor;
   final Color? iconBackgroundColor;
+  final Gradient? iconBackgroundGradient;
   final Color? iconColor;
   final Color? foregroundColor;
   final Widget? leading;
@@ -91,7 +93,10 @@ class CategoryChip extends StatelessWidget {
                       width: style.iconExtent,
                       height: style.iconExtent,
                       decoration: BoxDecoration(
-                        color: resolvedIconBackground,
+                        color: iconBackgroundGradient == null
+                            ? resolvedIconBackground
+                            : null,
+                        gradient: iconBackgroundGradient,
                         borderRadius: BorderRadius.circular(9999),
                       ),
                       alignment: Alignment.center,

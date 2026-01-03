@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:kopim/core/config/theme_extensions.dart';
-import 'package:kopim/core/utils/helpers.dart';
 import 'package:kopim/core/widgets/collapsible_list/collapsible_list.dart';
 import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
@@ -19,6 +18,7 @@ import 'package:kopim/features/analytics/presentation/widgets/swipe_hint_arrows.
 import 'package:kopim/features/analytics/presentation/widgets/total_money_chart_widget.dart';
 import 'package:kopim/features/app_shell/presentation/models/navigation_tab_content.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
+import 'package:kopim/features/categories/presentation/utils/category_gradients.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
 import 'package:kopim/features/transactions/presentation/widgets/transaction_list_tile.dart';
@@ -1351,7 +1351,8 @@ class _TopCategoriesPagerState extends State<_TopCategoriesPager> {
           ? null
           : categoriesById[resolvedId];
       final Color baseColor =
-          parseHexColor(category?.color) ?? theme.colorScheme.primary;
+          resolveCategoryColorStyle(category?.color).sampleColor ??
+          theme.colorScheme.primary;
       final Color color = isOthers
           ? theme.colorScheme.outlineVariant
           : isDirect

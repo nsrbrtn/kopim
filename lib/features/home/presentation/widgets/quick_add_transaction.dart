@@ -3,12 +3,12 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:kopim/core/config/theme_extensions.dart';
-import 'package:kopim/core/utils/helpers.dart';
 import 'package:kopim/core/utils/text_input_formatters.dart';
 import 'package:kopim/core/widgets/kopim_text_field.dart';
 import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/accounts/presentation/accounts_add_screen.dart';
+import 'package:kopim/features/categories/presentation/utils/category_gradients.dart';
 import 'package:kopim/features/home/presentation/controllers/home_providers.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
@@ -219,8 +219,10 @@ class _QuickCategoryIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
+    final CategoryColorStyle colorStyle =
+        resolveCategoryColorStyle(category.color);
     final Color background =
-        parseHexColor(category.color) ?? theme.colorScheme.surfaceContainerHigh;
+        colorStyle.sampleColor ?? theme.colorScheme.surfaceContainerHigh;
     const Color iconColor = Color(0xFF101010);
     final PhosphorIconData? iconData = resolvePhosphorIconData(category.icon);
 
@@ -232,7 +234,11 @@ class _QuickCategoryIcon extends StatelessWidget {
         child: Container(
           width: 68,
           height: 68,
-          decoration: BoxDecoration(color: background, shape: BoxShape.circle),
+          decoration: BoxDecoration(
+            color: colorStyle.backgroundGradient == null ? background : null,
+            gradient: colorStyle.backgroundGradient,
+            shape: BoxShape.circle,
+          ),
           alignment: Alignment.center,
           child: Icon(
             iconData ?? Icons.category_outlined,

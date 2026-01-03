@@ -44,6 +44,26 @@ final List<AccountCardGradient> kAccountCardGradients = <AccountCardGradient>[
     id: 'sand',
     colors: <Color>[kCategoryPastelPalette[27], kCategoryPastelPalette[31]],
   ),
+  AccountCardGradient(
+    id: 'citrus',
+    colors: <Color>[kCategoryPastelPalette[36], kCategoryPastelPalette[37]],
+  ),
+  AccountCardGradient(
+    id: 'pistachio',
+    colors: <Color>[kCategoryPastelPalette[38], kCategoryPastelPalette[39]],
+  ),
+  AccountCardGradient(
+    id: 'lagoon',
+    colors: <Color>[kCategoryPastelPalette[40], kCategoryPastelPalette[41]],
+  ),
+  AccountCardGradient(
+    id: 'orchid',
+    colors: <Color>[kCategoryPastelPalette[42], kCategoryPastelPalette[43]],
+  ),
+  AccountCardGradient(
+    id: 'latte',
+    colors: <Color>[kCategoryPastelPalette[44], kCategoryPastelPalette[45]],
+  ),
 ];
 
 AccountCardGradient? resolveAccountCardGradient(String? id) {
