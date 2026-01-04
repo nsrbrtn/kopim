@@ -96,7 +96,7 @@ void main() {
     uid: signedInUser.uid,
     name: 'Alice',
     currency: ProfileCurrency.eur,
-    locale: 'en',
+    locale: 'ru',
     updatedAt: DateTime.utc(2024, 1, 1),
   );
 
@@ -157,7 +157,7 @@ void main() {
     expect(nameField.controller?.text, equals('Alice'));
 
     expect(find.text('EUR'), findsWidgets);
-    expect(find.text('EN'), findsWidgets);
+    expect(find.text('RU'), findsWidgets);
   });
 
   testWidgets('shows sign-in prompt when user is absent', (

@@ -46,7 +46,7 @@ class ProfileFormState {
           uid: uid,
           name: '',
           currency: ProfileCurrency.rub,
-          locale: 'en',
+          locale: 'ru',
           photoUrl: null,
           updatedAt: DateTime.fromMillisecondsSinceEpoch(0),
         );
@@ -77,7 +77,7 @@ class ProfileFormState {
           uid: uid,
           name: '',
           currency: ProfileCurrency.rub,
-          locale: 'en',
+          locale: 'ru',
           photoUrl: null,
           updatedAt: DateTime.fromMillisecondsSinceEpoch(0),
         );

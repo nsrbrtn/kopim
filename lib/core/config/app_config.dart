@@ -17,6 +17,7 @@ import 'package:kopim/features/profile/domain/entities/auth_user.dart';
 import 'package:kopim/features/profile/domain/entities/profile.dart';
 import 'package:kopim/features/profile/presentation/controllers/auth_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/profile_controller.dart';
+import 'package:kopim/l10n/app_localizations.dart';
 
 const Duration _kDefaultAiRequestTimeout = Duration(seconds: 25);
 const Duration _kDefaultAiThrottleInterval = Duration(seconds: 2);
@@ -118,14 +119,17 @@ class GenerativeAiConfig {
 
 // Provider для locale - читает из профиля пользователя
 final Provider<Locale> appLocaleProvider = Provider<Locale>((Ref ref) {
+  final Locale fallbackLocale = _resolveSystemFallbackLocale();
   // Получаем текущего пользователя
   final AsyncValue<AuthUser?> authState = ref.watch(authControllerProvider);
 
-  // Если пользователь не авторизован, возвращаем русский по умолчанию
+  // Если пользователь не авторизован, возвращаем локальный fallback
   final AuthUser? authUser = authState.asData?.value;
   if (authUser == null) {
-    debugPrint('🔴 [appLocaleProvider] No auth user, returning default ru');
-    return const Locale('ru');
+    debugPrint(
+      '🔴 [appLocaleProvider] No auth user, returning fallback ${fallbackLocale.toLanguageTag()}',
+    );
+    return fallbackLocale;
   }
 
   // Пытаемся получить профиль пользователя
@@ -152,11 +156,11 @@ final Provider<Locale> appLocaleProvider = Provider<Locale>((Ref ref) {
     }
   }
 
-  // Если профиль не загружен или locale не установлен, возвращаем русский
+  // Если профиль не загружен или locale не установлен, возвращаем fallback
   debugPrint(
-    '🟡 [appLocaleProvider] Profile not loaded or no locale, returning default ru',
+    '🟡 [appLocaleProvider] Profile not loaded or no locale, returning fallback ${fallbackLocale.toLanguageTag()}',
   );
-  return const Locale('ru');
+  return fallbackLocale;
 });
 
 // Другие providers: theme, auth и т.д.
@@ -180,6 +184,24 @@ final Provider<ThemeData> appThemeProvider = Provider<ThemeData>((Ref ref) {
 final Provider<ThemeData> appDarkThemeProvider = Provider<ThemeData>((Ref ref) {
   return _resolveAppTheme(ref, Brightness.dark);
 });
+
+Locale _resolveSystemFallbackLocale() {
+  const Locale fallback = Locale('ru');
+  final WidgetsBinding? binding = WidgetsBinding.instance;
+  if (binding == null) {
+    return fallback;
+  }
+  final Locale platformLocale = binding.platformDispatcher.locale;
+  if (platformLocale.languageCode.isEmpty) {
+    return fallback;
+  }
+  for (final Locale supported in AppLocalizations.supportedLocales) {
+    if (supported.languageCode == platformLocale.languageCode) {
+      return supported;
+    }
+  }
+  return fallback;
+}
 
 /// Провайдер, подготавливающий конфигурацию OpenRouter из Remote Config и переменных окружения.
 final FutureProvider<AppConfig> appConfigProvider = FutureProvider<AppConfig>((

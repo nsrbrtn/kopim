@@ -8,6 +8,7 @@ import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/core/config/theme_extensions.dart';
 import 'package:kopim/core/services/analytics_service.dart';
 import 'package:kopim/core/services/logger_service.dart';
+import 'package:kopim/core/utils/platform_support.dart';
 import 'package:kopim/core/utils/text_input_formatters.dart';
 import 'package:kopim/core/widgets/kopim_text_field.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
@@ -618,6 +619,9 @@ class _EditUpcomingPaymentScreenState
     UpcomingPayment payment,
     AnalyticsService analytics,
   ) async {
+    if (!supportsUpcomingPaymentsBackgroundWork()) {
+      return;
+    }
     ref.invalidate(upcomingNotificationsControllerProvider);
     final UpcomingPaymentsWorkScheduler scheduler = ref.read(
       upcomingPaymentsWorkSchedulerProvider,

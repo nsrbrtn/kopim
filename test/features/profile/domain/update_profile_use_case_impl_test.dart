@@ -26,7 +26,7 @@ void main() {
         uid: 'fallback',
         name: '',
         currency: ProfileCurrency.rub,
-        locale: 'en',
+        locale: 'ru',
         updatedAt: DateTime.utc(2024, 1, 1),
       ),
     );

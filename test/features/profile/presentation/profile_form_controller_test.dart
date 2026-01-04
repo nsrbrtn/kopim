@@ -23,7 +23,7 @@ void main() {
     uid: uid,
     name: 'Initial',
     currency: ProfileCurrency.rub,
-    locale: 'en',
+    locale: 'ru',
     updatedAt: DateTime.utc(2024, 1, 1),
   );
   final ProfileFormParams params = ProfileFormParams(
@@ -37,7 +37,7 @@ void main() {
         uid: 'fallback',
         name: '',
         currency: ProfileCurrency.rub,
-        locale: 'en',
+        locale: 'ru',
         updatedAt: DateTime.fromMillisecondsSinceEpoch(0),
       ),
     );
@@ -66,7 +66,7 @@ void main() {
 
     expect(state.name, equals('Initial'));
     expect(state.currency, equals(ProfileCurrency.rub));
-    expect(state.locale, equals('en'));
+    expect(state.locale, equals('ru'));
     expect(state.hasChanges, isFalse);
   });
 

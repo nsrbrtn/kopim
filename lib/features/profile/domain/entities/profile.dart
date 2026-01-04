@@ -13,7 +13,7 @@ abstract class Profile with _$Profile {
     required String uid,
     @Default('') String name,
     @Default(ProfileCurrency.rub) ProfileCurrency currency,
-    @Default('en') String locale,
+    @Default('ru') String locale,
     String? photoUrl,
     required DateTime updatedAt,
   }) = _Profile;

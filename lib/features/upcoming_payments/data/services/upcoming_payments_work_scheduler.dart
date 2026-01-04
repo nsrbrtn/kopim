@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -15,6 +14,7 @@ import 'package:kopim/core/services/logger_service.dart';
 import 'package:kopim/core/services/notification_fallback_presenter.dart';
 import 'package:kopim/core/services/notifications_gateway.dart';
 import 'package:kopim/core/services/recurring_work_scheduler_mobile.dart';
+import 'package:kopim/core/utils/platform_support.dart';
 import 'package:kopim/features/accounts/data/repositories/account_repository_impl.dart';
 import 'package:kopim/features/accounts/data/sources/local/account_dao.dart';
 import 'package:kopim/features/accounts/domain/repositories/account_repository.dart';
@@ -49,19 +49,6 @@ const String kUpcomingPaymentsPeriodicTask = 'upcoming_apply_rules';
 const String kUpcomingPaymentsOneOffTask = 'upcoming_apply_rules_once';
 const String _workCleanupPrefsKey =
     'upcoming_payments.workmanager_cleanup_v1';
-
-bool _isMobilePlatform() {
-  if (kIsWeb) {
-    return false;
-  }
-  switch (defaultTargetPlatform) {
-    case TargetPlatform.android:
-    case TargetPlatform.iOS:
-      return true;
-    default:
-      return false;
-  }
-}
 
 @pragma('vm:entry-point')
 Future<bool> runUpcomingPaymentsBackgroundTask(
@@ -121,7 +108,7 @@ class UpcomingPaymentsWorkScheduler {
   final LoggerService _logger;
 
   Future<void> scheduleDailyCatchUp() async {
-    if (!_isMobilePlatform()) {
+    if (!supportsUpcomingPaymentsBackgroundWork()) {
       return;
     }
     await _ensureInitialized();
@@ -139,7 +126,7 @@ class UpcomingPaymentsWorkScheduler {
   }
 
   Future<void> cleanupLegacyWorkIfNeeded() async {
-    if (!_isMobilePlatform()) {
+    if (!supportsUpcomingPaymentsBackgroundWork()) {
       return;
     }
     final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -157,7 +144,7 @@ class UpcomingPaymentsWorkScheduler {
   }
 
   Future<void> triggerOneOffCatchUp() async {
-    if (!_isMobilePlatform()) {
+    if (!supportsUpcomingPaymentsBackgroundWork()) {
       return;
     }
     await _ensureInitialized();

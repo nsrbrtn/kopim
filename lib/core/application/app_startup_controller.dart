@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
+import 'package:kopim/core/utils/platform_support.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:kopim/core/application/firebase_availability.dart';
@@ -79,9 +80,11 @@ class AppStartupController extends _$AppStartupController {
   }
 
   Future<void> _initializeBackgroundServices() async {
-    await ref
-        .read(upcomingPaymentsWorkSchedulerProvider)
-        .cleanupLegacyWorkIfNeeded();
+    if (supportsUpcomingPaymentsBackgroundWork()) {
+      await ref
+          .read(upcomingPaymentsWorkSchedulerProvider)
+          .cleanupLegacyWorkIfNeeded();
+    }
     await _activateUpcomingNotificationsSync();
   }
 

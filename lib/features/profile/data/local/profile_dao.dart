@@ -39,7 +39,7 @@ class ProfileDao {
       uid: row.uid,
       name: row.name ?? '',
       currency: _parseCurrency(row.currency),
-      locale: row.locale ?? 'en',
+      locale: row.locale ?? 'ru',
       photoUrl: row.photoUrl,
       updatedAt: row.updatedAt,
     );

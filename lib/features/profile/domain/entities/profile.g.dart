@@ -12,7 +12,7 @@ _Profile _$ProfileFromJson(Map<String, dynamic> json) => _Profile(
   currency:
       $enumDecodeNullable(_$ProfileCurrencyEnumMap, json['currency']) ??
       ProfileCurrency.rub,
-  locale: json['locale'] as String? ?? 'en',
+  locale: json['locale'] as String? ?? 'ru',
   photoUrl: json['photoUrl'] as String?,
   updatedAt: DateTime.parse(json['updatedAt'] as String),
 );

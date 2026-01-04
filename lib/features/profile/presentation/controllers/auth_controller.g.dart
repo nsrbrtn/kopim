@@ -33,7 +33,7 @@ final class AuthControllerProvider
   AuthController create() => AuthController();
 }
 
-String _$authControllerHash() => r'a89ee979506f47ee0da72154d0eee961d2a6a150';
+String _$authControllerHash() => r'3b48feadfd7da1433c6ebbfbbcd8fe443016428e';
 
 abstract class _$AuthController extends $AsyncNotifier<AuthUser?> {
   FutureOr<AuthUser?> build();

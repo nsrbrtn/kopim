@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:kopim/core/application/firebase_availability.dart';
 import 'package:kopim/core/di/injectors.dart';
+import 'package:kopim/core/utils/platform_support.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
 import 'package:kopim/features/profile/domain/entities/sign_in_request.dart';
 import 'package:kopim/features/profile/domain/entities/sign_up_request.dart';
@@ -165,7 +166,7 @@ class AuthController extends _$AuthController {
         .read(authSyncServiceProvider)
         .synchronizeOnLogin(user: user, previousUser: previousUser);
     await ref.read(recomputeUserProgressUseCaseProvider)();
-    if (!_upcomingPaymentsWorkScheduled) {
+    if (supportsUpcomingPaymentsBackgroundWork() && !_upcomingPaymentsWorkScheduled) {
       try {
         await ref
             .read(upcomingPaymentsWorkSchedulerProvider)

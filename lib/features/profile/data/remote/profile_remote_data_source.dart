@@ -56,7 +56,7 @@ class ProfileRemoteDataSource {
       uid: uid,
       name: (data['name'] as String?) ?? '',
       currency: _parseCurrency(data['currency'] as String?),
-      locale: (data['locale'] as String?) ?? 'en',
+      locale: (data['locale'] as String?) ?? 'ru',
       photoUrl: (data['photoUrl'] as String?)?.trim().isEmpty ?? true
           ? null
           : (data['photoUrl'] as String).trim(),
