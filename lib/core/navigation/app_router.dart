@@ -42,7 +42,15 @@ final Provider<GoRouter> appRouterProvider = Provider<GoRouter>((Ref ref) {
     initialLocation: MainNavigationShell.routeName,
     refreshListenable: notifier,
     redirect: notifier.redirect,
+    errorBuilder: (BuildContext context, GoRouterState state) =>
+        _StartupErrorView(error: 'Маршрут ${state.uri} не найден'),
     routes: <RouteBase>[
+      GoRoute(
+        path: '/',
+        parentNavigatorKey: _rootNavigatorKey,
+        redirect: (BuildContext context, GoRouterState state) =>
+            MainNavigationShell.routeName,
+      ),
       GoRoute(
         path: MainNavigationShell.routeName,
         parentNavigatorKey: _rootNavigatorKey,

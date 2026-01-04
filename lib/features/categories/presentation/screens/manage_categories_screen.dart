@@ -841,6 +841,15 @@ class _CategoryEditorSheetState extends ConsumerState<_CategoryEditorSheet> {
             .read(categoryFormControllerProvider(_params).notifier)
             .resetSuccess();
         Navigator.of(context).pop(true);
+      } else if (next.errorMessage == duplicateCategoryNameErrorKey &&
+          next.errorMessage != previous?.errorMessage) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            SnackBar(
+              content: Text(strings.manageCategoriesDuplicateNameError),
+            ),
+          );
       } else if (next.errorMessage != null &&
           next.errorMessage != previous?.errorMessage) {
         ScaffoldMessenger.of(context)

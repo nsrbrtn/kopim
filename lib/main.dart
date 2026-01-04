@@ -10,6 +10,7 @@ import 'package:kopim/l10n/app_localizations.dart';
 import 'core/application/app_startup_controller.dart';
 import 'core/application/sync_coordinator.dart';
 import 'core/config/app_config.dart';
+import 'core/config/scroll_behavior.dart';
 import 'core/di/injectors.dart';
 import 'core/navigation/app_router.dart';
 import 'core/services/recurring_work_scheduler_mobile.dart';
@@ -17,6 +18,7 @@ import 'core/theme/application/theme_mode_controller.dart';
 import 'core/theme/domain/app_theme_mode.dart';
 import 'core/widgets/app_splash_placeholder.dart';
 import 'core/widgets/notification_fallback_listener.dart';
+import 'core/widgets/web_responsive_wrapper.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -152,9 +154,12 @@ class _MyAppState extends ConsumerState<MyApp> {
           },
         ).instance,
       ),
+      scrollBehavior: const KopimScrollBehavior(),
       builder: (BuildContext context, Widget? child) {
-        return NotificationFallbackListener(
-          child: child ?? const SizedBox.shrink(),
+        return WebResponsiveWrapper(
+          child: NotificationFallbackListener(
+            child: child ?? const SizedBox.shrink(),
+          ),
         );
       },
     );

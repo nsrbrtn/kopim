@@ -516,6 +516,10 @@ class AppLocalizationsRu extends AppLocalizations {
   }
 
   @override
+  String get manageCategoriesDuplicateNameError =>
+      'Категория с таким названием уже существует, выберите другое';
+
+  @override
   String get manageCategoriesSuccessCreate => 'Категория успешно создана.';
 
   @override
@@ -1063,6 +1067,12 @@ class AppLocalizationsRu extends AppLocalizations {
   String homeAccountsError(String error) {
     return 'Не удалось загрузить счета: $error';
   }
+
+  @override
+  String get homeHiddenAccountsToggleShowLabel => 'Показать';
+
+  @override
+  String get homeHiddenAccountsToggleHideLabel => 'Скрыть';
 
   @override
   String homeAccountType(String type) {

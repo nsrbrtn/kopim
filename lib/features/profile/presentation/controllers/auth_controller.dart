@@ -17,6 +17,7 @@ class AuthController extends _$AuthController {
   StreamSubscription<AuthUser?>? _authSubscription;
   bool _initialSyncTriggered = false;
   bool _upcomingPaymentsWorkScheduled = false;
+  bool _offlineMode = false;
 
   @override
   FutureOr<AuthUser?> build() async {
@@ -25,7 +26,7 @@ class AuthController extends _$AuthController {
 
     _authSubscription = repository.authStateChanges().listen(
       (AuthUser? user) {
-        if (!ref.mounted) {
+        if (!ref.mounted || _offlineMode) {
           return;
         }
         state = AsyncValue<AuthUser?>.data(user);
@@ -68,6 +69,7 @@ class AuthController extends _$AuthController {
   }
 
   Future<void> signIn(SignInRequest request) async {
+    _exitOfflineMode();
     final AuthUser? previousUser = state.value;
     state = const AsyncValue<AuthUser?>.loading();
     try {
@@ -86,26 +88,17 @@ class AuthController extends _$AuthController {
   }
 
   Future<void> continueWithOfflineMode() async {
-    final AuthUser? previousUser = state.value;
     state = const AsyncValue<AuthUser?>.loading();
-    try {
-      final AuthUser user = await ref
-          .read(authRepositoryProvider)
-          .signInAnonymously();
-      state = AsyncValue<AuthUser?>.data(user);
-    } on AuthFailure catch (failure) {
-      state = AsyncValue<AuthUser?>.data(previousUser);
-      ref
-          .read(loggerServiceProvider)
-          .logError(
-            'continueWithOfflineMode failed: ${failure.message}',
-            failure,
-          );
-      rethrow;
+    final AuthUser user = AuthUser.guest();
+    if (!ref.mounted) {
+      return;
     }
+    _enterOfflineMode();
+    state = AsyncValue<AuthUser?>.data(user);
   }
 
   Future<void> signUp(SignUpRequest request) async {
+    _exitOfflineMode();
     final AuthUser? previousUser = state.value;
     state = const AsyncValue<AuthUser?>.loading();
     try {
@@ -121,6 +114,7 @@ class AuthController extends _$AuthController {
   }
 
   Future<void> reauthenticate(SignInRequest request) async {
+    _exitOfflineMode();
     final AuthUser? previousUser = state.value;
     state = const AsyncValue<AuthUser?>.loading();
     try {
@@ -136,6 +130,7 @@ class AuthController extends _$AuthController {
   }
 
   Future<void> signOut() async {
+    _exitOfflineMode();
     state = const AsyncValue<AuthUser?>.loading();
     try {
       await ref.read(authRepositoryProvider).signOut();
@@ -146,6 +141,14 @@ class AuthController extends _$AuthController {
       state = AsyncValue<AuthUser?>.error(failure, stackTrace);
       rethrow;
     }
+  }
+
+  void _enterOfflineMode() {
+    _offlineMode = true;
+  }
+
+  void _exitOfflineMode() {
+    _offlineMode = false;
   }
 
   Future<void> _syncOrThrow(AuthUser user, AuthUser? previousUser) async {

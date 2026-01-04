@@ -270,4 +270,23 @@ void main() {
     expect(find.byType(AnalyticsScreen), findsOneWidget);
     await disposeApp(tester);
   });
+
+  testWidgets('redirects from / to /home', (WidgetTester tester) async {
+    await pumpApp(
+      tester,
+      authOverride: authControllerProvider.overrideWith(
+        () => _FakeAuthController(AuthUser.guest()),
+      ),
+    );
+    final BuildContext context = tester.element(find.byType(MaterialApp));
+    final ProviderContainer container = ProviderScope.containerOf(context);
+    final GoRouter router = container.read(appRouterProvider);
+
+    router.go('/');
+    await tester.pumpAndSettle();
+
+    expect(find.byType(MainNavigationShell), findsOneWidget);
+    expect(router.state.uri.toString(), MainNavigationShell.routeName);
+    await disposeApp(tester);
+  });
 }

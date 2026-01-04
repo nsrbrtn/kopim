@@ -1032,6 +1032,12 @@ abstract class AppLocalizations {
   /// **'Unable to save category: {error}'**
   String manageCategoriesSaveError(String error);
 
+  /// Error message shown when saving a category with a duplicate name
+  ///
+  /// In en, this message translates to:
+  /// **'A category with this name already exists, please choose another name'**
+  String get manageCategoriesDuplicateNameError;
+
   /// Snackbar message shown when a category is created
   ///
   /// In en, this message translates to:
@@ -1961,6 +1967,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Unable to load accounts: {error}'**
   String homeAccountsError(String error);
+
+  /// Label for the toggle that reveals hidden accounts on the home screen
+  ///
+  /// In en, this message translates to:
+  /// **'Show hidden'**
+  String get homeHiddenAccountsToggleShowLabel;
+
+  /// Label for the toggle that hides hidden accounts on the home screen
+  ///
+  /// In en, this message translates to:
+  /// **'Hide hidden'**
+  String get homeHiddenAccountsToggleHideLabel;
 
   /// Label describing the account type
   ///

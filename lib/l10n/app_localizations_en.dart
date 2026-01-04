@@ -514,6 +514,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get manageCategoriesDuplicateNameError =>
+      'A category with this name already exists, please choose another name';
+
+  @override
   String get manageCategoriesSuccessCreate => 'Category created successfully.';
 
   @override
@@ -1055,6 +1059,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String homeAccountsError(String error) {
     return 'Unable to load accounts: $error';
   }
+
+  @override
+  String get homeHiddenAccountsToggleShowLabel => 'Show hidden';
+
+  @override
+  String get homeHiddenAccountsToggleHideLabel => 'Hide hidden';
 
   @override
   String homeAccountType(String type) {

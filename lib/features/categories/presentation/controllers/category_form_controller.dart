@@ -4,12 +4,15 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/core/domain/icons/phosphor_icon_descriptor.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
+import 'package:kopim/features/categories/domain/exceptions/duplicate_category_name_exception.dart';
 import 'package:kopim/features/categories/domain/use_cases/save_category_use_case.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:uuid/uuid.dart';
 
 part 'category_form_controller.freezed.dart';
 part 'category_form_controller.g.dart';
+
+const String duplicateCategoryNameErrorKey = '__duplicate_category_name__';
 
 const String _kDefaultCategoryType = 'expense';
 
@@ -245,6 +248,12 @@ class CategoryFormController extends _$CategoryFormController {
         updatedAt: toSave.updatedAt,
         isNew: false,
         isFavorite: toSave.isFavorite,
+      );
+    } on DuplicateCategoryNameException {
+      state = state.copyWith(
+        isSaving: false,
+        errorMessage: duplicateCategoryNameErrorKey,
+        isSuccess: false,
       );
     } catch (error) {
       state = state.copyWith(

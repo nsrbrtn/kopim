@@ -590,6 +590,10 @@
       }
     }
   },
+  "manageCategoriesDuplicateNameError": "A category with this name already exists, please choose another name",
+  "@manageCategoriesDuplicateNameError": {
+    "description": "Error message shown when saving a category with a duplicate name"
+  },
   "manageCategoriesSuccessCreate": "Category created successfully.",
   "@manageCategoriesSuccessCreate": {
     "description": "Snackbar message shown when a category is created"
@@ -1318,6 +1322,14 @@
         "type": "String"
       }
     }
+  },
+  "homeHiddenAccountsToggleShowLabel": "Show hidden",
+  "@homeHiddenAccountsToggleShowLabel": {
+    "description": "Label for the toggle that reveals hidden accounts on the home screen"
+  },
+  "homeHiddenAccountsToggleHideLabel": "Hide hidden",
+  "@homeHiddenAccountsToggleHideLabel": {
+    "description": "Label for the toggle that hides hidden accounts on the home screen"
   },
   "homeAccountType": "Type: {type}",
   "@homeAccountType": {

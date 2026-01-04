@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'dart:collection';
 
-import 'dart:io';
+import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:intl/intl.dart';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:kopim/core/data/database.dart';
@@ -575,10 +577,10 @@ class AuthSyncService {
       final List<CreditEntity> localCredits = (await _creditDao.getAllCredits())
           .map(_creditDao.mapRowToEntity)
           .toList();
-      final List<CreditCardEntity> localCreditCards = (await _creditCardDao
-              .getAllCreditCards())
-          .map(_creditCardDao.mapRowToEntity)
-          .toList();
+      final List<CreditCardEntity> localCreditCards =
+          (await _creditCardDao.getAllCreditCards())
+              .map(_creditCardDao.mapRowToEntity)
+              .toList();
       final List<DebtEntity> localDebts = (await _debtDao.getAllDebts())
           .map(_debtDao.mapRowToEntity)
           .toList();
@@ -807,7 +809,9 @@ class AuthSyncService {
 
       // If profile is missing or is a fallback profile, initialize it with user data
       if (profile == null || profile.updatedAt.millisecondsSinceEpoch == 0) {
-        final String systemLocale = Platform.localeName.split('_').first;
+        final String systemLocale = kIsWeb
+            ? Intl.systemLocale.split('_').first
+            : Platform.localeName.split('_').first;
         final Profile newProfile =
             (profile ?? Profile(uid: userId, updatedAt: DateTime.now().toUtc()))
                 .copyWith(

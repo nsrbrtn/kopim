@@ -135,7 +135,7 @@ void main() {
     },
   );
 
-  test('continueWithOfflineMode signs in anonymously on demand', () async {
+  test('continueWithOfflineMode creates local guest session without Firebase', () async {
     final FakeAuthRepository localAuthRepository = FakeAuthRepository();
     final MockConnectivity onlineConnectivity = MockConnectivity();
 
@@ -174,9 +174,9 @@ void main() {
     final AuthUser? offlineUser = localContainer
         .read(authControllerProvider)
         .value;
-    expect(localAuthRepository.signInAnonymouslyCalled, isTrue);
+    expect(localAuthRepository.signInAnonymouslyCalled, isFalse);
     expect(offlineUser, isNotNull);
-    expect(offlineUser!.isAnonymous, isTrue);
+    expect(offlineUser!.isGuest, isTrue);
   });
 
   test('signIn failure keeps previous state and rethrows', () async {

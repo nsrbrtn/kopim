@@ -219,24 +219,6 @@ class _HomeBody extends ConsumerWidget {
                       accountSummariesAsync.asData?.value ??
                       const <String, HomeAccountMonthlySummary>{},
                   isWideLayout: showSecondaryPanel,
-                  onRevealHidden: hiddenAccounts.isEmpty
-                      ? null
-                      : () async {
-                          final DateTime now = DateTime.now().toUtc();
-                          final AddAccountUseCase addAccountUseCase = ref.read(
-                            addAccountUseCaseProvider,
-                          );
-                          await Future.wait(
-                            hiddenAccounts.map(
-                              (AccountEntity account) => addAccountUseCase(
-                                account.copyWith(
-                                  isHidden: false,
-                                  updatedAt: now,
-                                ),
-                              ),
-                            ),
-                          );
-                        },
                 );
               },
               loading: () => const _TransactionsSkeletonList(),
@@ -611,7 +593,6 @@ class _AccountsList extends StatefulWidget {
     required this.strings,
     required this.monthlySummaries,
     required this.isWideLayout,
-    required this.onRevealHidden,
   });
 
   final List<AccountEntity> accounts;
@@ -619,7 +600,6 @@ class _AccountsList extends StatefulWidget {
   final AppLocalizations strings;
   final Map<String, HomeAccountMonthlySummary> monthlySummaries;
   final bool isWideLayout;
-  final Future<void> Function()? onRevealHidden;
 
   @override
   State<_AccountsList> createState() => _AccountsListState();
@@ -630,8 +610,17 @@ class _AccountsListState extends State<_AccountsList> {
   late double _viewportFraction;
   int _currentPage = 0;
 
+  bool _showHiddenAccounts = false;
+
+  List<AccountEntity> get _displayedAccounts => <AccountEntity>[
+        ...widget.accounts,
+        if (_showHiddenAccounts) ...widget.hiddenAccounts,
+      ];
+
+  bool get _hasHiddenAccounts => widget.hiddenAccounts.isNotEmpty;
+
   int get _totalItems =>
-      widget.accounts.length + (widget.hiddenAccounts.isNotEmpty ? 1 : 0);
+      _displayedAccounts.length + (_hasHiddenAccounts ? 1 : 0);
 
   @override
   void initState() {
@@ -667,17 +656,23 @@ class _AccountsListState extends State<_AccountsList> {
     oldController.dispose();
   }
 
+  void _toggleHiddenAccountsVisibility() {
+    setState(() {
+      _showHiddenAccounts = !_showHiddenAccounts;
+    });
+  }
+
   double _calculateRequiredFraction({
     required BuildContext context,
     required BoxConstraints constraints,
     required String localeName,
   }) {
     final double maxWidth = constraints.maxWidth;
-    if (maxWidth <= 0 || widget.accounts.isEmpty) {
+    if (maxWidth <= 0 || _displayedAccounts.isEmpty) {
       return 0;
     }
     double requiredWidth = 0;
-    for (final AccountEntity account in widget.accounts) {
+    for (final AccountEntity account in _displayedAccounts) {
       final NumberFormat format = NumberFormat.currency(
         locale: localeName,
         symbol: resolveCurrencySymbol(account.currency, locale: localeName),
@@ -710,6 +705,8 @@ class _AccountsListState extends State<_AccountsList> {
           final double cardWidth =
               math.min(360, constraints.maxWidth * 0.6);
           final double revealWidth = cardWidth * 0.75;
+          final List<AccountEntity> displayedAccounts = _displayedAccounts;
+          final int displayedCount = displayedAccounts.length;
           return SizedBox(
             height: cardHeight,
             child: ListView.separated(
@@ -718,15 +715,17 @@ class _AccountsListState extends State<_AccountsList> {
               separatorBuilder: (BuildContext context, int index) =>
                   const SizedBox(width: 12),
               itemBuilder: (BuildContext context, int index) {
-                if (index >= widget.accounts.length) {
+                if (index >= displayedCount) {
                   return SizedBox(
                     width: revealWidth,
-                    child: _HiddenAccountsRevealCard(
-                      onTap: widget.onRevealHidden,
+                    child: _HiddenAccountsToggleCard(
+                      isShowingHiddenAccounts: _showHiddenAccounts,
+                      strings: widget.strings,
+                      onToggle: _toggleHiddenAccountsVisibility,
                     ),
                   );
                 }
-                final AccountEntity account = widget.accounts[index];
+                final AccountEntity account = displayedAccounts[index];
                 final NumberFormat currencyFormat = NumberFormat.currency(
                   locale: localeName,
                   symbol: resolveCurrencySymbol(
@@ -799,6 +798,8 @@ class _AccountsListState extends State<_AccountsList> {
           });
         }
 
+        final List<AccountEntity> displayedAccounts = _displayedAccounts;
+        final int displayedCount = displayedAccounts.length;
         return Column(
           children: <Widget>[
             SizedBox(
@@ -814,7 +815,7 @@ class _AccountsListState extends State<_AccountsList> {
                   });
                 },
                 itemBuilder: (BuildContext context, int index) {
-                  if (index >= widget.accounts.length) {
+                  if (index >= displayedCount) {
                     final bool isLast = index == totalItems - 1;
                     return Padding(
                       padding: EdgeInsets.only(right: isLast ? 0 : 8),
@@ -827,8 +828,10 @@ class _AccountsListState extends State<_AccountsList> {
                             alignment: Alignment.centerLeft,
                             child: SizedBox(
                               width: constraints.maxWidth * 0.82,
-                              child: _HiddenAccountsRevealCard(
-                                onTap: widget.onRevealHidden,
+                              child: _HiddenAccountsToggleCard(
+                                isShowingHiddenAccounts: _showHiddenAccounts,
+                                strings: widget.strings,
+                                onToggle: _toggleHiddenAccountsVisibility,
                               ),
                             ),
                           );
@@ -836,7 +839,7 @@ class _AccountsListState extends State<_AccountsList> {
                       ),
                     );
                   }
-                  final AccountEntity account = widget.accounts[index];
+                  final AccountEntity account = displayedAccounts[index];
                   final NumberFormat currencyFormat = NumberFormat.currency(
                     locale: localeName,
                     symbol: resolveCurrencySymbol(
@@ -1066,34 +1069,64 @@ class _AccountHideButton extends ConsumerWidget {
   }
 }
 
-class _HiddenAccountsRevealCard extends StatelessWidget {
-  const _HiddenAccountsRevealCard({required this.onTap});
+class _HiddenAccountsToggleCard extends StatelessWidget {
+  const _HiddenAccountsToggleCard({
+    required this.isShowingHiddenAccounts,
+    required this.strings,
+    required this.onToggle,
+  });
 
-  final Future<void> Function()? onTap;
+  final bool isShowingHiddenAccounts;
+  final AppLocalizations strings;
+  final VoidCallback onToggle;
 
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
     final double cardRadius = context.kopimLayout.radius.xxl;
     final BorderRadius borderRadius = BorderRadius.circular(cardRadius);
-    final Color background = theme.colorScheme.surfaceContainerHighest;
-    final Color iconColor = theme.colorScheme.primary;
+    final Color background = theme.colorScheme.surfaceContainerHigh;
+    final Color foreground = theme.colorScheme.onSurface;
+    final Color borderColor = Colors.black;
+    final String label = isShowingHiddenAccounts
+        ? strings.homeHiddenAccountsToggleHideLabel
+        : strings.homeHiddenAccountsToggleShowLabel;
+    final PhosphorIconData icon = isShowingHiddenAccounts
+        ? PhosphorIcons.eyeSlash(PhosphorIconsStyle.regular)
+        : PhosphorIcons.eye(PhosphorIconsStyle.regular);
+
+    final TextStyle labelStyle = (theme.textTheme.labelSmall ??
+            const TextStyle(fontSize: 11, height: 16 / 11))
+        .copyWith(
+      color: foreground,
+      fontWeight: FontWeight.w500,
+      letterSpacing: 0.5,
+    );
 
     return Material(
       color: Colors.transparent,
       child: InkWell(
         borderRadius: borderRadius,
-        onTap: onTap == null ? null : () => onTap!(),
+        onTap: onToggle,
         child: Ink(
           decoration: BoxDecoration(
             color: background,
             borderRadius: borderRadius,
+            border: Border.all(color: borderColor, width: 1),
           ),
-          child: Center(
-            child: Icon(
-              PhosphorIcons.eye(PhosphorIconsStyle.regular),
-              size: 48,
-              color: iconColor,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Icon(icon, size: 24, color: foreground),
+                const SizedBox(height: 10),
+                Text(
+                  label,
+                  style: labelStyle,
+                ),
+              ],
             ),
           ),
         ),

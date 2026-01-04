@@ -590,6 +590,10 @@
       }
     }
   },
+  "manageCategoriesDuplicateNameError": "Категория с таким названием уже существует, выберите другое",
+  "@manageCategoriesDuplicateNameError": {
+    "description": "Сообщение об ошибке при сохранении категории с уже существующим названием"
+  },
   "manageCategoriesSuccessCreate": "Категория успешно создана.",
   "@manageCategoriesSuccessCreate": {
     "description": "Сообщение после успешного создания категории"
@@ -1318,6 +1322,14 @@
         "type": "String"
       }
     }
+  },
+  "homeHiddenAccountsToggleShowLabel": "Показать",
+  "@homeHiddenAccountsToggleShowLabel": {
+    "description": "Название кнопки, раскрывающей скрытые счета на главном экране"
+  },
+  "homeHiddenAccountsToggleHideLabel": "Скрыть",
+  "@homeHiddenAccountsToggleHideLabel": {
+    "description": "Название кнопки, скрывающей скрытые счета на главном экране"
   },
   "homeAccountType": "Тип: {type}",
   "@homeAccountType": {
