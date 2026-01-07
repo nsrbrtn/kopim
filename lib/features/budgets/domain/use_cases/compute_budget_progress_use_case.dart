@@ -30,7 +30,8 @@ class ComputeBudgetProgressUseCase {
 
     double spent = 0;
     for (final TransactionEntity tx in scopedTransactions) {
-      if (tx.type == TransactionType.income.storageValue) {
+      if (tx.type == TransactionType.income.storageValue ||
+          tx.type == TransactionType.transfer.storageValue) {
         continue;
       }
       spent += tx.amount.abs();

@@ -504,7 +504,6 @@ class _TopCategoriesTabContent extends StatelessWidget {
             );
           },
           child: _TopCategoriesPager(
-            key: ValueKey<DateTime>(activeAnchor),
             expenseBreakdowns: overview.topExpenseCategories,
             incomeBreakdowns: overview.topIncomeCategories,
             categoriesById: categoriesById,
@@ -1433,14 +1432,6 @@ class _TopCategoriesPageState extends State<_TopCategoriesPage> {
   String? _highlightKey;
 
   @override
-  void didUpdateWidget(covariant _TopCategoriesPage oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.activeAnchor != oldWidget.activeAnchor) {
-      _highlightKey = null;
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
     final Widget content;
     final bool isEmptyData =
@@ -1497,7 +1488,6 @@ class _TopCategoriesPageState extends State<_TopCategoriesPage> {
       final List<AnalyticsChartItem> chartItems = widget.data.items;
 
       AnalyticsChartItem? focusedItem;
-      AnalyticsChartItem? focusedTopLevelItem;
       if (_highlightKey != null) {
         final _FocusedItemResult? result = _findFocusedItem(
           chartItems,
@@ -1505,20 +1495,26 @@ class _TopCategoriesPageState extends State<_TopCategoriesPage> {
         );
         if (result != null) {
           focusedItem = result.item;
-          focusedTopLevelItem = result.topLevelItem;
         }
       }
 
+      final _DisplayItemsResult display = _resolveDisplayItems(
+        items: chartItems,
+        total: capturedTotal,
+        focusedItem: focusedItem,
+      );
+      final List<AnalyticsChartItem> displayItems = display.items;
+      final double displayTotal = display.total;
+
       int? selectedIndex;
-      if (focusedTopLevelItem != null) {
-        final int candidateIndex = chartItems.indexWhere(
-          (AnalyticsChartItem item) => item.key == focusedTopLevelItem!.key,
+      if (_highlightKey != null) {
+        final int candidateIndex = displayItems.indexWhere(
+          (AnalyticsChartItem item) => item.key == _highlightKey,
         );
         if (candidateIndex >= 0) {
           selectedIndex = candidateIndex;
         }
       }
-      final List<AnalyticsChartItem> displayItems = chartItems;
       final _CategoryTransactionsSelection? selection =
           _resolveTransactionsSelection(focusedItem);
 
@@ -1529,7 +1525,7 @@ class _TopCategoriesPageState extends State<_TopCategoriesPage> {
           _TopCategoriesSummary(
             strings: widget.strings,
             currencyFormat: widget.currencyFormat,
-            total: capturedTotal,
+            total: displayTotal,
             isIncome: widget.data.isIncome,
             focusedItem: focusedItem,
           ),
@@ -1560,7 +1556,7 @@ class _TopCategoriesPageState extends State<_TopCategoriesPage> {
                       AnalyticsDonutChart(
                         items: displayItems,
                         backgroundColor: backgroundColor,
-                        totalAmount: capturedTotal,
+                        totalAmount: displayTotal,
                         selectedIndex: selectedIndex,
                         animate: false,
                         onSegmentSelected: (int index) {
@@ -1600,9 +1596,9 @@ class _TopCategoriesPageState extends State<_TopCategoriesPage> {
           ),
           const SizedBox(height: 40),
           _TopCategoriesLegend(
-            items: chartItems,
+            items: displayItems,
             currencyFormat: widget.currencyFormat,
-            total: capturedTotal,
+            total: displayTotal,
             highlightedKey: _highlightKey,
             onToggle: _handleToggle,
           ),
@@ -1629,7 +1625,15 @@ class _TopCategoriesPageState extends State<_TopCategoriesPage> {
       );
     }
 
-    return content;
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 200),
+      switchInCurve: Curves.easeInOut,
+      switchOutCurve: Curves.easeInOut,
+      child: KeyedSubtree(
+        key: ValueKey<DateTime>(widget.activeAnchor),
+        child: content,
+      ),
+    );
   }
 
   void _handleToggle(AnalyticsChartItem item) {
@@ -1701,6 +1705,50 @@ class _TopCategoriesPageState extends State<_TopCategoriesPage> {
       includeUncategorized: includeUncategorized,
     );
   }
+
+  _DisplayItemsResult _resolveDisplayItems({
+    required List<AnalyticsChartItem> items,
+    required double total,
+    AnalyticsChartItem? focusedItem,
+  }) {
+    if (focusedItem == null) {
+      return _DisplayItemsResult(items: items, total: total);
+    }
+    if (focusedItem.children.isEmpty) {
+      return _DisplayItemsResult(
+        items: <AnalyticsChartItem>[focusedItem],
+        total: focusedItem.absoluteAmount,
+      );
+    }
+
+    final AnalyticsChartItem? directChild = focusedItem.children
+        .firstWhereOrNull((AnalyticsChartItem item) {
+      return isAnalyticsDirectCategoryKey(item.key);
+    });
+    final double directAmount = directChild?.amount ?? 0;
+    final List<AnalyticsChartItem> displayItems = <AnalyticsChartItem>[];
+    if (directAmount > 0) {
+      displayItems.add(
+        AnalyticsChartItem(
+          key: focusedItem.key,
+          title: focusedItem.title,
+          amount: directAmount,
+          color: focusedItem.color,
+          icon: focusedItem.icon,
+        ),
+      );
+    }
+    displayItems.addAll(
+      focusedItem.children.where(
+        (AnalyticsChartItem item) => item.key != directChild?.key,
+      ),
+    );
+
+    return _DisplayItemsResult(
+      items: displayItems,
+      total: focusedItem.absoluteAmount,
+    );
+  }
 }
 
 class _SelectionPayload {
@@ -1711,6 +1759,13 @@ class _SelectionPayload {
 
   final Set<String> categoryIds;
   final bool includeUncategorized;
+}
+
+class _DisplayItemsResult {
+  const _DisplayItemsResult({required this.items, required this.total});
+
+  final List<AnalyticsChartItem> items;
+  final double total;
 }
 
 class _FocusedItemResult {
