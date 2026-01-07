@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show StreamProviderFamily;
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
+import 'package:kopim/features/accounts/domain/utils/account_type_utils.dart';
 import 'package:kopim/features/analytics/domain/models/analytics_filter.dart';
 import 'package:kopim/features/analytics/domain/models/analytics_overview.dart';
 import 'package:kopim/features/analytics/domain/models/monthly_balance_data.dart';
@@ -159,11 +160,17 @@ Stream<List<MonthlyBalanceData>> monthlyBalanceData(Ref ref) {
     final List<AccountEntity> relevantAccounts = accounts.where((
       AccountEntity account,
     ) {
+      if (!_isCashAccountType(account.type)) {
+        return false;
+      }
       if (selectedAccountIds.isEmpty) {
         return true;
       }
       return selectedAccountIds.contains(account.id);
     }).toList();
+    final Set<String> relevantAccountIds = relevantAccounts
+        .map((AccountEntity account) => account.id)
+        .toSet();
 
     // Начальный баланс (текущий)
     double currentBalance = 0;
@@ -175,10 +182,7 @@ Stream<List<MonthlyBalanceData>> monthlyBalanceData(Ref ref) {
     // Предполагаем, что репозиторий может возвращать не сортированные
     final List<TransactionEntity> sortedTransactions =
         transactions.where((TransactionEntity t) {
-          if (selectedAccountIds.isEmpty) {
-            return true;
-          }
-          return selectedAccountIds.contains(t.accountId);
+          return relevantAccountIds.contains(t.accountId);
         }).toList()..sort(
           (TransactionEntity a, TransactionEntity b) =>
               b.date.compareTo(a.date),
@@ -270,6 +274,11 @@ Stream<List<MonthlyBalanceData>> monthlyBalanceData(Ref ref) {
 
     return result.reversed.toList();
   });
+}
+
+bool _isCashAccountType(String rawType) {
+  final String type = normalizeAccountType(rawType).toLowerCase();
+  return type != 'credit' && type != 'credit_card' && type != 'debt';
 }
 
 final StreamProvider<List<MonthlyCashflowData>>

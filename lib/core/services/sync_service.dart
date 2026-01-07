@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:kopim/core/data/database.dart' as db;
@@ -423,9 +424,11 @@ class SyncService {
   }
 
   void _updateStatus() {
-    final SyncStatus nextStatus = !_isOnline
-        ? SyncStatus.offline
-        : (_isSyncing ? SyncStatus.syncing : SyncStatus.upToDate);
+    final SyncStatus nextStatus = kIsWeb
+        ? (_isSyncing ? SyncStatus.syncing : SyncStatus.upToDate)
+        : (!_isOnline
+            ? SyncStatus.offline
+            : (_isSyncing ? SyncStatus.syncing : SyncStatus.upToDate));
     if (nextStatus == _status) return;
     _status = nextStatus;
     if (_statusController.isClosed) return;

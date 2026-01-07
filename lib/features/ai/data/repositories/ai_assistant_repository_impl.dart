@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:collection/collection.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:intl/intl.dart';
@@ -48,46 +49,34 @@ class AiAssistantRepositoryImpl implements AiAssistantRepository {
   Future<AiLlmResultEntity> sendUserQuery(AiUserQueryEntity query) async {
     final Stopwatch stopwatch = Stopwatch()..start();
     try {
+      _loggerService.logInfo(
+        'AI ассистент: запрос ${query.id}, intent=${query.intent.name}',
+      );
       final _ToolWorkflowOutcome? toolOutcome = await _tryToolWorkflow(query);
       if (toolOutcome != null) {
-        stopwatch.stop();
-        final String answer = _extractAnswer(toolOutcome.result.response);
-        final List<String> sources = _extractSources(
-          toolOutcome.result.response,
+        _loggerService.logInfo(
+          'AI ассистент: ответ с инструментами (query_id=${query.id})',
         );
-        final double confidence = _estimateConfidence(
-          toolOutcome.result.response,
+        return _finalizeToolOutcome(
+          outcome: toolOutcome,
+          query: query,
+          stopwatch: stopwatch,
         );
-        final AiLlmResultEntity entity = AiLlmResultEntity(
-          id: _uuid.v4(),
-          queryId: query.id,
-          content: answer,
-          citedSources: sources,
-          confidence: confidence,
-          metadata: _composeMetadata(
-            query: query,
-            filter: null,
-            overview: null,
-            result: toolOutcome.result,
-            duration: stopwatch.elapsed,
-            toolLogs: toolOutcome.toolLogs,
-            usedTools: toolOutcome.usedTools,
-          ),
-          createdAt: _nowProvider(),
-          model: toolOutcome.result.config.model,
-          promptTokens: toolOutcome.result.response.usage?.promptTokens,
-          completionTokens: toolOutcome.result.response.usage?.completionTokens,
-          totalTokens: toolOutcome.result.response.usage?.totalTokens,
+      }
+
+      final _ToolWorkflowOutcome? budgetOutcome = await _tryBudgetFallback(
+        query,
+      );
+      if (budgetOutcome != null) {
+        _loggerService.logInfo(
+          'AI ассистент: бюджетный фоллбек с инструментами '
+          '(query_id=${query.id})',
         );
-        await _analyticsService
-            .logEvent('ai_assistant_answer', <String, Object?>{
-              'intent': query.intent.name,
-              'model': toolOutcome.result.config.model,
-              'duration_ms': stopwatch.elapsedMilliseconds,
-              'confidence': confidence,
-              'tools_used': toolOutcome.usedTools,
-            });
-        return entity;
+        return _finalizeToolOutcome(
+          outcome: budgetOutcome,
+          query: query,
+          stopwatch: stopwatch,
+        );
       }
 
       final AiDataFilter filter = _buildFilter(query);
@@ -136,6 +125,9 @@ class AiAssistantRepositoryImpl implements AiAssistantRepository {
         'confidence': confidence,
         'tools_used': false,
       });
+      _loggerService.logInfo(
+        'AI ассистент: ответ без инструментов (query_id=${query.id})',
+      );
 
       return entity;
     } catch (error, stackTrace) {
@@ -509,8 +501,37 @@ class AiAssistantRepositoryImpl implements AiAssistantRepository {
       return null;
     }
 
+    return _executeToolWorkflow(
+      query: query,
+      toolCalls: firstMessage.toolCalls,
+      prompt: prompt,
+    );
+  }
+
+  Future<_ToolWorkflowOutcome?> _tryBudgetFallback(
+    AiUserQueryEntity query,
+  ) async {
+    if (query.intent != AiQueryIntent.budgeting) {
+      return null;
+    }
+    final AiToolCall toolCall = AiToolCall(
+      id: _uuid.v4(),
+      name: 'get_budgets',
+      arguments: jsonEncode(<String, Object?>{}),
+    );
+    return _executeToolWorkflow(
+      query: query,
+      toolCalls: <AiToolCall>[toolCall],
+    );
+  }
+
+  Future<_ToolWorkflowOutcome> _executeToolWorkflow({
+    required AiUserQueryEntity query,
+    required List<AiToolCall> toolCalls,
+    List<AiAssistantMessage>? prompt,
+  }) async {
     final AiAssistantToolExecutionResult toolResult = await _toolRouter
-        .runToolCalls(firstMessage.toolCalls);
+        .runToolCalls(toolCalls);
     for (final AiAssistantToolCallLog log in toolResult.logs) {
       unawaited(
         _analyticsService.logEvent('ai_tool_call', <String, Object?>{
@@ -521,8 +542,8 @@ class AiAssistantRepositoryImpl implements AiAssistantRepository {
       );
     }
     final List<AiAssistantMessage> followUp = <AiAssistantMessage>[
-      ...prompt,
-      AiAssistantMessage.assistantWithToolCalls(firstMessage.toolCalls),
+      ...(prompt ?? _buildToolPrompt(query: query)),
+      AiAssistantMessage.assistantWithToolCalls(toolCalls),
       ...toolResult.messages,
     ];
     final AiAssistantServiceResult finalResult = await _service.generateAnswer(
@@ -535,6 +556,46 @@ class AiAssistantRepositoryImpl implements AiAssistantRepository {
       toolLogs: toolResult.logs,
       usedTools: true,
     );
+  }
+
+  Future<AiLlmResultEntity> _finalizeToolOutcome({
+    required _ToolWorkflowOutcome outcome,
+    required AiUserQueryEntity query,
+    required Stopwatch stopwatch,
+  }) async {
+    stopwatch.stop();
+    final String answer = _extractAnswer(outcome.result.response);
+    final List<String> sources = _extractSources(outcome.result.response);
+    final double confidence = _estimateConfidence(outcome.result.response);
+    final AiLlmResultEntity entity = AiLlmResultEntity(
+      id: _uuid.v4(),
+      queryId: query.id,
+      content: answer,
+      citedSources: sources,
+      confidence: confidence,
+      metadata: _composeMetadata(
+        query: query,
+        filter: null,
+        overview: null,
+        result: outcome.result,
+        duration: stopwatch.elapsed,
+        toolLogs: outcome.toolLogs,
+        usedTools: outcome.usedTools,
+      ),
+      createdAt: _nowProvider(),
+      model: outcome.result.config.model,
+      promptTokens: outcome.result.response.usage?.promptTokens,
+      completionTokens: outcome.result.response.usage?.completionTokens,
+      totalTokens: outcome.result.response.usage?.totalTokens,
+    );
+    await _analyticsService.logEvent('ai_assistant_answer', <String, Object?>{
+      'intent': query.intent.name,
+      'model': outcome.result.config.model,
+      'duration_ms': stopwatch.elapsedMilliseconds,
+      'confidence': confidence,
+      'tools_used': outcome.usedTools,
+    });
+    return entity;
   }
 
   AiCompletionMessage? _firstAssistantMessage(AiCompletionResponse response) {

@@ -194,7 +194,9 @@ class AiAssistantToolsRegistry {
           'properties': <String, Object?>{
             'budget_id': <String, Object?>{
               'type': 'string',
-              'description': 'ID конкретного бюджета (если нужен один).',
+              'description':
+                  'ID конкретного бюджета (если нужен один). '
+                  'Если нужен список всех бюджетов, не передавай поле budget_id.',
             },
             'category_limit': <String, Object?>{
               'type': 'integer',

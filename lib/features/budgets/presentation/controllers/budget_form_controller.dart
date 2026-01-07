@@ -174,9 +174,7 @@ class BudgetFormController extends _$BudgetFormController {
   }
 
   Future<bool> submit() async {
-    double? amount = double.tryParse(
-      state.amountText.replaceAll(',', '.').trim(),
-    );
+    double? amount = _parseAmount(state.amountText);
     List<BudgetCategoryAllocation> categoryAllocations =
         const <BudgetCategoryAllocation>[];
     if (state.scope == BudgetScope.byCategory) {
@@ -188,7 +186,7 @@ class BudgetFormController extends _$BudgetFormController {
           <BudgetCategoryAllocation>[];
       for (final String categoryId in state.categoryIds) {
         final String raw = state.categoryAmounts[categoryId] ?? '';
-        final double? limit = double.tryParse(raw.replaceAll(',', '.').trim());
+        final double? limit = _parseAmount(raw);
         if (limit == null || limit <= 0) {
           state = state.copyWith(errorMessage: 'invalid_category_amount');
           return false;
@@ -274,6 +272,17 @@ class BudgetFormController extends _$BudgetFormController {
     return DateTime(date.year, date.month, date.day);
   }
 
+  double? _parseAmount(String raw) {
+    final String sanitized = raw
+        .trim()
+        .replaceAll(RegExp(r'\s+'), '')
+        .replaceAll(',', '.');
+    if (sanitized.isEmpty) {
+      return null;
+    }
+    return double.tryParse(sanitized);
+  }
+
   String _formatCategoryTotal(Map<String, String> categoryAmounts) {
     if (categoryAmounts.isEmpty) {
       return '';
@@ -281,11 +290,7 @@ class BudgetFormController extends _$BudgetFormController {
     double total = 0;
     bool hasValue = false;
     for (final String value in categoryAmounts.values) {
-      final String trimmed = value.replaceAll(',', '.').trim();
-      if (trimmed.isEmpty) {
-        continue;
-      }
-      final double? parsed = double.tryParse(trimmed);
+      final double? parsed = _parseAmount(value);
       if (parsed != null && parsed >= 0) {
         total += parsed;
         hasValue = true;

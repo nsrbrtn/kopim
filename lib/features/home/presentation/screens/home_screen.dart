@@ -1019,7 +1019,7 @@ class _AccountCard extends ConsumerWidget {
               ),
               Positioned(
                 right: 16,
-                bottom: 16,
+                top: 16,
                 child: _AccountHideButton(
                   account: account,
                   color: palette.support,

@@ -77,9 +77,17 @@ class AiAssistantToolRouter {
       final Stopwatch stopwatch = Stopwatch()..start();
       try {
         final Map<String, dynamic> args = _decodeArguments(toolCall.arguments);
+        _loggerService.logInfo(
+          'AI ассистент: запуск инструмента ${toolCall.name} '
+          '(call_id=${toolCall.id}) с аргументами $args',
+        );
         final Map<String, Object?> payload = await _executeTool(
           name: toolCall.name,
           args: args,
+        );
+        _loggerService.logInfo(
+          'AI ассистент: инструмент ${toolCall.name} '
+          '(call_id=${toolCall.id}) выполнен успешно',
         );
         messages.add(
           AiAssistantMessage.tool(
@@ -100,15 +108,16 @@ class AiAssistantToolRouter {
           'error': 'Не удалось выполнить инструмент.',
           'details': error.toString(),
         };
+        _loggerService.logError(
+          'AI ассистент: ошибка инструмента ${toolCall.name} '
+          '(call_id=${toolCall.id})',
+          error,
+        );
         messages.add(
           AiAssistantMessage.tool(
             toolCallId: toolCall.id,
             content: jsonEncode(payload),
           ),
-        );
-        _loggerService.logError(
-          'Ошибка выполнения инструмента ${toolCall.name}',
-          error,
         );
         logs.add(
           AiAssistantToolCallLog(
@@ -364,7 +373,8 @@ class AiAssistantToolRouter {
   }
 
   Future<Map<String, Object?>> _getBudgets(Map<String, dynamic> args) async {
-    final String? budgetId = _readOptionalString(args, 'budget_id');
+    final String? rawBudgetId = _readOptionalString(args, 'budget_id');
+    final String? budgetId = _normalizeBudgetId(rawBudgetId);
     final int requestedLimit = _readInt(
       args,
       'category_limit',
@@ -552,6 +562,17 @@ class AiAssistantToolRouter {
       return budget.amount;
     }
     return null;
+  }
+
+  String? _normalizeBudgetId(String? raw) {
+    if (raw == null) {
+      return null;
+    }
+    final String normalized = raw.trim().toLowerCase();
+    if (normalized.isEmpty || normalized == 'all') {
+      return null;
+    }
+    return raw.trim();
   }
 
   Future<List<String>> _resolveCategoryIds(Map<String, dynamic> args) async {
