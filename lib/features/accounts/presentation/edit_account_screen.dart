@@ -110,10 +110,9 @@ class _EditAccountScreenState extends ConsumerState<EditAccountScreen> {
     );
     if (widget.account.type == 'credit_card') {
       Future<void>.microtask(
-        () =>
-            ref
-                .read(editAccountFormControllerProvider(widget.account).notifier)
-                .loadCreditCard(),
+        () => ref
+            .read(editAccountFormControllerProvider(widget.account).notifier)
+            .loadCreditCard(),
       );
     }
   }
@@ -180,17 +179,18 @@ class _EditAccountScreenState extends ConsumerState<EditAccountScreen> {
         }
         if (previous?.statementDayInput != next.statementDayInput &&
             _statementDayController.text != next.statementDayInput) {
-          _statementDayController.value = _statementDayController.value.copyWith(
-            text: next.statementDayInput,
-            selection: TextSelection.collapsed(
-              offset: next.statementDayInput.length,
-            ),
-          );
+          _statementDayController.value = _statementDayController.value
+              .copyWith(
+                text: next.statementDayInput,
+                selection: TextSelection.collapsed(
+                  offset: next.statementDayInput.length,
+                ),
+              );
         }
         if (previous?.paymentDueDaysInput != next.paymentDueDaysInput &&
             _paymentDueDaysController.text != next.paymentDueDaysInput) {
-          _paymentDueDaysController.value =
-              _paymentDueDaysController.value.copyWith(
+          _paymentDueDaysController.value = _paymentDueDaysController.value
+              .copyWith(
                 text: next.paymentDueDaysInput,
                 selection: TextSelection.collapsed(
                   offset: next.paymentDueDaysInput.length,
@@ -199,8 +199,8 @@ class _EditAccountScreenState extends ConsumerState<EditAccountScreen> {
         }
         if (previous?.interestRateInput != next.interestRateInput &&
             _interestRateController.text != next.interestRateInput) {
-          _interestRateController.value =
-              _interestRateController.value.copyWith(
+          _interestRateController.value = _interestRateController.value
+              .copyWith(
                 text: next.interestRateInput,
                 selection: TextSelection.collapsed(
                   offset: next.interestRateInput.length,
@@ -261,7 +261,8 @@ class _EditAccountScreenState extends ConsumerState<EditAccountScreen> {
                   controller: _balanceController,
                   decoration: InputDecoration(
                     labelText: strings.editAccountBalanceLabel,
-                    errorText: state.balanceError ==
+                    errorText:
+                        state.balanceError ==
                             EditAccountFieldError.invalidBalance
                         ? strings.editAccountBalanceInvalid
                         : null,
@@ -374,8 +375,7 @@ class _EditAccountScreenState extends ConsumerState<EditAccountScreen> {
                 TextFormField(
                   controller: _paymentDueDaysController,
                   decoration: InputDecoration(
-                    labelText:
-                        strings.addAccountCreditCardPaymentDueDaysLabel,
+                    labelText: strings.addAccountCreditCardPaymentDueDaysLabel,
                     errorText: state.paymentDueDaysError != null
                         ? strings.addAccountCreditCardPaymentDueDaysError
                         : null,

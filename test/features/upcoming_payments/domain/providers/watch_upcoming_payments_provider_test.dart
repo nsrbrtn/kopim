@@ -93,35 +93,31 @@ void main() {
         Completer<List<UpcomingPayment>>();
     int received = 0;
     final ProviderSubscription<AsyncValue<List<UpcomingPayment>>> sub =
-        container.listen(
-          watchUpcomingPaymentsProvider,
-          (
-            AsyncValue<List<UpcomingPayment>>? _,
-            AsyncValue<List<UpcomingPayment>> next,
-          ) {
-            if (next.hasError) {
-              if (!firstCompleter.isCompleted) {
-                firstCompleter.completeError(next.error!, next.stackTrace);
-              }
-              if (!secondCompleter.isCompleted) {
-                secondCompleter.completeError(next.error!, next.stackTrace);
-              }
-              return;
+        container.listen(watchUpcomingPaymentsProvider, (
+          AsyncValue<List<UpcomingPayment>>? _,
+          AsyncValue<List<UpcomingPayment>> next,
+        ) {
+          if (next.hasError) {
+            if (!firstCompleter.isCompleted) {
+              firstCompleter.completeError(next.error!, next.stackTrace);
             }
-            if (!next.hasValue) {
-              return;
+            if (!secondCompleter.isCompleted) {
+              secondCompleter.completeError(next.error!, next.stackTrace);
             }
-            received += 1;
-            if (received == 1 && !firstCompleter.isCompleted) {
-              firstCompleter.complete(next.value!);
-              return;
-            }
-            if (received == 2 && !secondCompleter.isCompleted) {
-              secondCompleter.complete(next.value!);
-            }
-          },
-          fireImmediately: true,
-        );
+            return;
+          }
+          if (!next.hasValue) {
+            return;
+          }
+          received += 1;
+          if (received == 1 && !firstCompleter.isCompleted) {
+            firstCompleter.complete(next.value!);
+            return;
+          }
+          if (received == 2 && !secondCompleter.isCompleted) {
+            secondCompleter.complete(next.value!);
+          }
+        }, fireImmediately: true);
 
     final List<UpcomingPayment> first = await firstCompleter.future;
     expect(first.single.nextRunAtMs, overdue.nextRunAtMs);
@@ -148,22 +144,18 @@ void main() {
     final Completer<List<UpcomingPayment>> firstCompleter =
         Completer<List<UpcomingPayment>>();
     final ProviderSubscription<AsyncValue<List<UpcomingPayment>>> sub =
-        container.listen(
-          watchUpcomingPaymentsProvider,
-          (
-            AsyncValue<List<UpcomingPayment>>? _,
-            AsyncValue<List<UpcomingPayment>> next,
-          ) {
-            if (next.hasError && !firstCompleter.isCompleted) {
-              firstCompleter.completeError(next.error!, next.stackTrace);
-              return;
-            }
-            if (next.hasValue && !firstCompleter.isCompleted) {
-              firstCompleter.complete(next.value!);
-            }
-          },
-          fireImmediately: true,
-        );
+        container.listen(watchUpcomingPaymentsProvider, (
+          AsyncValue<List<UpcomingPayment>>? _,
+          AsyncValue<List<UpcomingPayment>> next,
+        ) {
+          if (next.hasError && !firstCompleter.isCompleted) {
+            firstCompleter.completeError(next.error!, next.stackTrace);
+            return;
+          }
+          if (next.hasValue && !firstCompleter.isCompleted) {
+            firstCompleter.complete(next.value!);
+          }
+        }, fireImmediately: true);
 
     final List<UpcomingPayment> first = await firstCompleter.future;
     expect(first.single.nextRunAtMs, upcoming.nextRunAtMs);

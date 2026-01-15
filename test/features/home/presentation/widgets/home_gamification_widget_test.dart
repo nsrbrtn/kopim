@@ -24,9 +24,7 @@ void main() {
             locale: Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
-            home: Scaffold(
-              body: HomeGamificationWidget(userId: userId),
-            ),
+            home: Scaffold(body: HomeGamificationWidget(userId: userId)),
           ),
         ),
       );

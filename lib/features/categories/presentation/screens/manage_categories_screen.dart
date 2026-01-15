@@ -137,11 +137,11 @@ class _ManageCategoriesScreenState extends ConsumerState<ManageCategoriesScreen>
           onPressed: isTagsTab
               ? () => showTagEditor(context, ref, strings: strings)
               : () => _showCategoryEditor(
-                    context,
-                    ref,
-                    strings: strings,
-                    parents: rootCategories,
-                  ),
+                  context,
+                  ref,
+                  strings: strings,
+                  parents: rootCategories,
+                ),
           tooltip: isTagsTab
               ? strings.manageTagsAddAction
               : strings.manageCategoriesAddAction,
@@ -503,8 +503,9 @@ class _CategoryCardState extends State<_CategoryCard> {
     final bool hasChildren = widget.node.children.isNotEmpty;
     final bool isExpanded = hasChildren && _isExpanded;
 
-    final CategoryColorStyle colorStyle =
-        resolveCategoryColorStyle(category.color);
+    final CategoryColorStyle colorStyle = resolveCategoryColorStyle(
+      category.color,
+    );
     final IconData? iconData = resolvePhosphorIconData(category.icon);
     final List<String> metadata = _buildMetadata(category, widget.strings);
 
@@ -659,8 +660,9 @@ class _SubcategoryTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final Category category = node.category;
     final IconData? iconData = resolvePhosphorIconData(category.icon);
-    final CategoryColorStyle colorStyle =
-        resolveCategoryColorStyle(category.color);
+    final CategoryColorStyle colorStyle = resolveCategoryColorStyle(
+      category.color,
+    );
     return _SwipeableCategoryTile(
       radius: 12,
       categoryId: category.id,
@@ -720,14 +722,16 @@ class _CategoryIcon extends StatelessWidget {
     final Color avatarBackground =
         backgroundColor ?? theme.colorScheme.surfaceContainerHighest;
     final Color resolvedSample =
-        sampleColor ?? backgroundColor ?? theme.colorScheme.surfaceContainerHigh;
+        sampleColor ??
+        backgroundColor ??
+        theme.colorScheme.surfaceContainerHigh;
     final Color avatarForeground =
         (sampleColor != null || backgroundColor != null)
-            ? (ThemeData.estimateBrightnessForColor(resolvedSample) ==
-                      Brightness.dark
-                  ? Colors.white
-                  : Colors.black87)
-            : theme.colorScheme.onSurface;
+        ? (ThemeData.estimateBrightnessForColor(resolvedSample) ==
+                  Brightness.dark
+              ? Colors.white
+              : Colors.black87)
+        : theme.colorScheme.onSurface;
 
     return Container(
       width: size,
@@ -846,9 +850,7 @@ class _CategoryEditorSheetState extends ConsumerState<_CategoryEditorSheet> {
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
           ..showSnackBar(
-            SnackBar(
-              content: Text(strings.manageCategoriesDuplicateNameError),
-            ),
+            SnackBar(content: Text(strings.manageCategoriesDuplicateNameError)),
           );
       } else if (next.errorMessage != null &&
           next.errorMessage != previous?.errorMessage) {
@@ -879,7 +881,9 @@ class _CategoryEditorSheetState extends ConsumerState<_CategoryEditorSheet> {
     final String iconSubtitle = state.icon?.isNotEmpty == true
         ? strings.manageCategoriesIconSelected
         : strings.manageCategoriesIconNone;
-    final CategoryColorStyle colorStyle = resolveCategoryColorStyle(state.color);
+    final CategoryColorStyle colorStyle = resolveCategoryColorStyle(
+      state.color,
+    );
     final CategoryGradient? selectedGradient = colorStyle.gradient;
     final Color? selectedColor = colorStyle.sampleColor;
     final String colorSubtitle = selectedColor != null
@@ -1064,7 +1068,7 @@ class _CategoryEditorSheetState extends ConsumerState<_CategoryEditorSheet> {
                   gradient: selectedGradient?.toGradient(),
                   color: selectedGradient == null
                       ? (selectedColor ??
-                          theme.colorScheme.surfaceContainerHigh)
+                            theme.colorScheme.surfaceContainerHigh)
                       : null,
                 ),
                 alignment: Alignment.center,
@@ -1183,8 +1187,9 @@ class _CategoryColorPickerDialogState
     _draftColor = widget.initialColor;
     _draftGradientId = widget.initialGradientId;
     if (_draftGradientId != null && _draftColor == null) {
-      final CategoryGradient? gradient =
-          resolveCategoryGradient(encodeCategoryGradientId(_draftGradientId!));
+      final CategoryGradient? gradient = resolveCategoryGradient(
+        encodeCategoryGradientId(_draftGradientId!),
+      );
       _draftColor = gradient?.sampleColor;
     }
   }
@@ -1213,12 +1218,9 @@ class _CategoryColorPickerDialogState
                     .entries
                     .map((MapEntry<int, CategoryGradient> entry) {
                       final CategoryGradient gradient = entry.value;
-                      final bool isSelected =
-                          _draftGradientId == gradient.id;
+                      final bool isSelected = _draftGradientId == gradient.id;
                       return InkResponse(
-                        key: ValueKey<String>(
-                          'category-gradient-${entry.key}',
-                        ),
+                        key: ValueKey<String>('category-gradient-${entry.key}'),
                         radius: 24,
                         onTap: () => setState(() {
                           _draftGradientId = gradient.id;
@@ -1298,10 +1300,10 @@ class _CategoryColorPickerDialogState
           onPressed: _draftColor == null
               ? null
               : () => Navigator.of(context).pop(
-                    _draftGradientId != null
-                        ? encodeCategoryGradientId(_draftGradientId!)
-                        : colorToHex(_draftColor!)!,
-                  ),
+                  _draftGradientId != null
+                      ? encodeCategoryGradientId(_draftGradientId!)
+                      : colorToHex(_draftColor!)!,
+                ),
           child: Text(widget.strings.dialogConfirm),
         ),
       ],

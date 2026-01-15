@@ -93,8 +93,9 @@ class TransactionRepositoryImpl implements TransactionRepository {
       final db.TransactionRow? previousRow = await _transactionDao.findById(
         toPersist.id,
       );
-      final TransactionEntity? previous =
-          previousRow != null ? _mapToDomain(previousRow) : null;
+      final TransactionEntity? previous = previousRow != null
+          ? _mapToDomain(previousRow)
+          : null;
       await _transactionDao.upsert(toPersist);
       await _outboxDao.enqueue(
         entityType: _entityType,
@@ -217,16 +218,25 @@ class TransactionRepositoryImpl implements TransactionRepository {
       final TransactionType type = parseTransactionType(tx.type);
       switch (type) {
         case TransactionType.income:
-          deltas.update(tx.accountId, (double v) => v + sign * tx.amount,
-              ifAbsent: () => sign * tx.amount);
+          deltas.update(
+            tx.accountId,
+            (double v) => v + sign * tx.amount,
+            ifAbsent: () => sign * tx.amount,
+          );
           break;
         case TransactionType.expense:
-          deltas.update(tx.accountId, (double v) => v - sign * tx.amount,
-              ifAbsent: () => -sign * tx.amount);
+          deltas.update(
+            tx.accountId,
+            (double v) => v - sign * tx.amount,
+            ifAbsent: () => -sign * tx.amount,
+          );
           break;
         case TransactionType.transfer:
-          deltas.update(tx.accountId, (double v) => v - sign * tx.amount,
-              ifAbsent: () => -sign * tx.amount);
+          deltas.update(
+            tx.accountId,
+            (double v) => v - sign * tx.amount,
+            ifAbsent: () => -sign * tx.amount,
+          );
           final String? targetId = tx.transferAccountId;
           if (targetId != null && targetId != tx.accountId) {
             deltas.update(
@@ -248,14 +258,15 @@ class TransactionRepositoryImpl implements TransactionRepository {
 
     for (final MapEntry<String, double> entry in deltas.entries) {
       if (entry.value == 0) continue;
-      final db.AccountRow? account = await (_database.select(_database.accounts)
-            ..where((db.$AccountsTable tbl) => tbl.id.equals(entry.key)))
-          .getSingleOrNull();
+      final db.AccountRow? account =
+          await (_database.select(_database.accounts)
+                ..where((db.$AccountsTable tbl) => tbl.id.equals(entry.key)))
+              .getSingleOrNull();
       if (account == null || account.isDeleted) continue;
       final double newBalance = account.balance + entry.value;
-      await (_database.update(_database.accounts)
-            ..where((db.$AccountsTable tbl) => tbl.id.equals(entry.key)))
-          .write(
+      await (_database.update(
+        _database.accounts,
+      )..where((db.$AccountsTable tbl) => tbl.id.equals(entry.key))).write(
         db.AccountsCompanion(
           balance: Value<double>(newBalance),
           updatedAt: Value<DateTime>(updatedAt),

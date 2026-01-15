@@ -7,9 +7,10 @@ class CreditCardRemoteDataSource {
   final FirebaseFirestore _firestore;
 
   CollectionReference<Map<String, dynamic>> _collection(String userId) {
-    return _firestore.collection('users').doc(userId).collection(
-      'credit_cards',
-    );
+    return _firestore
+        .collection('users')
+        .doc(userId)
+        .collection('credit_cards');
   }
 
   DocumentReference<Map<String, dynamic>> _doc(String userId, String id) {

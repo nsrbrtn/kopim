@@ -279,15 +279,9 @@ class SyncService {
     OutboxOperation operation,
   ) {
     if (operation == OutboxOperation.delete) {
-      return _tagRemoteDataSource.delete(
-        userId,
-        tag.copyWith(isDeleted: true),
-      );
+      return _tagRemoteDataSource.delete(userId, tag.copyWith(isDeleted: true));
     }
-    return _tagRemoteDataSource.upsert(
-      userId,
-      tag.copyWith(isDeleted: false),
-    );
+    return _tagRemoteDataSource.upsert(userId, tag.copyWith(isDeleted: false));
   }
 
   Future<void> _dispatchTransactionTag(
@@ -427,8 +421,8 @@ class SyncService {
     final SyncStatus nextStatus = kIsWeb
         ? (_isSyncing ? SyncStatus.syncing : SyncStatus.upToDate)
         : (!_isOnline
-            ? SyncStatus.offline
-            : (_isSyncing ? SyncStatus.syncing : SyncStatus.upToDate));
+              ? SyncStatus.offline
+              : (_isSyncing ? SyncStatus.syncing : SyncStatus.upToDate));
     if (nextStatus == _status) return;
     _status = nextStatus;
     if (_statusController.isClosed) return;

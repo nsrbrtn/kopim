@@ -72,9 +72,7 @@ class TransactionTagsDao {
           ..where(_db.transactionTags.transactionId.equals(transactionId))
           ..orderBy(orderBy);
     final List<TypedResult> rows = await query.get();
-    return rows
-        .map((TypedResult row) => row.readTable(_db.tags))
-        .toList();
+    return rows.map((TypedResult row) => row.readTable(_db.tags)).toList();
   }
 
   Future<List<db.TransactionTagRow>> getAllTransactionTags() {
@@ -104,13 +102,10 @@ class TransactionTagsDao {
     required String tagId,
     required DateTime updatedAt,
   }) async {
-    await (_db.update(
-      _db.transactionTags,
-    )..where(
-            (db.$TransactionTagsTable tbl) =>
-                tbl.transactionId.equals(transactionId) &
-                tbl.tagId.equals(tagId),
-          ))
+    await (_db.update(_db.transactionTags)..where(
+          (db.$TransactionTagsTable tbl) =>
+              tbl.transactionId.equals(transactionId) & tbl.tagId.equals(tagId),
+        ))
         .write(
           db.TransactionTagsCompanion(
             isDeleted: const Value<bool>(true),

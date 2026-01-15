@@ -34,12 +34,13 @@ class QuickAddTransactionCard extends ConsumerWidget {
     );
     final List<AccountEntity>? accounts = accountsAsync.asData?.value;
     final List<AccountEntity> visibleAccounts =
-        accounts?.where((AccountEntity account) => !account.isHidden).toList(
-              growable: false,
-            ) ??
-            const <AccountEntity>[];
-    final String? defaultAccountId =
-        visibleAccounts.isNotEmpty ? visibleAccounts.first.id : null;
+        accounts
+            ?.where((AccountEntity account) => !account.isHidden)
+            .toList(growable: false) ??
+        const <AccountEntity>[];
+    final String? defaultAccountId = visibleAccounts.isNotEmpty
+        ? visibleAccounts.first.id
+        : null;
     final bool hasAccounts = defaultAccountId != null;
     final KopimLayout layout = context.kopimLayout;
 
@@ -219,8 +220,9 @@ class _QuickCategoryIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
-    final CategoryColorStyle colorStyle =
-        resolveCategoryColorStyle(category.color);
+    final CategoryColorStyle colorStyle = resolveCategoryColorStyle(
+      category.color,
+    );
     final Color background =
         colorStyle.sampleColor ?? theme.colorScheme.surfaceContainerHigh;
     const Color iconColor = Color(0xFF101010);

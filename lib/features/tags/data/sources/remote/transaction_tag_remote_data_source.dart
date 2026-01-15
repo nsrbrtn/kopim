@@ -21,17 +21,14 @@ class TransactionTagRemoteDataSource {
   }
 
   Future<void> upsert(String userId, TransactionTagEntity link) async {
-    await _doc(userId, link).set(
-      mapLink(link),
-      SetOptions(merge: true),
-    );
+    await _doc(userId, link).set(mapLink(link), SetOptions(merge: true));
   }
 
   Future<void> delete(String userId, TransactionTagEntity link) async {
-    await _doc(userId, link).set(
-      mapLink(link.copyWith(isDeleted: true)),
-      SetOptions(merge: true),
-    );
+    await _doc(
+      userId,
+      link,
+    ).set(mapLink(link.copyWith(isDeleted: true)), SetOptions(merge: true));
   }
 
   void upsertInTransaction(

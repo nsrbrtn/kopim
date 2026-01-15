@@ -1722,8 +1722,8 @@ class _TopCategoriesPageState extends State<_TopCategoriesPage> {
 
     final AnalyticsChartItem? directChild = focusedItem.children
         .firstWhereOrNull((AnalyticsChartItem item) {
-      return isAnalyticsDirectCategoryKey(item.key);
-    });
+          return isAnalyticsDirectCategoryKey(item.key);
+        });
     final double directAmount = directChild?.amount ?? 0;
     final List<AnalyticsChartItem> displayItems = <AnalyticsChartItem>[];
     if (directAmount > 0) {

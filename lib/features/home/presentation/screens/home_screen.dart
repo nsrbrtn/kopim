@@ -67,14 +67,10 @@ import 'package:kopim/features/home/presentation/widgets/sync_status_indicator.d
 
 import '../controllers/home_providers.dart';
 
-final StreamProviderFamily<List<TagEntity>, String> _homeTransactionTagsProvider =
-    StreamProvider.autoDispose.family<List<TagEntity>, String>((
-      Ref ref,
-      String transactionId,
-    ) {
-      return ref
-          .watch(watchTransactionTagsUseCaseProvider)
-          .call(transactionId);
+final StreamProviderFamily<List<TagEntity>, String>
+_homeTransactionTagsProvider = StreamProvider.autoDispose
+    .family<List<TagEntity>, String>((Ref ref, String transactionId) {
+      return ref.watch(watchTransactionTagsUseCaseProvider).call(transactionId);
     });
 
 NavigationTabContent buildHomeTabContent(BuildContext context, WidgetRef ref) {
@@ -613,9 +609,9 @@ class _AccountsListState extends State<_AccountsList> {
   bool _showHiddenAccounts = false;
 
   List<AccountEntity> get _displayedAccounts => <AccountEntity>[
-        ...widget.accounts,
-        if (_showHiddenAccounts) ...widget.hiddenAccounts,
-      ];
+    ...widget.accounts,
+    if (_showHiddenAccounts) ...widget.hiddenAccounts,
+  ];
 
   bool get _hasHiddenAccounts => widget.hiddenAccounts.isNotEmpty;
 
@@ -702,8 +698,7 @@ class _AccountsListState extends State<_AccountsList> {
       return LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {
           final double cardHeight = _AccountCardLayout.estimateHeight(context);
-          final double cardWidth =
-              math.min(360, constraints.maxWidth * 0.6);
+          final double cardWidth = math.min(360, constraints.maxWidth * 0.6);
           final double revealWidth = cardWidth * 0.75;
           final List<AccountEntity> displayedAccounts = _displayedAccounts;
           final int displayedCount = displayedAccounts.length;
@@ -820,22 +815,21 @@ class _AccountsListState extends State<_AccountsList> {
                     return Padding(
                       padding: EdgeInsets.only(right: isLast ? 0 : 8),
                       child: LayoutBuilder(
-                        builder: (
-                          BuildContext context,
-                          BoxConstraints constraints,
-                        ) {
-                          return Align(
-                            alignment: Alignment.centerLeft,
-                            child: SizedBox(
-                              width: constraints.maxWidth * 0.82,
-                              child: _HiddenAccountsToggleCard(
-                                isShowingHiddenAccounts: _showHiddenAccounts,
-                                strings: widget.strings,
-                                onToggle: _toggleHiddenAccountsVisibility,
-                              ),
-                            ),
-                          );
-                        },
+                        builder:
+                            (BuildContext context, BoxConstraints constraints) {
+                              return Align(
+                                alignment: Alignment.centerLeft,
+                                child: SizedBox(
+                                  width: constraints.maxWidth * 0.82,
+                                  child: _HiddenAccountsToggleCard(
+                                    isShowingHiddenAccounts:
+                                        _showHiddenAccounts,
+                                    strings: widget.strings,
+                                    onToggle: _toggleHiddenAccountsVisibility,
+                                  ),
+                                ),
+                              );
+                            },
                       ),
                     );
                   }
@@ -871,9 +865,7 @@ class _AccountsListState extends State<_AccountsList> {
                 padding: const EdgeInsets.only(top: 8),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  children: List<Widget>.generate(totalItems, (
-                    int index,
-                  ) {
+                  children: List<Widget>.generate(totalItems, (int index) {
                     final bool isActive = index == activePage;
                     return AnimatedContainer(
                       duration: const Duration(milliseconds: 250),
@@ -1095,13 +1087,14 @@ class _HiddenAccountsToggleCard extends StatelessWidget {
         ? PhosphorIcons.eyeSlash(PhosphorIconsStyle.regular)
         : PhosphorIcons.eye(PhosphorIconsStyle.regular);
 
-    final TextStyle labelStyle = (theme.textTheme.labelSmall ??
-            const TextStyle(fontSize: 11, height: 16 / 11))
-        .copyWith(
-      color: foreground,
-      fontWeight: FontWeight.w500,
-      letterSpacing: 0.5,
-    );
+    final TextStyle labelStyle =
+        (theme.textTheme.labelSmall ??
+                const TextStyle(fontSize: 11, height: 16 / 11))
+            .copyWith(
+              color: foreground,
+              fontWeight: FontWeight.w500,
+              letterSpacing: 0.5,
+            );
 
     return Material(
       color: Colors.transparent,
@@ -1122,10 +1115,7 @@ class _HiddenAccountsToggleCard extends StatelessWidget {
               children: <Widget>[
                 Icon(icon, size: 24, color: foreground),
                 const SizedBox(height: 10),
-                Text(
-                  label,
-                  style: labelStyle,
-                ),
+                Text(label, style: labelStyle),
               ],
             ),
           ),
@@ -1281,9 +1271,10 @@ class _CreditCardAccountContent extends ConsumerWidget {
             BuildContext context,
             AsyncSnapshot<List<CreditCardEntity>> snapshot,
           ) {
-            final CreditCardEntity? creditCard = snapshot.data?.firstWhereOrNull(
-              (CreditCardEntity item) => item.accountId == account.id,
-            );
+            final CreditCardEntity? creditCard = snapshot.data
+                ?.firstWhereOrNull(
+                  (CreditCardEntity item) => item.accountId == account.id,
+                );
             if (creditCard == null) {
               return fallback;
             }
@@ -1324,7 +1315,10 @@ class _CreditCardAccountContent extends ConsumerWidget {
                   ],
                 ),
                 const SizedBox(height: 8),
-                Text(strings.creditCardAvailableLimitLabel, style: limitLabelStyle),
+                Text(
+                  strings.creditCardAvailableLimitLabel,
+                  style: limitLabelStyle,
+                ),
                 const SizedBox(height: 4),
                 Text(
                   currencyFormat.format(availableLimit),
@@ -2149,10 +2143,10 @@ class _TransactionListItem extends ConsumerWidget {
     final List<TagEntity> tags = isTransfer
         ? const <TagEntity>[]
         : ref
-                .watch(_homeTransactionTagsProvider(transactionId))
-                .asData
-                ?.value ??
-            const <TagEntity>[];
+                  .watch(_homeTransactionTagsProvider(transactionId))
+                  .asData
+                  ?.value ??
+              const <TagEntity>[];
     final String tagLabel = tags.map((TagEntity tag) => tag.name).join(', ');
 
     final ThemeData theme = Theme.of(context);
@@ -2196,8 +2190,9 @@ class _TransactionListItem extends ConsumerWidget {
     final PhosphorIconData? categoryIcon = resolvePhosphorIconData(
       categoryData.icon,
     );
-    final CategoryColorStyle categoryStyle =
-        resolveCategoryColorStyle(categoryData.color);
+    final CategoryColorStyle categoryStyle = resolveCategoryColorStyle(
+      categoryData.color,
+    );
     final Color? categoryColor = categoryStyle.sampleColor;
     final Color avatarIconColor = isTransfer
         ? theme.colorScheme.onPrimaryContainer

@@ -325,18 +325,20 @@ class AddAccountFormController extends _$AddAccountFormController {
     try {
       await _addAccountUseCase(account);
       if (isCreditCard) {
-        await ref.read(addCreditCardUseCaseProvider).call(
-          CreditCardEntity(
-            id: account.id,
-            accountId: account.id,
-            creditLimit: creditLimit!,
-            statementDay: statementDay!,
-            paymentDueDays: paymentDueDays!,
-            interestRateAnnual: interestRateAnnual!,
-            createdAt: now,
-            updatedAt: now,
-          ),
-        );
+        await ref
+            .read(addCreditCardUseCaseProvider)
+            .call(
+              CreditCardEntity(
+                id: account.id,
+                accountId: account.id,
+                creditLimit: creditLimit!,
+                statementDay: statementDay!,
+                paymentDueDays: paymentDueDays!,
+                interestRateAnnual: interestRateAnnual!,
+                createdAt: now,
+                updatedAt: now,
+              ),
+            );
       }
       state = state.copyWith(
         isSaving: false,

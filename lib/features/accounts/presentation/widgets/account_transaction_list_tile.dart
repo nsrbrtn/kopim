@@ -17,14 +17,9 @@ import 'package:kopim/l10n/app_localizations.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 final StreamProviderFamily<List<TagEntity>, String>
-_accountTransactionTagsProvider =
-    StreamProvider.autoDispose.family<List<TagEntity>, String>((
-      Ref ref,
-      String transactionId,
-    ) {
-      return ref
-          .watch(watchTransactionTagsUseCaseProvider)
-          .call(transactionId);
+_accountTransactionTagsProvider = StreamProvider.autoDispose
+    .family<List<TagEntity>, String>((Ref ref, String transactionId) {
+      return ref.watch(watchTransactionTagsUseCaseProvider).call(transactionId);
     });
 
 class AccountTransactionListTile extends ConsumerWidget {
@@ -60,10 +55,10 @@ class AccountTransactionListTile extends ConsumerWidget {
     final List<TagEntity> tags = isTransfer
         ? const <TagEntity>[]
         : ref
-                .watch(_accountTransactionTagsProvider(transaction.id))
-                .asData
-                ?.value ??
-            const <TagEntity>[];
+                  .watch(_accountTransactionTagsProvider(transaction.id))
+                  .asData
+                  ?.value ??
+              const <TagEntity>[];
     final String tagLabel = tags.map((TagEntity tag) => tag.name).join(', ');
     final String categoryName =
         category?.name ?? strings.homeTransactionsUncategorized;
@@ -73,8 +68,9 @@ class AccountTransactionListTile extends ConsumerWidget {
     final PhosphorIconData? categoryIcon = resolvePhosphorIconData(
       category?.icon,
     );
-    final CategoryColorStyle categoryStyle =
-        resolveCategoryColorStyle(category?.color);
+    final CategoryColorStyle categoryStyle = resolveCategoryColorStyle(
+      category?.color,
+    );
     final Color? categoryColor = categoryStyle.sampleColor;
     final Color avatarBackground = isTransfer
         ? theme.colorScheme.primaryContainer

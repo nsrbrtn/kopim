@@ -452,10 +452,7 @@ class TransactionDraftController extends StateNotifier<TransactionDraftState> {
     );
     final LoggerService logger = ref.read(loggerServiceProvider);
     try {
-      await setTagsUseCase(
-        transactionId: transactionId,
-        tagIds: state.tagIds,
-      );
+      await setTagsUseCase(transactionId: transactionId, tagIds: state.tagIds);
     } catch (error) {
       logger.logError('Не удалось сохранить тэги транзакции', error);
     }

@@ -135,49 +135,52 @@ void main() {
     },
   );
 
-  test('continueWithOfflineMode creates local guest session without Firebase', () async {
-    final FakeAuthRepository localAuthRepository = FakeAuthRepository();
-    final MockConnectivity onlineConnectivity = MockConnectivity();
+  test(
+    'continueWithOfflineMode creates local guest session without Firebase',
+    () async {
+      final FakeAuthRepository localAuthRepository = FakeAuthRepository();
+      final MockConnectivity onlineConnectivity = MockConnectivity();
 
-    when(
-      () => onlineConnectivity.checkConnectivity(),
-    ).thenAnswer((_) async => <ConnectivityResult>[ConnectivityResult.wifi]);
-    when(
-      () => onlineConnectivity.onConnectivityChanged,
-    ).thenAnswer((_) => const Stream<List<ConnectivityResult>>.empty());
+      when(
+        () => onlineConnectivity.checkConnectivity(),
+      ).thenAnswer((_) async => <ConnectivityResult>[ConnectivityResult.wifi]);
+      when(
+        () => onlineConnectivity.onConnectivityChanged,
+      ).thenAnswer((_) => const Stream<List<ConnectivityResult>>.empty());
 
-    final ProviderContainer localContainer = ProviderContainer(
-      overrides: <Override>[
-        authRepositoryProvider.overrideWithValue(localAuthRepository),
-        connectivityProvider.overrideWithValue(onlineConnectivity),
-        authSyncServiceProvider.overrideWithValue(authSyncService),
-      ],
-    );
+      final ProviderContainer localContainer = ProviderContainer(
+        overrides: <Override>[
+          authRepositoryProvider.overrideWithValue(localAuthRepository),
+          connectivityProvider.overrideWithValue(onlineConnectivity),
+          authSyncServiceProvider.overrideWithValue(authSyncService),
+        ],
+      );
 
-    addTearDown(() {
-      localAuthRepository.dispose();
-      localContainer.dispose();
-    });
+      addTearDown(() {
+        localAuthRepository.dispose();
+        localContainer.dispose();
+      });
 
-    final AuthController controller = localContainer.read(
-      authControllerProvider.notifier,
-    );
+      final AuthController controller = localContainer.read(
+        authControllerProvider.notifier,
+      );
 
-    final AuthUser? initialUser = await localContainer.read(
-      authControllerProvider.future,
-    );
-    expect(initialUser, isNull);
-    expect(localAuthRepository.signInAnonymouslyCalled, isFalse);
+      final AuthUser? initialUser = await localContainer.read(
+        authControllerProvider.future,
+      );
+      expect(initialUser, isNull);
+      expect(localAuthRepository.signInAnonymouslyCalled, isFalse);
 
-    await controller.continueWithOfflineMode();
+      await controller.continueWithOfflineMode();
 
-    final AuthUser? offlineUser = localContainer
-        .read(authControllerProvider)
-        .value;
-    expect(localAuthRepository.signInAnonymouslyCalled, isFalse);
-    expect(offlineUser, isNotNull);
-    expect(offlineUser!.isGuest, isTrue);
-  });
+      final AuthUser? offlineUser = localContainer
+          .read(authControllerProvider)
+          .value;
+      expect(localAuthRepository.signInAnonymouslyCalled, isFalse);
+      expect(offlineUser, isNotNull);
+      expect(offlineUser!.isGuest, isTrue);
+    },
+  );
 
   test('signIn failure keeps previous state and rethrows', () async {
     authRepository.onSignIn = (SignInRequest request) => Future<AuthUser>.error(

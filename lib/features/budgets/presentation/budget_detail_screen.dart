@@ -455,8 +455,9 @@ class _BudgetTransactionTile extends ConsumerWidget {
     final bool isExpense =
         transaction.type == TransactionType.expense.storageValue;
     final IconData? categoryIcon = resolvePhosphorIconData(category?.icon);
-    final CategoryColorStyle colorStyle =
-        resolveCategoryColorStyle(category?.color);
+    final CategoryColorStyle colorStyle = resolveCategoryColorStyle(
+      category?.color,
+    );
     final Color? categoryColor = colorStyle.sampleColor;
     final Gradient? categoryGradient = colorStyle.backgroundGradient;
     final Color avatarColor =

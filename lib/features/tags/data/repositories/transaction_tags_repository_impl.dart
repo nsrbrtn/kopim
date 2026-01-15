@@ -58,9 +58,7 @@ class TransactionTagsRepositoryImpl implements TransactionTagsRepository {
   Future<List<TransactionTagEntity>> loadAllTransactionTags() async {
     final List<db.TransactionTagRow> rows = await _transactionTagsDao
         .getAllTransactionTags();
-    return rows
-        .map(_transactionTagsDao.mapRowToEntity)
-        .toList(growable: false);
+    return rows.map(_transactionTagsDao.mapRowToEntity).toList(growable: false);
   }
 
   @override
@@ -83,8 +81,8 @@ class TransactionTagsRepositoryImpl implements TransactionTagsRepository {
           .getLinksByTransaction(transactionId);
       final Map<String, db.TransactionTagRow> byTagId =
           <String, db.TransactionTagRow>{
-            for (final db.TransactionTagRow link in existingLinks) link.tagId:
-              link,
+            for (final db.TransactionTagRow link in existingLinks)
+              link.tagId: link,
           };
       final Set<String> activeExisting = existingLinks
           .where((db.TransactionTagRow link) => !link.isDeleted)

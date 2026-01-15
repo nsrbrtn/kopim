@@ -35,16 +35,16 @@ class TagDao {
   }
 
   Future<db.TagRow?> findById(String id) {
-    final SimpleSelectStatement<db.$TagsTable, db.TagRow> query =
-        _db.select(_db.tags)
-          ..where((db.$TagsTable tbl) => tbl.id.equals(id));
+    final SimpleSelectStatement<db.$TagsTable, db.TagRow> query = _db.select(
+      _db.tags,
+    )..where((db.$TagsTable tbl) => tbl.id.equals(id));
     return query.getSingleOrNull();
   }
 
   Future<db.TagRow?> findByName(String name) {
-    final SimpleSelectStatement<db.$TagsTable, db.TagRow> query =
-        _db.select(_db.tags)
-          ..where((db.$TagsTable tbl) => tbl.name.equals(name));
+    final SimpleSelectStatement<db.$TagsTable, db.TagRow> query = _db.select(
+      _db.tags,
+    )..where((db.$TagsTable tbl) => tbl.name.equals(name));
     return query.getSingleOrNull();
   }
 

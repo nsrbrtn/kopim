@@ -123,9 +123,7 @@ void main() {
       categoryRemoteDataSource: CategoryRemoteDataSource(firestore),
       tagRemoteDataSource: TagRemoteDataSource(firestore),
       transactionRemoteDataSource: TransactionRemoteDataSource(firestore),
-      transactionTagRemoteDataSource: TransactionTagRemoteDataSource(
-        firestore,
-      ),
+      transactionTagRemoteDataSource: TransactionTagRemoteDataSource(firestore),
       creditCardRemoteDataSource: CreditCardRemoteDataSource(firestore),
       creditRemoteDataSource: CreditRemoteDataSource(firestore),
       debtRemoteDataSource: DebtRemoteDataSource(firestore),

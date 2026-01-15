@@ -98,8 +98,8 @@ class Transactions extends Table {
 
 @DataClassName('TransactionTagRow')
 class TransactionTags extends Table {
-  TextColumn get transactionId => text()
-      .references(Transactions, #id, onDelete: KeyAction.cascade)();
+  TextColumn get transactionId =>
+      text().references(Transactions, #id, onDelete: KeyAction.cascade)();
   TextColumn get tagId =>
       text().references(Tags, #id, onDelete: KeyAction.cascade)();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
@@ -108,8 +108,7 @@ class TransactionTags extends Table {
       boolean().withDefault(const Constant<bool>(false))();
 
   @override
-  Set<Column<Object>> get primaryKey =>
-      <Column<Object>>{transactionId, tagId};
+  Set<Column<Object>> get primaryKey => <Column<Object>>{transactionId, tagId};
 }
 
 @DataClassName('OutboxEntryRow')

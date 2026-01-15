@@ -30,8 +30,8 @@ class CreditCardRepositoryImpl implements CreditCardRepository {
 
   @override
   Future<List<CreditCardEntity>> getCreditCards() async {
-    final List<db.CreditCardRow> rows =
-        await _creditCardDao.getActiveCreditCards();
+    final List<db.CreditCardRow> rows = await _creditCardDao
+        .getActiveCreditCards();
     return rows.map(_creditCardDao.mapRowToEntity).toList(growable: false);
   }
 

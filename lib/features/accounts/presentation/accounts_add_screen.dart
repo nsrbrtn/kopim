@@ -137,8 +137,8 @@ class _AddAccountScreenState extends ConsumerState<AddAccountScreen> {
       }
       if (previous?.paymentDueDaysInput != next.paymentDueDaysInput &&
           _paymentDueDaysController.text != next.paymentDueDaysInput) {
-        _paymentDueDaysController.value =
-            _paymentDueDaysController.value.copyWith(
+        _paymentDueDaysController.value = _paymentDueDaysController.value
+            .copyWith(
               text: next.paymentDueDaysInput,
               selection: TextSelection.collapsed(
                 offset: next.paymentDueDaysInput.length,
@@ -185,8 +185,7 @@ class _AddAccountScreenState extends ConsumerState<AddAccountScreen> {
     final bool isCreditCard = state.resolvedType == 'credit_card';
     final bool showNameField =
         state.resolvedType != null && state.currency.trim().isNotEmpty;
-    final bool showDetails =
-        showNameField && state.name.trim().isNotEmpty;
+    final bool showDetails = showNameField && state.name.trim().isNotEmpty;
     final List<String> filteredCurrencies = currencyOptions
         .where(
           (String code) =>
@@ -353,7 +352,8 @@ class _AddAccountScreenState extends ConsumerState<AddAccountScreen> {
                           onInterestRateChanged: controller.updateInterestRate,
                           creditLimitError: state.creditLimitError != null,
                           statementDayError: state.statementDayError != null,
-                          paymentDueDaysError: state.paymentDueDaysError != null,
+                          paymentDueDaysError:
+                              state.paymentDueDaysError != null,
                           interestRateError: state.interestRateError != null,
                         ),
                       ],
@@ -433,7 +433,6 @@ class _AddAccountScreenState extends ConsumerState<AddAccountScreen> {
       ),
     );
   }
-
 }
 
 class _NameField extends StatelessWidget {
@@ -718,8 +717,9 @@ class _CreditCardSettingsSection extends StatelessWidget {
             placeholder: strings.addAccountCreditCardLimitPlaceholder,
             controller: creditLimitController,
             isSaving: isSaving,
-            errorText:
-                creditLimitError ? strings.addAccountCreditCardLimitError : null,
+            errorText: creditLimitError
+                ? strings.addAccountCreditCardLimitError
+                : null,
             onChanged: onCreditLimitChanged,
             layout: layout,
             colorScheme: colorScheme,
@@ -804,9 +804,9 @@ class _CreditCardField extends StatelessWidget {
           children: <Widget>[
             Text(
               label,
-              style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                color: colorScheme.onSurface,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.labelLarge?.copyWith(color: colorScheme.onSurface),
             ),
             if (tooltipText != null) ...<Widget>[
               const SizedBox(width: 6),

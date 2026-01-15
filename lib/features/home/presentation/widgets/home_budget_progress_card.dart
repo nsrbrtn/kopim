@@ -466,8 +466,9 @@ class _BudgetCategoryChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
     final Category category = breakdown.category;
-    final CategoryColorStyle colorStyle =
-        resolveCategoryColorStyle(category.color);
+    final CategoryColorStyle colorStyle = resolveCategoryColorStyle(
+      category.color,
+    );
     final Color? baseColor = colorStyle.sampleColor;
     final Color backgroundColor =
         baseColor ?? theme.colorScheme.surfaceContainerHighest;

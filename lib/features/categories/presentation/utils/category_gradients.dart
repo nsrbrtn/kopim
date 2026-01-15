@@ -79,8 +79,7 @@ const List<CategoryGradient> kCategoryGradients = <CategoryGradient>[
   ),
 ];
 
-String encodeCategoryGradientId(String id) =>
-    '$kCategoryGradientPrefix$id';
+String encodeCategoryGradientId(String id) => '$kCategoryGradientPrefix$id';
 
 CategoryGradient? resolveCategoryGradient(String? value) {
   if (value == null || value.trim().isEmpty) {

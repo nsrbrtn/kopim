@@ -47,8 +47,7 @@ import 'package:kopim/l10n/app_localizations.dart';
 
 const String kUpcomingPaymentsPeriodicTask = 'upcoming_apply_rules';
 const String kUpcomingPaymentsOneOffTask = 'upcoming_apply_rules_once';
-const String _workCleanupPrefsKey =
-    'upcoming_payments.workmanager_cleanup_v1';
+const String _workCleanupPrefsKey = 'upcoming_payments.workmanager_cleanup_v1';
 
 @pragma('vm:entry-point')
 Future<bool> runUpcomingPaymentsBackgroundTask(

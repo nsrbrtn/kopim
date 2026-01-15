@@ -1584,11 +1584,11 @@ class _CategoryDropdownFieldState
               onPressed: tagsAsync.isLoading
                   ? null
                   : () => _openTagPicker(
-                        context: context,
-                        strings: strings,
-                        tags: tags,
-                        selectedIds: selectedTagIds,
-                      ),
+                      context: context,
+                      strings: strings,
+                      tags: tags,
+                      selectedIds: selectedTagIds,
+                    ),
               style: TextButton.styleFrom(
                 padding: EdgeInsets.zero,
                 minimumSize: const Size(0, 20),
@@ -1633,8 +1633,9 @@ class _CategoryDropdownFieldState
   Widget _buildCategoryChip(Category category, String? selectedCategoryId) {
     final bool selected = category.id == selectedCategoryId;
     final IconData? iconData = resolvePhosphorIconData(category.icon);
-    final CategoryColorStyle colorStyle =
-        resolveCategoryColorStyle(category.color);
+    final CategoryColorStyle colorStyle = resolveCategoryColorStyle(
+      category.color,
+    );
     final Color? categoryColor = colorStyle.sampleColor;
     final ThemeData theme = Theme.of(context);
     return CategoryChip(
@@ -1782,10 +1783,7 @@ class _TagPickerSheetState extends State<_TagPickerSheet> {
             )
           else
             SizedBox(
-              height: math.min(
-                MediaQuery.sizeOf(context).height * 0.4,
-                320,
-              ),
+              height: math.min(MediaQuery.sizeOf(context).height * 0.4, 320),
               child: ListView.builder(
                 itemCount: filtered.length,
                 itemBuilder: (BuildContext context, int index) {

@@ -7,8 +7,5 @@ abstract class TransactionTagsRepository {
   Future<List<String>> getTagIdsForTransaction(String transactionId);
   Future<List<TransactionTagEntity>> loadAllTransactionTags();
   Future<void> upsertAll(List<TransactionTagEntity> links);
-  Future<void> setTransactionTags(
-    String transactionId,
-    List<String> tagIds,
-  );
+  Future<void> setTransactionTags(String transactionId, List<String> tagIds);
 }

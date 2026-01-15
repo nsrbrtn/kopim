@@ -23,11 +23,13 @@ class TagRepositoryImpl implements TagRepository {
   @override
   Stream<List<TagEntity>> watchTags({bool includeArchived = false}) {
     final Stream<List<db.TagRow>> stream = includeArchived
-        ? (_database.select(_database.tags)
-          ..orderBy(<OrderingTerm Function(db.$TagsTable tbl)>[
-            (db.$TagsTable tbl) =>
-                OrderingTerm(expression: tbl.name, mode: OrderingMode.asc),
-          ])).watch()
+        ? (_database.select(
+                _database.tags,
+              )..orderBy(<OrderingTerm Function(db.$TagsTable tbl)>[
+                (db.$TagsTable tbl) =>
+                    OrderingTerm(expression: tbl.name, mode: OrderingMode.asc),
+              ]))
+              .watch()
         : _tagDao.watchActiveTags();
     return stream.map(
       (List<db.TagRow> rows) =>
@@ -38,12 +40,13 @@ class TagRepositoryImpl implements TagRepository {
   @override
   Future<List<TagEntity>> loadTags({bool includeArchived = false}) async {
     final List<db.TagRow> rows = includeArchived
-        ? await (_database.select(_database.tags)
-              ..orderBy(<OrderingTerm Function(db.$TagsTable tbl)>[
+        ? await (_database.select(
+                _database.tags,
+              )..orderBy(<OrderingTerm Function(db.$TagsTable tbl)>[
                 (db.$TagsTable tbl) =>
                     OrderingTerm(expression: tbl.name, mode: OrderingMode.asc),
               ]))
-            .get()
+              .get()
         : await _tagDao.getActiveTags();
     return rows.map(_tagDao.mapRowToEntity).toList(growable: false);
   }
@@ -82,9 +85,9 @@ class TagRepositoryImpl implements TagRepository {
       await _tagDao.markDeleted(id, now);
       final db.TagRow? row = await _tagDao.findById(id);
       if (row == null) return;
-      final TagEntity deleted = _tagDao.mapRowToEntity(
-        row,
-      ).copyWith(isDeleted: true, updatedAt: now);
+      final TagEntity deleted = _tagDao
+          .mapRowToEntity(row)
+          .copyWith(isDeleted: true, updatedAt: now);
       await _outboxDao.enqueue(
         entityType: _entityType,
         entityId: id,

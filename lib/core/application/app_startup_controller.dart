@@ -117,7 +117,6 @@ class AppStartupController extends _$AppStartupController {
     }
   }
 
-
   Future<void> _activateUpcomingNotificationsSync() async {
     if (!ref.mounted) {
       return;

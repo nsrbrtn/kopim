@@ -166,7 +166,8 @@ class AuthController extends _$AuthController {
         .read(authSyncServiceProvider)
         .synchronizeOnLogin(user: user, previousUser: previousUser);
     await ref.read(recomputeUserProgressUseCaseProvider)();
-    if (supportsUpcomingPaymentsBackgroundWork() && !_upcomingPaymentsWorkScheduled) {
+    if (supportsUpcomingPaymentsBackgroundWork() &&
+        !_upcomingPaymentsWorkScheduled) {
       try {
         await ref
             .read(upcomingPaymentsWorkSchedulerProvider)

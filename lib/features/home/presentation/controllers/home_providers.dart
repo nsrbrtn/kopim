@@ -19,10 +19,7 @@ const int kDefaultRecentTransactionsLimit = 30;
 
 @riverpod
 Stream<List<AccountEntity>> homeAccounts(Ref ref) {
-  return ref
-      .watch(watchAccountsUseCaseProvider)
-      .call()
-      .map(_sortAccounts);
+  return ref.watch(watchAccountsUseCaseProvider).call().map(_sortAccounts);
 }
 
 @riverpod

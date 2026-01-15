@@ -142,8 +142,8 @@ class CreditCard extends ConsumerWidget {
                                 ),
                               ),
                               CircleAvatar(
-                                backgroundColor: accountColor
-                                    ?.withValues(alpha: 0.1) ??
+                                backgroundColor:
+                                    accountColor?.withValues(alpha: 0.1) ??
                                     theme.colorScheme.surfaceContainerHighest,
                                 child: Icon(
                                   iconToShow ?? Icons.account_balance_outlined,

@@ -145,10 +145,7 @@ class TagFormController extends _$TagFormController {
         errorMessage: null,
       );
     } catch (error) {
-      state = state.copyWith(
-        isSaving: false,
-        errorMessage: error.toString(),
-      );
+      state = state.copyWith(isSaving: false, errorMessage: error.toString());
     }
   }
 }

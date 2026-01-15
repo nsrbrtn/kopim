@@ -22,9 +22,7 @@ final StreamProviderFamily<List<TagEntity>, String> _transactionTagsProvider =
       Ref ref,
       String transactionId,
     ) {
-      return ref
-          .watch(watchTransactionTagsUseCaseProvider)
-          .call(transactionId);
+      return ref.watch(watchTransactionTagsUseCaseProvider).call(transactionId);
     });
 
 class TransactionListTile extends ConsumerWidget {
@@ -68,7 +66,7 @@ class TransactionListTile extends ConsumerWidget {
     final List<TagEntity> tags = isTransfer
         ? const <TagEntity>[]
         : ref.watch(_transactionTagsProvider(transaction.id)).asData?.value ??
-            const <TagEntity>[];
+              const <TagEntity>[];
     final String tagLabel = tags.map((TagEntity tag) => tag.name).join(', ');
     final String categoryName =
         category?.name ?? strings.homeTransactionsUncategorized;
@@ -78,8 +76,9 @@ class TransactionListTile extends ConsumerWidget {
     final PhosphorIconData? categoryIcon = resolvePhosphorIconData(
       category?.icon,
     );
-    final CategoryColorStyle categoryStyle =
-        resolveCategoryColorStyle(category?.color);
+    final CategoryColorStyle categoryStyle = resolveCategoryColorStyle(
+      category?.color,
+    );
     final Color? categoryColor = categoryStyle.sampleColor;
     final Color avatarBackground = isTransfer
         ? theme.colorScheme.primaryContainer

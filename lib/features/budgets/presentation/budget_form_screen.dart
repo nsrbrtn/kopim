@@ -482,10 +482,12 @@ class _CategoryAllocationsEditor extends StatelessWidget {
               .map((Category category) {
                 final TextEditingController controller =
                     controllers[category.id]!;
-                final CategoryColorStyle colorStyle =
-                    resolveCategoryColorStyle(category.color);
+                final CategoryColorStyle colorStyle = resolveCategoryColorStyle(
+                  category.color,
+                );
                 final Color? background = colorStyle.sampleColor;
-                final Gradient? categoryGradient = colorStyle.backgroundGradient;
+                final Gradient? categoryGradient =
+                    colorStyle.backgroundGradient;
                 final Color foreground = background != null
                     ? (ThemeData.estimateBrightnessForColor(background) ==
                               Brightness.dark
@@ -508,7 +510,7 @@ class _CategoryAllocationsEditor extends StatelessWidget {
                           gradient: categoryGradient,
                           color: categoryGradient == null
                               ? (background ??
-                                  theme.colorScheme.surfaceContainerHighest)
+                                    theme.colorScheme.surfaceContainerHighest)
                               : null,
                         ),
                         alignment: Alignment.center,

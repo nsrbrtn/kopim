@@ -35,18 +35,10 @@ class ManageTagsTab extends ConsumerWidget {
             final TagEntity tag = tags[index];
             return _TagTile(
               tag: tag,
-              onEdit: () => showTagEditor(
-                context,
-                ref,
-                strings: strings,
-                tag: tag,
-              ),
-              onDelete: () => _deleteTagFlow(
-                context,
-                ref,
-                strings: strings,
-                tag: tag,
-              ),
+              onEdit: () =>
+                  showTagEditor(context, ref, strings: strings, tag: tag),
+              onDelete: () =>
+                  _deleteTagFlow(context, ref, strings: strings, tag: tag),
             );
           },
           separatorBuilder: (BuildContext context, int index) =>
@@ -121,9 +113,7 @@ Future<bool> _deleteTagFlow(
     await ref.read(archiveTagUseCaseProvider)(tag.id);
     messenger
       ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(content: Text(strings.manageTagsDeleteSuccess)),
-      );
+      ..showSnackBar(SnackBar(content: Text(strings.manageTagsDeleteSuccess)));
     return true;
   } catch (error) {
     messenger

@@ -15,17 +15,17 @@ class TagRemoteDataSource {
   }
 
   Future<void> upsert(String userId, TagEntity tag) async {
-    await _doc(userId, tag.id).set(
-      mapTag(tag.copyWith(isDeleted: false)),
-      SetOptions(merge: true),
-    );
+    await _doc(
+      userId,
+      tag.id,
+    ).set(mapTag(tag.copyWith(isDeleted: false)), SetOptions(merge: true));
   }
 
   Future<void> delete(String userId, TagEntity tag) async {
-    await _doc(userId, tag.id).set(
-      mapTag(tag.copyWith(isDeleted: true)),
-      SetOptions(merge: true),
-    );
+    await _doc(
+      userId,
+      tag.id,
+    ).set(mapTag(tag.copyWith(isDeleted: true)), SetOptions(merge: true));
   }
 
   void upsertInTransaction(

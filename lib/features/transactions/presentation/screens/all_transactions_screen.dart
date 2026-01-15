@@ -22,14 +22,9 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
 final StreamProviderFamily<List<TagEntity>, String>
-_allTransactionsTagsProvider =
-    StreamProvider.autoDispose.family<List<TagEntity>, String>((
-      Ref ref,
-      String transactionId,
-    ) {
-      return ref
-          .watch(watchTransactionTagsUseCaseProvider)
-          .call(transactionId);
+_allTransactionsTagsProvider = StreamProvider.autoDispose
+    .family<List<TagEntity>, String>((Ref ref, String transactionId) {
+      return ref.watch(watchTransactionTagsUseCaseProvider).call(transactionId);
     });
 
 class AllTransactionsScreen extends ConsumerWidget {
@@ -258,7 +253,7 @@ class _FiltersPanel extends ConsumerWidget {
                         gradient: categoryGradient,
                         color: categoryGradient == null
                             ? (categoryColor ??
-                                theme.colorScheme.surfaceContainerHighest)
+                                  theme.colorScheme.surfaceContainerHighest)
                             : null,
                       ),
                       alignment: Alignment.center,
@@ -415,10 +410,10 @@ class _TransactionListTile extends ConsumerWidget {
     final List<TagEntity> tags = isTransfer
         ? const <TagEntity>[]
         : ref
-                .watch(_allTransactionsTagsProvider(transaction.id))
-                .asData
-                ?.value ??
-            const <TagEntity>[];
+                  .watch(_allTransactionsTagsProvider(transaction.id))
+                  .asData
+                  ?.value ??
+              const <TagEntity>[];
     final String tagLabel = tags.map((TagEntity tag) => tag.name).join(', ');
     final bool isExpense =
         transaction.type == TransactionType.expense.storageValue;
@@ -426,8 +421,9 @@ class _TransactionListTile extends ConsumerWidget {
         ? theme.colorScheme.onSurface
         : (isExpense ? theme.colorScheme.error : theme.colorScheme.primary);
     final PhosphorIconData? iconData = resolvePhosphorIconData(category?.icon);
-    final CategoryColorStyle colorStyle =
-        resolveCategoryColorStyle(category?.color);
+    final CategoryColorStyle colorStyle = resolveCategoryColorStyle(
+      category?.color,
+    );
     final Color? categoryColor = colorStyle.sampleColor;
     final Gradient? categoryGradient = colorStyle.backgroundGradient;
     final Color avatarForeground = isTransfer
@@ -492,9 +488,9 @@ class _TransactionListTile extends ConsumerWidget {
                             ? theme.colorScheme.primaryContainer
                             : (categoryGradient == null
                                   ? (categoryColor ??
-                                      theme
-                                          .colorScheme
-                                          .surfaceContainerHighest)
+                                        theme
+                                            .colorScheme
+                                            .surfaceContainerHighest)
                                   : null),
                       ),
                       alignment: Alignment.center,

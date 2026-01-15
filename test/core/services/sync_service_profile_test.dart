@@ -88,9 +88,7 @@ void main() {
       accountRemoteDataSource: AccountRemoteDataSource(firestore),
       categoryRemoteDataSource: CategoryRemoteDataSource(firestore),
       tagRemoteDataSource: TagRemoteDataSource(firestore),
-      transactionTagRemoteDataSource: TransactionTagRemoteDataSource(
-        firestore,
-      ),
+      transactionTagRemoteDataSource: TransactionTagRemoteDataSource(firestore),
       transactionRemoteDataSource: TransactionRemoteDataSource(firestore),
       debtRemoteDataSource: DebtRemoteDataSource(firestore),
       budgetRemoteDataSource: BudgetRemoteDataSource(firestore),

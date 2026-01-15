@@ -486,10 +486,11 @@ final rp.Provider<CreditRemoteDataSource> creditRemoteDataSourceProvider =
     });
 
 final rp.Provider<CreditCardRemoteDataSource>
-creditCardRemoteDataSourceProvider =
-    rp.Provider<CreditCardRemoteDataSource>((rp.Ref ref) {
-      return CreditCardRemoteDataSource(ref.watch(firestoreProvider));
-    });
+creditCardRemoteDataSourceProvider = rp.Provider<CreditCardRemoteDataSource>((
+  rp.Ref ref,
+) {
+  return CreditCardRemoteDataSource(ref.watch(firestoreProvider));
+});
 
 final rp.Provider<DebtRemoteDataSource> debtRemoteDataSourceProvider =
     rp.Provider<DebtRemoteDataSource>((rp.Ref ref) {
@@ -639,12 +640,11 @@ CreditRepository creditRepository(Ref ref) => CreditRepositoryImpl(
 );
 
 @riverpod
-CreditCardRepository creditCardRepository(Ref ref) =>
-    CreditCardRepositoryImpl(
-      database: ref.watch(appDatabaseProvider),
-      creditCardDao: ref.watch(creditCardDaoProvider),
-      outboxDao: ref.watch(outboxDaoProvider),
-    );
+CreditCardRepository creditCardRepository(Ref ref) => CreditCardRepositoryImpl(
+  database: ref.watch(appDatabaseProvider),
+  creditCardDao: ref.watch(creditCardDaoProvider),
+  outboxDao: ref.watch(outboxDaoProvider),
+);
 
 final rp.Provider<DebtRepository> debtRepositoryProvider =
     rp.Provider<DebtRepository>((rp.Ref ref) {
