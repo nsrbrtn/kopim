@@ -1200,7 +1200,6 @@ void _showAnalyticsInfo(BuildContext context) {
 
 class _TopCategoriesPager extends StatefulWidget {
   const _TopCategoriesPager({
-    super.key,
     required this.expenseBreakdowns,
     required this.incomeBreakdowns,
     required this.categoriesById,

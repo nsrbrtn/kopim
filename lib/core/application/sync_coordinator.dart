@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:kopim/core/application/firebase_availability.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/core/services/sync_service.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
@@ -14,6 +15,14 @@ import 'package:kopim/features/profile/presentation/controllers/auth_controller.
 /// - останавливает SyncService при logout (через autoDispose провайдера).
 final Provider<void> syncCoordinatorProvider = Provider<void>((Ref ref) {
   if (kIsWeb) {
+    return;
+  }
+
+  // If Firebase is unavailable, we can't sync.
+  final FirebaseAvailabilityState availability = ref.watch(
+    firebaseAvailabilityProvider,
+  );
+  if (availability.isAvailable == false) {
     return;
   }
 

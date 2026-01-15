@@ -1087,7 +1087,7 @@ class _HiddenAccountsToggleCard extends StatelessWidget {
     final BorderRadius borderRadius = BorderRadius.circular(cardRadius);
     final Color background = theme.colorScheme.surfaceContainerHigh;
     final Color foreground = theme.colorScheme.onSurface;
-    final Color borderColor = Colors.black;
+    const Color borderColor = Colors.black;
     final String label = isShowingHiddenAccounts
         ? strings.homeHiddenAccountsToggleHideLabel
         : strings.homeHiddenAccountsToggleShowLabel;

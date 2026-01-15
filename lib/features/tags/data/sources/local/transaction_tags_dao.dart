@@ -32,12 +32,13 @@ class TransactionTagsDao {
   }
 
   Stream<List<db.TagRow>> watchTagsForTransaction(String transactionId) {
-    final List<Join> joins = <Join>[
-      innerJoin(
-        _db.transactionTags,
-        _db.transactionTags.tagId.equalsExp(_db.tags.id),
-      ),
-    ];
+    final List<Join<HasResultSet, dynamic>> joins =
+        <Join<HasResultSet, dynamic>>[
+          innerJoin(
+            _db.transactionTags,
+            _db.transactionTags.tagId.equalsExp(_db.tags.id),
+          ),
+        ];
     final List<OrderingTerm> orderBy = <OrderingTerm>[
       OrderingTerm(expression: _db.tags.name),
     ];
@@ -54,12 +55,13 @@ class TransactionTagsDao {
   }
 
   Future<List<db.TagRow>> getTagsForTransaction(String transactionId) async {
-    final List<Join> joins = <Join>[
-      innerJoin(
-        _db.transactionTags,
-        _db.transactionTags.tagId.equalsExp(_db.tags.id),
-      ),
-    ];
+    final List<Join<HasResultSet, dynamic>> joins =
+        <Join<HasResultSet, dynamic>>[
+          innerJoin(
+            _db.transactionTags,
+            _db.transactionTags.tagId.equalsExp(_db.tags.id),
+          ),
+        ];
     final List<OrderingTerm> orderBy = <OrderingTerm>[
       OrderingTerm(expression: _db.tags.name),
     ];

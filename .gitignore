@@ -134,7 +134,8 @@ macos/Flutter/ephemeral/
 google-services.json
 **/ios/Runner/GoogleService-Info.plist
 firebase.json  # Если с secrets
-
+.firebase
+.firebaserc
 # Sentry related
 sentry.properties
 

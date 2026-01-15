@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/features/upcoming_payments/domain/entities/payment_reminder.dart';
 import 'package:kopim/features/upcoming_payments/domain/entities/upcoming_payment.dart';
 import 'package:kopim/features/upcoming_payments/domain/models/upcoming_item.dart';
+import 'package:kopim/features/upcoming_payments/domain/repositories/upcoming_payments_repository.dart';
 import 'package:kopim/features/upcoming_payments/domain/services/id_service.dart';
 import 'package:kopim/features/upcoming_payments/domain/services/schedule_policy.dart';
 import 'package:kopim/features/upcoming_payments/domain/services/time_service.dart';
@@ -127,7 +130,36 @@ Stream<List<UpcomingItem>> homeUpcomingItems(Ref ref, {int limit = 6}) {
 
 @riverpod
 Stream<List<UpcomingPayment>> watchUpcomingPayments(Ref ref) {
-  return ref.watch(upcomingPaymentsRepositoryProvider).watchAll();
+  final UpcomingPaymentsRepository repo = ref.watch(
+    upcomingPaymentsRepositoryProvider,
+  );
+  final RecalcUpcomingPaymentUC recalc = ref.watch(
+    recalcUpcomingPaymentUCProvider,
+  );
+  final TimeService timeService = ref.watch(timeServiceProvider);
+  bool isRecalcRunning = false;
+
+  Future<void> recalcIfOverdue(List<UpcomingPayment> payments) async {
+    final int nowMs = timeService.nowMs();
+    for (final UpcomingPayment payment in payments) {
+      final int? nextRunAtMs = payment.nextRunAtMs;
+      if (nextRunAtMs == null || nextRunAtMs <= nowMs) {
+        await recalc(RecalcUpcomingPaymentRequest.entity(payment));
+      }
+    }
+  }
+
+  return repo.watchAll().map((List<UpcomingPayment> payments) {
+    if (!isRecalcRunning) {
+      isRecalcRunning = true;
+      unawaited(
+        recalcIfOverdue(payments).whenComplete(() {
+          isRecalcRunning = false;
+        }),
+      );
+    }
+    return payments;
+  });
 }
 
 @riverpod

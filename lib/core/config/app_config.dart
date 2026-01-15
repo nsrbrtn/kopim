@@ -187,10 +187,7 @@ final Provider<ThemeData> appDarkThemeProvider = Provider<ThemeData>((Ref ref) {
 
 Locale _resolveSystemFallbackLocale() {
   const Locale fallback = Locale('ru');
-  final WidgetsBinding? binding = WidgetsBinding.instance;
-  if (binding == null) {
-    return fallback;
-  }
+  final WidgetsBinding binding = WidgetsBinding.instance;
   final Locale platformLocale = binding.platformDispatcher.locale;
   if (platformLocale.languageCode.isEmpty) {
     return fallback;

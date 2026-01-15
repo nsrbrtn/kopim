@@ -209,7 +209,7 @@ Future<void> firebaseInitialization(Ref ref) async {
   final FirebaseOptions options;
   try {
     options = DefaultFirebaseOptions.currentPlatform;
-  } catch (error, stackTrace) {
+  } catch (error, _) {
     if (isWebIosSafari) {
       Future<void>.microtask(
         () => availability.setUnavailable(
@@ -220,44 +220,65 @@ Future<void> firebaseInitialization(Ref ref) async {
       return;
     }
     logger.logError('Сбой подготовки Firebase настроек', error);
-    Error.throwWithStackTrace(error, stackTrace);
+    // Don't throw, just set unavailable so app can proceed offline
+    Future<void>.microtask(
+      () => availability.setUnavailable(
+        'Ошибка конфигурации облачных сервисов. Приложение работает локально.',
+      ),
+    );
+    return;
   }
 
   try {
-    await Firebase.initializeApp(options: options);
+    await Firebase.initializeApp(options: options).timeout(
+      const Duration(seconds: 15),
+      onTimeout: () {
+        throw TimeoutException('Firebase init timed out');
+      },
+    );
     Future<void>.microtask(availability.setAvailable);
-  } on FirebaseException catch (error, stackTrace) {
+  } on FirebaseException catch (error) {
     if (error.code == 'duplicate-app') {
       Future<void>.microtask(availability.setAvailable);
       return;
     }
-    if (isWebIosSafari) {
-      Future<void>.microtask(
-        () => availability.setUnavailable(
-          'Облачные функции недоступны в этом браузере. Вход и синхронизация выключены, данные сохраняются локально. Есть риск потери данных — сделайте выгрузку в настройках приложения.',
-        ),
-      );
-      logger.logError(
-        'Сбой инициализации Firebase (web): ${error.code}',
-        error,
-      );
-      return;
-    }
-    logger.logError('Сбой инициализации Firebase: ${error.code}', error);
-    Error.throwWithStackTrace(error, stackTrace);
-  } catch (error, stackTrace) {
-    if (isWebIosSafari) {
-      Future<void>.microtask(
-        () => availability.setUnavailable(
-          'Облачные функции недоступны в этом браузере. Вход и синхронизация выключены, данные сохраняются локально. Есть риск потери данных — сделайте выгрузку в настройках приложения.',
-        ),
-      );
-      logger.logError('Неожиданная ошибка инициализации Firebase (web)', error);
-      return;
-    }
-    logger.logError('Неожиданная ошибка инициализации Firebase', error);
-    Error.throwWithStackTrace(error, stackTrace);
+    _handleInitError(
+      error: error,
+      availability: availability,
+      logger: logger,
+      isWebIosSafari: isWebIosSafari,
+    );
+  } catch (error) {
+    _handleInitError(
+      error: error,
+      availability: availability,
+      logger: logger,
+      isWebIosSafari: isWebIosSafari,
+    );
   }
+}
+
+void _handleInitError({
+  required Object error,
+  required FirebaseAvailabilityNotifier availability,
+  required LoggerService logger,
+  required bool isWebIosSafari,
+}) {
+  final String message;
+  if (isWebIosSafari) {
+    message =
+        'Облачные функции недоступны в этом браузере. Вход и синхронизация выключены, данные сохраняются локально. Есть риск потери данных — сделайте выгрузку в настройках приложения.';
+    logger.logError('Сбой инициализации Firebase (web)', error);
+  } else if (error is TimeoutException) {
+    message =
+        'Превышено время ожидания подключения к облаку. Приложение работает локально.';
+    logger.logError('Таймаут инициализации Firebase', error);
+  } else {
+    message = 'Сбой подключения к облаку. Приложение работает локально.';
+    logger.logError('Ошибка инициализации Firebase', error);
+  }
+
+  Future<void>.microtask(() => availability.setUnavailable(message));
 }
 
 /// На iOS Web доступ к Firebase.apps может падать из-за JS interop, поэтому
@@ -1070,7 +1091,8 @@ AuthRepository authRepository(Ref ref) {
   final FirebaseAvailabilityState availability = ref.watch(
     firebaseAvailabilityProvider,
   );
-  if (kIsWeb && availability.isAvailable == false) {
+  // If explicitly unavailable (on any platform), use offline repo
+  if (availability.isAvailable == false) {
     final OfflineAuthRepository repository = OfflineAuthRepository(
       loggerService: ref.watch(loggerServiceProvider),
     );
