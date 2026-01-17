@@ -655,6 +655,15 @@ class AiAssistantService {
       );
     }
     if (response.statusCode < 200 || response.statusCode >= 300) {
+      final Map<String, dynamic>? errorBody =
+          _tryDecodeJsonSafe(response.body);
+      final String? provider = _extractProvider(errorBody);
+      final String safeBody = _truncateForLog(response.body);
+      _loggerService.logError(
+        'OpenRouter ошибка: статус ${response.statusCode}, '
+        'модель ${config.model}, провайдер ${provider ?? 'неизвестно'}, '
+        'x-request-id=$requestId, тело: $safeBody',
+      );
       throw _mapErrorResponse(
         response.statusCode,
         _tryDecodeJson(response.body),
@@ -685,6 +694,53 @@ class AiAssistantService {
         'OpenRouter вернул некорректный JSON.',
         cause: error,
       );
+    }
+    return null;
+  }
+
+  Map<String, dynamic>? _tryDecodeJsonSafe(String body) {
+    if (body.isEmpty) {
+      return null;
+    }
+    try {
+      final Object decoded = jsonDecode(body);
+      if (decoded is Map<String, dynamic>) {
+        return decoded;
+      }
+    } catch (_) {
+      return null;
+    }
+    return null;
+  }
+
+  String _truncateForLog(String value, {int max = 2000}) {
+    if (value.length <= max) {
+      return value;
+    }
+    return '${value.substring(0, max)}...';
+  }
+
+  String? _extractProvider(Map<String, dynamic>? body) {
+    if (body == null) {
+      return null;
+    }
+    final Object? error = body['error'];
+    if (error is Map<String, dynamic>) {
+      final Object? provider = error['provider'];
+      if (provider is String && provider.isNotEmpty) {
+        return provider;
+      }
+    }
+    final Object? provider = body['provider'];
+    if (provider is String && provider.isNotEmpty) {
+      return provider;
+    }
+    final Object? meta = body['metadata'];
+    if (meta is Map<String, dynamic>) {
+      final Object? provider = meta['provider'];
+      if (provider is String && provider.isNotEmpty) {
+        return provider;
+      }
     }
     return null;
   }
