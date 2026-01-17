@@ -279,6 +279,7 @@ class _UpcomingListRow extends ConsumerWidget {
         }
         messenger.showSnackBar(
           SnackBar(
+            duration: const Duration(seconds: 3),
             content: Text(strings.upcomingPaymentsReminderMarkPaidSuccess),
           ),
         );
@@ -288,6 +289,7 @@ class _UpcomingListRow extends ConsumerWidget {
         }
         messenger.showSnackBar(
           SnackBar(
+            duration: const Duration(seconds: 3),
             content: Text(
               strings.upcomingPaymentsReminderMarkPaidError(error.toString()),
             ),

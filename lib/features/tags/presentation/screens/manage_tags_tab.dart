@@ -74,7 +74,9 @@ Future<void> showTagEditor(
         : strings.manageTagsSuccessUpdate;
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(message)));
+      ..showSnackBar(
+        SnackBar(duration: const Duration(seconds: 3), content: Text(message)),
+      );
   }
 }
 
@@ -113,13 +115,19 @@ Future<bool> _deleteTagFlow(
     await ref.read(archiveTagUseCaseProvider)(tag.id);
     messenger
       ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(strings.manageTagsDeleteSuccess)));
+      ..showSnackBar(
+        SnackBar(
+          duration: const Duration(seconds: 3),
+          content: Text(strings.manageTagsDeleteSuccess),
+        ),
+      );
     return true;
   } catch (error) {
     messenger
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
+          duration: const Duration(seconds: 3),
           content: Text(strings.manageTagsDeleteError(error.toString())),
         ),
       );
@@ -212,6 +220,7 @@ class _TagEditorSheetState extends ConsumerState<_TagEditorSheet> {
           ..hideCurrentSnackBar()
           ..showSnackBar(
             SnackBar(
+              duration: const Duration(seconds: 3),
               content: Text(strings.manageTagsSaveError(next.errorMessage!)),
             ),
           );

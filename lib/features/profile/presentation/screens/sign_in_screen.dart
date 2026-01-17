@@ -389,6 +389,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                             !latestState.isSubmitting) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
+                              duration: const Duration(seconds: 3),
                               content: Text(
                                 'Письмо для сброса пароля отправлено на вашу почту',
                               ),
@@ -564,8 +565,8 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
   }
 
   void _showErrorSnackBar(String message) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(duration: const Duration(seconds: 3), content: Text(message)),
+    );
   }
 }

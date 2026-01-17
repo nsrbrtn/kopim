@@ -547,7 +547,12 @@ class _EditAccountScreenState extends ConsumerState<EditAccountScreen> {
       });
       messenger
         ..hideCurrentSnackBar()
-        ..showSnackBar(SnackBar(content: Text(strings.editAccountDeleteError)));
+        ..showSnackBar(
+          SnackBar(
+            duration: const Duration(seconds: 3),
+            content: Text(strings.editAccountDeleteError),
+          ),
+        );
     }
   }
 }

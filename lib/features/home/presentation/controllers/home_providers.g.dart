@@ -586,3 +586,45 @@ final class HomeAccountMonthlySummariesProvider
 
 String _$homeAccountMonthlySummariesHash() =>
     r'246f0197a9ea556d55ae637f052a7b25991561da';
+
+@ProviderFor(homeOverviewSummary)
+const homeOverviewSummaryProvider = HomeOverviewSummaryProvider._();
+
+final class HomeOverviewSummaryProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<HomeOverviewSummary>,
+          HomeOverviewSummary,
+          Stream<HomeOverviewSummary>
+        >
+    with
+        $FutureModifier<HomeOverviewSummary>,
+        $StreamProvider<HomeOverviewSummary> {
+  const HomeOverviewSummaryProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'homeOverviewSummaryProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$homeOverviewSummaryHash();
+
+  @$internal
+  @override
+  $StreamProviderElement<HomeOverviewSummary> $createElement(
+    $ProviderPointer pointer,
+  ) => $StreamProviderElement(pointer);
+
+  @override
+  Stream<HomeOverviewSummary> create(Ref ref) {
+    return homeOverviewSummary(ref);
+  }
+}
+
+String _$homeOverviewSummaryHash() =>
+    r'bd805171502db5887312eed4a0799b449066afba';

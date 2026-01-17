@@ -64,6 +64,7 @@ import 'package:kopim/features/categories/domain/use_cases/delete_category_use_c
 import 'package:kopim/features/categories/domain/use_cases/save_category_use_case.dart';
 import 'package:kopim/features/categories/domain/use_cases/watch_categories_use_case.dart';
 import 'package:kopim/features/categories/domain/use_cases/watch_category_tree_use_case.dart';
+import 'package:kopim/features/home/domain/use_cases/watch_home_overview_summary_use_case.dart';
 import 'package:kopim/features/tags/data/repositories/tag_repository_impl.dart';
 import 'package:kopim/features/tags/data/repositories/transaction_tags_repository_impl.dart';
 import 'package:kopim/features/tags/data/sources/local/tag_dao.dart';
@@ -666,6 +667,14 @@ DeleteAccountUseCase deleteAccountUseCase(Ref ref) =>
 @riverpod
 WatchAccountsUseCase watchAccountsUseCase(Ref ref) =>
     WatchAccountsUseCase(ref.watch(accountRepositoryProvider));
+
+@riverpod
+WatchHomeOverviewSummaryUseCase watchHomeOverviewSummaryUseCase(Ref ref) =>
+    WatchHomeOverviewSummaryUseCase(
+      accountRepository: ref.watch(accountRepositoryProvider),
+      transactionRepository: ref.watch(transactionRepositoryProvider),
+      categoryRepository: ref.watch(categoryRepositoryProvider),
+    );
 
 @riverpod
 AddCreditUseCase addCreditUseCase(Ref ref) => AddCreditUseCase(

@@ -12,6 +12,7 @@ import 'package:kopim/features/analytics/presentation/analytics_screen.dart';
 import 'package:kopim/features/app_shell/presentation/widgets/main_navigation_shell.dart';
 import 'package:kopim/features/budgets/presentation/budgets_screen.dart';
 import 'package:kopim/features/categories/presentation/screens/manage_categories_screen.dart';
+import 'package:kopim/features/overview/presentation/overview_screen.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
 import 'package:kopim/features/profile/presentation/controllers/auth_controller.dart';
 import 'package:kopim/features/profile/presentation/screens/general_settings_screen.dart';
@@ -63,6 +64,13 @@ final Provider<GoRouter> appRouterProvider = Provider<GoRouter>((Ref ref) {
         parentNavigatorKey: _rootNavigatorKey,
         builder: (BuildContext context, GoRouterState state) {
           return const AnalyticsScreen();
+        },
+      ),
+      GoRoute(
+        path: OverviewScreen.routeName,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (BuildContext context, GoRouterState state) {
+          return const OverviewScreen();
         },
       ),
       GoRoute(

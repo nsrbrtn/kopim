@@ -561,6 +561,7 @@ class _EditUpcomingPaymentScreenState
         ..hideCurrentSnackBar()
         ..showSnackBar(
           SnackBar(
+            duration: const Duration(seconds: 3),
             content: Text(
               '${strings.upcomingPaymentsSaveSuccess}\n${strings.upcomingPaymentsScheduleTriggered}',
             ),
@@ -588,6 +589,7 @@ class _EditUpcomingPaymentScreenState
         ..hideCurrentSnackBar()
         ..showSnackBar(
           SnackBar(
+            duration: const Duration(seconds: 3),
             content: Text(strings.upcomingPaymentsSaveError(error.toString())),
           ),
         );

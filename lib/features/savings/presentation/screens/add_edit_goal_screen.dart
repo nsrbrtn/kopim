@@ -47,16 +47,22 @@ class _AddEditGoalScreenState extends ConsumerState<AddEditGoalScreen> {
             return;
           }
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(strings.savingsGoalSavedMessage)),
+            SnackBar(
+              duration: const Duration(seconds: 3),
+              content: Text(strings.savingsGoalSavedMessage),
+            ),
           );
           Navigator.of(context).pop();
         } else if (next.errorMessage != null && next.errorMessage!.isNotEmpty) {
           if (!mounted) {
             return;
           }
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(next.errorMessage!)));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              duration: const Duration(seconds: 3),
+              content: Text(next.errorMessage!),
+            ),
+          );
         }
       },
     );

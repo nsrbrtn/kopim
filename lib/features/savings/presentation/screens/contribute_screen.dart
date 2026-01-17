@@ -48,13 +48,19 @@ class _ContributeScreenState extends ConsumerState<ContributeScreen> {
         if (previous?.success != true && next.success) {
           final AppLocalizations strings = AppLocalizations.of(context)!;
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(strings.savingsContributionSuccess)),
+            SnackBar(
+              duration: const Duration(seconds: 3),
+              content: Text(strings.savingsContributionSuccess),
+            ),
           );
           Navigator.of(context).pop();
         } else if (next.errorMessage != null && next.errorMessage!.isNotEmpty) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(next.errorMessage!)));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              duration: const Duration(seconds: 3),
+              content: Text(next.errorMessage!),
+            ),
+          );
         }
       },
     );

@@ -4,6 +4,7 @@ import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/home/domain/models/day_section.dart';
 import 'package:kopim/features/home/domain/models/home_account_monthly_summary.dart';
+import 'package:kopim/features/home/domain/models/home_overview_summary.dart';
 import 'package:kopim/features/home/domain/use_cases/group_transactions_by_day_use_case.dart';
 import 'package:kopim/features/home/presentation/controllers/home_transactions_filter_controller.dart';
 import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
@@ -127,6 +128,11 @@ Stream<Map<String, HomeAccountMonthlySummary>> homeAccountMonthlySummaries(
     }
     return Map<String, HomeAccountMonthlySummary>.unmodifiable(mapped);
   });
+}
+
+@riverpod
+Stream<HomeOverviewSummary> homeOverviewSummary(Ref ref) {
+  return ref.watch(watchHomeOverviewSummaryUseCaseProvider).call();
 }
 
 @visibleForTesting

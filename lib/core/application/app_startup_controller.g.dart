@@ -42,7 +42,7 @@ final class AppStartupControllerProvider
 }
 
 String _$appStartupControllerHash() =>
-    r'2741f9d363e56905b4112fc20f7c9776d227a6a2';
+    r'f04da93f83deb43dd3a095708896760f278845b4';
 
 abstract class _$AppStartupController extends $Notifier<AppStartupResult> {
   AppStartupResult build();

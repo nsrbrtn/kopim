@@ -128,7 +128,7 @@ final class FirebaseInitializationProvider
 }
 
 String _$firebaseInitializationHash() =>
-    r'5516e8c9fa208f8a8894bf2b8b9393685dead851';
+    r'82e74f95ce0531e92815e198dcaeaaec70f22ee3';
 
 @ProviderFor(firestore)
 const firestoreProvider = FirestoreProvider._();
@@ -2940,6 +2940,57 @@ final class WatchAccountsUseCaseProvider
 String _$watchAccountsUseCaseHash() =>
     r'1e591c8756219ebead3e51c5a37138b7013df854';
 
+@ProviderFor(watchHomeOverviewSummaryUseCase)
+const watchHomeOverviewSummaryUseCaseProvider =
+    WatchHomeOverviewSummaryUseCaseProvider._();
+
+final class WatchHomeOverviewSummaryUseCaseProvider
+    extends
+        $FunctionalProvider<
+          WatchHomeOverviewSummaryUseCase,
+          WatchHomeOverviewSummaryUseCase,
+          WatchHomeOverviewSummaryUseCase
+        >
+    with $Provider<WatchHomeOverviewSummaryUseCase> {
+  const WatchHomeOverviewSummaryUseCaseProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'watchHomeOverviewSummaryUseCaseProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$watchHomeOverviewSummaryUseCaseHash();
+
+  @$internal
+  @override
+  $ProviderElement<WatchHomeOverviewSummaryUseCase> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  WatchHomeOverviewSummaryUseCase create(Ref ref) {
+    return watchHomeOverviewSummaryUseCase(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(WatchHomeOverviewSummaryUseCase value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<WatchHomeOverviewSummaryUseCase>(
+        value,
+      ),
+    );
+  }
+}
+
+String _$watchHomeOverviewSummaryUseCaseHash() =>
+    r'9ca286484285a61d74bc3519116994c075ae4ed3';
+
 @ProviderFor(addCreditUseCase)
 const addCreditUseCaseProvider = AddCreditUseCaseProvider._();
 
@@ -5532,7 +5583,7 @@ final class AuthRepositoryProvider
   }
 }
 
-String _$authRepositoryHash() => r'0858a9ebc2c242fa18a3e41f811bfa09fc8f510c';
+String _$authRepositoryHash() => r'39cb41cde8796e00d0e668e238d2436034e2ae50';
 
 @ProviderFor(syncDataSanitizer)
 const syncDataSanitizerProvider = SyncDataSanitizerProvider._();

@@ -45,7 +45,10 @@ Future<bool> deleteTransactionWithFeedback({
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
-          SnackBar(content: Text(strings.transactionDeleteSuccess)),
+          SnackBar(
+            duration: const Duration(seconds: 3),
+            content: Text(strings.transactionDeleteSuccess),
+          ),
         );
     }
   } else {
@@ -55,6 +58,7 @@ Future<bool> deleteTransactionWithFeedback({
         ..hideCurrentSnackBar()
         ..showSnackBar(
           SnackBar(
+            duration: const Duration(seconds: 3),
             content: Text(error?.toString() ?? strings.transactionDeleteError),
           ),
         );

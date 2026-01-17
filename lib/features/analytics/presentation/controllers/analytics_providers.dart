@@ -160,7 +160,7 @@ Stream<List<MonthlyBalanceData>> monthlyBalanceData(Ref ref) {
     final List<AccountEntity> relevantAccounts = accounts.where((
       AccountEntity account,
     ) {
-      if (!_isCashAccountType(account.type)) {
+      if (!isCashAccountType(account.type)) {
         return false;
       }
       if (selectedAccountIds.isEmpty) {
@@ -274,11 +274,6 @@ Stream<List<MonthlyBalanceData>> monthlyBalanceData(Ref ref) {
 
     return result.reversed.toList();
   });
-}
-
-bool _isCashAccountType(String rawType) {
-  final String type = normalizeAccountType(rawType).toLowerCase();
-  return type != 'credit' && type != 'credit_card' && type != 'debt';
 }
 
 final StreamProvider<List<MonthlyCashflowData>>

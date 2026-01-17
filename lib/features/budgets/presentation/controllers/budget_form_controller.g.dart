@@ -59,7 +59,7 @@ final class BudgetFormControllerProvider
 }
 
 String _$budgetFormControllerHash() =>
-    r'267b99ffa0c107fdde334dba7df8837a4ea7f9c6';
+    r'1e21c137f17f0845ff343bbafd6c567d2c61128a';
 
 final class BudgetFormControllerFamily extends $Family
     with

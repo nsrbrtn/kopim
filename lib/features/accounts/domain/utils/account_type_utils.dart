@@ -2,6 +2,11 @@ String normalizeAccountType(String value) {
   return stripCustomAccountPrefix(value).trim();
 }
 
+bool isCashAccountType(String rawType) {
+  final String type = normalizeAccountType(rawType).toLowerCase();
+  return type != 'credit' && type != 'credit_card' && type != 'debt';
+}
+
 String stripCustomAccountPrefix(String value) {
   final String trimmed = value.trim();
   if (trimmed.isEmpty) {

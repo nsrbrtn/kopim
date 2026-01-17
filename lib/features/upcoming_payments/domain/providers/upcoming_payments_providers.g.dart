@@ -777,7 +777,7 @@ final class WatchUpcomingPaymentsProvider
 }
 
 String _$watchUpcomingPaymentsHash() =>
-    r'ec49b4ce2ece0991efbce87267b9d550867e666d';
+    r'aa935e90ee1152faa972249d9bf4bb6cff7d64b4';
 
 @ProviderFor(watchPaymentReminders)
 const watchPaymentRemindersProvider = WatchPaymentRemindersFamily._();

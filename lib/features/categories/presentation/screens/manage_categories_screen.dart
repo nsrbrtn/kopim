@@ -237,7 +237,10 @@ Future<bool> _deleteCategoryFlow(
     messenger
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        SnackBar(content: Text(strings.manageCategoriesDeleteSuccess)),
+        SnackBar(
+          duration: const Duration(seconds: 3),
+          content: Text(strings.manageCategoriesDeleteSuccess),
+        ),
       );
     return true;
   } catch (error) {
@@ -245,6 +248,7 @@ Future<bool> _deleteCategoryFlow(
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
+          duration: const Duration(seconds: 3),
           content: Text(strings.manageCategoriesDeleteError(error.toString())),
         ),
       );
@@ -279,7 +283,9 @@ Future<void> _showCategoryEditor(
         : strings.manageCategoriesSuccessUpdate;
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(message)));
+      ..showSnackBar(
+        SnackBar(duration: const Duration(seconds: 3), content: Text(message)),
+      );
   }
 }
 
@@ -850,7 +856,10 @@ class _CategoryEditorSheetState extends ConsumerState<_CategoryEditorSheet> {
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
           ..showSnackBar(
-            SnackBar(content: Text(strings.manageCategoriesDuplicateNameError)),
+            SnackBar(
+              duration: const Duration(seconds: 3),
+              content: Text(strings.manageCategoriesDuplicateNameError),
+            ),
           );
       } else if (next.errorMessage != null &&
           next.errorMessage != previous?.errorMessage) {
@@ -858,6 +867,7 @@ class _CategoryEditorSheetState extends ConsumerState<_CategoryEditorSheet> {
           ..hideCurrentSnackBar()
           ..showSnackBar(
             SnackBar(
+              duration: const Duration(seconds: 3),
               content: Text(
                 strings.manageCategoriesSaveError(next.errorMessage!),
               ),
@@ -960,6 +970,7 @@ class _CategoryEditorSheetState extends ConsumerState<_CategoryEditorSheet> {
           ..hideCurrentSnackBar();
         messenger.showSnackBar(
           SnackBar(
+            duration: const Duration(seconds: 3),
             content: Text(strings.manageCategoriesAddSubcategorySaveFirst),
           ),
         );

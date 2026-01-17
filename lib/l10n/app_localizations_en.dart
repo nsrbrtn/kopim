@@ -1081,6 +1081,30 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeTransactionsTodayLabel => 'Today';
 
   @override
+  String get homeOverviewTotalBalanceLabel => 'Total balance';
+
+  @override
+  String homeOverviewIncomeValue(String amount) {
+    return 'Income: $amount';
+  }
+
+  @override
+  String homeOverviewExpenseValue(String amount) {
+    return 'Expense: $amount';
+  }
+
+  @override
+  String get homeOverviewTopExpensesLabel => 'Top expenses';
+
+  @override
+  String get homeOverviewTopExpensesEmpty => 'No expenses yet';
+
+  @override
+  String homeOverviewSummaryError(String error) {
+    return 'Can\'t load summary: $error';
+  }
+
+  @override
   String get homeTransactionsYesterdayLabel => 'Yesterday';
 
   @override
@@ -2556,4 +2580,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get assistantFaqAnswerImproveResults =>
       'Be specific—mention time ranges, accounts, or categories. Combine quick filters above the chat for extra context.';
+
+  @override
+  String get overviewScreenTitle => 'Overview';
+
+  @override
+  String get overviewScreenPlaceholder =>
+      'Overview details will appear here soon.';
 }

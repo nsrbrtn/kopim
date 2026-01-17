@@ -36,101 +36,119 @@ class ReminderListItem extends StatelessWidget {
     );
     final String amountText = amountFormat.format(reminder.amount).trim();
 
-    final List<Widget> subtitleChildren = <Widget>[
-      Text(
-        '${strings.upcomingPaymentsReminderDue(dateFormat.format(whenLocal))} · ${timeFormat.format(whenLocal)}',
-        style: theme.textTheme.bodySmall?.copyWith(
-          color: theme.colorScheme.onSurfaceVariant,
-        ),
-      ),
-      if (reminder.note != null && reminder.note!.isNotEmpty)
-        Padding(
-          padding: const EdgeInsets.only(top: 2),
-          child: Text(
-            reminder.note!,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ),
-    ];
+    final String scheduleLabel =
+        '${strings.upcomingPaymentsReminderDue(dateFormat.format(whenLocal))} · ${timeFormat.format(whenLocal)}';
+    final String secondaryLabel = reminder.note?.trim().isNotEmpty == true
+        ? reminder.note!.trim()
+        : scheduleLabel;
+    final String rightLabel = reminder.note?.trim().isNotEmpty == true
+        ? scheduleLabel
+        : '';
 
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: ListTile(
-        onTap: onTap,
-        leading: CircleAvatar(
-          backgroundColor: reminder.isDone
-              ? theme.colorScheme.secondaryContainer
-              : theme.colorScheme.surfaceContainerHighest,
-          child: Icon(
-            reminder.isDone ? Icons.check_circle : Icons.alarm,
-            color: reminder.isDone
-                ? theme.colorScheme.onSecondaryContainer
-                : theme.colorScheme.primary,
-          ),
-        ),
-        title: Text(reminder.title, style: theme.textTheme.titleMedium),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: subtitleChildren,
-        ),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.end,
+    final Color iconBackground = reminder.isDone
+        ? theme.colorScheme.secondaryContainer
+        : theme.colorScheme.primaryContainer;
+    final Color iconForeground = reminder.isDone
+        ? theme.colorScheme.onSecondaryContainer
+        : theme.colorScheme.onPrimaryContainer;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Material(
+        color: theme.colorScheme.surfaceContainer,
+        borderRadius: BorderRadius.circular(20),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(20),
+          onTap: onTap,
+          onLongPress: onDelete,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(8, 8, 16, 8),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                Text(
-                  amountText,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: iconBackground,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Center(
+                    child: Icon(
+                      reminder.isDone ? Icons.check_circle : Icons.alarm,
+                      color: iconForeground,
+                      size: 22,
+                    ),
                   ),
                 ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      Text(
+                        reminder.title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: theme.colorScheme.onSurface,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Text(
+                          secondaryLabel,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: <Widget>[
+                    Text(
+                      amountText,
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        color: theme.colorScheme.onSurface,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                    if (rightLabel.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Text(
+                          rightLabel,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                if (!reminder.isDone) ...<Widget>[
+                  const SizedBox(width: 12),
+                  IconButton(
+                    icon: const Icon(Icons.check_circle_outline),
+                    tooltip: strings.upcomingPaymentsReminderMarkPaidTooltip,
+                    onPressed: onMarkPaid,
+                  ),
+                ],
               ],
             ),
-            const SizedBox(width: 8),
-            IconButton(
-              icon: Icon(
-                reminder.isDone
-                    ? Icons.check_circle
-                    : Icons.check_circle_outline,
-              ),
-              tooltip: strings.upcomingPaymentsReminderMarkPaidTooltip,
-              onPressed: reminder.isDone ? null : onMarkPaid,
-            ),
-            const SizedBox(width: 4),
-            PopupMenuButton<_ReminderAction>(
-              onSelected: (_ReminderAction action) {
-                switch (action) {
-                  case _ReminderAction.edit:
-                    onTap();
-                    break;
-                  case _ReminderAction.delete:
-                    onDelete();
-                    break;
-                }
-              },
-              itemBuilder: (BuildContext context) {
-                return <PopupMenuEntry<_ReminderAction>>[
-                  PopupMenuItem<_ReminderAction>(
-                    value: _ReminderAction.edit,
-                    child: Text(strings.upcomingPaymentsReminderEditAction),
-                  ),
-                  PopupMenuItem<_ReminderAction>(
-                    value: _ReminderAction.delete,
-                    child: Text(strings.upcomingPaymentsReminderDeleteAction),
-                  ),
-                ];
-              },
-            ),
-          ],
+          ),
         ),
       ),
     );
   }
 }
-
-enum _ReminderAction { edit, delete }

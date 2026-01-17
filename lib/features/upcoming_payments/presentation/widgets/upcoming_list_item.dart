@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import 'package:kopim/core/utils/helpers.dart';
 import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
@@ -41,118 +42,114 @@ class UpcomingPaymentListItem extends StatelessWidget {
       symbol: (account?.currency ?? '').toUpperCase(),
     );
     final double amountAbs = payment.amount.abs();
-    final bool isExpense = payment.amount >= 0;
-    final Color amountColor = isExpense
-        ? theme.colorScheme.error
-        : theme.colorScheme.primary;
+    final Color amountColor = theme.colorScheme.onSurface;
+
+    final String secondaryLabel = payment.note?.trim().isNotEmpty == true
+        ? payment.note!.trim()
+        : payment.title;
 
     final DateTime? nextDate = payment.nextRunAtMs != null
         ? timeService.toLocal(payment.nextRunAtMs!)
         : null;
     final DateFormat dateFormat = DateFormat.yMMMMd(strings.localeName);
+    final String primaryLabel = nextDate != null
+        ? dateFormat.format(nextDate)
+        : strings.upcomingPaymentsMonthlySummary(payment.dayOfMonth);
+    final Color iconBackground =
+        parseHexColor(category?.color) ??
+        theme.colorScheme.surfaceContainerHigh;
+    final Color iconForeground = theme.colorScheme.shadow;
 
-    final List<String> subtitleParts = <String>[
-      if (account != null && category != null)
-        '${account.name} • ${category.name}'
-      else if (account != null)
-        account.name
-      else if (category != null)
-        category.name,
-      strings.upcomingPaymentsMonthlySummary(payment.dayOfMonth),
-      strings.upcomingPaymentsNotifySummary(
-        payment.notifyDaysBefore,
-        payment.notifyTimeHhmm,
-      ),
-      if (payment.note != null && payment.note!.isNotEmpty) payment.note!,
-    ];
-
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: ListTile(
-        onTap: onTap,
-        leading: CircleAvatar(
-          backgroundColor: theme.colorScheme.surfaceContainerHighest,
-          child: iconData != null
-              ? Icon(iconData, color: theme.colorScheme.primary)
-              : const Icon(Icons.event_repeat),
-        ),
-        title: Text(payment.title, style: theme.textTheme.titleMedium),
-        subtitle: Padding(
-          padding: const EdgeInsets.only(top: 4),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              for (final String line in subtitleParts)
-                if (line.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 2),
-                    child: Text(
-                      line,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ),
-            ],
-          ),
-        ),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.end,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Material(
+        color: theme.colorScheme.surfaceContainer,
+        borderRadius: BorderRadius.circular(20),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(20),
+          onTap: onTap,
+          onLongPress: onDelete,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(8, 8, 16, 8),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                Text(
-                  formatter.format(amountAbs),
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    color: amountColor,
-                    fontWeight: FontWeight.w600,
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: iconBackground,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Center(
+                    child: Icon(
+                      iconData ?? PhosphorIcons.tag(PhosphorIconsStyle.fill),
+                      color: iconForeground,
+                      size: 22,
+                    ),
                   ),
                 ),
-                if (nextDate != null)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 4),
-                    child: Text(
-                      dateFormat.format(nextDate),
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      Text(
+                        primaryLabel,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: theme.colorScheme.onSurface,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      if (secondaryLabel.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4),
+                          child: Text(
+                            secondaryLabel,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: <Widget>[
+                    Text(
+                      formatter.format(amountAbs),
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        color: amountColor,
+                        fontWeight: FontWeight.w400,
                       ),
                     ),
-                  ),
+                    if (account != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Text(
+                          account.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
               ],
             ),
-            const SizedBox(width: 8),
-            PopupMenuButton<_UpcomingPaymentAction>(
-              onSelected: (_UpcomingPaymentAction action) {
-                switch (action) {
-                  case _UpcomingPaymentAction.edit:
-                    onTap();
-                    break;
-                  case _UpcomingPaymentAction.delete:
-                    onDelete();
-                    break;
-                }
-              },
-              itemBuilder: (BuildContext context) {
-                return <PopupMenuEntry<_UpcomingPaymentAction>>[
-                  PopupMenuItem<_UpcomingPaymentAction>(
-                    value: _UpcomingPaymentAction.edit,
-                    child: Text(strings.upcomingPaymentsEditAction),
-                  ),
-                  PopupMenuItem<_UpcomingPaymentAction>(
-                    value: _UpcomingPaymentAction.delete,
-                    child: Text(strings.upcomingPaymentsDeleteAction),
-                  ),
-                ];
-              },
-            ),
-          ],
+          ),
         ),
       ),
     );
   }
 }
-
-enum _UpcomingPaymentAction { edit, delete }

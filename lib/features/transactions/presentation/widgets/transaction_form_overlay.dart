@@ -121,7 +121,7 @@ class _TransactionFormOverlayState
                             messenger.showSnackBar(
                               SnackBar(
                                 content: content,
-                                duration: const Duration(seconds: 6),
+                                duration: const Duration(seconds: 3),
                                 action: created == null
                                     ? null
                                     : SnackBarAction(
@@ -153,7 +153,7 @@ class _TransactionFormOverlayState
                                                                   .addTransactionUndoError,
                                                       ),
                                                       duration: const Duration(
-                                                        seconds: 4,
+                                                        seconds: 3,
                                                       ),
                                                     ),
                                                   );

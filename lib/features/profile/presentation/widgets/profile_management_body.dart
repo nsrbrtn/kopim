@@ -60,14 +60,24 @@ class ProfileManagementBody extends ConsumerWidget {
             final String message = _mapAvatarError(strings, next.error);
             ScaffoldMessenger.of(context)
               ..hideCurrentSnackBar()
-              ..showSnackBar(SnackBar(content: Text(message)));
+              ..showSnackBar(
+                SnackBar(
+                  duration: const Duration(seconds: 3),
+                  content: Text(message),
+                ),
+              );
             return;
           }
           if (previous?.isLoading == true && next.hasValue) {
             final String message = strings.profileAvatarUploadSuccess;
             ScaffoldMessenger.of(context)
               ..hideCurrentSnackBar()
-              ..showSnackBar(SnackBar(content: Text(message)));
+              ..showSnackBar(
+                SnackBar(
+                  duration: const Duration(seconds: 3),
+                  content: Text(message),
+                ),
+              );
           }
         });
 
@@ -367,7 +377,12 @@ class _ProfileFormState extends ConsumerState<_ProfileForm> {
                       }
                       ScaffoldMessenger.of(context)
                         ..hideCurrentSnackBar()
-                        ..showSnackBar(SnackBar(content: Text(error.message)));
+                        ..showSnackBar(
+                          SnackBar(
+                            duration: const Duration(seconds: 3),
+                            content: Text(error.message),
+                          ),
+                        );
                     }
                   },
                   icon: const Icon(Icons.logout),

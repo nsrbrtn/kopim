@@ -89,7 +89,7 @@ class _NotificationFallbackListenerState
       ..showSnackBar(
         SnackBar(
           content: Text('${event.title}: ${event.body}'),
-          duration: const Duration(seconds: 4),
+          duration: const Duration(seconds: 3),
         ),
       );
   }

@@ -1352,6 +1352,45 @@
   "@homeTransactionsTodayLabel": {
     "description": "Section header label for transactions happening today"
   },
+  "homeOverviewTotalBalanceLabel": "Total balance",
+  "@homeOverviewTotalBalanceLabel": {
+    "description": "Total balance label on the overview widget"
+  },
+  "homeOverviewIncomeValue": "Income: {amount}",
+  "@homeOverviewIncomeValue": {
+    "description": "Income line on the overview widget",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "homeOverviewExpenseValue": "Expense: {amount}",
+  "@homeOverviewExpenseValue": {
+    "description": "Expense line on the overview widget",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "homeOverviewTopExpensesLabel": "Top expenses",
+  "@homeOverviewTopExpensesLabel": {
+    "description": "Top expenses block label"
+  },
+  "homeOverviewTopExpensesEmpty": "No expenses yet",
+  "@homeOverviewTopExpensesEmpty": {
+    "description": "Empty state for top expenses"
+  },
+  "homeOverviewSummaryError": "Can't load summary: {error}",
+  "@homeOverviewSummaryError": {
+    "description": "Error message for overview summary on home",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "homeTransactionsYesterdayLabel": "Yesterday",
   "@homeTransactionsYesterdayLabel": {
     "description": "Section header label for transactions happening yesterday"
@@ -3299,5 +3338,13 @@
   "assistantFaqAnswerImproveResults": "Be specific—mention time ranges, accounts, or categories. Combine quick filters above the chat for extra context.",
   "@assistantFaqAnswerImproveResults": {
     "description": "FAQ answer with tips for better assistant queries"
+  },
+  "overviewScreenTitle": "Overview",
+  "@overviewScreenTitle": {
+    "description": "Overview screen title"
+  },
+  "overviewScreenPlaceholder": "Overview details will appear here soon.",
+  "@overviewScreenPlaceholder": {
+    "description": "Overview screen placeholder text"
   }
 }

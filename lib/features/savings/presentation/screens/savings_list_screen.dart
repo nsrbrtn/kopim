@@ -74,14 +74,20 @@ class _SavingsBodyState extends ConsumerState<_SavingsBody> {
         return;
       }
       messenger.showSnackBar(
-        SnackBar(content: Text(strings.savingsGoalArchivedMessage(goal.name))),
+        SnackBar(
+          duration: const Duration(seconds: 3),
+          content: Text(strings.savingsGoalArchivedMessage(goal.name)),
+        ),
       );
     } catch (_) {
       if (!mounted) {
         return;
       }
       messenger.showSnackBar(
-        SnackBar(content: Text(strings.genericErrorMessage)),
+        SnackBar(
+          duration: const Duration(seconds: 3),
+          content: Text(strings.genericErrorMessage),
+        ),
       );
     }
   }

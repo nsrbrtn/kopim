@@ -30,6 +30,7 @@ import 'package:kopim/features/home/presentation/controllers/home_dashboard_pref
 import 'package:kopim/features/home/presentation/controllers/home_transactions_filter_controller.dart';
 import 'package:kopim/features/home/presentation/widgets/home_budget_progress_card.dart';
 import 'package:kopim/features/home/presentation/widgets/home_gamification_widget.dart';
+import 'package:kopim/features/home/presentation/widgets/home_overview_summary_card.dart';
 import 'package:kopim/features/home/presentation/widgets/home_savings_overview_card.dart';
 import 'package:kopim/features/home/presentation/widgets/home_upcoming_items_card.dart';
 import 'package:kopim/core/widgets/animated_fab.dart';
@@ -57,6 +58,7 @@ import 'package:kopim/core/services/sync_service.dart';
 import 'package:kopim/core/services/sync_status.dart';
 import 'package:kopim/features/profile/presentation/screens/profile_management_screen.dart';
 import 'package:kopim/features/transactions/presentation/screens/all_transactions_screen.dart';
+import 'package:kopim/features/overview/presentation/overview_screen.dart';
 import 'package:kopim/features/savings/presentation/screens/saving_goal_details_screen.dart';
 import 'package:kopim/features/upcoming_payments/domain/models/upcoming_item.dart';
 import 'package:kopim/features/upcoming_payments/domain/providers/upcoming_payments_providers.dart';
@@ -198,29 +200,18 @@ class _HomeBody extends ConsumerWidget {
               addBoxSection(HomeGamificationWidget(userId: user.uid));
             }
 
-            const EdgeInsets accountsPadding = EdgeInsets.fromLTRB(8, 8, 8, 0);
-            final Widget accountsSection = accountsAsync.when(
-              data: (List<AccountEntity> accounts) {
-                final List<AccountEntity> visibleAccounts = accounts
-                    .where((AccountEntity account) => !account.isHidden)
-                    .toList(growable: false);
-                final List<AccountEntity> hiddenAccounts = accounts
-                    .where((AccountEntity account) => account.isHidden)
-                    .toList(growable: false);
-                return _AccountsList(
-                  accounts: visibleAccounts,
-                  hiddenAccounts: hiddenAccounts,
-                  strings: strings,
-                  monthlySummaries:
-                      accountSummariesAsync.asData?.value ??
-                      const <String, HomeAccountMonthlySummary>{},
-                  isWideLayout: showSecondaryPanel,
-                );
-              },
-              loading: () => const _TransactionsSkeletonList(),
-              error: (Object error, _) => _ErrorMessage(
-                message: strings.homeAccountsError(error.toString()),
+            addBoxSection(
+              HomeOverviewSummaryCard(
+                onTap: () => context.push(OverviewScreen.routeName),
               ),
+            );
+
+            const EdgeInsets accountsPadding = EdgeInsets.fromLTRB(8, 8, 8, 0);
+            final Widget accountsSection = _AccountsSection(
+              accountsAsync: accountsAsync,
+              strings: strings,
+              accountSummariesAsync: accountSummariesAsync,
+              isWideLayout: showSecondaryPanel,
             );
 
             final Widget transactionsSection = groupedTransactionsAsync.when(
@@ -244,22 +235,7 @@ class _HomeBody extends ConsumerWidget {
               SliverPadding(
                 padding: accountsPadding,
                 sliver: SliverList(
-                  delegate: SliverChildListDelegate(<Widget>[
-                    _SectionHeader(
-                      title: strings.homeAccountsSection,
-                      action: IconButton(
-                        icon: Icon(
-                          Icons.add,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                        tooltip: strings.homeAccountsAddTooltip,
-                        onPressed: () =>
-                            context.push(AddAccountScreen.routeName),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    accountsSection,
-                  ]),
+                  delegate: SliverChildListDelegate(<Widget>[accountsSection]),
                 ),
               ),
             );
@@ -356,7 +332,9 @@ class _HomeBody extends ConsumerWidget {
     };
     final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar();
-    messenger.showSnackBar(SnackBar(content: Text(message)));
+    messenger.showSnackBar(
+      SnackBar(duration: const Duration(seconds: 3), content: Text(message)),
+    );
   }
 }
 
@@ -582,6 +560,98 @@ class _AddTransactionButton extends ConsumerWidget {
   }
 }
 
+class _AccountsSection extends StatefulWidget {
+  const _AccountsSection({
+    required this.accountsAsync,
+    required this.strings,
+    required this.accountSummariesAsync,
+    required this.isWideLayout,
+  });
+
+  final AsyncValue<List<AccountEntity>> accountsAsync;
+  final AppLocalizations strings;
+  final AsyncValue<Map<String, HomeAccountMonthlySummary>>
+  accountSummariesAsync;
+  final bool isWideLayout;
+
+  @override
+  State<_AccountsSection> createState() => _AccountsSectionState();
+}
+
+class _AccountsSectionState extends State<_AccountsSection> {
+  bool _showHiddenAccounts = false;
+
+  void _toggleHiddenAccountsVisibility() {
+    setState(() {
+      _showHiddenAccounts = !_showHiddenAccounts;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final List<AccountEntity> accounts =
+        widget.accountsAsync.asData?.value ?? <AccountEntity>[];
+    final bool hasHiddenAccounts = accounts.any(
+      (AccountEntity account) => account.isHidden,
+    );
+    final Widget headerAction = Row(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        if (hasHiddenAccounts) ...<Widget>[
+          _HiddenAccountsToggleButton(
+            isShowingHiddenAccounts: _showHiddenAccounts,
+            strings: widget.strings,
+            onToggle: _toggleHiddenAccountsVisibility,
+          ),
+          const SizedBox(width: 4),
+        ],
+        IconButton(
+          icon: Icon(Icons.add, color: theme.colorScheme.primary),
+          tooltip: widget.strings.homeAccountsAddTooltip,
+          onPressed: () => context.push(AddAccountScreen.routeName),
+        ),
+      ],
+    );
+    final Widget content = widget.accountsAsync.when(
+      data: (List<AccountEntity> accounts) {
+        final List<AccountEntity> visibleAccounts = accounts
+            .where((AccountEntity account) => !account.isHidden)
+            .toList(growable: false);
+        final List<AccountEntity> hiddenAccounts = accounts
+            .where((AccountEntity account) => account.isHidden)
+            .toList(growable: false);
+        return _AccountsList(
+          accounts: visibleAccounts,
+          hiddenAccounts: hiddenAccounts,
+          strings: widget.strings,
+          monthlySummaries:
+              widget.accountSummariesAsync.asData?.value ??
+              const <String, HomeAccountMonthlySummary>{},
+          isWideLayout: widget.isWideLayout,
+          showHiddenAccounts: _showHiddenAccounts,
+        );
+      },
+      loading: () => const _TransactionsSkeletonList(),
+      error: (Object error, _) => _ErrorMessage(
+        message: widget.strings.homeAccountsError(error.toString()),
+      ),
+    );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        _SectionHeader(
+          title: widget.strings.homeAccountsSection,
+          action: headerAction,
+        ),
+        const SizedBox(height: 12),
+        content,
+      ],
+    );
+  }
+}
+
 class _AccountsList extends StatefulWidget {
   const _AccountsList({
     required this.accounts,
@@ -589,6 +659,7 @@ class _AccountsList extends StatefulWidget {
     required this.strings,
     required this.monthlySummaries,
     required this.isWideLayout,
+    required this.showHiddenAccounts,
   });
 
   final List<AccountEntity> accounts;
@@ -596,6 +667,7 @@ class _AccountsList extends StatefulWidget {
   final AppLocalizations strings;
   final Map<String, HomeAccountMonthlySummary> monthlySummaries;
   final bool isWideLayout;
+  final bool showHiddenAccounts;
 
   @override
   State<_AccountsList> createState() => _AccountsListState();
@@ -606,17 +678,12 @@ class _AccountsListState extends State<_AccountsList> {
   late double _viewportFraction;
   int _currentPage = 0;
 
-  bool _showHiddenAccounts = false;
-
   List<AccountEntity> get _displayedAccounts => <AccountEntity>[
     ...widget.accounts,
-    if (_showHiddenAccounts) ...widget.hiddenAccounts,
+    if (widget.showHiddenAccounts) ...widget.hiddenAccounts,
   ];
 
-  bool get _hasHiddenAccounts => widget.hiddenAccounts.isNotEmpty;
-
-  int get _totalItems =>
-      _displayedAccounts.length + (_hasHiddenAccounts ? 1 : 0);
+  int get _totalItems => _displayedAccounts.length;
 
   @override
   void initState() {
@@ -650,12 +717,6 @@ class _AccountsListState extends State<_AccountsList> {
       _currentPage = initialPage;
     });
     oldController.dispose();
-  }
-
-  void _toggleHiddenAccountsVisibility() {
-    setState(() {
-      _showHiddenAccounts = !_showHiddenAccounts;
-    });
   }
 
   double _calculateRequiredFraction({
@@ -694,53 +755,56 @@ class _AccountsListState extends State<_AccountsList> {
     final String localeName = widget.strings.localeName;
     final int totalItems = _totalItems;
 
+    if (totalItems == 0 && hasHiddenAccounts) {
+      return const SizedBox.shrink();
+    }
+
     if (widget.isWideLayout) {
       return LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {
           final double cardHeight = _AccountCardLayout.estimateHeight(context);
           final double cardWidth = math.min(360, constraints.maxWidth * 0.6);
-          final double revealWidth = cardWidth * 0.75;
           final List<AccountEntity> displayedAccounts = _displayedAccounts;
-          final int displayedCount = displayedAccounts.length;
           return SizedBox(
             height: cardHeight,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              itemCount: totalItems,
-              separatorBuilder: (BuildContext context, int index) =>
-                  const SizedBox(width: 12),
-              itemBuilder: (BuildContext context, int index) {
-                if (index >= displayedCount) {
-                  return SizedBox(
-                    width: revealWidth,
-                    child: _HiddenAccountsToggleCard(
-                      isShowingHiddenAccounts: _showHiddenAccounts,
-                      strings: widget.strings,
-                      onToggle: _toggleHiddenAccountsVisibility,
-                    ),
-                  );
-                }
-                final AccountEntity account = displayedAccounts[index];
-                final NumberFormat currencyFormat = NumberFormat.currency(
-                  locale: localeName,
-                  symbol: resolveCurrencySymbol(
-                    account.currency,
-                    locale: localeName,
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: <Widget>[
+                Padding(
+                  padding: EdgeInsets.zero,
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: totalItems,
+                    separatorBuilder: (BuildContext context, int index) =>
+                        const SizedBox(width: 12),
+                    itemBuilder: (BuildContext context, int index) {
+                      final AccountEntity account = displayedAccounts[index];
+                      final NumberFormat currencyFormat = NumberFormat.currency(
+                        locale: localeName,
+                        symbol: resolveCurrencySymbol(
+                          account.currency,
+                          locale: localeName,
+                        ),
+                      );
+                      return SizedBox(
+                        width: cardWidth,
+                        child: _AccountCard(
+                          account: account,
+                          strings: widget.strings,
+                          currencyFormat: currencyFormat,
+                          summary:
+                              widget.monthlySummaries[account.id] ??
+                              const HomeAccountMonthlySummary(
+                                income: 0,
+                                expense: 0,
+                              ),
+                          isHighlighted: index == 0,
+                        ),
+                      );
+                    },
                   ),
-                );
-                return SizedBox(
-                  width: cardWidth,
-                  child: _AccountCard(
-                    account: account,
-                    strings: widget.strings,
-                    currencyFormat: currencyFormat,
-                    summary:
-                        widget.monthlySummaries[account.id] ??
-                        const HomeAccountMonthlySummary(income: 0, expense: 0),
-                    isHighlighted: index == 0,
-                  ),
-                );
-              },
+                ),
+              ],
             ),
           );
         },
@@ -794,70 +858,58 @@ class _AccountsListState extends State<_AccountsList> {
         }
 
         final List<AccountEntity> displayedAccounts = _displayedAccounts;
-        final int displayedCount = displayedAccounts.length;
         return Column(
           children: <Widget>[
             SizedBox(
               height: cardHeight,
-              child: PageView.builder(
-                controller: _pageController,
-                physics: const BouncingScrollPhysics(),
-                padEnds: false,
-                itemCount: totalItems,
-                onPageChanged: (int index) {
-                  setState(() {
-                    _currentPage = index;
-                  });
-                },
-                itemBuilder: (BuildContext context, int index) {
-                  if (index >= displayedCount) {
-                    final bool isLast = index == totalItems - 1;
-                    return Padding(
-                      padding: EdgeInsets.only(right: isLast ? 0 : 8),
-                      child: LayoutBuilder(
-                        builder:
-                            (BuildContext context, BoxConstraints constraints) {
-                              return Align(
-                                alignment: Alignment.centerLeft,
-                                child: SizedBox(
-                                  width: constraints.maxWidth * 0.82,
-                                  child: _HiddenAccountsToggleCard(
-                                    isShowingHiddenAccounts:
-                                        _showHiddenAccounts,
-                                    strings: widget.strings,
-                                    onToggle: _toggleHiddenAccountsVisibility,
-                                  ),
-                                ),
-                              );
-                            },
-                      ),
-                    );
-                  }
-                  final AccountEntity account = displayedAccounts[index];
-                  final NumberFormat currencyFormat = NumberFormat.currency(
-                    locale: localeName,
-                    symbol: resolveCurrencySymbol(
-                      account.currency,
-                      locale: localeName,
-                    ),
-                    decimalDigits: 0,
-                  );
-                  final HomeAccountMonthlySummary summary =
-                      widget.monthlySummaries[account.id] ??
-                      const HomeAccountMonthlySummary(income: 0, expense: 0);
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: <Widget>[
+                  Padding(
+                    padding: EdgeInsets.zero,
+                    child: PageView.builder(
+                      controller: _pageController,
+                      physics: const BouncingScrollPhysics(),
+                      padEnds: false,
+                      itemCount: totalItems,
+                      onPageChanged: (int index) {
+                        setState(() {
+                          _currentPage = index;
+                        });
+                      },
+                      itemBuilder: (BuildContext context, int index) {
+                        final AccountEntity account = displayedAccounts[index];
+                        final NumberFormat currencyFormat =
+                            NumberFormat.currency(
+                              locale: localeName,
+                              symbol: resolveCurrencySymbol(
+                                account.currency,
+                                locale: localeName,
+                              ),
+                              decimalDigits: 0,
+                            );
+                        final HomeAccountMonthlySummary summary =
+                            widget.monthlySummaries[account.id] ??
+                            const HomeAccountMonthlySummary(
+                              income: 0,
+                              expense: 0,
+                            );
 
-                  final bool isLast = index == totalItems - 1;
-                  return Padding(
-                    padding: EdgeInsets.only(right: isLast ? 0 : 8),
-                    child: _AccountCard(
-                      account: account,
-                      strings: widget.strings,
-                      currencyFormat: currencyFormat,
-                      summary: summary,
-                      isHighlighted: index == 0,
+                        final bool isLast = index == totalItems - 1;
+                        return Padding(
+                          padding: EdgeInsets.only(right: isLast ? 0 : 8),
+                          child: _AccountCard(
+                            account: account,
+                            strings: widget.strings,
+                            currencyFormat: currencyFormat,
+                            summary: summary,
+                            isHighlighted: index == 0,
+                          ),
+                        );
+                      },
                     ),
-                  );
-                },
+                  ),
+                ],
               ),
             ),
             if (totalItems > 1)
@@ -1061,8 +1113,8 @@ class _AccountHideButton extends ConsumerWidget {
   }
 }
 
-class _HiddenAccountsToggleCard extends StatelessWidget {
-  const _HiddenAccountsToggleCard({
+class _HiddenAccountsToggleButton extends StatelessWidget {
+  const _HiddenAccountsToggleButton({
     required this.isShowingHiddenAccounts,
     required this.strings,
     required this.onToggle,
@@ -1074,12 +1126,6 @@ class _HiddenAccountsToggleCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
-    final double cardRadius = context.kopimLayout.radius.xxl;
-    final BorderRadius borderRadius = BorderRadius.circular(cardRadius);
-    final Color background = theme.colorScheme.surfaceContainerHigh;
-    final Color foreground = theme.colorScheme.onSurface;
-    const Color borderColor = Colors.black;
     final String label = isShowingHiddenAccounts
         ? strings.homeHiddenAccountsToggleHideLabel
         : strings.homeHiddenAccountsToggleShowLabel;
@@ -1087,39 +1133,12 @@ class _HiddenAccountsToggleCard extends StatelessWidget {
         ? PhosphorIcons.eyeSlash(PhosphorIconsStyle.regular)
         : PhosphorIcons.eye(PhosphorIconsStyle.regular);
 
-    final TextStyle labelStyle =
-        (theme.textTheme.labelSmall ??
-                const TextStyle(fontSize: 11, height: 16 / 11))
-            .copyWith(
-              color: foreground,
-              fontWeight: FontWeight.w500,
-              letterSpacing: 0.5,
-            );
-
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: borderRadius,
-        onTap: onToggle,
-        child: Ink(
-          decoration: BoxDecoration(
-            color: background,
-            borderRadius: borderRadius,
-            border: Border.all(color: borderColor, width: 1),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                Icon(icon, size: 24, color: foreground),
-                const SizedBox(height: 10),
-                Text(label, style: labelStyle),
-              ],
-            ),
-          ),
-        ),
+    return Semantics(
+      button: true,
+      label: label,
+      child: Tooltip(
+        message: label,
+        child: IconButton(icon: Icon(icon), onPressed: onToggle),
       ),
     );
   }
@@ -1155,6 +1174,25 @@ class _AccountIconBadge extends StatelessWidget {
         shape: BoxShape.circle,
       ),
       child: Icon(icon, size: 16, color: color),
+    );
+  }
+}
+
+class _AccountBalanceText extends StatelessWidget {
+  const _AccountBalanceText({required this.text, required this.style});
+
+  final String text;
+  final TextStyle style;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      child: FittedBox(
+        alignment: Alignment.centerLeft,
+        fit: BoxFit.scaleDown,
+        child: Text(text, style: style, maxLines: 1),
+      ),
     );
   }
 }
@@ -1206,10 +1244,9 @@ class _StandardAccountContent extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 8),
-        Text(
-          currencyFormat.format(account.balance),
+        _AccountBalanceText(
+          text: currencyFormat.format(account.balance),
           style: balanceStyle,
-          softWrap: true,
         ),
         const SizedBox(height: 16),
         Text(strings.analyticsCurrentMonthTitle, style: summaryHeaderStyle),
@@ -1320,10 +1357,9 @@ class _CreditCardAccountContent extends ConsumerWidget {
                   style: limitLabelStyle,
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  currencyFormat.format(availableLimit),
+                _AccountBalanceText(
+                  text: currencyFormat.format(availableLimit),
                   style: balanceStyle,
-                  softWrap: true,
                 ),
                 const SizedBox(height: 10),
                 Text(strings.creditCardSpentLabel, style: limitLabelStyle),
@@ -1413,10 +1449,9 @@ class _CreditCardContent extends ConsumerWidget {
                   ],
                 ),
                 const SizedBox(height: 8),
-                Text(
-                  currencyFormat.format(account.balance.abs()),
+                _AccountBalanceText(
+                  text: currencyFormat.format(account.balance.abs()),
                   style: balanceStyle,
-                  softWrap: true,
                 ),
                 const SizedBox(height: 16),
                 ClipRRect(

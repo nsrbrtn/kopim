@@ -141,7 +141,10 @@ class UpcomingPaymentsList extends ConsumerWidget {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
-          SnackBar(content: Text(strings.upcomingPaymentsDeleteSuccess)),
+          SnackBar(
+            duration: const Duration(seconds: 3),
+            content: Text(strings.upcomingPaymentsDeleteSuccess),
+          ),
         );
     } catch (error) {
       if (!context.mounted) {
@@ -151,6 +154,7 @@ class UpcomingPaymentsList extends ConsumerWidget {
         ..hideCurrentSnackBar()
         ..showSnackBar(
           SnackBar(
+            duration: const Duration(seconds: 3),
             content: Text(
               strings.upcomingPaymentsDeleteError(error.toString()),
             ),
@@ -234,6 +238,7 @@ class PaymentRemindersList extends ConsumerWidget {
         ..hideCurrentSnackBar()
         ..showSnackBar(
           SnackBar(
+            duration: const Duration(seconds: 3),
             content: Text(strings.upcomingPaymentsReminderMarkPaidSuccess),
           ),
         );
@@ -245,6 +250,7 @@ class PaymentRemindersList extends ConsumerWidget {
         ..hideCurrentSnackBar()
         ..showSnackBar(
           SnackBar(
+            duration: const Duration(seconds: 3),
             content: Text(
               strings.upcomingPaymentsReminderMarkPaidError(error.toString()),
             ),
@@ -298,6 +304,7 @@ class PaymentRemindersList extends ConsumerWidget {
         ..hideCurrentSnackBar()
         ..showSnackBar(
           SnackBar(
+            duration: const Duration(seconds: 3),
             content: Text(strings.upcomingPaymentsReminderDeleteSuccess),
           ),
         );
@@ -309,6 +316,7 @@ class PaymentRemindersList extends ConsumerWidget {
         ..hideCurrentSnackBar()
         ..showSnackBar(
           SnackBar(
+            duration: const Duration(seconds: 3),
             content: Text(
               strings.upcomingPaymentsReminderDeleteError(error.toString()),
             ),

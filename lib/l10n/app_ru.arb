@@ -1352,6 +1352,45 @@
   "@homeTransactionsTodayLabel": {
     "description": "Заголовок группы транзакций за сегодняшний день"
   },
+  "homeOverviewTotalBalanceLabel": "Общий баланс",
+  "@homeOverviewTotalBalanceLabel": {
+    "description": "Заголовок общего баланса на виджете обзора"
+  },
+  "homeOverviewIncomeValue": "Доход: {amount}",
+  "@homeOverviewIncomeValue": {
+    "description": "Строка дохода за день на виджете обзора",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "homeOverviewExpenseValue": "Расход: {amount}",
+  "@homeOverviewExpenseValue": {
+    "description": "Строка расхода за день на виджете обзора",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "homeOverviewTopExpensesLabel": "Топ расходов",
+  "@homeOverviewTopExpensesLabel": {
+    "description": "Заголовок блока топ-категории расходов"
+  },
+  "homeOverviewTopExpensesEmpty": "Нет расходов",
+  "@homeOverviewTopExpensesEmpty": {
+    "description": "Пустое состояние топ-категории расходов"
+  },
+  "homeOverviewSummaryError": "Не удалось загрузить сводку: {error}",
+  "@homeOverviewSummaryError": {
+    "description": "Сообщение об ошибке загрузки сводки на главном экране",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "homeTransactionsYesterdayLabel": "Вчера",
   "@homeTransactionsYesterdayLabel": {
     "description": "Заголовок группы транзакций за вчерашний день"
@@ -1409,7 +1448,7 @@
   "@homeTransactionsUncategorized": {
     "description": "Подпись при отсутствии категории"
   },
-  "homeUpcomingPaymentsTitle": "Повторяющиеся платежи",
+  "homeUpcomingPaymentsTitle": "Предстоящие платежи",
   "@homeUpcomingPaymentsTitle": {
     "description": "Заголовок виджета с ближайшими платежами"
   },
@@ -1508,11 +1547,11 @@
       }
     }
   },
-  "upcomingPaymentsTitle": "Повторяющиеся платежи",
+  "upcomingPaymentsTitle": "Предстоящие платежи",
   "@upcomingPaymentsTitle": {
     "description": "Заголовок экрана предстоящих платежей"
   },
-  "upcomingPaymentsTabPayments": "Повторяющиеся",
+  "upcomingPaymentsTabPayments": "Предстоящие",
   "@upcomingPaymentsTabPayments": {
     "description": "Название вкладки с правилами платежей"
   },
@@ -1536,7 +1575,7 @@
   "@upcomingPaymentsEmptyRemindersDescription": {
     "description": "Описание пустого состояния списка напоминаний"
   },
-  "upcomingPaymentsAddPayment": "Добавить повторяющийся платёж",
+  "upcomingPaymentsAddPayment": "Добавить предстоящий платёж",
   "@upcomingPaymentsAddPayment": {
     "description": "Подпись действия создания правила платежа"
   },
@@ -3299,5 +3338,13 @@
   "assistantFaqAnswerImproveResults": "Уточняйте период, счёт или категорию. Используйте фильтры над чатом, чтобы дать больше контекста.",
   "@assistantFaqAnswerImproveResults": {
     "description": "Ответ FAQ с советами по уточнению запроса"
+  },
+  "overviewScreenTitle": "Обзор",
+  "@overviewScreenTitle": {
+    "description": "Заголовок экрана обзора"
+  },
+  "overviewScreenPlaceholder": "Скоро здесь появится информация обзора.",
+  "@overviewScreenPlaceholder": {
+    "description": "Плейсхолдер экрана обзора"
   }
 }

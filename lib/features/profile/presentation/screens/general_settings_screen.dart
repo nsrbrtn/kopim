@@ -431,7 +431,10 @@ class _DataTransferSectionState extends ConsumerState<_DataTransferSection> {
       data: (ExportFileSaveResult? result) {
         if (result == null) {
           messenger.showSnackBar(
-            SnackBar(content: Text(strings.genericErrorMessage)),
+            SnackBar(
+              duration: const Duration(seconds: 3),
+              content: Text(strings.genericErrorMessage),
+            ),
           );
           return;
         }
@@ -444,7 +447,12 @@ class _DataTransferSectionState extends ConsumerState<_DataTransferSection> {
               );
         messenger
           ..hideCurrentSnackBar()
-          ..showSnackBar(SnackBar(content: Text(message)));
+          ..showSnackBar(
+            SnackBar(
+              duration: const Duration(seconds: 3),
+              content: Text(message),
+            ),
+          );
         controller.clearResult();
       },
       error: (Object error, StackTrace _) {
@@ -452,6 +460,7 @@ class _DataTransferSectionState extends ConsumerState<_DataTransferSection> {
           ..hideCurrentSnackBar()
           ..showSnackBar(
             SnackBar(
+              duration: const Duration(seconds: 3),
               content: Text(strings.profileExportDataFailure(error.toString())),
             ),
           );
@@ -475,7 +484,10 @@ class _DataTransferSectionState extends ConsumerState<_DataTransferSection> {
       data: (ImportUserDataResult? result) {
         if (result == null) {
           messenger.showSnackBar(
-            SnackBar(content: Text(strings.genericErrorMessage)),
+            SnackBar(
+              duration: const Duration(seconds: 3),
+              content: Text(strings.genericErrorMessage),
+            ),
           );
           return;
         }
@@ -492,7 +504,12 @@ class _DataTransferSectionState extends ConsumerState<_DataTransferSection> {
         );
         messenger
           ..hideCurrentSnackBar()
-          ..showSnackBar(SnackBar(content: Text(message)));
+          ..showSnackBar(
+            SnackBar(
+              duration: const Duration(seconds: 3),
+              content: Text(message),
+            ),
+          );
         controller.clearResult();
       },
       error: (Object error, StackTrace _) {
@@ -500,6 +517,7 @@ class _DataTransferSectionState extends ConsumerState<_DataTransferSection> {
           ..hideCurrentSnackBar()
           ..showSnackBar(
             SnackBar(
+              duration: const Duration(seconds: 3),
               content: Text(strings.profileImportDataFailure(error.toString())),
             ),
           );

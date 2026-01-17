@@ -670,7 +670,10 @@ class _AssistantMessageBubble extends StatelessWidget {
                   return;
                 }
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(strings.assistantMessageCopied)),
+                  SnackBar(
+                    duration: const Duration(seconds: 3),
+                    content: Text(strings.assistantMessageCopied),
+                  ),
                 );
               },
         child: Column(

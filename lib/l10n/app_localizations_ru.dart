@@ -1089,6 +1089,30 @@ class AppLocalizationsRu extends AppLocalizations {
   String get homeTransactionsTodayLabel => 'Сегодня';
 
   @override
+  String get homeOverviewTotalBalanceLabel => 'Общий баланс';
+
+  @override
+  String homeOverviewIncomeValue(String amount) {
+    return 'Доход: $amount';
+  }
+
+  @override
+  String homeOverviewExpenseValue(String amount) {
+    return 'Расход: $amount';
+  }
+
+  @override
+  String get homeOverviewTopExpensesLabel => 'Топ расходов';
+
+  @override
+  String get homeOverviewTopExpensesEmpty => 'Нет расходов';
+
+  @override
+  String homeOverviewSummaryError(String error) {
+    return 'Не удалось загрузить сводку: $error';
+  }
+
+  @override
   String get homeTransactionsYesterdayLabel => 'Вчера';
 
   @override
@@ -1130,7 +1154,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get homeTransactionsUncategorized => 'Без категории';
 
   @override
-  String get homeUpcomingPaymentsTitle => 'Повторяющиеся платежи';
+  String get homeUpcomingPaymentsTitle => 'Предстоящие платежи';
 
   @override
   String get homeUpcomingPaymentsEmpty => 'Пока нет повторяющихся платежей.';
@@ -1228,10 +1252,10 @@ class AppLocalizationsRu extends AppLocalizations {
   }
 
   @override
-  String get upcomingPaymentsTitle => 'Повторяющиеся платежи';
+  String get upcomingPaymentsTitle => 'Предстоящие платежи';
 
   @override
-  String get upcomingPaymentsTabPayments => 'Повторяющиеся';
+  String get upcomingPaymentsTabPayments => 'Предстоящие';
 
   @override
   String get upcomingPaymentsTabReminders => 'Напоминания';
@@ -1252,7 +1276,7 @@ class AppLocalizationsRu extends AppLocalizations {
       'Создайте напоминания, чтобы не пропустить ручные платежи.';
 
   @override
-  String get upcomingPaymentsAddPayment => 'Добавить повторяющийся платёж';
+  String get upcomingPaymentsAddPayment => 'Добавить предстоящий платёж';
 
   @override
   String get upcomingPaymentsAddReminder => 'Добавить напоминание';
@@ -2578,4 +2602,11 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get assistantFaqAnswerImproveResults =>
       'Уточняйте период, счёт или категорию. Используйте фильтры над чатом, чтобы дать больше контекста.';
+
+  @override
+  String get overviewScreenTitle => 'Обзор';
+
+  @override
+  String get overviewScreenPlaceholder =>
+      'Скоро здесь появится информация обзора.';
 }

@@ -466,7 +466,7 @@ class _QuickTransactionSheetState
     messenger.showSnackBar(
       SnackBar(
         content: Text(widget.strings.addTransactionSuccess),
-        duration: const Duration(seconds: 6),
+        duration: const Duration(seconds: 3),
         action: SnackBarAction(
           label: widget.strings.commonUndo,
           onPressed: () {
@@ -484,7 +484,7 @@ class _QuickTransactionSheetState
                               ? widget.strings.addTransactionUndoSuccess
                               : widget.strings.addTransactionUndoError,
                         ),
-                        duration: const Duration(seconds: 4),
+                        duration: const Duration(seconds: 3),
                       ),
                     );
                 });

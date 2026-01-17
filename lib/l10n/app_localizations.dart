@@ -2004,6 +2004,42 @@ abstract class AppLocalizations {
   /// **'Today'**
   String get homeTransactionsTodayLabel;
 
+  /// Total balance label on the overview widget
+  ///
+  /// In en, this message translates to:
+  /// **'Total balance'**
+  String get homeOverviewTotalBalanceLabel;
+
+  /// Income line on the overview widget
+  ///
+  /// In en, this message translates to:
+  /// **'Income: {amount}'**
+  String homeOverviewIncomeValue(String amount);
+
+  /// Expense line on the overview widget
+  ///
+  /// In en, this message translates to:
+  /// **'Expense: {amount}'**
+  String homeOverviewExpenseValue(String amount);
+
+  /// Top expenses block label
+  ///
+  /// In en, this message translates to:
+  /// **'Top expenses'**
+  String get homeOverviewTopExpensesLabel;
+
+  /// Empty state for top expenses
+  ///
+  /// In en, this message translates to:
+  /// **'No expenses yet'**
+  String get homeOverviewTopExpensesEmpty;
+
+  /// Error message for overview summary on home
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t load summary: {error}'**
+  String homeOverviewSummaryError(String error);
+
   /// Section header label for transactions happening yesterday
   ///
   /// In en, this message translates to:
@@ -4541,6 +4577,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Be specific—mention time ranges, accounts, or categories. Combine quick filters above the chat for extra context.'**
   String get assistantFaqAnswerImproveResults;
+
+  /// Overview screen title
+  ///
+  /// In en, this message translates to:
+  /// **'Overview'**
+  String get overviewScreenTitle;
+
+  /// Overview screen placeholder text
+  ///
+  /// In en, this message translates to:
+  /// **'Overview details will appear here soon.'**
+  String get overviewScreenPlaceholder;
 }
 
 class _AppLocalizationsDelegate

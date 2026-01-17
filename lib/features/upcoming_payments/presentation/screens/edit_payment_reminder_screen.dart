@@ -412,6 +412,7 @@ class _EditPaymentReminderScreenState
         ..hideCurrentSnackBar()
         ..showSnackBar(
           SnackBar(
+            duration: const Duration(seconds: 3),
             content: Text(
               '$message\n${strings.upcomingPaymentsScheduleTriggered}',
             ),
@@ -435,6 +436,7 @@ class _EditPaymentReminderScreenState
         ..hideCurrentSnackBar()
         ..showSnackBar(
           SnackBar(
+            duration: const Duration(seconds: 3),
             content: Text(
               strings.upcomingPaymentsReminderSaveError(error.toString()),
             ),
