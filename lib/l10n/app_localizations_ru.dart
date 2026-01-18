@@ -2607,6 +2607,18 @@ class AppLocalizationsRu extends AppLocalizations {
   String get overviewScreenTitle => 'Обзор';
 
   @override
+  String get overviewSettingsTitle => 'Настройки обзора';
+
+  @override
+  String get overviewSettingsTooltip => 'Настройки обзора';
+
+  @override
+  String get overviewSettingsAccountsSection => 'Счета';
+
+  @override
+  String get overviewSettingsCategoriesSection => 'Категории';
+
+  @override
   String get overviewScreenPlaceholder =>
       'Скоро здесь появится информация обзора.';
 }

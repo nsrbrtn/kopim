@@ -7,6 +7,8 @@ import 'package:kopim/features/home/domain/models/home_account_monthly_summary.d
 import 'package:kopim/features/home/domain/models/home_overview_summary.dart';
 import 'package:kopim/features/home/domain/use_cases/group_transactions_by_day_use_case.dart';
 import 'package:kopim/features/home/presentation/controllers/home_transactions_filter_controller.dart';
+import 'package:kopim/features/overview/domain/entities/overview_preferences.dart';
+import 'package:kopim/features/overview/presentation/controllers/overview_preferences_controller.dart';
 import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
 import 'package:kopim/features/savings/domain/value_objects/goal_progress.dart';
 import 'package:kopim/features/transactions/domain/models/account_monthly_totals.dart';
@@ -132,7 +134,20 @@ Stream<Map<String, HomeAccountMonthlySummary>> homeAccountMonthlySummaries(
 
 @riverpod
 Stream<HomeOverviewSummary> homeOverviewSummary(Ref ref) {
-  return ref.watch(watchHomeOverviewSummaryUseCaseProvider).call();
+  final OverviewPreferences preferences = ref
+      .watch(overviewPreferencesControllerProvider)
+      .maybeWhen(
+        data: (OverviewPreferences value) => value,
+        orElse: () {
+          return const OverviewPreferences();
+        },
+      );
+  return ref
+      .watch(watchHomeOverviewSummaryUseCaseProvider)
+      .call(
+        accountIdsFilter: preferences.accountIdSet,
+        categoryIdsFilter: preferences.categoryIdSet,
+      );
 }
 
 @visibleForTesting

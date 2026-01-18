@@ -1085,6 +1085,7 @@ class _AccountHideButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final bool isHidden = account.isHidden;
     return Material(
       type: MaterialType.transparency,
       child: InkResponse(
@@ -1094,7 +1095,7 @@ class _AccountHideButton extends ConsumerWidget {
             addAccountUseCaseProvider,
           );
           await addAccountUseCase(
-            account.copyWith(isHidden: true, updatedAt: now),
+            account.copyWith(isHidden: !isHidden, updatedAt: now),
           );
         },
         radius: 20,
@@ -1103,7 +1104,9 @@ class _AccountHideButton extends ConsumerWidget {
           width: _AccountIconBadge.size,
           height: _AccountIconBadge.size,
           child: Icon(
-            PhosphorIcons.eyeSlash(PhosphorIconsStyle.regular),
+            isHidden
+                ? PhosphorIcons.eye(PhosphorIconsStyle.regular)
+                : PhosphorIcons.eyeSlash(PhosphorIconsStyle.regular),
             size: 16,
             color: color,
           ),

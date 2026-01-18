@@ -3343,6 +3343,22 @@
   "@overviewScreenTitle": {
     "description": "Заголовок экрана обзора"
   },
+  "overviewSettingsTitle": "Настройки обзора",
+  "@overviewSettingsTitle": {
+    "description": "Заголовок экрана настроек обзора"
+  },
+  "overviewSettingsTooltip": "Настройки обзора",
+  "@overviewSettingsTooltip": {
+    "description": "Подсказка для кнопки настроек обзора"
+  },
+  "overviewSettingsAccountsSection": "Счета",
+  "@overviewSettingsAccountsSection": {
+    "description": "Заголовок секции выбора счетов в настройках обзора"
+  },
+  "overviewSettingsCategoriesSection": "Категории",
+  "@overviewSettingsCategoriesSection": {
+    "description": "Заголовок секции выбора категорий в настройках обзора"
+  },
   "overviewScreenPlaceholder": "Скоро здесь появится информация обзора.",
   "@overviewScreenPlaceholder": {
     "description": "Плейсхолдер экрана обзора"

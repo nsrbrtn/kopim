@@ -254,6 +254,18 @@ GenerativeAiConfig _buildGenerativeAiConfig(FirebaseRemoteConfig remoteConfig) {
     'OPENROUTER_API_KEY',
     defaultValue: '',
   );
+  const String envBaseUrl = String.fromEnvironment(
+    'OPENROUTER_BASE_URL',
+    defaultValue: '',
+  );
+  const String envReferer = String.fromEnvironment(
+    'OPENROUTER_REFERER',
+    defaultValue: '',
+  );
+  const String envTitle = String.fromEnvironment(
+    'OPENROUTER_TITLE',
+    defaultValue: '',
+  );
   final String? apiKey = remoteKey.isNotEmpty
       ? remoteKey
       : (envKey.isNotEmpty ? envKey : null);
@@ -288,15 +300,21 @@ GenerativeAiConfig _buildGenerativeAiConfig(FirebaseRemoteConfig remoteConfig) {
   return GenerativeAiConfig(
     apiKey: apiKey,
     model: modelValue.isNotEmpty ? modelValue : _kDefaultAiModel,
-    baseUrl: baseUrlValue.isNotEmpty ? baseUrlValue : _kDefaultAiBaseUrl,
+    baseUrl: baseUrlValue.isNotEmpty
+        ? baseUrlValue
+        : (envBaseUrl.isNotEmpty ? envBaseUrl : _kDefaultAiBaseUrl),
     requestTimeout: timeout,
     throttleInterval: throttle,
     isEnabled: enabled,
     maxRetries: maxRetries >= 0 ? maxRetries : _kDefaultAiMaxRetries,
     retryBaseDelay: retryBase,
     retryMultiplier: multiplier,
-    referer: refererValue.isNotEmpty ? refererValue : null,
-    appTitle: titleValue.isNotEmpty ? titleValue : null,
+    referer: refererValue.isNotEmpty
+        ? refererValue
+        : (envReferer.isNotEmpty ? envReferer : null),
+    appTitle: titleValue.isNotEmpty
+        ? titleValue
+        : (envTitle.isNotEmpty ? envTitle : null),
   );
 }
 
@@ -305,16 +323,30 @@ GenerativeAiConfig _buildDefaultGenerativeAiConfig() {
     'OPENROUTER_API_KEY',
     defaultValue: '',
   );
+  const String envBaseUrl = String.fromEnvironment(
+    'OPENROUTER_BASE_URL',
+    defaultValue: '',
+  );
+  const String envReferer = String.fromEnvironment(
+    'OPENROUTER_REFERER',
+    defaultValue: '',
+  );
+  const String envTitle = String.fromEnvironment(
+    'OPENROUTER_TITLE',
+    defaultValue: '',
+  );
   final String? apiKey = envKey.isNotEmpty ? envKey : null;
   return GenerativeAiConfig(
     apiKey: apiKey,
     model: _kDefaultAiModel,
-    baseUrl: _kDefaultAiBaseUrl,
+    baseUrl: envBaseUrl.isNotEmpty ? envBaseUrl : _kDefaultAiBaseUrl,
     requestTimeout: _kDefaultAiRequestTimeout,
     throttleInterval: _kDefaultAiThrottleInterval,
     isEnabled: true,
     maxRetries: _kDefaultAiMaxRetries,
     retryBaseDelay: _kDefaultAiRetryBaseDelay,
     retryMultiplier: _kDefaultAiRetryMultiplier,
+    referer: envReferer.isNotEmpty ? envReferer : null,
+    appTitle: envTitle.isNotEmpty ? envTitle : null,
   );
 }

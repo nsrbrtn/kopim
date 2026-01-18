@@ -4566,6 +4566,57 @@ final class HomeDashboardPreferencesRepositoryProvider
 String _$homeDashboardPreferencesRepositoryHash() =>
     r'c155972af33f2c3b5f38f9d979afab318ef1300d';
 
+@ProviderFor(overviewPreferencesRepository)
+const overviewPreferencesRepositoryProvider =
+    OverviewPreferencesRepositoryProvider._();
+
+final class OverviewPreferencesRepositoryProvider
+    extends
+        $FunctionalProvider<
+          OverviewPreferencesRepository,
+          OverviewPreferencesRepository,
+          OverviewPreferencesRepository
+        >
+    with $Provider<OverviewPreferencesRepository> {
+  const OverviewPreferencesRepositoryProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'overviewPreferencesRepositoryProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$overviewPreferencesRepositoryHash();
+
+  @$internal
+  @override
+  $ProviderElement<OverviewPreferencesRepository> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  OverviewPreferencesRepository create(Ref ref) {
+    return overviewPreferencesRepository(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(OverviewPreferencesRepository value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<OverviewPreferencesRepository>(
+        value,
+      ),
+    );
+  }
+}
+
+String _$overviewPreferencesRepositoryHash() =>
+    r'cd911a1e89699229849f693cd0b62b6e06440aef';
+
 @ProviderFor(savingGoalRepository)
 const savingGoalRepositoryProvider = SavingGoalRepositoryProvider._();
 

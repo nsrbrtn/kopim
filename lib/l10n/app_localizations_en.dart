@@ -2585,6 +2585,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get overviewScreenTitle => 'Overview';
 
   @override
+  String get overviewSettingsTitle => 'Overview settings';
+
+  @override
+  String get overviewSettingsTooltip => 'Overview settings';
+
+  @override
+  String get overviewSettingsAccountsSection => 'Accounts';
+
+  @override
+  String get overviewSettingsCategoriesSection => 'Categories';
+
+  @override
   String get overviewScreenPlaceholder =>
       'Overview details will appear here soon.';
 }

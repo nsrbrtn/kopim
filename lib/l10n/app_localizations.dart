@@ -4584,6 +4584,30 @@ abstract class AppLocalizations {
   /// **'Overview'**
   String get overviewScreenTitle;
 
+  /// Title for the overview settings screen
+  ///
+  /// In en, this message translates to:
+  /// **'Overview settings'**
+  String get overviewSettingsTitle;
+
+  /// Tooltip for the overview settings button
+  ///
+  /// In en, this message translates to:
+  /// **'Overview settings'**
+  String get overviewSettingsTooltip;
+
+  /// Section header for selecting accounts in overview settings
+  ///
+  /// In en, this message translates to:
+  /// **'Accounts'**
+  String get overviewSettingsAccountsSection;
+
+  /// Section header for selecting categories in overview settings
+  ///
+  /// In en, this message translates to:
+  /// **'Categories'**
+  String get overviewSettingsCategoriesSection;
+
   /// Overview screen placeholder text
   ///
   /// In en, this message translates to:

@@ -3343,6 +3343,22 @@
   "@overviewScreenTitle": {
     "description": "Overview screen title"
   },
+  "overviewSettingsTitle": "Overview settings",
+  "@overviewSettingsTitle": {
+    "description": "Title for the overview settings screen"
+  },
+  "overviewSettingsTooltip": "Overview settings",
+  "@overviewSettingsTooltip": {
+    "description": "Tooltip for the overview settings button"
+  },
+  "overviewSettingsAccountsSection": "Accounts",
+  "@overviewSettingsAccountsSection": {
+    "description": "Section header for selecting accounts in overview settings"
+  },
+  "overviewSettingsCategoriesSection": "Categories",
+  "@overviewSettingsCategoriesSection": {
+    "description": "Section header for selecting categories in overview settings"
+  },
   "overviewScreenPlaceholder": "Overview details will appear here soon.",
   "@overviewScreenPlaceholder": {
     "description": "Overview screen placeholder text"

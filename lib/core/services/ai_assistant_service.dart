@@ -9,84 +9,6 @@ import 'package:kopim/core/services/analytics_service.dart';
 import 'package:kopim/core/services/logger_service.dart';
 import 'package:kopim/core/utils/network_error_utils.dart';
 
-const Map<String, Object> _kOpenRouterProviderConfiguration = <String, Object>{
-  'sort': 'latency',
-  'order': <String>[
-    'ai21',
-    'aion-labs',
-    'alibaba',
-    'amazon-bedrock',
-    'amazon-nova',
-    'anthropic',
-    'arcee-ai',
-    'atlas-cloud',
-    'avian',
-    'azure',
-    'baseten',
-    'byteplus',
-    'black-forest-labs',
-    'cerebras',
-    'chutes',
-    'cirrascale',
-    'clarifai',
-    'cloudflare',
-    'cohere',
-    'crusoe',
-    'deepinfra',
-    'deepseek',
-    'featherless',
-    'fireworks',
-    'friendli',
-    'gmicloud',
-    'gopomelo',
-    'google-vertex',
-    'google-ai-studio',
-    'groq',
-    'hyperbolic',
-    'inception',
-    'inference-net',
-    'infermatic',
-    'inflection',
-    'liquid',
-    'mara',
-    'mancer',
-    'minimax',
-    'modelrun',
-    'mistral',
-    'modular',
-    'moonshotai',
-    'morph',
-    'ncompass',
-    'nebius',
-    'nextbit',
-    'novita',
-    'nvidia',
-    'openai',
-    'open-inference',
-    'parasail',
-    'perplexity',
-    'phala',
-    'relace',
-    'sambanova',
-    'seed',
-    'siliconflow',
-    'sourceful',
-    'stealth',
-    'streamlake',
-    'switchpoint',
-    'targon',
-    'together',
-    'venice',
-    'wandb',
-    'xiaomi',
-    'xai',
-    'z-ai',
-    'fake-provider',
-  ],
-  'allow_fallbacks': true,
-  'data_collection': 'allow',
-};
-
 /// Базовое исключение сервиса ассистента.
 class AiAssistantException implements Exception {
   AiAssistantException(this.message, {this.cause});
@@ -615,7 +537,6 @@ class AiAssistantService {
     final Uri uri = Uri.parse('${config.baseUrl}/chat/completions');
     final Map<String, dynamic> payload = <String, dynamic>{
       'model': config.model,
-      'provider': _kOpenRouterProviderConfiguration,
       'messages': messages
           .map((AiAssistantMessage message) => message.toJson())
           .toList(growable: false),
@@ -655,8 +576,7 @@ class AiAssistantService {
       );
     }
     if (response.statusCode < 200 || response.statusCode >= 300) {
-      final Map<String, dynamic>? errorBody =
-          _tryDecodeJsonSafe(response.body);
+      final Map<String, dynamic>? errorBody = _tryDecodeJsonSafe(response.body);
       final String? provider = _extractProvider(errorBody);
       final String safeBody = _truncateForLog(response.body);
       _loggerService.logError(

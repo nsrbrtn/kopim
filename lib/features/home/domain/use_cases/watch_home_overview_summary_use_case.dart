@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/accounts/domain/repositories/account_repository.dart';
-import 'package:kopim/features/accounts/domain/utils/account_type_utils.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/categories/domain/repositories/category_repository.dart';
 import 'package:kopim/features/categories/domain/services/category_hierarchy.dart';
@@ -25,7 +24,11 @@ class WatchHomeOverviewSummaryUseCase {
   final TransactionRepository _transactionRepository;
   final CategoryRepository _categoryRepository;
 
-  Stream<HomeOverviewSummary> call({DateTime? reference}) {
+  Stream<HomeOverviewSummary> call({
+    DateTime? reference,
+    Set<String>? accountIdsFilter,
+    Set<String>? categoryIdsFilter,
+  }) {
     return _combineLatest3(
       _accountRepository.watchAccounts(),
       _transactionRepository.watchTransactions(),
@@ -40,6 +43,8 @@ class WatchHomeOverviewSummaryUseCase {
           transactions: transactions,
           categories: categories,
           reference: reference,
+          accountIdsFilter: accountIdsFilter,
+          categoryIdsFilter: categoryIdsFilter,
         );
       },
     );
@@ -52,6 +57,8 @@ HomeOverviewSummary computeHomeOverviewSummary({
   required List<TransactionEntity> transactions,
   required List<Category> categories,
   DateTime? reference,
+  Set<String>? accountIdsFilter,
+  Set<String>? categoryIdsFilter,
 }) {
   final DateTime now = reference ?? DateTime.now();
   final DateTime dayStart = DateTime(now.year, now.month, now.day);
@@ -59,17 +66,19 @@ HomeOverviewSummary computeHomeOverviewSummary({
   final DateTime monthStart = DateTime(now.year, now.month);
   final DateTime monthEnd = DateTime(now.year, now.month + 1);
 
-  final List<AccountEntity> cashAccounts = accounts
-      .where(
-        (AccountEntity account) =>
-            isCashAccountType(account.type) && !account.isHidden,
-      )
-      .toList(growable: false);
-  final Set<String> cashAccountIds = cashAccounts
+  final Set<String>? allowedAccountIds = accountIdsFilter;
+  final List<AccountEntity> selectedAccounts = allowedAccountIds == null
+      ? accounts
+      : accounts
+            .where(
+              (AccountEntity account) => allowedAccountIds.contains(account.id),
+            )
+            .toList(growable: false);
+  final Set<String> selectedAccountIds = selectedAccounts
       .map((AccountEntity account) => account.id)
       .toSet();
 
-  final double totalBalance = cashAccounts.fold<double>(
+  final double totalBalance = selectedAccounts.fold<double>(
     0,
     (double sum, AccountEntity account) => sum + account.balance,
   );
@@ -80,7 +89,7 @@ HomeOverviewSummary computeHomeOverviewSummary({
   final Map<String?, double> expenseByRoot = <String?, double>{};
 
   for (final TransactionEntity transaction in transactions) {
-    if (!cashAccountIds.contains(transaction.accountId)) {
+    if (!selectedAccountIds.contains(transaction.accountId)) {
       continue;
     }
 
@@ -88,6 +97,16 @@ HomeOverviewSummary computeHomeOverviewSummary({
     final bool inToday = !date.isBefore(dayStart) && date.isBefore(dayEnd);
     final bool inMonth = !date.isBefore(monthStart) && date.isBefore(monthEnd);
     final double amount = transaction.amount.abs();
+    final String? rootCategoryId = _resolveRootCategoryId(
+      transaction.categoryId,
+      hierarchy,
+    );
+
+    if (categoryIdsFilter != null &&
+        (rootCategoryId == null ||
+            !categoryIdsFilter.contains(rootCategoryId))) {
+      continue;
+    }
 
     if (transaction.type == TransactionType.income.storageValue) {
       if (inToday) {
@@ -101,11 +120,8 @@ HomeOverviewSummary computeHomeOverviewSummary({
         todayExpense += amount;
       }
       if (inMonth) {
-        final String? rootId = _resolveRootCategoryId(
-          transaction.categoryId,
-          hierarchy,
-        );
-        expenseByRoot[rootId] = (expenseByRoot[rootId] ?? 0) + amount;
+        expenseByRoot[rootCategoryId] =
+            (expenseByRoot[rootCategoryId] ?? 0) + amount;
       }
     }
   }

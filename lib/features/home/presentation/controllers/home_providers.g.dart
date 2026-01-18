@@ -627,4 +627,4 @@ final class HomeOverviewSummaryProvider
 }
 
 String _$homeOverviewSummaryHash() =>
-    r'bd805171502db5887312eed4a0799b449066afba';
+    r'8a3d43e578b79e36b8665d03e4e1e11863af938a';

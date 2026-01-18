@@ -146,6 +146,8 @@ import 'package:kopim/features/transactions/domain/use_cases/watch_account_trans
 import 'package:kopim/features/transactions/domain/use_cases/watch_recent_transactions_use_case.dart';
 import 'package:kopim/features/home/data/repositories/home_dashboard_preferences_repository_impl.dart';
 import 'package:kopim/features/home/domain/repositories/home_dashboard_preferences_repository.dart';
+import 'package:kopim/features/overview/data/repositories/overview_preferences_repository_impl.dart';
+import 'package:kopim/features/overview/domain/repositories/overview_preferences_repository.dart';
 import 'package:kopim/features/home/domain/use_cases/group_transactions_by_day_use_case.dart';
 import 'package:kopim/features/credits/domain/use_cases/add_credit_use_case.dart';
 import 'package:kopim/features/credits/domain/use_cases/add_credit_card_use_case.dart';
@@ -894,6 +896,11 @@ BudgetRepository budgetRepository(Ref ref) => BudgetRepositoryImpl(
 @riverpod
 HomeDashboardPreferencesRepository homeDashboardPreferencesRepository(Ref ref) {
   return HomeDashboardPreferencesRepositoryImpl();
+}
+
+@riverpod
+OverviewPreferencesRepository overviewPreferencesRepository(Ref ref) {
+  return OverviewPreferencesRepositoryImpl();
 }
 
 @riverpod
