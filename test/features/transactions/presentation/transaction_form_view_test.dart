@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
+import 'package:kopim/features/tags/domain/entities/tag.dart';
 import 'package:kopim/features/transactions/presentation/add_transaction_screen.dart';
 import 'package:kopim/features/transactions/presentation/controllers/transaction_form_controller.dart';
 import 'package:kopim/l10n/app_localizations.dart';
@@ -44,6 +45,9 @@ void main() {
           ),
           transactionFormCategoriesProvider.overrideWith(
             (Ref ref) => Stream<List<Category>>.value(<Category>[category]),
+          ),
+          transactionFormTagsProvider.overrideWith(
+            (Ref ref) => const Stream<List<TagEntity>>.empty(),
           ),
         ],
         child: const MaterialApp(

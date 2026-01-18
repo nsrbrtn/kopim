@@ -422,6 +422,7 @@ ExportUserDataUseCase exportUserDataUseCase(Ref ref) =>
 ImportDataRepository importDataRepository(Ref ref) => ImportDataRepositoryImpl(
   accountDao: ref.watch(accountDaoProvider),
   categoryDao: ref.watch(categoryDaoProvider),
+  creditDao: ref.watch(creditDaoProvider),
   transactionDao: ref.watch(transactionDaoProvider),
 );
 
@@ -877,9 +878,11 @@ final rp.Provider<WatchCategoryTreeUseCase> watchCategoryTreeUseCaseProvider =
 
 @riverpod
 TransactionRepository transactionRepository(Ref ref) =>
-    TransactionRepositoryImpl(
+  TransactionRepositoryImpl(
       database: ref.watch(appDatabaseProvider),
       transactionDao: ref.watch(transactionDaoProvider),
+      accountDao: ref.watch(accountDaoProvider),
+      creditDao: ref.watch(creditDaoProvider),
       savingGoalDao: ref.watch(savingGoalDaoProvider),
       goalContributionDao: ref.watch(goalContributionDaoProvider),
       outboxDao: ref.watch(outboxDaoProvider),
@@ -909,6 +912,7 @@ SavingGoalRepository savingGoalRepository(Ref ref) => SavingGoalRepositoryImpl(
   savingGoalDao: ref.watch(savingGoalDaoProvider),
   categoryDao: ref.watch(categoryDaoProvider),
   accountDao: ref.watch(accountDaoProvider),
+  creditDao: ref.watch(creditDaoProvider),
   transactionDao: ref.watch(transactionDaoProvider),
   goalContributionDao: ref.watch(goalContributionDaoProvider),
   outboxDao: ref.watch(outboxDaoProvider),
@@ -938,7 +942,6 @@ final rp.Provider<AddTransactionUseCase> addTransactionUseCaseProvider =
       return AddTransactionUseCase(
         transactionRepository: ref.watch(transactionRepositoryProvider),
         accountRepository: ref.watch(accountRepositoryProvider),
-        creditRepository: ref.watch(creditRepositoryProvider),
         onTransactionCreatedUseCase: ref.watch(
           onTransactionCreatedUseCaseProvider,
         ),
@@ -950,7 +953,6 @@ final rp.Provider<UpdateTransactionUseCase> updateTransactionUseCaseProvider =
       return UpdateTransactionUseCase(
         transactionRepository: ref.watch(transactionRepositoryProvider),
         accountRepository: ref.watch(accountRepositoryProvider),
-        creditRepository: ref.watch(creditRepositoryProvider),
       );
     });
 
@@ -958,8 +960,6 @@ final rp.Provider<DeleteTransactionUseCase> deleteTransactionUseCaseProvider =
     rp.Provider<DeleteTransactionUseCase>((rp.Ref ref) {
       return DeleteTransactionUseCase(
         transactionRepository: ref.watch(transactionRepositoryProvider),
-        accountRepository: ref.watch(accountRepositoryProvider),
-        creditRepository: ref.watch(creditRepositoryProvider),
         onTransactionDeletedUseCase: ref.watch(
           onTransactionDeletedUseCaseProvider,
         ),

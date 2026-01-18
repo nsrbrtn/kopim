@@ -43,6 +43,7 @@ void main() {
   late _MockLoggerService logger;
   late _MockMarkReminderDoneUC markReminderDone;
   late StreamController<NotificationResponse> responses;
+  late ProviderSubscription<AsyncValue<void>> keepAliveSub;
 
   setUp(() {
     notifications = _MockNotificationsGateway();
@@ -106,11 +107,16 @@ void main() {
         appLocaleProvider.overrideWithValue(const Locale('en')),
       ],
     );
+    keepAliveSub = container.listen(
+      upcomingNotificationsControllerProvider,
+      (_, __) {},
+    );
   });
 
   tearDown(() async {
     await responses.close();
     await pumpEventQueue();
+    keepAliveSub.close();
     container.dispose();
   });
 
@@ -156,6 +162,7 @@ void main() {
 
   test('cancels notification for deleted upcoming payment', () async {
     await container.read(upcomingNotificationsControllerProvider.future);
+    await pumpEventQueue();
     final UpcomingNotificationsController controller = container.read(
       upcomingNotificationsControllerProvider.notifier,
     );
@@ -167,6 +174,7 @@ void main() {
 
   test('cancels notification for deleted reminder', () async {
     await container.read(upcomingNotificationsControllerProvider.future);
+    await pumpEventQueue();
     final UpcomingNotificationsController controller = container.read(
       upcomingNotificationsControllerProvider.notifier,
     );

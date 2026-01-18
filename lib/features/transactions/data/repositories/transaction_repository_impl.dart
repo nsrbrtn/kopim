@@ -1,8 +1,12 @@
 import 'package:kopim/core/data/database.dart' as db;
 import 'package:kopim/core/data/outbox/outbox_dao.dart';
+import 'package:kopim/features/accounts/data/sources/local/account_dao.dart';
+import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
+import 'package:kopim/features/credits/data/sources/local/credit_dao.dart';
 import 'package:kopim/features/savings/data/sources/local/goal_contribution_dao.dart';
 import 'package:kopim/features/savings/data/sources/local/saving_goal_dao.dart';
 import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
+import 'package:kopim/features/transactions/data/services/transaction_balance_helper.dart';
 import 'package:kopim/features/transactions/data/sources/local/transaction_dao.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/models/account_monthly_totals.dart';
@@ -12,21 +16,28 @@ class TransactionRepositoryImpl implements TransactionRepository {
   TransactionRepositoryImpl({
     required db.AppDatabase database,
     required TransactionDao transactionDao,
+    required AccountDao accountDao,
+    required CreditDao creditDao,
     required SavingGoalDao savingGoalDao,
     required GoalContributionDao goalContributionDao,
     required OutboxDao outboxDao,
   }) : _database = database,
        _transactionDao = transactionDao,
+       _accountDao = accountDao,
+       _creditDao = creditDao,
        _savingGoalDao = savingGoalDao,
        _contributionDao = goalContributionDao,
        _outboxDao = outboxDao;
 
   final db.AppDatabase _database;
   final TransactionDao _transactionDao;
+  final AccountDao _accountDao;
+  final CreditDao _creditDao;
   final SavingGoalDao _savingGoalDao;
   final GoalContributionDao _contributionDao;
   final OutboxDao _outboxDao;
   static const String _entityType = 'transaction';
+  static const String _accountEntityType = 'account';
   static const String _savingGoalEntityType = 'saving_goal';
 
   @override
@@ -93,6 +104,11 @@ class TransactionRepositoryImpl implements TransactionRepository {
           ? _mapToDomain(previousRow)
           : null;
       await _transactionDao.upsert(toPersist);
+      await _applyAccountBalanceChanges(
+        previous: previous,
+        current: toPersist,
+        updatedAt: now,
+      );
       await _outboxDao.enqueue(
         entityType: _entityType,
         entityId: toPersist.id,
@@ -106,12 +122,18 @@ class TransactionRepositoryImpl implements TransactionRepository {
   Future<void> softDelete(String id) async {
     final DateTime now = DateTime.now();
     await _database.transaction(() async {
-      await _transactionDao.markDeleted(id, now);
       final db.TransactionRow? row = await _transactionDao.findById(id);
       if (row == null) return;
+      final TransactionEntity previous = _mapToDomain(row);
+      await _applyAccountBalanceChanges(
+        previous: previous,
+        current: null,
+        updatedAt: now,
+      );
+      await _transactionDao.markDeleted(id, now);
       await _handleSavingGoalRollback(row, now);
       final Map<String, dynamic> payload = _mapTransactionPayload(
-        _mapToDomain(row).copyWith(isDeleted: true, updatedAt: now),
+        previous.copyWith(isDeleted: true, updatedAt: now),
       );
       await _outboxDao.enqueue(
         entityType: _entityType,
@@ -159,12 +181,78 @@ class TransactionRepositoryImpl implements TransactionRepository {
     await _contributionDao.deleteById(contribution.id);
   }
 
+  Future<void> _applyAccountBalanceChanges({
+    required TransactionEntity? previous,
+    required TransactionEntity? current,
+    required DateTime updatedAt,
+  }) async {
+    if (previous == null && current == null) {
+      return;
+    }
+    final Map<String, double> previousEffect = previous != null
+        ? await _buildAccountEffect(previous)
+        : <String, double>{};
+    final Map<String, double> currentEffect = current != null
+        ? await _buildAccountEffect(current)
+        : <String, double>{};
+    final Set<String> affectedAccounts = <String>{
+      ...previousEffect.keys,
+      ...currentEffect.keys,
+    };
+    for (final String accountId in affectedAccounts) {
+      final double delta =
+          (currentEffect[accountId] ?? 0) - (previousEffect[accountId] ?? 0);
+      if (delta == 0) {
+        continue;
+      }
+      await _applyAccountDelta(accountId, delta, updatedAt);
+    }
+  }
+
+  Future<Map<String, double>> _buildAccountEffect(
+    TransactionEntity transaction,
+  ) async {
+    final String? categoryId = transaction.categoryId;
+    final db.CreditRow? creditRow = categoryId != null
+        ? await _creditDao.findByCategoryId(categoryId)
+        : null;
+    final String? creditAccountId = creditRow?.accountId;
+    return buildTransactionEffect(
+      transaction: transaction,
+      creditAccountId: creditAccountId,
+    );
+  }
+
+  Future<void> _applyAccountDelta(
+    String accountId,
+    double delta,
+    DateTime updatedAt,
+  ) async {
+    final db.AccountRow? row = await _accountDao.findById(accountId);
+    if (row == null) {
+      throw StateError('Account not found for id $accountId');
+    }
+    final AccountEntity updatedAccount = _mapAccountToDomain(row).copyWith(
+      balance: row.balance + delta,
+      updatedAt: updatedAt,
+    );
+    await _accountDao.upsert(updatedAccount);
+    await _outboxDao.enqueue(
+      entityType: _accountEntityType,
+      entityId: updatedAccount.id,
+      operation: OutboxOperation.upsert,
+      payload: _mapAccountPayload(updatedAccount),
+    );
+  }
+
   Map<String, dynamic> _mapTransactionPayload(TransactionEntity transaction) {
     final Map<String, dynamic> json = transaction.toJson();
     json['createdAt'] = transaction.createdAt.toIso8601String();
     json['updatedAt'] = transaction.updatedAt.toIso8601String();
     json['date'] = transaction.date.toIso8601String();
     json['savingGoalId'] = transaction.savingGoalId;
+    json['amountMinor'] = transaction.amountMinor?.toString();
+    json['amountScale'] = transaction.amountScale;
     return json;
   }
 
@@ -176,6 +264,22 @@ class TransactionRepositoryImpl implements TransactionRepository {
     return json;
   }
 
+  Map<String, dynamic> _mapAccountPayload(AccountEntity account) {
+    final Map<String, dynamic> json = account.toJson();
+    json['updatedAt'] = account.updatedAt.toIso8601String();
+    json['createdAt'] = account.createdAt.toIso8601String();
+    json['isPrimary'] = account.isPrimary;
+    json['color'] = account.color;
+    json['gradientId'] = account.gradientId;
+    json['iconName'] = account.iconName;
+    json['iconStyle'] = account.iconStyle;
+    json['openingBalance'] = account.openingBalance;
+    json['balanceMinor'] = account.balanceMinor?.toString();
+    json['openingBalanceMinor'] = account.openingBalanceMinor?.toString();
+    json['currencyScale'] = account.currencyScale;
+    return json;
+  }
+
   TransactionEntity _mapToDomain(db.TransactionRow row) {
     return TransactionEntity(
       id: row.id,
@@ -184,12 +288,37 @@ class TransactionRepositoryImpl implements TransactionRepository {
       categoryId: row.categoryId,
       savingGoalId: row.savingGoalId,
       amount: row.amount,
+      amountMinor: BigInt.parse(row.amountMinor),
+      amountScale: row.amountScale,
       date: row.date,
       note: row.note,
       type: row.type,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
       isDeleted: row.isDeleted,
+    );
+  }
+
+  AccountEntity _mapAccountToDomain(db.AccountRow row) {
+    return AccountEntity(
+      id: row.id,
+      name: row.name,
+      balance: row.balance,
+      balanceMinor: BigInt.parse(row.balanceMinor),
+      openingBalance: row.openingBalance,
+      openingBalanceMinor: BigInt.parse(row.openingBalanceMinor),
+      currency: row.currency,
+      currencyScale: row.currencyScale,
+      type: row.type,
+      color: row.color,
+      gradientId: row.gradientId,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+      isDeleted: row.isDeleted,
+      isPrimary: row.isPrimary,
+      isHidden: row.isHidden,
+      iconName: row.iconName,
+      iconStyle: row.iconStyle,
     );
   }
 

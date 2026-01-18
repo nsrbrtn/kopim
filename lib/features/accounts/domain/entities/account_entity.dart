@@ -11,8 +11,13 @@ abstract class AccountEntity with _$AccountEntity {
     required String id,
     required String name,
     required double balance,
+    @JsonKey(includeFromJson: false, includeToJson: false) BigInt? balanceMinor,
     @Default(0) double openingBalance,
+    @JsonKey(includeFromJson: false, includeToJson: false)
+    BigInt? openingBalanceMinor,
     required String currency,
+    @JsonKey(includeFromJson: false, includeToJson: false)
+    int? currencyScale,
     required String type,
     required DateTime createdAt,
     required DateTime updatedAt,

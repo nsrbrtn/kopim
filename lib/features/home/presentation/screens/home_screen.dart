@@ -1731,7 +1731,7 @@ class _TransactionsSectionCardState extends State<_TransactionsSectionCard> {
     final NumberFormat moneyFormat = TransactionTileFormatters.currency(
       widget.localeName,
       TransactionTileFormatters.fallbackCurrencySymbol(widget.localeName),
-      decimalDigits: 0,
+      decimalDigits: 2,
     );
     final TextStyle dateStyle =
         theme.textTheme.titleMedium?.copyWith(
@@ -1754,7 +1754,10 @@ class _TransactionsSectionCardState extends State<_TransactionsSectionCard> {
       final _TransactionSliverEntry entry = _entries[i];
       if (entry is _TransactionHeaderEntry) {
         final double netAmount = entry.netAmount;
-        final String formattedAmount = moneyFormat.format(netAmount.abs());
+        final String formattedAmount = TransactionTileFormatters.formatAmount(
+          formatter: moneyFormat,
+          amount: netAmount,
+        );
         final String amountLabel = netAmount < 0
             ? '- $formattedAmount'
             : formattedAmount;
@@ -2208,7 +2211,7 @@ class _TransactionListItem extends ConsumerWidget {
     final NumberFormat moneyFormat = TransactionTileFormatters.currency(
       localeName,
       currencySymbol,
-      decimalDigits: 0,
+      decimalDigits: transaction.amountScale ?? 2,
     );
 
     final ({String? name, PhosphorIconDescriptor? icon, String? color})
@@ -2344,7 +2347,12 @@ class _TransactionListItem extends ConsumerWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
                       Text(
-                        moneyFormat.format(amount.abs()),
+                        TransactionTileFormatters.formatAmount(
+                          formatter: moneyFormat,
+                          amount: amount,
+                          amountMinor: transaction.amountMinor,
+                          amountScale: transaction.amountScale,
+                        ),
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           color: Theme.of(context).colorScheme.onSurface,
                           fontWeight: FontWeight.w400,

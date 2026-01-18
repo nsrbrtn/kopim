@@ -2,6 +2,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/features/profile/domain/events/profile_domain_event.dart';
 import 'package:kopim/features/profile/presentation/services/profile_event_recorder.dart';
+import 'package:kopim/features/tags/domain/entities/tag.dart';
+import 'package:kopim/features/tags/domain/entities/transaction_tag.dart';
+import 'package:kopim/features/tags/domain/repositories/transaction_tags_repository.dart';
+import 'package:kopim/features/tags/domain/use_cases/get_transaction_tag_ids_use_case.dart';
+import 'package:kopim/features/tags/domain/use_cases/set_transaction_tags_use_case.dart';
 import 'package:kopim/features/transactions/domain/entities/add_transaction_request.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
@@ -21,11 +26,39 @@ class _MockUpdateTransactionUseCase extends Mock
 
 class _MockProfileEventRecorder extends Mock implements ProfileEventRecorder {}
 
+class _EmptyTransactionTagsRepository implements TransactionTagsRepository {
+  @override
+  Stream<List<TagEntity>> watchTagsForTransaction(String transactionId) =>
+      const Stream<List<TagEntity>>.empty();
+
+  @override
+  Future<List<TagEntity>> loadTagsForTransaction(String transactionId) async =>
+      const <TagEntity>[];
+
+  @override
+  Future<List<String>> getTagIdsForTransaction(String transactionId) async =>
+      const <String>[];
+
+  @override
+  Future<List<TransactionTagEntity>> loadAllTransactionTags() async =>
+      const <TransactionTagEntity>[];
+
+  @override
+  Future<void> upsertAll(List<TransactionTagEntity> links) async {}
+
+  @override
+  Future<void> setTransactionTags(
+    String transactionId,
+    List<String> tagIds,
+  ) async {}
+}
+
 void main() {
   late ProviderContainer container;
   late _MockAddTransactionUseCase addUseCase;
   late _MockUpdateTransactionUseCase updateUseCase;
   late _MockProfileEventRecorder eventRecorder;
+  late TransactionTagsRepository tagsRepository;
 
   setUpAll(() {
     registerFallbackValue(
@@ -51,6 +84,7 @@ void main() {
     addUseCase = _MockAddTransactionUseCase();
     updateUseCase = _MockUpdateTransactionUseCase();
     eventRecorder = _MockProfileEventRecorder();
+    tagsRepository = _EmptyTransactionTagsRepository();
     when(() => eventRecorder.record(any())).thenAnswer((_) async {});
     container = ProviderContainer(
       // ignore: always_specify_types, the Override type is internal to riverpod
@@ -58,6 +92,12 @@ void main() {
         addTransactionUseCaseProvider.overrideWithValue(addUseCase),
         updateTransactionUseCaseProvider.overrideWithValue(updateUseCase),
         profileEventRecorderProvider.overrideWithValue(eventRecorder),
+        getTransactionTagIdsUseCaseProvider.overrideWithValue(
+          GetTransactionTagIdsUseCase(tagsRepository),
+        ),
+        setTransactionTagsUseCaseProvider.overrideWithValue(
+          SetTransactionTagsUseCase(tagsRepository),
+        ),
       ],
     );
     addTearDown(container.dispose);

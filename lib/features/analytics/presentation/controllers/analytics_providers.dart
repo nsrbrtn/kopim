@@ -11,6 +11,7 @@ import 'package:kopim/features/analytics/domain/models/monthly_balance_data.dart
 import 'package:kopim/features/analytics/presentation/models/monthly_cashflow_data.dart';
 import 'package:kopim/features/analytics/presentation/controllers/analytics_filter_controller.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -173,9 +174,14 @@ Stream<List<MonthlyBalanceData>> monthlyBalanceData(Ref ref) {
         .toSet();
 
     // Начальный баланс (текущий)
-    double currentBalance = 0;
+    final MoneyAccumulator currentBalance = MoneyAccumulator();
     for (final AccountEntity account in relevantAccounts) {
-      currentBalance += account.balance;
+      final MoneyAmount amount = resolveMoneyAmount(
+        amount: account.balance,
+        minor: account.balanceMinor,
+        scale: account.currencyScale,
+      );
+      currentBalance.add(amount);
     }
 
     // Сортируем транзакции по дате (от новых к старым)
@@ -189,7 +195,10 @@ Stream<List<MonthlyBalanceData>> monthlyBalanceData(Ref ref) {
         );
 
     int txIndex = 0;
-    double runningBalance = currentBalance;
+    final MoneyAccumulator runningBalance = MoneyAccumulator();
+    runningBalance.add(
+      MoneyAmount(minor: currentBalance.minor, scale: currentBalance.scale),
+    );
 
     // Генерируем данные за последние 6 месяцев (от текущего назад)
     for (int i = 0; i < 6; i++) {
@@ -219,16 +228,17 @@ Stream<List<MonthlyBalanceData>> monthlyBalanceData(Ref ref) {
       while (txIndex < sortedTransactions.length &&
           sortedTransactions[txIndex].date.isAfter(monthEnd)) {
         final TransactionEntity t = sortedTransactions[txIndex];
+        final MoneyAmount amount = _resolveTransactionAmount(t);
         if (t.type == TransactionType.income.storageValue) {
-          runningBalance -= t.amount;
+          runningBalance.subtract(amount);
         } else if (t.type == TransactionType.expense.storageValue) {
-          runningBalance += t.amount;
+          runningBalance.add(amount);
         }
         txIndex++;
       }
 
       // Теперь runningBalance соответствует балансу на конец месяца (monthEnd)
-      double maxBalanceInMonth = runningBalance;
+      double maxBalanceInMonth = runningBalance.toDouble();
 
       // 2. Проходим по транзакциям ВНУТРИ месяца, отслеживая макс. баланс
       while (txIndex < sortedTransactions.length &&
@@ -236,30 +246,34 @@ Stream<List<MonthlyBalanceData>> monthlyBalanceData(Ref ref) {
             monthStart.subtract(const Duration(microseconds: 1)),
           )) {
         // runningBalance здесь - это баланс ПОСЛЕ транзакции t
-        if (runningBalance > maxBalanceInMonth) {
-          maxBalanceInMonth = runningBalance;
+        final double runningValue = runningBalance.toDouble();
+        if (runningValue > maxBalanceInMonth) {
+          maxBalanceInMonth = runningValue;
         }
 
         final TransactionEntity t = sortedTransactions[txIndex];
+        final MoneyAmount amount = _resolveTransactionAmount(t);
         // Откатываем транзакцию
         if (t.type == TransactionType.income.storageValue) {
-          runningBalance -= t.amount;
+          runningBalance.subtract(amount);
         } else if (t.type == TransactionType.expense.storageValue) {
-          runningBalance += t.amount;
+          runningBalance.add(amount);
         }
 
         // runningBalance теперь - это баланс ДО транзакции t
         // Проверяем его тоже, так как это могло быть пиковое значение до списания
-        if (runningBalance > maxBalanceInMonth) {
-          maxBalanceInMonth = runningBalance;
+        final double updatedValue = runningBalance.toDouble();
+        if (updatedValue > maxBalanceInMonth) {
+          maxBalanceInMonth = updatedValue;
         }
 
         txIndex++;
       }
 
       // После цикла runningBalance соответствует балансу на начало месяца
-      if (runningBalance > maxBalanceInMonth) {
-        maxBalanceInMonth = runningBalance;
+      final double closingValue = runningBalance.toDouble();
+      if (closingValue > maxBalanceInMonth) {
+        maxBalanceInMonth = closingValue;
       }
 
       // Добавляем в начало списка, чтобы порядок был хронологический (если нужно)
@@ -302,8 +316,14 @@ monthlyCashflowDataProvider = StreamProvider<List<MonthlyCashflowData>>((
   return ref.watch(transactionRepositoryProvider).watchTransactions().map((
     List<TransactionEntity> transactions,
   ) {
-    final List<double> incomes = List<double>.filled(12, 0);
-    final List<double> expenses = List<double>.filled(12, 0);
+    final List<MoneyAccumulator> incomes = List<MoneyAccumulator>.generate(
+      12,
+      (_) => MoneyAccumulator(),
+    );
+    final List<MoneyAccumulator> expenses = List<MoneyAccumulator>.generate(
+      12,
+      (_) => MoneyAccumulator(),
+    );
     final DateTime nowInclusive = now.add(const Duration(microseconds: 1));
 
     for (final TransactionEntity transaction in transactions) {
@@ -327,10 +347,11 @@ monthlyCashflowDataProvider = StreamProvider<List<MonthlyCashflowData>>((
         continue;
       }
 
+      final MoneyAmount amount = _resolveTransactionAmount(transaction);
       if (transaction.type == TransactionType.income.storageValue) {
-        incomes[index] += transaction.amount;
+        incomes[index].add(amount);
       } else if (transaction.type == TransactionType.expense.storageValue) {
-        expenses[index] += transaction.amount;
+        expenses[index].add(amount);
       }
     }
 
@@ -338,8 +359,8 @@ monthlyCashflowDataProvider = StreamProvider<List<MonthlyCashflowData>>((
       12,
       (int index) => MonthlyCashflowData(
         month: months[index],
-        income: incomes[index],
-        expense: expenses[index],
+        income: incomes[index].toDouble(),
+        expense: expenses[index].toDouble(),
       ),
       growable: false,
     );
@@ -347,3 +368,12 @@ monthlyCashflowDataProvider = StreamProvider<List<MonthlyCashflowData>>((
 });
 
 int _monthKey(DateTime monthStart) => monthStart.year * 100 + monthStart.month;
+
+MoneyAmount _resolveTransactionAmount(TransactionEntity transaction) {
+  return resolveMoneyAmount(
+    amount: transaction.amount,
+    minor: transaction.amountMinor,
+    scale: transaction.amountScale,
+    useAbs: true,
+  );
+}

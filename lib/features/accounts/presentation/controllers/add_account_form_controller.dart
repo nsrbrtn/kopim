@@ -307,11 +307,12 @@ class AddAccountFormController extends _$AddAccountFormController {
       }
     }
 
+    final double resolvedBalance = balance ?? 0;
     final AccountEntity account = AccountEntity(
       id: _uuid.v4(),
       name: trimmedName,
-      balance: balance!,
-      openingBalance: balance!,
+      balance: resolvedBalance,
+      openingBalance: resolvedBalance,
       currency: state.currency,
       type: resolvedType,
       createdAt: now,

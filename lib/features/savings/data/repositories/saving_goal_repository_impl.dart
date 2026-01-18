@@ -8,10 +8,14 @@ import 'package:kopim/features/accounts/data/sources/local/account_dao.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/categories/data/sources/local/category_dao.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
+import 'package:kopim/core/money/currency_scale.dart';
+import 'package:kopim/core/money/money.dart';
+import 'package:kopim/features/credits/data/sources/local/credit_dao.dart';
 import 'package:kopim/features/savings/data/sources/local/goal_contribution_dao.dart';
 import 'package:kopim/features/savings/data/sources/local/saving_goal_dao.dart';
 import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
 import 'package:kopim/features/savings/domain/repositories/saving_goal_repository.dart';
+import 'package:kopim/features/transactions/data/services/transaction_balance_helper.dart';
 import 'package:kopim/features/transactions/data/sources/local/transaction_dao.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:uuid/uuid.dart';
@@ -22,6 +26,7 @@ class SavingGoalRepositoryImpl implements SavingGoalRepository {
     required SavingGoalDao savingGoalDao,
     required CategoryDao categoryDao,
     required AccountDao accountDao,
+    required CreditDao creditDao,
     required TransactionDao transactionDao,
     required GoalContributionDao goalContributionDao,
     required OutboxDao outboxDao,
@@ -33,6 +38,7 @@ class SavingGoalRepositoryImpl implements SavingGoalRepository {
        _savingGoalDao = savingGoalDao,
        _categoryDao = categoryDao,
        _accountDao = accountDao,
+       _creditDao = creditDao,
        _transactionDao = transactionDao,
        _contributionDao = goalContributionDao,
        _outboxDao = outboxDao,
@@ -89,6 +95,7 @@ class SavingGoalRepositoryImpl implements SavingGoalRepository {
   final SavingGoalDao _savingGoalDao;
   final CategoryDao _categoryDao;
   final AccountDao _accountDao;
+  final CreditDao _creditDao;
   final TransactionDao _transactionDao;
   final GoalContributionDao _contributionDao;
   final OutboxDao _outboxDao;
@@ -211,12 +218,20 @@ class SavingGoalRepositoryImpl implements SavingGoalRepository {
           throw StateError('Account not found for contribution');
         }
         final double amountDouble = appliedDelta / 100;
+        final int scale = resolveCurrencyScale(accountRow.currency);
+        final Money money = Money.fromDouble(
+          amountDouble.abs(),
+          currency: accountRow.currency,
+          scale: scale,
+        );
         final TransactionEntity transaction = TransactionEntity(
           id: _uuid.v4(),
           accountId: accountId,
           categoryId: categoryId,
           savingGoalId: goal.id,
           amount: amountDouble,
+          amountMinor: money.minor,
+          amountScale: scale,
           date: timestamp,
           note: _composeContributionNote(goal.name, contributionNote),
           type: 'expense',
@@ -230,30 +245,14 @@ class SavingGoalRepositoryImpl implements SavingGoalRepository {
           operation: OutboxOperation.upsert,
           payload: _mapTransactionPayload(transaction),
         );
-        final AccountEntity updatedAccount = AccountEntity(
-          id: accountRow.id,
-          name: accountRow.name,
-          balance: accountRow.balance - amountDouble,
-          openingBalance: accountRow.openingBalance,
-          currency: accountRow.currency,
-          type: accountRow.type,
-          color: accountRow.color,
-          gradientId: accountRow.gradientId,
-          createdAt: accountRow.createdAt,
-          updatedAt: timestamp,
-          isDeleted: accountRow.isDeleted,
-          isPrimary: accountRow.isPrimary,
-          isHidden: accountRow.isHidden,
-          iconName: accountRow.iconName,
-          iconStyle: accountRow.iconStyle,
+        final db.CreditRow? creditRow = await _creditDao.findByCategoryId(
+          categoryId,
         );
-        await _accountDao.upsert(updatedAccount);
-        await _outboxDao.enqueue(
-          entityType: _accountEntityType,
-          entityId: updatedAccount.id,
-          operation: OutboxOperation.upsert,
-          payload: _mapAccountPayload(updatedAccount),
+        final Map<String, double> effect = buildTransactionEffect(
+          transaction: transaction,
+          creditAccountId: creditRow?.accountId,
         );
+        await _applyAccountEffect(effect, timestamp);
         await _contributionDao.insert(
           id: _uuid.v4(),
           goalId: goal.id,
@@ -371,13 +370,64 @@ class SavingGoalRepositoryImpl implements SavingGoalRepository {
     json['createdAt'] = transaction.createdAt.toIso8601String();
     json['updatedAt'] = transaction.updatedAt.toIso8601String();
     json['date'] = transaction.date.toIso8601String();
+    json['amountMinor'] = transaction.amountMinor?.toString();
+    json['amountScale'] = transaction.amountScale;
     return json;
+  }
+
+  Future<void> _applyAccountEffect(
+    Map<String, double> effect,
+    DateTime updatedAt,
+  ) async {
+    for (final MapEntry<String, double> entry in effect.entries) {
+      final db.AccountRow? accountRow = await _accountDao.findById(entry.key);
+      if (accountRow == null) {
+        throw StateError('Account not found for id ${entry.key}');
+      }
+      final AccountEntity updatedAccount = _mapAccountRow(accountRow).copyWith(
+        balance: accountRow.balance + entry.value,
+        updatedAt: updatedAt,
+      );
+      await _accountDao.upsert(updatedAccount);
+      await _outboxDao.enqueue(
+        entityType: _accountEntityType,
+        entityId: updatedAccount.id,
+        operation: OutboxOperation.upsert,
+        payload: _mapAccountPayload(updatedAccount),
+      );
+    }
+  }
+
+  AccountEntity _mapAccountRow(db.AccountRow row) {
+    return AccountEntity(
+      id: row.id,
+      name: row.name,
+      balance: row.balance,
+      balanceMinor: BigInt.parse(row.balanceMinor),
+      openingBalance: row.openingBalance,
+      openingBalanceMinor: BigInt.parse(row.openingBalanceMinor),
+      currency: row.currency,
+      currencyScale: row.currencyScale,
+      type: row.type,
+      color: row.color,
+      gradientId: row.gradientId,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+      isDeleted: row.isDeleted,
+      isPrimary: row.isPrimary,
+      isHidden: row.isHidden,
+      iconName: row.iconName,
+      iconStyle: row.iconStyle,
+    );
   }
 
   Map<String, dynamic> _mapAccountPayload(AccountEntity account) {
     final Map<String, dynamic> json = account.toJson();
     json['updatedAt'] = account.updatedAt.toIso8601String();
     json['createdAt'] = account.createdAt.toIso8601String();
+    json['balanceMinor'] = account.balanceMinor?.toString();
+    json['openingBalanceMinor'] = account.openingBalanceMinor?.toString();
+    json['currencyScale'] = account.currencyScale;
     return json;
   }
 }

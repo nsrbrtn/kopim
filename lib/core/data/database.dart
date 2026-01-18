@@ -2,6 +2,8 @@
 import 'package:drift/drift.dart';
 import 'package:kopim/core/data/converters/json_map_list_converter.dart';
 import 'package:kopim/core/data/converters/string_list_converter.dart';
+import 'package:kopim/core/money/currency_scale.dart';
+import 'package:kopim/core/money/money.dart';
 import 'package:kopim/features/upcoming_payments/data/drift/tables/payment_reminders_table.dart';
 import 'package:kopim/features/upcoming_payments/data/drift/tables/upcoming_payments_table.dart';
 
@@ -12,9 +14,16 @@ class Accounts extends Table {
   TextColumn get id => text().withLength(min: 1, max: 50)();
   TextColumn get name => text().withLength(min: 1, max: 100)();
   RealColumn get balance => real()();
+  TextColumn get balanceMinor =>
+      text().named('balance_minor').withDefault(const Constant<String>('0'))();
   RealColumn get openingBalance =>
       real().named('opening_balance').withDefault(const Constant<double>(0))();
+  TextColumn get openingBalanceMinor => text()
+      .named('opening_balance_minor')
+      .withDefault(const Constant<String>('0'))();
   TextColumn get currency => text().withLength(min: 3, max: 3)();
+  IntColumn get currencyScale =>
+      integer().named('currency_scale').withDefault(const Constant<int>(2))();
   TextColumn get type => text().withLength(min: 1, max: 50)();
   TextColumn get color => text().nullable()();
   TextColumn get gradientId => text().nullable()();
@@ -83,6 +92,10 @@ class Transactions extends Table {
       .references(Categories, #id, onDelete: KeyAction.setNull)
       .nullable()();
   RealColumn get amount => real()();
+  TextColumn get amountMinor =>
+      text().named('amount_minor').withDefault(const Constant<String>('0'))();
+  IntColumn get amountScale =>
+      integer().named('amount_scale').withDefault(const Constant<int>(2))();
   DateTimeColumn get date => dateTime()();
   TextColumn get note => text().nullable()();
   TextColumn get type => text().withLength(min: 1, max: 50)();
@@ -150,6 +163,10 @@ class Budgets extends Table {
   DateTimeColumn get startDate => dateTime()();
   DateTimeColumn get endDate => dateTime().nullable()();
   RealColumn get amount => real()();
+  TextColumn get amountMinor =>
+      text().named('amount_minor').withDefault(const Constant<String>('0'))();
+  IntColumn get amountScale =>
+      integer().named('amount_scale').withDefault(const Constant<int>(2))();
   TextColumn get scope => text().withLength(min: 1, max: 32)();
   TextColumn get categories =>
       text().map(const StringListConverter()).clientDefault(() => '[]')();
@@ -174,7 +191,13 @@ class BudgetInstances extends Table {
   DateTimeColumn get periodStart => dateTime()();
   DateTimeColumn get periodEnd => dateTime()();
   RealColumn get amount => real()();
+  TextColumn get amountMinor =>
+      text().named('amount_minor').withDefault(const Constant<String>('0'))();
   RealColumn get spent => real().withDefault(const Constant<double>(0))();
+  TextColumn get spentMinor =>
+      text().named('spent_minor').withDefault(const Constant<String>('0'))();
+  IntColumn get amountScale =>
+      integer().named('amount_scale').withDefault(const Constant<int>(2))();
   TextColumn get status => text()
       .withLength(min: 1, max: 20)
       .withDefault(const Constant<String>('pending'))();
@@ -223,6 +246,10 @@ class Debts extends Table {
       text().references(Accounts, #id, onDelete: KeyAction.cascade)();
   TextColumn get name => text().withLength(min: 1, max: 120).nullable()();
   RealColumn get amount => real()();
+  TextColumn get amountMinor =>
+      text().named('amount_minor').withDefault(const Constant<String>('0'))();
+  IntColumn get amountScale =>
+      integer().named('amount_scale').withDefault(const Constant<int>(2))();
   DateTimeColumn get dueDate => dateTime()();
   TextColumn get note => text().nullable()();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
@@ -245,6 +272,11 @@ class Credits extends Table {
     onDelete: KeyAction.setNull,
   )();
   RealColumn get totalAmount => real()();
+  TextColumn get totalAmountMinor => text()
+      .named('total_amount_minor')
+      .withDefault(const Constant<String>('0'))();
+  IntColumn get totalAmountScale =>
+      integer().named('total_amount_scale').withDefault(const Constant<int>(2))();
   RealColumn get interestRate => real()();
   IntColumn get termMonths => integer()();
   DateTimeColumn get startDate => dateTime()();
@@ -264,6 +296,11 @@ class CreditCards extends Table {
   TextColumn get accountId =>
       text().references(Accounts, #id, onDelete: KeyAction.cascade)();
   RealColumn get creditLimit => real()();
+  TextColumn get creditLimitMinor => text()
+      .named('credit_limit_minor')
+      .withDefault(const Constant<String>('0'))();
+  IntColumn get creditLimitScale =>
+      integer().named('credit_limit_scale').withDefault(const Constant<int>(2))();
   IntColumn get statementDay => integer()();
   IntColumn get paymentDueDays => integer()();
   RealColumn get interestRateAnnual => real()();
@@ -302,7 +339,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.connect(DatabaseConnection super.connection);
 
   @override
-  int get schemaVersion => 31;
+  int get schemaVersion => 34;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -428,7 +465,9 @@ class AppDatabase extends _$AppDatabase {
         await m.addColumn(transactions, transactions.isDeleted);
       }
       if (from < 31) {
-        await m.addColumn(accounts, accounts.openingBalance);
+        if (!await _columnExists('accounts', 'opening_balance')) {
+          await m.addColumn(accounts, accounts.openingBalance);
+        }
         await m.database.customStatement(
           '''
 UPDATE accounts
@@ -448,6 +487,325 @@ SET opening_balance = balance - (
 )
 ''',
         );
+      }
+      if (from < 32) {
+        if (!await _columnExists('accounts', 'balance_minor')) {
+          await m.addColumn(accounts, accounts.balanceMinor);
+        }
+        if (!await _columnExists('accounts', 'opening_balance_minor')) {
+          await m.addColumn(accounts, accounts.openingBalanceMinor);
+        }
+        if (!await _columnExists('accounts', 'currency_scale')) {
+          await m.addColumn(accounts, accounts.currencyScale);
+        }
+        if (!await _columnExists('transactions', 'amount_minor')) {
+          await m.addColumn(transactions, transactions.amountMinor);
+        }
+        if (!await _columnExists('transactions', 'amount_scale')) {
+          await m.addColumn(transactions, transactions.amountScale);
+        }
+
+        if (await _columnExists('accounts', 'balance_minor') &&
+            await _columnExists('accounts', 'opening_balance_minor') &&
+            await _columnExists('accounts', 'currency_scale')) {
+          final List<QueryRow> accountRows = await m.database.customSelect(
+            'SELECT id, currency, balance, opening_balance FROM accounts',
+          ).get();
+          final Map<String, int> scalesByAccount = <String, int>{};
+          for (final QueryRow row in accountRows) {
+            final String accountId = row.read<String>('id');
+            final String currency = row.read<String>('currency');
+            final double balance = row.read<double>('balance');
+            final double openingBalance = row.read<double>('opening_balance');
+            final int scale = resolveCurrencyScale(currency);
+            scalesByAccount[accountId] = scale;
+            final Money balanceMoney = Money.fromDouble(
+              balance,
+              currency: currency,
+              scale: scale,
+            );
+            final Money openingMoney = Money.fromDouble(
+              openingBalance,
+              currency: currency,
+              scale: scale,
+            );
+            await m.database.customStatement(
+              'UPDATE accounts SET balance_minor = ?, opening_balance_minor = ?, currency_scale = ? WHERE id = ?',
+              <Object?>[
+                balanceMoney.minor.toString(),
+                openingMoney.minor.toString(),
+                scale,
+                accountId,
+              ],
+            );
+          }
+
+          if (await _columnExists('transactions', 'amount_minor') &&
+              await _columnExists('transactions', 'amount_scale')) {
+            final List<QueryRow> transactionRows = await m.database.customSelect(
+              'SELECT id, account_id, amount FROM transactions',
+            ).get();
+            for (final QueryRow row in transactionRows) {
+              final String transactionId = row.read<String>('id');
+              final String accountId = row.read<String>('account_id');
+              final double amount = row.read<double>('amount');
+              final int scale = scalesByAccount[accountId] ?? 2;
+              final Money money = Money.fromDouble(
+                amount.abs(),
+                currency: 'XXX',
+                scale: scale,
+              );
+              await m.database.customStatement(
+                'UPDATE transactions SET amount_minor = ?, amount_scale = ? WHERE id = ?',
+                <Object?>[money.minor.toString(), scale, transactionId],
+              );
+            }
+          }
+        }
+      }
+      if (from < 33) {
+        final bool hasBudgetsTable = await _tableExists('budgets');
+        final bool hasBudgetInstancesTable = await _tableExists(
+          'budget_instances',
+        );
+        final bool hasUpcomingPaymentsTable = await _tableExists(
+          'upcoming_payments',
+        );
+        final bool hasPaymentRemindersTable = await _tableExists(
+          'payment_reminders',
+        );
+
+        if (hasBudgetsTable && !await _columnExists('budgets', 'amount_minor')) {
+          await m.addColumn(budgets, budgets.amountMinor);
+        }
+        if (hasBudgetsTable && !await _columnExists('budgets', 'amount_scale')) {
+          await m.addColumn(budgets, budgets.amountScale);
+        }
+        if (hasBudgetInstancesTable &&
+            !await _columnExists('budget_instances', 'amount_minor')) {
+          await m.addColumn(budgetInstances, budgetInstances.amountMinor);
+        }
+        if (hasBudgetInstancesTable &&
+            !await _columnExists('budget_instances', 'spent_minor')) {
+          await m.addColumn(budgetInstances, budgetInstances.spentMinor);
+        }
+        if (hasBudgetInstancesTable &&
+            !await _columnExists('budget_instances', 'amount_scale')) {
+          await m.addColumn(budgetInstances, budgetInstances.amountScale);
+        }
+        if (hasUpcomingPaymentsTable &&
+            !await _columnExists('upcoming_payments', 'amount_minor')) {
+          await m.addColumn(upcomingPayments, upcomingPayments.amountMinor);
+        }
+        if (hasUpcomingPaymentsTable &&
+            !await _columnExists('upcoming_payments', 'amount_scale')) {
+          await m.addColumn(upcomingPayments, upcomingPayments.amountScale);
+        }
+        if (hasPaymentRemindersTable &&
+            !await _columnExists('payment_reminders', 'amount_minor')) {
+          await m.addColumn(paymentReminders, paymentReminders.amountMinor);
+        }
+        if (hasPaymentRemindersTable &&
+            !await _columnExists('payment_reminders', 'amount_scale')) {
+          await m.addColumn(paymentReminders, paymentReminders.amountScale);
+        }
+
+        if (hasBudgetsTable &&
+            hasBudgetInstancesTable &&
+            hasUpcomingPaymentsTable &&
+            hasPaymentRemindersTable &&
+            await _columnExists('budgets', 'amount_minor') &&
+            await _columnExists('budgets', 'amount_scale') &&
+            await _columnExists('budget_instances', 'amount_minor') &&
+            await _columnExists('budget_instances', 'spent_minor') &&
+            await _columnExists('budget_instances', 'amount_scale') &&
+            await _columnExists('upcoming_payments', 'amount_minor') &&
+            await _columnExists('upcoming_payments', 'amount_scale') &&
+            await _columnExists('payment_reminders', 'amount_minor') &&
+            await _columnExists('payment_reminders', 'amount_scale')) {
+          final int defaultScale = await _resolveDefaultCurrencyScale(m);
+
+          final List<QueryRow> budgetRows = await m.database.customSelect(
+            'SELECT id, amount FROM budgets',
+          ).get();
+          for (final QueryRow row in budgetRows) {
+            final String id = row.read<String>('id');
+            final double amount = row.read<double>('amount');
+            final Money money = Money.fromDouble(
+              amount,
+              currency: 'XXX',
+              scale: defaultScale,
+            );
+            await m.database.customStatement(
+              'UPDATE budgets SET amount_minor = ?, amount_scale = ? WHERE id = ?',
+              <Object?>[money.minor.toString(), defaultScale, id],
+            );
+          }
+
+          final List<QueryRow> instanceRows = await m.database.customSelect(
+            'SELECT id, amount, spent FROM budget_instances',
+          ).get();
+          for (final QueryRow row in instanceRows) {
+            final String id = row.read<String>('id');
+            final double amount = row.read<double>('amount');
+            final double spent = row.read<double>('spent');
+            final Money amountMoney = Money.fromDouble(
+              amount,
+              currency: 'XXX',
+              scale: defaultScale,
+            );
+            final Money spentMoney = Money.fromDouble(
+              spent,
+              currency: 'XXX',
+              scale: defaultScale,
+            );
+            await m.database.customStatement(
+              'UPDATE budget_instances SET amount_minor = ?, spent_minor = ?, amount_scale = ? WHERE id = ?',
+              <Object?>[
+                amountMoney.minor.toString(),
+                spentMoney.minor.toString(),
+                defaultScale,
+                id,
+              ],
+            );
+          }
+
+          final List<QueryRow> upcomingRows = await m.database.customSelect(
+            '''
+SELECT up.id AS id, up.amount AS amount, acc.currency AS currency
+FROM upcoming_payments up
+LEFT JOIN accounts acc ON up.account_id = acc.id
+''',
+          ).get();
+          for (final QueryRow row in upcomingRows) {
+            final String id = row.read<String>('id');
+            final double amount = row.read<double>('amount');
+            final String? currency = row.read<String?>('currency');
+            final int scale = currency != null
+                ? resolveCurrencyScale(currency)
+                : defaultScale;
+            final Money money = Money.fromDouble(
+              amount,
+              currency: currency ?? 'XXX',
+              scale: scale,
+            );
+            await m.database.customStatement(
+              'UPDATE upcoming_payments SET amount_minor = ?, amount_scale = ? WHERE id = ?',
+              <Object?>[money.minor.toString(), scale, id],
+            );
+          }
+
+          final List<QueryRow> reminderRows = await m.database.customSelect(
+            'SELECT id, amount FROM payment_reminders',
+          ).get();
+          for (final QueryRow row in reminderRows) {
+            final String id = row.read<String>('id');
+            final double amount = row.read<double>('amount');
+            final Money money = Money.fromDouble(
+              amount,
+              currency: 'XXX',
+              scale: defaultScale,
+            );
+            await m.database.customStatement(
+              'UPDATE payment_reminders SET amount_minor = ?, amount_scale = ? WHERE id = ?',
+              <Object?>[money.minor.toString(), defaultScale, id],
+            );
+          }
+        }
+      }
+      if (from < 34) {
+        final List<QueryRow> accountRows = await m.database.customSelect(
+          'SELECT id, currency, currency_scale FROM accounts',
+        ).get();
+        final Map<String, int> scalesByAccount = <String, int>{};
+        for (final QueryRow row in accountRows) {
+          final String accountId = row.read<String>('id');
+          final String currency = row.read<String>('currency');
+          final int? scaleValue = row.read<int?>('currency_scale');
+          final int scale = scaleValue ?? resolveCurrencyScale(currency);
+          scalesByAccount[accountId] = scale;
+        }
+
+        if (await _tableExists('debts')) {
+          if (!await _columnExists('debts', 'amount_minor')) {
+            await m.addColumn(debts, debts.amountMinor);
+          }
+          if (!await _columnExists('debts', 'amount_scale')) {
+            await m.addColumn(debts, debts.amountScale);
+          }
+          final List<QueryRow> debtRows = await m.database.customSelect(
+            'SELECT id, account_id, amount FROM debts',
+          ).get();
+          for (final QueryRow row in debtRows) {
+            final String id = row.read<String>('id');
+            final String accountId = row.read<String>('account_id');
+            final double amount = row.read<double>('amount');
+            final int scale = scalesByAccount[accountId] ?? 2;
+            final Money money = Money.fromDouble(
+              amount,
+              currency: 'XXX',
+              scale: scale,
+            );
+            await m.database.customStatement(
+              'UPDATE debts SET amount_minor = ?, amount_scale = ? WHERE id = ?',
+              <Object?>[money.minor.toString(), scale, id],
+            );
+          }
+        }
+
+        if (await _tableExists('credits')) {
+          if (!await _columnExists('credits', 'total_amount_minor')) {
+            await m.addColumn(credits, credits.totalAmountMinor);
+          }
+          if (!await _columnExists('credits', 'total_amount_scale')) {
+            await m.addColumn(credits, credits.totalAmountScale);
+          }
+          final List<QueryRow> creditRows = await m.database.customSelect(
+            'SELECT id, account_id, total_amount FROM credits',
+          ).get();
+          for (final QueryRow row in creditRows) {
+            final String id = row.read<String>('id');
+            final String accountId = row.read<String>('account_id');
+            final double totalAmount = row.read<double>('total_amount');
+            final int scale = scalesByAccount[accountId] ?? 2;
+            final Money money = Money.fromDouble(
+              totalAmount,
+              currency: 'XXX',
+              scale: scale,
+            );
+            await m.database.customStatement(
+              'UPDATE credits SET total_amount_minor = ?, total_amount_scale = ? WHERE id = ?',
+              <Object?>[money.minor.toString(), scale, id],
+            );
+          }
+        }
+
+        if (await _tableExists('credit_cards')) {
+          if (!await _columnExists('credit_cards', 'credit_limit_minor')) {
+            await m.addColumn(creditCards, creditCards.creditLimitMinor);
+          }
+          if (!await _columnExists('credit_cards', 'credit_limit_scale')) {
+            await m.addColumn(creditCards, creditCards.creditLimitScale);
+          }
+          final List<QueryRow> cardRows = await m.database.customSelect(
+            'SELECT id, account_id, credit_limit FROM credit_cards',
+          ).get();
+          for (final QueryRow row in cardRows) {
+            final String id = row.read<String>('id');
+            final String accountId = row.read<String>('account_id');
+            final double creditLimit = row.read<double>('credit_limit');
+            final int scale = scalesByAccount[accountId] ?? 2;
+            final Money money = Money.fromDouble(
+              creditLimit,
+              currency: 'XXX',
+              scale: scale,
+            );
+            await m.database.customStatement(
+              'UPDATE credit_cards SET credit_limit_minor = ?, credit_limit_scale = ? WHERE id = ?',
+              <Object?>[money.minor.toString(), scale, id],
+            );
+          }
+        }
       }
       if (from < 3) {
         await m.createTable(profiles);
@@ -757,5 +1115,22 @@ SET opening_balance = balance - (
       variables: <Variable<String>>[Variable<String>(table)],
     ).getSingleOrNull();
     return row != null;
+  }
+
+  static Future<int> _resolveDefaultCurrencyScale(Migrator m) async {
+    try {
+      final List<QueryRow> rows = await m.database.customSelect(
+        'SELECT currency FROM profiles LIMIT 1',
+      ).get();
+      if (rows.isNotEmpty) {
+        final String? currency = rows.first.read<String?>('currency');
+        if (currency != null && currency.isNotEmpty) {
+          return resolveCurrencyScale(currency);
+        }
+      }
+    } catch (_) {
+      // ignore: fallback to default scale
+    }
+    return 2;
   }
 }

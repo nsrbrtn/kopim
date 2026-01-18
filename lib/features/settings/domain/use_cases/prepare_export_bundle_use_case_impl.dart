@@ -19,7 +19,7 @@ class PrepareExportBundleUseCaseImpl implements PrepareExportBundleUseCase {
   final DateTime Function() _clock;
   final String _schemaVersion;
 
-  static const String _defaultSchemaVersion = '1.0.0';
+  static const String _defaultSchemaVersion = '1.1.0';
 
   @override
   Future<ExportBundle> call() async {

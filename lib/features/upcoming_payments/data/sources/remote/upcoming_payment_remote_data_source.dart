@@ -64,6 +64,8 @@ class UpcomingPaymentRemoteDataSource {
       'accountId': payment.accountId,
       'categoryId': payment.categoryId,
       'amount': payment.amount,
+      'amountMinor': payment.amountMinor?.toString(),
+      'amountScale': payment.amountScale,
       'dayOfMonth': payment.dayOfMonth,
       'notifyDaysBefore': payment.notifyDaysBefore,
       'notifyTimeHhmm': payment.notifyTimeHhmm,
@@ -87,6 +89,8 @@ class UpcomingPaymentRemoteDataSource {
       accountId: data['accountId'] as String? ?? '',
       categoryId: data['categoryId'] as String? ?? '',
       amount: (data['amount'] as num?)?.toDouble() ?? 0,
+      amountMinor: _readBigInt(data['amountMinor']),
+      amountScale: _readInt(data['amountScale']),
       dayOfMonth: (data['dayOfMonth'] as num?)?.toInt() ?? 1,
       notifyDaysBefore: (data['notifyDaysBefore'] as num?)?.toInt() ?? 0,
       notifyTimeHhmm: data['notifyTimeHhmm'] as String? ?? '12:00',
@@ -98,5 +102,20 @@ class UpcomingPaymentRemoteDataSource {
       createdAtMs: (data['createdAtMs'] as num?)?.toInt() ?? 0,
       updatedAtMs: (data['updatedAtMs'] as num?)?.toInt() ?? 0,
     );
+  }
+
+  BigInt? _readBigInt(Object? value) {
+    if (value == null) return null;
+    if (value is BigInt) return value;
+    if (value is int) return BigInt.from(value);
+    if (value is num) return BigInt.from(value.toInt());
+    return BigInt.tryParse(value.toString());
+  }
+
+  int? _readInt(Object? value) {
+    if (value == null) return null;
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    return int.tryParse(value.toString());
   }
 }

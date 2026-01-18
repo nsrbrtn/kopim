@@ -63,7 +63,13 @@ class DebtRepositoryImpl implements DebtRepository {
 
   Future<void> _upsert(DebtEntity debt) async {
     final DateTime now = DateTime.now();
-    final DebtEntity toPersist = debt.copyWith(updatedAt: now);
+    final int amountScale = debt.amountScale ?? await _resolveAccountScale(
+      debt.accountId,
+    );
+    final DebtEntity toPersist = debt.copyWith(
+      updatedAt: now,
+      amountScale: amountScale,
+    );
     await _database.transaction(() async {
       await _debtDao.upsert(toPersist);
       await _outboxDao.enqueue(
@@ -75,11 +81,24 @@ class DebtRepositoryImpl implements DebtRepository {
     });
   }
 
+  Future<int> _resolveAccountScale(String accountId) async {
+    final db.AccountRow? account =
+        await (_database.select(_database.accounts)
+              ..where((db.Accounts tbl) => tbl.id.equals(accountId)))
+            .getSingleOrNull();
+    if (account == null) {
+      return 2;
+    }
+    return account.currencyScale;
+  }
+
   Map<String, dynamic> _mapDebtPayload(DebtEntity debt) {
     final Map<String, dynamic> json = debt.toJson();
     json['dueDate'] = debt.dueDate.toIso8601String();
     json['updatedAt'] = debt.updatedAt.toIso8601String();
     json['createdAt'] = debt.createdAt.toIso8601String();
+    json['amountMinor'] = debt.amountMinor?.toString();
+    json['amountScale'] = debt.amountScale;
     return json;
   }
 }

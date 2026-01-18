@@ -7,6 +7,8 @@ class AddTransactionRequest {
     this.categoryId,
     this.savingGoalId,
     required this.amount,
+    this.amountMinor,
+    this.amountScale,
     required this.date,
     this.note,
     this.type = TransactionType.expense,
@@ -17,6 +19,8 @@ class AddTransactionRequest {
   final String? categoryId;
   final String? savingGoalId;
   final double amount;
+  final BigInt? amountMinor;
+  final int? amountScale;
   final DateTime date;
   final String? note;
   final TransactionType type;

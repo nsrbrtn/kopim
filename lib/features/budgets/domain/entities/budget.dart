@@ -19,6 +19,10 @@ abstract class Budget with _$Budget {
     required DateTime startDate,
     DateTime? endDate,
     required double amount,
+    @JsonKey(includeFromJson: false, includeToJson: false)
+    BigInt? amountMinor,
+    @JsonKey(includeFromJson: false, includeToJson: false)
+    int? amountScale,
     @JsonKey(fromJson: BudgetScopeX.fromStorage, toJson: _scopeToJson)
     required BudgetScope scope,
     @Default(<String>[]) List<String> categories,

@@ -69,7 +69,10 @@ class AccountRemoteDataSource {
       'updatedAt': Timestamp.fromDate(account.updatedAt.toUtc()),
       'isDeleted': account.isDeleted,
       'balance': account.balance,
+      'balanceMinor': account.balanceMinor?.toString(),
       'openingBalance': account.openingBalance,
+      'openingBalanceMinor': account.openingBalanceMinor?.toString(),
+      'currencyScale': account.currencyScale,
       'isPrimary': account.isPrimary,
       'color': account.color,
       'gradientId': account.gradientId,
@@ -84,8 +87,11 @@ class AccountRemoteDataSource {
       id: data['id'] as String? ?? doc.id,
       name: data['name'] as String? ?? '',
       balance: (data['balance'] as num?)?.toDouble() ?? 0,
+      balanceMinor: _readBigInt(data['balanceMinor']),
       openingBalance: (data['openingBalance'] as num?)?.toDouble() ?? 0,
+      openingBalanceMinor: _readBigInt(data['openingBalanceMinor']),
       currency: data['currency'] as String? ?? 'RUB',
+      currencyScale: _readInt(data['currencyScale']),
       type: data['type'] as String? ?? 'unknown',
       createdAt: _parseTimestamp(data['createdAt']),
       updatedAt: _parseTimestamp(data['updatedAt']),
@@ -106,5 +112,20 @@ class AccountRemoteDataSource {
       return value.toUtc();
     }
     return DateTime.now().toUtc();
+  }
+
+  BigInt? _readBigInt(Object? value) {
+    if (value == null) return null;
+    if (value is BigInt) return value;
+    if (value is int) return BigInt.from(value);
+    if (value is num) return BigInt.from(value.toInt());
+    return BigInt.tryParse(value.toString());
+  }
+
+  int? _readInt(Object? value) {
+    if (value == null) return null;
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    return int.tryParse(value.toString());
   }
 }

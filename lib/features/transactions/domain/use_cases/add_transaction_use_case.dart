@@ -1,11 +1,11 @@
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/accounts/domain/repositories/account_repository.dart';
+import 'package:kopim/core/money/currency_scale.dart';
+import 'package:kopim/core/money/money.dart';
 import 'package:kopim/features/transactions/domain/entities/add_transaction_request.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
 import 'package:kopim/features/transactions/domain/repositories/transaction_repository.dart';
-import 'package:kopim/features/credits/domain/repositories/credit_repository.dart';
-import 'package:kopim/features/credits/domain/entities/credit_entity.dart';
 import 'package:kopim/features/profile/domain/entities/user_progress.dart';
 import 'package:kopim/features/profile/domain/events/profile_domain_event.dart';
 import 'package:kopim/features/profile/domain/models/profile_command_result.dart';
@@ -17,13 +17,11 @@ class AddTransactionUseCase {
   AddTransactionUseCase({
     required TransactionRepository transactionRepository,
     required AccountRepository accountRepository,
-    required CreditRepository creditRepository,
     OnTransactionCreatedUseCase? onTransactionCreatedUseCase,
     String Function()? idGenerator,
     DateTime Function()? clock,
   }) : _transactionRepository = transactionRepository,
        _accountRepository = accountRepository,
-       _creditRepository = creditRepository,
        _onTransactionCreatedUseCase = onTransactionCreatedUseCase,
        _generateId = idGenerator ?? _defaultIdGenerator,
        _clock = clock ?? _defaultClock;
@@ -34,7 +32,6 @@ class AddTransactionUseCase {
 
   final TransactionRepository _transactionRepository;
   final AccountRepository _accountRepository;
-  final CreditRepository _creditRepository;
   final OnTransactionCreatedUseCase? _onTransactionCreatedUseCase;
   final String Function() _generateId;
   final DateTime Function() _clock;
@@ -52,6 +49,14 @@ class AddTransactionUseCase {
     final DateTime now = _clock().toUtc();
     final double amount = request.normalizedAmount;
     final TransactionType type = request.type;
+    final int scale =
+        request.amountScale ?? resolveCurrencyScale(account.currency);
+    final BigInt amountMinor = request.amountMinor ??
+        Money.fromDouble(
+          amount,
+          currency: account.currency,
+          scale: scale,
+        ).minor;
     final TransactionEntity transaction = TransactionEntity(
       id: _generateId(),
       accountId: request.accountId,
@@ -59,6 +64,8 @@ class AddTransactionUseCase {
       categoryId: type.isTransfer ? null : request.categoryId,
       savingGoalId: request.savingGoalId,
       amount: amount,
+      amountMinor: amountMinor,
+      amountScale: scale,
       date: request.date,
       note: request.note?.trim().isEmpty ?? true ? null : request.note!.trim(),
       type: type.storageValue,
@@ -66,81 +73,19 @@ class AddTransactionUseCase {
       updatedAt: now,
     );
 
-    await _transactionRepository.upsert(transaction);
-
     if (type.isTransfer) {
       final String? targetAccountId = request.transferAccountId;
       if (targetAccountId == null || targetAccountId == request.accountId) {
         throw StateError('Invalid transfer target account');
       }
-      final AccountEntity? targetAccount = await _accountRepository.findById(
-        targetAccountId,
-      );
+      final AccountEntity? targetAccount =
+          await _accountRepository.findById(targetAccountId);
       if (targetAccount == null) {
         throw StateError('Account not found for id $targetAccountId');
       }
-      final AccountEntity updatedSourceAccount = account.copyWith(
-        balance: account.balance - amount,
-        updatedAt: now,
-      );
-      final AccountEntity updatedTargetAccount = targetAccount.copyWith(
-        balance: targetAccount.balance + amount,
-        updatedAt: now,
-      );
-      await _accountRepository.upsert(updatedSourceAccount);
-      await _accountRepository.upsert(updatedTargetAccount);
-    } else {
-      // Логика обновления баланса
-      final DateTime updatedAt = now;
-      CreditEntity? relatedCredit;
-      if (request.categoryId != null) {
-        relatedCredit = await _creditRepository.getCreditByCategoryId(
-          request.categoryId!,
-        );
-      }
-
-      if (relatedCredit != null) {
-        // Это транзакция погашения кредита
-        final double repaymentDelta = type.isExpense ? amount : -amount;
-
-        // 1. Обновляем основной счет транзакции (например, Банк)
-        // Если это и есть кредитный счет, мы обновим его один раз ниже.
-        if (request.accountId != relatedCredit.accountId) {
-          final double accountDelta = type.isIncome ? amount : -amount;
-          final AccountEntity updatedAccount = account.copyWith(
-            balance: account.balance + accountDelta,
-            updatedAt: updatedAt,
-          );
-          await _accountRepository.upsert(updatedAccount);
-
-          // 2. Обновляем кредитный счет (уменьшаем долг)
-          final AccountEntity? creditAccount = await _accountRepository
-              .findById(relatedCredit.accountId);
-          if (creditAccount != null) {
-            final AccountEntity updatedCreditAccount = creditAccount.copyWith(
-              balance: creditAccount.balance + repaymentDelta,
-              updatedAt: updatedAt,
-            );
-            await _accountRepository.upsert(updatedCreditAccount);
-          }
-        } else {
-          // Транзакция на самом кредитном счете
-          final AccountEntity updatedAccount = account.copyWith(
-            balance: account.balance + repaymentDelta,
-            updatedAt: updatedAt,
-          );
-          await _accountRepository.upsert(updatedAccount);
-        }
-      } else {
-        // Обычная транзакция
-        final double delta = type.isIncome ? amount : -amount;
-        final AccountEntity updatedAccount = account.copyWith(
-          balance: account.balance + delta,
-          updatedAt: updatedAt,
-        );
-        await _accountRepository.upsert(updatedAccount);
-      }
     }
+
+    await _transactionRepository.upsert(transaction);
 
     final List<ProfileDomainEvent> events = <ProfileDomainEvent>[];
     if (_onTransactionCreatedUseCase != null) {

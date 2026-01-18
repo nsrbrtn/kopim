@@ -70,6 +70,8 @@ class TransactionRemoteDataSource {
       'categoryId': transaction.categoryId,
       'savingGoalId': transaction.savingGoalId,
       'amount': transaction.amount,
+      'amountMinor': transaction.amountMinor?.toString(),
+      'amountScale': transaction.amountScale,
       'date': Timestamp.fromDate(transaction.date.toUtc()),
       'note': transaction.note,
       'type': transaction.type,
@@ -90,6 +92,8 @@ class TransactionRemoteDataSource {
       categoryId: data['categoryId'] as String?,
       savingGoalId: data['savingGoalId'] as String?,
       amount: (data['amount'] as num?)?.toDouble() ?? 0,
+      amountMinor: _readBigInt(data['amountMinor']),
+      amountScale: _readInt(data['amountScale']),
       date: _parseTimestamp(data['date']),
       note: data['note'] as String?,
       type: data['type'] as String? ?? 'expense',
@@ -107,5 +111,20 @@ class TransactionRemoteDataSource {
       return value.toUtc();
     }
     return DateTime.now().toUtc();
+  }
+
+  BigInt? _readBigInt(Object? value) {
+    if (value == null) return null;
+    if (value is BigInt) return value;
+    if (value is int) return BigInt.from(value);
+    if (value is num) return BigInt.from(value.toInt());
+    return BigInt.tryParse(value.toString());
+  }
+
+  int? _readInt(Object? value) {
+    if (value == null) return null;
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    return int.tryParse(value.toString());
   }
 }

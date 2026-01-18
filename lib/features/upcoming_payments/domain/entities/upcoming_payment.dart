@@ -12,6 +12,10 @@ abstract class UpcomingPayment with _$UpcomingPayment {
     required String accountId,
     required String categoryId,
     required double amount,
+    @JsonKey(includeFromJson: false, includeToJson: false)
+    BigInt? amountMinor,
+    @JsonKey(includeFromJson: false, includeToJson: false)
+    int? amountScale,
     required int dayOfMonth,
     required int notifyDaysBefore,
     required String notifyTimeHhmm,
@@ -31,6 +35,8 @@ abstract class UpcomingPayment with _$UpcomingPayment {
       accountId: json['accountId'] as String? ?? '',
       categoryId: json['categoryId'] as String? ?? '',
       amount: (json['amount'] as num?)?.toDouble() ?? 0,
+      amountMinor: null,
+      amountScale: null,
       dayOfMonth: (json['dayOfMonth'] as num?)?.toInt() ?? 1,
       notifyDaysBefore: (json['notifyDaysBefore'] as num?)?.toInt() ?? 0,
       notifyTimeHhmm: json['notifyTimeHhmm'] as String? ?? '12:00',

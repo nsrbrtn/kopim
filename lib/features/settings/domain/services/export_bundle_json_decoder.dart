@@ -1,7 +1,10 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
+import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/settings/domain/entities/export_bundle.dart';
+import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 
 /// Декодирует JSON-представление экспортированного бандла обратно в модель.
 class ExportBundleJsonDecoder {
@@ -13,7 +16,7 @@ class ExportBundleJsonDecoder {
       final String jsonString = utf8.decode(bytes);
       final Map<String, Object?> jsonMap =
           json.decode(jsonString) as Map<String, Object?>;
-      return ExportBundle.fromJson(jsonMap);
+      return _parse(jsonMap);
     } on FormatException catch (error) {
       throw FormatException(
         'Некорректный формат файла экспорта: ${error.message}',
@@ -21,5 +24,156 @@ class ExportBundleJsonDecoder {
     } on Object catch (error) {
       throw FormatException('Не удалось разобрать файл экспорта: $error');
     }
+  }
+
+  ExportBundle _parse(Map<String, Object?> jsonMap) {
+    final String schemaVersion =
+        (jsonMap['schemaVersion'] as String?)?.trim() ?? '';
+    if (schemaVersion.isEmpty) {
+      throw const FormatException('Не найдена версия схемы экспорта.');
+    }
+    final String? generatedAtRaw = jsonMap['generatedAt'] as String?;
+    if (generatedAtRaw == null || generatedAtRaw.isEmpty) {
+      throw const FormatException('Не найдена дата генерации экспорта.');
+    }
+    final DateTime generatedAt = DateTime.parse(generatedAtRaw);
+
+    final List<AccountEntity> accounts = _parseAccounts(
+      jsonMap['accounts'],
+    );
+    final List<TransactionEntity> transactions = _parseTransactions(
+      jsonMap['transactions'],
+    );
+    final List<Category> categories = _parseCategories(
+      jsonMap['categories'],
+    );
+
+    return ExportBundle(
+      schemaVersion: schemaVersion,
+      generatedAt: generatedAt,
+      accounts: accounts,
+      transactions: transactions,
+      categories: categories,
+    );
+  }
+
+  List<AccountEntity> _parseAccounts(Object? raw) {
+    if (raw is! List) return const <AccountEntity>[];
+    return raw
+        .whereType<Map<String, Object?>>()
+        .map((Map<String, Object?> data) {
+          return AccountEntity(
+            id: _readString(data, 'id'),
+            name: _readString(data, 'name'),
+            balance: _readDouble(data, 'balance'),
+            balanceMinor: _readBigInt(data['balanceMinor']),
+            openingBalance: _readDouble(data, 'openingBalance'),
+            openingBalanceMinor: _readBigInt(data['openingBalanceMinor']),
+            currency: _readString(data, 'currency'),
+            currencyScale: _readInt(data['currencyScale']),
+            type: _readString(data, 'type'),
+            createdAt: _readDate(data, 'createdAt'),
+            updatedAt: _readDate(data, 'updatedAt'),
+            color: _readOptionalString(data, 'color'),
+            gradientId: _readOptionalString(data, 'gradientId'),
+            iconName: _readOptionalString(data, 'iconName'),
+            iconStyle: _readOptionalString(data, 'iconStyle'),
+            isDeleted: _readBool(data, 'isDeleted'),
+            isPrimary: _readBool(data, 'isPrimary'),
+            isHidden: _readBool(data, 'isHidden'),
+          );
+        })
+        .toList(growable: false);
+  }
+
+  List<TransactionEntity> _parseTransactions(Object? raw) {
+    if (raw is! List) return const <TransactionEntity>[];
+    return raw
+        .whereType<Map<String, Object?>>()
+        .map((Map<String, Object?> data) {
+          return TransactionEntity(
+            id: _readString(data, 'id'),
+            accountId: _readString(data, 'accountId'),
+            transferAccountId: _readOptionalString(data, 'transferAccountId'),
+            categoryId: _readOptionalString(data, 'categoryId'),
+            savingGoalId: _readOptionalString(data, 'savingGoalId'),
+            amount: _readDouble(data, 'amount'),
+            amountMinor: _readBigInt(data['amountMinor']),
+            amountScale: _readInt(data['amountScale']),
+            date: _readDate(data, 'date'),
+            note: _readOptionalString(data, 'note'),
+            type: _readString(data, 'type'),
+            createdAt: _readDate(data, 'createdAt'),
+            updatedAt: _readDate(data, 'updatedAt'),
+            isDeleted: _readBool(data, 'isDeleted'),
+          );
+        })
+        .toList(growable: false);
+  }
+
+  List<Category> _parseCategories(Object? raw) {
+    if (raw is! List) return const <Category>[];
+    return raw
+        .whereType<Map<String, Object?>>()
+        .map(Category.fromJson)
+        .toList(growable: false);
+  }
+
+  String _readString(Map<String, Object?> data, String key) {
+    final String value = data[key]?.toString().trim() ?? '';
+    if (value.isEmpty) {
+      throw FormatException('Пустое значение для $key.');
+    }
+    return value;
+  }
+
+  String? _readOptionalString(Map<String, Object?> data, String key) {
+    final String? value = data[key]?.toString().trim();
+    if (value == null || value.isEmpty) {
+      return null;
+    }
+    return value;
+  }
+
+  double _readDouble(Map<String, Object?> data, String key) {
+    final Object? value = data[key];
+    if (value is num) {
+      return value.toDouble();
+    }
+    return double.parse(value?.toString() ?? '0');
+  }
+
+  int? _readInt(Object? value) {
+    if (value == null) return null;
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    return int.tryParse(value.toString());
+  }
+
+  BigInt? _readBigInt(Object? value) {
+    if (value == null) return null;
+    if (value is BigInt) return value;
+    if (value is int) return BigInt.from(value);
+    if (value is num) return BigInt.from(value.toInt());
+    return BigInt.tryParse(value.toString());
+  }
+
+  DateTime _readDate(Map<String, Object?> data, String key) {
+    final String raw = _readString(data, key);
+    return DateTime.parse(raw);
+  }
+
+  bool _readBool(Map<String, Object?> data, String key) {
+    final Object? raw = data[key];
+    if (raw is bool) return raw;
+    if (raw == null) return false;
+    final String normalized = raw.toString().trim().toLowerCase();
+    if (normalized == 'true' || normalized == '1' || normalized == 'yes') {
+      return true;
+    }
+    if (normalized == 'false' || normalized == '0' || normalized == 'no') {
+      return false;
+    }
+    throw FormatException('Некорректное значение $key: $raw.');
   }
 }

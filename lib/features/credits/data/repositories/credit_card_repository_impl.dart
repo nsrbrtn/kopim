@@ -75,7 +75,13 @@ class CreditCardRepositoryImpl implements CreditCardRepository {
 
   Future<void> _upsert(CreditCardEntity creditCard) async {
     final DateTime now = DateTime.now();
-    final CreditCardEntity toPersist = creditCard.copyWith(updatedAt: now);
+    final int creditLimitScale =
+        creditCard.creditLimitScale ??
+        await _resolveAccountScale(creditCard.accountId);
+    final CreditCardEntity toPersist = creditCard.copyWith(
+      updatedAt: now,
+      creditLimitScale: creditLimitScale,
+    );
     await _database.transaction(() async {
       await _creditCardDao.upsert(toPersist);
       await _outboxDao.enqueue(
@@ -87,10 +93,23 @@ class CreditCardRepositoryImpl implements CreditCardRepository {
     });
   }
 
+  Future<int> _resolveAccountScale(String accountId) async {
+    final db.AccountRow? account =
+        await (_database.select(_database.accounts)
+              ..where((db.Accounts tbl) => tbl.id.equals(accountId)))
+            .getSingleOrNull();
+    if (account == null) {
+      return 2;
+    }
+    return account.currencyScale;
+  }
+
   Map<String, dynamic> _mapPayload(CreditCardEntity creditCard) {
     final Map<String, dynamic> json = creditCard.toJson();
     json['createdAt'] = creditCard.createdAt.toIso8601String();
     json['updatedAt'] = creditCard.updatedAt.toIso8601String();
+    json['creditLimitMinor'] = creditCard.creditLimitMinor?.toString();
+    json['creditLimitScale'] = creditCard.creditLimitScale;
     return json;
   }
 }

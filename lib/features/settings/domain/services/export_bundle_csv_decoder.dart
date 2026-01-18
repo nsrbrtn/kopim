@@ -107,12 +107,27 @@ class ExportBundleCsvDecoder {
           id: _readRequired(header.columns, row, 'id'),
           name: _readRequired(header.columns, row, 'name'),
           balance: _readDouble(header.columns, row, 'balance'),
+          balanceMinor: _readOptionalBigInt(
+            header.columns,
+            row,
+            'balance_minor',
+          ),
           openingBalance: _readOptionalDouble(
             header.columns,
             row,
             'opening_balance',
           ),
+          openingBalanceMinor: _readOptionalBigInt(
+            header.columns,
+            row,
+            'opening_balance_minor',
+          ),
           currency: _readRequired(header.columns, row, 'currency'),
+          currencyScale: _readOptionalInt(
+            header.columns,
+            row,
+            'currency_scale',
+          ),
           type: _readRequired(header.columns, row, 'type'),
           createdAt: _readDate(header.columns, row, 'created_at'),
           updatedAt: _readDate(header.columns, row, 'updated_at'),
@@ -186,6 +201,16 @@ class ExportBundleCsvDecoder {
           categoryId: _readOptional(header.columns, row, 'category_id'),
           savingGoalId: _readOptional(header.columns, row, 'saving_goal_id'),
           amount: _readDouble(header.columns, row, 'amount'),
+          amountMinor: _readOptionalBigInt(
+            header.columns,
+            row,
+            'amount_minor',
+          ),
+          amountScale: _readOptionalInt(
+            header.columns,
+            row,
+            'amount_scale',
+          ),
           date: _readDate(header.columns, row, 'date'),
           note: _readOptional(header.columns, row, 'note'),
           type: _readRequired(header.columns, row, 'type'),
@@ -292,6 +317,38 @@ class ExportBundleCsvDecoder {
       return fallback;
     }
     return double.parse(raw.trim());
+  }
+
+  int? _readOptionalInt(
+    Map<String, int> columns,
+    List<String> row,
+    String key,
+  ) {
+    final int? index = columns[key];
+    if (index == null) {
+      return null;
+    }
+    final String raw = _readCell(row, index);
+    if (raw.isEmpty) {
+      return null;
+    }
+    return int.tryParse(raw.trim());
+  }
+
+  BigInt? _readOptionalBigInt(
+    Map<String, int> columns,
+    List<String> row,
+    String key,
+  ) {
+    final int? index = columns[key];
+    if (index == null) {
+      return null;
+    }
+    final String raw = _readCell(row, index);
+    if (raw.isEmpty) {
+      return null;
+    }
+    return BigInt.tryParse(raw.trim());
   }
 
   DateTime _readDate(Map<String, int> columns, List<String> row, String key) {

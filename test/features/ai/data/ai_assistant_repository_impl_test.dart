@@ -41,6 +41,7 @@ void main() {
     registerFallbackValue(
       const AiToolCall(id: 'fallback', name: 'tool', arguments: '{}'),
     );
+    registerFallbackValue(const AiDataFilter());
   });
 
   setUp(() {

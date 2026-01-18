@@ -393,13 +393,15 @@ class EditAccountFormController extends _$EditAccountFormController {
     final double transactionDelta = await _calculateTransactionDelta(
       state.original.id,
     );
-    final double openingBalance = balance! - transactionDelta;
+    final double resolvedBalance = balance ?? 0;
+    final String resolvedTypeValue = resolvedType ?? state.original.type;
+    final double openingBalance = resolvedBalance - transactionDelta;
     final AccountEntity updatedAccount = state.original.copyWith(
       name: trimmedName,
-      balance: balance!,
+      balance: resolvedBalance,
       openingBalance: openingBalance,
       currency: state.currency,
-      type: resolvedType!,
+      type: resolvedTypeValue,
       updatedAt: updatedAt,
       isPrimary: state.isPrimary,
       color: state.color,
@@ -426,7 +428,7 @@ class EditAccountFormController extends _$EditAccountFormController {
       state = state.copyWith(
         isSaving: false,
         original: updatedAccount,
-        balanceInput: balance.toStringAsFixed(2),
+        balanceInput: resolvedBalance.toStringAsFixed(2),
         type: updatedIsCustom ? state.type : updatedAccount.type,
         useCustomType: updatedIsCustom,
         customType: updatedIsCustom ? normalizedCustom : '',

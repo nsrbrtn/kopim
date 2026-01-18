@@ -46,6 +46,18 @@ class $AccountsTable extends Accounts
     type: DriftSqlType.double,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _balanceMinorMeta = const VerificationMeta(
+    'balanceMinor',
+  );
+  @override
+  late final GeneratedColumn<String> balanceMinor = GeneratedColumn<String>(
+    'balance_minor',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant<String>('0'),
+  );
   static const VerificationMeta _openingBalanceMeta = const VerificationMeta(
     'openingBalance',
   );
@@ -58,6 +70,18 @@ class $AccountsTable extends Accounts
     requiredDuringInsert: false,
     defaultValue: const Constant<double>(0),
   );
+  static const VerificationMeta _openingBalanceMinorMeta =
+      const VerificationMeta('openingBalanceMinor');
+  @override
+  late final GeneratedColumn<String> openingBalanceMinor =
+      GeneratedColumn<String>(
+        'opening_balance_minor',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        defaultValue: const Constant<String>('0'),
+      );
   static const VerificationMeta _currencyMeta = const VerificationMeta(
     'currency',
   );
@@ -72,6 +96,18 @@ class $AccountsTable extends Accounts
     ),
     type: DriftSqlType.string,
     requiredDuringInsert: true,
+  );
+  static const VerificationMeta _currencyScaleMeta = const VerificationMeta(
+    'currencyScale',
+  );
+  @override
+  late final GeneratedColumn<int> currencyScale = GeneratedColumn<int>(
+    'currency_scale',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant<int>(2),
   );
   static const VerificationMeta _typeMeta = const VerificationMeta('type');
   @override
@@ -202,8 +238,11 @@ class $AccountsTable extends Accounts
     id,
     name,
     balance,
+    balanceMinor,
     openingBalance,
+    openingBalanceMinor,
     currency,
+    currencyScale,
     type,
     color,
     gradientId,
@@ -248,12 +287,30 @@ class $AccountsTable extends Accounts
     } else if (isInserting) {
       context.missing(_balanceMeta);
     }
+    if (data.containsKey('balance_minor')) {
+      context.handle(
+        _balanceMinorMeta,
+        balanceMinor.isAcceptableOrUnknown(
+          data['balance_minor']!,
+          _balanceMinorMeta,
+        ),
+      );
+    }
     if (data.containsKey('opening_balance')) {
       context.handle(
         _openingBalanceMeta,
         openingBalance.isAcceptableOrUnknown(
           data['opening_balance']!,
           _openingBalanceMeta,
+        ),
+      );
+    }
+    if (data.containsKey('opening_balance_minor')) {
+      context.handle(
+        _openingBalanceMinorMeta,
+        openingBalanceMinor.isAcceptableOrUnknown(
+          data['opening_balance_minor']!,
+          _openingBalanceMinorMeta,
         ),
       );
     }
@@ -264,6 +321,15 @@ class $AccountsTable extends Accounts
       );
     } else if (isInserting) {
       context.missing(_currencyMeta);
+    }
+    if (data.containsKey('currency_scale')) {
+      context.handle(
+        _currencyScaleMeta,
+        currencyScale.isAcceptableOrUnknown(
+          data['currency_scale']!,
+          _currencyScaleMeta,
+        ),
+      );
     }
     if (data.containsKey('type')) {
       context.handle(
@@ -348,13 +414,25 @@ class $AccountsTable extends Accounts
         DriftSqlType.double,
         data['${effectivePrefix}balance'],
       )!,
+      balanceMinor: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}balance_minor'],
+      )!,
       openingBalance: attachedDatabase.typeMapping.read(
         DriftSqlType.double,
         data['${effectivePrefix}opening_balance'],
       )!,
+      openingBalanceMinor: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}opening_balance_minor'],
+      )!,
       currency: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}currency'],
+      )!,
+      currencyScale: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}currency_scale'],
       )!,
       type: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
@@ -409,8 +487,11 @@ class AccountRow extends DataClass implements Insertable<AccountRow> {
   final String id;
   final String name;
   final double balance;
+  final String balanceMinor;
   final double openingBalance;
+  final String openingBalanceMinor;
   final String currency;
+  final int currencyScale;
   final String type;
   final String? color;
   final String? gradientId;
@@ -425,8 +506,11 @@ class AccountRow extends DataClass implements Insertable<AccountRow> {
     required this.id,
     required this.name,
     required this.balance,
+    required this.balanceMinor,
     required this.openingBalance,
+    required this.openingBalanceMinor,
     required this.currency,
+    required this.currencyScale,
     required this.type,
     this.color,
     this.gradientId,
@@ -444,8 +528,11 @@ class AccountRow extends DataClass implements Insertable<AccountRow> {
     map['id'] = Variable<String>(id);
     map['name'] = Variable<String>(name);
     map['balance'] = Variable<double>(balance);
+    map['balance_minor'] = Variable<String>(balanceMinor);
     map['opening_balance'] = Variable<double>(openingBalance);
+    map['opening_balance_minor'] = Variable<String>(openingBalanceMinor);
     map['currency'] = Variable<String>(currency);
+    map['currency_scale'] = Variable<int>(currencyScale);
     map['type'] = Variable<String>(type);
     if (!nullToAbsent || color != null) {
       map['color'] = Variable<String>(color);
@@ -472,8 +559,11 @@ class AccountRow extends DataClass implements Insertable<AccountRow> {
       id: Value(id),
       name: Value(name),
       balance: Value(balance),
+      balanceMinor: Value(balanceMinor),
       openingBalance: Value(openingBalance),
+      openingBalanceMinor: Value(openingBalanceMinor),
       currency: Value(currency),
+      currencyScale: Value(currencyScale),
       type: Value(type),
       color: color == null && nullToAbsent
           ? const Value.absent()
@@ -504,8 +594,13 @@ class AccountRow extends DataClass implements Insertable<AccountRow> {
       id: serializer.fromJson<String>(json['id']),
       name: serializer.fromJson<String>(json['name']),
       balance: serializer.fromJson<double>(json['balance']),
+      balanceMinor: serializer.fromJson<String>(json['balanceMinor']),
       openingBalance: serializer.fromJson<double>(json['openingBalance']),
+      openingBalanceMinor: serializer.fromJson<String>(
+        json['openingBalanceMinor'],
+      ),
       currency: serializer.fromJson<String>(json['currency']),
+      currencyScale: serializer.fromJson<int>(json['currencyScale']),
       type: serializer.fromJson<String>(json['type']),
       color: serializer.fromJson<String?>(json['color']),
       gradientId: serializer.fromJson<String?>(json['gradientId']),
@@ -525,8 +620,11 @@ class AccountRow extends DataClass implements Insertable<AccountRow> {
       'id': serializer.toJson<String>(id),
       'name': serializer.toJson<String>(name),
       'balance': serializer.toJson<double>(balance),
+      'balanceMinor': serializer.toJson<String>(balanceMinor),
       'openingBalance': serializer.toJson<double>(openingBalance),
+      'openingBalanceMinor': serializer.toJson<String>(openingBalanceMinor),
       'currency': serializer.toJson<String>(currency),
+      'currencyScale': serializer.toJson<int>(currencyScale),
       'type': serializer.toJson<String>(type),
       'color': serializer.toJson<String?>(color),
       'gradientId': serializer.toJson<String?>(gradientId),
@@ -544,8 +642,11 @@ class AccountRow extends DataClass implements Insertable<AccountRow> {
     String? id,
     String? name,
     double? balance,
+    String? balanceMinor,
     double? openingBalance,
+    String? openingBalanceMinor,
     String? currency,
+    int? currencyScale,
     String? type,
     Value<String?> color = const Value.absent(),
     Value<String?> gradientId = const Value.absent(),
@@ -560,8 +661,11 @@ class AccountRow extends DataClass implements Insertable<AccountRow> {
     id: id ?? this.id,
     name: name ?? this.name,
     balance: balance ?? this.balance,
+    balanceMinor: balanceMinor ?? this.balanceMinor,
     openingBalance: openingBalance ?? this.openingBalance,
+    openingBalanceMinor: openingBalanceMinor ?? this.openingBalanceMinor,
     currency: currency ?? this.currency,
+    currencyScale: currencyScale ?? this.currencyScale,
     type: type ?? this.type,
     color: color.present ? color.value : this.color,
     gradientId: gradientId.present ? gradientId.value : this.gradientId,
@@ -578,10 +682,19 @@ class AccountRow extends DataClass implements Insertable<AccountRow> {
       id: data.id.present ? data.id.value : this.id,
       name: data.name.present ? data.name.value : this.name,
       balance: data.balance.present ? data.balance.value : this.balance,
+      balanceMinor: data.balanceMinor.present
+          ? data.balanceMinor.value
+          : this.balanceMinor,
       openingBalance: data.openingBalance.present
           ? data.openingBalance.value
           : this.openingBalance,
+      openingBalanceMinor: data.openingBalanceMinor.present
+          ? data.openingBalanceMinor.value
+          : this.openingBalanceMinor,
       currency: data.currency.present ? data.currency.value : this.currency,
+      currencyScale: data.currencyScale.present
+          ? data.currencyScale.value
+          : this.currencyScale,
       type: data.type.present ? data.type.value : this.type,
       color: data.color.present ? data.color.value : this.color,
       gradientId: data.gradientId.present
@@ -603,8 +716,11 @@ class AccountRow extends DataClass implements Insertable<AccountRow> {
           ..write('id: $id, ')
           ..write('name: $name, ')
           ..write('balance: $balance, ')
+          ..write('balanceMinor: $balanceMinor, ')
           ..write('openingBalance: $openingBalance, ')
+          ..write('openingBalanceMinor: $openingBalanceMinor, ')
           ..write('currency: $currency, ')
+          ..write('currencyScale: $currencyScale, ')
           ..write('type: $type, ')
           ..write('color: $color, ')
           ..write('gradientId: $gradientId, ')
@@ -624,8 +740,11 @@ class AccountRow extends DataClass implements Insertable<AccountRow> {
     id,
     name,
     balance,
+    balanceMinor,
     openingBalance,
+    openingBalanceMinor,
     currency,
+    currencyScale,
     type,
     color,
     gradientId,
@@ -644,8 +763,11 @@ class AccountRow extends DataClass implements Insertable<AccountRow> {
           other.id == this.id &&
           other.name == this.name &&
           other.balance == this.balance &&
+          other.balanceMinor == this.balanceMinor &&
           other.openingBalance == this.openingBalance &&
+          other.openingBalanceMinor == this.openingBalanceMinor &&
           other.currency == this.currency &&
+          other.currencyScale == this.currencyScale &&
           other.type == this.type &&
           other.color == this.color &&
           other.gradientId == this.gradientId &&
@@ -662,8 +784,11 @@ class AccountsCompanion extends UpdateCompanion<AccountRow> {
   final Value<String> id;
   final Value<String> name;
   final Value<double> balance;
+  final Value<String> balanceMinor;
   final Value<double> openingBalance;
+  final Value<String> openingBalanceMinor;
   final Value<String> currency;
+  final Value<int> currencyScale;
   final Value<String> type;
   final Value<String?> color;
   final Value<String?> gradientId;
@@ -679,8 +804,11 @@ class AccountsCompanion extends UpdateCompanion<AccountRow> {
     this.id = const Value.absent(),
     this.name = const Value.absent(),
     this.balance = const Value.absent(),
+    this.balanceMinor = const Value.absent(),
     this.openingBalance = const Value.absent(),
+    this.openingBalanceMinor = const Value.absent(),
     this.currency = const Value.absent(),
+    this.currencyScale = const Value.absent(),
     this.type = const Value.absent(),
     this.color = const Value.absent(),
     this.gradientId = const Value.absent(),
@@ -697,8 +825,11 @@ class AccountsCompanion extends UpdateCompanion<AccountRow> {
     required String id,
     required String name,
     required double balance,
+    this.balanceMinor = const Value.absent(),
     this.openingBalance = const Value.absent(),
+    this.openingBalanceMinor = const Value.absent(),
     required String currency,
+    this.currencyScale = const Value.absent(),
     required String type,
     this.color = const Value.absent(),
     this.gradientId = const Value.absent(),
@@ -719,8 +850,11 @@ class AccountsCompanion extends UpdateCompanion<AccountRow> {
     Expression<String>? id,
     Expression<String>? name,
     Expression<double>? balance,
+    Expression<String>? balanceMinor,
     Expression<double>? openingBalance,
+    Expression<String>? openingBalanceMinor,
     Expression<String>? currency,
+    Expression<int>? currencyScale,
     Expression<String>? type,
     Expression<String>? color,
     Expression<String>? gradientId,
@@ -737,8 +871,12 @@ class AccountsCompanion extends UpdateCompanion<AccountRow> {
       if (id != null) 'id': id,
       if (name != null) 'name': name,
       if (balance != null) 'balance': balance,
+      if (balanceMinor != null) 'balance_minor': balanceMinor,
       if (openingBalance != null) 'opening_balance': openingBalance,
+      if (openingBalanceMinor != null)
+        'opening_balance_minor': openingBalanceMinor,
       if (currency != null) 'currency': currency,
+      if (currencyScale != null) 'currency_scale': currencyScale,
       if (type != null) 'type': type,
       if (color != null) 'color': color,
       if (gradientId != null) 'gradient_id': gradientId,
@@ -757,8 +895,11 @@ class AccountsCompanion extends UpdateCompanion<AccountRow> {
     Value<String>? id,
     Value<String>? name,
     Value<double>? balance,
+    Value<String>? balanceMinor,
     Value<double>? openingBalance,
+    Value<String>? openingBalanceMinor,
     Value<String>? currency,
+    Value<int>? currencyScale,
     Value<String>? type,
     Value<String?>? color,
     Value<String?>? gradientId,
@@ -775,8 +916,11 @@ class AccountsCompanion extends UpdateCompanion<AccountRow> {
       id: id ?? this.id,
       name: name ?? this.name,
       balance: balance ?? this.balance,
+      balanceMinor: balanceMinor ?? this.balanceMinor,
       openingBalance: openingBalance ?? this.openingBalance,
+      openingBalanceMinor: openingBalanceMinor ?? this.openingBalanceMinor,
       currency: currency ?? this.currency,
+      currencyScale: currencyScale ?? this.currencyScale,
       type: type ?? this.type,
       color: color ?? this.color,
       gradientId: gradientId ?? this.gradientId,
@@ -803,11 +947,22 @@ class AccountsCompanion extends UpdateCompanion<AccountRow> {
     if (balance.present) {
       map['balance'] = Variable<double>(balance.value);
     }
+    if (balanceMinor.present) {
+      map['balance_minor'] = Variable<String>(balanceMinor.value);
+    }
     if (openingBalance.present) {
       map['opening_balance'] = Variable<double>(openingBalance.value);
     }
+    if (openingBalanceMinor.present) {
+      map['opening_balance_minor'] = Variable<String>(
+        openingBalanceMinor.value,
+      );
+    }
     if (currency.present) {
       map['currency'] = Variable<String>(currency.value);
+    }
+    if (currencyScale.present) {
+      map['currency_scale'] = Variable<int>(currencyScale.value);
     }
     if (type.present) {
       map['type'] = Variable<String>(type.value);
@@ -851,8 +1006,11 @@ class AccountsCompanion extends UpdateCompanion<AccountRow> {
           ..write('id: $id, ')
           ..write('name: $name, ')
           ..write('balance: $balance, ')
+          ..write('balanceMinor: $balanceMinor, ')
           ..write('openingBalance: $openingBalance, ')
+          ..write('openingBalanceMinor: $openingBalanceMinor, ')
           ..write('currency: $currency, ')
+          ..write('currencyScale: $currencyScale, ')
           ..write('type: $type, ')
           ..write('color: $color, ')
           ..write('gradientId: $gradientId, ')
@@ -2687,6 +2845,30 @@ class $TransactionsTable extends Transactions
     type: DriftSqlType.double,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _amountMinorMeta = const VerificationMeta(
+    'amountMinor',
+  );
+  @override
+  late final GeneratedColumn<String> amountMinor = GeneratedColumn<String>(
+    'amount_minor',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant<String>('0'),
+  );
+  static const VerificationMeta _amountScaleMeta = const VerificationMeta(
+    'amountScale',
+  );
+  @override
+  late final GeneratedColumn<int> amountScale = GeneratedColumn<int>(
+    'amount_scale',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant<int>(2),
+  );
   static const VerificationMeta _dateMeta = const VerificationMeta('date');
   @override
   late final GeneratedColumn<DateTime> date = GeneratedColumn<DateTime>(
@@ -2776,6 +2958,8 @@ class $TransactionsTable extends Transactions
     transferAccountId,
     categoryId,
     amount,
+    amountMinor,
+    amountScale,
     date,
     note,
     type,
@@ -2831,6 +3015,24 @@ class $TransactionsTable extends Transactions
       );
     } else if (isInserting) {
       context.missing(_amountMeta);
+    }
+    if (data.containsKey('amount_minor')) {
+      context.handle(
+        _amountMinorMeta,
+        amountMinor.isAcceptableOrUnknown(
+          data['amount_minor']!,
+          _amountMinorMeta,
+        ),
+      );
+    }
+    if (data.containsKey('amount_scale')) {
+      context.handle(
+        _amountScaleMeta,
+        amountScale.isAcceptableOrUnknown(
+          data['amount_scale']!,
+          _amountScaleMeta,
+        ),
+      );
     }
     if (data.containsKey('date')) {
       context.handle(
@@ -2910,6 +3112,14 @@ class $TransactionsTable extends Transactions
         DriftSqlType.double,
         data['${effectivePrefix}amount'],
       )!,
+      amountMinor: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}amount_minor'],
+      )!,
+      amountScale: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}amount_scale'],
+      )!,
       date: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}date'],
@@ -2953,6 +3163,8 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
   final String? transferAccountId;
   final String? categoryId;
   final double amount;
+  final String amountMinor;
+  final int amountScale;
   final DateTime date;
   final String? note;
   final String type;
@@ -2966,6 +3178,8 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
     this.transferAccountId,
     this.categoryId,
     required this.amount,
+    required this.amountMinor,
+    required this.amountScale,
     required this.date,
     this.note,
     required this.type,
@@ -2986,6 +3200,8 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
       map['category_id'] = Variable<String>(categoryId);
     }
     map['amount'] = Variable<double>(amount);
+    map['amount_minor'] = Variable<String>(amountMinor);
+    map['amount_scale'] = Variable<int>(amountScale);
     map['date'] = Variable<DateTime>(date);
     if (!nullToAbsent || note != null) {
       map['note'] = Variable<String>(note);
@@ -3011,6 +3227,8 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
           ? const Value.absent()
           : Value(categoryId),
       amount: Value(amount),
+      amountMinor: Value(amountMinor),
+      amountScale: Value(amountScale),
       date: Value(date),
       note: note == null && nullToAbsent ? const Value.absent() : Value(note),
       type: Value(type),
@@ -3036,6 +3254,8 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
       ),
       categoryId: serializer.fromJson<String?>(json['categoryId']),
       amount: serializer.fromJson<double>(json['amount']),
+      amountMinor: serializer.fromJson<String>(json['amountMinor']),
+      amountScale: serializer.fromJson<int>(json['amountScale']),
       date: serializer.fromJson<DateTime>(json['date']),
       note: serializer.fromJson<String?>(json['note']),
       type: serializer.fromJson<String>(json['type']),
@@ -3054,6 +3274,8 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
       'transferAccountId': serializer.toJson<String?>(transferAccountId),
       'categoryId': serializer.toJson<String?>(categoryId),
       'amount': serializer.toJson<double>(amount),
+      'amountMinor': serializer.toJson<String>(amountMinor),
+      'amountScale': serializer.toJson<int>(amountScale),
       'date': serializer.toJson<DateTime>(date),
       'note': serializer.toJson<String?>(note),
       'type': serializer.toJson<String>(type),
@@ -3070,6 +3292,8 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
     Value<String?> transferAccountId = const Value.absent(),
     Value<String?> categoryId = const Value.absent(),
     double? amount,
+    String? amountMinor,
+    int? amountScale,
     DateTime? date,
     Value<String?> note = const Value.absent(),
     String? type,
@@ -3085,6 +3309,8 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
         : this.transferAccountId,
     categoryId: categoryId.present ? categoryId.value : this.categoryId,
     amount: amount ?? this.amount,
+    amountMinor: amountMinor ?? this.amountMinor,
+    amountScale: amountScale ?? this.amountScale,
     date: date ?? this.date,
     note: note.present ? note.value : this.note,
     type: type ?? this.type,
@@ -3104,6 +3330,12 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
           ? data.categoryId.value
           : this.categoryId,
       amount: data.amount.present ? data.amount.value : this.amount,
+      amountMinor: data.amountMinor.present
+          ? data.amountMinor.value
+          : this.amountMinor,
+      amountScale: data.amountScale.present
+          ? data.amountScale.value
+          : this.amountScale,
       date: data.date.present ? data.date.value : this.date,
       note: data.note.present ? data.note.value : this.note,
       type: data.type.present ? data.type.value : this.type,
@@ -3124,6 +3356,8 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
           ..write('transferAccountId: $transferAccountId, ')
           ..write('categoryId: $categoryId, ')
           ..write('amount: $amount, ')
+          ..write('amountMinor: $amountMinor, ')
+          ..write('amountScale: $amountScale, ')
           ..write('date: $date, ')
           ..write('note: $note, ')
           ..write('type: $type, ')
@@ -3142,6 +3376,8 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
     transferAccountId,
     categoryId,
     amount,
+    amountMinor,
+    amountScale,
     date,
     note,
     type,
@@ -3159,6 +3395,8 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
           other.transferAccountId == this.transferAccountId &&
           other.categoryId == this.categoryId &&
           other.amount == this.amount &&
+          other.amountMinor == this.amountMinor &&
+          other.amountScale == this.amountScale &&
           other.date == this.date &&
           other.note == this.note &&
           other.type == this.type &&
@@ -3174,6 +3412,8 @@ class TransactionsCompanion extends UpdateCompanion<TransactionRow> {
   final Value<String?> transferAccountId;
   final Value<String?> categoryId;
   final Value<double> amount;
+  final Value<String> amountMinor;
+  final Value<int> amountScale;
   final Value<DateTime> date;
   final Value<String?> note;
   final Value<String> type;
@@ -3188,6 +3428,8 @@ class TransactionsCompanion extends UpdateCompanion<TransactionRow> {
     this.transferAccountId = const Value.absent(),
     this.categoryId = const Value.absent(),
     this.amount = const Value.absent(),
+    this.amountMinor = const Value.absent(),
+    this.amountScale = const Value.absent(),
     this.date = const Value.absent(),
     this.note = const Value.absent(),
     this.type = const Value.absent(),
@@ -3203,6 +3445,8 @@ class TransactionsCompanion extends UpdateCompanion<TransactionRow> {
     this.transferAccountId = const Value.absent(),
     this.categoryId = const Value.absent(),
     required double amount,
+    this.amountMinor = const Value.absent(),
+    this.amountScale = const Value.absent(),
     required DateTime date,
     this.note = const Value.absent(),
     required String type,
@@ -3222,6 +3466,8 @@ class TransactionsCompanion extends UpdateCompanion<TransactionRow> {
     Expression<String>? transferAccountId,
     Expression<String>? categoryId,
     Expression<double>? amount,
+    Expression<String>? amountMinor,
+    Expression<int>? amountScale,
     Expression<DateTime>? date,
     Expression<String>? note,
     Expression<String>? type,
@@ -3237,6 +3483,8 @@ class TransactionsCompanion extends UpdateCompanion<TransactionRow> {
       if (transferAccountId != null) 'transfer_account_id': transferAccountId,
       if (categoryId != null) 'category_id': categoryId,
       if (amount != null) 'amount': amount,
+      if (amountMinor != null) 'amount_minor': amountMinor,
+      if (amountScale != null) 'amount_scale': amountScale,
       if (date != null) 'date': date,
       if (note != null) 'note': note,
       if (type != null) 'type': type,
@@ -3254,6 +3502,8 @@ class TransactionsCompanion extends UpdateCompanion<TransactionRow> {
     Value<String?>? transferAccountId,
     Value<String?>? categoryId,
     Value<double>? amount,
+    Value<String>? amountMinor,
+    Value<int>? amountScale,
     Value<DateTime>? date,
     Value<String?>? note,
     Value<String>? type,
@@ -3269,6 +3519,8 @@ class TransactionsCompanion extends UpdateCompanion<TransactionRow> {
       transferAccountId: transferAccountId ?? this.transferAccountId,
       categoryId: categoryId ?? this.categoryId,
       amount: amount ?? this.amount,
+      amountMinor: amountMinor ?? this.amountMinor,
+      amountScale: amountScale ?? this.amountScale,
       date: date ?? this.date,
       note: note ?? this.note,
       type: type ?? this.type,
@@ -3297,6 +3549,12 @@ class TransactionsCompanion extends UpdateCompanion<TransactionRow> {
     }
     if (amount.present) {
       map['amount'] = Variable<double>(amount.value);
+    }
+    if (amountMinor.present) {
+      map['amount_minor'] = Variable<String>(amountMinor.value);
+    }
+    if (amountScale.present) {
+      map['amount_scale'] = Variable<int>(amountScale.value);
     }
     if (date.present) {
       map['date'] = Variable<DateTime>(date.value);
@@ -3333,6 +3591,8 @@ class TransactionsCompanion extends UpdateCompanion<TransactionRow> {
           ..write('transferAccountId: $transferAccountId, ')
           ..write('categoryId: $categoryId, ')
           ..write('amount: $amount, ')
+          ..write('amountMinor: $amountMinor, ')
+          ..write('amountScale: $amountScale, ')
           ..write('date: $date, ')
           ..write('note: $note, ')
           ..write('type: $type, ')
@@ -4876,6 +5136,30 @@ class $BudgetsTable extends Budgets with TableInfo<$BudgetsTable, BudgetRow> {
     type: DriftSqlType.double,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _amountMinorMeta = const VerificationMeta(
+    'amountMinor',
+  );
+  @override
+  late final GeneratedColumn<String> amountMinor = GeneratedColumn<String>(
+    'amount_minor',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant<String>('0'),
+  );
+  static const VerificationMeta _amountScaleMeta = const VerificationMeta(
+    'amountScale',
+  );
+  @override
+  late final GeneratedColumn<int> amountScale = GeneratedColumn<int>(
+    'amount_scale',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant<int>(2),
+  );
   static const VerificationMeta _scopeMeta = const VerificationMeta('scope');
   @override
   late final GeneratedColumn<String> scope = GeneratedColumn<String>(
@@ -4972,6 +5256,8 @@ class $BudgetsTable extends Budgets with TableInfo<$BudgetsTable, BudgetRow> {
     startDate,
     endDate,
     amount,
+    amountMinor,
+    amountScale,
     scope,
     categories,
     accounts,
@@ -5035,6 +5321,24 @@ class $BudgetsTable extends Budgets with TableInfo<$BudgetsTable, BudgetRow> {
     } else if (isInserting) {
       context.missing(_amountMeta);
     }
+    if (data.containsKey('amount_minor')) {
+      context.handle(
+        _amountMinorMeta,
+        amountMinor.isAcceptableOrUnknown(
+          data['amount_minor']!,
+          _amountMinorMeta,
+        ),
+      );
+    }
+    if (data.containsKey('amount_scale')) {
+      context.handle(
+        _amountScaleMeta,
+        amountScale.isAcceptableOrUnknown(
+          data['amount_scale']!,
+          _amountScaleMeta,
+        ),
+      );
+    }
     if (data.containsKey('scope')) {
       context.handle(
         _scopeMeta,
@@ -5094,6 +5398,14 @@ class $BudgetsTable extends Budgets with TableInfo<$BudgetsTable, BudgetRow> {
         DriftSqlType.double,
         data['${effectivePrefix}amount'],
       )!,
+      amountMinor: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}amount_minor'],
+      )!,
+      amountScale: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}amount_scale'],
+      )!,
       scope: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}scope'],
@@ -5151,6 +5463,8 @@ class BudgetRow extends DataClass implements Insertable<BudgetRow> {
   final DateTime startDate;
   final DateTime? endDate;
   final double amount;
+  final String amountMinor;
+  final int amountScale;
   final String scope;
   final List<String> categories;
   final List<String> accounts;
@@ -5165,6 +5479,8 @@ class BudgetRow extends DataClass implements Insertable<BudgetRow> {
     required this.startDate,
     this.endDate,
     required this.amount,
+    required this.amountMinor,
+    required this.amountScale,
     required this.scope,
     required this.categories,
     required this.accounts,
@@ -5184,6 +5500,8 @@ class BudgetRow extends DataClass implements Insertable<BudgetRow> {
       map['end_date'] = Variable<DateTime>(endDate);
     }
     map['amount'] = Variable<double>(amount);
+    map['amount_minor'] = Variable<String>(amountMinor);
+    map['amount_scale'] = Variable<int>(amountScale);
     map['scope'] = Variable<String>(scope);
     {
       map['categories'] = Variable<String>(
@@ -5216,6 +5534,8 @@ class BudgetRow extends DataClass implements Insertable<BudgetRow> {
           ? const Value.absent()
           : Value(endDate),
       amount: Value(amount),
+      amountMinor: Value(amountMinor),
+      amountScale: Value(amountScale),
       scope: Value(scope),
       categories: Value(categories),
       accounts: Value(accounts),
@@ -5238,6 +5558,8 @@ class BudgetRow extends DataClass implements Insertable<BudgetRow> {
       startDate: serializer.fromJson<DateTime>(json['startDate']),
       endDate: serializer.fromJson<DateTime?>(json['endDate']),
       amount: serializer.fromJson<double>(json['amount']),
+      amountMinor: serializer.fromJson<String>(json['amountMinor']),
+      amountScale: serializer.fromJson<int>(json['amountScale']),
       scope: serializer.fromJson<String>(json['scope']),
       categories: serializer.fromJson<List<String>>(json['categories']),
       accounts: serializer.fromJson<List<String>>(json['accounts']),
@@ -5259,6 +5581,8 @@ class BudgetRow extends DataClass implements Insertable<BudgetRow> {
       'startDate': serializer.toJson<DateTime>(startDate),
       'endDate': serializer.toJson<DateTime?>(endDate),
       'amount': serializer.toJson<double>(amount),
+      'amountMinor': serializer.toJson<String>(amountMinor),
+      'amountScale': serializer.toJson<int>(amountScale),
       'scope': serializer.toJson<String>(scope),
       'categories': serializer.toJson<List<String>>(categories),
       'accounts': serializer.toJson<List<String>>(accounts),
@@ -5278,6 +5602,8 @@ class BudgetRow extends DataClass implements Insertable<BudgetRow> {
     DateTime? startDate,
     Value<DateTime?> endDate = const Value.absent(),
     double? amount,
+    String? amountMinor,
+    int? amountScale,
     String? scope,
     List<String>? categories,
     List<String>? accounts,
@@ -5292,6 +5618,8 @@ class BudgetRow extends DataClass implements Insertable<BudgetRow> {
     startDate: startDate ?? this.startDate,
     endDate: endDate.present ? endDate.value : this.endDate,
     amount: amount ?? this.amount,
+    amountMinor: amountMinor ?? this.amountMinor,
+    amountScale: amountScale ?? this.amountScale,
     scope: scope ?? this.scope,
     categories: categories ?? this.categories,
     accounts: accounts ?? this.accounts,
@@ -5308,6 +5636,12 @@ class BudgetRow extends DataClass implements Insertable<BudgetRow> {
       startDate: data.startDate.present ? data.startDate.value : this.startDate,
       endDate: data.endDate.present ? data.endDate.value : this.endDate,
       amount: data.amount.present ? data.amount.value : this.amount,
+      amountMinor: data.amountMinor.present
+          ? data.amountMinor.value
+          : this.amountMinor,
+      amountScale: data.amountScale.present
+          ? data.amountScale.value
+          : this.amountScale,
       scope: data.scope.present ? data.scope.value : this.scope,
       categories: data.categories.present
           ? data.categories.value
@@ -5331,6 +5665,8 @@ class BudgetRow extends DataClass implements Insertable<BudgetRow> {
           ..write('startDate: $startDate, ')
           ..write('endDate: $endDate, ')
           ..write('amount: $amount, ')
+          ..write('amountMinor: $amountMinor, ')
+          ..write('amountScale: $amountScale, ')
           ..write('scope: $scope, ')
           ..write('categories: $categories, ')
           ..write('accounts: $accounts, ')
@@ -5350,6 +5686,8 @@ class BudgetRow extends DataClass implements Insertable<BudgetRow> {
     startDate,
     endDate,
     amount,
+    amountMinor,
+    amountScale,
     scope,
     categories,
     accounts,
@@ -5368,6 +5706,8 @@ class BudgetRow extends DataClass implements Insertable<BudgetRow> {
           other.startDate == this.startDate &&
           other.endDate == this.endDate &&
           other.amount == this.amount &&
+          other.amountMinor == this.amountMinor &&
+          other.amountScale == this.amountScale &&
           other.scope == this.scope &&
           other.categories == this.categories &&
           other.accounts == this.accounts &&
@@ -5384,6 +5724,8 @@ class BudgetsCompanion extends UpdateCompanion<BudgetRow> {
   final Value<DateTime> startDate;
   final Value<DateTime?> endDate;
   final Value<double> amount;
+  final Value<String> amountMinor;
+  final Value<int> amountScale;
   final Value<String> scope;
   final Value<List<String>> categories;
   final Value<List<String>> accounts;
@@ -5399,6 +5741,8 @@ class BudgetsCompanion extends UpdateCompanion<BudgetRow> {
     this.startDate = const Value.absent(),
     this.endDate = const Value.absent(),
     this.amount = const Value.absent(),
+    this.amountMinor = const Value.absent(),
+    this.amountScale = const Value.absent(),
     this.scope = const Value.absent(),
     this.categories = const Value.absent(),
     this.accounts = const Value.absent(),
@@ -5415,6 +5759,8 @@ class BudgetsCompanion extends UpdateCompanion<BudgetRow> {
     required DateTime startDate,
     this.endDate = const Value.absent(),
     required double amount,
+    this.amountMinor = const Value.absent(),
+    this.amountScale = const Value.absent(),
     required String scope,
     this.categories = const Value.absent(),
     this.accounts = const Value.absent(),
@@ -5436,6 +5782,8 @@ class BudgetsCompanion extends UpdateCompanion<BudgetRow> {
     Expression<DateTime>? startDate,
     Expression<DateTime>? endDate,
     Expression<double>? amount,
+    Expression<String>? amountMinor,
+    Expression<int>? amountScale,
     Expression<String>? scope,
     Expression<String>? categories,
     Expression<String>? accounts,
@@ -5452,6 +5800,8 @@ class BudgetsCompanion extends UpdateCompanion<BudgetRow> {
       if (startDate != null) 'start_date': startDate,
       if (endDate != null) 'end_date': endDate,
       if (amount != null) 'amount': amount,
+      if (amountMinor != null) 'amount_minor': amountMinor,
+      if (amountScale != null) 'amount_scale': amountScale,
       if (scope != null) 'scope': scope,
       if (categories != null) 'categories': categories,
       if (accounts != null) 'accounts': accounts,
@@ -5471,6 +5821,8 @@ class BudgetsCompanion extends UpdateCompanion<BudgetRow> {
     Value<DateTime>? startDate,
     Value<DateTime?>? endDate,
     Value<double>? amount,
+    Value<String>? amountMinor,
+    Value<int>? amountScale,
     Value<String>? scope,
     Value<List<String>>? categories,
     Value<List<String>>? accounts,
@@ -5487,6 +5839,8 @@ class BudgetsCompanion extends UpdateCompanion<BudgetRow> {
       startDate: startDate ?? this.startDate,
       endDate: endDate ?? this.endDate,
       amount: amount ?? this.amount,
+      amountMinor: amountMinor ?? this.amountMinor,
+      amountScale: amountScale ?? this.amountScale,
       scope: scope ?? this.scope,
       categories: categories ?? this.categories,
       accounts: accounts ?? this.accounts,
@@ -5518,6 +5872,12 @@ class BudgetsCompanion extends UpdateCompanion<BudgetRow> {
     }
     if (amount.present) {
       map['amount'] = Variable<double>(amount.value);
+    }
+    if (amountMinor.present) {
+      map['amount_minor'] = Variable<String>(amountMinor.value);
+    }
+    if (amountScale.present) {
+      map['amount_scale'] = Variable<int>(amountScale.value);
     }
     if (scope.present) {
       map['scope'] = Variable<String>(scope.value);
@@ -5563,6 +5923,8 @@ class BudgetsCompanion extends UpdateCompanion<BudgetRow> {
           ..write('startDate: $startDate, ')
           ..write('endDate: $endDate, ')
           ..write('amount: $amount, ')
+          ..write('amountMinor: $amountMinor, ')
+          ..write('amountScale: $amountScale, ')
           ..write('scope: $scope, ')
           ..write('categories: $categories, ')
           ..write('accounts: $accounts, ')
@@ -5640,6 +6002,18 @@ class $BudgetInstancesTable extends BudgetInstances
     type: DriftSqlType.double,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _amountMinorMeta = const VerificationMeta(
+    'amountMinor',
+  );
+  @override
+  late final GeneratedColumn<String> amountMinor = GeneratedColumn<String>(
+    'amount_minor',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant<String>('0'),
+  );
   static const VerificationMeta _spentMeta = const VerificationMeta('spent');
   @override
   late final GeneratedColumn<double> spent = GeneratedColumn<double>(
@@ -5649,6 +6023,30 @@ class $BudgetInstancesTable extends BudgetInstances
     type: DriftSqlType.double,
     requiredDuringInsert: false,
     defaultValue: const Constant<double>(0),
+  );
+  static const VerificationMeta _spentMinorMeta = const VerificationMeta(
+    'spentMinor',
+  );
+  @override
+  late final GeneratedColumn<String> spentMinor = GeneratedColumn<String>(
+    'spent_minor',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant<String>('0'),
+  );
+  static const VerificationMeta _amountScaleMeta = const VerificationMeta(
+    'amountScale',
+  );
+  @override
+  late final GeneratedColumn<int> amountScale = GeneratedColumn<int>(
+    'amount_scale',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant<int>(2),
   );
   static const VerificationMeta _statusMeta = const VerificationMeta('status');
   @override
@@ -5695,7 +6093,10 @@ class $BudgetInstancesTable extends BudgetInstances
     periodStart,
     periodEnd,
     amount,
+    amountMinor,
     spent,
+    spentMinor,
+    amountScale,
     status,
     createdAt,
     updatedAt,
@@ -5752,10 +6153,34 @@ class $BudgetInstancesTable extends BudgetInstances
     } else if (isInserting) {
       context.missing(_amountMeta);
     }
+    if (data.containsKey('amount_minor')) {
+      context.handle(
+        _amountMinorMeta,
+        amountMinor.isAcceptableOrUnknown(
+          data['amount_minor']!,
+          _amountMinorMeta,
+        ),
+      );
+    }
     if (data.containsKey('spent')) {
       context.handle(
         _spentMeta,
         spent.isAcceptableOrUnknown(data['spent']!, _spentMeta),
+      );
+    }
+    if (data.containsKey('spent_minor')) {
+      context.handle(
+        _spentMinorMeta,
+        spentMinor.isAcceptableOrUnknown(data['spent_minor']!, _spentMinorMeta),
+      );
+    }
+    if (data.containsKey('amount_scale')) {
+      context.handle(
+        _amountScaleMeta,
+        amountScale.isAcceptableOrUnknown(
+          data['amount_scale']!,
+          _amountScaleMeta,
+        ),
       );
     }
     if (data.containsKey('status')) {
@@ -5805,9 +6230,21 @@ class $BudgetInstancesTable extends BudgetInstances
         DriftSqlType.double,
         data['${effectivePrefix}amount'],
       )!,
+      amountMinor: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}amount_minor'],
+      )!,
       spent: attachedDatabase.typeMapping.read(
         DriftSqlType.double,
         data['${effectivePrefix}spent'],
+      )!,
+      spentMinor: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}spent_minor'],
+      )!,
+      amountScale: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}amount_scale'],
       )!,
       status: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
@@ -5837,7 +6274,10 @@ class BudgetInstanceRow extends DataClass
   final DateTime periodStart;
   final DateTime periodEnd;
   final double amount;
+  final String amountMinor;
   final double spent;
+  final String spentMinor;
+  final int amountScale;
   final String status;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -5847,7 +6287,10 @@ class BudgetInstanceRow extends DataClass
     required this.periodStart,
     required this.periodEnd,
     required this.amount,
+    required this.amountMinor,
     required this.spent,
+    required this.spentMinor,
+    required this.amountScale,
     required this.status,
     required this.createdAt,
     required this.updatedAt,
@@ -5860,7 +6303,10 @@ class BudgetInstanceRow extends DataClass
     map['period_start'] = Variable<DateTime>(periodStart);
     map['period_end'] = Variable<DateTime>(periodEnd);
     map['amount'] = Variable<double>(amount);
+    map['amount_minor'] = Variable<String>(amountMinor);
     map['spent'] = Variable<double>(spent);
+    map['spent_minor'] = Variable<String>(spentMinor);
+    map['amount_scale'] = Variable<int>(amountScale);
     map['status'] = Variable<String>(status);
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
@@ -5874,7 +6320,10 @@ class BudgetInstanceRow extends DataClass
       periodStart: Value(periodStart),
       periodEnd: Value(periodEnd),
       amount: Value(amount),
+      amountMinor: Value(amountMinor),
       spent: Value(spent),
+      spentMinor: Value(spentMinor),
+      amountScale: Value(amountScale),
       status: Value(status),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
@@ -5892,7 +6341,10 @@ class BudgetInstanceRow extends DataClass
       periodStart: serializer.fromJson<DateTime>(json['periodStart']),
       periodEnd: serializer.fromJson<DateTime>(json['periodEnd']),
       amount: serializer.fromJson<double>(json['amount']),
+      amountMinor: serializer.fromJson<String>(json['amountMinor']),
       spent: serializer.fromJson<double>(json['spent']),
+      spentMinor: serializer.fromJson<String>(json['spentMinor']),
+      amountScale: serializer.fromJson<int>(json['amountScale']),
       status: serializer.fromJson<String>(json['status']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
@@ -5907,7 +6359,10 @@ class BudgetInstanceRow extends DataClass
       'periodStart': serializer.toJson<DateTime>(periodStart),
       'periodEnd': serializer.toJson<DateTime>(periodEnd),
       'amount': serializer.toJson<double>(amount),
+      'amountMinor': serializer.toJson<String>(amountMinor),
       'spent': serializer.toJson<double>(spent),
+      'spentMinor': serializer.toJson<String>(spentMinor),
+      'amountScale': serializer.toJson<int>(amountScale),
       'status': serializer.toJson<String>(status),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
@@ -5920,7 +6375,10 @@ class BudgetInstanceRow extends DataClass
     DateTime? periodStart,
     DateTime? periodEnd,
     double? amount,
+    String? amountMinor,
     double? spent,
+    String? spentMinor,
+    int? amountScale,
     String? status,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -5930,7 +6388,10 @@ class BudgetInstanceRow extends DataClass
     periodStart: periodStart ?? this.periodStart,
     periodEnd: periodEnd ?? this.periodEnd,
     amount: amount ?? this.amount,
+    amountMinor: amountMinor ?? this.amountMinor,
     spent: spent ?? this.spent,
+    spentMinor: spentMinor ?? this.spentMinor,
+    amountScale: amountScale ?? this.amountScale,
     status: status ?? this.status,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
@@ -5944,7 +6405,16 @@ class BudgetInstanceRow extends DataClass
           : this.periodStart,
       periodEnd: data.periodEnd.present ? data.periodEnd.value : this.periodEnd,
       amount: data.amount.present ? data.amount.value : this.amount,
+      amountMinor: data.amountMinor.present
+          ? data.amountMinor.value
+          : this.amountMinor,
       spent: data.spent.present ? data.spent.value : this.spent,
+      spentMinor: data.spentMinor.present
+          ? data.spentMinor.value
+          : this.spentMinor,
+      amountScale: data.amountScale.present
+          ? data.amountScale.value
+          : this.amountScale,
       status: data.status.present ? data.status.value : this.status,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
@@ -5959,7 +6429,10 @@ class BudgetInstanceRow extends DataClass
           ..write('periodStart: $periodStart, ')
           ..write('periodEnd: $periodEnd, ')
           ..write('amount: $amount, ')
+          ..write('amountMinor: $amountMinor, ')
           ..write('spent: $spent, ')
+          ..write('spentMinor: $spentMinor, ')
+          ..write('amountScale: $amountScale, ')
           ..write('status: $status, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
@@ -5974,7 +6447,10 @@ class BudgetInstanceRow extends DataClass
     periodStart,
     periodEnd,
     amount,
+    amountMinor,
     spent,
+    spentMinor,
+    amountScale,
     status,
     createdAt,
     updatedAt,
@@ -5988,7 +6464,10 @@ class BudgetInstanceRow extends DataClass
           other.periodStart == this.periodStart &&
           other.periodEnd == this.periodEnd &&
           other.amount == this.amount &&
+          other.amountMinor == this.amountMinor &&
           other.spent == this.spent &&
+          other.spentMinor == this.spentMinor &&
+          other.amountScale == this.amountScale &&
           other.status == this.status &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt);
@@ -6000,7 +6479,10 @@ class BudgetInstancesCompanion extends UpdateCompanion<BudgetInstanceRow> {
   final Value<DateTime> periodStart;
   final Value<DateTime> periodEnd;
   final Value<double> amount;
+  final Value<String> amountMinor;
   final Value<double> spent;
+  final Value<String> spentMinor;
+  final Value<int> amountScale;
   final Value<String> status;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
@@ -6011,7 +6493,10 @@ class BudgetInstancesCompanion extends UpdateCompanion<BudgetInstanceRow> {
     this.periodStart = const Value.absent(),
     this.periodEnd = const Value.absent(),
     this.amount = const Value.absent(),
+    this.amountMinor = const Value.absent(),
     this.spent = const Value.absent(),
+    this.spentMinor = const Value.absent(),
+    this.amountScale = const Value.absent(),
     this.status = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
@@ -6023,7 +6508,10 @@ class BudgetInstancesCompanion extends UpdateCompanion<BudgetInstanceRow> {
     required DateTime periodStart,
     required DateTime periodEnd,
     required double amount,
+    this.amountMinor = const Value.absent(),
     this.spent = const Value.absent(),
+    this.spentMinor = const Value.absent(),
+    this.amountScale = const Value.absent(),
     this.status = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
@@ -6039,7 +6527,10 @@ class BudgetInstancesCompanion extends UpdateCompanion<BudgetInstanceRow> {
     Expression<DateTime>? periodStart,
     Expression<DateTime>? periodEnd,
     Expression<double>? amount,
+    Expression<String>? amountMinor,
     Expression<double>? spent,
+    Expression<String>? spentMinor,
+    Expression<int>? amountScale,
     Expression<String>? status,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
@@ -6051,7 +6542,10 @@ class BudgetInstancesCompanion extends UpdateCompanion<BudgetInstanceRow> {
       if (periodStart != null) 'period_start': periodStart,
       if (periodEnd != null) 'period_end': periodEnd,
       if (amount != null) 'amount': amount,
+      if (amountMinor != null) 'amount_minor': amountMinor,
       if (spent != null) 'spent': spent,
+      if (spentMinor != null) 'spent_minor': spentMinor,
+      if (amountScale != null) 'amount_scale': amountScale,
       if (status != null) 'status': status,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
@@ -6065,7 +6559,10 @@ class BudgetInstancesCompanion extends UpdateCompanion<BudgetInstanceRow> {
     Value<DateTime>? periodStart,
     Value<DateTime>? periodEnd,
     Value<double>? amount,
+    Value<String>? amountMinor,
     Value<double>? spent,
+    Value<String>? spentMinor,
+    Value<int>? amountScale,
     Value<String>? status,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
@@ -6077,7 +6574,10 @@ class BudgetInstancesCompanion extends UpdateCompanion<BudgetInstanceRow> {
       periodStart: periodStart ?? this.periodStart,
       periodEnd: periodEnd ?? this.periodEnd,
       amount: amount ?? this.amount,
+      amountMinor: amountMinor ?? this.amountMinor,
       spent: spent ?? this.spent,
+      spentMinor: spentMinor ?? this.spentMinor,
+      amountScale: amountScale ?? this.amountScale,
       status: status ?? this.status,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -6103,8 +6603,17 @@ class BudgetInstancesCompanion extends UpdateCompanion<BudgetInstanceRow> {
     if (amount.present) {
       map['amount'] = Variable<double>(amount.value);
     }
+    if (amountMinor.present) {
+      map['amount_minor'] = Variable<String>(amountMinor.value);
+    }
     if (spent.present) {
       map['spent'] = Variable<double>(spent.value);
+    }
+    if (spentMinor.present) {
+      map['spent_minor'] = Variable<String>(spentMinor.value);
+    }
+    if (amountScale.present) {
+      map['amount_scale'] = Variable<int>(amountScale.value);
     }
     if (status.present) {
       map['status'] = Variable<String>(status.value);
@@ -6129,7 +6638,10 @@ class BudgetInstancesCompanion extends UpdateCompanion<BudgetInstanceRow> {
           ..write('periodStart: $periodStart, ')
           ..write('periodEnd: $periodEnd, ')
           ..write('amount: $amount, ')
+          ..write('amountMinor: $amountMinor, ')
           ..write('spent: $spent, ')
+          ..write('spentMinor: $spentMinor, ')
+          ..write('amountScale: $amountScale, ')
           ..write('status: $status, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
@@ -6572,6 +7084,30 @@ class $UpcomingPaymentsTable extends UpcomingPayments
     type: DriftSqlType.double,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _amountMinorMeta = const VerificationMeta(
+    'amountMinor',
+  );
+  @override
+  late final GeneratedColumn<String> amountMinor = GeneratedColumn<String>(
+    'amount_minor',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant<String>('0'),
+  );
+  static const VerificationMeta _amountScaleMeta = const VerificationMeta(
+    'amountScale',
+  );
+  @override
+  late final GeneratedColumn<int> amountScale = GeneratedColumn<int>(
+    'amount_scale',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant<int>(2),
+  );
   static const VerificationMeta _dayOfMonthMeta = const VerificationMeta(
     'dayOfMonth',
   );
@@ -6701,6 +7237,8 @@ class $UpcomingPaymentsTable extends UpcomingPayments
     accountId,
     categoryId,
     amount,
+    amountMinor,
+    amountScale,
     dayOfMonth,
     notifyDaysBefore,
     notifyTimeHhmm,
@@ -6760,6 +7298,24 @@ class $UpcomingPaymentsTable extends UpcomingPayments
       );
     } else if (isInserting) {
       context.missing(_amountMeta);
+    }
+    if (data.containsKey('amount_minor')) {
+      context.handle(
+        _amountMinorMeta,
+        amountMinor.isAcceptableOrUnknown(
+          data['amount_minor']!,
+          _amountMinorMeta,
+        ),
+      );
+    }
+    if (data.containsKey('amount_scale')) {
+      context.handle(
+        _amountScaleMeta,
+        amountScale.isAcceptableOrUnknown(
+          data['amount_scale']!,
+          _amountScaleMeta,
+        ),
+      );
     }
     if (data.containsKey('day_of_month')) {
       context.handle(
@@ -6868,6 +7424,14 @@ class $UpcomingPaymentsTable extends UpcomingPayments
         DriftSqlType.double,
         data['${effectivePrefix}amount'],
       )!,
+      amountMinor: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}amount_minor'],
+      )!,
+      amountScale: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}amount_scale'],
+      )!,
       dayOfMonth: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}day_of_month'],
@@ -6924,6 +7488,8 @@ class UpcomingPaymentRow extends DataClass
   final String accountId;
   final String categoryId;
   final double amount;
+  final String amountMinor;
+  final int amountScale;
   final int dayOfMonth;
   final int notifyDaysBefore;
   final String notifyTimeHhmm;
@@ -6940,6 +7506,8 @@ class UpcomingPaymentRow extends DataClass
     required this.accountId,
     required this.categoryId,
     required this.amount,
+    required this.amountMinor,
+    required this.amountScale,
     required this.dayOfMonth,
     required this.notifyDaysBefore,
     required this.notifyTimeHhmm,
@@ -6959,6 +7527,8 @@ class UpcomingPaymentRow extends DataClass
     map['account_id'] = Variable<String>(accountId);
     map['category_id'] = Variable<String>(categoryId);
     map['amount'] = Variable<double>(amount);
+    map['amount_minor'] = Variable<String>(amountMinor);
+    map['amount_scale'] = Variable<int>(amountScale);
     map['day_of_month'] = Variable<int>(dayOfMonth);
     map['notify_days_before'] = Variable<int>(notifyDaysBefore);
     map['notify_time_hhmm'] = Variable<String>(notifyTimeHhmm);
@@ -6985,6 +7555,8 @@ class UpcomingPaymentRow extends DataClass
       accountId: Value(accountId),
       categoryId: Value(categoryId),
       amount: Value(amount),
+      amountMinor: Value(amountMinor),
+      amountScale: Value(amountScale),
       dayOfMonth: Value(dayOfMonth),
       notifyDaysBefore: Value(notifyDaysBefore),
       notifyTimeHhmm: Value(notifyTimeHhmm),
@@ -7013,6 +7585,8 @@ class UpcomingPaymentRow extends DataClass
       accountId: serializer.fromJson<String>(json['accountId']),
       categoryId: serializer.fromJson<String>(json['categoryId']),
       amount: serializer.fromJson<double>(json['amount']),
+      amountMinor: serializer.fromJson<String>(json['amountMinor']),
+      amountScale: serializer.fromJson<int>(json['amountScale']),
       dayOfMonth: serializer.fromJson<int>(json['dayOfMonth']),
       notifyDaysBefore: serializer.fromJson<int>(json['notifyDaysBefore']),
       notifyTimeHhmm: serializer.fromJson<String>(json['notifyTimeHhmm']),
@@ -7034,6 +7608,8 @@ class UpcomingPaymentRow extends DataClass
       'accountId': serializer.toJson<String>(accountId),
       'categoryId': serializer.toJson<String>(categoryId),
       'amount': serializer.toJson<double>(amount),
+      'amountMinor': serializer.toJson<String>(amountMinor),
+      'amountScale': serializer.toJson<int>(amountScale),
       'dayOfMonth': serializer.toJson<int>(dayOfMonth),
       'notifyDaysBefore': serializer.toJson<int>(notifyDaysBefore),
       'notifyTimeHhmm': serializer.toJson<String>(notifyTimeHhmm),
@@ -7053,6 +7629,8 @@ class UpcomingPaymentRow extends DataClass
     String? accountId,
     String? categoryId,
     double? amount,
+    String? amountMinor,
+    int? amountScale,
     int? dayOfMonth,
     int? notifyDaysBefore,
     String? notifyTimeHhmm,
@@ -7069,6 +7647,8 @@ class UpcomingPaymentRow extends DataClass
     accountId: accountId ?? this.accountId,
     categoryId: categoryId ?? this.categoryId,
     amount: amount ?? this.amount,
+    amountMinor: amountMinor ?? this.amountMinor,
+    amountScale: amountScale ?? this.amountScale,
     dayOfMonth: dayOfMonth ?? this.dayOfMonth,
     notifyDaysBefore: notifyDaysBefore ?? this.notifyDaysBefore,
     notifyTimeHhmm: notifyTimeHhmm ?? this.notifyTimeHhmm,
@@ -7089,6 +7669,12 @@ class UpcomingPaymentRow extends DataClass
           ? data.categoryId.value
           : this.categoryId,
       amount: data.amount.present ? data.amount.value : this.amount,
+      amountMinor: data.amountMinor.present
+          ? data.amountMinor.value
+          : this.amountMinor,
+      amountScale: data.amountScale.present
+          ? data.amountScale.value
+          : this.amountScale,
       dayOfMonth: data.dayOfMonth.present
           ? data.dayOfMonth.value
           : this.dayOfMonth,
@@ -7118,6 +7704,8 @@ class UpcomingPaymentRow extends DataClass
           ..write('accountId: $accountId, ')
           ..write('categoryId: $categoryId, ')
           ..write('amount: $amount, ')
+          ..write('amountMinor: $amountMinor, ')
+          ..write('amountScale: $amountScale, ')
           ..write('dayOfMonth: $dayOfMonth, ')
           ..write('notifyDaysBefore: $notifyDaysBefore, ')
           ..write('notifyTimeHhmm: $notifyTimeHhmm, ')
@@ -7139,6 +7727,8 @@ class UpcomingPaymentRow extends DataClass
     accountId,
     categoryId,
     amount,
+    amountMinor,
+    amountScale,
     dayOfMonth,
     notifyDaysBefore,
     notifyTimeHhmm,
@@ -7159,6 +7749,8 @@ class UpcomingPaymentRow extends DataClass
           other.accountId == this.accountId &&
           other.categoryId == this.categoryId &&
           other.amount == this.amount &&
+          other.amountMinor == this.amountMinor &&
+          other.amountScale == this.amountScale &&
           other.dayOfMonth == this.dayOfMonth &&
           other.notifyDaysBefore == this.notifyDaysBefore &&
           other.notifyTimeHhmm == this.notifyTimeHhmm &&
@@ -7177,6 +7769,8 @@ class UpcomingPaymentsCompanion extends UpdateCompanion<UpcomingPaymentRow> {
   final Value<String> accountId;
   final Value<String> categoryId;
   final Value<double> amount;
+  final Value<String> amountMinor;
+  final Value<int> amountScale;
   final Value<int> dayOfMonth;
   final Value<int> notifyDaysBefore;
   final Value<String> notifyTimeHhmm;
@@ -7194,6 +7788,8 @@ class UpcomingPaymentsCompanion extends UpdateCompanion<UpcomingPaymentRow> {
     this.accountId = const Value.absent(),
     this.categoryId = const Value.absent(),
     this.amount = const Value.absent(),
+    this.amountMinor = const Value.absent(),
+    this.amountScale = const Value.absent(),
     this.dayOfMonth = const Value.absent(),
     this.notifyDaysBefore = const Value.absent(),
     this.notifyTimeHhmm = const Value.absent(),
@@ -7212,6 +7808,8 @@ class UpcomingPaymentsCompanion extends UpdateCompanion<UpcomingPaymentRow> {
     required String accountId,
     required String categoryId,
     required double amount,
+    this.amountMinor = const Value.absent(),
+    this.amountScale = const Value.absent(),
     required int dayOfMonth,
     this.notifyDaysBefore = const Value.absent(),
     this.notifyTimeHhmm = const Value.absent(),
@@ -7237,6 +7835,8 @@ class UpcomingPaymentsCompanion extends UpdateCompanion<UpcomingPaymentRow> {
     Expression<String>? accountId,
     Expression<String>? categoryId,
     Expression<double>? amount,
+    Expression<String>? amountMinor,
+    Expression<int>? amountScale,
     Expression<int>? dayOfMonth,
     Expression<int>? notifyDaysBefore,
     Expression<String>? notifyTimeHhmm,
@@ -7255,6 +7855,8 @@ class UpcomingPaymentsCompanion extends UpdateCompanion<UpcomingPaymentRow> {
       if (accountId != null) 'account_id': accountId,
       if (categoryId != null) 'category_id': categoryId,
       if (amount != null) 'amount': amount,
+      if (amountMinor != null) 'amount_minor': amountMinor,
+      if (amountScale != null) 'amount_scale': amountScale,
       if (dayOfMonth != null) 'day_of_month': dayOfMonth,
       if (notifyDaysBefore != null) 'notify_days_before': notifyDaysBefore,
       if (notifyTimeHhmm != null) 'notify_time_hhmm': notifyTimeHhmm,
@@ -7275,6 +7877,8 @@ class UpcomingPaymentsCompanion extends UpdateCompanion<UpcomingPaymentRow> {
     Value<String>? accountId,
     Value<String>? categoryId,
     Value<double>? amount,
+    Value<String>? amountMinor,
+    Value<int>? amountScale,
     Value<int>? dayOfMonth,
     Value<int>? notifyDaysBefore,
     Value<String>? notifyTimeHhmm,
@@ -7293,6 +7897,8 @@ class UpcomingPaymentsCompanion extends UpdateCompanion<UpcomingPaymentRow> {
       accountId: accountId ?? this.accountId,
       categoryId: categoryId ?? this.categoryId,
       amount: amount ?? this.amount,
+      amountMinor: amountMinor ?? this.amountMinor,
+      amountScale: amountScale ?? this.amountScale,
       dayOfMonth: dayOfMonth ?? this.dayOfMonth,
       notifyDaysBefore: notifyDaysBefore ?? this.notifyDaysBefore,
       notifyTimeHhmm: notifyTimeHhmm ?? this.notifyTimeHhmm,
@@ -7324,6 +7930,12 @@ class UpcomingPaymentsCompanion extends UpdateCompanion<UpcomingPaymentRow> {
     }
     if (amount.present) {
       map['amount'] = Variable<double>(amount.value);
+    }
+    if (amountMinor.present) {
+      map['amount_minor'] = Variable<String>(amountMinor.value);
+    }
+    if (amountScale.present) {
+      map['amount_scale'] = Variable<int>(amountScale.value);
     }
     if (dayOfMonth.present) {
       map['day_of_month'] = Variable<int>(dayOfMonth.value);
@@ -7369,6 +7981,8 @@ class UpcomingPaymentsCompanion extends UpdateCompanion<UpcomingPaymentRow> {
           ..write('accountId: $accountId, ')
           ..write('categoryId: $categoryId, ')
           ..write('amount: $amount, ')
+          ..write('amountMinor: $amountMinor, ')
+          ..write('amountScale: $amountScale, ')
           ..write('dayOfMonth: $dayOfMonth, ')
           ..write('notifyDaysBefore: $notifyDaysBefore, ')
           ..write('notifyTimeHhmm: $notifyTimeHhmm, ')
@@ -7417,6 +8031,30 @@ class $PaymentRemindersTable extends PaymentReminders
     false,
     type: DriftSqlType.double,
     requiredDuringInsert: true,
+  );
+  static const VerificationMeta _amountMinorMeta = const VerificationMeta(
+    'amountMinor',
+  );
+  @override
+  late final GeneratedColumn<String> amountMinor = GeneratedColumn<String>(
+    'amount_minor',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant<String>('0'),
+  );
+  static const VerificationMeta _amountScaleMeta = const VerificationMeta(
+    'amountScale',
+  );
+  @override
+  late final GeneratedColumn<int> amountScale = GeneratedColumn<int>(
+    'amount_scale',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant<int>(2),
   );
   static const VerificationMeta _whenAtMeta = const VerificationMeta('whenAt');
   @override
@@ -7487,6 +8125,8 @@ class $PaymentRemindersTable extends PaymentReminders
     id,
     title,
     amount,
+    amountMinor,
+    amountScale,
     whenAt,
     note,
     isDone,
@@ -7526,6 +8166,24 @@ class $PaymentRemindersTable extends PaymentReminders
       );
     } else if (isInserting) {
       context.missing(_amountMeta);
+    }
+    if (data.containsKey('amount_minor')) {
+      context.handle(
+        _amountMinorMeta,
+        amountMinor.isAcceptableOrUnknown(
+          data['amount_minor']!,
+          _amountMinorMeta,
+        ),
+      );
+    }
+    if (data.containsKey('amount_scale')) {
+      context.handle(
+        _amountScaleMeta,
+        amountScale.isAcceptableOrUnknown(
+          data['amount_scale']!,
+          _amountScaleMeta,
+        ),
+      );
     }
     if (data.containsKey('when_at')) {
       context.handle(
@@ -7593,6 +8251,14 @@ class $PaymentRemindersTable extends PaymentReminders
         DriftSqlType.double,
         data['${effectivePrefix}amount'],
       )!,
+      amountMinor: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}amount_minor'],
+      )!,
+      amountScale: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}amount_scale'],
+      )!,
       whenAt: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}when_at'],
@@ -7631,6 +8297,8 @@ class PaymentReminderRow extends DataClass
   final String id;
   final String title;
   final double amount;
+  final String amountMinor;
+  final int amountScale;
   final int whenAt;
   final String? note;
   final bool isDone;
@@ -7641,6 +8309,8 @@ class PaymentReminderRow extends DataClass
     required this.id,
     required this.title,
     required this.amount,
+    required this.amountMinor,
+    required this.amountScale,
     required this.whenAt,
     this.note,
     required this.isDone,
@@ -7654,6 +8324,8 @@ class PaymentReminderRow extends DataClass
     map['id'] = Variable<String>(id);
     map['title'] = Variable<String>(title);
     map['amount'] = Variable<double>(amount);
+    map['amount_minor'] = Variable<String>(amountMinor);
+    map['amount_scale'] = Variable<int>(amountScale);
     map['when_at'] = Variable<int>(whenAt);
     if (!nullToAbsent || note != null) {
       map['note'] = Variable<String>(note);
@@ -7672,6 +8344,8 @@ class PaymentReminderRow extends DataClass
       id: Value(id),
       title: Value(title),
       amount: Value(amount),
+      amountMinor: Value(amountMinor),
+      amountScale: Value(amountScale),
       whenAt: Value(whenAt),
       note: note == null && nullToAbsent ? const Value.absent() : Value(note),
       isDone: Value(isDone),
@@ -7692,6 +8366,8 @@ class PaymentReminderRow extends DataClass
       id: serializer.fromJson<String>(json['id']),
       title: serializer.fromJson<String>(json['title']),
       amount: serializer.fromJson<double>(json['amount']),
+      amountMinor: serializer.fromJson<String>(json['amountMinor']),
+      amountScale: serializer.fromJson<int>(json['amountScale']),
       whenAt: serializer.fromJson<int>(json['whenAt']),
       note: serializer.fromJson<String?>(json['note']),
       isDone: serializer.fromJson<bool>(json['isDone']),
@@ -7707,6 +8383,8 @@ class PaymentReminderRow extends DataClass
       'id': serializer.toJson<String>(id),
       'title': serializer.toJson<String>(title),
       'amount': serializer.toJson<double>(amount),
+      'amountMinor': serializer.toJson<String>(amountMinor),
+      'amountScale': serializer.toJson<int>(amountScale),
       'whenAt': serializer.toJson<int>(whenAt),
       'note': serializer.toJson<String?>(note),
       'isDone': serializer.toJson<bool>(isDone),
@@ -7720,6 +8398,8 @@ class PaymentReminderRow extends DataClass
     String? id,
     String? title,
     double? amount,
+    String? amountMinor,
+    int? amountScale,
     int? whenAt,
     Value<String?> note = const Value.absent(),
     bool? isDone,
@@ -7730,6 +8410,8 @@ class PaymentReminderRow extends DataClass
     id: id ?? this.id,
     title: title ?? this.title,
     amount: amount ?? this.amount,
+    amountMinor: amountMinor ?? this.amountMinor,
+    amountScale: amountScale ?? this.amountScale,
     whenAt: whenAt ?? this.whenAt,
     note: note.present ? note.value : this.note,
     isDone: isDone ?? this.isDone,
@@ -7744,6 +8426,12 @@ class PaymentReminderRow extends DataClass
       id: data.id.present ? data.id.value : this.id,
       title: data.title.present ? data.title.value : this.title,
       amount: data.amount.present ? data.amount.value : this.amount,
+      amountMinor: data.amountMinor.present
+          ? data.amountMinor.value
+          : this.amountMinor,
+      amountScale: data.amountScale.present
+          ? data.amountScale.value
+          : this.amountScale,
       whenAt: data.whenAt.present ? data.whenAt.value : this.whenAt,
       note: data.note.present ? data.note.value : this.note,
       isDone: data.isDone.present ? data.isDone.value : this.isDone,
@@ -7761,6 +8449,8 @@ class PaymentReminderRow extends DataClass
           ..write('id: $id, ')
           ..write('title: $title, ')
           ..write('amount: $amount, ')
+          ..write('amountMinor: $amountMinor, ')
+          ..write('amountScale: $amountScale, ')
           ..write('whenAt: $whenAt, ')
           ..write('note: $note, ')
           ..write('isDone: $isDone, ')
@@ -7776,6 +8466,8 @@ class PaymentReminderRow extends DataClass
     id,
     title,
     amount,
+    amountMinor,
+    amountScale,
     whenAt,
     note,
     isDone,
@@ -7790,6 +8482,8 @@ class PaymentReminderRow extends DataClass
           other.id == this.id &&
           other.title == this.title &&
           other.amount == this.amount &&
+          other.amountMinor == this.amountMinor &&
+          other.amountScale == this.amountScale &&
           other.whenAt == this.whenAt &&
           other.note == this.note &&
           other.isDone == this.isDone &&
@@ -7802,6 +8496,8 @@ class PaymentRemindersCompanion extends UpdateCompanion<PaymentReminderRow> {
   final Value<String> id;
   final Value<String> title;
   final Value<double> amount;
+  final Value<String> amountMinor;
+  final Value<int> amountScale;
   final Value<int> whenAt;
   final Value<String?> note;
   final Value<bool> isDone;
@@ -7813,6 +8509,8 @@ class PaymentRemindersCompanion extends UpdateCompanion<PaymentReminderRow> {
     this.id = const Value.absent(),
     this.title = const Value.absent(),
     this.amount = const Value.absent(),
+    this.amountMinor = const Value.absent(),
+    this.amountScale = const Value.absent(),
     this.whenAt = const Value.absent(),
     this.note = const Value.absent(),
     this.isDone = const Value.absent(),
@@ -7825,6 +8523,8 @@ class PaymentRemindersCompanion extends UpdateCompanion<PaymentReminderRow> {
     required String id,
     required String title,
     required double amount,
+    this.amountMinor = const Value.absent(),
+    this.amountScale = const Value.absent(),
     required int whenAt,
     this.note = const Value.absent(),
     this.isDone = const Value.absent(),
@@ -7842,6 +8542,8 @@ class PaymentRemindersCompanion extends UpdateCompanion<PaymentReminderRow> {
     Expression<String>? id,
     Expression<String>? title,
     Expression<double>? amount,
+    Expression<String>? amountMinor,
+    Expression<int>? amountScale,
     Expression<int>? whenAt,
     Expression<String>? note,
     Expression<bool>? isDone,
@@ -7854,6 +8556,8 @@ class PaymentRemindersCompanion extends UpdateCompanion<PaymentReminderRow> {
       if (id != null) 'id': id,
       if (title != null) 'title': title,
       if (amount != null) 'amount': amount,
+      if (amountMinor != null) 'amount_minor': amountMinor,
+      if (amountScale != null) 'amount_scale': amountScale,
       if (whenAt != null) 'when_at': whenAt,
       if (note != null) 'note': note,
       if (isDone != null) 'is_done': isDone,
@@ -7868,6 +8572,8 @@ class PaymentRemindersCompanion extends UpdateCompanion<PaymentReminderRow> {
     Value<String>? id,
     Value<String>? title,
     Value<double>? amount,
+    Value<String>? amountMinor,
+    Value<int>? amountScale,
     Value<int>? whenAt,
     Value<String?>? note,
     Value<bool>? isDone,
@@ -7880,6 +8586,8 @@ class PaymentRemindersCompanion extends UpdateCompanion<PaymentReminderRow> {
       id: id ?? this.id,
       title: title ?? this.title,
       amount: amount ?? this.amount,
+      amountMinor: amountMinor ?? this.amountMinor,
+      amountScale: amountScale ?? this.amountScale,
       whenAt: whenAt ?? this.whenAt,
       note: note ?? this.note,
       isDone: isDone ?? this.isDone,
@@ -7901,6 +8609,12 @@ class PaymentRemindersCompanion extends UpdateCompanion<PaymentReminderRow> {
     }
     if (amount.present) {
       map['amount'] = Variable<double>(amount.value);
+    }
+    if (amountMinor.present) {
+      map['amount_minor'] = Variable<String>(amountMinor.value);
+    }
+    if (amountScale.present) {
+      map['amount_scale'] = Variable<int>(amountScale.value);
     }
     if (whenAt.present) {
       map['when_at'] = Variable<int>(whenAt.value);
@@ -7932,6 +8646,8 @@ class PaymentRemindersCompanion extends UpdateCompanion<PaymentReminderRow> {
           ..write('id: $id, ')
           ..write('title: $title, ')
           ..write('amount: $amount, ')
+          ..write('amountMinor: $amountMinor, ')
+          ..write('amountScale: $amountScale, ')
           ..write('whenAt: $whenAt, ')
           ..write('note: $note, ')
           ..write('isDone: $isDone, ')
@@ -7998,6 +8714,30 @@ class $DebtsTable extends Debts with TableInfo<$DebtsTable, DebtRow> {
     type: DriftSqlType.double,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _amountMinorMeta = const VerificationMeta(
+    'amountMinor',
+  );
+  @override
+  late final GeneratedColumn<String> amountMinor = GeneratedColumn<String>(
+    'amount_minor',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant<String>('0'),
+  );
+  static const VerificationMeta _amountScaleMeta = const VerificationMeta(
+    'amountScale',
+  );
+  @override
+  late final GeneratedColumn<int> amountScale = GeneratedColumn<int>(
+    'amount_scale',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant<int>(2),
+  );
   static const VerificationMeta _dueDateMeta = const VerificationMeta(
     'dueDate',
   );
@@ -8063,6 +8803,8 @@ class $DebtsTable extends Debts with TableInfo<$DebtsTable, DebtRow> {
     accountId,
     name,
     amount,
+    amountMinor,
+    amountScale,
     dueDate,
     note,
     createdAt,
@@ -8107,6 +8849,24 @@ class $DebtsTable extends Debts with TableInfo<$DebtsTable, DebtRow> {
       );
     } else if (isInserting) {
       context.missing(_amountMeta);
+    }
+    if (data.containsKey('amount_minor')) {
+      context.handle(
+        _amountMinorMeta,
+        amountMinor.isAcceptableOrUnknown(
+          data['amount_minor']!,
+          _amountMinorMeta,
+        ),
+      );
+    }
+    if (data.containsKey('amount_scale')) {
+      context.handle(
+        _amountScaleMeta,
+        amountScale.isAcceptableOrUnknown(
+          data['amount_scale']!,
+          _amountScaleMeta,
+        ),
+      );
     }
     if (data.containsKey('due_date')) {
       context.handle(
@@ -8165,6 +8925,14 @@ class $DebtsTable extends Debts with TableInfo<$DebtsTable, DebtRow> {
         DriftSqlType.double,
         data['${effectivePrefix}amount'],
       )!,
+      amountMinor: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}amount_minor'],
+      )!,
+      amountScale: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}amount_scale'],
+      )!,
       dueDate: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}due_date'],
@@ -8199,6 +8967,8 @@ class DebtRow extends DataClass implements Insertable<DebtRow> {
   final String accountId;
   final String? name;
   final double amount;
+  final String amountMinor;
+  final int amountScale;
   final DateTime dueDate;
   final String? note;
   final DateTime createdAt;
@@ -8209,6 +8979,8 @@ class DebtRow extends DataClass implements Insertable<DebtRow> {
     required this.accountId,
     this.name,
     required this.amount,
+    required this.amountMinor,
+    required this.amountScale,
     required this.dueDate,
     this.note,
     required this.createdAt,
@@ -8224,6 +8996,8 @@ class DebtRow extends DataClass implements Insertable<DebtRow> {
       map['name'] = Variable<String>(name);
     }
     map['amount'] = Variable<double>(amount);
+    map['amount_minor'] = Variable<String>(amountMinor);
+    map['amount_scale'] = Variable<int>(amountScale);
     map['due_date'] = Variable<DateTime>(dueDate);
     if (!nullToAbsent || note != null) {
       map['note'] = Variable<String>(note);
@@ -8240,6 +9014,8 @@ class DebtRow extends DataClass implements Insertable<DebtRow> {
       accountId: Value(accountId),
       name: name == null && nullToAbsent ? const Value.absent() : Value(name),
       amount: Value(amount),
+      amountMinor: Value(amountMinor),
+      amountScale: Value(amountScale),
       dueDate: Value(dueDate),
       note: note == null && nullToAbsent ? const Value.absent() : Value(note),
       createdAt: Value(createdAt),
@@ -8258,6 +9034,8 @@ class DebtRow extends DataClass implements Insertable<DebtRow> {
       accountId: serializer.fromJson<String>(json['accountId']),
       name: serializer.fromJson<String?>(json['name']),
       amount: serializer.fromJson<double>(json['amount']),
+      amountMinor: serializer.fromJson<String>(json['amountMinor']),
+      amountScale: serializer.fromJson<int>(json['amountScale']),
       dueDate: serializer.fromJson<DateTime>(json['dueDate']),
       note: serializer.fromJson<String?>(json['note']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
@@ -8273,6 +9051,8 @@ class DebtRow extends DataClass implements Insertable<DebtRow> {
       'accountId': serializer.toJson<String>(accountId),
       'name': serializer.toJson<String?>(name),
       'amount': serializer.toJson<double>(amount),
+      'amountMinor': serializer.toJson<String>(amountMinor),
+      'amountScale': serializer.toJson<int>(amountScale),
       'dueDate': serializer.toJson<DateTime>(dueDate),
       'note': serializer.toJson<String?>(note),
       'createdAt': serializer.toJson<DateTime>(createdAt),
@@ -8286,6 +9066,8 @@ class DebtRow extends DataClass implements Insertable<DebtRow> {
     String? accountId,
     Value<String?> name = const Value.absent(),
     double? amount,
+    String? amountMinor,
+    int? amountScale,
     DateTime? dueDate,
     Value<String?> note = const Value.absent(),
     DateTime? createdAt,
@@ -8296,6 +9078,8 @@ class DebtRow extends DataClass implements Insertable<DebtRow> {
     accountId: accountId ?? this.accountId,
     name: name.present ? name.value : this.name,
     amount: amount ?? this.amount,
+    amountMinor: amountMinor ?? this.amountMinor,
+    amountScale: amountScale ?? this.amountScale,
     dueDate: dueDate ?? this.dueDate,
     note: note.present ? note.value : this.note,
     createdAt: createdAt ?? this.createdAt,
@@ -8308,6 +9092,12 @@ class DebtRow extends DataClass implements Insertable<DebtRow> {
       accountId: data.accountId.present ? data.accountId.value : this.accountId,
       name: data.name.present ? data.name.value : this.name,
       amount: data.amount.present ? data.amount.value : this.amount,
+      amountMinor: data.amountMinor.present
+          ? data.amountMinor.value
+          : this.amountMinor,
+      amountScale: data.amountScale.present
+          ? data.amountScale.value
+          : this.amountScale,
       dueDate: data.dueDate.present ? data.dueDate.value : this.dueDate,
       note: data.note.present ? data.note.value : this.note,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
@@ -8323,6 +9113,8 @@ class DebtRow extends DataClass implements Insertable<DebtRow> {
           ..write('accountId: $accountId, ')
           ..write('name: $name, ')
           ..write('amount: $amount, ')
+          ..write('amountMinor: $amountMinor, ')
+          ..write('amountScale: $amountScale, ')
           ..write('dueDate: $dueDate, ')
           ..write('note: $note, ')
           ..write('createdAt: $createdAt, ')
@@ -8338,6 +9130,8 @@ class DebtRow extends DataClass implements Insertable<DebtRow> {
     accountId,
     name,
     amount,
+    amountMinor,
+    amountScale,
     dueDate,
     note,
     createdAt,
@@ -8352,6 +9146,8 @@ class DebtRow extends DataClass implements Insertable<DebtRow> {
           other.accountId == this.accountId &&
           other.name == this.name &&
           other.amount == this.amount &&
+          other.amountMinor == this.amountMinor &&
+          other.amountScale == this.amountScale &&
           other.dueDate == this.dueDate &&
           other.note == this.note &&
           other.createdAt == this.createdAt &&
@@ -8364,6 +9160,8 @@ class DebtsCompanion extends UpdateCompanion<DebtRow> {
   final Value<String> accountId;
   final Value<String?> name;
   final Value<double> amount;
+  final Value<String> amountMinor;
+  final Value<int> amountScale;
   final Value<DateTime> dueDate;
   final Value<String?> note;
   final Value<DateTime> createdAt;
@@ -8375,6 +9173,8 @@ class DebtsCompanion extends UpdateCompanion<DebtRow> {
     this.accountId = const Value.absent(),
     this.name = const Value.absent(),
     this.amount = const Value.absent(),
+    this.amountMinor = const Value.absent(),
+    this.amountScale = const Value.absent(),
     this.dueDate = const Value.absent(),
     this.note = const Value.absent(),
     this.createdAt = const Value.absent(),
@@ -8387,6 +9187,8 @@ class DebtsCompanion extends UpdateCompanion<DebtRow> {
     required String accountId,
     this.name = const Value.absent(),
     required double amount,
+    this.amountMinor = const Value.absent(),
+    this.amountScale = const Value.absent(),
     required DateTime dueDate,
     this.note = const Value.absent(),
     this.createdAt = const Value.absent(),
@@ -8402,6 +9204,8 @@ class DebtsCompanion extends UpdateCompanion<DebtRow> {
     Expression<String>? accountId,
     Expression<String>? name,
     Expression<double>? amount,
+    Expression<String>? amountMinor,
+    Expression<int>? amountScale,
     Expression<DateTime>? dueDate,
     Expression<String>? note,
     Expression<DateTime>? createdAt,
@@ -8414,6 +9218,8 @@ class DebtsCompanion extends UpdateCompanion<DebtRow> {
       if (accountId != null) 'account_id': accountId,
       if (name != null) 'name': name,
       if (amount != null) 'amount': amount,
+      if (amountMinor != null) 'amount_minor': amountMinor,
+      if (amountScale != null) 'amount_scale': amountScale,
       if (dueDate != null) 'due_date': dueDate,
       if (note != null) 'note': note,
       if (createdAt != null) 'created_at': createdAt,
@@ -8428,6 +9234,8 @@ class DebtsCompanion extends UpdateCompanion<DebtRow> {
     Value<String>? accountId,
     Value<String?>? name,
     Value<double>? amount,
+    Value<String>? amountMinor,
+    Value<int>? amountScale,
     Value<DateTime>? dueDate,
     Value<String?>? note,
     Value<DateTime>? createdAt,
@@ -8440,6 +9248,8 @@ class DebtsCompanion extends UpdateCompanion<DebtRow> {
       accountId: accountId ?? this.accountId,
       name: name ?? this.name,
       amount: amount ?? this.amount,
+      amountMinor: amountMinor ?? this.amountMinor,
+      amountScale: amountScale ?? this.amountScale,
       dueDate: dueDate ?? this.dueDate,
       note: note ?? this.note,
       createdAt: createdAt ?? this.createdAt,
@@ -8463,6 +9273,12 @@ class DebtsCompanion extends UpdateCompanion<DebtRow> {
     }
     if (amount.present) {
       map['amount'] = Variable<double>(amount.value);
+    }
+    if (amountMinor.present) {
+      map['amount_minor'] = Variable<String>(amountMinor.value);
+    }
+    if (amountScale.present) {
+      map['amount_scale'] = Variable<int>(amountScale.value);
     }
     if (dueDate.present) {
       map['due_date'] = Variable<DateTime>(dueDate.value);
@@ -8492,6 +9308,8 @@ class DebtsCompanion extends UpdateCompanion<DebtRow> {
           ..write('accountId: $accountId, ')
           ..write('name: $name, ')
           ..write('amount: $amount, ')
+          ..write('amountMinor: $amountMinor, ')
+          ..write('amountScale: $amountScale, ')
           ..write('dueDate: $dueDate, ')
           ..write('note: $note, ')
           ..write('createdAt: $createdAt, ')
@@ -8559,6 +9377,30 @@ class $CreditsTable extends Credits with TableInfo<$CreditsTable, CreditRow> {
     false,
     type: DriftSqlType.double,
     requiredDuringInsert: true,
+  );
+  static const VerificationMeta _totalAmountMinorMeta = const VerificationMeta(
+    'totalAmountMinor',
+  );
+  @override
+  late final GeneratedColumn<String> totalAmountMinor = GeneratedColumn<String>(
+    'total_amount_minor',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant<String>('0'),
+  );
+  static const VerificationMeta _totalAmountScaleMeta = const VerificationMeta(
+    'totalAmountScale',
+  );
+  @override
+  late final GeneratedColumn<int> totalAmountScale = GeneratedColumn<int>(
+    'total_amount_scale',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant<int>(2),
   );
   static const VerificationMeta _interestRateMeta = const VerificationMeta(
     'interestRate',
@@ -8650,6 +9492,8 @@ class $CreditsTable extends Credits with TableInfo<$CreditsTable, CreditRow> {
     accountId,
     categoryId,
     totalAmount,
+    totalAmountMinor,
+    totalAmountScale,
     interestRate,
     termMonths,
     startDate,
@@ -8699,6 +9543,24 @@ class $CreditsTable extends Credits with TableInfo<$CreditsTable, CreditRow> {
       );
     } else if (isInserting) {
       context.missing(_totalAmountMeta);
+    }
+    if (data.containsKey('total_amount_minor')) {
+      context.handle(
+        _totalAmountMinorMeta,
+        totalAmountMinor.isAcceptableOrUnknown(
+          data['total_amount_minor']!,
+          _totalAmountMinorMeta,
+        ),
+      );
+    }
+    if (data.containsKey('total_amount_scale')) {
+      context.handle(
+        _totalAmountScaleMeta,
+        totalAmountScale.isAcceptableOrUnknown(
+          data['total_amount_scale']!,
+          _totalAmountScaleMeta,
+        ),
+      );
     }
     if (data.containsKey('interest_rate')) {
       context.handle(
@@ -8776,6 +9638,14 @@ class $CreditsTable extends Credits with TableInfo<$CreditsTable, CreditRow> {
         DriftSqlType.double,
         data['${effectivePrefix}total_amount'],
       )!,
+      totalAmountMinor: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}total_amount_minor'],
+      )!,
+      totalAmountScale: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}total_amount_scale'],
+      )!,
       interestRate: attachedDatabase.typeMapping.read(
         DriftSqlType.double,
         data['${effectivePrefix}interest_rate'],
@@ -8818,6 +9688,8 @@ class CreditRow extends DataClass implements Insertable<CreditRow> {
   final String accountId;
   final String? categoryId;
   final double totalAmount;
+  final String totalAmountMinor;
+  final int totalAmountScale;
   final double interestRate;
   final int termMonths;
   final DateTime startDate;
@@ -8830,6 +9702,8 @@ class CreditRow extends DataClass implements Insertable<CreditRow> {
     required this.accountId,
     this.categoryId,
     required this.totalAmount,
+    required this.totalAmountMinor,
+    required this.totalAmountScale,
     required this.interestRate,
     required this.termMonths,
     required this.startDate,
@@ -8847,6 +9721,8 @@ class CreditRow extends DataClass implements Insertable<CreditRow> {
       map['category_id'] = Variable<String>(categoryId);
     }
     map['total_amount'] = Variable<double>(totalAmount);
+    map['total_amount_minor'] = Variable<String>(totalAmountMinor);
+    map['total_amount_scale'] = Variable<int>(totalAmountScale);
     map['interest_rate'] = Variable<double>(interestRate);
     map['term_months'] = Variable<int>(termMonths);
     map['start_date'] = Variable<DateTime>(startDate);
@@ -8865,6 +9741,8 @@ class CreditRow extends DataClass implements Insertable<CreditRow> {
           ? const Value.absent()
           : Value(categoryId),
       totalAmount: Value(totalAmount),
+      totalAmountMinor: Value(totalAmountMinor),
+      totalAmountScale: Value(totalAmountScale),
       interestRate: Value(interestRate),
       termMonths: Value(termMonths),
       startDate: Value(startDate),
@@ -8885,6 +9763,8 @@ class CreditRow extends DataClass implements Insertable<CreditRow> {
       accountId: serializer.fromJson<String>(json['accountId']),
       categoryId: serializer.fromJson<String?>(json['categoryId']),
       totalAmount: serializer.fromJson<double>(json['totalAmount']),
+      totalAmountMinor: serializer.fromJson<String>(json['totalAmountMinor']),
+      totalAmountScale: serializer.fromJson<int>(json['totalAmountScale']),
       interestRate: serializer.fromJson<double>(json['interestRate']),
       termMonths: serializer.fromJson<int>(json['termMonths']),
       startDate: serializer.fromJson<DateTime>(json['startDate']),
@@ -8902,6 +9782,8 @@ class CreditRow extends DataClass implements Insertable<CreditRow> {
       'accountId': serializer.toJson<String>(accountId),
       'categoryId': serializer.toJson<String?>(categoryId),
       'totalAmount': serializer.toJson<double>(totalAmount),
+      'totalAmountMinor': serializer.toJson<String>(totalAmountMinor),
+      'totalAmountScale': serializer.toJson<int>(totalAmountScale),
       'interestRate': serializer.toJson<double>(interestRate),
       'termMonths': serializer.toJson<int>(termMonths),
       'startDate': serializer.toJson<DateTime>(startDate),
@@ -8917,6 +9799,8 @@ class CreditRow extends DataClass implements Insertable<CreditRow> {
     String? accountId,
     Value<String?> categoryId = const Value.absent(),
     double? totalAmount,
+    String? totalAmountMinor,
+    int? totalAmountScale,
     double? interestRate,
     int? termMonths,
     DateTime? startDate,
@@ -8929,6 +9813,8 @@ class CreditRow extends DataClass implements Insertable<CreditRow> {
     accountId: accountId ?? this.accountId,
     categoryId: categoryId.present ? categoryId.value : this.categoryId,
     totalAmount: totalAmount ?? this.totalAmount,
+    totalAmountMinor: totalAmountMinor ?? this.totalAmountMinor,
+    totalAmountScale: totalAmountScale ?? this.totalAmountScale,
     interestRate: interestRate ?? this.interestRate,
     termMonths: termMonths ?? this.termMonths,
     startDate: startDate ?? this.startDate,
@@ -8947,6 +9833,12 @@ class CreditRow extends DataClass implements Insertable<CreditRow> {
       totalAmount: data.totalAmount.present
           ? data.totalAmount.value
           : this.totalAmount,
+      totalAmountMinor: data.totalAmountMinor.present
+          ? data.totalAmountMinor.value
+          : this.totalAmountMinor,
+      totalAmountScale: data.totalAmountScale.present
+          ? data.totalAmountScale.value
+          : this.totalAmountScale,
       interestRate: data.interestRate.present
           ? data.interestRate.value
           : this.interestRate,
@@ -8970,6 +9862,8 @@ class CreditRow extends DataClass implements Insertable<CreditRow> {
           ..write('accountId: $accountId, ')
           ..write('categoryId: $categoryId, ')
           ..write('totalAmount: $totalAmount, ')
+          ..write('totalAmountMinor: $totalAmountMinor, ')
+          ..write('totalAmountScale: $totalAmountScale, ')
           ..write('interestRate: $interestRate, ')
           ..write('termMonths: $termMonths, ')
           ..write('startDate: $startDate, ')
@@ -8987,6 +9881,8 @@ class CreditRow extends DataClass implements Insertable<CreditRow> {
     accountId,
     categoryId,
     totalAmount,
+    totalAmountMinor,
+    totalAmountScale,
     interestRate,
     termMonths,
     startDate,
@@ -9003,6 +9899,8 @@ class CreditRow extends DataClass implements Insertable<CreditRow> {
           other.accountId == this.accountId &&
           other.categoryId == this.categoryId &&
           other.totalAmount == this.totalAmount &&
+          other.totalAmountMinor == this.totalAmountMinor &&
+          other.totalAmountScale == this.totalAmountScale &&
           other.interestRate == this.interestRate &&
           other.termMonths == this.termMonths &&
           other.startDate == this.startDate &&
@@ -9017,6 +9915,8 @@ class CreditsCompanion extends UpdateCompanion<CreditRow> {
   final Value<String> accountId;
   final Value<String?> categoryId;
   final Value<double> totalAmount;
+  final Value<String> totalAmountMinor;
+  final Value<int> totalAmountScale;
   final Value<double> interestRate;
   final Value<int> termMonths;
   final Value<DateTime> startDate;
@@ -9030,6 +9930,8 @@ class CreditsCompanion extends UpdateCompanion<CreditRow> {
     this.accountId = const Value.absent(),
     this.categoryId = const Value.absent(),
     this.totalAmount = const Value.absent(),
+    this.totalAmountMinor = const Value.absent(),
+    this.totalAmountScale = const Value.absent(),
     this.interestRate = const Value.absent(),
     this.termMonths = const Value.absent(),
     this.startDate = const Value.absent(),
@@ -9044,6 +9946,8 @@ class CreditsCompanion extends UpdateCompanion<CreditRow> {
     required String accountId,
     this.categoryId = const Value.absent(),
     required double totalAmount,
+    this.totalAmountMinor = const Value.absent(),
+    this.totalAmountScale = const Value.absent(),
     required double interestRate,
     required int termMonths,
     required DateTime startDate,
@@ -9063,6 +9967,8 @@ class CreditsCompanion extends UpdateCompanion<CreditRow> {
     Expression<String>? accountId,
     Expression<String>? categoryId,
     Expression<double>? totalAmount,
+    Expression<String>? totalAmountMinor,
+    Expression<int>? totalAmountScale,
     Expression<double>? interestRate,
     Expression<int>? termMonths,
     Expression<DateTime>? startDate,
@@ -9077,6 +9983,8 @@ class CreditsCompanion extends UpdateCompanion<CreditRow> {
       if (accountId != null) 'account_id': accountId,
       if (categoryId != null) 'category_id': categoryId,
       if (totalAmount != null) 'total_amount': totalAmount,
+      if (totalAmountMinor != null) 'total_amount_minor': totalAmountMinor,
+      if (totalAmountScale != null) 'total_amount_scale': totalAmountScale,
       if (interestRate != null) 'interest_rate': interestRate,
       if (termMonths != null) 'term_months': termMonths,
       if (startDate != null) 'start_date': startDate,
@@ -9093,6 +10001,8 @@ class CreditsCompanion extends UpdateCompanion<CreditRow> {
     Value<String>? accountId,
     Value<String?>? categoryId,
     Value<double>? totalAmount,
+    Value<String>? totalAmountMinor,
+    Value<int>? totalAmountScale,
     Value<double>? interestRate,
     Value<int>? termMonths,
     Value<DateTime>? startDate,
@@ -9107,6 +10017,8 @@ class CreditsCompanion extends UpdateCompanion<CreditRow> {
       accountId: accountId ?? this.accountId,
       categoryId: categoryId ?? this.categoryId,
       totalAmount: totalAmount ?? this.totalAmount,
+      totalAmountMinor: totalAmountMinor ?? this.totalAmountMinor,
+      totalAmountScale: totalAmountScale ?? this.totalAmountScale,
       interestRate: interestRate ?? this.interestRate,
       termMonths: termMonths ?? this.termMonths,
       startDate: startDate ?? this.startDate,
@@ -9132,6 +10044,12 @@ class CreditsCompanion extends UpdateCompanion<CreditRow> {
     }
     if (totalAmount.present) {
       map['total_amount'] = Variable<double>(totalAmount.value);
+    }
+    if (totalAmountMinor.present) {
+      map['total_amount_minor'] = Variable<String>(totalAmountMinor.value);
+    }
+    if (totalAmountScale.present) {
+      map['total_amount_scale'] = Variable<int>(totalAmountScale.value);
     }
     if (interestRate.present) {
       map['interest_rate'] = Variable<double>(interestRate.value);
@@ -9167,6 +10085,8 @@ class CreditsCompanion extends UpdateCompanion<CreditRow> {
           ..write('accountId: $accountId, ')
           ..write('categoryId: $categoryId, ')
           ..write('totalAmount: $totalAmount, ')
+          ..write('totalAmountMinor: $totalAmountMinor, ')
+          ..write('totalAmountScale: $totalAmountScale, ')
           ..write('interestRate: $interestRate, ')
           ..write('termMonths: $termMonths, ')
           ..write('startDate: $startDate, ')
@@ -9223,6 +10143,30 @@ class $CreditCardsTable extends CreditCards
     false,
     type: DriftSqlType.double,
     requiredDuringInsert: true,
+  );
+  static const VerificationMeta _creditLimitMinorMeta = const VerificationMeta(
+    'creditLimitMinor',
+  );
+  @override
+  late final GeneratedColumn<String> creditLimitMinor = GeneratedColumn<String>(
+    'credit_limit_minor',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant<String>('0'),
+  );
+  static const VerificationMeta _creditLimitScaleMeta = const VerificationMeta(
+    'creditLimitScale',
+  );
+  @override
+  late final GeneratedColumn<int> creditLimitScale = GeneratedColumn<int>(
+    'credit_limit_scale',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant<int>(2),
   );
   static const VerificationMeta _statementDayMeta = const VerificationMeta(
     'statementDay',
@@ -9301,6 +10245,8 @@ class $CreditCardsTable extends CreditCards
     id,
     accountId,
     creditLimit,
+    creditLimitMinor,
+    creditLimitScale,
     statementDay,
     paymentDueDays,
     interestRateAnnual,
@@ -9343,6 +10289,24 @@ class $CreditCardsTable extends CreditCards
       );
     } else if (isInserting) {
       context.missing(_creditLimitMeta);
+    }
+    if (data.containsKey('credit_limit_minor')) {
+      context.handle(
+        _creditLimitMinorMeta,
+        creditLimitMinor.isAcceptableOrUnknown(
+          data['credit_limit_minor']!,
+          _creditLimitMinorMeta,
+        ),
+      );
+    }
+    if (data.containsKey('credit_limit_scale')) {
+      context.handle(
+        _creditLimitScaleMeta,
+        creditLimitScale.isAcceptableOrUnknown(
+          data['credit_limit_scale']!,
+          _creditLimitScaleMeta,
+        ),
+      );
     }
     if (data.containsKey('statement_day')) {
       context.handle(
@@ -9416,6 +10380,14 @@ class $CreditCardsTable extends CreditCards
         DriftSqlType.double,
         data['${effectivePrefix}credit_limit'],
       )!,
+      creditLimitMinor: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}credit_limit_minor'],
+      )!,
+      creditLimitScale: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}credit_limit_scale'],
+      )!,
       statementDay: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}statement_day'],
@@ -9453,6 +10425,8 @@ class CreditCardRow extends DataClass implements Insertable<CreditCardRow> {
   final String id;
   final String accountId;
   final double creditLimit;
+  final String creditLimitMinor;
+  final int creditLimitScale;
   final int statementDay;
   final int paymentDueDays;
   final double interestRateAnnual;
@@ -9463,6 +10437,8 @@ class CreditCardRow extends DataClass implements Insertable<CreditCardRow> {
     required this.id,
     required this.accountId,
     required this.creditLimit,
+    required this.creditLimitMinor,
+    required this.creditLimitScale,
     required this.statementDay,
     required this.paymentDueDays,
     required this.interestRateAnnual,
@@ -9476,6 +10452,8 @@ class CreditCardRow extends DataClass implements Insertable<CreditCardRow> {
     map['id'] = Variable<String>(id);
     map['account_id'] = Variable<String>(accountId);
     map['credit_limit'] = Variable<double>(creditLimit);
+    map['credit_limit_minor'] = Variable<String>(creditLimitMinor);
+    map['credit_limit_scale'] = Variable<int>(creditLimitScale);
     map['statement_day'] = Variable<int>(statementDay);
     map['payment_due_days'] = Variable<int>(paymentDueDays);
     map['interest_rate_annual'] = Variable<double>(interestRateAnnual);
@@ -9490,6 +10468,8 @@ class CreditCardRow extends DataClass implements Insertable<CreditCardRow> {
       id: Value(id),
       accountId: Value(accountId),
       creditLimit: Value(creditLimit),
+      creditLimitMinor: Value(creditLimitMinor),
+      creditLimitScale: Value(creditLimitScale),
       statementDay: Value(statementDay),
       paymentDueDays: Value(paymentDueDays),
       interestRateAnnual: Value(interestRateAnnual),
@@ -9508,6 +10488,8 @@ class CreditCardRow extends DataClass implements Insertable<CreditCardRow> {
       id: serializer.fromJson<String>(json['id']),
       accountId: serializer.fromJson<String>(json['accountId']),
       creditLimit: serializer.fromJson<double>(json['creditLimit']),
+      creditLimitMinor: serializer.fromJson<String>(json['creditLimitMinor']),
+      creditLimitScale: serializer.fromJson<int>(json['creditLimitScale']),
       statementDay: serializer.fromJson<int>(json['statementDay']),
       paymentDueDays: serializer.fromJson<int>(json['paymentDueDays']),
       interestRateAnnual: serializer.fromJson<double>(
@@ -9525,6 +10507,8 @@ class CreditCardRow extends DataClass implements Insertable<CreditCardRow> {
       'id': serializer.toJson<String>(id),
       'accountId': serializer.toJson<String>(accountId),
       'creditLimit': serializer.toJson<double>(creditLimit),
+      'creditLimitMinor': serializer.toJson<String>(creditLimitMinor),
+      'creditLimitScale': serializer.toJson<int>(creditLimitScale),
       'statementDay': serializer.toJson<int>(statementDay),
       'paymentDueDays': serializer.toJson<int>(paymentDueDays),
       'interestRateAnnual': serializer.toJson<double>(interestRateAnnual),
@@ -9538,6 +10522,8 @@ class CreditCardRow extends DataClass implements Insertable<CreditCardRow> {
     String? id,
     String? accountId,
     double? creditLimit,
+    String? creditLimitMinor,
+    int? creditLimitScale,
     int? statementDay,
     int? paymentDueDays,
     double? interestRateAnnual,
@@ -9548,6 +10534,8 @@ class CreditCardRow extends DataClass implements Insertable<CreditCardRow> {
     id: id ?? this.id,
     accountId: accountId ?? this.accountId,
     creditLimit: creditLimit ?? this.creditLimit,
+    creditLimitMinor: creditLimitMinor ?? this.creditLimitMinor,
+    creditLimitScale: creditLimitScale ?? this.creditLimitScale,
     statementDay: statementDay ?? this.statementDay,
     paymentDueDays: paymentDueDays ?? this.paymentDueDays,
     interestRateAnnual: interestRateAnnual ?? this.interestRateAnnual,
@@ -9562,6 +10550,12 @@ class CreditCardRow extends DataClass implements Insertable<CreditCardRow> {
       creditLimit: data.creditLimit.present
           ? data.creditLimit.value
           : this.creditLimit,
+      creditLimitMinor: data.creditLimitMinor.present
+          ? data.creditLimitMinor.value
+          : this.creditLimitMinor,
+      creditLimitScale: data.creditLimitScale.present
+          ? data.creditLimitScale.value
+          : this.creditLimitScale,
       statementDay: data.statementDay.present
           ? data.statementDay.value
           : this.statementDay,
@@ -9583,6 +10577,8 @@ class CreditCardRow extends DataClass implements Insertable<CreditCardRow> {
           ..write('id: $id, ')
           ..write('accountId: $accountId, ')
           ..write('creditLimit: $creditLimit, ')
+          ..write('creditLimitMinor: $creditLimitMinor, ')
+          ..write('creditLimitScale: $creditLimitScale, ')
           ..write('statementDay: $statementDay, ')
           ..write('paymentDueDays: $paymentDueDays, ')
           ..write('interestRateAnnual: $interestRateAnnual, ')
@@ -9598,6 +10594,8 @@ class CreditCardRow extends DataClass implements Insertable<CreditCardRow> {
     id,
     accountId,
     creditLimit,
+    creditLimitMinor,
+    creditLimitScale,
     statementDay,
     paymentDueDays,
     interestRateAnnual,
@@ -9612,6 +10610,8 @@ class CreditCardRow extends DataClass implements Insertable<CreditCardRow> {
           other.id == this.id &&
           other.accountId == this.accountId &&
           other.creditLimit == this.creditLimit &&
+          other.creditLimitMinor == this.creditLimitMinor &&
+          other.creditLimitScale == this.creditLimitScale &&
           other.statementDay == this.statementDay &&
           other.paymentDueDays == this.paymentDueDays &&
           other.interestRateAnnual == this.interestRateAnnual &&
@@ -9624,6 +10624,8 @@ class CreditCardsCompanion extends UpdateCompanion<CreditCardRow> {
   final Value<String> id;
   final Value<String> accountId;
   final Value<double> creditLimit;
+  final Value<String> creditLimitMinor;
+  final Value<int> creditLimitScale;
   final Value<int> statementDay;
   final Value<int> paymentDueDays;
   final Value<double> interestRateAnnual;
@@ -9635,6 +10637,8 @@ class CreditCardsCompanion extends UpdateCompanion<CreditCardRow> {
     this.id = const Value.absent(),
     this.accountId = const Value.absent(),
     this.creditLimit = const Value.absent(),
+    this.creditLimitMinor = const Value.absent(),
+    this.creditLimitScale = const Value.absent(),
     this.statementDay = const Value.absent(),
     this.paymentDueDays = const Value.absent(),
     this.interestRateAnnual = const Value.absent(),
@@ -9647,6 +10651,8 @@ class CreditCardsCompanion extends UpdateCompanion<CreditCardRow> {
     required String id,
     required String accountId,
     required double creditLimit,
+    this.creditLimitMinor = const Value.absent(),
+    this.creditLimitScale = const Value.absent(),
     required int statementDay,
     required int paymentDueDays,
     required double interestRateAnnual,
@@ -9664,6 +10670,8 @@ class CreditCardsCompanion extends UpdateCompanion<CreditCardRow> {
     Expression<String>? id,
     Expression<String>? accountId,
     Expression<double>? creditLimit,
+    Expression<String>? creditLimitMinor,
+    Expression<int>? creditLimitScale,
     Expression<int>? statementDay,
     Expression<int>? paymentDueDays,
     Expression<double>? interestRateAnnual,
@@ -9676,6 +10684,8 @@ class CreditCardsCompanion extends UpdateCompanion<CreditCardRow> {
       if (id != null) 'id': id,
       if (accountId != null) 'account_id': accountId,
       if (creditLimit != null) 'credit_limit': creditLimit,
+      if (creditLimitMinor != null) 'credit_limit_minor': creditLimitMinor,
+      if (creditLimitScale != null) 'credit_limit_scale': creditLimitScale,
       if (statementDay != null) 'statement_day': statementDay,
       if (paymentDueDays != null) 'payment_due_days': paymentDueDays,
       if (interestRateAnnual != null)
@@ -9691,6 +10701,8 @@ class CreditCardsCompanion extends UpdateCompanion<CreditCardRow> {
     Value<String>? id,
     Value<String>? accountId,
     Value<double>? creditLimit,
+    Value<String>? creditLimitMinor,
+    Value<int>? creditLimitScale,
     Value<int>? statementDay,
     Value<int>? paymentDueDays,
     Value<double>? interestRateAnnual,
@@ -9703,6 +10715,8 @@ class CreditCardsCompanion extends UpdateCompanion<CreditCardRow> {
       id: id ?? this.id,
       accountId: accountId ?? this.accountId,
       creditLimit: creditLimit ?? this.creditLimit,
+      creditLimitMinor: creditLimitMinor ?? this.creditLimitMinor,
+      creditLimitScale: creditLimitScale ?? this.creditLimitScale,
       statementDay: statementDay ?? this.statementDay,
       paymentDueDays: paymentDueDays ?? this.paymentDueDays,
       interestRateAnnual: interestRateAnnual ?? this.interestRateAnnual,
@@ -9724,6 +10738,12 @@ class CreditCardsCompanion extends UpdateCompanion<CreditCardRow> {
     }
     if (creditLimit.present) {
       map['credit_limit'] = Variable<double>(creditLimit.value);
+    }
+    if (creditLimitMinor.present) {
+      map['credit_limit_minor'] = Variable<String>(creditLimitMinor.value);
+    }
+    if (creditLimitScale.present) {
+      map['credit_limit_scale'] = Variable<int>(creditLimitScale.value);
     }
     if (statementDay.present) {
       map['statement_day'] = Variable<int>(statementDay.value);
@@ -9755,6 +10775,8 @@ class CreditCardsCompanion extends UpdateCompanion<CreditCardRow> {
           ..write('id: $id, ')
           ..write('accountId: $accountId, ')
           ..write('creditLimit: $creditLimit, ')
+          ..write('creditLimitMinor: $creditLimitMinor, ')
+          ..write('creditLimitScale: $creditLimitScale, ')
           ..write('statementDay: $statementDay, ')
           ..write('paymentDueDays: $paymentDueDays, ')
           ..write('interestRateAnnual: $interestRateAnnual, ')
@@ -9932,8 +10954,11 @@ typedef $$AccountsTableCreateCompanionBuilder =
       required String id,
       required String name,
       required double balance,
+      Value<String> balanceMinor,
       Value<double> openingBalance,
+      Value<String> openingBalanceMinor,
       required String currency,
+      Value<int> currencyScale,
       required String type,
       Value<String?> color,
       Value<String?> gradientId,
@@ -9951,8 +10976,11 @@ typedef $$AccountsTableUpdateCompanionBuilder =
       Value<String> id,
       Value<String> name,
       Value<double> balance,
+      Value<String> balanceMinor,
       Value<double> openingBalance,
+      Value<String> openingBalanceMinor,
       Value<String> currency,
+      Value<int> currencyScale,
       Value<String> type,
       Value<String?> color,
       Value<String?> gradientId,
@@ -10074,13 +11102,28 @@ class $$AccountsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<String> get balanceMinor => $composableBuilder(
+    column: $table.balanceMinor,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<double> get openingBalance => $composableBuilder(
     column: $table.openingBalance,
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<String> get openingBalanceMinor => $composableBuilder(
+    column: $table.openingBalanceMinor,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<String> get currency => $composableBuilder(
     column: $table.currency,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get currencyScale => $composableBuilder(
+    column: $table.currencyScale,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -10259,13 +11302,28 @@ class $$AccountsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get balanceMinor => $composableBuilder(
+    column: $table.balanceMinor,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<double> get openingBalance => $composableBuilder(
     column: $table.openingBalance,
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get openingBalanceMinor => $composableBuilder(
+    column: $table.openingBalanceMinor,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get currency => $composableBuilder(
     column: $table.currency,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get currencyScale => $composableBuilder(
+    column: $table.currencyScale,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -10338,13 +11396,28 @@ class $$AccountsTableAnnotationComposer
   GeneratedColumn<double> get balance =>
       $composableBuilder(column: $table.balance, builder: (column) => column);
 
+  GeneratedColumn<String> get balanceMinor => $composableBuilder(
+    column: $table.balanceMinor,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<double> get openingBalance => $composableBuilder(
     column: $table.openingBalance,
     builder: (column) => column,
   );
 
+  GeneratedColumn<String> get openingBalanceMinor => $composableBuilder(
+    column: $table.openingBalanceMinor,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<String> get currency =>
       $composableBuilder(column: $table.currency, builder: (column) => column);
+
+  GeneratedColumn<int> get currencyScale => $composableBuilder(
+    column: $table.currencyScale,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get type =>
       $composableBuilder(column: $table.type, builder: (column) => column);
@@ -10515,8 +11588,11 @@ class $$AccountsTableTableManager
                 Value<String> id = const Value.absent(),
                 Value<String> name = const Value.absent(),
                 Value<double> balance = const Value.absent(),
+                Value<String> balanceMinor = const Value.absent(),
                 Value<double> openingBalance = const Value.absent(),
+                Value<String> openingBalanceMinor = const Value.absent(),
                 Value<String> currency = const Value.absent(),
+                Value<int> currencyScale = const Value.absent(),
                 Value<String> type = const Value.absent(),
                 Value<String?> color = const Value.absent(),
                 Value<String?> gradientId = const Value.absent(),
@@ -10532,8 +11608,11 @@ class $$AccountsTableTableManager
                 id: id,
                 name: name,
                 balance: balance,
+                balanceMinor: balanceMinor,
                 openingBalance: openingBalance,
+                openingBalanceMinor: openingBalanceMinor,
                 currency: currency,
+                currencyScale: currencyScale,
                 type: type,
                 color: color,
                 gradientId: gradientId,
@@ -10551,8 +11630,11 @@ class $$AccountsTableTableManager
                 required String id,
                 required String name,
                 required double balance,
+                Value<String> balanceMinor = const Value.absent(),
                 Value<double> openingBalance = const Value.absent(),
+                Value<String> openingBalanceMinor = const Value.absent(),
                 required String currency,
+                Value<int> currencyScale = const Value.absent(),
                 required String type,
                 Value<String?> color = const Value.absent(),
                 Value<String?> gradientId = const Value.absent(),
@@ -10568,8 +11650,11 @@ class $$AccountsTableTableManager
                 id: id,
                 name: name,
                 balance: balance,
+                balanceMinor: balanceMinor,
                 openingBalance: openingBalance,
+                openingBalanceMinor: openingBalanceMinor,
                 currency: currency,
+                currencyScale: currencyScale,
                 type: type,
                 color: color,
                 gradientId: gradientId,
@@ -12200,6 +13285,8 @@ typedef $$TransactionsTableCreateCompanionBuilder =
       Value<String?> transferAccountId,
       Value<String?> categoryId,
       required double amount,
+      Value<String> amountMinor,
+      Value<int> amountScale,
       required DateTime date,
       Value<String?> note,
       required String type,
@@ -12216,6 +13303,8 @@ typedef $$TransactionsTableUpdateCompanionBuilder =
       Value<String?> transferAccountId,
       Value<String?> categoryId,
       Value<double> amount,
+      Value<String> amountMinor,
+      Value<int> amountScale,
       Value<DateTime> date,
       Value<String?> note,
       Value<String> type,
@@ -12370,6 +13459,16 @@ class $$TransactionsTableFilterComposer
 
   ColumnFilters<double> get amount => $composableBuilder(
     column: $table.amount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get amountMinor => $composableBuilder(
+    column: $table.amountMinor,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get amountScale => $composableBuilder(
+    column: $table.amountScale,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -12565,6 +13664,16 @@ class $$TransactionsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get amountMinor => $composableBuilder(
+    column: $table.amountMinor,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get amountScale => $composableBuilder(
+    column: $table.amountScale,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get date => $composableBuilder(
     column: $table.date,
     builder: (column) => ColumnOrderings(column),
@@ -12702,6 +13811,16 @@ class $$TransactionsTableAnnotationComposer
 
   GeneratedColumn<double> get amount =>
       $composableBuilder(column: $table.amount, builder: (column) => column);
+
+  GeneratedColumn<String> get amountMinor => $composableBuilder(
+    column: $table.amountMinor,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get amountScale => $composableBuilder(
+    column: $table.amountScale,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<DateTime> get date =>
       $composableBuilder(column: $table.date, builder: (column) => column);
@@ -12905,6 +14024,8 @@ class $$TransactionsTableTableManager
                 Value<String?> transferAccountId = const Value.absent(),
                 Value<String?> categoryId = const Value.absent(),
                 Value<double> amount = const Value.absent(),
+                Value<String> amountMinor = const Value.absent(),
+                Value<int> amountScale = const Value.absent(),
                 Value<DateTime> date = const Value.absent(),
                 Value<String?> note = const Value.absent(),
                 Value<String> type = const Value.absent(),
@@ -12919,6 +14040,8 @@ class $$TransactionsTableTableManager
                 transferAccountId: transferAccountId,
                 categoryId: categoryId,
                 amount: amount,
+                amountMinor: amountMinor,
+                amountScale: amountScale,
                 date: date,
                 note: note,
                 type: type,
@@ -12935,6 +14058,8 @@ class $$TransactionsTableTableManager
                 Value<String?> transferAccountId = const Value.absent(),
                 Value<String?> categoryId = const Value.absent(),
                 required double amount,
+                Value<String> amountMinor = const Value.absent(),
+                Value<int> amountScale = const Value.absent(),
                 required DateTime date,
                 Value<String?> note = const Value.absent(),
                 required String type,
@@ -12949,6 +14074,8 @@ class $$TransactionsTableTableManager
                 transferAccountId: transferAccountId,
                 categoryId: categoryId,
                 amount: amount,
+                amountMinor: amountMinor,
+                amountScale: amountScale,
                 date: date,
                 note: note,
                 type: type,
@@ -14093,6 +15220,8 @@ typedef $$BudgetsTableCreateCompanionBuilder =
       required DateTime startDate,
       Value<DateTime?> endDate,
       required double amount,
+      Value<String> amountMinor,
+      Value<int> amountScale,
       required String scope,
       Value<List<String>> categories,
       Value<List<String>> accounts,
@@ -14110,6 +15239,8 @@ typedef $$BudgetsTableUpdateCompanionBuilder =
       Value<DateTime> startDate,
       Value<DateTime?> endDate,
       Value<double> amount,
+      Value<String> amountMinor,
+      Value<int> amountScale,
       Value<String> scope,
       Value<List<String>> categories,
       Value<List<String>> accounts,
@@ -14181,6 +15312,16 @@ class $$BudgetsTableFilterComposer
 
   ColumnFilters<double> get amount => $composableBuilder(
     column: $table.amount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get amountMinor => $composableBuilder(
+    column: $table.amountMinor,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get amountScale => $composableBuilder(
+    column: $table.amountScale,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -14291,6 +15432,16 @@ class $$BudgetsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get amountMinor => $composableBuilder(
+    column: $table.amountMinor,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get amountScale => $composableBuilder(
+    column: $table.amountScale,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get scope => $composableBuilder(
     column: $table.scope,
     builder: (column) => ColumnOrderings(column),
@@ -14353,6 +15504,16 @@ class $$BudgetsTableAnnotationComposer
 
   GeneratedColumn<double> get amount =>
       $composableBuilder(column: $table.amount, builder: (column) => column);
+
+  GeneratedColumn<String> get amountMinor => $composableBuilder(
+    column: $table.amountMinor,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get amountScale => $composableBuilder(
+    column: $table.amountScale,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get scope =>
       $composableBuilder(column: $table.scope, builder: (column) => column);
@@ -14441,6 +15602,8 @@ class $$BudgetsTableTableManager
                 Value<DateTime> startDate = const Value.absent(),
                 Value<DateTime?> endDate = const Value.absent(),
                 Value<double> amount = const Value.absent(),
+                Value<String> amountMinor = const Value.absent(),
+                Value<int> amountScale = const Value.absent(),
                 Value<String> scope = const Value.absent(),
                 Value<List<String>> categories = const Value.absent(),
                 Value<List<String>> accounts = const Value.absent(),
@@ -14457,6 +15620,8 @@ class $$BudgetsTableTableManager
                 startDate: startDate,
                 endDate: endDate,
                 amount: amount,
+                amountMinor: amountMinor,
+                amountScale: amountScale,
                 scope: scope,
                 categories: categories,
                 accounts: accounts,
@@ -14474,6 +15639,8 @@ class $$BudgetsTableTableManager
                 required DateTime startDate,
                 Value<DateTime?> endDate = const Value.absent(),
                 required double amount,
+                Value<String> amountMinor = const Value.absent(),
+                Value<int> amountScale = const Value.absent(),
                 required String scope,
                 Value<List<String>> categories = const Value.absent(),
                 Value<List<String>> accounts = const Value.absent(),
@@ -14490,6 +15657,8 @@ class $$BudgetsTableTableManager
                 startDate: startDate,
                 endDate: endDate,
                 amount: amount,
+                amountMinor: amountMinor,
+                amountScale: amountScale,
                 scope: scope,
                 categories: categories,
                 accounts: accounts,
@@ -14563,7 +15732,10 @@ typedef $$BudgetInstancesTableCreateCompanionBuilder =
       required DateTime periodStart,
       required DateTime periodEnd,
       required double amount,
+      Value<String> amountMinor,
       Value<double> spent,
+      Value<String> spentMinor,
+      Value<int> amountScale,
       Value<String> status,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
@@ -14576,7 +15748,10 @@ typedef $$BudgetInstancesTableUpdateCompanionBuilder =
       Value<DateTime> periodStart,
       Value<DateTime> periodEnd,
       Value<double> amount,
+      Value<String> amountMinor,
       Value<double> spent,
+      Value<String> spentMinor,
+      Value<int> amountScale,
       Value<String> status,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
@@ -14645,8 +15820,23 @@ class $$BudgetInstancesTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<String> get amountMinor => $composableBuilder(
+    column: $table.amountMinor,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<double> get spent => $composableBuilder(
     column: $table.spent,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get spentMinor => $composableBuilder(
+    column: $table.spentMinor,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get amountScale => $composableBuilder(
+    column: $table.amountScale,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -14718,8 +15908,23 @@ class $$BudgetInstancesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get amountMinor => $composableBuilder(
+    column: $table.amountMinor,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<double> get spent => $composableBuilder(
     column: $table.spent,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get spentMinor => $composableBuilder(
+    column: $table.spentMinor,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get amountScale => $composableBuilder(
+    column: $table.amountScale,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -14785,8 +15990,23 @@ class $$BudgetInstancesTableAnnotationComposer
   GeneratedColumn<double> get amount =>
       $composableBuilder(column: $table.amount, builder: (column) => column);
 
+  GeneratedColumn<String> get amountMinor => $composableBuilder(
+    column: $table.amountMinor,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<double> get spent =>
       $composableBuilder(column: $table.spent, builder: (column) => column);
+
+  GeneratedColumn<String> get spentMinor => $composableBuilder(
+    column: $table.spentMinor,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get amountScale => $composableBuilder(
+    column: $table.amountScale,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get status =>
       $composableBuilder(column: $table.status, builder: (column) => column);
@@ -14856,7 +16076,10 @@ class $$BudgetInstancesTableTableManager
                 Value<DateTime> periodStart = const Value.absent(),
                 Value<DateTime> periodEnd = const Value.absent(),
                 Value<double> amount = const Value.absent(),
+                Value<String> amountMinor = const Value.absent(),
                 Value<double> spent = const Value.absent(),
+                Value<String> spentMinor = const Value.absent(),
+                Value<int> amountScale = const Value.absent(),
                 Value<String> status = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
@@ -14867,7 +16090,10 @@ class $$BudgetInstancesTableTableManager
                 periodStart: periodStart,
                 periodEnd: periodEnd,
                 amount: amount,
+                amountMinor: amountMinor,
                 spent: spent,
+                spentMinor: spentMinor,
+                amountScale: amountScale,
                 status: status,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
@@ -14880,7 +16106,10 @@ class $$BudgetInstancesTableTableManager
                 required DateTime periodStart,
                 required DateTime periodEnd,
                 required double amount,
+                Value<String> amountMinor = const Value.absent(),
                 Value<double> spent = const Value.absent(),
+                Value<String> spentMinor = const Value.absent(),
+                Value<int> amountScale = const Value.absent(),
                 Value<String> status = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
@@ -14891,7 +16120,10 @@ class $$BudgetInstancesTableTableManager
                 periodStart: periodStart,
                 periodEnd: periodEnd,
                 amount: amount,
+                amountMinor: amountMinor,
                 spent: spent,
+                spentMinor: spentMinor,
+                amountScale: amountScale,
                 status: status,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
@@ -15401,6 +16633,8 @@ typedef $$UpcomingPaymentsTableCreateCompanionBuilder =
       required String accountId,
       required String categoryId,
       required double amount,
+      Value<String> amountMinor,
+      Value<int> amountScale,
       required int dayOfMonth,
       Value<int> notifyDaysBefore,
       Value<String> notifyTimeHhmm,
@@ -15420,6 +16654,8 @@ typedef $$UpcomingPaymentsTableUpdateCompanionBuilder =
       Value<String> accountId,
       Value<String> categoryId,
       Value<double> amount,
+      Value<String> amountMinor,
+      Value<int> amountScale,
       Value<int> dayOfMonth,
       Value<int> notifyDaysBefore,
       Value<String> notifyTimeHhmm,
@@ -15506,6 +16742,16 @@ class $$UpcomingPaymentsTableFilterComposer
 
   ColumnFilters<double> get amount => $composableBuilder(
     column: $table.amount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get amountMinor => $composableBuilder(
+    column: $table.amountMinor,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get amountScale => $composableBuilder(
+    column: $table.amountScale,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -15630,6 +16876,16 @@ class $$UpcomingPaymentsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get amountMinor => $composableBuilder(
+    column: $table.amountMinor,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get amountScale => $composableBuilder(
+    column: $table.amountScale,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get dayOfMonth => $composableBuilder(
     column: $table.dayOfMonth,
     builder: (column) => ColumnOrderings(column),
@@ -15744,6 +17000,16 @@ class $$UpcomingPaymentsTableAnnotationComposer
 
   GeneratedColumn<double> get amount =>
       $composableBuilder(column: $table.amount, builder: (column) => column);
+
+  GeneratedColumn<String> get amountMinor => $composableBuilder(
+    column: $table.amountMinor,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get amountScale => $composableBuilder(
+    column: $table.amountScale,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<int> get dayOfMonth => $composableBuilder(
     column: $table.dayOfMonth,
@@ -15865,6 +17131,8 @@ class $$UpcomingPaymentsTableTableManager
                 Value<String> accountId = const Value.absent(),
                 Value<String> categoryId = const Value.absent(),
                 Value<double> amount = const Value.absent(),
+                Value<String> amountMinor = const Value.absent(),
+                Value<int> amountScale = const Value.absent(),
                 Value<int> dayOfMonth = const Value.absent(),
                 Value<int> notifyDaysBefore = const Value.absent(),
                 Value<String> notifyTimeHhmm = const Value.absent(),
@@ -15882,6 +17150,8 @@ class $$UpcomingPaymentsTableTableManager
                 accountId: accountId,
                 categoryId: categoryId,
                 amount: amount,
+                amountMinor: amountMinor,
+                amountScale: amountScale,
                 dayOfMonth: dayOfMonth,
                 notifyDaysBefore: notifyDaysBefore,
                 notifyTimeHhmm: notifyTimeHhmm,
@@ -15901,6 +17171,8 @@ class $$UpcomingPaymentsTableTableManager
                 required String accountId,
                 required String categoryId,
                 required double amount,
+                Value<String> amountMinor = const Value.absent(),
+                Value<int> amountScale = const Value.absent(),
                 required int dayOfMonth,
                 Value<int> notifyDaysBefore = const Value.absent(),
                 Value<String> notifyTimeHhmm = const Value.absent(),
@@ -15918,6 +17190,8 @@ class $$UpcomingPaymentsTableTableManager
                 accountId: accountId,
                 categoryId: categoryId,
                 amount: amount,
+                amountMinor: amountMinor,
+                amountScale: amountScale,
                 dayOfMonth: dayOfMonth,
                 notifyDaysBefore: notifyDaysBefore,
                 notifyTimeHhmm: notifyTimeHhmm,
@@ -16019,6 +17293,8 @@ typedef $$PaymentRemindersTableCreateCompanionBuilder =
       required String id,
       required String title,
       required double amount,
+      Value<String> amountMinor,
+      Value<int> amountScale,
       required int whenAt,
       Value<String?> note,
       Value<bool> isDone,
@@ -16032,6 +17308,8 @@ typedef $$PaymentRemindersTableUpdateCompanionBuilder =
       Value<String> id,
       Value<String> title,
       Value<double> amount,
+      Value<String> amountMinor,
+      Value<int> amountScale,
       Value<int> whenAt,
       Value<String?> note,
       Value<bool> isDone,
@@ -16062,6 +17340,16 @@ class $$PaymentRemindersTableFilterComposer
 
   ColumnFilters<double> get amount => $composableBuilder(
     column: $table.amount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get amountMinor => $composableBuilder(
+    column: $table.amountMinor,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get amountScale => $composableBuilder(
+    column: $table.amountScale,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -16120,6 +17408,16 @@ class $$PaymentRemindersTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get amountMinor => $composableBuilder(
+    column: $table.amountMinor,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get amountScale => $composableBuilder(
+    column: $table.amountScale,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get whenAt => $composableBuilder(
     column: $table.whenAt,
     builder: (column) => ColumnOrderings(column),
@@ -16168,6 +17466,16 @@ class $$PaymentRemindersTableAnnotationComposer
 
   GeneratedColumn<double> get amount =>
       $composableBuilder(column: $table.amount, builder: (column) => column);
+
+  GeneratedColumn<String> get amountMinor => $composableBuilder(
+    column: $table.amountMinor,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get amountScale => $composableBuilder(
+    column: $table.amountScale,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<int> get whenAt =>
       $composableBuilder(column: $table.whenAt, builder: (column) => column);
@@ -16230,6 +17538,8 @@ class $$PaymentRemindersTableTableManager
                 Value<String> id = const Value.absent(),
                 Value<String> title = const Value.absent(),
                 Value<double> amount = const Value.absent(),
+                Value<String> amountMinor = const Value.absent(),
+                Value<int> amountScale = const Value.absent(),
                 Value<int> whenAt = const Value.absent(),
                 Value<String?> note = const Value.absent(),
                 Value<bool> isDone = const Value.absent(),
@@ -16241,6 +17551,8 @@ class $$PaymentRemindersTableTableManager
                 id: id,
                 title: title,
                 amount: amount,
+                amountMinor: amountMinor,
+                amountScale: amountScale,
                 whenAt: whenAt,
                 note: note,
                 isDone: isDone,
@@ -16254,6 +17566,8 @@ class $$PaymentRemindersTableTableManager
                 required String id,
                 required String title,
                 required double amount,
+                Value<String> amountMinor = const Value.absent(),
+                Value<int> amountScale = const Value.absent(),
                 required int whenAt,
                 Value<String?> note = const Value.absent(),
                 Value<bool> isDone = const Value.absent(),
@@ -16265,6 +17579,8 @@ class $$PaymentRemindersTableTableManager
                 id: id,
                 title: title,
                 amount: amount,
+                amountMinor: amountMinor,
+                amountScale: amountScale,
                 whenAt: whenAt,
                 note: note,
                 isDone: isDone,
@@ -16308,6 +17624,8 @@ typedef $$DebtsTableCreateCompanionBuilder =
       required String accountId,
       Value<String?> name,
       required double amount,
+      Value<String> amountMinor,
+      Value<int> amountScale,
       required DateTime dueDate,
       Value<String?> note,
       Value<DateTime> createdAt,
@@ -16321,6 +17639,8 @@ typedef $$DebtsTableUpdateCompanionBuilder =
       Value<String> accountId,
       Value<String?> name,
       Value<double> amount,
+      Value<String> amountMinor,
+      Value<int> amountScale,
       Value<DateTime> dueDate,
       Value<String?> note,
       Value<DateTime> createdAt,
@@ -16371,6 +17691,16 @@ class $$DebtsTableFilterComposer extends Composer<_$AppDatabase, $DebtsTable> {
 
   ColumnFilters<double> get amount => $composableBuilder(
     column: $table.amount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get amountMinor => $composableBuilder(
+    column: $table.amountMinor,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get amountScale => $composableBuilder(
+    column: $table.amountScale,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -16447,6 +17777,16 @@ class $$DebtsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get amountMinor => $composableBuilder(
+    column: $table.amountMinor,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get amountScale => $composableBuilder(
+    column: $table.amountScale,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get dueDate => $composableBuilder(
     column: $table.dueDate,
     builder: (column) => ColumnOrderings(column),
@@ -16513,6 +17853,16 @@ class $$DebtsTableAnnotationComposer
 
   GeneratedColumn<double> get amount =>
       $composableBuilder(column: $table.amount, builder: (column) => column);
+
+  GeneratedColumn<String> get amountMinor => $composableBuilder(
+    column: $table.amountMinor,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get amountScale => $composableBuilder(
+    column: $table.amountScale,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<DateTime> get dueDate =>
       $composableBuilder(column: $table.dueDate, builder: (column) => column);
@@ -16585,6 +17935,8 @@ class $$DebtsTableTableManager
                 Value<String> accountId = const Value.absent(),
                 Value<String?> name = const Value.absent(),
                 Value<double> amount = const Value.absent(),
+                Value<String> amountMinor = const Value.absent(),
+                Value<int> amountScale = const Value.absent(),
                 Value<DateTime> dueDate = const Value.absent(),
                 Value<String?> note = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
@@ -16596,6 +17948,8 @@ class $$DebtsTableTableManager
                 accountId: accountId,
                 name: name,
                 amount: amount,
+                amountMinor: amountMinor,
+                amountScale: amountScale,
                 dueDate: dueDate,
                 note: note,
                 createdAt: createdAt,
@@ -16609,6 +17963,8 @@ class $$DebtsTableTableManager
                 required String accountId,
                 Value<String?> name = const Value.absent(),
                 required double amount,
+                Value<String> amountMinor = const Value.absent(),
+                Value<int> amountScale = const Value.absent(),
                 required DateTime dueDate,
                 Value<String?> note = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
@@ -16620,6 +17976,8 @@ class $$DebtsTableTableManager
                 accountId: accountId,
                 name: name,
                 amount: amount,
+                amountMinor: amountMinor,
+                amountScale: amountScale,
                 dueDate: dueDate,
                 note: note,
                 createdAt: createdAt,
@@ -16698,6 +18056,8 @@ typedef $$CreditsTableCreateCompanionBuilder =
       required String accountId,
       Value<String?> categoryId,
       required double totalAmount,
+      Value<String> totalAmountMinor,
+      Value<int> totalAmountScale,
       required double interestRate,
       required int termMonths,
       required DateTime startDate,
@@ -16713,6 +18073,8 @@ typedef $$CreditsTableUpdateCompanionBuilder =
       Value<String> accountId,
       Value<String?> categoryId,
       Value<double> totalAmount,
+      Value<String> totalAmountMinor,
+      Value<int> totalAmountScale,
       Value<double> interestRate,
       Value<int> termMonths,
       Value<DateTime> startDate,
@@ -16780,6 +18142,16 @@ class $$CreditsTableFilterComposer
 
   ColumnFilters<double> get totalAmount => $composableBuilder(
     column: $table.totalAmount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get totalAmountMinor => $composableBuilder(
+    column: $table.totalAmountMinor,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get totalAmountScale => $composableBuilder(
+    column: $table.totalAmountScale,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -16884,6 +18256,16 @@ class $$CreditsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get totalAmountMinor => $composableBuilder(
+    column: $table.totalAmountMinor,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get totalAmountScale => $composableBuilder(
+    column: $table.totalAmountScale,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<double> get interestRate => $composableBuilder(
     column: $table.interestRate,
     builder: (column) => ColumnOrderings(column),
@@ -16980,6 +18362,16 @@ class $$CreditsTableAnnotationComposer
 
   GeneratedColumn<double> get totalAmount => $composableBuilder(
     column: $table.totalAmount,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get totalAmountMinor => $composableBuilder(
+    column: $table.totalAmountMinor,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get totalAmountScale => $composableBuilder(
+    column: $table.totalAmountScale,
     builder: (column) => column,
   );
 
@@ -17089,6 +18481,8 @@ class $$CreditsTableTableManager
                 Value<String> accountId = const Value.absent(),
                 Value<String?> categoryId = const Value.absent(),
                 Value<double> totalAmount = const Value.absent(),
+                Value<String> totalAmountMinor = const Value.absent(),
+                Value<int> totalAmountScale = const Value.absent(),
                 Value<double> interestRate = const Value.absent(),
                 Value<int> termMonths = const Value.absent(),
                 Value<DateTime> startDate = const Value.absent(),
@@ -17102,6 +18496,8 @@ class $$CreditsTableTableManager
                 accountId: accountId,
                 categoryId: categoryId,
                 totalAmount: totalAmount,
+                totalAmountMinor: totalAmountMinor,
+                totalAmountScale: totalAmountScale,
                 interestRate: interestRate,
                 termMonths: termMonths,
                 startDate: startDate,
@@ -17117,6 +18513,8 @@ class $$CreditsTableTableManager
                 required String accountId,
                 Value<String?> categoryId = const Value.absent(),
                 required double totalAmount,
+                Value<String> totalAmountMinor = const Value.absent(),
+                Value<int> totalAmountScale = const Value.absent(),
                 required double interestRate,
                 required int termMonths,
                 required DateTime startDate,
@@ -17130,6 +18528,8 @@ class $$CreditsTableTableManager
                 accountId: accountId,
                 categoryId: categoryId,
                 totalAmount: totalAmount,
+                totalAmountMinor: totalAmountMinor,
+                totalAmountScale: totalAmountScale,
                 interestRate: interestRate,
                 termMonths: termMonths,
                 startDate: startDate,
@@ -17224,6 +18624,8 @@ typedef $$CreditCardsTableCreateCompanionBuilder =
       required String id,
       required String accountId,
       required double creditLimit,
+      Value<String> creditLimitMinor,
+      Value<int> creditLimitScale,
       required int statementDay,
       required int paymentDueDays,
       required double interestRateAnnual,
@@ -17237,6 +18639,8 @@ typedef $$CreditCardsTableUpdateCompanionBuilder =
       Value<String> id,
       Value<String> accountId,
       Value<double> creditLimit,
+      Value<String> creditLimitMinor,
+      Value<int> creditLimitScale,
       Value<int> statementDay,
       Value<int> paymentDueDays,
       Value<double> interestRateAnnual,
@@ -17286,6 +18690,16 @@ class $$CreditCardsTableFilterComposer
 
   ColumnFilters<double> get creditLimit => $composableBuilder(
     column: $table.creditLimit,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get creditLimitMinor => $composableBuilder(
+    column: $table.creditLimitMinor,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get creditLimitScale => $composableBuilder(
+    column: $table.creditLimitScale,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -17362,6 +18776,16 @@ class $$CreditCardsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get creditLimitMinor => $composableBuilder(
+    column: $table.creditLimitMinor,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get creditLimitScale => $composableBuilder(
+    column: $table.creditLimitScale,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get statementDay => $composableBuilder(
     column: $table.statementDay,
     builder: (column) => ColumnOrderings(column),
@@ -17430,6 +18854,16 @@ class $$CreditCardsTableAnnotationComposer
 
   GeneratedColumn<double> get creditLimit => $composableBuilder(
     column: $table.creditLimit,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get creditLimitMinor => $composableBuilder(
+    column: $table.creditLimitMinor,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get creditLimitScale => $composableBuilder(
+    column: $table.creditLimitScale,
     builder: (column) => column,
   );
 
@@ -17512,6 +18946,8 @@ class $$CreditCardsTableTableManager
                 Value<String> id = const Value.absent(),
                 Value<String> accountId = const Value.absent(),
                 Value<double> creditLimit = const Value.absent(),
+                Value<String> creditLimitMinor = const Value.absent(),
+                Value<int> creditLimitScale = const Value.absent(),
                 Value<int> statementDay = const Value.absent(),
                 Value<int> paymentDueDays = const Value.absent(),
                 Value<double> interestRateAnnual = const Value.absent(),
@@ -17523,6 +18959,8 @@ class $$CreditCardsTableTableManager
                 id: id,
                 accountId: accountId,
                 creditLimit: creditLimit,
+                creditLimitMinor: creditLimitMinor,
+                creditLimitScale: creditLimitScale,
                 statementDay: statementDay,
                 paymentDueDays: paymentDueDays,
                 interestRateAnnual: interestRateAnnual,
@@ -17536,6 +18974,8 @@ class $$CreditCardsTableTableManager
                 required String id,
                 required String accountId,
                 required double creditLimit,
+                Value<String> creditLimitMinor = const Value.absent(),
+                Value<int> creditLimitScale = const Value.absent(),
                 required int statementDay,
                 required int paymentDueDays,
                 required double interestRateAnnual,
@@ -17547,6 +18987,8 @@ class $$CreditCardsTableTableManager
                 id: id,
                 accountId: accountId,
                 creditLimit: creditLimit,
+                creditLimitMinor: creditLimitMinor,
+                creditLimitScale: creditLimitScale,
                 statementDay: statementDay,
                 paymentDueDays: paymentDueDays,
                 interestRateAnnual: interestRateAnnual,

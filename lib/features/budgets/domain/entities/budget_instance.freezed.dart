@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$BudgetInstance {
 
- String get id; String get budgetId; DateTime get periodStart; DateTime get periodEnd; double get amount; double get spent;@JsonKey(fromJson: BudgetInstanceStatusX.fromStorage, toJson: _statusToJson) BudgetInstanceStatus get status; DateTime get createdAt; DateTime get updatedAt;
+ String get id; String get budgetId; DateTime get periodStart; DateTime get periodEnd; double get amount;@JsonKey(includeFromJson: false, includeToJson: false) BigInt? get amountMinor; double get spent;@JsonKey(includeFromJson: false, includeToJson: false) BigInt? get spentMinor;@JsonKey(includeFromJson: false, includeToJson: false) int? get amountScale;@JsonKey(fromJson: BudgetInstanceStatusX.fromStorage, toJson: _statusToJson) BudgetInstanceStatus get status; DateTime get createdAt; DateTime get updatedAt;
 /// Create a copy of BudgetInstance
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $BudgetInstanceCopyWith<BudgetInstance> get copyWith => _$BudgetInstanceCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is BudgetInstance&&(identical(other.id, id) || other.id == id)&&(identical(other.budgetId, budgetId) || other.budgetId == budgetId)&&(identical(other.periodStart, periodStart) || other.periodStart == periodStart)&&(identical(other.periodEnd, periodEnd) || other.periodEnd == periodEnd)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.spent, spent) || other.spent == spent)&&(identical(other.status, status) || other.status == status)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is BudgetInstance&&(identical(other.id, id) || other.id == id)&&(identical(other.budgetId, budgetId) || other.budgetId == budgetId)&&(identical(other.periodStart, periodStart) || other.periodStart == periodStart)&&(identical(other.periodEnd, periodEnd) || other.periodEnd == periodEnd)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.amountMinor, amountMinor) || other.amountMinor == amountMinor)&&(identical(other.spent, spent) || other.spent == spent)&&(identical(other.spentMinor, spentMinor) || other.spentMinor == spentMinor)&&(identical(other.amountScale, amountScale) || other.amountScale == amountScale)&&(identical(other.status, status) || other.status == status)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,budgetId,periodStart,periodEnd,amount,spent,status,createdAt,updatedAt);
+int get hashCode => Object.hash(runtimeType,id,budgetId,periodStart,periodEnd,amount,amountMinor,spent,spentMinor,amountScale,status,createdAt,updatedAt);
 
 @override
 String toString() {
-  return 'BudgetInstance(id: $id, budgetId: $budgetId, periodStart: $periodStart, periodEnd: $periodEnd, amount: $amount, spent: $spent, status: $status, createdAt: $createdAt, updatedAt: $updatedAt)';
+  return 'BudgetInstance(id: $id, budgetId: $budgetId, periodStart: $periodStart, periodEnd: $periodEnd, amount: $amount, amountMinor: $amountMinor, spent: $spent, spentMinor: $spentMinor, amountScale: $amountScale, status: $status, createdAt: $createdAt, updatedAt: $updatedAt)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $BudgetInstanceCopyWith<$Res>  {
   factory $BudgetInstanceCopyWith(BudgetInstance value, $Res Function(BudgetInstance) _then) = _$BudgetInstanceCopyWithImpl;
 @useResult
 $Res call({
- String id, String budgetId, DateTime periodStart, DateTime periodEnd, double amount, double spent,@JsonKey(fromJson: BudgetInstanceStatusX.fromStorage, toJson: _statusToJson) BudgetInstanceStatus status, DateTime createdAt, DateTime updatedAt
+ String id, String budgetId, DateTime periodStart, DateTime periodEnd, double amount,@JsonKey(includeFromJson: false, includeToJson: false) BigInt? amountMinor, double spent,@JsonKey(includeFromJson: false, includeToJson: false) BigInt? spentMinor,@JsonKey(includeFromJson: false, includeToJson: false) int? amountScale,@JsonKey(fromJson: BudgetInstanceStatusX.fromStorage, toJson: _statusToJson) BudgetInstanceStatus status, DateTime createdAt, DateTime updatedAt
 });
 
 
@@ -65,15 +65,18 @@ class _$BudgetInstanceCopyWithImpl<$Res>
 
 /// Create a copy of BudgetInstance
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? budgetId = null,Object? periodStart = null,Object? periodEnd = null,Object? amount = null,Object? spent = null,Object? status = null,Object? createdAt = null,Object? updatedAt = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? budgetId = null,Object? periodStart = null,Object? periodEnd = null,Object? amount = null,Object? amountMinor = freezed,Object? spent = null,Object? spentMinor = freezed,Object? amountScale = freezed,Object? status = null,Object? createdAt = null,Object? updatedAt = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,budgetId: null == budgetId ? _self.budgetId : budgetId // ignore: cast_nullable_to_non_nullable
 as String,periodStart: null == periodStart ? _self.periodStart : periodStart // ignore: cast_nullable_to_non_nullable
 as DateTime,periodEnd: null == periodEnd ? _self.periodEnd : periodEnd // ignore: cast_nullable_to_non_nullable
 as DateTime,amount: null == amount ? _self.amount : amount // ignore: cast_nullable_to_non_nullable
-as double,spent: null == spent ? _self.spent : spent // ignore: cast_nullable_to_non_nullable
-as double,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
+as double,amountMinor: freezed == amountMinor ? _self.amountMinor : amountMinor // ignore: cast_nullable_to_non_nullable
+as BigInt?,spent: null == spent ? _self.spent : spent // ignore: cast_nullable_to_non_nullable
+as double,spentMinor: freezed == spentMinor ? _self.spentMinor : spentMinor // ignore: cast_nullable_to_non_nullable
+as BigInt?,amountScale: freezed == amountScale ? _self.amountScale : amountScale // ignore: cast_nullable_to_non_nullable
+as int?,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as BudgetInstanceStatus,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,
@@ -161,10 +164,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String budgetId,  DateTime periodStart,  DateTime periodEnd,  double amount,  double spent, @JsonKey(fromJson: BudgetInstanceStatusX.fromStorage, toJson: _statusToJson)  BudgetInstanceStatus status,  DateTime createdAt,  DateTime updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String budgetId,  DateTime periodStart,  DateTime periodEnd,  double amount, @JsonKey(includeFromJson: false, includeToJson: false)  BigInt? amountMinor,  double spent, @JsonKey(includeFromJson: false, includeToJson: false)  BigInt? spentMinor, @JsonKey(includeFromJson: false, includeToJson: false)  int? amountScale, @JsonKey(fromJson: BudgetInstanceStatusX.fromStorage, toJson: _statusToJson)  BudgetInstanceStatus status,  DateTime createdAt,  DateTime updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _BudgetInstance() when $default != null:
-return $default(_that.id,_that.budgetId,_that.periodStart,_that.periodEnd,_that.amount,_that.spent,_that.status,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.id,_that.budgetId,_that.periodStart,_that.periodEnd,_that.amount,_that.amountMinor,_that.spent,_that.spentMinor,_that.amountScale,_that.status,_that.createdAt,_that.updatedAt);case _:
   return orElse();
 
 }
@@ -182,10 +185,10 @@ return $default(_that.id,_that.budgetId,_that.periodStart,_that.periodEnd,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String budgetId,  DateTime periodStart,  DateTime periodEnd,  double amount,  double spent, @JsonKey(fromJson: BudgetInstanceStatusX.fromStorage, toJson: _statusToJson)  BudgetInstanceStatus status,  DateTime createdAt,  DateTime updatedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String budgetId,  DateTime periodStart,  DateTime periodEnd,  double amount, @JsonKey(includeFromJson: false, includeToJson: false)  BigInt? amountMinor,  double spent, @JsonKey(includeFromJson: false, includeToJson: false)  BigInt? spentMinor, @JsonKey(includeFromJson: false, includeToJson: false)  int? amountScale, @JsonKey(fromJson: BudgetInstanceStatusX.fromStorage, toJson: _statusToJson)  BudgetInstanceStatus status,  DateTime createdAt,  DateTime updatedAt)  $default,) {final _that = this;
 switch (_that) {
 case _BudgetInstance():
-return $default(_that.id,_that.budgetId,_that.periodStart,_that.periodEnd,_that.amount,_that.spent,_that.status,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.id,_that.budgetId,_that.periodStart,_that.periodEnd,_that.amount,_that.amountMinor,_that.spent,_that.spentMinor,_that.amountScale,_that.status,_that.createdAt,_that.updatedAt);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -202,10 +205,10 @@ return $default(_that.id,_that.budgetId,_that.periodStart,_that.periodEnd,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String budgetId,  DateTime periodStart,  DateTime periodEnd,  double amount,  double spent, @JsonKey(fromJson: BudgetInstanceStatusX.fromStorage, toJson: _statusToJson)  BudgetInstanceStatus status,  DateTime createdAt,  DateTime updatedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String budgetId,  DateTime periodStart,  DateTime periodEnd,  double amount, @JsonKey(includeFromJson: false, includeToJson: false)  BigInt? amountMinor,  double spent, @JsonKey(includeFromJson: false, includeToJson: false)  BigInt? spentMinor, @JsonKey(includeFromJson: false, includeToJson: false)  int? amountScale, @JsonKey(fromJson: BudgetInstanceStatusX.fromStorage, toJson: _statusToJson)  BudgetInstanceStatus status,  DateTime createdAt,  DateTime updatedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _BudgetInstance() when $default != null:
-return $default(_that.id,_that.budgetId,_that.periodStart,_that.periodEnd,_that.amount,_that.spent,_that.status,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.id,_that.budgetId,_that.periodStart,_that.periodEnd,_that.amount,_that.amountMinor,_that.spent,_that.spentMinor,_that.amountScale,_that.status,_that.createdAt,_that.updatedAt);case _:
   return null;
 
 }
@@ -217,7 +220,7 @@ return $default(_that.id,_that.budgetId,_that.periodStart,_that.periodEnd,_that.
 @JsonSerializable()
 
 class _BudgetInstance extends BudgetInstance {
-  const _BudgetInstance({required this.id, required this.budgetId, required this.periodStart, required this.periodEnd, required this.amount, this.spent = 0.0, @JsonKey(fromJson: BudgetInstanceStatusX.fromStorage, toJson: _statusToJson) required this.status, required this.createdAt, required this.updatedAt}): super._();
+  const _BudgetInstance({required this.id, required this.budgetId, required this.periodStart, required this.periodEnd, required this.amount, @JsonKey(includeFromJson: false, includeToJson: false) this.amountMinor, this.spent = 0.0, @JsonKey(includeFromJson: false, includeToJson: false) this.spentMinor, @JsonKey(includeFromJson: false, includeToJson: false) this.amountScale, @JsonKey(fromJson: BudgetInstanceStatusX.fromStorage, toJson: _statusToJson) required this.status, required this.createdAt, required this.updatedAt}): super._();
   factory _BudgetInstance.fromJson(Map<String, dynamic> json) => _$BudgetInstanceFromJson(json);
 
 @override final  String id;
@@ -225,7 +228,10 @@ class _BudgetInstance extends BudgetInstance {
 @override final  DateTime periodStart;
 @override final  DateTime periodEnd;
 @override final  double amount;
+@override@JsonKey(includeFromJson: false, includeToJson: false) final  BigInt? amountMinor;
 @override@JsonKey() final  double spent;
+@override@JsonKey(includeFromJson: false, includeToJson: false) final  BigInt? spentMinor;
+@override@JsonKey(includeFromJson: false, includeToJson: false) final  int? amountScale;
 @override@JsonKey(fromJson: BudgetInstanceStatusX.fromStorage, toJson: _statusToJson) final  BudgetInstanceStatus status;
 @override final  DateTime createdAt;
 @override final  DateTime updatedAt;
@@ -243,16 +249,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _BudgetInstance&&(identical(other.id, id) || other.id == id)&&(identical(other.budgetId, budgetId) || other.budgetId == budgetId)&&(identical(other.periodStart, periodStart) || other.periodStart == periodStart)&&(identical(other.periodEnd, periodEnd) || other.periodEnd == periodEnd)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.spent, spent) || other.spent == spent)&&(identical(other.status, status) || other.status == status)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _BudgetInstance&&(identical(other.id, id) || other.id == id)&&(identical(other.budgetId, budgetId) || other.budgetId == budgetId)&&(identical(other.periodStart, periodStart) || other.periodStart == periodStart)&&(identical(other.periodEnd, periodEnd) || other.periodEnd == periodEnd)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.amountMinor, amountMinor) || other.amountMinor == amountMinor)&&(identical(other.spent, spent) || other.spent == spent)&&(identical(other.spentMinor, spentMinor) || other.spentMinor == spentMinor)&&(identical(other.amountScale, amountScale) || other.amountScale == amountScale)&&(identical(other.status, status) || other.status == status)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,budgetId,periodStart,periodEnd,amount,spent,status,createdAt,updatedAt);
+int get hashCode => Object.hash(runtimeType,id,budgetId,periodStart,periodEnd,amount,amountMinor,spent,spentMinor,amountScale,status,createdAt,updatedAt);
 
 @override
 String toString() {
-  return 'BudgetInstance(id: $id, budgetId: $budgetId, periodStart: $periodStart, periodEnd: $periodEnd, amount: $amount, spent: $spent, status: $status, createdAt: $createdAt, updatedAt: $updatedAt)';
+  return 'BudgetInstance(id: $id, budgetId: $budgetId, periodStart: $periodStart, periodEnd: $periodEnd, amount: $amount, amountMinor: $amountMinor, spent: $spent, spentMinor: $spentMinor, amountScale: $amountScale, status: $status, createdAt: $createdAt, updatedAt: $updatedAt)';
 }
 
 
@@ -263,7 +269,7 @@ abstract mixin class _$BudgetInstanceCopyWith<$Res> implements $BudgetInstanceCo
   factory _$BudgetInstanceCopyWith(_BudgetInstance value, $Res Function(_BudgetInstance) _then) = __$BudgetInstanceCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String budgetId, DateTime periodStart, DateTime periodEnd, double amount, double spent,@JsonKey(fromJson: BudgetInstanceStatusX.fromStorage, toJson: _statusToJson) BudgetInstanceStatus status, DateTime createdAt, DateTime updatedAt
+ String id, String budgetId, DateTime periodStart, DateTime periodEnd, double amount,@JsonKey(includeFromJson: false, includeToJson: false) BigInt? amountMinor, double spent,@JsonKey(includeFromJson: false, includeToJson: false) BigInt? spentMinor,@JsonKey(includeFromJson: false, includeToJson: false) int? amountScale,@JsonKey(fromJson: BudgetInstanceStatusX.fromStorage, toJson: _statusToJson) BudgetInstanceStatus status, DateTime createdAt, DateTime updatedAt
 });
 
 
@@ -280,15 +286,18 @@ class __$BudgetInstanceCopyWithImpl<$Res>
 
 /// Create a copy of BudgetInstance
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? budgetId = null,Object? periodStart = null,Object? periodEnd = null,Object? amount = null,Object? spent = null,Object? status = null,Object? createdAt = null,Object? updatedAt = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? budgetId = null,Object? periodStart = null,Object? periodEnd = null,Object? amount = null,Object? amountMinor = freezed,Object? spent = null,Object? spentMinor = freezed,Object? amountScale = freezed,Object? status = null,Object? createdAt = null,Object? updatedAt = null,}) {
   return _then(_BudgetInstance(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,budgetId: null == budgetId ? _self.budgetId : budgetId // ignore: cast_nullable_to_non_nullable
 as String,periodStart: null == periodStart ? _self.periodStart : periodStart // ignore: cast_nullable_to_non_nullable
 as DateTime,periodEnd: null == periodEnd ? _self.periodEnd : periodEnd // ignore: cast_nullable_to_non_nullable
 as DateTime,amount: null == amount ? _self.amount : amount // ignore: cast_nullable_to_non_nullable
-as double,spent: null == spent ? _self.spent : spent // ignore: cast_nullable_to_non_nullable
-as double,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
+as double,amountMinor: freezed == amountMinor ? _self.amountMinor : amountMinor // ignore: cast_nullable_to_non_nullable
+as BigInt?,spent: null == spent ? _self.spent : spent // ignore: cast_nullable_to_non_nullable
+as double,spentMinor: freezed == spentMinor ? _self.spentMinor : spentMinor // ignore: cast_nullable_to_non_nullable
+as BigInt?,amountScale: freezed == amountScale ? _self.amountScale : amountScale // ignore: cast_nullable_to_non_nullable
+as int?,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as BudgetInstanceStatus,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,

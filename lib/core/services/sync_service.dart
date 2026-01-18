@@ -171,7 +171,10 @@ class SyncService {
 
       switch (prepared.entityType) {
         case 'account':
-          final AccountEntity account = AccountEntity.fromJson(payload);
+          final AccountEntity account = _applyAccountMoney(
+            AccountEntity.fromJson(payload),
+            payload,
+          );
           await _dispatchAccount(userId, account, operation);
           break;
         case 'category':
@@ -189,13 +192,17 @@ class SyncService {
           await _dispatchTransactionTag(userId, link, operation);
           break;
         case 'transaction':
-          final TransactionEntity transaction = TransactionEntity.fromJson(
+          final TransactionEntity transaction = _applyTransactionMoney(
+            TransactionEntity.fromJson(payload),
             payload,
           );
           await _dispatchTransaction(userId, transaction, operation);
           break;
         case 'debt':
-          final DebtEntity debt = DebtEntity.fromJson(payload);
+          final DebtEntity debt = _applyDebtMoney(
+            DebtEntity.fromJson(payload),
+            payload,
+          );
           await _dispatchDebt(userId, debt, operation);
           break;
         case 'profile':
@@ -203,11 +210,17 @@ class SyncService {
           await _dispatchProfile(userId, profile, operation);
           break;
         case 'budget':
-          final Budget budget = Budget.fromJson(payload);
+          final Budget budget = _applyBudgetMoney(
+            Budget.fromJson(payload),
+            payload,
+          );
           await _dispatchBudget(userId, budget, operation);
           break;
         case 'budget_instance':
-          final BudgetInstance instance = BudgetInstance.fromJson(payload);
+          final BudgetInstance instance = _applyBudgetInstanceMoney(
+            BudgetInstance.fromJson(payload),
+            payload,
+          );
           await _dispatchBudgetInstance(userId, instance, operation);
           break;
         case 'saving_goal':
@@ -215,11 +228,17 @@ class SyncService {
           await _dispatchSavingGoal(userId, goal, operation);
           break;
         case 'upcoming_payment':
-          final UpcomingPayment payment = UpcomingPayment.fromJson(payload);
+          final UpcomingPayment payment = _applyUpcomingPaymentMoney(
+            UpcomingPayment.fromJson(payload),
+            payload,
+          );
           await _dispatchUpcomingPayment(userId, payment, operation);
           break;
         case 'payment_reminder':
-          final PaymentReminder reminder = PaymentReminder.fromJson(payload);
+          final PaymentReminder reminder = _applyPaymentReminderMoney(
+            PaymentReminder.fromJson(payload),
+            payload,
+          );
           await _dispatchPaymentReminder(userId, reminder, operation);
           break;
         default:
@@ -403,6 +422,87 @@ class SyncService {
       return _paymentReminderRemoteDataSource.delete(userId, reminder);
     }
     return _paymentReminderRemoteDataSource.upsert(userId, reminder);
+  }
+
+  AccountEntity _applyAccountMoney(
+    AccountEntity account,
+    Map<String, dynamic> payload,
+  ) {
+    return account.copyWith(
+      balanceMinor: _readBigInt(payload['balanceMinor']),
+      openingBalanceMinor: _readBigInt(payload['openingBalanceMinor']),
+      currencyScale: _readInt(payload['currencyScale']),
+    );
+  }
+
+  TransactionEntity _applyTransactionMoney(
+    TransactionEntity transaction,
+    Map<String, dynamic> payload,
+  ) {
+    return transaction.copyWith(
+      amountMinor: _readBigInt(payload['amountMinor']),
+      amountScale: _readInt(payload['amountScale']),
+    );
+  }
+
+  Budget _applyBudgetMoney(Budget budget, Map<String, dynamic> payload) {
+    return budget.copyWith(
+      amountMinor: _readBigInt(payload['amountMinor']),
+      amountScale: _readInt(payload['amountScale']),
+    );
+  }
+
+  BudgetInstance _applyBudgetInstanceMoney(
+    BudgetInstance instance,
+    Map<String, dynamic> payload,
+  ) {
+    return instance.copyWith(
+      amountMinor: _readBigInt(payload['amountMinor']),
+      spentMinor: _readBigInt(payload['spentMinor']),
+      amountScale: _readInt(payload['amountScale']),
+    );
+  }
+
+  UpcomingPayment _applyUpcomingPaymentMoney(
+    UpcomingPayment payment,
+    Map<String, dynamic> payload,
+  ) {
+    return payment.copyWith(
+      amountMinor: _readBigInt(payload['amountMinor']),
+      amountScale: _readInt(payload['amountScale']),
+    );
+  }
+
+  PaymentReminder _applyPaymentReminderMoney(
+    PaymentReminder reminder,
+    Map<String, dynamic> payload,
+  ) {
+    return reminder.copyWith(
+      amountMinor: _readBigInt(payload['amountMinor']),
+      amountScale: _readInt(payload['amountScale']),
+    );
+  }
+
+  DebtEntity _applyDebtMoney(DebtEntity debt, Map<String, dynamic> payload) {
+    return debt.copyWith(
+      amountMinor: _readBigInt(payload['amountMinor']),
+      amountScale: _readInt(payload['amountScale']),
+    );
+  }
+
+  BigInt? _readBigInt(Object? value) {
+    if (value == null) return null;
+    if (value is BigInt) return value;
+    if (value is int) return BigInt.from(value);
+    if (value is num) return BigInt.from(value.toInt());
+    return BigInt.tryParse(value.toString());
+  }
+
+  int? _readInt(Object? value) {
+    if (value == null) return null;
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    return int.tryParse(value.toString());
   }
 
   Future<void> _handleConnectivity(List<ConnectivityResult> results) async {

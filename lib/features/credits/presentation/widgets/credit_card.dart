@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/core/domain/icons/phosphor_icon_descriptor.dart';
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/core/utils/context_extensions.dart';
 import 'package:kopim/core/utils/helpers.dart';
 import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
@@ -45,20 +46,34 @@ class CreditCard extends ConsumerWidget {
           ),
         );
 
-        final double remainingDebt = account.balance.abs();
-        final double totalDebt = credit.totalAmount;
-        final double repaidAmount = (totalDebt - remainingDebt).clamp(
-          0.0,
-          totalDebt,
+        final MoneyAmount remainingDebt = resolveMoneyAmount(
+          amount: account.balance,
+          minor: account.balanceMinor,
+          scale: account.currencyScale,
+          useAbs: true,
         );
-        final double progress = totalDebt > 0
-            ? (repaidAmount / totalDebt)
+        final MoneyAmount totalDebt = resolveMoneyAmount(
+          amount: credit.totalAmount,
+          minor: credit.totalAmountMinor,
+          scale: credit.totalAmountScale ?? account.currencyScale,
+          useAbs: true,
+        );
+        final double remainingDebtValue = remainingDebt.toDouble();
+        final double totalDebtValue = totalDebt.toDouble();
+        final double repaidAmount = (totalDebtValue - remainingDebtValue).clamp(
+          0.0,
+          totalDebtValue,
+        );
+        final double progress = totalDebtValue > 0
+            ? (repaidAmount / totalDebtValue)
             : 0.0;
 
+        final int decimalDigits =
+            credit.totalAmountScale ?? account.currencyScale ?? 2;
         final NumberFormat moneyFormat = NumberFormat.currency(
           locale: context.loc.localeName,
           symbol: getCurrencySymbol(account.currency),
-          decimalDigits: 0,
+          decimalDigits: decimalDigits,
         );
 
         final Color? accountColor = parseHexColor(account.color);
@@ -166,7 +181,7 @@ class CreditCard extends ConsumerWidget {
                                     ),
                                   ),
                                   Text(
-                                    moneyFormat.format(remainingDebt),
+                                    moneyFormat.format(remainingDebtValue),
                                     style: theme.textTheme.headlineSmall
                                         ?.copyWith(
                                           fontWeight: FontWeight.bold,
@@ -177,7 +192,7 @@ class CreditCard extends ConsumerWidget {
                               ),
                               Text(
                                 context.loc.creditsTotalAmount(
-                                  moneyFormat.format(totalDebt),
+                                  moneyFormat.format(totalDebtValue),
                                 ),
                                 style: theme.textTheme.labelSmall?.copyWith(
                                   color: theme.colorScheme.onSurfaceVariant,

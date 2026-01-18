@@ -8,6 +8,7 @@ import 'package:kopim/core/services/logger_service.dart';
 import 'package:kopim/features/accounts/data/sources/local/account_dao.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/categories/data/sources/local/category_dao.dart';
+import 'package:kopim/features/credits/data/sources/local/credit_dao.dart';
 import 'package:kopim/features/savings/data/repositories/saving_goal_repository_impl.dart';
 import 'package:kopim/features/savings/data/sources/local/goal_contribution_dao.dart';
 import 'package:kopim/features/savings/data/sources/local/saving_goal_dao.dart';
@@ -28,6 +29,7 @@ void main() {
   late CategoryDao categoryDao;
   late AccountDao accountDao;
   late TransactionDao transactionDao;
+  late CreditDao creditDao;
   late GoalContributionDao contributionDao;
   late OutboxDao outboxDao;
   late SavingGoalRepositoryImpl repository;
@@ -48,6 +50,7 @@ void main() {
     categoryDao = CategoryDao(database);
     accountDao = AccountDao(database);
     transactionDao = TransactionDao(database);
+    creditDao = CreditDao(database);
     contributionDao = GoalContributionDao(database);
     outboxDao = OutboxDao(database);
     analytics = _MockAnalyticsService();
@@ -59,6 +62,7 @@ void main() {
       savingGoalDao: savingGoalDao,
       categoryDao: categoryDao,
       accountDao: accountDao,
+      creditDao: creditDao,
       transactionDao: transactionDao,
       goalContributionDao: contributionDao,
       outboxDao: outboxDao,
@@ -70,6 +74,8 @@ void main() {
     transactionRepository = TransactionRepositoryImpl(
       database: database,
       transactionDao: transactionDao,
+      accountDao: accountDao,
+      creditDao: creditDao,
       savingGoalDao: savingGoalDao,
       goalContributionDao: contributionDao,
       outboxDao: outboxDao,

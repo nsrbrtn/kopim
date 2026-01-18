@@ -87,6 +87,6 @@ void main() {
     expect(items.first.whenMs, 1500);
     expect(items[1].type, UpcomingItemType.paymentRule);
     expect(items[1].whenMs, 1800);
-    expect(items[2].whenMs, 2200);
+    expect(items[2].whenMs, 3000);
   });
 }

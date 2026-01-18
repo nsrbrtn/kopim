@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$DebtEntity {
 
- String get id; String get accountId; String get name; double get amount; DateTime get dueDate; String? get note; DateTime get createdAt; DateTime get updatedAt; bool get isDeleted;
+ String get id; String get accountId; String get name; double get amount;@JsonKey(includeFromJson: false, includeToJson: false) BigInt? get amountMinor;@JsonKey(includeFromJson: false, includeToJson: false) int? get amountScale; DateTime get dueDate; String? get note; DateTime get createdAt; DateTime get updatedAt; bool get isDeleted;
 /// Create a copy of DebtEntity
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $DebtEntityCopyWith<DebtEntity> get copyWith => _$DebtEntityCopyWithImpl<DebtEnt
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is DebtEntity&&(identical(other.id, id) || other.id == id)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.name, name) || other.name == name)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.dueDate, dueDate) || other.dueDate == dueDate)&&(identical(other.note, note) || other.note == note)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.isDeleted, isDeleted) || other.isDeleted == isDeleted));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is DebtEntity&&(identical(other.id, id) || other.id == id)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.name, name) || other.name == name)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.amountMinor, amountMinor) || other.amountMinor == amountMinor)&&(identical(other.amountScale, amountScale) || other.amountScale == amountScale)&&(identical(other.dueDate, dueDate) || other.dueDate == dueDate)&&(identical(other.note, note) || other.note == note)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.isDeleted, isDeleted) || other.isDeleted == isDeleted));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,accountId,name,amount,dueDate,note,createdAt,updatedAt,isDeleted);
+int get hashCode => Object.hash(runtimeType,id,accountId,name,amount,amountMinor,amountScale,dueDate,note,createdAt,updatedAt,isDeleted);
 
 @override
 String toString() {
-  return 'DebtEntity(id: $id, accountId: $accountId, name: $name, amount: $amount, dueDate: $dueDate, note: $note, createdAt: $createdAt, updatedAt: $updatedAt, isDeleted: $isDeleted)';
+  return 'DebtEntity(id: $id, accountId: $accountId, name: $name, amount: $amount, amountMinor: $amountMinor, amountScale: $amountScale, dueDate: $dueDate, note: $note, createdAt: $createdAt, updatedAt: $updatedAt, isDeleted: $isDeleted)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $DebtEntityCopyWith<$Res>  {
   factory $DebtEntityCopyWith(DebtEntity value, $Res Function(DebtEntity) _then) = _$DebtEntityCopyWithImpl;
 @useResult
 $Res call({
- String id, String accountId, String name, double amount, DateTime dueDate, String? note, DateTime createdAt, DateTime updatedAt, bool isDeleted
+ String id, String accountId, String name, double amount,@JsonKey(includeFromJson: false, includeToJson: false) BigInt? amountMinor,@JsonKey(includeFromJson: false, includeToJson: false) int? amountScale, DateTime dueDate, String? note, DateTime createdAt, DateTime updatedAt, bool isDeleted
 });
 
 
@@ -65,13 +65,15 @@ class _$DebtEntityCopyWithImpl<$Res>
 
 /// Create a copy of DebtEntity
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? accountId = null,Object? name = null,Object? amount = null,Object? dueDate = null,Object? note = freezed,Object? createdAt = null,Object? updatedAt = null,Object? isDeleted = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? accountId = null,Object? name = null,Object? amount = null,Object? amountMinor = freezed,Object? amountScale = freezed,Object? dueDate = null,Object? note = freezed,Object? createdAt = null,Object? updatedAt = null,Object? isDeleted = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,amount: null == amount ? _self.amount : amount // ignore: cast_nullable_to_non_nullable
-as double,dueDate: null == dueDate ? _self.dueDate : dueDate // ignore: cast_nullable_to_non_nullable
+as double,amountMinor: freezed == amountMinor ? _self.amountMinor : amountMinor // ignore: cast_nullable_to_non_nullable
+as BigInt?,amountScale: freezed == amountScale ? _self.amountScale : amountScale // ignore: cast_nullable_to_non_nullable
+as int?,dueDate: null == dueDate ? _self.dueDate : dueDate // ignore: cast_nullable_to_non_nullable
 as DateTime,note: freezed == note ? _self.note : note // ignore: cast_nullable_to_non_nullable
 as String?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
@@ -161,10 +163,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String accountId,  String name,  double amount,  DateTime dueDate,  String? note,  DateTime createdAt,  DateTime updatedAt,  bool isDeleted)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String accountId,  String name,  double amount, @JsonKey(includeFromJson: false, includeToJson: false)  BigInt? amountMinor, @JsonKey(includeFromJson: false, includeToJson: false)  int? amountScale,  DateTime dueDate,  String? note,  DateTime createdAt,  DateTime updatedAt,  bool isDeleted)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _DebtEntity() when $default != null:
-return $default(_that.id,_that.accountId,_that.name,_that.amount,_that.dueDate,_that.note,_that.createdAt,_that.updatedAt,_that.isDeleted);case _:
+return $default(_that.id,_that.accountId,_that.name,_that.amount,_that.amountMinor,_that.amountScale,_that.dueDate,_that.note,_that.createdAt,_that.updatedAt,_that.isDeleted);case _:
   return orElse();
 
 }
@@ -182,10 +184,10 @@ return $default(_that.id,_that.accountId,_that.name,_that.amount,_that.dueDate,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String accountId,  String name,  double amount,  DateTime dueDate,  String? note,  DateTime createdAt,  DateTime updatedAt,  bool isDeleted)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String accountId,  String name,  double amount, @JsonKey(includeFromJson: false, includeToJson: false)  BigInt? amountMinor, @JsonKey(includeFromJson: false, includeToJson: false)  int? amountScale,  DateTime dueDate,  String? note,  DateTime createdAt,  DateTime updatedAt,  bool isDeleted)  $default,) {final _that = this;
 switch (_that) {
 case _DebtEntity():
-return $default(_that.id,_that.accountId,_that.name,_that.amount,_that.dueDate,_that.note,_that.createdAt,_that.updatedAt,_that.isDeleted);case _:
+return $default(_that.id,_that.accountId,_that.name,_that.amount,_that.amountMinor,_that.amountScale,_that.dueDate,_that.note,_that.createdAt,_that.updatedAt,_that.isDeleted);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -202,10 +204,10 @@ return $default(_that.id,_that.accountId,_that.name,_that.amount,_that.dueDate,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String accountId,  String name,  double amount,  DateTime dueDate,  String? note,  DateTime createdAt,  DateTime updatedAt,  bool isDeleted)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String accountId,  String name,  double amount, @JsonKey(includeFromJson: false, includeToJson: false)  BigInt? amountMinor, @JsonKey(includeFromJson: false, includeToJson: false)  int? amountScale,  DateTime dueDate,  String? note,  DateTime createdAt,  DateTime updatedAt,  bool isDeleted)?  $default,) {final _that = this;
 switch (_that) {
 case _DebtEntity() when $default != null:
-return $default(_that.id,_that.accountId,_that.name,_that.amount,_that.dueDate,_that.note,_that.createdAt,_that.updatedAt,_that.isDeleted);case _:
+return $default(_that.id,_that.accountId,_that.name,_that.amount,_that.amountMinor,_that.amountScale,_that.dueDate,_that.note,_that.createdAt,_that.updatedAt,_that.isDeleted);case _:
   return null;
 
 }
@@ -217,13 +219,15 @@ return $default(_that.id,_that.accountId,_that.name,_that.amount,_that.dueDate,_
 @JsonSerializable()
 
 class _DebtEntity implements DebtEntity {
-  const _DebtEntity({required this.id, required this.accountId, this.name = '', required this.amount, required this.dueDate, this.note, required this.createdAt, required this.updatedAt, this.isDeleted = false});
+  const _DebtEntity({required this.id, required this.accountId, this.name = '', required this.amount, @JsonKey(includeFromJson: false, includeToJson: false) this.amountMinor, @JsonKey(includeFromJson: false, includeToJson: false) this.amountScale, required this.dueDate, this.note, required this.createdAt, required this.updatedAt, this.isDeleted = false});
   factory _DebtEntity.fromJson(Map<String, dynamic> json) => _$DebtEntityFromJson(json);
 
 @override final  String id;
 @override final  String accountId;
 @override@JsonKey() final  String name;
 @override final  double amount;
+@override@JsonKey(includeFromJson: false, includeToJson: false) final  BigInt? amountMinor;
+@override@JsonKey(includeFromJson: false, includeToJson: false) final  int? amountScale;
 @override final  DateTime dueDate;
 @override final  String? note;
 @override final  DateTime createdAt;
@@ -243,16 +247,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DebtEntity&&(identical(other.id, id) || other.id == id)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.name, name) || other.name == name)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.dueDate, dueDate) || other.dueDate == dueDate)&&(identical(other.note, note) || other.note == note)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.isDeleted, isDeleted) || other.isDeleted == isDeleted));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DebtEntity&&(identical(other.id, id) || other.id == id)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.name, name) || other.name == name)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.amountMinor, amountMinor) || other.amountMinor == amountMinor)&&(identical(other.amountScale, amountScale) || other.amountScale == amountScale)&&(identical(other.dueDate, dueDate) || other.dueDate == dueDate)&&(identical(other.note, note) || other.note == note)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.isDeleted, isDeleted) || other.isDeleted == isDeleted));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,accountId,name,amount,dueDate,note,createdAt,updatedAt,isDeleted);
+int get hashCode => Object.hash(runtimeType,id,accountId,name,amount,amountMinor,amountScale,dueDate,note,createdAt,updatedAt,isDeleted);
 
 @override
 String toString() {
-  return 'DebtEntity(id: $id, accountId: $accountId, name: $name, amount: $amount, dueDate: $dueDate, note: $note, createdAt: $createdAt, updatedAt: $updatedAt, isDeleted: $isDeleted)';
+  return 'DebtEntity(id: $id, accountId: $accountId, name: $name, amount: $amount, amountMinor: $amountMinor, amountScale: $amountScale, dueDate: $dueDate, note: $note, createdAt: $createdAt, updatedAt: $updatedAt, isDeleted: $isDeleted)';
 }
 
 
@@ -263,7 +267,7 @@ abstract mixin class _$DebtEntityCopyWith<$Res> implements $DebtEntityCopyWith<$
   factory _$DebtEntityCopyWith(_DebtEntity value, $Res Function(_DebtEntity) _then) = __$DebtEntityCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String accountId, String name, double amount, DateTime dueDate, String? note, DateTime createdAt, DateTime updatedAt, bool isDeleted
+ String id, String accountId, String name, double amount,@JsonKey(includeFromJson: false, includeToJson: false) BigInt? amountMinor,@JsonKey(includeFromJson: false, includeToJson: false) int? amountScale, DateTime dueDate, String? note, DateTime createdAt, DateTime updatedAt, bool isDeleted
 });
 
 
@@ -280,13 +284,15 @@ class __$DebtEntityCopyWithImpl<$Res>
 
 /// Create a copy of DebtEntity
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? accountId = null,Object? name = null,Object? amount = null,Object? dueDate = null,Object? note = freezed,Object? createdAt = null,Object? updatedAt = null,Object? isDeleted = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? accountId = null,Object? name = null,Object? amount = null,Object? amountMinor = freezed,Object? amountScale = freezed,Object? dueDate = null,Object? note = freezed,Object? createdAt = null,Object? updatedAt = null,Object? isDeleted = null,}) {
   return _then(_DebtEntity(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,amount: null == amount ? _self.amount : amount // ignore: cast_nullable_to_non_nullable
-as double,dueDate: null == dueDate ? _self.dueDate : dueDate // ignore: cast_nullable_to_non_nullable
+as double,amountMinor: freezed == amountMinor ? _self.amountMinor : amountMinor // ignore: cast_nullable_to_non_nullable
+as BigInt?,amountScale: freezed == amountScale ? _self.amountScale : amountScale // ignore: cast_nullable_to_non_nullable
+as int?,dueDate: null == dueDate ? _self.dueDate : dueDate // ignore: cast_nullable_to_non_nullable
 as DateTime,note: freezed == note ? _self.note : note // ignore: cast_nullable_to_non_nullable
 as String?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable

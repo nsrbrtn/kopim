@@ -89,6 +89,9 @@ class AccountRepositoryImpl implements AccountRepository {
     json['iconName'] = account.iconName;
     json['iconStyle'] = account.iconStyle;
     json['openingBalance'] = account.openingBalance;
+    json['balanceMinor'] = account.balanceMinor?.toString();
+    json['openingBalanceMinor'] = account.openingBalanceMinor?.toString();
+    json['currencyScale'] = account.currencyScale;
     return json;
   }
 
@@ -97,8 +100,11 @@ class AccountRepositoryImpl implements AccountRepository {
       id: row.id,
       name: row.name,
       balance: row.balance,
+      balanceMinor: BigInt.parse(row.balanceMinor),
       openingBalance: row.openingBalance,
+      openingBalanceMinor: BigInt.parse(row.openingBalanceMinor),
       currency: row.currency,
+      currencyScale: row.currencyScale,
       type: row.type,
       color: row.color,
       gradientId: row.gradientId,

@@ -53,10 +53,10 @@ import 'package:kopim/features/upcoming_payments/domain/entities/payment_reminde
 import 'package:kopim/features/upcoming_payments/domain/entities/upcoming_payment.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
 import 'package:kopim/features/profile/domain/failures/auth_failure.dart';
+import 'package:kopim/features/transactions/data/services/transaction_balance_helper.dart';
 import 'package:kopim/features/transactions/data/sources/local/transaction_dao.dart';
 import 'package:kopim/features/transactions/data/sources/remote/transaction_remote_data_source.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
-import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
 
 class AuthSyncService {
   AuthSyncService({
@@ -290,7 +290,10 @@ class AuthSyncService {
         );
         switch (entry.entityType) {
           case 'account':
-            final AccountEntity account = AccountEntity.fromJson(payload);
+            final AccountEntity account = _applyAccountMoney(
+              AccountEntity.fromJson(payload),
+              payload,
+            );
             if (operation == OutboxOperation.delete) {
               _accountRemoteDataSource.deleteInTransaction(
                 transaction,
@@ -339,7 +342,10 @@ class AuthSyncService {
             break;
           case 'transaction':
             final TransactionEntity transactionEntity =
-                TransactionEntity.fromJson(payload);
+                _applyTransactionMoney(
+                  TransactionEntity.fromJson(payload),
+                  payload,
+                );
             if (operation == OutboxOperation.delete) {
               _transactionRemoteDataSource.deleteInTransaction(
                 transaction,
@@ -373,7 +379,10 @@ class AuthSyncService {
             }
             break;
           case 'credit':
-            final CreditEntity credit = CreditEntity.fromJson(payload);
+            final CreditEntity credit = _applyCreditMoney(
+              CreditEntity.fromJson(payload),
+              payload,
+            );
             if (operation == OutboxOperation.delete) {
               _creditRemoteDataSource.deleteInTransaction(
                 transaction,
@@ -389,7 +398,8 @@ class AuthSyncService {
             }
             break;
           case 'credit_card':
-            final CreditCardEntity creditCard = CreditCardEntity.fromJson(
+            final CreditCardEntity creditCard = _applyCreditCardMoney(
+              CreditCardEntity.fromJson(payload),
               payload,
             );
             if (operation == OutboxOperation.delete) {
@@ -407,7 +417,10 @@ class AuthSyncService {
             }
             break;
           case 'debt':
-            final DebtEntity debt = DebtEntity.fromJson(payload);
+            final DebtEntity debt = _applyDebtMoney(
+              DebtEntity.fromJson(payload),
+              payload,
+            );
             if (operation == OutboxOperation.delete) {
               _debtRemoteDataSource.deleteInTransaction(
                 transaction,
@@ -434,7 +447,10 @@ class AuthSyncService {
             );
             break;
           case 'budget':
-            final Budget budget = Budget.fromJson(payload);
+            final Budget budget = _applyBudgetMoney(
+              Budget.fromJson(payload),
+              payload,
+            );
             if (operation == OutboxOperation.delete) {
               _budgetRemoteDataSource.deleteInTransaction(
                 transaction,
@@ -450,7 +466,10 @@ class AuthSyncService {
             }
             break;
           case 'budget_instance':
-            final BudgetInstance instance = BudgetInstance.fromJson(payload);
+            final BudgetInstance instance = _applyBudgetInstanceMoney(
+              BudgetInstance.fromJson(payload),
+              payload,
+            );
             if (operation == OutboxOperation.delete) {
               _budgetInstanceRemoteDataSource.deleteInTransaction(
                 transaction,
@@ -474,7 +493,10 @@ class AuthSyncService {
             );
             break;
           case 'upcoming_payment':
-            final UpcomingPayment payment = UpcomingPayment.fromJson(payload);
+            final UpcomingPayment payment = _applyUpcomingPaymentMoney(
+              UpcomingPayment.fromJson(payload),
+              payload,
+            );
             if (operation == OutboxOperation.delete) {
               _upcomingPaymentRemoteDataSource.deleteInTransaction(
                 transaction,
@@ -490,7 +512,10 @@ class AuthSyncService {
             }
             break;
           case 'payment_reminder':
-            final PaymentReminder reminder = PaymentReminder.fromJson(payload);
+            final PaymentReminder reminder = _applyPaymentReminderMoney(
+              PaymentReminder.fromJson(payload),
+              payload,
+            );
             if (operation == OutboxOperation.delete) {
               _paymentReminderRemoteDataSource.deleteInTransaction(
                 transaction,
@@ -512,6 +537,107 @@ class AuthSyncService {
         }
       }
     });
+  }
+
+  AccountEntity _applyAccountMoney(
+    AccountEntity account,
+    Map<String, dynamic> payload,
+  ) {
+    return account.copyWith(
+      balanceMinor: _readBigInt(payload['balanceMinor']),
+      openingBalanceMinor: _readBigInt(payload['openingBalanceMinor']),
+      currencyScale: _readInt(payload['currencyScale']),
+    );
+  }
+
+  TransactionEntity _applyTransactionMoney(
+    TransactionEntity transaction,
+    Map<String, dynamic> payload,
+  ) {
+    return transaction.copyWith(
+      amountMinor: _readBigInt(payload['amountMinor']),
+      amountScale: _readInt(payload['amountScale']),
+    );
+  }
+
+  CreditEntity _applyCreditMoney(
+    CreditEntity credit,
+    Map<String, dynamic> payload,
+  ) {
+    return credit.copyWith(
+      totalAmountMinor: _readBigInt(payload['totalAmountMinor']),
+      totalAmountScale: _readInt(payload['totalAmountScale']),
+    );
+  }
+
+  CreditCardEntity _applyCreditCardMoney(
+    CreditCardEntity creditCard,
+    Map<String, dynamic> payload,
+  ) {
+    return creditCard.copyWith(
+      creditLimitMinor: _readBigInt(payload['creditLimitMinor']),
+      creditLimitScale: _readInt(payload['creditLimitScale']),
+    );
+  }
+
+  DebtEntity _applyDebtMoney(DebtEntity debt, Map<String, dynamic> payload) {
+    return debt.copyWith(
+      amountMinor: _readBigInt(payload['amountMinor']),
+      amountScale: _readInt(payload['amountScale']),
+    );
+  }
+
+  Budget _applyBudgetMoney(Budget budget, Map<String, dynamic> payload) {
+    return budget.copyWith(
+      amountMinor: _readBigInt(payload['amountMinor']),
+      amountScale: _readInt(payload['amountScale']),
+    );
+  }
+
+  BudgetInstance _applyBudgetInstanceMoney(
+    BudgetInstance instance,
+    Map<String, dynamic> payload,
+  ) {
+    return instance.copyWith(
+      amountMinor: _readBigInt(payload['amountMinor']),
+      spentMinor: _readBigInt(payload['spentMinor']),
+      amountScale: _readInt(payload['amountScale']),
+    );
+  }
+
+  UpcomingPayment _applyUpcomingPaymentMoney(
+    UpcomingPayment payment,
+    Map<String, dynamic> payload,
+  ) {
+    return payment.copyWith(
+      amountMinor: _readBigInt(payload['amountMinor']),
+      amountScale: _readInt(payload['amountScale']),
+    );
+  }
+
+  PaymentReminder _applyPaymentReminderMoney(
+    PaymentReminder reminder,
+    Map<String, dynamic> payload,
+  ) {
+    return reminder.copyWith(
+      amountMinor: _readBigInt(payload['amountMinor']),
+      amountScale: _readInt(payload['amountScale']),
+    );
+  }
+
+  BigInt? _readBigInt(Object? value) {
+    if (value == null) return null;
+    if (value is BigInt) return value;
+    if (value is int) return BigInt.from(value);
+    if (value is num) return BigInt.from(value.toInt());
+    return BigInt.tryParse(value.toString());
+  }
+
+  int? _readInt(Object? value) {
+    if (value == null) return null;
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    return int.tryParse(value.toString());
   }
 
   Future<_RemoteSnapshot> _fetchRemoteSnapshot(String userId) async {
@@ -764,7 +890,8 @@ class AuthSyncService {
             );
 
         await _transactionDao.upsertAll(sanitizedTransactions);
-        final List<AccountEntity> recalculatedAccounts = _recalculateBalances(
+        final List<AccountEntity> recalculatedAccounts =
+            await _recalculateBalances(
           accounts: mergedAccounts,
           transactions: sanitizedTransactions,
         );
@@ -847,48 +974,29 @@ class AuthSyncService {
     });
   }
 
-  List<AccountEntity> _recalculateBalances({
+  Future<List<AccountEntity>> _recalculateBalances({
     required List<AccountEntity> accounts,
     required List<TransactionEntity> transactions,
-  }) {
+  }) async {
     final Map<String, double> deltas = <String, double>{
       for (final AccountEntity account in accounts) account.id: 0,
+    };
+    final List<db.CreditRow> creditRows = await _creditDao.getAllCredits();
+    final Map<String, String> creditAccountByCategoryId = <String, String>{
+      for (final db.CreditRow row in creditRows)
+        if (row.categoryId != null) row.categoryId!: row.accountId,
     };
 
     for (final TransactionEntity transaction in transactions) {
       if (transaction.isDeleted) continue;
-      final TransactionType type = parseTransactionType(transaction.type);
-      switch (type) {
-        case TransactionType.income:
-          deltas.update(
-            transaction.accountId,
-            (double value) => value + transaction.amount,
-            ifAbsent: () => transaction.amount,
-          );
-          break;
-        case TransactionType.expense:
-          deltas.update(
-            transaction.accountId,
-            (double value) => value - transaction.amount,
-            ifAbsent: () => -transaction.amount,
-          );
-          break;
-        case TransactionType.transfer:
-          deltas.update(
-            transaction.accountId,
-            (double value) => value - transaction.amount,
-            ifAbsent: () => -transaction.amount,
-          );
-          final String? targetId = transaction.transferAccountId;
-          if (targetId != null && targetId != transaction.accountId) {
-            deltas.update(
-              targetId,
-              (double value) => value + transaction.amount,
-              ifAbsent: () => transaction.amount,
-            );
-          }
-          break;
-      }
+      final String? creditAccountId = transaction.categoryId != null
+          ? creditAccountByCategoryId[transaction.categoryId!]
+          : null;
+      final Map<String, double> effect = buildTransactionEffect(
+        transaction: transaction,
+        creditAccountId: creditAccountId,
+      );
+      applyTransactionEffect(deltas, effect);
     }
 
     return accounts

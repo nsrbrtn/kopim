@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:kopim/core/data/database.dart' as db;
+import 'package:kopim/core/money/money.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
 
@@ -152,6 +153,14 @@ GROUP BY account_id
   }
 
   db.TransactionsCompanion _mapToCompanion(TransactionEntity transaction) {
+    final int scale = (transaction.amountScale ?? 0) > 0
+        ? transaction.amountScale!
+        : 2;
+    final Money money = Money.fromDouble(
+      transaction.amount.abs(),
+      currency: 'XXX',
+      scale: scale,
+    );
     return db.TransactionsCompanion(
       id: Value<String>(transaction.id),
       accountId: Value<String>(transaction.accountId),
@@ -159,6 +168,8 @@ GROUP BY account_id
       categoryId: Value<String?>(transaction.categoryId),
       savingGoalId: Value<String?>(transaction.savingGoalId),
       amount: Value<double>(transaction.amount),
+      amountMinor: Value<String>(money.minor.toString()),
+      amountScale: Value<int>(scale),
       date: Value<DateTime>(transaction.date),
       note: Value<String?>(transaction.note),
       type: Value<String>(transaction.type),
@@ -176,6 +187,8 @@ GROUP BY account_id
       categoryId: row.categoryId,
       savingGoalId: row.savingGoalId,
       amount: row.amount,
+      amountMinor: BigInt.parse(row.amountMinor),
+      amountScale: row.amountScale,
       date: row.date,
       note: row.note,
       type: row.type,

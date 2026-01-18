@@ -72,6 +72,8 @@ class BudgetRemoteDataSource {
           ? Timestamp.fromDate(budget.endDate!.toUtc())
           : null,
       'amount': budget.amount,
+      'amountMinor': budget.amountMinor?.toString(),
+      'amountScale': budget.amountScale,
       'scope': budget.scope.storageValue,
       'categories': budget.categories,
       'accounts': budget.accounts,
@@ -93,6 +95,8 @@ class BudgetRemoteDataSource {
       startDate: _parseTimestamp(data['startDate']),
       endDate: _parseOptionalTimestamp(data['endDate']),
       amount: (data['amount'] as num?)?.toDouble() ?? 0,
+      amountMinor: _readBigInt(data['amountMinor']),
+      amountScale: _readInt(data['amountScale']),
       scope: BudgetScopeX.fromStorage(data['scope'] as String?),
       categories: _parseStringList(data['categories']),
       accounts: _parseStringList(data['accounts']),
@@ -111,6 +115,21 @@ class BudgetRemoteDataSource {
       return value.toUtc();
     }
     return DateTime.now().toUtc();
+  }
+
+  BigInt? _readBigInt(Object? value) {
+    if (value == null) return null;
+    if (value is BigInt) return value;
+    if (value is int) return BigInt.from(value);
+    if (value is num) return BigInt.from(value.toInt());
+    return BigInt.tryParse(value.toString());
+  }
+
+  int? _readInt(Object? value) {
+    if (value == null) return null;
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    return int.tryParse(value.toString());
   }
 
   DateTime? _parseOptionalTimestamp(Object? value) {

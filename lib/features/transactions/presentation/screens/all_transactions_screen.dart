@@ -404,6 +404,8 @@ class _TransactionListTile extends ConsumerWidget {
     final NumberFormat moneyFormat = TransactionTileFormatters.currency(
       strings.localeName,
       currencySymbol,
+      decimalDigits:
+          transaction.amountScale ?? accountValue?.currencyScale ?? 2,
     );
     final bool isTransfer =
         transaction.type == TransactionType.transfer.storageValue;
@@ -536,7 +538,12 @@ class _TransactionListTile extends ConsumerWidget {
                     ),
                     const SizedBox(width: 12),
                     Text(
-                      moneyFormat.format(transaction.amount.abs()),
+                      TransactionTileFormatters.formatAmount(
+                        formatter: moneyFormat,
+                        amount: transaction.amount,
+                        amountMinor: transaction.amountMinor,
+                        amountScale: transaction.amountScale,
+                      ),
                       style: theme.textTheme.titleMedium?.copyWith(
                         color: amountColor,
                       ),

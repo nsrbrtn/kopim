@@ -9,6 +9,10 @@ abstract class CreditCardEntity with _$CreditCardEntity {
     required String id,
     required String accountId,
     required double creditLimit,
+    @JsonKey(includeFromJson: false, includeToJson: false)
+    BigInt? creditLimitMinor,
+    @JsonKey(includeFromJson: false, includeToJson: false)
+    int? creditLimitScale,
     required int statementDay,
     required int paymentDueDays,
     required double interestRateAnnual,

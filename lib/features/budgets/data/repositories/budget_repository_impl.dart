@@ -123,6 +123,8 @@ class BudgetRepositoryImpl implements BudgetRepository {
     json['endDate'] = budget.endDate?.toIso8601String();
     json['createdAt'] = budget.createdAt.toIso8601String();
     json['updatedAt'] = budget.updatedAt.toIso8601String();
+    json['amountMinor'] = budget.amountMinor?.toString();
+    json['amountScale'] = budget.amountScale;
     return json;
   }
 
@@ -132,6 +134,9 @@ class BudgetRepositoryImpl implements BudgetRepository {
     json['periodEnd'] = instance.periodEnd.toIso8601String();
     json['createdAt'] = instance.createdAt.toIso8601String();
     json['updatedAt'] = instance.updatedAt.toIso8601String();
+    json['amountMinor'] = instance.amountMinor?.toString();
+    json['spentMinor'] = instance.spentMinor?.toString();
+    json['amountScale'] = instance.amountScale;
     return json;
   }
 }

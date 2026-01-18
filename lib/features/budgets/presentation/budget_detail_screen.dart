@@ -476,6 +476,7 @@ class _BudgetTransactionTile extends ConsumerWidget {
     final NumberFormat moneyFormat = TransactionTileFormatters.currency(
       localeName,
       currencySymbol,
+      decimalDigits: transaction.amountScale ?? account.currencyScale ?? 2,
     );
     final Color amountColor = isExpense
         ? theme.colorScheme.error
@@ -575,7 +576,12 @@ class _BudgetTransactionTile extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: <Widget>[
                         Text(
-                          moneyFormat.format(transaction.amount.abs()),
+                          TransactionTileFormatters.formatAmount(
+                            formatter: moneyFormat,
+                            amount: transaction.amount,
+                            amountMinor: transaction.amountMinor,
+                            amountScale: transaction.amountScale,
+                          ),
                           style: theme.textTheme.titleMedium?.copyWith(
                             color: amountColor,
                             fontWeight: FontWeight.w700,

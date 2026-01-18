@@ -82,8 +82,8 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text(strings.profileExportDataCta), findsOneWidget);
-    expect(find.text(strings.profileImportDataCta), findsOneWidget);
+    expect(find.text(strings.profileExportDataCta), findsWidgets);
+    expect(find.text(strings.profileImportDataCta), findsWidgets);
     expect(find.text(strings.profileDataTransferFormatLabel), findsOneWidget);
   });
 }

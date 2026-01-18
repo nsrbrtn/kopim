@@ -10,6 +10,10 @@ abstract class PaymentReminder with _$PaymentReminder {
     required String id,
     required String title,
     required double amount,
+    @JsonKey(includeFromJson: false, includeToJson: false)
+    BigInt? amountMinor,
+    @JsonKey(includeFromJson: false, includeToJson: false)
+    int? amountScale,
     required int whenAtMs,
     String? note,
     required bool isDone,
@@ -23,6 +27,8 @@ abstract class PaymentReminder with _$PaymentReminder {
       id: json['id'] as String? ?? '',
       title: json['title'] as String? ?? '',
       amount: (json['amount'] as num?)?.toDouble() ?? 0,
+      amountMinor: null,
+      amountScale: null,
       whenAtMs: (json['whenAtMs'] as num?)?.toInt() ?? 0,
       note: json['note'] as String?,
       isDone: json['isDone'] as bool? ?? false,

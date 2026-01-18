@@ -97,6 +97,7 @@ void main() {
     );
     controller.updateName('Wallet');
     controller.updateBalance('10');
+    controller.updateType('cash');
 
     await controller.submit();
 

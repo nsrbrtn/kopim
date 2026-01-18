@@ -7,6 +7,8 @@ class UpdateTransactionRequest {
     this.transferAccountId,
     this.categoryId,
     required this.amount,
+    this.amountMinor,
+    this.amountScale,
     required this.date,
     this.note,
     required this.type,
@@ -17,6 +19,8 @@ class UpdateTransactionRequest {
   final String? transferAccountId;
   final String? categoryId;
   final double amount;
+  final BigInt? amountMinor;
+  final int? amountScale;
   final DateTime date;
   final String? note;
   final TransactionType type;

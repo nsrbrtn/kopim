@@ -220,22 +220,24 @@ WHERE t.is_deleted = 0
     required String query,
     int limit = 20,
   }) async {
-    final String normalized = query.trim().toLowerCase();
+    final String rawQuery = query.trim();
+    final String normalized = rawQuery.toLowerCase();
     if (normalized.isEmpty) {
       return const <AiToolCategoryMatch>[];
     }
+    final bool useAsciiLower = _isAscii(normalized);
     final List<QueryRow> rows = await _db
         .customSelect(
           '''
 SELECT id, name, type, color
 FROM categories
 WHERE is_deleted = 0
-  AND LOWER(name) LIKE ?
+  AND ${useAsciiLower ? 'LOWER(name)' : 'name'} LIKE ?
 ORDER BY name ASC
 LIMIT ?
 ''',
           variables: <Variable<Object>>[
-            Variable<String>('%$normalized%'),
+            Variable<String>('%${useAsciiLower ? normalized : rawQuery}%'),
             Variable<int>(limit),
           ],
           readsFrom: <TableInfo<dynamic, dynamic>>{_db.categories},
@@ -258,10 +260,12 @@ LIMIT ?
     required String query,
     int limit = 20,
   }) async {
-    final String normalized = query.trim().toLowerCase();
+    final String rawQuery = query.trim();
+    final String normalized = rawQuery.toLowerCase();
     if (normalized.isEmpty) {
       return const <AiToolAccountMatch>[];
     }
+    final bool useAsciiLower = _isAscii(normalized);
     final List<QueryRow> rows = await _db
         .customSelect(
           '''
@@ -269,12 +273,12 @@ SELECT id, name, currency, type
 FROM accounts
 WHERE is_deleted = 0
   AND is_hidden = 0
-  AND LOWER(name) LIKE ?
+  AND ${useAsciiLower ? 'LOWER(name)' : 'name'} LIKE ?
 ORDER BY name ASC
 LIMIT ?
 ''',
           variables: <Variable<Object>>[
-            Variable<String>('%$normalized%'),
+            Variable<String>('%${useAsciiLower ? normalized : rawQuery}%'),
             Variable<int>(limit),
           ],
           readsFrom: <TableInfo<dynamic, dynamic>>{_db.accounts},
@@ -291,6 +295,15 @@ LIMIT ?
           ),
         )
         .toList(growable: false);
+  }
+
+  bool _isAscii(String value) {
+    for (final int code in value.runes) {
+      if (code > 0x7f) {
+        return false;
+      }
+    }
+    return true;
   }
 
   Future<List<String>> expandCategoryIds(List<String> categoryIds) async {

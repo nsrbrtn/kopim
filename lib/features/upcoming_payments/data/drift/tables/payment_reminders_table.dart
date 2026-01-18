@@ -10,6 +10,10 @@ class PaymentReminders extends Table {
   TextColumn get title => text()();
 
   RealColumn get amount => real()();
+  TextColumn get amountMinor =>
+      text().named('amount_minor').withDefault(const Constant<String>('0'))();
+  IntColumn get amountScale =>
+      integer().named('amount_scale').withDefault(const Constant<int>(2))();
 
   IntColumn get whenAt => integer()();
 

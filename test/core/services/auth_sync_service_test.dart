@@ -5,6 +5,8 @@ import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kopim/core/data/database.dart' as db;
 import 'package:kopim/core/data/outbox/outbox_dao.dart';
+import 'package:kopim/core/money/currency_scale.dart';
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/core/services/analytics_service.dart';
 import 'package:kopim/core/services/auth_sync_service.dart';
 import 'package:kopim/core/services/logger_service.dart';
@@ -195,11 +197,21 @@ void main() {
       () async {
         final AuthSyncService service = buildService();
         const String userId = 'user-1';
+        const double balance = 1500;
+        final int accountScale = resolveCurrencyScale('RUB');
+        final MoneyAmount balanceAmount = resolveMoneyAmount(
+          amount: balance,
+          scale: accountScale,
+        );
         final AccountEntity account = AccountEntity(
           id: 'acc-1',
           name: 'Main',
-          balance: 1500,
+          balance: balance,
+          openingBalance: balance,
+          balanceMinor: balanceAmount.minor,
+          openingBalanceMinor: balanceAmount.minor,
           currency: 'RUB',
+          currencyScale: accountScale,
           type: 'checking',
           createdAt: DateTime.utc(2024, 1, 1),
           updatedAt: DateTime.utc(2024, 1, 2),
@@ -241,7 +253,10 @@ void main() {
           operation: OutboxOperation.upsert,
           payload: account.toJson()
             ..['updatedAt'] = account.updatedAt.toIso8601String()
-            ..['createdAt'] = account.createdAt.toIso8601String(),
+            ..['createdAt'] = account.createdAt.toIso8601String()
+            ..['balanceMinor'] = balanceAmount.minor.toString()
+            ..['openingBalanceMinor'] = balanceAmount.minor.toString()
+            ..['currencyScale'] = accountScale,
         );
 
         const Map<String, String> profilePayload = <String, String>{
@@ -348,12 +363,20 @@ void main() {
             .get();
 
         expect(remoteDoc.exists, isTrue);
-        expect(remoteDoc.data()?['balance'], equals(1500));
+        expect(remoteDoc.data()?['balance'], equals(balance));
+        expect(
+          remoteDoc.data()?['balanceMinor'],
+          equals(balanceAmount.minor.toString()),
+        );
+        expect(remoteDoc.data()?['currencyScale'], equals(accountScale));
 
         final List<AccountEntity> localAccounts = await accountDao
             .getAllAccounts();
         expect(localAccounts, hasLength(1));
-        expect(localAccounts.single.balance, equals(1500));
+        expect(localAccounts.single.balance, equals(balance));
+        expect(localAccounts.single.openingBalance, equals(balance));
+        expect(localAccounts.single.balanceMinor, equals(balanceAmount.minor));
+        expect(localAccounts.single.currencyScale, equals(accountScale));
 
         final DocumentSnapshot<Map<String, dynamic>> profileDoc =
             await firestore
@@ -485,7 +508,11 @@ void main() {
           equals(PhosphorIconStyle.bold),
         );
 
-        expect(await outboxDao.pendingCount(), equals(0));
+        expect(await outboxDao.pendingCount(), equals(1));
+        final List<db.OutboxEntryRow> pendingEntries = await outboxDao
+            .fetchPending(limit: 10);
+        expect(pendingEntries, hasLength(1));
+        expect(pendingEntries.single.entityType, equals('profile'));
       },
     );
 

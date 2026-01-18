@@ -5,6 +5,8 @@ import 'package:kopim/core/data/database.dart' as db;
 import 'package:kopim/features/accounts/data/sources/local/account_dao.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/categories/data/sources/local/category_dao.dart';
+import 'package:kopim/features/categories/domain/entities/category.dart';
+import 'package:kopim/features/credits/data/sources/local/credit_dao.dart';
 import 'package:kopim/features/settings/data/repositories/import_data_repository_impl.dart';
 import 'package:kopim/features/transactions/data/sources/local/transaction_dao.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
@@ -14,6 +16,7 @@ void main() {
   late db.AppDatabase database;
   late AccountDao accountDao;
   late CategoryDao categoryDao;
+  late CreditDao creditDao;
   late TransactionDao transactionDao;
   late ImportDataRepositoryImpl repository;
 
@@ -23,10 +26,12 @@ void main() {
     );
     accountDao = AccountDao(database);
     categoryDao = CategoryDao(database);
+    creditDao = CreditDao(database);
     transactionDao = TransactionDao(database);
     repository = ImportDataRepositoryImpl(
       accountDao: accountDao,
       categoryDao: categoryDao,
+      creditDao: creditDao,
       transactionDao: transactionDao,
     );
   });
@@ -57,7 +62,7 @@ void main() {
     );
 
     await repository.upsertAccounts(<AccountEntity>[account1, account2]);
-    await repository.upsertCategories(const []);
+    await repository.upsertCategories(<Category>[]);
 
     final List<TransactionEntity> transactions = <TransactionEntity>[
       TransactionEntity(

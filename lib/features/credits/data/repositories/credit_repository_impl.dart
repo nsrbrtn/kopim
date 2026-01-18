@@ -78,7 +78,12 @@ class CreditRepositoryImpl implements CreditRepository {
 
   Future<void> _upsert(CreditEntity credit) async {
     final DateTime now = DateTime.now();
-    final CreditEntity toPersist = credit.copyWith(updatedAt: now);
+    final int totalAmountScale =
+        credit.totalAmountScale ?? await _resolveAccountScale(credit.accountId);
+    final CreditEntity toPersist = credit.copyWith(
+      updatedAt: now,
+      totalAmountScale: totalAmountScale,
+    );
     await _database.transaction(() async {
       await _creditDao.upsert(toPersist);
       await _outboxDao.enqueue(
@@ -90,11 +95,24 @@ class CreditRepositoryImpl implements CreditRepository {
     });
   }
 
+  Future<int> _resolveAccountScale(String accountId) async {
+    final db.AccountRow? account =
+        await (_database.select(_database.accounts)
+              ..where((db.Accounts tbl) => tbl.id.equals(accountId)))
+            .getSingleOrNull();
+    if (account == null) {
+      return 2;
+    }
+    return account.currencyScale;
+  }
+
   Map<String, dynamic> _mapCreditPayload(CreditEntity credit) {
     final Map<String, dynamic> json = credit.toJson();
     json['startDate'] = credit.startDate.toIso8601String();
     json['updatedAt'] = credit.updatedAt.toIso8601String();
     json['createdAt'] = credit.createdAt.toIso8601String();
+    json['totalAmountMinor'] = credit.totalAmountMinor?.toString();
+    json['totalAmountScale'] = credit.totalAmountScale;
     return json;
   }
 }

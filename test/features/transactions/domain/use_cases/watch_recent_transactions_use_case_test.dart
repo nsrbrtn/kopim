@@ -36,7 +36,7 @@ void main() {
 
       controller.add(unsorted);
 
-      expect(await result, <TransactionEntity>[unsorted[1], unsorted[0]]);
+      expect(await result, <TransactionEntity>[unsorted[0], unsorted[1]]);
     });
 
     test('returns all transactions when limit is zero or negative', () async {
@@ -54,9 +54,9 @@ void main() {
       controller.add(unsorted);
 
       expect(await result, <TransactionEntity>[
+        unsorted[0],
         unsorted[1],
         unsorted[2],
-        unsorted[0],
       ]);
     });
   });

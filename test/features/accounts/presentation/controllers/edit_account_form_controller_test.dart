@@ -6,7 +6,39 @@ import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/accounts/domain/repositories/account_repository.dart';
 import 'package:kopim/features/accounts/domain/use_cases/add_account_use_case.dart';
 import 'package:kopim/features/accounts/presentation/controllers/edit_account_form_controller.dart';
+import 'package:kopim/features/transactions/domain/entities/transaction.dart';
+import 'package:kopim/features/transactions/domain/models/account_monthly_totals.dart';
+import 'package:kopim/features/transactions/domain/repositories/transaction_repository.dart';
 import 'package:riverpod/riverpod.dart';
+
+class _EmptyTransactionRepository implements TransactionRepository {
+  @override
+  Stream<List<TransactionEntity>> watchTransactions() =>
+      const Stream<List<TransactionEntity>>.empty();
+
+  @override
+  Stream<List<TransactionEntity>> watchRecentTransactions({int? limit}) =>
+      const Stream<List<TransactionEntity>>.empty();
+
+  @override
+  Stream<List<AccountMonthlyTotals>> watchAccountMonthlyTotals({
+    required DateTime start,
+    required DateTime end,
+  }) => const Stream<List<AccountMonthlyTotals>>.empty();
+
+  @override
+  Future<List<TransactionEntity>> loadTransactions() async =>
+      const <TransactionEntity>[];
+
+  @override
+  Future<TransactionEntity?> findById(String id) async => null;
+
+  @override
+  Future<void> upsert(TransactionEntity transaction) async {}
+
+  @override
+  Future<void> softDelete(String id) async {}
+}
 
 void main() {
   group('EditAccountFormController', () {
@@ -18,6 +50,9 @@ void main() {
         overrides: [
           addAccountUseCaseProvider.overrideWithValue(
             AddAccountUseCase(repository),
+          ),
+          transactionRepositoryProvider.overrideWithValue(
+            _EmptyTransactionRepository(),
           ),
         ],
       );
@@ -70,6 +105,9 @@ void main() {
         overrides: [
           addAccountUseCaseProvider.overrideWithValue(
             AddAccountUseCase(_RecordingAccountRepository()),
+          ),
+          transactionRepositoryProvider.overrideWithValue(
+            _EmptyTransactionRepository(),
           ),
         ],
       );

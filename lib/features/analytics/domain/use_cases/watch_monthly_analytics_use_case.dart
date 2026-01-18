@@ -7,6 +7,7 @@ import 'package:kopim/features/analytics/domain/models/analytics_overview.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/categories/domain/repositories/category_repository.dart';
 import 'package:kopim/features/categories/domain/services/category_hierarchy.dart';
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
 import 'package:kopim/features/transactions/domain/repositories/transaction_repository.dart';
@@ -71,10 +72,12 @@ class WatchMonthlyAnalyticsUseCase {
       hierarchy,
     );
 
-    double totalIncome = 0;
-    double totalExpense = 0;
-    final Map<String?, double> rawExpenseByCategory = <String?, double>{};
-    final Map<String?, double> rawIncomeByCategory = <String?, double>{};
+    final MoneyAccumulator totalIncome = MoneyAccumulator();
+    final MoneyAccumulator totalExpense = MoneyAccumulator();
+    final Map<String?, MoneyAccumulator> rawExpenseByCategory =
+        <String?, MoneyAccumulator>{};
+    final Map<String?, MoneyAccumulator> rawIncomeByCategory =
+        <String?, MoneyAccumulator>{};
 
     for (final TransactionEntity transaction in transactions) {
       if (transaction.date.isBefore(start) || !transaction.date.isBefore(end)) {
@@ -98,27 +101,31 @@ class WatchMonthlyAnalyticsUseCase {
         }
       }
 
-      final double amount = transaction.amount.abs();
+      final MoneyAmount amount = _resolveTransactionAmount(transaction);
       if (transaction.type == TransactionType.income.storageValue) {
-        totalIncome += amount;
+        totalIncome.add(amount);
         if (categoryId == null || activeCategoryIds.contains(categoryId)) {
-          rawIncomeByCategory[categoryId] =
-              (rawIncomeByCategory[categoryId] ?? 0) + amount;
+          rawIncomeByCategory
+              .putIfAbsent(categoryId, MoneyAccumulator.new)
+              .add(amount);
         }
       } else if (transaction.type == TransactionType.expense.storageValue) {
-        totalExpense += amount;
+        totalExpense.add(amount);
         if (categoryId == null || activeCategoryIds.contains(categoryId)) {
-          rawExpenseByCategory[categoryId] =
-              (rawExpenseByCategory[categoryId] ?? 0) + amount;
+          rawExpenseByCategory
+              .putIfAbsent(categoryId, MoneyAccumulator.new)
+              .add(amount);
         }
       }
     }
 
-    final Map<String, double> aggregatedExpenses = _aggregateByCategory(
+    final Map<String, MoneyAccumulator> aggregatedExpenses =
+        _aggregateByCategory(
       rawExpenseByCategory,
       hierarchy,
     );
-    final Map<String, double> aggregatedIncomes = _aggregateByCategory(
+    final Map<String, MoneyAccumulator> aggregatedIncomes =
+        _aggregateByCategory(
       rawIncomeByCategory,
       hierarchy,
     );
@@ -148,9 +155,9 @@ class WatchMonthlyAnalyticsUseCase {
     );
 
     return AnalyticsOverview(
-      totalIncome: totalIncome,
-      totalExpense: totalExpense,
-      netBalance: totalIncome - totalExpense,
+      totalIncome: totalIncome.toDouble(),
+      totalExpense: totalExpense.toDouble(),
+      netBalance: totalIncome.toDouble() - totalExpense.toDouble(),
       topExpenseCategories: List<AnalyticsCategoryBreakdown>.unmodifiable(
         topExpenses,
       ),
@@ -187,31 +194,37 @@ class WatchMonthlyAnalyticsUseCase {
     return ids;
   }
 
-  Map<String, double> _aggregateByCategory(
-    Map<String?, double> rawByCategory,
+  Map<String, MoneyAccumulator> _aggregateByCategory(
+    Map<String?, MoneyAccumulator> rawByCategory,
     CategoryHierarchy hierarchy,
   ) {
-    final Map<String, double> raw = <String, double>{};
-    rawByCategory.forEach((String? id, double amount) {
-      if (id != null) {
+    final Map<String, MoneyAccumulator> raw = <String, MoneyAccumulator>{};
+    rawByCategory.forEach((String? id, MoneyAccumulator amount) {
+      if (id != null && !amount.isZero) {
         raw[id] = amount;
       }
     });
 
-    final Map<String, double> aggregated = <String, double>{};
+    final Map<String, MoneyAccumulator> aggregated =
+        <String, MoneyAccumulator>{};
     final Set<String> visiting = <String>{};
 
-    double resolve(String id) {
-      final double? cached = aggregated[id];
+    MoneyAccumulator resolve(String id) {
+      final MoneyAccumulator? cached = aggregated[id];
       if (cached != null) {
         return cached;
       }
       if (!visiting.add(id)) {
-        return raw[id] ?? 0;
+        return raw[id] ?? MoneyAccumulator();
       }
-      double sum = raw[id] ?? 0;
+      final MoneyAccumulator sum = MoneyAccumulator();
+      final MoneyAccumulator? direct = raw[id];
+      if (direct != null) {
+        sum.add(MoneyAmount(minor: direct.minor, scale: direct.scale));
+      }
       for (final String childId in hierarchy.childrenOf(id)) {
-        sum += resolve(childId);
+        final MoneyAccumulator child = resolve(childId);
+        sum.add(MoneyAmount(minor: child.minor, scale: child.scale));
       }
       visiting.remove(id);
       aggregated[id] = sum;
@@ -226,15 +239,15 @@ class WatchMonthlyAnalyticsUseCase {
 
   List<AnalyticsCategoryBreakdown> _buildRootBreakdowns({
     required CategoryHierarchy hierarchy,
-    required Map<String?, double> rawByCategory,
-    required Map<String, double> aggregatedByCategory,
+    required Map<String?, MoneyAccumulator> rawByCategory,
+    required Map<String, MoneyAccumulator> aggregatedByCategory,
     required Iterable<String> rootIds,
   }) {
     final List<AnalyticsCategoryBreakdown> result =
         <AnalyticsCategoryBreakdown>[];
 
     for (final String rootId in rootIds) {
-      final double amount = aggregatedByCategory[rootId] ?? 0;
+      final double amount = _toDouble(aggregatedByCategory[rootId]);
       if (amount <= 0) {
         continue;
       }
@@ -248,7 +261,7 @@ class WatchMonthlyAnalyticsUseCase {
       );
     }
 
-    final double uncategorizedAmount = rawByCategory[null] ?? 0;
+    final double uncategorizedAmount = _toDouble(rawByCategory[null]);
     if (uncategorizedAmount > 0) {
       result.add(
         AnalyticsCategoryBreakdown(
@@ -264,15 +277,15 @@ class WatchMonthlyAnalyticsUseCase {
   AnalyticsCategoryBreakdown _buildBreakdownNode({
     required String categoryId,
     required CategoryHierarchy hierarchy,
-    required Map<String?, double> rawByCategory,
-    required Map<String, double> aggregatedByCategory,
+    required Map<String?, MoneyAccumulator> rawByCategory,
+    required Map<String, MoneyAccumulator> aggregatedByCategory,
   }) {
-    final double totalAmount = aggregatedByCategory[categoryId] ?? 0;
+    final double totalAmount = _toDouble(aggregatedByCategory[categoryId]);
     final List<AnalyticsCategoryBreakdown> children =
         <AnalyticsCategoryBreakdown>[];
 
     final List<String> childIds = hierarchy.childrenOf(categoryId);
-    final double directAmount = rawByCategory[categoryId] ?? 0;
+    final double directAmount = _toDouble(rawByCategory[categoryId]);
     if (childIds.isNotEmpty && directAmount > 0) {
       children.add(
         AnalyticsCategoryBreakdown(
@@ -283,7 +296,7 @@ class WatchMonthlyAnalyticsUseCase {
     }
 
     for (final String childId in childIds) {
-      final double childAmount = aggregatedByCategory[childId] ?? 0;
+      final double childAmount = _toDouble(aggregatedByCategory[childId]);
       if (childAmount <= 0) {
         continue;
       }
@@ -343,6 +356,19 @@ class WatchMonthlyAnalyticsUseCase {
       );
     }
     return top;
+  }
+
+  MoneyAmount _resolveTransactionAmount(TransactionEntity transaction) {
+    return resolveMoneyAmount(
+      amount: transaction.amount,
+      minor: transaction.amountMinor,
+      scale: transaction.amountScale,
+      useAbs: true,
+    );
+  }
+
+  double _toDouble(MoneyAccumulator? accumulator) {
+    return accumulator?.toDouble() ?? 0;
   }
 
   Stream<T> _combineLatest<A, B, T>(

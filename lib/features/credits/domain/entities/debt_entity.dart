@@ -10,6 +10,8 @@ abstract class DebtEntity with _$DebtEntity {
     required String accountId,
     @Default('') String name,
     required double amount,
+    @JsonKey(includeFromJson: false, includeToJson: false) BigInt? amountMinor,
+    @JsonKey(includeFromJson: false, includeToJson: false) int? amountScale,
     required DateTime dueDate,
     String? note,
     required DateTime createdAt,

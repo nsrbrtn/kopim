@@ -13,11 +13,14 @@ import 'package:kopim/features/home/domain/entities/home_dashboard_preferences.d
 import 'package:kopim/features/home/presentation/controllers/home_dashboard_preferences_controller.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
 import 'package:kopim/features/profile/domain/entities/profile.dart';
+import 'package:kopim/features/profile/domain/entities/user_progress.dart';
 import 'package:kopim/features/profile/domain/events/profile_domain_event.dart';
 import 'package:kopim/features/profile/domain/models/profile_command_result.dart';
 import 'package:kopim/features/profile/domain/usecases/update_profile_use_case.dart';
 import 'package:kopim/features/profile/presentation/controllers/auth_controller.dart';
+import 'package:kopim/features/profile/presentation/controllers/avatar_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/profile_controller.dart';
+import 'package:kopim/features/profile/presentation/controllers/user_progress_controller.dart';
 import 'package:kopim/features/profile/presentation/screens/menu_screen.dart';
 import 'package:kopim/features/profile/presentation/screens/profile_screen.dart';
 import 'package:kopim/features/profile/presentation/services/profile_event_recorder.dart';
@@ -99,6 +102,11 @@ void main() {
     locale: 'ru',
     updatedAt: DateTime.utc(2024, 1, 1),
   );
+  final UserProgress defaultProgress = UserProgress(
+    title: 'Новичок',
+    nextThreshold: 10,
+    updatedAt: DateTime.utc(2024, 1, 1),
+  );
 
   testWidgets('renders hydrated profile form with initial values', (
     WidgetTester tester,
@@ -118,9 +126,15 @@ void main() {
             (Ref ref) =>
                 const AsyncValue<List<BudgetProgress>>.data(<BudgetProgress>[]),
           ),
+          avatarControllerProvider.overrideWithValue(
+            const AsyncValue<void>.data(null),
+          ),
           profileControllerProvider(
             signedInUser.uid,
           ).overrideWith(() => _FakeProfileController(hydratedProfile)),
+          userProgressProvider(signedInUser.uid).overrideWith(
+            (Ref ref) => Stream<UserProgress>.value(defaultProgress),
+          ),
           updateProfileUseCaseProvider.overrideWith(
             (Ref ref) => _StubUpdateProfileUseCase(),
           ),
@@ -146,7 +160,9 @@ void main() {
 
     expect(find.text(strings.profileTitle), findsOneWidget);
 
-    await tester.tap(find.text(strings.profileSectionAccount));
+    final Finder accountSection = find.text(strings.profileSectionAccount);
+    await tester.ensureVisible(accountSection);
+    await tester.tap(accountSection, warnIfMissed: false);
     await tester.pumpAndSettle();
 
     final TextField nameField = tester
@@ -217,9 +233,15 @@ void main() {
             (Ref ref) =>
                 const AsyncValue<List<BudgetProgress>>.data(<BudgetProgress>[]),
           ),
+          avatarControllerProvider.overrideWithValue(
+            const AsyncValue<void>.data(null),
+          ),
           profileControllerProvider(
             signedInUser.uid,
           ).overrideWith(() => _FakeProfileController(hydratedProfile)),
+          userProgressProvider(signedInUser.uid).overrideWith(
+            (Ref ref) => Stream<UserProgress>.value(defaultProgress),
+          ),
           updateProfileUseCaseProvider.overrideWith(
             (Ref ref) => _StubUpdateProfileUseCase(),
           ),
@@ -275,9 +297,15 @@ void main() {
             (Ref ref) =>
                 const AsyncValue<List<BudgetProgress>>.data(<BudgetProgress>[]),
           ),
+          avatarControllerProvider.overrideWithValue(
+            const AsyncValue<void>.data(null),
+          ),
           profileControllerProvider(
             signedInUser.uid,
           ).overrideWith(() => _FakeProfileController(hydratedProfile)),
+          userProgressProvider(signedInUser.uid).overrideWith(
+            (Ref ref) => Stream<UserProgress>.value(defaultProgress),
+          ),
           updateProfileUseCaseProvider.overrideWith(
             (Ref ref) => _StubUpdateProfileUseCase(),
           ),
@@ -301,7 +329,9 @@ void main() {
     final BuildContext context = tester.element(find.byType(ProfileScreen));
     final AppLocalizations strings = AppLocalizations.of(context)!;
 
-    await tester.tap(find.text(strings.profileSectionAccount));
+    final Finder accountSection = find.text(strings.profileSectionAccount);
+    await tester.ensureVisible(accountSection);
+    await tester.tap(accountSection, warnIfMissed: false);
     await tester.pumpAndSettle();
 
     final Finder signOutButton = find.text(strings.profileSignOutCta);

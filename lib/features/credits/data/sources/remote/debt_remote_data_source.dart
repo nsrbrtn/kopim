@@ -62,6 +62,8 @@ class DebtRemoteDataSource {
       'accountId': debt.accountId,
       'name': debt.name,
       'amount': debt.amount,
+      'amountMinor': debt.amountMinor?.toString(),
+      'amountScale': debt.amountScale,
       'dueDate': Timestamp.fromDate(debt.dueDate.toUtc()),
       'note': debt.note,
       'createdAt': Timestamp.fromDate(debt.createdAt.toUtc()),
@@ -77,6 +79,8 @@ class DebtRemoteDataSource {
       accountId: data['accountId'] as String? ?? '',
       name: data['name'] as String? ?? '',
       amount: (data['amount'] as num?)?.toDouble() ?? 0,
+      amountMinor: _readBigInt(data['amountMinor']),
+      amountScale: _readInt(data['amountScale']),
       dueDate: _parseTimestamp(data['dueDate']),
       note: data['note'] as String?,
       createdAt: _parseTimestamp(data['createdAt']),
@@ -93,5 +97,20 @@ class DebtRemoteDataSource {
       return value.toUtc();
     }
     return DateTime.now().toUtc();
+  }
+
+  BigInt? _readBigInt(Object? value) {
+    if (value == null) return null;
+    if (value is BigInt) return value;
+    if (value is int) return BigInt.from(value);
+    if (value is num) return BigInt.from(value.toInt());
+    return BigInt.tryParse(value.toString());
+  }
+
+  int? _readInt(Object? value) {
+    if (value == null) return null;
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    return int.tryParse(value.toString());
   }
 }

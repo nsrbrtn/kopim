@@ -15,7 +15,13 @@ abstract class BudgetInstance with _$BudgetInstance {
     required DateTime periodStart,
     required DateTime periodEnd,
     required double amount,
+    @JsonKey(includeFromJson: false, includeToJson: false)
+    BigInt? amountMinor,
     @Default(0.0) double spent,
+    @JsonKey(includeFromJson: false, includeToJson: false)
+    BigInt? spentMinor,
+    @JsonKey(includeFromJson: false, includeToJson: false)
+    int? amountScale,
     @JsonKey(fromJson: BudgetInstanceStatusX.fromStorage, toJson: _statusToJson)
     required BudgetInstanceStatus status,
     required DateTime createdAt,

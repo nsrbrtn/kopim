@@ -1,4 +1,5 @@
 import 'package:intl/intl.dart';
+import 'package:kopim/core/money/money_utils.dart';
 
 class TransactionTileFormatters {
   const TransactionTileFormatters._();
@@ -37,5 +38,21 @@ class TransactionTileFormatters {
       locale,
       () => NumberFormat.simpleCurrency(locale: locale).currencySymbol,
     );
+  }
+
+  static String formatAmount({
+    required NumberFormat formatter,
+    required double amount,
+    BigInt? amountMinor,
+    int? amountScale,
+    bool useAbs = true,
+  }) {
+    final MoneyAmount resolved = resolveMoneyAmount(
+      amount: amount,
+      minor: amountMinor,
+      scale: amountScale,
+      useAbs: useAbs,
+    );
+    return formatter.format(resolved.toDouble());
   }
 }

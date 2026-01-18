@@ -67,6 +67,8 @@ class CreditCardRemoteDataSource {
       'id': creditCard.id,
       'accountId': creditCard.accountId,
       'creditLimit': creditCard.creditLimit,
+      'creditLimitMinor': creditCard.creditLimitMinor?.toString(),
+      'creditLimitScale': creditCard.creditLimitScale,
       'statementDay': creditCard.statementDay,
       'paymentDueDays': creditCard.paymentDueDays,
       'interestRateAnnual': creditCard.interestRateAnnual,
@@ -84,6 +86,8 @@ class CreditCardRemoteDataSource {
       id: data['id'] as String? ?? doc.id,
       accountId: data['accountId'] as String? ?? '',
       creditLimit: (data['creditLimit'] as num?)?.toDouble() ?? 0,
+      creditLimitMinor: _readBigInt(data['creditLimitMinor']),
+      creditLimitScale: _readInt(data['creditLimitScale']),
       statementDay: (data['statementDay'] as num?)?.toInt() ?? 1,
       paymentDueDays: (data['paymentDueDays'] as num?)?.toInt() ?? 0,
       interestRateAnnual: (data['interestRateAnnual'] as num?)?.toDouble() ?? 0,
@@ -101,5 +105,20 @@ class CreditCardRemoteDataSource {
       return value.toUtc();
     }
     return DateTime.now().toUtc();
+  }
+
+  BigInt? _readBigInt(Object? value) {
+    if (value == null) return null;
+    if (value is BigInt) return value;
+    if (value is int) return BigInt.from(value);
+    if (value is num) return BigInt.from(value.toInt());
+    return BigInt.tryParse(value.toString());
+  }
+
+  int? _readInt(Object? value) {
+    if (value == null) return null;
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    return int.tryParse(value.toString());
   }
 }

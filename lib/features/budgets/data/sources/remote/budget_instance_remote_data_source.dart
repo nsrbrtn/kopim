@@ -71,7 +71,10 @@ class BudgetInstanceRemoteDataSource {
       'periodStart': Timestamp.fromDate(instance.periodStart.toUtc()),
       'periodEnd': Timestamp.fromDate(instance.periodEnd.toUtc()),
       'amount': instance.amount,
+      'amountMinor': instance.amountMinor?.toString(),
       'spent': instance.spent,
+      'spentMinor': instance.spentMinor?.toString(),
+      'amountScale': instance.amountScale,
       'status': instance.status.storageValue,
       'createdAt': Timestamp.fromDate(instance.createdAt.toUtc()),
       'updatedAt': Timestamp.fromDate(instance.updatedAt.toUtc()),
@@ -93,7 +96,10 @@ class BudgetInstanceRemoteDataSource {
       periodStart: _parseTimestamp(data['periodStart']),
       periodEnd: _parseTimestamp(data['periodEnd']),
       amount: (data['amount'] as num?)?.toDouble() ?? 0,
+      amountMinor: _readBigInt(data['amountMinor']),
       spent: (data['spent'] as num?)?.toDouble() ?? 0,
+      spentMinor: _readBigInt(data['spentMinor']),
+      amountScale: _readInt(data['amountScale']),
       status: status,
       createdAt: _parseTimestamp(data['createdAt']),
       updatedAt: _parseTimestamp(data['updatedAt']),
@@ -108,5 +114,20 @@ class BudgetInstanceRemoteDataSource {
       return value.toUtc();
     }
     return DateTime.now().toUtc();
+  }
+
+  BigInt? _readBigInt(Object? value) {
+    if (value == null) return null;
+    if (value is BigInt) return value;
+    if (value is int) return BigInt.from(value);
+    if (value is num) return BigInt.from(value.toInt());
+    return BigInt.tryParse(value.toString());
+  }
+
+  int? _readInt(Object? value) {
+    if (value == null) return null;
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    return int.tryParse(value.toString());
   }
 }

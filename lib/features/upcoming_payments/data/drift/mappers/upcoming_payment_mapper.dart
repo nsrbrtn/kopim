@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:kopim/core/data/database.dart' as db;
+import 'package:kopim/core/money/money.dart';
 import 'package:kopim/features/upcoming_payments/domain/entities/upcoming_payment.dart';
 
 class UpcomingPaymentMapper {
@@ -12,6 +13,8 @@ class UpcomingPaymentMapper {
       accountId: row.accountId,
       categoryId: row.categoryId,
       amount: row.amount,
+      amountMinor: BigInt.parse(row.amountMinor),
+      amountScale: row.amountScale,
       dayOfMonth: row.dayOfMonth,
       notifyDaysBefore: row.notifyDaysBefore,
       notifyTimeHhmm: row.notifyTimeHhmm,
@@ -26,12 +29,23 @@ class UpcomingPaymentMapper {
   }
 
   db.UpcomingPaymentsCompanion mapEntityToCompanion(UpcomingPayment payment) {
+    final int scale = (payment.amountScale ?? 0) > 0
+        ? payment.amountScale!
+        : 2;
+    final BigInt amountMinor = payment.amountMinor ??
+        Money.fromDouble(
+          payment.amount,
+          currency: 'XXX',
+          scale: scale,
+        ).minor;
     return db.UpcomingPaymentsCompanion(
       id: Value<String>(payment.id),
       title: Value<String>(payment.title),
       accountId: Value<String>(payment.accountId),
       categoryId: Value<String>(payment.categoryId),
       amount: Value<double>(payment.amount),
+      amountMinor: Value<String>(amountMinor.toString()),
+      amountScale: Value<int>(scale),
       dayOfMonth: Value<int>(payment.dayOfMonth),
       notifyDaysBefore: Value<int>(payment.notifyDaysBefore),
       notifyTimeHhmm: Value<String>(payment.notifyTimeHhmm),

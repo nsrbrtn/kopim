@@ -65,6 +65,81 @@ flutter test --reporter expanded
 - [ ] Шаг 3: ...
 
 ## Surprises & Discoveries
+- Список точек записи транзакций:
+  - Use cases: `lib/features/transactions/domain/use_cases/add_transaction_use_case.dart`, `lib/features/transactions/domain/use_cases/update_transaction_use_case.dart`, `lib/features/transactions/domain/use_cases/delete_transaction_use_case.dart`.
+  - Репозиторий: `lib/features/transactions/data/repositories/transaction_repository_impl.dart` (upsert/softDelete).
+  - DAO: `lib/features/transactions/data/sources/local/transaction_dao.dart` (upsert/upsertAll/markDeleted).
+  - Sync: `lib/core/services/auth_sync_service.dart` (`_transactionDao.upsertAll` + перерасчёт балансов).
+  - Import: `lib/features/settings/data/repositories/import_data_repository_impl.dart` (`_transactionDao.upsertAll` + перерасчёт балансов).
+  - Savings: `lib/features/savings/data/repositories/saving_goal_repository_impl.dart` (взнос через `_transactionDao.upsert` и ручной апдейт аккаунта).
+  - Upcoming payments: `lib/features/upcoming_payments/data/services/upcoming_payments_work_scheduler.dart` (через `AddTransactionUseCase`).
+
+## Decision Log
+- ...
+
+## Outcomes & Retrospective
+- Что сделано:
+  - Централизован пересчёт балансов в data‑слое и унифицированы обходы use cases (sync/import/взносы).
+  - Добавлены unit‑тесты инвариантов баланса; `transaction_repository_impl_test` проходит.
+- Что бы улучшить в следующий раз:
+
+# ExecPlan: Единая модель денег (minor-units + scale)
+
+## Context and Orientation
+- Цель: заменить `double` на `minor + scale` (BigInt) с единым правилом округления, чтобы исключить накопление ошибок в балансах/аналитике/бюджетах и поддержать крипту.
+- Область кода: доменные сущности денег и транзакций, Drift схемы, мапперы, аналитика, бюджеты, синк, импорт/экспорт, UI форматтеры.
+- Контекст/ограничения: нужна миграция БД; автоген не править; все вычисления денег должны быть детерминированы.
+- Риски: несоответствие форматов в синке/импорте, несовместимость истории, регресс UI‑форматтеров, рост объёма данных.
+
+## Interfaces and Dependencies
+- Внешние сервисы: Firestore (синк), CSV import/export.
+- Локальные зависимости: Drift миграции, Freezed модели, build_runner.
+- Затрагиваемые API/модули: Transactions/Accounts/Budgets/Analytics/Sync/Import/Export.
+
+## Plan of Work
+- Спроектировать модель денег `minor + scale` и правила округления/преобразования.
+- Провести миграции и обновить хранилища/синк.
+- Обновить бизнес‑логику и UI‑форматтеры.
+- Добавить тесты инвариантов денег.
+
+## Concrete Steps
+1) Выбрать подход: `minor` (BigInt) + `scale` на уровне валюты/актива; зафиксировать правила округления.
+2) Обновить доменные сущности и API (Transaction/Account/Budget и т.д.) под новую модель.
+3) Добавить Drift‑миграции (новые колонки, backfill, rollback‑стратегия).
+4) Обновить синк/импорт/экспорт (преобразование, версия схемы payload).
+5) Обновить аналитические агрегации и форматтеры UI.
+6) Добавить unit/integration тесты: суммы, округление, transfer, import/export, sync merge.
+7) Обновить docs (`docs/logic/feature_invariants.md` и отдельный документ по модели денег).
+
+## Validation and Acceptance
+- Команды проверки:
+```bash
+dart format --set-exit-if-changed .
+flutter analyze
+dart run build_runner build --delete-conflicting-outputs
+flutter test --reporter expanded
+```
+- Acceptance criteria:
+  - Нет `double` для денежных сумм в доменной модели.
+  - Баланс и аналитика совпадают на больших наборах данных.
+  - Импорт/экспорт и sync сохраняют значения без дрейфа.
+  - Крипто‑валюты корректно обрабатываются через `scale`.
+
+## Idempotence and Recovery
+- Что можно безопасно перезапускать: миграции в тестовой БД, build_runner, тесты.
+- Как откатиться/восстановиться: rollback‑миграция и возврат к `double` в DTO (временно).
+- План rollback (для миграций): миграция‑обратка + сохранение исходных колонок до финального cutover.
+
+## Progress
+- [x] Шаг 1: Выбрать модель денег и правила округления.
+- [x] Шаг 2: Обновить доменные сущности и API.
+- [ ] Шаг 3: Drift‑миграции и backfill (accounts/transactions/budgets/upcoming/debts/credits/credit_cards — в работе).
+- [x] Шаг 4: Синк/импорт/экспорт (обновление payload/remote/export).
+- [x] Шаг 5: Аналитика и UI‑форматтеры.
+- [x] Шаг 6: Тесты инвариантов денег.
+- [ ] Шаг 7: Документация.
+
+## Surprises & Discoveries
 - ...
 
 ## Decision Log
@@ -197,6 +272,96 @@ flutter test --reporter expanded
 - Область кода: `lib/features/transactions/domain/use_cases/*`, `lib/features/transactions/data/repositories/transaction_repository_impl.dart`, тесты в `test/features/transactions/domain/use_cases/*`.
 - Контекст/ограничения: изменения без миграций БД; автоген не трогать.
 - Риски: скрытые вызовы репозитория напрямую без use case; регресс в балансах.
+
+# ExecPlan: Корректный пересчет балансов транзакций (single source of truth)
+
+## Context and Orientation
+- Цель: исключить двойной пересчет, привести create/update/delete к единой логике, гарантировать корректные балансы при sync/import.
+- Область кода: `lib/features/transactions/domain/use_cases/add_transaction_use_case.dart`, `lib/features/transactions/domain/use_cases/update_transaction_use_case.dart`, `lib/features/transactions/data/repositories/transaction_repository_impl.dart`, `lib/core/services/auth_sync_service.dart`, `lib/features/settings/data/repositories/import_data_repository_impl.dart`, `lib/features/savings/data/repositories/saving_goal_repository_impl.dart`.
+- Контекст/ограничения: без правки автоген‑файлов; без правки секретов; синк должен оставаться идемпотентным.
+- Риски: скрытые прямые вызовы репозитория; регресс в балансах и аналитике.
+
+## Interfaces and Dependencies
+- Внешние сервисы: Firestore (синк).
+- Локальные зависимости: Drift, Riverpod, Freezed.
+- Затрагиваемые API/модули: use cases транзакций, репозиторий, sync/import.
+
+## Plan of Work
+- Зафиксировать единственный источник пересчета и симметрию операций create/update/delete.
+- Привести обходы use cases (sync/import/взносы) к единому механизму.
+- Закрыть тестами инварианты баланса.
+
+## Concrete Steps
+1) Зафиксировать решение об единственном источнике баланса и описать контракт.
+2) Удалить дублирование пересчета и сделать удаление симметричным.
+3) Унифицировать обходы use cases (sync/import/взносы).
+4) Добавить unit‑тесты инвариантов баланса.
+5) Обновить документацию (контракт балансов).
+
+## Validation and Acceptance
+- Команды проверки:
+```bash
+dart format --set-exit-if-changed .
+flutter analyze
+dart run build_runner build --delete-conflicting-outputs
+flutter test --reporter expanded
+```
+- Acceptance criteria:
+  - Баланс меняется ровно на 1 дельту на create/update/delete.
+  - Удаление через репозиторий и через use case дает одинаковый результат.
+  - После sync/import баланс совпадает с `openingBalance + сумма транзакций`.
+
+## Idempotence and Recovery
+- Что можно безопасно перезапускать: `build_runner`, тесты.
+- Как откатиться/восстановиться: вернуть прежнюю логику пересчета в одном месте (use case или репозиторий) и удалить общий helper.
+- План rollback (для миграций): не требуется.
+
+## Progress
+- [x] Шаг 1: Зафиксировать решение об источнике баланса.
+- [x] Шаг 2: Удалить дублирование пересчета и сделать удаление симметричным.
+- [x] Шаг 3: Унифицировать обходы use cases (sync/import/взносы).
+- [x] Шаг 4: Добавить unit‑тесты инвариантов баланса.
+- [x] Шаг 5: Обновить документацию (контракт балансов).
+
+## Surprises & Discoveries
+- Список точек записи транзакций:
+  - Use cases: `lib/features/transactions/domain/use_cases/add_transaction_use_case.dart`, `lib/features/transactions/domain/use_cases/update_transaction_use_case.dart`, `lib/features/transactions/domain/use_cases/delete_transaction_use_case.dart`.
+  - Репозиторий: `lib/features/transactions/data/repositories/transaction_repository_impl.dart` (upsert/softDelete).
+  - DAO: `lib/features/transactions/data/sources/local/transaction_dao.dart` (upsert/upsertAll/markDeleted).
+  - Sync: `lib/core/services/auth_sync_service.dart` (`_transactionDao.upsertAll` + перерасчёт балансов).
+  - Import: `lib/features/settings/data/repositories/import_data_repository_impl.dart` (`_transactionDao.upsertAll` + перерасчёт балансов).
+  - Savings: `lib/features/savings/data/repositories/saving_goal_repository_impl.dart` (взнос через `_transactionDao.upsert` и ручной апдейт аккаунта).
+  - Upcoming payments: `lib/features/upcoming_payments/data/services/upcoming_payments_work_scheduler.dart` (через `AddTransactionUseCase`).
+
+## Decision Log
+- Баланс считается derived‑значением и пересчитывается централизованно в data‑слое для всех путей записи транзакций.
+
+## Outcomes & Retrospective
+- Что сделано:
+- Что бы улучшить в следующий раз:
+
+## Definition of Done (чек-лист)
+
+- `dart format --set-exit-if-changed .` без изменений.
+- `flutter analyze` без ошибок.
+- `dart run build_runner build --delete-conflicting-outputs` проходит.
+- `flutter test --reporter expanded` проходит.
+- Новая логика покрыта unit-тестами и хотя бы одним widget или integration тестом.
+- Нет тяжелого CPU/I/O на UI isolate.
+
+## Regression checklist
+
+- Riverpod: минимизированы лишние rebuild, использованы `.select()`/листовые `ConsumerWidget`.
+- Freezed: модели и состояния immutable, корректная генерация.
+- Drift: миграции добавлены и протестированы, схема не правится вручную.
+- Offline-first: запись сначала в локальную БД.
+- Sync: конфликт-стратегия ясна, upsert идемпотентен.
+- UI: списки оптимизированы (`itemExtent`/`prototypeItem`), форматтеры кэшированы.
+- Ошибки/сеть: корректные offline/syncing/up-to-date состояния.
+
+## Документация
+
+- Обновить `docs/logic/` с описанием контракта балансов.
 
 ## Interfaces and Dependencies
 - Внешние сервисы (Firebase/Analytics/Crashlytics): не затрагиваются.

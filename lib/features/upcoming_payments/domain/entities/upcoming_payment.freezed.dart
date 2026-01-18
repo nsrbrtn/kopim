@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$UpcomingPayment {
 
- String get id; String get title; String get accountId; String get categoryId; double get amount; int get dayOfMonth; int get notifyDaysBefore; String get notifyTimeHhmm; String? get note; bool get autoPost; bool get isActive; int? get nextRunAtMs; int? get nextNotifyAtMs; int get createdAtMs; int get updatedAtMs;
+ String get id; String get title; String get accountId; String get categoryId; double get amount;@JsonKey(includeFromJson: false, includeToJson: false) BigInt? get amountMinor;@JsonKey(includeFromJson: false, includeToJson: false) int? get amountScale; int get dayOfMonth; int get notifyDaysBefore; String get notifyTimeHhmm; String? get note; bool get autoPost; bool get isActive; int? get nextRunAtMs; int? get nextNotifyAtMs; int get createdAtMs; int get updatedAtMs;
 /// Create a copy of UpcomingPayment
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $UpcomingPaymentCopyWith<UpcomingPayment> get copyWith => _$UpcomingPaymentCopyW
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is UpcomingPayment&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.categoryId, categoryId) || other.categoryId == categoryId)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.dayOfMonth, dayOfMonth) || other.dayOfMonth == dayOfMonth)&&(identical(other.notifyDaysBefore, notifyDaysBefore) || other.notifyDaysBefore == notifyDaysBefore)&&(identical(other.notifyTimeHhmm, notifyTimeHhmm) || other.notifyTimeHhmm == notifyTimeHhmm)&&(identical(other.note, note) || other.note == note)&&(identical(other.autoPost, autoPost) || other.autoPost == autoPost)&&(identical(other.isActive, isActive) || other.isActive == isActive)&&(identical(other.nextRunAtMs, nextRunAtMs) || other.nextRunAtMs == nextRunAtMs)&&(identical(other.nextNotifyAtMs, nextNotifyAtMs) || other.nextNotifyAtMs == nextNotifyAtMs)&&(identical(other.createdAtMs, createdAtMs) || other.createdAtMs == createdAtMs)&&(identical(other.updatedAtMs, updatedAtMs) || other.updatedAtMs == updatedAtMs));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is UpcomingPayment&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.categoryId, categoryId) || other.categoryId == categoryId)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.amountMinor, amountMinor) || other.amountMinor == amountMinor)&&(identical(other.amountScale, amountScale) || other.amountScale == amountScale)&&(identical(other.dayOfMonth, dayOfMonth) || other.dayOfMonth == dayOfMonth)&&(identical(other.notifyDaysBefore, notifyDaysBefore) || other.notifyDaysBefore == notifyDaysBefore)&&(identical(other.notifyTimeHhmm, notifyTimeHhmm) || other.notifyTimeHhmm == notifyTimeHhmm)&&(identical(other.note, note) || other.note == note)&&(identical(other.autoPost, autoPost) || other.autoPost == autoPost)&&(identical(other.isActive, isActive) || other.isActive == isActive)&&(identical(other.nextRunAtMs, nextRunAtMs) || other.nextRunAtMs == nextRunAtMs)&&(identical(other.nextNotifyAtMs, nextNotifyAtMs) || other.nextNotifyAtMs == nextNotifyAtMs)&&(identical(other.createdAtMs, createdAtMs) || other.createdAtMs == createdAtMs)&&(identical(other.updatedAtMs, updatedAtMs) || other.updatedAtMs == updatedAtMs));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,title,accountId,categoryId,amount,dayOfMonth,notifyDaysBefore,notifyTimeHhmm,note,autoPost,isActive,nextRunAtMs,nextNotifyAtMs,createdAtMs,updatedAtMs);
+int get hashCode => Object.hash(runtimeType,id,title,accountId,categoryId,amount,amountMinor,amountScale,dayOfMonth,notifyDaysBefore,notifyTimeHhmm,note,autoPost,isActive,nextRunAtMs,nextNotifyAtMs,createdAtMs,updatedAtMs);
 
 @override
 String toString() {
-  return 'UpcomingPayment(id: $id, title: $title, accountId: $accountId, categoryId: $categoryId, amount: $amount, dayOfMonth: $dayOfMonth, notifyDaysBefore: $notifyDaysBefore, notifyTimeHhmm: $notifyTimeHhmm, note: $note, autoPost: $autoPost, isActive: $isActive, nextRunAtMs: $nextRunAtMs, nextNotifyAtMs: $nextNotifyAtMs, createdAtMs: $createdAtMs, updatedAtMs: $updatedAtMs)';
+  return 'UpcomingPayment(id: $id, title: $title, accountId: $accountId, categoryId: $categoryId, amount: $amount, amountMinor: $amountMinor, amountScale: $amountScale, dayOfMonth: $dayOfMonth, notifyDaysBefore: $notifyDaysBefore, notifyTimeHhmm: $notifyTimeHhmm, note: $note, autoPost: $autoPost, isActive: $isActive, nextRunAtMs: $nextRunAtMs, nextNotifyAtMs: $nextNotifyAtMs, createdAtMs: $createdAtMs, updatedAtMs: $updatedAtMs)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $UpcomingPaymentCopyWith<$Res>  {
   factory $UpcomingPaymentCopyWith(UpcomingPayment value, $Res Function(UpcomingPayment) _then) = _$UpcomingPaymentCopyWithImpl;
 @useResult
 $Res call({
- String id, String title, String accountId, String categoryId, double amount, int dayOfMonth, int notifyDaysBefore, String notifyTimeHhmm, String? note, bool autoPost, bool isActive, int? nextRunAtMs, int? nextNotifyAtMs, int createdAtMs, int updatedAtMs
+ String id, String title, String accountId, String categoryId, double amount,@JsonKey(includeFromJson: false, includeToJson: false) BigInt? amountMinor,@JsonKey(includeFromJson: false, includeToJson: false) int? amountScale, int dayOfMonth, int notifyDaysBefore, String notifyTimeHhmm, String? note, bool autoPost, bool isActive, int? nextRunAtMs, int? nextNotifyAtMs, int createdAtMs, int updatedAtMs
 });
 
 
@@ -62,14 +62,16 @@ class _$UpcomingPaymentCopyWithImpl<$Res>
 
 /// Create a copy of UpcomingPayment
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? title = null,Object? accountId = null,Object? categoryId = null,Object? amount = null,Object? dayOfMonth = null,Object? notifyDaysBefore = null,Object? notifyTimeHhmm = null,Object? note = freezed,Object? autoPost = null,Object? isActive = null,Object? nextRunAtMs = freezed,Object? nextNotifyAtMs = freezed,Object? createdAtMs = null,Object? updatedAtMs = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? title = null,Object? accountId = null,Object? categoryId = null,Object? amount = null,Object? amountMinor = freezed,Object? amountScale = freezed,Object? dayOfMonth = null,Object? notifyDaysBefore = null,Object? notifyTimeHhmm = null,Object? note = freezed,Object? autoPost = null,Object? isActive = null,Object? nextRunAtMs = freezed,Object? nextNotifyAtMs = freezed,Object? createdAtMs = null,Object? updatedAtMs = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
 as String,categoryId: null == categoryId ? _self.categoryId : categoryId // ignore: cast_nullable_to_non_nullable
 as String,amount: null == amount ? _self.amount : amount // ignore: cast_nullable_to_non_nullable
-as double,dayOfMonth: null == dayOfMonth ? _self.dayOfMonth : dayOfMonth // ignore: cast_nullable_to_non_nullable
+as double,amountMinor: freezed == amountMinor ? _self.amountMinor : amountMinor // ignore: cast_nullable_to_non_nullable
+as BigInt?,amountScale: freezed == amountScale ? _self.amountScale : amountScale // ignore: cast_nullable_to_non_nullable
+as int?,dayOfMonth: null == dayOfMonth ? _self.dayOfMonth : dayOfMonth // ignore: cast_nullable_to_non_nullable
 as int,notifyDaysBefore: null == notifyDaysBefore ? _self.notifyDaysBefore : notifyDaysBefore // ignore: cast_nullable_to_non_nullable
 as int,notifyTimeHhmm: null == notifyTimeHhmm ? _self.notifyTimeHhmm : notifyTimeHhmm // ignore: cast_nullable_to_non_nullable
 as String,note: freezed == note ? _self.note : note // ignore: cast_nullable_to_non_nullable
@@ -164,10 +166,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String title,  String accountId,  String categoryId,  double amount,  int dayOfMonth,  int notifyDaysBefore,  String notifyTimeHhmm,  String? note,  bool autoPost,  bool isActive,  int? nextRunAtMs,  int? nextNotifyAtMs,  int createdAtMs,  int updatedAtMs)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String title,  String accountId,  String categoryId,  double amount, @JsonKey(includeFromJson: false, includeToJson: false)  BigInt? amountMinor, @JsonKey(includeFromJson: false, includeToJson: false)  int? amountScale,  int dayOfMonth,  int notifyDaysBefore,  String notifyTimeHhmm,  String? note,  bool autoPost,  bool isActive,  int? nextRunAtMs,  int? nextNotifyAtMs,  int createdAtMs,  int updatedAtMs)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _UpcomingPayment() when $default != null:
-return $default(_that.id,_that.title,_that.accountId,_that.categoryId,_that.amount,_that.dayOfMonth,_that.notifyDaysBefore,_that.notifyTimeHhmm,_that.note,_that.autoPost,_that.isActive,_that.nextRunAtMs,_that.nextNotifyAtMs,_that.createdAtMs,_that.updatedAtMs);case _:
+return $default(_that.id,_that.title,_that.accountId,_that.categoryId,_that.amount,_that.amountMinor,_that.amountScale,_that.dayOfMonth,_that.notifyDaysBefore,_that.notifyTimeHhmm,_that.note,_that.autoPost,_that.isActive,_that.nextRunAtMs,_that.nextNotifyAtMs,_that.createdAtMs,_that.updatedAtMs);case _:
   return orElse();
 
 }
@@ -185,10 +187,10 @@ return $default(_that.id,_that.title,_that.accountId,_that.categoryId,_that.amou
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String title,  String accountId,  String categoryId,  double amount,  int dayOfMonth,  int notifyDaysBefore,  String notifyTimeHhmm,  String? note,  bool autoPost,  bool isActive,  int? nextRunAtMs,  int? nextNotifyAtMs,  int createdAtMs,  int updatedAtMs)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String title,  String accountId,  String categoryId,  double amount, @JsonKey(includeFromJson: false, includeToJson: false)  BigInt? amountMinor, @JsonKey(includeFromJson: false, includeToJson: false)  int? amountScale,  int dayOfMonth,  int notifyDaysBefore,  String notifyTimeHhmm,  String? note,  bool autoPost,  bool isActive,  int? nextRunAtMs,  int? nextNotifyAtMs,  int createdAtMs,  int updatedAtMs)  $default,) {final _that = this;
 switch (_that) {
 case _UpcomingPayment():
-return $default(_that.id,_that.title,_that.accountId,_that.categoryId,_that.amount,_that.dayOfMonth,_that.notifyDaysBefore,_that.notifyTimeHhmm,_that.note,_that.autoPost,_that.isActive,_that.nextRunAtMs,_that.nextNotifyAtMs,_that.createdAtMs,_that.updatedAtMs);case _:
+return $default(_that.id,_that.title,_that.accountId,_that.categoryId,_that.amount,_that.amountMinor,_that.amountScale,_that.dayOfMonth,_that.notifyDaysBefore,_that.notifyTimeHhmm,_that.note,_that.autoPost,_that.isActive,_that.nextRunAtMs,_that.nextNotifyAtMs,_that.createdAtMs,_that.updatedAtMs);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -205,10 +207,10 @@ return $default(_that.id,_that.title,_that.accountId,_that.categoryId,_that.amou
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String title,  String accountId,  String categoryId,  double amount,  int dayOfMonth,  int notifyDaysBefore,  String notifyTimeHhmm,  String? note,  bool autoPost,  bool isActive,  int? nextRunAtMs,  int? nextNotifyAtMs,  int createdAtMs,  int updatedAtMs)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String title,  String accountId,  String categoryId,  double amount, @JsonKey(includeFromJson: false, includeToJson: false)  BigInt? amountMinor, @JsonKey(includeFromJson: false, includeToJson: false)  int? amountScale,  int dayOfMonth,  int notifyDaysBefore,  String notifyTimeHhmm,  String? note,  bool autoPost,  bool isActive,  int? nextRunAtMs,  int? nextNotifyAtMs,  int createdAtMs,  int updatedAtMs)?  $default,) {final _that = this;
 switch (_that) {
 case _UpcomingPayment() when $default != null:
-return $default(_that.id,_that.title,_that.accountId,_that.categoryId,_that.amount,_that.dayOfMonth,_that.notifyDaysBefore,_that.notifyTimeHhmm,_that.note,_that.autoPost,_that.isActive,_that.nextRunAtMs,_that.nextNotifyAtMs,_that.createdAtMs,_that.updatedAtMs);case _:
+return $default(_that.id,_that.title,_that.accountId,_that.categoryId,_that.amount,_that.amountMinor,_that.amountScale,_that.dayOfMonth,_that.notifyDaysBefore,_that.notifyTimeHhmm,_that.note,_that.autoPost,_that.isActive,_that.nextRunAtMs,_that.nextNotifyAtMs,_that.createdAtMs,_that.updatedAtMs);case _:
   return null;
 
 }
@@ -220,7 +222,7 @@ return $default(_that.id,_that.title,_that.accountId,_that.categoryId,_that.amou
 
 
 class _UpcomingPayment extends UpcomingPayment {
-  const _UpcomingPayment({required this.id, required this.title, required this.accountId, required this.categoryId, required this.amount, required this.dayOfMonth, required this.notifyDaysBefore, required this.notifyTimeHhmm, this.note, required this.autoPost, required this.isActive, this.nextRunAtMs, this.nextNotifyAtMs, required this.createdAtMs, required this.updatedAtMs}): super._();
+  const _UpcomingPayment({required this.id, required this.title, required this.accountId, required this.categoryId, required this.amount, @JsonKey(includeFromJson: false, includeToJson: false) this.amountMinor, @JsonKey(includeFromJson: false, includeToJson: false) this.amountScale, required this.dayOfMonth, required this.notifyDaysBefore, required this.notifyTimeHhmm, this.note, required this.autoPost, required this.isActive, this.nextRunAtMs, this.nextNotifyAtMs, required this.createdAtMs, required this.updatedAtMs}): super._();
   
 
 @override final  String id;
@@ -228,6 +230,8 @@ class _UpcomingPayment extends UpcomingPayment {
 @override final  String accountId;
 @override final  String categoryId;
 @override final  double amount;
+@override@JsonKey(includeFromJson: false, includeToJson: false) final  BigInt? amountMinor;
+@override@JsonKey(includeFromJson: false, includeToJson: false) final  int? amountScale;
 @override final  int dayOfMonth;
 @override final  int notifyDaysBefore;
 @override final  String notifyTimeHhmm;
@@ -249,16 +253,16 @@ _$UpcomingPaymentCopyWith<_UpcomingPayment> get copyWith => __$UpcomingPaymentCo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _UpcomingPayment&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.categoryId, categoryId) || other.categoryId == categoryId)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.dayOfMonth, dayOfMonth) || other.dayOfMonth == dayOfMonth)&&(identical(other.notifyDaysBefore, notifyDaysBefore) || other.notifyDaysBefore == notifyDaysBefore)&&(identical(other.notifyTimeHhmm, notifyTimeHhmm) || other.notifyTimeHhmm == notifyTimeHhmm)&&(identical(other.note, note) || other.note == note)&&(identical(other.autoPost, autoPost) || other.autoPost == autoPost)&&(identical(other.isActive, isActive) || other.isActive == isActive)&&(identical(other.nextRunAtMs, nextRunAtMs) || other.nextRunAtMs == nextRunAtMs)&&(identical(other.nextNotifyAtMs, nextNotifyAtMs) || other.nextNotifyAtMs == nextNotifyAtMs)&&(identical(other.createdAtMs, createdAtMs) || other.createdAtMs == createdAtMs)&&(identical(other.updatedAtMs, updatedAtMs) || other.updatedAtMs == updatedAtMs));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _UpcomingPayment&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.categoryId, categoryId) || other.categoryId == categoryId)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.amountMinor, amountMinor) || other.amountMinor == amountMinor)&&(identical(other.amountScale, amountScale) || other.amountScale == amountScale)&&(identical(other.dayOfMonth, dayOfMonth) || other.dayOfMonth == dayOfMonth)&&(identical(other.notifyDaysBefore, notifyDaysBefore) || other.notifyDaysBefore == notifyDaysBefore)&&(identical(other.notifyTimeHhmm, notifyTimeHhmm) || other.notifyTimeHhmm == notifyTimeHhmm)&&(identical(other.note, note) || other.note == note)&&(identical(other.autoPost, autoPost) || other.autoPost == autoPost)&&(identical(other.isActive, isActive) || other.isActive == isActive)&&(identical(other.nextRunAtMs, nextRunAtMs) || other.nextRunAtMs == nextRunAtMs)&&(identical(other.nextNotifyAtMs, nextNotifyAtMs) || other.nextNotifyAtMs == nextNotifyAtMs)&&(identical(other.createdAtMs, createdAtMs) || other.createdAtMs == createdAtMs)&&(identical(other.updatedAtMs, updatedAtMs) || other.updatedAtMs == updatedAtMs));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,title,accountId,categoryId,amount,dayOfMonth,notifyDaysBefore,notifyTimeHhmm,note,autoPost,isActive,nextRunAtMs,nextNotifyAtMs,createdAtMs,updatedAtMs);
+int get hashCode => Object.hash(runtimeType,id,title,accountId,categoryId,amount,amountMinor,amountScale,dayOfMonth,notifyDaysBefore,notifyTimeHhmm,note,autoPost,isActive,nextRunAtMs,nextNotifyAtMs,createdAtMs,updatedAtMs);
 
 @override
 String toString() {
-  return 'UpcomingPayment(id: $id, title: $title, accountId: $accountId, categoryId: $categoryId, amount: $amount, dayOfMonth: $dayOfMonth, notifyDaysBefore: $notifyDaysBefore, notifyTimeHhmm: $notifyTimeHhmm, note: $note, autoPost: $autoPost, isActive: $isActive, nextRunAtMs: $nextRunAtMs, nextNotifyAtMs: $nextNotifyAtMs, createdAtMs: $createdAtMs, updatedAtMs: $updatedAtMs)';
+  return 'UpcomingPayment(id: $id, title: $title, accountId: $accountId, categoryId: $categoryId, amount: $amount, amountMinor: $amountMinor, amountScale: $amountScale, dayOfMonth: $dayOfMonth, notifyDaysBefore: $notifyDaysBefore, notifyTimeHhmm: $notifyTimeHhmm, note: $note, autoPost: $autoPost, isActive: $isActive, nextRunAtMs: $nextRunAtMs, nextNotifyAtMs: $nextNotifyAtMs, createdAtMs: $createdAtMs, updatedAtMs: $updatedAtMs)';
 }
 
 
@@ -269,7 +273,7 @@ abstract mixin class _$UpcomingPaymentCopyWith<$Res> implements $UpcomingPayment
   factory _$UpcomingPaymentCopyWith(_UpcomingPayment value, $Res Function(_UpcomingPayment) _then) = __$UpcomingPaymentCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String title, String accountId, String categoryId, double amount, int dayOfMonth, int notifyDaysBefore, String notifyTimeHhmm, String? note, bool autoPost, bool isActive, int? nextRunAtMs, int? nextNotifyAtMs, int createdAtMs, int updatedAtMs
+ String id, String title, String accountId, String categoryId, double amount,@JsonKey(includeFromJson: false, includeToJson: false) BigInt? amountMinor,@JsonKey(includeFromJson: false, includeToJson: false) int? amountScale, int dayOfMonth, int notifyDaysBefore, String notifyTimeHhmm, String? note, bool autoPost, bool isActive, int? nextRunAtMs, int? nextNotifyAtMs, int createdAtMs, int updatedAtMs
 });
 
 
@@ -286,14 +290,16 @@ class __$UpcomingPaymentCopyWithImpl<$Res>
 
 /// Create a copy of UpcomingPayment
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? title = null,Object? accountId = null,Object? categoryId = null,Object? amount = null,Object? dayOfMonth = null,Object? notifyDaysBefore = null,Object? notifyTimeHhmm = null,Object? note = freezed,Object? autoPost = null,Object? isActive = null,Object? nextRunAtMs = freezed,Object? nextNotifyAtMs = freezed,Object? createdAtMs = null,Object? updatedAtMs = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? title = null,Object? accountId = null,Object? categoryId = null,Object? amount = null,Object? amountMinor = freezed,Object? amountScale = freezed,Object? dayOfMonth = null,Object? notifyDaysBefore = null,Object? notifyTimeHhmm = null,Object? note = freezed,Object? autoPost = null,Object? isActive = null,Object? nextRunAtMs = freezed,Object? nextNotifyAtMs = freezed,Object? createdAtMs = null,Object? updatedAtMs = null,}) {
   return _then(_UpcomingPayment(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
 as String,categoryId: null == categoryId ? _self.categoryId : categoryId // ignore: cast_nullable_to_non_nullable
 as String,amount: null == amount ? _self.amount : amount // ignore: cast_nullable_to_non_nullable
-as double,dayOfMonth: null == dayOfMonth ? _self.dayOfMonth : dayOfMonth // ignore: cast_nullable_to_non_nullable
+as double,amountMinor: freezed == amountMinor ? _self.amountMinor : amountMinor // ignore: cast_nullable_to_non_nullable
+as BigInt?,amountScale: freezed == amountScale ? _self.amountScale : amountScale // ignore: cast_nullable_to_non_nullable
+as int?,dayOfMonth: null == dayOfMonth ? _self.dayOfMonth : dayOfMonth // ignore: cast_nullable_to_non_nullable
 as int,notifyDaysBefore: null == notifyDaysBefore ? _self.notifyDaysBefore : notifyDaysBefore // ignore: cast_nullable_to_non_nullable
 as int,notifyTimeHhmm: null == notifyTimeHhmm ? _self.notifyTimeHhmm : notifyTimeHhmm // ignore: cast_nullable_to_non_nullable
 as String,note: freezed == note ? _self.note : note // ignore: cast_nullable_to_non_nullable

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/core/domain/icons/phosphor_icon_descriptor.dart';
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/core/utils/context_extensions.dart';
 import 'package:kopim/core/utils/helpers.dart';
 import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
@@ -42,13 +43,21 @@ class DebtCard extends ConsumerWidget {
               ),
             );
 
+            final int decimalDigits =
+                debt.amountScale ?? account.currencyScale ?? 2;
             final NumberFormat moneyFormat = NumberFormat.currency(
               locale: context.loc.localeName,
               symbol: getCurrencySymbol(account.currency),
-              decimalDigits: 0,
+              decimalDigits: decimalDigits,
             );
             final DateFormat dateFormat = DateFormat.yMMMd(
               context.loc.localeName,
+            );
+            final MoneyAmount amount = resolveMoneyAmount(
+              amount: debt.amount,
+              minor: debt.amountMinor,
+              scale: debt.amountScale ?? account.currencyScale,
+              useAbs: true,
             );
 
             final Color? accountColor = parseHexColor(account.color);
@@ -121,7 +130,7 @@ class DebtCard extends ConsumerWidget {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        moneyFormat.format(debt.amount),
+                        moneyFormat.format(amount.toDouble()),
                         style: theme.textTheme.headlineSmall?.copyWith(
                           fontWeight: FontWeight.bold,
                           color: theme.colorScheme.onSurface,

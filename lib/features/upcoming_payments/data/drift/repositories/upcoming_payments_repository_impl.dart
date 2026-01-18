@@ -27,7 +27,7 @@ class UpcomingPaymentsRepositoryImpl implements UpcomingPaymentsRepository {
         entityType: _entityType,
         entityId: payment.id,
         operation: OutboxOperation.upsert,
-        payload: payment.toJson(),
+        payload: _mapPayload(payment),
       );
     });
   }
@@ -42,7 +42,7 @@ class UpcomingPaymentsRepositoryImpl implements UpcomingPaymentsRepository {
         entityType: _entityType,
         entityId: id,
         operation: OutboxOperation.delete,
-        payload: existing.toJson(),
+        payload: _mapPayload(existing),
       );
     });
   }
@@ -55,5 +55,12 @@ class UpcomingPaymentsRepositoryImpl implements UpcomingPaymentsRepository {
   @override
   Future<UpcomingPayment?> getById(String id) {
     return _dao.getById(id);
+  }
+
+  Map<String, dynamic> _mapPayload(UpcomingPayment payment) {
+    final Map<String, dynamic> json = payment.toJson();
+    json['amountMinor'] = payment.amountMinor?.toString();
+    json['amountScale'] = payment.amountScale;
+    return json;
   }
 }

@@ -58,7 +58,7 @@ class TransactionListTile extends ConsumerWidget {
     final NumberFormat moneyFormat = TransactionTileFormatters.currency(
       localeName,
       currencySymbol,
-      decimalDigits: 0,
+      decimalDigits: transaction.amountScale ?? 2,
     );
 
     final bool isTransfer =
@@ -208,7 +208,12 @@ class TransactionListTile extends ConsumerWidget {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: <Widget>[
                           Text(
-                            moneyFormat.format(transaction.amount.abs()),
+                            TransactionTileFormatters.formatAmount(
+                              formatter: moneyFormat,
+                              amount: transaction.amount,
+                              amountMinor: transaction.amountMinor,
+                              amountScale: transaction.amountScale,
+                            ),
                             style: Theme.of(context).textTheme.titleLarge
                                 ?.copyWith(
                                   color: Theme.of(

@@ -27,7 +27,7 @@ class PaymentRemindersRepositoryImpl implements PaymentRemindersRepository {
         entityType: _entityType,
         entityId: reminder.id,
         operation: OutboxOperation.upsert,
-        payload: reminder.toJson(),
+        payload: _mapPayload(reminder),
       );
     });
   }
@@ -42,7 +42,7 @@ class PaymentRemindersRepositoryImpl implements PaymentRemindersRepository {
         entityType: _entityType,
         entityId: id,
         operation: OutboxOperation.delete,
-        payload: existing.toJson(),
+        payload: _mapPayload(existing),
       );
     });
   }
@@ -60,5 +60,12 @@ class PaymentRemindersRepositoryImpl implements PaymentRemindersRepository {
   @override
   Future<PaymentReminder?> getById(String id) {
     return _dao.getById(id);
+  }
+
+  Map<String, dynamic> _mapPayload(PaymentReminder reminder) {
+    final Map<String, dynamic> json = reminder.toJson();
+    json['amountMinor'] = reminder.amountMinor?.toString();
+    json['amountScale'] = reminder.amountScale;
+    return json;
   }
 }
