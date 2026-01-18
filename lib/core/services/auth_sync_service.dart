@@ -56,6 +56,7 @@ import 'package:kopim/features/profile/domain/failures/auth_failure.dart';
 import 'package:kopim/features/transactions/data/sources/local/transaction_dao.dart';
 import 'package:kopim/features/transactions/data/sources/remote/transaction_remote_data_source.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
+import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
 
 class AuthSyncService {
   AuthSyncService({
@@ -763,6 +764,11 @@ class AuthSyncService {
             );
 
         await _transactionDao.upsertAll(sanitizedTransactions);
+        final List<AccountEntity> recalculatedAccounts = _recalculateBalances(
+          accounts: mergedAccounts,
+          transactions: sanitizedTransactions,
+        );
+        await _accountDao.upsertAll(recalculatedAccounts);
 
         final Set<String> validTransactionIds = sanitizedTransactions
             .map((TransactionEntity e) => e.id)
@@ -839,6 +845,83 @@ class AuthSyncService {
         await _profileDao.upsertInTransaction(profile);
       }
     });
+  }
+
+  List<AccountEntity> _recalculateBalances({
+    required List<AccountEntity> accounts,
+    required List<TransactionEntity> transactions,
+  }) {
+    final Map<String, double> deltas = <String, double>{
+      for (final AccountEntity account in accounts) account.id: 0,
+    };
+
+    for (final TransactionEntity transaction in transactions) {
+      if (transaction.isDeleted) continue;
+      final TransactionType type = parseTransactionType(transaction.type);
+      switch (type) {
+        case TransactionType.income:
+          deltas.update(
+            transaction.accountId,
+            (double value) => value + transaction.amount,
+            ifAbsent: () => transaction.amount,
+          );
+          break;
+        case TransactionType.expense:
+          deltas.update(
+            transaction.accountId,
+            (double value) => value - transaction.amount,
+            ifAbsent: () => -transaction.amount,
+          );
+          break;
+        case TransactionType.transfer:
+          deltas.update(
+            transaction.accountId,
+            (double value) => value - transaction.amount,
+            ifAbsent: () => -transaction.amount,
+          );
+          final String? targetId = transaction.transferAccountId;
+          if (targetId != null && targetId != transaction.accountId) {
+            deltas.update(
+              targetId,
+              (double value) => value + transaction.amount,
+              ifAbsent: () => transaction.amount,
+            );
+          }
+          break;
+      }
+    }
+
+    return accounts
+        .map(
+          (AccountEntity account) {
+            final double net = deltas[account.id] ?? 0;
+            final double openingBalance = _resolveOpeningBalance(
+              account: account,
+              netDelta: net,
+            );
+            return account.copyWith(
+              openingBalance: openingBalance,
+              balance: openingBalance + net,
+            );
+          },
+        )
+        .toList(growable: false);
+  }
+
+  double _resolveOpeningBalance({
+    required AccountEntity account,
+    required double netDelta,
+  }) {
+    const double epsilon = 1e-9;
+    final double derived = account.balance - netDelta;
+    if (account.openingBalance == 0 && netDelta.abs() > epsilon) {
+      return derived;
+    }
+    if ((account.openingBalance - account.balance).abs() < epsilon &&
+        netDelta.abs() > epsilon) {
+      return derived;
+    }
+    return account.openingBalance;
   }
 
   String _transactionTagKey(TransactionTagEntity link) {

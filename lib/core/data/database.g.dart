@@ -46,6 +46,18 @@ class $AccountsTable extends Accounts
     type: DriftSqlType.double,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _openingBalanceMeta = const VerificationMeta(
+    'openingBalance',
+  );
+  @override
+  late final GeneratedColumn<double> openingBalance = GeneratedColumn<double>(
+    'opening_balance',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant<double>(0),
+  );
   static const VerificationMeta _currencyMeta = const VerificationMeta(
     'currency',
   );
@@ -190,6 +202,7 @@ class $AccountsTable extends Accounts
     id,
     name,
     balance,
+    openingBalance,
     currency,
     type,
     color,
@@ -234,6 +247,15 @@ class $AccountsTable extends Accounts
       );
     } else if (isInserting) {
       context.missing(_balanceMeta);
+    }
+    if (data.containsKey('opening_balance')) {
+      context.handle(
+        _openingBalanceMeta,
+        openingBalance.isAcceptableOrUnknown(
+          data['opening_balance']!,
+          _openingBalanceMeta,
+        ),
+      );
     }
     if (data.containsKey('currency')) {
       context.handle(
@@ -326,6 +348,10 @@ class $AccountsTable extends Accounts
         DriftSqlType.double,
         data['${effectivePrefix}balance'],
       )!,
+      openingBalance: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}opening_balance'],
+      )!,
       currency: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}currency'],
@@ -383,6 +409,7 @@ class AccountRow extends DataClass implements Insertable<AccountRow> {
   final String id;
   final String name;
   final double balance;
+  final double openingBalance;
   final String currency;
   final String type;
   final String? color;
@@ -398,6 +425,7 @@ class AccountRow extends DataClass implements Insertable<AccountRow> {
     required this.id,
     required this.name,
     required this.balance,
+    required this.openingBalance,
     required this.currency,
     required this.type,
     this.color,
@@ -416,6 +444,7 @@ class AccountRow extends DataClass implements Insertable<AccountRow> {
     map['id'] = Variable<String>(id);
     map['name'] = Variable<String>(name);
     map['balance'] = Variable<double>(balance);
+    map['opening_balance'] = Variable<double>(openingBalance);
     map['currency'] = Variable<String>(currency);
     map['type'] = Variable<String>(type);
     if (!nullToAbsent || color != null) {
@@ -443,6 +472,7 @@ class AccountRow extends DataClass implements Insertable<AccountRow> {
       id: Value(id),
       name: Value(name),
       balance: Value(balance),
+      openingBalance: Value(openingBalance),
       currency: Value(currency),
       type: Value(type),
       color: color == null && nullToAbsent
@@ -474,6 +504,7 @@ class AccountRow extends DataClass implements Insertable<AccountRow> {
       id: serializer.fromJson<String>(json['id']),
       name: serializer.fromJson<String>(json['name']),
       balance: serializer.fromJson<double>(json['balance']),
+      openingBalance: serializer.fromJson<double>(json['openingBalance']),
       currency: serializer.fromJson<String>(json['currency']),
       type: serializer.fromJson<String>(json['type']),
       color: serializer.fromJson<String?>(json['color']),
@@ -494,6 +525,7 @@ class AccountRow extends DataClass implements Insertable<AccountRow> {
       'id': serializer.toJson<String>(id),
       'name': serializer.toJson<String>(name),
       'balance': serializer.toJson<double>(balance),
+      'openingBalance': serializer.toJson<double>(openingBalance),
       'currency': serializer.toJson<String>(currency),
       'type': serializer.toJson<String>(type),
       'color': serializer.toJson<String?>(color),
@@ -512,6 +544,7 @@ class AccountRow extends DataClass implements Insertable<AccountRow> {
     String? id,
     String? name,
     double? balance,
+    double? openingBalance,
     String? currency,
     String? type,
     Value<String?> color = const Value.absent(),
@@ -527,6 +560,7 @@ class AccountRow extends DataClass implements Insertable<AccountRow> {
     id: id ?? this.id,
     name: name ?? this.name,
     balance: balance ?? this.balance,
+    openingBalance: openingBalance ?? this.openingBalance,
     currency: currency ?? this.currency,
     type: type ?? this.type,
     color: color.present ? color.value : this.color,
@@ -544,6 +578,9 @@ class AccountRow extends DataClass implements Insertable<AccountRow> {
       id: data.id.present ? data.id.value : this.id,
       name: data.name.present ? data.name.value : this.name,
       balance: data.balance.present ? data.balance.value : this.balance,
+      openingBalance: data.openingBalance.present
+          ? data.openingBalance.value
+          : this.openingBalance,
       currency: data.currency.present ? data.currency.value : this.currency,
       type: data.type.present ? data.type.value : this.type,
       color: data.color.present ? data.color.value : this.color,
@@ -566,6 +603,7 @@ class AccountRow extends DataClass implements Insertable<AccountRow> {
           ..write('id: $id, ')
           ..write('name: $name, ')
           ..write('balance: $balance, ')
+          ..write('openingBalance: $openingBalance, ')
           ..write('currency: $currency, ')
           ..write('type: $type, ')
           ..write('color: $color, ')
@@ -586,6 +624,7 @@ class AccountRow extends DataClass implements Insertable<AccountRow> {
     id,
     name,
     balance,
+    openingBalance,
     currency,
     type,
     color,
@@ -605,6 +644,7 @@ class AccountRow extends DataClass implements Insertable<AccountRow> {
           other.id == this.id &&
           other.name == this.name &&
           other.balance == this.balance &&
+          other.openingBalance == this.openingBalance &&
           other.currency == this.currency &&
           other.type == this.type &&
           other.color == this.color &&
@@ -622,6 +662,7 @@ class AccountsCompanion extends UpdateCompanion<AccountRow> {
   final Value<String> id;
   final Value<String> name;
   final Value<double> balance;
+  final Value<double> openingBalance;
   final Value<String> currency;
   final Value<String> type;
   final Value<String?> color;
@@ -638,6 +679,7 @@ class AccountsCompanion extends UpdateCompanion<AccountRow> {
     this.id = const Value.absent(),
     this.name = const Value.absent(),
     this.balance = const Value.absent(),
+    this.openingBalance = const Value.absent(),
     this.currency = const Value.absent(),
     this.type = const Value.absent(),
     this.color = const Value.absent(),
@@ -655,6 +697,7 @@ class AccountsCompanion extends UpdateCompanion<AccountRow> {
     required String id,
     required String name,
     required double balance,
+    this.openingBalance = const Value.absent(),
     required String currency,
     required String type,
     this.color = const Value.absent(),
@@ -676,6 +719,7 @@ class AccountsCompanion extends UpdateCompanion<AccountRow> {
     Expression<String>? id,
     Expression<String>? name,
     Expression<double>? balance,
+    Expression<double>? openingBalance,
     Expression<String>? currency,
     Expression<String>? type,
     Expression<String>? color,
@@ -693,6 +737,7 @@ class AccountsCompanion extends UpdateCompanion<AccountRow> {
       if (id != null) 'id': id,
       if (name != null) 'name': name,
       if (balance != null) 'balance': balance,
+      if (openingBalance != null) 'opening_balance': openingBalance,
       if (currency != null) 'currency': currency,
       if (type != null) 'type': type,
       if (color != null) 'color': color,
@@ -712,6 +757,7 @@ class AccountsCompanion extends UpdateCompanion<AccountRow> {
     Value<String>? id,
     Value<String>? name,
     Value<double>? balance,
+    Value<double>? openingBalance,
     Value<String>? currency,
     Value<String>? type,
     Value<String?>? color,
@@ -729,6 +775,7 @@ class AccountsCompanion extends UpdateCompanion<AccountRow> {
       id: id ?? this.id,
       name: name ?? this.name,
       balance: balance ?? this.balance,
+      openingBalance: openingBalance ?? this.openingBalance,
       currency: currency ?? this.currency,
       type: type ?? this.type,
       color: color ?? this.color,
@@ -755,6 +802,9 @@ class AccountsCompanion extends UpdateCompanion<AccountRow> {
     }
     if (balance.present) {
       map['balance'] = Variable<double>(balance.value);
+    }
+    if (openingBalance.present) {
+      map['opening_balance'] = Variable<double>(openingBalance.value);
     }
     if (currency.present) {
       map['currency'] = Variable<String>(currency.value);
@@ -801,6 +851,7 @@ class AccountsCompanion extends UpdateCompanion<AccountRow> {
           ..write('id: $id, ')
           ..write('name: $name, ')
           ..write('balance: $balance, ')
+          ..write('openingBalance: $openingBalance, ')
           ..write('currency: $currency, ')
           ..write('type: $type, ')
           ..write('color: $color, ')
@@ -9881,6 +9932,7 @@ typedef $$AccountsTableCreateCompanionBuilder =
       required String id,
       required String name,
       required double balance,
+      Value<double> openingBalance,
       required String currency,
       required String type,
       Value<String?> color,
@@ -9899,6 +9951,7 @@ typedef $$AccountsTableUpdateCompanionBuilder =
       Value<String> id,
       Value<String> name,
       Value<double> balance,
+      Value<double> openingBalance,
       Value<String> currency,
       Value<String> type,
       Value<String?> color,
@@ -10018,6 +10071,11 @@ class $$AccountsTableFilterComposer
 
   ColumnFilters<double> get balance => $composableBuilder(
     column: $table.balance,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get openingBalance => $composableBuilder(
+    column: $table.openingBalance,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -10201,6 +10259,11 @@ class $$AccountsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<double> get openingBalance => $composableBuilder(
+    column: $table.openingBalance,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get currency => $composableBuilder(
     column: $table.currency,
     builder: (column) => ColumnOrderings(column),
@@ -10274,6 +10337,11 @@ class $$AccountsTableAnnotationComposer
 
   GeneratedColumn<double> get balance =>
       $composableBuilder(column: $table.balance, builder: (column) => column);
+
+  GeneratedColumn<double> get openingBalance => $composableBuilder(
+    column: $table.openingBalance,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get currency =>
       $composableBuilder(column: $table.currency, builder: (column) => column);
@@ -10447,6 +10515,7 @@ class $$AccountsTableTableManager
                 Value<String> id = const Value.absent(),
                 Value<String> name = const Value.absent(),
                 Value<double> balance = const Value.absent(),
+                Value<double> openingBalance = const Value.absent(),
                 Value<String> currency = const Value.absent(),
                 Value<String> type = const Value.absent(),
                 Value<String?> color = const Value.absent(),
@@ -10463,6 +10532,7 @@ class $$AccountsTableTableManager
                 id: id,
                 name: name,
                 balance: balance,
+                openingBalance: openingBalance,
                 currency: currency,
                 type: type,
                 color: color,
@@ -10481,6 +10551,7 @@ class $$AccountsTableTableManager
                 required String id,
                 required String name,
                 required double balance,
+                Value<double> openingBalance = const Value.absent(),
                 required String currency,
                 required String type,
                 Value<String?> color = const Value.absent(),
@@ -10497,6 +10568,7 @@ class $$AccountsTableTableManager
                 id: id,
                 name: name,
                 balance: balance,
+                openingBalance: openingBalance,
                 currency: currency,
                 type: type,
                 color: color,

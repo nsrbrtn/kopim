@@ -11,6 +11,7 @@ abstract class AccountEntity with _$AccountEntity {
     required String id,
     required String name,
     required double balance,
+    @Default(0) double openingBalance,
     required String currency,
     required String type,
     required DateTime createdAt,

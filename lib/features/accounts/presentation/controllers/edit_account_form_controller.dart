@@ -10,6 +10,9 @@ import 'package:kopim/features/credits/domain/use_cases/add_credit_card_use_case
 import 'package:kopim/features/credits/domain/use_cases/delete_credit_card_use_case.dart';
 import 'package:kopim/features/credits/domain/use_cases/get_credit_card_by_account_id_use_case.dart';
 import 'package:kopim/features/credits/domain/use_cases/update_credit_card_use_case.dart';
+import 'package:kopim/features/transactions/domain/entities/transaction.dart';
+import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
+import 'package:kopim/features/transactions/domain/repositories/transaction_repository.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'edit_account_form_controller.freezed.dart';
@@ -91,6 +94,7 @@ abstract class EditAccountFormState with _$EditAccountFormState {
 @riverpod
 class EditAccountFormController extends _$EditAccountFormController {
   late final AddAccountUseCase _addAccountUseCase;
+  late final TransactionRepository _transactionRepository;
   static const Set<String> _defaultTypes = <String>{
     'cash',
     'card',
@@ -105,6 +109,7 @@ class EditAccountFormController extends _$EditAccountFormController {
   @override
   EditAccountFormState build(AccountEntity account) {
     _addAccountUseCase = ref.watch(addAccountUseCaseProvider);
+    _transactionRepository = ref.watch(transactionRepositoryProvider);
     _getCreditCardByAccountIdUseCase = ref.watch(
       getCreditCardByAccountIdUseCaseProvider,
     );
@@ -385,9 +390,14 @@ class EditAccountFormController extends _$EditAccountFormController {
       }
     }
 
+    final double transactionDelta = await _calculateTransactionDelta(
+      state.original.id,
+    );
+    final double openingBalance = balance! - transactionDelta;
     final AccountEntity updatedAccount = state.original.copyWith(
       name: trimmedName,
       balance: balance!,
+      openingBalance: openingBalance,
       currency: state.currency,
       type: resolvedType!,
       updatedAt: updatedAt,
@@ -430,6 +440,37 @@ class EditAccountFormController extends _$EditAccountFormController {
         submissionSuccess: false,
       );
     }
+  }
+
+  Future<double> _calculateTransactionDelta(String accountId) async {
+    final List<TransactionEntity> transactions = await _transactionRepository
+        .loadTransactions();
+    double delta = 0;
+    for (final TransactionEntity transaction in transactions) {
+      if (transaction.isDeleted) continue;
+      final TransactionType type = parseTransactionType(transaction.type);
+      switch (type) {
+        case TransactionType.income:
+          if (transaction.accountId == accountId) {
+            delta += transaction.amount;
+          }
+          break;
+        case TransactionType.expense:
+          if (transaction.accountId == accountId) {
+            delta -= transaction.amount;
+          }
+          break;
+        case TransactionType.transfer:
+          if (transaction.accountId == accountId) {
+            delta -= transaction.amount;
+          }
+          if (transaction.transferAccountId == accountId) {
+            delta += transaction.amount;
+          }
+          break;
+      }
+    }
+    return delta;
   }
 
   Future<void> _syncCreditCard({

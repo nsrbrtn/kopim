@@ -189,3 +189,116 @@ flutter test --reporter expanded
 ## Документация
 
 - Обновить `docs/components/HomeOverviewSummaryCard.md` с описанием новых настроек.
+
+# ExecPlan: Единый источник баланса транзакций
+
+## Context and Orientation
+- Цель: убрать двойной пересчёт балансов и оставить единый источник (use cases).
+- Область кода: `lib/features/transactions/domain/use_cases/*`, `lib/features/transactions/data/repositories/transaction_repository_impl.dart`, тесты в `test/features/transactions/domain/use_cases/*`.
+- Контекст/ограничения: изменения без миграций БД; автоген не трогать.
+- Риски: скрытые вызовы репозитория напрямую без use case; регресс в балансах.
+
+## Interfaces and Dependencies
+- Внешние сервисы (Firebase/Analytics/Crashlytics): не затрагиваются.
+- Локальные зависимости (Drift, codegen): Drift используется; изменений схемы нет.
+- Затрагиваемые API/модули: `TransactionRepositoryImpl`, use cases add/update/delete.
+
+## Plan of Work
+- Удалить пересчёт баланса из репозитория, оставить в use cases.
+- Усилить покрытие unit‑тестами для балансовых сценариев.
+- Зафиксировать факт выполнения в аудит‑отчёте.
+
+## Concrete Steps
+1) Удалить `_applyAccountBalanceDelta` и связанные элементы из `TransactionRepositoryImpl`.
+2) Добавить unit‑тест на смену типа транзакции и корректную дельту баланса.
+3) Прогнать локальные тесты на use cases транзакций.
+4) Обновить `AUDIT_2026-01-18.md` отметкой о выполнении.
+
+## Validation and Acceptance
+- Команды проверки:
+```bash
+flutter test test/features/transactions/domain/use_cases/add_transaction_use_case_test.dart
+flutter test test/features/transactions/domain/use_cases/update_transaction_use_case_test.dart
+flutter test test/features/transactions/domain/use_cases/delete_transaction_use_case_test.dart
+```
+- Acceptance criteria:
+  - Баланс пересчитывается только в use cases.
+  - Unit‑тесты на баланс (income/expense/transfer, update, delete) проходят.
+
+## Idempotence and Recovery
+- Что можно безопасно перезапускать: unit‑тесты, локальные правки в use cases.
+- Как откатиться/восстановиться: вернуть `_applyAccountBalanceDelta` в репозиторий.
+- План rollback (для миграций): не требуется.
+
+## Progress
+- [x] Шаг 1: Удалить пересчёт баланса из репозитория.
+- [x] Шаг 2: Добавить unit‑тест на смену типа транзакции.
+- [x] Шаг 3: Прогнать тесты use cases.
+- [x] Шаг 4: Обновить AUDIT‑отчёт.
+
+## Surprises & Discoveries
+- ...
+
+## Decision Log
+- Единый источник баланса: use cases add/update/delete.
+
+## Outcomes & Retrospective
+- Что сделано:
+- Что бы улучшить в следующий раз:
+
+# ExecPlan: Стартовый баланс (opening balance)
+
+## Context and Orientation
+- Цель: ввести стартовый баланс счета и привести перерасчет балансов к формуле openingBalance + сумма транзакций.
+- Область кода: `lib/core/data/database.dart`, `lib/features/accounts/*`, `lib/core/services/auth_sync_service.dart`, `lib/features/settings/data/repositories/import_data_repository_impl.dart`.
+- Контекст/ограничения: требуется миграция Drift; автоген не редактировать.
+- Риски: некорректная миграция, изменение семантики редактирования баланса.
+
+## Interfaces and Dependencies
+- Внешние сервисы: Firestore (accounts).
+- Локальные зависимости: Drift, Freezed, build_runner.
+- Затрагиваемые API: AccountEntity, AccountDao, AccountRemoteDataSource, формы добавления/редактирования счета.
+
+## Plan of Work
+- Добавить openingBalance в модель и БД.
+- Обновить импорт/синк/формы для пересчета.
+- Добавить/обновить тесты.
+
+## Concrete Steps
+1) Добавить openingBalance в Accounts таблицу и миграцию, обновить AccountEntity/DAO/remote.
+2) Привести пересчёт баланса к openingBalance + сумма транзакций, корректно деривировать openingBalance при отсутствии.
+3) Обновить add/edit account flows и тесты.
+4) Прогнать релевантные тесты и обновить AUDIT.
+
+## Validation and Acceptance
+- Команды проверки:
+```bash
+dart run build_runner build --delete-conflicting-outputs
+flutter test test/features/settings/data/import_data_repository_impl_test.dart
+flutter test test/features/transactions/domain/use_cases/add_transaction_use_case_test.dart
+```
+- Acceptance criteria:
+  - Баланс = openingBalance + сумма транзакций.
+  - Импорт/синк корректно пересчитывают openingBalance и баланс.
+  - Формы add/edit сохраняют ожидаемый баланс.
+
+## Idempotence and Recovery
+- Что можно безопасно перезапускать: build_runner, тесты.
+- Как откатиться/восстановиться: вернуть schemaVersion и удалить openingBalance.
+- План rollback: не использовать новый столбец (оставить прежнюю логику).
+
+## Progress
+- [ ] Шаг 1: Добавить openingBalance в модели/БД/remote.
+- [ ] Шаг 2: Обновить пересчёты баланса.
+- [ ] Шаг 3: Обновить формы add/edit и тесты.
+- [ ] Шаг 4: Прогнать тесты и обновить AUDIT.
+
+## Surprises & Discoveries
+- ...
+
+## Decision Log
+- openingBalance хранится в accounts и синкается в Firestore.
+
+## Outcomes & Retrospective
+- Что сделано:
+- Что бы улучшить в следующий раз:

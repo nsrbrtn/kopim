@@ -88,6 +88,7 @@ class AccountRepositoryImpl implements AccountRepository {
     json['gradientId'] = account.gradientId;
     json['iconName'] = account.iconName;
     json['iconStyle'] = account.iconStyle;
+    json['openingBalance'] = account.openingBalance;
     return json;
   }
 
@@ -96,6 +97,7 @@ class AccountRepositoryImpl implements AccountRepository {
       id: row.id,
       name: row.name,
       balance: row.balance,
+      openingBalance: row.openingBalance,
       currency: row.currency,
       type: row.type,
       color: row.color,

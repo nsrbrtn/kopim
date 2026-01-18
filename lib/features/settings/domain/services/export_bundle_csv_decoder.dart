@@ -107,6 +107,11 @@ class ExportBundleCsvDecoder {
           id: _readRequired(header.columns, row, 'id'),
           name: _readRequired(header.columns, row, 'name'),
           balance: _readDouble(header.columns, row, 'balance'),
+          openingBalance: _readOptionalDouble(
+            header.columns,
+            row,
+            'opening_balance',
+          ),
           currency: _readRequired(header.columns, row, 'currency'),
           type: _readRequired(header.columns, row, 'type'),
           createdAt: _readDate(header.columns, row, 'created_at'),
@@ -269,6 +274,23 @@ class ExportBundleCsvDecoder {
 
   double _readDouble(Map<String, int> columns, List<String> row, String key) {
     final String raw = _readRequired(columns, row, key);
+    return double.parse(raw.trim());
+  }
+
+  double _readOptionalDouble(
+    Map<String, int> columns,
+    List<String> row,
+    String key, {
+    double fallback = 0,
+  }) {
+    final int? index = columns[key];
+    if (index == null) {
+      return fallback;
+    }
+    final String raw = _readCell(row, index);
+    if (raw.isEmpty) {
+      return fallback;
+    }
     return double.parse(raw.trim());
   }
 

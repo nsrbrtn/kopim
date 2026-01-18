@@ -12,6 +12,8 @@ class Accounts extends Table {
   TextColumn get id => text().withLength(min: 1, max: 50)();
   TextColumn get name => text().withLength(min: 1, max: 100)();
   RealColumn get balance => real()();
+  RealColumn get openingBalance =>
+      real().named('opening_balance').withDefault(const Constant<double>(0))();
   TextColumn get currency => text().withLength(min: 3, max: 3)();
   TextColumn get type => text().withLength(min: 1, max: 50)();
   TextColumn get color => text().nullable()();
@@ -300,7 +302,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.connect(DatabaseConnection super.connection);
 
   @override
-  int get schemaVersion => 30;
+  int get schemaVersion => 31;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -424,6 +426,28 @@ class AppDatabase extends _$AppDatabase {
         await m.addColumn(transactions, transactions.createdAt);
         await m.addColumn(transactions, transactions.updatedAt);
         await m.addColumn(transactions, transactions.isDeleted);
+      }
+      if (from < 31) {
+        await m.addColumn(accounts, accounts.openingBalance);
+        await m.database.customStatement(
+          '''
+UPDATE accounts
+SET opening_balance = balance - (
+  COALESCE((SELECT SUM(CASE WHEN type = 'income' THEN ABS(amount) ELSE 0 END)
+            FROM transactions
+            WHERE is_deleted = 0 AND account_id = accounts.id), 0)
+  - COALESCE((SELECT SUM(CASE WHEN type = 'expense' THEN ABS(amount) ELSE 0 END)
+              FROM transactions
+              WHERE is_deleted = 0 AND account_id = accounts.id), 0)
+  - COALESCE((SELECT SUM(CASE WHEN type = 'transfer' THEN ABS(amount) ELSE 0 END)
+              FROM transactions
+              WHERE is_deleted = 0 AND account_id = accounts.id), 0)
+  + COALESCE((SELECT SUM(CASE WHEN type = 'transfer' THEN ABS(amount) ELSE 0 END)
+              FROM transactions
+              WHERE is_deleted = 0 AND transfer_account_id = accounts.id), 0)
+)
+''',
+        );
       }
       if (from < 3) {
         await m.createTable(profiles);

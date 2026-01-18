@@ -1,12 +1,10 @@
 import 'package:kopim/core/data/database.dart' as db;
 import 'package:kopim/core/data/outbox/outbox_dao.dart';
-import 'package:drift/drift.dart' show Value;
 import 'package:kopim/features/savings/data/sources/local/goal_contribution_dao.dart';
 import 'package:kopim/features/savings/data/sources/local/saving_goal_dao.dart';
 import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
 import 'package:kopim/features/transactions/data/sources/local/transaction_dao.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
-import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
 import 'package:kopim/features/transactions/domain/models/account_monthly_totals.dart';
 import 'package:kopim/features/transactions/domain/repositories/transaction_repository.dart';
 
@@ -28,8 +26,6 @@ class TransactionRepositoryImpl implements TransactionRepository {
   final SavingGoalDao _savingGoalDao;
   final GoalContributionDao _contributionDao;
   final OutboxDao _outboxDao;
-  static const Duration _balanceUpdateClockSkew = Duration(milliseconds: 1);
-
   static const String _entityType = 'transaction';
   static const String _savingGoalEntityType = 'saving_goal';
 
@@ -103,11 +99,6 @@ class TransactionRepositoryImpl implements TransactionRepository {
         operation: OutboxOperation.upsert,
         payload: _mapTransactionPayload(toPersist),
       );
-      await _applyAccountBalanceDelta(
-        previous: previous,
-        next: toPersist,
-        updatedAt: now.add(_balanceUpdateClockSkew),
-      );
     });
   }
 
@@ -127,11 +118,6 @@ class TransactionRepositoryImpl implements TransactionRepository {
         entityId: id,
         operation: OutboxOperation.delete,
         payload: payload,
-      );
-      await _applyAccountBalanceDelta(
-        previous: _mapToDomain(row),
-        next: null,
-        updatedAt: now.add(_balanceUpdateClockSkew),
       );
     });
   }
@@ -207,71 +193,4 @@ class TransactionRepositoryImpl implements TransactionRepository {
     );
   }
 
-  Future<void> _applyAccountBalanceDelta({
-    required TransactionEntity? previous,
-    required TransactionEntity? next,
-    required DateTime updatedAt,
-  }) async {
-    final Map<String, double> deltas = <String, double>{};
-    void accumulate(TransactionEntity tx, double sign) {
-      if (tx.isDeleted) return;
-      final TransactionType type = parseTransactionType(tx.type);
-      switch (type) {
-        case TransactionType.income:
-          deltas.update(
-            tx.accountId,
-            (double v) => v + sign * tx.amount,
-            ifAbsent: () => sign * tx.amount,
-          );
-          break;
-        case TransactionType.expense:
-          deltas.update(
-            tx.accountId,
-            (double v) => v - sign * tx.amount,
-            ifAbsent: () => -sign * tx.amount,
-          );
-          break;
-        case TransactionType.transfer:
-          deltas.update(
-            tx.accountId,
-            (double v) => v - sign * tx.amount,
-            ifAbsent: () => -sign * tx.amount,
-          );
-          final String? targetId = tx.transferAccountId;
-          if (targetId != null && targetId != tx.accountId) {
-            deltas.update(
-              targetId,
-              (double v) => v + sign * tx.amount,
-              ifAbsent: () => sign * tx.amount,
-            );
-          }
-          break;
-      }
-    }
-
-    if (previous != null) {
-      accumulate(previous, -1);
-    }
-    if (next != null) {
-      accumulate(next, 1);
-    }
-
-    for (final MapEntry<String, double> entry in deltas.entries) {
-      if (entry.value == 0) continue;
-      final db.AccountRow? account =
-          await (_database.select(_database.accounts)
-                ..where((db.$AccountsTable tbl) => tbl.id.equals(entry.key)))
-              .getSingleOrNull();
-      if (account == null || account.isDeleted) continue;
-      final double newBalance = account.balance + entry.value;
-      await (_database.update(
-        _database.accounts,
-      )..where((db.$AccountsTable tbl) => tbl.id.equals(entry.key))).write(
-        db.AccountsCompanion(
-          balance: Value<double>(newBalance),
-          updatedAt: Value<DateTime>(updatedAt),
-        ),
-      );
-    }
-  }
 }

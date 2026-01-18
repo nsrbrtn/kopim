@@ -159,6 +159,42 @@ void main() {
     expect(updatedTransaction.date, request.date);
   });
 
+  test('updates transaction type and recalculates balance delta', () async {
+    const String accountId = 'acc-1';
+    final TransactionEntity original = existingTransaction(
+      id: 'tx-1b',
+      accountId: accountId,
+      amount: 100,
+      type: TransactionType.expense,
+    );
+    final AccountEntity sourceAccount = account(id: accountId, balance: 900);
+
+    when(
+      () => transactionRepository.findById(original.id),
+    ).thenAnswer((_) async => original);
+    when(
+      () => accountRepository.findById(accountId),
+    ).thenAnswer((_) async => sourceAccount);
+    when(() => transactionRepository.upsert(any())).thenAnswer((_) async {});
+    when(() => accountRepository.upsert(any())).thenAnswer((_) async {});
+
+    final UpdateTransactionRequest request = UpdateTransactionRequest(
+      transactionId: original.id,
+      accountId: accountId,
+      amount: 100,
+      date: DateTime.utc(2024, 2, 6),
+      type: TransactionType.income,
+    );
+
+    await useCase(request);
+
+    final AccountEntity updatedAccount =
+        verify(() => accountRepository.upsert(captureAny())).captured.single
+            as AccountEntity;
+    expect(updatedAccount.balance, closeTo(1100, 1e-9));
+    expect(updatedAccount.updatedAt, fixedNow.toUtc());
+  });
+
   test(
     'moves transaction to another account and updates both balances',
     () async {

@@ -311,6 +311,7 @@ class AddAccountFormController extends _$AddAccountFormController {
       id: _uuid.v4(),
       name: trimmedName,
       balance: balance!,
+      openingBalance: balance!,
       currency: state.currency,
       type: resolvedType,
       createdAt: now,

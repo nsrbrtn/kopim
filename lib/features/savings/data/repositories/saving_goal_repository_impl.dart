@@ -234,12 +234,18 @@ class SavingGoalRepositoryImpl implements SavingGoalRepository {
           id: accountRow.id,
           name: accountRow.name,
           balance: accountRow.balance - amountDouble,
+          openingBalance: accountRow.openingBalance,
           currency: accountRow.currency,
           type: accountRow.type,
           color: accountRow.color,
+          gradientId: accountRow.gradientId,
           createdAt: accountRow.createdAt,
           updatedAt: timestamp,
           isDeleted: accountRow.isDeleted,
+          isPrimary: accountRow.isPrimary,
+          isHidden: accountRow.isHidden,
+          iconName: accountRow.iconName,
+          iconStyle: accountRow.iconStyle,
         );
         await _accountDao.upsert(updatedAccount);
         await _outboxDao.enqueue(
