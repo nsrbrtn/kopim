@@ -150,9 +150,9 @@ AccountTransactionSummary _computeSummary(
   double expense = 0;
   for (final TransactionEntity transaction in transactions) {
     if (transaction.type == TransactionType.income.storageValue) {
-      income += transaction.amount.abs();
+      income += transaction.amountValue.abs().toDouble();
     } else if (transaction.type == TransactionType.expense.storageValue) {
-      expense += transaction.amount.abs();
+      expense += transaction.amountValue.abs().toDouble();
     }
   }
   return AccountTransactionSummary(totalIncome: income, totalExpense: expense);

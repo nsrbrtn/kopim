@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:kopim/core/money/currency_scale.dart';
+import 'package:kopim/core/money/money.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/settings/domain/entities/export_bundle.dart';
@@ -62,15 +64,26 @@ class ExportBundleJsonDecoder {
     return raw
         .whereType<Map<String, Object?>>()
         .map((Map<String, Object?> data) {
+          final String currency = _readString(data, 'currency');
+          final int scale =
+              _readInt(data['currencyScale']) ?? resolveCurrencyScale(currency);
+          final double legacyBalance = _readDouble(data, 'balance');
+          final double legacyOpening = _readDouble(data, 'openingBalance');
+          final BigInt? balanceMinor = _readBigInt(data['balanceMinor']);
+          final BigInt? openingMinor = _readBigInt(data['openingBalanceMinor']);
+          final BigInt resolvedBalanceMinor = balanceMinor ??
+              Money.fromDouble(legacyBalance, currency: currency, scale: scale)
+                  .minor;
+          final BigInt resolvedOpeningMinor = openingMinor ??
+              Money.fromDouble(legacyOpening, currency: currency, scale: scale)
+                  .minor;
           return AccountEntity(
             id: _readString(data, 'id'),
             name: _readString(data, 'name'),
-            balance: _readDouble(data, 'balance'),
-            balanceMinor: _readBigInt(data['balanceMinor']),
-            openingBalance: _readDouble(data, 'openingBalance'),
-            openingBalanceMinor: _readBigInt(data['openingBalanceMinor']),
-            currency: _readString(data, 'currency'),
-            currencyScale: _readInt(data['currencyScale']),
+            balanceMinor: resolvedBalanceMinor,
+            openingBalanceMinor: resolvedOpeningMinor,
+            currency: currency,
+            currencyScale: scale,
             type: _readString(data, 'type'),
             createdAt: _readDate(data, 'createdAt'),
             updatedAt: _readDate(data, 'updatedAt'),
@@ -91,15 +104,19 @@ class ExportBundleJsonDecoder {
     return raw
         .whereType<Map<String, Object?>>()
         .map((Map<String, Object?> data) {
+          final int scale = _readInt(data['amountScale']) ?? 2;
+          final double legacyAmount = _readDouble(data, 'amount');
+          final BigInt? amountMinor = _readBigInt(data['amountMinor']);
+          final BigInt resolvedMinor = amountMinor ??
+              Money.fromDouble(legacyAmount, currency: 'XXX', scale: scale).minor;
           return TransactionEntity(
             id: _readString(data, 'id'),
             accountId: _readString(data, 'accountId'),
             transferAccountId: _readOptionalString(data, 'transferAccountId'),
             categoryId: _readOptionalString(data, 'categoryId'),
             savingGoalId: _readOptionalString(data, 'savingGoalId'),
-            amount: _readDouble(data, 'amount'),
-            amountMinor: _readBigInt(data['amountMinor']),
-            amountScale: _readInt(data['amountScale']),
+            amountMinor: resolvedMinor,
+            amountScale: scale,
             date: _readDate(data, 'date'),
             note: _readOptionalString(data, 'note'),
             type: _readString(data, 'type'),

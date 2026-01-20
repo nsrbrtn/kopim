@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:kopim/core/data/database.dart' as db;
 import 'package:kopim/core/money/money.dart';
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/credits/domain/entities/debt_entity.dart';
 
 class DebtDao {
@@ -59,17 +60,19 @@ class DebtDao {
   }
 
   db.DebtsCompanion _mapToCompanion(DebtEntity debt) {
-    final int scale = (debt.amountScale ?? 0) > 0 ? debt.amountScale! : 2;
-    final BigInt amountMinor =
-        debt.amountMinor ??
-        Money.fromDouble(debt.amount, currency: 'XXX', scale: scale).minor;
+    final MoneyAmount amount = debt.amountValue;
+    final Money money = Money(
+      minor: amount.minor,
+      currency: 'XXX',
+      scale: amount.scale,
+    );
     return db.DebtsCompanion(
       id: Value<String>(debt.id),
       accountId: Value<String>(debt.accountId),
       name: Value<String?>(debt.name.isEmpty ? null : debt.name),
-      amount: Value<double>(debt.amount),
-      amountMinor: Value<String>(amountMinor.toString()),
-      amountScale: Value<int>(scale),
+      amount: Value<double>(money.toDouble()),
+      amountMinor: Value<String>(amount.minor.toString()),
+      amountScale: Value<int>(amount.scale),
       dueDate: Value<DateTime>(debt.dueDate),
       note: Value<String?>(debt.note),
       createdAt: Value<DateTime>(debt.createdAt),
@@ -83,7 +86,6 @@ class DebtDao {
       id: row.id,
       accountId: row.accountId,
       name: row.name ?? '',
-      amount: row.amount,
       amountMinor: BigInt.parse(row.amountMinor),
       amountScale: row.amountScale,
       dueDate: row.dueDate,

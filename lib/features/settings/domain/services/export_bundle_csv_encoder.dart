@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:kopim/core/domain/icons/phosphor_icon_descriptor.dart';
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/settings/domain/entities/export_bundle.dart';
@@ -60,13 +61,15 @@ class ExportBundleCsvEncoder {
       ]);
 
     for (final AccountEntity account in accounts) {
+      final MoneyAmount balance = account.balanceAmount;
+      final MoneyAmount openingBalance = account.openingBalanceAmount;
       rows.add(<String>[
         account.id,
         account.name,
-        account.balance.toString(),
-        account.openingBalance.toString(),
-        account.balanceMinor?.toString() ?? '',
-        account.openingBalanceMinor?.toString() ?? '',
+        balance.toDouble().toString(),
+        openingBalance.toDouble().toString(),
+        balance.minor.toString(),
+        openingBalance.minor.toString(),
         account.currencyScale?.toString() ?? '',
         account.currency,
         account.type,
@@ -139,14 +142,15 @@ class ExportBundleCsvEncoder {
       ]);
 
     for (final TransactionEntity transaction in transactions) {
+      final MoneyAmount amount = transaction.amountValue.abs();
       rows.add(<String>[
         transaction.id,
         transaction.accountId,
         transaction.categoryId ?? '',
         transaction.savingGoalId ?? '',
-        transaction.amount.toString(),
-        transaction.amountMinor?.toString() ?? '',
-        transaction.amountScale?.toString() ?? '',
+        amount.toDouble().toString(),
+        amount.minor.toString(),
+        amount.scale.toString(),
         transaction.date.toIso8601String(),
         transaction.note ?? '',
         transaction.type,

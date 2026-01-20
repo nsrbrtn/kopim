@@ -176,19 +176,19 @@ Stream<List<MonthlyBalanceData>> monthlyBalanceData(Ref ref) {
     // Начальный баланс (текущий)
     final MoneyAccumulator currentBalance = MoneyAccumulator();
     for (final AccountEntity account in relevantAccounts) {
-      final MoneyAmount amount = resolveMoneyAmount(
-        amount: account.balance,
-        minor: account.balanceMinor,
-        scale: account.currencyScale,
-      );
-      currentBalance.add(amount);
+      currentBalance.add(account.balanceAmount);
     }
 
     // Сортируем транзакции по дате (от новых к старым)
     // Предполагаем, что репозиторий может возвращать не сортированные
     final List<TransactionEntity> sortedTransactions =
         transactions.where((TransactionEntity t) {
-          return relevantAccountIds.contains(t.accountId);
+          if (relevantAccountIds.contains(t.accountId)) {
+            return true;
+          }
+          final String? transferAccountId = t.transferAccountId;
+          return transferAccountId != null &&
+              relevantAccountIds.contains(transferAccountId);
         }).toList()..sort(
           (TransactionEntity a, TransactionEntity b) =>
               b.date.compareTo(a.date),
@@ -228,11 +228,12 @@ Stream<List<MonthlyBalanceData>> monthlyBalanceData(Ref ref) {
       while (txIndex < sortedTransactions.length &&
           sortedTransactions[txIndex].date.isAfter(monthEnd)) {
         final TransactionEntity t = sortedTransactions[txIndex];
-        final MoneyAmount amount = _resolveTransactionAmount(t);
-        if (t.type == TransactionType.income.storageValue) {
-          runningBalance.subtract(amount);
-        } else if (t.type == TransactionType.expense.storageValue) {
-          runningBalance.add(amount);
+        final MoneyAmount? delta = _resolveTransactionDeltaForAccounts(
+          transaction: t,
+          isAccountSelected: relevantAccountIds.contains,
+        );
+        if (delta != null) {
+          runningBalance.subtract(delta);
         }
         txIndex++;
       }
@@ -252,12 +253,12 @@ Stream<List<MonthlyBalanceData>> monthlyBalanceData(Ref ref) {
         }
 
         final TransactionEntity t = sortedTransactions[txIndex];
-        final MoneyAmount amount = _resolveTransactionAmount(t);
-        // Откатываем транзакцию
-        if (t.type == TransactionType.income.storageValue) {
-          runningBalance.subtract(amount);
-        } else if (t.type == TransactionType.expense.storageValue) {
-          runningBalance.add(amount);
+        final MoneyAmount? delta = _resolveTransactionDeltaForAccounts(
+          transaction: t,
+          isAccountSelected: relevantAccountIds.contains,
+        );
+        if (delta != null) {
+          runningBalance.subtract(delta);
         }
 
         // runningBalance теперь - это баланс ДО транзакции t
@@ -327,11 +328,6 @@ monthlyCashflowDataProvider = StreamProvider<List<MonthlyCashflowData>>((
     final DateTime nowInclusive = now.add(const Duration(microseconds: 1));
 
     for (final TransactionEntity transaction in transactions) {
-      if (selectedAccountIds.isNotEmpty &&
-          !selectedAccountIds.contains(transaction.accountId)) {
-        continue;
-      }
-
       final DateTime monthStart = DateTime(
         transaction.date.year,
         transaction.date.month,
@@ -347,11 +343,21 @@ monthlyCashflowDataProvider = StreamProvider<List<MonthlyCashflowData>>((
         continue;
       }
 
-      final MoneyAmount amount = _resolveTransactionAmount(transaction);
-      if (transaction.type == TransactionType.income.storageValue) {
-        incomes[index].add(amount);
-      } else if (transaction.type == TransactionType.expense.storageValue) {
-        expenses[index].add(amount);
+      final MoneyAmount? delta = _resolveTransactionDeltaForAccounts(
+        transaction: transaction,
+        isAccountSelected: selectedAccountIds.isEmpty
+            ? (_) => true
+            : selectedAccountIds.contains,
+      );
+      if (delta == null) {
+        continue;
+      }
+      if (delta.minor > BigInt.zero) {
+        incomes[index].add(delta);
+      } else if (delta.minor < BigInt.zero) {
+        expenses[index].add(
+          MoneyAmount(minor: -delta.minor, scale: delta.scale),
+        );
       }
     }
 
@@ -370,10 +376,40 @@ monthlyCashflowDataProvider = StreamProvider<List<MonthlyCashflowData>>((
 int _monthKey(DateTime monthStart) => monthStart.year * 100 + monthStart.month;
 
 MoneyAmount _resolveTransactionAmount(TransactionEntity transaction) {
-  return resolveMoneyAmount(
-    amount: transaction.amount,
-    minor: transaction.amountMinor,
-    scale: transaction.amountScale,
-    useAbs: true,
-  );
+  return transaction.amountValue.abs();
+}
+
+MoneyAmount? _resolveTransactionDeltaForAccounts({
+  required TransactionEntity transaction,
+  required bool Function(String accountId) isAccountSelected,
+}) {
+  final TransactionType type = parseTransactionType(transaction.type);
+  final MoneyAmount amount = _resolveTransactionAmount(transaction);
+
+  if (type.isTransfer) {
+    final String? targetId = transaction.transferAccountId;
+    if (targetId == null || targetId == transaction.accountId) {
+      return null;
+    }
+    final bool sourceSelected = isAccountSelected(transaction.accountId);
+    final bool targetSelected = isAccountSelected(targetId);
+    if (sourceSelected == targetSelected) {
+      return null;
+    }
+    if (targetSelected) {
+      return amount;
+    }
+    return MoneyAmount(minor: -amount.minor, scale: amount.scale);
+  }
+
+  if (!isAccountSelected(transaction.accountId)) {
+    return null;
+  }
+  if (type.isIncome) {
+    return amount;
+  }
+  if (type.isExpense) {
+    return MoneyAmount(minor: -amount.minor, scale: amount.scale);
+  }
+  return null;
 }

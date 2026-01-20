@@ -91,11 +91,22 @@ class _TopCategoriesSummary extends StatelessWidget {
       return Row(
         mainAxisAlignment: MainAxisAlignment.start,
         children: <Widget>[
-          Text('${focusedItem!.title}:', style: labelStyle),
+          Flexible(
+            child: Text(
+              '${focusedItem!.title}:',
+              style: labelStyle,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
           const SizedBox(width: 8),
-          Text(
-            currencyFormat.format(focusedItem!.absoluteAmount),
-            style: amountStyle,
+          Flexible(
+            child: Text(
+              currencyFormat.format(focusedItem!.absoluteAmount),
+              style: amountStyle,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
         ],
       );
@@ -107,9 +118,23 @@ class _TopCategoriesSummary extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.start,
       children: <Widget>[
-        Text(label, style: labelStyle),
+        Flexible(
+          child: Text(
+            label,
+            style: labelStyle,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
         const SizedBox(width: 8),
-        Text(currencyFormat.format(total), style: amountStyle),
+        Flexible(
+          child: Text(
+            currencyFormat.format(total),
+            style: amountStyle,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
       ],
     );
   }

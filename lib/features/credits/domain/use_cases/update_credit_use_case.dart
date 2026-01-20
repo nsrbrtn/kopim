@@ -1,4 +1,6 @@
 import 'package:kopim/core/domain/icons/phosphor_icon_descriptor.dart';
+import 'package:kopim/core/money/currency_scale.dart';
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/accounts/domain/repositories/account_repository.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
@@ -29,7 +31,7 @@ class UpdateCreditUseCase {
   Future<CreditEntity> call({
     required CreditEntity credit,
     required String name,
-    required double totalAmount,
+    required MoneyAmount totalAmount,
     required double interestRate,
     required int termMonths,
     required int paymentDay,
@@ -43,9 +45,9 @@ class UpdateCreditUseCase {
     if (trimmedName.isEmpty) {
       throw ArgumentError.value(name, 'name', 'Name cannot be empty');
     }
-    if (totalAmount <= 0) {
+    if (totalAmount.minor <= BigInt.zero) {
       throw ArgumentError.value(
-        totalAmount,
+        totalAmount.toDouble(),
         'totalAmount',
         'Total amount must be greater than zero',
       );
@@ -80,9 +82,13 @@ class UpdateCreditUseCase {
     }
 
     final DateTime now = _clock();
+    final int scale =
+        account.currencyScale ?? resolveCurrencyScale(account.currency);
+    final MoneyAmount resolvedAmount = rescaleMoneyAmount(totalAmount, scale);
     final AccountEntity updatedAccount = account.copyWith(
       name: trimmedName,
-      balance: -totalAmount,
+      balanceMinor: -resolvedAmount.minor,
+      currencyScale: scale,
       color: color,
       gradientId: gradientId,
       iconName: iconName,
@@ -117,7 +123,8 @@ class UpdateCreditUseCase {
     }
 
     final CreditEntity updatedCredit = credit.copyWith(
-      totalAmount: totalAmount,
+      totalAmountMinor: resolvedAmount.minor,
+      totalAmountScale: resolvedAmount.scale,
       interestRate: interestRate,
       termMonths: termMonths,
       paymentDay: paymentDay,

@@ -159,8 +159,9 @@ AsyncValue<List<BudgetCategorySpend>> budgetCategorySpend(Ref ref) {
           !scopedCategoryIds.contains(categoryId)) {
         continue;
       }
-      spentByCategory[categoryId] =
-          (spentByCategory[categoryId] ?? 0) + transaction.amount.abs();
+    spentByCategory[categoryId] =
+        (spentByCategory[categoryId] ?? 0) +
+        transaction.amountValue.abs().toDouble();
     }
 
     if (spentByCategory.isEmpty) {

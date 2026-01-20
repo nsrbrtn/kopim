@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:kopim/core/data/database.dart' as db;
 import 'package:kopim/core/money/currency_scale.dart';
 import 'package:kopim/core/money/money.dart';
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 
 class AccountDao {
@@ -92,26 +93,26 @@ class AccountDao {
   }
 
   db.AccountsCompanion _mapToCompanion(AccountEntity account) {
-    final int scale = (account.currencyScale ?? 0) > 0
-        ? account.currencyScale!
-        : resolveCurrencyScale(account.currency);
-    final Money balanceMoney = Money.fromDouble(
-      account.balance,
+    final int scale = account.currencyScale ?? resolveCurrencyScale(account.currency);
+    final MoneyAmount balance = account.balanceAmount;
+    final MoneyAmount opening = account.openingBalanceAmount;
+    final Money balanceMoney = Money(
+      minor: balance.minor,
       currency: account.currency,
       scale: scale,
     );
-    final Money openingMoney = Money.fromDouble(
-      account.openingBalance,
+    final Money openingMoney = Money(
+      minor: opening.minor,
       currency: account.currency,
       scale: scale,
     );
     return db.AccountsCompanion(
       id: Value<String>(account.id),
       name: Value<String>(account.name),
-      balance: Value<double>(account.balance),
-      balanceMinor: Value<String>(balanceMoney.minor.toString()),
-      openingBalance: Value<double>(account.openingBalance),
-      openingBalanceMinor: Value<String>(openingMoney.minor.toString()),
+      balance: Value<double>(balanceMoney.toDouble()),
+      balanceMinor: Value<String>(balance.minor.toString()),
+      openingBalance: Value<double>(openingMoney.toDouble()),
+      openingBalanceMinor: Value<String>(opening.minor.toString()),
       currency: Value<String>(account.currency),
       currencyScale: Value<int>(scale),
       type: Value<String>(account.type),
@@ -131,9 +132,7 @@ class AccountDao {
     return AccountEntity(
       id: row.id,
       name: row.name,
-      balance: row.balance,
       balanceMinor: BigInt.parse(row.balanceMinor),
-      openingBalance: row.openingBalance,
       openingBalanceMinor: BigInt.parse(row.openingBalanceMinor),
       currency: row.currency,
       currencyScale: row.currencyScale,

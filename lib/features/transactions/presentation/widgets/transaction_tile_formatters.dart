@@ -42,17 +42,10 @@ class TransactionTileFormatters {
 
   static String formatAmount({
     required NumberFormat formatter,
-    required double amount,
-    BigInt? amountMinor,
-    int? amountScale,
+    required MoneyAmount amount,
     bool useAbs = true,
   }) {
-    final MoneyAmount resolved = resolveMoneyAmount(
-      amount: amount,
-      minor: amountMinor,
-      scale: amountScale,
-      useAbs: useAbs,
-    );
+    final MoneyAmount resolved = useAbs ? amount.abs() : amount;
     return formatter.format(resolved.toDouble());
   }
 }

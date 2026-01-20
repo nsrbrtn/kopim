@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:kopim/core/money/money_utils.dart';
 
 part 'credit_card_entity.freezed.dart';
 part 'credit_card_entity.g.dart';
@@ -8,7 +9,6 @@ abstract class CreditCardEntity with _$CreditCardEntity {
   const factory CreditCardEntity({
     required String id,
     required String accountId,
-    required double creditLimit,
     @JsonKey(includeFromJson: false, includeToJson: false)
     BigInt? creditLimitMinor,
     @JsonKey(includeFromJson: false, includeToJson: false)
@@ -23,4 +23,9 @@ abstract class CreditCardEntity with _$CreditCardEntity {
 
   factory CreditCardEntity.fromJson(Map<String, Object?> json) =>
       _$CreditCardEntityFromJson(json);
+
+  MoneyAmount get creditLimitValue => MoneyAmount(
+    minor: creditLimitMinor ?? BigInt.zero,
+    scale: creditLimitScale ?? 2,
+  );
 }

@@ -874,7 +874,7 @@ class _AccountSelectionCard extends StatelessWidget {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            formatter.format(account.balance),
+                            formatter.format(account.balanceAmount.toDouble()),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: balanceStyle,

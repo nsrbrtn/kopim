@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:kopim/core/money/currency_scale.dart';
+import 'package:kopim/core/money/money.dart';
 import 'package:kopim/core/domain/icons/phosphor_icon_descriptor.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
@@ -102,32 +104,47 @@ class ExportBundleCsvDecoder {
         index += 1;
         continue;
       }
-      accounts.add(
-        AccountEntity(
+      accounts.add(() {
+        final String currency = _readRequired(header.columns, row, 'currency');
+        final int scale = _readOptionalInt(
+              header.columns,
+              row,
+              'currency_scale',
+            ) ??
+            resolveCurrencyScale(currency);
+        final double legacyBalance =
+            _readDouble(header.columns, row, 'balance');
+        final double legacyOpening =
+            _readOptionalDouble(header.columns, row, 'opening_balance') ?? 0;
+        final BigInt? balanceMinor = _readOptionalBigInt(
+          header.columns,
+          row,
+          'balance_minor',
+        );
+        final BigInt? openingMinor = _readOptionalBigInt(
+          header.columns,
+          row,
+          'opening_balance_minor',
+        );
+        final BigInt resolvedBalanceMinor = balanceMinor ??
+            Money.fromDouble(
+              legacyBalance,
+              currency: currency,
+              scale: scale,
+            ).minor;
+        final BigInt resolvedOpeningMinor = openingMinor ??
+            Money.fromDouble(
+              legacyOpening,
+              currency: currency,
+              scale: scale,
+            ).minor;
+        return AccountEntity(
           id: _readRequired(header.columns, row, 'id'),
           name: _readRequired(header.columns, row, 'name'),
-          balance: _readDouble(header.columns, row, 'balance'),
-          balanceMinor: _readOptionalBigInt(
-            header.columns,
-            row,
-            'balance_minor',
-          ),
-          openingBalance: _readOptionalDouble(
-            header.columns,
-            row,
-            'opening_balance',
-          ),
-          openingBalanceMinor: _readOptionalBigInt(
-            header.columns,
-            row,
-            'opening_balance_minor',
-          ),
-          currency: _readRequired(header.columns, row, 'currency'),
-          currencyScale: _readOptionalInt(
-            header.columns,
-            row,
-            'currency_scale',
-          ),
+          balanceMinor: resolvedBalanceMinor,
+          openingBalanceMinor: resolvedOpeningMinor,
+          currency: currency,
+          currencyScale: scale,
           type: _readRequired(header.columns, row, 'type'),
           createdAt: _readDate(header.columns, row, 'created_at'),
           updatedAt: _readDate(header.columns, row, 'updated_at'),
@@ -137,8 +154,8 @@ class ExportBundleCsvDecoder {
           iconStyle: _readOptional(header.columns, row, 'icon_style'),
           isDeleted: _readBool(header.columns, row, 'is_deleted'),
           isPrimary: _readBool(header.columns, row, 'is_primary'),
-        ),
-      );
+        );
+      }());
       index += 1;
     }
     return index;
@@ -195,29 +212,41 @@ class ExportBundleCsvDecoder {
         continue;
       }
       transactions.add(
-        TransactionEntity(
-          id: _readRequired(header.columns, row, 'id'),
-          accountId: _readRequired(header.columns, row, 'account_id'),
-          categoryId: _readOptional(header.columns, row, 'category_id'),
-          savingGoalId: _readOptional(header.columns, row, 'saving_goal_id'),
-          amount: _readDouble(header.columns, row, 'amount'),
-          amountMinor: _readOptionalBigInt(
+        () {
+          final int scale = _readOptionalInt(
+                header.columns,
+                row,
+                'amount_scale',
+              ) ??
+              2;
+          final double legacyAmount =
+              _readDouble(header.columns, row, 'amount');
+          final BigInt? amountMinor = _readOptionalBigInt(
             header.columns,
             row,
             'amount_minor',
-          ),
-          amountScale: _readOptionalInt(
-            header.columns,
-            row,
-            'amount_scale',
-          ),
-          date: _readDate(header.columns, row, 'date'),
-          note: _readOptional(header.columns, row, 'note'),
-          type: _readRequired(header.columns, row, 'type'),
-          createdAt: _readDate(header.columns, row, 'created_at'),
-          updatedAt: _readDate(header.columns, row, 'updated_at'),
-          isDeleted: _readBool(header.columns, row, 'is_deleted'),
-        ),
+          );
+          final BigInt resolvedMinor = amountMinor ??
+              Money.fromDouble(
+                legacyAmount,
+                currency: 'XXX',
+                scale: scale,
+              ).minor;
+          return TransactionEntity(
+            id: _readRequired(header.columns, row, 'id'),
+            accountId: _readRequired(header.columns, row, 'account_id'),
+            categoryId: _readOptional(header.columns, row, 'category_id'),
+            savingGoalId: _readOptional(header.columns, row, 'saving_goal_id'),
+            amountMinor: resolvedMinor,
+            amountScale: scale,
+            date: _readDate(header.columns, row, 'date'),
+            note: _readOptional(header.columns, row, 'note'),
+            type: _readRequired(header.columns, row, 'type'),
+            createdAt: _readDate(header.columns, row, 'created_at'),
+            updatedAt: _readDate(header.columns, row, 'updated_at'),
+            isDeleted: _readBool(header.columns, row, 'is_deleted'),
+          );
+        }(),
       );
       index += 1;
     }

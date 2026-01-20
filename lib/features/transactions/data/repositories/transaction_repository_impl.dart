@@ -1,5 +1,7 @@
 import 'package:kopim/core/data/database.dart' as db;
 import 'package:kopim/core/data/outbox/outbox_dao.dart';
+import 'package:kopim/core/money/currency_scale.dart';
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/accounts/data/sources/local/account_dao.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/credits/data/sources/local/credit_dao.dart';
@@ -189,27 +191,39 @@ class TransactionRepositoryImpl implements TransactionRepository {
     if (previous == null && current == null) {
       return;
     }
-    final Map<String, double> previousEffect = previous != null
+    final Map<String, MoneyAmount> previousEffect = previous != null
         ? await _buildAccountEffect(previous)
-        : <String, double>{};
-    final Map<String, double> currentEffect = current != null
+        : <String, MoneyAmount>{};
+    final Map<String, MoneyAmount> currentEffect = current != null
         ? await _buildAccountEffect(current)
-        : <String, double>{};
+        : <String, MoneyAmount>{};
     final Set<String> affectedAccounts = <String>{
       ...previousEffect.keys,
       ...currentEffect.keys,
     };
     for (final String accountId in affectedAccounts) {
-      final double delta =
-          (currentEffect[accountId] ?? 0) - (previousEffect[accountId] ?? 0);
-      if (delta == 0) {
+      final MoneyAmount? currentDelta = currentEffect[accountId];
+      final MoneyAmount? previousDelta = previousEffect[accountId];
+      final int scale =
+          (currentDelta ?? previousDelta)?.scale ?? 2;
+      final MoneyAmount normalizedCurrent = currentDelta != null
+          ? rescaleMoneyAmount(currentDelta, scale)
+          : MoneyAmount(minor: BigInt.zero, scale: scale);
+      final MoneyAmount normalizedPrevious = previousDelta != null
+          ? rescaleMoneyAmount(previousDelta, scale)
+          : MoneyAmount(minor: BigInt.zero, scale: scale);
+      final MoneyAmount delta = MoneyAmount(
+        minor: normalizedCurrent.minor - normalizedPrevious.minor,
+        scale: scale,
+      );
+      if (delta.minor == BigInt.zero) {
         continue;
       }
       await _applyAccountDelta(accountId, delta, updatedAt);
     }
   }
 
-  Future<Map<String, double>> _buildAccountEffect(
+  Future<Map<String, MoneyAmount>> _buildAccountEffect(
     TransactionEntity transaction,
   ) async {
     final String? categoryId = transaction.categoryId;
@@ -225,15 +239,21 @@ class TransactionRepositoryImpl implements TransactionRepository {
 
   Future<void> _applyAccountDelta(
     String accountId,
-    double delta,
+    MoneyAmount delta,
     DateTime updatedAt,
   ) async {
     final db.AccountRow? row = await _accountDao.findById(accountId);
     if (row == null) {
       throw StateError('Account not found for id $accountId');
     }
+    final int scale =
+        row.currencyScale ?? resolveCurrencyScale(row.currency);
+    final MoneyAmount normalized = rescaleMoneyAmount(delta, scale);
+    final BigInt updatedMinor =
+        BigInt.parse(row.balanceMinor) + normalized.minor;
     final AccountEntity updatedAccount = _mapAccountToDomain(row).copyWith(
-      balance: row.balance + delta,
+      balanceMinor: updatedMinor,
+      currencyScale: scale,
       updatedAt: updatedAt,
     );
     await _accountDao.upsert(updatedAccount);
@@ -273,9 +293,12 @@ class TransactionRepositoryImpl implements TransactionRepository {
     json['gradientId'] = account.gradientId;
     json['iconName'] = account.iconName;
     json['iconStyle'] = account.iconStyle;
-    json['openingBalance'] = account.openingBalance;
-    json['balanceMinor'] = account.balanceMinor?.toString();
-    json['openingBalanceMinor'] = account.openingBalanceMinor?.toString();
+    final MoneyAmount balance = account.balanceAmount;
+    final MoneyAmount openingBalance = account.openingBalanceAmount;
+    json['balance'] = balance.toDouble();
+    json['openingBalance'] = openingBalance.toDouble();
+    json['balanceMinor'] = balance.minor.toString();
+    json['openingBalanceMinor'] = openingBalance.minor.toString();
     json['currencyScale'] = account.currencyScale;
     return json;
   }
@@ -287,7 +310,6 @@ class TransactionRepositoryImpl implements TransactionRepository {
       transferAccountId: row.transferAccountId,
       categoryId: row.categoryId,
       savingGoalId: row.savingGoalId,
-      amount: row.amount,
       amountMinor: BigInt.parse(row.amountMinor),
       amountScale: row.amountScale,
       date: row.date,
@@ -303,9 +325,7 @@ class TransactionRepositoryImpl implements TransactionRepository {
     return AccountEntity(
       id: row.id,
       name: row.name,
-      balance: row.balance,
       balanceMinor: BigInt.parse(row.balanceMinor),
-      openingBalance: row.openingBalance,
       openingBalanceMinor: BigInt.parse(row.openingBalanceMinor),
       currency: row.currency,
       currencyScale: row.currencyScale,

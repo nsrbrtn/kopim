@@ -1,4 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:kopim/core/money/money.dart';
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/credits/domain/entities/credit_card_entity.dart';
 
 class CreditCardRemoteDataSource {
@@ -63,12 +65,13 @@ class CreditCardRemoteDataSource {
   }
 
   Map<String, dynamic> _mapCreditCard(CreditCardEntity creditCard) {
+    final MoneyAmount limit = creditCard.creditLimitValue;
     return <String, dynamic>{
       'id': creditCard.id,
       'accountId': creditCard.accountId,
-      'creditLimit': creditCard.creditLimit,
-      'creditLimitMinor': creditCard.creditLimitMinor?.toString(),
-      'creditLimitScale': creditCard.creditLimitScale,
+      'creditLimit': limit.toDouble(),
+      'creditLimitMinor': limit.minor.toString(),
+      'creditLimitScale': limit.scale,
       'statementDay': creditCard.statementDay,
       'paymentDueDays': creditCard.paymentDueDays,
       'interestRateAnnual': creditCard.interestRateAnnual,
@@ -82,12 +85,17 @@ class CreditCardRemoteDataSource {
     QueryDocumentSnapshot<Map<String, dynamic>> doc,
   ) {
     final Map<String, dynamic> data = doc.data();
+    final int scale = _readInt(data['creditLimitScale']) ?? 2;
+    final double legacyLimit =
+        (data['creditLimit'] as num?)?.toDouble() ?? 0;
+    final BigInt? minor = _readBigInt(data['creditLimitMinor']);
+    final BigInt resolvedMinor =
+        minor ?? Money.fromDouble(legacyLimit, currency: 'XXX', scale: scale).minor;
     return CreditCardEntity(
       id: data['id'] as String? ?? doc.id,
       accountId: data['accountId'] as String? ?? '',
-      creditLimit: (data['creditLimit'] as num?)?.toDouble() ?? 0,
-      creditLimitMinor: _readBigInt(data['creditLimitMinor']),
-      creditLimitScale: _readInt(data['creditLimitScale']),
+      creditLimitMinor: resolvedMinor,
+      creditLimitScale: scale,
       statementDay: (data['statementDay'] as num?)?.toInt() ?? 1,
       paymentDueDays: (data['paymentDueDays'] as num?)?.toInt() ?? 0,
       interestRateAnnual: (data['interestRateAnnual'] as num?)?.toDouble() ?? 0,

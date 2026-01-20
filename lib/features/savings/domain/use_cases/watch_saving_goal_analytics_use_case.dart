@@ -30,7 +30,7 @@ class WatchSavingGoalAnalyticsUseCase {
       DateTime? latest;
 
       for (final TransactionEntity transaction in related) {
-        final double absolute = transaction.amount.abs();
+        final double absolute = transaction.amountValue.abs().toDouble();
         totalAmount += absolute;
         final String? key = transaction.categoryId;
         totalsByCategory[key] = (totalsByCategory[key] ?? 0) + absolute;

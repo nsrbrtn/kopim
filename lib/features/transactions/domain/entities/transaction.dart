@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:kopim/core/money/money_utils.dart';
 
 part 'transaction.freezed.dart';
 part 'transaction.g.dart';
@@ -13,7 +14,6 @@ abstract class TransactionEntity with _$TransactionEntity {
     String? transferAccountId,
     String? categoryId,
     String? savingGoalId,
-    required double amount,
     @JsonKey(includeFromJson: false, includeToJson: false) BigInt? amountMinor,
     @JsonKey(includeFromJson: false, includeToJson: false)
     int? amountScale,
@@ -27,4 +27,9 @@ abstract class TransactionEntity with _$TransactionEntity {
 
   factory TransactionEntity.fromJson(Map<String, Object?> json) =>
       _$TransactionEntityFromJson(json);
+
+  MoneyAmount get amountValue => MoneyAmount(
+    minor: amountMinor ?? BigInt.zero,
+    scale: amountScale ?? 2,
+  );
 }

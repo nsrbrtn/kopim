@@ -1,14 +1,15 @@
-/// Parses user-provided balance input into a [double].
+import 'package:kopim/core/money/money_utils.dart';
+
+/// Парсит ввод баланса в [MoneyAmount].
 ///
-/// Accepts both comma and dot as decimal separators. Returns `null` if the
-/// value cannot be parsed. Empty input is treated as zero to match the
-/// behaviour of the add/edit account forms where balance is optional.
-double? parseBalanceInput(String input) {
+/// Поддерживает запятую и точку как разделители. Возвращает `null`, если
+/// значение не удалось разобрать. Пустая строка трактуется как ноль.
+MoneyAmount? parseBalanceInput(String input, {required int scale}) {
   final String trimmed = input.trim();
   if (trimmed.isEmpty) {
-    return 0;
+    return MoneyAmount(minor: BigInt.zero, scale: scale);
   }
 
   final String normalized = trimmed.replaceAll(',', '.');
-  return double.tryParse(normalized);
+  return tryParseMoneyAmount(input: normalized, scale: scale);
 }

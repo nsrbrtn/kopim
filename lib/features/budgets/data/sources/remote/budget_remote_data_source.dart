@@ -1,4 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:kopim/core/money/money.dart';
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/budgets/domain/entities/budget.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_category_allocation.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_period.dart';
@@ -63,6 +65,7 @@ class BudgetRemoteDataSource {
   }
 
   Map<String, dynamic> _mapBudget(Budget budget) {
+    final MoneyAmount amount = budget.amountValue;
     return <String, dynamic>{
       'id': budget.id,
       'title': budget.title,
@@ -71,9 +74,9 @@ class BudgetRemoteDataSource {
       'endDate': budget.endDate != null
           ? Timestamp.fromDate(budget.endDate!.toUtc())
           : null,
-      'amount': budget.amount,
-      'amountMinor': budget.amountMinor?.toString(),
-      'amountScale': budget.amountScale,
+      'amount': amount.toDouble(),
+      'amountMinor': amount.minor.toString(),
+      'amountScale': amount.scale,
       'scope': budget.scope.storageValue,
       'categories': budget.categories,
       'accounts': budget.accounts,
@@ -88,15 +91,19 @@ class BudgetRemoteDataSource {
 
   Budget _fromDocument(QueryDocumentSnapshot<Map<String, dynamic>> doc) {
     final Map<String, dynamic> data = doc.data();
+    final int scale = _readInt(data['amountScale']) ?? 2;
+    final double legacyAmount = (data['amount'] as num?)?.toDouble() ?? 0;
+    final BigInt? minor = _readBigInt(data['amountMinor']);
+    final BigInt resolvedMinor =
+        minor ?? Money.fromDouble(legacyAmount, currency: 'XXX', scale: scale).minor;
     return Budget(
       id: data['id'] as String? ?? doc.id,
       title: data['title'] as String? ?? '',
       period: BudgetPeriodX.fromStorage(data['period'] as String?),
       startDate: _parseTimestamp(data['startDate']),
       endDate: _parseOptionalTimestamp(data['endDate']),
-      amount: (data['amount'] as num?)?.toDouble() ?? 0,
-      amountMinor: _readBigInt(data['amountMinor']),
-      amountScale: _readInt(data['amountScale']),
+      amountMinor: resolvedMinor,
+      amountScale: scale,
       scope: BudgetScopeX.fromStorage(data['scope'] as String?),
       categories: _parseStringList(data['categories']),
       accounts: _parseStringList(data['accounts']),

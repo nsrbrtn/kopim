@@ -40,9 +40,19 @@ class _StubAuthController extends AuthController {
 }
 
 void main() {
+  Future<void> setWindowSize(WidgetTester tester, Size size) async {
+    tester.view.physicalSize = size;
+    tester.view.devicePixelRatio = 1;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+  }
+
   testWidgets('переключение на регистрацию отображает соответствующие поля', (
     WidgetTester tester,
   ) async {
+    await setWindowSize(tester, const Size(800, 1200));
     final _MockConnectivity connectivity = _MockConnectivity();
     final StreamController<List<ConnectivityResult>> connectivityStream =
         StreamController<List<ConnectivityResult>>.broadcast();
@@ -74,13 +84,15 @@ void main() {
     final BuildContext context = tester.element(find.byType(SignInScreen));
     final AppLocalizations strings = AppLocalizations.of(context)!;
 
-    expect(find.text(strings.signInSubmitCta), findsOneWidget);
-    expect(find.text(strings.signUpSubmitCta), findsNothing);
+    expect(find.text('Войти'), findsOneWidget);
+    expect(find.text('Создать'), findsNothing);
 
-    await tester.tap(find.text(strings.signInNoAccountCta));
+    final Finder toggleToSignUp = find.text('Создать аккаунт');
+    await tester.ensureVisible(toggleToSignUp);
+    await tester.tap(toggleToSignUp);
     await tester.pumpAndSettle();
 
-    expect(find.text(strings.signUpSubmitCta), findsOneWidget);
+    expect(find.text('Создать'), findsOneWidget);
     expect(find.text(strings.signUpConfirmPasswordLabel), findsOneWidget);
     expect(find.text(strings.signUpDisplayNameLabel), findsOneWidget);
 
@@ -90,6 +102,7 @@ void main() {
   testWidgets(
     'SignInScreen запускается в режиме регистрации при startInSignUpMode',
     (WidgetTester tester) async {
+      await setWindowSize(tester, const Size(800, 1200));
       final _MockConnectivity connectivity = _MockConnectivity();
       final StreamController<List<ConnectivityResult>> connectivityStream =
           StreamController<List<ConnectivityResult>>.broadcast();
@@ -121,7 +134,7 @@ void main() {
       final BuildContext context = tester.element(find.byType(SignInScreen));
       final AppLocalizations strings = AppLocalizations.of(context)!;
 
-      expect(find.text(strings.signUpSubmitCta), findsOneWidget);
+      expect(find.text('Создать'), findsOneWidget);
       expect(find.text(strings.signUpConfirmPasswordLabel), findsOneWidget);
       expect(find.text(strings.signUpDisplayNameLabel), findsOneWidget);
 
@@ -132,6 +145,7 @@ void main() {
   testWidgets('успешная регистрация передает данные в контроллер', (
     WidgetTester tester,
   ) async {
+    await setWindowSize(tester, const Size(800, 1200));
     final _MockConnectivity connectivity = _MockConnectivity();
     final StreamController<List<ConnectivityResult>> connectivityStream =
         StreamController<List<ConnectivityResult>>.broadcast();
@@ -163,27 +177,35 @@ void main() {
     final BuildContext context = tester.element(find.byType(SignInScreen));
     final AppLocalizations strings = AppLocalizations.of(context)!;
 
-    await tester.tap(find.text(strings.signInNoAccountCta));
+    final Finder toggleToSignUp = find.text('Создать аккаунт');
+    await tester.ensureVisible(toggleToSignUp);
+    await tester.tap(toggleToSignUp);
     await tester.pumpAndSettle();
 
+    final Finder textFields = find.byType(TextField);
+    expect(textFields, findsNWidgets(4));
     await tester.enterText(
-      find.byKey(const ValueKey<String>('sign_up_email_field')),
+      textFields.at(0),
       'user@example.com',
     );
     await tester.enterText(
-      find.byKey(const ValueKey<String>('sign_up_password_field')),
+      textFields.at(1),
       'secret123',
     );
     await tester.enterText(
-      find.byKey(const ValueKey<String>('sign_up_confirm_password_field')),
+      textFields.at(2),
       'secret123',
     );
     await tester.enterText(
-      find.byKey(const ValueKey<String>('sign_up_name_field')),
+      textFields.at(3),
       'Test User',
     );
 
-    await tester.tap(find.text(strings.signUpSubmitCta));
+    await tester.pump();
+
+    final Finder signUpSubmit = find.text('Создать');
+    await tester.ensureVisible(signUpSubmit);
+    await tester.tap(signUpSubmit);
     await tester.pumpAndSettle();
 
     expect(

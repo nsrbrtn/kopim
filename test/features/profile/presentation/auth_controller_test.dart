@@ -66,6 +66,10 @@ class FakeAuthRepository implements AuthRepository {
     return user;
   }
 
+  @override
+  Future<void> sendPasswordResetEmail(String email) =>
+      Future<void>.error(UnimplementedError());
+
   void dispose() {
     _controller.close();
   }

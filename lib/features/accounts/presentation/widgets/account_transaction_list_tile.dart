@@ -176,9 +176,7 @@ class AccountTransactionListTile extends ConsumerWidget {
                           Text(
                             TransactionTileFormatters.formatAmount(
                               formatter: moneyFormat,
-                              amount: transaction.amount,
-                              amountMinor: transaction.amountMinor,
-                              amountScale: transaction.amountScale,
+                              amount: transaction.amountValue,
                             ),
                             style: theme.textTheme.titleLarge?.copyWith(
                               color: theme.colorScheme.onSurface,

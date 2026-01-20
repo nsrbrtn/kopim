@@ -1,4 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:kopim/core/money/money.dart';
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 
 class TransactionRemoteDataSource {
@@ -63,15 +65,16 @@ class TransactionRemoteDataSource {
   }
 
   Map<String, dynamic> mapTransaction(TransactionEntity transaction) {
+    final MoneyAmount amount = transaction.amountValue.abs();
     return <String, dynamic>{
       'id': transaction.id,
       'accountId': transaction.accountId,
       'transferAccountId': transaction.transferAccountId,
       'categoryId': transaction.categoryId,
       'savingGoalId': transaction.savingGoalId,
-      'amount': transaction.amount,
-      'amountMinor': transaction.amountMinor?.toString(),
-      'amountScale': transaction.amountScale,
+      'amount': amount.toDouble(),
+      'amountMinor': amount.minor.toString(),
+      'amountScale': amount.scale,
       'date': Timestamp.fromDate(transaction.date.toUtc()),
       'note': transaction.note,
       'type': transaction.type,
@@ -85,15 +88,19 @@ class TransactionRemoteDataSource {
     QueryDocumentSnapshot<Map<String, dynamic>> doc,
   ) {
     final Map<String, dynamic> data = doc.data();
+    final int scale = _readInt(data['amountScale']) ?? 2;
+    final double legacyAmount = (data['amount'] as num?)?.toDouble() ?? 0;
+    final BigInt? minor = _readBigInt(data['amountMinor']);
+    final BigInt resolvedMinor =
+        minor ?? Money.fromDouble(legacyAmount, currency: 'XXX', scale: scale).minor;
     return TransactionEntity(
       id: data['id'] as String? ?? doc.id,
       accountId: data['accountId'] as String,
       transferAccountId: data['transferAccountId'] as String?,
       categoryId: data['categoryId'] as String?,
       savingGoalId: data['savingGoalId'] as String?,
-      amount: (data['amount'] as num?)?.toDouble() ?? 0,
-      amountMinor: _readBigInt(data['amountMinor']),
-      amountScale: _readInt(data['amountScale']),
+      amountMinor: resolvedMinor,
+      amountScale: scale,
       date: _parseTimestamp(data['date']),
       note: data['note'] as String?,
       type: data['type'] as String? ?? 'expense',

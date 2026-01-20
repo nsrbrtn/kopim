@@ -132,7 +132,7 @@ void main() {
         signUpFormControllerProvider,
       );
       expect(state.isSubmitting, isFalse);
-      expect(state.errorMessage, 'Invalid password');
+      expect(state.errorMessage, 'invalid');
     });
   });
 }

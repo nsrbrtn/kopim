@@ -82,3 +82,34 @@ MoneyAmount resolveMoneyAmount({
   );
   return useAbs ? resolved.abs() : resolved;
 }
+
+MoneyAmount? tryParseMoneyAmount({
+  required String input,
+  required int scale,
+  bool useAbs = false,
+}) {
+  final String trimmed = input.trim();
+  if (trimmed.isEmpty) return null;
+  try {
+    final Money money = Money.fromDecimalString(
+      trimmed,
+      currency: 'XXX',
+      scale: scale,
+    );
+    final MoneyAmount amount = MoneyAmount(minor: money.minor, scale: scale);
+    return useAbs ? amount.abs() : amount;
+  } catch (_) {
+    return null;
+  }
+}
+
+MoneyAmount rescaleMoneyAmount(MoneyAmount amount, int targetScale) {
+  if (amount.scale == targetScale) return amount;
+  final Money source = Money(minor: amount.minor, currency: 'XXX', scale: amount.scale);
+  final Money normalized = Money.fromDecimalString(
+    source.toDecimalString(),
+    currency: 'XXX',
+    scale: targetScale,
+  );
+  return MoneyAmount(minor: normalized.minor, scale: targetScale);
+}

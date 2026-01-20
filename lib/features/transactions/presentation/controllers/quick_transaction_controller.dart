@@ -3,6 +3,10 @@ import 'dart:async';
 import 'package:riverpod/riverpod.dart';
 import 'package:riverpod/legacy.dart';
 import 'package:kopim/core/di/injectors.dart';
+import 'package:kopim/core/money/currency_scale.dart';
+import 'package:kopim/core/money/money_utils.dart';
+import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
+import 'package:kopim/features/accounts/domain/repositories/account_repository.dart';
 import 'package:kopim/features/profile/presentation/services/profile_event_recorder.dart';
 import 'package:kopim/features/transactions/domain/entities/add_transaction_request.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
@@ -33,10 +37,14 @@ class QuickTransactionState {
   final TransactionEntity? lastCreatedTransaction;
   final String? preferredAccountId;
 
-  double? get parsedAmount {
+  MoneyAmount? parseAmount(int scale) {
     final String normalized = amount.replaceAll(',', '.');
-    final double? value = double.tryParse(normalized);
-    if (value == null || value <= 0) {
+    final MoneyAmount? value = tryParseMoneyAmount(
+      input: normalized,
+      scale: scale,
+      useAbs: true,
+    );
+    if (value == null || value.minor <= BigInt.zero) {
       return null;
     }
     return value;
@@ -46,7 +54,7 @@ class QuickTransactionState {
       !isSubmitting &&
       accountId != null &&
       categoryId != null &&
-      parsedAmount != null;
+      amount.trim().isNotEmpty;
 
   QuickTransactionState copyWith({
     String? amount,
@@ -85,6 +93,9 @@ class QuickTransactionController extends StateNotifier<QuickTransactionState> {
   QuickTransactionController(this.ref) : super(const QuickTransactionState());
 
   final Ref ref;
+  late final AccountRepository _accountRepository = ref.read(
+    accountRepositoryProvider,
+  );
 
   void prepare({
     required String categoryId,
@@ -110,8 +121,7 @@ class QuickTransactionController extends StateNotifier<QuickTransactionState> {
   }
 
   Future<TransactionEntity?> submit() async {
-    final double? amount = state.parsedAmount;
-    if (!state.canSubmit || amount == null) {
+    if (!state.canSubmit) {
       state = state.copyWith(error: QuickTransactionError.invalidInput);
       return null;
     }
@@ -119,6 +129,26 @@ class QuickTransactionController extends StateNotifier<QuickTransactionState> {
     state = state.copyWith(isSubmitting: true, clearError: true);
 
     try {
+      final AccountEntity? account = await _accountRepository.findById(
+        state.accountId!,
+      );
+      if (account == null) {
+        state = state.copyWith(
+          isSubmitting: false,
+          error: QuickTransactionError.accountMissing,
+        );
+        return null;
+      }
+      final int scale =
+          account.currencyScale ?? resolveCurrencyScale(account.currency);
+      final MoneyAmount? amount = state.parseAmount(scale);
+      if (amount == null) {
+        state = state.copyWith(
+          isSubmitting: false,
+          error: QuickTransactionError.invalidInput,
+        );
+        return null;
+      }
       final AddTransactionUseCase addUseCase = ref.read(
         addTransactionUseCaseProvider,
       );

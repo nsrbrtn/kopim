@@ -359,12 +359,7 @@ class WatchMonthlyAnalyticsUseCase {
   }
 
   MoneyAmount _resolveTransactionAmount(TransactionEntity transaction) {
-    return resolveMoneyAmount(
-      amount: transaction.amount,
-      minor: transaction.amountMinor,
-      scale: transaction.amountScale,
-      useAbs: true,
-    );
+    return transaction.amountValue.abs();
   }
 
   double _toDouble(MoneyAccumulator? accumulator) {

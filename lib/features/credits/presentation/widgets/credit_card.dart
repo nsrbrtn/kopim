@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/core/domain/icons/phosphor_icon_descriptor.dart';
 import 'package:kopim/core/money/money_utils.dart';
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/core/utils/context_extensions.dart';
 import 'package:kopim/core/utils/helpers.dart';
 import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
@@ -38,26 +39,18 @@ class CreditCard extends ConsumerWidget {
           orElse: () => AccountEntity(
             id: '',
             name: '',
-            balance: 0,
+            balanceMinor: BigInt.zero,
+            openingBalanceMinor: BigInt.zero,
             currency: 'RUB',
+            currencyScale: 2,
             type: 'credit',
             createdAt: DateTime.now(),
             updatedAt: DateTime.now(),
           ),
         );
 
-        final MoneyAmount remainingDebt = resolveMoneyAmount(
-          amount: account.balance,
-          minor: account.balanceMinor,
-          scale: account.currencyScale,
-          useAbs: true,
-        );
-        final MoneyAmount totalDebt = resolveMoneyAmount(
-          amount: credit.totalAmount,
-          minor: credit.totalAmountMinor,
-          scale: credit.totalAmountScale ?? account.currencyScale,
-          useAbs: true,
-        );
+        final MoneyAmount remainingDebt = account.balanceAmount.abs();
+        final MoneyAmount totalDebt = credit.totalAmountValue.abs();
         final double remainingDebtValue = remainingDebt.toDouble();
         final double totalDebtValue = totalDebt.toDouble();
         final double repaidAmount = (totalDebtValue - remainingDebtValue).clamp(

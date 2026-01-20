@@ -1,3 +1,4 @@
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/credits/domain/entities/debt_entity.dart';
 import 'package:kopim/features/credits/domain/repositories/debt_repository.dart';
 
@@ -15,7 +16,7 @@ class UpdateDebtUseCase {
     required DebtEntity debt,
     required String accountId,
     required String name,
-    required double amount,
+    required MoneyAmount amount,
     required DateTime dueDate,
     String? note,
   }) async {
@@ -23,9 +24,9 @@ class UpdateDebtUseCase {
     if (trimmedName.isEmpty) {
       throw ArgumentError.value(name, 'name', 'Name cannot be empty');
     }
-    if (amount <= 0) {
+    if (amount.minor <= BigInt.zero) {
       throw ArgumentError.value(
-        amount,
+        amount.toDouble(),
         'amount',
         'Amount must be greater than zero',
       );
@@ -35,7 +36,8 @@ class UpdateDebtUseCase {
     final DebtEntity updatedDebt = debt.copyWith(
       accountId: accountId,
       name: trimmedName,
-      amount: amount,
+      amountMinor: amount.minor,
+      amountScale: amount.scale,
       dueDate: dueDate,
       note: note?.trim().isNotEmpty ?? false ? note!.trim() : null,
       updatedAt: now,

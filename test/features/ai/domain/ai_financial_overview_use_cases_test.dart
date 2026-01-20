@@ -214,33 +214,21 @@ void main() {
     () async {
       await seedBaseData();
 
-      final Stream<AiFinancialOverview> stream = watchUseCase.execute(
-        filter: AiDataFilter(
-          startDate: DateTime(2024, 2, 1),
-          endDate: DateTime(2024, 2, 29),
-          accountIds: <String>['a1'],
-        ),
-      );
+      final Stream<AiFinancialOverview> stream = watchUseCase
+          .execute(
+            filter: AiDataFilter(
+              startDate: DateTime(2024, 2, 1),
+              endDate: DateTime(2024, 2, 29),
+              accountIds: <String>['a1'],
+            ),
+          )
+          .asBroadcastStream();
 
-      final Future<void> expectation = expectLater(
-        stream,
-        emitsInOrder(<dynamic>[
-          predicate<AiFinancialOverview>((AiFinancialOverview value) {
-            return value.monthlyExpenses.single.totalExpense == 200 &&
-                value.monthlyIncomes.single.totalIncome == 1200 &&
-                value.topCategories.single.totalExpense == 200 &&
-                value.topIncomeCategories.single.totalIncome == 1200;
-          }),
-          emitsThrough(
-            predicate<AiFinancialOverview>((AiFinancialOverview value) {
-              return value.monthlyExpenses.single.totalExpense == 260 &&
-                  value.monthlyIncomes.single.totalIncome == 1200 &&
-                  value.topCategories.single.totalExpense == 260 &&
-                  value.topIncomeCategories.single.totalIncome == 1200;
-            }),
-          ),
-        ]),
-      );
+      final AiFinancialOverview initial = await stream.first;
+      expect(initial.monthlyExpenses.single.totalExpense, 200);
+      expect(initial.monthlyIncomes.single.totalIncome, 1200);
+      expect(initial.topCategories.single.totalExpense, 200);
+      expect(initial.topIncomeCategories.single.totalIncome, 1200);
 
       await insertTransaction(
         id: 't2',
@@ -250,7 +238,11 @@ void main() {
         date: DateTime(2024, 2, 12),
       );
 
-      await expectation;
+      final AiFinancialOverview updated = await stream.skip(1).first;
+      expect(updated.monthlyExpenses.single.totalExpense, 260);
+      expect(updated.monthlyIncomes.single.totalIncome, 1200);
+      expect(updated.topCategories.single.totalExpense, 260);
+      expect(updated.topIncomeCategories.single.totalIncome, 1200);
     },
   );
 }

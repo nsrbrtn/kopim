@@ -61,7 +61,8 @@ List<BudgetCategorySpend> _computeBudgetCategorySpend({
       continue;
     }
     spentByCategory[categoryId] =
-        (spentByCategory[categoryId] ?? 0) + transaction.amount.abs();
+        (spentByCategory[categoryId] ?? 0) +
+        transaction.amountValue.abs().toDouble();
   }
 
   final Set<String> categoryIds = <String>{

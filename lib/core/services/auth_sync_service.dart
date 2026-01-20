@@ -10,6 +10,9 @@ import 'package:kopim/core/data/database.dart';
 import 'package:kopim/core/data/database.dart' as db;
 import 'package:kopim/core/data/outbox/outbox_dao.dart';
 import 'package:kopim/core/data/outbox/outbox_payload_normalizer.dart';
+import 'package:kopim/core/money/currency_scale.dart';
+import 'package:kopim/core/money/money.dart';
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/core/services/analytics_service.dart';
 import 'package:kopim/core/services/logger_service.dart';
 import 'package:kopim/core/services/sync/sync_data_sanitizer.dart';
@@ -53,10 +56,10 @@ import 'package:kopim/features/upcoming_payments/domain/entities/payment_reminde
 import 'package:kopim/features/upcoming_payments/domain/entities/upcoming_payment.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
 import 'package:kopim/features/profile/domain/failures/auth_failure.dart';
-import 'package:kopim/features/transactions/data/services/transaction_balance_helper.dart';
 import 'package:kopim/features/transactions/data/sources/local/transaction_dao.dart';
 import 'package:kopim/features/transactions/data/sources/remote/transaction_remote_data_source.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
+import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
 
 class AuthSyncService {
   AuthSyncService({
@@ -978,9 +981,8 @@ class AuthSyncService {
     required List<AccountEntity> accounts,
     required List<TransactionEntity> transactions,
   }) async {
-    final Map<String, double> deltas = <String, double>{
-      for (final AccountEntity account in accounts) account.id: 0,
-    };
+    final Map<String, MoneyAccumulator> deltas =
+        <String, MoneyAccumulator>{};
     final List<db.CreditRow> creditRows = await _creditDao.getAllCredits();
     final Map<String, String> creditAccountByCategoryId = <String, String>{
       for (final db.CreditRow row in creditRows)
@@ -992,44 +994,126 @@ class AuthSyncService {
       final String? creditAccountId = transaction.categoryId != null
           ? creditAccountByCategoryId[transaction.categoryId!]
           : null;
-      final Map<String, double> effect = buildTransactionEffect(
-        transaction: transaction,
-        creditAccountId: creditAccountId,
-      );
-      applyTransactionEffect(deltas, effect);
+      final TransactionType type = parseTransactionType(transaction.type);
+      final MoneyAmount amount = transaction.amountValue.abs();
+
+      if (type.isTransfer) {
+        final String? targetId = transaction.transferAccountId;
+        if (targetId == null || targetId == transaction.accountId) {
+          continue;
+        }
+        _applyMoneyDelta(
+          deltas,
+          transaction.accountId,
+          _negateMoneyAmount(amount),
+        );
+        _applyMoneyDelta(deltas, targetId, amount);
+        continue;
+      }
+
+      if (creditAccountId != null) {
+        final MoneyAmount repaymentDelta = type.isExpense
+            ? amount
+            : _negateMoneyAmount(amount);
+        if (transaction.accountId != creditAccountId) {
+          final MoneyAmount accountDelta = type.isIncome
+              ? amount
+              : _negateMoneyAmount(amount);
+          _applyMoneyDelta(deltas, transaction.accountId, accountDelta);
+          _applyMoneyDelta(deltas, creditAccountId, repaymentDelta);
+        } else {
+          _applyMoneyDelta(deltas, creditAccountId, repaymentDelta);
+        }
+        continue;
+      }
+
+      final MoneyAmount delta = type.isIncome
+          ? amount
+          : _negateMoneyAmount(amount);
+      _applyMoneyDelta(deltas, transaction.accountId, delta);
     }
 
     return accounts
         .map(
           (AccountEntity account) {
-            final double net = deltas[account.id] ?? 0;
-            final double openingBalance = _resolveOpeningBalance(
-              account: account,
-              netDelta: net,
+            final int scale = account.currencyScale ??
+                resolveCurrencyScale(account.currency);
+            final MoneyAmount netAmount = _normalizeAccumulator(
+              deltas[account.id],
+              scale,
             );
+            final BigInt openingBalanceMinor = _resolveOpeningBalanceMinor(
+              account: account,
+              scale: scale,
+            );
+            final BigInt balanceMinor = openingBalanceMinor + netAmount.minor;
             return account.copyWith(
-              openingBalance: openingBalance,
-              balance: openingBalance + net,
+              openingBalanceMinor: openingBalanceMinor,
+              balanceMinor: balanceMinor,
+              currencyScale: scale,
             );
           },
         )
         .toList(growable: false);
   }
 
-  double _resolveOpeningBalance({
+  BigInt _resolveOpeningBalanceMinor({
     required AccountEntity account,
-    required double netDelta,
+    required int scale,
   }) {
-    const double epsilon = 1e-9;
-    final double derived = account.balance - netDelta;
-    if (account.openingBalance == 0 && netDelta.abs() > epsilon) {
-      return derived;
+    final BigInt existing = account.openingBalanceMinor ?? BigInt.zero;
+    final int existingScale = account.currencyScale ?? scale;
+    return _convertMinorScale(existing, existingScale, scale);
+  }
+
+  void _applyMoneyDelta(
+    Map<String, MoneyAccumulator> deltas,
+    String accountId,
+    MoneyAmount amount,
+  ) {
+    final MoneyAccumulator accumulator =
+        deltas.putIfAbsent(accountId, MoneyAccumulator.new);
+    accumulator.add(amount);
+  }
+
+  MoneyAmount _normalizeAccumulator(
+    MoneyAccumulator? accumulator,
+    int targetScale,
+  ) {
+    if (accumulator == null || accumulator.minor == BigInt.zero) {
+      return MoneyAmount(minor: BigInt.zero, scale: targetScale);
     }
-    if ((account.openingBalance - account.balance).abs() < epsilon &&
-        netDelta.abs() > epsilon) {
-      return derived;
+    final int sourceScale = accumulator.scale;
+    final BigInt minor = _convertMinorScale(
+      accumulator.minor,
+      sourceScale,
+      targetScale,
+    );
+    return MoneyAmount(minor: minor, scale: targetScale);
+  }
+
+  BigInt _convertMinorScale(
+    BigInt minor,
+    int fromScale,
+    int toScale,
+  ) {
+    if (fromScale == toScale) {
+      return minor;
     }
-    return account.openingBalance;
+    final Money source = Money(
+      minor: minor,
+      currency: 'XXX',
+      scale: fromScale,
+    );
+    return Money.fromDecimalString(
+      source.toDecimalString(),
+      currency: 'XXX',
+      scale: toScale,
+    ).minor;
+  }
+
+  MoneyAmount _negateMoneyAmount(MoneyAmount amount) {
+    return MoneyAmount(minor: -amount.minor, scale: amount.scale);
   }
 
   String _transactionTagKey(TransactionTagEntity link) {

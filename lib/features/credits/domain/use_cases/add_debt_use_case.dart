@@ -1,3 +1,4 @@
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/categories/domain/repositories/category_repository.dart';
 import 'package:kopim/features/categories/domain/use_cases/save_category_use_case.dart';
@@ -27,7 +28,7 @@ class AddDebtUseCase {
   Future<DebtEntity> call({
     required String accountId,
     required String name,
-    required double amount,
+    required MoneyAmount amount,
     required DateTime dueDate,
     String? note,
   }) async {
@@ -46,7 +47,8 @@ class AddDebtUseCase {
       id: _uuid.v4(),
       accountId: accountId,
       name: name,
-      amount: amount,
+      amountMinor: amount.minor,
+      amountScale: amount.scale,
       dueDate: dueDate,
       note: note,
       createdAt: now,

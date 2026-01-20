@@ -133,14 +133,77 @@ flutter test --reporter expanded
 ## Progress
 - [x] Шаг 1: Выбрать модель денег и правила округления.
 - [x] Шаг 2: Обновить доменные сущности и API.
-- [ ] Шаг 3: Drift‑миграции и backfill (accounts/transactions/budgets/upcoming/debts/credits/credit_cards — в работе).
+- [x] Шаг 3: Drift‑миграции и backfill (accounts/transactions/budgets/upcoming/debts/credits/credit_cards — в работе).
 - [x] Шаг 4: Синк/импорт/экспорт (обновление payload/remote/export).
 - [x] Шаг 5: Аналитика и UI‑форматтеры.
 - [x] Шаг 6: Тесты инвариантов денег.
-- [ ] Шаг 7: Документация.
+- [x] Шаг 7: Документация.
 
 ## Surprises & Discoveries
 - ...
+
+## Decision Log
+- ...
+
+## Outcomes & Retrospective
+- Что сделано:
+- Что бы улучшить в следующий раз:
+
+# ExecPlan: Полный отказ от double в модели денег
+
+## Context and Orientation
+- Цель: убрать legacy `double` из доменных денег, перейти на `minor/scale` во всех сущностях, моделях, use cases и форматтерах UI.
+- Область кода: `lib/features/*/domain`, `lib/features/*/data`, `lib/core/money/*`, аналитика, бюджеты, upcoming payments, credits, savings, home.
+- Контекст/ограничения: не править автоген (`*.g.dart`, `*.freezed.dart`); не менять секреты; миграции Drift уже есть.
+- Риски: массовые изменения API сущностей, регресс сериализации, ломаются тесты/формы/форматтеры.
+
+## Interfaces and Dependencies
+- Внешние сервисы: Firestore payload (sync), CSV/JSON import/export.
+- Локальные зависимости: Freezed, Drift, build_runner, Riverpod.
+- Затрагиваемые API/модули: Account/Transaction/Budget/Upcoming/Credits/Savings/Analytics.
+
+## Plan of Work
+- Зафиксировать источники `double` и определить правила замены на `minor/scale`.
+- Перевести доменные сущности и DTO на `minor/scale`.
+- Обновить use cases/репозитории/форматтеры/аналитику.
+- Перегенерировать код и стабилизировать тесты.
+
+## Concrete Steps
+1) Инвентаризация: список сущностей и моделей, где `double` ещё используется.
+2) Обновить доменные сущности и вспомогательные модели (remove `double`, добавить `minor/scale`).
+3) Обновить мапперы/DAO/remote payloads под `minor/scale` как единственный источник.
+4) Обновить UI‑форматтеры и расчёты аналитики на `MoneyAmount`/`MoneyAccumulator`.
+5) Прогнать build_runner, форматирование, анализ и тесты; исправить регрессии.
+6) Обновить `docs/logic/money_model.md` и `docs/logic/feature_invariants.md`.
+
+## Validation and Acceptance
+- Команды проверки:
+```bash
+dart format --set-exit-if-changed .
+flutter analyze
+dart run build_runner build --delete-conflicting-outputs
+flutter test --reporter expanded
+```
+- Acceptance criteria:
+  - В доменных сущностях нет денежных `double`.
+  - Все расчёты денег выполняются через `minor/scale`.
+  - Тесты зелёные, сериализация стабильна.
+
+## Idempotence and Recovery
+- Что можно безопасно перезапускать: build_runner, тесты, форматирование.
+- Как откатиться/восстановиться: вернуть legacy `double` поля и конвертеры.
+- План rollback: без миграций (схема уже расширена).
+
+## Progress
+- [x] Шаг 1: Инвентаризация источников `double`.
+- [ ] Шаг 2: Обновить доменные сущности и модели.
+- [ ] Шаг 3: Обновить мапперы/DAO/remote payloads.
+- [ ] Шаг 4: Обновить UI и аналитику.
+- [ ] Шаг 5: Проверки и фиксы тестов.
+- [ ] Шаг 6: Обновить документацию.
+
+## Surprises & Discoveries
+- Основные денежные `double` остаются в domain/entities и моделей (Account/Transaction/Budget/BudgetInstance/Upcoming/Credits/Savings/Analytics/Home/AI), а также в use cases/DAO/formatters.
 
 ## Decision Log
 - ...
@@ -198,6 +261,186 @@ flutter test --reporter expanded
 - Подключить настройки к расчету summary.
 - Реализовать экран настроек (шестеренка на Overview screen).
 - Обновить тесты и документацию.
+
+# ExecPlan: Учет переводов в аналитике
+
+## Context and Orientation
+- Цель: корректно учитывать переводы между счетами в балансах/кэшфлоу и аналитике по выбранным счетам.
+- Область кода: `lib/features/analytics/presentation/controllers/analytics_providers.dart`, `lib/features/analytics/domain/use_cases/*`, возможно `lib/features/transactions/domain/entities/transaction.dart`.
+- Контекст/ограничения: не трогать автоген; не менять модель денег без необходимости; логика должна учитывать transferAccountId и направление перевода.
+- Риски: регресс в существующих отчётах, неверные фильтры по счетам, расхождения с UI ожиданиями.
+
+## Interfaces and Dependencies
+- Внешние сервисы: не затрагиваются.
+- Локальные зависимости: Riverpod providers, Money model, аналитические use cases.
+- Затрагиваемые API/модули: аналитика баланса/кэшфлоу, фильтры по счетам, возможно форматтеры.
+
+## Plan of Work
+- Зафиксировать бизнес‑логику перевода в аналитике (как влияет на исходный/целевой счет).
+- Обновить расчёты баланса и кэшфлоу с учетом transferAccountId.
+- Добавить/обновить тесты аналитики по переводам.
+- Обновить документацию об инвариантах аналитики.
+
+## Concrete Steps
+1) Просмотреть текущую реализацию аналитики и точки расчётов баланса/кэшфлоу.
+2) Определить правила:
+   - перевод между счетами: уменьшает исходный, увеличивает целевой;
+   - фильтр по выбранным счетам учитывает обе стороны перевода.
+3) Обновить расчёты в `analytics_providers.dart` и/или use case.
+4) Добавить unit‑тесты на перевод между двумя счетами и на фильтр по одному счету.
+5) Обновить `docs/logic/feature_invariants.md` (раздел аналитики/переводов).
+
+## Validation and Acceptance
+- Команды проверки:
+```bash
+dart format --set-exit-if-changed .
+flutter analyze
+flutter test --reporter expanded
+```
+- Acceptance criteria:
+  - Баланс/кэшфлоу по счетам учитывает переводы.
+  - Перевод между счетами корректно отражается при фильтре по одному счету.
+  - Тесты аналитики зелёные.
+
+## Idempotence and Recovery
+- Что можно безопасно перезапускать: тесты, форматирование, analyze.
+- Как откатиться/восстановиться: вернуть расчёты к текущей логике, удалить новые тесты.
+- План rollback: без миграций, откат по git.
+
+## Progress
+- [x] Шаг 1: Анализ текущей логики аналитики
+- [x] Шаг 2: Определение правил учета переводов
+- [x] Шаг 3: Реализация изменений
+- [x] Шаг 4: Тесты
+- [x] Шаг 5: Документация
+
+## Surprises & Discoveries
+- ...
+
+## Decision Log
+- ...
+
+## Outcomes & Retrospective
+- Что сделано:
+- Что бы улучшить в следующий раз:
+
+# ExecPlan: Пересчет балансов после LWW merge в sync
+
+## Context and Orientation
+- Цель: после LWW merge аккаунтов пересчитывать баланс по транзакциям, чтобы избежать рассинхронизации `account.balance`.
+- Область кода: `lib/core/services/auth_sync_service.dart`, возможные helpers в data‑слое.
+- Контекст/ограничения: offline‑first, источник истины — Drift; автоген не трогать; без изменения схемы Drift.
+- Риски: регресс в синке/слиянии, ошибки производительности, неконсистентность при частичном обновлении.
+
+## Interfaces and Dependencies
+- Внешние сервисы: Firestore (sync).
+- Локальные зависимости: Drift, transaction balance helper, account DAO.
+- Затрагиваемые API/модули: `AuthSyncService`, sync merge accounts, пересчет балансов.
+
+## Plan of Work
+- Найти точку LWW merge аккаунтов и текущие места пересчёта балансов.
+- Определить единый путь пересчёта по транзакциям после merge.
+- Внедрить пересчет в sync и закрыть edge‑cases.
+- Добавить unit‑тест на конфликтный merge.
+- Обновить документацию по sync‑инвариантам.
+
+## Concrete Steps
+1) Проанализировать `auth_sync_service.dart` (LWW merge аккаунтов, текущий пересчет).
+2) Зафиксировать правила пересчёта: баланс = `openingBalance + сумма транзакций` с учетом переводов/кредитов.
+3) Реализовать пересчет через общий helper после merge (внутри транзакции sync).
+4) Добавить unit‑тест: конфликт локальные/удаленные транзакции + проверка баланса.
+5) Обновить `docs/logic/feature_invariants.md` (sync).
+
+## Validation and Acceptance
+- Команды проверки:
+```bash
+dart format --set-exit-if-changed .
+flutter analyze
+flutter test --reporter expanded
+```
+- Acceptance criteria:
+  - После merge баланс соответствует транзакциям.
+  - Переводы/кредиты учитываются в пересчете.
+  - Тест синка стабилен.
+
+## Idempotence and Recovery
+- Что можно безопасно перезапускать: sync тесты, форматирование, analyze.
+- Как откатиться/восстановиться: убрать пересчет из sync, оставить прежний LWW.
+- План rollback: без миграций, откат по git.
+
+## Progress
+- [x] Шаг 1: Анализ LWW merge и точек пересчёта
+- [x] Шаг 2: Правила пересчёта в sync
+- [x] Шаг 3: Реализация
+- [x] Шаг 4: Тесты
+- [x] Шаг 5: Документация
+
+## Surprises & Discoveries
+- ...
+
+## Decision Log
+- ...
+
+## Outcomes & Retrospective
+- Что сделано:
+- Что бы улучшить в следующий раз:
+
+# ExecPlan: Стабилизация тестов sync/transactions
+
+## Context and Orientation
+- Цель: устранить падения тестов, отмеченные в аудите (auth_sync, transactions, upcoming_payments, ai repo).
+- Область кода: `test/core/services/auth_sync_service_test.dart`, `test/features/transactions/*`, `test/features/upcoming_payments/*`, `test/features/ai/*`.
+- Контекст/ограничения: не менять поведение без фикса в доменной логике; автоген не править.
+- Риски: маскирование ошибок вместо фикса; регресс поведения.
+
+## Interfaces and Dependencies
+- Внешние сервисы: Fake Firestore, моки.
+- Локальные зависимости: Riverpod, Drift, mocktail.
+- Затрагиваемые API/модули: AuthSyncService, TransactionForm, Upcoming notifications, AI repo.
+
+## Plan of Work
+- Собрать список актуальных падений и их причин.
+- Починить тесты/логику по одному, начиная с auth_sync и transactions.
+- Добавить/скорректировать моки/фейки и ожидания.
+- Прогнать наборы тестов и обновить документацию при изменении поведения.
+
+## Concrete Steps
+1) Пройтись по падениям из аудита и сверить с текущими логами.
+2) Исправить `AuthSyncService` тесты (outbox normalizer, контракт ошибок).
+3) Исправить `transactions` тесты (таймеры/DB mocks/DI).
+4) Исправить `upcoming_payments` и `ai` тесты (mocktail fallback, verifyNever).
+5) Прогнать точечные тесты и обновить DoD.
+
+## Validation and Acceptance
+- Команды проверки:
+```bash
+flutter test --reporter expanded
+```
+- Acceptance criteria:
+  - Все указанные тесты проходят.
+  - Поведение сервиса не изменено без фикса логики.
+
+## Idempotence and Recovery
+- Что можно безопасно перезапускать: тесты, analyze.
+- Как откатиться/восстановиться: вернуть изменения в тестах/моках по git.
+- План rollback: не требуется.
+
+## Progress
+- [x] Шаг 1: Анализ текущих падений
+- [x] Шаг 2: AuthSyncService тесты
+- [x] Шаг 3: Transactions тесты
+- [x] Шаг 4: Upcoming/Ai тесты
+- [x] Шаг 5: Проверка полного набора
+
+## Surprises & Discoveries
+- ...
+
+## Decision Log
+- ...
+
+## Outcomes & Retrospective
+- Что сделано:
+- Что бы улучшить в следующий раз:
 
 ## Concrete Steps
 1) Создать сущность/репозиторий/контроллер настроек обзора (SharedPreferences).
@@ -453,10 +696,10 @@ flutter test test/features/transactions/domain/use_cases/add_transaction_use_cas
 - План rollback: не использовать новый столбец (оставить прежнюю логику).
 
 ## Progress
-- [ ] Шаг 1: Добавить openingBalance в модели/БД/remote.
-- [ ] Шаг 2: Обновить пересчёты баланса.
-- [ ] Шаг 3: Обновить формы add/edit и тесты.
-- [ ] Шаг 4: Прогнать тесты и обновить AUDIT.
+- [x] Шаг 1: Добавить openingBalance в модели/БД/remote.
+- [x] Шаг 2: Обновить пересчёты баланса.
+- [x] Шаг 3: Обновить формы add/edit и тесты.
+- [x] Шаг 4: Прогнать тесты и обновить AUDIT.
 
 ## Surprises & Discoveries
 - ...

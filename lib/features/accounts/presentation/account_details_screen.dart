@@ -333,7 +333,7 @@ class _AccountSummaryCard extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               strings.accountDetailsBalanceLabel(
-                currencyFormat.format(account.balance),
+                currencyFormat.format(account.balanceAmount.toDouble()),
               ),
               style: theme.textTheme.bodyMedium,
             ),

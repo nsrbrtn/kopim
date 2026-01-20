@@ -44,8 +44,8 @@ void main() {
 
     expect(find.byIcon(Icons.star), findsOneWidget);
     expect(find.byIcon(Icons.favorite), findsOneWidget);
-    expect(find.text('60%'), findsNothing);
-    expect(find.text('40%'), findsNothing);
+    expect(find.text('60%'), findsOneWidget);
+    expect(find.text('40%'), findsOneWidget);
   });
 
   testWidgets('AnalyticsDonutChart avoids overflow with many slices', (

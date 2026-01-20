@@ -153,13 +153,11 @@ GROUP BY account_id
   }
 
   db.TransactionsCompanion _mapToCompanion(TransactionEntity transaction) {
-    final int scale = (transaction.amountScale ?? 0) > 0
-        ? transaction.amountScale!
-        : 2;
-    final Money money = Money.fromDouble(
-      transaction.amount.abs(),
+    final MoneyAmount amount = transaction.amountValue.abs();
+    final Money money = Money(
+      minor: amount.minor,
       currency: 'XXX',
-      scale: scale,
+      scale: amount.scale,
     );
     return db.TransactionsCompanion(
       id: Value<String>(transaction.id),
@@ -167,9 +165,9 @@ GROUP BY account_id
       transferAccountId: Value<String?>(transaction.transferAccountId),
       categoryId: Value<String?>(transaction.categoryId),
       savingGoalId: Value<String?>(transaction.savingGoalId),
-      amount: Value<double>(transaction.amount),
-      amountMinor: Value<String>(money.minor.toString()),
-      amountScale: Value<int>(scale),
+      amount: Value<double>(money.toDouble()),
+      amountMinor: Value<String>(amount.minor.toString()),
+      amountScale: Value<int>(amount.scale),
       date: Value<DateTime>(transaction.date),
       note: Value<String?>(transaction.note),
       type: Value<String>(transaction.type),
@@ -186,7 +184,6 @@ GROUP BY account_id
       transferAccountId: row.transferAccountId,
       categoryId: row.categoryId,
       savingGoalId: row.savingGoalId,
-      amount: row.amount,
       amountMinor: BigInt.parse(row.amountMinor),
       amountScale: row.amountScale,
       date: row.date,

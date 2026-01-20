@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/budgets/domain/entities/budget.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_instance.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_progress.dart';
@@ -28,19 +29,33 @@ class ComputeBudgetProgressUseCase {
     );
     final List<TransactionEntity> scopedTransactions = filtered.transactions;
 
-    double spent = 0;
+    final MoneyAccumulator spentAccumulator = MoneyAccumulator();
     for (final TransactionEntity tx in scopedTransactions) {
       if (tx.type == TransactionType.income.storageValue ||
           tx.type == TransactionType.transfer.storageValue) {
         continue;
       }
-      spent += tx.amount.abs();
+      spentAccumulator.add(tx.amountValue.abs());
     }
 
-    final double remaining = budget.amount - spent;
-    final double utilization = budget.amount <= 0
-        ? (spent > 0 ? double.infinity : 0)
-        : spent / budget.amount;
+    final MoneyAmount budgetAmount = budget.amountValue;
+    final MoneyAmount spent = MoneyAmount(
+      minor: spentAccumulator.minor,
+      scale: spentAccumulator.scale,
+    );
+    final MoneyAmount normalizedBudget = rescaleMoneyAmount(
+      budgetAmount,
+      spent.scale,
+    );
+    final MoneyAmount remaining = MoneyAmount(
+      minor: normalizedBudget.minor - spent.minor,
+      scale: spent.scale,
+    );
+    final double budgetTotal = normalizedBudget.toDouble();
+    final double spentValue = spent.toDouble();
+    final double utilization = budgetTotal <= 0
+        ? (spentValue > 0 ? double.infinity : 0)
+        : spentValue / budgetTotal;
 
     final BudgetInstance instance =
         (existingInstance != null &&
@@ -49,8 +64,9 @@ class ComputeBudgetProgressUseCase {
             ))
         ? existingInstance.copyWith(
             periodEnd: filtered.period.end,
-            amount: budget.amount,
-            spent: spent,
+            amountMinor: normalizedBudget.minor,
+            spentMinor: spent.minor,
+            amountScale: spent.scale,
             status: _schedule.statusFor(
               clock: now,
               start: filtered.period.start,
@@ -63,8 +79,9 @@ class ComputeBudgetProgressUseCase {
             budgetId: budget.id,
             periodStart: filtered.period.start,
             periodEnd: filtered.period.end,
-            amount: budget.amount,
-            spent: spent,
+            amountMinor: normalizedBudget.minor,
+            spentMinor: spent.minor,
+            amountScale: spent.scale,
             status: _schedule.statusFor(
               clock: now,
               start: filtered.period.start,
@@ -82,7 +99,7 @@ class ComputeBudgetProgressUseCase {
       utilization: utilization.isFinite
           ? math.max(utilization, 0)
           : double.infinity,
-      isExceeded: spent > budget.amount,
+      isExceeded: spent.minor > normalizedBudget.minor,
     );
   }
 

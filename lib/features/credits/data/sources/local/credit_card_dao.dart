@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:kopim/core/data/database.dart' as db;
 import 'package:kopim/core/money/money.dart';
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/credits/domain/entities/credit_card_entity.dart';
 
 class CreditCardDao {
@@ -69,20 +70,18 @@ class CreditCardDao {
   }
 
   db.CreditCardsCompanion _mapToCompanion(CreditCardEntity creditCard) {
-    final int scale =
-        (creditCard.creditLimitScale ?? 0) > 0
-            ? creditCard.creditLimitScale!
-            : 2;
-    final BigInt creditLimitMinor =
-        creditCard.creditLimitMinor ??
-        Money.fromDouble(creditCard.creditLimit, currency: 'XXX', scale: scale)
-            .minor;
+    final MoneyAmount limit = creditCard.creditLimitValue;
+    final Money money = Money(
+      minor: limit.minor,
+      currency: 'XXX',
+      scale: limit.scale,
+    );
     return db.CreditCardsCompanion(
       id: Value<String>(creditCard.id),
       accountId: Value<String>(creditCard.accountId),
-      creditLimit: Value<double>(creditCard.creditLimit),
-      creditLimitMinor: Value<String>(creditLimitMinor.toString()),
-      creditLimitScale: Value<int>(scale),
+      creditLimit: Value<double>(money.toDouble()),
+      creditLimitMinor: Value<String>(limit.minor.toString()),
+      creditLimitScale: Value<int>(limit.scale),
       statementDay: Value<int>(creditCard.statementDay),
       paymentDueDays: Value<int>(creditCard.paymentDueDays),
       interestRateAnnual: Value<double>(creditCard.interestRateAnnual),
@@ -96,7 +95,6 @@ class CreditCardDao {
     return CreditCardEntity(
       id: row.id,
       accountId: row.accountId,
-      creditLimit: row.creditLimit,
       creditLimitMinor: BigInt.parse(row.creditLimitMinor),
       creditLimitScale: row.creditLimitScale,
       statementDay: row.statementDay,

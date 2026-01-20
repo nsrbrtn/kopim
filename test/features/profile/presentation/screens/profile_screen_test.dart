@@ -21,6 +21,8 @@ import 'package:kopim/features/profile/presentation/controllers/profile_controll
 import 'package:kopim/features/profile/presentation/screens/menu_screen.dart';
 import 'package:kopim/features/profile/presentation/screens/profile_screen.dart';
 import 'package:kopim/features/profile/presentation/services/profile_event_recorder.dart';
+import 'package:kopim/features/profile/presentation/controllers/user_progress_controller.dart';
+import 'package:kopim/features/profile/domain/entities/user_progress.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -86,6 +88,9 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: <Override>[
+          firebaseInitializationProvider.overrideWith(
+            (Ref ref) => Future<void>.value(),
+          ),
           authControllerProvider.overrideWith(
             () => _FakeAuthController(signedInUser),
           ),
@@ -106,6 +111,17 @@ void main() {
           manageCategoryTreeProvider.overrideWith(
             (Ref ref) => Stream<List<CategoryTreeNode>>.value(
               const <CategoryTreeNode>[],
+            ),
+          ),
+          userProgressProvider.overrideWith(
+            (Ref ref, String uid) => Stream<UserProgress>.value(
+              UserProgress(
+                totalTx: 0,
+                level: 0,
+                title: 'Новичок',
+                nextThreshold: 1,
+                updatedAt: DateTime(2024, 1, 1),
+              ),
             ),
           ),
         ],

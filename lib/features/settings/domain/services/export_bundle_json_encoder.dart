@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/settings/domain/entities/export_bundle.dart';
@@ -47,13 +48,15 @@ class ExportBundleJsonEncoder {
   }
 
   Map<String, dynamic> _mapAccount(AccountEntity account) {
+    final MoneyAmount balance = account.balanceAmount;
+    final MoneyAmount openingBalance = account.openingBalanceAmount;
     return <String, dynamic>{
       'id': account.id,
       'name': account.name,
-      'balance': account.balance,
-      'balanceMinor': account.balanceMinor?.toString(),
-      'openingBalance': account.openingBalance,
-      'openingBalanceMinor': account.openingBalanceMinor?.toString(),
+      'balance': balance.toDouble(),
+      'balanceMinor': balance.minor.toString(),
+      'openingBalance': openingBalance.toDouble(),
+      'openingBalanceMinor': openingBalance.minor.toString(),
       'currency': account.currency,
       'currencyScale': account.currencyScale,
       'type': account.type,
@@ -70,15 +73,16 @@ class ExportBundleJsonEncoder {
   }
 
   Map<String, dynamic> _mapTransaction(TransactionEntity transaction) {
+    final MoneyAmount amount = transaction.amountValue.abs();
     return <String, dynamic>{
       'id': transaction.id,
       'accountId': transaction.accountId,
       'transferAccountId': transaction.transferAccountId,
       'categoryId': transaction.categoryId,
       'savingGoalId': transaction.savingGoalId,
-      'amount': transaction.amount,
-      'amountMinor': transaction.amountMinor?.toString(),
-      'amountScale': transaction.amountScale,
+      'amount': amount.toDouble(),
+      'amountMinor': amount.minor.toString(),
+      'amountScale': amount.scale,
       'date': transaction.date.toIso8601String(),
       'note': transaction.note,
       'type': transaction.type,

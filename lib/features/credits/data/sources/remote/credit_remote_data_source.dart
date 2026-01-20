@@ -1,4 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:kopim/core/money/money.dart';
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/credits/domain/entities/credit_entity.dart';
 
 class CreditRemoteDataSource {
@@ -60,13 +62,14 @@ class CreditRemoteDataSource {
   }
 
   Map<String, dynamic> _mapCredit(CreditEntity credit) {
+    final MoneyAmount totalAmount = credit.totalAmountValue;
     return <String, dynamic>{
       'id': credit.id,
       'accountId': credit.accountId,
       'categoryId': credit.categoryId,
-      'totalAmount': credit.totalAmount,
-      'totalAmountMinor': credit.totalAmountMinor?.toString(),
-      'totalAmountScale': credit.totalAmountScale,
+      'totalAmount': totalAmount.toDouble(),
+      'totalAmountMinor': totalAmount.minor.toString(),
+      'totalAmountScale': totalAmount.scale,
       'interestRate': credit.interestRate,
       'termMonths': credit.termMonths,
       'startDate': Timestamp.fromDate(credit.startDate.toUtc()),
@@ -79,13 +82,17 @@ class CreditRemoteDataSource {
 
   CreditEntity _fromDocument(QueryDocumentSnapshot<Map<String, dynamic>> doc) {
     final Map<String, dynamic> data = doc.data();
+    final int scale = _readInt(data['totalAmountScale']) ?? 2;
+    final double legacyTotal = (data['totalAmount'] as num?)?.toDouble() ?? 0;
+    final BigInt? minor = _readBigInt(data['totalAmountMinor']);
+    final BigInt resolvedMinor =
+        minor ?? Money.fromDouble(legacyTotal, currency: 'XXX', scale: scale).minor;
     return CreditEntity(
       id: data['id'] as String? ?? doc.id,
       accountId: data['accountId'] as String? ?? '',
       categoryId: data['categoryId'] as String?,
-      totalAmount: (data['totalAmount'] as num?)?.toDouble() ?? 0,
-      totalAmountMinor: _readBigInt(data['totalAmountMinor']),
-      totalAmountScale: _readInt(data['totalAmountScale']),
+      totalAmountMinor: resolvedMinor,
+      totalAmountScale: scale,
       interestRate: (data['interestRate'] as num?)?.toDouble() ?? 0,
       termMonths: (data['termMonths'] as num?)?.toInt() ?? 0,
       startDate: _parseTimestamp(data['startDate']),

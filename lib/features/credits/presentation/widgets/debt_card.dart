@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/core/domain/icons/phosphor_icon_descriptor.dart';
 import 'package:kopim/core/money/money_utils.dart';
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/core/utils/context_extensions.dart';
 import 'package:kopim/core/utils/helpers.dart';
 import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
@@ -35,8 +36,10 @@ class DebtCard extends ConsumerWidget {
               orElse: () => AccountEntity(
                 id: '',
                 name: '',
-                balance: 0,
+                balanceMinor: BigInt.zero,
+                openingBalanceMinor: BigInt.zero,
                 currency: 'RUB',
+                currencyScale: 2,
                 type: 'cash',
                 createdAt: DateTime.now(),
                 updatedAt: DateTime.now(),
@@ -53,12 +56,7 @@ class DebtCard extends ConsumerWidget {
             final DateFormat dateFormat = DateFormat.yMMMd(
               context.loc.localeName,
             );
-            final MoneyAmount amount = resolveMoneyAmount(
-              amount: debt.amount,
-              minor: debt.amountMinor,
-              scale: debt.amountScale ?? account.currencyScale,
-              useAbs: true,
-            );
+            final MoneyAmount amount = debt.amountValue.abs();
 
             final Color? accountColor = parseHexColor(account.color);
             final PhosphorIconData? accountIconData = account.iconName != null

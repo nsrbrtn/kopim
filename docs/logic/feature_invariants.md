@@ -4,7 +4,7 @@
 
 ## Accounts (Счета)
 
-Сущность: `Account { id, name, balance, openingBalance, currency, type }` (Freezed).
+Сущность: `Account { id, name, balance, openingBalance, balanceMinor, openingBalanceMinor, currency, currencyScale, type }` (Freezed).
 
 Структура:
 
@@ -14,9 +14,11 @@
 
 Инварианты:
 
-- `balance = openingBalance + сумма транзакций` (с учётом переводов).
+- Каноничная сумма — `balanceMinor/openingBalanceMinor` + `currencyScale`.
+- `balanceMinor = openingBalanceMinor + сумма транзакций` (с учётом переводов).
 - `openingBalance` — стартовая база счёта; при редактировании баланса пересчитывается относительно истории транзакций.
 - Баланс — derived‑значение; пересчёт выполняется централизованно в data‑слое и обязателен для всех путей записи транзакций (use cases, sync, import).
+- Поля `balance/openingBalance` (double) обновляются как производные от minor для UI и legacy‑экспорта.
 
 UI:
 
@@ -25,10 +27,11 @@ UI:
 
 ## Transactions (Транзакции)
 
-Сущность: `Transaction { id, accountId, categoryId, amount, date, note, type }`.
+Сущность: `Transaction { id, accountId, categoryId, amount, amountMinor, amountScale, date, note, type }`.
 
 Инварианты:
 
+- Каноничная сумма — `amountMinor/amountScale`; `amount` (double) хранится как legacy/UI.
 - `amount > 0` (знак задаётся через `type` или отдельное поле).
 - `accountId` и `categoryId` ссылаются на существующие записи.
 - Дебет/кредит-логика корректна (не переворачивать знаки без необходимости).
@@ -37,7 +40,8 @@ UI:
 
 - Вставка/обновление транзакции — в рамках одной DB-транзакции:
   - обновляет запись транзакции;
-  - пересчитывает `balance` соответствующего счёта единым helper‑ом data‑слоя;
+  - пересчитывает `balanceMinor` соответствующего счёта единым helper‑ом data‑слоя;
+  - синхронно обновляет `balance` (double) как производное;
   - при необходимости, обновляет агрегаты аналитики.
 
 Дом/лента:
@@ -70,6 +74,7 @@ UI:
 
 - Запросы (суммы по категориям/периодам/счетам) — в Drift.
 - Выполнение — вне UI isolate.
+- Переводы в аналитике по счетам учитываются как отток/приток: исходный счёт −amount, целевой +amount; при выборе обоих счетов суммарный эффект 0.
 
 UI:
 
@@ -93,6 +98,7 @@ UI:
 Синк:
 
 - При входе — запуск логики синхронизации локальных данных с облаком.
+- После LWW merge аккаунтов баланс пересчитывается из транзакций (minor‑units), `account.balance` — derived.
 
 Performance:
 

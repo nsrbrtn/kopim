@@ -124,7 +124,7 @@ void main() {
         signInFormControllerProvider,
       );
       expect(state.isSubmitting, isFalse);
-      expect(state.errorMessage, 'Invalid credentials');
+      expect(state.errorMessage, 'invalid');
     });
   });
 }

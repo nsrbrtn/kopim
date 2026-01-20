@@ -1,4 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:kopim/core/money/money.dart';
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_instance.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_instance_status.dart';
 
@@ -65,16 +67,18 @@ class BudgetInstanceRemoteDataSource {
   }
 
   Map<String, dynamic> _mapInstance(BudgetInstance instance) {
+    final MoneyAmount amount = instance.amountValue;
+    final MoneyAmount spent = instance.spentValue;
     return <String, dynamic>{
       'id': instance.id,
       'budgetId': instance.budgetId,
       'periodStart': Timestamp.fromDate(instance.periodStart.toUtc()),
       'periodEnd': Timestamp.fromDate(instance.periodEnd.toUtc()),
-      'amount': instance.amount,
-      'amountMinor': instance.amountMinor?.toString(),
-      'spent': instance.spent,
-      'spentMinor': instance.spentMinor?.toString(),
-      'amountScale': instance.amountScale,
+      'amount': amount.toDouble(),
+      'amountMinor': amount.minor.toString(),
+      'spent': spent.toDouble(),
+      'spentMinor': spent.minor.toString(),
+      'amountScale': amount.scale,
       'status': instance.status.storageValue,
       'createdAt': Timestamp.fromDate(instance.createdAt.toUtc()),
       'updatedAt': Timestamp.fromDate(instance.updatedAt.toUtc()),
@@ -86,6 +90,15 @@ class BudgetInstanceRemoteDataSource {
     QueryDocumentSnapshot<Map<String, dynamic>> doc,
   ) {
     final Map<String, dynamic> data = doc.data();
+    final int scale = _readInt(data['amountScale']) ?? 2;
+    final double legacyAmount = (data['amount'] as num?)?.toDouble() ?? 0;
+    final double legacySpent = (data['spent'] as num?)?.toDouble() ?? 0;
+    final BigInt? amountMinor = _readBigInt(data['amountMinor']);
+    final BigInt? spentMinor = _readBigInt(data['spentMinor']);
+    final BigInt resolvedAmountMinor = amountMinor ??
+        Money.fromDouble(legacyAmount, currency: 'XXX', scale: scale).minor;
+    final BigInt resolvedSpentMinor = spentMinor ??
+        Money.fromDouble(legacySpent, currency: 'XXX', scale: scale).minor;
     final bool deleted = data['deleted'] as bool? ?? false;
     final BudgetInstanceStatus status = deleted
         ? BudgetInstanceStatus.closed
@@ -95,11 +108,9 @@ class BudgetInstanceRemoteDataSource {
       budgetId: data['budgetId'] as String? ?? '',
       periodStart: _parseTimestamp(data['periodStart']),
       periodEnd: _parseTimestamp(data['periodEnd']),
-      amount: (data['amount'] as num?)?.toDouble() ?? 0,
-      amountMinor: _readBigInt(data['amountMinor']),
-      spent: (data['spent'] as num?)?.toDouble() ?? 0,
-      spentMinor: _readBigInt(data['spentMinor']),
-      amountScale: _readInt(data['amountScale']),
+      amountMinor: resolvedAmountMinor,
+      spentMinor: resolvedSpentMinor,
+      amountScale: scale,
       status: status,
       createdAt: _parseTimestamp(data['createdAt']),
       updatedAt: _parseTimestamp(data['updatedAt']),

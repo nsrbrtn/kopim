@@ -1,4 +1,6 @@
 import 'package:kopim/core/domain/icons/phosphor_icon_descriptor.dart';
+import 'package:kopim/core/money/currency_scale.dart';
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/accounts/domain/repositories/account_repository.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
@@ -25,7 +27,7 @@ class AddCreditUseCase {
 
   Future<CreditEntity> call({
     required String name,
-    required double totalAmount,
+    required MoneyAmount totalAmount,
     required String currency,
     required double interestRate,
     required int termMonths,
@@ -41,6 +43,8 @@ class AddCreditUseCase {
     final String accountId = _uuid.v4();
     final String categoryId = _uuid.v4();
     final DateTime now = DateTime.now();
+    final int scale = resolveCurrencyScale(currency);
+    final MoneyAmount resolvedAmount = rescaleMoneyAmount(totalAmount, scale);
 
     // 1. Создаем уникальную категорию для кредита
     final Category category = Category(
@@ -65,8 +69,10 @@ class AddCreditUseCase {
     final AccountEntity account = AccountEntity(
       id: accountId,
       name: name,
-      balance: -totalAmount, // Баланс кредита отрицательный
+      balanceMinor: -resolvedAmount.minor,
+      openingBalanceMinor: -resolvedAmount.minor,
       currency: currency,
+      currencyScale: scale,
       type: 'credit',
       color: color,
       gradientId: gradientId,
@@ -81,7 +87,8 @@ class AddCreditUseCase {
       id: creditId,
       accountId: accountId,
       categoryId: categoryId,
-      totalAmount: totalAmount,
+      totalAmountMinor: resolvedAmount.minor,
+      totalAmountScale: resolvedAmount.scale,
       interestRate: interestRate,
       termMonths: termMonths,
       startDate: startDate,

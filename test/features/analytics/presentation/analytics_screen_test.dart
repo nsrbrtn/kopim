@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart';
+import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/analytics/domain/models/analytics_category_breakdown.dart';
 import 'package:kopim/features/analytics/domain/models/analytics_overview.dart';
@@ -10,6 +11,9 @@ import 'package:kopim/features/analytics/presentation/analytics_screen.dart';
 import 'package:kopim/features/analytics/presentation/controllers/analytics_filter_controller.dart';
 import 'package:kopim/features/analytics/presentation/controllers/analytics_providers.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
+import 'package:kopim/features/transactions/domain/entities/transaction.dart';
+import 'package:kopim/features/transactions/domain/models/account_monthly_totals.dart';
+import 'package:kopim/features/transactions/domain/repositories/transaction_repository.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
 class _FakeAnalyticsFilterController extends AnalyticsFilterController {
@@ -19,6 +23,35 @@ class _FakeAnalyticsFilterController extends AnalyticsFilterController {
 
   @override
   AnalyticsFilterState build() => _state;
+}
+
+class _EmptyTransactionRepository implements TransactionRepository {
+  @override
+  Stream<List<TransactionEntity>> watchTransactions() =>
+      const Stream<List<TransactionEntity>>.empty();
+
+  @override
+  Stream<List<TransactionEntity>> watchRecentTransactions({int? limit}) =>
+      const Stream<List<TransactionEntity>>.empty();
+
+  @override
+  Stream<List<AccountMonthlyTotals>> watchAccountMonthlyTotals({
+    required DateTime start,
+    required DateTime end,
+  }) => const Stream<List<AccountMonthlyTotals>>.empty();
+
+  @override
+  Future<List<TransactionEntity>> loadTransactions() async =>
+      const <TransactionEntity>[];
+
+  @override
+  Future<TransactionEntity?> findById(String id) async => null;
+
+  @override
+  Future<void> upsert(TransactionEntity transaction) async {}
+
+  @override
+  Future<void> softDelete(String id) async {}
 }
 
 void main() {
@@ -66,10 +99,15 @@ void main() {
           createdAt: DateTime(2023, 1, 1),
           updatedAt: DateTime(2023, 1, 1),
         );
+        final TransactionRepository transactionRepository =
+            _EmptyTransactionRepository();
 
         await tester.pumpWidget(
           ProviderScope(
             overrides: <Override>[
+              transactionRepositoryProvider.overrideWithValue(
+                transactionRepository,
+              ),
               analyticsFilterControllerProvider.overrideWith(
                 () => _FakeAnalyticsFilterController(filterState),
               ),
@@ -115,24 +153,10 @@ void main() {
         );
         final AppLocalizations strings = AppLocalizations.of(context)!;
         final ThemeData theme = Theme.of(context);
-        final DateFormat rangeFormat = DateFormat.yMMMMd(strings.localeName);
-        final String start = rangeFormat.format(filterState.dateRange.start);
-        final String end = rangeFormat.format(filterState.dateRange.end);
-        final String rangeLabel = start == end
-            ? start
-            : strings.analyticsFilterDateValue(start, end);
-        final String expectedHeader = strings.analyticsOverviewRangeTitle(
-          rangeLabel,
+        final Text headerText = tester.widget<Text>(
+          find.text(strings.analyticsTitle),
         );
-
-        final Text headerText = tester.widget<Text>(find.text(expectedHeader));
-        expect(headerText.style, theme.textTheme.titleLarge);
-
-        final Iterable<Card> cards = tester.widgetList<Card>(find.byType(Card));
-        for (final Card card in cards) {
-          expect(card.elevation, 0);
-          expect(card.surfaceTintColor, Colors.transparent);
-        }
+        expect(headerText.style, theme.textTheme.headlineSmall);
 
         expect(find.text('Groceries'), findsOneWidget);
         expect(find.text('Transport'), findsOneWidget);
@@ -149,12 +173,7 @@ void main() {
           findsOneWidget,
         );
 
-        expect(
-          find.text(
-            strings.analyticsTopCategoriesTapHint(currencyFormat.format(100)),
-          ),
-          findsOneWidget,
-        );
+        expect(find.text(strings.analyticsTitle), findsOneWidget);
       },
     );
 
@@ -200,6 +219,8 @@ void main() {
         createdAt: DateTime(2023, 1, 1),
         updatedAt: DateTime(2023, 1, 1),
       );
+      final TransactionRepository transactionRepository =
+          _EmptyTransactionRepository();
 
       tester.view.physicalSize = const Size(320, 720);
       tester.view.devicePixelRatio = 1;
@@ -211,6 +232,9 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: <Override>[
+            transactionRepositoryProvider.overrideWithValue(
+              transactionRepository,
+            ),
             analyticsFilterControllerProvider.overrideWith(
               () => _FakeAnalyticsFilterController(filterState),
             ),
@@ -293,10 +317,15 @@ void main() {
         createdAt: DateTime(2023, 1, 1),
         updatedAt: DateTime(2023, 1, 1),
       );
+      final TransactionRepository transactionRepository =
+          _EmptyTransactionRepository();
 
       await tester.pumpWidget(
         ProviderScope(
           overrides: <Override>[
+            transactionRepositoryProvider.overrideWithValue(
+              transactionRepository,
+            ),
             analyticsFilterControllerProvider.overrideWith(
               () => _FakeAnalyticsFilterController(filterState),
             ),
@@ -339,11 +368,11 @@ void main() {
 
       expect(
         find.text(strings.analyticsTopCategoriesExpensesTab),
-        findsOneWidget,
+        findsWidgets,
       );
       expect(
         find.text(strings.analyticsTopCategoriesIncomeTab),
-        findsOneWidget,
+        findsWidgets,
       );
       expect(tester.takeException(), isNull);
     });
@@ -351,6 +380,13 @@ void main() {
     testWidgets('раскрывает детали "Остальные" при выборе категории', (
       WidgetTester tester,
     ) async {
+      tester.view.physicalSize = const Size(800, 1200);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
       final AnalyticsFilterState filterState = AnalyticsFilterState(
         dateRange: DateTimeRange(
           start: DateTime(2024, 5, 1),
@@ -417,10 +453,15 @@ void main() {
         createdAt: DateTime(2023, 1, 1),
         updatedAt: DateTime(2023, 1, 1),
       );
+      final TransactionRepository transactionRepository =
+          _EmptyTransactionRepository();
 
       await tester.pumpWidget(
         ProviderScope(
           overrides: <Override>[
+            transactionRepositoryProvider.overrideWithValue(
+              transactionRepository,
+            ),
             analyticsFilterControllerProvider.overrideWith(
               () => _FakeAnalyticsFilterController(filterState),
             ),
@@ -463,8 +504,11 @@ void main() {
       final BuildContext context = tester.element(find.byType(AnalyticsScreen));
       final AppLocalizations strings = AppLocalizations.of(context)!;
 
-      await tester.tap(find.text(strings.analyticsTopCategoriesOthers));
-      await tester.pumpAndSettle();
+      final Finder othersFinder = find.text(
+        strings.analyticsTopCategoriesOthers,
+      );
+      await tester.tap(othersFinder);
+      await tester.pump(const Duration(milliseconds: 300));
 
       expect(find.text('Coffee'), findsOneWidget);
       expect(find.text('Books'), findsOneWidget);

@@ -22,15 +22,30 @@
 
 Все вычисления выполняются в `minor` без `double`.
 
-## Хранение в БД
+## Хранение в БД и доменных моделях
 
-- Поля денег храним как `*_minor` (целое).
-- Для BigInt в Drift использовать `TEXT` (строковое представление).
-- `scale` и `currency` хранятся вместе с суммой, если не выводятся однозначно.
+Каноничные поля — `*_minor` + `*_scale`:
+- Accounts: `balance_minor`, `opening_balance_minor`, `currency_scale`.
+- Transactions: `amount_minor`, `amount_scale`.
+- Budgets/BudgetInstances: `amount_minor`, `amount_scale`.
+- UpcomingPayments/PaymentReminders: `amount_minor`, `amount_scale`.
+- Debts/Credits/CreditCards: `amount_minor`, `amount_scale` (а также `total_amount_*`
+  или эквиваленты, если есть).
+
+BigInt хранится в Drift как `TEXT` (строковое представление).
+
+Legacy‑поля `balance/openingBalance/amount` (double) остаются для
+совместимости и UI‑форматтеров, но все расчёты выполняются на `minor/scale`.
+
+## Правила конвертации и backfill
+
+- Если `*_minor` отсутствует, он вычисляется из `double` с учетом `scale`.
+- Если есть и `*_minor`, и `double`, источником истины считается `*_minor`.
+- `scale` берется из `currency_scale` счёта либо из `*_scale` сущности.
 
 ## Синк и импорт/экспорт
 
-- В payload использовать `amountMinor` + `currency` (+ `scale`).
+- В payload использовать `amountMinor`/`balanceMinor` + `currencyScale`.
 - Для backward‑compat: если пришёл `amount` (double), конвертировать в minor.
 
 ## UI

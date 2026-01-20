@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:kopim/core/money/money_utils.dart';
 
 part 'account_entity.freezed.dart';
 part 'account_entity.g.dart';
@@ -10,9 +11,7 @@ abstract class AccountEntity with _$AccountEntity {
   const factory AccountEntity({
     required String id,
     required String name,
-    required double balance,
     @JsonKey(includeFromJson: false, includeToJson: false) BigInt? balanceMinor,
-    @Default(0) double openingBalance,
     @JsonKey(includeFromJson: false, includeToJson: false)
     BigInt? openingBalanceMinor,
     required String currency,
@@ -29,6 +28,16 @@ abstract class AccountEntity with _$AccountEntity {
     @Default(false) bool isPrimary,
     @Default(false) bool isHidden,
   }) = _AccountEntity;
+
+  MoneyAmount get balanceAmount => MoneyAmount(
+    minor: balanceMinor ?? BigInt.zero,
+    scale: currencyScale ?? 2,
+  );
+
+  MoneyAmount get openingBalanceAmount => MoneyAmount(
+    minor: openingBalanceMinor ?? BigInt.zero,
+    scale: currencyScale ?? 2,
+  );
 
   factory AccountEntity.fromJson(Map<String, Object?> json) =>
       _$AccountEntityFromJson(json);

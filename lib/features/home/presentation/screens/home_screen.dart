@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/misc.dart' show StreamProviderFamily;
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:collection/collection.dart';
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/accounts/domain/use_cases/add_account_use_case.dart';
 import 'package:kopim/features/accounts/presentation/account_details_screen.dart';
@@ -736,7 +737,7 @@ class _AccountsListState extends State<_AccountsList> {
       );
       final double width = _AccountCardLayout.measureBalanceWidth(
         context: context,
-        text: format.format(account.balance),
+        text: format.format(account.balanceAmount.toDouble()),
       );
       requiredWidth = math.max(requiredWidth, width);
     }
@@ -1248,7 +1249,7 @@ class _StandardAccountContent extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         _AccountBalanceText(
-          text: currencyFormat.format(account.balance),
+          text: currencyFormat.format(account.balanceAmount.toDouble()),
           style: balanceStyle,
         ),
         const SizedBox(height: 16),
@@ -1320,10 +1321,11 @@ class _CreditCardAccountContent extends ConsumerWidget {
             }
 
             final double availableLimit = calculateCreditCardAvailableLimit(
-              creditLimit: creditCard.creditLimit,
-              balance: account.balance,
+              creditLimit: creditCard.creditLimitValue.toDouble(),
+              balance: account.balanceAmount.toDouble(),
             );
-            final double debt = calculateCreditCardDebt(account.balance);
+            final double debt =
+                calculateCreditCardDebt(account.balanceAmount.toDouble());
             final TextStyle debtStyle = summaryTextStyle.copyWith(
               color: palette.support,
               fontWeight: FontWeight.w500,
@@ -1419,8 +1421,10 @@ class _CreditCardContent extends ConsumerWidget {
             final DateTime nextPaymentDate = _calculateNextPaymentDate(credit);
             final int remainingPayments = _calculateRemainingPayments(credit);
             final double progress =
-                (credit.totalAmount + account.balance).abs() /
-                credit.totalAmount;
+                (credit.totalAmountValue.toDouble() +
+                        account.balanceAmount.toDouble())
+                    .abs() /
+                credit.totalAmountValue.toDouble();
 
             return Column(
               mainAxisSize: MainAxisSize.min,
@@ -1453,7 +1457,9 @@ class _CreditCardContent extends ConsumerWidget {
                 ),
                 const SizedBox(height: 8),
                 _AccountBalanceText(
-                  text: currencyFormat.format(account.balance.abs()),
+                  text: currencyFormat.format(
+                    account.balanceAmount.toDouble().abs(),
+                  ),
                   style: balanceStyle,
                 ),
                 const SizedBox(height: 16),
@@ -1753,12 +1759,16 @@ class _TransactionsSectionCardState extends State<_TransactionsSectionCard> {
     for (int i = 0; i < _entries.length; i++) {
       final _TransactionSliverEntry entry = _entries[i];
       if (entry is _TransactionHeaderEntry) {
-        final double netAmount = entry.netAmount;
+        final MoneyAmount netAmount = resolveMoneyAmount(
+          amount: entry.netAmount,
+          scale: 2,
+          useAbs: false,
+        );
         final String formattedAmount = TransactionTileFormatters.formatAmount(
           formatter: moneyFormat,
           amount: netAmount,
         );
-        final String amountLabel = netAmount < 0
+        final String amountLabel = netAmount.minor.isNegative
             ? '- $formattedAmount'
             : formattedAmount;
         widgets.add(
@@ -2144,9 +2154,9 @@ double _calculateDayNet(List<TransactionEntity> transactions) {
   double expense = 0;
   for (final TransactionEntity transaction in transactions) {
     if (transaction.type == TransactionType.income.storageValue) {
-      income += transaction.amount.abs();
+      income += transaction.amountValue.abs().toDouble();
     } else if (transaction.type == TransactionType.expense.storageValue) {
-      expense += transaction.amount.abs();
+      expense += transaction.amountValue.abs().toDouble();
     }
   }
   return income - expense;
@@ -2177,7 +2187,7 @@ class _TransactionListItem extends ConsumerWidget {
 
     final String accountId = transaction.accountId;
     final String? categoryId = transaction.categoryId;
-    final double amount = transaction.amount;
+    final MoneyAmount amount = transaction.amountValue;
     final String? note = transaction.note;
     final bool isTransfer =
         transaction.type == TransactionType.transfer.storageValue;
@@ -2350,8 +2360,6 @@ class _TransactionListItem extends ConsumerWidget {
                         TransactionTileFormatters.formatAmount(
                           formatter: moneyFormat,
                           amount: amount,
-                          amountMinor: transaction.amountMinor,
-                          amountScale: transaction.amountScale,
                         ),
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           color: Theme.of(context).colorScheme.onSurface,

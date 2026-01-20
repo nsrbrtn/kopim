@@ -578,9 +578,7 @@ class _BudgetTransactionTile extends ConsumerWidget {
                         Text(
                           TransactionTileFormatters.formatAmount(
                             formatter: moneyFormat,
-                            amount: transaction.amount,
-                            amountMinor: transaction.amountMinor,
-                            amountScale: transaction.amountScale,
+                            amount: transaction.amountValue,
                           ),
                           style: theme.textTheme.titleMedium?.copyWith(
                             color: amountColor,

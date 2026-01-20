@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:kopim/core/money/money_utils.dart';
 
 part 'credit_entity.freezed.dart';
 part 'credit_entity.g.dart';
@@ -9,7 +10,6 @@ abstract class CreditEntity with _$CreditEntity {
     required String id,
     required String accountId,
     String? categoryId,
-    required double totalAmount,
     @JsonKey(includeFromJson: false, includeToJson: false)
     BigInt? totalAmountMinor,
     @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,4 +25,9 @@ abstract class CreditEntity with _$CreditEntity {
 
   factory CreditEntity.fromJson(Map<String, Object?> json) =>
       _$CreditEntityFromJson(json);
+
+  MoneyAmount get totalAmountValue => MoneyAmount(
+    minor: totalAmountMinor ?? BigInt.zero,
+    scale: totalAmountScale ?? 2,
+  );
 }

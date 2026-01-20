@@ -1,7 +1,7 @@
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/accounts/domain/repositories/account_repository.dart';
 import 'package:kopim/core/money/currency_scale.dart';
-import 'package:kopim/core/money/money.dart';
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/transactions/domain/entities/add_transaction_request.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
@@ -47,25 +47,21 @@ class AddTransactionUseCase {
     }
 
     final DateTime now = _clock().toUtc();
-    final double amount = request.normalizedAmount;
     final TransactionType type = request.type;
     final int scale =
-        request.amountScale ?? resolveCurrencyScale(account.currency);
-    final BigInt amountMinor = request.amountMinor ??
-        Money.fromDouble(
-          amount,
-          currency: account.currency,
-          scale: scale,
-        ).minor;
+        account.currencyScale ?? resolveCurrencyScale(account.currency);
+    final MoneyAmount resolvedAmount = rescaleMoneyAmount(
+      request.normalizedAmount,
+      scale,
+    );
     final TransactionEntity transaction = TransactionEntity(
       id: _generateId(),
       accountId: request.accountId,
       transferAccountId: request.transferAccountId,
       categoryId: type.isTransfer ? null : request.categoryId,
       savingGoalId: request.savingGoalId,
-      amount: amount,
-      amountMinor: amountMinor,
-      amountScale: scale,
+      amountMinor: resolvedAmount.minor,
+      amountScale: resolvedAmount.scale,
       date: request.date,
       note: request.note?.trim().isEmpty ?? true ? null : request.note!.trim(),
       type: type.storageValue,

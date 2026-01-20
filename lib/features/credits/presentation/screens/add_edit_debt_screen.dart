@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:kopim/core/di/injectors.dart';
+import 'package:kopim/core/money/currency_scale.dart';
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/core/utils/context_extensions.dart';
 import 'package:kopim/core/widgets/kopim_dropdown_field.dart';
 import 'package:kopim/core/widgets/kopim_text_field.dart';
@@ -41,7 +43,9 @@ class _AddEditDebtScreenState extends ConsumerState<AddEditDebtScreen> {
     super.initState();
     if (widget.debt != null) {
       _nameController.text = widget.debt!.name;
-      _amountController.text = widget.debt!.amount.toString();
+      final MoneyAmount amount = widget.debt!.amountValue;
+      _amountController.text =
+          amount.toDouble().toStringAsFixed(amount.scale);
       _noteController.text = widget.debt!.note ?? '';
       _selectedAccountId = widget.debt!.accountId;
       _selectedDueDate = widget.debt!.dueDate;
@@ -82,8 +86,12 @@ class _AddEditDebtScreenState extends ConsumerState<AddEditDebtScreen> {
   bool _validate() {
     setState(() {
       _nameError = _nameController.text.trim().isEmpty;
-      final double? amount = double.tryParse(_amountController.text);
-      _amountError = amount == null || amount <= 0;
+      final MoneyAmount? amount = tryParseMoneyAmount(
+        input: _amountController.text,
+        scale: 2,
+        useAbs: true,
+      );
+      _amountError = amount == null || amount.minor <= BigInt.zero;
       _accountError = _selectedAccountId == null;
       _dateError = _selectedDueDate == null;
     });
@@ -93,7 +101,17 @@ class _AddEditDebtScreenState extends ConsumerState<AddEditDebtScreen> {
   Future<void> _save() async {
     if (!_validate()) return;
     final String name = _nameController.text.trim();
-    final double amount = double.parse(_amountController.text);
+    final AccountEntity? account = await ref
+        .read(accountRepositoryProvider)
+        .findById(_selectedAccountId!);
+    final int scale = account != null
+        ? (account.currencyScale ?? resolveCurrencyScale(account.currency))
+        : resolveCurrencyScale('RUB');
+    final MoneyAmount amount = tryParseMoneyAmount(
+      input: _amountController.text,
+      scale: scale,
+      useAbs: true,
+    )!;
     final String? note = _noteController.text.trim().isEmpty
         ? null
         : _noteController.text.trim();
@@ -128,7 +146,17 @@ class _AddEditDebtScreenState extends ConsumerState<AddEditDebtScreen> {
       return;
     }
     final String name = _nameController.text.trim();
-    final double amount = double.parse(_amountController.text);
+    final AccountEntity? account = await ref
+        .read(accountRepositoryProvider)
+        .findById(_selectedAccountId!);
+    final int scale = account != null
+        ? (account.currencyScale ?? resolveCurrencyScale(account.currency))
+        : resolveCurrencyScale('RUB');
+    final MoneyAmount amount = tryParseMoneyAmount(
+      input: _amountController.text,
+      scale: scale,
+      useAbs: true,
+    )!;
     await ref
         .read(addDebtUseCaseProvider)
         .call(
@@ -143,7 +171,7 @@ class _AddEditDebtScreenState extends ConsumerState<AddEditDebtScreen> {
     if (mounted) {
       final EditPaymentReminderScreenArgs args = EditPaymentReminderScreenArgs(
         initialTitle: name,
-        initialAmount: amount,
+        initialAmount: amount.toDouble(),
         initialWhenLocal: _selectedDueDate,
       );
 

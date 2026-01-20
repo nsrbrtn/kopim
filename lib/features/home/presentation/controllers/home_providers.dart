@@ -175,13 +175,13 @@ Map<String, HomeAccountMonthlySummary> computeCurrentMonthSummaries({
         accumulator[transaction.accountId] ?? (income: 0, expense: 0);
     if (transaction.type == TransactionType.income.storageValue) {
       accumulator[transaction.accountId] = (
-        income: current.income + transaction.amount.abs(),
+        income: current.income + transaction.amountValue.abs().toDouble(),
         expense: current.expense,
       );
     } else if (transaction.type == TransactionType.expense.storageValue) {
       accumulator[transaction.accountId] = (
         income: current.income,
-        expense: current.expense + transaction.amount.abs(),
+        expense: current.expense + transaction.amountValue.abs().toDouble(),
       );
     }
   }

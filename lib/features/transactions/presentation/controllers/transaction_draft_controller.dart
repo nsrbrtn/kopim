@@ -4,8 +4,11 @@ import 'package:riverpod/riverpod.dart';
 import 'package:riverpod/legacy.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
+import 'package:kopim/features/accounts/domain/repositories/account_repository.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/core/services/logger_service.dart';
+import 'package:kopim/core/money/currency_scale.dart';
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/profile/presentation/services/profile_event_recorder.dart';
 import 'package:kopim/features/tags/domain/entities/tag.dart';
 import 'package:kopim/features/tags/domain/use_cases/set_transaction_tags_use_case.dart';
@@ -55,6 +58,7 @@ class TransactionDraftState {
     this.hasInitialized = false,
     this.hasLoadedTags = false,
     this.preferredAccountId,
+    this.accountScale,
   });
 
   factory TransactionDraftState.forAdd({String? defaultAccountId}) {
@@ -72,13 +76,15 @@ class TransactionDraftState {
       hasInitialized: true,
       hasLoadedTags: false,
       preferredAccountId: defaultAccountId,
+      accountScale: null,
     );
   }
 
   factory TransactionDraftState.forEdit(TransactionEntity transaction) {
     final TransactionType initialType = parseTransactionType(transaction.type);
+    final MoneyAmount amount = transaction.amountValue;
     return TransactionDraftState(
-      amount: transaction.amount.toStringAsFixed(2),
+      amount: amount.toDouble().toStringAsFixed(amount.scale),
       accountId: transaction.accountId,
       transferAccountId: transaction.transferAccountId,
       categoryId: transaction.categoryId,
@@ -91,6 +97,7 @@ class TransactionDraftState {
       hasInitialized: true,
       hasLoadedTags: false,
       preferredAccountId: transaction.accountId,
+      accountScale: transaction.amountScale,
     );
   }
 
@@ -110,16 +117,21 @@ class TransactionDraftState {
   final bool hasInitialized;
   final bool hasLoadedTags;
   final String? preferredAccountId;
+  final int? accountScale;
 
   bool get isEditing => initialTransaction != null;
 
   DateTime get date =>
       selectedDate ?? initialTransaction?.date ?? DateTime.now();
 
-  double? get parsedAmount {
+  MoneyAmount? parseAmount(int scale) {
     final String normalized = amount.replaceAll(',', '.');
-    final double? value = double.tryParse(normalized);
-    if (value == null || value <= 0) {
+    final MoneyAmount? value = tryParseMoneyAmount(
+      input: normalized,
+      scale: scale,
+      useAbs: true,
+    );
+    if (value == null || value.minor <= BigInt.zero) {
       return null;
     }
     return value;
@@ -128,7 +140,7 @@ class TransactionDraftState {
   bool get canSubmit =>
       !isSubmitting &&
       accountId != null &&
-      parsedAmount != null &&
+      parseAmount(accountScale ?? 2) != null &&
       (type.isTransfer
           ? transferAccountId != null && transferAccountId != accountId
           : true);
@@ -153,6 +165,7 @@ class TransactionDraftState {
     bool? hasInitialized,
     bool? hasLoadedTags,
     String? preferredAccountId,
+    int? accountScale,
     bool clearTransferAccount = false,
   }) {
     return TransactionDraftState(
@@ -176,6 +189,7 @@ class TransactionDraftState {
       hasInitialized: hasInitialized ?? this.hasInitialized,
       hasLoadedTags: hasLoadedTags ?? this.hasLoadedTags,
       preferredAccountId: preferredAccountId ?? this.preferredAccountId,
+      accountScale: accountScale ?? this.accountScale,
     );
   }
 }
@@ -210,6 +224,9 @@ class TransactionDraftController extends StateNotifier<TransactionDraftState> {
     : super(const TransactionDraftState(hasInitialized: false));
 
   final Ref ref;
+  late final AccountRepository _accountRepository = ref.read(
+    accountRepositoryProvider,
+  );
 
   void applyArgs(TransactionFormArgs args) {
     if (args.initialTransaction != null) {
@@ -270,9 +287,13 @@ class TransactionDraftController extends StateNotifier<TransactionDraftState> {
           ? null
           : state.transferAccountId,
       preferredAccountId: accountId ?? state.preferredAccountId,
+      accountScale: state.accountScale,
       clearError: true,
       isSuccess: false,
     );
+    if (accountId != null) {
+      unawaited(_updateAccountScale(accountId));
+    }
   }
 
   void updateCategory(String? categoryId) {
@@ -351,6 +372,22 @@ class TransactionDraftController extends StateNotifier<TransactionDraftState> {
     state = state.copyWith(isSubmitting: true, clearError: true);
 
     try {
+      final AccountEntity? account = await _accountRepository.findById(
+        state.accountId!,
+      );
+      if (account == null) {
+        throw StateError('Account not found');
+      }
+      final int scale =
+          account.currencyScale ?? resolveCurrencyScale(account.currency);
+      final MoneyAmount? parsedAmount = state.parseAmount(scale);
+      if (parsedAmount == null) {
+        state = state.copyWith(
+          isSubmitting: false,
+          error: TransactionDraftError.unknown,
+        );
+        return;
+      }
       if (state.isEditing) {
         final TransactionEntity? initial = state.initialTransaction;
         if (initial == null) {
@@ -372,7 +409,7 @@ class TransactionDraftController extends StateNotifier<TransactionDraftState> {
             accountId: state.accountId!,
             transferAccountId: state.transferAccountId,
             categoryId: resolvedCategoryId,
-            amount: state.parsedAmount!,
+            amount: parsedAmount,
             date: state.date,
             note: state.note,
             type: state.type,
@@ -401,7 +438,7 @@ class TransactionDraftController extends StateNotifier<TransactionDraftState> {
               accountId: state.accountId!,
               transferAccountId: state.transferAccountId,
               categoryId: resolvedCategoryId,
-              amount: state.parsedAmount!,
+              amount: parsedAmount,
               date: state.date,
               note: state.note,
               type: state.type,
@@ -427,6 +464,14 @@ class TransactionDraftController extends StateNotifier<TransactionDraftState> {
         error: TransactionDraftError.unknown,
       );
     }
+  }
+
+  Future<void> _updateAccountScale(String accountId) async {
+    final AccountEntity? account = await _accountRepository.findById(accountId);
+    if (account == null) return;
+    final int scale =
+        account.currencyScale ?? resolveCurrencyScale(account.currency);
+    state = state.copyWith(accountScale: scale);
   }
 
   Future<void> _loadTagIdsForEdit(String transactionId) async {

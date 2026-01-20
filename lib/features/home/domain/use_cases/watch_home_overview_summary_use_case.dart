@@ -80,7 +80,8 @@ HomeOverviewSummary computeHomeOverviewSummary({
 
   final double totalBalance = selectedAccounts.fold<double>(
     0,
-    (double sum, AccountEntity account) => sum + account.balance,
+    (double sum, AccountEntity account) =>
+        sum + account.balanceAmount.toDouble(),
   );
 
   double todayIncome = 0;
@@ -96,7 +97,7 @@ HomeOverviewSummary computeHomeOverviewSummary({
     final DateTime date = transaction.date;
     final bool inToday = !date.isBefore(dayStart) && date.isBefore(dayEnd);
     final bool inMonth = !date.isBefore(monthStart) && date.isBefore(monthEnd);
-    final double amount = transaction.amount.abs();
+    final double amount = transaction.amountValue.abs().toDouble();
     final String? rootCategoryId = _resolveRootCategoryId(
       transaction.categoryId,
       hierarchy,

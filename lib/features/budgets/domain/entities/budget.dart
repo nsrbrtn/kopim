@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:kopim/core/money/money_utils.dart';
 
 import 'budget_category_allocation.dart';
 import 'budget_period.dart';
@@ -18,7 +19,6 @@ abstract class Budget with _$Budget {
     required BudgetPeriod period,
     required DateTime startDate,
     DateTime? endDate,
-    required double amount,
     @JsonKey(includeFromJson: false, includeToJson: false)
     BigInt? amountMinor,
     @JsonKey(includeFromJson: false, includeToJson: false)
@@ -35,6 +35,11 @@ abstract class Budget with _$Budget {
   }) = _Budget;
 
   factory Budget.fromJson(Map<String, Object?> json) => _$BudgetFromJson(json);
+
+  MoneyAmount get amountValue => MoneyAmount(
+    minor: amountMinor ?? BigInt.zero,
+    scale: amountScale ?? 2,
+  );
 }
 
 String _periodToJson(BudgetPeriod period) => period.storageValue;

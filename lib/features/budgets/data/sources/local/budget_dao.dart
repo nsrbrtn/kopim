@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:kopim/core/data/database.dart' as db;
 import 'package:kopim/core/money/money.dart';
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/budgets/domain/entities/budget.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_category_allocation.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_instance.dart';
@@ -89,24 +90,21 @@ class BudgetDao {
   }
 
   db.BudgetsCompanion _mapBudgetToCompanion(Budget budget) {
-    final int scale = (budget.amountScale ?? 0) > 0
-        ? budget.amountScale!
-        : 2;
-    final BigInt amountMinor = budget.amountMinor ??
-        Money.fromDouble(
-          budget.amount,
-          currency: 'XXX',
-          scale: scale,
-        ).minor;
+    final MoneyAmount amount = budget.amountValue;
+    final Money money = Money(
+      minor: amount.minor,
+      currency: 'XXX',
+      scale: amount.scale,
+    );
     return db.BudgetsCompanion(
       id: Value<String>(budget.id),
       title: Value<String>(budget.title),
       period: Value<String>(budget.period.storageValue),
       startDate: Value<DateTime>(budget.startDate),
       endDate: Value<DateTime?>(budget.endDate),
-      amount: Value<double>(budget.amount),
-      amountMinor: Value<String>(amountMinor.toString()),
-      amountScale: Value<int>(scale),
+      amount: Value<double>(money.toDouble()),
+      amountMinor: Value<String>(amount.minor.toString()),
+      amountScale: Value<int>(amount.scale),
       scope: Value<String>(budget.scope.storageValue),
       categories: Value<List<String>>(budget.categories),
       accounts: Value<List<String>>(budget.accounts),
@@ -128,7 +126,6 @@ class BudgetDao {
       period: BudgetPeriodX.fromStorage(row.period),
       startDate: row.startDate,
       endDate: row.endDate,
-      amount: row.amount,
       amountMinor: BigInt.parse(row.amountMinor),
       amountScale: row.amountScale,
       scope: BudgetScopeX.fromStorage(row.scope),
@@ -228,31 +225,28 @@ class BudgetInstanceDao {
   }
 
   db.BudgetInstancesCompanion _mapInstanceToCompanion(BudgetInstance instance) {
-    final int scale = (instance.amountScale ?? 0) > 0
-        ? instance.amountScale!
-        : 2;
-    final BigInt amountMinor = instance.amountMinor ??
-        Money.fromDouble(
-          instance.amount,
-          currency: 'XXX',
-          scale: scale,
-        ).minor;
-    final BigInt spentMinor = instance.spentMinor ??
-        Money.fromDouble(
-          instance.spent,
-          currency: 'XXX',
-          scale: scale,
-        ).minor;
+    final MoneyAmount amount = instance.amountValue;
+    final MoneyAmount spent = instance.spentValue;
+    final Money amountMoney = Money(
+      minor: amount.minor,
+      currency: 'XXX',
+      scale: amount.scale,
+    );
+    final Money spentMoney = Money(
+      minor: spent.minor,
+      currency: 'XXX',
+      scale: spent.scale,
+    );
     return db.BudgetInstancesCompanion(
       id: Value<String>(instance.id),
       budgetId: Value<String>(instance.budgetId),
       periodStart: Value<DateTime>(instance.periodStart),
       periodEnd: Value<DateTime>(instance.periodEnd),
-      amount: Value<double>(instance.amount),
-      amountMinor: Value<String>(amountMinor.toString()),
-      spent: Value<double>(instance.spent),
-      spentMinor: Value<String>(spentMinor.toString()),
-      amountScale: Value<int>(scale),
+      amount: Value<double>(amountMoney.toDouble()),
+      amountMinor: Value<String>(amount.minor.toString()),
+      spent: Value<double>(spentMoney.toDouble()),
+      spentMinor: Value<String>(spent.minor.toString()),
+      amountScale: Value<int>(amount.scale),
       status: Value<String>(instance.status.storageValue),
       createdAt: Value<DateTime>(instance.createdAt),
       updatedAt: Value<DateTime>(instance.updatedAt),
@@ -265,8 +259,6 @@ class BudgetInstanceDao {
       budgetId: row.budgetId,
       periodStart: row.periodStart,
       periodEnd: row.periodEnd,
-      amount: row.amount,
-      spent: row.spent,
       amountMinor: BigInt.parse(row.amountMinor),
       spentMinor: BigInt.parse(row.spentMinor),
       amountScale: row.amountScale,

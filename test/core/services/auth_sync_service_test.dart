@@ -45,6 +45,8 @@ import 'package:kopim/features/tags/data/sources/remote/tag_remote_data_source.d
 import 'package:kopim/features/tags/data/sources/remote/transaction_tag_remote_data_source.dart';
 import 'package:kopim/features/transactions/data/sources/local/transaction_dao.dart';
 import 'package:kopim/features/transactions/data/sources/remote/transaction_remote_data_source.dart';
+import 'package:kopim/features/transactions/domain/entities/transaction.dart';
+import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
 import 'package:kopim/features/upcoming_payments/data/drift/daos/payment_reminders_dao.dart';
 import 'package:kopim/features/upcoming_payments/data/drift/daos/upcoming_payments_dao.dart';
 import 'package:kopim/features/upcoming_payments/data/sources/remote/payment_reminder_remote_data_source.dart';
@@ -446,6 +448,88 @@ void main() {
 
         verify(() => analytics.logEvent('auth_sync_start', any())).called(1);
         verify(() => analytics.logEvent('auth_sync_success', any())).called(1);
+      },
+    );
+
+    test(
+      'пересчитывает баланс после LWW merge на основе транзакций',
+      () async {
+        final AuthSyncService service = buildService();
+        const String userId = 'user-2';
+        final DateTime createdAt = DateTime.utc(2024, 1, 1);
+        final DateTime updatedAt = DateTime.utc(2024, 1, 2);
+        const int scale = 2;
+
+        final AccountEntity localAccount = AccountEntity(
+          id: 'acc-merge',
+          name: 'Local',
+          balance: 0,
+          openingBalance: 0,
+          balanceMinor: BigInt.zero,
+          openingBalanceMinor: BigInt.zero,
+          currency: 'USD',
+          currencyScale: scale,
+          type: 'checking',
+          createdAt: createdAt,
+          updatedAt: createdAt,
+          isDeleted: false,
+        );
+        await accountDao.upsert(localAccount);
+
+        final DateTime txDate = DateTime.utc(2024, 1, 3);
+        final TransactionEntity transaction = TransactionEntity(
+          id: 'tx-1',
+          accountId: localAccount.id,
+          amount: 100,
+          amountMinor: BigInt.from(10000),
+          amountScale: scale,
+          date: txDate,
+          type: TransactionType.income.storageValue,
+          createdAt: txDate,
+          updatedAt: txDate,
+        );
+        await transactionDao.upsert(transaction);
+
+        await firestore
+            .collection('users')
+            .doc(userId)
+            .collection('accounts')
+            .doc(localAccount.id)
+            .set(<String, dynamic>{
+              'id': localAccount.id,
+              'name': 'Remote',
+              'balance': 0,
+              'openingBalance': 0,
+              'balanceMinor': '0',
+              'openingBalanceMinor': '0',
+              'currency': 'USD',
+              'currencyScale': scale,
+              'type': 'checking',
+              'createdAt': Timestamp.fromDate(createdAt),
+              'updatedAt': Timestamp.fromDate(updatedAt),
+              'isDeleted': false,
+            });
+
+        final AuthUser authUser = AuthUser(
+          uid: userId,
+          email: 'user2@kopim.app',
+          displayName: 'User2',
+          photoUrl: null,
+          isAnonymous: false,
+          emailVerified: true,
+          creationTime: createdAt,
+          lastSignInTime: updatedAt,
+        );
+
+        await service.synchronizeOnLogin(user: authUser, previousUser: null);
+
+        final List<AccountEntity> localAccounts = await accountDao
+            .getAllAccounts();
+        expect(localAccounts, hasLength(1));
+        final AccountEntity merged = localAccounts.single;
+        expect(merged.balance, closeTo(100, 1e-6));
+        expect(merged.balanceMinor, BigInt.from(10000));
+        expect(merged.openingBalanceMinor, BigInt.zero);
       },
     );
 

@@ -1,7 +1,7 @@
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/accounts/domain/repositories/account_repository.dart';
 import 'package:kopim/core/money/currency_scale.dart';
-import 'package:kopim/core/money/money.dart';
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
 import 'package:kopim/features/transactions/domain/entities/update_transaction_request.dart';
@@ -29,7 +29,6 @@ class UpdateTransactionUseCase {
     }
 
     final DateTime now = _clock().toUtc();
-    final double normalizedAmount = request.normalizedAmount;
     final TransactionType previousType = parseTransactionType(existing.type);
     final TransactionType newType = request.type;
     final String normalizedNote = request.note?.trim() ?? '';
@@ -65,20 +64,18 @@ class UpdateTransactionUseCase {
     }
 
     final int scale =
-        request.amountScale ?? resolveCurrencyScale(updatedAccount.currency);
-    final BigInt amountMinor = request.amountMinor ??
-        Money.fromDouble(
-          normalizedAmount,
-          currency: updatedAccount.currency,
-          scale: scale,
-        ).minor;
+        updatedAccount.currencyScale ??
+        resolveCurrencyScale(updatedAccount.currency);
+    final MoneyAmount resolvedAmount = rescaleMoneyAmount(
+      request.normalizedAmount,
+      scale,
+    );
     final TransactionEntity updatedTransaction = existing.copyWith(
       accountId: request.accountId,
       transferAccountId: request.transferAccountId,
       categoryId: newType.isTransfer ? null : request.categoryId,
-      amount: normalizedAmount,
-      amountMinor: amountMinor,
-      amountScale: scale,
+      amountMinor: resolvedAmount.minor,
+      amountScale: resolvedAmount.scale,
       date: request.date,
       note: noteValue,
       type: newType.storageValue,

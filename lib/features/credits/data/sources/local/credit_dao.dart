@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:kopim/core/data/database.dart' as db;
 import 'package:kopim/core/money/money.dart';
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/credits/domain/entities/credit_entity.dart';
 
 class CreditDao {
@@ -76,19 +77,19 @@ class CreditDao {
   }
 
   db.CreditsCompanion _mapToCompanion(CreditEntity credit) {
-    final int scale =
-        (credit.totalAmountScale ?? 0) > 0 ? credit.totalAmountScale! : 2;
-    final BigInt totalAmountMinor =
-        credit.totalAmountMinor ??
-        Money.fromDouble(credit.totalAmount, currency: 'XXX', scale: scale)
-            .minor;
+    final MoneyAmount totalAmount = credit.totalAmountValue;
+    final Money money = Money(
+      minor: totalAmount.minor,
+      currency: 'XXX',
+      scale: totalAmount.scale,
+    );
     return db.CreditsCompanion(
       id: Value<String>(credit.id),
       accountId: Value<String>(credit.accountId),
       categoryId: Value<String?>(credit.categoryId),
-      totalAmount: Value<double>(credit.totalAmount),
-      totalAmountMinor: Value<String>(totalAmountMinor.toString()),
-      totalAmountScale: Value<int>(scale),
+      totalAmount: Value<double>(money.toDouble()),
+      totalAmountMinor: Value<String>(totalAmount.minor.toString()),
+      totalAmountScale: Value<int>(totalAmount.scale),
       interestRate: Value<double>(credit.interestRate),
       termMonths: Value<int>(credit.termMonths),
       startDate: Value<DateTime>(credit.startDate),
@@ -103,7 +104,6 @@ class CreditDao {
       id: row.id,
       accountId: row.accountId,
       categoryId: row.categoryId,
-      totalAmount: row.totalAmount,
       totalAmountMinor: BigInt.parse(row.totalAmountMinor),
       totalAmountScale: row.totalAmountScale,
       interestRate: row.interestRate,

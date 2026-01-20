@@ -1,6 +1,8 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/core/domain/icons/phosphor_icon_descriptor.dart';
+import 'package:kopim/core/money/currency_scale.dart';
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/accounts/domain/use_cases/add_account_use_case.dart';
 import 'package:kopim/features/accounts/domain/utils/account_type_utils.dart';
@@ -63,7 +65,10 @@ abstract class EditAccountFormState with _$EditAccountFormState {
 
   const EditAccountFormState._();
 
-  double? get parsedBalance => parseBalanceInput(balanceInput);
+  MoneyAmount? parseBalance() => parseBalanceInput(
+    balanceInput,
+    scale: resolveCurrencyScale(currency),
+  );
 
   String? get resolvedType {
     final String value = useCustomType ? customType.trim() : type.trim();
@@ -87,7 +92,7 @@ abstract class EditAccountFormState with _$EditAccountFormState {
       paymentDueDaysError == null &&
       interestRateError == null &&
       name.trim().isNotEmpty &&
-      parsedBalance != null &&
+      parseBalance() != null &&
       resolvedType != null;
 }
 
@@ -122,10 +127,13 @@ class EditAccountFormController extends _$EditAccountFormController {
     final String customType = useCustomType
         ? stripCustomAccountPrefix(account.type)
         : '';
+    final MoneyAmount balanceAmount = account.balanceAmount;
     return EditAccountFormState(
       original: account,
       name: account.name,
-      balanceInput: account.balance.toStringAsFixed(2),
+      balanceInput: balanceAmount.toDouble().toStringAsFixed(
+        balanceAmount.scale,
+      ),
       currency: account.currency,
       type: useCustomType ? 'cash' : account.type,
       useCustomType: useCustomType,
@@ -281,10 +289,13 @@ class EditAccountFormController extends _$EditAccountFormController {
     if (creditCard == null) {
       return;
     }
+    final MoneyAmount creditLimit = creditCard.creditLimitValue;
     state = state.copyWith(
       creditCardId: creditCard.id,
       creditCardCreatedAt: creditCard.createdAt,
-      creditLimitInput: creditCard.creditLimit.toStringAsFixed(2),
+      creditLimitInput: creditLimit.toDouble().toStringAsFixed(
+        creditLimit.scale,
+      ),
       statementDayInput: creditCard.statementDay.toString(),
       paymentDueDaysInput: creditCard.paymentDueDays.toString(),
       interestRateInput: creditCard.interestRateAnnual.toStringAsFixed(2),
@@ -302,7 +313,11 @@ class EditAccountFormController extends _$EditAccountFormController {
       nameError = EditAccountFieldError.emptyName;
     }
 
-    final double? balance = parseBalanceInput(state.balanceInput);
+    final int currencyScale = resolveCurrencyScale(state.currency);
+    final MoneyAmount? balance = parseBalanceInput(
+      state.balanceInput,
+      scale: currencyScale,
+    );
     EditAccountFieldError? balanceError;
     if (balance == null) {
       balanceError = EditAccountFieldError.invalidBalance;
@@ -351,18 +366,21 @@ class EditAccountFormController extends _$EditAccountFormController {
     CreditCardFieldError? statementDayError;
     CreditCardFieldError? paymentDueDaysError;
     CreditCardFieldError? interestRateError;
-    double? creditLimit;
+    MoneyAmount? creditLimit;
     int? statementDay;
     int? paymentDueDays;
     double? interestRateAnnual;
 
     if (isCreditCard) {
-      creditLimit = parseBalanceInput(state.creditLimitInput);
+      creditLimit = parseBalanceInput(
+        state.creditLimitInput,
+        scale: currencyScale,
+      );
       statementDay = int.tryParse(state.statementDayInput);
       paymentDueDays = int.tryParse(state.paymentDueDaysInput);
-      interestRateAnnual = parseBalanceInput(state.interestRateInput);
+      interestRateAnnual = _parseRate(state.interestRateInput);
 
-      if (creditLimit == null || creditLimit <= 0) {
+      if (creditLimit == null || creditLimit.minor <= BigInt.zero) {
         creditLimitError = CreditCardFieldError.invalidLimit;
       }
       if (statementDay == null || statementDay < 1 || statementDay > 31) {
@@ -390,17 +408,22 @@ class EditAccountFormController extends _$EditAccountFormController {
       }
     }
 
-    final double transactionDelta = await _calculateTransactionDelta(
+    final MoneyAmount transactionDelta = await _calculateTransactionDelta(
       state.original.id,
     );
-    final double resolvedBalance = balance ?? 0;
+    final MoneyAmount resolvedBalance =
+        balance ?? MoneyAmount(minor: BigInt.zero, scale: currencyScale);
     final String resolvedTypeValue = resolvedType ?? state.original.type;
-    final double openingBalance = resolvedBalance - transactionDelta;
+    final MoneyAmount openingBalance = MoneyAmount(
+      minor: resolvedBalance.minor - transactionDelta.minor,
+      scale: resolvedBalance.scale,
+    );
     final AccountEntity updatedAccount = state.original.copyWith(
       name: trimmedName,
-      balance: resolvedBalance,
-      openingBalance: openingBalance,
+      balanceMinor: resolvedBalance.minor,
+      openingBalanceMinor: openingBalance.minor,
       currency: state.currency,
+      currencyScale: currencyScale,
       type: resolvedTypeValue,
       updatedAt: updatedAt,
       isPrimary: state.isPrimary,
@@ -428,7 +451,9 @@ class EditAccountFormController extends _$EditAccountFormController {
       state = state.copyWith(
         isSaving: false,
         original: updatedAccount,
-        balanceInput: resolvedBalance.toStringAsFixed(2),
+        balanceInput: resolvedBalance
+            .toDouble()
+            .toStringAsFixed(resolvedBalance.scale),
         type: updatedIsCustom ? state.type : updatedAccount.type,
         useCustomType: updatedIsCustom,
         customType: updatedIsCustom ? normalizedCustom : '',
@@ -444,40 +469,41 @@ class EditAccountFormController extends _$EditAccountFormController {
     }
   }
 
-  Future<double> _calculateTransactionDelta(String accountId) async {
+  Future<MoneyAmount> _calculateTransactionDelta(String accountId) async {
     final List<TransactionEntity> transactions = await _transactionRepository
         .loadTransactions();
-    double delta = 0;
+    final MoneyAccumulator accumulator = MoneyAccumulator();
     for (final TransactionEntity transaction in transactions) {
       if (transaction.isDeleted) continue;
+      final MoneyAmount amount = transaction.amountValue.abs();
       final TransactionType type = parseTransactionType(transaction.type);
       switch (type) {
         case TransactionType.income:
           if (transaction.accountId == accountId) {
-            delta += transaction.amount;
+            accumulator.add(amount);
           }
           break;
         case TransactionType.expense:
           if (transaction.accountId == accountId) {
-            delta -= transaction.amount;
+            accumulator.subtract(amount);
           }
           break;
         case TransactionType.transfer:
           if (transaction.accountId == accountId) {
-            delta -= transaction.amount;
+            accumulator.subtract(amount);
           }
           if (transaction.transferAccountId == accountId) {
-            delta += transaction.amount;
+            accumulator.add(amount);
           }
           break;
       }
     }
-    return delta;
+    return MoneyAmount(minor: accumulator.minor, scale: accumulator.scale);
   }
 
   Future<void> _syncCreditCard({
     required AccountEntity updatedAccount,
-    required double? creditLimit,
+    required MoneyAmount? creditLimit,
     required int? statementDay,
     required int? paymentDueDays,
     required double? interestRateAnnual,
@@ -497,10 +523,13 @@ class EditAccountFormController extends _$EditAccountFormController {
 
     final DateTime now = DateTime.now().toUtc();
     final DateTime createdAt = state.creditCardCreatedAt ?? now;
+    final MoneyAmount resolvedLimit =
+        creditLimit ?? MoneyAmount(minor: BigInt.zero, scale: 2);
     final CreditCardEntity creditCard = CreditCardEntity(
       id: creditCardId ?? updatedAccount.id,
       accountId: updatedAccount.id,
-      creditLimit: creditLimit ?? 0,
+      creditLimitMinor: resolvedLimit.minor,
+      creditLimitScale: resolvedLimit.scale,
       statementDay: statementDay ?? 1,
       paymentDueDays: paymentDueDays ?? 0,
       interestRateAnnual: interestRateAnnual ?? 0,
@@ -515,5 +544,14 @@ class EditAccountFormController extends _$EditAccountFormController {
     }
 
     await _updateCreditCardUseCase.call(creditCard);
+  }
+
+  double? _parseRate(String input) {
+    final String trimmed = input.trim();
+    if (trimmed.isEmpty) {
+      return 0;
+    }
+    final String normalized = trimmed.replaceAll(',', '.');
+    return double.tryParse(normalized);
   }
 }

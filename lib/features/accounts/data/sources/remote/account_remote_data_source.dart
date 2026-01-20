@@ -1,4 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:kopim/core/money/currency_scale.dart';
+import 'package:kopim/core/money/money.dart';
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 
 class AccountRemoteDataSource {
@@ -60,6 +63,8 @@ class AccountRemoteDataSource {
   }
 
   Map<String, dynamic> mapAccount(AccountEntity account) {
+    final MoneyAmount balance = account.balanceAmount;
+    final MoneyAmount openingBalance = account.openingBalanceAmount;
     return <String, dynamic>{
       'id': account.id,
       'name': account.name,
@@ -68,12 +73,13 @@ class AccountRemoteDataSource {
       'createdAt': Timestamp.fromDate(account.createdAt.toUtc()),
       'updatedAt': Timestamp.fromDate(account.updatedAt.toUtc()),
       'isDeleted': account.isDeleted,
-      'balance': account.balance,
-      'balanceMinor': account.balanceMinor?.toString(),
-      'openingBalance': account.openingBalance,
-      'openingBalanceMinor': account.openingBalanceMinor?.toString(),
+      'balance': balance.toDouble(),
+      'balanceMinor': balance.minor.toString(),
+      'openingBalance': openingBalance.toDouble(),
+      'openingBalanceMinor': openingBalance.minor.toString(),
       'currencyScale': account.currencyScale,
       'isPrimary': account.isPrimary,
+      'isHidden': account.isHidden,
       'color': account.color,
       'gradientId': account.gradientId,
       'iconName': account.iconName,
@@ -83,20 +89,30 @@ class AccountRemoteDataSource {
 
   AccountEntity _fromDocument(QueryDocumentSnapshot<Map<String, dynamic>> doc) {
     final Map<String, dynamic> data = doc.data();
+    final String currency = data['currency'] as String? ?? 'RUB';
+    final int scale = _readInt(data['currencyScale']) ??
+        resolveCurrencyScale(currency);
+    final double legacyBalance = (data['balance'] as num?)?.toDouble() ?? 0;
+    final double legacyOpening = (data['openingBalance'] as num?)?.toDouble() ?? 0;
+    final BigInt? balanceMinor = _readBigInt(data['balanceMinor']);
+    final BigInt? openingMinor = _readBigInt(data['openingBalanceMinor']);
+    final BigInt resolvedBalanceMinor = balanceMinor ??
+        Money.fromDouble(legacyBalance, currency: currency, scale: scale).minor;
+    final BigInt resolvedOpeningMinor = openingMinor ??
+        Money.fromDouble(legacyOpening, currency: currency, scale: scale).minor;
     return AccountEntity(
       id: data['id'] as String? ?? doc.id,
       name: data['name'] as String? ?? '',
-      balance: (data['balance'] as num?)?.toDouble() ?? 0,
-      balanceMinor: _readBigInt(data['balanceMinor']),
-      openingBalance: (data['openingBalance'] as num?)?.toDouble() ?? 0,
-      openingBalanceMinor: _readBigInt(data['openingBalanceMinor']),
-      currency: data['currency'] as String? ?? 'RUB',
-      currencyScale: _readInt(data['currencyScale']),
+      balanceMinor: resolvedBalanceMinor,
+      openingBalanceMinor: resolvedOpeningMinor,
+      currency: currency,
+      currencyScale: scale,
       type: data['type'] as String? ?? 'unknown',
       createdAt: _parseTimestamp(data['createdAt']),
       updatedAt: _parseTimestamp(data['updatedAt']),
       isDeleted: data['isDeleted'] as bool? ?? false,
       isPrimary: data['isPrimary'] as bool? ?? false,
+      isHidden: data['isHidden'] as bool? ?? false,
       color: data['color'] as String?,
       gradientId: data['gradientId'] as String?,
       iconName: data['iconName'] as String?,

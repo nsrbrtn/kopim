@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:kopim/core/data/database.dart' as db;
 import 'package:kopim/core/data/outbox/outbox_dao.dart';
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/accounts/data/sources/local/account_dao.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/accounts/domain/repositories/account_repository.dart';
@@ -88,9 +89,12 @@ class AccountRepositoryImpl implements AccountRepository {
     json['gradientId'] = account.gradientId;
     json['iconName'] = account.iconName;
     json['iconStyle'] = account.iconStyle;
-    json['openingBalance'] = account.openingBalance;
-    json['balanceMinor'] = account.balanceMinor?.toString();
-    json['openingBalanceMinor'] = account.openingBalanceMinor?.toString();
+    final MoneyAmount balance = account.balanceAmount;
+    final MoneyAmount openingBalance = account.openingBalanceAmount;
+    json['balance'] = balance.toDouble();
+    json['openingBalance'] = openingBalance.toDouble();
+    json['balanceMinor'] = balance.minor.toString();
+    json['openingBalanceMinor'] = openingBalance.minor.toString();
     json['currencyScale'] = account.currencyScale;
     return json;
   }
@@ -99,9 +103,7 @@ class AccountRepositoryImpl implements AccountRepository {
     return AccountEntity(
       id: row.id,
       name: row.name,
-      balance: row.balance,
       balanceMinor: BigInt.parse(row.balanceMinor),
-      openingBalance: row.openingBalance,
       openingBalanceMinor: BigInt.parse(row.openingBalanceMinor),
       currency: row.currency,
       currencyScale: row.currencyScale,

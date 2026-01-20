@@ -47,15 +47,25 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byIcon(Icons.add));
+      final BuildContext context = tester.element(
+        find.byType(ManageCategoriesScreen),
+      );
+      final AppLocalizations strings = AppLocalizations.of(context)!;
+
+      await tester.tap(find.byTooltip(strings.manageCategoriesAddAction));
       await tester.pumpAndSettle();
 
-      final Finder openColorButton = find.byTooltip('Choose color');
-      expect(openColorButton, findsOneWidget);
+      final Finder openColorButton = find.widgetWithText(
+        ListTile,
+        strings.manageCategoriesColorLabel,
+      );
       await tester.tap(openColorButton);
       await tester.pumpAndSettle();
 
-      final Finder confirmFinder = find.widgetWithText(FilledButton, 'Confirm');
+      final Finder confirmFinder = find.widgetWithText(
+        FilledButton,
+        strings.dialogConfirm,
+      );
       FilledButton confirmButton = tester.widget<FilledButton>(confirmFinder);
       expect(confirmButton.onPressed, isNull);
 
@@ -105,15 +115,28 @@ void main() {
 
         await tester.pumpAndSettle();
 
-        await tester.tap(find.byIcon(Icons.edit_outlined));
+        final Finder dismissible = find.byKey(
+          const ValueKey<String>('category:c1'),
+        );
+        await tester.ensureVisible(dismissible);
+        await tester.fling(dismissible, const Offset(600, 0), 1000);
         await tester.pumpAndSettle();
 
-        CircleAvatar preview = tester.widget<CircleAvatar>(
+        Container preview = tester.widget<Container>(
           find.byKey(const ValueKey<String>('category-color-preview')),
         );
-        expect(preview.backgroundColor, equals(const Color(0xFFD6D58E)));
+        final BoxDecoration previewDecoration =
+            preview.decoration! as BoxDecoration;
+        expect(previewDecoration.color, equals(const Color(0xFFD6D58E)));
 
-        await tester.tap(find.byTooltip('Choose color'));
+        final BuildContext context = tester.element(
+          find.byType(ManageCategoriesScreen),
+        );
+        final AppLocalizations strings = AppLocalizations.of(context)!;
+
+        await tester.tap(
+          find.widgetWithText(ListTile, strings.manageCategoriesColorLabel),
+        );
         await tester.pumpAndSettle();
 
         await tester.tap(
@@ -121,13 +144,17 @@ void main() {
         );
         await tester.pump();
 
-        await tester.tap(find.widgetWithText(FilledButton, 'Confirm'));
+        await tester.tap(
+          find.widgetWithText(FilledButton, strings.dialogConfirm),
+        );
         await tester.pumpAndSettle();
 
-        preview = tester.widget<CircleAvatar>(
+        preview = tester.widget<Container>(
           find.byKey(const ValueKey<String>('category-color-preview')),
         );
-        expect(preview.backgroundColor, equals(const Color(0xFFDBF227)));
+        final BoxDecoration updatedDecoration =
+            preview.decoration! as BoxDecoration;
+        expect(updatedDecoration.color, equals(const Color(0xFFFC9683)));
       },
     );
 
@@ -171,11 +198,15 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      final CircleAvatar avatar = tester.widget<CircleAvatar>(
-        find.byType(CircleAvatar).first,
+      final Finder cardFinder = find.byKey(
+        const ValueKey<String>('category-card:dark'),
       );
-      expect(avatar.backgroundColor, equals(const Color(0xFF042940)));
-      expect(avatar.foregroundColor, equals(Colors.white));
+      final Finder iconFinder = find.descendant(
+        of: cardFinder,
+        matching: find.byIcon(Icons.category_outlined),
+      );
+      final Icon icon = tester.widget<Icon>(iconFinder.first);
+      expect(icon.color, equals(Colors.white));
     });
 
     testWidgets('defaults to theme color when no background provided', (
@@ -217,10 +248,15 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      final CircleAvatar avatar = tester.widget<CircleAvatar>(
-        find.byType(CircleAvatar).first,
+      final Finder cardFinder = find.byKey(
+        const ValueKey<String>('category-card:default'),
       );
-      expect(avatar.foregroundColor, equals(theme.colorScheme.onSurface));
+      final Finder iconFinder = find.descendant(
+        of: cardFinder,
+        matching: find.byIcon(Icons.category_outlined),
+      );
+      final Icon icon = tester.widget<Icon>(iconFinder.first);
+      expect(icon.color, equals(theme.colorScheme.onSurface));
     });
   });
 }

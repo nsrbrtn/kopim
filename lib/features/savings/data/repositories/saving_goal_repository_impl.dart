@@ -15,6 +15,7 @@ import 'package:kopim/features/savings/data/sources/local/goal_contribution_dao.
 import 'package:kopim/features/savings/data/sources/local/saving_goal_dao.dart';
 import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
 import 'package:kopim/features/savings/domain/repositories/saving_goal_repository.dart';
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/transactions/data/services/transaction_balance_helper.dart';
 import 'package:kopim/features/transactions/data/sources/local/transaction_dao.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
@@ -229,7 +230,6 @@ class SavingGoalRepositoryImpl implements SavingGoalRepository {
           accountId: accountId,
           categoryId: categoryId,
           savingGoalId: goal.id,
-          amount: amountDouble,
           amountMinor: money.minor,
           amountScale: scale,
           date: timestamp,
@@ -248,7 +248,7 @@ class SavingGoalRepositoryImpl implements SavingGoalRepository {
         final db.CreditRow? creditRow = await _creditDao.findByCategoryId(
           categoryId,
         );
-        final Map<String, double> effect = buildTransactionEffect(
+        final Map<String, MoneyAmount> effect = buildTransactionEffect(
           transaction: transaction,
           creditAccountId: creditRow?.accountId,
         );
@@ -376,16 +376,20 @@ class SavingGoalRepositoryImpl implements SavingGoalRepository {
   }
 
   Future<void> _applyAccountEffect(
-    Map<String, double> effect,
+    Map<String, MoneyAmount> effect,
     DateTime updatedAt,
   ) async {
-    for (final MapEntry<String, double> entry in effect.entries) {
+    for (final MapEntry<String, MoneyAmount> entry in effect.entries) {
       final db.AccountRow? accountRow = await _accountDao.findById(entry.key);
       if (accountRow == null) {
         throw StateError('Account not found for id ${entry.key}');
       }
+      final int scale = accountRow.currencyScale ??
+          resolveCurrencyScale(accountRow.currency);
+      final MoneyAmount delta = rescaleMoneyAmount(entry.value, scale);
       final AccountEntity updatedAccount = _mapAccountRow(accountRow).copyWith(
-        balance: accountRow.balance + entry.value,
+        balanceMinor: BigInt.parse(accountRow.balanceMinor) + delta.minor,
+        currencyScale: scale,
         updatedAt: updatedAt,
       );
       await _accountDao.upsert(updatedAccount);
@@ -402,9 +406,7 @@ class SavingGoalRepositoryImpl implements SavingGoalRepository {
     return AccountEntity(
       id: row.id,
       name: row.name,
-      balance: row.balance,
       balanceMinor: BigInt.parse(row.balanceMinor),
-      openingBalance: row.openingBalance,
       openingBalanceMinor: BigInt.parse(row.openingBalanceMinor),
       currency: row.currency,
       currencyScale: row.currencyScale,

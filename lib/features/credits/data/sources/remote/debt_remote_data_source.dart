@@ -1,4 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:kopim/core/money/money.dart';
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/credits/domain/entities/debt_entity.dart';
 
 class DebtRemoteDataSource {
@@ -57,13 +59,14 @@ class DebtRemoteDataSource {
   }
 
   Map<String, dynamic> _mapDebt(DebtEntity debt) {
+    final MoneyAmount amount = debt.amountValue;
     return <String, dynamic>{
       'id': debt.id,
       'accountId': debt.accountId,
       'name': debt.name,
-      'amount': debt.amount,
-      'amountMinor': debt.amountMinor?.toString(),
-      'amountScale': debt.amountScale,
+      'amount': amount.toDouble(),
+      'amountMinor': amount.minor.toString(),
+      'amountScale': amount.scale,
       'dueDate': Timestamp.fromDate(debt.dueDate.toUtc()),
       'note': debt.note,
       'createdAt': Timestamp.fromDate(debt.createdAt.toUtc()),
@@ -74,13 +77,17 @@ class DebtRemoteDataSource {
 
   DebtEntity _fromDocument(QueryDocumentSnapshot<Map<String, dynamic>> doc) {
     final Map<String, dynamic> data = doc.data();
+    final int scale = _readInt(data['amountScale']) ?? 2;
+    final double legacyAmount = (data['amount'] as num?)?.toDouble() ?? 0;
+    final BigInt? minor = _readBigInt(data['amountMinor']);
+    final BigInt resolvedMinor =
+        minor ?? Money.fromDouble(legacyAmount, currency: 'XXX', scale: scale).minor;
     return DebtEntity(
       id: data['id'] as String? ?? doc.id,
       accountId: data['accountId'] as String? ?? '',
       name: data['name'] as String? ?? '',
-      amount: (data['amount'] as num?)?.toDouble() ?? 0,
-      amountMinor: _readBigInt(data['amountMinor']),
-      amountScale: _readInt(data['amountScale']),
+      amountMinor: resolvedMinor,
+      amountScale: scale,
       dueDate: _parseTimestamp(data['dueDate']),
       note: data['note'] as String?,
       createdAt: _parseTimestamp(data['createdAt']),

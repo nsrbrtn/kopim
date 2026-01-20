@@ -240,7 +240,7 @@ void main() {
         expect(queries, hasLength(1));
         expect(
           queries.single.contextSignals,
-          contains('timeframe:month_to_date'),
+          contains('period:current_month'),
         );
       },
     );

@@ -1,6 +1,8 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/core/domain/icons/phosphor_icon_descriptor.dart';
+import 'package:kopim/core/money/currency_scale.dart';
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/core/utils/helpers.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/accounts/domain/use_cases/add_account_use_case.dart';
@@ -55,7 +57,10 @@ abstract class AddAccountFormState with _$AddAccountFormState {
 
   const AddAccountFormState._();
 
-  double? get parsedBalance => parseBalanceInput(balanceInput);
+  MoneyAmount? parseBalance() => parseBalanceInput(
+    balanceInput,
+    scale: resolveCurrencyScale(currency),
+  );
 
   String? get resolvedType {
     final String value = useCustomType ? customType.trim() : type.trim();
@@ -79,7 +84,7 @@ abstract class AddAccountFormState with _$AddAccountFormState {
       paymentDueDaysError == null &&
       interestRateError == null &&
       name.trim().isNotEmpty &&
-      (resolvedType == 'credit_card' || parsedBalance != null) &&
+      (resolvedType == 'credit_card' || parseBalance() != null) &&
       resolvedType != null;
 }
 
@@ -225,12 +230,18 @@ class AddAccountFormController extends _$AddAccountFormController {
 
     final String? resolvedType = state.resolvedType;
     final bool isCreditCard = resolvedType == 'credit_card';
-    double? balance = parseBalanceInput(state.balanceInput);
+    final int currencyScale = resolveCurrencyScale(state.currency);
+    MoneyAmount? balance = parseBalanceInput(
+      state.balanceInput,
+      scale: currencyScale,
+    );
     AddAccountFieldError? balanceError;
     if (!isCreditCard && balance == null) {
       balanceError = AddAccountFieldError.invalidBalance;
     }
-    balance ??= isCreditCard ? 0 : null;
+    balance ??= isCreditCard
+        ? MoneyAmount(minor: BigInt.zero, scale: currencyScale)
+        : null;
 
     if (nameError != null || balanceError != null) {
       state = state.copyWith(
@@ -268,18 +279,21 @@ class AddAccountFormController extends _$AddAccountFormController {
     CreditCardFieldError? statementDayError;
     CreditCardFieldError? paymentDueDaysError;
     CreditCardFieldError? interestRateError;
-    double? creditLimit;
+    MoneyAmount? creditLimit;
     int? statementDay;
     int? paymentDueDays;
     double? interestRateAnnual;
 
     if (isCreditCard) {
-      creditLimit = parseBalanceInput(state.creditLimitInput);
+      creditLimit = parseBalanceInput(
+        state.creditLimitInput,
+        scale: currencyScale,
+      );
       statementDay = int.tryParse(state.statementDayInput);
       paymentDueDays = int.tryParse(state.paymentDueDaysInput);
-      interestRateAnnual = parseBalanceInput(state.interestRateInput);
+      interestRateAnnual = _parseRate(state.interestRateInput);
 
-      if (creditLimit == null || creditLimit <= 0) {
+      if (creditLimit == null || creditLimit.minor <= BigInt.zero) {
         creditLimitError = CreditCardFieldError.invalidLimit;
       }
       if (statementDay == null || statementDay < 1 || statementDay > 31) {
@@ -307,13 +321,15 @@ class AddAccountFormController extends _$AddAccountFormController {
       }
     }
 
-    final double resolvedBalance = balance ?? 0;
+    final MoneyAmount resolvedBalance =
+        balance ?? MoneyAmount(minor: BigInt.zero, scale: currencyScale);
     final AccountEntity account = AccountEntity(
       id: _uuid.v4(),
       name: trimmedName,
-      balance: resolvedBalance,
-      openingBalance: resolvedBalance,
+      balanceMinor: resolvedBalance.minor,
+      openingBalanceMinor: resolvedBalance.minor,
       currency: state.currency,
+      currencyScale: currencyScale,
       type: resolvedType,
       createdAt: now,
       updatedAt: now,
@@ -333,7 +349,8 @@ class AddAccountFormController extends _$AddAccountFormController {
               CreditCardEntity(
                 id: account.id,
                 accountId: account.id,
-                creditLimit: creditLimit!,
+                creditLimitMinor: creditLimit!.minor,
+                creditLimitScale: creditLimit.scale,
                 statementDay: statementDay!,
                 paymentDueDays: paymentDueDays!,
                 interestRateAnnual: interestRateAnnual!,
@@ -363,5 +380,14 @@ class AddAccountFormController extends _$AddAccountFormController {
         submissionSuccess: false,
       );
     }
+  }
+
+  double? _parseRate(String input) {
+    final String trimmed = input.trim();
+    if (trimmed.isEmpty) {
+      return 0;
+    }
+    final String normalized = trimmed.replaceAll(',', '.');
+    return double.tryParse(normalized);
   }
 }

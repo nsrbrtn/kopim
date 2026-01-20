@@ -1,51 +1,61 @@
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
 
-Map<String, double> buildTransactionEffect({
+Map<String, MoneyAmount> buildTransactionEffect({
   required TransactionEntity transaction,
   required String? creditAccountId,
 }) {
   final TransactionType type = parseTransactionType(transaction.type);
+  final MoneyAmount amount = transaction.amountValue;
   if (type.isTransfer) {
     final String? targetId = transaction.transferAccountId;
     if (targetId == null || targetId == transaction.accountId) {
-      return <String, double>{};
+      return <String, MoneyAmount>{};
     }
-    return <String, double>{
-      transaction.accountId: -transaction.amount,
-      targetId: transaction.amount,
+    return <String, MoneyAmount>{
+      transaction.accountId: MoneyAmount(
+        minor: -amount.minor,
+        scale: amount.scale,
+      ),
+      targetId: amount,
     };
   }
 
   if (creditAccountId != null) {
-    final double repaymentDelta =
-        type.isExpense ? transaction.amount : -transaction.amount;
+    final MoneyAmount repaymentDelta = type.isExpense
+        ? amount
+        : MoneyAmount(minor: -amount.minor, scale: amount.scale);
     if (transaction.accountId != creditAccountId) {
-      final double accountDelta =
-          type.isIncome ? transaction.amount : -transaction.amount;
-      return <String, double>{
+      final MoneyAmount accountDelta = type.isIncome
+          ? amount
+          : MoneyAmount(minor: -amount.minor, scale: amount.scale);
+      return <String, MoneyAmount>{
         transaction.accountId: accountDelta,
         creditAccountId: repaymentDelta,
       };
     }
-    return <String, double>{creditAccountId: repaymentDelta};
+    return <String, MoneyAmount>{creditAccountId: repaymentDelta};
   }
 
-  final double delta = type.isIncome
-      ? transaction.amount
-      : -transaction.amount;
-  return <String, double>{transaction.accountId: delta};
+  final MoneyAmount delta = type.isIncome
+      ? amount
+      : MoneyAmount(minor: -amount.minor, scale: amount.scale);
+  return <String, MoneyAmount>{transaction.accountId: delta};
 }
 
 void applyTransactionEffect(
-  Map<String, double> deltas,
-  Map<String, double> effect,
+  Map<String, MoneyAmount> deltas,
+  Map<String, MoneyAmount> effect,
 ) {
-  effect.forEach((String accountId, double delta) {
-    deltas.update(
-      accountId,
-      (double value) => value + delta,
-      ifAbsent: () => delta,
-    );
+  effect.forEach((String accountId, MoneyAmount delta) {
+    deltas.update(accountId, (MoneyAmount value) {
+      final MoneyAmount normalized =
+          rescaleMoneyAmount(delta, value.scale);
+      return MoneyAmount(
+        minor: value.minor + normalized.minor,
+        scale: value.scale,
+      );
+    }, ifAbsent: () => delta);
   });
 }

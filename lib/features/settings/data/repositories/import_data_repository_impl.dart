@@ -1,4 +1,6 @@
 import 'package:kopim/core/data/database.dart' as db;
+import 'package:kopim/core/money/currency_scale.dart';
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/accounts/data/sources/local/account_dao.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/categories/data/sources/local/category_dao.dart';
@@ -46,8 +48,12 @@ class ImportDataRepositoryImpl implements ImportDataRepository {
     List<TransactionEntity> transactions,
   ) async {
     final List<AccountEntity> accounts = await _accountDao.getAllAccounts();
-    final Map<String, double> deltas = <String, double>{
-      for (final AccountEntity account in accounts) account.id: 0,
+    final Map<String, MoneyAmount> deltas = <String, MoneyAmount>{
+      for (final AccountEntity account in accounts)
+        account.id: MoneyAmount(
+          minor: BigInt.zero,
+          scale: account.currencyScale ?? resolveCurrencyScale(account.currency),
+        ),
     };
     final List<db.CreditRow> creditRows = await _creditDao.getAllCredits();
     final Map<String, String> creditAccountByCategoryId = <String, String>{
@@ -60,7 +66,7 @@ class ImportDataRepositoryImpl implements ImportDataRepository {
       final String? creditAccountId = transaction.categoryId != null
           ? creditAccountByCategoryId[transaction.categoryId!]
           : null;
-      final Map<String, double> effect = buildTransactionEffect(
+      final Map<String, MoneyAmount> effect = buildTransactionEffect(
         transaction: transaction,
         creditAccountId: creditAccountId,
       );
@@ -70,14 +76,21 @@ class ImportDataRepositoryImpl implements ImportDataRepository {
     final List<AccountEntity> updatedAccounts = accounts
         .map(
           (AccountEntity account) {
-            final double net = deltas[account.id] ?? 0;
-            final double openingBalance = _resolveOpeningBalance(
+            final int scale =
+                account.currencyScale ?? resolveCurrencyScale(account.currency);
+            final MoneyAmount net =
+                rescaleMoneyAmount(deltas[account.id] ?? MoneyAmount(
+                  minor: BigInt.zero,
+                  scale: scale,
+                ), scale);
+            final MoneyAmount openingBalance = _resolveOpeningBalance(
               account: account,
               netDelta: net,
             );
             return account.copyWith(
-              openingBalance: openingBalance,
-              balance: openingBalance + net,
+              openingBalanceMinor: openingBalance.minor,
+              balanceMinor: openingBalance.minor + net.minor,
+              currencyScale: scale,
             );
           },
         )
@@ -85,19 +98,21 @@ class ImportDataRepositoryImpl implements ImportDataRepository {
     await _accountDao.upsertAll(updatedAccounts);
   }
 
-  double _resolveOpeningBalance({
+  MoneyAmount _resolveOpeningBalance({
     required AccountEntity account,
-    required double netDelta,
+    required MoneyAmount netDelta,
   }) {
-    const double epsilon = 1e-9;
-    final double derived = account.balance - netDelta;
-    if (account.openingBalance == 0 && netDelta.abs() > epsilon) {
-      return derived;
+    final MoneyAmount balance =
+        rescaleMoneyAmount(account.balanceAmount, netDelta.scale);
+    final MoneyAmount opening =
+        rescaleMoneyAmount(account.openingBalanceAmount, netDelta.scale);
+    final BigInt derivedMinor = balance.minor - netDelta.minor;
+    if (opening.minor == BigInt.zero && netDelta.minor != BigInt.zero) {
+      return MoneyAmount(minor: derivedMinor, scale: netDelta.scale);
     }
-    if ((account.openingBalance - account.balance).abs() < epsilon &&
-        netDelta.abs() > epsilon) {
-      return derived;
+    if (opening.minor == balance.minor && netDelta.minor != BigInt.zero) {
+      return MoneyAmount(minor: derivedMinor, scale: netDelta.scale);
     }
-    return account.openingBalance;
+    return opening;
   }
 }

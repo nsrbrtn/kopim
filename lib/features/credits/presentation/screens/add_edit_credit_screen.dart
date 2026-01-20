@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/core/domain/icons/phosphor_icon_descriptor.dart';
+import 'package:kopim/core/money/currency_scale.dart';
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/core/utils/context_extensions.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/credits/domain/entities/credit_entity.dart';
@@ -45,7 +47,10 @@ class _AddEditCreditScreenState extends ConsumerState<AddEditCreditScreen> {
   void initState() {
     super.initState();
     if (widget.credit != null) {
-      _amountController.text = widget.credit!.totalAmount.toString();
+      final MoneyAmount totalAmount = widget.credit!.totalAmountValue;
+      _amountController.text = totalAmount
+          .toDouble()
+          .toStringAsFixed(totalAmount.scale);
       _rateController.text = widget.credit!.interestRate.toString();
       _termController.text = widget.credit!.termMonths.toString();
       _paymentDayController.text = widget.credit!.paymentDay.toString();
@@ -88,10 +93,15 @@ class _AddEditCreditScreenState extends ConsumerState<AddEditCreditScreen> {
   }
 
   bool _validate() {
+    final int scale = resolveCurrencyScale('RUB');
     setState(() {
       _nameError = _nameController.text.trim().isEmpty;
-      final double? amount = double.tryParse(_amountController.text);
-      _amountError = amount == null || amount <= 0;
+      final MoneyAmount? amount = tryParseMoneyAmount(
+        input: _amountController.text,
+        scale: scale,
+        useAbs: true,
+      );
+      _amountError = amount == null || amount.minor <= BigInt.zero;
       final double? rate = double.tryParse(_rateController.text);
       _rateError = rate == null || rate < 0;
       final int? term = int.tryParse(_termController.text);
@@ -109,7 +119,12 @@ class _AddEditCreditScreenState extends ConsumerState<AddEditCreditScreen> {
   Future<void> _save() async {
     if (_validate()) {
       final String name = _nameController.text.trim();
-      final double amount = double.parse(_amountController.text);
+      final int scale = resolveCurrencyScale('RUB');
+      final MoneyAmount amount = tryParseMoneyAmount(
+        input: _amountController.text,
+        scale: scale,
+        useAbs: true,
+      )!;
       final double rate = double.parse(_rateController.text);
       final int term = int.parse(_termController.text);
       final int paymentDay = int.parse(_paymentDayController.text);
@@ -155,11 +170,16 @@ class _AddEditCreditScreenState extends ConsumerState<AddEditCreditScreen> {
     if (_validate()) {
       final String name = _nameController.text.trim();
       if (widget.credit == null) {
+        final int scale = resolveCurrencyScale('RUB');
         final CreditEntity credit = await ref
             .read(addCreditUseCaseProvider)
             .call(
               name: name,
-              totalAmount: double.parse(_amountController.text),
+              totalAmount: tryParseMoneyAmount(
+                input: _amountController.text,
+                scale: scale,
+                useAbs: true,
+              )!,
               currency: 'RUB', // TODO: Брать из настроек
               interestRate: double.parse(_rateController.text),
               termMonths: int.parse(_termController.text),
@@ -173,7 +193,7 @@ class _AddEditCreditScreenState extends ConsumerState<AddEditCreditScreen> {
 
         if (mounted) {
           final double amount =
-              (double.tryParse(_amountController.text) ?? 0) /
+              (credit.totalAmountValue.toDouble()) /
               (int.tryParse(_termController.text) ?? 1);
 
           final EditUpcomingPaymentScreenArgs

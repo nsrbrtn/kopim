@@ -61,7 +61,8 @@ class _FakeHomeDashboardPreferencesController
 }
 
 class _StreamAccountRepository implements AccountRepository {
-  _StreamAccountRepository(this._stream);
+  _StreamAccountRepository(Stream<List<AccountEntity>> stream)
+      : _stream = stream.asBroadcastStream();
 
   final Stream<List<AccountEntity>> _stream;
 
@@ -82,7 +83,8 @@ class _StreamAccountRepository implements AccountRepository {
 }
 
 class _StreamTransactionRepository implements TransactionRepository {
-  _StreamTransactionRepository(this._stream);
+  _StreamTransactionRepository(Stream<List<TransactionEntity>> stream)
+      : _stream = stream.asBroadcastStream();
 
   final Stream<List<TransactionEntity>> _stream;
 
@@ -123,7 +125,8 @@ class _StreamTransactionRepository implements TransactionRepository {
 }
 
 class _StreamCategoryRepository implements CategoryRepository {
-  _StreamCategoryRepository(this._stream);
+  _StreamCategoryRepository(Stream<List<Category>> stream)
+      : _stream = stream.asBroadcastStream();
 
   final Stream<List<Category>> _stream;
 
@@ -212,9 +215,16 @@ void main() {
   final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
   ProviderScope buildShell(Widget child) {
+    final _StreamAccountRepository accountRepository = _StreamAccountRepository(
+      Stream<List<AccountEntity>>.value(<AccountEntity>[account]),
+    );
     final _StreamTransactionRepository transactionRepository =
         _StreamTransactionRepository(
           Stream<List<TransactionEntity>>.value(const <TransactionEntity>[]),
+        );
+    final _StreamCategoryRepository categoryRepository =
+        _StreamCategoryRepository(
+          Stream<List<Category>>.value(const <Category>[]),
         );
     const _FakeSavingGoalRepository savingGoalRepository =
         _FakeSavingGoalRepository();
@@ -222,17 +232,20 @@ void main() {
     return ProviderScope(
       // ignore: always_specify_types, the Override type is internal to riverpod
       overrides: [
+        firebaseInitializationProvider.overrideWith(
+          (Ref ref) => Future<void>.value(),
+        ),
         authControllerProvider.overrideWith(
           () => _FakeAuthController(anonymousUser),
         ),
         homeDashboardPreferencesControllerProvider.overrideWith(
           () => _FakeHomeDashboardPreferencesController(),
         ),
+        accountRepositoryProvider.overrideWithValue(accountRepository),
+        categoryRepositoryProvider.overrideWithValue(categoryRepository),
         watchAccountsUseCaseProvider.overrideWithValue(
           WatchAccountsUseCase(
-            _StreamAccountRepository(
-              Stream<List<AccountEntity>>.value(<AccountEntity>[account]),
-            ),
+            accountRepository,
           ),
         ),
         transactionRepositoryProvider.overrideWithValue(transactionRepository),
@@ -242,24 +255,14 @@ void main() {
         watchMonthlyAnalyticsUseCaseProvider.overrideWithValue(
           WatchMonthlyAnalyticsUseCase(
             transactionRepository: transactionRepository,
-            categoryRepository: _StreamCategoryRepository(
-              Stream<List<Category>>.value(const <Category>[]),
-            ),
+            categoryRepository: categoryRepository,
           ),
         ),
         watchCategoriesUseCaseProvider.overrideWithValue(
-          WatchCategoriesUseCase(
-            _StreamCategoryRepository(
-              Stream<List<Category>>.value(const <Category>[]),
-            ),
-          ),
+          WatchCategoriesUseCase(categoryRepository),
         ),
         watchCategoryTreeUseCaseProvider.overrideWithValue(
-          WatchCategoryTreeUseCase(
-            _StreamCategoryRepository(
-              Stream<List<Category>>.value(const <Category>[]),
-            ),
-          ),
+          WatchCategoryTreeUseCase(categoryRepository),
         ),
         manageCategoryTreeProvider.overrideWith(
           (Ref ref) =>
@@ -344,17 +347,17 @@ void main() {
       ),
     );
 
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 300));
 
     final Finder bottomNavFinder = find.byType(MainNavigationBar);
     expect(bottomNavFinder, findsOneWidget);
 
     await tester.tap(find.text('Analytics'));
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 300));
     expect(bottomNavFinder, findsOneWidget);
 
     await tester.tap(find.text('Budgets'));
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 300));
     expect(bottomNavFinder, findsOneWidget);
   });
 
@@ -376,10 +379,10 @@ void main() {
       ),
     );
 
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 300));
 
     await tester.tap(find.text('Menu'));
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 300));
 
     expect(find.byType(MenuScreen), findsOneWidget);
 
@@ -401,7 +404,7 @@ void main() {
     );
 
     await tester.tap(find.text('Home'));
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 300));
 
     expect(find.byType(MenuScreen), findsNothing);
     expect(find.byType(MainNavigationBar), findsOneWidget);
@@ -425,7 +428,7 @@ void main() {
       ),
     );
 
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 300));
 
     navigatorKey.currentState!.push(
       MaterialPageRoute<void>(
@@ -434,17 +437,17 @@ void main() {
       ),
     );
 
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 300));
 
     expect(find.byType(MainNavigationBar), findsNothing);
 
     navigatorKey.currentState!.pop();
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 300));
 
     expect(find.byType(MainNavigationBar), findsOneWidget);
   });
 
-  testWidgets('switches to navigation rail on wide layouts', (
+  testWidgets('keeps bottom navigation bar on wide layouts', (
     WidgetTester tester,
   ) async {
     await setWindowSize(tester, const Size(1200, 1200));
@@ -462,13 +465,13 @@ void main() {
       ),
     );
 
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 300));
 
-    expect(find.byType(NavigationRail), findsOneWidget);
-    expect(find.byType(MainNavigationBar), findsNothing);
+    expect(find.byType(MainNavigationBar), findsOneWidget);
+    expect(find.byType(NavigationRail), findsNothing);
   });
 
-  testWidgets('extends navigation rail on extra wide layouts', (
+  testWidgets('constrains bottom navigation on extra wide layouts', (
     WidgetTester tester,
   ) async {
     await setWindowSize(tester, const Size(1400, 1200));
@@ -486,12 +489,17 @@ void main() {
       ),
     );
 
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 300));
 
-    final NavigationRail rail = tester.widget<NavigationRail>(
-      find.byType(NavigationRail),
+    final Finder constrainedBarFinder = find.ancestor(
+      of: find.byType(MainNavigationBar),
+      matching: find.byType(FractionallySizedBox),
     );
-    expect(rail.extended, isTrue);
+    expect(constrainedBarFinder, findsOneWidget);
+
+    final FractionallySizedBox constrainedBar =
+        tester.widget<FractionallySizedBox>(constrainedBarFinder);
+    expect(constrainedBar.widthFactor, equals(0.5));
   });
 
   testWidgets('back returns to previous bottom-nav tab', (
@@ -512,7 +520,7 @@ void main() {
       ),
     );
 
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 300));
 
     final ProviderContainer container = ProviderScope.containerOf(
       tester.element(find.byType(MainNavigationShell)),
@@ -522,12 +530,12 @@ void main() {
     expect(container.read(mainNavigationControllerProvider).history, isEmpty);
 
     await tester.tap(find.text('Analytics'));
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 300));
     expect(container.read(mainNavigationControllerProvider).currentIndex, 1);
     expect(container.read(mainNavigationControllerProvider).history, <int>[0]);
 
     await tester.tap(find.text('Assistant'));
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 300));
     expect(container.read(mainNavigationControllerProvider).currentIndex, 2);
     expect(container.read(mainNavigationControllerProvider).history, <int>[
       0,
@@ -535,17 +543,17 @@ void main() {
     ]);
 
     await tester.binding.handlePopRoute();
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 300));
     expect(container.read(mainNavigationControllerProvider).currentIndex, 1);
     expect(container.read(mainNavigationControllerProvider).history, <int>[0]);
 
     await tester.binding.handlePopRoute();
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 300));
     expect(container.read(mainNavigationControllerProvider).currentIndex, 0);
     expect(container.read(mainNavigationControllerProvider).history, isEmpty);
   });
 
-  testWidgets('rail switching does not record bottom-nav history', (
+  testWidgets('wide layout records bottom-nav history', (
     WidgetTester tester,
   ) async {
     await setWindowSize(tester, const Size(1200, 1200));
@@ -563,7 +571,7 @@ void main() {
       ),
     );
 
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 300));
 
     final ProviderContainer container = ProviderScope.containerOf(
       tester.element(find.byType(MainNavigationShell)),
@@ -571,8 +579,8 @@ void main() {
     expect(container.read(mainNavigationControllerProvider).history, isEmpty);
 
     await tester.tap(find.text('Analytics'));
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 300));
     expect(container.read(mainNavigationControllerProvider).currentIndex, 1);
-    expect(container.read(mainNavigationControllerProvider).history, isEmpty);
+    expect(container.read(mainNavigationControllerProvider).history, <int>[0]);
   });
 }
