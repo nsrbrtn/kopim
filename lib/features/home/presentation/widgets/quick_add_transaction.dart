@@ -439,18 +439,6 @@ class _QuickTransactionSheetState
   }
 
   Future<void> _submit() async {
-    final double? parsedAmount = ref
-        .read(quickTransactionControllerProvider)
-        .parsedAmount;
-    if (parsedAmount == null) {
-      ref
-          .read(quickTransactionControllerProvider.notifier)
-          .updateAmount(_amountController.text);
-      ref
-          .read(quickTransactionControllerProvider.notifier)
-          .submit(); // установит ошибку invalidInput
-      return;
-    }
     final TransactionEntity? created = await ref
         .read(quickTransactionControllerProvider.notifier)
         .submit();

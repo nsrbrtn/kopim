@@ -137,6 +137,10 @@ class TransactionDraftState {
     return value;
   }
 
+  MoneyAmount? get parsedAmountValue => parseAmount(accountScale ?? 2);
+
+  double? get parsedAmount => parsedAmountValue?.toDouble();
+
   bool get canSubmit =>
       !isSubmitting &&
       accountId != null &&

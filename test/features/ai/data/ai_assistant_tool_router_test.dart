@@ -107,13 +107,15 @@ void main() {
     required String title,
     required DateTime startDate,
     DateTime? endDate,
-    MoneyAmount amount = MoneyAmount(minor: BigInt.from(100000), scale: 2),
+    MoneyAmount? amount,
     String scope = 'byCategory',
     List<String> categories = const <String>[],
     List<String> accounts = const <String>[],
     List<BudgetCategoryAllocation> allocations =
         const <BudgetCategoryAllocation>[],
   }) {
+    final MoneyAmount resolvedAmount =
+        amount ?? MoneyAmount(minor: BigInt.from(100000), scale: 2);
     return database
         .into(database.budgets)
         .insert(
@@ -123,9 +125,9 @@ void main() {
             period: drift.Value<String>(BudgetPeriod.monthly.storageValue),
             startDate: drift.Value<DateTime>(startDate),
             endDate: drift.Value<DateTime?>(endDate),
-            amount: drift.Value<double>(amount.toDouble()),
-            amountMinor: drift.Value<String>(amount.minor.toString()),
-            amountScale: drift.Value<int>(amount.scale),
+            amount: drift.Value<double>(resolvedAmount.toDouble()),
+            amountMinor: drift.Value<String>(resolvedAmount.minor.toString()),
+            amountScale: drift.Value<int>(resolvedAmount.scale),
             scope: drift.Value<String>(scope),
             categories: drift.Value<List<String>>(categories),
             accounts: drift.Value<List<String>>(accounts),
@@ -256,7 +258,7 @@ void main() {
       amount: MoneyAmount(minor: BigInt.from(100000), scale: 2),
       scope: BudgetScope.byCategory.storageValue,
       categories: const <String>['c1', 'c2'],
-      allocations: const <BudgetCategoryAllocation>[
+      allocations: <BudgetCategoryAllocation>[
         BudgetCategoryAllocation(
           categoryId: 'c1',
           limitMinor: BigInt.from(60000),

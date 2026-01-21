@@ -114,8 +114,11 @@ class ExportBundleCsvDecoder {
           row,
           'balance',
         );
-        final double legacyOpening =
-            _readOptionalDouble(header.columns, row, 'opening_balance') ?? 0;
+        final double legacyOpening = _readOptionalDouble(
+          header.columns,
+          row,
+          'opening_balance',
+        );
         final BigInt? balanceMinor = _readOptionalBigInt(
           header.columns,
           row,

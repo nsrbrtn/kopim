@@ -112,7 +112,7 @@ void main() {
     expect(result, isTrue);
     expect(repository.savedBudgets, hasLength(1));
     final Budget saved = repository.savedBudgets.single;
-    expect(saved.amount, closeTo(25000, 0.0001));
+    expect(saved.amountValue.toDouble(), closeTo(25000, 0.0001));
     expect(saved.categoryAllocations, hasLength(2));
     expect(
       saved.categoryAllocations
@@ -120,7 +120,8 @@ void main() {
             (BudgetCategoryAllocation allocation) =>
                 allocation.categoryId == 'groceries',
           )
-          .limit,
+          .limitValue
+          .toDouble(),
       closeTo(20000, 0.0001),
     );
     expect(
@@ -129,7 +130,8 @@ void main() {
             (BudgetCategoryAllocation allocation) =>
                 allocation.categoryId == 'transport',
           )
-          .limit,
+          .limitValue
+          .toDouble(),
       closeTo(5000, 0.0001),
     );
   });

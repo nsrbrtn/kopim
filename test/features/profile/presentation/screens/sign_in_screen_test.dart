@@ -174,9 +174,6 @@ void main() {
 
     await tester.pumpAndSettle();
 
-    final BuildContext context = tester.element(find.byType(SignInScreen));
-    final AppLocalizations strings = AppLocalizations.of(context)!;
-
     final Finder toggleToSignUp = find.text('Создать аккаунт');
     await tester.ensureVisible(toggleToSignUp);
     await tester.tap(toggleToSignUp);

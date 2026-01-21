@@ -1,6 +1,5 @@
 import 'package:kopim/core/data/database.dart' as db;
 import 'package:kopim/core/data/outbox/outbox_dao.dart';
-import 'package:kopim/core/money/currency_scale.dart';
 import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/accounts/data/sources/local/account_dao.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
@@ -245,7 +244,7 @@ class TransactionRepositoryImpl implements TransactionRepository {
     if (row == null) {
       throw StateError('Account not found for id $accountId');
     }
-    final int scale = row.currencyScale ?? resolveCurrencyScale(row.currency);
+    final int scale = row.currencyScale;
     final MoneyAmount normalized = rescaleMoneyAmount(delta, scale);
     final BigInt updatedMinor =
         BigInt.parse(row.balanceMinor) + normalized.minor;

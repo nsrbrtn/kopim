@@ -438,7 +438,7 @@ WHERE t.is_deleted = 0
         .get();
 
     if (rows.isEmpty) {
-      return const MoneyAmount(minor: BigInt.zero, scale: 2);
+      return MoneyAmount(minor: BigInt.zero, scale: 2);
     }
 
     final MoneyAccumulator accumulator = MoneyAccumulator();
@@ -542,7 +542,8 @@ WHERE t.is_deleted = 0
       period: BudgetPeriodX.fromStorage(row.period),
       startDate: row.startDate,
       endDate: row.endDate,
-      amount: row.amount,
+      amountMinor: BigInt.parse(row.amountMinor),
+      amountScale: row.amountScale,
       scope: BudgetScopeX.fromStorage(row.scope),
       categories: row.categories,
       accounts: row.accounts,

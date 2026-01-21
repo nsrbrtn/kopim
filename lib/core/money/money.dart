@@ -90,6 +90,10 @@ class Money {
     return '$sign$whole.$fraction';
   }
 
+  double toDouble() {
+    return double.tryParse(toDecimalString()) ?? 0;
+  }
+
   static bool _shouldRoundUp({
     required String remainder,
     required String whole,

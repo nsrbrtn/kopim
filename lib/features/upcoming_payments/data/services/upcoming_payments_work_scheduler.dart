@@ -279,13 +279,14 @@ Future<void> _handleUpcomingPayment({
     final int? dueMs = current.nextRunAtMs;
     if (dueMs != null && current.autoPost) {
       final DateTime dueLocal = timeService.toLocal(dueMs);
-      final TransactionType type = current.amount >= 0
+      final MoneyAmount amount = current.amountValue;
+      final TransactionType type = amount.minor >= BigInt.zero
           ? TransactionType.expense
           : TransactionType.income;
       final AddTransactionRequest request = AddTransactionRequest(
         accountId: current.accountId,
         categoryId: current.categoryId,
-        amount: current.amount.abs(),
+        amount: amount.abs(),
         date: dueLocal.toUtc(),
         note: current.note?.isNotEmpty == true
             ? current.note

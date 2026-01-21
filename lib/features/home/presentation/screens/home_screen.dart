@@ -795,12 +795,12 @@ class _AccountsListState extends State<_AccountsList> {
                           currencyFormat: currencyFormat,
                           summary:
                               widget.monthlySummaries[account.id] ??
-                              const HomeAccountMonthlySummary(
-                                income: const MoneyAmount(
+                              HomeAccountMonthlySummary(
+                                income: MoneyAmount(
                                   minor: BigInt.zero,
                                   scale: 2,
                                 ),
-                                expense: const MoneyAmount(
+                                expense: MoneyAmount(
                                   minor: BigInt.zero,
                                   scale: 2,
                                 ),
@@ -897,12 +897,12 @@ class _AccountsListState extends State<_AccountsList> {
                             );
                         final HomeAccountMonthlySummary summary =
                             widget.monthlySummaries[account.id] ??
-                            const HomeAccountMonthlySummary(
-                              income: const MoneyAmount(
+                            HomeAccountMonthlySummary(
+                              income: MoneyAmount(
                                 minor: BigInt.zero,
                                 scale: 2,
                               ),
-                              expense: const MoneyAmount(
+                              expense: MoneyAmount(
                                 minor: BigInt.zero,
                                 scale: 2,
                               ),

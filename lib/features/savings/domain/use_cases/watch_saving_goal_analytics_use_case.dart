@@ -25,7 +25,7 @@ class WatchSavingGoalAnalyticsUseCase {
       if (related.isEmpty) {
         return SavingGoalAnalytics(
           goalId: goalId,
-          totalAmount: const MoneyAmount(minor: BigInt.zero, scale: 2),
+          totalAmount: MoneyAmount(minor: BigInt.zero, scale: 2),
         );
       }
 

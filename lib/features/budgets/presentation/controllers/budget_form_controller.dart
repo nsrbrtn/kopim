@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:kopim/core/di/injectors.dart';
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/budgets/domain/entities/budget.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_category_allocation.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_period.dart';
@@ -52,10 +53,14 @@ class BudgetFormController extends _$BudgetFormController {
   BudgetFormState build({BudgetFormParams params = const BudgetFormParams()}) {
     final Budget? initial = params.initial;
     if (initial != null) {
+      final int scale = initial.amountScale ?? 2;
       final Map<String, String> initialCategoryAmounts = <String, String>{
         for (final BudgetCategoryAllocation allocation
             in initial.categoryAllocations)
-          allocation.categoryId: allocation.limit.toStringAsFixed(2),
+          allocation.categoryId:
+              allocation.limitValue.toDouble().toStringAsFixed(
+                allocation.limitValue.scale,
+              ),
       };
       final Set<String> categoryIds = <String>{
         ...initial.categories,
@@ -63,7 +68,7 @@ class BudgetFormController extends _$BudgetFormController {
       };
       return BudgetFormState(
         title: initial.title,
-        amountText: initial.amount.toStringAsFixed(2),
+        amountText: initial.amountValue.toDouble().toStringAsFixed(scale),
         period: initial.period,
         scope: initial.scope,
         startDate: initial.startDate,
@@ -106,7 +111,10 @@ class BudgetFormController extends _$BudgetFormController {
     if (scope == BudgetScope.byCategory) {
       state = state.copyWith(
         scope: scope,
-        amountText: _formatCategoryTotal(categoryAmounts),
+        amountText: _formatCategoryTotal(
+          categoryAmounts,
+          _resolveScale(),
+        ),
       );
     } else {
       state = state.copyWith(scope: scope);
@@ -139,7 +147,10 @@ class BudgetFormController extends _$BudgetFormController {
       categoryIds: categories,
       categoryAmounts: categoryAmounts,
       amountText: state.scope == BudgetScope.byCategory
-          ? _formatCategoryTotal(categoryAmounts)
+          ? _formatCategoryTotal(
+              categoryAmounts,
+              _resolveScale(),
+            )
           : state.amountText,
     );
   }
@@ -162,7 +173,10 @@ class BudgetFormController extends _$BudgetFormController {
     state = state.copyWith(
       categoryAmounts: categoryAmounts,
       amountText: state.scope == BudgetScope.byCategory
-          ? _formatCategoryTotal(categoryAmounts)
+          ? _formatCategoryTotal(
+              categoryAmounts,
+              _resolveScale(),
+            )
           : state.amountText,
     );
   }
@@ -174,7 +188,8 @@ class BudgetFormController extends _$BudgetFormController {
   }
 
   Future<bool> submit() async {
-    double? amount = _parseAmount(state.amountText);
+    final int scale = _resolveScale();
+    MoneyAmount? amount = _parseAmount(state.amountText, scale);
     List<BudgetCategoryAllocation> categoryAllocations =
         const <BudgetCategoryAllocation>[];
     if (state.scope == BudgetScope.byCategory) {
@@ -184,25 +199,27 @@ class BudgetFormController extends _$BudgetFormController {
       }
       final List<BudgetCategoryAllocation> allocations =
           <BudgetCategoryAllocation>[];
+      final MoneyAccumulator total = MoneyAccumulator();
       for (final String categoryId in state.categoryIds) {
         final String raw = state.categoryAmounts[categoryId] ?? '';
-        final double? limit = _parseAmount(raw);
-        if (limit == null || limit <= 0) {
+        final MoneyAmount? limit = _parseAmount(raw, scale);
+        if (limit == null || limit.minor <= BigInt.zero) {
           state = state.copyWith(errorMessage: 'invalid_category_amount');
           return false;
         }
+        total.add(limit);
         allocations.add(
-          BudgetCategoryAllocation(categoryId: categoryId, limit: limit),
+          BudgetCategoryAllocation(
+            categoryId: categoryId,
+            limitMinor: limit.minor,
+            limitScale: limit.scale,
+          ),
         );
       }
       categoryAllocations = allocations;
-      amount = allocations.fold<double>(
-        0,
-        (double previousValue, BudgetCategoryAllocation allocation) =>
-            previousValue + allocation.limit,
-      );
+      amount = MoneyAmount(minor: total.minor, scale: total.scale);
     }
-    if (amount == null || amount <= 0) {
+    if (amount == null || amount.minor <= BigInt.zero) {
       state = state.copyWith(errorMessage: 'invalid_amount');
       return false;
     }
@@ -232,7 +249,8 @@ class BudgetFormController extends _$BudgetFormController {
             endDate: state.endDate != null
                 ? _normalizeStart(state.endDate!)
                 : null,
-            amount: amount,
+            amountMinor: amount.minor,
+            amountScale: amount.scale,
             categories: categories,
             accounts: accounts,
             categoryAllocations: categoryAllocations,
@@ -246,7 +264,8 @@ class BudgetFormController extends _$BudgetFormController {
             endDate: state.endDate != null
                 ? _normalizeStart(state.endDate!)
                 : null,
-            amount: amount,
+            amountMinor: amount.minor,
+            amountScale: amount.scale,
             scope: state.scope,
             categories: categories,
             accounts: accounts,
@@ -272,7 +291,7 @@ class BudgetFormController extends _$BudgetFormController {
     return DateTime(date.year, date.month, date.day);
   }
 
-  double? _parseAmount(String raw) {
+  MoneyAmount? _parseAmount(String raw, int scale) {
     final String sanitized = raw
         .trim()
         .replaceAll(RegExp(r'\s+'), '')
@@ -280,25 +299,29 @@ class BudgetFormController extends _$BudgetFormController {
     if (sanitized.isEmpty) {
       return null;
     }
-    return double.tryParse(sanitized);
+    return tryParseMoneyAmount(input: sanitized, scale: scale);
   }
 
-  String _formatCategoryTotal(Map<String, String> categoryAmounts) {
+  String _formatCategoryTotal(Map<String, String> categoryAmounts, int scale) {
     if (categoryAmounts.isEmpty) {
       return '';
     }
-    double total = 0;
+    final MoneyAccumulator total = MoneyAccumulator();
     bool hasValue = false;
     for (final String value in categoryAmounts.values) {
-      final double? parsed = _parseAmount(value);
-      if (parsed != null && parsed >= 0) {
-        total += parsed;
+      final MoneyAmount? parsed = _parseAmount(value, scale);
+      if (parsed != null && parsed.minor >= BigInt.zero) {
+        total.add(parsed);
         hasValue = true;
       }
     }
     if (!hasValue) {
       return '';
     }
-    return total.toStringAsFixed(2);
+    return total.toDouble().toStringAsFixed(scale);
+  }
+
+  int _resolveScale() {
+    return state.initialBudget?.amountScale ?? 2;
   }
 }

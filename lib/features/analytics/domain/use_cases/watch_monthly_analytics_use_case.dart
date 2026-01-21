@@ -51,8 +51,8 @@ class WatchMonthlyAnalyticsUseCase {
     required int topCategoriesLimit,
   }) {
     if (transactions.isEmpty) {
-      const MoneyAmount zero = MoneyAmount(minor: BigInt.zero, scale: 2);
-      return const AnalyticsOverview(
+      final MoneyAmount zero = MoneyAmount(minor: BigInt.zero, scale: 2);
+      return AnalyticsOverview(
         totalIncome: zero,
         totalExpense: zero,
         netBalance: zero,
@@ -362,7 +362,7 @@ class WatchMonthlyAnalyticsUseCase {
 
   MoneyAmount _toMoneyAmount(MoneyAccumulator? accumulator) {
     if (accumulator == null) {
-      return const MoneyAmount(minor: BigInt.zero, scale: 2);
+      return MoneyAmount(minor: BigInt.zero, scale: 2);
     }
     return MoneyAmount(minor: accumulator.minor, scale: accumulator.scale);
   }

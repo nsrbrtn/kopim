@@ -384,8 +384,7 @@ class SavingGoalRepositoryImpl implements SavingGoalRepository {
       if (accountRow == null) {
         throw StateError('Account not found for id ${entry.key}');
       }
-      final int scale =
-          accountRow.currencyScale ?? resolveCurrencyScale(accountRow.currency);
+      final int scale = accountRow.currencyScale;
       final MoneyAmount delta = rescaleMoneyAmount(entry.value, scale);
       final AccountEntity updatedAccount = _mapAccountRow(accountRow).copyWith(
         balanceMinor: BigInt.parse(accountRow.balanceMinor) + delta.minor,

@@ -108,7 +108,7 @@ void main() {
         end: DateTime(2024, 1, 31),
       ),
     );
-    const AnalyticsOverview analyticsOverview = AnalyticsOverview(
+    final AnalyticsOverview analyticsOverview = AnalyticsOverview(
       totalIncome: MoneyAmount(minor: BigInt.zero, scale: 2),
       totalExpense: MoneyAmount(minor: BigInt.zero, scale: 2),
       netBalance: MoneyAmount(minor: BigInt.zero, scale: 2),

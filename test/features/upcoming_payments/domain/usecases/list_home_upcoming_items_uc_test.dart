@@ -1,5 +1,4 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/upcoming_payments/domain/entities/payment_reminder.dart';
 import 'package:kopim/features/upcoming_payments/domain/entities/upcoming_payment.dart';
 import 'package:kopim/features/upcoming_payments/domain/models/upcoming_item.dart';

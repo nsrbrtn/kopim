@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/core/domain/icons/phosphor_icon_descriptor.dart';
 import 'package:kopim/core/money/money_utils.dart';
-import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/core/utils/context_extensions.dart';
 import 'package:kopim/core/utils/helpers.dart';
 import 'package:kopim/core/widgets/phosphor_icon_utils.dart';

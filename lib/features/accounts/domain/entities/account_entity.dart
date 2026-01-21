@@ -28,6 +28,9 @@ abstract class AccountEntity with _$AccountEntity {
     @Default(false) bool isHidden,
   }) = _AccountEntity;
 
+  factory AccountEntity.fromJson(Map<String, Object?> json) =>
+      _$AccountEntityFromJson(json);
+
   MoneyAmount get balanceAmount => MoneyAmount(
     minor: balanceMinor ?? BigInt.zero,
     scale: currencyScale ?? 2,
@@ -37,7 +40,4 @@ abstract class AccountEntity with _$AccountEntity {
     minor: openingBalanceMinor ?? BigInt.zero,
     scale: currencyScale ?? 2,
   );
-
-  factory AccountEntity.fromJson(Map<String, Object?> json) =>
-      _$AccountEntityFromJson(json);
 }
