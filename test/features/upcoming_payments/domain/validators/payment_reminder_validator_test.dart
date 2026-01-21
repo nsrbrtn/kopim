@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/upcoming_payments/domain/validators/payment_reminder_validator.dart';
 
 import '../../test_utils/fakes.dart';
@@ -15,7 +16,7 @@ void main() {
     expect(
       () => validator.validate(
         title: 'Разовый платёж',
-        amount: 500,
+        amount: MoneyAmount(minor: BigInt.from(50000), scale: 2),
         whenLocal: DateTime(2024, 1, 1, 12),
       ),
       returnsNormally,
@@ -26,7 +27,7 @@ void main() {
     expect(
       () => validator.validate(
         title: '',
-        amount: 100,
+        amount: MoneyAmount(minor: BigInt.from(10000), scale: 2),
         whenLocal: DateTime(2024, 1, 1, 12),
       ),
       throwsA(isA<ArgumentError>()),
@@ -37,7 +38,7 @@ void main() {
     expect(
       () => validator.validate(
         title: 'Разовый платёж',
-        amount: -1,
+        amount: MoneyAmount(minor: BigInt.from(-100), scale: 2),
         whenLocal: DateTime(2024, 1, 1, 12),
       ),
       throwsA(isA<ArgumentError>()),
@@ -48,7 +49,7 @@ void main() {
     expect(
       () => validator.validate(
         title: 'Разовый платёж',
-        amount: 500,
+        amount: MoneyAmount(minor: BigInt.from(50000), scale: 2),
         whenLocal: DateTime(2023, 12, 31, 23, 59),
       ),
       throwsA(isA<ArgumentError>()),

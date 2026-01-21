@@ -302,7 +302,7 @@ as int,
 /// @nodoc
 mixin _$MonthlyExpenseInsight {
 
- DateTime get month; double get totalExpense;
+ DateTime get month;@MoneyAmountJsonConverter() MoneyAmount get totalExpense;
 /// Create a copy of MonthlyExpenseInsight
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -335,7 +335,7 @@ abstract mixin class $MonthlyExpenseInsightCopyWith<$Res>  {
   factory $MonthlyExpenseInsightCopyWith(MonthlyExpenseInsight value, $Res Function(MonthlyExpenseInsight) _then) = _$MonthlyExpenseInsightCopyWithImpl;
 @useResult
 $Res call({
- DateTime month, double totalExpense
+ DateTime month,@MoneyAmountJsonConverter() MoneyAmount totalExpense
 });
 
 
@@ -356,7 +356,7 @@ class _$MonthlyExpenseInsightCopyWithImpl<$Res>
   return _then(_self.copyWith(
 month: null == month ? _self.month : month // ignore: cast_nullable_to_non_nullable
 as DateTime,totalExpense: null == totalExpense ? _self.totalExpense : totalExpense // ignore: cast_nullable_to_non_nullable
-as double,
+as MoneyAmount,
   ));
 }
 
@@ -441,7 +441,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( DateTime month,  double totalExpense)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( DateTime month, @MoneyAmountJsonConverter()  MoneyAmount totalExpense)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _MonthlyExpenseInsight() when $default != null:
 return $default(_that.month,_that.totalExpense);case _:
@@ -462,7 +462,7 @@ return $default(_that.month,_that.totalExpense);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( DateTime month,  double totalExpense)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( DateTime month, @MoneyAmountJsonConverter()  MoneyAmount totalExpense)  $default,) {final _that = this;
 switch (_that) {
 case _MonthlyExpenseInsight():
 return $default(_that.month,_that.totalExpense);case _:
@@ -482,7 +482,7 @@ return $default(_that.month,_that.totalExpense);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( DateTime month,  double totalExpense)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( DateTime month, @MoneyAmountJsonConverter()  MoneyAmount totalExpense)?  $default,) {final _that = this;
 switch (_that) {
 case _MonthlyExpenseInsight() when $default != null:
 return $default(_that.month,_that.totalExpense);case _:
@@ -497,11 +497,11 @@ return $default(_that.month,_that.totalExpense);case _:
 @JsonSerializable()
 
 class _MonthlyExpenseInsight extends MonthlyExpenseInsight {
-  const _MonthlyExpenseInsight({required this.month, required this.totalExpense}): super._();
+  const _MonthlyExpenseInsight({required this.month, @MoneyAmountJsonConverter() required this.totalExpense}): super._();
   factory _MonthlyExpenseInsight.fromJson(Map<String, dynamic> json) => _$MonthlyExpenseInsightFromJson(json);
 
 @override final  DateTime month;
-@override final  double totalExpense;
+@override@MoneyAmountJsonConverter() final  MoneyAmount totalExpense;
 
 /// Create a copy of MonthlyExpenseInsight
 /// with the given fields replaced by the non-null parameter values.
@@ -536,7 +536,7 @@ abstract mixin class _$MonthlyExpenseInsightCopyWith<$Res> implements $MonthlyEx
   factory _$MonthlyExpenseInsightCopyWith(_MonthlyExpenseInsight value, $Res Function(_MonthlyExpenseInsight) _then) = __$MonthlyExpenseInsightCopyWithImpl;
 @override @useResult
 $Res call({
- DateTime month, double totalExpense
+ DateTime month,@MoneyAmountJsonConverter() MoneyAmount totalExpense
 });
 
 
@@ -557,7 +557,7 @@ class __$MonthlyExpenseInsightCopyWithImpl<$Res>
   return _then(_MonthlyExpenseInsight(
 month: null == month ? _self.month : month // ignore: cast_nullable_to_non_nullable
 as DateTime,totalExpense: null == totalExpense ? _self.totalExpense : totalExpense // ignore: cast_nullable_to_non_nullable
-as double,
+as MoneyAmount,
   ));
 }
 
@@ -568,7 +568,7 @@ as double,
 /// @nodoc
 mixin _$MonthlyIncomeInsight {
 
- DateTime get month; double get totalIncome;
+ DateTime get month;@MoneyAmountJsonConverter() MoneyAmount get totalIncome;
 /// Create a copy of MonthlyIncomeInsight
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -601,7 +601,7 @@ abstract mixin class $MonthlyIncomeInsightCopyWith<$Res>  {
   factory $MonthlyIncomeInsightCopyWith(MonthlyIncomeInsight value, $Res Function(MonthlyIncomeInsight) _then) = _$MonthlyIncomeInsightCopyWithImpl;
 @useResult
 $Res call({
- DateTime month, double totalIncome
+ DateTime month,@MoneyAmountJsonConverter() MoneyAmount totalIncome
 });
 
 
@@ -622,7 +622,7 @@ class _$MonthlyIncomeInsightCopyWithImpl<$Res>
   return _then(_self.copyWith(
 month: null == month ? _self.month : month // ignore: cast_nullable_to_non_nullable
 as DateTime,totalIncome: null == totalIncome ? _self.totalIncome : totalIncome // ignore: cast_nullable_to_non_nullable
-as double,
+as MoneyAmount,
   ));
 }
 
@@ -707,7 +707,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( DateTime month,  double totalIncome)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( DateTime month, @MoneyAmountJsonConverter()  MoneyAmount totalIncome)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _MonthlyIncomeInsight() when $default != null:
 return $default(_that.month,_that.totalIncome);case _:
@@ -728,7 +728,7 @@ return $default(_that.month,_that.totalIncome);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( DateTime month,  double totalIncome)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( DateTime month, @MoneyAmountJsonConverter()  MoneyAmount totalIncome)  $default,) {final _that = this;
 switch (_that) {
 case _MonthlyIncomeInsight():
 return $default(_that.month,_that.totalIncome);case _:
@@ -748,7 +748,7 @@ return $default(_that.month,_that.totalIncome);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( DateTime month,  double totalIncome)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( DateTime month, @MoneyAmountJsonConverter()  MoneyAmount totalIncome)?  $default,) {final _that = this;
 switch (_that) {
 case _MonthlyIncomeInsight() when $default != null:
 return $default(_that.month,_that.totalIncome);case _:
@@ -763,11 +763,11 @@ return $default(_that.month,_that.totalIncome);case _:
 @JsonSerializable()
 
 class _MonthlyIncomeInsight extends MonthlyIncomeInsight {
-  const _MonthlyIncomeInsight({required this.month, required this.totalIncome}): super._();
+  const _MonthlyIncomeInsight({required this.month, @MoneyAmountJsonConverter() required this.totalIncome}): super._();
   factory _MonthlyIncomeInsight.fromJson(Map<String, dynamic> json) => _$MonthlyIncomeInsightFromJson(json);
 
 @override final  DateTime month;
-@override final  double totalIncome;
+@override@MoneyAmountJsonConverter() final  MoneyAmount totalIncome;
 
 /// Create a copy of MonthlyIncomeInsight
 /// with the given fields replaced by the non-null parameter values.
@@ -802,7 +802,7 @@ abstract mixin class _$MonthlyIncomeInsightCopyWith<$Res> implements $MonthlyInc
   factory _$MonthlyIncomeInsightCopyWith(_MonthlyIncomeInsight value, $Res Function(_MonthlyIncomeInsight) _then) = __$MonthlyIncomeInsightCopyWithImpl;
 @override @useResult
 $Res call({
- DateTime month, double totalIncome
+ DateTime month,@MoneyAmountJsonConverter() MoneyAmount totalIncome
 });
 
 
@@ -823,7 +823,7 @@ class __$MonthlyIncomeInsightCopyWithImpl<$Res>
   return _then(_MonthlyIncomeInsight(
 month: null == month ? _self.month : month // ignore: cast_nullable_to_non_nullable
 as DateTime,totalIncome: null == totalIncome ? _self.totalIncome : totalIncome // ignore: cast_nullable_to_non_nullable
-as double,
+as MoneyAmount,
   ));
 }
 
@@ -834,7 +834,7 @@ as double,
 /// @nodoc
 mixin _$CategoryExpenseInsight {
 
- String? get categoryId; String get displayName; double get totalExpense; String? get color;
+ String? get categoryId; String get displayName;@MoneyAmountJsonConverter() MoneyAmount get totalExpense; String? get color;
 /// Create a copy of CategoryExpenseInsight
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -867,7 +867,7 @@ abstract mixin class $CategoryExpenseInsightCopyWith<$Res>  {
   factory $CategoryExpenseInsightCopyWith(CategoryExpenseInsight value, $Res Function(CategoryExpenseInsight) _then) = _$CategoryExpenseInsightCopyWithImpl;
 @useResult
 $Res call({
- String? categoryId, String displayName, double totalExpense, String? color
+ String? categoryId, String displayName,@MoneyAmountJsonConverter() MoneyAmount totalExpense, String? color
 });
 
 
@@ -889,7 +889,7 @@ class _$CategoryExpenseInsightCopyWithImpl<$Res>
 categoryId: freezed == categoryId ? _self.categoryId : categoryId // ignore: cast_nullable_to_non_nullable
 as String?,displayName: null == displayName ? _self.displayName : displayName // ignore: cast_nullable_to_non_nullable
 as String,totalExpense: null == totalExpense ? _self.totalExpense : totalExpense // ignore: cast_nullable_to_non_nullable
-as double,color: freezed == color ? _self.color : color // ignore: cast_nullable_to_non_nullable
+as MoneyAmount,color: freezed == color ? _self.color : color // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }
@@ -975,7 +975,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? categoryId,  String displayName,  double totalExpense,  String? color)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? categoryId,  String displayName, @MoneyAmountJsonConverter()  MoneyAmount totalExpense,  String? color)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _CategoryExpenseInsight() when $default != null:
 return $default(_that.categoryId,_that.displayName,_that.totalExpense,_that.color);case _:
@@ -996,7 +996,7 @@ return $default(_that.categoryId,_that.displayName,_that.totalExpense,_that.colo
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? categoryId,  String displayName,  double totalExpense,  String? color)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? categoryId,  String displayName, @MoneyAmountJsonConverter()  MoneyAmount totalExpense,  String? color)  $default,) {final _that = this;
 switch (_that) {
 case _CategoryExpenseInsight():
 return $default(_that.categoryId,_that.displayName,_that.totalExpense,_that.color);case _:
@@ -1016,7 +1016,7 @@ return $default(_that.categoryId,_that.displayName,_that.totalExpense,_that.colo
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? categoryId,  String displayName,  double totalExpense,  String? color)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? categoryId,  String displayName, @MoneyAmountJsonConverter()  MoneyAmount totalExpense,  String? color)?  $default,) {final _that = this;
 switch (_that) {
 case _CategoryExpenseInsight() when $default != null:
 return $default(_that.categoryId,_that.displayName,_that.totalExpense,_that.color);case _:
@@ -1031,12 +1031,12 @@ return $default(_that.categoryId,_that.displayName,_that.totalExpense,_that.colo
 @JsonSerializable()
 
 class _CategoryExpenseInsight extends CategoryExpenseInsight {
-  const _CategoryExpenseInsight({this.categoryId, required this.displayName, required this.totalExpense, this.color}): super._();
+  const _CategoryExpenseInsight({this.categoryId, required this.displayName, @MoneyAmountJsonConverter() required this.totalExpense, this.color}): super._();
   factory _CategoryExpenseInsight.fromJson(Map<String, dynamic> json) => _$CategoryExpenseInsightFromJson(json);
 
 @override final  String? categoryId;
 @override final  String displayName;
-@override final  double totalExpense;
+@override@MoneyAmountJsonConverter() final  MoneyAmount totalExpense;
 @override final  String? color;
 
 /// Create a copy of CategoryExpenseInsight
@@ -1072,7 +1072,7 @@ abstract mixin class _$CategoryExpenseInsightCopyWith<$Res> implements $Category
   factory _$CategoryExpenseInsightCopyWith(_CategoryExpenseInsight value, $Res Function(_CategoryExpenseInsight) _then) = __$CategoryExpenseInsightCopyWithImpl;
 @override @useResult
 $Res call({
- String? categoryId, String displayName, double totalExpense, String? color
+ String? categoryId, String displayName,@MoneyAmountJsonConverter() MoneyAmount totalExpense, String? color
 });
 
 
@@ -1094,7 +1094,7 @@ class __$CategoryExpenseInsightCopyWithImpl<$Res>
 categoryId: freezed == categoryId ? _self.categoryId : categoryId // ignore: cast_nullable_to_non_nullable
 as String?,displayName: null == displayName ? _self.displayName : displayName // ignore: cast_nullable_to_non_nullable
 as String,totalExpense: null == totalExpense ? _self.totalExpense : totalExpense // ignore: cast_nullable_to_non_nullable
-as double,color: freezed == color ? _self.color : color // ignore: cast_nullable_to_non_nullable
+as MoneyAmount,color: freezed == color ? _self.color : color // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }
@@ -1106,7 +1106,7 @@ as String?,
 /// @nodoc
 mixin _$CategoryIncomeInsight {
 
- String? get categoryId; String get displayName; double get totalIncome; String? get color;
+ String? get categoryId; String get displayName;@MoneyAmountJsonConverter() MoneyAmount get totalIncome; String? get color;
 /// Create a copy of CategoryIncomeInsight
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1139,7 +1139,7 @@ abstract mixin class $CategoryIncomeInsightCopyWith<$Res>  {
   factory $CategoryIncomeInsightCopyWith(CategoryIncomeInsight value, $Res Function(CategoryIncomeInsight) _then) = _$CategoryIncomeInsightCopyWithImpl;
 @useResult
 $Res call({
- String? categoryId, String displayName, double totalIncome, String? color
+ String? categoryId, String displayName,@MoneyAmountJsonConverter() MoneyAmount totalIncome, String? color
 });
 
 
@@ -1161,7 +1161,7 @@ class _$CategoryIncomeInsightCopyWithImpl<$Res>
 categoryId: freezed == categoryId ? _self.categoryId : categoryId // ignore: cast_nullable_to_non_nullable
 as String?,displayName: null == displayName ? _self.displayName : displayName // ignore: cast_nullable_to_non_nullable
 as String,totalIncome: null == totalIncome ? _self.totalIncome : totalIncome // ignore: cast_nullable_to_non_nullable
-as double,color: freezed == color ? _self.color : color // ignore: cast_nullable_to_non_nullable
+as MoneyAmount,color: freezed == color ? _self.color : color // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }
@@ -1247,7 +1247,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? categoryId,  String displayName,  double totalIncome,  String? color)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? categoryId,  String displayName, @MoneyAmountJsonConverter()  MoneyAmount totalIncome,  String? color)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _CategoryIncomeInsight() when $default != null:
 return $default(_that.categoryId,_that.displayName,_that.totalIncome,_that.color);case _:
@@ -1268,7 +1268,7 @@ return $default(_that.categoryId,_that.displayName,_that.totalIncome,_that.color
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? categoryId,  String displayName,  double totalIncome,  String? color)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? categoryId,  String displayName, @MoneyAmountJsonConverter()  MoneyAmount totalIncome,  String? color)  $default,) {final _that = this;
 switch (_that) {
 case _CategoryIncomeInsight():
 return $default(_that.categoryId,_that.displayName,_that.totalIncome,_that.color);case _:
@@ -1288,7 +1288,7 @@ return $default(_that.categoryId,_that.displayName,_that.totalIncome,_that.color
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? categoryId,  String displayName,  double totalIncome,  String? color)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? categoryId,  String displayName, @MoneyAmountJsonConverter()  MoneyAmount totalIncome,  String? color)?  $default,) {final _that = this;
 switch (_that) {
 case _CategoryIncomeInsight() when $default != null:
 return $default(_that.categoryId,_that.displayName,_that.totalIncome,_that.color);case _:
@@ -1303,12 +1303,12 @@ return $default(_that.categoryId,_that.displayName,_that.totalIncome,_that.color
 @JsonSerializable()
 
 class _CategoryIncomeInsight extends CategoryIncomeInsight {
-  const _CategoryIncomeInsight({this.categoryId, required this.displayName, required this.totalIncome, this.color}): super._();
+  const _CategoryIncomeInsight({this.categoryId, required this.displayName, @MoneyAmountJsonConverter() required this.totalIncome, this.color}): super._();
   factory _CategoryIncomeInsight.fromJson(Map<String, dynamic> json) => _$CategoryIncomeInsightFromJson(json);
 
 @override final  String? categoryId;
 @override final  String displayName;
-@override final  double totalIncome;
+@override@MoneyAmountJsonConverter() final  MoneyAmount totalIncome;
 @override final  String? color;
 
 /// Create a copy of CategoryIncomeInsight
@@ -1344,7 +1344,7 @@ abstract mixin class _$CategoryIncomeInsightCopyWith<$Res> implements $CategoryI
   factory _$CategoryIncomeInsightCopyWith(_CategoryIncomeInsight value, $Res Function(_CategoryIncomeInsight) _then) = __$CategoryIncomeInsightCopyWithImpl;
 @override @useResult
 $Res call({
- String? categoryId, String displayName, double totalIncome, String? color
+ String? categoryId, String displayName,@MoneyAmountJsonConverter() MoneyAmount totalIncome, String? color
 });
 
 
@@ -1366,7 +1366,7 @@ class __$CategoryIncomeInsightCopyWithImpl<$Res>
 categoryId: freezed == categoryId ? _self.categoryId : categoryId // ignore: cast_nullable_to_non_nullable
 as String?,displayName: null == displayName ? _self.displayName : displayName // ignore: cast_nullable_to_non_nullable
 as String,totalIncome: null == totalIncome ? _self.totalIncome : totalIncome // ignore: cast_nullable_to_non_nullable
-as double,color: freezed == color ? _self.color : color // ignore: cast_nullable_to_non_nullable
+as MoneyAmount,color: freezed == color ? _self.color : color // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }
@@ -1378,7 +1378,7 @@ as String?,
 /// @nodoc
 mixin _$BudgetForecastInsight {
 
- String get budgetId; String get title; DateTime get periodStart; DateTime get periodEnd; double get allocated; double get spent; double get projectedSpent; double get remaining; double get completionRate; BudgetForecastStatus get status; List<String> get categoryNames; List<String> get accountIds;
+ String get budgetId; String get title; DateTime get periodStart; DateTime get periodEnd;@MoneyAmountJsonConverter() MoneyAmount get allocated;@MoneyAmountJsonConverter() MoneyAmount get spent;@MoneyAmountJsonConverter() MoneyAmount get projectedSpent;@MoneyAmountJsonConverter() MoneyAmount get remaining; double get completionRate; BudgetForecastStatus get status; List<String> get categoryNames; List<String> get accountIds;
 /// Create a copy of BudgetForecastInsight
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1411,7 +1411,7 @@ abstract mixin class $BudgetForecastInsightCopyWith<$Res>  {
   factory $BudgetForecastInsightCopyWith(BudgetForecastInsight value, $Res Function(BudgetForecastInsight) _then) = _$BudgetForecastInsightCopyWithImpl;
 @useResult
 $Res call({
- String budgetId, String title, DateTime periodStart, DateTime periodEnd, double allocated, double spent, double projectedSpent, double remaining, double completionRate, BudgetForecastStatus status, List<String> categoryNames, List<String> accountIds
+ String budgetId, String title, DateTime periodStart, DateTime periodEnd,@MoneyAmountJsonConverter() MoneyAmount allocated,@MoneyAmountJsonConverter() MoneyAmount spent,@MoneyAmountJsonConverter() MoneyAmount projectedSpent,@MoneyAmountJsonConverter() MoneyAmount remaining, double completionRate, BudgetForecastStatus status, List<String> categoryNames, List<String> accountIds
 });
 
 
@@ -1435,10 +1435,10 @@ as String,title: null == title ? _self.title : title // ignore: cast_nullable_to
 as String,periodStart: null == periodStart ? _self.periodStart : periodStart // ignore: cast_nullable_to_non_nullable
 as DateTime,periodEnd: null == periodEnd ? _self.periodEnd : periodEnd // ignore: cast_nullable_to_non_nullable
 as DateTime,allocated: null == allocated ? _self.allocated : allocated // ignore: cast_nullable_to_non_nullable
-as double,spent: null == spent ? _self.spent : spent // ignore: cast_nullable_to_non_nullable
-as double,projectedSpent: null == projectedSpent ? _self.projectedSpent : projectedSpent // ignore: cast_nullable_to_non_nullable
-as double,remaining: null == remaining ? _self.remaining : remaining // ignore: cast_nullable_to_non_nullable
-as double,completionRate: null == completionRate ? _self.completionRate : completionRate // ignore: cast_nullable_to_non_nullable
+as MoneyAmount,spent: null == spent ? _self.spent : spent // ignore: cast_nullable_to_non_nullable
+as MoneyAmount,projectedSpent: null == projectedSpent ? _self.projectedSpent : projectedSpent // ignore: cast_nullable_to_non_nullable
+as MoneyAmount,remaining: null == remaining ? _self.remaining : remaining // ignore: cast_nullable_to_non_nullable
+as MoneyAmount,completionRate: null == completionRate ? _self.completionRate : completionRate // ignore: cast_nullable_to_non_nullable
 as double,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as BudgetForecastStatus,categoryNames: null == categoryNames ? _self.categoryNames : categoryNames // ignore: cast_nullable_to_non_nullable
 as List<String>,accountIds: null == accountIds ? _self.accountIds : accountIds // ignore: cast_nullable_to_non_nullable
@@ -1527,7 +1527,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String budgetId,  String title,  DateTime periodStart,  DateTime periodEnd,  double allocated,  double spent,  double projectedSpent,  double remaining,  double completionRate,  BudgetForecastStatus status,  List<String> categoryNames,  List<String> accountIds)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String budgetId,  String title,  DateTime periodStart,  DateTime periodEnd, @MoneyAmountJsonConverter()  MoneyAmount allocated, @MoneyAmountJsonConverter()  MoneyAmount spent, @MoneyAmountJsonConverter()  MoneyAmount projectedSpent, @MoneyAmountJsonConverter()  MoneyAmount remaining,  double completionRate,  BudgetForecastStatus status,  List<String> categoryNames,  List<String> accountIds)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _BudgetForecastInsight() when $default != null:
 return $default(_that.budgetId,_that.title,_that.periodStart,_that.periodEnd,_that.allocated,_that.spent,_that.projectedSpent,_that.remaining,_that.completionRate,_that.status,_that.categoryNames,_that.accountIds);case _:
@@ -1548,7 +1548,7 @@ return $default(_that.budgetId,_that.title,_that.periodStart,_that.periodEnd,_th
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String budgetId,  String title,  DateTime periodStart,  DateTime periodEnd,  double allocated,  double spent,  double projectedSpent,  double remaining,  double completionRate,  BudgetForecastStatus status,  List<String> categoryNames,  List<String> accountIds)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String budgetId,  String title,  DateTime periodStart,  DateTime periodEnd, @MoneyAmountJsonConverter()  MoneyAmount allocated, @MoneyAmountJsonConverter()  MoneyAmount spent, @MoneyAmountJsonConverter()  MoneyAmount projectedSpent, @MoneyAmountJsonConverter()  MoneyAmount remaining,  double completionRate,  BudgetForecastStatus status,  List<String> categoryNames,  List<String> accountIds)  $default,) {final _that = this;
 switch (_that) {
 case _BudgetForecastInsight():
 return $default(_that.budgetId,_that.title,_that.periodStart,_that.periodEnd,_that.allocated,_that.spent,_that.projectedSpent,_that.remaining,_that.completionRate,_that.status,_that.categoryNames,_that.accountIds);case _:
@@ -1568,7 +1568,7 @@ return $default(_that.budgetId,_that.title,_that.periodStart,_that.periodEnd,_th
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String budgetId,  String title,  DateTime periodStart,  DateTime periodEnd,  double allocated,  double spent,  double projectedSpent,  double remaining,  double completionRate,  BudgetForecastStatus status,  List<String> categoryNames,  List<String> accountIds)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String budgetId,  String title,  DateTime periodStart,  DateTime periodEnd, @MoneyAmountJsonConverter()  MoneyAmount allocated, @MoneyAmountJsonConverter()  MoneyAmount spent, @MoneyAmountJsonConverter()  MoneyAmount projectedSpent, @MoneyAmountJsonConverter()  MoneyAmount remaining,  double completionRate,  BudgetForecastStatus status,  List<String> categoryNames,  List<String> accountIds)?  $default,) {final _that = this;
 switch (_that) {
 case _BudgetForecastInsight() when $default != null:
 return $default(_that.budgetId,_that.title,_that.periodStart,_that.periodEnd,_that.allocated,_that.spent,_that.projectedSpent,_that.remaining,_that.completionRate,_that.status,_that.categoryNames,_that.accountIds);case _:
@@ -1583,17 +1583,17 @@ return $default(_that.budgetId,_that.title,_that.periodStart,_that.periodEnd,_th
 @JsonSerializable()
 
 class _BudgetForecastInsight extends BudgetForecastInsight {
-  const _BudgetForecastInsight({required this.budgetId, required this.title, required this.periodStart, required this.periodEnd, required this.allocated, required this.spent, required this.projectedSpent, required this.remaining, required this.completionRate, required this.status, final  List<String> categoryNames = const <String>[], final  List<String> accountIds = const <String>[]}): _categoryNames = categoryNames,_accountIds = accountIds,super._();
+  const _BudgetForecastInsight({required this.budgetId, required this.title, required this.periodStart, required this.periodEnd, @MoneyAmountJsonConverter() required this.allocated, @MoneyAmountJsonConverter() required this.spent, @MoneyAmountJsonConverter() required this.projectedSpent, @MoneyAmountJsonConverter() required this.remaining, required this.completionRate, required this.status, final  List<String> categoryNames = const <String>[], final  List<String> accountIds = const <String>[]}): _categoryNames = categoryNames,_accountIds = accountIds,super._();
   factory _BudgetForecastInsight.fromJson(Map<String, dynamic> json) => _$BudgetForecastInsightFromJson(json);
 
 @override final  String budgetId;
 @override final  String title;
 @override final  DateTime periodStart;
 @override final  DateTime periodEnd;
-@override final  double allocated;
-@override final  double spent;
-@override final  double projectedSpent;
-@override final  double remaining;
+@override@MoneyAmountJsonConverter() final  MoneyAmount allocated;
+@override@MoneyAmountJsonConverter() final  MoneyAmount spent;
+@override@MoneyAmountJsonConverter() final  MoneyAmount projectedSpent;
+@override@MoneyAmountJsonConverter() final  MoneyAmount remaining;
 @override final  double completionRate;
 @override final  BudgetForecastStatus status;
  final  List<String> _categoryNames;
@@ -1644,7 +1644,7 @@ abstract mixin class _$BudgetForecastInsightCopyWith<$Res> implements $BudgetFor
   factory _$BudgetForecastInsightCopyWith(_BudgetForecastInsight value, $Res Function(_BudgetForecastInsight) _then) = __$BudgetForecastInsightCopyWithImpl;
 @override @useResult
 $Res call({
- String budgetId, String title, DateTime periodStart, DateTime periodEnd, double allocated, double spent, double projectedSpent, double remaining, double completionRate, BudgetForecastStatus status, List<String> categoryNames, List<String> accountIds
+ String budgetId, String title, DateTime periodStart, DateTime periodEnd,@MoneyAmountJsonConverter() MoneyAmount allocated,@MoneyAmountJsonConverter() MoneyAmount spent,@MoneyAmountJsonConverter() MoneyAmount projectedSpent,@MoneyAmountJsonConverter() MoneyAmount remaining, double completionRate, BudgetForecastStatus status, List<String> categoryNames, List<String> accountIds
 });
 
 
@@ -1668,10 +1668,10 @@ as String,title: null == title ? _self.title : title // ignore: cast_nullable_to
 as String,periodStart: null == periodStart ? _self.periodStart : periodStart // ignore: cast_nullable_to_non_nullable
 as DateTime,periodEnd: null == periodEnd ? _self.periodEnd : periodEnd // ignore: cast_nullable_to_non_nullable
 as DateTime,allocated: null == allocated ? _self.allocated : allocated // ignore: cast_nullable_to_non_nullable
-as double,spent: null == spent ? _self.spent : spent // ignore: cast_nullable_to_non_nullable
-as double,projectedSpent: null == projectedSpent ? _self.projectedSpent : projectedSpent // ignore: cast_nullable_to_non_nullable
-as double,remaining: null == remaining ? _self.remaining : remaining // ignore: cast_nullable_to_non_nullable
-as double,completionRate: null == completionRate ? _self.completionRate : completionRate // ignore: cast_nullable_to_non_nullable
+as MoneyAmount,spent: null == spent ? _self.spent : spent // ignore: cast_nullable_to_non_nullable
+as MoneyAmount,projectedSpent: null == projectedSpent ? _self.projectedSpent : projectedSpent // ignore: cast_nullable_to_non_nullable
+as MoneyAmount,remaining: null == remaining ? _self.remaining : remaining // ignore: cast_nullable_to_non_nullable
+as MoneyAmount,completionRate: null == completionRate ? _self.completionRate : completionRate // ignore: cast_nullable_to_non_nullable
 as double,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as BudgetForecastStatus,categoryNames: null == categoryNames ? _self._categoryNames : categoryNames // ignore: cast_nullable_to_non_nullable
 as List<String>,accountIds: null == accountIds ? _self._accountIds : accountIds // ignore: cast_nullable_to_non_nullable

@@ -266,7 +266,9 @@ class _UpcomingListRow extends ConsumerWidget {
       symbol: '',
       decimalDigits: 2,
     );
-    final String amountText = amountFormat.format(item.amount.abs()).trim();
+    final String amountText = amountFormat
+        .format(item.amount.abs().toDouble())
+        .trim();
     final bool isReminder = item.type == UpcomingItemType.reminder;
     final MarkReminderDoneUC markDone = ref.read(markReminderDoneUCProvider);
 

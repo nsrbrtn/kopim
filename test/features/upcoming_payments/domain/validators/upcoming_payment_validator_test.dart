@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/upcoming_payments/domain/services/time_service.dart';
 import 'package:kopim/features/upcoming_payments/domain/validators/upcoming_payment_validator.dart';
 
@@ -14,7 +15,7 @@ void main() {
     expect(
       () => validator.validate(
         title: 'Коммуналка',
-        amount: 1000,
+        amount: MoneyAmount(minor: BigInt.from(100000), scale: 2),
         dayOfMonth: 15,
         notifyDaysBefore: 3,
         notifyTimeHhmm: '10:00',
@@ -29,7 +30,7 @@ void main() {
     expect(
       () => validator.validate(
         title: '  ',
-        amount: 1000,
+        amount: MoneyAmount(minor: BigInt.from(100000), scale: 2),
         dayOfMonth: 15,
         notifyDaysBefore: 3,
         notifyTimeHhmm: '10:00',
@@ -44,7 +45,7 @@ void main() {
     expect(
       () => validator.validate(
         title: 'Коммуналка',
-        amount: 0,
+        amount: MoneyAmount(minor: BigInt.zero, scale: 2),
         dayOfMonth: 15,
         notifyDaysBefore: 3,
         notifyTimeHhmm: '10:00',
@@ -59,7 +60,7 @@ void main() {
     expect(
       () => validator.validate(
         title: 'Коммуналка',
-        amount: 1000,
+        amount: MoneyAmount(minor: BigInt.from(100000), scale: 2),
         dayOfMonth: 0,
         notifyDaysBefore: 3,
         notifyTimeHhmm: '10:00',
@@ -74,7 +75,7 @@ void main() {
     expect(
       () => validator.validate(
         title: 'Коммуналка',
-        amount: 1000,
+        amount: MoneyAmount(minor: BigInt.from(100000), scale: 2),
         dayOfMonth: 15,
         notifyDaysBefore: -1,
         notifyTimeHhmm: '10:00',
@@ -89,7 +90,7 @@ void main() {
     expect(
       () => validator.validate(
         title: 'Коммуналка',
-        amount: 1000,
+        amount: MoneyAmount(minor: BigInt.from(100000), scale: 2),
         dayOfMonth: 15,
         notifyDaysBefore: 1,
         notifyTimeHhmm: '99:00',
@@ -104,7 +105,7 @@ void main() {
     expect(
       () => validator.validate(
         title: 'Коммуналка',
-        amount: 1000,
+        amount: MoneyAmount(minor: BigInt.from(100000), scale: 2),
         dayOfMonth: 15,
         notifyDaysBefore: 1,
         notifyTimeHhmm: '09:00',
@@ -119,7 +120,7 @@ void main() {
     expect(
       () => validator.validate(
         title: 'Коммуналка',
-        amount: 1000,
+        amount: MoneyAmount(minor: BigInt.from(100000), scale: 2),
         dayOfMonth: 15,
         notifyDaysBefore: 1,
         notifyTimeHhmm: '09:00',

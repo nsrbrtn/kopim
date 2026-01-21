@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/home/domain/models/home_overview_summary.dart';
 import 'package:kopim/features/home/presentation/controllers/home_providers.dart';
@@ -34,13 +35,13 @@ void main() {
     testWidgets('renders balance, daily summary and top category', (
       WidgetTester tester,
     ) async {
-      const HomeOverviewSummary summary = HomeOverviewSummary(
-        totalBalance: 128987,
-        todayIncome: 12000,
-        todayExpense: 8000,
+      final HomeOverviewSummary summary = HomeOverviewSummary(
+        totalBalance: MoneyAmount(minor: BigInt.from(128987), scale: 2),
+        todayIncome: MoneyAmount(minor: BigInt.from(12000), scale: 2),
+        todayExpense: MoneyAmount(minor: BigInt.from(8000), scale: 2),
         topExpenseCategory: HomeTopExpenseCategory(
           categoryId: 'food',
-          amount: 8000,
+          amount: MoneyAmount(minor: BigInt.from(8000), scale: 2),
         ),
       );
 

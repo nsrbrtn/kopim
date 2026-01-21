@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/upcoming_payments/domain/entities/payment_reminder.dart';
 import 'package:kopim/features/upcoming_payments/domain/models/value_update.dart';
 import 'package:kopim/features/upcoming_payments/domain/usecases/create_payment_reminder_uc.dart';
@@ -43,7 +44,7 @@ void main() {
     final PaymentReminder reminder = await createUC(
       CreatePaymentReminderInput(
         title: 'Разовый платёж',
-        amount: 400,
+        amount: MoneyAmount(minor: BigInt.from(40000), scale: 2),
         whenLocal: DateTime(2024, 1, 2, 10),
         note: 'Примечание',
       ),
@@ -60,7 +61,7 @@ void main() {
     final PaymentReminder created = await createUC(
       CreatePaymentReminderInput(
         title: 'Разовый платёж',
-        amount: 400,
+        amount: MoneyAmount(minor: BigInt.from(40000), scale: 2),
         whenLocal: DateTime(2024, 1, 2, 10),
         note: 'Примечание',
       ),
@@ -71,13 +72,16 @@ void main() {
     final PaymentReminder updated = await updateUC(
       UpdatePaymentReminderInput(
         id: created.id,
-        amount: 450,
+        amount: MoneyAmount(minor: BigInt.from(45000), scale: 2),
         whenLocal: DateTime(2024, 1, 5, 12),
         note: const ValueUpdate<String?>.present('Новая заметка'),
       ),
     );
 
-    expect(updated.amount, 450);
+    expect(
+      updated.amountValue,
+      MoneyAmount(minor: BigInt.from(45000), scale: 2),
+    );
     expect(updated.whenAtMs, timeService.toEpochMs(DateTime(2024, 1, 5, 12)));
     expect(updated.note, 'Новая заметка');
     expect(updated.updatedAtMs, timeService.toEpochMs(DateTime(2024, 1, 3, 8)));
@@ -87,7 +91,7 @@ void main() {
     final PaymentReminder created = await createUC(
       CreatePaymentReminderInput(
         title: 'Разовый платёж',
-        amount: 400,
+        amount: MoneyAmount(minor: BigInt.from(40000), scale: 2),
         whenLocal: DateTime(2024, 1, 2, 10),
         note: null,
       ),

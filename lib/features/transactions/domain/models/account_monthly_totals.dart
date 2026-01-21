@@ -1,3 +1,5 @@
+import 'package:kopim/core/money/money_utils.dart';
+
 class AccountMonthlyTotals {
   const AccountMonthlyTotals({
     required this.accountId,
@@ -6,6 +8,6 @@ class AccountMonthlyTotals {
   });
 
   final String accountId;
-  final double income;
-  final double expense;
+  final MoneyAmount income;
+  final MoneyAmount expense;
 }

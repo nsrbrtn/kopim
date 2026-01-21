@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/upcoming_payments/domain/entities/payment_reminder.dart';
 import 'package:kopim/features/upcoming_payments/domain/entities/upcoming_payment.dart';
 import 'package:kopim/features/upcoming_payments/domain/models/upcoming_item.dart';
@@ -35,7 +36,8 @@ void main() {
       title: 'Правило $id',
       accountId: 'acc',
       categoryId: 'cat',
-      amount: 1000,
+      amountMinor: BigInt.from(100000),
+      amountScale: 2,
       dayOfMonth: 10,
       notifyDaysBefore: 1,
       notifyTimeHhmm: '09:00',
@@ -58,7 +60,8 @@ void main() {
     return PaymentReminder(
       id: id,
       title: 'Напоминание $id',
-      amount: 200,
+      amountMinor: BigInt.from(20000),
+      amountScale: 2,
       whenAtMs: when,
       note: null,
       isDone: isDone,

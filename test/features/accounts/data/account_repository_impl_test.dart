@@ -33,8 +33,9 @@ void main() {
     return AccountEntity(
       id: 'acc-1',
       name: 'Main',
-      balance: 0,
+      balanceMinor: BigInt.zero,
       currency: 'USD',
+      currencyScale: 2,
       type: 'checking',
       createdAt: now,
       updatedAt: now,

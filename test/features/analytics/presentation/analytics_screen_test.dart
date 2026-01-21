@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart';
 import 'package:kopim/core/di/injectors.dart';
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/analytics/domain/models/analytics_category_breakdown.dart';
 import 'package:kopim/features/analytics/domain/models/analytics_overview.dart';
@@ -68,13 +69,16 @@ void main() {
           ),
         );
 
-        const AnalyticsOverview overview = AnalyticsOverview(
-          totalIncome: 0.0,
-          totalExpense: 100.0,
-          netBalance: -100.0,
+        final AnalyticsOverview overview = AnalyticsOverview(
+          totalIncome: _amount(0),
+          totalExpense: _amount(100),
+          netBalance: _amount(-100),
           topExpenseCategories: <AnalyticsCategoryBreakdown>[
-            AnalyticsCategoryBreakdown(categoryId: 'food', amount: 60.0),
-            AnalyticsCategoryBreakdown(categoryId: 'transport', amount: 40.0),
+            AnalyticsCategoryBreakdown(categoryId: 'food', amount: _amount(60)),
+            AnalyticsCategoryBreakdown(
+              categoryId: 'transport',
+              amount: _amount(40),
+            ),
           ],
           topIncomeCategories: <AnalyticsCategoryBreakdown>[],
         );
@@ -127,8 +131,9 @@ void main() {
                   AccountEntity(
                     id: 'acc',
                     name: 'Main',
-                    balance: 0,
+                    balanceMinor: BigInt.zero,
                     currency: 'USD',
+                    currencyScale: 2,
                     type: 'checking',
                     createdAt: DateTime(2023, 1, 1),
                     updatedAt: DateTime(2023, 1, 1),
@@ -187,15 +192,15 @@ void main() {
         ),
       );
 
-      const AnalyticsOverview overview = AnalyticsOverview(
-        totalIncome: 50.0,
-        totalExpense: 120.0,
-        netBalance: -70.0,
+      final AnalyticsOverview overview = AnalyticsOverview(
+        totalIncome: _amount(50),
+        totalExpense: _amount(120),
+        netBalance: _amount(-70),
         topExpenseCategories: <AnalyticsCategoryBreakdown>[
-          AnalyticsCategoryBreakdown(categoryId: 'food', amount: 80.0),
+          AnalyticsCategoryBreakdown(categoryId: 'food', amount: _amount(80)),
         ],
         topIncomeCategories: <AnalyticsCategoryBreakdown>[
-          AnalyticsCategoryBreakdown(categoryId: 'salary', amount: 50.0),
+          AnalyticsCategoryBreakdown(categoryId: 'salary', amount: _amount(50)),
         ],
       );
 
@@ -252,8 +257,9 @@ void main() {
                 AccountEntity(
                   id: 'acc',
                   name: 'Main',
-                  balance: 0,
+                  balanceMinor: BigInt.zero,
                   currency: 'USD',
+                  currencyScale: 2,
                   type: 'checking',
                   createdAt: DateTime(2023, 1, 1),
                   updatedAt: DateTime(2023, 1, 1),
@@ -285,15 +291,15 @@ void main() {
         ),
       );
 
-      const AnalyticsOverview overview = AnalyticsOverview(
-        totalIncome: 80.0,
-        totalExpense: 120.0,
-        netBalance: -40.0,
+      final AnalyticsOverview overview = AnalyticsOverview(
+        totalIncome: _amount(80),
+        totalExpense: _amount(120),
+        netBalance: _amount(-40),
         topExpenseCategories: <AnalyticsCategoryBreakdown>[
-          AnalyticsCategoryBreakdown(categoryId: 'food', amount: 120.0),
+          AnalyticsCategoryBreakdown(categoryId: 'food', amount: _amount(120)),
         ],
         topIncomeCategories: <AnalyticsCategoryBreakdown>[
-          AnalyticsCategoryBreakdown(categoryId: 'salary', amount: 80.0),
+          AnalyticsCategoryBreakdown(categoryId: 'salary', amount: _amount(80)),
         ],
       );
 
@@ -343,8 +349,9 @@ void main() {
                 AccountEntity(
                   id: 'acc',
                   name: 'Main',
-                  balance: 0,
+                  balanceMinor: BigInt.zero,
                   currency: 'USD',
+                  currencyScale: 2,
                   type: 'checking',
                   createdAt: DateTime(2023, 1, 1),
                   updatedAt: DateTime(2023, 1, 1),
@@ -370,10 +377,7 @@ void main() {
         find.text(strings.analyticsTopCategoriesExpensesTab),
         findsWidgets,
       );
-      expect(
-        find.text(strings.analyticsTopCategoriesIncomeTab),
-        findsWidgets,
-      );
+      expect(find.text(strings.analyticsTopCategoriesIncomeTab), findsWidgets);
       expect(tester.takeException(), isNull);
     });
 
@@ -394,19 +398,28 @@ void main() {
         ),
       );
 
-      const AnalyticsOverview overview = AnalyticsOverview(
-        totalIncome: 0.0,
-        totalExpense: 150.0,
-        netBalance: -150.0,
+      final AnalyticsOverview overview = AnalyticsOverview(
+        totalIncome: _amount(0),
+        totalExpense: _amount(150),
+        netBalance: _amount(-150),
         topExpenseCategories: <AnalyticsCategoryBreakdown>[
-          AnalyticsCategoryBreakdown(categoryId: 'food', amount: 60.0),
-          AnalyticsCategoryBreakdown(categoryId: 'transport', amount: 40.0),
+          AnalyticsCategoryBreakdown(categoryId: 'food', amount: _amount(60)),
+          AnalyticsCategoryBreakdown(
+            categoryId: 'transport',
+            amount: _amount(40),
+          ),
           AnalyticsCategoryBreakdown(
             categoryId: '_others',
-            amount: 50.0,
+            amount: _amount(50),
             children: <AnalyticsCategoryBreakdown>[
-              AnalyticsCategoryBreakdown(categoryId: 'coffee', amount: 20.0),
-              AnalyticsCategoryBreakdown(categoryId: 'books', amount: 30.0),
+              AnalyticsCategoryBreakdown(
+                categoryId: 'coffee',
+                amount: _amount(20),
+              ),
+              AnalyticsCategoryBreakdown(
+                categoryId: 'books',
+                amount: _amount(30),
+              ),
             ],
           ),
         ],
@@ -481,8 +494,9 @@ void main() {
                 AccountEntity(
                   id: 'acc',
                   name: 'Main',
-                  balance: 0,
+                  balanceMinor: BigInt.zero,
                   currency: 'USD',
+                  currencyScale: 2,
                   type: 'checking',
                   createdAt: DateTime(2023, 1, 1),
                   updatedAt: DateTime(2023, 1, 1),
@@ -514,4 +528,9 @@ void main() {
       expect(find.text('Books'), findsOneWidget);
     });
   });
+}
+
+MoneyAmount _amount(num value, {int scale = 2}) {
+  final double scaled = value * 100;
+  return MoneyAmount(minor: BigInt.from(scaled.round()), scale: scale);
 }

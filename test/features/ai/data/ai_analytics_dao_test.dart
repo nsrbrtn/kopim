@@ -3,6 +3,7 @@ import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:kopim/core/data/database.dart' as db;
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/ai/data/local/ai_analytics_dao.dart';
 import 'package:kopim/features/ai/domain/entities/ai_financial_overview_entity.dart';
 
@@ -33,7 +34,9 @@ void main() {
             id: drift.Value<String>(id),
             name: const drift.Value<String>('Основной'),
             balance: const drift.Value<double>(0),
+            balanceMinor: const drift.Value<String>('0'),
             currency: const drift.Value<String>('RUB'),
+            currencyScale: const drift.Value<int>(2),
             type: const drift.Value<String>('checking'),
           ),
           mode: drift.InsertMode.insertOrReplace,
@@ -73,7 +76,7 @@ void main() {
     required String id,
     required String accountId,
     String? categoryId,
-    required double amount,
+    required MoneyAmount amount,
     required DateTime date,
     String type = 'expense',
   }) {
@@ -84,7 +87,9 @@ void main() {
             id: drift.Value<String>(id),
             accountId: drift.Value<String>(accountId),
             categoryId: drift.Value<String?>(categoryId),
-            amount: drift.Value<double>(amount),
+            amount: drift.Value<double>(amount.toDouble()),
+            amountMinor: drift.Value<String>(amount.minor.toString()),
+            amountScale: drift.Value<int>(amount.scale),
             date: drift.Value<DateTime>(date),
             type: drift.Value<String>(type),
           ),
@@ -94,13 +99,15 @@ void main() {
 
   Future<void> insertBudget({
     required String id,
-    required double amount,
+    required MoneyAmount amount,
     required DateTime periodStart,
     required DateTime periodEnd,
     List<String> categories = const <String>[],
     List<String> accounts = const <String>[],
-    double spent = 0,
+    MoneyAmount? spent,
   }) async {
+    final MoneyAmount resolvedSpent =
+        spent ?? MoneyAmount(minor: BigInt.zero, scale: 2);
     await database
         .into(database.budgets)
         .insert(
@@ -110,7 +117,9 @@ void main() {
             period: const drift.Value<String>('monthly'),
             startDate: drift.Value<DateTime>(periodStart),
             endDate: drift.Value<DateTime?>(periodEnd),
-            amount: drift.Value<double>(amount),
+            amount: drift.Value<double>(amount.toDouble()),
+            amountMinor: drift.Value<String>(amount.minor.toString()),
+            amountScale: drift.Value<int>(amount.scale),
             scope: const drift.Value<String>('category'),
             categories: drift.Value<List<String>>(categories),
             accounts: drift.Value<List<String>>(accounts),
@@ -125,8 +134,11 @@ void main() {
             budgetId: drift.Value<String>(id),
             periodStart: drift.Value<DateTime>(periodStart),
             periodEnd: drift.Value<DateTime>(periodEnd),
-            amount: drift.Value<double>(amount),
-            spent: drift.Value<double>(spent),
+            amount: drift.Value<double>(amount.toDouble()),
+            spent: drift.Value<double>(resolvedSpent.toDouble()),
+            amountMinor: drift.Value<String>(amount.minor.toString()),
+            spentMinor: drift.Value<String>(resolvedSpent.minor.toString()),
+            amountScale: drift.Value<int>(amount.scale),
           ),
           mode: drift.InsertMode.insertOrReplace,
         );
@@ -157,7 +169,7 @@ void main() {
           ) {
             if (values.length != 1) return false;
             final MonthlyExpenseAggregate first = values.first;
-            return first.totalExpense == 100 &&
+            return _matchesAmount(first.totalExpense, 10000, 2) &&
                 first.month.year == 2024 &&
                 first.month.month == 2;
           }),
@@ -166,7 +178,7 @@ void main() {
           ) {
             if (values.length != 1) return false;
             final MonthlyExpenseAggregate first = values.first;
-            return first.totalExpense == 150 &&
+            return _matchesAmount(first.totalExpense, 15000, 2) &&
                 first.month.year == 2024 &&
                 first.month.month == 2;
           }),
@@ -175,7 +187,7 @@ void main() {
           ) {
             if (values.length != 1) return false;
             final MonthlyExpenseAggregate first = values.first;
-            return first.totalExpense == 150 &&
+            return _matchesAmount(first.totalExpense, 15000, 2) &&
                 first.month.year == 2024 &&
                 first.month.month == 2;
           }),
@@ -186,21 +198,21 @@ void main() {
         id: 't1',
         accountId: 'a1',
         categoryId: 'c1',
-        amount: 100,
+        amount: MoneyAmount(minor: BigInt.from(10000), scale: 2),
         date: DateTime(2024, 2, 5),
       );
       await insertTransaction(
         id: 't2',
         accountId: 'a1',
         categoryId: 'c1',
-        amount: 50,
+        amount: MoneyAmount(minor: BigInt.from(5000), scale: 2),
         date: DateTime(2024, 2, 18),
       );
       await insertTransaction(
         id: 't3',
         accountId: 'a2',
         categoryId: 'c1',
-        amount: 90,
+        amount: MoneyAmount(minor: BigInt.from(9000), scale: 2),
         date: DateTime(2024, 2, 20),
       );
 
@@ -232,7 +244,7 @@ void main() {
           ) {
             if (values.length != 1) return false;
             final MonthlyIncomeAggregate first = values.first;
-            return first.totalIncome == 800 &&
+            return _matchesAmount(first.totalIncome, 80000, 2) &&
                 first.month.year == 2024 &&
                 first.month.month == 3;
           }),
@@ -242,14 +254,14 @@ void main() {
       await insertTransaction(
         id: 't_income_1',
         accountId: 'a1',
-        amount: 800,
+        amount: MoneyAmount(minor: BigInt.from(80000), scale: 2),
         date: DateTime(2024, 3, 2),
         type: 'income',
       );
       await insertTransaction(
         id: 't_income_2',
         accountId: 'a2',
-        amount: 500,
+        amount: MoneyAmount(minor: BigInt.from(50000), scale: 2),
         date: DateTime(2024, 3, 5),
         type: 'income',
       );
@@ -268,21 +280,21 @@ void main() {
       id: 't1',
       accountId: 'a1',
       categoryId: 'c1',
-      amount: 120,
+      amount: MoneyAmount(minor: BigInt.from(12000), scale: 2),
       date: DateTime(2024, 1, 10),
     );
     await insertTransaction(
       id: 't2',
       accountId: 'a1',
       categoryId: 'c2',
-      amount: 80,
+      amount: MoneyAmount(minor: BigInt.from(8000), scale: 2),
       date: DateTime(2024, 1, 11),
     );
     await insertTransaction(
       id: 't3',
       accountId: 'a1',
       categoryId: 'c3',
-      amount: 40,
+      amount: MoneyAmount(minor: BigInt.from(4000), scale: 2),
       date: DateTime(2024, 1, 12),
     );
 
@@ -297,9 +309,15 @@ void main() {
 
     expect(result, hasLength(2));
     expect(result.first.displayName, 'Продукты');
-    expect(result.first.totalExpense, 120);
+    expect(
+      result.first.totalExpense,
+      MoneyAmount(minor: BigInt.from(12000), scale: 2),
+    );
     expect(result[1].displayName, 'Транспорт');
-    expect(result[1].totalExpense, 80);
+    expect(
+      result[1].totalExpense,
+      MoneyAmount(minor: BigInt.from(8000), scale: 2),
+    );
   });
 
   test(
@@ -313,7 +331,7 @@ void main() {
         id: 't_income_1',
         accountId: 'a1',
         categoryId: 'i1',
-        amount: 1200,
+        amount: MoneyAmount(minor: BigInt.from(120000), scale: 2),
         date: DateTime(2024, 2, 1),
         type: 'income',
       );
@@ -321,7 +339,7 @@ void main() {
         id: 't_income_2',
         accountId: 'a1',
         categoryId: 'i2',
-        amount: 500,
+        amount: MoneyAmount(minor: BigInt.from(50000), scale: 2),
         date: DateTime(2024, 2, 2),
         type: 'income',
       );
@@ -337,19 +355,22 @@ void main() {
 
       expect(result, hasLength(1));
       expect(result.first.displayName, 'Зарплата');
-      expect(result.first.totalIncome, 1200);
+      expect(
+        result.first.totalIncome,
+        MoneyAmount(minor: BigInt.from(120000), scale: 2),
+      );
     },
   );
 
   test('getBudgetForecasts возвращает экземпляры бюджета в периоде', () async {
     await insertBudget(
       id: 'b1',
-      amount: 500,
+      amount: MoneyAmount(minor: BigInt.from(50000), scale: 2),
       periodStart: DateTime(2024, 2, 1),
       periodEnd: DateTime(2024, 2, 29),
       accounts: const <String>['a1'],
       categories: const <String>['c1'],
-      spent: 200,
+      spent: MoneyAmount(minor: BigInt.from(20000), scale: 2),
     );
 
     final List<BudgetInstanceAggregate> result = await dao.getBudgetForecasts(
@@ -362,9 +383,16 @@ void main() {
     expect(result, hasLength(1));
     final BudgetInstanceAggregate aggregate = result.first;
     expect(aggregate.budgetId, 'b1');
-    expect(aggregate.allocated, 500);
-    expect(aggregate.spent, 200);
+    expect(
+      aggregate.allocated,
+      MoneyAmount(minor: BigInt.from(50000), scale: 2),
+    );
+    expect(aggregate.spent, MoneyAmount(minor: BigInt.from(20000), scale: 2));
     expect(aggregate.periodStart, DateTime(2024, 2, 1));
     expect(aggregate.periodEnd, DateTime(2024, 2, 29));
   });
+}
+
+bool _matchesAmount(MoneyAmount amount, int minor, int scale) {
+  return amount.minor == BigInt.from(minor) && amount.scale == scale;
 }

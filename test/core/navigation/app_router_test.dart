@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:kopim/core/navigation/app_router.dart';
@@ -108,9 +109,9 @@ void main() {
       ),
     );
     const AnalyticsOverview analyticsOverview = AnalyticsOverview(
-      totalIncome: 0,
-      totalExpense: 0,
-      netBalance: 0,
+      totalIncome: MoneyAmount(minor: BigInt.zero, scale: 2),
+      totalExpense: MoneyAmount(minor: BigInt.zero, scale: 2),
+      netBalance: MoneyAmount(minor: BigInt.zero, scale: 2),
       topExpenseCategories: <AnalyticsCategoryBreakdown>[],
       topIncomeCategories: <AnalyticsCategoryBreakdown>[],
     );

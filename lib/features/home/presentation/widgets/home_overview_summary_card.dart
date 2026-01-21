@@ -91,13 +91,15 @@ class _HomeOverviewSummaryContent extends ConsumerWidget {
       currencySymbol,
       decimalDigits: 0,
     );
-    final String balanceLabel = currencyFormat.format(summary.totalBalance);
+    final String balanceLabel = currencyFormat.format(
+      summary.totalBalance.toDouble(),
+    );
 
     final String incomeLabel = strings.homeOverviewIncomeValue(
-      currencyFormat.format(summary.todayIncome),
+      currencyFormat.format(summary.todayIncome.toDouble()),
     );
     final String expenseLabel = strings.homeOverviewExpenseValue(
-      currencyFormat.format(summary.todayExpense),
+      currencyFormat.format(summary.todayExpense.toDouble()),
     );
 
     final HomeTopExpenseCategory? topExpense = summary.topExpenseCategory;
@@ -110,7 +112,7 @@ class _HomeOverviewSummaryContent extends ConsumerWidget {
     final String topCategoryAmount = topExpense == null
         ? ''
         : strings.homeOverviewExpenseValue(
-            currencyFormat.format(topExpense.amount),
+            currencyFormat.format(topExpense.amount.toDouble()),
           );
     final CategoryColorStyle categoryStyle = resolveCategoryColorStyle(
       topCategory?.color,

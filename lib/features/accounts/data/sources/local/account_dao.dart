@@ -93,7 +93,8 @@ class AccountDao {
   }
 
   db.AccountsCompanion _mapToCompanion(AccountEntity account) {
-    final int scale = account.currencyScale ?? resolveCurrencyScale(account.currency);
+    final int scale =
+        account.currencyScale ?? resolveCurrencyScale(account.currency);
     final MoneyAmount balance = account.balanceAmount;
     final MoneyAmount opening = account.openingBalanceAmount;
     final Money balanceMoney = Money(

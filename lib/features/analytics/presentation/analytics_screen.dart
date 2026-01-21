@@ -507,8 +507,8 @@ class _TopCategoriesTabContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final double totalExpense = overview.totalExpense;
-    final double totalIncome = overview.totalIncome;
+    final double totalExpense = overview.totalExpense.toDouble();
+    final double totalIncome = overview.totalIncome.toDouble();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1397,7 +1397,7 @@ class _TopCategoriesPagerState extends State<_TopCategoriesPager> {
       return AnalyticsChartItem(
         key: key,
         title: title,
-        amount: breakdown.amount,
+        amount: breakdown.amount.toDouble(),
         color: color,
         icon: iconData,
         children: children,

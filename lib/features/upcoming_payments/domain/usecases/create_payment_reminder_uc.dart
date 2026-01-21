@@ -1,5 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/upcoming_payments/domain/entities/payment_reminder.dart';
 import 'package:kopim/features/upcoming_payments/domain/repositories/payment_reminders_repository.dart';
 import 'package:kopim/features/upcoming_payments/domain/services/id_service.dart';
@@ -13,7 +14,7 @@ abstract class CreatePaymentReminderInput with _$CreatePaymentReminderInput {
   const factory CreatePaymentReminderInput({
     String? id,
     required String title,
-    required double amount,
+    required MoneyAmount amount,
     required DateTime whenLocal,
     String? note,
   }) = _CreatePaymentReminderInput;
@@ -50,7 +51,8 @@ class CreatePaymentReminderUC {
     final PaymentReminder reminder = PaymentReminder(
       id: id,
       title: input.title,
-      amount: input.amount,
+      amountMinor: input.amount.minor,
+      amountScale: input.amount.scale,
       whenAtMs: whenAtMs,
       note: input.note,
       isDone: false,

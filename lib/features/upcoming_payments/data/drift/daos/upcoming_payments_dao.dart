@@ -85,9 +85,9 @@ class UpcomingPaymentsDao {
   }
 
   void _validate(UpcomingPayment payment) {
-    if (payment.amount <= 0) {
+    if (payment.amountValue.minor <= BigInt.zero) {
       throw ArgumentError.value(
-        payment.amount,
+        payment.amountValue,
         'amount',
         'Amount должен быть больше нуля',
       );

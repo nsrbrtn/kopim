@@ -58,7 +58,7 @@ class PaymentReminderRemoteDataSource {
     return <String, dynamic>{
       'id': reminder.id,
       'title': reminder.title,
-      'amount': reminder.amount,
+      'amount': reminder.amountValue.toDouble(),
       'amountMinor': reminder.amountMinor?.toString(),
       'amountScale': reminder.amountScale,
       'whenAtMs': reminder.whenAtMs,
@@ -77,7 +77,6 @@ class PaymentReminderRemoteDataSource {
     return PaymentReminder(
       id: data['id'] as String? ?? doc.id,
       title: data['title'] as String? ?? '',
-      amount: (data['amount'] as num?)?.toDouble() ?? 0,
       amountMinor: _readBigInt(data['amountMinor']),
       amountScale: _readInt(data['amountScale']),
       whenAtMs: (data['whenAtMs'] as num?)?.toInt() ?? 0,

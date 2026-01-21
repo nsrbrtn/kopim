@@ -344,11 +344,10 @@ class AuthSyncService {
             }
             break;
           case 'transaction':
-            final TransactionEntity transactionEntity =
-                _applyTransactionMoney(
-                  TransactionEntity.fromJson(payload),
-                  payload,
-                );
+            final TransactionEntity transactionEntity = _applyTransactionMoney(
+              TransactionEntity.fromJson(payload),
+              payload,
+            );
             if (operation == OutboxOperation.delete) {
               _transactionRemoteDataSource.deleteInTransaction(
                 transaction,
@@ -895,9 +894,9 @@ class AuthSyncService {
         await _transactionDao.upsertAll(sanitizedTransactions);
         final List<AccountEntity> recalculatedAccounts =
             await _recalculateBalances(
-          accounts: mergedAccounts,
-          transactions: sanitizedTransactions,
-        );
+              accounts: mergedAccounts,
+              transactions: sanitizedTransactions,
+            );
         await _accountDao.upsertAll(recalculatedAccounts);
 
         final Set<String> validTransactionIds = sanitizedTransactions
@@ -981,8 +980,7 @@ class AuthSyncService {
     required List<AccountEntity> accounts,
     required List<TransactionEntity> transactions,
   }) async {
-    final Map<String, MoneyAccumulator> deltas =
-        <String, MoneyAccumulator>{};
+    final Map<String, MoneyAccumulator> deltas = <String, MoneyAccumulator>{};
     final List<db.CreditRow> creditRows = await _creditDao.getAllCredits();
     final Map<String, String> creditAccountByCategoryId = <String, String>{
       for (final db.CreditRow row in creditRows)
@@ -1034,26 +1032,24 @@ class AuthSyncService {
     }
 
     return accounts
-        .map(
-          (AccountEntity account) {
-            final int scale = account.currencyScale ??
-                resolveCurrencyScale(account.currency);
-            final MoneyAmount netAmount = _normalizeAccumulator(
-              deltas[account.id],
-              scale,
-            );
-            final BigInt openingBalanceMinor = _resolveOpeningBalanceMinor(
-              account: account,
-              scale: scale,
-            );
-            final BigInt balanceMinor = openingBalanceMinor + netAmount.minor;
-            return account.copyWith(
-              openingBalanceMinor: openingBalanceMinor,
-              balanceMinor: balanceMinor,
-              currencyScale: scale,
-            );
-          },
-        )
+        .map((AccountEntity account) {
+          final int scale =
+              account.currencyScale ?? resolveCurrencyScale(account.currency);
+          final MoneyAmount netAmount = _normalizeAccumulator(
+            deltas[account.id],
+            scale,
+          );
+          final BigInt openingBalanceMinor = _resolveOpeningBalanceMinor(
+            account: account,
+            scale: scale,
+          );
+          final BigInt balanceMinor = openingBalanceMinor + netAmount.minor;
+          return account.copyWith(
+            openingBalanceMinor: openingBalanceMinor,
+            balanceMinor: balanceMinor,
+            currencyScale: scale,
+          );
+        })
         .toList(growable: false);
   }
 
@@ -1071,8 +1067,10 @@ class AuthSyncService {
     String accountId,
     MoneyAmount amount,
   ) {
-    final MoneyAccumulator accumulator =
-        deltas.putIfAbsent(accountId, MoneyAccumulator.new);
+    final MoneyAccumulator accumulator = deltas.putIfAbsent(
+      accountId,
+      MoneyAccumulator.new,
+    );
     accumulator.add(amount);
   }
 
@@ -1092,19 +1090,11 @@ class AuthSyncService {
     return MoneyAmount(minor: minor, scale: targetScale);
   }
 
-  BigInt _convertMinorScale(
-    BigInt minor,
-    int fromScale,
-    int toScale,
-  ) {
+  BigInt _convertMinorScale(BigInt minor, int fromScale, int toScale) {
     if (fromScale == toScale) {
       return minor;
     }
-    final Money source = Money(
-      minor: minor,
-      currency: 'XXX',
-      scale: fromScale,
-    );
+    final Money source = Money(minor: minor, currency: 'XXX', scale: fromScale);
     return Money.fromDecimalString(
       source.toDecimalString(),
       currency: 'XXX',

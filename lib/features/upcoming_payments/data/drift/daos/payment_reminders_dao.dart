@@ -90,9 +90,9 @@ class PaymentRemindersDao {
   }
 
   void _validate(PaymentReminder reminder) {
-    if (reminder.amount <= 0) {
+    if (reminder.amountValue.minor <= BigInt.zero) {
       throw ArgumentError.value(
-        reminder.amount,
+        reminder.amountValue,
         'amount',
         'Amount должен быть больше нуля',
       );

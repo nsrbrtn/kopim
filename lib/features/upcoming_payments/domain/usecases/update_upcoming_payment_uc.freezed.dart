@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$UpdateUpcomingPaymentInput {
 
- String get id; String? get title; String? get accountId; String? get categoryId; double? get amount; int? get dayOfMonth; int? get notifyDaysBefore; String? get notifyTimeHhmm; ValueUpdate<String?> get note; bool? get autoPost; bool? get isActive;
+ String get id; String? get title; String? get accountId; String? get categoryId; MoneyAmount? get amount; int? get dayOfMonth; int? get notifyDaysBefore; String? get notifyTimeHhmm; ValueUpdate<String?> get note; bool? get autoPost; bool? get isActive;
 /// Create a copy of UpdateUpcomingPaymentInput
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -45,7 +45,7 @@ abstract mixin class $UpdateUpcomingPaymentInputCopyWith<$Res>  {
   factory $UpdateUpcomingPaymentInputCopyWith(UpdateUpcomingPaymentInput value, $Res Function(UpdateUpcomingPaymentInput) _then) = _$UpdateUpcomingPaymentInputCopyWithImpl;
 @useResult
 $Res call({
- String id, String? title, String? accountId, String? categoryId, double? amount, int? dayOfMonth, int? notifyDaysBefore, String? notifyTimeHhmm, ValueUpdate<String?> note, bool? autoPost, bool? isActive
+ String id, String? title, String? accountId, String? categoryId, MoneyAmount? amount, int? dayOfMonth, int? notifyDaysBefore, String? notifyTimeHhmm, ValueUpdate<String?> note, bool? autoPost, bool? isActive
 });
 
 
@@ -69,7 +69,7 @@ as String,title: freezed == title ? _self.title : title // ignore: cast_nullable
 as String?,accountId: freezed == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
 as String?,categoryId: freezed == categoryId ? _self.categoryId : categoryId // ignore: cast_nullable_to_non_nullable
 as String?,amount: freezed == amount ? _self.amount : amount // ignore: cast_nullable_to_non_nullable
-as double?,dayOfMonth: freezed == dayOfMonth ? _self.dayOfMonth : dayOfMonth // ignore: cast_nullable_to_non_nullable
+as MoneyAmount?,dayOfMonth: freezed == dayOfMonth ? _self.dayOfMonth : dayOfMonth // ignore: cast_nullable_to_non_nullable
 as int?,notifyDaysBefore: freezed == notifyDaysBefore ? _self.notifyDaysBefore : notifyDaysBefore // ignore: cast_nullable_to_non_nullable
 as int?,notifyTimeHhmm: freezed == notifyTimeHhmm ? _self.notifyTimeHhmm : notifyTimeHhmm // ignore: cast_nullable_to_non_nullable
 as String?,note: null == note ? _self.note : note // ignore: cast_nullable_to_non_nullable
@@ -160,7 +160,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String? title,  String? accountId,  String? categoryId,  double? amount,  int? dayOfMonth,  int? notifyDaysBefore,  String? notifyTimeHhmm,  ValueUpdate<String?> note,  bool? autoPost,  bool? isActive)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String? title,  String? accountId,  String? categoryId,  MoneyAmount? amount,  int? dayOfMonth,  int? notifyDaysBefore,  String? notifyTimeHhmm,  ValueUpdate<String?> note,  bool? autoPost,  bool? isActive)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _UpdateUpcomingPaymentInput() when $default != null:
 return $default(_that.id,_that.title,_that.accountId,_that.categoryId,_that.amount,_that.dayOfMonth,_that.notifyDaysBefore,_that.notifyTimeHhmm,_that.note,_that.autoPost,_that.isActive);case _:
@@ -181,7 +181,7 @@ return $default(_that.id,_that.title,_that.accountId,_that.categoryId,_that.amou
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String? title,  String? accountId,  String? categoryId,  double? amount,  int? dayOfMonth,  int? notifyDaysBefore,  String? notifyTimeHhmm,  ValueUpdate<String?> note,  bool? autoPost,  bool? isActive)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String? title,  String? accountId,  String? categoryId,  MoneyAmount? amount,  int? dayOfMonth,  int? notifyDaysBefore,  String? notifyTimeHhmm,  ValueUpdate<String?> note,  bool? autoPost,  bool? isActive)  $default,) {final _that = this;
 switch (_that) {
 case _UpdateUpcomingPaymentInput():
 return $default(_that.id,_that.title,_that.accountId,_that.categoryId,_that.amount,_that.dayOfMonth,_that.notifyDaysBefore,_that.notifyTimeHhmm,_that.note,_that.autoPost,_that.isActive);case _:
@@ -201,7 +201,7 @@ return $default(_that.id,_that.title,_that.accountId,_that.categoryId,_that.amou
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String? title,  String? accountId,  String? categoryId,  double? amount,  int? dayOfMonth,  int? notifyDaysBefore,  String? notifyTimeHhmm,  ValueUpdate<String?> note,  bool? autoPost,  bool? isActive)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String? title,  String? accountId,  String? categoryId,  MoneyAmount? amount,  int? dayOfMonth,  int? notifyDaysBefore,  String? notifyTimeHhmm,  ValueUpdate<String?> note,  bool? autoPost,  bool? isActive)?  $default,) {final _that = this;
 switch (_that) {
 case _UpdateUpcomingPaymentInput() when $default != null:
 return $default(_that.id,_that.title,_that.accountId,_that.categoryId,_that.amount,_that.dayOfMonth,_that.notifyDaysBefore,_that.notifyTimeHhmm,_that.note,_that.autoPost,_that.isActive);case _:
@@ -223,7 +223,7 @@ class _UpdateUpcomingPaymentInput implements UpdateUpcomingPaymentInput {
 @override final  String? title;
 @override final  String? accountId;
 @override final  String? categoryId;
-@override final  double? amount;
+@override final  MoneyAmount? amount;
 @override final  int? dayOfMonth;
 @override final  int? notifyDaysBefore;
 @override final  String? notifyTimeHhmm;
@@ -261,7 +261,7 @@ abstract mixin class _$UpdateUpcomingPaymentInputCopyWith<$Res> implements $Upda
   factory _$UpdateUpcomingPaymentInputCopyWith(_UpdateUpcomingPaymentInput value, $Res Function(_UpdateUpcomingPaymentInput) _then) = __$UpdateUpcomingPaymentInputCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String? title, String? accountId, String? categoryId, double? amount, int? dayOfMonth, int? notifyDaysBefore, String? notifyTimeHhmm, ValueUpdate<String?> note, bool? autoPost, bool? isActive
+ String id, String? title, String? accountId, String? categoryId, MoneyAmount? amount, int? dayOfMonth, int? notifyDaysBefore, String? notifyTimeHhmm, ValueUpdate<String?> note, bool? autoPost, bool? isActive
 });
 
 
@@ -285,7 +285,7 @@ as String,title: freezed == title ? _self.title : title // ignore: cast_nullable
 as String?,accountId: freezed == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
 as String?,categoryId: freezed == categoryId ? _self.categoryId : categoryId // ignore: cast_nullable_to_non_nullable
 as String?,amount: freezed == amount ? _self.amount : amount // ignore: cast_nullable_to_non_nullable
-as double?,dayOfMonth: freezed == dayOfMonth ? _self.dayOfMonth : dayOfMonth // ignore: cast_nullable_to_non_nullable
+as MoneyAmount?,dayOfMonth: freezed == dayOfMonth ? _self.dayOfMonth : dayOfMonth // ignore: cast_nullable_to_non_nullable
 as int?,notifyDaysBefore: freezed == notifyDaysBefore ? _self.notifyDaysBefore : notifyDaysBefore // ignore: cast_nullable_to_non_nullable
 as int?,notifyTimeHhmm: freezed == notifyTimeHhmm ? _self.notifyTimeHhmm : notifyTimeHhmm // ignore: cast_nullable_to_non_nullable
 as String?,note: null == note ? _self.note : note // ignore: cast_nullable_to_non_nullable

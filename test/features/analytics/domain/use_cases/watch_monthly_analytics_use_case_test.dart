@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/analytics/domain/models/analytics_filter.dart';
 import 'package:kopim/features/analytics/domain/models/analytics_overview.dart';
 import 'package:kopim/features/analytics/domain/use_cases/watch_monthly_analytics_use_case.dart';
@@ -115,17 +116,15 @@ void main() {
       end: DateTime(2024, 2, 1),
     );
 
-    final Future<AnalyticsOverview> future = useCase.call(
-      filter: filter,
-      topCategoriesLimit: 5,
-    ).first;
+    final Future<AnalyticsOverview> future = useCase
+        .call(filter: filter, topCategoriesLimit: 5)
+        .first;
 
     categoryController.add(const <Category>[]);
     txController.add(<TransactionEntity>[
       TransactionEntity(
         id: 't1',
         accountId: 'acc-1',
-        amount: 1.0,
         amountMinor: BigInt.from(150),
         amountScale: 2,
         date: DateTime(2024, 1, 10),
@@ -136,7 +135,6 @@ void main() {
       TransactionEntity(
         id: 't2',
         accountId: 'acc-1',
-        amount: 0.1,
         amountMinor: BigInt.from(25),
         amountScale: 2,
         date: DateTime(2024, 1, 12),
@@ -148,11 +146,15 @@ void main() {
 
     final AnalyticsOverview overview = await future;
 
-    expect(overview.totalIncome, closeTo(1.5, 1e-9));
-    expect(overview.totalExpense, closeTo(0.25, 1e-9));
-    expect(overview.netBalance, closeTo(1.25, 1e-9));
+    expect(overview.totalIncome, _amount(150));
+    expect(overview.totalExpense, _amount(25));
+    expect(overview.netBalance, _amount(125));
 
     await txController.close();
     await categoryController.close();
   });
+}
+
+MoneyAmount _amount(int minor, {int scale = 2}) {
+  return MoneyAmount(minor: BigInt.from(minor), scale: scale);
 }

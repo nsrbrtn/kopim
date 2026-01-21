@@ -13,10 +13,8 @@ abstract class UpcomingPayment with _$UpcomingPayment {
     required String title,
     required String accountId,
     required String categoryId,
-    @JsonKey(includeFromJson: false, includeToJson: false)
-    BigInt? amountMinor,
-    @JsonKey(includeFromJson: false, includeToJson: false)
-    int? amountScale,
+    @JsonKey(includeFromJson: false, includeToJson: false) BigInt? amountMinor,
+    @JsonKey(includeFromJson: false, includeToJson: false) int? amountScale,
     required int dayOfMonth,
     required int notifyDaysBefore,
     required String notifyTimeHhmm,
@@ -34,7 +32,8 @@ abstract class UpcomingPayment with _$UpcomingPayment {
     final BigInt? minor = _readBigInt(json['amountMinor']);
     final double legacyAmount = (json['amount'] as num?)?.toDouble() ?? 0;
     final BigInt resolvedMinor =
-        minor ?? Money.fromDouble(legacyAmount, currency: 'XXX', scale: scale).minor;
+        minor ??
+        Money.fromDouble(legacyAmount, currency: 'XXX', scale: scale).minor;
     return UpcomingPayment(
       id: json['id'] as String? ?? '',
       title: json['title'] as String? ?? '',
@@ -76,10 +75,8 @@ abstract class UpcomingPayment with _$UpcomingPayment {
     }..removeWhere((String key, Object? value) => value == null);
   }
 
-  MoneyAmount get amountValue => MoneyAmount(
-    minor: amountMinor ?? BigInt.zero,
-    scale: amountScale ?? 2,
-  );
+  MoneyAmount get amountValue =>
+      MoneyAmount(minor: amountMinor ?? BigInt.zero, scale: amountScale ?? 2);
 }
 
 BigInt? _readBigInt(Object? value) {

@@ -106,14 +106,14 @@ class ExportBundleCsvDecoder {
       }
       accounts.add(() {
         final String currency = _readRequired(header.columns, row, 'currency');
-        final int scale = _readOptionalInt(
-              header.columns,
-              row,
-              'currency_scale',
-            ) ??
+        final int scale =
+            _readOptionalInt(header.columns, row, 'currency_scale') ??
             resolveCurrencyScale(currency);
-        final double legacyBalance =
-            _readDouble(header.columns, row, 'balance');
+        final double legacyBalance = _readDouble(
+          header.columns,
+          row,
+          'balance',
+        );
         final double legacyOpening =
             _readOptionalDouble(header.columns, row, 'opening_balance') ?? 0;
         final BigInt? balanceMinor = _readOptionalBigInt(
@@ -126,13 +126,15 @@ class ExportBundleCsvDecoder {
           row,
           'opening_balance_minor',
         );
-        final BigInt resolvedBalanceMinor = balanceMinor ??
+        final BigInt resolvedBalanceMinor =
+            balanceMinor ??
             Money.fromDouble(
               legacyBalance,
               currency: currency,
               scale: scale,
             ).minor;
-        final BigInt resolvedOpeningMinor = openingMinor ??
+        final BigInt resolvedOpeningMinor =
+            openingMinor ??
             Money.fromDouble(
               legacyOpening,
               currency: currency,
@@ -211,43 +213,33 @@ class ExportBundleCsvDecoder {
         index += 1;
         continue;
       }
-      transactions.add(
-        () {
-          final int scale = _readOptionalInt(
-                header.columns,
-                row,
-                'amount_scale',
-              ) ??
-              2;
-          final double legacyAmount =
-              _readDouble(header.columns, row, 'amount');
-          final BigInt? amountMinor = _readOptionalBigInt(
-            header.columns,
-            row,
-            'amount_minor',
-          );
-          final BigInt resolvedMinor = amountMinor ??
-              Money.fromDouble(
-                legacyAmount,
-                currency: 'XXX',
-                scale: scale,
-              ).minor;
-          return TransactionEntity(
-            id: _readRequired(header.columns, row, 'id'),
-            accountId: _readRequired(header.columns, row, 'account_id'),
-            categoryId: _readOptional(header.columns, row, 'category_id'),
-            savingGoalId: _readOptional(header.columns, row, 'saving_goal_id'),
-            amountMinor: resolvedMinor,
-            amountScale: scale,
-            date: _readDate(header.columns, row, 'date'),
-            note: _readOptional(header.columns, row, 'note'),
-            type: _readRequired(header.columns, row, 'type'),
-            createdAt: _readDate(header.columns, row, 'created_at'),
-            updatedAt: _readDate(header.columns, row, 'updated_at'),
-            isDeleted: _readBool(header.columns, row, 'is_deleted'),
-          );
-        }(),
-      );
+      transactions.add(() {
+        final int scale =
+            _readOptionalInt(header.columns, row, 'amount_scale') ?? 2;
+        final double legacyAmount = _readDouble(header.columns, row, 'amount');
+        final BigInt? amountMinor = _readOptionalBigInt(
+          header.columns,
+          row,
+          'amount_minor',
+        );
+        final BigInt resolvedMinor =
+            amountMinor ??
+            Money.fromDouble(legacyAmount, currency: 'XXX', scale: scale).minor;
+        return TransactionEntity(
+          id: _readRequired(header.columns, row, 'id'),
+          accountId: _readRequired(header.columns, row, 'account_id'),
+          categoryId: _readOptional(header.columns, row, 'category_id'),
+          savingGoalId: _readOptional(header.columns, row, 'saving_goal_id'),
+          amountMinor: resolvedMinor,
+          amountScale: scale,
+          date: _readDate(header.columns, row, 'date'),
+          note: _readOptional(header.columns, row, 'note'),
+          type: _readRequired(header.columns, row, 'type'),
+          createdAt: _readDate(header.columns, row, 'created_at'),
+          updatedAt: _readDate(header.columns, row, 'updated_at'),
+          isDeleted: _readBool(header.columns, row, 'is_deleted'),
+        );
+      }());
       index += 1;
     }
     return index;

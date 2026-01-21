@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:kopim/core/money/money_utils.dart';
 
 part 'upcoming_payment.freezed.dart';
 
@@ -8,7 +9,7 @@ abstract class UpcomingPayment with _$UpcomingPayment {
     required String occurrenceId,
     required String ruleId,
     required String title,
-    required double amount,
+    required MoneyAmount amount,
     required String currency,
     required DateTime dueDate,
     required String accountId,
@@ -17,7 +18,7 @@ abstract class UpcomingPayment with _$UpcomingPayment {
 
   const UpcomingPayment._();
 
-  bool get isExpense => amount >= 0;
+  bool get isExpense => amount.minor >= BigInt.zero;
 
-  double get absoluteAmount => amount.abs();
+  MoneyAmount get absoluteAmount => amount.abs();
 }

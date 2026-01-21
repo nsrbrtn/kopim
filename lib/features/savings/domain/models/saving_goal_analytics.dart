@@ -1,4 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:kopim/core/money/money_amount_converter.dart';
+import 'package:kopim/core/money/money_utils.dart';
 
 import 'saving_goal_category_breakdown.dart';
 
@@ -12,7 +14,7 @@ abstract class SavingGoalAnalytics with _$SavingGoalAnalytics {
 
   const factory SavingGoalAnalytics({
     required String goalId,
-    @Default(0.0) double totalAmount,
+    @MoneyAmountJsonConverter() required MoneyAmount totalAmount,
     DateTime? lastContributionAt,
     @Default(<SavingGoalCategoryBreakdown>[])
     List<SavingGoalCategoryBreakdown> categoryBreakdown,

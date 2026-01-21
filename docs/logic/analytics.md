@@ -10,7 +10,7 @@
     1. «Категории» — распределение расходов (Donut/Bar chart).
     2. «Статистика» — детализированные показатели.
     3. «История» — динамика баланса и потоков.
-- **Domain**: Сущности для графиков (`AnalyticsChartItem`, `MonthlyCashflowData`, `MonthlyBalanceData`).
+- **Domain**: Сущности для графиков (`AnalyticsChartItem`, `MonthlyCashflowData`, `MonthlyBalanceData` с MoneyAmount).
 - **Data**: Получение и агрегация данных из Drift БД.
 
 ## Экран аналитики (AnalyticsScreen)

@@ -6,6 +6,8 @@ import 'package:intl/intl.dart';
 
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/core/config/theme_extensions.dart';
+import 'package:kopim/core/money/money.dart';
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/core/services/analytics_service.dart';
 import 'package:kopim/core/services/logger_service.dart';
 import 'package:kopim/core/utils/platform_support.dart';
@@ -90,6 +92,7 @@ class _EditUpcomingPaymentScreenState
 
   bool _autoPost = true;
   String? _selectedAccountId;
+  int _selectedAccountScale = 2;
   String? _selectedCategoryId;
   bool _isSubmitting = false;
   bool _appliedInitial = false;
@@ -254,6 +257,7 @@ class _EditUpcomingPaymentScreenState
           orElse: () => accounts.first,
         )
         .id;
+    _syncSelectedAccountScale(accounts);
     _selectedCategoryId ??= categories.first.id;
     final ColorScheme colors = theme.colorScheme;
     final KopimLayout layout = context.kopimLayout;
@@ -300,7 +304,10 @@ class _EditUpcomingPaymentScreenState
                 labelText: strings.upcomingPaymentsFieldAccount,
               ),
               onChanged: (String? value) {
-                setState(() => _selectedAccountId = value);
+                setState(() {
+                  _selectedAccountId = value;
+                  _syncSelectedAccountScale(accounts);
+                });
               },
             ),
             SizedBox(height: layout.spacing.section),
@@ -474,7 +481,7 @@ class _EditUpcomingPaymentScreenState
 
   void _applyInitial(UpcomingPayment payment) {
     _titleController.text = payment.title;
-    _amountController.text = payment.amount.abs().toStringAsFixed(2);
+    _amountController.text = _formatAmountInput(payment.amountValue.abs());
     _dayController.text = payment.dayOfMonth.toString();
     _notifyDaysController.text = payment.notifyDaysBefore.toString();
     _notifyTimeController.text = payment.notifyTimeHhmm;
@@ -489,7 +496,10 @@ class _EditUpcomingPaymentScreenState
     if (!_validateForm()) {
       return;
     }
-    final double amount = _parseAmount(_amountController.text)!;
+    final MoneyAmount amount = _parseAmount(
+      _amountController.text,
+      _selectedAccountScale,
+    )!;
     final int dayOfMonth = int.parse(_dayController.text);
     final int notifyDays = int.parse(_notifyDaysController.text);
     final String notifyTime = _notifyTimeController.text;
@@ -602,8 +612,12 @@ class _EditUpcomingPaymentScreenState
 
   bool _validateForm() {
     final bool titleValid = _titleController.text.trim().isNotEmpty;
-    final double? parsedAmount = _parseAmount(_amountController.text);
-    final bool amountValid = parsedAmount != null && parsedAmount > 0;
+    final MoneyAmount? parsedAmount = _parseAmount(
+      _amountController.text,
+      _selectedAccountScale,
+    );
+    final bool amountValid =
+        parsedAmount != null && parsedAmount.minor > BigInt.zero;
     final int? day = int.tryParse(_dayController.text);
     final bool dayValid = day != null && day >= 1 && day <= 31;
     final int? notifyDays = int.tryParse(_notifyDaysController.text);
@@ -644,18 +658,38 @@ class _EditUpcomingPaymentScreenState
       'id': _shortId(payment.id),
       'account': _shortId(payment.accountId),
       'category': _shortId(payment.categoryId),
-      'amount': payment.amount,
+      'amount': payment.amountValue.toDouble(),
       'autoPost': payment.autoPost ? 1 : 0,
       'result': success ? 'success' : 'error',
     };
   }
 
-  double? _parseAmount(String? value) {
+  MoneyAmount? _parseAmount(String? value, int scale) {
     if (value == null) {
       return null;
     }
     final String normalized = value.replaceAll(',', '.');
-    return double.tryParse(normalized);
+    return tryParseMoneyAmount(input: normalized, scale: scale);
+  }
+
+  String _formatAmountInput(MoneyAmount amount) {
+    final Money money = Money(
+      minor: amount.minor,
+      currency: 'XXX',
+      scale: amount.scale,
+    );
+    return money.toDecimalString();
+  }
+
+  void _syncSelectedAccountScale(List<AccountEntity> accounts) {
+    final String? accountId = _selectedAccountId;
+    final AccountEntity? account = accountId == null
+        ? null
+        : accounts.firstWhere(
+            (AccountEntity item) => item.id == accountId,
+            orElse: () => accounts.first,
+          );
+    _selectedAccountScale = account?.currencyScale ?? 2;
   }
 
   TimeOfDay _parseTime(String value) {

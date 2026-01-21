@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:kopim/core/di/injectors.dart';
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
@@ -27,13 +28,18 @@ abstract class AccountTransactionsFilter with _$AccountTransactionsFilter {
 @freezed
 abstract class AccountTransactionSummary with _$AccountTransactionSummary {
   const factory AccountTransactionSummary({
-    required double totalIncome,
-    required double totalExpense,
+    required MoneyAmount totalIncome,
+    required MoneyAmount totalExpense,
   }) = _AccountTransactionSummary;
 
   const AccountTransactionSummary._();
 
-  double get net => totalIncome - totalExpense;
+  MoneyAmount get net {
+    final MoneyAccumulator accumulator = MoneyAccumulator();
+    accumulator.add(totalIncome);
+    accumulator.subtract(totalExpense);
+    return MoneyAmount(minor: accumulator.minor, scale: accumulator.scale);
+  }
 }
 
 @riverpod
@@ -146,14 +152,17 @@ AccountEntity? _findAccount(List<AccountEntity> accounts, String id) {
 AccountTransactionSummary _computeSummary(
   List<TransactionEntity> transactions,
 ) {
-  double income = 0;
-  double expense = 0;
+  final MoneyAccumulator income = MoneyAccumulator();
+  final MoneyAccumulator expense = MoneyAccumulator();
   for (final TransactionEntity transaction in transactions) {
     if (transaction.type == TransactionType.income.storageValue) {
-      income += transaction.amountValue.abs().toDouble();
+      income.add(transaction.amountValue.abs());
     } else if (transaction.type == TransactionType.expense.storageValue) {
-      expense += transaction.amountValue.abs().toDouble();
+      expense.add(transaction.amountValue.abs());
     }
   }
-  return AccountTransactionSummary(totalIncome: income, totalExpense: expense);
+  return AccountTransactionSummary(
+    totalIncome: MoneyAmount(minor: income.minor, scale: income.scale),
+    totalExpense: MoneyAmount(minor: expense.minor, scale: expense.scale),
+  );
 }

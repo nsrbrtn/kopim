@@ -11,6 +11,7 @@ import 'package:timezone/data/latest.dart' as tzdata;
 
 import 'package:kopim/core/config/app_config.dart';
 import 'package:kopim/core/di/injectors.dart';
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/core/services/logger_service.dart';
 import 'package:kopim/core/services/notifications_gateway.dart';
 import 'package:kopim/features/upcoming_payments/application/upcoming_notifications_controller.dart';
@@ -74,7 +75,8 @@ void main() {
     final PaymentReminder reminder = PaymentReminder(
       id: 'rem-1',
       title: 'Pay the bill',
-      amount: 500,
+      amountMinor: BigInt.from(50000),
+      amountScale: 2,
       whenAtMs: DateTime.now()
           .add(const Duration(days: 1))
           .millisecondsSinceEpoch,

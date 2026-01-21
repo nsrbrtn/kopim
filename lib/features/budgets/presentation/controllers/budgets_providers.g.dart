@@ -269,7 +269,7 @@ final class BudgetCategorySpendProvider
 }
 
 String _$budgetCategorySpendHash() =>
-    r'c4786809dadb9b855b17c4a2199792376cf4d3ff';
+    r'710fac3f1e79a0957d2c73ab5c91121a1ccfe85e';
 
 @ProviderFor(budgetProgressById)
 const budgetProgressByIdProvider = BudgetProgressByIdFamily._();

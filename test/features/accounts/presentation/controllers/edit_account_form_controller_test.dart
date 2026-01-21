@@ -62,8 +62,9 @@ void main() {
       final AccountEntity original = AccountEntity(
         id: 'acc-1',
         name: 'Wallet',
-        balance: 100,
+        balanceMinor: BigInt.from(10000),
         currency: 'USD',
+        currencyScale: 2,
         type: 'cash',
         createdAt: createdAt,
         updatedAt: createdAt,
@@ -85,7 +86,7 @@ void main() {
       final AccountEntity updated = repository.lastUpserted!;
       expect(updated.id, original.id);
       expect(updated.name, 'Wallet Plus');
-      expect(updated.balance, closeTo(250.75, 1e-6));
+      expect(updated.balanceAmount.toDouble(), closeTo(250.75, 1e-6));
       expect(updated.currency, 'EUR');
       expect(updated.type, original.type);
       expect(updated.createdAt, original.createdAt);
@@ -117,8 +118,9 @@ void main() {
       final AccountEntity original = AccountEntity(
         id: 'acc-2',
         name: 'Savings',
-        balance: 500,
+        balanceMinor: BigInt.from(50000),
         currency: 'USD',
+        currencyScale: 2,
         type: 'bank',
         createdAt: now,
         updatedAt: now,

@@ -45,8 +45,9 @@ void main() {
     final AccountEntity account1 = AccountEntity(
       id: 'acc-1',
       name: 'Main',
-      balance: 60,
+      balanceMinor: BigInt.from(6000),
       currency: 'USD',
+      currencyScale: 2,
       type: 'card',
       createdAt: now,
       updatedAt: now,
@@ -54,8 +55,9 @@ void main() {
     final AccountEntity account2 = AccountEntity(
       id: 'acc-2',
       name: 'Cash',
-      balance: 10,
+      balanceMinor: BigInt.from(1000),
       currency: 'USD',
+      currencyScale: 2,
       type: 'cash',
       createdAt: now,
       updatedAt: now,
@@ -68,7 +70,8 @@ void main() {
       TransactionEntity(
         id: 'tx-1',
         accountId: 'acc-1',
-        amount: 100,
+        amountMinor: BigInt.from(10000),
+        amountScale: 2,
         date: now,
         type: TransactionType.income.storageValue,
         createdAt: now,
@@ -77,7 +80,8 @@ void main() {
       TransactionEntity(
         id: 'tx-2',
         accountId: 'acc-1',
-        amount: 30,
+        amountMinor: BigInt.from(3000),
+        amountScale: 2,
         date: now,
         type: TransactionType.expense.storageValue,
         createdAt: now,
@@ -87,7 +91,8 @@ void main() {
         id: 'tx-3',
         accountId: 'acc-1',
         transferAccountId: 'acc-2',
-        amount: 10,
+        amountMinor: BigInt.from(1000),
+        amountScale: 2,
         date: now,
         type: TransactionType.transfer.storageValue,
         createdAt: now,
@@ -105,7 +110,7 @@ void main() {
       (AccountEntity account) => account.id == 'acc-2',
     );
 
-    expect(updated1.balance, closeTo(60, 1e-9));
-    expect(updated2.balance, closeTo(10, 1e-9));
+    expect(updated1.balanceAmount.toDouble(), closeTo(60, 1e-9));
+    expect(updated2.balanceAmount.toDouble(), closeTo(10, 1e-9));
   });
 }

@@ -10,12 +10,14 @@ _SavingGoalCategoryBreakdown _$SavingGoalCategoryBreakdownFromJson(
   Map<String, dynamic> json,
 ) => _SavingGoalCategoryBreakdown(
   categoryId: json['categoryId'] as String?,
-  amount: (json['amount'] as num?)?.toDouble() ?? 0.0,
+  amount: const MoneyAmountJsonConverter().fromJson(
+    json['amount'] as Map<String, dynamic>,
+  ),
 );
 
 Map<String, dynamic> _$SavingGoalCategoryBreakdownToJson(
   _SavingGoalCategoryBreakdown instance,
 ) => <String, dynamic>{
   'categoryId': instance.categoryId,
-  'amount': instance.amount,
+  'amount': const MoneyAmountJsonConverter().toJson(instance.amount),
 };

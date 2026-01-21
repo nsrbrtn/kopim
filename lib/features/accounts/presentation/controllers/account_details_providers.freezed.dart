@@ -277,7 +277,7 @@ as String?,
 /// @nodoc
 mixin _$AccountTransactionSummary {
 
- double get totalIncome; double get totalExpense;
+ MoneyAmount get totalIncome; MoneyAmount get totalExpense;
 /// Create a copy of AccountTransactionSummary
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -308,7 +308,7 @@ abstract mixin class $AccountTransactionSummaryCopyWith<$Res>  {
   factory $AccountTransactionSummaryCopyWith(AccountTransactionSummary value, $Res Function(AccountTransactionSummary) _then) = _$AccountTransactionSummaryCopyWithImpl;
 @useResult
 $Res call({
- double totalIncome, double totalExpense
+ MoneyAmount totalIncome, MoneyAmount totalExpense
 });
 
 
@@ -328,8 +328,8 @@ class _$AccountTransactionSummaryCopyWithImpl<$Res>
 @pragma('vm:prefer-inline') @override $Res call({Object? totalIncome = null,Object? totalExpense = null,}) {
   return _then(_self.copyWith(
 totalIncome: null == totalIncome ? _self.totalIncome : totalIncome // ignore: cast_nullable_to_non_nullable
-as double,totalExpense: null == totalExpense ? _self.totalExpense : totalExpense // ignore: cast_nullable_to_non_nullable
-as double,
+as MoneyAmount,totalExpense: null == totalExpense ? _self.totalExpense : totalExpense // ignore: cast_nullable_to_non_nullable
+as MoneyAmount,
   ));
 }
 
@@ -414,7 +414,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( double totalIncome,  double totalExpense)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( MoneyAmount totalIncome,  MoneyAmount totalExpense)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _AccountTransactionSummary() when $default != null:
 return $default(_that.totalIncome,_that.totalExpense);case _:
@@ -435,7 +435,7 @@ return $default(_that.totalIncome,_that.totalExpense);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( double totalIncome,  double totalExpense)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( MoneyAmount totalIncome,  MoneyAmount totalExpense)  $default,) {final _that = this;
 switch (_that) {
 case _AccountTransactionSummary():
 return $default(_that.totalIncome,_that.totalExpense);case _:
@@ -455,7 +455,7 @@ return $default(_that.totalIncome,_that.totalExpense);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( double totalIncome,  double totalExpense)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( MoneyAmount totalIncome,  MoneyAmount totalExpense)?  $default,) {final _that = this;
 switch (_that) {
 case _AccountTransactionSummary() when $default != null:
 return $default(_that.totalIncome,_that.totalExpense);case _:
@@ -473,8 +473,8 @@ class _AccountTransactionSummary extends AccountTransactionSummary {
   const _AccountTransactionSummary({required this.totalIncome, required this.totalExpense}): super._();
   
 
-@override final  double totalIncome;
-@override final  double totalExpense;
+@override final  MoneyAmount totalIncome;
+@override final  MoneyAmount totalExpense;
 
 /// Create a copy of AccountTransactionSummary
 /// with the given fields replaced by the non-null parameter values.
@@ -506,7 +506,7 @@ abstract mixin class _$AccountTransactionSummaryCopyWith<$Res> implements $Accou
   factory _$AccountTransactionSummaryCopyWith(_AccountTransactionSummary value, $Res Function(_AccountTransactionSummary) _then) = __$AccountTransactionSummaryCopyWithImpl;
 @override @useResult
 $Res call({
- double totalIncome, double totalExpense
+ MoneyAmount totalIncome, MoneyAmount totalExpense
 });
 
 
@@ -526,8 +526,8 @@ class __$AccountTransactionSummaryCopyWithImpl<$Res>
 @override @pragma('vm:prefer-inline') $Res call({Object? totalIncome = null,Object? totalExpense = null,}) {
   return _then(_AccountTransactionSummary(
 totalIncome: null == totalIncome ? _self.totalIncome : totalIncome // ignore: cast_nullable_to_non_nullable
-as double,totalExpense: null == totalExpense ? _self.totalExpense : totalExpense // ignore: cast_nullable_to_non_nullable
-as double,
+as MoneyAmount,totalExpense: null == totalExpense ? _self.totalExpense : totalExpense // ignore: cast_nullable_to_non_nullable
+as MoneyAmount,
   ));
 }
 

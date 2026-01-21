@@ -10,12 +10,16 @@ _BudgetCategoryAllocation _$BudgetCategoryAllocationFromJson(
   Map<String, dynamic> json,
 ) => _BudgetCategoryAllocation(
   categoryId: json['categoryId'] as String,
-  limit: (json['limit'] as num).toDouble(),
+  limitMinor: const BigIntJsonConverter().fromJson(
+    _readLimitMinor(json, 'limitMinor') as String,
+  ),
+  limitScale: (_readLimitScale(json, 'limitScale') as num).toInt(),
 );
 
 Map<String, dynamic> _$BudgetCategoryAllocationToJson(
   _BudgetCategoryAllocation instance,
 ) => <String, dynamic>{
   'categoryId': instance.categoryId,
-  'limit': instance.limit,
+  'limitMinor': _writeLimitMinor(instance.limitMinor),
+  'limitScale': _writeLimitScale(instance.limitScale),
 };

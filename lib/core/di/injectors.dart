@@ -878,7 +878,7 @@ final rp.Provider<WatchCategoryTreeUseCase> watchCategoryTreeUseCaseProvider =
 
 @riverpod
 TransactionRepository transactionRepository(Ref ref) =>
-  TransactionRepositoryImpl(
+    TransactionRepositoryImpl(
       database: ref.watch(appDatabaseProvider),
       transactionDao: ref.watch(transactionDaoProvider),
       accountDao: ref.watch(accountDaoProvider),

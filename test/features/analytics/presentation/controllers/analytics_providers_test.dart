@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kopim/core/di/injectors.dart';
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/analytics/presentation/controllers/analytics_filter_controller.dart';
 import 'package:kopim/features/analytics/presentation/controllers/analytics_providers.dart';
@@ -76,7 +77,6 @@ void main() {
       id: 'tx-1',
       accountId: 'acc-a',
       transferAccountId: 'acc-b',
-      amount: 10.0,
       amountMinor: BigInt.from(1000),
       amountScale: 2,
       date: transactionDate,
@@ -87,18 +87,18 @@ void main() {
 
     late final StreamController<List<TransactionEntity>> transactionsController;
     late final StreamController<List<AccountEntity>> accountsController;
-    transactionsController = StreamController<List<TransactionEntity>>.broadcast(
-      onListen: () {
-        transactionsController.add(<TransactionEntity>[transfer]);
-      },
-    );
+    transactionsController =
+        StreamController<List<TransactionEntity>>.broadcast(
+          onListen: () {
+            transactionsController.add(<TransactionEntity>[transfer]);
+          },
+        );
     accountsController = StreamController<List<AccountEntity>>.broadcast(
       onListen: () {
         accountsController.add(<AccountEntity>[
           AccountEntity(
             id: 'acc-a',
             name: 'Main',
-            balance: 100.0,
             balanceMinor: BigInt.from(10000),
             currencyScale: 2,
             currency: 'USD',
@@ -109,7 +109,6 @@ void main() {
           AccountEntity(
             id: 'acc-b',
             name: 'Spare',
-            balance: 50.0,
             balanceMinor: BigInt.from(5000),
             currencyScale: 2,
             currency: 'USD',
@@ -127,9 +126,7 @@ void main() {
       // ignore: always_specify_types, the Override type is internal to riverpod
       overrides: [
         transactionRepositoryProvider.overrideWithValue(
-          _FakeTransactionRepository(
-            transactionsController.stream,
-          ),
+          _FakeTransactionRepository(transactionsController.stream),
         ),
         analyticsAccountsProvider.overrideWith(
           (Ref ref) => accountsController.stream,
@@ -151,8 +148,10 @@ void main() {
     final ProviderSubscription<AsyncValue<List<MonthlyBalanceData>>> sub =
         container.listen<AsyncValue<List<MonthlyBalanceData>>>(
           monthlyBalanceDataProvider,
-          (AsyncValue<List<MonthlyBalanceData>>? prev,
-              AsyncValue<List<MonthlyBalanceData>> next) {
+          (
+            AsyncValue<List<MonthlyBalanceData>>? prev,
+            AsyncValue<List<MonthlyBalanceData>> next,
+          ) {
             next.when(
               data: (List<MonthlyBalanceData> value) {
                 if (!completer.isCompleted) {
@@ -175,7 +174,10 @@ void main() {
 
     expect(data, isNotEmpty);
     final MonthlyBalanceData current = data.last;
-    expect(current.totalBalance, closeTo(110.0, 0.001));
+    expect(
+      current.totalBalance,
+      MoneyAmount(minor: BigInt.from(11000), scale: 2),
+    );
   });
 
   test('monthlyCashflowData учитывает переводы для выбранного счета', () async {
@@ -187,7 +189,6 @@ void main() {
         id: 'tx-out',
         accountId: 'acc-a',
         transferAccountId: 'acc-b',
-        amount: 10.0,
         amountMinor: BigInt.from(1000),
         amountScale: 2,
         date: transactionDate,
@@ -199,7 +200,6 @@ void main() {
         id: 'tx-in',
         accountId: 'acc-b',
         transferAccountId: 'acc-a',
-        amount: 25.0,
         amountMinor: BigInt.from(2500),
         amountScale: 2,
         date: transactionDate,
@@ -210,20 +210,19 @@ void main() {
     ];
 
     late final StreamController<List<TransactionEntity>> transactionsController;
-    transactionsController = StreamController<List<TransactionEntity>>.broadcast(
-      onListen: () {
-        transactionsController.add(transactions);
-      },
-    );
+    transactionsController =
+        StreamController<List<TransactionEntity>>.broadcast(
+          onListen: () {
+            transactionsController.add(transactions);
+          },
+        );
     addTearDown(transactionsController.close);
 
     final ProviderContainer container = ProviderContainer(
       // ignore: always_specify_types, the Override type is internal to riverpod
       overrides: [
         transactionRepositoryProvider.overrideWithValue(
-          _FakeTransactionRepository(
-            transactionsController.stream,
-          ),
+          _FakeTransactionRepository(transactionsController.stream),
         ),
         analyticsFilterControllerProvider.overrideWith(
           () => _FakeAnalyticsFilterController(
@@ -242,8 +241,10 @@ void main() {
     final ProviderSubscription<AsyncValue<List<MonthlyCashflowData>>> sub =
         container.listen<AsyncValue<List<MonthlyCashflowData>>>(
           monthlyCashflowDataProvider,
-          (AsyncValue<List<MonthlyCashflowData>>? prev,
-              AsyncValue<List<MonthlyCashflowData>> next) {
+          (
+            AsyncValue<List<MonthlyCashflowData>>? prev,
+            AsyncValue<List<MonthlyCashflowData>> next,
+          ) {
             next.when(
               data: (List<MonthlyCashflowData> value) {
                 if (!completer.isCompleted) {

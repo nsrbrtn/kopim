@@ -8,12 +8,11 @@ part 'budget_category_allocation.g.dart';
 
 @freezed
 abstract class BudgetCategoryAllocation with _$BudgetCategoryAllocation {
+  const BudgetCategoryAllocation._();
+
   const factory BudgetCategoryAllocation({
     required String categoryId,
-    @JsonKey(
-      readValue: _readLimitMinor,
-      toJson: _writeLimitMinor,
-    )
+    @JsonKey(readValue: _readLimitMinor, toJson: _writeLimitMinor)
     @BigIntJsonConverter()
     required BigInt limitMinor,
     @JsonKey(readValue: _readLimitScale, toJson: _writeLimitScale)
@@ -23,7 +22,8 @@ abstract class BudgetCategoryAllocation with _$BudgetCategoryAllocation {
   factory BudgetCategoryAllocation.fromJson(Map<String, dynamic> json) =>
       _$BudgetCategoryAllocationFromJson(json);
 
-  MoneyAmount get limitValue => MoneyAmount(minor: limitMinor, scale: limitScale);
+  MoneyAmount get limitValue =>
+      MoneyAmount(minor: limitMinor, scale: limitScale);
 }
 
 Object? _readLimitMinor(Map<dynamic, dynamic> json, String key) {
@@ -36,8 +36,11 @@ Object? _readLimitMinor(Map<dynamic, dynamic> json, String key) {
     return '0';
   }
   final int scale = _resolveLimitScale(json);
-  final BigInt minor =
-      Money.fromDouble(legacy.toDouble(), currency: 'XXX', scale: scale).minor;
+  final BigInt minor = Money.fromDouble(
+    legacy.toDouble(),
+    currency: 'XXX',
+    scale: scale,
+  ).minor;
   return minor.toString();
 }
 

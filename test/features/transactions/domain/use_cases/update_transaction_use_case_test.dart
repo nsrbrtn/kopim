@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/accounts/domain/repositories/account_repository.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
@@ -22,7 +23,7 @@ void main() {
   TransactionEntity existingTransaction({
     required String id,
     required String accountId,
-    required double amount,
+    required int amount,
     required TransactionType type,
     String? transferAccountId,
     String? categoryId,
@@ -35,7 +36,8 @@ void main() {
       accountId: accountId,
       transferAccountId: transferAccountId,
       categoryId: categoryId,
-      amount: amount,
+      amountMinor: BigInt.from(amount * 100),
+      amountScale: 2,
       date: timestamp,
       note: note,
       type: type.storageValue,
@@ -44,13 +46,14 @@ void main() {
     );
   }
 
-  AccountEntity account({required String id, required double balance}) {
+  AccountEntity account({required String id, required int balance}) {
     final DateTime timestamp = DateTime.utc(2024, 1, 1);
     return AccountEntity(
       id: id,
       name: 'Account $id',
-      balance: balance,
+      balanceMinor: BigInt.from(balance * 100),
       currency: 'USD',
+      currencyScale: 2,
       type: 'card',
       createdAt: timestamp,
       updatedAt: timestamp,
@@ -64,7 +67,8 @@ void main() {
         accountId: 'fallback',
         transferAccountId: null,
         categoryId: null,
-        amount: 0,
+        amountMinor: BigInt.zero,
+        amountScale: 2,
         date: DateTime.utc(2024, 1, 1),
         note: null,
         type: TransactionType.expense.storageValue,
@@ -76,8 +80,9 @@ void main() {
       AccountEntity(
         id: 'fallback',
         name: 'Fallback',
-        balance: 0,
+        balanceMinor: BigInt.zero,
         currency: 'USD',
+        currencyScale: 2,
         type: 'card',
         createdAt: DateTime.utc(2024, 1, 1),
         updatedAt: DateTime.utc(2024, 1, 1),
@@ -87,7 +92,7 @@ void main() {
       UpdateTransactionRequest(
         transactionId: 'fallback',
         accountId: 'fallback',
-        amount: 1,
+        amount: _amount(1),
         date: DateTime.utc(2024, 1, 1),
         type: TransactionType.expense,
       ),
@@ -125,7 +130,7 @@ void main() {
     final UpdateTransactionRequest request = UpdateTransactionRequest(
       transactionId: original.id,
       accountId: accountId,
-      amount: 50,
+      amount: _amount(50),
       date: DateTime.utc(2024, 2, 5),
       note: 'Updated lunch',
       type: TransactionType.expense,
@@ -136,7 +141,7 @@ void main() {
     final TransactionEntity updatedTransaction =
         verify(() => transactionRepository.upsert(captureAny())).captured.single
             as TransactionEntity;
-    expect(updatedTransaction.amount, 50);
+    expect(updatedTransaction.amountValue, _amount(50));
     expect(updatedTransaction.note, 'Updated lunch');
     expect(updatedTransaction.updatedAt, fixedNow.toUtc());
     expect(updatedTransaction.date, request.date);
@@ -150,7 +155,7 @@ void main() {
     final UpdateTransactionRequest request = UpdateTransactionRequest(
       transactionId: 'missing',
       accountId: 'acc',
-      amount: 10,
+      amount: _amount(10),
       date: DateTime.utc(2024, 2, 1),
       type: TransactionType.expense,
     );
@@ -178,12 +183,14 @@ void main() {
     when(
       () => accountRepository.findById(originalAccountId),
     ).thenAnswer((_) async => sourceAccount);
-    when(() => accountRepository.findById('missing')).thenAnswer((_) async => null);
+    when(
+      () => accountRepository.findById('missing'),
+    ).thenAnswer((_) async => null);
 
     final UpdateTransactionRequest request = UpdateTransactionRequest(
       transactionId: original.id,
       accountId: 'missing',
-      amount: 45,
+      amount: _amount(45),
       date: DateTime.utc(2024, 2, 8),
       type: TransactionType.expense,
     );
@@ -192,47 +199,48 @@ void main() {
     verifyNever(() => transactionRepository.upsert(any()));
   });
 
-  test(
-    'validates target account for transfer updates',
-    () async {
-      const String sourceId = 'acc-1';
-      const String newTargetId = 'acc-3';
-      final TransactionEntity original = existingTransaction(
-        id: 'tx-4',
-        accountId: sourceId,
-        transferAccountId: 'acc-2',
-        amount: 40,
-        type: TransactionType.transfer,
-      );
-      final AccountEntity sourceAccount = account(id: sourceId, balance: 200);
-      final AccountEntity newTargetAccount = account(
-        id: newTargetId,
-        balance: 30,
-      );
+  test('validates target account for transfer updates', () async {
+    const String sourceId = 'acc-1';
+    const String newTargetId = 'acc-3';
+    final TransactionEntity original = existingTransaction(
+      id: 'tx-4',
+      accountId: sourceId,
+      transferAccountId: 'acc-2',
+      amount: 40,
+      type: TransactionType.transfer,
+    );
+    final AccountEntity sourceAccount = account(id: sourceId, balance: 200);
+    final AccountEntity newTargetAccount = account(
+      id: newTargetId,
+      balance: 30,
+    );
 
-      when(
-        () => transactionRepository.findById(original.id),
-      ).thenAnswer((_) async => original);
-      when(
-        () => accountRepository.findById(sourceId),
-      ).thenAnswer((_) async => sourceAccount);
-      when(
-        () => accountRepository.findById(newTargetId),
-      ).thenAnswer((_) async => newTargetAccount);
-      when(() => transactionRepository.upsert(any())).thenAnswer((_) async {});
+    when(
+      () => transactionRepository.findById(original.id),
+    ).thenAnswer((_) async => original);
+    when(
+      () => accountRepository.findById(sourceId),
+    ).thenAnswer((_) async => sourceAccount);
+    when(
+      () => accountRepository.findById(newTargetId),
+    ).thenAnswer((_) async => newTargetAccount);
+    when(() => transactionRepository.upsert(any())).thenAnswer((_) async {});
 
-      final UpdateTransactionRequest request = UpdateTransactionRequest(
-        transactionId: original.id,
-        accountId: sourceId,
-        transferAccountId: newTargetId,
-        amount: 60,
-        date: DateTime.utc(2024, 2, 8),
-        type: TransactionType.transfer,
-      );
+    final UpdateTransactionRequest request = UpdateTransactionRequest(
+      transactionId: original.id,
+      accountId: sourceId,
+      transferAccountId: newTargetId,
+      amount: _amount(60),
+      date: DateTime.utc(2024, 2, 8),
+      type: TransactionType.transfer,
+    );
 
-      await useCase(request);
+    await useCase(request);
 
-      verify(() => transactionRepository.upsert(any())).called(1);
-    },
-  );
+    verify(() => transactionRepository.upsert(any())).called(1);
+  });
+}
+
+MoneyAmount _amount(int value, {int scale = 2}) {
+  return MoneyAmount(minor: BigInt.from(value * 100), scale: scale);
 }

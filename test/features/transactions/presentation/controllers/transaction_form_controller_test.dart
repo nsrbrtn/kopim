@@ -17,6 +17,7 @@ import 'package:kopim/features/transactions/domain/use_cases/update_transaction_
 import 'package:kopim/features/transactions/presentation/controllers/transaction_form_controller.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:riverpod/riverpod.dart';
+import 'package:kopim/core/money/money_utils.dart';
 
 class _MockAddTransactionUseCase extends Mock
     implements AddTransactionUseCase {}
@@ -64,7 +65,7 @@ void main() {
     registerFallbackValue(
       AddTransactionRequest(
         accountId: 'acc',
-        amount: 1,
+        amount: _amount(1),
         date: DateTime.utc(2024, 1, 1),
         type: TransactionType.expense,
       ),
@@ -73,7 +74,7 @@ void main() {
       UpdateTransactionRequest(
         transactionId: 'tx',
         accountId: 'acc',
-        amount: 1,
+        amount: _amount(1),
         date: DateTime.utc(2024, 1, 1),
         type: TransactionType.expense,
       ),
@@ -136,7 +137,8 @@ void main() {
         accountId: 'acc-1',
         transferAccountId: null,
         categoryId: 'cat-1',
-        amount: 42.5,
+        amountMinor: BigInt.from(4250),
+        amountScale: 2,
         date: DateTime.utc(2024, 4, 1),
         note: 'Snacks',
         type: TransactionType.income.storageValue,
@@ -170,7 +172,8 @@ void main() {
             as AddTransactionRequest;
     expect(request.accountId, 'acc-1');
     expect(request.categoryId, 'cat-1');
-    expect(request.amount, closeTo(42.5, 1e-9));
+    expect(request.amount.minor, BigInt.from(4250));
+    expect(request.amount.scale, 2);
     expect(request.type, TransactionType.income);
     expect(request.note, 'Snacks');
     expect(request.date, DateTime.utc(2024, 4, 1));
@@ -178,7 +181,7 @@ void main() {
     final TransactionFormState state = container.read(provider);
     expect(state.isSuccess, isTrue);
     expect(state.isSubmitting, isFalse);
-    expect(state.lastCreatedTransaction?.amount, closeTo(42.5, 1e-9));
+    expect(state.lastCreatedTransaction?.amountValue.minor, BigInt.from(4250));
     verify(() => eventRecorder.record(any())).called(1);
   });
 
@@ -188,7 +191,8 @@ void main() {
       accountId: 'acc-1',
       transferAccountId: null,
       categoryId: 'cat-1',
-      amount: 30,
+      amountMinor: BigInt.from(3000),
+      amountScale: 2,
       date: DateTime.utc(2024, 3, 1),
       note: 'Lunch',
       type: TransactionType.expense.storageValue,
@@ -222,7 +226,8 @@ void main() {
     expect(request.transactionId, 'tx-1');
     expect(request.accountId, 'acc-1');
     expect(request.categoryId, 'cat-2');
-    expect(request.amount, closeTo(55, 1e-9));
+    expect(request.amount.minor, BigInt.from(5500));
+    expect(request.amount.scale, 2);
     expect(request.type, TransactionType.expense);
     expect(request.note, 'Updated note');
     expect(request.date, DateTime.utc(2024, 3, 10));
@@ -233,4 +238,8 @@ void main() {
     expect(state.lastCreatedTransaction, isNull);
     verifyNever(() => eventRecorder.record(any()));
   });
+}
+
+MoneyAmount _amount(double value, {int scale = 2}) {
+  return resolveMoneyAmount(amount: value, scale: scale);
 }

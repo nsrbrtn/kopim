@@ -78,7 +78,11 @@ class HomeBudgetProgressCard extends ConsumerWidget {
                         final Budget budget = budgets[index];
                         return ListTile(
                           title: Text(budget.title),
-                          subtitle: Text(currencyFormat.format(budget.amount)),
+                          subtitle: Text(
+                            currencyFormat.format(
+                              budget.amountValue.toDouble(),
+                            ),
+                          ),
                           onTap: () {
                             Navigator.pop(sheetContext, budget.id);
                           },
@@ -216,9 +220,9 @@ class HomeBudgetProgressCard extends ConsumerWidget {
                 final NumberFormat currencyFormat = NumberFormat.simpleCurrency(
                   locale: strings.localeName,
                 );
-                final double limit = progress.budget.amount;
-                final double spent = progress.spent;
-                final double remaining = progress.remaining;
+                final double limit = progress.budget.amountValue.toDouble();
+                final double spent = progress.spent.toDouble();
+                final double remaining = progress.remaining.toDouble();
                 final double ratio = progress.utilization.isFinite
                     ? progress.utilization.clamp(0, 2)
                     : 1.0;
@@ -347,16 +351,16 @@ class _BudgetCategoriesBreakdown extends ConsumerWidget {
               if (categoryId == null) continue;
               spentByCategory.update(
                 categoryId,
-                (double value) => value + tx.amount.abs(),
-                ifAbsent: () => tx.amount.abs(),
+                (double value) => value + tx.amountValue.abs().toDouble(),
+                ifAbsent: () => tx.amountValue.abs().toDouble(),
               );
             }
             final Iterable<String> ids = progress.budget.categories.isNotEmpty
                 ? progress.budget.categories
                 : spentByCategory.keys;
             final List<_CategoryBreakdown> breakdowns = <_CategoryBreakdown>[];
-            double denominator = progress.budget.amount > 0
-                ? progress.budget.amount
+            double denominator = progress.budget.amountValue.minor > BigInt.zero
+                ? progress.budget.amountValue.toDouble()
                 : spentByCategory.values.fold<double>(
                     0,
                     (double sum, double value) => sum + value,

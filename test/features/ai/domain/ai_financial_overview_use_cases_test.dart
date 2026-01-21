@@ -3,6 +3,7 @@ import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:kopim/core/data/database.dart' as db;
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/ai/data/local/ai_analytics_dao.dart';
 import 'package:kopim/features/ai/data/repositories/ai_financial_data_repository_impl.dart';
 import 'package:kopim/features/ai/domain/entities/ai_financial_overview_entity.dart';
@@ -48,7 +49,9 @@ void main() {
             id: drift.Value<String>(id),
             name: const drift.Value<String>('Основной'),
             balance: const drift.Value<double>(0),
+            balanceMinor: const drift.Value<String>('0'),
             currency: const drift.Value<String>('RUB'),
+            currencyScale: const drift.Value<int>(2),
             type: const drift.Value<String>('checking'),
           ),
           mode: drift.InsertMode.insertOrReplace,
@@ -88,7 +91,7 @@ void main() {
     required String id,
     required String accountId,
     String? categoryId,
-    required double amount,
+    required MoneyAmount amount,
     required DateTime date,
     String type = 'expense',
   }) {
@@ -99,7 +102,9 @@ void main() {
             id: drift.Value<String>(id),
             accountId: drift.Value<String>(accountId),
             categoryId: drift.Value<String?>(categoryId),
-            amount: drift.Value<double>(amount),
+            amount: drift.Value<double>(amount.toDouble()),
+            amountMinor: drift.Value<String>(amount.minor.toString()),
+            amountScale: drift.Value<int>(amount.scale),
             date: drift.Value<DateTime>(date),
             type: drift.Value<String>(type),
           ),
@@ -109,13 +114,15 @@ void main() {
 
   Future<void> insertBudget({
     required String id,
-    required double amount,
+    required MoneyAmount amount,
     required DateTime periodStart,
     required DateTime periodEnd,
     List<String> categories = const <String>[],
     List<String> accounts = const <String>[],
-    double spent = 0,
+    MoneyAmount? spent,
   }) async {
+    final MoneyAmount resolvedSpent =
+        spent ?? MoneyAmount(minor: BigInt.zero, scale: 2);
     await database
         .into(database.budgets)
         .insert(
@@ -125,7 +132,9 @@ void main() {
             period: const drift.Value<String>('monthly'),
             startDate: drift.Value<DateTime>(periodStart),
             endDate: drift.Value<DateTime?>(periodEnd),
-            amount: drift.Value<double>(amount),
+            amount: drift.Value<double>(amount.toDouble()),
+            amountMinor: drift.Value<String>(amount.minor.toString()),
+            amountScale: drift.Value<int>(amount.scale),
             scope: const drift.Value<String>('category'),
             categories: drift.Value<List<String>>(categories),
             accounts: drift.Value<List<String>>(accounts),
@@ -140,8 +149,11 @@ void main() {
             budgetId: drift.Value<String>(id),
             periodStart: drift.Value<DateTime>(periodStart),
             periodEnd: drift.Value<DateTime>(periodEnd),
-            amount: drift.Value<double>(amount),
-            spent: drift.Value<double>(spent),
+            amount: drift.Value<double>(amount.toDouble()),
+            spent: drift.Value<double>(resolvedSpent.toDouble()),
+            amountMinor: drift.Value<String>(amount.minor.toString()),
+            spentMinor: drift.Value<String>(resolvedSpent.minor.toString()),
+            amountScale: drift.Value<int>(amount.scale),
           ),
           mode: drift.InsertMode.insertOrReplace,
         );
@@ -153,25 +165,25 @@ void main() {
     await insertIncomeCategory(id: 'c2', name: 'Зарплата');
     await insertBudget(
       id: 'b1',
-      amount: 500,
+      amount: MoneyAmount(minor: BigInt.from(50000), scale: 2),
       periodStart: DateTime(2024, 2, 1),
       periodEnd: DateTime(2024, 2, 29),
       accounts: const <String>['a1'],
       categories: const <String>['c1'],
-      spent: 200,
+      spent: MoneyAmount(minor: BigInt.from(20000), scale: 2),
     );
     await insertTransaction(
       id: 't1',
       accountId: 'a1',
       categoryId: 'c1',
-      amount: 200,
+      amount: MoneyAmount(minor: BigInt.from(20000), scale: 2),
       date: DateTime(2024, 2, 5),
     );
     await insertTransaction(
       id: 't_income_1',
       accountId: 'a1',
       categoryId: 'c2',
-      amount: 1200,
+      amount: MoneyAmount(minor: BigInt.from(120000), scale: 2),
       date: DateTime(2024, 2, 3),
       type: 'income',
     );
@@ -191,19 +203,34 @@ void main() {
       );
 
       expect(overview.monthlyExpenses, hasLength(1));
-      expect(overview.monthlyExpenses.first.totalExpense, 200);
+      expect(
+        overview.monthlyExpenses.first.totalExpense,
+        MoneyAmount(minor: BigInt.from(20000), scale: 2),
+      );
       expect(overview.monthlyIncomes, hasLength(1));
-      expect(overview.monthlyIncomes.first.totalIncome, 1200);
+      expect(
+        overview.monthlyIncomes.first.totalIncome,
+        MoneyAmount(minor: BigInt.from(120000), scale: 2),
+      );
       expect(overview.topCategories, hasLength(1));
       expect(overview.topCategories.first.displayName, 'Продукты');
-      expect(overview.topCategories.first.totalExpense, 200);
+      expect(
+        overview.topCategories.first.totalExpense,
+        MoneyAmount(minor: BigInt.from(20000), scale: 2),
+      );
       expect(overview.topIncomeCategories, hasLength(1));
       expect(overview.topIncomeCategories.first.displayName, 'Зарплата');
-      expect(overview.topIncomeCategories.first.totalIncome, 1200);
+      expect(
+        overview.topIncomeCategories.first.totalIncome,
+        MoneyAmount(minor: BigInt.from(120000), scale: 2),
+      );
       expect(overview.budgetForecasts, hasLength(1));
       final BudgetForecastInsight forecast = overview.budgetForecasts.first;
-      expect(forecast.allocated, 500);
-      expect(forecast.spent, 200);
+      expect(
+        forecast.allocated,
+        MoneyAmount(minor: BigInt.from(50000), scale: 2),
+      );
+      expect(forecast.spent, MoneyAmount(minor: BigInt.from(20000), scale: 2));
       expect(forecast.status, BudgetForecastStatus.onTrack);
       expect(overview.generatedAt, fixedNow);
     },
@@ -225,24 +252,48 @@ void main() {
           .asBroadcastStream();
 
       final AiFinancialOverview initial = await stream.first;
-      expect(initial.monthlyExpenses.single.totalExpense, 200);
-      expect(initial.monthlyIncomes.single.totalIncome, 1200);
-      expect(initial.topCategories.single.totalExpense, 200);
-      expect(initial.topIncomeCategories.single.totalIncome, 1200);
+      expect(
+        initial.monthlyExpenses.single.totalExpense,
+        MoneyAmount(minor: BigInt.from(20000), scale: 2),
+      );
+      expect(
+        initial.monthlyIncomes.single.totalIncome,
+        MoneyAmount(minor: BigInt.from(120000), scale: 2),
+      );
+      expect(
+        initial.topCategories.single.totalExpense,
+        MoneyAmount(minor: BigInt.from(20000), scale: 2),
+      );
+      expect(
+        initial.topIncomeCategories.single.totalIncome,
+        MoneyAmount(minor: BigInt.from(120000), scale: 2),
+      );
 
       await insertTransaction(
         id: 't2',
         accountId: 'a1',
         categoryId: 'c1',
-        amount: 60,
+        amount: MoneyAmount(minor: BigInt.from(6000), scale: 2),
         date: DateTime(2024, 2, 12),
       );
 
       final AiFinancialOverview updated = await stream.skip(1).first;
-      expect(updated.monthlyExpenses.single.totalExpense, 260);
-      expect(updated.monthlyIncomes.single.totalIncome, 1200);
-      expect(updated.topCategories.single.totalExpense, 260);
-      expect(updated.topIncomeCategories.single.totalIncome, 1200);
+      expect(
+        updated.monthlyExpenses.single.totalExpense,
+        MoneyAmount(minor: BigInt.from(26000), scale: 2),
+      );
+      expect(
+        updated.monthlyIncomes.single.totalIncome,
+        MoneyAmount(minor: BigInt.from(120000), scale: 2),
+      );
+      expect(
+        updated.topCategories.single.totalExpense,
+        MoneyAmount(minor: BigInt.from(26000), scale: 2),
+      );
+      expect(
+        updated.topIncomeCategories.single.totalIncome,
+        MoneyAmount(minor: BigInt.from(120000), scale: 2),
+      );
     },
   );
 }

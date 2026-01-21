@@ -2,6 +2,7 @@ import 'package:drift/drift.dart' as drift;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kopim/core/data/database.dart';
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/transactions/data/sources/local/transaction_dao.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
 
@@ -69,7 +70,7 @@ void main() {
     required String id,
     required String accountId,
     required DateTime date,
-    required double amount,
+    required MoneyAmount amount,
     required TransactionType type,
     bool isDeleted = false,
   }) async {
@@ -80,7 +81,9 @@ void main() {
             id: drift.Value<String>(id),
             accountId: drift.Value<String>(accountId),
             categoryId: const drift.Value<String?>('c1'),
-            amount: drift.Value<double>(amount),
+            amount: drift.Value<double>(amount.toDouble()),
+            amountMinor: drift.Value<String>(amount.minor.toString()),
+            amountScale: drift.Value<int>(amount.scale),
             date: drift.Value<DateTime>(date),
             type: drift.Value<String>(type.storageValue),
             createdAt: drift.Value<DateTime>(DateTime.now()),
@@ -100,35 +103,35 @@ void main() {
         id: 't1',
         accountId: 'a1',
         date: DateTime(2025, 1, 1, 0, 0),
-        amount: 100,
+        amount: MoneyAmount(minor: BigInt.from(10000), scale: 2),
         type: TransactionType.income,
       );
       await insertTx(
         id: 't2',
         accountId: 'a1',
         date: DateTime(2025, 1, 15, 12, 0),
-        amount: 40,
+        amount: MoneyAmount(minor: BigInt.from(4000), scale: 2),
         type: TransactionType.expense,
       );
       await insertTx(
         id: 't3',
         accountId: 'a1',
         date: DateTime(2025, 2, 1, 0, 0),
-        amount: 5,
+        amount: MoneyAmount(minor: BigInt.from(500), scale: 2),
         type: TransactionType.expense,
       );
       await insertTx(
         id: 't4',
         accountId: 'a2',
         date: DateTime(2025, 1, 20),
-        amount: -50,
+        amount: MoneyAmount(minor: BigInt.from(-5000), scale: 2),
         type: TransactionType.income,
       );
       await insertTx(
         id: 't5',
         accountId: 'a2',
         date: DateTime(2025, 1, 25),
-        amount: 999,
+        amount: MoneyAmount(minor: BigInt.from(99900), scale: 2),
         type: TransactionType.expense,
         isDeleted: true,
       );
@@ -143,10 +146,10 @@ void main() {
           };
 
       expect(byAccount.keys.toSet(), <String>{'a1', 'a2'});
-      expect(byAccount['a1']!.income, 100);
-      expect(byAccount['a1']!.expense, 40);
-      expect(byAccount['a2']!.income, 50);
-      expect(byAccount['a2']!.expense, 0);
+      expect(byAccount['a1']!.income.minor, BigInt.from(10000));
+      expect(byAccount['a1']!.expense.minor, BigInt.from(4000));
+      expect(byAccount['a2']!.income.minor, BigInt.from(5000));
+      expect(byAccount['a2']!.expense.minor, BigInt.zero);
     },
   );
 

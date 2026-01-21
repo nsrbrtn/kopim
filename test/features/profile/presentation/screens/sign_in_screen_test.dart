@@ -184,22 +184,10 @@ void main() {
 
     final Finder textFields = find.byType(TextField);
     expect(textFields, findsNWidgets(4));
-    await tester.enterText(
-      textFields.at(0),
-      'user@example.com',
-    );
-    await tester.enterText(
-      textFields.at(1),
-      'secret123',
-    );
-    await tester.enterText(
-      textFields.at(2),
-      'secret123',
-    );
-    await tester.enterText(
-      textFields.at(3),
-      'Test User',
-    );
+    await tester.enterText(textFields.at(0), 'user@example.com');
+    await tester.enterText(textFields.at(1), 'secret123');
+    await tester.enterText(textFields.at(2), 'secret123');
+    await tester.enterText(textFields.at(3), 'Test User');
 
     await tester.pump();
 

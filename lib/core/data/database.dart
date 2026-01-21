@@ -275,8 +275,9 @@ class Credits extends Table {
   TextColumn get totalAmountMinor => text()
       .named('total_amount_minor')
       .withDefault(const Constant<String>('0'))();
-  IntColumn get totalAmountScale =>
-      integer().named('total_amount_scale').withDefault(const Constant<int>(2))();
+  IntColumn get totalAmountScale => integer()
+      .named('total_amount_scale')
+      .withDefault(const Constant<int>(2))();
   RealColumn get interestRate => real()();
   IntColumn get termMonths => integer()();
   DateTimeColumn get startDate => dateTime()();
@@ -299,8 +300,9 @@ class CreditCards extends Table {
   TextColumn get creditLimitMinor => text()
       .named('credit_limit_minor')
       .withDefault(const Constant<String>('0'))();
-  IntColumn get creditLimitScale =>
-      integer().named('credit_limit_scale').withDefault(const Constant<int>(2))();
+  IntColumn get creditLimitScale => integer()
+      .named('credit_limit_scale')
+      .withDefault(const Constant<int>(2))();
   IntColumn get statementDay => integer()();
   IntColumn get paymentDueDays => integer()();
   RealColumn get interestRateAnnual => real()();
@@ -468,8 +470,7 @@ class AppDatabase extends _$AppDatabase {
         if (!await _columnExists('accounts', 'opening_balance')) {
           await m.addColumn(accounts, accounts.openingBalance);
         }
-        await m.database.customStatement(
-          '''
+        await m.database.customStatement('''
 UPDATE accounts
 SET opening_balance = balance - (
   COALESCE((SELECT SUM(CASE WHEN type = 'income' THEN ABS(amount) ELSE 0 END)
@@ -485,8 +486,7 @@ SET opening_balance = balance - (
               FROM transactions
               WHERE is_deleted = 0 AND transfer_account_id = accounts.id), 0)
 )
-''',
-        );
+''');
       }
       if (from < 32) {
         if (!await _columnExists('accounts', 'balance_minor')) {
@@ -508,9 +508,11 @@ SET opening_balance = balance - (
         if (await _columnExists('accounts', 'balance_minor') &&
             await _columnExists('accounts', 'opening_balance_minor') &&
             await _columnExists('accounts', 'currency_scale')) {
-          final List<QueryRow> accountRows = await m.database.customSelect(
-            'SELECT id, currency, balance, opening_balance FROM accounts',
-          ).get();
+          final List<QueryRow> accountRows = await m.database
+              .customSelect(
+                'SELECT id, currency, balance, opening_balance FROM accounts',
+              )
+              .get();
           final Map<String, int> scalesByAccount = <String, int>{};
           for (final QueryRow row in accountRows) {
             final String accountId = row.read<String>('id');
@@ -542,9 +544,9 @@ SET opening_balance = balance - (
 
           if (await _columnExists('transactions', 'amount_minor') &&
               await _columnExists('transactions', 'amount_scale')) {
-            final List<QueryRow> transactionRows = await m.database.customSelect(
-              'SELECT id, account_id, amount FROM transactions',
-            ).get();
+            final List<QueryRow> transactionRows = await m.database
+                .customSelect('SELECT id, account_id, amount FROM transactions')
+                .get();
             for (final QueryRow row in transactionRows) {
               final String transactionId = row.read<String>('id');
               final String accountId = row.read<String>('account_id');
@@ -575,10 +577,12 @@ SET opening_balance = balance - (
           'payment_reminders',
         );
 
-        if (hasBudgetsTable && !await _columnExists('budgets', 'amount_minor')) {
+        if (hasBudgetsTable &&
+            !await _columnExists('budgets', 'amount_minor')) {
           await m.addColumn(budgets, budgets.amountMinor);
         }
-        if (hasBudgetsTable && !await _columnExists('budgets', 'amount_scale')) {
+        if (hasBudgetsTable &&
+            !await _columnExists('budgets', 'amount_scale')) {
           await m.addColumn(budgets, budgets.amountScale);
         }
         if (hasBudgetInstancesTable &&
@@ -625,9 +629,9 @@ SET opening_balance = balance - (
             await _columnExists('payment_reminders', 'amount_scale')) {
           final int defaultScale = await _resolveDefaultCurrencyScale(m);
 
-          final List<QueryRow> budgetRows = await m.database.customSelect(
-            'SELECT id, amount FROM budgets',
-          ).get();
+          final List<QueryRow> budgetRows = await m.database
+              .customSelect('SELECT id, amount FROM budgets')
+              .get();
           for (final QueryRow row in budgetRows) {
             final String id = row.read<String>('id');
             final double amount = row.read<double>('amount');
@@ -642,9 +646,9 @@ SET opening_balance = balance - (
             );
           }
 
-          final List<QueryRow> instanceRows = await m.database.customSelect(
-            'SELECT id, amount, spent FROM budget_instances',
-          ).get();
+          final List<QueryRow> instanceRows = await m.database
+              .customSelect('SELECT id, amount, spent FROM budget_instances')
+              .get();
           for (final QueryRow row in instanceRows) {
             final String id = row.read<String>('id');
             final double amount = row.read<double>('amount');
@@ -670,13 +674,11 @@ SET opening_balance = balance - (
             );
           }
 
-          final List<QueryRow> upcomingRows = await m.database.customSelect(
-            '''
+          final List<QueryRow> upcomingRows = await m.database.customSelect('''
 SELECT up.id AS id, up.amount AS amount, acc.currency AS currency
 FROM upcoming_payments up
 LEFT JOIN accounts acc ON up.account_id = acc.id
-''',
-          ).get();
+''').get();
           for (final QueryRow row in upcomingRows) {
             final String id = row.read<String>('id');
             final double amount = row.read<double>('amount');
@@ -695,9 +697,9 @@ LEFT JOIN accounts acc ON up.account_id = acc.id
             );
           }
 
-          final List<QueryRow> reminderRows = await m.database.customSelect(
-            'SELECT id, amount FROM payment_reminders',
-          ).get();
+          final List<QueryRow> reminderRows = await m.database
+              .customSelect('SELECT id, amount FROM payment_reminders')
+              .get();
           for (final QueryRow row in reminderRows) {
             final String id = row.read<String>('id');
             final double amount = row.read<double>('amount');
@@ -714,9 +716,9 @@ LEFT JOIN accounts acc ON up.account_id = acc.id
         }
       }
       if (from < 34) {
-        final List<QueryRow> accountRows = await m.database.customSelect(
-          'SELECT id, currency, currency_scale FROM accounts',
-        ).get();
+        final List<QueryRow> accountRows = await m.database
+            .customSelect('SELECT id, currency, currency_scale FROM accounts')
+            .get();
         final Map<String, int> scalesByAccount = <String, int>{};
         for (final QueryRow row in accountRows) {
           final String accountId = row.read<String>('id');
@@ -733,9 +735,9 @@ LEFT JOIN accounts acc ON up.account_id = acc.id
           if (!await _columnExists('debts', 'amount_scale')) {
             await m.addColumn(debts, debts.amountScale);
           }
-          final List<QueryRow> debtRows = await m.database.customSelect(
-            'SELECT id, account_id, amount FROM debts',
-          ).get();
+          final List<QueryRow> debtRows = await m.database
+              .customSelect('SELECT id, account_id, amount FROM debts')
+              .get();
           for (final QueryRow row in debtRows) {
             final String id = row.read<String>('id');
             final String accountId = row.read<String>('account_id');
@@ -760,9 +762,9 @@ LEFT JOIN accounts acc ON up.account_id = acc.id
           if (!await _columnExists('credits', 'total_amount_scale')) {
             await m.addColumn(credits, credits.totalAmountScale);
           }
-          final List<QueryRow> creditRows = await m.database.customSelect(
-            'SELECT id, account_id, total_amount FROM credits',
-          ).get();
+          final List<QueryRow> creditRows = await m.database
+              .customSelect('SELECT id, account_id, total_amount FROM credits')
+              .get();
           for (final QueryRow row in creditRows) {
             final String id = row.read<String>('id');
             final String accountId = row.read<String>('account_id');
@@ -787,9 +789,11 @@ LEFT JOIN accounts acc ON up.account_id = acc.id
           if (!await _columnExists('credit_cards', 'credit_limit_scale')) {
             await m.addColumn(creditCards, creditCards.creditLimitScale);
           }
-          final List<QueryRow> cardRows = await m.database.customSelect(
-            'SELECT id, account_id, credit_limit FROM credit_cards',
-          ).get();
+          final List<QueryRow> cardRows = await m.database
+              .customSelect(
+                'SELECT id, account_id, credit_limit FROM credit_cards',
+              )
+              .get();
           for (final QueryRow row in cardRows) {
             final String id = row.read<String>('id');
             final String accountId = row.read<String>('account_id');
@@ -1119,9 +1123,9 @@ LEFT JOIN accounts acc ON up.account_id = acc.id
 
   static Future<int> _resolveDefaultCurrencyScale(Migrator m) async {
     try {
-      final List<QueryRow> rows = await m.database.customSelect(
-        'SELECT currency FROM profiles LIMIT 1',
-      ).get();
+      final List<QueryRow> rows = await m.database
+          .customSelect('SELECT currency FROM profiles LIMIT 1')
+          .get();
       if (rows.isNotEmpty) {
         final String? currency = rows.first.read<String?>('currency');
         if (currency != null && currency.isNotEmpty) {

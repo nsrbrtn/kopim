@@ -44,8 +44,7 @@ class _AddEditDebtScreenState extends ConsumerState<AddEditDebtScreen> {
     if (widget.debt != null) {
       _nameController.text = widget.debt!.name;
       final MoneyAmount amount = widget.debt!.amountValue;
-      _amountController.text =
-          amount.toDouble().toStringAsFixed(amount.scale);
+      _amountController.text = amount.toDouble().toStringAsFixed(amount.scale);
       _noteController.text = widget.debt!.note ?? '';
       _selectedAccountId = widget.debt!.accountId;
       _selectedDueDate = widget.debt!.dueDate;

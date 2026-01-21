@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$BudgetCategoryAllocation {
 
- String get categoryId; double get limit;
+ String get categoryId;@JsonKey(readValue: _readLimitMinor, toJson: _writeLimitMinor)@BigIntJsonConverter() BigInt get limitMinor;@JsonKey(readValue: _readLimitScale, toJson: _writeLimitScale) int get limitScale;
 /// Create a copy of BudgetCategoryAllocation
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $BudgetCategoryAllocationCopyWith<BudgetCategoryAllocation> get copyWith => _$Bu
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is BudgetCategoryAllocation&&(identical(other.categoryId, categoryId) || other.categoryId == categoryId)&&(identical(other.limit, limit) || other.limit == limit));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is BudgetCategoryAllocation&&(identical(other.categoryId, categoryId) || other.categoryId == categoryId)&&(identical(other.limitMinor, limitMinor) || other.limitMinor == limitMinor)&&(identical(other.limitScale, limitScale) || other.limitScale == limitScale));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,categoryId,limit);
+int get hashCode => Object.hash(runtimeType,categoryId,limitMinor,limitScale);
 
 @override
 String toString() {
-  return 'BudgetCategoryAllocation(categoryId: $categoryId, limit: $limit)';
+  return 'BudgetCategoryAllocation(categoryId: $categoryId, limitMinor: $limitMinor, limitScale: $limitScale)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $BudgetCategoryAllocationCopyWith<$Res>  {
   factory $BudgetCategoryAllocationCopyWith(BudgetCategoryAllocation value, $Res Function(BudgetCategoryAllocation) _then) = _$BudgetCategoryAllocationCopyWithImpl;
 @useResult
 $Res call({
- String categoryId, double limit
+ String categoryId,@JsonKey(readValue: _readLimitMinor, toJson: _writeLimitMinor)@BigIntJsonConverter() BigInt limitMinor,@JsonKey(readValue: _readLimitScale, toJson: _writeLimitScale) int limitScale
 });
 
 
@@ -65,11 +65,12 @@ class _$BudgetCategoryAllocationCopyWithImpl<$Res>
 
 /// Create a copy of BudgetCategoryAllocation
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? categoryId = null,Object? limit = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? categoryId = null,Object? limitMinor = null,Object? limitScale = null,}) {
   return _then(_self.copyWith(
 categoryId: null == categoryId ? _self.categoryId : categoryId // ignore: cast_nullable_to_non_nullable
-as String,limit: null == limit ? _self.limit : limit // ignore: cast_nullable_to_non_nullable
-as double,
+as String,limitMinor: null == limitMinor ? _self.limitMinor : limitMinor // ignore: cast_nullable_to_non_nullable
+as BigInt,limitScale: null == limitScale ? _self.limitScale : limitScale // ignore: cast_nullable_to_non_nullable
+as int,
   ));
 }
 
@@ -154,10 +155,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String categoryId,  double limit)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String categoryId, @JsonKey(readValue: _readLimitMinor, toJson: _writeLimitMinor)@BigIntJsonConverter()  BigInt limitMinor, @JsonKey(readValue: _readLimitScale, toJson: _writeLimitScale)  int limitScale)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _BudgetCategoryAllocation() when $default != null:
-return $default(_that.categoryId,_that.limit);case _:
+return $default(_that.categoryId,_that.limitMinor,_that.limitScale);case _:
   return orElse();
 
 }
@@ -175,10 +176,10 @@ return $default(_that.categoryId,_that.limit);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String categoryId,  double limit)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String categoryId, @JsonKey(readValue: _readLimitMinor, toJson: _writeLimitMinor)@BigIntJsonConverter()  BigInt limitMinor, @JsonKey(readValue: _readLimitScale, toJson: _writeLimitScale)  int limitScale)  $default,) {final _that = this;
 switch (_that) {
 case _BudgetCategoryAllocation():
-return $default(_that.categoryId,_that.limit);case _:
+return $default(_that.categoryId,_that.limitMinor,_that.limitScale);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -195,10 +196,10 @@ return $default(_that.categoryId,_that.limit);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String categoryId,  double limit)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String categoryId, @JsonKey(readValue: _readLimitMinor, toJson: _writeLimitMinor)@BigIntJsonConverter()  BigInt limitMinor, @JsonKey(readValue: _readLimitScale, toJson: _writeLimitScale)  int limitScale)?  $default,) {final _that = this;
 switch (_that) {
 case _BudgetCategoryAllocation() when $default != null:
-return $default(_that.categoryId,_that.limit);case _:
+return $default(_that.categoryId,_that.limitMinor,_that.limitScale);case _:
   return null;
 
 }
@@ -209,12 +210,13 @@ return $default(_that.categoryId,_that.limit);case _:
 /// @nodoc
 @JsonSerializable()
 
-class _BudgetCategoryAllocation implements BudgetCategoryAllocation {
-  const _BudgetCategoryAllocation({required this.categoryId, required this.limit});
+class _BudgetCategoryAllocation extends BudgetCategoryAllocation {
+  const _BudgetCategoryAllocation({required this.categoryId, @JsonKey(readValue: _readLimitMinor, toJson: _writeLimitMinor)@BigIntJsonConverter() required this.limitMinor, @JsonKey(readValue: _readLimitScale, toJson: _writeLimitScale) required this.limitScale}): super._();
   factory _BudgetCategoryAllocation.fromJson(Map<String, dynamic> json) => _$BudgetCategoryAllocationFromJson(json);
 
 @override final  String categoryId;
-@override final  double limit;
+@override@JsonKey(readValue: _readLimitMinor, toJson: _writeLimitMinor)@BigIntJsonConverter() final  BigInt limitMinor;
+@override@JsonKey(readValue: _readLimitScale, toJson: _writeLimitScale) final  int limitScale;
 
 /// Create a copy of BudgetCategoryAllocation
 /// with the given fields replaced by the non-null parameter values.
@@ -229,16 +231,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _BudgetCategoryAllocation&&(identical(other.categoryId, categoryId) || other.categoryId == categoryId)&&(identical(other.limit, limit) || other.limit == limit));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _BudgetCategoryAllocation&&(identical(other.categoryId, categoryId) || other.categoryId == categoryId)&&(identical(other.limitMinor, limitMinor) || other.limitMinor == limitMinor)&&(identical(other.limitScale, limitScale) || other.limitScale == limitScale));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,categoryId,limit);
+int get hashCode => Object.hash(runtimeType,categoryId,limitMinor,limitScale);
 
 @override
 String toString() {
-  return 'BudgetCategoryAllocation(categoryId: $categoryId, limit: $limit)';
+  return 'BudgetCategoryAllocation(categoryId: $categoryId, limitMinor: $limitMinor, limitScale: $limitScale)';
 }
 
 
@@ -249,7 +251,7 @@ abstract mixin class _$BudgetCategoryAllocationCopyWith<$Res> implements $Budget
   factory _$BudgetCategoryAllocationCopyWith(_BudgetCategoryAllocation value, $Res Function(_BudgetCategoryAllocation) _then) = __$BudgetCategoryAllocationCopyWithImpl;
 @override @useResult
 $Res call({
- String categoryId, double limit
+ String categoryId,@JsonKey(readValue: _readLimitMinor, toJson: _writeLimitMinor)@BigIntJsonConverter() BigInt limitMinor,@JsonKey(readValue: _readLimitScale, toJson: _writeLimitScale) int limitScale
 });
 
 
@@ -266,11 +268,12 @@ class __$BudgetCategoryAllocationCopyWithImpl<$Res>
 
 /// Create a copy of BudgetCategoryAllocation
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? categoryId = null,Object? limit = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? categoryId = null,Object? limitMinor = null,Object? limitScale = null,}) {
   return _then(_BudgetCategoryAllocation(
 categoryId: null == categoryId ? _self.categoryId : categoryId // ignore: cast_nullable_to_non_nullable
-as String,limit: null == limit ? _self.limit : limit // ignore: cast_nullable_to_non_nullable
-as double,
+as String,limitMinor: null == limitMinor ? _self.limitMinor : limitMinor // ignore: cast_nullable_to_non_nullable
+as BigInt,limitScale: null == limitScale ? _self.limitScale : limitScale // ignore: cast_nullable_to_non_nullable
+as int,
   ));
 }
 

@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$AccountEntity {
 
- String get id; String get name; double get balance;@JsonKey(includeFromJson: false, includeToJson: false) BigInt? get balanceMinor; double get openingBalance;@JsonKey(includeFromJson: false, includeToJson: false) BigInt? get openingBalanceMinor; String get currency;@JsonKey(includeFromJson: false, includeToJson: false) int? get currencyScale; String get type; DateTime get createdAt; DateTime get updatedAt; String? get color; String? get gradientId; String? get iconName; String? get iconStyle; bool get isDeleted; bool get isPrimary; bool get isHidden;
+ String get id; String get name;@JsonKey(includeFromJson: false, includeToJson: false) BigInt? get balanceMinor;@JsonKey(includeFromJson: false, includeToJson: false) BigInt? get openingBalanceMinor; String get currency;@JsonKey(includeFromJson: false, includeToJson: false) int? get currencyScale; String get type; DateTime get createdAt; DateTime get updatedAt; String? get color; String? get gradientId; String? get iconName; String? get iconStyle; bool get isDeleted; bool get isPrimary; bool get isHidden;
 /// Create a copy of AccountEntity
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $AccountEntityCopyWith<AccountEntity> get copyWith => _$AccountEntityCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AccountEntity&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.balance, balance) || other.balance == balance)&&(identical(other.balanceMinor, balanceMinor) || other.balanceMinor == balanceMinor)&&(identical(other.openingBalance, openingBalance) || other.openingBalance == openingBalance)&&(identical(other.openingBalanceMinor, openingBalanceMinor) || other.openingBalanceMinor == openingBalanceMinor)&&(identical(other.currency, currency) || other.currency == currency)&&(identical(other.currencyScale, currencyScale) || other.currencyScale == currencyScale)&&(identical(other.type, type) || other.type == type)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.color, color) || other.color == color)&&(identical(other.gradientId, gradientId) || other.gradientId == gradientId)&&(identical(other.iconName, iconName) || other.iconName == iconName)&&(identical(other.iconStyle, iconStyle) || other.iconStyle == iconStyle)&&(identical(other.isDeleted, isDeleted) || other.isDeleted == isDeleted)&&(identical(other.isPrimary, isPrimary) || other.isPrimary == isPrimary)&&(identical(other.isHidden, isHidden) || other.isHidden == isHidden));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AccountEntity&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.balanceMinor, balanceMinor) || other.balanceMinor == balanceMinor)&&(identical(other.openingBalanceMinor, openingBalanceMinor) || other.openingBalanceMinor == openingBalanceMinor)&&(identical(other.currency, currency) || other.currency == currency)&&(identical(other.currencyScale, currencyScale) || other.currencyScale == currencyScale)&&(identical(other.type, type) || other.type == type)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.color, color) || other.color == color)&&(identical(other.gradientId, gradientId) || other.gradientId == gradientId)&&(identical(other.iconName, iconName) || other.iconName == iconName)&&(identical(other.iconStyle, iconStyle) || other.iconStyle == iconStyle)&&(identical(other.isDeleted, isDeleted) || other.isDeleted == isDeleted)&&(identical(other.isPrimary, isPrimary) || other.isPrimary == isPrimary)&&(identical(other.isHidden, isHidden) || other.isHidden == isHidden));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,balance,balanceMinor,openingBalance,openingBalanceMinor,currency,currencyScale,type,createdAt,updatedAt,color,gradientId,iconName,iconStyle,isDeleted,isPrimary,isHidden);
+int get hashCode => Object.hash(runtimeType,id,name,balanceMinor,openingBalanceMinor,currency,currencyScale,type,createdAt,updatedAt,color,gradientId,iconName,iconStyle,isDeleted,isPrimary,isHidden);
 
 @override
 String toString() {
-  return 'AccountEntity(id: $id, name: $name, balance: $balance, balanceMinor: $balanceMinor, openingBalance: $openingBalance, openingBalanceMinor: $openingBalanceMinor, currency: $currency, currencyScale: $currencyScale, type: $type, createdAt: $createdAt, updatedAt: $updatedAt, color: $color, gradientId: $gradientId, iconName: $iconName, iconStyle: $iconStyle, isDeleted: $isDeleted, isPrimary: $isPrimary, isHidden: $isHidden)';
+  return 'AccountEntity(id: $id, name: $name, balanceMinor: $balanceMinor, openingBalanceMinor: $openingBalanceMinor, currency: $currency, currencyScale: $currencyScale, type: $type, createdAt: $createdAt, updatedAt: $updatedAt, color: $color, gradientId: $gradientId, iconName: $iconName, iconStyle: $iconStyle, isDeleted: $isDeleted, isPrimary: $isPrimary, isHidden: $isHidden)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $AccountEntityCopyWith<$Res>  {
   factory $AccountEntityCopyWith(AccountEntity value, $Res Function(AccountEntity) _then) = _$AccountEntityCopyWithImpl;
 @useResult
 $Res call({
- String id, String name, double balance,@JsonKey(includeFromJson: false, includeToJson: false) BigInt? balanceMinor, double openingBalance,@JsonKey(includeFromJson: false, includeToJson: false) BigInt? openingBalanceMinor, String currency,@JsonKey(includeFromJson: false, includeToJson: false) int? currencyScale, String type, DateTime createdAt, DateTime updatedAt, String? color, String? gradientId, String? iconName, String? iconStyle, bool isDeleted, bool isPrimary, bool isHidden
+ String id, String name,@JsonKey(includeFromJson: false, includeToJson: false) BigInt? balanceMinor,@JsonKey(includeFromJson: false, includeToJson: false) BigInt? openingBalanceMinor, String currency,@JsonKey(includeFromJson: false, includeToJson: false) int? currencyScale, String type, DateTime createdAt, DateTime updatedAt, String? color, String? gradientId, String? iconName, String? iconStyle, bool isDeleted, bool isPrimary, bool isHidden
 });
 
 
@@ -65,14 +65,12 @@ class _$AccountEntityCopyWithImpl<$Res>
 
 /// Create a copy of AccountEntity
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? balance = null,Object? balanceMinor = freezed,Object? openingBalance = null,Object? openingBalanceMinor = freezed,Object? currency = null,Object? currencyScale = freezed,Object? type = null,Object? createdAt = null,Object? updatedAt = null,Object? color = freezed,Object? gradientId = freezed,Object? iconName = freezed,Object? iconStyle = freezed,Object? isDeleted = null,Object? isPrimary = null,Object? isHidden = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? balanceMinor = freezed,Object? openingBalanceMinor = freezed,Object? currency = null,Object? currencyScale = freezed,Object? type = null,Object? createdAt = null,Object? updatedAt = null,Object? color = freezed,Object? gradientId = freezed,Object? iconName = freezed,Object? iconStyle = freezed,Object? isDeleted = null,Object? isPrimary = null,Object? isHidden = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
-as String,balance: null == balance ? _self.balance : balance // ignore: cast_nullable_to_non_nullable
-as double,balanceMinor: freezed == balanceMinor ? _self.balanceMinor : balanceMinor // ignore: cast_nullable_to_non_nullable
-as BigInt?,openingBalance: null == openingBalance ? _self.openingBalance : openingBalance // ignore: cast_nullable_to_non_nullable
-as double,openingBalanceMinor: freezed == openingBalanceMinor ? _self.openingBalanceMinor : openingBalanceMinor // ignore: cast_nullable_to_non_nullable
+as String,balanceMinor: freezed == balanceMinor ? _self.balanceMinor : balanceMinor // ignore: cast_nullable_to_non_nullable
+as BigInt?,openingBalanceMinor: freezed == openingBalanceMinor ? _self.openingBalanceMinor : openingBalanceMinor // ignore: cast_nullable_to_non_nullable
 as BigInt?,currency: null == currency ? _self.currency : currency // ignore: cast_nullable_to_non_nullable
 as String,currencyScale: freezed == currencyScale ? _self.currencyScale : currencyScale // ignore: cast_nullable_to_non_nullable
 as int?,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
@@ -170,10 +168,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  double balance, @JsonKey(includeFromJson: false, includeToJson: false)  BigInt? balanceMinor,  double openingBalance, @JsonKey(includeFromJson: false, includeToJson: false)  BigInt? openingBalanceMinor,  String currency, @JsonKey(includeFromJson: false, includeToJson: false)  int? currencyScale,  String type,  DateTime createdAt,  DateTime updatedAt,  String? color,  String? gradientId,  String? iconName,  String? iconStyle,  bool isDeleted,  bool isPrimary,  bool isHidden)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name, @JsonKey(includeFromJson: false, includeToJson: false)  BigInt? balanceMinor, @JsonKey(includeFromJson: false, includeToJson: false)  BigInt? openingBalanceMinor,  String currency, @JsonKey(includeFromJson: false, includeToJson: false)  int? currencyScale,  String type,  DateTime createdAt,  DateTime updatedAt,  String? color,  String? gradientId,  String? iconName,  String? iconStyle,  bool isDeleted,  bool isPrimary,  bool isHidden)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _AccountEntity() when $default != null:
-return $default(_that.id,_that.name,_that.balance,_that.balanceMinor,_that.openingBalance,_that.openingBalanceMinor,_that.currency,_that.currencyScale,_that.type,_that.createdAt,_that.updatedAt,_that.color,_that.gradientId,_that.iconName,_that.iconStyle,_that.isDeleted,_that.isPrimary,_that.isHidden);case _:
+return $default(_that.id,_that.name,_that.balanceMinor,_that.openingBalanceMinor,_that.currency,_that.currencyScale,_that.type,_that.createdAt,_that.updatedAt,_that.color,_that.gradientId,_that.iconName,_that.iconStyle,_that.isDeleted,_that.isPrimary,_that.isHidden);case _:
   return orElse();
 
 }
@@ -191,10 +189,10 @@ return $default(_that.id,_that.name,_that.balance,_that.balanceMinor,_that.openi
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  double balance, @JsonKey(includeFromJson: false, includeToJson: false)  BigInt? balanceMinor,  double openingBalance, @JsonKey(includeFromJson: false, includeToJson: false)  BigInt? openingBalanceMinor,  String currency, @JsonKey(includeFromJson: false, includeToJson: false)  int? currencyScale,  String type,  DateTime createdAt,  DateTime updatedAt,  String? color,  String? gradientId,  String? iconName,  String? iconStyle,  bool isDeleted,  bool isPrimary,  bool isHidden)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name, @JsonKey(includeFromJson: false, includeToJson: false)  BigInt? balanceMinor, @JsonKey(includeFromJson: false, includeToJson: false)  BigInt? openingBalanceMinor,  String currency, @JsonKey(includeFromJson: false, includeToJson: false)  int? currencyScale,  String type,  DateTime createdAt,  DateTime updatedAt,  String? color,  String? gradientId,  String? iconName,  String? iconStyle,  bool isDeleted,  bool isPrimary,  bool isHidden)  $default,) {final _that = this;
 switch (_that) {
 case _AccountEntity():
-return $default(_that.id,_that.name,_that.balance,_that.balanceMinor,_that.openingBalance,_that.openingBalanceMinor,_that.currency,_that.currencyScale,_that.type,_that.createdAt,_that.updatedAt,_that.color,_that.gradientId,_that.iconName,_that.iconStyle,_that.isDeleted,_that.isPrimary,_that.isHidden);case _:
+return $default(_that.id,_that.name,_that.balanceMinor,_that.openingBalanceMinor,_that.currency,_that.currencyScale,_that.type,_that.createdAt,_that.updatedAt,_that.color,_that.gradientId,_that.iconName,_that.iconStyle,_that.isDeleted,_that.isPrimary,_that.isHidden);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -211,10 +209,10 @@ return $default(_that.id,_that.name,_that.balance,_that.balanceMinor,_that.openi
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  double balance, @JsonKey(includeFromJson: false, includeToJson: false)  BigInt? balanceMinor,  double openingBalance, @JsonKey(includeFromJson: false, includeToJson: false)  BigInt? openingBalanceMinor,  String currency, @JsonKey(includeFromJson: false, includeToJson: false)  int? currencyScale,  String type,  DateTime createdAt,  DateTime updatedAt,  String? color,  String? gradientId,  String? iconName,  String? iconStyle,  bool isDeleted,  bool isPrimary,  bool isHidden)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name, @JsonKey(includeFromJson: false, includeToJson: false)  BigInt? balanceMinor, @JsonKey(includeFromJson: false, includeToJson: false)  BigInt? openingBalanceMinor,  String currency, @JsonKey(includeFromJson: false, includeToJson: false)  int? currencyScale,  String type,  DateTime createdAt,  DateTime updatedAt,  String? color,  String? gradientId,  String? iconName,  String? iconStyle,  bool isDeleted,  bool isPrimary,  bool isHidden)?  $default,) {final _that = this;
 switch (_that) {
 case _AccountEntity() when $default != null:
-return $default(_that.id,_that.name,_that.balance,_that.balanceMinor,_that.openingBalance,_that.openingBalanceMinor,_that.currency,_that.currencyScale,_that.type,_that.createdAt,_that.updatedAt,_that.color,_that.gradientId,_that.iconName,_that.iconStyle,_that.isDeleted,_that.isPrimary,_that.isHidden);case _:
+return $default(_that.id,_that.name,_that.balanceMinor,_that.openingBalanceMinor,_that.currency,_that.currencyScale,_that.type,_that.createdAt,_that.updatedAt,_that.color,_that.gradientId,_that.iconName,_that.iconStyle,_that.isDeleted,_that.isPrimary,_that.isHidden);case _:
   return null;
 
 }
@@ -226,14 +224,12 @@ return $default(_that.id,_that.name,_that.balance,_that.balanceMinor,_that.openi
 @JsonSerializable()
 
 class _AccountEntity extends AccountEntity {
-  const _AccountEntity({required this.id, required this.name, required this.balance, @JsonKey(includeFromJson: false, includeToJson: false) this.balanceMinor, this.openingBalance = 0, @JsonKey(includeFromJson: false, includeToJson: false) this.openingBalanceMinor, required this.currency, @JsonKey(includeFromJson: false, includeToJson: false) this.currencyScale, required this.type, required this.createdAt, required this.updatedAt, this.color, this.gradientId, this.iconName, this.iconStyle, this.isDeleted = false, this.isPrimary = false, this.isHidden = false}): super._();
+  const _AccountEntity({required this.id, required this.name, @JsonKey(includeFromJson: false, includeToJson: false) this.balanceMinor, @JsonKey(includeFromJson: false, includeToJson: false) this.openingBalanceMinor, required this.currency, @JsonKey(includeFromJson: false, includeToJson: false) this.currencyScale, required this.type, required this.createdAt, required this.updatedAt, this.color, this.gradientId, this.iconName, this.iconStyle, this.isDeleted = false, this.isPrimary = false, this.isHidden = false}): super._();
   factory _AccountEntity.fromJson(Map<String, dynamic> json) => _$AccountEntityFromJson(json);
 
 @override final  String id;
 @override final  String name;
-@override final  double balance;
 @override@JsonKey(includeFromJson: false, includeToJson: false) final  BigInt? balanceMinor;
-@override@JsonKey() final  double openingBalance;
 @override@JsonKey(includeFromJson: false, includeToJson: false) final  BigInt? openingBalanceMinor;
 @override final  String currency;
 @override@JsonKey(includeFromJson: false, includeToJson: false) final  int? currencyScale;
@@ -261,16 +257,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AccountEntity&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.balance, balance) || other.balance == balance)&&(identical(other.balanceMinor, balanceMinor) || other.balanceMinor == balanceMinor)&&(identical(other.openingBalance, openingBalance) || other.openingBalance == openingBalance)&&(identical(other.openingBalanceMinor, openingBalanceMinor) || other.openingBalanceMinor == openingBalanceMinor)&&(identical(other.currency, currency) || other.currency == currency)&&(identical(other.currencyScale, currencyScale) || other.currencyScale == currencyScale)&&(identical(other.type, type) || other.type == type)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.color, color) || other.color == color)&&(identical(other.gradientId, gradientId) || other.gradientId == gradientId)&&(identical(other.iconName, iconName) || other.iconName == iconName)&&(identical(other.iconStyle, iconStyle) || other.iconStyle == iconStyle)&&(identical(other.isDeleted, isDeleted) || other.isDeleted == isDeleted)&&(identical(other.isPrimary, isPrimary) || other.isPrimary == isPrimary)&&(identical(other.isHidden, isHidden) || other.isHidden == isHidden));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AccountEntity&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.balanceMinor, balanceMinor) || other.balanceMinor == balanceMinor)&&(identical(other.openingBalanceMinor, openingBalanceMinor) || other.openingBalanceMinor == openingBalanceMinor)&&(identical(other.currency, currency) || other.currency == currency)&&(identical(other.currencyScale, currencyScale) || other.currencyScale == currencyScale)&&(identical(other.type, type) || other.type == type)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.color, color) || other.color == color)&&(identical(other.gradientId, gradientId) || other.gradientId == gradientId)&&(identical(other.iconName, iconName) || other.iconName == iconName)&&(identical(other.iconStyle, iconStyle) || other.iconStyle == iconStyle)&&(identical(other.isDeleted, isDeleted) || other.isDeleted == isDeleted)&&(identical(other.isPrimary, isPrimary) || other.isPrimary == isPrimary)&&(identical(other.isHidden, isHidden) || other.isHidden == isHidden));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,balance,balanceMinor,openingBalance,openingBalanceMinor,currency,currencyScale,type,createdAt,updatedAt,color,gradientId,iconName,iconStyle,isDeleted,isPrimary,isHidden);
+int get hashCode => Object.hash(runtimeType,id,name,balanceMinor,openingBalanceMinor,currency,currencyScale,type,createdAt,updatedAt,color,gradientId,iconName,iconStyle,isDeleted,isPrimary,isHidden);
 
 @override
 String toString() {
-  return 'AccountEntity(id: $id, name: $name, balance: $balance, balanceMinor: $balanceMinor, openingBalance: $openingBalance, openingBalanceMinor: $openingBalanceMinor, currency: $currency, currencyScale: $currencyScale, type: $type, createdAt: $createdAt, updatedAt: $updatedAt, color: $color, gradientId: $gradientId, iconName: $iconName, iconStyle: $iconStyle, isDeleted: $isDeleted, isPrimary: $isPrimary, isHidden: $isHidden)';
+  return 'AccountEntity(id: $id, name: $name, balanceMinor: $balanceMinor, openingBalanceMinor: $openingBalanceMinor, currency: $currency, currencyScale: $currencyScale, type: $type, createdAt: $createdAt, updatedAt: $updatedAt, color: $color, gradientId: $gradientId, iconName: $iconName, iconStyle: $iconStyle, isDeleted: $isDeleted, isPrimary: $isPrimary, isHidden: $isHidden)';
 }
 
 
@@ -281,7 +277,7 @@ abstract mixin class _$AccountEntityCopyWith<$Res> implements $AccountEntityCopy
   factory _$AccountEntityCopyWith(_AccountEntity value, $Res Function(_AccountEntity) _then) = __$AccountEntityCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String name, double balance,@JsonKey(includeFromJson: false, includeToJson: false) BigInt? balanceMinor, double openingBalance,@JsonKey(includeFromJson: false, includeToJson: false) BigInt? openingBalanceMinor, String currency,@JsonKey(includeFromJson: false, includeToJson: false) int? currencyScale, String type, DateTime createdAt, DateTime updatedAt, String? color, String? gradientId, String? iconName, String? iconStyle, bool isDeleted, bool isPrimary, bool isHidden
+ String id, String name,@JsonKey(includeFromJson: false, includeToJson: false) BigInt? balanceMinor,@JsonKey(includeFromJson: false, includeToJson: false) BigInt? openingBalanceMinor, String currency,@JsonKey(includeFromJson: false, includeToJson: false) int? currencyScale, String type, DateTime createdAt, DateTime updatedAt, String? color, String? gradientId, String? iconName, String? iconStyle, bool isDeleted, bool isPrimary, bool isHidden
 });
 
 
@@ -298,14 +294,12 @@ class __$AccountEntityCopyWithImpl<$Res>
 
 /// Create a copy of AccountEntity
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? balance = null,Object? balanceMinor = freezed,Object? openingBalance = null,Object? openingBalanceMinor = freezed,Object? currency = null,Object? currencyScale = freezed,Object? type = null,Object? createdAt = null,Object? updatedAt = null,Object? color = freezed,Object? gradientId = freezed,Object? iconName = freezed,Object? iconStyle = freezed,Object? isDeleted = null,Object? isPrimary = null,Object? isHidden = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? balanceMinor = freezed,Object? openingBalanceMinor = freezed,Object? currency = null,Object? currencyScale = freezed,Object? type = null,Object? createdAt = null,Object? updatedAt = null,Object? color = freezed,Object? gradientId = freezed,Object? iconName = freezed,Object? iconStyle = freezed,Object? isDeleted = null,Object? isPrimary = null,Object? isHidden = null,}) {
   return _then(_AccountEntity(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
-as String,balance: null == balance ? _self.balance : balance // ignore: cast_nullable_to_non_nullable
-as double,balanceMinor: freezed == balanceMinor ? _self.balanceMinor : balanceMinor // ignore: cast_nullable_to_non_nullable
-as BigInt?,openingBalance: null == openingBalance ? _self.openingBalance : openingBalance // ignore: cast_nullable_to_non_nullable
-as double,openingBalanceMinor: freezed == openingBalanceMinor ? _self.openingBalanceMinor : openingBalanceMinor // ignore: cast_nullable_to_non_nullable
+as String,balanceMinor: freezed == balanceMinor ? _self.balanceMinor : balanceMinor // ignore: cast_nullable_to_non_nullable
+as BigInt?,openingBalanceMinor: freezed == openingBalanceMinor ? _self.openingBalanceMinor : openingBalanceMinor // ignore: cast_nullable_to_non_nullable
 as BigInt?,currency: null == currency ? _self.currency : currency // ignore: cast_nullable_to_non_nullable
 as String,currencyScale: freezed == currencyScale ? _self.currencyScale : currencyScale // ignore: cast_nullable_to_non_nullable
 as int?,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable

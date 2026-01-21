@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$HomeAccountMonthlySummary {
 
- double get income; double get expense;
+ MoneyAmount get income; MoneyAmount get expense;
 /// Create a copy of HomeAccountMonthlySummary
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -45,7 +45,7 @@ abstract mixin class $HomeAccountMonthlySummaryCopyWith<$Res>  {
   factory $HomeAccountMonthlySummaryCopyWith(HomeAccountMonthlySummary value, $Res Function(HomeAccountMonthlySummary) _then) = _$HomeAccountMonthlySummaryCopyWithImpl;
 @useResult
 $Res call({
- double income, double expense
+ MoneyAmount income, MoneyAmount expense
 });
 
 
@@ -65,8 +65,8 @@ class _$HomeAccountMonthlySummaryCopyWithImpl<$Res>
 @pragma('vm:prefer-inline') @override $Res call({Object? income = null,Object? expense = null,}) {
   return _then(_self.copyWith(
 income: null == income ? _self.income : income // ignore: cast_nullable_to_non_nullable
-as double,expense: null == expense ? _self.expense : expense // ignore: cast_nullable_to_non_nullable
-as double,
+as MoneyAmount,expense: null == expense ? _self.expense : expense // ignore: cast_nullable_to_non_nullable
+as MoneyAmount,
   ));
 }
 
@@ -151,7 +151,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( double income,  double expense)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( MoneyAmount income,  MoneyAmount expense)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _HomeAccountMonthlySummary() when $default != null:
 return $default(_that.income,_that.expense);case _:
@@ -172,7 +172,7 @@ return $default(_that.income,_that.expense);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( double income,  double expense)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( MoneyAmount income,  MoneyAmount expense)  $default,) {final _that = this;
 switch (_that) {
 case _HomeAccountMonthlySummary():
 return $default(_that.income,_that.expense);case _:
@@ -192,7 +192,7 @@ return $default(_that.income,_that.expense);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( double income,  double expense)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( MoneyAmount income,  MoneyAmount expense)?  $default,) {final _that = this;
 switch (_that) {
 case _HomeAccountMonthlySummary() when $default != null:
 return $default(_that.income,_that.expense);case _:
@@ -210,8 +210,8 @@ class _HomeAccountMonthlySummary extends HomeAccountMonthlySummary {
   const _HomeAccountMonthlySummary({required this.income, required this.expense}): super._();
   
 
-@override final  double income;
-@override final  double expense;
+@override final  MoneyAmount income;
+@override final  MoneyAmount expense;
 
 /// Create a copy of HomeAccountMonthlySummary
 /// with the given fields replaced by the non-null parameter values.
@@ -243,7 +243,7 @@ abstract mixin class _$HomeAccountMonthlySummaryCopyWith<$Res> implements $HomeA
   factory _$HomeAccountMonthlySummaryCopyWith(_HomeAccountMonthlySummary value, $Res Function(_HomeAccountMonthlySummary) _then) = __$HomeAccountMonthlySummaryCopyWithImpl;
 @override @useResult
 $Res call({
- double income, double expense
+ MoneyAmount income, MoneyAmount expense
 });
 
 
@@ -263,8 +263,8 @@ class __$HomeAccountMonthlySummaryCopyWithImpl<$Res>
 @override @pragma('vm:prefer-inline') $Res call({Object? income = null,Object? expense = null,}) {
   return _then(_HomeAccountMonthlySummary(
 income: null == income ? _self.income : income // ignore: cast_nullable_to_non_nullable
-as double,expense: null == expense ? _self.expense : expense // ignore: cast_nullable_to_non_nullable
-as double,
+as MoneyAmount,expense: null == expense ? _self.expense : expense // ignore: cast_nullable_to_non_nullable
+as MoneyAmount,
   ));
 }
 

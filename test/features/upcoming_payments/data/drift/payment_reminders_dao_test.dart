@@ -22,7 +22,8 @@ void main() {
 
   PaymentReminder buildReminder({
     required String id,
-    double amount = 50,
+    BigInt? amountMinor,
+    int amountScale = 2,
     int whenAtMs = 1700000000000,
     String? note,
     bool isDone = false,
@@ -30,10 +31,12 @@ void main() {
     int createdAtMs = 1700000000000,
     int updatedAtMs = 1700000000000,
   }) {
+    final BigInt resolvedMinor = amountMinor ?? BigInt.from(5000);
     return PaymentReminder(
       id: id,
       title: 'Reminder $id',
-      amount: amount,
+      amountMinor: resolvedMinor,
+      amountScale: amountScale,
       whenAtMs: whenAtMs,
       note: note,
       isDone: isDone,
@@ -110,7 +113,7 @@ void main() {
   test('валидатор отклоняет некорректные значения', () async {
     final PaymentReminder invalidAmount = buildReminder(
       id: 'bad-amount',
-      amount: 0,
+      amountMinor: BigInt.zero,
     );
     expect(() => dao.upsert(invalidAmount), throwsArgumentError);
 

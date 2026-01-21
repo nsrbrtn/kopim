@@ -10,7 +10,6 @@ _CreditCardEntity _$CreditCardEntityFromJson(Map<String, dynamic> json) =>
     _CreditCardEntity(
       id: json['id'] as String,
       accountId: json['accountId'] as String,
-      creditLimit: (json['creditLimit'] as num).toDouble(),
       statementDay: (json['statementDay'] as num).toInt(),
       paymentDueDays: (json['paymentDueDays'] as num).toInt(),
       interestRateAnnual: (json['interestRateAnnual'] as num).toDouble(),
@@ -23,7 +22,6 @@ Map<String, dynamic> _$CreditCardEntityToJson(_CreditCardEntity instance) =>
     <String, dynamic>{
       'id': instance.id,
       'accountId': instance.accountId,
-      'creditLimit': instance.creditLimit,
       'statementDay': instance.statementDay,
       'paymentDueDays': instance.paymentDueDays,
       'interestRateAnnual': instance.interestRateAnnual,

@@ -159,9 +159,9 @@ AsyncValue<List<BudgetCategorySpend>> budgetCategorySpend(Ref ref) {
           !scopedCategoryIds.contains(categoryId)) {
         continue;
       }
-    spentByCategory[categoryId] =
-        (spentByCategory[categoryId] ?? 0) +
-        transaction.amountValue.abs().toDouble();
+      spentByCategory[categoryId] =
+          (spentByCategory[categoryId] ?? 0) +
+          transaction.amountValue.abs().toDouble();
     }
 
     if (spentByCategory.isEmpty) {
@@ -281,13 +281,13 @@ double? resolveBudgetCategoryLimit(Budget budget, String categoryId) {
     return allocations.fold<double>(
       0,
       (double previous, BudgetCategoryAllocation allocation) =>
-          previous + allocation.limit,
+          previous + allocation.limitValue.toDouble(),
     );
   }
   if (budget.scope == BudgetScope.byCategory &&
       budget.categories.length == 1 &&
       budget.categories.first == categoryId) {
-    return budget.amount;
+    return budget.amountValue.toDouble();
   }
   return null;
 }

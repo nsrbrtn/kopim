@@ -10,11 +10,7 @@ class Money {
     required String currency,
     required int scale,
   }) {
-    return Money(
-      minor: BigInt.from(minor),
-      currency: currency,
-      scale: scale,
-    );
+    return Money(minor: BigInt.from(minor), currency: currency, scale: scale);
   }
 
   factory Money.fromDecimalString(
@@ -40,10 +36,10 @@ class Money {
     }
     final String paddedFraction = fraction.padRight(scale, '0');
     final bool hasOverflow = paddedFraction.length > scale;
-    final String keptFraction =
-        hasOverflow ? paddedFraction.substring(0, scale) : paddedFraction;
-    final String remainder =
-        hasOverflow ? paddedFraction.substring(scale) : '';
+    final String keptFraction = hasOverflow
+        ? paddedFraction.substring(0, scale)
+        : paddedFraction;
+    final String remainder = hasOverflow ? paddedFraction.substring(scale) : '';
     final bool roundUp = _shouldRoundUp(
       remainder: remainder,
       whole: whole,
@@ -54,8 +50,9 @@ class Money {
     final BigInt baseMinorValue = BigInt.parse(
       minorString.isEmpty ? '0' : minorString,
     );
-    final BigInt minorValue =
-        roundUp ? baseMinorValue + BigInt.one : baseMinorValue;
+    final BigInt minorValue = roundUp
+        ? baseMinorValue + BigInt.one
+        : baseMinorValue;
     return Money(
       minor: isNegative ? -minorValue : minorValue,
       currency: currency,

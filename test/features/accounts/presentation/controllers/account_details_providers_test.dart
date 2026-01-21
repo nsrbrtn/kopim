@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/accounts/presentation/controllers/account_details_providers.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
@@ -14,7 +15,7 @@ void main() {
   TransactionEntity transaction(
     String id, {
     required TransactionType type,
-    required double amount,
+    required int amount,
     required DateTime date,
     String? categoryId,
   }) {
@@ -22,7 +23,8 @@ void main() {
       id: id,
       accountId: accountId,
       categoryId: categoryId,
-      amount: amount,
+      amountMinor: BigInt.from(amount * 100),
+      amountScale: 2,
       date: date,
       note: null,
       type: type.storageValue,
@@ -139,9 +141,15 @@ void main() {
 
       final AccountTransactionSummary summary = await completer.future;
 
-      expect(summary.totalIncome, 200);
-      expect(summary.totalExpense, 80);
-      expect(summary.net, 120);
+      expect(
+        summary.totalIncome,
+        MoneyAmount(minor: BigInt.from(20000), scale: 2),
+      );
+      expect(
+        summary.totalExpense,
+        MoneyAmount(minor: BigInt.from(8000), scale: 2),
+      );
+      expect(summary.net, MoneyAmount(minor: BigInt.from(12000), scale: 2));
     });
   });
 }

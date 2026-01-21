@@ -1,5 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/upcoming_payments/domain/entities/upcoming_payment.dart';
 import 'package:kopim/features/upcoming_payments/domain/models/value_update.dart';
 import 'package:kopim/features/upcoming_payments/domain/repositories/upcoming_payments_repository.dart';
@@ -16,7 +17,7 @@ abstract class UpdateUpcomingPaymentInput with _$UpdateUpcomingPaymentInput {
     String? title,
     String? accountId,
     String? categoryId,
-    double? amount,
+    MoneyAmount? amount,
     int? dayOfMonth,
     int? notifyDaysBefore,
     String? notifyTimeHhmm,
@@ -51,7 +52,7 @@ class UpdateUpcomingPaymentUC {
     final String title = input.title ?? current.title;
     final String accountId = input.accountId ?? current.accountId;
     final String categoryId = input.categoryId ?? current.categoryId;
-    final double amount = input.amount ?? current.amount;
+    final MoneyAmount amount = input.amount ?? current.amountValue;
     final int dayOfMonth = input.dayOfMonth ?? current.dayOfMonth;
     final int notifyDaysBefore =
         input.notifyDaysBefore ?? current.notifyDaysBefore;
@@ -88,7 +89,8 @@ class UpdateUpcomingPaymentUC {
       title: title,
       accountId: accountId,
       categoryId: categoryId,
-      amount: amount,
+      amountMinor: amount.minor,
+      amountScale: amount.scale,
       dayOfMonth: dayOfMonth,
       notifyDaysBefore: notifyDaysBefore,
       notifyTimeHhmm: notifyTimeHhmm,

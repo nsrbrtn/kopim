@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kopim/core/di/injectors.dart';
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/accounts/domain/repositories/account_repository.dart';
 import 'package:kopim/features/accounts/domain/use_cases/watch_accounts_use_case.dart';
@@ -171,28 +172,32 @@ void main() {
         final TransactionEntity incomeTransaction = _transaction('income')
             .copyWith(
               accountId: 'account-1',
-              amount: 120,
+              amountMinor: BigInt.from(12000),
+              amountScale: 2,
               type: TransactionType.income.storageValue,
               date: now,
             );
         final TransactionEntity expenseTransaction = _transaction('expense')
             .copyWith(
               accountId: 'account-1',
-              amount: 45,
+              amountMinor: BigInt.from(4500),
+              amountScale: 2,
               type: TransactionType.expense.storageValue,
               date: now.subtract(const Duration(hours: 1)),
             );
         final TransactionEntity otherAccountTransaction = _transaction('other')
             .copyWith(
               accountId: 'account-2',
-              amount: 75,
+              amountMinor: BigInt.from(7500),
+              amountScale: 2,
               type: TransactionType.expense.storageValue,
               date: now,
             );
         final TransactionEntity previousMonthTransaction = _transaction('past')
             .copyWith(
               accountId: 'account-1',
-              amount: 999,
+              amountMinor: BigInt.from(99900),
+              amountScale: 2,
               type: TransactionType.income.storageValue,
               date: DateTime(now.year, now.month - 1, 15),
             );
@@ -225,11 +230,17 @@ void main() {
             await completer.future;
         expect(
           summaries['account-1'],
-          const HomeAccountMonthlySummary(income: 120, expense: 45),
+          HomeAccountMonthlySummary(
+            income: MoneyAmount(minor: BigInt.from(12000), scale: 2),
+            expense: MoneyAmount(minor: BigInt.from(4500), scale: 2),
+          ),
         );
         expect(
           summaries['account-2'],
-          const HomeAccountMonthlySummary(income: 0, expense: 75),
+          HomeAccountMonthlySummary(
+            income: MoneyAmount(minor: BigInt.zero, scale: 2),
+            expense: MoneyAmount(minor: BigInt.from(7500), scale: 2),
+          ),
         );
         expect(summaries.containsKey('account-3'), isFalse);
       },
@@ -242,8 +253,9 @@ AccountEntity _account(String id) {
   return AccountEntity(
     id: id,
     name: 'Account $id',
-    balance: 0,
+    balanceMinor: BigInt.zero,
     currency: 'RUB',
+    currencyScale: 2,
     type: 'cash',
     createdAt: now,
     updatedAt: now,
@@ -256,7 +268,8 @@ TransactionEntity _transaction(String id) {
     id: id,
     accountId: 'acc',
     categoryId: 'cat',
-    amount: 10,
+    amountMinor: BigInt.from(1000),
+    amountScale: 2,
     date: now,
     note: null,
     type: 'expense',
@@ -305,35 +318,47 @@ class _InMemoryTransactionRepository implements TransactionRepository {
     required DateTime end,
   }) {
     return _stream.map((List<TransactionEntity> items) {
-      final Map<String, ({double income, double expense})> acc =
-          <String, ({double income, double expense})>{};
+      final Map<String, ({MoneyAccumulator income, MoneyAccumulator expense})>
+      acc = <String, ({MoneyAccumulator income, MoneyAccumulator expense})>{};
       for (final TransactionEntity transaction in items) {
         if (transaction.date.isBefore(start) ||
             !transaction.date.isBefore(end)) {
           continue;
         }
-        final ({double income, double expense}) current =
-            acc[transaction.accountId] ?? (income: 0, expense: 0);
+        final ({MoneyAccumulator income, MoneyAccumulator expense}) current =
+            acc[transaction.accountId] ??
+            (income: MoneyAccumulator(), expense: MoneyAccumulator());
         if (transaction.type == TransactionType.income.storageValue) {
           acc[transaction.accountId] = (
-            income: current.income + transaction.amount.abs(),
+            income: current.income..add(transaction.amountValue.abs()),
             expense: current.expense,
           );
         } else if (transaction.type == TransactionType.expense.storageValue) {
           acc[transaction.accountId] = (
             income: current.income,
-            expense: current.expense + transaction.amount.abs(),
+            expense: current.expense..add(transaction.amountValue.abs()),
           );
         }
       }
       return acc.entries
           .map(
-            (MapEntry<String, ({double income, double expense})> entry) =>
-                AccountMonthlyTotals(
-                  accountId: entry.key,
-                  income: entry.value.income,
-                  expense: entry.value.expense,
-                ),
+            (
+              MapEntry<
+                String,
+                ({MoneyAccumulator income, MoneyAccumulator expense})
+              >
+              entry,
+            ) => AccountMonthlyTotals(
+              accountId: entry.key,
+              income: MoneyAmount(
+                minor: entry.value.income.minor,
+                scale: entry.value.income.scale,
+              ),
+              expense: MoneyAmount(
+                minor: entry.value.expense.minor,
+                scale: entry.value.expense.scale,
+              ),
+            ),
           )
           .toList(growable: false);
     });

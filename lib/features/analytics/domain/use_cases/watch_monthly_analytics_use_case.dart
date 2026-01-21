@@ -51,10 +51,11 @@ class WatchMonthlyAnalyticsUseCase {
     required int topCategoriesLimit,
   }) {
     if (transactions.isEmpty) {
+      const MoneyAmount zero = MoneyAmount(minor: BigInt.zero, scale: 2);
       return const AnalyticsOverview(
-        totalIncome: 0,
-        totalExpense: 0,
-        netBalance: 0,
+        totalIncome: zero,
+        totalExpense: zero,
+        netBalance: zero,
         topExpenseCategories: <AnalyticsCategoryBreakdown>[],
         topIncomeCategories: <AnalyticsCategoryBreakdown>[],
       );
@@ -120,15 +121,9 @@ class WatchMonthlyAnalyticsUseCase {
     }
 
     final Map<String, MoneyAccumulator> aggregatedExpenses =
-        _aggregateByCategory(
-      rawExpenseByCategory,
-      hierarchy,
-    );
+        _aggregateByCategory(rawExpenseByCategory, hierarchy);
     final Map<String, MoneyAccumulator> aggregatedIncomes =
-        _aggregateByCategory(
-      rawIncomeByCategory,
-      hierarchy,
-    );
+        _aggregateByCategory(rawIncomeByCategory, hierarchy);
 
     final List<AnalyticsCategoryBreakdown> expenseBreakdowns =
         _buildRootBreakdowns(
@@ -155,9 +150,9 @@ class WatchMonthlyAnalyticsUseCase {
     );
 
     return AnalyticsOverview(
-      totalIncome: totalIncome.toDouble(),
-      totalExpense: totalExpense.toDouble(),
-      netBalance: totalIncome.toDouble() - totalExpense.toDouble(),
+      totalIncome: _toMoneyAmount(totalIncome),
+      totalExpense: _toMoneyAmount(totalExpense),
+      netBalance: _calculateNetBalance(totalIncome, totalExpense),
       topExpenseCategories: List<AnalyticsCategoryBreakdown>.unmodifiable(
         topExpenses,
       ),
@@ -247,8 +242,8 @@ class WatchMonthlyAnalyticsUseCase {
         <AnalyticsCategoryBreakdown>[];
 
     for (final String rootId in rootIds) {
-      final double amount = _toDouble(aggregatedByCategory[rootId]);
-      if (amount <= 0) {
+      final MoneyAmount amount = _toMoneyAmount(aggregatedByCategory[rootId]);
+      if (amount.minor <= BigInt.zero) {
         continue;
       }
       result.add(
@@ -261,8 +256,8 @@ class WatchMonthlyAnalyticsUseCase {
       );
     }
 
-    final double uncategorizedAmount = _toDouble(rawByCategory[null]);
-    if (uncategorizedAmount > 0) {
+    final MoneyAmount uncategorizedAmount = _toMoneyAmount(rawByCategory[null]);
+    if (uncategorizedAmount.minor > BigInt.zero) {
       result.add(
         AnalyticsCategoryBreakdown(
           categoryId: null,
@@ -280,13 +275,15 @@ class WatchMonthlyAnalyticsUseCase {
     required Map<String?, MoneyAccumulator> rawByCategory,
     required Map<String, MoneyAccumulator> aggregatedByCategory,
   }) {
-    final double totalAmount = _toDouble(aggregatedByCategory[categoryId]);
+    final MoneyAmount totalAmount = _toMoneyAmount(
+      aggregatedByCategory[categoryId],
+    );
     final List<AnalyticsCategoryBreakdown> children =
         <AnalyticsCategoryBreakdown>[];
 
     final List<String> childIds = hierarchy.childrenOf(categoryId);
-    final double directAmount = _toDouble(rawByCategory[categoryId]);
-    if (childIds.isNotEmpty && directAmount > 0) {
+    final MoneyAmount directAmount = _toMoneyAmount(rawByCategory[categoryId]);
+    if (childIds.isNotEmpty && directAmount.minor > BigInt.zero) {
       children.add(
         AnalyticsCategoryBreakdown(
           categoryId: '$analyticsDirectCategoryKeyPrefix$categoryId',
@@ -296,8 +293,10 @@ class WatchMonthlyAnalyticsUseCase {
     }
 
     for (final String childId in childIds) {
-      final double childAmount = _toDouble(aggregatedByCategory[childId]);
-      if (childAmount <= 0) {
+      final MoneyAmount childAmount = _toMoneyAmount(
+        aggregatedByCategory[childId],
+      );
+      if (childAmount.minor <= BigInt.zero) {
         continue;
       }
       children.add(
@@ -327,7 +326,7 @@ class WatchMonthlyAnalyticsUseCase {
     final List<AnalyticsCategoryBreakdown> sorted =
         breakdowns.toList(growable: false)
           ..sort((AnalyticsCategoryBreakdown a, AnalyticsCategoryBreakdown b) {
-            return b.amount.compareTo(a.amount);
+            return b.amount.toDouble().compareTo(a.amount.toDouble());
           });
 
     final int limit = topCategoriesLimit <= 0
@@ -342,15 +341,14 @@ class WatchMonthlyAnalyticsUseCase {
       final List<AnalyticsCategoryBreakdown> remainder = sorted
           .skip(limit)
           .toList(growable: false);
-      final double remainderAmount = remainder.fold<double>(
-        0,
-        (double previous, AnalyticsCategoryBreakdown breakdown) =>
-            previous + breakdown.amount,
-      );
+      final MoneyAccumulator remainderAmount = MoneyAccumulator();
+      for (final AnalyticsCategoryBreakdown breakdown in remainder) {
+        remainderAmount.add(breakdown.amount);
+      }
       top.add(
         AnalyticsCategoryBreakdown(
           categoryId: _othersCategoryKey,
-          amount: remainderAmount,
+          amount: _toMoneyAmount(remainderAmount),
           children: remainder,
         ),
       );
@@ -362,8 +360,32 @@ class WatchMonthlyAnalyticsUseCase {
     return transaction.amountValue.abs();
   }
 
-  double _toDouble(MoneyAccumulator? accumulator) {
-    return accumulator?.toDouble() ?? 0;
+  MoneyAmount _toMoneyAmount(MoneyAccumulator? accumulator) {
+    if (accumulator == null) {
+      return const MoneyAmount(minor: BigInt.zero, scale: 2);
+    }
+    return MoneyAmount(minor: accumulator.minor, scale: accumulator.scale);
+  }
+
+  MoneyAmount _calculateNetBalance(
+    MoneyAccumulator income,
+    MoneyAccumulator expense,
+  ) {
+    final MoneyAmount incomeAmount = _toMoneyAmount(income);
+    final MoneyAmount expenseAmount = _toMoneyAmount(expense);
+    final int targetScale = math.max(incomeAmount.scale, expenseAmount.scale);
+    final MoneyAmount normalizedIncome = rescaleMoneyAmount(
+      incomeAmount,
+      targetScale,
+    );
+    final MoneyAmount normalizedExpense = rescaleMoneyAmount(
+      expenseAmount,
+      targetScale,
+    );
+    return MoneyAmount(
+      minor: normalizedIncome.minor - normalizedExpense.minor,
+      scale: targetScale,
+    );
   }
 
   Stream<T> _combineLatest<A, B, T>(

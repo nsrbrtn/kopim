@@ -8,6 +8,8 @@ import 'package:timezone/timezone.dart' as tz;
 
 import 'package:kopim/core/config/app_config.dart';
 import 'package:kopim/core/di/injectors.dart';
+import 'package:kopim/core/money/money.dart';
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/core/services/logger_service.dart';
 import 'package:kopim/core/services/notifications_gateway.dart';
 import 'package:kopim/features/upcoming_payments/domain/entities/payment_reminder.dart';
@@ -377,7 +379,7 @@ class UpcomingNotificationsController
   }
 
   String _buildPaymentBody(UpcomingPayment payment) {
-    final String amount = payment.amount.toStringAsFixed(2);
+    final String amount = _formatAmount(payment.amountValue.abs());
     if (payment.note == null || payment.note!.isEmpty) {
       return 'Сумма к списанию: $amount';
     }
@@ -385,11 +387,20 @@ class UpcomingNotificationsController
   }
 
   String _buildReminderBody(PaymentReminder reminder) {
-    final String amount = reminder.amount.toStringAsFixed(2);
+    final String amount = _formatAmount(reminder.amountValue.abs());
     if (reminder.note == null || reminder.note!.isEmpty) {
       return 'Напоминание на сумму $amount';
     }
     return 'Напоминание на сумму $amount\n${reminder.note!}';
+  }
+
+  String _formatAmount(MoneyAmount amount) {
+    final Money money = Money(
+      minor: amount.minor,
+      currency: 'XXX',
+      scale: amount.scale,
+    );
+    return money.toDecimalString();
   }
 
   int _hashId(String value) => value.hashCode & 0x7fffffff;

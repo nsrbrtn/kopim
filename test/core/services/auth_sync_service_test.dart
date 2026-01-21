@@ -208,8 +208,6 @@ void main() {
         final AccountEntity account = AccountEntity(
           id: 'acc-1',
           name: 'Main',
-          balance: balance,
-          openingBalance: balance,
           balanceMinor: balanceAmount.minor,
           openingBalanceMinor: balanceAmount.minor,
           currency: 'RUB',
@@ -282,7 +280,8 @@ void main() {
           period: BudgetPeriod.monthly,
           startDate: DateTime.utc(2024, 1, 1, 0, 1),
           endDate: null,
-          amount: 500,
+          amountMinor: BigInt.from(50000),
+          amountScale: 2,
           scope: BudgetScope.all,
           categories: const <String>[],
           accounts: const <String>[],
@@ -307,7 +306,8 @@ void main() {
           period: BudgetPeriod.custom,
           startDate: DateTime.utc(2023, 12, 1, 0, 1),
           endDate: DateTime.utc(2023, 12, 31, 0, 1),
-          amount: 800,
+          amountMinor: BigInt.from(80000),
+          amountScale: 2,
           scope: BudgetScope.all,
           categories: const <String>[],
           accounts: const <String>[],
@@ -327,8 +327,9 @@ void main() {
           budgetId: remoteBudget.id,
           periodStart: DateTime.utc(2024, 3, 1, 0, 1),
           periodEnd: DateTime.utc(2024, 4, 1, 0, 1),
-          amount: remoteBudget.amount,
-          spent: 150,
+          amountMinor: remoteBudget.amountValue.minor,
+          amountScale: remoteBudget.amountValue.scale,
+          spentMinor: BigInt.from(15000),
           status: BudgetInstanceStatus.active,
           createdAt: DateTime.utc(2024, 3, 1),
           updatedAt: DateTime.utc(2024, 3, 5),
@@ -336,7 +337,7 @@ void main() {
 
         await budgetInstanceDao.upsert(
           remoteInstance.copyWith(
-            spent: 60,
+            spentMinor: BigInt.from(6000),
             updatedAt: DateTime.utc(2024, 3, 3),
           ),
         );
@@ -451,87 +452,81 @@ void main() {
       },
     );
 
-    test(
-      'пересчитывает баланс после LWW merge на основе транзакций',
-      () async {
-        final AuthSyncService service = buildService();
-        const String userId = 'user-2';
-        final DateTime createdAt = DateTime.utc(2024, 1, 1);
-        final DateTime updatedAt = DateTime.utc(2024, 1, 2);
-        const int scale = 2;
+    test('пересчитывает баланс после LWW merge на основе транзакций', () async {
+      final AuthSyncService service = buildService();
+      const String userId = 'user-2';
+      final DateTime createdAt = DateTime.utc(2024, 1, 1);
+      final DateTime updatedAt = DateTime.utc(2024, 1, 2);
+      const int scale = 2;
 
-        final AccountEntity localAccount = AccountEntity(
-          id: 'acc-merge',
-          name: 'Local',
-          balance: 0,
-          openingBalance: 0,
-          balanceMinor: BigInt.zero,
-          openingBalanceMinor: BigInt.zero,
-          currency: 'USD',
-          currencyScale: scale,
-          type: 'checking',
-          createdAt: createdAt,
-          updatedAt: createdAt,
-          isDeleted: false,
-        );
-        await accountDao.upsert(localAccount);
+      final AccountEntity localAccount = AccountEntity(
+        id: 'acc-merge',
+        name: 'Local',
+        balanceMinor: BigInt.zero,
+        openingBalanceMinor: BigInt.zero,
+        currency: 'USD',
+        currencyScale: scale,
+        type: 'checking',
+        createdAt: createdAt,
+        updatedAt: createdAt,
+        isDeleted: false,
+      );
+      await accountDao.upsert(localAccount);
 
-        final DateTime txDate = DateTime.utc(2024, 1, 3);
-        final TransactionEntity transaction = TransactionEntity(
-          id: 'tx-1',
-          accountId: localAccount.id,
-          amount: 100,
-          amountMinor: BigInt.from(10000),
-          amountScale: scale,
-          date: txDate,
-          type: TransactionType.income.storageValue,
-          createdAt: txDate,
-          updatedAt: txDate,
-        );
-        await transactionDao.upsert(transaction);
+      final DateTime txDate = DateTime.utc(2024, 1, 3);
+      final TransactionEntity transaction = TransactionEntity(
+        id: 'tx-1',
+        accountId: localAccount.id,
+        amountMinor: BigInt.from(10000),
+        amountScale: scale,
+        date: txDate,
+        type: TransactionType.income.storageValue,
+        createdAt: txDate,
+        updatedAt: txDate,
+      );
+      await transactionDao.upsert(transaction);
 
-        await firestore
-            .collection('users')
-            .doc(userId)
-            .collection('accounts')
-            .doc(localAccount.id)
-            .set(<String, dynamic>{
-              'id': localAccount.id,
-              'name': 'Remote',
-              'balance': 0,
-              'openingBalance': 0,
-              'balanceMinor': '0',
-              'openingBalanceMinor': '0',
-              'currency': 'USD',
-              'currencyScale': scale,
-              'type': 'checking',
-              'createdAt': Timestamp.fromDate(createdAt),
-              'updatedAt': Timestamp.fromDate(updatedAt),
-              'isDeleted': false,
-            });
+      await firestore
+          .collection('users')
+          .doc(userId)
+          .collection('accounts')
+          .doc(localAccount.id)
+          .set(<String, dynamic>{
+            'id': localAccount.id,
+            'name': 'Remote',
+            'balance': 0,
+            'openingBalance': 0,
+            'balanceMinor': '0',
+            'openingBalanceMinor': '0',
+            'currency': 'USD',
+            'currencyScale': scale,
+            'type': 'checking',
+            'createdAt': Timestamp.fromDate(createdAt),
+            'updatedAt': Timestamp.fromDate(updatedAt),
+            'isDeleted': false,
+          });
 
-        final AuthUser authUser = AuthUser(
-          uid: userId,
-          email: 'user2@kopim.app',
-          displayName: 'User2',
-          photoUrl: null,
-          isAnonymous: false,
-          emailVerified: true,
-          creationTime: createdAt,
-          lastSignInTime: updatedAt,
-        );
+      final AuthUser authUser = AuthUser(
+        uid: userId,
+        email: 'user2@kopim.app',
+        displayName: 'User2',
+        photoUrl: null,
+        isAnonymous: false,
+        emailVerified: true,
+        creationTime: createdAt,
+        lastSignInTime: updatedAt,
+      );
 
-        await service.synchronizeOnLogin(user: authUser, previousUser: null);
+      await service.synchronizeOnLogin(user: authUser, previousUser: null);
 
-        final List<AccountEntity> localAccounts = await accountDao
-            .getAllAccounts();
-        expect(localAccounts, hasLength(1));
-        final AccountEntity merged = localAccounts.single;
-        expect(merged.balance, closeTo(100, 1e-6));
-        expect(merged.balanceMinor, BigInt.from(10000));
-        expect(merged.openingBalanceMinor, BigInt.zero);
-      },
-    );
+      final List<AccountEntity> localAccounts = await accountDao
+          .getAllAccounts();
+      expect(localAccounts, hasLength(1));
+      final AccountEntity merged = localAccounts.single;
+      expect(merged.balance, closeTo(100, 1e-6));
+      expect(merged.balanceMinor, BigInt.from(10000));
+      expect(merged.openingBalanceMinor, BigInt.zero);
+    });
 
     test(
       'replays legacy category outbox payload with string icon descriptor',
@@ -669,8 +664,9 @@ void main() {
       final AccountEntity account = AccountEntity(
         id: 'acc-2',
         name: 'Savings',
-        balance: 200,
+        balanceMinor: BigInt.from(20000),
         currency: 'RUB',
+        currencyScale: 2,
         type: 'savings',
         createdAt: DateTime.utc(2024, 1, 1),
         updatedAt: DateTime.utc(2024, 1, 5),

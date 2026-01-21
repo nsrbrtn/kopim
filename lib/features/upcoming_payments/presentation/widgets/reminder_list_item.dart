@@ -34,7 +34,9 @@ class ReminderListItem extends StatelessWidget {
       symbol: '',
       decimalDigits: 2,
     );
-    final String amountText = amountFormat.format(reminder.amount).trim();
+    final String amountText = amountFormat
+        .format(reminder.amountValue.toDouble())
+        .trim();
 
     final String scheduleLabel =
         '${strings.upcomingPaymentsReminderDue(dateFormat.format(whenLocal))} · ${timeFormat.format(whenLocal)}';

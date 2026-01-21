@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:drift/drift.dart';
 import 'package:intl/intl.dart';
 import 'package:kopim/core/data/database.dart' as db;
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/ai/domain/entities/ai_financial_overview_entity.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
 
@@ -10,14 +11,14 @@ class MonthlyExpenseAggregate {
   MonthlyExpenseAggregate({required this.month, required this.totalExpense});
 
   final DateTime month;
-  final double totalExpense;
+  final MoneyAmount totalExpense;
 }
 
 class MonthlyIncomeAggregate {
   MonthlyIncomeAggregate({required this.month, required this.totalIncome});
 
   final DateTime month;
-  final double totalIncome;
+  final MoneyAmount totalIncome;
 }
 
 class CategoryExpenseAggregate {
@@ -30,7 +31,7 @@ class CategoryExpenseAggregate {
 
   final String? categoryId;
   final String displayName;
-  final double totalExpense;
+  final MoneyAmount totalExpense;
   final String? color;
 }
 
@@ -44,7 +45,7 @@ class CategoryIncomeAggregate {
 
   final String? categoryId;
   final String displayName;
-  final double totalIncome;
+  final MoneyAmount totalIncome;
   final String? color;
 }
 
@@ -64,8 +65,8 @@ class BudgetInstanceAggregate {
   final String title;
   final DateTime periodStart;
   final DateTime periodEnd;
-  final double allocated;
-  final double spent;
+  final MoneyAmount allocated;
+  final MoneyAmount spent;
   final List<String> accountIds;
   final List<String> categoryIds;
 }
@@ -79,61 +80,58 @@ class AiAnalyticsDao {
     AiDataFilter filter,
   ) async {
     final QueryResult rows = await _monthlyExpenseQuery(filter).get();
-    return rows.map(_mapMonthlyExpense).toList(growable: false);
+    return _aggregateMonthlyExpenses(rows);
   }
 
   Stream<List<MonthlyExpenseAggregate>> watchMonthlyExpenses(
     AiDataFilter filter,
   ) {
-    return _monthlyExpenseQuery(filter).watch().map(
-      (QueryResult rows) =>
-          rows.map(_mapMonthlyExpense).toList(growable: false),
-    );
+    return _monthlyExpenseQuery(
+      filter,
+    ).watch().map((QueryResult rows) => _aggregateMonthlyExpenses(rows));
   }
 
   Future<List<MonthlyIncomeAggregate>> getMonthlyIncome(
     AiDataFilter filter,
   ) async {
     final QueryResult rows = await _monthlyIncomeQuery(filter).get();
-    return rows.map(_mapMonthlyIncome).toList(growable: false);
+    return _aggregateMonthlyIncome(rows);
   }
 
   Stream<List<MonthlyIncomeAggregate>> watchMonthlyIncome(AiDataFilter filter) {
-    return _monthlyIncomeQuery(filter).watch().map(
-      (QueryResult rows) => rows.map(_mapMonthlyIncome).toList(growable: false),
-    );
+    return _monthlyIncomeQuery(
+      filter,
+    ).watch().map((QueryResult rows) => _aggregateMonthlyIncome(rows));
   }
 
   Future<List<CategoryExpenseAggregate>> getTopCategories(
     AiDataFilter filter,
   ) async {
     final QueryResult rows = await _topCategoriesQuery(filter).get();
-    return rows.map(_mapCategoryExpense).toList(growable: false);
+    return _aggregateCategoryExpenses(rows);
   }
 
   Stream<List<CategoryExpenseAggregate>> watchTopCategories(
     AiDataFilter filter,
   ) {
-    return _topCategoriesQuery(filter).watch().map(
-      (QueryResult rows) =>
-          rows.map(_mapCategoryExpense).toList(growable: false),
-    );
+    return _topCategoriesQuery(
+      filter,
+    ).watch().map((QueryResult rows) => _aggregateCategoryExpenses(rows));
   }
 
   Future<List<CategoryIncomeAggregate>> getTopIncomeCategories(
     AiDataFilter filter,
   ) async {
     final QueryResult rows = await _topIncomeCategoriesQuery(filter).get();
-    return rows.map(_mapCategoryIncome).toList(growable: false);
+    return _aggregateCategoryIncome(rows);
   }
 
   Stream<List<CategoryIncomeAggregate>> watchTopIncomeCategories(
     AiDataFilter filter,
   ) {
-    return _topIncomeCategoriesQuery(filter).watch().map(
-      (QueryResult rows) =>
-          rows.map(_mapCategoryIncome).toList(growable: false),
-    );
+    return _topIncomeCategoriesQuery(
+      filter,
+    ).watch().map((QueryResult rows) => _aggregateCategoryIncome(rows));
   }
 
   Future<List<BudgetInstanceAggregate>> getBudgetForecasts(
@@ -164,7 +162,7 @@ class AiAnalyticsDao {
     )..where((db.$BudgetsTable tbl) => tbl.isDeleted.equals(false))).watch();
   }
 
-  Future<double> getBudgetSpent({
+  Future<MoneyAmount> getBudgetSpent({
     required List<String> categoryIds,
     required List<String> accountIds,
     required DateTime start,
@@ -192,16 +190,23 @@ class AiAnalyticsDao {
     }
 
     final List<db.TransactionRow> rows = await query.get();
-    return rows.fold<double>(
-      0,
-      (double prev, db.TransactionRow row) => prev + row.amount.abs(),
-    );
+    final MoneyAccumulator accumulator = MoneyAccumulator();
+    for (final db.TransactionRow row in rows) {
+      accumulator.add(
+        MoneyAmount(
+          minor: BigInt.parse(row.amountMinor),
+          scale: row.amountScale,
+        ).abs(),
+      );
+    }
+    return MoneyAmount(minor: accumulator.minor, scale: accumulator.scale);
   }
 
   Selectable<QueryRow> _monthlyExpenseQuery(AiDataFilter filter) {
     final StringBuffer sql = StringBuffer('''
 SELECT strftime('%Y-%m-01', ${_getNormalizedDateExpr('date')}) AS month,
-       SUM(amount) AS total
+       amount_scale AS amount_scale,
+       SUM(CAST(amount_minor AS INTEGER)) AS total_minor
 FROM transactions
 WHERE is_deleted = 0 AND type = ?
 ''');
@@ -210,7 +215,7 @@ WHERE is_deleted = 0 AND type = ?
       Variable<String>(TransactionType.expense.storageValue),
     ];
     _applyTransactionFilters(sql, variables, filter);
-    sql.write('GROUP BY month ORDER BY month DESC');
+    sql.write('GROUP BY month, amount_scale ORDER BY month DESC');
     return _db.customSelect(
       sql.toString(),
       variables: variables,
@@ -221,7 +226,8 @@ WHERE is_deleted = 0 AND type = ?
   Selectable<QueryRow> _monthlyIncomeQuery(AiDataFilter filter) {
     final StringBuffer sql = StringBuffer('''
 SELECT strftime('%Y-%m-01', ${_getNormalizedDateExpr('date')}) AS month,
-       SUM(amount) AS total
+       amount_scale AS amount_scale,
+       SUM(CAST(amount_minor AS INTEGER)) AS total_minor
 FROM transactions
 WHERE is_deleted = 0 AND type = ?
 ''');
@@ -230,7 +236,7 @@ WHERE is_deleted = 0 AND type = ?
       Variable<String>(TransactionType.income.storageValue),
     ];
     _applyTransactionFilters(sql, variables, filter);
-    sql.write('GROUP BY month ORDER BY month DESC');
+    sql.write('GROUP BY month, amount_scale ORDER BY month DESC');
     return _db.customSelect(
       sql.toString(),
       variables: variables,
@@ -243,7 +249,8 @@ WHERE is_deleted = 0 AND type = ?
 SELECT c.id AS category_id,
        COALESCE(c.name, 'Без категории') AS display_name,
        COALESCE(c.color, '') AS color,
-       SUM(t.amount) AS total
+       t.amount_scale AS amount_scale,
+       SUM(CAST(t.amount_minor AS INTEGER)) AS total_minor
 FROM transactions t
 LEFT JOIN categories c ON c.id = t.category_id
 WHERE t.is_deleted = 0 AND t.type = ?
@@ -254,8 +261,8 @@ WHERE t.is_deleted = 0 AND t.type = ?
     ];
     _applyTransactionFilters(sql, variables, filter, tableAlias: 't');
     sql
-      ..write(' GROUP BY c.id, c.name, c.color ')
-      ..write('ORDER BY total DESC ')
+      ..write(' GROUP BY c.id, c.name, c.color, t.amount_scale ')
+      ..write('ORDER BY total_minor DESC ')
       ..write('LIMIT ${filter.topCategoriesLimit}');
     return _db.customSelect(
       sql.toString(),
@@ -272,7 +279,8 @@ WHERE t.is_deleted = 0 AND t.type = ?
 SELECT c.id AS category_id,
        COALESCE(c.name, 'Без категории') AS display_name,
        COALESCE(c.color, '') AS color,
-       SUM(t.amount) AS total
+       t.amount_scale AS amount_scale,
+       SUM(CAST(t.amount_minor AS INTEGER)) AS total_minor
 FROM transactions t
 LEFT JOIN categories c ON c.id = t.category_id
 WHERE t.is_deleted = 0 AND t.type = ?
@@ -283,8 +291,8 @@ WHERE t.is_deleted = 0 AND t.type = ?
     ];
     _applyTransactionFilters(sql, variables, filter, tableAlias: 't');
     sql
-      ..write(' GROUP BY c.id, c.name, c.color ')
-      ..write('ORDER BY total DESC ')
+      ..write(' GROUP BY c.id, c.name, c.color, t.amount_scale ')
+      ..write('ORDER BY total_minor DESC ')
       ..write('LIMIT ${filter.topCategoriesLimit}');
     return _db.customSelect(
       sql.toString(),
@@ -305,8 +313,9 @@ WHERE t.is_deleted = 0 AND t.type = ?
       'b.accounts AS accounts, '
       'i.period_start AS period_start, '
       'i.period_end AS period_end, '
-      'i.amount AS allocated, '
-      'i.spent AS spent '
+      'i.amount_minor AS amount_minor, '
+      'i.spent_minor AS spent_minor, '
+      'i.amount_scale AS amount_scale '
       'FROM budget_instances i '
       'INNER JOIN budgets b ON b.id = i.budget_id '
       'WHERE b.is_deleted = 0 '
@@ -376,44 +385,154 @@ WHERE t.is_deleted = 0 AND t.type = ?
     }
   }
 
-  MonthlyExpenseAggregate _mapMonthlyExpense(QueryRow row) {
-    final String monthValue = row.read<String>('month');
-    final DateTime month = DateTime.parse(monthValue);
-    final double total = row.read<double?>('total') ?? 0;
-    return MonthlyExpenseAggregate(month: month, totalExpense: total);
+  List<MonthlyExpenseAggregate> _aggregateMonthlyExpenses(QueryResult rows) {
+    final Map<DateTime, MoneyAccumulator> totals =
+        <DateTime, MoneyAccumulator>{};
+    for (final QueryRow row in rows) {
+      final DateTime month = DateTime.parse(row.read<String>('month'));
+      final MoneyAccumulator accumulator = totals.putIfAbsent(
+        month,
+        MoneyAccumulator.new,
+      );
+      accumulator.add(
+        MoneyAmount(
+          minor: BigInt.from(row.read<int>('total_minor')),
+          scale: row.read<int>('amount_scale'),
+        ),
+      );
+    }
+    final List<MonthlyExpenseAggregate> items = totals.entries
+        .map(
+          (MapEntry<DateTime, MoneyAccumulator> entry) =>
+              MonthlyExpenseAggregate(
+                month: entry.key,
+                totalExpense: MoneyAmount(
+                  minor: entry.value.minor,
+                  scale: entry.value.scale,
+                ),
+              ),
+        )
+        .toList(growable: false);
+    items.sort((MonthlyExpenseAggregate a, MonthlyExpenseAggregate b) {
+      return b.month.compareTo(a.month);
+    });
+    return items;
   }
 
-  MonthlyIncomeAggregate _mapMonthlyIncome(QueryRow row) {
-    final String monthValue = row.read<String>('month');
-    final DateTime month = DateTime.parse(monthValue);
-    final double total = row.read<double?>('total') ?? 0;
-    return MonthlyIncomeAggregate(month: month, totalIncome: total);
+  List<MonthlyIncomeAggregate> _aggregateMonthlyIncome(QueryResult rows) {
+    final Map<DateTime, MoneyAccumulator> totals =
+        <DateTime, MoneyAccumulator>{};
+    for (final QueryRow row in rows) {
+      final DateTime month = DateTime.parse(row.read<String>('month'));
+      final MoneyAccumulator accumulator = totals.putIfAbsent(
+        month,
+        MoneyAccumulator.new,
+      );
+      accumulator.add(
+        MoneyAmount(
+          minor: BigInt.from(row.read<int>('total_minor')),
+          scale: row.read<int>('amount_scale'),
+        ),
+      );
+    }
+    final List<MonthlyIncomeAggregate> items = totals.entries
+        .map(
+          (MapEntry<DateTime, MoneyAccumulator> entry) =>
+              MonthlyIncomeAggregate(
+                month: entry.key,
+                totalIncome: MoneyAmount(
+                  minor: entry.value.minor,
+                  scale: entry.value.scale,
+                ),
+              ),
+        )
+        .toList(growable: false);
+    items.sort((MonthlyIncomeAggregate a, MonthlyIncomeAggregate b) {
+      return b.month.compareTo(a.month);
+    });
+    return items;
   }
 
-  CategoryExpenseAggregate _mapCategoryExpense(QueryRow row) {
-    final String? categoryId = row.read<String?>('category_id');
-    final String displayName = row.read<String>('display_name');
-    final String color = row.read<String>('color');
-    final double total = row.read<double?>('total') ?? 0;
-    return CategoryExpenseAggregate(
-      categoryId: categoryId?.isEmpty ?? true ? null : categoryId,
-      displayName: displayName,
-      totalExpense: total,
-      color: color.isEmpty ? null : color,
-    );
+  List<CategoryExpenseAggregate> _aggregateCategoryExpenses(QueryResult rows) {
+    final Map<String?, _CategoryAccumulator> totals =
+        <String?, _CategoryAccumulator>{};
+    for (final QueryRow row in rows) {
+      final String? categoryId = row.read<String?>('category_id');
+      final String displayName = row.read<String>('display_name');
+      final String color = row.read<String>('color');
+      final _CategoryAccumulator accumulator = totals.putIfAbsent(
+        categoryId,
+        () => _CategoryAccumulator(
+          displayName: displayName,
+          color: color.isEmpty ? null : color,
+        ),
+      );
+      accumulator.total.add(
+        MoneyAmount(
+          minor: BigInt.from(row.read<int>('total_minor')),
+          scale: row.read<int>('amount_scale'),
+        ),
+      );
+    }
+    final List<CategoryExpenseAggregate> items = totals.entries
+        .map(
+          (MapEntry<String?, _CategoryAccumulator> entry) =>
+              CategoryExpenseAggregate(
+                categoryId: entry.key?.isEmpty ?? true ? null : entry.key,
+                displayName: entry.value.displayName,
+                totalExpense: MoneyAmount(
+                  minor: entry.value.total.minor,
+                  scale: entry.value.total.scale,
+                ),
+                color: entry.value.color,
+              ),
+        )
+        .toList(growable: false);
+    items.sort((CategoryExpenseAggregate a, CategoryExpenseAggregate b) {
+      return b.totalExpense.toDouble().compareTo(a.totalExpense.toDouble());
+    });
+    return items;
   }
 
-  CategoryIncomeAggregate _mapCategoryIncome(QueryRow row) {
-    final String? categoryId = row.read<String?>('category_id');
-    final String displayName = row.read<String>('display_name');
-    final String color = row.read<String>('color');
-    final double total = row.read<double?>('total') ?? 0;
-    return CategoryIncomeAggregate(
-      categoryId: categoryId?.isEmpty ?? true ? null : categoryId,
-      displayName: displayName,
-      totalIncome: total,
-      color: color.isEmpty ? null : color,
-    );
+  List<CategoryIncomeAggregate> _aggregateCategoryIncome(QueryResult rows) {
+    final Map<String?, _CategoryAccumulator> totals =
+        <String?, _CategoryAccumulator>{};
+    for (final QueryRow row in rows) {
+      final String? categoryId = row.read<String?>('category_id');
+      final String displayName = row.read<String>('display_name');
+      final String color = row.read<String>('color');
+      final _CategoryAccumulator accumulator = totals.putIfAbsent(
+        categoryId,
+        () => _CategoryAccumulator(
+          displayName: displayName,
+          color: color.isEmpty ? null : color,
+        ),
+      );
+      accumulator.total.add(
+        MoneyAmount(
+          minor: BigInt.from(row.read<int>('total_minor')),
+          scale: row.read<int>('amount_scale'),
+        ),
+      );
+    }
+    final List<CategoryIncomeAggregate> items = totals.entries
+        .map(
+          (MapEntry<String?, _CategoryAccumulator> entry) =>
+              CategoryIncomeAggregate(
+                categoryId: entry.key?.isEmpty ?? true ? null : entry.key,
+                displayName: entry.value.displayName,
+                totalIncome: MoneyAmount(
+                  minor: entry.value.total.minor,
+                  scale: entry.value.total.scale,
+                ),
+                color: entry.value.color,
+              ),
+        )
+        .toList(growable: false);
+    items.sort((CategoryIncomeAggregate a, CategoryIncomeAggregate b) {
+      return b.totalIncome.toDouble().compareTo(a.totalIncome.toDouble());
+    });
+    return items;
   }
 
   BudgetInstanceAggregate _mapBudgetInstance(QueryRow row) {
@@ -430,8 +549,14 @@ WHERE t.is_deleted = 0 AND t.type = ?
       title: row.read<String>('title'),
       periodStart: row.read<DateTime>('period_start'),
       periodEnd: row.read<DateTime>('period_end'),
-      allocated: row.read<double>('allocated'),
-      spent: row.read<double>('spent'),
+      allocated: MoneyAmount(
+        minor: BigInt.parse(row.read<String>('amount_minor')),
+        scale: row.read<int>('amount_scale'),
+      ),
+      spent: MoneyAmount(
+        minor: BigInt.parse(row.read<String>('spent_minor')),
+        scale: row.read<int>('amount_scale'),
+      ),
       accountIds: accounts,
       categoryIds: categories,
     );
@@ -467,6 +592,14 @@ END
   String _formatDate(DateTime date) {
     return DateFormat('yyyy-MM-dd HH:mm:ss').format(date.toUtc());
   }
+}
+
+class _CategoryAccumulator {
+  _CategoryAccumulator({required this.displayName, required this.color});
+
+  final String displayName;
+  final String? color;
+  final MoneyAccumulator total = MoneyAccumulator();
 }
 
 typedef QueryResult = List<QueryRow>;

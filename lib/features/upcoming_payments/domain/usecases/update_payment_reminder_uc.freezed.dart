@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$UpdatePaymentReminderInput {
 
- String get id; String? get title; double? get amount; DateTime? get whenLocal; ValueUpdate<String?> get note;
+ String get id; String? get title; MoneyAmount? get amount; DateTime? get whenLocal; ValueUpdate<String?> get note;
 /// Create a copy of UpdatePaymentReminderInput
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -45,7 +45,7 @@ abstract mixin class $UpdatePaymentReminderInputCopyWith<$Res>  {
   factory $UpdatePaymentReminderInputCopyWith(UpdatePaymentReminderInput value, $Res Function(UpdatePaymentReminderInput) _then) = _$UpdatePaymentReminderInputCopyWithImpl;
 @useResult
 $Res call({
- String id, String? title, double? amount, DateTime? whenLocal, ValueUpdate<String?> note
+ String id, String? title, MoneyAmount? amount, DateTime? whenLocal, ValueUpdate<String?> note
 });
 
 
@@ -67,7 +67,7 @@ class _$UpdatePaymentReminderInputCopyWithImpl<$Res>
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,title: freezed == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String?,amount: freezed == amount ? _self.amount : amount // ignore: cast_nullable_to_non_nullable
-as double?,whenLocal: freezed == whenLocal ? _self.whenLocal : whenLocal // ignore: cast_nullable_to_non_nullable
+as MoneyAmount?,whenLocal: freezed == whenLocal ? _self.whenLocal : whenLocal // ignore: cast_nullable_to_non_nullable
 as DateTime?,note: null == note ? _self.note : note // ignore: cast_nullable_to_non_nullable
 as ValueUpdate<String?>,
   ));
@@ -154,7 +154,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String? title,  double? amount,  DateTime? whenLocal,  ValueUpdate<String?> note)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String? title,  MoneyAmount? amount,  DateTime? whenLocal,  ValueUpdate<String?> note)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _UpdatePaymentReminderInput() when $default != null:
 return $default(_that.id,_that.title,_that.amount,_that.whenLocal,_that.note);case _:
@@ -175,7 +175,7 @@ return $default(_that.id,_that.title,_that.amount,_that.whenLocal,_that.note);ca
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String? title,  double? amount,  DateTime? whenLocal,  ValueUpdate<String?> note)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String? title,  MoneyAmount? amount,  DateTime? whenLocal,  ValueUpdate<String?> note)  $default,) {final _that = this;
 switch (_that) {
 case _UpdatePaymentReminderInput():
 return $default(_that.id,_that.title,_that.amount,_that.whenLocal,_that.note);case _:
@@ -195,7 +195,7 @@ return $default(_that.id,_that.title,_that.amount,_that.whenLocal,_that.note);ca
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String? title,  double? amount,  DateTime? whenLocal,  ValueUpdate<String?> note)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String? title,  MoneyAmount? amount,  DateTime? whenLocal,  ValueUpdate<String?> note)?  $default,) {final _that = this;
 switch (_that) {
 case _UpdatePaymentReminderInput() when $default != null:
 return $default(_that.id,_that.title,_that.amount,_that.whenLocal,_that.note);case _:
@@ -215,7 +215,7 @@ class _UpdatePaymentReminderInput implements UpdatePaymentReminderInput {
 
 @override final  String id;
 @override final  String? title;
-@override final  double? amount;
+@override final  MoneyAmount? amount;
 @override final  DateTime? whenLocal;
 @override@JsonKey() final  ValueUpdate<String?> note;
 
@@ -249,7 +249,7 @@ abstract mixin class _$UpdatePaymentReminderInputCopyWith<$Res> implements $Upda
   factory _$UpdatePaymentReminderInputCopyWith(_UpdatePaymentReminderInput value, $Res Function(_UpdatePaymentReminderInput) _then) = __$UpdatePaymentReminderInputCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String? title, double? amount, DateTime? whenLocal, ValueUpdate<String?> note
+ String id, String? title, MoneyAmount? amount, DateTime? whenLocal, ValueUpdate<String?> note
 });
 
 
@@ -271,7 +271,7 @@ class __$UpdatePaymentReminderInputCopyWithImpl<$Res>
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,title: freezed == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String?,amount: freezed == amount ? _self.amount : amount // ignore: cast_nullable_to_non_nullable
-as double?,whenLocal: freezed == whenLocal ? _self.whenLocal : whenLocal // ignore: cast_nullable_to_non_nullable
+as MoneyAmount?,whenLocal: freezed == whenLocal ? _self.whenLocal : whenLocal // ignore: cast_nullable_to_non_nullable
 as DateTime?,note: null == note ? _self.note : note // ignore: cast_nullable_to_non_nullable
 as ValueUpdate<String?>,
   ));

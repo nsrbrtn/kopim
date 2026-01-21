@@ -5,6 +5,7 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/core/services/ai_assistant_service.dart';
 import 'package:kopim/core/services/analytics_service.dart';
 import 'package:kopim/core/services/logger_service.dart';
@@ -300,7 +301,7 @@ class AiAssistantRepositoryImpl implements AiAssistantRepository {
         )) {
       userBuffer.writeln(
         '${DateFormat.yMMMM(locale).format(insight.normalizedMonth)}: '
-        '${currency.format(insight.totalExpense)}',
+        '${currency.format(insight.totalExpense.toDouble())}',
       );
     }
 
@@ -310,21 +311,23 @@ class AiAssistantRepositoryImpl implements AiAssistantRepository {
     )) {
       userBuffer.writeln(
         '${DateFormat.yMMMM(locale).format(insight.normalizedMonth)}: '
-        '${currency.format(insight.totalIncome)}',
+        '${currency.format(insight.totalIncome.toDouble())}',
       );
     }
 
     userBuffer.writeln('--- Топ категории расходов ---');
     for (final CategoryExpenseInsight category in overview.topCategories) {
       userBuffer.writeln(
-        '${category.displayName}: ${currency.format(category.totalExpense)}',
+        '${category.displayName}: '
+        '${currency.format(category.totalExpense.toDouble())}',
       );
     }
 
     userBuffer.writeln('--- Топ категории доходов ---');
     for (final CategoryIncomeInsight category in overview.topIncomeCategories) {
       userBuffer.writeln(
-        '${category.displayName}: ${currency.format(category.totalIncome)}',
+        '${category.displayName}: '
+        '${currency.format(category.totalIncome.toDouble())}',
       );
     }
 
@@ -333,8 +336,9 @@ class AiAssistantRepositoryImpl implements AiAssistantRepository {
       for (final BudgetForecastInsight forecast in overview.budgetForecasts) {
         final String completion = percent.format(forecast.completionRate);
         userBuffer.write(
-          '${forecast.title}: потрачено ${currency.format(forecast.spent)} '
-          'из ${currency.format(forecast.allocated)} '
+          '${forecast.title}: потрачено '
+          '${currency.format(forecast.spent.toDouble())} '
+          'из ${currency.format(forecast.allocated.toDouble())} '
           '($completion), статус: ${forecast.status.name}',
         );
         if (forecast.categoryNames.isNotEmpty) {
@@ -621,7 +625,8 @@ class AiAssistantRepositoryImpl implements AiAssistantRepository {
         final String id = _uuid.v4();
         final String description =
             forecast.status == BudgetForecastStatus.exceeded
-            ? 'Бюджет уже превышен на ${forecast.projectedVariance.toStringAsFixed(2)} '
+            ? 'Бюджет уже превышен на '
+                  '${forecast.projectedVariance.toDouble().toStringAsFixed(2)} '
                   '— пересмотрите лимит или перенесите траты.'
             : 'Текущий темп трат выведет бюджет в красную зону. '
                   'Рекомендуется сократить расходы или увеличить лимит.';
@@ -635,8 +640,10 @@ class AiAssistantRepositoryImpl implements AiAssistantRepository {
             tags: <String>['budget', forecast.status.name],
             impact: AiRecommendationImpact(
               narrative:
-                  'Прогноз расходов ${forecast.projectedSpent.toStringAsFixed(2)} '
-                  'при лимите ${forecast.allocated.toStringAsFixed(2)}.',
+                  'Прогноз расходов '
+                  '${forecast.projectedSpent.toDouble().toStringAsFixed(2)} '
+                  'при лимите '
+                  '${forecast.allocated.toDouble().toStringAsFixed(2)}.',
               riskScore: forecast.status == BudgetForecastStatus.exceeded
                   ? 1
                   : 0.6,
@@ -653,9 +660,10 @@ class AiAssistantRepositoryImpl implements AiAssistantRepository {
           .sortedBy((MonthlyExpenseInsight value) => value.normalizedMonth);
       final MonthlyExpenseInsight last = sorted.last;
       final MonthlyExpenseInsight previous = sorted[sorted.length - 2];
-      if (previous.totalExpense > 0) {
+      final double previousValue = previous.totalExpense.toDouble();
+      if (previousValue > 0) {
         final double growth =
-            (last.totalExpense - previous.totalExpense) / previous.totalExpense;
+            (last.totalExpense.toDouble() - previousValue) / previousValue;
         if (growth > 0.1) {
           items.add(
             AiRecommendationEntity(
@@ -677,12 +685,14 @@ class AiAssistantRepositoryImpl implements AiAssistantRepository {
     }
 
     if (overview.topCategories.isNotEmpty) {
-      final double totalExpenses = overview.topCategories
-          .map((CategoryExpenseInsight value) => value.totalExpense)
-          .fold<double>(0, (double acc, double value) => acc + value);
+      final MoneyAccumulator totalAccumulator = MoneyAccumulator();
+      for (final CategoryExpenseInsight value in overview.topCategories) {
+        totalAccumulator.add(value.totalExpense);
+      }
+      final double totalExpenses = totalAccumulator.toDouble();
       if (totalExpenses > 0) {
         final CategoryExpenseInsight leader = overview.topCategories.first;
-        final double share = leader.totalExpense / totalExpenses;
+        final double share = leader.totalExpense.toDouble() / totalExpenses;
         if (share >= 0.3) {
           items.add(
             AiRecommendationEntity(
@@ -712,12 +722,15 @@ class AiAssistantRepositoryImpl implements AiAssistantRepository {
     final List<MonthlyExpenseInsight> ordered = overview.monthlyExpenses
         .sortedBy((MonthlyExpenseInsight item) => item.normalizedMonth);
     final double lastMonthExpense = ordered.isNotEmpty
-        ? ordered.last.totalExpense
+        ? ordered.last.totalExpense.toDouble()
         : 0;
     final double averageExpense = ordered.isEmpty
         ? 0
         : ordered
-                  .map((MonthlyExpenseInsight value) => value.totalExpense)
+                  .map(
+                    (MonthlyExpenseInsight value) =>
+                        value.totalExpense.toDouble(),
+                  )
                   .fold<double>(0, (double acc, double value) => acc + value) /
               ordered.length;
     final double budgetAlerts = overview.budgetForecasts

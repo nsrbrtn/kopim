@@ -6,6 +6,8 @@ part 'debt_entity.g.dart';
 
 @freezed
 abstract class DebtEntity with _$DebtEntity {
+  const DebtEntity._();
+
   const factory DebtEntity({
     required String id,
     required String accountId,
@@ -22,8 +24,6 @@ abstract class DebtEntity with _$DebtEntity {
   factory DebtEntity.fromJson(Map<String, Object?> json) =>
       _$DebtEntityFromJson(json);
 
-  MoneyAmount get amountValue => MoneyAmount(
-    minor: amountMinor ?? BigInt.zero,
-    scale: amountScale ?? 2,
-  );
+  MoneyAmount get amountValue =>
+      MoneyAmount(minor: amountMinor ?? BigInt.zero, scale: amountScale ?? 2);
 }

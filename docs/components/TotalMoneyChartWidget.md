@@ -7,7 +7,7 @@
 
 | Параметр | Тип | Описание | По умолчанию |
 |----------|-----|----------|--------------|
-| `data` | `List<MonthlyBalanceData>` | Данные о балансе по месяцам | *обязательный* |
+| `data` | `List<MonthlyBalanceData>` | Данные о балансе по месяцам (MoneyAmount: minor/scale) | *обязательный* |
 | `currencySymbol` | `String` | Символ валюты | *обязательный* |
 | `selectedMonth` | `DateTime` | Выбранный месяц для подсветки точки | *обязательный* |
 | `onMonthSelected` | `ValueChanged<DateTime>` | Коллбэк при нажатии на точку графика | *обязательный* |

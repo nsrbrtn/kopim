@@ -47,10 +47,10 @@ class _TotalMoneyChartWidgetState extends State<TotalMoneyChartWidget> {
 
     // Найти минимальное и максимальное значение для настройки осей
     final double minBalance = widget.data
-        .map((MonthlyBalanceData d) => d.totalBalance)
+        .map((MonthlyBalanceData d) => d.totalBalance.toDouble())
         .reduce((double a, double b) => a < b ? a : b);
     final double maxBalance = widget.data
-        .map((MonthlyBalanceData d) => d.totalBalance)
+        .map((MonthlyBalanceData d) => d.totalBalance.toDouble())
         .reduce((double a, double b) => a > b ? a : b);
 
     // Настройка отступов в пикселях
@@ -146,7 +146,7 @@ class _TotalMoneyChartWidgetState extends State<TotalMoneyChartWidget> {
               ),
               const SizedBox(height: 4),
               Text(
-                '${formatter.format(displayData.totalBalance)} ${widget.currencySymbol}',
+                '${formatter.format(displayData.totalBalance.toDouble())} ${widget.currencySymbol}',
                 style: TextStyle(
                   fontFamily: 'Onest',
                   fontSize: 32,
@@ -199,14 +199,15 @@ class _TotalMoneyChartWidgetState extends State<TotalMoneyChartWidget> {
                     ),
                     coordinateUnit: CoordinateUnit.point,
                     x: selectedData.monthLabel,
-                    y: selectedData.totalBalance,
+                    y: selectedData.totalBalance.toDouble(),
                   ),
               ],
               series: <CartesianSeries<MonthlyBalanceData, String>>[
                 SplineSeries<MonthlyBalanceData, String>(
                   dataSource: widget.data,
                   xValueMapper: (MonthlyBalanceData d, _) => d.monthLabel,
-                  yValueMapper: (MonthlyBalanceData d, _) => d.totalBalance,
+                  yValueMapper: (MonthlyBalanceData d, _) =>
+                      d.totalBalance.toDouble(),
                   color: colors.primary,
                   width: 2,
                   animationDuration: 0,
@@ -233,7 +234,8 @@ class _TotalMoneyChartWidgetState extends State<TotalMoneyChartWidget> {
                 ScatterSeries<MonthlyBalanceData, String>(
                   dataSource: widget.data,
                   xValueMapper: (MonthlyBalanceData d, _) => d.monthLabel,
-                  yValueMapper: (MonthlyBalanceData d, _) => d.totalBalance,
+                  yValueMapper: (MonthlyBalanceData d, _) =>
+                      d.totalBalance.toDouble(),
                   color: Colors.transparent,
                   markerSettings: const MarkerSettings(
                     isVisible: true,

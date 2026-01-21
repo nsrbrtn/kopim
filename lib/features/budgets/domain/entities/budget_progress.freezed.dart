@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$BudgetProgress {
 
- Budget get budget; BudgetInstance get instance; double get spent; double get remaining; double get utilization; bool get isExceeded;
+ Budget get budget; BudgetInstance get instance; MoneyAmount get spent; MoneyAmount get remaining; double get utilization; bool get isExceeded;
 /// Create a copy of BudgetProgress
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -45,7 +45,7 @@ abstract mixin class $BudgetProgressCopyWith<$Res>  {
   factory $BudgetProgressCopyWith(BudgetProgress value, $Res Function(BudgetProgress) _then) = _$BudgetProgressCopyWithImpl;
 @useResult
 $Res call({
- Budget budget, BudgetInstance instance, double spent, double remaining, double utilization, bool isExceeded
+ Budget budget, BudgetInstance instance, MoneyAmount spent, MoneyAmount remaining, double utilization, bool isExceeded
 });
 
 
@@ -67,8 +67,8 @@ class _$BudgetProgressCopyWithImpl<$Res>
 budget: null == budget ? _self.budget : budget // ignore: cast_nullable_to_non_nullable
 as Budget,instance: null == instance ? _self.instance : instance // ignore: cast_nullable_to_non_nullable
 as BudgetInstance,spent: null == spent ? _self.spent : spent // ignore: cast_nullable_to_non_nullable
-as double,remaining: null == remaining ? _self.remaining : remaining // ignore: cast_nullable_to_non_nullable
-as double,utilization: null == utilization ? _self.utilization : utilization // ignore: cast_nullable_to_non_nullable
+as MoneyAmount,remaining: null == remaining ? _self.remaining : remaining // ignore: cast_nullable_to_non_nullable
+as MoneyAmount,utilization: null == utilization ? _self.utilization : utilization // ignore: cast_nullable_to_non_nullable
 as double,isExceeded: null == isExceeded ? _self.isExceeded : isExceeded // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
@@ -173,7 +173,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( Budget budget,  BudgetInstance instance,  double spent,  double remaining,  double utilization,  bool isExceeded)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( Budget budget,  BudgetInstance instance,  MoneyAmount spent,  MoneyAmount remaining,  double utilization,  bool isExceeded)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _BudgetProgress() when $default != null:
 return $default(_that.budget,_that.instance,_that.spent,_that.remaining,_that.utilization,_that.isExceeded);case _:
@@ -194,7 +194,7 @@ return $default(_that.budget,_that.instance,_that.spent,_that.remaining,_that.ut
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( Budget budget,  BudgetInstance instance,  double spent,  double remaining,  double utilization,  bool isExceeded)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( Budget budget,  BudgetInstance instance,  MoneyAmount spent,  MoneyAmount remaining,  double utilization,  bool isExceeded)  $default,) {final _that = this;
 switch (_that) {
 case _BudgetProgress():
 return $default(_that.budget,_that.instance,_that.spent,_that.remaining,_that.utilization,_that.isExceeded);case _:
@@ -214,7 +214,7 @@ return $default(_that.budget,_that.instance,_that.spent,_that.remaining,_that.ut
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( Budget budget,  BudgetInstance instance,  double spent,  double remaining,  double utilization,  bool isExceeded)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( Budget budget,  BudgetInstance instance,  MoneyAmount spent,  MoneyAmount remaining,  double utilization,  bool isExceeded)?  $default,) {final _that = this;
 switch (_that) {
 case _BudgetProgress() when $default != null:
 return $default(_that.budget,_that.instance,_that.spent,_that.remaining,_that.utilization,_that.isExceeded);case _:
@@ -234,8 +234,8 @@ class _BudgetProgress implements BudgetProgress {
 
 @override final  Budget budget;
 @override final  BudgetInstance instance;
-@override final  double spent;
-@override final  double remaining;
+@override final  MoneyAmount spent;
+@override final  MoneyAmount remaining;
 @override final  double utilization;
 @override final  bool isExceeded;
 
@@ -269,7 +269,7 @@ abstract mixin class _$BudgetProgressCopyWith<$Res> implements $BudgetProgressCo
   factory _$BudgetProgressCopyWith(_BudgetProgress value, $Res Function(_BudgetProgress) _then) = __$BudgetProgressCopyWithImpl;
 @override @useResult
 $Res call({
- Budget budget, BudgetInstance instance, double spent, double remaining, double utilization, bool isExceeded
+ Budget budget, BudgetInstance instance, MoneyAmount spent, MoneyAmount remaining, double utilization, bool isExceeded
 });
 
 
@@ -291,8 +291,8 @@ class __$BudgetProgressCopyWithImpl<$Res>
 budget: null == budget ? _self.budget : budget // ignore: cast_nullable_to_non_nullable
 as Budget,instance: null == instance ? _self.instance : instance // ignore: cast_nullable_to_non_nullable
 as BudgetInstance,spent: null == spent ? _self.spent : spent // ignore: cast_nullable_to_non_nullable
-as double,remaining: null == remaining ? _self.remaining : remaining // ignore: cast_nullable_to_non_nullable
-as double,utilization: null == utilization ? _self.utilization : utilization // ignore: cast_nullable_to_non_nullable
+as MoneyAmount,remaining: null == remaining ? _self.remaining : remaining // ignore: cast_nullable_to_non_nullable
+as MoneyAmount,utilization: null == utilization ? _self.utilization : utilization // ignore: cast_nullable_to_non_nullable
 as double,isExceeded: null == isExceeded ? _self.isExceeded : isExceeded // ignore: cast_nullable_to_non_nullable
 as bool,
   ));

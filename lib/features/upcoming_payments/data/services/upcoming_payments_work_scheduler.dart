@@ -7,6 +7,8 @@ import 'package:timezone/timezone.dart' as tz;
 import 'package:kopim/core/data/database.dart';
 import 'package:kopim/core/data/database/database_factory.dart';
 import 'package:kopim/core/data/outbox/outbox_dao.dart';
+import 'package:kopim/core/money/money.dart';
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/core/services/analytics_service.dart';
 import 'package:kopim/core/services/exact_alarm_permission_service.dart';
 import 'package:kopim/core/services/firebase_initializer.dart';
@@ -445,7 +447,7 @@ tz.TZDateTime? _buildPaymentScheduleTime({
 }
 
 String _paymentBody(UpcomingPayment payment) {
-  final String amount = payment.amount.toStringAsFixed(2);
+  final String amount = _formatAmount(payment.amountValue.abs());
   if (payment.note == null || payment.note!.isEmpty) {
     return 'Сумма к списанию: $amount';
   }
@@ -453,9 +455,18 @@ String _paymentBody(UpcomingPayment payment) {
 }
 
 String _reminderBody(PaymentReminder reminder) {
-  final String amount = reminder.amount.toStringAsFixed(2);
+  final String amount = _formatAmount(reminder.amountValue.abs());
   if (reminder.note == null || reminder.note!.isEmpty) {
     return 'Напоминание на сумму $amount';
   }
   return 'Напоминание на сумму $amount\n${reminder.note!}';
+}
+
+String _formatAmount(MoneyAmount amount) {
+  final Money money = Money(
+    minor: amount.minor,
+    currency: 'XXX',
+    scale: amount.scale,
+  );
+  return money.toDecimalString();
 }

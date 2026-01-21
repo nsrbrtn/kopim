@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:kopim/core/data/database.dart' as db;
 import 'package:kopim/core/money/money.dart';
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
 
@@ -12,8 +13,8 @@ class AccountMonthlyTotalsRow {
   });
 
   final String accountId;
-  final double income;
-  final double expense;
+  final MoneyAmount income;
+  final MoneyAmount expense;
 }
 
 class TransactionDao {
@@ -39,13 +40,14 @@ class TransactionDao {
           '''
 SELECT
   account_id AS account_id,
-  COALESCE(SUM(CASE WHEN type = ?1 THEN ABS(amount) ELSE 0 END), 0) AS income,
-  COALESCE(SUM(CASE WHEN type = ?2 THEN ABS(amount) ELSE 0 END), 0) AS expense
+  amount_scale AS amount_scale,
+  COALESCE(SUM(CASE WHEN type = ?1 THEN ABS(CAST(amount_minor AS INTEGER)) ELSE 0 END), 0) AS income_minor,
+  COALESCE(SUM(CASE WHEN type = ?2 THEN ABS(CAST(amount_minor AS INTEGER)) ELSE 0 END), 0) AS expense_minor
 FROM transactions
 WHERE is_deleted = 0
   AND date >= ?3
   AND date < ?4
-GROUP BY account_id
+GROUP BY account_id, amount_scale
 ''',
           variables: <Variable<Object>>[
             Variable<String>(incomeType),
@@ -57,13 +59,43 @@ GROUP BY account_id
         )
         .watch()
         .map((List<QueryRow> rows) {
-          return rows
+          final Map<String, _AccountTotalsAccumulator> totals =
+              <String, _AccountTotalsAccumulator>{};
+          for (final QueryRow row in rows) {
+            final String accountId = row.read<String>('account_id');
+            final _AccountTotalsAccumulator accumulator = totals.putIfAbsent(
+              accountId,
+              _AccountTotalsAccumulator.new,
+            );
+            final int scale = row.read<int>('amount_scale');
+            accumulator.income.add(
+              MoneyAmount(
+                minor: BigInt.from(row.read<int>('income_minor')),
+                scale: scale,
+              ),
+            );
+            accumulator.expense.add(
+              MoneyAmount(
+                minor: BigInt.from(row.read<int>('expense_minor')),
+                scale: scale,
+              ),
+            );
+          }
+
+          return totals.entries
               .map(
-                (QueryRow row) => AccountMonthlyTotalsRow(
-                  accountId: row.read<String>('account_id'),
-                  income: row.read<double>('income'),
-                  expense: row.read<double>('expense'),
-                ),
+                (MapEntry<String, _AccountTotalsAccumulator> entry) =>
+                    AccountMonthlyTotalsRow(
+                      accountId: entry.key,
+                      income: MoneyAmount(
+                        minor: entry.value.income.minor,
+                        scale: entry.value.income.scale,
+                      ),
+                      expense: MoneyAmount(
+                        minor: entry.value.expense.minor,
+                        scale: entry.value.expense.scale,
+                      ),
+                    ),
               )
               .toList(growable: false);
         });
@@ -194,4 +226,9 @@ GROUP BY account_id
       isDeleted: row.isDeleted,
     );
   }
+}
+
+class _AccountTotalsAccumulator {
+  final MoneyAccumulator income = MoneyAccumulator();
+  final MoneyAccumulator expense = MoneyAccumulator();
 }

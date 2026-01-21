@@ -15,8 +15,7 @@ abstract class TransactionEntity with _$TransactionEntity {
     String? categoryId,
     String? savingGoalId,
     @JsonKey(includeFromJson: false, includeToJson: false) BigInt? amountMinor,
-    @JsonKey(includeFromJson: false, includeToJson: false)
-    int? amountScale,
+    @JsonKey(includeFromJson: false, includeToJson: false) int? amountScale,
     required DateTime date,
     String? note,
     required String type,
@@ -28,8 +27,6 @@ abstract class TransactionEntity with _$TransactionEntity {
   factory TransactionEntity.fromJson(Map<String, Object?> json) =>
       _$TransactionEntityFromJson(json);
 
-  MoneyAmount get amountValue => MoneyAmount(
-    minor: amountMinor ?? BigInt.zero,
-    scale: amountScale ?? 2,
-  );
+  MoneyAmount get amountValue =>
+      MoneyAmount(minor: amountMinor ?? BigInt.zero, scale: amountScale ?? 2);
 }

@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$HomeTopExpenseCategory {
 
- String? get categoryId; double get amount;
+ String? get categoryId; MoneyAmount get amount;
 /// Create a copy of HomeTopExpenseCategory
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -45,7 +45,7 @@ abstract mixin class $HomeTopExpenseCategoryCopyWith<$Res>  {
   factory $HomeTopExpenseCategoryCopyWith(HomeTopExpenseCategory value, $Res Function(HomeTopExpenseCategory) _then) = _$HomeTopExpenseCategoryCopyWithImpl;
 @useResult
 $Res call({
- String? categoryId, double amount
+ String? categoryId, MoneyAmount amount
 });
 
 
@@ -66,7 +66,7 @@ class _$HomeTopExpenseCategoryCopyWithImpl<$Res>
   return _then(_self.copyWith(
 categoryId: freezed == categoryId ? _self.categoryId : categoryId // ignore: cast_nullable_to_non_nullable
 as String?,amount: null == amount ? _self.amount : amount // ignore: cast_nullable_to_non_nullable
-as double,
+as MoneyAmount,
   ));
 }
 
@@ -151,7 +151,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? categoryId,  double amount)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? categoryId,  MoneyAmount amount)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _HomeTopExpenseCategory() when $default != null:
 return $default(_that.categoryId,_that.amount);case _:
@@ -172,7 +172,7 @@ return $default(_that.categoryId,_that.amount);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? categoryId,  double amount)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? categoryId,  MoneyAmount amount)  $default,) {final _that = this;
 switch (_that) {
 case _HomeTopExpenseCategory():
 return $default(_that.categoryId,_that.amount);case _:
@@ -192,7 +192,7 @@ return $default(_that.categoryId,_that.amount);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? categoryId,  double amount)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? categoryId,  MoneyAmount amount)?  $default,) {final _that = this;
 switch (_that) {
 case _HomeTopExpenseCategory() when $default != null:
 return $default(_that.categoryId,_that.amount);case _:
@@ -211,7 +211,7 @@ class _HomeTopExpenseCategory implements HomeTopExpenseCategory {
   
 
 @override final  String? categoryId;
-@override final  double amount;
+@override final  MoneyAmount amount;
 
 /// Create a copy of HomeTopExpenseCategory
 /// with the given fields replaced by the non-null parameter values.
@@ -243,7 +243,7 @@ abstract mixin class _$HomeTopExpenseCategoryCopyWith<$Res> implements $HomeTopE
   factory _$HomeTopExpenseCategoryCopyWith(_HomeTopExpenseCategory value, $Res Function(_HomeTopExpenseCategory) _then) = __$HomeTopExpenseCategoryCopyWithImpl;
 @override @useResult
 $Res call({
- String? categoryId, double amount
+ String? categoryId, MoneyAmount amount
 });
 
 
@@ -264,7 +264,7 @@ class __$HomeTopExpenseCategoryCopyWithImpl<$Res>
   return _then(_HomeTopExpenseCategory(
 categoryId: freezed == categoryId ? _self.categoryId : categoryId // ignore: cast_nullable_to_non_nullable
 as String?,amount: null == amount ? _self.amount : amount // ignore: cast_nullable_to_non_nullable
-as double,
+as MoneyAmount,
   ));
 }
 
@@ -274,7 +274,7 @@ as double,
 /// @nodoc
 mixin _$HomeOverviewSummary {
 
- double get totalBalance; double get todayIncome; double get todayExpense; HomeTopExpenseCategory? get topExpenseCategory;
+ MoneyAmount get totalBalance; MoneyAmount get todayIncome; MoneyAmount get todayExpense; HomeTopExpenseCategory? get topExpenseCategory;
 /// Create a copy of HomeOverviewSummary
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -305,7 +305,7 @@ abstract mixin class $HomeOverviewSummaryCopyWith<$Res>  {
   factory $HomeOverviewSummaryCopyWith(HomeOverviewSummary value, $Res Function(HomeOverviewSummary) _then) = _$HomeOverviewSummaryCopyWithImpl;
 @useResult
 $Res call({
- double totalBalance, double todayIncome, double todayExpense, HomeTopExpenseCategory? topExpenseCategory
+ MoneyAmount totalBalance, MoneyAmount todayIncome, MoneyAmount todayExpense, HomeTopExpenseCategory? topExpenseCategory
 });
 
 
@@ -325,9 +325,9 @@ class _$HomeOverviewSummaryCopyWithImpl<$Res>
 @pragma('vm:prefer-inline') @override $Res call({Object? totalBalance = null,Object? todayIncome = null,Object? todayExpense = null,Object? topExpenseCategory = freezed,}) {
   return _then(_self.copyWith(
 totalBalance: null == totalBalance ? _self.totalBalance : totalBalance // ignore: cast_nullable_to_non_nullable
-as double,todayIncome: null == todayIncome ? _self.todayIncome : todayIncome // ignore: cast_nullable_to_non_nullable
-as double,todayExpense: null == todayExpense ? _self.todayExpense : todayExpense // ignore: cast_nullable_to_non_nullable
-as double,topExpenseCategory: freezed == topExpenseCategory ? _self.topExpenseCategory : topExpenseCategory // ignore: cast_nullable_to_non_nullable
+as MoneyAmount,todayIncome: null == todayIncome ? _self.todayIncome : todayIncome // ignore: cast_nullable_to_non_nullable
+as MoneyAmount,todayExpense: null == todayExpense ? _self.todayExpense : todayExpense // ignore: cast_nullable_to_non_nullable
+as MoneyAmount,topExpenseCategory: freezed == topExpenseCategory ? _self.topExpenseCategory : topExpenseCategory // ignore: cast_nullable_to_non_nullable
 as HomeTopExpenseCategory?,
   ));
 }
@@ -425,7 +425,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( double totalBalance,  double todayIncome,  double todayExpense,  HomeTopExpenseCategory? topExpenseCategory)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( MoneyAmount totalBalance,  MoneyAmount todayIncome,  MoneyAmount todayExpense,  HomeTopExpenseCategory? topExpenseCategory)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _HomeOverviewSummary() when $default != null:
 return $default(_that.totalBalance,_that.todayIncome,_that.todayExpense,_that.topExpenseCategory);case _:
@@ -446,7 +446,7 @@ return $default(_that.totalBalance,_that.todayIncome,_that.todayExpense,_that.to
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( double totalBalance,  double todayIncome,  double todayExpense,  HomeTopExpenseCategory? topExpenseCategory)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( MoneyAmount totalBalance,  MoneyAmount todayIncome,  MoneyAmount todayExpense,  HomeTopExpenseCategory? topExpenseCategory)  $default,) {final _that = this;
 switch (_that) {
 case _HomeOverviewSummary():
 return $default(_that.totalBalance,_that.todayIncome,_that.todayExpense,_that.topExpenseCategory);case _:
@@ -466,7 +466,7 @@ return $default(_that.totalBalance,_that.todayIncome,_that.todayExpense,_that.to
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( double totalBalance,  double todayIncome,  double todayExpense,  HomeTopExpenseCategory? topExpenseCategory)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( MoneyAmount totalBalance,  MoneyAmount todayIncome,  MoneyAmount todayExpense,  HomeTopExpenseCategory? topExpenseCategory)?  $default,) {final _that = this;
 switch (_that) {
 case _HomeOverviewSummary() when $default != null:
 return $default(_that.totalBalance,_that.todayIncome,_that.todayExpense,_that.topExpenseCategory);case _:
@@ -484,9 +484,9 @@ class _HomeOverviewSummary implements HomeOverviewSummary {
   const _HomeOverviewSummary({required this.totalBalance, required this.todayIncome, required this.todayExpense, this.topExpenseCategory});
   
 
-@override final  double totalBalance;
-@override final  double todayIncome;
-@override final  double todayExpense;
+@override final  MoneyAmount totalBalance;
+@override final  MoneyAmount todayIncome;
+@override final  MoneyAmount todayExpense;
 @override final  HomeTopExpenseCategory? topExpenseCategory;
 
 /// Create a copy of HomeOverviewSummary
@@ -519,7 +519,7 @@ abstract mixin class _$HomeOverviewSummaryCopyWith<$Res> implements $HomeOvervie
   factory _$HomeOverviewSummaryCopyWith(_HomeOverviewSummary value, $Res Function(_HomeOverviewSummary) _then) = __$HomeOverviewSummaryCopyWithImpl;
 @override @useResult
 $Res call({
- double totalBalance, double todayIncome, double todayExpense, HomeTopExpenseCategory? topExpenseCategory
+ MoneyAmount totalBalance, MoneyAmount todayIncome, MoneyAmount todayExpense, HomeTopExpenseCategory? topExpenseCategory
 });
 
 
@@ -539,9 +539,9 @@ class __$HomeOverviewSummaryCopyWithImpl<$Res>
 @override @pragma('vm:prefer-inline') $Res call({Object? totalBalance = null,Object? todayIncome = null,Object? todayExpense = null,Object? topExpenseCategory = freezed,}) {
   return _then(_HomeOverviewSummary(
 totalBalance: null == totalBalance ? _self.totalBalance : totalBalance // ignore: cast_nullable_to_non_nullable
-as double,todayIncome: null == todayIncome ? _self.todayIncome : todayIncome // ignore: cast_nullable_to_non_nullable
-as double,todayExpense: null == todayExpense ? _self.todayExpense : todayExpense // ignore: cast_nullable_to_non_nullable
-as double,topExpenseCategory: freezed == topExpenseCategory ? _self.topExpenseCategory : topExpenseCategory // ignore: cast_nullable_to_non_nullable
+as MoneyAmount,todayIncome: null == todayIncome ? _self.todayIncome : todayIncome // ignore: cast_nullable_to_non_nullable
+as MoneyAmount,todayExpense: null == todayExpense ? _self.todayExpense : todayExpense // ignore: cast_nullable_to_non_nullable
+as MoneyAmount,topExpenseCategory: freezed == topExpenseCategory ? _self.topExpenseCategory : topExpenseCategory // ignore: cast_nullable_to_non_nullable
 as HomeTopExpenseCategory?,
   ));
 }

@@ -56,8 +56,9 @@ class UpdateTransactionUseCase {
       if (targetAccountId == null || targetAccountId == request.accountId) {
         throw StateError('Invalid transfer target account');
       }
-      final AccountEntity? targetAccount =
-          await _accountRepository.findById(targetAccountId);
+      final AccountEntity? targetAccount = await _accountRepository.findById(
+        targetAccountId,
+      );
       if (targetAccount == null) {
         throw StateError('Account not found for id $targetAccountId');
       }

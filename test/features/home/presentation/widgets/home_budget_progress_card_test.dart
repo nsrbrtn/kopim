@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/budgets/domain/entities/budget.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_instance.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_instance_status.dart';
@@ -25,7 +26,8 @@ void main() {
       title: 'Food',
       period: BudgetPeriod.monthly,
       startDate: DateTime(2024, 1, 1),
-      amount: 500,
+      amountMinor: BigInt.from(50000),
+      amountScale: 2,
       scope: BudgetScope.all,
       createdAt: DateTime(2024, 1, 1),
       updatedAt: DateTime(2024, 1, 2),
@@ -35,8 +37,9 @@ void main() {
       budgetId: 'budget-1',
       periodStart: DateTime(2024, 1, 1),
       periodEnd: DateTime(2024, 1, 31),
-      amount: 500,
-      spent: 200,
+      amountMinor: BigInt.from(50000),
+      spentMinor: BigInt.from(20000),
+      amountScale: 2,
       status: BudgetInstanceStatus.active,
       createdAt: DateTime(2024, 1, 1),
       updatedAt: DateTime(2024, 1, 2),
@@ -44,8 +47,8 @@ void main() {
     final BudgetProgress progress = BudgetProgress(
       budget: budget,
       instance: instance,
-      spent: 200,
-      remaining: 300,
+      spent: MoneyAmount(minor: BigInt.from(20000), scale: 2),
+      remaining: MoneyAmount(minor: BigInt.from(30000), scale: 2),
       utilization: 0.4,
       isExceeded: false,
     );
@@ -65,7 +68,8 @@ void main() {
         id: 'tx-1',
         accountId: 'acc-1',
         categoryId: groceries.id,
-        amount: -120,
+        amountMinor: BigInt.from(-12000),
+        amountScale: 2,
         date: DateTime(2024, 1, 10),
         type: 'expense',
         createdAt: DateTime(2024, 1, 10),
@@ -133,7 +137,8 @@ void main() {
         id: 'tx-1',
         accountId: 'acc-1',
         categoryId: groceries.id,
-        amount: -420,
+        amountMinor: BigInt.from(-42000),
+        amountScale: 2,
         date: DateTime(2024, 1, 10),
         type: 'expense',
         createdAt: DateTime(2024, 1, 10),
@@ -144,8 +149,9 @@ void main() {
         budgetId: 'budget-1',
         periodStart: DateTime(2024, 1, 1),
         periodEnd: DateTime(2024, 1, 31),
-        amount: 500,
-        spent: 420,
+        amountMinor: BigInt.from(50000),
+        spentMinor: BigInt.from(42000),
+        amountScale: 2,
         status: BudgetInstanceStatus.active,
         createdAt: DateTime(2024, 1, 1),
         updatedAt: DateTime(2024, 1, 2),
@@ -153,8 +159,8 @@ void main() {
       final BudgetProgress highProgress = BudgetProgress(
         budget: budget,
         instance: highInstance,
-        spent: 420,
-        remaining: 80,
+        spent: MoneyAmount(minor: BigInt.from(42000), scale: 2),
+        remaining: MoneyAmount(minor: BigInt.from(8000), scale: 2),
         utilization: 0.84,
         isExceeded: false,
       );

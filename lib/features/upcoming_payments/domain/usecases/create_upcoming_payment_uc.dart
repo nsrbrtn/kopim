@@ -1,5 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/upcoming_payments/domain/entities/upcoming_payment.dart';
 import 'package:kopim/features/upcoming_payments/domain/repositories/upcoming_payments_repository.dart';
 import 'package:kopim/features/upcoming_payments/domain/services/id_service.dart';
@@ -16,7 +17,7 @@ abstract class CreateUpcomingPaymentInput with _$CreateUpcomingPaymentInput {
     required String title,
     required String accountId,
     required String categoryId,
-    required double amount,
+    required MoneyAmount amount,
     required int dayOfMonth,
     required int notifyDaysBefore,
     required String notifyTimeHhmm,
@@ -74,7 +75,8 @@ class CreateUpcomingPaymentUC {
       title: input.title,
       accountId: input.accountId,
       categoryId: input.categoryId,
-      amount: input.amount,
+      amountMinor: input.amount.minor,
+      amountScale: input.amount.scale,
       dayOfMonth: input.dayOfMonth,
       notifyDaysBefore: input.notifyDaysBefore,
       notifyTimeHhmm: input.notifyTimeHhmm,

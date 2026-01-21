@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:collection/collection.dart';
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/savings/domain/models/saving_goal_analytics.dart';
 import 'package:kopim/features/savings/domain/models/saving_goal_category_breakdown.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
@@ -22,18 +23,22 @@ class WatchSavingGoalAnalyticsUseCase {
       );
 
       if (related.isEmpty) {
-        return SavingGoalAnalytics(goalId: goalId);
+        return SavingGoalAnalytics(
+          goalId: goalId,
+          totalAmount: const MoneyAmount(minor: BigInt.zero, scale: 2),
+        );
       }
 
-      final Map<String?, double> totalsByCategory = <String?, double>{};
-      double totalAmount = 0;
+      final Map<String?, MoneyAccumulator> totalsByCategory =
+          <String?, MoneyAccumulator>{};
+      final MoneyAccumulator totalAmount = MoneyAccumulator();
       DateTime? latest;
 
       for (final TransactionEntity transaction in related) {
-        final double absolute = transaction.amountValue.abs().toDouble();
-        totalAmount += absolute;
+        final MoneyAmount absolute = transaction.amountValue.abs();
+        totalAmount.add(absolute);
         final String? key = transaction.categoryId;
-        totalsByCategory[key] = (totalsByCategory[key] ?? 0) + absolute;
+        totalsByCategory.putIfAbsent(key, MoneyAccumulator.new).add(absolute);
         if (latest == null || transaction.date.isAfter(latest)) {
           latest = transaction.date;
         }
@@ -42,20 +47,27 @@ class WatchSavingGoalAnalyticsUseCase {
       final List<SavingGoalCategoryBreakdown> breakdown = totalsByCategory
           .entries
           .map(
-            (MapEntry<String?, double> entry) => SavingGoalCategoryBreakdown(
-              categoryId: entry.key,
-              amount: entry.value,
-            ),
+            (MapEntry<String?, MoneyAccumulator> entry) =>
+                SavingGoalCategoryBreakdown(
+                  categoryId: entry.key,
+                  amount: MoneyAmount(
+                    minor: entry.value.minor,
+                    scale: entry.value.scale,
+                  ),
+                ),
           )
           .sorted(
             (SavingGoalCategoryBreakdown a, SavingGoalCategoryBreakdown b) =>
-                b.amount.compareTo(a.amount),
+                b.amount.toDouble().compareTo(a.amount.toDouble()),
           )
           .toList(growable: false);
 
       return SavingGoalAnalytics(
         goalId: goalId,
-        totalAmount: totalAmount,
+        totalAmount: MoneyAmount(
+          minor: totalAmount.minor,
+          scale: totalAmount.scale,
+        ),
         lastContributionAt: latest,
         categoryBreakdown: breakdown,
         transactionCount: related.length,

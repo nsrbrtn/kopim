@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/upcoming_payments/domain/entities/upcoming_payment.dart';
 import 'package:kopim/features/upcoming_payments/domain/models/value_update.dart';
 import 'package:kopim/features/upcoming_payments/domain/services/schedule_policy.dart';
@@ -38,11 +39,11 @@ void main() {
 
   test('create рассчитывает nextRunAtMs и nextNotifyAtMs', () async {
     final UpcomingPayment payment = await createUC(
-      const CreateUpcomingPaymentInput(
+      CreateUpcomingPaymentInput(
         title: 'Аренда',
         accountId: 'acc',
         categoryId: 'cat',
-        amount: 2000,
+        amount: MoneyAmount(minor: BigInt.from(200000), scale: 2),
         dayOfMonth: 15,
         notifyDaysBefore: 3,
         notifyTimeHhmm: '09:30',
@@ -71,11 +72,11 @@ void main() {
 
   test('update пересчитывает даты и может очищать заметку', () async {
     final UpcomingPayment created = await createUC(
-      const CreateUpcomingPaymentInput(
+      CreateUpcomingPaymentInput(
         title: 'Аренда',
         accountId: 'acc',
         categoryId: 'cat',
-        amount: 2000,
+        amount: MoneyAmount(minor: BigInt.from(200000), scale: 2),
         dayOfMonth: 15,
         notifyDaysBefore: 3,
         notifyTimeHhmm: '09:30',
@@ -89,7 +90,7 @@ void main() {
     final UpcomingPayment updated = await updateUC(
       UpdateUpcomingPaymentInput(
         id: created.id,
-        amount: 2500,
+        amount: MoneyAmount(minor: BigInt.from(250000), scale: 2),
         dayOfMonth: 25,
         notifyDaysBefore: 5,
         notifyTimeHhmm: '08:00',
@@ -97,7 +98,10 @@ void main() {
       ),
     );
 
-    expect(updated.amount, 2500);
+    expect(
+      updated.amountValue,
+      MoneyAmount(minor: BigInt.from(250000), scale: 2),
+    );
     expect(updated.note, isNull);
     expect(updated.dayOfMonth, 25);
     expect(

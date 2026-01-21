@@ -1,4 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:kopim/core/money/money_amount_converter.dart';
+import 'package:kopim/core/money/money_utils.dart';
 
 part 'ai_financial_overview_entity.freezed.dart';
 part 'ai_financial_overview_entity.g.dart';
@@ -36,7 +38,7 @@ abstract class MonthlyExpenseInsight with _$MonthlyExpenseInsight {
 
   const factory MonthlyExpenseInsight({
     required DateTime month,
-    required double totalExpense,
+    @MoneyAmountJsonConverter() required MoneyAmount totalExpense,
   }) = _MonthlyExpenseInsight;
 
   factory MonthlyExpenseInsight.fromJson(Map<String, dynamic> json) =>
@@ -53,7 +55,7 @@ abstract class MonthlyIncomeInsight with _$MonthlyIncomeInsight {
 
   const factory MonthlyIncomeInsight({
     required DateTime month,
-    required double totalIncome,
+    @MoneyAmountJsonConverter() required MoneyAmount totalIncome,
   }) = _MonthlyIncomeInsight;
 
   factory MonthlyIncomeInsight.fromJson(Map<String, dynamic> json) =>
@@ -71,7 +73,7 @@ abstract class CategoryExpenseInsight with _$CategoryExpenseInsight {
   const factory CategoryExpenseInsight({
     String? categoryId,
     required String displayName,
-    required double totalExpense,
+    @MoneyAmountJsonConverter() required MoneyAmount totalExpense,
     String? color,
   }) = _CategoryExpenseInsight;
 
@@ -90,7 +92,7 @@ abstract class CategoryIncomeInsight with _$CategoryIncomeInsight {
   const factory CategoryIncomeInsight({
     String? categoryId,
     required String displayName,
-    required double totalIncome,
+    @MoneyAmountJsonConverter() required MoneyAmount totalIncome,
     String? color,
   }) = _CategoryIncomeInsight;
 
@@ -114,10 +116,10 @@ abstract class BudgetForecastInsight with _$BudgetForecastInsight {
     required String title,
     required DateTime periodStart,
     required DateTime periodEnd,
-    required double allocated,
-    required double spent,
-    required double projectedSpent,
-    required double remaining,
+    @MoneyAmountJsonConverter() required MoneyAmount allocated,
+    @MoneyAmountJsonConverter() required MoneyAmount spent,
+    @MoneyAmountJsonConverter() required MoneyAmount projectedSpent,
+    @MoneyAmountJsonConverter() required MoneyAmount remaining,
     required double completionRate,
     required BudgetForecastStatus status,
     @Default(<String>[]) List<String> categoryNames,
@@ -128,7 +130,23 @@ abstract class BudgetForecastInsight with _$BudgetForecastInsight {
       _$BudgetForecastInsightFromJson(json);
 
   /// Насколько прогноз превышает выделенный бюджет.
-  double get projectedVariance => projectedSpent - allocated;
+  MoneyAmount get projectedVariance {
+    final int targetScale = projectedSpent.scale > allocated.scale
+        ? projectedSpent.scale
+        : allocated.scale;
+    final MoneyAmount normalizedProjected = rescaleMoneyAmount(
+      projectedSpent,
+      targetScale,
+    );
+    final MoneyAmount normalizedAllocated = rescaleMoneyAmount(
+      allocated,
+      targetScale,
+    );
+    return MoneyAmount(
+      minor: normalizedProjected.minor - normalizedAllocated.minor,
+      scale: targetScale,
+    );
+  }
 
   /// Истина, если прогноз сигнализирует о риске превышения.
   bool get isAtRisk =>

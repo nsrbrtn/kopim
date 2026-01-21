@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:kopim/core/money/money_utils.dart';
 
 part 'monthly_balance_data.freezed.dart';
 
@@ -8,7 +9,7 @@ abstract class MonthlyBalanceData with _$MonthlyBalanceData {
 
   const factory MonthlyBalanceData({
     required DateTime month,
-    required double totalBalance,
+    required MoneyAmount totalBalance,
   }) = _MonthlyBalanceData;
 
   String get monthLabel {

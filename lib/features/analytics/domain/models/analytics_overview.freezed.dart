@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$AnalyticsOverview {
 
- double get totalIncome; double get totalExpense; double get netBalance; List<AnalyticsCategoryBreakdown> get topExpenseCategories; List<AnalyticsCategoryBreakdown> get topIncomeCategories;
+ MoneyAmount get totalIncome; MoneyAmount get totalExpense; MoneyAmount get netBalance; List<AnalyticsCategoryBreakdown> get topExpenseCategories; List<AnalyticsCategoryBreakdown> get topIncomeCategories;
 /// Create a copy of AnalyticsOverview
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -45,7 +45,7 @@ abstract mixin class $AnalyticsOverviewCopyWith<$Res>  {
   factory $AnalyticsOverviewCopyWith(AnalyticsOverview value, $Res Function(AnalyticsOverview) _then) = _$AnalyticsOverviewCopyWithImpl;
 @useResult
 $Res call({
- double totalIncome, double totalExpense, double netBalance, List<AnalyticsCategoryBreakdown> topExpenseCategories, List<AnalyticsCategoryBreakdown> topIncomeCategories
+ MoneyAmount totalIncome, MoneyAmount totalExpense, MoneyAmount netBalance, List<AnalyticsCategoryBreakdown> topExpenseCategories, List<AnalyticsCategoryBreakdown> topIncomeCategories
 });
 
 
@@ -65,9 +65,9 @@ class _$AnalyticsOverviewCopyWithImpl<$Res>
 @pragma('vm:prefer-inline') @override $Res call({Object? totalIncome = null,Object? totalExpense = null,Object? netBalance = null,Object? topExpenseCategories = null,Object? topIncomeCategories = null,}) {
   return _then(_self.copyWith(
 totalIncome: null == totalIncome ? _self.totalIncome : totalIncome // ignore: cast_nullable_to_non_nullable
-as double,totalExpense: null == totalExpense ? _self.totalExpense : totalExpense // ignore: cast_nullable_to_non_nullable
-as double,netBalance: null == netBalance ? _self.netBalance : netBalance // ignore: cast_nullable_to_non_nullable
-as double,topExpenseCategories: null == topExpenseCategories ? _self.topExpenseCategories : topExpenseCategories // ignore: cast_nullable_to_non_nullable
+as MoneyAmount,totalExpense: null == totalExpense ? _self.totalExpense : totalExpense // ignore: cast_nullable_to_non_nullable
+as MoneyAmount,netBalance: null == netBalance ? _self.netBalance : netBalance // ignore: cast_nullable_to_non_nullable
+as MoneyAmount,topExpenseCategories: null == topExpenseCategories ? _self.topExpenseCategories : topExpenseCategories // ignore: cast_nullable_to_non_nullable
 as List<AnalyticsCategoryBreakdown>,topIncomeCategories: null == topIncomeCategories ? _self.topIncomeCategories : topIncomeCategories // ignore: cast_nullable_to_non_nullable
 as List<AnalyticsCategoryBreakdown>,
   ));
@@ -154,7 +154,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( double totalIncome,  double totalExpense,  double netBalance,  List<AnalyticsCategoryBreakdown> topExpenseCategories,  List<AnalyticsCategoryBreakdown> topIncomeCategories)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( MoneyAmount totalIncome,  MoneyAmount totalExpense,  MoneyAmount netBalance,  List<AnalyticsCategoryBreakdown> topExpenseCategories,  List<AnalyticsCategoryBreakdown> topIncomeCategories)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _AnalyticsOverview() when $default != null:
 return $default(_that.totalIncome,_that.totalExpense,_that.netBalance,_that.topExpenseCategories,_that.topIncomeCategories);case _:
@@ -175,7 +175,7 @@ return $default(_that.totalIncome,_that.totalExpense,_that.netBalance,_that.topE
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( double totalIncome,  double totalExpense,  double netBalance,  List<AnalyticsCategoryBreakdown> topExpenseCategories,  List<AnalyticsCategoryBreakdown> topIncomeCategories)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( MoneyAmount totalIncome,  MoneyAmount totalExpense,  MoneyAmount netBalance,  List<AnalyticsCategoryBreakdown> topExpenseCategories,  List<AnalyticsCategoryBreakdown> topIncomeCategories)  $default,) {final _that = this;
 switch (_that) {
 case _AnalyticsOverview():
 return $default(_that.totalIncome,_that.totalExpense,_that.netBalance,_that.topExpenseCategories,_that.topIncomeCategories);case _:
@@ -195,7 +195,7 @@ return $default(_that.totalIncome,_that.totalExpense,_that.netBalance,_that.topE
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( double totalIncome,  double totalExpense,  double netBalance,  List<AnalyticsCategoryBreakdown> topExpenseCategories,  List<AnalyticsCategoryBreakdown> topIncomeCategories)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( MoneyAmount totalIncome,  MoneyAmount totalExpense,  MoneyAmount netBalance,  List<AnalyticsCategoryBreakdown> topExpenseCategories,  List<AnalyticsCategoryBreakdown> topIncomeCategories)?  $default,) {final _that = this;
 switch (_that) {
 case _AnalyticsOverview() when $default != null:
 return $default(_that.totalIncome,_that.totalExpense,_that.netBalance,_that.topExpenseCategories,_that.topIncomeCategories);case _:
@@ -213,9 +213,9 @@ class _AnalyticsOverview extends AnalyticsOverview {
   const _AnalyticsOverview({required this.totalIncome, required this.totalExpense, required this.netBalance, required final  List<AnalyticsCategoryBreakdown> topExpenseCategories, required final  List<AnalyticsCategoryBreakdown> topIncomeCategories}): _topExpenseCategories = topExpenseCategories,_topIncomeCategories = topIncomeCategories,super._();
   
 
-@override final  double totalIncome;
-@override final  double totalExpense;
-@override final  double netBalance;
+@override final  MoneyAmount totalIncome;
+@override final  MoneyAmount totalExpense;
+@override final  MoneyAmount netBalance;
  final  List<AnalyticsCategoryBreakdown> _topExpenseCategories;
 @override List<AnalyticsCategoryBreakdown> get topExpenseCategories {
   if (_topExpenseCategories is EqualUnmodifiableListView) return _topExpenseCategories;
@@ -261,7 +261,7 @@ abstract mixin class _$AnalyticsOverviewCopyWith<$Res> implements $AnalyticsOver
   factory _$AnalyticsOverviewCopyWith(_AnalyticsOverview value, $Res Function(_AnalyticsOverview) _then) = __$AnalyticsOverviewCopyWithImpl;
 @override @useResult
 $Res call({
- double totalIncome, double totalExpense, double netBalance, List<AnalyticsCategoryBreakdown> topExpenseCategories, List<AnalyticsCategoryBreakdown> topIncomeCategories
+ MoneyAmount totalIncome, MoneyAmount totalExpense, MoneyAmount netBalance, List<AnalyticsCategoryBreakdown> topExpenseCategories, List<AnalyticsCategoryBreakdown> topIncomeCategories
 });
 
 
@@ -281,9 +281,9 @@ class __$AnalyticsOverviewCopyWithImpl<$Res>
 @override @pragma('vm:prefer-inline') $Res call({Object? totalIncome = null,Object? totalExpense = null,Object? netBalance = null,Object? topExpenseCategories = null,Object? topIncomeCategories = null,}) {
   return _then(_AnalyticsOverview(
 totalIncome: null == totalIncome ? _self.totalIncome : totalIncome // ignore: cast_nullable_to_non_nullable
-as double,totalExpense: null == totalExpense ? _self.totalExpense : totalExpense // ignore: cast_nullable_to_non_nullable
-as double,netBalance: null == netBalance ? _self.netBalance : netBalance // ignore: cast_nullable_to_non_nullable
-as double,topExpenseCategories: null == topExpenseCategories ? _self._topExpenseCategories : topExpenseCategories // ignore: cast_nullable_to_non_nullable
+as MoneyAmount,totalExpense: null == totalExpense ? _self.totalExpense : totalExpense // ignore: cast_nullable_to_non_nullable
+as MoneyAmount,netBalance: null == netBalance ? _self.netBalance : netBalance // ignore: cast_nullable_to_non_nullable
+as MoneyAmount,topExpenseCategories: null == topExpenseCategories ? _self._topExpenseCategories : topExpenseCategories // ignore: cast_nullable_to_non_nullable
 as List<AnalyticsCategoryBreakdown>,topIncomeCategories: null == topIncomeCategories ? _self._topIncomeCategories : topIncomeCategories // ignore: cast_nullable_to_non_nullable
 as List<AnalyticsCategoryBreakdown>,
   ));

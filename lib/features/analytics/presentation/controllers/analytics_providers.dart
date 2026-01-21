@@ -239,7 +239,10 @@ Stream<List<MonthlyBalanceData>> monthlyBalanceData(Ref ref) {
       }
 
       // Теперь runningBalance соответствует балансу на конец месяца (monthEnd)
-      double maxBalanceInMonth = runningBalance.toDouble();
+      MoneyAmount maxBalanceInMonth = MoneyAmount(
+        minor: runningBalance.minor,
+        scale: runningBalance.scale,
+      );
 
       // 2. Проходим по транзакциям ВНУТРИ месяца, отслеживая макс. баланс
       while (txIndex < sortedTransactions.length &&
@@ -247,10 +250,11 @@ Stream<List<MonthlyBalanceData>> monthlyBalanceData(Ref ref) {
             monthStart.subtract(const Duration(microseconds: 1)),
           )) {
         // runningBalance здесь - это баланс ПОСЛЕ транзакции t
-        final double runningValue = runningBalance.toDouble();
-        if (runningValue > maxBalanceInMonth) {
-          maxBalanceInMonth = runningValue;
-        }
+        final MoneyAmount runningValue = MoneyAmount(
+          minor: runningBalance.minor,
+          scale: runningBalance.scale,
+        );
+        maxBalanceInMonth = maxMoneyAmount(maxBalanceInMonth, runningValue);
 
         final TransactionEntity t = sortedTransactions[txIndex];
         final MoneyAmount? delta = _resolveTransactionDeltaForAccounts(
@@ -263,19 +267,21 @@ Stream<List<MonthlyBalanceData>> monthlyBalanceData(Ref ref) {
 
         // runningBalance теперь - это баланс ДО транзакции t
         // Проверяем его тоже, так как это могло быть пиковое значение до списания
-        final double updatedValue = runningBalance.toDouble();
-        if (updatedValue > maxBalanceInMonth) {
-          maxBalanceInMonth = updatedValue;
-        }
+        final MoneyAmount updatedValue = MoneyAmount(
+          minor: runningBalance.minor,
+          scale: runningBalance.scale,
+        );
+        maxBalanceInMonth = maxMoneyAmount(maxBalanceInMonth, updatedValue);
 
         txIndex++;
       }
 
       // После цикла runningBalance соответствует балансу на начало месяца
-      final double closingValue = runningBalance.toDouble();
-      if (closingValue > maxBalanceInMonth) {
-        maxBalanceInMonth = closingValue;
-      }
+      final MoneyAmount closingValue = MoneyAmount(
+        minor: runningBalance.minor,
+        scale: runningBalance.scale,
+      );
+      maxBalanceInMonth = maxMoneyAmount(maxBalanceInMonth, closingValue);
 
       // Добавляем в начало списка, чтобы порядок был хронологический (если нужно)
       // Но исходный код добавлял через .add в цикле 5..0, то есть от старого к новому.

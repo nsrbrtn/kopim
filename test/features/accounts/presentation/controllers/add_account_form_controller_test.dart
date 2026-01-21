@@ -19,8 +19,9 @@ AccountEntity _fallbackAccount() {
   return AccountEntity(
     id: 'id',
     name: 'name',
-    balance: 0,
+    balanceMinor: BigInt.zero,
     currency: 'USD',
+    currencyScale: 2,
     type: 'cash',
     createdAt: timestamp,
     updatedAt: timestamp,
@@ -69,7 +70,7 @@ void main() {
 
     expect(captured.id, 'uuid-123');
     expect(captured.name, 'Savings');
-    expect(captured.balance, 150.5);
+    expect(captured.balanceAmount.toDouble(), 150.5);
     expect(captured.currency, 'EUR');
     expect(captured.type, 'bank');
     expect(captured.createdAt, captured.updatedAt);

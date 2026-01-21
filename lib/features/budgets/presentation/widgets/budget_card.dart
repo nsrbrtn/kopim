@@ -44,9 +44,9 @@ class _BudgetCardState extends State<BudgetCard> {
     final NumberFormat currencyFormat = NumberFormat.simpleCurrency(
       locale: strings.localeName,
     );
-    final double limit = widget.progress.budget.amount;
-    final double spent = widget.progress.spent;
-    final double remaining = widget.progress.remaining;
+    final double limit = widget.progress.budget.amountValue.toDouble();
+    final double spent = widget.progress.spent.toDouble();
+    final double remaining = widget.progress.remaining.toDouble();
     final double ratio = widget.progress.utilization.isFinite
         ? widget.progress.utilization.clamp(0, 2)
         : 1.0;

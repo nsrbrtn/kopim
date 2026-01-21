@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$UpcomingItem {
 
- UpcomingItemType get type; String get id; String get title; double get amount; int get whenMs; String? get note;
+ UpcomingItemType get type; String get id; String get title; MoneyAmount get amount; int get whenMs; String? get note;
 /// Create a copy of UpcomingItem
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -45,7 +45,7 @@ abstract mixin class $UpcomingItemCopyWith<$Res>  {
   factory $UpcomingItemCopyWith(UpcomingItem value, $Res Function(UpcomingItem) _then) = _$UpcomingItemCopyWithImpl;
 @useResult
 $Res call({
- UpcomingItemType type, String id, String title, double amount, int whenMs, String? note
+ UpcomingItemType type, String id, String title, MoneyAmount amount, int whenMs, String? note
 });
 
 
@@ -68,7 +68,7 @@ type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as UpcomingItemType,id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String,amount: null == amount ? _self.amount : amount // ignore: cast_nullable_to_non_nullable
-as double,whenMs: null == whenMs ? _self.whenMs : whenMs // ignore: cast_nullable_to_non_nullable
+as MoneyAmount,whenMs: null == whenMs ? _self.whenMs : whenMs // ignore: cast_nullable_to_non_nullable
 as int,note: freezed == note ? _self.note : note // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
@@ -155,7 +155,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( UpcomingItemType type,  String id,  String title,  double amount,  int whenMs,  String? note)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( UpcomingItemType type,  String id,  String title,  MoneyAmount amount,  int whenMs,  String? note)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _UpcomingItem() when $default != null:
 return $default(_that.type,_that.id,_that.title,_that.amount,_that.whenMs,_that.note);case _:
@@ -176,7 +176,7 @@ return $default(_that.type,_that.id,_that.title,_that.amount,_that.whenMs,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( UpcomingItemType type,  String id,  String title,  double amount,  int whenMs,  String? note)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( UpcomingItemType type,  String id,  String title,  MoneyAmount amount,  int whenMs,  String? note)  $default,) {final _that = this;
 switch (_that) {
 case _UpcomingItem():
 return $default(_that.type,_that.id,_that.title,_that.amount,_that.whenMs,_that.note);case _:
@@ -196,7 +196,7 @@ return $default(_that.type,_that.id,_that.title,_that.amount,_that.whenMs,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( UpcomingItemType type,  String id,  String title,  double amount,  int whenMs,  String? note)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( UpcomingItemType type,  String id,  String title,  MoneyAmount amount,  int whenMs,  String? note)?  $default,) {final _that = this;
 switch (_that) {
 case _UpcomingItem() when $default != null:
 return $default(_that.type,_that.id,_that.title,_that.amount,_that.whenMs,_that.note);case _:
@@ -217,7 +217,7 @@ class _UpcomingItem implements UpcomingItem {
 @override final  UpcomingItemType type;
 @override final  String id;
 @override final  String title;
-@override final  double amount;
+@override final  MoneyAmount amount;
 @override final  int whenMs;
 @override final  String? note;
 
@@ -251,7 +251,7 @@ abstract mixin class _$UpcomingItemCopyWith<$Res> implements $UpcomingItemCopyWi
   factory _$UpcomingItemCopyWith(_UpcomingItem value, $Res Function(_UpcomingItem) _then) = __$UpcomingItemCopyWithImpl;
 @override @useResult
 $Res call({
- UpcomingItemType type, String id, String title, double amount, int whenMs, String? note
+ UpcomingItemType type, String id, String title, MoneyAmount amount, int whenMs, String? note
 });
 
 
@@ -274,7 +274,7 @@ type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as UpcomingItemType,id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String,amount: null == amount ? _self.amount : amount // ignore: cast_nullable_to_non_nullable
-as double,whenMs: null == whenMs ? _self.whenMs : whenMs // ignore: cast_nullable_to_non_nullable
+as MoneyAmount,whenMs: null == whenMs ? _self.whenMs : whenMs // ignore: cast_nullable_to_non_nullable
 as int,note: freezed == note ? _self.note : note // ignore: cast_nullable_to_non_nullable
 as String?,
   ));

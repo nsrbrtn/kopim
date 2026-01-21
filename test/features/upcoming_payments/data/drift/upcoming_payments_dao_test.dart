@@ -55,7 +55,8 @@ void main() {
     required String id,
     String accountId = defaultAccountId,
     String categoryId = defaultCategoryId,
-    double amount = 100,
+    BigInt? amountMinor,
+    int amountScale = 2,
     int dayOfMonth = 10,
     int notifyDaysBefore = 1,
     String notifyTime = '09:30',
@@ -67,12 +68,14 @@ void main() {
     int updatedAtMs = 1700000000000,
     String? note,
   }) {
+    final BigInt resolvedMinor = amountMinor ?? BigInt.from(10000);
     return UpcomingPayment(
       id: id,
       title: 'Payment $id',
       accountId: accountId,
       categoryId: categoryId,
-      amount: amount,
+      amountMinor: resolvedMinor,
+      amountScale: amountScale,
       dayOfMonth: dayOfMonth,
       notifyDaysBefore: notifyDaysBefore,
       notifyTimeHhmm: notifyTime,
@@ -126,11 +129,15 @@ void main() {
   );
 
   test('upsert обновляет существующий платёж', () async {
-    final UpcomingPayment original = buildPayment(id: 'p1', amount: 120);
+    final UpcomingPayment original = buildPayment(
+      id: 'p1',
+      amountMinor: BigInt.from(12000),
+    );
     await dao.upsert(original);
 
     final UpcomingPayment updated = original.copyWith(
-      amount: 250,
+      amountMinor: BigInt.from(25000),
+      amountScale: 2,
       note: 'Updated',
       updatedAtMs: original.updatedAtMs + 1000,
     );
@@ -138,7 +145,7 @@ void main() {
 
     final UpcomingPayment? loaded = await dao.getById('p1');
     expect(loaded, isNotNull);
-    expect(loaded!.amount, 250);
+    expect(loaded!.amountValue.minor, BigInt.from(25000));
     expect(loaded.note, 'Updated');
   });
 
@@ -155,7 +162,7 @@ void main() {
   test('валидатор отклоняет некорректные данные', () async {
     final UpcomingPayment invalidAmount = buildPayment(
       id: 'invalid-amount',
-      amount: 0,
+      amountMinor: BigInt.zero,
     );
     expect(() => dao.upsert(invalidAmount), throwsArgumentError);
 

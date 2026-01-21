@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$CreditEntity {
 
- String get id; String get accountId; String? get categoryId; double get totalAmount;@JsonKey(includeFromJson: false, includeToJson: false) BigInt? get totalAmountMinor;@JsonKey(includeFromJson: false, includeToJson: false) int? get totalAmountScale; double get interestRate; int get termMonths; DateTime get startDate; int get paymentDay; DateTime get createdAt; DateTime get updatedAt; bool get isDeleted;
+ String get id; String get accountId; String? get categoryId;@JsonKey(includeFromJson: false, includeToJson: false) BigInt? get totalAmountMinor;@JsonKey(includeFromJson: false, includeToJson: false) int? get totalAmountScale; double get interestRate; int get termMonths; DateTime get startDate; int get paymentDay; DateTime get createdAt; DateTime get updatedAt; bool get isDeleted;
 /// Create a copy of CreditEntity
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $CreditEntityCopyWith<CreditEntity> get copyWith => _$CreditEntityCopyWithImpl<C
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CreditEntity&&(identical(other.id, id) || other.id == id)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.categoryId, categoryId) || other.categoryId == categoryId)&&(identical(other.totalAmount, totalAmount) || other.totalAmount == totalAmount)&&(identical(other.totalAmountMinor, totalAmountMinor) || other.totalAmountMinor == totalAmountMinor)&&(identical(other.totalAmountScale, totalAmountScale) || other.totalAmountScale == totalAmountScale)&&(identical(other.interestRate, interestRate) || other.interestRate == interestRate)&&(identical(other.termMonths, termMonths) || other.termMonths == termMonths)&&(identical(other.startDate, startDate) || other.startDate == startDate)&&(identical(other.paymentDay, paymentDay) || other.paymentDay == paymentDay)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.isDeleted, isDeleted) || other.isDeleted == isDeleted));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CreditEntity&&(identical(other.id, id) || other.id == id)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.categoryId, categoryId) || other.categoryId == categoryId)&&(identical(other.totalAmountMinor, totalAmountMinor) || other.totalAmountMinor == totalAmountMinor)&&(identical(other.totalAmountScale, totalAmountScale) || other.totalAmountScale == totalAmountScale)&&(identical(other.interestRate, interestRate) || other.interestRate == interestRate)&&(identical(other.termMonths, termMonths) || other.termMonths == termMonths)&&(identical(other.startDate, startDate) || other.startDate == startDate)&&(identical(other.paymentDay, paymentDay) || other.paymentDay == paymentDay)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.isDeleted, isDeleted) || other.isDeleted == isDeleted));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,accountId,categoryId,totalAmount,totalAmountMinor,totalAmountScale,interestRate,termMonths,startDate,paymentDay,createdAt,updatedAt,isDeleted);
+int get hashCode => Object.hash(runtimeType,id,accountId,categoryId,totalAmountMinor,totalAmountScale,interestRate,termMonths,startDate,paymentDay,createdAt,updatedAt,isDeleted);
 
 @override
 String toString() {
-  return 'CreditEntity(id: $id, accountId: $accountId, categoryId: $categoryId, totalAmount: $totalAmount, totalAmountMinor: $totalAmountMinor, totalAmountScale: $totalAmountScale, interestRate: $interestRate, termMonths: $termMonths, startDate: $startDate, paymentDay: $paymentDay, createdAt: $createdAt, updatedAt: $updatedAt, isDeleted: $isDeleted)';
+  return 'CreditEntity(id: $id, accountId: $accountId, categoryId: $categoryId, totalAmountMinor: $totalAmountMinor, totalAmountScale: $totalAmountScale, interestRate: $interestRate, termMonths: $termMonths, startDate: $startDate, paymentDay: $paymentDay, createdAt: $createdAt, updatedAt: $updatedAt, isDeleted: $isDeleted)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $CreditEntityCopyWith<$Res>  {
   factory $CreditEntityCopyWith(CreditEntity value, $Res Function(CreditEntity) _then) = _$CreditEntityCopyWithImpl;
 @useResult
 $Res call({
- String id, String accountId, String? categoryId, double totalAmount,@JsonKey(includeFromJson: false, includeToJson: false) BigInt? totalAmountMinor,@JsonKey(includeFromJson: false, includeToJson: false) int? totalAmountScale, double interestRate, int termMonths, DateTime startDate, int paymentDay, DateTime createdAt, DateTime updatedAt, bool isDeleted
+ String id, String accountId, String? categoryId,@JsonKey(includeFromJson: false, includeToJson: false) BigInt? totalAmountMinor,@JsonKey(includeFromJson: false, includeToJson: false) int? totalAmountScale, double interestRate, int termMonths, DateTime startDate, int paymentDay, DateTime createdAt, DateTime updatedAt, bool isDeleted
 });
 
 
@@ -65,13 +65,12 @@ class _$CreditEntityCopyWithImpl<$Res>
 
 /// Create a copy of CreditEntity
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? accountId = null,Object? categoryId = freezed,Object? totalAmount = null,Object? totalAmountMinor = freezed,Object? totalAmountScale = freezed,Object? interestRate = null,Object? termMonths = null,Object? startDate = null,Object? paymentDay = null,Object? createdAt = null,Object? updatedAt = null,Object? isDeleted = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? accountId = null,Object? categoryId = freezed,Object? totalAmountMinor = freezed,Object? totalAmountScale = freezed,Object? interestRate = null,Object? termMonths = null,Object? startDate = null,Object? paymentDay = null,Object? createdAt = null,Object? updatedAt = null,Object? isDeleted = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
 as String,categoryId: freezed == categoryId ? _self.categoryId : categoryId // ignore: cast_nullable_to_non_nullable
-as String?,totalAmount: null == totalAmount ? _self.totalAmount : totalAmount // ignore: cast_nullable_to_non_nullable
-as double,totalAmountMinor: freezed == totalAmountMinor ? _self.totalAmountMinor : totalAmountMinor // ignore: cast_nullable_to_non_nullable
+as String?,totalAmountMinor: freezed == totalAmountMinor ? _self.totalAmountMinor : totalAmountMinor // ignore: cast_nullable_to_non_nullable
 as BigInt?,totalAmountScale: freezed == totalAmountScale ? _self.totalAmountScale : totalAmountScale // ignore: cast_nullable_to_non_nullable
 as int?,interestRate: null == interestRate ? _self.interestRate : interestRate // ignore: cast_nullable_to_non_nullable
 as double,termMonths: null == termMonths ? _self.termMonths : termMonths // ignore: cast_nullable_to_non_nullable
@@ -165,10 +164,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String accountId,  String? categoryId,  double totalAmount, @JsonKey(includeFromJson: false, includeToJson: false)  BigInt? totalAmountMinor, @JsonKey(includeFromJson: false, includeToJson: false)  int? totalAmountScale,  double interestRate,  int termMonths,  DateTime startDate,  int paymentDay,  DateTime createdAt,  DateTime updatedAt,  bool isDeleted)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String accountId,  String? categoryId, @JsonKey(includeFromJson: false, includeToJson: false)  BigInt? totalAmountMinor, @JsonKey(includeFromJson: false, includeToJson: false)  int? totalAmountScale,  double interestRate,  int termMonths,  DateTime startDate,  int paymentDay,  DateTime createdAt,  DateTime updatedAt,  bool isDeleted)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _CreditEntity() when $default != null:
-return $default(_that.id,_that.accountId,_that.categoryId,_that.totalAmount,_that.totalAmountMinor,_that.totalAmountScale,_that.interestRate,_that.termMonths,_that.startDate,_that.paymentDay,_that.createdAt,_that.updatedAt,_that.isDeleted);case _:
+return $default(_that.id,_that.accountId,_that.categoryId,_that.totalAmountMinor,_that.totalAmountScale,_that.interestRate,_that.termMonths,_that.startDate,_that.paymentDay,_that.createdAt,_that.updatedAt,_that.isDeleted);case _:
   return orElse();
 
 }
@@ -186,10 +185,10 @@ return $default(_that.id,_that.accountId,_that.categoryId,_that.totalAmount,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String accountId,  String? categoryId,  double totalAmount, @JsonKey(includeFromJson: false, includeToJson: false)  BigInt? totalAmountMinor, @JsonKey(includeFromJson: false, includeToJson: false)  int? totalAmountScale,  double interestRate,  int termMonths,  DateTime startDate,  int paymentDay,  DateTime createdAt,  DateTime updatedAt,  bool isDeleted)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String accountId,  String? categoryId, @JsonKey(includeFromJson: false, includeToJson: false)  BigInt? totalAmountMinor, @JsonKey(includeFromJson: false, includeToJson: false)  int? totalAmountScale,  double interestRate,  int termMonths,  DateTime startDate,  int paymentDay,  DateTime createdAt,  DateTime updatedAt,  bool isDeleted)  $default,) {final _that = this;
 switch (_that) {
 case _CreditEntity():
-return $default(_that.id,_that.accountId,_that.categoryId,_that.totalAmount,_that.totalAmountMinor,_that.totalAmountScale,_that.interestRate,_that.termMonths,_that.startDate,_that.paymentDay,_that.createdAt,_that.updatedAt,_that.isDeleted);case _:
+return $default(_that.id,_that.accountId,_that.categoryId,_that.totalAmountMinor,_that.totalAmountScale,_that.interestRate,_that.termMonths,_that.startDate,_that.paymentDay,_that.createdAt,_that.updatedAt,_that.isDeleted);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -206,10 +205,10 @@ return $default(_that.id,_that.accountId,_that.categoryId,_that.totalAmount,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String accountId,  String? categoryId,  double totalAmount, @JsonKey(includeFromJson: false, includeToJson: false)  BigInt? totalAmountMinor, @JsonKey(includeFromJson: false, includeToJson: false)  int? totalAmountScale,  double interestRate,  int termMonths,  DateTime startDate,  int paymentDay,  DateTime createdAt,  DateTime updatedAt,  bool isDeleted)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String accountId,  String? categoryId, @JsonKey(includeFromJson: false, includeToJson: false)  BigInt? totalAmountMinor, @JsonKey(includeFromJson: false, includeToJson: false)  int? totalAmountScale,  double interestRate,  int termMonths,  DateTime startDate,  int paymentDay,  DateTime createdAt,  DateTime updatedAt,  bool isDeleted)?  $default,) {final _that = this;
 switch (_that) {
 case _CreditEntity() when $default != null:
-return $default(_that.id,_that.accountId,_that.categoryId,_that.totalAmount,_that.totalAmountMinor,_that.totalAmountScale,_that.interestRate,_that.termMonths,_that.startDate,_that.paymentDay,_that.createdAt,_that.updatedAt,_that.isDeleted);case _:
+return $default(_that.id,_that.accountId,_that.categoryId,_that.totalAmountMinor,_that.totalAmountScale,_that.interestRate,_that.termMonths,_that.startDate,_that.paymentDay,_that.createdAt,_that.updatedAt,_that.isDeleted);case _:
   return null;
 
 }
@@ -220,14 +219,13 @@ return $default(_that.id,_that.accountId,_that.categoryId,_that.totalAmount,_tha
 /// @nodoc
 @JsonSerializable()
 
-class _CreditEntity implements CreditEntity {
-  const _CreditEntity({required this.id, required this.accountId, this.categoryId, required this.totalAmount, @JsonKey(includeFromJson: false, includeToJson: false) this.totalAmountMinor, @JsonKey(includeFromJson: false, includeToJson: false) this.totalAmountScale, required this.interestRate, required this.termMonths, required this.startDate, this.paymentDay = 1, required this.createdAt, required this.updatedAt, this.isDeleted = false});
+class _CreditEntity extends CreditEntity {
+  const _CreditEntity({required this.id, required this.accountId, this.categoryId, @JsonKey(includeFromJson: false, includeToJson: false) this.totalAmountMinor, @JsonKey(includeFromJson: false, includeToJson: false) this.totalAmountScale, required this.interestRate, required this.termMonths, required this.startDate, this.paymentDay = 1, required this.createdAt, required this.updatedAt, this.isDeleted = false}): super._();
   factory _CreditEntity.fromJson(Map<String, dynamic> json) => _$CreditEntityFromJson(json);
 
 @override final  String id;
 @override final  String accountId;
 @override final  String? categoryId;
-@override final  double totalAmount;
 @override@JsonKey(includeFromJson: false, includeToJson: false) final  BigInt? totalAmountMinor;
 @override@JsonKey(includeFromJson: false, includeToJson: false) final  int? totalAmountScale;
 @override final  double interestRate;
@@ -251,16 +249,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CreditEntity&&(identical(other.id, id) || other.id == id)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.categoryId, categoryId) || other.categoryId == categoryId)&&(identical(other.totalAmount, totalAmount) || other.totalAmount == totalAmount)&&(identical(other.totalAmountMinor, totalAmountMinor) || other.totalAmountMinor == totalAmountMinor)&&(identical(other.totalAmountScale, totalAmountScale) || other.totalAmountScale == totalAmountScale)&&(identical(other.interestRate, interestRate) || other.interestRate == interestRate)&&(identical(other.termMonths, termMonths) || other.termMonths == termMonths)&&(identical(other.startDate, startDate) || other.startDate == startDate)&&(identical(other.paymentDay, paymentDay) || other.paymentDay == paymentDay)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.isDeleted, isDeleted) || other.isDeleted == isDeleted));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CreditEntity&&(identical(other.id, id) || other.id == id)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.categoryId, categoryId) || other.categoryId == categoryId)&&(identical(other.totalAmountMinor, totalAmountMinor) || other.totalAmountMinor == totalAmountMinor)&&(identical(other.totalAmountScale, totalAmountScale) || other.totalAmountScale == totalAmountScale)&&(identical(other.interestRate, interestRate) || other.interestRate == interestRate)&&(identical(other.termMonths, termMonths) || other.termMonths == termMonths)&&(identical(other.startDate, startDate) || other.startDate == startDate)&&(identical(other.paymentDay, paymentDay) || other.paymentDay == paymentDay)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.isDeleted, isDeleted) || other.isDeleted == isDeleted));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,accountId,categoryId,totalAmount,totalAmountMinor,totalAmountScale,interestRate,termMonths,startDate,paymentDay,createdAt,updatedAt,isDeleted);
+int get hashCode => Object.hash(runtimeType,id,accountId,categoryId,totalAmountMinor,totalAmountScale,interestRate,termMonths,startDate,paymentDay,createdAt,updatedAt,isDeleted);
 
 @override
 String toString() {
-  return 'CreditEntity(id: $id, accountId: $accountId, categoryId: $categoryId, totalAmount: $totalAmount, totalAmountMinor: $totalAmountMinor, totalAmountScale: $totalAmountScale, interestRate: $interestRate, termMonths: $termMonths, startDate: $startDate, paymentDay: $paymentDay, createdAt: $createdAt, updatedAt: $updatedAt, isDeleted: $isDeleted)';
+  return 'CreditEntity(id: $id, accountId: $accountId, categoryId: $categoryId, totalAmountMinor: $totalAmountMinor, totalAmountScale: $totalAmountScale, interestRate: $interestRate, termMonths: $termMonths, startDate: $startDate, paymentDay: $paymentDay, createdAt: $createdAt, updatedAt: $updatedAt, isDeleted: $isDeleted)';
 }
 
 
@@ -271,7 +269,7 @@ abstract mixin class _$CreditEntityCopyWith<$Res> implements $CreditEntityCopyWi
   factory _$CreditEntityCopyWith(_CreditEntity value, $Res Function(_CreditEntity) _then) = __$CreditEntityCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String accountId, String? categoryId, double totalAmount,@JsonKey(includeFromJson: false, includeToJson: false) BigInt? totalAmountMinor,@JsonKey(includeFromJson: false, includeToJson: false) int? totalAmountScale, double interestRate, int termMonths, DateTime startDate, int paymentDay, DateTime createdAt, DateTime updatedAt, bool isDeleted
+ String id, String accountId, String? categoryId,@JsonKey(includeFromJson: false, includeToJson: false) BigInt? totalAmountMinor,@JsonKey(includeFromJson: false, includeToJson: false) int? totalAmountScale, double interestRate, int termMonths, DateTime startDate, int paymentDay, DateTime createdAt, DateTime updatedAt, bool isDeleted
 });
 
 
@@ -288,13 +286,12 @@ class __$CreditEntityCopyWithImpl<$Res>
 
 /// Create a copy of CreditEntity
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? accountId = null,Object? categoryId = freezed,Object? totalAmount = null,Object? totalAmountMinor = freezed,Object? totalAmountScale = freezed,Object? interestRate = null,Object? termMonths = null,Object? startDate = null,Object? paymentDay = null,Object? createdAt = null,Object? updatedAt = null,Object? isDeleted = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? accountId = null,Object? categoryId = freezed,Object? totalAmountMinor = freezed,Object? totalAmountScale = freezed,Object? interestRate = null,Object? termMonths = null,Object? startDate = null,Object? paymentDay = null,Object? createdAt = null,Object? updatedAt = null,Object? isDeleted = null,}) {
   return _then(_CreditEntity(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
 as String,categoryId: freezed == categoryId ? _self.categoryId : categoryId // ignore: cast_nullable_to_non_nullable
-as String?,totalAmount: null == totalAmount ? _self.totalAmount : totalAmount // ignore: cast_nullable_to_non_nullable
-as double,totalAmountMinor: freezed == totalAmountMinor ? _self.totalAmountMinor : totalAmountMinor // ignore: cast_nullable_to_non_nullable
+as String?,totalAmountMinor: freezed == totalAmountMinor ? _self.totalAmountMinor : totalAmountMinor // ignore: cast_nullable_to_non_nullable
 as BigInt?,totalAmountScale: freezed == totalAmountScale ? _self.totalAmountScale : totalAmountScale // ignore: cast_nullable_to_non_nullable
 as int?,interestRate: null == interestRate ? _self.interestRate : interestRate // ignore: cast_nullable_to_non_nullable
 as double,termMonths: null == termMonths ? _self.termMonths : termMonths // ignore: cast_nullable_to_non_nullable

@@ -1,5 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/upcoming_payments/domain/entities/payment_reminder.dart';
 import 'package:kopim/features/upcoming_payments/domain/models/value_update.dart';
 import 'package:kopim/features/upcoming_payments/domain/repositories/payment_reminders_repository.dart';
@@ -13,7 +14,7 @@ abstract class UpdatePaymentReminderInput with _$UpdatePaymentReminderInput {
   const factory UpdatePaymentReminderInput({
     required String id,
     String? title,
-    double? amount,
+    MoneyAmount? amount,
     DateTime? whenLocal,
     @Default(ValueUpdate<String?>.absent()) ValueUpdate<String?> note,
   }) = _UpdatePaymentReminderInput;
@@ -39,7 +40,7 @@ class UpdatePaymentReminderUC {
     }
 
     final String title = input.title ?? current.title;
-    final double amount = input.amount ?? current.amount;
+    final MoneyAmount amount = input.amount ?? current.amountValue;
     final DateTime whenLocal =
         input.whenLocal ?? _time.toLocal(current.whenAtMs);
     final String? note = input.note.isPresent ? input.note.value : current.note;
@@ -49,7 +50,8 @@ class UpdatePaymentReminderUC {
     final DateTime nowLocal = _time.nowLocal();
     final PaymentReminder updated = current.copyWith(
       title: title,
-      amount: amount,
+      amountMinor: amount.minor,
+      amountScale: amount.scale,
       whenAtMs: _time.toEpochMs(whenLocal),
       note: note,
       updatedAtMs: _time.toEpochMs(nowLocal),

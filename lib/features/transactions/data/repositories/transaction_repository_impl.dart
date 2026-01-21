@@ -204,8 +204,7 @@ class TransactionRepositoryImpl implements TransactionRepository {
     for (final String accountId in affectedAccounts) {
       final MoneyAmount? currentDelta = currentEffect[accountId];
       final MoneyAmount? previousDelta = previousEffect[accountId];
-      final int scale =
-          (currentDelta ?? previousDelta)?.scale ?? 2;
+      final int scale = (currentDelta ?? previousDelta)?.scale ?? 2;
       final MoneyAmount normalizedCurrent = currentDelta != null
           ? rescaleMoneyAmount(currentDelta, scale)
           : MoneyAmount(minor: BigInt.zero, scale: scale);
@@ -246,8 +245,7 @@ class TransactionRepositoryImpl implements TransactionRepository {
     if (row == null) {
       throw StateError('Account not found for id $accountId');
     }
-    final int scale =
-        row.currencyScale ?? resolveCurrencyScale(row.currency);
+    final int scale = row.currencyScale ?? resolveCurrencyScale(row.currency);
     final MoneyAmount normalized = rescaleMoneyAmount(delta, scale);
     final BigInt updatedMinor =
         BigInt.parse(row.balanceMinor) + normalized.minor;
@@ -341,5 +339,4 @@ class TransactionRepositoryImpl implements TransactionRepository {
       iconStyle: row.iconStyle,
     );
   }
-
 }

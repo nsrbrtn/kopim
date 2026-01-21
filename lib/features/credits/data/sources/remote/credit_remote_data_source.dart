@@ -86,7 +86,8 @@ class CreditRemoteDataSource {
     final double legacyTotal = (data['totalAmount'] as num?)?.toDouble() ?? 0;
     final BigInt? minor = _readBigInt(data['totalAmountMinor']);
     final BigInt resolvedMinor =
-        minor ?? Money.fromDouble(legacyTotal, currency: 'XXX', scale: scale).minor;
+        minor ??
+        Money.fromDouble(legacyTotal, currency: 'XXX', scale: scale).minor;
     return CreditEntity(
       id: data['id'] as String? ?? doc.id,
       accountId: data['accountId'] as String? ?? '',

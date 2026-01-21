@@ -6,6 +6,8 @@ part 'credit_entity.g.dart';
 
 @freezed
 abstract class CreditEntity with _$CreditEntity {
+  const CreditEntity._();
+
   const factory CreditEntity({
     required String id,
     required String accountId,

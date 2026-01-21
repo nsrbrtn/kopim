@@ -6,6 +6,8 @@ import 'package:intl/intl.dart';
 
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/core/config/theme_extensions.dart';
+import 'package:kopim/core/money/money.dart';
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/core/services/analytics_service.dart';
 import 'package:kopim/core/services/logger_service.dart';
 import 'package:kopim/core/utils/platform_support.dart';
@@ -91,6 +93,7 @@ class _EditPaymentReminderScreenState
   bool _isSubmitting = false;
   bool _titleHasError = false;
   bool _amountHasError = false;
+  static const int _defaultScale = 2;
 
   @override
   void initState() {
@@ -274,7 +277,7 @@ class _EditPaymentReminderScreenState
 
   void _applyInitial(PaymentReminder reminder) {
     _titleController.text = reminder.title;
-    _amountController.text = reminder.amount.abs().toStringAsFixed(2);
+    _amountController.text = _formatAmountInput(reminder.amountValue.abs());
     _noteController.text = reminder.note ?? '';
     _whenLocal = ref.read(timeServiceProvider).toLocal(reminder.whenAtMs);
     _appliedInitial = true;
@@ -351,7 +354,10 @@ class _EditPaymentReminderScreenState
     if (!_validateForm()) {
       return;
     }
-    final double amount = _parseAmount(_amountController.text)!;
+    final MoneyAmount amount = _parseAmount(
+      _amountController.text,
+      _defaultScale,
+    )!;
     final String? note = _noteController.text.trim().isEmpty
         ? null
         : _noteController.text.trim();
@@ -451,8 +457,12 @@ class _EditPaymentReminderScreenState
 
   bool _validateForm() {
     final bool titleValid = _titleController.text.trim().isNotEmpty;
-    final double? parsedAmount = _parseAmount(_amountController.text);
-    final bool amountValid = parsedAmount != null && parsedAmount > 0;
+    final MoneyAmount? parsedAmount = _parseAmount(
+      _amountController.text,
+      _defaultScale,
+    );
+    final bool amountValid =
+        parsedAmount != null && parsedAmount.minor > BigInt.zero;
     setState(() {
       _titleHasError = !titleValid;
       _amountHasError = !amountValid;
@@ -485,18 +495,27 @@ class _EditPaymentReminderScreenState
   }) {
     return <String, dynamic>{
       'id': _shortId(reminder.id),
-      'amount': reminder.amount,
+      'amount': reminder.amountValue.toDouble(),
       'isDone': reminder.isDone ? 1 : 0,
       'result': success ? 'success' : 'error',
     };
   }
 
-  double? _parseAmount(String? value) {
+  MoneyAmount? _parseAmount(String? value, int scale) {
     if (value == null) {
       return null;
     }
     final String normalized = value.replaceAll(',', '.');
-    return double.tryParse(normalized);
+    return tryParseMoneyAmount(input: normalized, scale: scale);
+  }
+
+  String _formatAmountInput(MoneyAmount amount) {
+    final Money money = Money(
+      minor: amount.minor,
+      currency: 'XXX',
+      scale: amount.scale,
+    );
+    return money.toDecimalString();
   }
 
   String _shortId(String value) {

@@ -94,10 +94,9 @@ class CreditCardRepositoryImpl implements CreditCardRepository {
   }
 
   Future<int> _resolveAccountScale(String accountId) async {
-    final db.AccountRow? account =
-        await (_database.select(_database.accounts)
-              ..where((db.Accounts tbl) => tbl.id.equals(accountId)))
-            .getSingleOrNull();
+    final db.AccountRow? account = await (_database.select(
+      _database.accounts,
+    )..where((db.Accounts tbl) => tbl.id.equals(accountId))).getSingleOrNull();
     if (account == null) {
       return 2;
     }

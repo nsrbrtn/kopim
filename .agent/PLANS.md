@@ -196,11 +196,11 @@ flutter test --reporter expanded
 
 ## Progress
 - [x] Шаг 1: Инвентаризация источников `double`.
-- [ ] Шаг 2: Обновить доменные сущности и модели.
-- [ ] Шаг 3: Обновить мапперы/DAO/remote payloads.
-- [ ] Шаг 4: Обновить UI и аналитику.
-- [ ] Шаг 5: Проверки и фиксы тестов.
-- [ ] Шаг 6: Обновить документацию.
+- [x] Шаг 2: Обновить доменные сущности и модели.
+- [x] Шаг 3: Обновить мапперы/DAO/remote payloads.
+- [x] Шаг 4: Обновить UI и аналитику.
+- [x] Шаг 5: Проверки и фиксы тестов.
+- [x] Шаг 6: Обновить документацию.
 
 ## Surprises & Discoveries
 - Основные денежные `double` остаются в domain/entities и моделей (Account/Transaction/Budget/BudgetInstance/Upcoming/Credits/Savings/Analytics/Home/AI), а также в use cases/DAO/formatters.

@@ -796,8 +796,14 @@ class _AccountsListState extends State<_AccountsList> {
                           summary:
                               widget.monthlySummaries[account.id] ??
                               const HomeAccountMonthlySummary(
-                                income: 0,
-                                expense: 0,
+                                income: const MoneyAmount(
+                                  minor: BigInt.zero,
+                                  scale: 2,
+                                ),
+                                expense: const MoneyAmount(
+                                  minor: BigInt.zero,
+                                  scale: 2,
+                                ),
                               ),
                           isHighlighted: index == 0,
                         ),
@@ -892,8 +898,14 @@ class _AccountsListState extends State<_AccountsList> {
                         final HomeAccountMonthlySummary summary =
                             widget.monthlySummaries[account.id] ??
                             const HomeAccountMonthlySummary(
-                              income: 0,
-                              expense: 0,
+                              income: const MoneyAmount(
+                                minor: BigInt.zero,
+                                scale: 2,
+                              ),
+                              expense: const MoneyAmount(
+                                minor: BigInt.zero,
+                                scale: 2,
+                              ),
                             );
 
                         final bool isLast = index == totalItems - 1;
@@ -1260,13 +1272,13 @@ class _StandardAccountContent extends StatelessWidget {
           children: <Widget>[
             _AccountMonthlyValue(
               label: strings.homeAccountMonthlyIncomeLabel,
-              value: currencyFormat.format(summary.income),
+              value: currencyFormat.format(summary.income.toDouble()),
               textStyle: summaryTextStyle,
             ),
             const SizedBox(height: 4),
             _AccountMonthlyValue(
               label: strings.homeAccountMonthlyExpenseLabel,
-              value: currencyFormat.format(summary.expense),
+              value: currencyFormat.format(summary.expense.toDouble()),
               textStyle: summaryTextStyle,
             ),
           ],
@@ -1320,12 +1332,14 @@ class _CreditCardAccountContent extends ConsumerWidget {
               return fallback;
             }
 
-            final double availableLimit = calculateCreditCardAvailableLimit(
-              creditLimit: creditCard.creditLimitValue.toDouble(),
-              balance: account.balanceAmount.toDouble(),
+            final MoneyAmount availableLimit =
+                calculateCreditCardAvailableLimit(
+                  creditLimit: creditCard.creditLimitValue,
+                  balance: account.balanceAmount,
+                );
+            final MoneyAmount debt = calculateCreditCardDebt(
+              account.balanceAmount,
             );
-            final double debt =
-                calculateCreditCardDebt(account.balanceAmount.toDouble());
             final TextStyle debtStyle = summaryTextStyle.copyWith(
               color: palette.support,
               fontWeight: FontWeight.w500,
@@ -1363,13 +1377,13 @@ class _CreditCardAccountContent extends ConsumerWidget {
                 ),
                 const SizedBox(height: 4),
                 _AccountBalanceText(
-                  text: currencyFormat.format(availableLimit),
+                  text: currencyFormat.format(availableLimit.toDouble()),
                   style: balanceStyle,
                 ),
                 const SizedBox(height: 10),
                 Text(strings.creditCardSpentLabel, style: limitLabelStyle),
                 const SizedBox(height: 4),
-                Text(currencyFormat.format(debt), style: debtStyle),
+                Text(currencyFormat.format(debt.toDouble()), style: debtStyle),
               ],
             );
           },

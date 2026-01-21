@@ -18,8 +18,9 @@ void main() {
     final AccountEntity account = AccountEntity(
       id: 'acc-1',
       name: 'Cash',
-      balance: 1200,
+      balanceMinor: BigInt.from(120000),
       currency: 'USD',
+      currencyScale: 2,
       type: 'wallet',
       createdAt: DateTime(2023, 1, 1),
       updatedAt: DateTime(2023, 1, 1),

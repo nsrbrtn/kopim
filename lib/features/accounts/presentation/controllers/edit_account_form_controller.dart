@@ -65,10 +65,8 @@ abstract class EditAccountFormState with _$EditAccountFormState {
 
   const EditAccountFormState._();
 
-  MoneyAmount? parseBalance() => parseBalanceInput(
-    balanceInput,
-    scale: resolveCurrencyScale(currency),
-  );
+  MoneyAmount? parseBalance() =>
+      parseBalanceInput(balanceInput, scale: resolveCurrencyScale(currency));
 
   String? get resolvedType {
     final String value = useCustomType ? customType.trim() : type.trim();
@@ -451,9 +449,9 @@ class EditAccountFormController extends _$EditAccountFormController {
       state = state.copyWith(
         isSaving: false,
         original: updatedAccount,
-        balanceInput: resolvedBalance
-            .toDouble()
-            .toStringAsFixed(resolvedBalance.scale),
+        balanceInput: resolvedBalance.toDouble().toStringAsFixed(
+          resolvedBalance.scale,
+        ),
         type: updatedIsCustom ? state.type : updatedAccount.type,
         useCustomType: updatedIsCustom,
         customType: updatedIsCustom ? normalizedCustom : '',

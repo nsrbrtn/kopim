@@ -9,7 +9,9 @@ part of 'saving_goal_analytics.dart';
 _SavingGoalAnalytics _$SavingGoalAnalyticsFromJson(Map<String, dynamic> json) =>
     _SavingGoalAnalytics(
       goalId: json['goalId'] as String,
-      totalAmount: (json['totalAmount'] as num?)?.toDouble() ?? 0.0,
+      totalAmount: const MoneyAmountJsonConverter().fromJson(
+        json['totalAmount'] as Map<String, dynamic>,
+      ),
       lastContributionAt: json['lastContributionAt'] == null
           ? null
           : DateTime.parse(json['lastContributionAt'] as String),
@@ -29,7 +31,7 @@ Map<String, dynamic> _$SavingGoalAnalyticsToJson(
   _SavingGoalAnalytics instance,
 ) => <String, dynamic>{
   'goalId': instance.goalId,
-  'totalAmount': instance.totalAmount,
+  'totalAmount': const MoneyAmountJsonConverter().toJson(instance.totalAmount),
   'lastContributionAt': instance.lastContributionAt?.toIso8601String(),
   'categoryBreakdown': instance.categoryBreakdown,
   'transactionCount': instance.transactionCount,

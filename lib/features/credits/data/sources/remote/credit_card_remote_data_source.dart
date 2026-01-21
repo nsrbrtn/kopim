@@ -86,11 +86,11 @@ class CreditCardRemoteDataSource {
   ) {
     final Map<String, dynamic> data = doc.data();
     final int scale = _readInt(data['creditLimitScale']) ?? 2;
-    final double legacyLimit =
-        (data['creditLimit'] as num?)?.toDouble() ?? 0;
+    final double legacyLimit = (data['creditLimit'] as num?)?.toDouble() ?? 0;
     final BigInt? minor = _readBigInt(data['creditLimitMinor']);
     final BigInt resolvedMinor =
-        minor ?? Money.fromDouble(legacyLimit, currency: 'XXX', scale: scale).minor;
+        minor ??
+        Money.fromDouble(legacyLimit, currency: 'XXX', scale: scale).minor;
     return CreditCardEntity(
       id: data['id'] as String? ?? doc.id,
       accountId: data['accountId'] as String? ?? '',

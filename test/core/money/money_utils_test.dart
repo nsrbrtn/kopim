@@ -5,12 +5,8 @@ void main() {
   group('MoneyAccumulator', () {
     test('sums amounts with different scales', () {
       final MoneyAccumulator accumulator = MoneyAccumulator();
-      accumulator.add(
-        MoneyAmount(minor: BigInt.from(123), scale: 2),
-      ); // 1.23
-      accumulator.add(
-        MoneyAmount(minor: BigInt.from(45), scale: 4),
-      ); // 0.0045
+      accumulator.add(MoneyAmount(minor: BigInt.from(123), scale: 2)); // 1.23
+      accumulator.add(MoneyAmount(minor: BigInt.from(45), scale: 4)); // 0.0045
 
       expect(accumulator.scale, 4);
       expect(accumulator.minor, BigInt.from(12345));
@@ -19,9 +15,7 @@ void main() {
 
     test('subtracts amounts', () {
       final MoneyAccumulator accumulator = MoneyAccumulator();
-      accumulator.add(
-        MoneyAmount(minor: BigInt.from(1000), scale: 2),
-      ); // 10.00
+      accumulator.add(MoneyAmount(minor: BigInt.from(1000), scale: 2)); // 10.00
       accumulator.subtract(
         MoneyAmount(minor: BigInt.from(250), scale: 2),
       ); // 2.50

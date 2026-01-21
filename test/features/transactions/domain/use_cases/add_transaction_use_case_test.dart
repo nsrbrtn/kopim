@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/accounts/domain/repositories/account_repository.dart';
 import 'package:kopim/features/transactions/domain/entities/add_transaction_request.dart';
@@ -22,7 +23,8 @@ void main() {
         accountId: 'acc',
         transferAccountId: null,
         categoryId: null,
-        amount: 0,
+        amountMinor: BigInt.zero,
+        amountScale: 2,
         date: DateTime.utc(2000),
         note: null,
         type: 'expense',
@@ -34,8 +36,9 @@ void main() {
       AccountEntity(
         id: 'fallback',
         name: 'Fallback',
-        balance: 0,
+        balanceMinor: BigInt.zero,
         currency: 'USD',
+        currencyScale: 2,
         type: 'card',
         createdAt: DateTime.utc(2000),
         updatedAt: DateTime.utc(2000),
@@ -59,13 +62,14 @@ void main() {
     );
   });
 
-  AccountEntity account0({double balance = 100}) {
+  AccountEntity account0({int balance = 100}) {
     final DateTime createdAt = DateTime.utc(2023, 1, 1);
     return AccountEntity(
       id: 'acc-1',
       name: 'Main',
-      balance: balance,
+      balanceMinor: BigInt.from(balance * 100),
       currency: 'USD',
+      currencyScale: 2,
       type: 'card',
       createdAt: createdAt,
       updatedAt: createdAt,
@@ -81,7 +85,7 @@ void main() {
 
     final AddTransactionRequest request = AddTransactionRequest(
       accountId: account.id,
-      amount: 50,
+      amount: _amount(50),
       date: fixedNow,
       note: 'Lunch',
       type: TransactionType.expense,
@@ -95,13 +99,13 @@ void main() {
             as TransactionEntity;
     expect(transaction.id, 'generated-id');
     expect(transaction.accountId, account.id);
-    expect(transaction.amount, 50);
+    expect(transaction.amountValue, _amount(50));
     expect(transaction.type, 'expense');
     expect(transaction.note, 'Lunch');
     expect(transaction.createdAt, fixedNow.toUtc());
     expect(transaction.updatedAt, fixedNow.toUtc());
     expect(createdResult.value.id, 'generated-id');
-    expect(createdResult.value.amount, 50);
+    expect(createdResult.value.amountValue, _amount(50));
     expect(createdResult.profileEvents, isEmpty);
   });
 
@@ -114,7 +118,7 @@ void main() {
 
     final AddTransactionRequest request = AddTransactionRequest(
       accountId: account.id,
-      amount: 20,
+      amount: _amount(20),
       date: fixedNow,
       note: 'Gift',
       type: TransactionType.income,
@@ -123,7 +127,7 @@ void main() {
     final TransactionCommandResult<TransactionEntity> createdResult =
         await useCase(request);
 
-    expect(createdResult.value.amount, 20);
+    expect(createdResult.value.amountValue, _amount(20));
     expect(createdResult.profileEvents, isEmpty);
   });
 
@@ -134,7 +138,7 @@ void main() {
 
     final AddTransactionRequest request = AddTransactionRequest(
       accountId: 'missing',
-      amount: 10,
+      amount: _amount(10),
       date: fixedNow,
     );
 
@@ -142,40 +146,39 @@ void main() {
     verifyNever(() => transactionRepository.upsert(any()));
   });
 
-  test(
-    'saves transfer transaction after validating accounts',
-    () async {
-      final AccountEntity source = account0(balance: 200);
-      final AccountEntity target = account0(balance: 40).copyWith(id: 'acc-2');
-      when(
-        () => accountRepository.findById(source.id),
-      ).thenAnswer((_) async => source);
-      when(
-        () => accountRepository.findById(target.id),
-      ).thenAnswer((_) async => target);
-      when(() => transactionRepository.upsert(any())).thenAnswer((_) async {});
+  test('saves transfer transaction after validating accounts', () async {
+    final AccountEntity source = account0(balance: 200);
+    final AccountEntity target = account0(balance: 40).copyWith(id: 'acc-2');
+    when(
+      () => accountRepository.findById(source.id),
+    ).thenAnswer((_) async => source);
+    when(
+      () => accountRepository.findById(target.id),
+    ).thenAnswer((_) async => target);
+    when(() => transactionRepository.upsert(any())).thenAnswer((_) async {});
 
-      final AddTransactionRequest request = AddTransactionRequest(
-        accountId: source.id,
-        transferAccountId: target.id,
-        amount: 50,
-        date: fixedNow,
-        note: 'Transfer',
-        type: TransactionType.transfer,
-      );
+    final AddTransactionRequest request = AddTransactionRequest(
+      accountId: source.id,
+      transferAccountId: target.id,
+      amount: _amount(50),
+      date: fixedNow,
+      note: 'Transfer',
+      type: TransactionType.transfer,
+    );
 
-      final TransactionCommandResult<TransactionEntity> createdResult =
-          await useCase(request);
+    final TransactionCommandResult<TransactionEntity> createdResult =
+        await useCase(request);
 
-      final TransactionEntity transaction =
-          verify(
-                () => transactionRepository.upsert(captureAny()),
-              ).captured.single
-              as TransactionEntity;
-      expect(transaction.transferAccountId, target.id);
-      expect(transaction.categoryId, isNull);
-      expect(transaction.type, TransactionType.transfer.storageValue);
-      expect(createdResult.value.type, TransactionType.transfer.storageValue);
-    },
-  );
+    final TransactionEntity transaction =
+        verify(() => transactionRepository.upsert(captureAny())).captured.single
+            as TransactionEntity;
+    expect(transaction.transferAccountId, target.id);
+    expect(transaction.categoryId, isNull);
+    expect(transaction.type, TransactionType.transfer.storageValue);
+    expect(createdResult.value.type, TransactionType.transfer.storageValue);
+  });
+}
+
+MoneyAmount _amount(int value, {int scale = 2}) {
+  return MoneyAmount(minor: BigInt.from(value * 100), scale: scale);
 }

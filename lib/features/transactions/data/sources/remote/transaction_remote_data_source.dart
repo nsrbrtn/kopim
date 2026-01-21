@@ -92,7 +92,8 @@ class TransactionRemoteDataSource {
     final double legacyAmount = (data['amount'] as num?)?.toDouble() ?? 0;
     final BigInt? minor = _readBigInt(data['amountMinor']);
     final BigInt resolvedMinor =
-        minor ?? Money.fromDouble(legacyAmount, currency: 'XXX', scale: scale).minor;
+        minor ??
+        Money.fromDouble(legacyAmount, currency: 'XXX', scale: scale).minor;
     return TransactionEntity(
       id: data['id'] as String? ?? doc.id,
       accountId: data['accountId'] as String,

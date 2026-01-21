@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:kopim/core/money/money_utils.dart';
 
 part 'upcoming_item.freezed.dart';
 
@@ -10,7 +11,7 @@ abstract class UpcomingItem with _$UpcomingItem {
     required UpcomingItemType type,
     required String id,
     required String title,
-    required double amount,
+    required MoneyAmount amount,
     required int whenMs,
     String? note,
   }) = _UpcomingItem;

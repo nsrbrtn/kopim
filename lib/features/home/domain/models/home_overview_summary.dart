@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:kopim/core/money/money_utils.dart';
 
 part 'home_overview_summary.freezed.dart';
 
@@ -6,16 +7,16 @@ part 'home_overview_summary.freezed.dart';
 abstract class HomeTopExpenseCategory with _$HomeTopExpenseCategory {
   const factory HomeTopExpenseCategory({
     required String? categoryId,
-    required double amount,
+    required MoneyAmount amount,
   }) = _HomeTopExpenseCategory;
 }
 
 @freezed
 abstract class HomeOverviewSummary with _$HomeOverviewSummary {
   const factory HomeOverviewSummary({
-    required double totalBalance,
-    required double todayIncome,
-    required double todayExpense,
+    required MoneyAmount totalBalance,
+    required MoneyAmount todayIncome,
+    required MoneyAmount todayExpense,
     HomeTopExpenseCategory? topExpenseCategory,
   }) = _HomeOverviewSummary;
 }

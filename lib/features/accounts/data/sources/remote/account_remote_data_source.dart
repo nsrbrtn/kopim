@@ -90,15 +90,18 @@ class AccountRemoteDataSource {
   AccountEntity _fromDocument(QueryDocumentSnapshot<Map<String, dynamic>> doc) {
     final Map<String, dynamic> data = doc.data();
     final String currency = data['currency'] as String? ?? 'RUB';
-    final int scale = _readInt(data['currencyScale']) ??
-        resolveCurrencyScale(currency);
+    final int scale =
+        _readInt(data['currencyScale']) ?? resolveCurrencyScale(currency);
     final double legacyBalance = (data['balance'] as num?)?.toDouble() ?? 0;
-    final double legacyOpening = (data['openingBalance'] as num?)?.toDouble() ?? 0;
+    final double legacyOpening =
+        (data['openingBalance'] as num?)?.toDouble() ?? 0;
     final BigInt? balanceMinor = _readBigInt(data['balanceMinor']);
     final BigInt? openingMinor = _readBigInt(data['openingBalanceMinor']);
-    final BigInt resolvedBalanceMinor = balanceMinor ??
+    final BigInt resolvedBalanceMinor =
+        balanceMinor ??
         Money.fromDouble(legacyBalance, currency: currency, scale: scale).minor;
-    final BigInt resolvedOpeningMinor = openingMinor ??
+    final BigInt resolvedOpeningMinor =
+        openingMinor ??
         Money.fromDouble(legacyOpening, currency: currency, scale: scale).minor;
     return AccountEntity(
       id: data['id'] as String? ?? doc.id,

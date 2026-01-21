@@ -6,6 +6,8 @@ part 'credit_card_entity.g.dart';
 
 @freezed
 abstract class CreditCardEntity with _$CreditCardEntity {
+  const CreditCardEntity._();
+
   const factory CreditCardEntity({
     required String id,
     required String accountId,

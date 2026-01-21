@@ -41,7 +41,7 @@ class UpcomingPaymentListItem extends StatelessWidget {
       locale: strings.localeName,
       symbol: (account?.currency ?? '').toUpperCase(),
     );
-    final double amountAbs = payment.amount.abs();
+    final double amountAbs = payment.amountValue.abs().toDouble();
     final Color amountColor = theme.colorScheme.onSurface;
 
     final String secondaryLabel = payment.note?.trim().isNotEmpty == true

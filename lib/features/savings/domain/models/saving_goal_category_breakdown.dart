@@ -1,4 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:kopim/core/money/money_amount_converter.dart';
+import 'package:kopim/core/money/money_utils.dart';
 
 part 'saving_goal_category_breakdown.freezed.dart';
 part 'saving_goal_category_breakdown.g.dart';
@@ -10,7 +12,7 @@ abstract class SavingGoalCategoryBreakdown with _$SavingGoalCategoryBreakdown {
 
   const factory SavingGoalCategoryBreakdown({
     String? categoryId,
-    @Default(0.0) double amount,
+    @MoneyAmountJsonConverter() required MoneyAmount amount,
   }) = _SavingGoalCategoryBreakdown;
 
   factory SavingGoalCategoryBreakdown.fromJson(Map<String, dynamic> json) =>

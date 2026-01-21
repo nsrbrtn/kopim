@@ -11,10 +11,8 @@ abstract class PaymentReminder with _$PaymentReminder {
   const factory PaymentReminder({
     required String id,
     required String title,
-    @JsonKey(includeFromJson: false, includeToJson: false)
-    BigInt? amountMinor,
-    @JsonKey(includeFromJson: false, includeToJson: false)
-    int? amountScale,
+    @JsonKey(includeFromJson: false, includeToJson: false) BigInt? amountMinor,
+    @JsonKey(includeFromJson: false, includeToJson: false) int? amountScale,
     required int whenAtMs,
     String? note,
     required bool isDone,
@@ -28,7 +26,8 @@ abstract class PaymentReminder with _$PaymentReminder {
     final BigInt? minor = _readBigInt(json['amountMinor']);
     final double legacyAmount = (json['amount'] as num?)?.toDouble() ?? 0;
     final BigInt resolvedMinor =
-        minor ?? Money.fromDouble(legacyAmount, currency: 'XXX', scale: scale).minor;
+        minor ??
+        Money.fromDouble(legacyAmount, currency: 'XXX', scale: scale).minor;
     return PaymentReminder(
       id: json['id'] as String? ?? '',
       title: json['title'] as String? ?? '',
@@ -58,10 +57,8 @@ abstract class PaymentReminder with _$PaymentReminder {
     }..removeWhere((String key, Object? value) => value == null);
   }
 
-  MoneyAmount get amountValue => MoneyAmount(
-    minor: amountMinor ?? BigInt.zero,
-    scale: amountScale ?? 2,
-  );
+  MoneyAmount get amountValue =>
+      MoneyAmount(minor: amountMinor ?? BigInt.zero, scale: amountScale ?? 2);
 }
 
 BigInt? _readBigInt(Object? value) {

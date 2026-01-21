@@ -48,9 +48,9 @@ class _AddEditCreditScreenState extends ConsumerState<AddEditCreditScreen> {
     super.initState();
     if (widget.credit != null) {
       final MoneyAmount totalAmount = widget.credit!.totalAmountValue;
-      _amountController.text = totalAmount
-          .toDouble()
-          .toStringAsFixed(totalAmount.scale);
+      _amountController.text = totalAmount.toDouble().toStringAsFixed(
+        totalAmount.scale,
+      );
       _rateController.text = widget.credit!.interestRate.toString();
       _termController.text = widget.credit!.termMonths.toString();
       _paymentDayController.text = widget.credit!.paymentDay.toString();

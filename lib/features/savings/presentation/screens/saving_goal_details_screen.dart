@@ -261,7 +261,8 @@ class _GoalAnalyticsCard extends StatelessWidget {
         padding: const EdgeInsets.all(20),
         child: analyticsAsync.when(
           data: (SavingGoalAnalytics data) {
-            if (data.transactionCount == 0 || data.totalAmount <= 0) {
+            if (data.transactionCount == 0 ||
+                data.totalAmount.minor <= BigInt.zero) {
               return _GoalAnalyticsEmpty(strings: strings);
             }
 
@@ -291,14 +292,15 @@ class _GoalAnalyticsCard extends StatelessWidget {
                   return AnalyticsChartItem(
                     key: '$key-${goal.id}',
                     title: title,
-                    amount: savingBreakdown.amount,
+                    amount: savingBreakdown.amount.toDouble(),
                     color: resolvedColor,
                     icon: iconData,
                   );
                 })
                 .toList(growable: false);
 
-            final String totalLabel = currencyFormat.format(data.totalAmount);
+            final double totalAmount = data.totalAmount.toDouble();
+            final String totalLabel = currencyFormat.format(totalAmount);
 
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -313,7 +315,7 @@ class _GoalAnalyticsCard extends StatelessWidget {
                   child: AnalyticsDonutChart(
                     items: items,
                     backgroundColor: theme.colorScheme.surfaceContainerHighest,
-                    totalAmount: data.totalAmount,
+                    totalAmount: totalAmount,
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -330,9 +332,9 @@ class _GoalAnalyticsCard extends StatelessWidget {
                   runSpacing: 8,
                   children: items
                       .map((AnalyticsChartItem item) {
-                        final double percentage = data.totalAmount <= 0
+                        final double percentage = totalAmount <= 0
                             ? 0
-                            : item.absoluteAmount / data.totalAmount * 100;
+                            : item.absoluteAmount / totalAmount * 100;
                         final String percentLabel = percentage >= 1
                             ? '${percentage.round()}%'
                             : '${percentage.toStringAsFixed(1)}%';

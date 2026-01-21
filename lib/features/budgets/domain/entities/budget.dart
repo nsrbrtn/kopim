@@ -19,10 +19,8 @@ abstract class Budget with _$Budget {
     required BudgetPeriod period,
     required DateTime startDate,
     DateTime? endDate,
-    @JsonKey(includeFromJson: false, includeToJson: false)
-    BigInt? amountMinor,
-    @JsonKey(includeFromJson: false, includeToJson: false)
-    int? amountScale,
+    @JsonKey(includeFromJson: false, includeToJson: false) BigInt? amountMinor,
+    @JsonKey(includeFromJson: false, includeToJson: false) int? amountScale,
     @JsonKey(fromJson: BudgetScopeX.fromStorage, toJson: _scopeToJson)
     required BudgetScope scope,
     @Default(<String>[]) List<String> categories,
@@ -36,10 +34,8 @@ abstract class Budget with _$Budget {
 
   factory Budget.fromJson(Map<String, Object?> json) => _$BudgetFromJson(json);
 
-  MoneyAmount get amountValue => MoneyAmount(
-    minor: amountMinor ?? BigInt.zero,
-    scale: amountScale ?? 2,
-  );
+  MoneyAmount get amountValue =>
+      MoneyAmount(minor: amountMinor ?? BigInt.zero, scale: amountScale ?? 2);
 }
 
 String _periodToJson(BudgetPeriod period) => period.storageValue;

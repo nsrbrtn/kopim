@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/budgets/domain/entities/budget.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_instance.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_instance_status.dart';
@@ -18,7 +19,7 @@ void main() {
     BudgetScope scope = BudgetScope.all,
     List<String> categories = const <String>[],
     List<String> accounts = const <String>[],
-    double amount = 100,
+    int amount = 100,
     DateTime? start,
   }) {
     final DateTime startDate = start ?? DateTime(2024, 1, 1);
@@ -28,7 +29,8 @@ void main() {
       period: BudgetPeriod.monthly,
       startDate: startDate,
       endDate: null,
-      amount: amount,
+      amountMinor: BigInt.from(amount * 100),
+      amountScale: 2,
       scope: scope,
       categories: categories,
       accounts: accounts,
@@ -39,7 +41,7 @@ void main() {
 
   TransactionEntity tx({
     required String id,
-    required double amount,
+    required int amount,
     required DateTime date,
     String accountId = 'acc',
     String? categoryId,
@@ -49,7 +51,8 @@ void main() {
       id: id,
       accountId: accountId,
       categoryId: categoryId,
-      amount: amount,
+      amountMinor: BigInt.from(amount * 100),
+      amountScale: 2,
       date: date,
       note: null,
       type: type,
@@ -72,8 +75,8 @@ void main() {
         reference: DateTime(2024, 1, 25),
       );
 
-      expect(progress.spent, closeTo(120, 0.0001));
-      expect(progress.remaining, closeTo(-20, 0.0001));
+      expect(progress.spent, _amount(120));
+      expect(progress.remaining, _amount(-20));
       expect(progress.utilization, closeTo(1.2, 0.0001));
       expect(progress.isExceeded, isTrue);
     });
@@ -116,8 +119,9 @@ void main() {
         budgetId: budget.id,
         periodStart: periodStart,
         periodEnd: DateTime(2024, 3, 1),
-        amount: 80,
-        spent: 10,
+        amountMinor: BigInt.from(8000),
+        spentMinor: BigInt.from(1000),
+        amountScale: 2,
         status: BudgetInstanceStatus.pending,
         createdAt: periodStart,
         updatedAt: periodStart,
@@ -137,8 +141,12 @@ void main() {
       );
 
       expect(progress.instance.id, existing.id);
-      expect(progress.instance.spent, closeTo(40, 0.0001));
+      expect(progress.instance.spentValue, _amount(40));
       expect(progress.instance.status, BudgetInstanceStatus.active);
     });
   });
+}
+
+MoneyAmount _amount(int value, {int scale = 2}) {
+  return MoneyAmount(minor: BigInt.from(value * 100), scale: scale);
 }

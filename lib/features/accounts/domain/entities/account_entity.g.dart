@@ -10,8 +10,6 @@ _AccountEntity _$AccountEntityFromJson(Map<String, dynamic> json) =>
     _AccountEntity(
       id: json['id'] as String,
       name: json['name'] as String,
-      balance: (json['balance'] as num).toDouble(),
-      openingBalance: (json['openingBalance'] as num?)?.toDouble() ?? 0,
       currency: json['currency'] as String,
       type: json['type'] as String,
       createdAt: DateTime.parse(json['createdAt'] as String),
@@ -29,8 +27,6 @@ Map<String, dynamic> _$AccountEntityToJson(_AccountEntity instance) =>
     <String, dynamic>{
       'id': instance.id,
       'name': instance.name,
-      'balance': instance.balance,
-      'openingBalance': instance.openingBalance,
       'currency': instance.currency,
       'type': instance.type,
       'createdAt': instance.createdAt.toIso8601String(),

@@ -62,7 +62,7 @@ class _FakeHomeDashboardPreferencesController
 
 class _StreamAccountRepository implements AccountRepository {
   _StreamAccountRepository(Stream<List<AccountEntity>> stream)
-      : _stream = stream.asBroadcastStream();
+    : _stream = stream.asBroadcastStream();
 
   final Stream<List<AccountEntity>> _stream;
 
@@ -84,7 +84,7 @@ class _StreamAccountRepository implements AccountRepository {
 
 class _StreamTransactionRepository implements TransactionRepository {
   _StreamTransactionRepository(Stream<List<TransactionEntity>> stream)
-      : _stream = stream.asBroadcastStream();
+    : _stream = stream.asBroadcastStream();
 
   final Stream<List<TransactionEntity>> _stream;
 
@@ -126,7 +126,7 @@ class _StreamTransactionRepository implements TransactionRepository {
 
 class _StreamCategoryRepository implements CategoryRepository {
   _StreamCategoryRepository(Stream<List<Category>> stream)
-      : _stream = stream.asBroadcastStream();
+    : _stream = stream.asBroadcastStream();
 
   final Stream<List<Category>> _stream;
 
@@ -204,8 +204,9 @@ void main() {
   final AccountEntity account = AccountEntity(
     id: 'acc-1',
     name: 'Wallet',
-    balance: 1200,
+    balanceMinor: BigInt.from(120000),
     currency: 'USD',
+    currencyScale: 2,
     type: 'cash',
     createdAt: now,
     updatedAt: now,
@@ -244,9 +245,7 @@ void main() {
         accountRepositoryProvider.overrideWithValue(accountRepository),
         categoryRepositoryProvider.overrideWithValue(categoryRepository),
         watchAccountsUseCaseProvider.overrideWithValue(
-          WatchAccountsUseCase(
-            accountRepository,
-          ),
+          WatchAccountsUseCase(accountRepository),
         ),
         transactionRepositoryProvider.overrideWithValue(transactionRepository),
         watchRecentTransactionsUseCaseProvider.overrideWithValue(
@@ -497,8 +496,8 @@ void main() {
     );
     expect(constrainedBarFinder, findsOneWidget);
 
-    final FractionallySizedBox constrainedBar =
-        tester.widget<FractionallySizedBox>(constrainedBarFinder);
+    final FractionallySizedBox constrainedBar = tester
+        .widget<FractionallySizedBox>(constrainedBarFinder);
     expect(constrainedBar.widthFactor, equals(0.5));
   });
 

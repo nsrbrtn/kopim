@@ -115,8 +115,9 @@ void main() {
       final AccountEntity account = AccountEntity(
         id: 'acc-1',
         name: 'Cash',
-        balance: 150.0,
+        balanceMinor: BigInt.from(15000),
         currency: 'USD',
+        currencyScale: 2,
         type: 'checking',
         createdAt: now,
         updatedAt: now,
@@ -187,8 +188,9 @@ void main() {
     final AccountEntity account = AccountEntity(
       id: 'acc-2',
       name: 'Savings',
-      balance: 300.0,
+      balanceMinor: BigInt.from(30000),
       currency: 'USD',
+      currencyScale: 2,
       type: 'savings',
       createdAt: now,
       updatedAt: now,

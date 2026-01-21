@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:kopim/core/data/database.dart' as db;
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/budgets/domain/entities/budget.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_category_allocation.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_period.dart';
@@ -14,7 +15,7 @@ class AiToolCurrencyTotal {
   });
 
   final String currency;
-  final double total;
+  final MoneyAmount total;
   final int count;
 }
 
@@ -33,7 +34,7 @@ class AiToolTransactionRow {
   });
 
   final String id;
-  final double amount;
+  final MoneyAmount amount;
   final String currency;
   final String type;
   final DateTime date;
@@ -81,7 +82,7 @@ class AiToolBudgetCategorySpend {
 
   final String? categoryId;
   final String name;
-  final double spent;
+  final MoneyAmount spent;
 }
 
 class AiAssistantToolDao {
@@ -98,7 +99,8 @@ class AiAssistantToolDao {
   }) async {
     final StringBuffer sql = StringBuffer('''
 SELECT a.currency AS currency,
-       COALESCE(SUM(t.amount), 0) AS total,
+       t.amount_scale AS amount_scale,
+       COALESCE(SUM(CAST(t.amount_minor AS INTEGER)), 0) AS total_minor,
        COUNT(t.id) AS count
 FROM transactions t
 INNER JOIN accounts a ON a.id = t.account_id
@@ -119,7 +121,7 @@ WHERE t.is_deleted = 0
       categoryIds: categoryIds,
       tableAlias: 't',
     );
-    sql.write('GROUP BY a.currency ORDER BY total DESC');
+    sql.write('GROUP BY a.currency, t.amount_scale ORDER BY total_minor DESC');
 
     final List<QueryRow> rows = await _db
         .customSelect(
@@ -132,15 +134,38 @@ WHERE t.is_deleted = 0
         )
         .get();
 
-    return rows
+    final Map<String, MoneyAccumulator> totals = <String, MoneyAccumulator>{};
+    final Map<String, int> counts = <String, int>{};
+    for (final QueryRow row in rows) {
+      final String currency = row.read<String>('currency');
+      final int scale = row.read<int>('amount_scale');
+      final int totalMinor = row.read<int>('total_minor');
+      final MoneyAccumulator accumulator = totals.putIfAbsent(
+        currency,
+        MoneyAccumulator.new,
+      );
+      accumulator.add(
+        MoneyAmount(minor: BigInt.from(totalMinor), scale: scale),
+      );
+      counts[currency] = (counts[currency] ?? 0) + row.read<int>('count');
+    }
+
+    final List<AiToolCurrencyTotal> items = totals.entries
         .map(
-          (QueryRow row) => AiToolCurrencyTotal(
-            currency: row.read<String>('currency'),
-            total: row.read<double>('total'),
-            count: row.read<int>('count'),
+          (MapEntry<String, MoneyAccumulator> entry) => AiToolCurrencyTotal(
+            currency: entry.key,
+            total: MoneyAmount(
+              minor: entry.value.minor,
+              scale: entry.value.scale,
+            ),
+            count: counts[entry.key] ?? 0,
           ),
         )
         .toList(growable: false);
+    items.sort((AiToolCurrencyTotal a, AiToolCurrencyTotal b) {
+      return b.total.toDouble().compareTo(a.total.toDouble());
+    });
+    return items;
   }
 
   Future<List<AiToolTransactionRow>> getTransactions({
@@ -153,7 +178,8 @@ WHERE t.is_deleted = 0
   }) async {
     final StringBuffer sql = StringBuffer('''
 SELECT t.id AS id,
-       t.amount AS amount,
+       t.amount_minor AS amount_minor,
+       t.amount_scale AS amount_scale,
        t.type AS type,
        t.date AS date,
        t.note AS note,
@@ -202,7 +228,10 @@ WHERE t.is_deleted = 0
         .map(
           (QueryRow row) => AiToolTransactionRow(
             id: row.read<String>('id'),
-            amount: row.read<double>('amount'),
+            amount: MoneyAmount(
+              minor: BigInt.parse(row.read<String>('amount_minor')),
+              scale: row.read<int>('amount_scale'),
+            ),
             type: row.read<String>('type'),
             date: row.read<DateTime>('date'),
             note: row.read<String?>('note'),
@@ -366,14 +395,15 @@ WHERE is_deleted = 0
     return rows.map(_mapBudgetRow).toList(growable: false);
   }
 
-  Future<double> getBudgetTotalSpent({
+  Future<MoneyAmount> getBudgetTotalSpent({
     required DateTime startDate,
     required DateTime endDate,
     List<String> accountIds = const <String>[],
     List<String> categoryIds = const <String>[],
   }) async {
     final StringBuffer sql = StringBuffer('''
-SELECT COALESCE(SUM(t.amount), 0) AS total
+SELECT t.amount_scale AS amount_scale,
+       COALESCE(SUM(CAST(t.amount_minor AS INTEGER)), 0) AS total_minor
 FROM transactions t
 INNER JOIN accounts a ON a.id = t.account_id
 WHERE t.is_deleted = 0
@@ -394,7 +424,9 @@ WHERE t.is_deleted = 0
       tableAlias: 't',
     );
 
-    final QueryRow row = await _db
+    sql.write('GROUP BY t.amount_scale');
+
+    final List<QueryRow> rows = await _db
         .customSelect(
           sql.toString(),
           variables: variables,
@@ -403,9 +435,22 @@ WHERE t.is_deleted = 0
             _db.accounts,
           },
         )
-        .getSingle();
+        .get();
 
-    return row.read<double>('total');
+    if (rows.isEmpty) {
+      return const MoneyAmount(minor: BigInt.zero, scale: 2);
+    }
+
+    final MoneyAccumulator accumulator = MoneyAccumulator();
+    for (final QueryRow row in rows) {
+      accumulator.add(
+        MoneyAmount(
+          minor: BigInt.from(row.read<int>('total_minor')),
+          scale: row.read<int>('amount_scale'),
+        ),
+      );
+    }
+    return MoneyAmount(minor: accumulator.minor, scale: accumulator.scale);
   }
 
   Future<List<AiToolBudgetCategorySpend>> getBudgetCategorySpending({
@@ -417,7 +462,8 @@ WHERE t.is_deleted = 0
     final StringBuffer sql = StringBuffer('''
 SELECT t.category_id AS category_id,
        COALESCE(c.name, 'Без категории') AS name,
-       COALESCE(SUM(t.amount), 0) AS total
+       t.amount_scale AS amount_scale,
+       COALESCE(SUM(CAST(t.amount_minor AS INTEGER)), 0) AS total_minor
 FROM transactions t
 INNER JOIN accounts a ON a.id = t.account_id
 LEFT JOIN categories c ON c.id = t.category_id
@@ -438,7 +484,9 @@ WHERE t.is_deleted = 0
       categoryIds: categoryIds,
       tableAlias: 't',
     );
-    sql.write('GROUP BY t.category_id, c.name ORDER BY total DESC');
+    sql.write(
+      'GROUP BY t.category_id, c.name, t.amount_scale ORDER BY total_minor DESC',
+    );
 
     final List<QueryRow> rows = await _db
         .customSelect(
@@ -452,15 +500,39 @@ WHERE t.is_deleted = 0
         )
         .get();
 
-    return rows
+    final Map<String?, _BudgetCategoryAccumulator> buckets =
+        <String?, _BudgetCategoryAccumulator>{};
+    for (final QueryRow row in rows) {
+      final String? categoryId = row.read<String?>('category_id');
+      final _BudgetCategoryAccumulator bucket = buckets.putIfAbsent(
+        categoryId,
+        () => _BudgetCategoryAccumulator(name: row.read<String>('name')),
+      );
+      bucket.total.add(
+        MoneyAmount(
+          minor: BigInt.from(row.read<int>('total_minor')),
+          scale: row.read<int>('amount_scale'),
+        ),
+      );
+    }
+
+    final List<AiToolBudgetCategorySpend> items = buckets.entries
         .map(
-          (QueryRow row) => AiToolBudgetCategorySpend(
-            categoryId: row.read<String?>('category_id'),
-            name: row.read<String>('name'),
-            spent: row.read<double>('total'),
-          ),
+          (MapEntry<String?, _BudgetCategoryAccumulator> entry) =>
+              AiToolBudgetCategorySpend(
+                categoryId: entry.key,
+                name: entry.value.name,
+                spent: MoneyAmount(
+                  minor: entry.value.total.minor,
+                  scale: entry.value.total.scale,
+                ),
+              ),
         )
         .toList(growable: false);
+    items.sort((AiToolBudgetCategorySpend a, AiToolBudgetCategorySpend b) {
+      return b.spent.toDouble().compareTo(a.spent.toDouble());
+    });
+    return items;
   }
 
   Budget _mapBudgetRow(db.BudgetRow row) {
@@ -544,4 +616,11 @@ WHERE t.is_deleted = 0
     }
     return type;
   }
+}
+
+class _BudgetCategoryAccumulator {
+  _BudgetCategoryAccumulator({required this.name});
+
+  final String name;
+  final MoneyAccumulator total = MoneyAccumulator();
 }

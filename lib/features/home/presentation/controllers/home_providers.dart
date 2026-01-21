@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:kopim/core/di/injectors.dart';
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/home/domain/models/day_section.dart';
@@ -162,8 +163,8 @@ Map<String, HomeAccountMonthlySummary> computeCurrentMonthSummaries({
   final DateTime reference = now ?? DateTime.now();
   final DateTime monthStart = DateTime(reference.year, reference.month);
   final DateTime nextMonth = DateTime(reference.year, reference.month + 1);
-  final Map<String, ({double income, double expense})> accumulator =
-      <String, ({double income, double expense})>{};
+  final Map<String, _MonthlyTotalsAccumulator> accumulator =
+      <String, _MonthlyTotalsAccumulator>{};
 
   for (final TransactionEntity transaction in transactions) {
     if (transaction.date.isBefore(monthStart) ||
@@ -171,31 +172,42 @@ Map<String, HomeAccountMonthlySummary> computeCurrentMonthSummaries({
       continue;
     }
 
-    final ({double income, double expense}) current =
-        accumulator[transaction.accountId] ?? (income: 0, expense: 0);
     if (transaction.type == TransactionType.income.storageValue) {
-      accumulator[transaction.accountId] = (
-        income: current.income + transaction.amountValue.abs().toDouble(),
-        expense: current.expense,
+      final _MonthlyTotalsAccumulator current = accumulator.putIfAbsent(
+        transaction.accountId,
+        _MonthlyTotalsAccumulator.new,
       );
+      current.income.add(transaction.amountValue.abs());
     } else if (transaction.type == TransactionType.expense.storageValue) {
-      accumulator[transaction.accountId] = (
-        income: current.income,
-        expense: current.expense + transaction.amountValue.abs().toDouble(),
+      final _MonthlyTotalsAccumulator current = accumulator.putIfAbsent(
+        transaction.accountId,
+        _MonthlyTotalsAccumulator.new,
       );
+      current.expense.add(transaction.amountValue.abs());
     }
   }
 
   return accumulator.map(
-    (String accountId, ({double income, double expense}) value) =>
+    (String accountId, _MonthlyTotalsAccumulator value) =>
         MapEntry<String, HomeAccountMonthlySummary>(
           accountId,
           HomeAccountMonthlySummary(
-            income: value.income,
-            expense: value.expense,
+            income: MoneyAmount(
+              minor: value.income.minor,
+              scale: value.income.scale,
+            ),
+            expense: MoneyAmount(
+              minor: value.expense.minor,
+              scale: value.expense.scale,
+            ),
           ),
         ),
   );
+}
+
+class _MonthlyTotalsAccumulator {
+  final MoneyAccumulator income = MoneyAccumulator();
+  final MoneyAccumulator expense = MoneyAccumulator();
 }
 
 TransactionEntity? _findTransactionById(

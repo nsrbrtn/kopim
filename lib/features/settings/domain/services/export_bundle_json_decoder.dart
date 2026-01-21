@@ -40,15 +40,11 @@ class ExportBundleJsonDecoder {
     }
     final DateTime generatedAt = DateTime.parse(generatedAtRaw);
 
-    final List<AccountEntity> accounts = _parseAccounts(
-      jsonMap['accounts'],
-    );
+    final List<AccountEntity> accounts = _parseAccounts(jsonMap['accounts']);
     final List<TransactionEntity> transactions = _parseTransactions(
       jsonMap['transactions'],
     );
-    final List<Category> categories = _parseCategories(
-      jsonMap['categories'],
-    );
+    final List<Category> categories = _parseCategories(jsonMap['categories']);
 
     return ExportBundle(
       schemaVersion: schemaVersion,
@@ -71,12 +67,20 @@ class ExportBundleJsonDecoder {
           final double legacyOpening = _readDouble(data, 'openingBalance');
           final BigInt? balanceMinor = _readBigInt(data['balanceMinor']);
           final BigInt? openingMinor = _readBigInt(data['openingBalanceMinor']);
-          final BigInt resolvedBalanceMinor = balanceMinor ??
-              Money.fromDouble(legacyBalance, currency: currency, scale: scale)
-                  .minor;
-          final BigInt resolvedOpeningMinor = openingMinor ??
-              Money.fromDouble(legacyOpening, currency: currency, scale: scale)
-                  .minor;
+          final BigInt resolvedBalanceMinor =
+              balanceMinor ??
+              Money.fromDouble(
+                legacyBalance,
+                currency: currency,
+                scale: scale,
+              ).minor;
+          final BigInt resolvedOpeningMinor =
+              openingMinor ??
+              Money.fromDouble(
+                legacyOpening,
+                currency: currency,
+                scale: scale,
+              ).minor;
           return AccountEntity(
             id: _readString(data, 'id'),
             name: _readString(data, 'name'),
@@ -107,8 +111,13 @@ class ExportBundleJsonDecoder {
           final int scale = _readInt(data['amountScale']) ?? 2;
           final double legacyAmount = _readDouble(data, 'amount');
           final BigInt? amountMinor = _readBigInt(data['amountMinor']);
-          final BigInt resolvedMinor = amountMinor ??
-              Money.fromDouble(legacyAmount, currency: 'XXX', scale: scale).minor;
+          final BigInt resolvedMinor =
+              amountMinor ??
+              Money.fromDouble(
+                legacyAmount,
+                currency: 'XXX',
+                scale: scale,
+              ).minor;
           return TransactionEntity(
             id: _readString(data, 'id'),
             accountId: _readString(data, 'accountId'),

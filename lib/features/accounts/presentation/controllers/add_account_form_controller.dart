@@ -57,10 +57,8 @@ abstract class AddAccountFormState with _$AddAccountFormState {
 
   const AddAccountFormState._();
 
-  MoneyAmount? parseBalance() => parseBalanceInput(
-    balanceInput,
-    scale: resolveCurrencyScale(currency),
-  );
+  MoneyAmount? parseBalance() =>
+      parseBalanceInput(balanceInput, scale: resolveCurrencyScale(currency));
 
   String? get resolvedType {
     final String value = useCustomType ? customType.trim() : type.trim();

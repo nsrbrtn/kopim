@@ -52,7 +52,8 @@ class ImportDataRepositoryImpl implements ImportDataRepository {
       for (final AccountEntity account in accounts)
         account.id: MoneyAmount(
           minor: BigInt.zero,
-          scale: account.currencyScale ?? resolveCurrencyScale(account.currency),
+          scale:
+              account.currencyScale ?? resolveCurrencyScale(account.currency),
         ),
     };
     final List<db.CreditRow> creditRows = await _creditDao.getAllCredits();
@@ -74,26 +75,23 @@ class ImportDataRepositoryImpl implements ImportDataRepository {
     }
 
     final List<AccountEntity> updatedAccounts = accounts
-        .map(
-          (AccountEntity account) {
-            final int scale =
-                account.currencyScale ?? resolveCurrencyScale(account.currency);
-            final MoneyAmount net =
-                rescaleMoneyAmount(deltas[account.id] ?? MoneyAmount(
-                  minor: BigInt.zero,
-                  scale: scale,
-                ), scale);
-            final MoneyAmount openingBalance = _resolveOpeningBalance(
-              account: account,
-              netDelta: net,
-            );
-            return account.copyWith(
-              openingBalanceMinor: openingBalance.minor,
-              balanceMinor: openingBalance.minor + net.minor,
-              currencyScale: scale,
-            );
-          },
-        )
+        .map((AccountEntity account) {
+          final int scale =
+              account.currencyScale ?? resolveCurrencyScale(account.currency);
+          final MoneyAmount net = rescaleMoneyAmount(
+            deltas[account.id] ?? MoneyAmount(minor: BigInt.zero, scale: scale),
+            scale,
+          );
+          final MoneyAmount openingBalance = _resolveOpeningBalance(
+            account: account,
+            netDelta: net,
+          );
+          return account.copyWith(
+            openingBalanceMinor: openingBalance.minor,
+            balanceMinor: openingBalance.minor + net.minor,
+            currencyScale: scale,
+          );
+        })
         .toList(growable: false);
     await _accountDao.upsertAll(updatedAccounts);
   }
@@ -102,10 +100,14 @@ class ImportDataRepositoryImpl implements ImportDataRepository {
     required AccountEntity account,
     required MoneyAmount netDelta,
   }) {
-    final MoneyAmount balance =
-        rescaleMoneyAmount(account.balanceAmount, netDelta.scale);
-    final MoneyAmount opening =
-        rescaleMoneyAmount(account.openingBalanceAmount, netDelta.scale);
+    final MoneyAmount balance = rescaleMoneyAmount(
+      account.balanceAmount,
+      netDelta.scale,
+    );
+    final MoneyAmount opening = rescaleMoneyAmount(
+      account.openingBalanceAmount,
+      netDelta.scale,
+    );
     final BigInt derivedMinor = balance.minor - netDelta.minor;
     if (opening.minor == BigInt.zero && netDelta.minor != BigInt.zero) {
       return MoneyAmount(minor: derivedMinor, scale: netDelta.scale);

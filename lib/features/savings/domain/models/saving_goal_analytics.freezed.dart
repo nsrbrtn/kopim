@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$SavingGoalAnalytics {
 
- String get goalId; double get totalAmount; DateTime? get lastContributionAt; List<SavingGoalCategoryBreakdown> get categoryBreakdown; int get transactionCount;
+ String get goalId;@MoneyAmountJsonConverter() MoneyAmount get totalAmount; DateTime? get lastContributionAt; List<SavingGoalCategoryBreakdown> get categoryBreakdown; int get transactionCount;
 /// Create a copy of SavingGoalAnalytics
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,7 +48,7 @@ abstract mixin class $SavingGoalAnalyticsCopyWith<$Res>  {
   factory $SavingGoalAnalyticsCopyWith(SavingGoalAnalytics value, $Res Function(SavingGoalAnalytics) _then) = _$SavingGoalAnalyticsCopyWithImpl;
 @useResult
 $Res call({
- String goalId, double totalAmount, DateTime? lastContributionAt, List<SavingGoalCategoryBreakdown> categoryBreakdown, int transactionCount
+ String goalId,@MoneyAmountJsonConverter() MoneyAmount totalAmount, DateTime? lastContributionAt, List<SavingGoalCategoryBreakdown> categoryBreakdown, int transactionCount
 });
 
 
@@ -69,7 +69,7 @@ class _$SavingGoalAnalyticsCopyWithImpl<$Res>
   return _then(_self.copyWith(
 goalId: null == goalId ? _self.goalId : goalId // ignore: cast_nullable_to_non_nullable
 as String,totalAmount: null == totalAmount ? _self.totalAmount : totalAmount // ignore: cast_nullable_to_non_nullable
-as double,lastContributionAt: freezed == lastContributionAt ? _self.lastContributionAt : lastContributionAt // ignore: cast_nullable_to_non_nullable
+as MoneyAmount,lastContributionAt: freezed == lastContributionAt ? _self.lastContributionAt : lastContributionAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,categoryBreakdown: null == categoryBreakdown ? _self.categoryBreakdown : categoryBreakdown // ignore: cast_nullable_to_non_nullable
 as List<SavingGoalCategoryBreakdown>,transactionCount: null == transactionCount ? _self.transactionCount : transactionCount // ignore: cast_nullable_to_non_nullable
 as int,
@@ -157,7 +157,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String goalId,  double totalAmount,  DateTime? lastContributionAt,  List<SavingGoalCategoryBreakdown> categoryBreakdown,  int transactionCount)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String goalId, @MoneyAmountJsonConverter()  MoneyAmount totalAmount,  DateTime? lastContributionAt,  List<SavingGoalCategoryBreakdown> categoryBreakdown,  int transactionCount)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SavingGoalAnalytics() when $default != null:
 return $default(_that.goalId,_that.totalAmount,_that.lastContributionAt,_that.categoryBreakdown,_that.transactionCount);case _:
@@ -178,7 +178,7 @@ return $default(_that.goalId,_that.totalAmount,_that.lastContributionAt,_that.ca
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String goalId,  double totalAmount,  DateTime? lastContributionAt,  List<SavingGoalCategoryBreakdown> categoryBreakdown,  int transactionCount)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String goalId, @MoneyAmountJsonConverter()  MoneyAmount totalAmount,  DateTime? lastContributionAt,  List<SavingGoalCategoryBreakdown> categoryBreakdown,  int transactionCount)  $default,) {final _that = this;
 switch (_that) {
 case _SavingGoalAnalytics():
 return $default(_that.goalId,_that.totalAmount,_that.lastContributionAt,_that.categoryBreakdown,_that.transactionCount);case _:
@@ -198,7 +198,7 @@ return $default(_that.goalId,_that.totalAmount,_that.lastContributionAt,_that.ca
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String goalId,  double totalAmount,  DateTime? lastContributionAt,  List<SavingGoalCategoryBreakdown> categoryBreakdown,  int transactionCount)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String goalId, @MoneyAmountJsonConverter()  MoneyAmount totalAmount,  DateTime? lastContributionAt,  List<SavingGoalCategoryBreakdown> categoryBreakdown,  int transactionCount)?  $default,) {final _that = this;
 switch (_that) {
 case _SavingGoalAnalytics() when $default != null:
 return $default(_that.goalId,_that.totalAmount,_that.lastContributionAt,_that.categoryBreakdown,_that.transactionCount);case _:
@@ -213,11 +213,11 @@ return $default(_that.goalId,_that.totalAmount,_that.lastContributionAt,_that.ca
 @JsonSerializable()
 
 class _SavingGoalAnalytics extends SavingGoalAnalytics {
-  const _SavingGoalAnalytics({required this.goalId, this.totalAmount = 0.0, this.lastContributionAt, final  List<SavingGoalCategoryBreakdown> categoryBreakdown = const <SavingGoalCategoryBreakdown>[], this.transactionCount = 0}): _categoryBreakdown = categoryBreakdown,super._();
+  const _SavingGoalAnalytics({required this.goalId, @MoneyAmountJsonConverter() required this.totalAmount, this.lastContributionAt, final  List<SavingGoalCategoryBreakdown> categoryBreakdown = const <SavingGoalCategoryBreakdown>[], this.transactionCount = 0}): _categoryBreakdown = categoryBreakdown,super._();
   factory _SavingGoalAnalytics.fromJson(Map<String, dynamic> json) => _$SavingGoalAnalyticsFromJson(json);
 
 @override final  String goalId;
-@override@JsonKey() final  double totalAmount;
+@override@MoneyAmountJsonConverter() final  MoneyAmount totalAmount;
 @override final  DateTime? lastContributionAt;
  final  List<SavingGoalCategoryBreakdown> _categoryBreakdown;
 @override@JsonKey() List<SavingGoalCategoryBreakdown> get categoryBreakdown {
@@ -261,7 +261,7 @@ abstract mixin class _$SavingGoalAnalyticsCopyWith<$Res> implements $SavingGoalA
   factory _$SavingGoalAnalyticsCopyWith(_SavingGoalAnalytics value, $Res Function(_SavingGoalAnalytics) _then) = __$SavingGoalAnalyticsCopyWithImpl;
 @override @useResult
 $Res call({
- String goalId, double totalAmount, DateTime? lastContributionAt, List<SavingGoalCategoryBreakdown> categoryBreakdown, int transactionCount
+ String goalId,@MoneyAmountJsonConverter() MoneyAmount totalAmount, DateTime? lastContributionAt, List<SavingGoalCategoryBreakdown> categoryBreakdown, int transactionCount
 });
 
 
@@ -282,7 +282,7 @@ class __$SavingGoalAnalyticsCopyWithImpl<$Res>
   return _then(_SavingGoalAnalytics(
 goalId: null == goalId ? _self.goalId : goalId // ignore: cast_nullable_to_non_nullable
 as String,totalAmount: null == totalAmount ? _self.totalAmount : totalAmount // ignore: cast_nullable_to_non_nullable
-as double,lastContributionAt: freezed == lastContributionAt ? _self.lastContributionAt : lastContributionAt // ignore: cast_nullable_to_non_nullable
+as MoneyAmount,lastContributionAt: freezed == lastContributionAt ? _self.lastContributionAt : lastContributionAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,categoryBreakdown: null == categoryBreakdown ? _self._categoryBreakdown : categoryBreakdown // ignore: cast_nullable_to_non_nullable
 as List<SavingGoalCategoryBreakdown>,transactionCount: null == transactionCount ? _self.transactionCount : transactionCount // ignore: cast_nullable_to_non_nullable
 as int,

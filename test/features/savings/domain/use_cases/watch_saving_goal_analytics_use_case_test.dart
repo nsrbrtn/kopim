@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/savings/domain/models/saving_goal_analytics.dart';
 import 'package:kopim/features/savings/domain/use_cases/watch_saving_goal_analytics_use_case.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
@@ -80,7 +81,8 @@ void main() {
         accountId: 'acc',
         categoryId: 'food',
         savingGoalId: 'goal',
-        amount: -50,
+        amountMinor: BigInt.from(-5000),
+        amountScale: 2,
         date: firstDate,
         note: null,
         type: TransactionType.expense.storageValue,
@@ -93,7 +95,8 @@ void main() {
         accountId: 'acc',
         categoryId: 'salary',
         savingGoalId: 'goal',
-        amount: 75,
+        amountMinor: BigInt.from(7500),
+        amountScale: 2,
         date: secondDate,
         note: null,
         type: TransactionType.income.storageValue,
@@ -106,7 +109,8 @@ void main() {
         accountId: 'acc',
         categoryId: 'other',
         savingGoalId: 'other-goal',
-        amount: 20,
+        amountMinor: BigInt.from(2000),
+        amountScale: 2,
         date: firstDate,
         note: null,
         type: TransactionType.income.storageValue,
@@ -122,13 +126,18 @@ void main() {
       final SavingGoalAnalytics analytics = await result;
       expect(analytics.goalId, 'goal');
       expect(analytics.transactionCount, 2);
-      expect(analytics.totalAmount, closeTo(125, 0.0001));
+      expect(analytics.totalAmount, _amount(125));
       expect(analytics.lastContributionAt, secondDate);
       expect(analytics.categoryBreakdown, hasLength(2));
       expect(analytics.categoryBreakdown.first.categoryId, 'salary');
-      expect(analytics.categoryBreakdown.first.amount, closeTo(75, 0.0001));
+      expect(analytics.categoryBreakdown.first.amount, _amount(75));
       expect(analytics.categoryBreakdown.last.categoryId, 'food');
-      expect(analytics.categoryBreakdown.last.amount, closeTo(50, 0.0001));
+      expect(analytics.categoryBreakdown.last.amount, _amount(50));
     });
   });
+}
+
+MoneyAmount _amount(num value, {int scale = 2}) {
+  final double scaled = value * 100;
+  return MoneyAmount(minor: BigInt.from(scaled.round()), scale: scale);
 }

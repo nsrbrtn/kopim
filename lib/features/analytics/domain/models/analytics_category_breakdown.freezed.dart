@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$AnalyticsCategoryBreakdown {
 
- String? get categoryId; double get amount; List<AnalyticsCategoryBreakdown> get children;
+ String? get categoryId; MoneyAmount get amount; List<AnalyticsCategoryBreakdown> get children;
 /// Create a copy of AnalyticsCategoryBreakdown
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -45,7 +45,7 @@ abstract mixin class $AnalyticsCategoryBreakdownCopyWith<$Res>  {
   factory $AnalyticsCategoryBreakdownCopyWith(AnalyticsCategoryBreakdown value, $Res Function(AnalyticsCategoryBreakdown) _then) = _$AnalyticsCategoryBreakdownCopyWithImpl;
 @useResult
 $Res call({
- String? categoryId, double amount, List<AnalyticsCategoryBreakdown> children
+ String? categoryId, MoneyAmount amount, List<AnalyticsCategoryBreakdown> children
 });
 
 
@@ -66,7 +66,7 @@ class _$AnalyticsCategoryBreakdownCopyWithImpl<$Res>
   return _then(_self.copyWith(
 categoryId: freezed == categoryId ? _self.categoryId : categoryId // ignore: cast_nullable_to_non_nullable
 as String?,amount: null == amount ? _self.amount : amount // ignore: cast_nullable_to_non_nullable
-as double,children: null == children ? _self.children : children // ignore: cast_nullable_to_non_nullable
+as MoneyAmount,children: null == children ? _self.children : children // ignore: cast_nullable_to_non_nullable
 as List<AnalyticsCategoryBreakdown>,
   ));
 }
@@ -152,7 +152,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? categoryId,  double amount,  List<AnalyticsCategoryBreakdown> children)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? categoryId,  MoneyAmount amount,  List<AnalyticsCategoryBreakdown> children)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _AnalyticsCategoryBreakdown() when $default != null:
 return $default(_that.categoryId,_that.amount,_that.children);case _:
@@ -173,7 +173,7 @@ return $default(_that.categoryId,_that.amount,_that.children);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? categoryId,  double amount,  List<AnalyticsCategoryBreakdown> children)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? categoryId,  MoneyAmount amount,  List<AnalyticsCategoryBreakdown> children)  $default,) {final _that = this;
 switch (_that) {
 case _AnalyticsCategoryBreakdown():
 return $default(_that.categoryId,_that.amount,_that.children);case _:
@@ -193,7 +193,7 @@ return $default(_that.categoryId,_that.amount,_that.children);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? categoryId,  double amount,  List<AnalyticsCategoryBreakdown> children)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? categoryId,  MoneyAmount amount,  List<AnalyticsCategoryBreakdown> children)?  $default,) {final _that = this;
 switch (_that) {
 case _AnalyticsCategoryBreakdown() when $default != null:
 return $default(_that.categoryId,_that.amount,_that.children);case _:
@@ -212,7 +212,7 @@ class _AnalyticsCategoryBreakdown extends AnalyticsCategoryBreakdown {
   
 
 @override final  String? categoryId;
-@override final  double amount;
+@override final  MoneyAmount amount;
  final  List<AnalyticsCategoryBreakdown> _children;
 @override@JsonKey() List<AnalyticsCategoryBreakdown> get children {
   if (_children is EqualUnmodifiableListView) return _children;
@@ -251,7 +251,7 @@ abstract mixin class _$AnalyticsCategoryBreakdownCopyWith<$Res> implements $Anal
   factory _$AnalyticsCategoryBreakdownCopyWith(_AnalyticsCategoryBreakdown value, $Res Function(_AnalyticsCategoryBreakdown) _then) = __$AnalyticsCategoryBreakdownCopyWithImpl;
 @override @useResult
 $Res call({
- String? categoryId, double amount, List<AnalyticsCategoryBreakdown> children
+ String? categoryId, MoneyAmount amount, List<AnalyticsCategoryBreakdown> children
 });
 
 
@@ -272,7 +272,7 @@ class __$AnalyticsCategoryBreakdownCopyWithImpl<$Res>
   return _then(_AnalyticsCategoryBreakdown(
 categoryId: freezed == categoryId ? _self.categoryId : categoryId // ignore: cast_nullable_to_non_nullable
 as String?,amount: null == amount ? _self.amount : amount // ignore: cast_nullable_to_non_nullable
-as double,children: null == children ? _self._children : children // ignore: cast_nullable_to_non_nullable
+as MoneyAmount,children: null == children ? _self._children : children // ignore: cast_nullable_to_non_nullable
 as List<AnalyticsCategoryBreakdown>,
   ));
 }

@@ -1,10 +1,7 @@
 import 'package:kopim/core/money/money.dart';
 
 class MoneyAmount {
-  const MoneyAmount({
-    required this.minor,
-    required this.scale,
-  });
+  const MoneyAmount({required this.minor, required this.scale});
 
   final BigInt minor;
   final int scale;
@@ -15,6 +12,15 @@ class MoneyAmount {
     final Money money = Money(minor: minor, currency: 'XXX', scale: scale);
     return double.tryParse(money.toDecimalString()) ?? 0;
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is MoneyAmount && other.minor == minor && other.scale == scale;
+  }
+
+  @override
+  int get hashCode => Object.hash(minor, scale);
 }
 
 class MoneyAccumulator {
@@ -74,7 +80,8 @@ MoneyAmount resolveMoneyAmount({
   bool useAbs = false,
 }) {
   final int resolvedScale = (scale ?? 0) > 0 ? scale! : fallbackScale;
-  final BigInt resolvedMinor = minor ??
+  final BigInt resolvedMinor =
+      minor ??
       Money.fromDouble(amount, currency: 'XXX', scale: resolvedScale).minor;
   final MoneyAmount resolved = MoneyAmount(
     minor: resolvedMinor,
@@ -105,11 +112,26 @@ MoneyAmount? tryParseMoneyAmount({
 
 MoneyAmount rescaleMoneyAmount(MoneyAmount amount, int targetScale) {
   if (amount.scale == targetScale) return amount;
-  final Money source = Money(minor: amount.minor, currency: 'XXX', scale: amount.scale);
+  final Money source = Money(
+    minor: amount.minor,
+    currency: 'XXX',
+    scale: amount.scale,
+  );
   final Money normalized = Money.fromDecimalString(
     source.toDecimalString(),
     currency: 'XXX',
     scale: targetScale,
   );
   return MoneyAmount(minor: normalized.minor, scale: targetScale);
+}
+
+MoneyAmount maxMoneyAmount(MoneyAmount first, MoneyAmount second) {
+  final int targetScale = first.scale >= second.scale
+      ? first.scale
+      : second.scale;
+  final MoneyAmount normalizedFirst = rescaleMoneyAmount(first, targetScale);
+  final MoneyAmount normalizedSecond = rescaleMoneyAmount(second, targetScale);
+  return normalizedFirst.minor >= normalizedSecond.minor
+      ? normalizedFirst
+      : normalizedSecond;
 }

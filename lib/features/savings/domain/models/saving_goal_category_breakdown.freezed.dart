@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$SavingGoalCategoryBreakdown {
 
- String? get categoryId; double get amount;
+ String? get categoryId;@MoneyAmountJsonConverter() MoneyAmount get amount;
 /// Create a copy of SavingGoalCategoryBreakdown
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,7 +48,7 @@ abstract mixin class $SavingGoalCategoryBreakdownCopyWith<$Res>  {
   factory $SavingGoalCategoryBreakdownCopyWith(SavingGoalCategoryBreakdown value, $Res Function(SavingGoalCategoryBreakdown) _then) = _$SavingGoalCategoryBreakdownCopyWithImpl;
 @useResult
 $Res call({
- String? categoryId, double amount
+ String? categoryId,@MoneyAmountJsonConverter() MoneyAmount amount
 });
 
 
@@ -69,7 +69,7 @@ class _$SavingGoalCategoryBreakdownCopyWithImpl<$Res>
   return _then(_self.copyWith(
 categoryId: freezed == categoryId ? _self.categoryId : categoryId // ignore: cast_nullable_to_non_nullable
 as String?,amount: null == amount ? _self.amount : amount // ignore: cast_nullable_to_non_nullable
-as double,
+as MoneyAmount,
   ));
 }
 
@@ -154,7 +154,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? categoryId,  double amount)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? categoryId, @MoneyAmountJsonConverter()  MoneyAmount amount)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SavingGoalCategoryBreakdown() when $default != null:
 return $default(_that.categoryId,_that.amount);case _:
@@ -175,7 +175,7 @@ return $default(_that.categoryId,_that.amount);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? categoryId,  double amount)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? categoryId, @MoneyAmountJsonConverter()  MoneyAmount amount)  $default,) {final _that = this;
 switch (_that) {
 case _SavingGoalCategoryBreakdown():
 return $default(_that.categoryId,_that.amount);case _:
@@ -195,7 +195,7 @@ return $default(_that.categoryId,_that.amount);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? categoryId,  double amount)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? categoryId, @MoneyAmountJsonConverter()  MoneyAmount amount)?  $default,) {final _that = this;
 switch (_that) {
 case _SavingGoalCategoryBreakdown() when $default != null:
 return $default(_that.categoryId,_that.amount);case _:
@@ -210,11 +210,11 @@ return $default(_that.categoryId,_that.amount);case _:
 @JsonSerializable()
 
 class _SavingGoalCategoryBreakdown extends SavingGoalCategoryBreakdown {
-  const _SavingGoalCategoryBreakdown({this.categoryId, this.amount = 0.0}): super._();
+  const _SavingGoalCategoryBreakdown({this.categoryId, @MoneyAmountJsonConverter() required this.amount}): super._();
   factory _SavingGoalCategoryBreakdown.fromJson(Map<String, dynamic> json) => _$SavingGoalCategoryBreakdownFromJson(json);
 
 @override final  String? categoryId;
-@override@JsonKey() final  double amount;
+@override@MoneyAmountJsonConverter() final  MoneyAmount amount;
 
 /// Create a copy of SavingGoalCategoryBreakdown
 /// with the given fields replaced by the non-null parameter values.
@@ -249,7 +249,7 @@ abstract mixin class _$SavingGoalCategoryBreakdownCopyWith<$Res> implements $Sav
   factory _$SavingGoalCategoryBreakdownCopyWith(_SavingGoalCategoryBreakdown value, $Res Function(_SavingGoalCategoryBreakdown) _then) = __$SavingGoalCategoryBreakdownCopyWithImpl;
 @override @useResult
 $Res call({
- String? categoryId, double amount
+ String? categoryId,@MoneyAmountJsonConverter() MoneyAmount amount
 });
 
 
@@ -270,7 +270,7 @@ class __$SavingGoalCategoryBreakdownCopyWithImpl<$Res>
   return _then(_SavingGoalCategoryBreakdown(
 categoryId: freezed == categoryId ? _self.categoryId : categoryId // ignore: cast_nullable_to_non_nullable
 as String?,amount: null == amount ? _self.amount : amount // ignore: cast_nullable_to_non_nullable
-as double,
+as MoneyAmount,
   ));
 }
 

@@ -55,15 +55,13 @@ void main() {
     await database.close();
   });
 
-  Future<void> seedAccount({
-    required String id,
-    required double balance,
-  }) async {
+  Future<void> seedAccount({required String id, required int balance}) async {
     final AccountEntity account = AccountEntity(
       id: id,
       name: 'Account $id',
-      balance: balance,
+      balanceMinor: BigInt.from(balance * 100),
       currency: 'USD',
+      currencyScale: 2,
       type: 'card',
       createdAt: now,
       updatedAt: now,
@@ -77,7 +75,8 @@ void main() {
     final TransactionEntity transaction = TransactionEntity(
       id: 'tx-1',
       accountId: 'acc-1',
-      amount: 30,
+      amountMinor: BigInt.from(3000),
+      amountScale: 2,
       date: now,
       type: TransactionType.expense.storageValue,
       createdAt: now,
@@ -99,7 +98,8 @@ void main() {
       id: 'tx-2',
       accountId: 'acc-1',
       transferAccountId: 'acc-2',
-      amount: 40,
+      amountMinor: BigInt.from(4000),
+      amountScale: 2,
       date: now,
       type: TransactionType.transfer.storageValue,
       createdAt: now,
@@ -141,7 +141,8 @@ void main() {
       id: 'credit-entity',
       accountId: 'credit-1',
       categoryId: 'cat-credit',
-      totalAmount: 1000,
+      totalAmountMinor: BigInt.from(100000),
+      totalAmountScale: 2,
       interestRate: 0,
       termMonths: 12,
       startDate: now,
@@ -154,7 +155,8 @@ void main() {
       id: 'tx-3',
       accountId: 'acc-1',
       categoryId: 'cat-credit',
-      amount: 100,
+      amountMinor: BigInt.from(10000),
+      amountScale: 2,
       date: now,
       type: TransactionType.expense.storageValue,
       createdAt: now,
@@ -177,7 +179,8 @@ void main() {
     final TransactionEntity transaction = TransactionEntity(
       id: 'tx-4',
       accountId: 'acc-1',
-      amount: 40,
+      amountMinor: BigInt.from(4000),
+      amountScale: 2,
       date: now,
       type: TransactionType.expense.storageValue,
       createdAt: now,

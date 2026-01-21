@@ -7,6 +7,7 @@ import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/categories/domain/repositories/category_repository.dart';
 import 'package:kopim/features/categories/domain/services/category_hierarchy.dart';
 import 'package:kopim/features/home/domain/models/home_overview_summary.dart';
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
 import 'package:kopim/features/transactions/domain/repositories/transaction_repository.dart';
@@ -78,16 +79,16 @@ HomeOverviewSummary computeHomeOverviewSummary({
       .map((AccountEntity account) => account.id)
       .toSet();
 
-  final double totalBalance = selectedAccounts.fold<double>(
-    0,
-    (double sum, AccountEntity account) =>
-        sum + account.balanceAmount.toDouble(),
-  );
+  final MoneyAccumulator totalBalance = MoneyAccumulator();
+  for (final AccountEntity account in selectedAccounts) {
+    totalBalance.add(account.balanceAmount);
+  }
 
-  double todayIncome = 0;
-  double todayExpense = 0;
+  final MoneyAccumulator todayIncome = MoneyAccumulator();
+  final MoneyAccumulator todayExpense = MoneyAccumulator();
   final CategoryHierarchy hierarchy = CategoryHierarchy(categories);
-  final Map<String?, double> expenseByRoot = <String?, double>{};
+  final Map<String?, MoneyAccumulator> expenseByRoot =
+      <String?, MoneyAccumulator>{};
 
   for (final TransactionEntity transaction in transactions) {
     if (!selectedAccountIds.contains(transaction.accountId)) {
@@ -97,7 +98,7 @@ HomeOverviewSummary computeHomeOverviewSummary({
     final DateTime date = transaction.date;
     final bool inToday = !date.isBefore(dayStart) && date.isBefore(dayEnd);
     final bool inMonth = !date.isBefore(monthStart) && date.isBefore(monthEnd);
-    final double amount = transaction.amountValue.abs().toDouble();
+    final MoneyAmount amount = transaction.amountValue.abs();
     final String? rootCategoryId = _resolveRootCategoryId(
       transaction.categoryId,
       hierarchy,
@@ -111,44 +112,51 @@ HomeOverviewSummary computeHomeOverviewSummary({
 
     if (transaction.type == TransactionType.income.storageValue) {
       if (inToday) {
-        todayIncome += amount;
+        todayIncome.add(amount);
       }
       continue;
     }
 
     if (transaction.type == TransactionType.expense.storageValue) {
       if (inToday) {
-        todayExpense += amount;
+        todayExpense.add(amount);
       }
       if (inMonth) {
-        expenseByRoot[rootCategoryId] =
-            (expenseByRoot[rootCategoryId] ?? 0) + amount;
+        expenseByRoot
+            .putIfAbsent(rootCategoryId, MoneyAccumulator.new)
+            .add(amount);
       }
     }
   }
 
   HomeTopExpenseCategory? topExpenseCategory;
   if (expenseByRoot.isNotEmpty) {
-    final List<MapEntry<String?, double>> entries =
+    final List<MapEntry<String?, MoneyAccumulator>> entries =
         expenseByRoot.entries.toList(growable: false)..sort(
-          (MapEntry<String?, double> a, MapEntry<String?, double> b) =>
-              b.value.compareTo(a.value),
+          (
+            MapEntry<String?, MoneyAccumulator> a,
+            MapEntry<String?, MoneyAccumulator> b,
+          ) => b.value.toDouble().compareTo(a.value.toDouble()),
         );
-    final MapEntry<String?, double> top = entries.first;
-    if (top.value > 0) {
+    final MapEntry<String?, MoneyAccumulator> top = entries.first;
+    if (top.value.minor > BigInt.zero) {
       topExpenseCategory = HomeTopExpenseCategory(
         categoryId: top.key,
-        amount: top.value,
+        amount: _toMoneyAmount(top.value),
       );
     }
   }
 
   return HomeOverviewSummary(
-    totalBalance: totalBalance,
-    todayIncome: todayIncome,
-    todayExpense: todayExpense,
+    totalBalance: _toMoneyAmount(totalBalance),
+    todayIncome: _toMoneyAmount(todayIncome),
+    todayExpense: _toMoneyAmount(todayExpense),
     topExpenseCategory: topExpenseCategory,
   );
+}
+
+MoneyAmount _toMoneyAmount(MoneyAccumulator accumulator) {
+  return MoneyAmount(minor: accumulator.minor, scale: accumulator.scale);
 }
 
 String? _resolveRootCategoryId(

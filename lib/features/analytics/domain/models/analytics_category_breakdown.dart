@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:kopim/core/money/money_utils.dart';
 
 part 'analytics_category_breakdown.freezed.dart';
 
@@ -21,7 +22,7 @@ abstract class AnalyticsCategoryBreakdown with _$AnalyticsCategoryBreakdown {
 
   const factory AnalyticsCategoryBreakdown({
     String? categoryId,
-    required double amount,
+    required MoneyAmount amount,
     @Default(<AnalyticsCategoryBreakdown>[])
     List<AnalyticsCategoryBreakdown> children,
   }) = _AnalyticsCategoryBreakdown;

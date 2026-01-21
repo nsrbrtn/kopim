@@ -40,28 +40,34 @@ _MonthlyExpenseInsight _$MonthlyExpenseInsightFromJson(
   Map<String, dynamic> json,
 ) => _MonthlyExpenseInsight(
   month: DateTime.parse(json['month'] as String),
-  totalExpense: (json['totalExpense'] as num).toDouble(),
+  totalExpense: const MoneyAmountJsonConverter().fromJson(
+    json['totalExpense'] as Map<String, dynamic>,
+  ),
 );
 
 Map<String, dynamic> _$MonthlyExpenseInsightToJson(
   _MonthlyExpenseInsight instance,
 ) => <String, dynamic>{
   'month': instance.month.toIso8601String(),
-  'totalExpense': instance.totalExpense,
+  'totalExpense': const MoneyAmountJsonConverter().toJson(
+    instance.totalExpense,
+  ),
 };
 
 _MonthlyIncomeInsight _$MonthlyIncomeInsightFromJson(
   Map<String, dynamic> json,
 ) => _MonthlyIncomeInsight(
   month: DateTime.parse(json['month'] as String),
-  totalIncome: (json['totalIncome'] as num).toDouble(),
+  totalIncome: const MoneyAmountJsonConverter().fromJson(
+    json['totalIncome'] as Map<String, dynamic>,
+  ),
 );
 
 Map<String, dynamic> _$MonthlyIncomeInsightToJson(
   _MonthlyIncomeInsight instance,
 ) => <String, dynamic>{
   'month': instance.month.toIso8601String(),
-  'totalIncome': instance.totalIncome,
+  'totalIncome': const MoneyAmountJsonConverter().toJson(instance.totalIncome),
 };
 
 _CategoryExpenseInsight _$CategoryExpenseInsightFromJson(
@@ -69,7 +75,9 @@ _CategoryExpenseInsight _$CategoryExpenseInsightFromJson(
 ) => _CategoryExpenseInsight(
   categoryId: json['categoryId'] as String?,
   displayName: json['displayName'] as String,
-  totalExpense: (json['totalExpense'] as num).toDouble(),
+  totalExpense: const MoneyAmountJsonConverter().fromJson(
+    json['totalExpense'] as Map<String, dynamic>,
+  ),
   color: json['color'] as String?,
 );
 
@@ -78,7 +86,9 @@ Map<String, dynamic> _$CategoryExpenseInsightToJson(
 ) => <String, dynamic>{
   'categoryId': instance.categoryId,
   'displayName': instance.displayName,
-  'totalExpense': instance.totalExpense,
+  'totalExpense': const MoneyAmountJsonConverter().toJson(
+    instance.totalExpense,
+  ),
   'color': instance.color,
 };
 
@@ -87,7 +97,9 @@ _CategoryIncomeInsight _$CategoryIncomeInsightFromJson(
 ) => _CategoryIncomeInsight(
   categoryId: json['categoryId'] as String?,
   displayName: json['displayName'] as String,
-  totalIncome: (json['totalIncome'] as num).toDouble(),
+  totalIncome: const MoneyAmountJsonConverter().fromJson(
+    json['totalIncome'] as Map<String, dynamic>,
+  ),
   color: json['color'] as String?,
 );
 
@@ -96,7 +108,7 @@ Map<String, dynamic> _$CategoryIncomeInsightToJson(
 ) => <String, dynamic>{
   'categoryId': instance.categoryId,
   'displayName': instance.displayName,
-  'totalIncome': instance.totalIncome,
+  'totalIncome': const MoneyAmountJsonConverter().toJson(instance.totalIncome),
   'color': instance.color,
 };
 
@@ -107,10 +119,18 @@ _BudgetForecastInsight _$BudgetForecastInsightFromJson(
   title: json['title'] as String,
   periodStart: DateTime.parse(json['periodStart'] as String),
   periodEnd: DateTime.parse(json['periodEnd'] as String),
-  allocated: (json['allocated'] as num).toDouble(),
-  spent: (json['spent'] as num).toDouble(),
-  projectedSpent: (json['projectedSpent'] as num).toDouble(),
-  remaining: (json['remaining'] as num).toDouble(),
+  allocated: const MoneyAmountJsonConverter().fromJson(
+    json['allocated'] as Map<String, dynamic>,
+  ),
+  spent: const MoneyAmountJsonConverter().fromJson(
+    json['spent'] as Map<String, dynamic>,
+  ),
+  projectedSpent: const MoneyAmountJsonConverter().fromJson(
+    json['projectedSpent'] as Map<String, dynamic>,
+  ),
+  remaining: const MoneyAmountJsonConverter().fromJson(
+    json['remaining'] as Map<String, dynamic>,
+  ),
   completionRate: (json['completionRate'] as num).toDouble(),
   status: $enumDecode(_$BudgetForecastStatusEnumMap, json['status']),
   categoryNames:
@@ -132,10 +152,12 @@ Map<String, dynamic> _$BudgetForecastInsightToJson(
   'title': instance.title,
   'periodStart': instance.periodStart.toIso8601String(),
   'periodEnd': instance.periodEnd.toIso8601String(),
-  'allocated': instance.allocated,
-  'spent': instance.spent,
-  'projectedSpent': instance.projectedSpent,
-  'remaining': instance.remaining,
+  'allocated': const MoneyAmountJsonConverter().toJson(instance.allocated),
+  'spent': const MoneyAmountJsonConverter().toJson(instance.spent),
+  'projectedSpent': const MoneyAmountJsonConverter().toJson(
+    instance.projectedSpent,
+  ),
+  'remaining': const MoneyAmountJsonConverter().toJson(instance.remaining),
   'completionRate': instance.completionRate,
   'status': _$BudgetForecastStatusEnumMap[instance.status]!,
   'categoryNames': instance.categoryNames,

@@ -1,3 +1,4 @@
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/upcoming_payments/domain/services/time_service.dart';
 
 class PaymentReminderValidator {
@@ -8,7 +9,7 @@ class PaymentReminderValidator {
 
   void validate({
     required String title,
-    required double amount,
+    required MoneyAmount amount,
     required DateTime whenLocal,
   }) {
     if (title.trim().isEmpty) {
@@ -18,7 +19,7 @@ class PaymentReminderValidator {
         'Название не может быть пустым',
       );
     }
-    if (amount <= 0) {
+    if (amount.minor <= BigInt.zero) {
       throw ArgumentError.value(
         amount,
         'amount',

@@ -5,6 +5,7 @@ import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:kopim/core/data/database.dart' as db;
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/core/services/ai_assistant_service.dart';
 import 'package:kopim/core/services/logger_service.dart';
 import 'package:kopim/features/ai/data/local/ai_assistant_tool_dao.dart';
@@ -50,7 +51,9 @@ void main() {
             id: drift.Value<String>(id),
             name: drift.Value<String>('Счет $id'),
             balance: const drift.Value<double>(0),
+            balanceMinor: const drift.Value<String>('0'),
             currency: drift.Value<String>(currency),
+            currencyScale: const drift.Value<int>(2),
             type: const drift.Value<String>('checking'),
           ),
           mode: drift.InsertMode.insertOrReplace,
@@ -79,7 +82,7 @@ void main() {
     required String id,
     required String accountId,
     required String categoryId,
-    required double amount,
+    required MoneyAmount amount,
     required DateTime date,
   }) {
     return database
@@ -89,7 +92,9 @@ void main() {
             id: drift.Value<String>(id),
             accountId: drift.Value<String>(accountId),
             categoryId: drift.Value<String>(categoryId),
-            amount: drift.Value<double>(amount),
+            amount: drift.Value<double>(amount.toDouble()),
+            amountMinor: drift.Value<String>(amount.minor.toString()),
+            amountScale: drift.Value<int>(amount.scale),
             date: drift.Value<DateTime>(date),
             type: const drift.Value<String>('expense'),
           ),
@@ -102,7 +107,7 @@ void main() {
     required String title,
     required DateTime startDate,
     DateTime? endDate,
-    double amount = 1000,
+    MoneyAmount amount = MoneyAmount(minor: BigInt.from(100000), scale: 2),
     String scope = 'byCategory',
     List<String> categories = const <String>[],
     List<String> accounts = const <String>[],
@@ -118,7 +123,9 @@ void main() {
             period: drift.Value<String>(BudgetPeriod.monthly.storageValue),
             startDate: drift.Value<DateTime>(startDate),
             endDate: drift.Value<DateTime?>(endDate),
-            amount: drift.Value<double>(amount),
+            amount: drift.Value<double>(amount.toDouble()),
+            amountMinor: drift.Value<String>(amount.minor.toString()),
+            amountScale: drift.Value<int>(amount.scale),
             scope: drift.Value<String>(scope),
             categories: drift.Value<List<String>>(categories),
             accounts: drift.Value<List<String>>(accounts),
@@ -142,14 +149,14 @@ void main() {
       id: 't1',
       accountId: 'a1',
       categoryId: 'c1',
-      amount: 120,
+      amount: MoneyAmount(minor: BigInt.from(12000), scale: 2),
       date: DateTime(2024, 4, 8),
     );
     await insertTransaction(
       id: 't2',
       accountId: 'a1',
       categoryId: 'c1',
-      amount: 80,
+      amount: MoneyAmount(minor: BigInt.from(8000), scale: 2),
       date: DateTime(2024, 4, 9),
     );
 
@@ -210,7 +217,7 @@ void main() {
       id: 't1',
       accountId: 'a1',
       categoryId: 'c_child',
-      amount: 150,
+      amount: MoneyAmount(minor: BigInt.from(15000), scale: 2),
       date: DateTime(2024, 4, 9),
     );
 
@@ -246,26 +253,34 @@ void main() {
       id: 'b1',
       title: 'Бюджет апреля',
       startDate: DateTime(2024, 4, 1),
-      amount: 1000,
+      amount: MoneyAmount(minor: BigInt.from(100000), scale: 2),
       scope: BudgetScope.byCategory.storageValue,
       categories: const <String>['c1', 'c2'],
       allocations: const <BudgetCategoryAllocation>[
-        BudgetCategoryAllocation(categoryId: 'c1', limit: 600),
-        BudgetCategoryAllocation(categoryId: 'c2', limit: 400),
+        BudgetCategoryAllocation(
+          categoryId: 'c1',
+          limitMinor: BigInt.from(60000),
+          limitScale: 2,
+        ),
+        BudgetCategoryAllocation(
+          categoryId: 'c2',
+          limitMinor: BigInt.from(40000),
+          limitScale: 2,
+        ),
       ],
     );
     await insertTransaction(
       id: 't1',
       accountId: 'a1',
       categoryId: 'c1',
-      amount: 200,
+      amount: MoneyAmount(minor: BigInt.from(20000), scale: 2),
       date: DateTime(2024, 4, 5),
     );
     await insertTransaction(
       id: 't2',
       accountId: 'a1',
       categoryId: 'c2',
-      amount: 150,
+      amount: MoneyAmount(minor: BigInt.from(15000), scale: 2),
       date: DateTime(2024, 4, 7),
     );
 

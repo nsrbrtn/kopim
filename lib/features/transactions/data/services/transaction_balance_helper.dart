@@ -50,8 +50,7 @@ void applyTransactionEffect(
 ) {
   effect.forEach((String accountId, MoneyAmount delta) {
     deltas.update(accountId, (MoneyAmount value) {
-      final MoneyAmount normalized =
-          rescaleMoneyAmount(delta, value.scale);
+      final MoneyAmount normalized = rescaleMoneyAmount(delta, value.scale);
       return MoneyAmount(
         minor: value.minor + normalized.minor,
         scale: value.scale,

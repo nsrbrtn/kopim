@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$UpcomingPayment {
 
- String get occurrenceId; String get ruleId; String get title; double get amount; String get currency; DateTime get dueDate; String get accountId; String get categoryId;
+ String get occurrenceId; String get ruleId; String get title; MoneyAmount get amount; String get currency; DateTime get dueDate; String get accountId; String get categoryId;
 /// Create a copy of UpcomingPayment
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -45,7 +45,7 @@ abstract mixin class $UpcomingPaymentCopyWith<$Res>  {
   factory $UpcomingPaymentCopyWith(UpcomingPayment value, $Res Function(UpcomingPayment) _then) = _$UpcomingPaymentCopyWithImpl;
 @useResult
 $Res call({
- String occurrenceId, String ruleId, String title, double amount, String currency, DateTime dueDate, String accountId, String categoryId
+ String occurrenceId, String ruleId, String title, MoneyAmount amount, String currency, DateTime dueDate, String accountId, String categoryId
 });
 
 
@@ -68,7 +68,7 @@ occurrenceId: null == occurrenceId ? _self.occurrenceId : occurrenceId // ignore
 as String,ruleId: null == ruleId ? _self.ruleId : ruleId // ignore: cast_nullable_to_non_nullable
 as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String,amount: null == amount ? _self.amount : amount // ignore: cast_nullable_to_non_nullable
-as double,currency: null == currency ? _self.currency : currency // ignore: cast_nullable_to_non_nullable
+as MoneyAmount,currency: null == currency ? _self.currency : currency // ignore: cast_nullable_to_non_nullable
 as String,dueDate: null == dueDate ? _self.dueDate : dueDate // ignore: cast_nullable_to_non_nullable
 as DateTime,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
 as String,categoryId: null == categoryId ? _self.categoryId : categoryId // ignore: cast_nullable_to_non_nullable
@@ -157,7 +157,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String occurrenceId,  String ruleId,  String title,  double amount,  String currency,  DateTime dueDate,  String accountId,  String categoryId)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String occurrenceId,  String ruleId,  String title,  MoneyAmount amount,  String currency,  DateTime dueDate,  String accountId,  String categoryId)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _UpcomingPayment() when $default != null:
 return $default(_that.occurrenceId,_that.ruleId,_that.title,_that.amount,_that.currency,_that.dueDate,_that.accountId,_that.categoryId);case _:
@@ -178,7 +178,7 @@ return $default(_that.occurrenceId,_that.ruleId,_that.title,_that.amount,_that.c
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String occurrenceId,  String ruleId,  String title,  double amount,  String currency,  DateTime dueDate,  String accountId,  String categoryId)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String occurrenceId,  String ruleId,  String title,  MoneyAmount amount,  String currency,  DateTime dueDate,  String accountId,  String categoryId)  $default,) {final _that = this;
 switch (_that) {
 case _UpcomingPayment():
 return $default(_that.occurrenceId,_that.ruleId,_that.title,_that.amount,_that.currency,_that.dueDate,_that.accountId,_that.categoryId);case _:
@@ -198,7 +198,7 @@ return $default(_that.occurrenceId,_that.ruleId,_that.title,_that.amount,_that.c
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String occurrenceId,  String ruleId,  String title,  double amount,  String currency,  DateTime dueDate,  String accountId,  String categoryId)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String occurrenceId,  String ruleId,  String title,  MoneyAmount amount,  String currency,  DateTime dueDate,  String accountId,  String categoryId)?  $default,) {final _that = this;
 switch (_that) {
 case _UpcomingPayment() when $default != null:
 return $default(_that.occurrenceId,_that.ruleId,_that.title,_that.amount,_that.currency,_that.dueDate,_that.accountId,_that.categoryId);case _:
@@ -219,7 +219,7 @@ class _UpcomingPayment extends UpcomingPayment {
 @override final  String occurrenceId;
 @override final  String ruleId;
 @override final  String title;
-@override final  double amount;
+@override final  MoneyAmount amount;
 @override final  String currency;
 @override final  DateTime dueDate;
 @override final  String accountId;
@@ -255,7 +255,7 @@ abstract mixin class _$UpcomingPaymentCopyWith<$Res> implements $UpcomingPayment
   factory _$UpcomingPaymentCopyWith(_UpcomingPayment value, $Res Function(_UpcomingPayment) _then) = __$UpcomingPaymentCopyWithImpl;
 @override @useResult
 $Res call({
- String occurrenceId, String ruleId, String title, double amount, String currency, DateTime dueDate, String accountId, String categoryId
+ String occurrenceId, String ruleId, String title, MoneyAmount amount, String currency, DateTime dueDate, String accountId, String categoryId
 });
 
 
@@ -278,7 +278,7 @@ occurrenceId: null == occurrenceId ? _self.occurrenceId : occurrenceId // ignore
 as String,ruleId: null == ruleId ? _self.ruleId : ruleId // ignore: cast_nullable_to_non_nullable
 as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String,amount: null == amount ? _self.amount : amount // ignore: cast_nullable_to_non_nullable
-as double,currency: null == currency ? _self.currency : currency // ignore: cast_nullable_to_non_nullable
+as MoneyAmount,currency: null == currency ? _self.currency : currency // ignore: cast_nullable_to_non_nullable
 as String,dueDate: null == dueDate ? _self.dueDate : dueDate // ignore: cast_nullable_to_non_nullable
 as DateTime,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
 as String,categoryId: null == categoryId ? _self.categoryId : categoryId // ignore: cast_nullable_to_non_nullable

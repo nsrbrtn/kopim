@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kopim/core/domain/icons/phosphor_icon_descriptor.dart';
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
 import 'package:kopim/features/savings/domain/models/saving_goal_analytics.dart';
@@ -48,14 +49,17 @@ void main() {
       );
       final SavingGoalAnalytics analytics = SavingGoalAnalytics(
         goalId: goal.id,
-        totalAmount: 1200.0,
+        totalAmount: MoneyAmount(minor: BigInt.from(120000), scale: 2),
         lastContributionAt: DateTime(2024, 2, 10),
         categoryBreakdown: <SavingGoalCategoryBreakdown>[
-          const SavingGoalCategoryBreakdown(
+          SavingGoalCategoryBreakdown(
             categoryId: 'travel',
-            amount: 800.0,
+            amount: MoneyAmount(minor: BigInt.from(80000), scale: 2),
           ),
-          const SavingGoalCategoryBreakdown(categoryId: 'food', amount: 400.0),
+          SavingGoalCategoryBreakdown(
+            categoryId: 'food',
+            amount: MoneyAmount(minor: BigInt.from(40000), scale: 2),
+          ),
         ],
         transactionCount: 4,
       );

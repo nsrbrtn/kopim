@@ -95,9 +95,11 @@ class BudgetInstanceRemoteDataSource {
     final double legacySpent = (data['spent'] as num?)?.toDouble() ?? 0;
     final BigInt? amountMinor = _readBigInt(data['amountMinor']);
     final BigInt? spentMinor = _readBigInt(data['spentMinor']);
-    final BigInt resolvedAmountMinor = amountMinor ??
+    final BigInt resolvedAmountMinor =
+        amountMinor ??
         Money.fromDouble(legacyAmount, currency: 'XXX', scale: scale).minor;
-    final BigInt resolvedSpentMinor = spentMinor ??
+    final BigInt resolvedSpentMinor =
+        spentMinor ??
         Money.fromDouble(legacySpent, currency: 'XXX', scale: scale).minor;
     final bool deleted = data['deleted'] as bool? ?? false;
     final BudgetInstanceStatus status = deleted

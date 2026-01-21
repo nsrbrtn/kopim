@@ -5,6 +5,8 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:kopim/core/data/database.dart' as db;
 import 'package:kopim/core/di/injectors.dart';
+import 'package:kopim/core/money/money.dart';
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/ai/data/local/ai_analytics_dao.dart';
 import 'package:kopim/features/ai/domain/entities/ai_financial_overview_entity.dart';
 import 'package:kopim/features/ai/domain/repositories/ai_financial_data_repository.dart';
@@ -273,18 +275,43 @@ class AiFinancialDataRepositoryImpl implements AiFinancialDataRepository {
         : (now.isAfter(periodEnd) ? periodEnd : now);
     final int elapsedDays =
         (clampedNow.difference(periodStart).inDays).clamp(0, totalDays - 1) + 1;
-    final double spent = aggregate.spent;
-    final double allocated = aggregate.allocated;
-    final double dailyRate = elapsedDays > 0 ? spent / elapsedDays : 0;
-    final double projected = elapsedDays > 0 ? (dailyRate * totalDays) : spent;
-    final double remaining = allocated - spent;
-    final double completionRate = allocated <= 0
+    final MoneyAmount spent = aggregate.spent;
+    final MoneyAmount allocated = aggregate.allocated;
+    final int targetScale = spent.scale > allocated.scale
+        ? spent.scale
+        : allocated.scale;
+    final MoneyAmount normalizedSpent = rescaleMoneyAmount(spent, targetScale);
+    final MoneyAmount normalizedAllocated = rescaleMoneyAmount(
+      allocated,
+      targetScale,
+    );
+    final double spentValue = normalizedSpent.toDouble();
+    final double allocatedValue = normalizedAllocated.toDouble();
+    final double dailyRate = elapsedDays > 0 ? spentValue / elapsedDays : 0;
+    final double projectedValue = elapsedDays > 0
+        ? (dailyRate * totalDays)
+        : spentValue;
+    final MoneyAmount projectedSpent = MoneyAmount(
+      minor: Money.fromDouble(
+        projectedValue,
+        currency: 'XXX',
+        scale: targetScale,
+      ).minor,
+      scale: targetScale,
+    );
+    final MoneyAmount remaining = MoneyAmount(
+      minor: normalizedAllocated.minor - normalizedSpent.minor,
+      scale: targetScale,
+    );
+    final double completionRate = allocatedValue <= 0
         ? 0
-        : (spent / allocated).clamp(0, double.infinity);
+        : (spentValue / allocatedValue).clamp(0, double.infinity);
     final BudgetForecastStatus status;
-    if (spent >= allocated && allocated > 0) {
+    if (normalizedSpent.minor >= normalizedAllocated.minor &&
+        normalizedAllocated.minor > BigInt.zero) {
       status = BudgetForecastStatus.exceeded;
-    } else if (projected > allocated && allocated > 0) {
+    } else if (projectedSpent.minor > normalizedAllocated.minor &&
+        normalizedAllocated.minor > BigInt.zero) {
       status = BudgetForecastStatus.warning;
     } else {
       status = BudgetForecastStatus.onTrack;
@@ -299,9 +326,9 @@ class AiFinancialDataRepositoryImpl implements AiFinancialDataRepository {
       title: aggregate.title,
       periodStart: periodStart,
       periodEnd: periodEnd,
-      allocated: allocated,
-      spent: spent,
-      projectedSpent: projected,
+      allocated: normalizedAllocated,
+      spent: normalizedSpent,
+      projectedSpent: projectedSpent,
       remaining: remaining,
       completionRate: completionRate,
       status: status,
@@ -332,11 +359,16 @@ class AiFinancialDataRepositoryImpl implements AiFinancialDataRepository {
         reference: _nowProvider(),
       );
 
-      final double spent = await _analyticsDao.getBudgetSpent(
+      final MoneyAmount spent = await _analyticsDao.getBudgetSpent(
         categoryIds: budget.categories,
         accountIds: budget.accounts,
         start: period.start,
         end: period.end,
+      );
+      final MoneyAmount allocated = budget.amountValue;
+      final MoneyAmount normalizedSpent = rescaleMoneyAmount(
+        spent,
+        allocated.scale,
       );
 
       results.add(
@@ -345,8 +377,8 @@ class AiFinancialDataRepositoryImpl implements AiFinancialDataRepository {
           title: budget.title,
           periodStart: period.start,
           periodEnd: period.end,
-          allocated: budget.amount,
-          spent: spent,
+          allocated: allocated,
+          spent: normalizedSpent,
           accountIds: budget.accounts,
           categoryIds: budget.categories,
         ),

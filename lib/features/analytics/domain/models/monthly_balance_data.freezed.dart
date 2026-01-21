@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$MonthlyBalanceData {
 
- DateTime get month; double get totalBalance;
+ DateTime get month; MoneyAmount get totalBalance;
 /// Create a copy of MonthlyBalanceData
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -45,7 +45,7 @@ abstract mixin class $MonthlyBalanceDataCopyWith<$Res>  {
   factory $MonthlyBalanceDataCopyWith(MonthlyBalanceData value, $Res Function(MonthlyBalanceData) _then) = _$MonthlyBalanceDataCopyWithImpl;
 @useResult
 $Res call({
- DateTime month, double totalBalance
+ DateTime month, MoneyAmount totalBalance
 });
 
 
@@ -66,7 +66,7 @@ class _$MonthlyBalanceDataCopyWithImpl<$Res>
   return _then(_self.copyWith(
 month: null == month ? _self.month : month // ignore: cast_nullable_to_non_nullable
 as DateTime,totalBalance: null == totalBalance ? _self.totalBalance : totalBalance // ignore: cast_nullable_to_non_nullable
-as double,
+as MoneyAmount,
   ));
 }
 
@@ -151,7 +151,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( DateTime month,  double totalBalance)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( DateTime month,  MoneyAmount totalBalance)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _MonthlyBalanceData() when $default != null:
 return $default(_that.month,_that.totalBalance);case _:
@@ -172,7 +172,7 @@ return $default(_that.month,_that.totalBalance);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( DateTime month,  double totalBalance)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( DateTime month,  MoneyAmount totalBalance)  $default,) {final _that = this;
 switch (_that) {
 case _MonthlyBalanceData():
 return $default(_that.month,_that.totalBalance);case _:
@@ -192,7 +192,7 @@ return $default(_that.month,_that.totalBalance);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( DateTime month,  double totalBalance)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( DateTime month,  MoneyAmount totalBalance)?  $default,) {final _that = this;
 switch (_that) {
 case _MonthlyBalanceData() when $default != null:
 return $default(_that.month,_that.totalBalance);case _:
@@ -211,7 +211,7 @@ class _MonthlyBalanceData extends MonthlyBalanceData {
   
 
 @override final  DateTime month;
-@override final  double totalBalance;
+@override final  MoneyAmount totalBalance;
 
 /// Create a copy of MonthlyBalanceData
 /// with the given fields replaced by the non-null parameter values.
@@ -243,7 +243,7 @@ abstract mixin class _$MonthlyBalanceDataCopyWith<$Res> implements $MonthlyBalan
   factory _$MonthlyBalanceDataCopyWith(_MonthlyBalanceData value, $Res Function(_MonthlyBalanceData) _then) = __$MonthlyBalanceDataCopyWithImpl;
 @override @useResult
 $Res call({
- DateTime month, double totalBalance
+ DateTime month, MoneyAmount totalBalance
 });
 
 
@@ -264,7 +264,7 @@ class __$MonthlyBalanceDataCopyWithImpl<$Res>
   return _then(_MonthlyBalanceData(
 month: null == month ? _self.month : month // ignore: cast_nullable_to_non_nullable
 as DateTime,totalBalance: null == totalBalance ? _self.totalBalance : totalBalance // ignore: cast_nullable_to_non_nullable
-as double,
+as MoneyAmount,
   ));
 }
 

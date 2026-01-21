@@ -343,7 +343,9 @@ class _AccountSummaryCard extends StatelessWidget {
                 Expanded(
                   child: _SummaryValue(
                     label: strings.accountDetailsIncomeLabel,
-                    value: currencyFormat.format(summary.totalIncome),
+                    value: currencyFormat.format(
+                      summary.totalIncome.toDouble(),
+                    ),
                     valueColor: theme.colorScheme.primary,
                   ),
                 ),
@@ -351,7 +353,9 @@ class _AccountSummaryCard extends StatelessWidget {
                 Expanded(
                   child: _SummaryValue(
                     label: strings.accountDetailsExpenseLabel,
-                    value: currencyFormat.format(summary.totalExpense),
+                    value: currencyFormat.format(
+                      summary.totalExpense.toDouble(),
+                    ),
                     valueColor: theme.colorScheme.error,
                   ),
                 ),

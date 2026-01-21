@@ -238,10 +238,7 @@ void main() {
           contains(AssistantFilter.currentMonth),
         );
         expect(queries, hasLength(1));
-        expect(
-          queries.single.contextSignals,
-          contains('period:current_month'),
-        );
+        expect(queries.single.contextSignals, contains('period:current_month'));
       },
     );
 

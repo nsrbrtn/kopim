@@ -14,7 +14,6 @@ _Budget _$BudgetFromJson(Map<String, dynamic> json) => _Budget(
   endDate: json['endDate'] == null
       ? null
       : DateTime.parse(json['endDate'] as String),
-  amount: (json['amount'] as num).toDouble(),
   scope: BudgetScopeX.fromStorage(json['scope'] as String?),
   categories:
       (json['categories'] as List<dynamic>?)
@@ -42,7 +41,6 @@ Map<String, dynamic> _$BudgetToJson(_Budget instance) => <String, dynamic>{
   'period': _periodToJson(instance.period),
   'startDate': instance.startDate.toIso8601String(),
   'endDate': instance.endDate?.toIso8601String(),
-  'amount': instance.amount,
   'scope': _scopeToJson(instance.scope),
   'categories': instance.categories,
   'accounts': instance.accounts,

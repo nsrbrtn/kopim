@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/core/services/ai_assistant_service.dart';
 import 'package:kopim/core/services/logger_service.dart';
 import 'package:kopim/features/ai/data/local/ai_assistant_tool_dao.dart';
@@ -197,7 +198,7 @@ class AiAssistantToolRouter {
           .map(
             (AiToolCurrencyTotal item) => <String, Object?>{
               'currency': item.currency,
-              'total': item.total,
+              'total': item.total.toDouble(),
               'count': item.count,
             },
           )
@@ -238,7 +239,7 @@ class AiAssistantToolRouter {
               (CategoryIncomeAggregate item) => <String, Object?>{
                 'category_id': item.categoryId,
                 'name': item.displayName,
-                'total': item.totalIncome,
+                'total': item.totalIncome.toDouble(),
                 'color': item.color,
               },
             )
@@ -259,7 +260,7 @@ class AiAssistantToolRouter {
             (CategoryExpenseAggregate item) => <String, Object?>{
               'category_id': item.categoryId,
               'name': item.displayName,
-              'total': item.totalExpense,
+              'total': item.totalExpense.toDouble(),
               'color': item.color,
             },
           )
@@ -303,7 +304,7 @@ class AiAssistantToolRouter {
           .map(
             (AiToolTransactionRow row) => <String, Object?>{
               'id': row.id,
-              'amount': row.amount,
+              'amount': row.amount.toDouble(),
               'currency': row.currency,
               'type': row.type,
               'date': row.date.toIso8601String(),
@@ -408,7 +409,7 @@ class AiAssistantToolRouter {
           ? budget.categories
           : <String>[];
 
-      final double spent = await _toolDao.getBudgetTotalSpent(
+      final MoneyAmount spent = await _toolDao.getBudgetTotalSpent(
         startDate: period.start,
         endDate: endExclusive,
         accountIds: accountIds,
@@ -471,10 +472,12 @@ class AiAssistantToolRouter {
           .take(categoryLimit)
           .toList(growable: false);
 
-      final double remaining = budget.amount - spent;
-      final double utilization = budget.amount <= 0
-          ? (spent > 0 ? double.infinity : 0)
-          : spent / budget.amount;
+      final double budgetAmount = budget.amountValue.toDouble();
+      final double spentValue = spent.toDouble();
+      final double remaining = budgetAmount - spentValue;
+      final double utilization = budgetAmount <= 0
+          ? (spentValue > 0 ? double.infinity : 0)
+          : spentValue / budgetAmount;
       final BudgetInstanceStatus status = _budgetSchedule.statusFor(
         clock: now,
         start: period.start,
@@ -486,11 +489,11 @@ class AiAssistantToolRouter {
         'title': budget.title,
         'period': budget.period.storageValue,
         'scope': budget.scope.storageValue,
-        'amount': budget.amount,
-        'spent': spent,
+        'amount': budgetAmount,
+        'spent': spentValue,
         'remaining': remaining,
         'utilization': utilization.isFinite ? utilization : null,
-        'is_exceeded': spent > budget.amount,
+        'is_exceeded': spentValue > budgetAmount,
         'status': status.storageValue,
         'period_start': period.start.toIso8601String(),
         'period_end': period.end.toIso8601String(),
@@ -522,7 +525,7 @@ class AiAssistantToolRouter {
     for (final String? categoryId in categoryIds) {
       final AiToolBudgetCategorySpend? spending =
           spendingByCategory[categoryId];
-      final double spent = spending?.spent ?? 0;
+      final double spent = spending?.spent.toDouble() ?? 0;
       final String name = categoryId == null
           ? (spending?.name ?? 'Без категории')
           : (categoryNames[categoryId] ?? spending?.name ?? 'Категория');
@@ -553,13 +556,13 @@ class AiAssistantToolRouter {
       return allocations.fold<double>(
         0,
         (double previous, BudgetCategoryAllocation allocation) =>
-            previous + allocation.limit,
+            previous + allocation.limitValue.toDouble(),
       );
     }
     if (budget.scope == BudgetScope.byCategory &&
         budget.categories.length == 1 &&
         budget.categories.first == categoryId) {
-      return budget.amount;
+      return budget.amountValue.toDouble();
     }
     return null;
   }
