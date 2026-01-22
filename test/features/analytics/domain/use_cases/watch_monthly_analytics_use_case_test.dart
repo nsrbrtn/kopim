@@ -11,6 +11,9 @@ import 'package:kopim/features/categories/domain/repositories/category_repositor
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
 import 'package:kopim/features/transactions/domain/models/account_monthly_totals.dart';
+import 'package:kopim/features/transactions/domain/models/monthly_balance_totals.dart';
+import 'package:kopim/features/transactions/domain/models/monthly_cashflow_totals.dart';
+import 'package:kopim/features/transactions/domain/models/transaction_category_totals.dart';
 import 'package:kopim/features/transactions/domain/repositories/transaction_repository.dart';
 
 class _FakeTransactionRepository implements TransactionRepository {
@@ -30,6 +33,89 @@ class _FakeTransactionRepository implements TransactionRepository {
   Stream<List<AccountMonthlyTotals>> watchAccountMonthlyTotals({
     required DateTime start,
     required DateTime end,
+  }) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Stream<List<TransactionCategoryTotals>> watchAnalyticsCategoryTotals({
+    required DateTime start,
+    required DateTime end,
+    List<String> accountIds = const <String>[],
+    String? accountId,
+  }) {
+    return _controller.stream.map((List<TransactionEntity> transactions) {
+      final Map<String?, MoneyAccumulator> income =
+          <String?, MoneyAccumulator>{};
+      final Map<String?, MoneyAccumulator> expense =
+          <String?, MoneyAccumulator>{};
+      for (final TransactionEntity tx in transactions) {
+        if (tx.date.isBefore(start) || !tx.date.isBefore(end)) {
+          continue;
+        }
+        if (accountIds.isNotEmpty && !accountIds.contains(tx.accountId)) {
+          continue;
+        }
+        if (accountId != null && accountId != tx.accountId) {
+          continue;
+        }
+        final MoneyAmount amount = tx.amountValue.abs();
+        if (tx.type == TransactionType.income.storageValue) {
+          income.putIfAbsent(tx.categoryId, MoneyAccumulator.new).add(amount);
+        } else if (tx.type == TransactionType.expense.storageValue) {
+          expense.putIfAbsent(tx.categoryId, MoneyAccumulator.new).add(amount);
+        }
+      }
+
+      final Set<String?> keys = <String?>{}
+        ..addAll(income.keys)
+        ..addAll(expense.keys);
+      return keys
+          .map(
+            (String? key) => TransactionCategoryTotals(
+              categoryId: key,
+              income: _toMoneyAmount(income[key]),
+              expense: _toMoneyAmount(expense[key]),
+            ),
+          )
+          .toList(growable: false);
+    });
+  }
+
+  MoneyAmount _toMoneyAmount(MoneyAccumulator? accumulator) {
+    if (accumulator == null) {
+      return MoneyAmount(minor: BigInt.zero, scale: 2);
+    }
+    return MoneyAmount(minor: accumulator.minor, scale: accumulator.scale);
+  }
+
+  @override
+  Stream<List<MonthlyCashflowTotals>> watchMonthlyCashflowTotals({
+    required DateTime start,
+    required DateTime end,
+    required DateTime nowInclusive,
+    List<String> accountIds = const <String>[],
+  }) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Stream<List<MonthlyBalanceTotals>> watchMonthlyBalanceTotals({
+    required DateTime start,
+    required DateTime end,
+    List<String> accountIds = const <String>[],
+  }) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Stream<List<TransactionEntity>> watchCategoryTransactions({
+    required DateTime start,
+    required DateTime end,
+    required List<String> categoryIds,
+    required bool includeUncategorized,
+    required String type,
+    List<String> accountIds = const <String>[],
   }) {
     throw UnimplementedError();
   }

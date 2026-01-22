@@ -12,6 +12,8 @@ import 'package:kopim/features/analytics/presentation/models/monthly_cashflow_da
 import 'package:kopim/features/analytics/presentation/controllers/analytics_filter_controller.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/core/money/money_utils.dart';
+import 'package:kopim/features/transactions/domain/models/monthly_balance_totals.dart';
+import 'package:kopim/features/transactions/domain/models/monthly_cashflow_totals.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -34,17 +36,24 @@ Stream<AnalyticsOverview> analyticsFilteredStats(
   final AnalyticsFilter filters = ref.watch(analyticsFiltersProvider);
   return ref
       .watch(watchMonthlyAnalyticsUseCaseProvider)
-      .call(topCategoriesLimit: topCategoriesLimit, filter: filters);
+      .call(topCategoriesLimit: topCategoriesLimit, filter: filters)
+      .distinct();
 }
 
 @riverpod
 Stream<List<Category>> analyticsCategories(Ref ref) {
-  return ref.watch(watchCategoriesUseCaseProvider).call();
+  return ref
+      .watch(watchCategoriesUseCaseProvider)
+      .call()
+      .distinct(_listEqualsCategories);
 }
 
 @riverpod
 Stream<List<AccountEntity>> analyticsAccounts(Ref ref) {
-  return ref.watch(watchAccountsUseCaseProvider).call();
+  return ref
+      .watch(watchAccountsUseCaseProvider)
+      .call()
+      .distinct(_listEqualsAccounts);
 }
 
 @immutable
@@ -99,42 +108,32 @@ analyticsCategoryTransactionsProvider =
         );
       }
 
-      final AnalyticsFilterState state = ref.watch(
-        analyticsFilterControllerProvider,
+      final DateTimeRange range = ref.watch(
+        analyticsFilterControllerProvider.select(
+          (AnalyticsFilterState s) => s.dateRange,
+        ),
       );
-      final DateTimeRange range = state.dateRange;
+      final Set<String> accountIds = ref.watch(
+        analyticsFilterControllerProvider.select(
+          (AnalyticsFilterState s) => s.accountIds,
+        ),
+      );
       final DateTime start = DateUtils.dateOnly(range.start);
-      final DateTime end = DateUtils.dateOnly(range.end);
+      final DateTime endExclusive = DateUtils.dateOnly(
+        range.end,
+      ).add(const Duration(days: 1));
 
-      return ref.watch(transactionRepositoryProvider).watchTransactions().map((
-        List<TransactionEntity> transactions,
-      ) {
-        final List<TransactionEntity> filtered =
-            transactions
-                .where((TransactionEntity transaction) {
-                  final DateTime date = DateUtils.dateOnly(transaction.date);
-                  if (date.isBefore(start) || date.isAfter(end)) {
-                    return false;
-                  }
-                  if (state.accountIds.isNotEmpty &&
-                      !state.accountIds.contains(transaction.accountId)) {
-                    return false;
-                  }
-                  if (transaction.type != filter.type.storageValue) {
-                    return false;
-                  }
-                  if (!filter.matchesCategory(transaction.categoryId)) {
-                    return false;
-                  }
-                  return true;
-                })
-                .toList(growable: false)
-              ..sort(
-                (TransactionEntity a, TransactionEntity b) =>
-                    b.date.compareTo(a.date),
-              );
-        return filtered;
-      });
+      return ref
+          .watch(transactionRepositoryProvider)
+          .watchCategoryTransactions(
+            start: start,
+            end: endExclusive,
+            categoryIds: filter.categoryIds,
+            includeUncategorized: filter.includeUncategorized,
+            type: filter.type.storageValue,
+            accountIds: accountIds.toList(growable: false),
+          )
+          .distinct(_listEqualsTransactions);
     });
 
 @riverpod
@@ -151,271 +150,177 @@ Stream<List<MonthlyBalanceData>> monthlyBalanceData(Ref ref) {
   final List<AccountEntity> accounts =
       accountsAsync.value ?? const <AccountEntity>[];
 
-  return ref.watch(transactionRepositoryProvider).watchTransactions().map((
-    List<TransactionEntity> transactions,
-  ) {
-    final DateTime now = DateTime.now();
-    final List<MonthlyBalanceData> result = <MonthlyBalanceData>[];
-
-    // Фильтруем счета
-    final List<AccountEntity> relevantAccounts = accounts.where((
-      AccountEntity account,
-    ) {
-      if (!isCashAccountType(account.type)) {
-        return false;
-      }
-      if (selectedAccountIds.isEmpty) {
-        return true;
-      }
-      return selectedAccountIds.contains(account.id);
-    }).toList();
-    final Set<String> relevantAccountIds = relevantAccounts
-        .map((AccountEntity account) => account.id)
-        .toSet();
-
-    // Начальный баланс (текущий)
-    final MoneyAccumulator currentBalance = MoneyAccumulator();
-    for (final AccountEntity account in relevantAccounts) {
-      currentBalance.add(account.balanceAmount);
-    }
-
-    // Сортируем транзакции по дате (от новых к старым)
-    // Предполагаем, что репозиторий может возвращать не сортированные
-    final List<TransactionEntity> sortedTransactions =
-        transactions.where((TransactionEntity t) {
-          if (relevantAccountIds.contains(t.accountId)) {
-            return true;
-          }
-          final String? transferAccountId = t.transferAccountId;
-          return transferAccountId != null &&
-              relevantAccountIds.contains(transferAccountId);
-        }).toList()..sort(
-          (TransactionEntity a, TransactionEntity b) =>
-              b.date.compareTo(a.date),
-        );
-
-    int txIndex = 0;
-    final MoneyAccumulator runningBalance = MoneyAccumulator();
-    runningBalance.add(
-      MoneyAmount(minor: currentBalance.minor, scale: currentBalance.scale),
-    );
-
-    // Генерируем данные за последние 6 месяцев (от текущего назад)
-    for (int i = 0; i < 6; i++) {
-      // Для текущего месяца берем now как конец диапазона, чтобы не учитывать будущие транзакции (если они есть)
-      // Но для алгоритма "отката" нам нужно просто знать границы месяца.
-      // Если есть транзакции в будущем (позже now), их нужно откатить до начала обработки.
-
-      final DateTime monthDate = DateTime(now.year, now.month - i, 1);
-      final DateTime monthEnd = DateTime(
-        monthDate.year,
-        monthDate.month + 1,
-        0,
-        23,
-        59,
-        59,
-      );
-      final DateTime monthStart = DateTime(
-        monthDate.year,
-        monthDate.month,
-        1,
-        0,
-        0,
-        0,
-      );
-
-      // 1. Откатываем транзакции, которые произошли ПОЗЖЕ конца этого месяца
-      while (txIndex < sortedTransactions.length &&
-          sortedTransactions[txIndex].date.isAfter(monthEnd)) {
-        final TransactionEntity t = sortedTransactions[txIndex];
-        final MoneyAmount? delta = _resolveTransactionDeltaForAccounts(
-          transaction: t,
-          isAccountSelected: relevantAccountIds.contains,
-        );
-        if (delta != null) {
-          runningBalance.subtract(delta);
+  final List<AccountEntity> relevantAccounts = accounts
+      .where((AccountEntity account) {
+        if (!isCashAccountType(account.type)) {
+          return false;
         }
-        txIndex++;
-      }
-
-      // Теперь runningBalance соответствует балансу на конец месяца (monthEnd)
-      MoneyAmount maxBalanceInMonth = MoneyAmount(
-        minor: runningBalance.minor,
-        scale: runningBalance.scale,
-      );
-
-      // 2. Проходим по транзакциям ВНУТРИ месяца, отслеживая макс. баланс
-      while (txIndex < sortedTransactions.length &&
-          sortedTransactions[txIndex].date.isAfter(
-            monthStart.subtract(const Duration(microseconds: 1)),
-          )) {
-        // runningBalance здесь - это баланс ПОСЛЕ транзакции t
-        final MoneyAmount runningValue = MoneyAmount(
-          minor: runningBalance.minor,
-          scale: runningBalance.scale,
-        );
-        maxBalanceInMonth = maxMoneyAmount(maxBalanceInMonth, runningValue);
-
-        final TransactionEntity t = sortedTransactions[txIndex];
-        final MoneyAmount? delta = _resolveTransactionDeltaForAccounts(
-          transaction: t,
-          isAccountSelected: relevantAccountIds.contains,
-        );
-        if (delta != null) {
-          runningBalance.subtract(delta);
+        if (selectedAccountIds.isEmpty) {
+          return true;
         }
+        return selectedAccountIds.contains(account.id);
+      })
+      .toList(growable: false);
+  final List<String> relevantAccountIds = relevantAccounts
+      .map((AccountEntity account) => account.id)
+      .toList(growable: false);
 
-        // runningBalance теперь - это баланс ДО транзакции t
-        // Проверяем его тоже, так как это могло быть пиковое значение до списания
-        final MoneyAmount updatedValue = MoneyAmount(
-          minor: runningBalance.minor,
-          scale: runningBalance.scale,
-        );
-        maxBalanceInMonth = maxMoneyAmount(maxBalanceInMonth, updatedValue);
-
-        txIndex++;
-      }
-
-      // После цикла runningBalance соответствует балансу на начало месяца
-      final MoneyAmount closingValue = MoneyAmount(
-        minor: runningBalance.minor,
-        scale: runningBalance.scale,
-      );
-      maxBalanceInMonth = maxMoneyAmount(maxBalanceInMonth, closingValue);
-
-      // Добавляем в начало списка, чтобы порядок был хронологический (если нужно)
-      // Но исходный код добавлял через .add в цикле 5..0, то есть от старого к новому.
-      // Здесь мы идем 0..5 (от нового к старому).
-      // Значит, результат будет [Текущий, -1 мес, -2 мес...].
-      // Если график ожидает хронологический порядок, нужно будет развернуть.
-      result.add(
-        MonthlyBalanceData(month: monthDate, totalBalance: maxBalanceInMonth),
-      );
-    }
-
-    return result.reversed.toList();
-  });
-}
-
-final StreamProvider<List<MonthlyCashflowData>>
-monthlyCashflowDataProvider = StreamProvider<List<MonthlyCashflowData>>((
-  Ref ref,
-) {
-  final Set<String> selectedAccountIds = ref.watch(
-    analyticsFilterControllerProvider.select(
-      (AnalyticsFilterState s) => s.accountIds,
-    ),
-  );
+  if (relevantAccountIds.isEmpty) {
+    return Stream<List<MonthlyBalanceData>>.value(const <MonthlyBalanceData>[]);
+  }
 
   final DateTime now = DateTime.now();
   final DateTime currentMonth = DateTime(now.year, now.month);
-
+  final DateTime start = DateTime(currentMonth.year, currentMonth.month - 5);
+  final DateTime end = DateTime(currentMonth.year, currentMonth.month + 1);
   final List<DateTime> months = List<DateTime>.generate(
-    12,
+    6,
     (int index) =>
-        DateTime(currentMonth.year, currentMonth.month - (11 - index)),
+        DateTime(currentMonth.year, currentMonth.month - (5 - index)),
     growable: false,
   );
   final Map<int, int> monthIndexByKey = <int, int>{
     for (int i = 0; i < months.length; i++) _monthKey(months[i]): i,
   };
 
-  return ref.watch(transactionRepositoryProvider).watchTransactions().map((
-    List<TransactionEntity> transactions,
-  ) {
-    final List<MoneyAccumulator> incomes = List<MoneyAccumulator>.generate(
-      12,
-      (_) => MoneyAccumulator(),
-    );
-    final List<MoneyAccumulator> expenses = List<MoneyAccumulator>.generate(
-      12,
-      (_) => MoneyAccumulator(),
-    );
-    final DateTime nowInclusive = now.add(const Duration(microseconds: 1));
-
-    for (final TransactionEntity transaction in transactions) {
-      final DateTime monthStart = DateTime(
-        transaction.date.year,
-        transaction.date.month,
-      );
-      final int? index = monthIndexByKey[_monthKey(monthStart)];
-      if (index == null) {
-        continue;
-      }
-
-      // Для текущего месяца показываем данные "на сегодня", без будущих транзакций.
-      if (monthStart == currentMonth &&
-          transaction.date.isAfter(nowInclusive)) {
-        continue;
-      }
-
-      final MoneyAmount? delta = _resolveTransactionDeltaForAccounts(
-        transaction: transaction,
-        isAccountSelected: selectedAccountIds.isEmpty
-            ? (_) => true
-            : selectedAccountIds.contains,
-      );
-      if (delta == null) {
-        continue;
-      }
-      if (delta.minor > BigInt.zero) {
-        incomes[index].add(delta);
-      } else if (delta.minor < BigInt.zero) {
-        expenses[index].add(
-          MoneyAmount(minor: -delta.minor, scale: delta.scale),
+  return ref
+      .watch(transactionRepositoryProvider)
+      .watchMonthlyBalanceTotals(
+        start: start,
+        end: end,
+        accountIds: relevantAccountIds,
+      )
+      .map((List<MonthlyBalanceTotals> rows) {
+        final List<MoneyAccumulator> balances = List<MoneyAccumulator>.generate(
+          6,
+          (_) => MoneyAccumulator(),
         );
-      }
-    }
+        for (final MonthlyBalanceTotals row in rows) {
+          final int key = _monthKey(row.month);
+          final int? index = monthIndexByKey[key];
+          if (index == null) {
+            continue;
+          }
+          balances[index].add(row.maxBalance);
+        }
+        return List<MonthlyBalanceData>.generate(6, (int index) {
+          final MoneyAccumulator accumulator = balances[index];
+          return MonthlyBalanceData(
+            month: months[index],
+            totalBalance: MoneyAmount(
+              minor: accumulator.minor,
+              scale: accumulator.scale,
+            ),
+          );
+        }, growable: false);
+      })
+      .distinct(_listEqualsMonthlyBalance);
+}
 
-    return List<MonthlyCashflowData>.generate(
-      12,
-      (int index) => MonthlyCashflowData(
-        month: months[index],
-        income: incomes[index].toDouble(),
-        expense: expenses[index].toDouble(),
-      ),
-      growable: false,
-    );
-  });
-});
+final StreamProvider<List<MonthlyCashflowData>> monthlyCashflowDataProvider =
+    StreamProvider<List<MonthlyCashflowData>>((Ref ref) {
+      final Set<String> selectedAccountIds = ref.watch(
+        analyticsFilterControllerProvider.select(
+          (AnalyticsFilterState s) => s.accountIds,
+        ),
+      );
+
+      final DateTime now = DateTime.now();
+      final DateTime currentMonth = DateTime(now.year, now.month);
+      final List<DateTime> months = List<DateTime>.generate(
+        12,
+        (int index) =>
+            DateTime(currentMonth.year, currentMonth.month - (11 - index)),
+        growable: false,
+      );
+      final Map<int, int> monthIndexByKey = <int, int>{
+        for (int i = 0; i < months.length; i++) _monthKey(months[i]): i,
+      };
+      final DateTime start = months.first;
+      final DateTime end = DateTime(currentMonth.year, currentMonth.month + 1);
+      final DateTime nowInclusive = now.add(const Duration(microseconds: 1));
+
+      return ref
+          .watch(transactionRepositoryProvider)
+          .watchMonthlyCashflowTotals(
+            start: start,
+            end: end,
+            nowInclusive: nowInclusive,
+            accountIds: selectedAccountIds.toList(growable: false),
+          )
+          .map((List<MonthlyCashflowTotals> rows) {
+            final List<MoneyAccumulator> incomes =
+                List<MoneyAccumulator>.generate(12, (_) => MoneyAccumulator());
+            final List<MoneyAccumulator> expenses =
+                List<MoneyAccumulator>.generate(12, (_) => MoneyAccumulator());
+            for (final MonthlyCashflowTotals row in rows) {
+              final int key = _monthKey(row.month);
+              final int? index = monthIndexByKey[key];
+              if (index == null) {
+                continue;
+              }
+              final MoneyAmount income = row.income;
+              final MoneyAmount expense = row.expense;
+              if (income.minor > BigInt.zero) {
+                incomes[index].add(income);
+              }
+              if (expense.minor > BigInt.zero) {
+                expenses[index].add(expense);
+              }
+            }
+            return List<MonthlyCashflowData>.generate(
+              12,
+              (int index) => MonthlyCashflowData(
+                month: months[index],
+                income: incomes[index].toDouble(),
+                expense: expenses[index].toDouble(),
+              ),
+              growable: false,
+            );
+          })
+          .distinct(_listEqualsMonthlyCashflow);
+    });
 
 int _monthKey(DateTime monthStart) => monthStart.year * 100 + monthStart.month;
 
-MoneyAmount _resolveTransactionAmount(TransactionEntity transaction) {
-  return transaction.amountValue.abs();
+bool _listEqualsAccounts(
+  List<AccountEntity> first,
+  List<AccountEntity> second,
+) {
+  return listEquals(first, second);
 }
 
-MoneyAmount? _resolveTransactionDeltaForAccounts({
-  required TransactionEntity transaction,
-  required bool Function(String accountId) isAccountSelected,
-}) {
-  final TransactionType type = parseTransactionType(transaction.type);
-  final MoneyAmount amount = _resolveTransactionAmount(transaction);
+bool _listEqualsCategories(List<Category> first, List<Category> second) {
+  return listEquals(first, second);
+}
 
-  if (type.isTransfer) {
-    final String? targetId = transaction.transferAccountId;
-    if (targetId == null || targetId == transaction.accountId) {
-      return null;
-    }
-    final bool sourceSelected = isAccountSelected(transaction.accountId);
-    final bool targetSelected = isAccountSelected(targetId);
-    if (sourceSelected == targetSelected) {
-      return null;
-    }
-    if (targetSelected) {
-      return amount;
-    }
-    return MoneyAmount(minor: -amount.minor, scale: amount.scale);
-  }
+bool _listEqualsTransactions(
+  List<TransactionEntity> first,
+  List<TransactionEntity> second,
+) {
+  return listEquals(first, second);
+}
 
-  if (!isAccountSelected(transaction.accountId)) {
-    return null;
+bool _listEqualsMonthlyBalance(
+  List<MonthlyBalanceData> first,
+  List<MonthlyBalanceData> second,
+) {
+  return listEquals(first, second);
+}
+
+bool _listEqualsMonthlyCashflow(
+  List<MonthlyCashflowData> first,
+  List<MonthlyCashflowData> second,
+) {
+  if (first.length != second.length) {
+    return false;
   }
-  if (type.isIncome) {
-    return amount;
+  for (int i = 0; i < first.length; i++) {
+    final MonthlyCashflowData a = first[i];
+    final MonthlyCashflowData b = second[i];
+    if (a.month != b.month || a.income != b.income || a.expense != b.expense) {
+      return false;
+    }
   }
-  if (type.isExpense) {
-    return MoneyAmount(minor: -amount.minor, scale: amount.scale);
-  }
-  return null;
+  return true;
 }

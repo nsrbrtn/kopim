@@ -11,6 +11,9 @@ import 'package:kopim/features/transactions/data/services/transaction_balance_he
 import 'package:kopim/features/transactions/data/sources/local/transaction_dao.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/models/account_monthly_totals.dart';
+import 'package:kopim/features/transactions/domain/models/monthly_balance_totals.dart';
+import 'package:kopim/features/transactions/domain/models/monthly_cashflow_totals.dart';
+import 'package:kopim/features/transactions/domain/models/transaction_category_totals.dart';
 import 'package:kopim/features/transactions/domain/repositories/transaction_repository.dart';
 
 class TransactionRepositoryImpl implements TransactionRepository {
@@ -80,6 +83,108 @@ class TransactionRepositoryImpl implements TransactionRepository {
   }
 
   @override
+  Stream<List<TransactionCategoryTotals>> watchAnalyticsCategoryTotals({
+    required DateTime start,
+    required DateTime end,
+    List<String> accountIds = const <String>[],
+    String? accountId,
+  }) {
+    return _transactionDao
+        .watchAnalyticsCategoryTotals(
+          start: start,
+          end: end,
+          accountIds: accountIds,
+          accountId: accountId,
+        )
+        .map(
+          (List<AnalyticsCategoryTotalsRow> rows) => rows
+              .map(
+                (AnalyticsCategoryTotalsRow row) => TransactionCategoryTotals(
+                  categoryId: row.categoryId,
+                  income: row.income,
+                  expense: row.expense,
+                ),
+              )
+              .toList(growable: false),
+        );
+  }
+
+  @override
+  Stream<List<MonthlyCashflowTotals>> watchMonthlyCashflowTotals({
+    required DateTime start,
+    required DateTime end,
+    required DateTime nowInclusive,
+    List<String> accountIds = const <String>[],
+  }) {
+    return _transactionDao
+        .watchMonthlyCashflowTotals(
+          start: start,
+          end: end,
+          nowInclusive: nowInclusive,
+          accountIds: accountIds,
+        )
+        .map(
+          (List<MonthlyCashflowTotalsRow> rows) => rows
+              .map(
+                (MonthlyCashflowTotalsRow row) => MonthlyCashflowTotals(
+                  month: _parseMonthKey(row.monthKey),
+                  income: row.income,
+                  expense: row.expense,
+                ),
+              )
+              .toList(growable: false),
+        );
+  }
+
+  @override
+  Stream<List<MonthlyBalanceTotals>> watchMonthlyBalanceTotals({
+    required DateTime start,
+    required DateTime end,
+    List<String> accountIds = const <String>[],
+  }) {
+    return _transactionDao
+        .watchMonthlyBalanceTotals(
+          start: start,
+          end: end,
+          accountIds: accountIds,
+        )
+        .map(
+          (List<MonthlyBalanceTotalsRow> rows) => rows
+              .map(
+                (MonthlyBalanceTotalsRow row) => MonthlyBalanceTotals(
+                  month: _parseMonthKey(row.monthKey),
+                  maxBalance: row.maxBalance,
+                ),
+              )
+              .toList(growable: false),
+        );
+  }
+
+  @override
+  Stream<List<TransactionEntity>> watchCategoryTransactions({
+    required DateTime start,
+    required DateTime end,
+    required List<String> categoryIds,
+    required bool includeUncategorized,
+    required String type,
+    List<String> accountIds = const <String>[],
+  }) {
+    return _transactionDao
+        .watchCategoryTransactions(
+          start: start,
+          end: end,
+          categoryIds: categoryIds,
+          includeUncategorized: includeUncategorized,
+          type: type,
+          accountIds: accountIds,
+        )
+        .map(
+          (List<db.TransactionRow> rows) =>
+              List<TransactionEntity>.unmodifiable(rows.map(_mapToDomain)),
+        );
+  }
+
+  @override
   Future<List<TransactionEntity>> loadTransactions() async {
     final List<db.TransactionRow> rows = await _transactionDao
         .getActiveTransactions();
@@ -117,6 +222,16 @@ class TransactionRepositoryImpl implements TransactionRepository {
         payload: _mapTransactionPayload(toPersist),
       );
     });
+  }
+
+  DateTime _parseMonthKey(String key) {
+    final List<String> parts = key.split('-');
+    if (parts.length != 2) {
+      return DateTime.now();
+    }
+    final int year = int.tryParse(parts[0]) ?? DateTime.now().year;
+    final int month = int.tryParse(parts[1]) ?? DateTime.now().month;
+    return DateTime(year, month);
   }
 
   @override

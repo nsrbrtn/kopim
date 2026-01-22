@@ -1,5 +1,8 @@
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/models/account_monthly_totals.dart';
+import 'package:kopim/features/transactions/domain/models/monthly_balance_totals.dart';
+import 'package:kopim/features/transactions/domain/models/monthly_cashflow_totals.dart';
+import 'package:kopim/features/transactions/domain/models/transaction_category_totals.dart';
 
 abstract class TransactionRepository {
   Stream<List<TransactionEntity>> watchTransactions();
@@ -7,6 +10,31 @@ abstract class TransactionRepository {
   Stream<List<AccountMonthlyTotals>> watchAccountMonthlyTotals({
     required DateTime start,
     required DateTime end,
+  });
+  Stream<List<TransactionCategoryTotals>> watchAnalyticsCategoryTotals({
+    required DateTime start,
+    required DateTime end,
+    List<String> accountIds,
+    String? accountId,
+  });
+  Stream<List<MonthlyCashflowTotals>> watchMonthlyCashflowTotals({
+    required DateTime start,
+    required DateTime end,
+    required DateTime nowInclusive,
+    List<String> accountIds,
+  });
+  Stream<List<MonthlyBalanceTotals>> watchMonthlyBalanceTotals({
+    required DateTime start,
+    required DateTime end,
+    List<String> accountIds,
+  });
+  Stream<List<TransactionEntity>> watchCategoryTransactions({
+    required DateTime start,
+    required DateTime end,
+    required List<String> categoryIds,
+    required bool includeUncategorized,
+    required String type,
+    List<String> accountIds,
   });
   Future<List<TransactionEntity>> loadTransactions();
   Future<TransactionEntity?> findById(String id);

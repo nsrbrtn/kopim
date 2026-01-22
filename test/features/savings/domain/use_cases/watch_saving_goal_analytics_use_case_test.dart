@@ -7,6 +7,9 @@ import 'package:kopim/features/savings/domain/use_cases/watch_saving_goal_analyt
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
 import 'package:kopim/features/transactions/domain/models/account_monthly_totals.dart';
+import 'package:kopim/features/transactions/domain/models/monthly_balance_totals.dart';
+import 'package:kopim/features/transactions/domain/models/monthly_cashflow_totals.dart';
+import 'package:kopim/features/transactions/domain/models/transaction_category_totals.dart';
 import 'package:kopim/features/transactions/domain/repositories/transaction_repository.dart';
 
 class _FakeTransactionRepository implements TransactionRepository {
@@ -34,6 +37,39 @@ class _FakeTransactionRepository implements TransactionRepository {
   }) {
     return const Stream<List<AccountMonthlyTotals>>.empty();
   }
+
+  @override
+  Stream<List<TransactionCategoryTotals>> watchAnalyticsCategoryTotals({
+    required DateTime start,
+    required DateTime end,
+    List<String> accountIds = const <String>[],
+    String? accountId,
+  }) => const Stream<List<TransactionCategoryTotals>>.empty();
+
+  @override
+  Stream<List<MonthlyCashflowTotals>> watchMonthlyCashflowTotals({
+    required DateTime start,
+    required DateTime end,
+    required DateTime nowInclusive,
+    List<String> accountIds = const <String>[],
+  }) => const Stream<List<MonthlyCashflowTotals>>.empty();
+
+  @override
+  Stream<List<MonthlyBalanceTotals>> watchMonthlyBalanceTotals({
+    required DateTime start,
+    required DateTime end,
+    List<String> accountIds = const <String>[],
+  }) => const Stream<List<MonthlyBalanceTotals>>.empty();
+
+  @override
+  Stream<List<TransactionEntity>> watchCategoryTransactions({
+    required DateTime start,
+    required DateTime end,
+    required List<String> categoryIds,
+    required bool includeUncategorized,
+    required String type,
+    List<String> accountIds = const <String>[],
+  }) => const Stream<List<TransactionEntity>>.empty();
 
   @override
   Future<List<TransactionEntity>> loadTransactions() {

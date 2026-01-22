@@ -8,9 +8,8 @@ import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/categories/domain/repositories/category_repository.dart';
 import 'package:kopim/features/categories/domain/services/category_hierarchy.dart';
 import 'package:kopim/core/money/money_utils.dart';
-import 'package:kopim/features/transactions/domain/entities/transaction.dart';
-import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
 import 'package:kopim/features/transactions/domain/repositories/transaction_repository.dart';
+import 'package:kopim/features/transactions/domain/models/transaction_category_totals.dart';
 
 const String _othersCategoryKey = '_others';
 
@@ -32,11 +31,16 @@ class WatchMonthlyAnalyticsUseCase {
     final AnalyticsFilter effectiveFilter =
         filter ?? AnalyticsFilter.monthly(reference: reference);
     return _combineLatest(
-      _transactionRepository.watchTransactions(),
+      _transactionRepository.watchAnalyticsCategoryTotals(
+        start: effectiveFilter.start,
+        end: effectiveFilter.end,
+        accountIds: effectiveFilter.accountIds ?? const <String>[],
+        accountId: effectiveFilter.accountId,
+      ),
       _categoryRepository.watchCategories(),
-      (List<TransactionEntity> transactions, List<Category> categories) =>
+      (List<TransactionCategoryTotals> totals, List<Category> categories) =>
           _buildOverview(
-            transactions: transactions,
+            totals: totals,
             categories: categories,
             filter: effectiveFilter,
             topCategoriesLimit: topCategoriesLimit,
@@ -45,12 +49,12 @@ class WatchMonthlyAnalyticsUseCase {
   }
 
   AnalyticsOverview _buildOverview({
-    required List<TransactionEntity> transactions,
+    required List<TransactionCategoryTotals> totals,
     required List<Category> categories,
     required AnalyticsFilter filter,
     required int topCategoriesLimit,
   }) {
-    if (transactions.isEmpty) {
+    if (totals.isEmpty) {
       final MoneyAmount zero = MoneyAmount(minor: BigInt.zero, scale: 2);
       return AnalyticsOverview(
         totalIncome: zero,
@@ -63,10 +67,6 @@ class WatchMonthlyAnalyticsUseCase {
 
     final CategoryHierarchy hierarchy = CategoryHierarchy(categories);
     final Set<String> activeCategoryIds = hierarchy.byId.keys.toSet();
-    final DateTime start = filter.start;
-    final DateTime end = filter.end;
-    final Set<String> accountIds =
-        filter.accountIds?.toSet() ?? const <String>{};
 
     final Set<String>? categoryFilterIds = _resolveCategoryFilterIds(
       filter,
@@ -80,43 +80,29 @@ class WatchMonthlyAnalyticsUseCase {
     final Map<String?, MoneyAccumulator> rawIncomeByCategory =
         <String?, MoneyAccumulator>{};
 
-    for (final TransactionEntity transaction in transactions) {
-      if (transaction.date.isBefore(start) || !transaction.date.isBefore(end)) {
-        continue;
-      }
-
-      if (accountIds.isNotEmpty &&
-          !accountIds.contains(transaction.accountId)) {
-        continue;
-      }
-
-      if (filter.accountId != null &&
-          transaction.accountId != filter.accountId) {
-        continue;
-      }
-
-      final String? categoryId = transaction.categoryId;
+    for (final TransactionCategoryTotals item in totals) {
+      final String? categoryId = item.categoryId;
       if (categoryFilterIds != null) {
         if (categoryId == null || !categoryFilterIds.contains(categoryId)) {
           continue;
         }
       }
 
-      final MoneyAmount amount = _resolveTransactionAmount(transaction);
-      if (transaction.type == TransactionType.income.storageValue) {
-        totalIncome.add(amount);
-        if (categoryId == null || activeCategoryIds.contains(categoryId)) {
-          rawIncomeByCategory
-              .putIfAbsent(categoryId, MoneyAccumulator.new)
-              .add(amount);
-        }
-      } else if (transaction.type == TransactionType.expense.storageValue) {
-        totalExpense.add(amount);
-        if (categoryId == null || activeCategoryIds.contains(categoryId)) {
-          rawExpenseByCategory
-              .putIfAbsent(categoryId, MoneyAccumulator.new)
-              .add(amount);
-        }
+      if (categoryId != null && !activeCategoryIds.contains(categoryId)) {
+        continue;
+      }
+
+      if (item.income.minor > BigInt.zero) {
+        totalIncome.add(item.income);
+        rawIncomeByCategory
+            .putIfAbsent(categoryId, MoneyAccumulator.new)
+            .add(item.income);
+      }
+      if (item.expense.minor > BigInt.zero) {
+        totalExpense.add(item.expense);
+        rawExpenseByCategory
+            .putIfAbsent(categoryId, MoneyAccumulator.new)
+            .add(item.expense);
       }
     }
 
@@ -354,10 +340,6 @@ class WatchMonthlyAnalyticsUseCase {
       );
     }
     return top;
-  }
-
-  MoneyAmount _resolveTransactionAmount(TransactionEntity transaction) {
-    return transaction.amountValue.abs();
   }
 
   MoneyAmount _toMoneyAmount(MoneyAccumulator? accumulator) {
