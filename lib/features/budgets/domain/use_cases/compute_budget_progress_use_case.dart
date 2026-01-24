@@ -38,68 +38,36 @@ class ComputeBudgetProgressUseCase {
       spentAccumulator.add(tx.amountValue.abs());
     }
 
-    final MoneyAmount budgetAmount = budget.amountValue;
     final MoneyAmount spent = MoneyAmount(
       minor: spentAccumulator.minor,
       scale: spentAccumulator.scale,
     );
-    final MoneyAmount normalizedBudget = rescaleMoneyAmount(
-      budgetAmount,
-      spent.scale,
-    );
-    final MoneyAmount remaining = MoneyAmount(
-      minor: normalizedBudget.minor - spent.minor,
-      scale: spent.scale,
-    );
-    final double budgetTotal = normalizedBudget.toDouble();
-    final double spentValue = spent.toDouble();
-    final double utilization = budgetTotal <= 0
-        ? (spentValue > 0 ? double.infinity : 0)
-        : spentValue / budgetTotal;
-
-    final BudgetInstance instance =
-        (existingInstance != null &&
-            existingInstance.periodStart.isAtSameMomentAs(
-              filtered.period.start,
-            ))
-        ? existingInstance.copyWith(
-            periodEnd: filtered.period.end,
-            amountMinor: normalizedBudget.minor,
-            spentMinor: spent.minor,
-            amountScale: spent.scale,
-            status: _schedule.statusFor(
-              clock: now,
-              start: filtered.period.start,
-              end: filtered.period.end,
-            ),
-            updatedAt: now,
-          )
-        : BudgetInstance(
-            id: _buildInstanceId(budget.id, filtered.period.start),
-            budgetId: budget.id,
-            periodStart: filtered.period.start,
-            periodEnd: filtered.period.end,
-            amountMinor: normalizedBudget.minor,
-            spentMinor: spent.minor,
-            amountScale: spent.scale,
-            status: _schedule.statusFor(
-              clock: now,
-              start: filtered.period.start,
-              end: filtered.period.end,
-            ),
-            createdAt: existingInstance?.createdAt ?? now,
-            updatedAt: now,
-          );
-
-    return BudgetProgress(
+    return _buildProgress(
       budget: budget,
-      instance: instance,
       spent: spent,
-      remaining: remaining,
-      utilization: utilization.isFinite
-          ? math.max(utilization, 0)
-          : double.infinity,
-      isExceeded: spent.minor > normalizedBudget.minor,
+      period: filtered.period,
+      now: now,
+      existingInstance: existingInstance,
+    );
+  }
+
+  BudgetProgress buildFromSpent({
+    required Budget budget,
+    required MoneyAmount spent,
+    DateTime? reference,
+    BudgetInstance? existingInstance,
+  }) {
+    final DateTime now = reference ?? DateTime.now();
+    final ({DateTime start, DateTime end}) period = _schedule.periodFor(
+      budget: budget,
+      reference: now,
+    );
+    return _buildProgress(
+      budget: budget,
+      spent: spent,
+      period: period,
+      now: now,
+      existingInstance: existingInstance,
     );
   }
 
@@ -157,6 +125,72 @@ class ComputeBudgetProgressUseCase {
 
   String _buildInstanceId(String budgetId, DateTime start) {
     return '$budgetId-${start.toIso8601String()}';
+  }
+
+  BudgetProgress _buildProgress({
+    required Budget budget,
+    required MoneyAmount spent,
+    required ({DateTime start, DateTime end}) period,
+    required DateTime now,
+    BudgetInstance? existingInstance,
+  }) {
+    final MoneyAmount budgetAmount = budget.amountValue;
+    final MoneyAmount normalizedBudget = rescaleMoneyAmount(
+      budgetAmount,
+      spent.scale,
+    );
+    final MoneyAmount remaining = MoneyAmount(
+      minor: normalizedBudget.minor - spent.minor,
+      scale: spent.scale,
+    );
+    final double budgetTotal = normalizedBudget.toDouble();
+    final double spentValue = spent.toDouble();
+    final double utilization = budgetTotal <= 0
+        ? (spentValue > 0 ? double.infinity : 0)
+        : spentValue / budgetTotal;
+
+    final BudgetInstance instance =
+        (existingInstance != null &&
+            existingInstance.periodStart.isAtSameMomentAs(period.start))
+        ? existingInstance.copyWith(
+            periodEnd: period.end,
+            amountMinor: normalizedBudget.minor,
+            spentMinor: spent.minor,
+            amountScale: spent.scale,
+            status: _schedule.statusFor(
+              clock: now,
+              start: period.start,
+              end: period.end,
+            ),
+            updatedAt: now,
+          )
+        : BudgetInstance(
+            id: _buildInstanceId(budget.id, period.start),
+            budgetId: budget.id,
+            periodStart: period.start,
+            periodEnd: period.end,
+            amountMinor: normalizedBudget.minor,
+            spentMinor: spent.minor,
+            amountScale: spent.scale,
+            status: _schedule.statusFor(
+              clock: now,
+              start: period.start,
+              end: period.end,
+            ),
+            createdAt: existingInstance?.createdAt ?? now,
+            updatedAt: now,
+          );
+
+    return BudgetProgress(
+      budget: budget,
+      instance: instance,
+      spent: spent,
+      remaining: remaining,
+      utilization: utilization.isFinite
+          ? math.max(utilization, 0)
+          : double.infinity,
+      isExceeded: spent.minor > normalizedBudget.minor,
+    );
   }
 }
 

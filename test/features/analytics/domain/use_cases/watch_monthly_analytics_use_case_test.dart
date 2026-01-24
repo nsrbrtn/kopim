@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kopim/core/money/money_utils.dart';
+import 'package:kopim/features/analytics/domain/models/analytics_category_breakdown.dart';
 import 'package:kopim/features/analytics/domain/models/analytics_filter.dart';
 import 'package:kopim/features/analytics/domain/models/analytics_overview.dart';
 import 'package:kopim/features/analytics/domain/use_cases/watch_monthly_analytics_use_case.dart';
@@ -11,15 +12,20 @@ import 'package:kopim/features/categories/domain/repositories/category_repositor
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
 import 'package:kopim/features/transactions/domain/models/account_monthly_totals.dart';
+import 'package:kopim/features/transactions/domain/models/budget_expense_totals.dart';
 import 'package:kopim/features/transactions/domain/models/monthly_balance_totals.dart';
 import 'package:kopim/features/transactions/domain/models/monthly_cashflow_totals.dart';
 import 'package:kopim/features/transactions/domain/models/transaction_category_totals.dart';
 import 'package:kopim/features/transactions/domain/repositories/transaction_repository.dart';
 
 class _FakeTransactionRepository implements TransactionRepository {
-  _FakeTransactionRepository(this._controller);
+  _FakeTransactionRepository(
+    this._controller, {
+    Map<String, String?> rootByCategoryId = const <String, String?>{},
+  }) : _rootByCategoryId = rootByCategoryId;
 
   final StreamController<List<TransactionEntity>> _controller;
+  final Map<String, String?> _rootByCategoryId;
 
   @override
   Stream<List<TransactionEntity>> watchTransactions() => _controller.stream;
@@ -74,6 +80,7 @@ class _FakeTransactionRepository implements TransactionRepository {
           .map(
             (String? key) => TransactionCategoryTotals(
               categoryId: key,
+              rootCategoryId: key != null ? _rootByCategoryId[key] : null,
               income: _toMoneyAmount(income[key]),
               expense: _toMoneyAmount(expense[key]),
             ),
@@ -101,6 +108,15 @@ class _FakeTransactionRepository implements TransactionRepository {
 
   @override
   Stream<List<MonthlyBalanceTotals>> watchMonthlyBalanceTotals({
+    required DateTime start,
+    required DateTime end,
+    List<String> accountIds = const <String>[],
+  }) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Stream<List<BudgetExpenseTotals>> watchBudgetExpenseTotals({
     required DateTime start,
     required DateTime end,
     List<String> accountIds = const <String>[],
@@ -235,6 +251,101 @@ void main() {
     expect(overview.totalIncome, _amount(150));
     expect(overview.totalExpense, _amount(25));
     expect(overview.netBalance, _amount(125));
+
+    await txController.close();
+    await categoryController.close();
+  });
+
+  test('analytics aggregates expenses by root category', () async {
+    final StreamController<List<TransactionEntity>> txController =
+        StreamController<List<TransactionEntity>>();
+    final StreamController<List<Category>> categoryController =
+        StreamController<List<Category>>();
+
+    final Map<String, String?> roots = <String, String?>{
+      'food': 'food',
+      'coffee': 'food',
+    };
+    final WatchMonthlyAnalyticsUseCase useCase = WatchMonthlyAnalyticsUseCase(
+      transactionRepository: _FakeTransactionRepository(
+        txController,
+        rootByCategoryId: roots,
+      ),
+      categoryRepository: _FakeCategoryRepository(categoryController),
+    );
+
+    final DateTime now = DateTime(2024, 1, 10);
+    final AnalyticsFilter filter = AnalyticsFilter(
+      start: DateTime(2024, 1, 1),
+      end: DateTime(2024, 2, 1),
+    );
+
+    final Future<AnalyticsOverview> future = useCase
+        .call(filter: filter, topCategoriesLimit: 5)
+        .first;
+
+    categoryController.add(<Category>[
+      Category(
+        id: 'food',
+        name: 'Food',
+        type: TransactionType.expense.storageValue,
+        createdAt: now,
+        updatedAt: now,
+      ),
+      Category(
+        id: 'coffee',
+        name: 'Coffee',
+        type: TransactionType.expense.storageValue,
+        parentId: 'food',
+        createdAt: now,
+        updatedAt: now,
+      ),
+    ]);
+    txController.add(<TransactionEntity>[
+      TransactionEntity(
+        id: 't1',
+        accountId: 'acc-1',
+        categoryId: 'coffee',
+        amountMinor: BigInt.from(100),
+        amountScale: 2,
+        date: DateTime(2024, 1, 11),
+        type: TransactionType.expense.storageValue,
+        createdAt: now,
+        updatedAt: now,
+      ),
+      TransactionEntity(
+        id: 't2',
+        accountId: 'acc-1',
+        categoryId: 'food',
+        amountMinor: BigInt.from(40),
+        amountScale: 2,
+        date: DateTime(2024, 1, 12),
+        type: TransactionType.expense.storageValue,
+        createdAt: now,
+        updatedAt: now,
+      ),
+    ]);
+
+    final AnalyticsOverview overview = await future;
+
+    expect(overview.totalExpense, _amount(140));
+    expect(overview.topExpenseCategories, hasLength(1));
+    final AnalyticsCategoryBreakdown root = overview.topExpenseCategories.first;
+    expect(root.categoryId, 'food');
+    expect(root.amount, _amount(140));
+    expect(root.children, hasLength(2));
+    expect(
+      root.children.where((AnalyticsCategoryBreakdown item) {
+        return item.categoryId == 'coffee' && item.amount == _amount(100);
+      }).length,
+      1,
+    );
+    expect(
+      root.children.where((AnalyticsCategoryBreakdown item) {
+        return item.categoryId == '_direct:food' && item.amount == _amount(40);
+      }).length,
+      1,
+    );
 
     await txController.close();
     await categoryController.close();

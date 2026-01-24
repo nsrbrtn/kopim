@@ -11,6 +11,7 @@ import 'package:kopim/features/transactions/data/services/transaction_balance_he
 import 'package:kopim/features/transactions/data/sources/local/transaction_dao.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/models/account_monthly_totals.dart';
+import 'package:kopim/features/transactions/domain/models/budget_expense_totals.dart';
 import 'package:kopim/features/transactions/domain/models/monthly_balance_totals.dart';
 import 'package:kopim/features/transactions/domain/models/monthly_cashflow_totals.dart';
 import 'package:kopim/features/transactions/domain/models/transaction_category_totals.dart';
@@ -101,6 +102,7 @@ class TransactionRepositoryImpl implements TransactionRepository {
               .map(
                 (AnalyticsCategoryTotalsRow row) => TransactionCategoryTotals(
                   categoryId: row.categoryId,
+                  rootCategoryId: row.rootCategoryId,
                   income: row.income,
                   expense: row.expense,
                 ),
@@ -154,6 +156,31 @@ class TransactionRepositoryImpl implements TransactionRepository {
                 (MonthlyBalanceTotalsRow row) => MonthlyBalanceTotals(
                   month: _parseMonthKey(row.monthKey),
                   maxBalance: row.maxBalance,
+                ),
+              )
+              .toList(growable: false),
+        );
+  }
+
+  @override
+  Stream<List<BudgetExpenseTotals>> watchBudgetExpenseTotals({
+    required DateTime start,
+    required DateTime end,
+    List<String> accountIds = const <String>[],
+  }) {
+    return _transactionDao
+        .watchBudgetExpenseTotals(
+          start: start,
+          end: end,
+          accountIds: accountIds,
+        )
+        .map(
+          (List<BudgetExpenseTotalsRow> rows) => rows
+              .map(
+                (BudgetExpenseTotalsRow row) => BudgetExpenseTotals(
+                  accountId: row.accountId,
+                  categoryId: row.categoryId,
+                  expense: row.expense,
                 ),
               )
               .toList(growable: false),

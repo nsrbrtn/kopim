@@ -153,6 +153,7 @@ flutter test --reporter expanded
 
 ## Context and Orientation
 - Цель: вынести тяжёлые агрегации аналитики из UI‑isolate и стабилизировать расчёты на больших наборах данных.
+- Примечание: ниже есть дублирующий ExecPlan про агрегации; этот раздел оставлен как основной.
 - Область кода: `lib/features/analytics/domain/use_cases/watch_monthly_analytics_use_case.dart`, `lib/features/analytics/presentation/controllers/analytics_providers.dart`, `lib/core/db/*` (DAO/SQL при необходимости).
 - Контекст/ограничения: не править автоген (`*.g.dart`, `*.freezed.dart`); логика отчётов и фильтров должна совпасть с текущей; offline‑first.
 - Риски: расхождение сумм из‑за фильтров/переводов, регресс скорости при неверных индексах, дергание UI от лишних rebuild.
@@ -194,12 +195,12 @@ flutter test --reporter expanded
 - План rollback (для миграций): без миграций; изменения только в коде.
 
 ## Progress
-- [ ] Шаг 1: Инвентаризация логики и метрик.
-- [ ] Шаг 2: Проектирование SQL‑агрегаций.
-- [ ] Шаг 3: Реализация DAO/use case и замена провайдеров.
-- [ ] Шаг 4: Оптимизация rebuild/caching.
-- [ ] Шаг 5: Тесты совпадения результатов.
-- [ ] Шаг 6: Документация.
+- [x] Шаг 1: Инвентаризация логики и метрик.
+- [x] Шаг 2: Проектирование SQL‑агрегаций.
+- [x] Шаг 3: Реализация DAO/use case и замена провайдеров.
+- [x] Шаг 4: Оптимизация rebuild/caching.
+- [x] Шаг 5: Тесты совпадения результатов.
+- [x] Шаг 6: Документация.
 
 ## Surprises & Discoveries
 - ...
@@ -209,6 +210,8 @@ flutter test --reporter expanded
 
 ## Outcomes & Retrospective
 - Что сделано:
+- Тесты на совпадение результатов аналитики добавлены, документация обновлена.
+- Предупреждения analyze по private types в провайдерах аналитики устранены (публичные окна дат/месяцев).
 - Что бы улучшить в следующий раз:
 
 # ExecPlan: Полный отказ от double в модели денег
@@ -777,6 +780,7 @@ flutter test test/features/transactions/domain/use_cases/add_transaction_use_cas
 
 ## Context and Orientation
 - Цель: убрать тяжёлые аналитические агрегации из UI‑изолята и стабилизировать время построения отчётов на больших наборах транзакций.
+- Примечание: дублирует план выше, оставлен как итоговая/историческая версия.
 - Область кода: `lib/features/analytics/domain/use_cases/watch_monthly_analytics_use_case.dart`, `lib/features/analytics/presentation/controllers/analytics_providers.dart`, возможно `lib/core/db/*` и SQL‑запросы Drift.
 - Контекст/ограничения: не править автоген (`*.g.dart`, `*.freezed.dart`); формулы и инварианты аналитики сохраняются; офлайн‑first без регресса.
 - Риски: расхождение сумм из‑за логики фильтров, рост времени запросов при неправильных индексах, регресс UI (задержки/мерцание).
@@ -832,4 +836,63 @@ flutter test --reporter expanded
 
 ## Outcomes & Retrospective
 - Что сделано:
+- Что бы улучшить в следующий раз:
+
+# ExecPlan: Оптимизация бюджетов (агрегации вне UI isolate)
+
+## Context and Orientation
+- Цель: убрать пересчёт бюджетов по всем транзакциям в UI‑isolate и стабилизировать время расчёта прогресса/категорий.
+- Область кода: `lib/features/budgets/presentation/controllers/budgets_providers.dart`, `lib/features/budgets/domain/use_cases/compute_budget_progress_use_case.dart`, `lib/features/transactions/data/sources/local/transaction_dao.dart`, `lib/features/transactions/domain/repositories/transaction_repository.dart`.
+- Контекст/ограничения: не править автоген (`*.g.dart`, `*.freezed.dart`); формулы бюджета остаются прежними (income/transfer не участвуют).
+- Риски: расхождение сумм из‑за фильтров периодов/категорий/счетов, регресс в UI‑обновлениях, неправильная обработка scale.
+
+## Interfaces and Dependencies
+- Внешние сервисы: не затрагиваются.
+- Локальные зависимости: Drift/SQL, Riverpod.
+- Затрагиваемые API/модули: TransactionDao, TransactionRepository, провайдеры бюджетов.
+
+## Plan of Work
+- Спроектировать SQL‑агрегации для расходов бюджета по периоду.
+- Перевести расчёт бюджета на агрегаты с кэшем и минимальными rebuild.
+- Добавить тесты корректности и нагрузочные сценарии.
+
+## Concrete Steps
+1) Описать SQL‑агрегации расходов по периоду с группировкой по account/category и scale.
+2) Добавить метод DAO + репозитория для получения агрегатов, внедрить в провайдеры бюджетов.
+3) Обновить вычисления `budgetsWithProgress`/`budgetCategorySpend` с использованием агрегатов.
+4) Добавить тесты агрегатов и сценарии больших наборов данных (performance‑safety).
+5) Обновить `docs/logic/feature_invariants.md` и при необходимости `docs/logic/analytics.md`.
+
+## Validation and Acceptance
+- Команды проверки:
+```bash
+dart format --set-exit-if-changed .
+flutter analyze
+flutter test --reporter expanded
+```
+- Acceptance criteria:
+  - Пересчёт бюджетов не проходит по всем транзакциям в памяти.
+  - Суммы бюджета совпадают с прежней логикой на эталонных данных.
+  - Тесты на агрегаты и большие наборы данных проходят.
+
+## Idempotence and Recovery
+- Что можно безопасно перезапускать: тесты, форматирование, build_runner (если потребуется).
+- Как откатиться/восстановиться: вернуть расчёт на списке транзакций в провайдерах.
+- План rollback (для миграций): не требуется.
+
+## Progress
+- [x] Шаг 1: Спроектировать SQL‑агрегации расходов по периодам.
+- [x] Шаг 2: Реализовать DAO/репозиторий и внедрить в провайдеры.
+- [x] Шаг 3: Добавить тесты и обновить документацию.
+
+## Surprises & Discoveries
+- ...
+
+## Decision Log
+- ...
+
+## Outcomes & Retrospective
+- Что сделано:
+- Расходы для бюджетов агрегируются в Drift и используются в провайдерах без перебора всех транзакций.
+- Добавлены тесты агрегатов, включая нагрузочный сценарий.
 - Что бы улучшить в следующий раз:

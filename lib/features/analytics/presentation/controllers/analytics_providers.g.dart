@@ -110,7 +110,7 @@ final class AnalyticsFilteredStatsProvider
 }
 
 String _$analyticsFilteredStatsHash() =>
-    r'db4114088c1539b41668d451b916797b72376d61';
+    r'44b21e8581e8bd9baaf3b8517fb4f505a64b25e8';
 
 final class AnalyticsFilteredStatsFamily extends $Family
     with $FunctionalFamilyOverride<Stream<AnalyticsOverview>, int> {
@@ -171,7 +171,7 @@ final class AnalyticsCategoriesProvider
 }
 
 String _$analyticsCategoriesHash() =>
-    r'a0481679265a41e2ab35b1ae879ce50cf957fce3';
+    r'b244571b7a817e86a0c358c27806907e4f9fcf08';
 
 @ProviderFor(analyticsAccounts)
 const analyticsAccountsProvider = AnalyticsAccountsProvider._();
@@ -212,7 +212,7 @@ final class AnalyticsAccountsProvider
   }
 }
 
-String _$analyticsAccountsHash() => r'd78d4d75ea71704dc5d8fd42a64919cb59824340';
+String _$analyticsAccountsHash() => r'847f95a32c4b1a15e460e67c2936d6c06feb5230';
 
 @ProviderFor(monthlyBalanceData)
 const monthlyBalanceDataProvider = MonthlyBalanceDataProvider._();
@@ -254,4 +254,4 @@ final class MonthlyBalanceDataProvider
 }
 
 String _$monthlyBalanceDataHash() =>
-    r'9bd22613bd5df5fbcbd31c8ad5b5b651d3b20794';
+    r'cde70f4e6620095c838d2dceedec763b6ab00a97';

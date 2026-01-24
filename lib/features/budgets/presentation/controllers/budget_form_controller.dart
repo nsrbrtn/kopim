@@ -57,10 +57,9 @@ class BudgetFormController extends _$BudgetFormController {
       final Map<String, String> initialCategoryAmounts = <String, String>{
         for (final BudgetCategoryAllocation allocation
             in initial.categoryAllocations)
-          allocation.categoryId:
-              allocation.limitValue.toDouble().toStringAsFixed(
-                allocation.limitValue.scale,
-              ),
+          allocation.categoryId: allocation.limitValue
+              .toDouble()
+              .toStringAsFixed(allocation.limitValue.scale),
       };
       final Set<String> categoryIds = <String>{
         ...initial.categories,
@@ -111,10 +110,7 @@ class BudgetFormController extends _$BudgetFormController {
     if (scope == BudgetScope.byCategory) {
       state = state.copyWith(
         scope: scope,
-        amountText: _formatCategoryTotal(
-          categoryAmounts,
-          _resolveScale(),
-        ),
+        amountText: _formatCategoryTotal(categoryAmounts, _resolveScale()),
       );
     } else {
       state = state.copyWith(scope: scope);
@@ -147,10 +143,7 @@ class BudgetFormController extends _$BudgetFormController {
       categoryIds: categories,
       categoryAmounts: categoryAmounts,
       amountText: state.scope == BudgetScope.byCategory
-          ? _formatCategoryTotal(
-              categoryAmounts,
-              _resolveScale(),
-            )
+          ? _formatCategoryTotal(categoryAmounts, _resolveScale())
           : state.amountText,
     );
   }
@@ -173,10 +166,7 @@ class BudgetFormController extends _$BudgetFormController {
     state = state.copyWith(
       categoryAmounts: categoryAmounts,
       amountText: state.scope == BudgetScope.byCategory
-          ? _formatCategoryTotal(
-              categoryAmounts,
-              _resolveScale(),
-            )
+          ? _formatCategoryTotal(categoryAmounts, _resolveScale())
           : state.amountText,
     );
   }

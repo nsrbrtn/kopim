@@ -1,5 +1,6 @@
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/models/account_monthly_totals.dart';
+import 'package:kopim/features/transactions/domain/models/budget_expense_totals.dart';
 import 'package:kopim/features/transactions/domain/models/monthly_balance_totals.dart';
 import 'package:kopim/features/transactions/domain/models/monthly_cashflow_totals.dart';
 import 'package:kopim/features/transactions/domain/models/transaction_category_totals.dart';
@@ -24,6 +25,11 @@ abstract class TransactionRepository {
     List<String> accountIds,
   });
   Stream<List<MonthlyBalanceTotals>> watchMonthlyBalanceTotals({
+    required DateTime start,
+    required DateTime end,
+    List<String> accountIds,
+  });
+  Stream<List<BudgetExpenseTotals>> watchBudgetExpenseTotals({
     required DateTime start,
     required DateTime end,
     List<String> accountIds,

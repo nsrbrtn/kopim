@@ -167,7 +167,8 @@ void main() {
         .watchAnalyticsCategoryTotals(start: start, end: end)
         .first;
 
-    final Map<String?, AnalyticsCategoryTotalsRow> byCategory = {
+    final Map<String?, AnalyticsCategoryTotalsRow> byCategory =
+        <String?, AnalyticsCategoryTotalsRow>{
       for (final AnalyticsCategoryTotalsRow row in rows) row.categoryId: row,
     };
 
@@ -231,7 +232,8 @@ void main() {
           )
           .first;
 
-      final Map<String, MonthlyCashflowTotalsRow> byMonth = {
+      final Map<String, MonthlyCashflowTotalsRow> byMonth =
+          <String, MonthlyCashflowTotalsRow>{
         for (final MonthlyCashflowTotalsRow row in rows) row.monthKey: row,
       };
 
@@ -287,7 +289,8 @@ void main() {
           )
           .first;
 
-      final Map<String, MonthlyBalanceTotalsRow> byMonth = {
+      final Map<String, MonthlyBalanceTotalsRow> byMonth =
+          <String, MonthlyBalanceTotalsRow>{
         for (final MonthlyBalanceTotalsRow row in rows) row.monthKey: row,
       };
 

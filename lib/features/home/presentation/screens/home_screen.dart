@@ -898,10 +898,7 @@ class _AccountsListState extends State<_AccountsList> {
                         final HomeAccountMonthlySummary summary =
                             widget.monthlySummaries[account.id] ??
                             HomeAccountMonthlySummary(
-                              income: MoneyAmount(
-                                minor: BigInt.zero,
-                                scale: 2,
-                              ),
+                              income: MoneyAmount(minor: BigInt.zero, scale: 2),
                               expense: MoneyAmount(
                                 minor: BigInt.zero,
                                 scale: 2,

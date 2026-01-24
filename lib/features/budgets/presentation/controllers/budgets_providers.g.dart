@@ -172,6 +172,47 @@ final class BudgetCategoriesStreamProvider
 String _$budgetCategoriesStreamHash() =>
     r'8389a92c1fdadf6a6f7e7820229683ca037a6dfb';
 
+@ProviderFor(budgetExpenseTotals)
+const budgetExpenseTotalsProvider = BudgetExpenseTotalsProvider._();
+
+final class BudgetExpenseTotalsProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<Map<_BudgetPeriodKey, List<BudgetExpenseTotals>>>,
+          Map<_BudgetPeriodKey, List<BudgetExpenseTotals>>,
+          Stream<Map<_BudgetPeriodKey, List<BudgetExpenseTotals>>>
+        >
+    with
+        $FutureModifier<Map<_BudgetPeriodKey, List<BudgetExpenseTotals>>>,
+        $StreamProvider<Map<_BudgetPeriodKey, List<BudgetExpenseTotals>>> {
+  const BudgetExpenseTotalsProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'budgetExpenseTotalsProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$budgetExpenseTotalsHash();
+
+  @$internal
+  @override
+  $StreamProviderElement<Map<_BudgetPeriodKey, List<BudgetExpenseTotals>>>
+  $createElement($ProviderPointer pointer) => $StreamProviderElement(pointer);
+
+  @override
+  Stream<Map<_BudgetPeriodKey, List<BudgetExpenseTotals>>> create(Ref ref) {
+    return budgetExpenseTotals(ref);
+  }
+}
+
+String _$budgetExpenseTotalsHash() =>
+    r'8c3b191af255616e47f27a9279ac40b2689132e1';
+
 @ProviderFor(budgetsWithProgress)
 const budgetsWithProgressProvider = BudgetsWithProgressProvider._();
 
@@ -220,7 +261,7 @@ final class BudgetsWithProgressProvider
 }
 
 String _$budgetsWithProgressHash() =>
-    r'89904c6d80e517389af54ec72a7aca7833697ed3';
+    r'fabdc493afc6d3b3d17c9ac991040dcb4afb1b97';
 
 @ProviderFor(budgetCategorySpend)
 const budgetCategorySpendProvider = BudgetCategorySpendProvider._();
@@ -269,7 +310,7 @@ final class BudgetCategorySpendProvider
 }
 
 String _$budgetCategorySpendHash() =>
-    r'710fac3f1e79a0957d2c73ab5c91121a1ccfe85e';
+    r'39ae75db7d7f93a8e9890b80644d7c78c078096d';
 
 @ProviderFor(budgetProgressById)
 const budgetProgressByIdProvider = BudgetProgressByIdFamily._();

@@ -10,6 +10,7 @@ import 'package:kopim/features/home/domain/models/home_account_monthly_summary.d
 import 'package:kopim/features/home/presentation/controllers/home_providers.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/models/account_monthly_totals.dart';
+import 'package:kopim/features/transactions/domain/models/budget_expense_totals.dart';
 import 'package:kopim/features/transactions/domain/models/monthly_balance_totals.dart';
 import 'package:kopim/features/transactions/domain/models/monthly_cashflow_totals.dart';
 import 'package:kopim/features/transactions/domain/models/transaction_category_totals.dart';
@@ -424,6 +425,13 @@ class _InMemoryTransactionRepository implements TransactionRepository {
   }) => const Stream<List<MonthlyBalanceTotals>>.empty();
 
   @override
+  Stream<List<BudgetExpenseTotals>> watchBudgetExpenseTotals({
+    required DateTime start,
+    required DateTime end,
+    List<String> accountIds = const <String>[],
+  }) => const Stream<List<BudgetExpenseTotals>>.empty();
+
+  @override
   Stream<List<TransactionEntity>> watchCategoryTransactions({
     required DateTime start,
     required DateTime end,
@@ -513,6 +521,13 @@ class _DummyTransactionRepository implements TransactionRepository {
     required DateTime end,
     List<String> accountIds = const <String>[],
   }) => const Stream<List<MonthlyBalanceTotals>>.empty();
+
+  @override
+  Stream<List<BudgetExpenseTotals>> watchBudgetExpenseTotals({
+    required DateTime start,
+    required DateTime end,
+    List<String> accountIds = const <String>[],
+  }) => const Stream<List<BudgetExpenseTotals>>.empty();
 
   @override
   Stream<List<TransactionEntity>> watchCategoryTransactions({

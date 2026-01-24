@@ -341,7 +341,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.connect(DatabaseConnection super.connection);
 
   @override
-  int get schemaVersion => 34;
+  int get schemaVersion => 35;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -391,6 +391,27 @@ class AppDatabase extends _$AppDatabase {
       );
       await m.createIndex(
         Index(
+          'transactions_account_date_type_idx',
+          'CREATE INDEX IF NOT EXISTS transactions_account_date_type_idx '
+              'ON transactions(account_id, date, type)',
+        ),
+      );
+      await m.createIndex(
+        Index(
+          'transactions_category_date_idx',
+          'CREATE INDEX IF NOT EXISTS transactions_category_date_idx '
+              'ON transactions(category_id, date)',
+        ),
+      );
+      await m.createIndex(
+        Index(
+          'transactions_transfer_account_idx',
+          'CREATE INDEX IF NOT EXISTS transactions_transfer_account_idx '
+              'ON transactions(transfer_account_id)',
+        ),
+      );
+      await m.createIndex(
+        Index(
           'transaction_tags_transaction_idx',
           'CREATE INDEX IF NOT EXISTS transaction_tags_transaction_idx '
               'ON transaction_tags(transaction_id)',
@@ -408,6 +429,13 @@ class AppDatabase extends _$AppDatabase {
           'categories_type_idx',
           'CREATE INDEX IF NOT EXISTS categories_type_idx '
               'ON categories(type)',
+        ),
+      );
+      await m.createIndex(
+        Index(
+          'categories_parent_idx',
+          'CREATE INDEX IF NOT EXISTS categories_parent_idx '
+              'ON categories(parent_id)',
         ),
       );
       await m.createIndex(
@@ -810,6 +838,36 @@ LEFT JOIN accounts acc ON up.account_id = acc.id
             );
           }
         }
+      }
+      if (from < 35) {
+        await m.createIndex(
+          Index(
+            'transactions_account_date_type_idx',
+            'CREATE INDEX IF NOT EXISTS transactions_account_date_type_idx '
+                'ON transactions(account_id, date, type)',
+          ),
+        );
+        await m.createIndex(
+          Index(
+            'transactions_category_date_idx',
+            'CREATE INDEX IF NOT EXISTS transactions_category_date_idx '
+                'ON transactions(category_id, date)',
+          ),
+        );
+        await m.createIndex(
+          Index(
+            'transactions_transfer_account_idx',
+            'CREATE INDEX IF NOT EXISTS transactions_transfer_account_idx '
+                'ON transactions(transfer_account_id)',
+          ),
+        );
+        await m.createIndex(
+          Index(
+            'categories_parent_idx',
+            'CREATE INDEX IF NOT EXISTS categories_parent_idx '
+                'ON categories(parent_id)',
+          ),
+        );
       }
       if (from < 3) {
         await m.createTable(profiles);

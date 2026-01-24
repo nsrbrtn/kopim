@@ -7,6 +7,7 @@ import 'package:kopim/features/savings/domain/use_cases/watch_saving_goal_analyt
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
 import 'package:kopim/features/transactions/domain/models/account_monthly_totals.dart';
+import 'package:kopim/features/transactions/domain/models/budget_expense_totals.dart';
 import 'package:kopim/features/transactions/domain/models/monthly_balance_totals.dart';
 import 'package:kopim/features/transactions/domain/models/monthly_cashflow_totals.dart';
 import 'package:kopim/features/transactions/domain/models/transaction_category_totals.dart';
@@ -60,6 +61,13 @@ class _FakeTransactionRepository implements TransactionRepository {
     required DateTime end,
     List<String> accountIds = const <String>[],
   }) => const Stream<List<MonthlyBalanceTotals>>.empty();
+
+  @override
+  Stream<List<BudgetExpenseTotals>> watchBudgetExpenseTotals({
+    required DateTime start,
+    required DateTime end,
+    List<String> accountIds = const <String>[],
+  }) => const Stream<List<BudgetExpenseTotals>>.empty();
 
   @override
   Stream<List<TransactionEntity>> watchCategoryTransactions({

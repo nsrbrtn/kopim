@@ -376,10 +376,7 @@ void main() {
         final List<AccountEntity> localAccounts = await accountDao
             .getAllAccounts();
         expect(localAccounts, hasLength(1));
-        expect(
-          localAccounts.single.balanceAmount.toDouble(),
-          equals(balance),
-        );
+        expect(localAccounts.single.balanceAmount.toDouble(), equals(balance));
         expect(
           localAccounts.single.openingBalanceAmount.toDouble(),
           equals(balance),
@@ -422,10 +419,7 @@ void main() {
         final Budget mergedLocalBudget = storedBudgets.firstWhere(
           (Budget b) => b.id == localBudget.id,
         );
-        expect(
-          mergedLocalBudget.amountValue,
-          equals(localBudget.amountValue),
-        );
+        expect(mergedLocalBudget.amountValue, equals(localBudget.amountValue));
         expect(mergedLocalBudget.scope, equals(BudgetScope.all));
 
         final List<BudgetInstance> storedInstances = await budgetInstanceDao

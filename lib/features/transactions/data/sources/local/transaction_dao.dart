@@ -20,11 +20,13 @@ class AccountMonthlyTotalsRow {
 class AnalyticsCategoryTotalsRow {
   const AnalyticsCategoryTotalsRow({
     required this.categoryId,
+    required this.rootCategoryId,
     required this.income,
     required this.expense,
   });
 
   final String? categoryId;
+  final String? rootCategoryId;
   final MoneyAmount income;
   final MoneyAmount expense;
 }
@@ -49,6 +51,18 @@ class MonthlyBalanceTotalsRow {
 
   final String monthKey;
   final MoneyAmount maxBalance;
+}
+
+class BudgetExpenseTotalsRow {
+  const BudgetExpenseTotalsRow({
+    required this.accountId,
+    required this.categoryId,
+    required this.expense,
+  });
+
+  final String accountId;
+  final String? categoryId;
+  final MoneyAmount expense;
 }
 
 class TransactionDao {
@@ -146,6 +160,10 @@ GROUP BY account_id, amount_scale
     final StringBuffer sql = StringBuffer()
       ..writeln('SELECT')
       ..writeln('  t.category_id AS category_id,')
+      ..writeln(
+        '  CASE WHEN c.parent_id IS NULL THEN c.id ELSE c.parent_id END '
+        'AS root_category_id,',
+      )
       ..writeln('  t.amount_scale AS amount_scale,')
       ..writeln(
         '  COALESCE(SUM(CASE WHEN t.type = ? THEN '
@@ -185,7 +203,7 @@ GROUP BY account_id, amount_scale
       variables.add(Variable<String>(accountId));
     }
 
-    sql.writeln('GROUP BY t.category_id, t.amount_scale');
+    sql.writeln('GROUP BY t.category_id, root_category_id, t.amount_scale');
 
     return _db
         .customSelect(
@@ -201,6 +219,9 @@ GROUP BY account_id, amount_scale
           return rows
               .map((QueryRow row) {
                 final String? categoryId = row.read<String?>('category_id');
+                final String? rootCategoryId = row.read<String?>(
+                  'root_category_id',
+                );
                 final int scale = row.read<int>('amount_scale');
                 final MoneyAmount income = MoneyAmount(
                   minor: BigInt.from(row.read<int>('income_minor')),
@@ -212,6 +233,7 @@ GROUP BY account_id, amount_scale
                 );
                 return AnalyticsCategoryTotalsRow(
                   categoryId: categoryId,
+                  rootCategoryId: rootCategoryId,
                   income: income,
                   expense: expense,
                 );
@@ -480,6 +502,69 @@ GROUP BY month_key, scale
                 );
               })
               .whereType<MonthlyBalanceTotalsRow>()
+              .toList(growable: false);
+        });
+  }
+
+  Stream<List<BudgetExpenseTotalsRow>> watchBudgetExpenseTotals({
+    required DateTime start,
+    required DateTime end,
+    List<String> accountIds = const <String>[],
+  }) {
+    final String expenseType = TransactionType.expense.storageValue;
+    final StringBuffer sql = StringBuffer()
+      ..writeln('SELECT')
+      ..writeln('  account_id AS account_id,')
+      ..writeln('  category_id AS category_id,')
+      ..writeln('  amount_scale AS amount_scale,')
+      ..writeln(
+        '  COALESCE(SUM(ABS(CAST(amount_minor AS INTEGER))), 0) '
+        'AS expense_minor',
+      )
+      ..writeln('FROM transactions')
+      ..writeln('WHERE is_deleted = 0')
+      ..writeln('  AND date >= ?')
+      ..writeln('  AND date < ?')
+      ..writeln('  AND type = ?');
+
+    final List<Variable<Object>> variables = <Variable<Object>>[
+      Variable<DateTime>(start),
+      Variable<DateTime>(end),
+      Variable<String>(expenseType),
+    ];
+
+    if (accountIds.isNotEmpty) {
+      sql.writeln(
+        '  AND account_id IN (${_placeholders(accountIds.length)})',
+      );
+      variables.addAll(_stringVariables(accountIds));
+    }
+
+    sql.writeln('GROUP BY account_id, category_id, amount_scale');
+
+    return _db
+        .customSelect(
+          sql.toString(),
+          variables: variables,
+          readsFrom: <TableInfo<dynamic, dynamic>>{_db.transactions},
+        )
+        .watch()
+        .map((List<QueryRow> rows) {
+          return rows
+              .map((QueryRow row) {
+                final String accountId = row.read<String>('account_id');
+                final String? categoryId = row.read<String?>('category_id');
+                final int scale = row.read<int>('amount_scale');
+                final MoneyAmount expense = MoneyAmount(
+                  minor: BigInt.from(row.read<int>('expense_minor')),
+                  scale: scale,
+                );
+                return BudgetExpenseTotalsRow(
+                  accountId: accountId,
+                  categoryId: categoryId,
+                  expense: expense,
+                );
+              })
               .toList(growable: false);
         });
   }

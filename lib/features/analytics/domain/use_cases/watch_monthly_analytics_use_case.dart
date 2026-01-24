@@ -79,6 +79,10 @@ class WatchMonthlyAnalyticsUseCase {
         <String?, MoneyAccumulator>{};
     final Map<String?, MoneyAccumulator> rawIncomeByCategory =
         <String?, MoneyAccumulator>{};
+    final Map<String, MoneyAccumulator> rootExpenseByCategory =
+        <String, MoneyAccumulator>{};
+    final Map<String, MoneyAccumulator> rootIncomeByCategory =
+        <String, MoneyAccumulator>{};
 
     for (final TransactionCategoryTotals item in totals) {
       final String? categoryId = item.categoryId;
@@ -97,19 +101,39 @@ class WatchMonthlyAnalyticsUseCase {
         rawIncomeByCategory
             .putIfAbsent(categoryId, MoneyAccumulator.new)
             .add(item.income);
+        if (categoryId != null) {
+          final String rootId = _resolveRootId(item, hierarchy);
+          rootIncomeByCategory
+              .putIfAbsent(rootId, MoneyAccumulator.new)
+              .add(item.income);
+        }
       }
       if (item.expense.minor > BigInt.zero) {
         totalExpense.add(item.expense);
         rawExpenseByCategory
             .putIfAbsent(categoryId, MoneyAccumulator.new)
             .add(item.expense);
+        if (categoryId != null) {
+          final String rootId = _resolveRootId(item, hierarchy);
+          rootExpenseByCategory
+              .putIfAbsent(rootId, MoneyAccumulator.new)
+              .add(item.expense);
+        }
       }
     }
 
     final Map<String, MoneyAccumulator> aggregatedExpenses =
-        _aggregateByCategory(rawExpenseByCategory, hierarchy);
+        _buildAggregatedByCategory(
+          hierarchy: hierarchy,
+          rawByCategory: rawExpenseByCategory,
+          rootTotals: rootExpenseByCategory,
+        );
     final Map<String, MoneyAccumulator> aggregatedIncomes =
-        _aggregateByCategory(rawIncomeByCategory, hierarchy);
+        _buildAggregatedByCategory(
+          hierarchy: hierarchy,
+          rawByCategory: rawIncomeByCategory,
+          rootTotals: rootIncomeByCategory,
+        );
 
     final List<AnalyticsCategoryBreakdown> expenseBreakdowns =
         _buildRootBreakdowns(
@@ -175,47 +199,44 @@ class WatchMonthlyAnalyticsUseCase {
     return ids;
   }
 
-  Map<String, MoneyAccumulator> _aggregateByCategory(
-    Map<String?, MoneyAccumulator> rawByCategory,
-    CategoryHierarchy hierarchy,
-  ) {
-    final Map<String, MoneyAccumulator> raw = <String, MoneyAccumulator>{};
-    rawByCategory.forEach((String? id, MoneyAccumulator amount) {
-      if (id != null && !amount.isZero) {
-        raw[id] = amount;
-      }
-    });
-
+  Map<String, MoneyAccumulator> _buildAggregatedByCategory({
+    required CategoryHierarchy hierarchy,
+    required Map<String?, MoneyAccumulator> rawByCategory,
+    required Map<String, MoneyAccumulator> rootTotals,
+  }) {
     final Map<String, MoneyAccumulator> aggregated =
         <String, MoneyAccumulator>{};
-    final Set<String> visiting = <String>{};
 
-    MoneyAccumulator resolve(String id) {
-      final MoneyAccumulator? cached = aggregated[id];
-      if (cached != null) {
-        return cached;
+    for (final String rootId in hierarchy.rootIds) {
+      final MoneyAccumulator? total = rootTotals[rootId];
+      if (total != null && !total.isZero) {
+        aggregated[rootId] = total;
       }
-      if (!visiting.add(id)) {
-        return raw[id] ?? MoneyAccumulator();
-      }
-      final MoneyAccumulator sum = MoneyAccumulator();
-      final MoneyAccumulator? direct = raw[id];
-      if (direct != null) {
-        sum.add(MoneyAmount(minor: direct.minor, scale: direct.scale));
-      }
-      for (final String childId in hierarchy.childrenOf(id)) {
-        final MoneyAccumulator child = resolve(childId);
-        sum.add(MoneyAmount(minor: child.minor, scale: child.scale));
-      }
-      visiting.remove(id);
-      aggregated[id] = sum;
-      return sum;
     }
 
-    for (final String id in hierarchy.byId.keys) {
-      resolve(id);
-    }
+    rawByCategory.forEach((String? id, MoneyAccumulator amount) {
+      if (id == null || amount.isZero) {
+        return;
+      }
+      if (hierarchy.rootIds.contains(id)) {
+        aggregated.putIfAbsent(id, () => amount);
+        return;
+      }
+      aggregated[id] = amount;
+    });
+
     return aggregated;
+  }
+
+  String _resolveRootId(
+    TransactionCategoryTotals totals,
+    CategoryHierarchy hierarchy,
+  ) {
+    final String? rootId = totals.rootCategoryId;
+    if (rootId != null && hierarchy.contains(rootId)) {
+      return rootId;
+    }
+    return totals.categoryId ?? rootId ?? '';
   }
 
   List<AnalyticsCategoryBreakdown> _buildRootBreakdowns({
