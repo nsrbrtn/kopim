@@ -25,7 +25,11 @@ import 'package:kopim/features/budgets/data/sources/remote/budget_remote_data_so
 import 'package:kopim/features/budgets/domain/entities/budget.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_instance.dart';
 import 'package:kopim/features/categories/data/sources/local/category_dao.dart';
+import 'package:kopim/features/categories/data/sources/local/category_group_dao.dart';
+import 'package:kopim/features/categories/data/sources/local/category_group_link_dao.dart';
 import 'package:kopim/features/categories/data/sources/remote/category_remote_data_source.dart';
+import 'package:kopim/features/categories/data/sources/remote/category_group_remote_data_source.dart';
+import 'package:kopim/features/categories/data/sources/remote/category_group_link_remote_data_source.dart';
 import 'package:kopim/features/savings/data/sources/local/saving_goal_dao.dart';
 import 'package:kopim/features/savings/data/sources/remote/saving_goal_remote_data_source.dart';
 import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
@@ -33,6 +37,8 @@ import 'package:kopim/features/profile/data/local/profile_dao.dart';
 import 'package:kopim/features/profile/data/remote/profile_remote_data_source.dart';
 import 'package:kopim/features/profile/domain/entities/profile.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
+import 'package:kopim/features/categories/domain/entities/category_group.dart';
+import 'package:kopim/features/categories/domain/entities/category_group_link.dart';
 import 'package:kopim/features/tags/data/sources/local/tag_dao.dart';
 import 'package:kopim/features/tags/data/sources/local/transaction_tags_dao.dart';
 import 'package:kopim/features/tags/data/sources/remote/tag_remote_data_source.dart';
@@ -67,6 +73,8 @@ class AuthSyncService {
     required OutboxDao outboxDao,
     required AccountDao accountDao,
     required CategoryDao categoryDao,
+    required CategoryGroupDao categoryGroupDao,
+    required CategoryGroupLinkDao categoryGroupLinkDao,
     required TagDao tagDao,
     required TransactionDao transactionDao,
     required TransactionTagsDao transactionTagsDao,
@@ -80,6 +88,9 @@ class AuthSyncService {
     required PaymentRemindersDao paymentRemindersDao,
     required AccountRemoteDataSource accountRemoteDataSource,
     required CategoryRemoteDataSource categoryRemoteDataSource,
+    required CategoryGroupRemoteDataSource categoryGroupRemoteDataSource,
+    required CategoryGroupLinkRemoteDataSource
+    categoryGroupLinkRemoteDataSource,
     required TagRemoteDataSource tagRemoteDataSource,
     required TransactionRemoteDataSource transactionRemoteDataSource,
     required TransactionTagRemoteDataSource transactionTagRemoteDataSource,
@@ -102,6 +113,8 @@ class AuthSyncService {
        _outboxDao = outboxDao,
        _accountDao = accountDao,
        _categoryDao = categoryDao,
+       _categoryGroupDao = categoryGroupDao,
+       _categoryGroupLinkDao = categoryGroupLinkDao,
        _tagDao = tagDao,
        _transactionDao = transactionDao,
        _transactionTagsDao = transactionTagsDao,
@@ -116,6 +129,8 @@ class AuthSyncService {
        _profileDao = profileDao,
        _accountRemoteDataSource = accountRemoteDataSource,
        _categoryRemoteDataSource = categoryRemoteDataSource,
+       _categoryGroupRemoteDataSource = categoryGroupRemoteDataSource,
+       _categoryGroupLinkRemoteDataSource = categoryGroupLinkRemoteDataSource,
        _tagRemoteDataSource = tagRemoteDataSource,
        _transactionRemoteDataSource = transactionRemoteDataSource,
        _transactionTagRemoteDataSource = transactionTagRemoteDataSource,
@@ -140,6 +155,8 @@ class AuthSyncService {
   final OutboxDao _outboxDao;
   final AccountDao _accountDao;
   final CategoryDao _categoryDao;
+  final CategoryGroupDao _categoryGroupDao;
+  final CategoryGroupLinkDao _categoryGroupLinkDao;
   final TagDao _tagDao;
   final TransactionDao _transactionDao;
   final TransactionTagsDao _transactionTagsDao;
@@ -153,6 +170,8 @@ class AuthSyncService {
   final PaymentRemindersDao _paymentRemindersDao;
   final AccountRemoteDataSource _accountRemoteDataSource;
   final CategoryRemoteDataSource _categoryRemoteDataSource;
+  final CategoryGroupRemoteDataSource _categoryGroupRemoteDataSource;
+  final CategoryGroupLinkRemoteDataSource _categoryGroupLinkRemoteDataSource;
   final TagRemoteDataSource _tagRemoteDataSource;
   final TransactionRemoteDataSource _transactionRemoteDataSource;
   final TransactionTagRemoteDataSource _transactionTagRemoteDataSource;
@@ -220,6 +239,8 @@ class AuthSyncService {
         'pendingEntries': preparedEntries.length,
         'remoteAccounts': remoteSnapshot.accounts.length,
         'remoteCategories': remoteSnapshot.categories.length,
+        'remoteCategoryGroups': remoteSnapshot.categoryGroups.length,
+        'remoteCategoryGroupLinks': remoteSnapshot.categoryGroupLinks.length,
         'remoteTransactions': remoteSnapshot.transactions.length,
         'remoteCredits': remoteSnapshot.credits.length,
         'remoteCreditCards': remoteSnapshot.creditCards.length,
@@ -233,6 +254,8 @@ class AuthSyncService {
         'AuthSyncService: login sync completed for ${user.uid}. '
         'Accounts: ${remoteSnapshot.accounts.length}, '
         'Categories: ${remoteSnapshot.categories.length}, '
+        'Category groups: ${remoteSnapshot.categoryGroups.length}, '
+        'Category group links: ${remoteSnapshot.categoryGroupLinks.length}, '
         'Transactions: ${remoteSnapshot.transactions.length}, '
         'Credits: ${remoteSnapshot.credits.length}, '
         'Credit cards: ${remoteSnapshot.creditCards.length}, '
@@ -324,6 +347,38 @@ class AuthSyncService {
                 transaction,
                 userId,
                 category,
+              );
+            }
+            break;
+          case 'category_group':
+            final CategoryGroup group = CategoryGroup.fromJson(payload);
+            if (operation == OutboxOperation.delete) {
+              _categoryGroupRemoteDataSource.deleteInTransaction(
+                transaction,
+                userId,
+                group,
+              );
+            } else {
+              _categoryGroupRemoteDataSource.upsertInTransaction(
+                transaction,
+                userId,
+                group,
+              );
+            }
+            break;
+          case 'category_group_link':
+            final CategoryGroupLink link = CategoryGroupLink.fromJson(payload);
+            if (operation == OutboxOperation.delete) {
+              _categoryGroupLinkRemoteDataSource.deleteInTransaction(
+                transaction,
+                userId,
+                link,
+              );
+            } else {
+              _categoryGroupLinkRemoteDataSource.upsertInTransaction(
+                transaction,
+                userId,
+                link,
               );
             }
             break;
@@ -646,6 +701,8 @@ class AuthSyncService {
     final List<List<Object>> results = await Future.wait(<Future<List<Object>>>[
       _accountRemoteDataSource.fetchAll(userId),
       _categoryRemoteDataSource.fetchAll(userId),
+      _categoryGroupRemoteDataSource.fetchAll(userId),
+      _categoryGroupLinkRemoteDataSource.fetchAll(userId),
       _tagRemoteDataSource.fetchAll(userId),
       _transactionRemoteDataSource.fetchAll(userId),
       _transactionTagRemoteDataSource.fetchAll(userId),
@@ -662,17 +719,19 @@ class AuthSyncService {
     return _RemoteSnapshot(
       accounts: results[0] as List<AccountEntity>,
       categories: results[1] as List<Category>,
-      tags: results[2] as List<TagEntity>,
-      transactions: results[3] as List<TransactionEntity>,
-      transactionTags: results[4] as List<TransactionTagEntity>,
-      credits: results[5] as List<CreditEntity>,
-      creditCards: results[6] as List<CreditCardEntity>,
-      debts: results[7] as List<DebtEntity>,
-      budgets: results[8] as List<Budget>,
-      budgetInstances: results[9] as List<BudgetInstance>,
-      savingGoals: results[10] as List<SavingGoal>,
-      upcomingPayments: results[11] as List<UpcomingPayment>,
-      paymentReminders: results[12] as List<PaymentReminder>,
+      categoryGroups: results[2] as List<CategoryGroup>,
+      categoryGroupLinks: results[3] as List<CategoryGroupLink>,
+      tags: results[4] as List<TagEntity>,
+      transactions: results[5] as List<TransactionEntity>,
+      transactionTags: results[6] as List<TransactionTagEntity>,
+      credits: results[7] as List<CreditEntity>,
+      creditCards: results[8] as List<CreditCardEntity>,
+      debts: results[9] as List<DebtEntity>,
+      budgets: results[10] as List<Budget>,
+      budgetInstances: results[11] as List<BudgetInstance>,
+      savingGoals: results[12] as List<SavingGoal>,
+      upcomingPayments: results[13] as List<UpcomingPayment>,
+      paymentReminders: results[14] as List<PaymentReminder>,
       profile: profile,
     );
   }
@@ -696,6 +755,10 @@ class AuthSyncService {
           .getAllAccounts();
       final List<Category> localCategories = await _categoryDao
           .getAllCategories();
+      final List<CategoryGroup> localCategoryGroups = await _categoryGroupDao
+          .getAllGroups();
+      final List<CategoryGroupLink> localCategoryGroupLinks =
+          await _categoryGroupLinkDao.getAllLinks();
       final List<TagEntity> localTags = await _tagDao.getAllTags();
       final List<TransactionEntity> localTransactions = await _transactionDao
           .getAllTransactions();
@@ -736,6 +799,21 @@ class AuthSyncService {
         getId: (Category entity) => entity.id,
         getUpdatedAt: (Category entity) => entity.updatedAt,
       );
+      final List<CategoryGroup> mergedCategoryGroups =
+          _mergeEntities<CategoryGroup>(
+            local: localCategoryGroups,
+            remote: remoteSnapshot.categoryGroups,
+            getId: (CategoryGroup entity) => entity.id,
+            getUpdatedAt: (CategoryGroup entity) => entity.updatedAt,
+          );
+      final List<CategoryGroupLink> mergedCategoryGroupLinks =
+          _mergeEntities<CategoryGroupLink>(
+            local: localCategoryGroupLinks,
+            remote: remoteSnapshot.categoryGroupLinks,
+            getId: (CategoryGroupLink entity) =>
+                '${entity.groupId}:${entity.categoryId}',
+            getUpdatedAt: (CategoryGroupLink entity) => entity.updatedAt,
+          );
       final List<TagEntity> mergedTags = _mergeEntities<TagEntity>(
         local: localTags,
         remote: remoteSnapshot.tags,
@@ -748,6 +826,11 @@ class AuthSyncService {
           sanitizedCategories.categories;
       final Map<String, String> categoryIdMapping =
           sanitizedCategories.idMapping;
+      final List<CategoryGroupLink> normalizedCategoryGroupLinks =
+          _normalizeCategoryGroupLinks(
+            mergedCategoryGroupLinks,
+            categoryIdMapping,
+          );
 
       final List<TransactionEntity> mergedTransactions =
           _mergeEntities<TransactionEntity>(
@@ -835,6 +918,7 @@ class AuthSyncService {
         // Tier 1: Base Entities (Accounts, Categories, Tags)
         await _accountDao.upsertAll(mergedAccounts);
         await _categoryDao.upsertAll(normalizedCategories);
+        await _categoryGroupDao.upsertAll(mergedCategoryGroups);
         await _tagDao.upsertAll(mergedTags);
 
         final Set<String> validAccountIds = mergedAccounts
@@ -843,9 +927,20 @@ class AuthSyncService {
         final Set<String> validCategoryIds = normalizedCategories
             .map((Category e) => e.id)
             .toSet();
+        final Set<String> validGroupIds = mergedCategoryGroups
+            .map((CategoryGroup e) => e.id)
+            .toSet();
         final Set<String> validTagIds = mergedTags
             .map((TagEntity e) => e.id)
             .toSet();
+
+        final List<CategoryGroupLink> sanitizedCategoryGroupLinks =
+            _dataSanitizer.sanitizeCategoryGroupLinks(
+              links: normalizedCategoryGroupLinks,
+              validGroupIds: validGroupIds,
+              validCategoryIds: validCategoryIds,
+            );
+        await _categoryGroupLinkDao.upsertAll(sanitizedCategoryGroupLinks);
 
         // Tier 2: Dependent Entities - Goals
         final List<CreditEntity> sanitizedCredits = _dataSanitizer
@@ -1319,6 +1414,29 @@ class AuthSyncService {
     return normalized;
   }
 
+  List<CategoryGroupLink> _normalizeCategoryGroupLinks(
+    List<CategoryGroupLink> links,
+    Map<String, String> idMapping,
+  ) {
+    if (links.isEmpty || idMapping.isEmpty) {
+      return links;
+    }
+    final Map<String, CategoryGroupLink> normalized =
+        <String, CategoryGroupLink>{};
+    for (final CategoryGroupLink link in links) {
+      final String? canonicalId = idMapping[link.categoryId];
+      final CategoryGroupLink mapped = canonicalId == null
+          ? link
+          : link.copyWith(categoryId: canonicalId);
+      final String key = '${mapped.groupId}:${mapped.categoryId}';
+      final CategoryGroupLink? existing = normalized[key];
+      if (existing == null || mapped.updatedAt.isAfter(existing.updatedAt)) {
+        normalized[key] = mapped;
+      }
+    }
+    return normalized.values.toList();
+  }
+
   List<Budget> _normalizeBudgets(
     List<Budget> budgets,
     Map<String, String> categoryIdMapping,
@@ -1398,6 +1516,8 @@ class _RemoteSnapshot {
   _RemoteSnapshot({
     required this.accounts,
     required this.categories,
+    required this.categoryGroups,
+    required this.categoryGroupLinks,
     required this.tags,
     required this.transactions,
     required this.transactionTags,
@@ -1414,6 +1534,8 @@ class _RemoteSnapshot {
 
   final List<AccountEntity> accounts;
   final List<Category> categories;
+  final List<CategoryGroup> categoryGroups;
+  final List<CategoryGroupLink> categoryGroupLinks;
   final List<TagEntity> tags;
   final List<TransactionEntity> transactions;
   final List<TransactionTagEntity> transactionTags;

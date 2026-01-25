@@ -534,9 +534,7 @@ GROUP BY month_key, scale
     ];
 
     if (accountIds.isNotEmpty) {
-      sql.writeln(
-        '  AND account_id IN (${_placeholders(accountIds.length)})',
-      );
+      sql.writeln('  AND account_id IN (${_placeholders(accountIds.length)})');
       variables.addAll(_stringVariables(accountIds));
     }
 

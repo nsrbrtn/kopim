@@ -1,12 +1,12 @@
 import 'dart:async';
 import 'dart:math' as math;
 
-import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod/legacy.dart';
 import 'package:intl/intl.dart';
+import 'package:collection/collection.dart';
 import 'package:kopim/core/config/theme_extensions.dart';
 import 'package:kopim/core/formatting/currency_symbols.dart';
 import 'package:kopim/core/utils/helpers.dart';
@@ -14,6 +14,11 @@ import 'package:kopim/core/utils/text_input_formatters.dart';
 import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
+import 'package:kopim/features/categories/domain/entities/category_group.dart';
+import 'package:kopim/features/categories/domain/entities/category_group_link.dart';
+import 'package:kopim/features/categories/presentation/controllers/category_groups_controller.dart';
+import 'package:kopim/features/categories/presentation/models/category_group_section.dart';
+import 'package:kopim/features/categories/presentation/utils/category_grouping.dart';
 import 'package:kopim/features/categories/presentation/utils/category_gradients.dart';
 import 'package:kopim/features/categories/presentation/widgets/category_chip.dart';
 import 'package:kopim/features/tags/domain/entities/tag.dart';
@@ -1241,15 +1246,9 @@ class _CategoryDropdownField extends ConsumerStatefulWidget {
 
 class _CategoryDropdownFieldState
     extends ConsumerState<_CategoryDropdownField> {
-  bool _showAll = false;
   late final TextEditingController _searchController;
   String _query = '';
-  List<Category> _cachedHeaderCategories = const <Category>[];
-  List<Category> _cachedOtherCategories = const <Category>[];
-  List<Widget> _headerChipWidgets = const <Widget>[];
-  List<Widget> _otherChipWidgets = const <Widget>[];
-  String? _cachedSelectedCategoryId;
-  bool _cachedShowFavoritesInHeader = false;
+  final Map<String, bool> _expandedGroups = <String, bool>{};
   ProviderSubscription<TransactionSheetState>? _sheetSubscription;
   TransactionFormProvider get _formProvider =>
       transactionFormControllerProvider(widget.formArgs);
@@ -1272,7 +1271,6 @@ class _CategoryDropdownFieldState
   void _onSearchChanged() {
     setState(() {
       _query = _searchController.text;
-      _showAll = true;
     });
   }
 
@@ -1284,7 +1282,7 @@ class _CategoryDropdownFieldState
   }
 
   void _resetSearch() {
-    if (_searchController.text.isEmpty && !_showAll && _query.isEmpty) {
+    if (_searchController.text.isEmpty && _query.isEmpty) {
       return;
     }
     _searchController.removeListener(_onSearchChanged);
@@ -1292,22 +1290,13 @@ class _CategoryDropdownFieldState
     _searchController.addListener(_onSearchChanged);
     setState(() {
       _query = '';
-      _showAll = false;
-    });
-  }
-
-  void _toggleShowAll() {
-    setState(() {
-      _showAll = !_showAll;
     });
   }
 
   void _selectCategory(String? categoryId) {
     ref.read(_formProvider.notifier).updateCategory(categoryId);
     FocusManager.instance.primaryFocus?.unfocus();
-    setState(() {
-      _showAll = false;
-    });
+    setState(() {});
   }
 
   Future<void> _openTagPicker({
@@ -1334,65 +1323,6 @@ class _CategoryDropdownFieldState
     }
   }
 
-  void _updateCategoryChipCache({
-    required List<Category> headerCategories,
-    required List<Category> otherCategories,
-    required String? selectedCategoryId,
-    required bool showFavoritesInHeader,
-    required bool showOtherCategories,
-  }) {
-    final bool headerChanged = !_areCategoryListsEqual(
-      headerCategories,
-      _cachedHeaderCategories,
-    );
-    final bool otherChanged = showOtherCategories
-        ? !_areCategoryListsEqual(otherCategories, _cachedOtherCategories)
-        : _cachedOtherCategories.isNotEmpty;
-    final bool selectionChanged =
-        _cachedSelectedCategoryId != selectedCategoryId;
-    final bool favoritesChanged =
-        _cachedShowFavoritesInHeader != showFavoritesInHeader;
-    if (!headerChanged &&
-        !otherChanged &&
-        !selectionChanged &&
-        !favoritesChanged) {
-      return;
-    }
-
-    _cachedHeaderCategories = headerCategories;
-    _cachedShowFavoritesInHeader = showFavoritesInHeader;
-    _cachedSelectedCategoryId = selectedCategoryId;
-    _headerChipWidgets = headerCategories
-        .map(
-          (Category category) =>
-              _buildCategoryChip(category, selectedCategoryId),
-        )
-        .toList(growable: false);
-
-    if (showOtherCategories) {
-      _cachedOtherCategories = otherCategories;
-      _otherChipWidgets = otherCategories
-          .map(
-            (Category category) =>
-                _buildCategoryChip(category, selectedCategoryId),
-          )
-          .toList(growable: false);
-    } else {
-      _cachedOtherCategories = const <Category>[];
-      _otherChipWidgets = const <Widget>[];
-    }
-  }
-
-  bool _areCategoryListsEqual(List<Category> first, List<Category> second) {
-    final List<String> firstIds = first
-        .map((Category category) => category.id)
-        .toList();
-    final List<String> secondIds = second
-        .map((Category category) => category.id)
-        .toList();
-    return const ListEquality<String>().equals(firstIds, secondIds);
-  }
-
   @override
   Widget build(BuildContext context) {
     return widget.categoriesAsync.when(
@@ -1411,7 +1341,6 @@ class _CategoryDropdownFieldState
     final AppLocalizations strings = widget.strings;
     final ThemeData theme = Theme.of(context);
     final KopimLayout layout = context.kopimLayout;
-    final KopimSpacingScale spacing = layout.spacing;
     final double containerRadius = layout.radius.xxl;
     final TransactionType type = ref.watch(
       _formProvider.select((TransactionDraftState state) => state.type),
@@ -1453,6 +1382,12 @@ class _CategoryDropdownFieldState
       transactionFormTagsProvider,
     );
     final List<TagEntity> tags = tagsAsync.asData?.value ?? const <TagEntity>[];
+    final AsyncValue<List<CategoryGroup>> groupsAsync = ref.watch(
+      categoryGroupsProvider,
+    );
+    final AsyncValue<List<CategoryGroupLink>> linksAsync = ref.watch(
+      categoryGroupLinksProvider,
+    );
     final String normalizedQuery = _query.trim().toLowerCase();
     final List<Category> filtered = categories
         .where(
@@ -1462,53 +1397,22 @@ class _CategoryDropdownFieldState
                   category.name.toLowerCase().contains(normalizedQuery)),
         )
         .toList(growable: false);
-    final List<Category> favoriteCategories = filtered
-        .where((Category category) => category.isFavorite)
-        .toList(growable: false);
-    Category? selectedCategory;
-    if (selectedCategoryId != null) {
-      for (final Category category in filtered) {
-        if (category.id == selectedCategoryId) {
-          selectedCategory = category;
-          break;
-        }
-      }
-    }
-    final bool hasSelection = selectedCategory != null;
-    final bool showFavoritesInHeader = !hasSelection || _showAll;
-    final List<Category> headerFavorites = <Category>[
-      for (final Category category in favoriteCategories)
-        if (!hasSelection || category.id != selectedCategoryId) category,
-    ];
-    final List<Category> otherCategories = filtered
-        .where((Category category) {
-          if (category.isFavorite) {
-            return false;
-          }
-          if (!hasSelection) {
-            return true;
-          }
-          return category.id != selectedCategory!.id;
-        })
-        .toList(growable: false);
-    final String buttonLabel = _showAll
-        ? strings.addTransactionHideCategories
-        : strings.addTransactionShowAllCategories;
-    final List<Category> headerCategories = <Category>[
-      if (selectedCategory != null) selectedCategory,
-      if (showFavoritesInHeader) ...headerFavorites,
-    ];
-    final bool showOtherCategories = _showAll && otherCategories.isNotEmpty;
-    final List<Category> otherDisplayCategories = showOtherCategories
-        ? otherCategories
-        : const <Category>[];
-    _updateCategoryChipCache(
-      headerCategories: headerCategories,
-      otherCategories: otherDisplayCategories,
-      selectedCategoryId: selectedCategoryId,
-      showFavoritesInHeader: showFavoritesInHeader,
-      showOtherCategories: showOtherCategories,
+    final List<CategoryGroup> groups =
+        groupsAsync.asData?.value ?? const <CategoryGroup>[];
+    final List<CategoryGroupLink> links =
+        linksAsync.asData?.value ?? const <CategoryGroupLink>[];
+    final List<CategoryGroupSection> sections = buildCategoryGroupSections(
+      categories: categories,
+      groups: groups,
+      links: links,
+      favoritesTitle: strings.manageCategoryGroupFavoritesTitle,
+      otherTitle: strings.manageCategoryGroupOtherTitle,
     );
+    final List<_CategoryGroupDisplay> displaySections =
+        _buildCategoryGroupDisplaySections(
+          sections: sections,
+          filtered: filtered,
+        );
 
     return Container(
       decoration: BoxDecoration(
@@ -1535,48 +1439,36 @@ class _CategoryDropdownFieldState
             ),
           ),
           const SizedBox(height: 16),
-          Align(
-            alignment: Alignment.centerRight,
-            child: TextButton(
-              onPressed: otherCategories.isEmpty && favoriteCategories.isEmpty
-                  ? null
-                  : _toggleShowAll,
-              style: TextButton.styleFrom(
-                padding: EdgeInsets.zero,
-                minimumSize: const Size(126, 20),
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              ),
+          if (groupsAsync.hasError || linksAsync.hasError)
+            Padding(
+              padding: const EdgeInsets.only(top: 12),
               child: Text(
-                buttonLabel,
-                style: theme.textTheme.titleSmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                  letterSpacing: 0.1,
+                strings.manageCategoriesListError(
+                  (groupsAsync.error ?? linksAsync.error).toString(),
                 ),
+                style: theme.textTheme.bodySmall,
               ),
-            ),
-          ),
-          const SizedBox(height: 16),
-          Wrap(
-            spacing: spacing.between,
-            runSpacing: spacing.between,
-            children: _headerChipWidgets,
-          ),
-          if (showOtherCategories) ...<Widget>[
-            SizedBox(height: spacing.between),
-            Wrap(
-              spacing: spacing.between,
-              runSpacing: spacing.between,
-              children: _otherChipWidgets,
-            ),
-          ],
-          if (filtered.isEmpty)
+            )
+          else if (displaySections.isEmpty)
             Padding(
               padding: const EdgeInsets.only(top: 16),
               child: Text(
                 strings.addTransactionCategoryNone,
                 style: theme.textTheme.bodySmall,
               ),
-            ),
+            )
+          else ...<Widget>[
+            const SizedBox(height: 8),
+            for (final _CategoryGroupDisplay section in displaySections)
+              _CategoryGroupSectionPanel(
+                section: section,
+                selectedCategoryId: selectedCategoryId,
+                onSelect: _selectCategory,
+                isExpanded: _isGroupExpanded(section.section),
+                onExpansionChanged: (bool expanded) =>
+                    _setGroupExpanded(section.section, expanded),
+              ),
+          ],
           const SizedBox(height: 12),
           Align(
             alignment: Alignment.centerRight,
@@ -1618,6 +1510,54 @@ class _CategoryDropdownFieldState
     );
   }
 
+  List<_CategoryGroupDisplay> _buildCategoryGroupDisplaySections({
+    required List<CategoryGroupSection> sections,
+    required List<Category> filtered,
+  }) {
+    if (sections.isEmpty || filtered.isEmpty) {
+      return const <_CategoryGroupDisplay>[];
+    }
+    final Set<String> filteredIds = filtered
+        .map((Category category) => category.id)
+        .toSet();
+    final Map<String, Category> filteredById = <String, Category>{
+      for (final Category category in filtered) category.id: category,
+    };
+    final List<_CategoryGroupDisplay> result = <_CategoryGroupDisplay>[];
+    for (final CategoryGroupSection section in sections) {
+      final List<Category> sectionCategories =
+          section.categories
+              .where((Category category) => filteredIds.contains(category.id))
+              .map((Category category) => filteredById[category.id])
+              .whereType<Category>()
+              .toList(growable: false)
+            ..sort(
+              (Category a, Category b) =>
+                  a.name.toLowerCase().compareTo(b.name.toLowerCase()),
+            );
+      if (sectionCategories.isEmpty) {
+        continue;
+      }
+      result.add(
+        _CategoryGroupDisplay(section: section, categories: sectionCategories),
+      );
+    }
+    return result;
+  }
+
+  bool _isGroupExpanded(CategoryGroupSection section) {
+    if (_query.isNotEmpty) {
+      return true;
+    }
+    return _expandedGroups[section.id] ?? section.isFavorites;
+  }
+
+  void _setGroupExpanded(CategoryGroupSection section, bool expanded) {
+    setState(() {
+      _expandedGroups[section.id] = expanded;
+    });
+  }
+
   Widget _buildStatus(BuildContext context, {required Widget child}) {
     final ThemeData theme = Theme.of(context);
     return Container(
@@ -1629,8 +1569,84 @@ class _CategoryDropdownFieldState
       child: child,
     );
   }
+}
 
-  Widget _buildCategoryChip(Category category, String? selectedCategoryId) {
+class _CategoryGroupDisplay {
+  const _CategoryGroupDisplay({
+    required this.section,
+    required this.categories,
+  });
+
+  final CategoryGroupSection section;
+  final List<Category> categories;
+}
+
+class _CategoryGroupSectionPanel extends StatelessWidget {
+  const _CategoryGroupSectionPanel({
+    required this.section,
+    required this.selectedCategoryId,
+    required this.onSelect,
+    required this.isExpanded,
+    required this.onExpansionChanged,
+  });
+
+  final _CategoryGroupDisplay section;
+  final String? selectedCategoryId;
+  final ValueChanged<String?> onSelect;
+  final bool isExpanded;
+  final ValueChanged<bool> onExpansionChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final KopimLayout layout = context.kopimLayout;
+    final KopimSpacingScale spacing = layout.spacing;
+    final List<Widget> chips = section.categories
+        .map(
+          (Category category) => _CategoryGroupSectionPanelChip(
+            category: category,
+            selectedCategoryId: selectedCategoryId,
+            onSelect: onSelect,
+          ),
+        )
+        .toList(growable: false);
+
+    return Card(
+      margin: const EdgeInsets.only(top: 8),
+      child: ExpansionTile(
+        key: ValueKey<String>(
+          'category-group:${section.section.id}-$isExpanded',
+        ),
+        initiallyExpanded: isExpanded,
+        onExpansionChanged: onExpansionChanged,
+        title: Text(section.section.title),
+        children: <Widget>[
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+            child: Wrap(
+              spacing: spacing.between,
+              runSpacing: spacing.between,
+              children: chips,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CategoryGroupSectionPanelChip extends StatelessWidget {
+  const _CategoryGroupSectionPanelChip({
+    required this.category,
+    required this.selectedCategoryId,
+    required this.onSelect,
+  });
+
+  final Category category;
+  final String? selectedCategoryId;
+  final ValueChanged<String?> onSelect;
+
+  @override
+  Widget build(BuildContext context) {
     final bool selected = category.id == selectedCategoryId;
     final IconData? iconData = resolvePhosphorIconData(category.icon);
     final CategoryColorStyle colorStyle = resolveCategoryColorStyle(
@@ -1645,7 +1661,7 @@ class _CategoryDropdownFieldState
       iconBackgroundGradient: colorStyle.backgroundGradient,
       backgroundColor: theme.colorScheme.surfaceContainerHigh,
       selected: selected,
-      onTap: () => _selectCategory(category.id),
+      onTap: () => onSelect(category.id),
     );
   }
 }

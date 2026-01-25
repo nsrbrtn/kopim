@@ -178,13 +178,13 @@ const budgetExpenseTotalsProvider = BudgetExpenseTotalsProvider._();
 final class BudgetExpenseTotalsProvider
     extends
         $FunctionalProvider<
-          AsyncValue<Map<_BudgetPeriodKey, List<BudgetExpenseTotals>>>,
-          Map<_BudgetPeriodKey, List<BudgetExpenseTotals>>,
-          Stream<Map<_BudgetPeriodKey, List<BudgetExpenseTotals>>>
+          AsyncValue<Map<BudgetPeriodKey, List<BudgetExpenseTotals>>>,
+          Map<BudgetPeriodKey, List<BudgetExpenseTotals>>,
+          Stream<Map<BudgetPeriodKey, List<BudgetExpenseTotals>>>
         >
     with
-        $FutureModifier<Map<_BudgetPeriodKey, List<BudgetExpenseTotals>>>,
-        $StreamProvider<Map<_BudgetPeriodKey, List<BudgetExpenseTotals>>> {
+        $FutureModifier<Map<BudgetPeriodKey, List<BudgetExpenseTotals>>>,
+        $StreamProvider<Map<BudgetPeriodKey, List<BudgetExpenseTotals>>> {
   const BudgetExpenseTotalsProvider._()
     : super(
         from: null,
@@ -201,17 +201,17 @@ final class BudgetExpenseTotalsProvider
 
   @$internal
   @override
-  $StreamProviderElement<Map<_BudgetPeriodKey, List<BudgetExpenseTotals>>>
+  $StreamProviderElement<Map<BudgetPeriodKey, List<BudgetExpenseTotals>>>
   $createElement($ProviderPointer pointer) => $StreamProviderElement(pointer);
 
   @override
-  Stream<Map<_BudgetPeriodKey, List<BudgetExpenseTotals>>> create(Ref ref) {
+  Stream<Map<BudgetPeriodKey, List<BudgetExpenseTotals>>> create(Ref ref) {
     return budgetExpenseTotals(ref);
   }
 }
 
 String _$budgetExpenseTotalsHash() =>
-    r'8c3b191af255616e47f27a9279ac40b2689132e1';
+    r'7c4ad6e4fb179336e94c8a642533edbfaf148de4';
 
 @ProviderFor(budgetsWithProgress)
 const budgetsWithProgressProvider = BudgetsWithProgressProvider._();
@@ -261,7 +261,7 @@ final class BudgetsWithProgressProvider
 }
 
 String _$budgetsWithProgressHash() =>
-    r'fabdc493afc6d3b3d17c9ac991040dcb4afb1b97';
+    r'17ef6443ff5bab5feb692aeb2c02994c35255b40';
 
 @ProviderFor(budgetCategorySpend)
 const budgetCategorySpendProvider = BudgetCategorySpendProvider._();
@@ -310,7 +310,7 @@ final class BudgetCategorySpendProvider
 }
 
 String _$budgetCategorySpendHash() =>
-    r'39ae75db7d7f93a8e9890b80644d7c78c078096d';
+    r'd60ad1ed0cbae64df6196d073e7f26e73e5ec73d';
 
 @ProviderFor(budgetProgressById)
 const budgetProgressByIdProvider = BudgetProgressByIdFamily._();

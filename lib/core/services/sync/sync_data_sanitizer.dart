@@ -3,6 +3,7 @@ import 'package:kopim/features/budgets/domain/entities/budget_instance.dart';
 import 'package:kopim/features/credits/domain/entities/credit_card_entity.dart';
 import 'package:kopim/features/credits/domain/entities/credit_entity.dart';
 import 'package:kopim/features/credits/domain/entities/debt_entity.dart';
+import 'package:kopim/features/categories/domain/entities/category_group_link.dart';
 import 'package:kopim/features/tags/domain/entities/transaction_tag.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/upcoming_payments/domain/entities/upcoming_payment.dart';
@@ -126,6 +127,34 @@ class SyncDataSanitizer {
     if (skippedCount > 0) {
       logger.logInfo(
         'SyncDataSanitizer: skipped $skippedCount transaction tags due to missing references.',
+      );
+    }
+
+    return sanitized;
+  }
+
+  List<CategoryGroupLink> sanitizeCategoryGroupLinks({
+    required List<CategoryGroupLink> links,
+    required Set<String> validGroupIds,
+    required Set<String> validCategoryIds,
+  }) {
+    if (links.isEmpty) return links;
+
+    final List<CategoryGroupLink> sanitized = <CategoryGroupLink>[];
+    int skippedCount = 0;
+
+    for (final CategoryGroupLink link in links) {
+      if (!validGroupIds.contains(link.groupId) ||
+          !validCategoryIds.contains(link.categoryId)) {
+        skippedCount++;
+        continue;
+      }
+      sanitized.add(link);
+    }
+
+    if (skippedCount > 0) {
+      logger.logInfo(
+        'SyncDataSanitizer: skipped $skippedCount category group links due to missing references.',
       );
     }
 

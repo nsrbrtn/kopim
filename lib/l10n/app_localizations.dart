@@ -642,6 +642,12 @@ abstract class AppLocalizations {
   /// **'Add category'**
   String get manageCategoriesAddAction;
 
+  /// Tooltip for the button that starts creating a new category group
+  ///
+  /// In en, this message translates to:
+  /// **'Add group'**
+  String get manageCategoryGroupAddAction;
+
   /// Action label to create a subcategory from the manage categories menu
   ///
   /// In en, this message translates to:
@@ -708,6 +714,30 @@ abstract class AppLocalizations {
   /// **'No categories yet. Create one to get started.'**
   String get manageCategoriesEmpty;
 
+  /// Title for the favorites category group
+  ///
+  /// In en, this message translates to:
+  /// **'Favorites'**
+  String get manageCategoryGroupFavoritesTitle;
+
+  /// Title for categories without a group
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get manageCategoryGroupOtherTitle;
+
+  /// Hint for an empty category group
+  ///
+  /// In en, this message translates to:
+  /// **'No categories in this group.'**
+  String get manageCategoryGroupEmpty;
+
+  /// Tooltip for editing a category group
+  ///
+  /// In en, this message translates to:
+  /// **'Edit group'**
+  String get manageCategoryGroupEditAction;
+
   /// Error message shown when categories stream fails
   ///
   /// In en, this message translates to:
@@ -726,17 +756,47 @@ abstract class AppLocalizations {
   /// **'Edit category'**
   String get manageCategoriesEditTitle;
 
+  /// Title for creating a new category group
+  ///
+  /// In en, this message translates to:
+  /// **'New group'**
+  String get manageCategoryGroupCreateTitle;
+
+  /// Title for editing a category group
+  ///
+  /// In en, this message translates to:
+  /// **'Edit group'**
+  String get manageCategoryGroupEditTitle;
+
   /// Label for the category name field
   ///
   /// In en, this message translates to:
   /// **'Name'**
   String get manageCategoriesNameLabel;
 
+  /// Label for the group name field
+  ///
+  /// In en, this message translates to:
+  /// **'Group name'**
+  String get manageCategoryGroupNameLabel;
+
   /// Validation error when the category name is empty
   ///
   /// In en, this message translates to:
   /// **'Please enter a name.'**
   String get manageCategoriesNameRequired;
+
+  /// Validation error when the group name is empty
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a group name.'**
+  String get manageCategoryGroupNameRequired;
+
+  /// Hint shown on the group edit screen
+  ///
+  /// In en, this message translates to:
+  /// **'Select categories for the group. Subcategories are added automatically.'**
+  String get manageCategoryGroupCategoriesHint;
 
   /// Label for the category type selector
   ///
@@ -1026,17 +1086,35 @@ abstract class AppLocalizations {
   /// **'Save category'**
   String get manageCategoriesSaveCta;
 
+  /// Button label for saving a group
+  ///
+  /// In en, this message translates to:
+  /// **'Save group'**
+  String get manageCategoryGroupSaveCta;
+
   /// Error message shown when saving a category fails
   ///
   /// In en, this message translates to:
   /// **'Unable to save category: {error}'**
   String manageCategoriesSaveError(String error);
 
+  /// Error message shown when saving a group fails
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to save group: {error}'**
+  String manageCategoryGroupSaveError(String error);
+
   /// Error message shown when saving a category with a duplicate name
   ///
   /// In en, this message translates to:
   /// **'A category with this name already exists, please choose another name'**
   String get manageCategoriesDuplicateNameError;
+
+  /// Error message shown when saving a group with a duplicate name
+  ///
+  /// In en, this message translates to:
+  /// **'A group with this name already exists, please choose another name'**
+  String get manageCategoryGroupDuplicateNameError;
 
   /// Snackbar message shown when a category is created
   ///
@@ -1056,17 +1134,41 @@ abstract class AppLocalizations {
   /// **'Delete'**
   String get manageCategoriesDeleteAction;
 
+  /// Label for the delete group action
+  ///
+  /// In en, this message translates to:
+  /// **'Delete group'**
+  String get manageCategoryGroupDeleteAction;
+
   /// Title for the delete category confirmation dialog
   ///
   /// In en, this message translates to:
   /// **'Delete category'**
   String get manageCategoriesDeleteConfirmTitle;
 
+  /// Title for the delete group confirmation dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Delete group'**
+  String get manageCategoryGroupDeleteConfirmTitle;
+
   /// Confirmation message shown before deleting a category
   ///
   /// In en, this message translates to:
   /// **'Are you sure you want to delete the category \"{name}\"? All subcategories will also be removed.'**
   String manageCategoriesDeleteConfirmMessage(String name);
+
+  /// Confirmation message shown before deleting a group
+  ///
+  /// In en, this message translates to:
+  /// **'Delete the group and move categories to \"Other\"?'**
+  String get manageCategoryGroupDeleteConfirmMessage;
+
+  /// Confirmation action label for deleting a group
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get manageCategoryGroupDeleteConfirmAction;
 
   /// Snackbar message shown when a category is deleted
   ///
@@ -1079,6 +1181,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Unable to delete category: {error}'**
   String manageCategoriesDeleteError(String error);
+
+  /// Error message shown when deleting a group fails
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to delete group: {error}'**
+  String manageCategoryGroupDeleteError(String error);
 
   /// Tooltip for the button that starts creating a new tag
   ///

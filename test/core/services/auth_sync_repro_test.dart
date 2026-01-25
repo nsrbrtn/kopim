@@ -16,7 +16,11 @@ import 'package:kopim/features/budgets/data/sources/local/budget_dao.dart';
 import 'package:kopim/features/budgets/data/sources/remote/budget_instance_remote_data_source.dart';
 import 'package:kopim/features/budgets/data/sources/remote/budget_remote_data_source.dart';
 import 'package:kopim/features/categories/data/sources/local/category_dao.dart';
+import 'package:kopim/features/categories/data/sources/local/category_group_dao.dart';
+import 'package:kopim/features/categories/data/sources/local/category_group_link_dao.dart';
 import 'package:kopim/features/categories/data/sources/remote/category_remote_data_source.dart';
+import 'package:kopim/features/categories/data/sources/remote/category_group_remote_data_source.dart';
+import 'package:kopim/features/categories/data/sources/remote/category_group_link_remote_data_source.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/credits/data/sources/local/credit_card_dao.dart';
 import 'package:kopim/features/credits/data/sources/local/credit_dao.dart';
@@ -52,6 +56,8 @@ void main() {
   late OutboxDao outboxDao;
   late AccountDao accountDao;
   late CategoryDao categoryDao;
+  late CategoryGroupDao categoryGroupDao;
+  late CategoryGroupLinkDao categoryGroupLinkDao;
   late TransactionDao transactionDao;
   late CreditCardDao creditCardDao;
   late CreditDao creditDao;
@@ -81,6 +87,8 @@ void main() {
     outboxDao = OutboxDao(database);
     accountDao = AccountDao(database);
     categoryDao = CategoryDao(database);
+    categoryGroupDao = CategoryGroupDao(database);
+    categoryGroupLinkDao = CategoryGroupLinkDao(database);
     transactionDao = TransactionDao(database);
     creditCardDao = CreditCardDao(database);
     creditDao = CreditDao(database);
@@ -121,6 +129,8 @@ void main() {
         outboxDao: outboxDao,
         accountDao: accountDao,
         categoryDao: categoryDao,
+        categoryGroupDao: categoryGroupDao,
+        categoryGroupLinkDao: categoryGroupLinkDao,
         tagDao: tagDao,
         transactionDao: transactionDao,
         transactionTagsDao: transactionTagsDao,
@@ -135,6 +145,10 @@ void main() {
         profileDao: profileDao,
         accountRemoteDataSource: AccountRemoteDataSource(firestore),
         categoryRemoteDataSource: CategoryRemoteDataSource(firestore),
+        categoryGroupRemoteDataSource: CategoryGroupRemoteDataSource(firestore),
+        categoryGroupLinkRemoteDataSource: CategoryGroupLinkRemoteDataSource(
+          firestore,
+        ),
         tagRemoteDataSource: TagRemoteDataSource(firestore),
         transactionRemoteDataSource: TransactionRemoteDataSource(firestore),
         transactionTagRemoteDataSource: TransactionTagRemoteDataSource(
@@ -269,6 +283,8 @@ void main() {
       outboxDao: outboxDao,
       accountDao: accountDao,
       categoryDao: categoryDao,
+      categoryGroupDao: categoryGroupDao,
+      categoryGroupLinkDao: categoryGroupLinkDao,
       tagDao: tagDao,
       transactionDao: transactionDao,
       transactionTagsDao: transactionTagsDao,
@@ -283,6 +299,10 @@ void main() {
       profileDao: profileDao,
       accountRemoteDataSource: AccountRemoteDataSource(firestore),
       categoryRemoteDataSource: CategoryRemoteDataSource(firestore),
+      categoryGroupRemoteDataSource: CategoryGroupRemoteDataSource(firestore),
+      categoryGroupLinkRemoteDataSource: CategoryGroupLinkRemoteDataSource(
+        firestore,
+      ),
       tagRemoteDataSource: TagRemoteDataSource(firestore),
       transactionRemoteDataSource: TransactionRemoteDataSource(firestore),
       transactionTagRemoteDataSource: TransactionTagRemoteDataSource(firestore),
@@ -397,6 +417,8 @@ void main() {
       outboxDao: outboxDao,
       accountDao: accountDao,
       categoryDao: categoryDao,
+      categoryGroupDao: categoryGroupDao,
+      categoryGroupLinkDao: categoryGroupLinkDao,
       tagDao: tagDao,
       transactionDao: transactionDao,
       transactionTagsDao: transactionTagsDao,
@@ -411,6 +433,10 @@ void main() {
       profileDao: profileDao,
       accountRemoteDataSource: AccountRemoteDataSource(firestore),
       categoryRemoteDataSource: CategoryRemoteDataSource(firestore),
+      categoryGroupRemoteDataSource: CategoryGroupRemoteDataSource(firestore),
+      categoryGroupLinkRemoteDataSource: CategoryGroupLinkRemoteDataSource(
+        firestore,
+      ),
       tagRemoteDataSource: TagRemoteDataSource(firestore),
       transactionRemoteDataSource: TransactionRemoteDataSource(firestore),
       transactionTagRemoteDataSource: TransactionTagRemoteDataSource(firestore),

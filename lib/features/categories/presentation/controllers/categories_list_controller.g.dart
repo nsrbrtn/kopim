@@ -50,3 +50,42 @@ final class ManageCategoryTreeProvider
 
 String _$manageCategoryTreeHash() =>
     r'46303fbc95f7c7eb71bf645f96ef4596dc1a5eeb';
+
+@ProviderFor(manageCategories)
+const manageCategoriesProvider = ManageCategoriesProvider._();
+
+final class ManageCategoriesProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<Category>>,
+          List<Category>,
+          Stream<List<Category>>
+        >
+    with $FutureModifier<List<Category>>, $StreamProvider<List<Category>> {
+  const ManageCategoriesProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'manageCategoriesProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$manageCategoriesHash();
+
+  @$internal
+  @override
+  $StreamProviderElement<List<Category>> $createElement(
+    $ProviderPointer pointer,
+  ) => $StreamProviderElement(pointer);
+
+  @override
+  Stream<List<Category>> create(Ref ref) {
+    return manageCategories(ref);
+  }
+}
+
+String _$manageCategoriesHash() => r'b9ebf4468cd0532629690b19646431feddbd3d1d';

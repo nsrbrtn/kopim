@@ -312,6 +312,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get manageCategoriesAddAction => 'Add category';
 
   @override
+  String get manageCategoryGroupAddAction => 'Add group';
+
+  @override
   String get manageCategoriesCreateSubAction => 'Create subcategory';
 
   @override
@@ -347,6 +350,18 @@ class AppLocalizationsEn extends AppLocalizations {
       'No categories yet. Create one to get started.';
 
   @override
+  String get manageCategoryGroupFavoritesTitle => 'Favorites';
+
+  @override
+  String get manageCategoryGroupOtherTitle => 'Other';
+
+  @override
+  String get manageCategoryGroupEmpty => 'No categories in this group.';
+
+  @override
+  String get manageCategoryGroupEditAction => 'Edit group';
+
+  @override
   String manageCategoriesListError(String error) {
     return 'Unable to load categories: $error';
   }
@@ -358,10 +373,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String get manageCategoriesEditTitle => 'Edit category';
 
   @override
+  String get manageCategoryGroupCreateTitle => 'New group';
+
+  @override
+  String get manageCategoryGroupEditTitle => 'Edit group';
+
+  @override
   String get manageCategoriesNameLabel => 'Name';
 
   @override
+  String get manageCategoryGroupNameLabel => 'Group name';
+
+  @override
   String get manageCategoriesNameRequired => 'Please enter a name.';
+
+  @override
+  String get manageCategoryGroupNameRequired => 'Please enter a group name.';
+
+  @override
+  String get manageCategoryGroupCategoriesHint =>
+      'Select categories for the group. Subcategories are added automatically.';
 
   @override
   String get manageCategoriesTypeLabel => 'Type';
@@ -509,13 +540,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get manageCategoriesSaveCta => 'Save category';
 
   @override
+  String get manageCategoryGroupSaveCta => 'Save group';
+
+  @override
   String manageCategoriesSaveError(String error) {
     return 'Unable to save category: $error';
   }
 
   @override
+  String manageCategoryGroupSaveError(String error) {
+    return 'Unable to save group: $error';
+  }
+
+  @override
   String get manageCategoriesDuplicateNameError =>
       'A category with this name already exists, please choose another name';
+
+  @override
+  String get manageCategoryGroupDuplicateNameError =>
+      'A group with this name already exists, please choose another name';
 
   @override
   String get manageCategoriesSuccessCreate => 'Category created successfully.';
@@ -527,7 +570,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get manageCategoriesDeleteAction => 'Delete';
 
   @override
+  String get manageCategoryGroupDeleteAction => 'Delete group';
+
+  @override
   String get manageCategoriesDeleteConfirmTitle => 'Delete category';
+
+  @override
+  String get manageCategoryGroupDeleteConfirmTitle => 'Delete group';
 
   @override
   String manageCategoriesDeleteConfirmMessage(String name) {
@@ -535,11 +584,23 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get manageCategoryGroupDeleteConfirmMessage =>
+      'Delete the group and move categories to \"Other\"?';
+
+  @override
+  String get manageCategoryGroupDeleteConfirmAction => 'Delete';
+
+  @override
   String get manageCategoriesDeleteSuccess => 'Category deleted successfully.';
 
   @override
   String manageCategoriesDeleteError(String error) {
     return 'Unable to delete category: $error';
+  }
+
+  @override
+  String manageCategoryGroupDeleteError(String error) {
+    return 'Unable to delete group: $error';
   }
 
   @override

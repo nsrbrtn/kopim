@@ -320,6 +320,10 @@
   "@manageCategoriesAddAction": {
     "description": "Подсказка к кнопке добавления новой категории"
   },
+  "manageCategoryGroupAddAction": "Добавить группу",
+  "@manageCategoryGroupAddAction": {
+    "description": "Подсказка к кнопке добавления новой группы категорий"
+  },
   "manageCategoriesCreateSubAction": "Создать подкатегорию",
   "@manageCategoriesCreateSubAction": {
     "description": "Подпись действия создания подкатегории в меню управления"
@@ -364,6 +368,22 @@
   "@manageCategoriesEmpty": {
     "description": "Сообщение пустого состояния списка категорий"
   },
+  "manageCategoryGroupFavoritesTitle": "Избранное",
+  "@manageCategoryGroupFavoritesTitle": {
+    "description": "Заголовок группы избранных категорий"
+  },
+  "manageCategoryGroupOtherTitle": "Остальное",
+  "@manageCategoryGroupOtherTitle": {
+    "description": "Заголовок группы категорий без группы"
+  },
+  "manageCategoryGroupEmpty": "Категорий в группе нет.",
+  "@manageCategoryGroupEmpty": {
+    "description": "Подсказка для пустой группы категорий"
+  },
+  "manageCategoryGroupEditAction": "Редактировать группу",
+  "@manageCategoryGroupEditAction": {
+    "description": "Подсказка к кнопке редактирования группы"
+  },
   "manageCategoriesListError": "Не удалось загрузить категории: {error}",
   "@manageCategoriesListError": {
     "description": "Сообщение об ошибке при загрузке категорий",
@@ -381,13 +401,33 @@
   "@manageCategoriesEditTitle": {
     "description": "Заголовок формы редактирования категории"
   },
+  "manageCategoryGroupCreateTitle": "Новая группа",
+  "@manageCategoryGroupCreateTitle": {
+    "description": "Заголовок формы создания группы"
+  },
+  "manageCategoryGroupEditTitle": "Редактирование группы",
+  "@manageCategoryGroupEditTitle": {
+    "description": "Заголовок формы редактирования группы"
+  },
   "manageCategoriesNameLabel": "Название",
   "@manageCategoriesNameLabel": {
     "description": "Подпись поля названия категории"
   },
+  "manageCategoryGroupNameLabel": "Название группы",
+  "@manageCategoryGroupNameLabel": {
+    "description": "Подпись поля названия группы"
+  },
   "manageCategoriesNameRequired": "Введите название.",
   "@manageCategoriesNameRequired": {
     "description": "Ошибка валидации при пустом названии категории"
+  },
+  "manageCategoryGroupNameRequired": "Введите название группы.",
+  "@manageCategoryGroupNameRequired": {
+    "description": "Ошибка валидации при пустом названии группы"
+  },
+  "manageCategoryGroupCategoriesHint": "Выберите категории для группы. Подкатегории добавляются автоматически.",
+  "@manageCategoryGroupCategoriesHint": {
+    "description": "Подсказка на экране редактирования группы"
   },
   "manageCategoriesTypeLabel": "Тип",
   "@manageCategoriesTypeLabel": {
@@ -581,6 +621,10 @@
   "@manageCategoriesSaveCta": {
     "description": "Подпись кнопки сохранения категории"
   },
+  "manageCategoryGroupSaveCta": "Сохранить группу",
+  "@manageCategoryGroupSaveCta": {
+    "description": "Подпись кнопки сохранения группы"
+  },
   "manageCategoriesSaveError": "Не удалось сохранить категорию: {error}",
   "@manageCategoriesSaveError": {
     "description": "Сообщение об ошибке при сохранении категории",
@@ -590,9 +634,22 @@
       }
     }
   },
+  "manageCategoryGroupSaveError": "Не удалось сохранить группу: {error}",
+  "@manageCategoryGroupSaveError": {
+    "description": "Сообщение об ошибке при сохранении группы",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "manageCategoriesDuplicateNameError": "Категория с таким названием уже существует, выберите другое",
   "@manageCategoriesDuplicateNameError": {
     "description": "Сообщение об ошибке при сохранении категории с уже существующим названием"
+  },
+  "manageCategoryGroupDuplicateNameError": "Группа с таким названием уже существует, выберите другое",
+  "@manageCategoryGroupDuplicateNameError": {
+    "description": "Сообщение об ошибке при сохранении группы с уже существующим названием"
   },
   "manageCategoriesSuccessCreate": "Категория успешно создана.",
   "@manageCategoriesSuccessCreate": {
@@ -606,9 +663,17 @@
   "@manageCategoriesDeleteAction": {
     "description": "Подпись для действия удаления категории"
   },
+  "manageCategoryGroupDeleteAction": "Удалить группу",
+  "@manageCategoryGroupDeleteAction": {
+    "description": "Подпись для действия удаления группы"
+  },
   "manageCategoriesDeleteConfirmTitle": "Удалить категорию",
   "@manageCategoriesDeleteConfirmTitle": {
     "description": "Заголовок диалога подтверждения удаления категории"
+  },
+  "manageCategoryGroupDeleteConfirmTitle": "Удалить группу",
+  "@manageCategoryGroupDeleteConfirmTitle": {
+    "description": "Заголовок диалога подтверждения удаления группы"
   },
   "manageCategoriesDeleteConfirmMessage": "Вы действительно хотите удалить категорию «{name}»? Все подкатегории также будут удалены.",
   "@manageCategoriesDeleteConfirmMessage": {
@@ -619,6 +684,14 @@
       }
     }
   },
+  "manageCategoryGroupDeleteConfirmMessage": "Удалить группу и переместить категории в «Остальное»?",
+  "@manageCategoryGroupDeleteConfirmMessage": {
+    "description": "Сообщение подтверждения перед удалением группы"
+  },
+  "manageCategoryGroupDeleteConfirmAction": "Удалить",
+  "@manageCategoryGroupDeleteConfirmAction": {
+    "description": "Подпись кнопки подтверждения удаления группы"
+  },
   "manageCategoriesDeleteSuccess": "Категория удалена.",
   "@manageCategoriesDeleteSuccess": {
     "description": "Сообщение после успешного удаления категории"
@@ -626,6 +699,15 @@
   "manageCategoriesDeleteError": "Не удалось удалить категорию: {error}",
   "@manageCategoriesDeleteError": {
     "description": "Сообщение об ошибке при удалении категории",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "manageCategoryGroupDeleteError": "Не удалось удалить группу: {error}",
+  "@manageCategoryGroupDeleteError": {
+    "description": "Сообщение об ошибке при удалении группы",
     "placeholders": {
       "error": {
         "type": "String"
