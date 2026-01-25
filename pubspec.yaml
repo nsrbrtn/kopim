@@ -110,3 +110,28 @@ flutter:
           weight: 400
         - asset: assets/fonts/Inter-Medium.ttf
           weight: 500
+    # Phosphor icons (web) — явное включение шрифтов из пакета.
+    - family: PhosphorBold
+      fonts:
+        - asset: packages/phosphor_flutter/fonts/Phosphor-Bold.ttf
+          weight: 400
+    - family: PhosphorDuotone
+      fonts:
+        - asset: packages/phosphor_flutter/fonts/Phosphor-Duotone.ttf
+          weight: 400
+    - family: PhosphorFill
+      fonts:
+        - asset: packages/phosphor_flutter/fonts/Phosphor-Fill.ttf
+          weight: 400
+    - family: PhosphorLight
+      fonts:
+        - asset: packages/phosphor_flutter/fonts/Phosphor-Light.ttf
+          weight: 400
+    - family: PhosphorThin
+      fonts:
+        - asset: packages/phosphor_flutter/fonts/Phosphor-Thin.ttf
+          weight: 400
+    - family: PhosphorRegular
+      fonts:
+        - asset: packages/phosphor_flutter/fonts/Phosphor.ttf
+          weight: 400

@@ -896,3 +896,114 @@ flutter test --reporter expanded
 - Расходы для бюджетов агрегируются в Drift и используются в провайдерах без перебора всех транзакций.
 - Добавлены тесты агрегатов, включая нагрузочный сценарий.
 - Что бы улучшить в следующий раз:
+
+# ExecPlan: Web‑шрифты Phosphor
+
+## Context and Orientation
+- Цель: убрать предупреждения web‑сборки о недостающих Phosphor‑шрифтах и гарантировать отображение иконок.
+- Область кода: `pubspec.yaml`.
+- Контекст/ограничения: использовать шрифты из `phosphor_flutter`, без копирования в `assets/`.
+- Риски: размер web‑бандла и возможное дублирование шрифтов.
+
+## Interfaces and Dependencies
+- Внешние сервисы: не затрагиваются.
+- Локальные зависимости: `phosphor_flutter`.
+- Затрагиваемые API/модули: только декларация шрифтов в `flutter.fonts`.
+
+## Plan of Work
+- Явно подключить семейства `Phosphor*` через `packages/phosphor_flutter`.
+- Обновить статус в аудите.
+
+## Concrete Steps
+1) Добавить font‑семейства `Phosphor*` в `pubspec.yaml`.
+2) Обновить `AUDIT_2026-01-18.md` о закрытии пункта.
+
+## Validation and Acceptance
+- Команды проверки:
+```bash
+flutter pub get
+flutter build web --no-wasm-dry-run
+```
+- Acceptance criteria:
+  - Web‑сборка не предупреждает об отсутствующих Phosphor‑шрифтах.
+  - Иконки Phosphor отображаются в Web.
+
+## Idempotence and Recovery
+- Что можно безопасно перезапускать: `flutter pub get`, web‑сборку.
+- Как откатиться/восстановиться: удалить `Phosphor*` из `flutter.fonts`.
+- План rollback (для миграций): не требуется.
+
+## Progress
+- [x] Шаг 1: Добавить шрифты в `pubspec.yaml`.
+- [x] Шаг 2: Обновить аудит.
+
+## Surprises & Discoveries
+- ...
+
+## Decision Log
+- ...
+
+## Outcomes & Retrospective
+- Что сделано:
+- Что бы улучшить в следующий раз:
+
+# ExecPlan: Нормализация времени транзакций (UTC vs local)
+
+## Context and Orientation
+- Цель: устранить расхождения времени записи/обновления транзакций из‑за смеси local/UTC и стабилизировать LWW merge.
+- Область кода: `lib/features/transactions/domain/use_cases/*`, `lib/features/transactions/data/repositories/transaction_repository_impl.dart`, `lib/features/transactions/data/sources/local/transaction_dao.dart`, `lib/core/services/auth_sync_service.dart`.
+- Контекст/ограничения: не править автоген (`*.g.dart`, `*.freezed.dart`); офлайн‑first сохранён; формат дат в payload не менять без миграции.
+- Риски: изменение порядка LWW merge, регресс в UI отображении дат, разъезд локального и удалённого времени.
+
+## Interfaces and Dependencies
+- Внешние сервисы (Firebase/Analytics/Crashlytics): Firestore sync (timestamps), import/export форматы.
+- Локальные зависимости (Drift, codegen): Drift хранит epoch seconds/millis; возможны DAO‑квери по диапазонам.
+- Затрагиваемые API/модули: TransactionRepositoryImpl, use cases add/update/delete, sync merge.
+
+## Plan of Work
+- Зафиксировать контракт времени (все write‑пути используют UTC) и точки записи.
+- Привести все write‑пути транзакций к единому источнику времени.
+- Добавить проверки/тесты на равенство поведения в разных TZ.
+
+## Concrete Steps
+1) Инвентаризировать все места, где выставляются `createdAt/updatedAt/date` для транзакций, и определить текущие источники (`DateTime.now()`, `DateTime.now().toUtc()` и т.п.).
+2) Зафиксировать контракт: хранение в UTC на уровне domain/data, преобразование в local только для UI.
+3) Обновить write‑пути: add/update/delete, репозиторий, sync/import (если они проставляют timestamps).
+4) Обновить DAO/квери (если используются `date` в local) на единый UTC.
+5) Добавить unit‑тесты на одинаковый результат в разных TZ (моки времени/clock).
+6) Обновить документацию инвариантов (раздел транзакций) и отметить выполнение в `AUDIT_2026-01-18.md`.
+
+## Validation and Acceptance
+- Команды проверки:
+```bash
+dart format --set-exit-if-changed .
+flutter analyze
+flutter test --reporter expanded
+```
+- Acceptance criteria:
+  - Все записи транзакций используют UTC в домене/данных.
+  - LWW merge выбирает корректную запись при одинаковом local‑времени в разных TZ.
+  - UI отображает даты корректно после преобразования в local.
+
+## Idempotence and Recovery
+- Что можно безопасно перезапускать: тесты, форматирование, build_runner (если потребуется).
+- Как откатиться/восстановиться: вернуть прежние источники времени и удалить новые тесты.
+- План rollback (для миграций): не требуется.
+
+## Progress
+- [x] Шаг 1: Инвентаризация источников времени.
+- [x] Шаг 2: Фиксация контракта UTC.
+- [x] Шаг 3: Унификация write‑путей.
+- [x] Шаг 4: Проверка DAO/квери.
+- [x] Шаг 5: Тесты TZ.
+- [x] Шаг 6: Документация и аудит.
+
+## Surprises & Discoveries
+- ...
+
+## Decision Log
+- ...
+
+## Outcomes & Retrospective
+- Что сделано:
+- Что бы улучшить в следующий раз:

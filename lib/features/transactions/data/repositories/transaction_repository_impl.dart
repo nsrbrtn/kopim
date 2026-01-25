@@ -44,6 +44,7 @@ class TransactionRepositoryImpl implements TransactionRepository {
   static const String _entityType = 'transaction';
   static const String _accountEntityType = 'account';
   static const String _savingGoalEntityType = 'saving_goal';
+  static DateTime _utcNow() => DateTime.now().toUtc();
 
   @override
   Stream<List<TransactionEntity>> watchTransactions() {
@@ -227,7 +228,7 @@ class TransactionRepositoryImpl implements TransactionRepository {
 
   @override
   Future<void> upsert(TransactionEntity transaction) async {
-    final DateTime now = DateTime.now();
+    final DateTime now = _utcNow();
     final TransactionEntity toPersist = transaction.copyWith(updatedAt: now);
     await _database.transaction(() async {
       final db.TransactionRow? previousRow = await _transactionDao.findById(
@@ -252,18 +253,19 @@ class TransactionRepositoryImpl implements TransactionRepository {
   }
 
   DateTime _parseMonthKey(String key) {
+    final DateTime fallback = _utcNow();
     final List<String> parts = key.split('-');
     if (parts.length != 2) {
-      return DateTime.now();
+      return DateTime.utc(fallback.year, fallback.month);
     }
-    final int year = int.tryParse(parts[0]) ?? DateTime.now().year;
-    final int month = int.tryParse(parts[1]) ?? DateTime.now().month;
-    return DateTime(year, month);
+    final int year = int.tryParse(parts[0]) ?? fallback.year;
+    final int month = int.tryParse(parts[1]) ?? fallback.month;
+    return DateTime.utc(year, month);
   }
 
   @override
   Future<void> softDelete(String id) async {
-    final DateTime now = DateTime.now();
+    final DateTime now = _utcNow();
     await _database.transaction(() async {
       final db.TransactionRow? row = await _transactionDao.findById(id);
       if (row == null) return;

@@ -38,6 +38,9 @@ flutter test --reporter expanded
 flutter pub outdated
 ```
 
+Примечание по Android:
+- Для dev/CI используем flavor `dev` (например, `flutter build apk --debug --flavor dev`).
+
 ---
 
 ## 2) Когда обязателен ExecPlan

@@ -473,8 +473,10 @@ dart run build_runner build --delete-conflicting-outputs
 # Тесты
 flutter test
 
-# Билд для продакшена
-flutter build apk --release       # Android
+# Билд для продакшена (учитываем flavors)
+По умолчанию для dev/CI используем flavor `dev`.
+flutter build apk --release --flavor prod   # Android (prod)
+flutter build apk --debug --flavor dev      # Android (dev)
 flutter build ios --release       # iOS
 flutter build web --release       # Web
 ```

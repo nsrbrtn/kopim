@@ -194,4 +194,58 @@ void main() {
     expect(updated, isNotNull);
     expect(updated!.balance, closeTo(100, 1e-9));
   });
+
+  test('upsert stores updatedAt in UTC in outbox payload', () async {
+    await seedAccount(id: 'acc-1', balance: 100);
+
+    final TransactionEntity transaction = TransactionEntity(
+      id: 'tx-utc-1',
+      accountId: 'acc-1',
+      amountMinor: BigInt.from(2500),
+      amountScale: 2,
+      date: now,
+      type: TransactionType.expense.storageValue,
+      createdAt: now,
+      updatedAt: now,
+    );
+
+    await repository.upsert(transaction);
+
+    final List<db.OutboxEntryRow> entries = await outboxDao.fetchPending();
+    final db.OutboxEntryRow entry = entries.firstWhere(
+      (db.OutboxEntryRow row) =>
+          row.entityType == 'transaction' && row.entityId == 'tx-utc-1',
+    );
+    final Map<String, dynamic> payload = outboxDao.decodePayload(entry);
+    expect(payload['createdAt'], endsWith('Z'));
+    expect(payload['updatedAt'], endsWith('Z'));
+  });
+
+  test('softDelete stores updatedAt in UTC in outbox payload', () async {
+    await seedAccount(id: 'acc-1', balance: 100);
+
+    final TransactionEntity transaction = TransactionEntity(
+      id: 'tx-utc-2',
+      accountId: 'acc-1',
+      amountMinor: BigInt.from(1000),
+      amountScale: 2,
+      date: now,
+      type: TransactionType.expense.storageValue,
+      createdAt: now,
+      updatedAt: now,
+    );
+
+    await repository.upsert(transaction);
+    await repository.softDelete(transaction.id);
+
+    final List<db.OutboxEntryRow> entries = await outboxDao.fetchPending();
+    final db.OutboxEntryRow entry = entries.firstWhere(
+      (db.OutboxEntryRow row) =>
+          row.entityType == 'transaction' &&
+          row.entityId == 'tx-utc-2' &&
+          row.operation == 'delete',
+    );
+    final Map<String, dynamic> payload = outboxDao.decodePayload(entry);
+    expect(payload['updatedAt'], endsWith('Z'));
+  });
 }
