@@ -313,9 +313,6 @@ class AppLocalizationsRu extends AppLocalizations {
   String get manageCategoriesAddAction => 'Добавить категорию';
 
   @override
-  String get manageCategoryGroupAddAction => 'Добавить группу';
-
-  @override
   String get manageCategoriesCreateSubAction => 'Создать подкатегорию';
 
   @override
@@ -351,18 +348,6 @@ class AppLocalizationsRu extends AppLocalizations {
       'Категории пока не созданы. Добавьте первую.';
 
   @override
-  String get manageCategoryGroupFavoritesTitle => 'Избранное';
-
-  @override
-  String get manageCategoryGroupOtherTitle => 'Остальное';
-
-  @override
-  String get manageCategoryGroupEmpty => 'Категорий в группе нет.';
-
-  @override
-  String get manageCategoryGroupEditAction => 'Редактировать группу';
-
-  @override
   String manageCategoriesListError(String error) {
     return 'Не удалось загрузить категории: $error';
   }
@@ -374,26 +359,10 @@ class AppLocalizationsRu extends AppLocalizations {
   String get manageCategoriesEditTitle => 'Редактирование категории';
 
   @override
-  String get manageCategoryGroupCreateTitle => 'Новая группа';
-
-  @override
-  String get manageCategoryGroupEditTitle => 'Редактирование группы';
-
-  @override
   String get manageCategoriesNameLabel => 'Название';
 
   @override
-  String get manageCategoryGroupNameLabel => 'Название группы';
-
-  @override
   String get manageCategoriesNameRequired => 'Введите название.';
-
-  @override
-  String get manageCategoryGroupNameRequired => 'Введите название группы.';
-
-  @override
-  String get manageCategoryGroupCategoriesHint =>
-      'Выберите категории для группы. Подкатегории добавляются автоматически.';
 
   @override
   String get manageCategoriesTypeLabel => 'Тип';
@@ -542,25 +511,13 @@ class AppLocalizationsRu extends AppLocalizations {
   String get manageCategoriesSaveCta => 'Сохранить категорию';
 
   @override
-  String get manageCategoryGroupSaveCta => 'Сохранить группу';
-
-  @override
   String manageCategoriesSaveError(String error) {
     return 'Не удалось сохранить категорию: $error';
   }
 
   @override
-  String manageCategoryGroupSaveError(String error) {
-    return 'Не удалось сохранить группу: $error';
-  }
-
-  @override
   String get manageCategoriesDuplicateNameError =>
       'Категория с таким названием уже существует, выберите другое';
-
-  @override
-  String get manageCategoryGroupDuplicateNameError =>
-      'Группа с таким названием уже существует, выберите другое';
 
   @override
   String get manageCategoriesSuccessCreate => 'Категория успешно создана.';
@@ -572,13 +529,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get manageCategoriesDeleteAction => 'Удалить';
 
   @override
-  String get manageCategoryGroupDeleteAction => 'Удалить группу';
-
-  @override
   String get manageCategoriesDeleteConfirmTitle => 'Удалить категорию';
-
-  @override
-  String get manageCategoryGroupDeleteConfirmTitle => 'Удалить группу';
 
   @override
   String manageCategoriesDeleteConfirmMessage(String name) {
@@ -586,23 +537,11 @@ class AppLocalizationsRu extends AppLocalizations {
   }
 
   @override
-  String get manageCategoryGroupDeleteConfirmMessage =>
-      'Удалить группу и переместить категории в «Остальное»?';
-
-  @override
-  String get manageCategoryGroupDeleteConfirmAction => 'Удалить';
-
-  @override
   String get manageCategoriesDeleteSuccess => 'Категория удалена.';
 
   @override
   String manageCategoriesDeleteError(String error) {
     return 'Не удалось удалить категорию: $error';
-  }
-
-  @override
-  String manageCategoryGroupDeleteError(String error) {
-    return 'Не удалось удалить группу: $error';
   }
 
   @override

@@ -254,4 +254,4 @@ final class MonthlyBalanceDataProvider
 }
 
 String _$monthlyBalanceDataHash() =>
-    r'27417d1155439b8047672424409c5c278dba5754';
+    r'cde70f4e6620095c838d2dceedec763b6ab00a97';

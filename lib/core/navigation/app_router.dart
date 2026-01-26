@@ -12,7 +12,6 @@ import 'package:kopim/features/analytics/presentation/analytics_screen.dart';
 import 'package:kopim/features/app_shell/presentation/widgets/main_navigation_shell.dart';
 import 'package:kopim/features/budgets/presentation/budgets_screen.dart';
 import 'package:kopim/features/categories/presentation/screens/manage_categories_screen.dart';
-import 'package:kopim/features/categories/presentation/screens/edit_category_group_screen.dart';
 import 'package:kopim/features/overview/presentation/overview_screen.dart';
 import 'package:kopim/features/overview/presentation/overview_settings_screen.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
@@ -155,15 +154,6 @@ final Provider<GoRouter> appRouterProvider = Provider<GoRouter>((Ref ref) {
         parentNavigatorKey: _rootNavigatorKey,
         builder: (BuildContext context, GoRouterState state) {
           return const ManageCategoriesScreen();
-        },
-      ),
-      GoRoute(
-        path: EditCategoryGroupScreen.routeName,
-        parentNavigatorKey: _rootNavigatorKey,
-        builder: (BuildContext context, GoRouterState state) {
-          final EditCategoryGroupScreenArgs args =
-              EditCategoryGroupScreenArgs.fromState(state);
-          return EditCategoryGroupScreen(group: args.group);
         },
       ),
       GoRoute(

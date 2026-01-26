@@ -57,24 +57,12 @@ import 'package:kopim/features/budgets/domain/use_cases/save_budget_use_case.dar
 import 'package:kopim/features/budgets/domain/use_cases/watch_budgets_use_case.dart';
 import 'package:kopim/features/analytics/domain/use_cases/watch_monthly_analytics_use_case.dart';
 import 'package:kopim/features/categories/data/repositories/category_repository_impl.dart';
-import 'package:kopim/features/categories/data/repositories/category_group_repository_impl.dart';
 import 'package:kopim/features/categories/data/sources/local/category_dao.dart';
-import 'package:kopim/features/categories/data/sources/local/category_group_dao.dart';
-import 'package:kopim/features/categories/data/sources/local/category_group_link_dao.dart';
 import 'package:kopim/features/categories/data/sources/remote/category_remote_data_source.dart';
-import 'package:kopim/features/categories/data/sources/remote/category_group_remote_data_source.dart';
-import 'package:kopim/features/categories/data/sources/remote/category_group_link_remote_data_source.dart';
 import 'package:kopim/features/categories/domain/repositories/category_repository.dart';
-import 'package:kopim/features/categories/domain/repositories/category_group_repository.dart';
-import 'package:kopim/features/categories/domain/use_cases/delete_category_group_use_case.dart';
 import 'package:kopim/features/categories/domain/use_cases/delete_category_use_case.dart';
-import 'package:kopim/features/categories/domain/use_cases/save_category_group_use_case.dart';
 import 'package:kopim/features/categories/domain/use_cases/save_category_use_case.dart';
-import 'package:kopim/features/categories/domain/use_cases/set_category_group_categories_use_case.dart';
-import 'package:kopim/features/categories/domain/use_cases/update_category_group_order_use_case.dart';
 import 'package:kopim/features/categories/domain/use_cases/watch_categories_use_case.dart';
-import 'package:kopim/features/categories/domain/use_cases/watch_category_group_links_use_case.dart';
-import 'package:kopim/features/categories/domain/use_cases/watch_category_groups_use_case.dart';
 import 'package:kopim/features/categories/domain/use_cases/watch_category_tree_use_case.dart';
 import 'package:kopim/features/home/domain/use_cases/watch_home_overview_summary_use_case.dart';
 import 'package:kopim/features/tags/data/repositories/tag_repository_impl.dart';
@@ -384,14 +372,6 @@ AccountDao accountDao(Ref ref) => AccountDao(ref.watch(appDatabaseProvider));
 CategoryDao categoryDao(Ref ref) => CategoryDao(ref.watch(appDatabaseProvider));
 
 @riverpod
-CategoryGroupDao categoryGroupDao(Ref ref) =>
-    CategoryGroupDao(ref.watch(appDatabaseProvider));
-
-@riverpod
-CategoryGroupLinkDao categoryGroupLinkDao(Ref ref) =>
-    CategoryGroupLinkDao(ref.watch(appDatabaseProvider));
-
-@riverpod
 TransactionDao transactionDao(Ref ref) =>
     TransactionDao(ref.watch(appDatabaseProvider));
 
@@ -581,14 +561,6 @@ AccountRemoteDataSource accountRemoteDataSource(Ref ref) =>
 @riverpod
 CategoryRemoteDataSource categoryRemoteDataSource(Ref ref) =>
     CategoryRemoteDataSource(ref.watch(firestoreProvider));
-
-@riverpod
-CategoryGroupRemoteDataSource categoryGroupRemoteDataSource(Ref ref) =>
-    CategoryGroupRemoteDataSource(ref.watch(firestoreProvider));
-
-@riverpod
-CategoryGroupLinkRemoteDataSource categoryGroupLinkRemoteDataSource(Ref ref) =>
-    CategoryGroupLinkRemoteDataSource(ref.watch(firestoreProvider));
 
 @riverpod
 TagRemoteDataSource tagRemoteDataSource(Ref ref) =>
@@ -847,15 +819,6 @@ CategoryRepository categoryRepository(Ref ref) => CategoryRepositoryImpl(
 );
 
 @riverpod
-CategoryGroupRepository categoryGroupRepository(Ref ref) =>
-    CategoryGroupRepositoryImpl(
-      database: ref.watch(appDatabaseProvider),
-      groupDao: ref.watch(categoryGroupDaoProvider),
-      linkDao: ref.watch(categoryGroupLinkDaoProvider),
-      outboxDao: ref.watch(outboxDaoProvider),
-    );
-
-@riverpod
 TagRepository tagRepository(Ref ref) => TagRepositoryImpl(
   database: ref.watch(appDatabaseProvider),
   tagDao: ref.watch(tagDaoProvider),
@@ -876,16 +839,8 @@ SaveCategoryUseCase saveCategoryUseCase(Ref ref) =>
     SaveCategoryUseCase(ref.watch(categoryRepositoryProvider));
 
 @riverpod
-SaveCategoryGroupUseCase saveCategoryGroupUseCase(Ref ref) =>
-    SaveCategoryGroupUseCase(ref.watch(categoryGroupRepositoryProvider));
-
-@riverpod
 DeleteCategoryUseCase deleteCategoryUseCase(Ref ref) =>
     DeleteCategoryUseCase(ref.watch(categoryRepositoryProvider));
-
-@riverpod
-DeleteCategoryGroupUseCase deleteCategoryGroupUseCase(Ref ref) =>
-    DeleteCategoryGroupUseCase(ref.watch(categoryGroupRepositoryProvider));
 
 @riverpod
 SaveTagUseCase saveTagUseCase(Ref ref) =>
@@ -916,35 +871,10 @@ final rp.Provider<WatchCategoriesUseCase> watchCategoriesUseCaseProvider =
       return WatchCategoriesUseCase(ref.watch(categoryRepositoryProvider));
     });
 
-final rp.Provider<WatchCategoryGroupsUseCase>
-watchCategoryGroupsUseCaseProvider = rp.Provider<WatchCategoryGroupsUseCase>((
-  rp.Ref ref,
-) {
-  return WatchCategoryGroupsUseCase(ref.watch(categoryGroupRepositoryProvider));
-});
-
-final rp.Provider<WatchCategoryGroupLinksUseCase>
-watchCategoryGroupLinksUseCaseProvider =
-    rp.Provider<WatchCategoryGroupLinksUseCase>((rp.Ref ref) {
-      return WatchCategoryGroupLinksUseCase(
-        ref.watch(categoryGroupRepositoryProvider),
-      );
-    });
-
 final rp.Provider<WatchCategoryTreeUseCase> watchCategoryTreeUseCaseProvider =
     rp.Provider<WatchCategoryTreeUseCase>((rp.Ref ref) {
       return WatchCategoryTreeUseCase(ref.watch(categoryRepositoryProvider));
     });
-
-@riverpod
-SetCategoryGroupCategoriesUseCase setCategoryGroupCategoriesUseCase(Ref ref) =>
-    SetCategoryGroupCategoriesUseCase(
-      ref.watch(categoryGroupRepositoryProvider),
-    );
-
-@riverpod
-UpdateCategoryGroupOrderUseCase updateCategoryGroupOrderUseCase(Ref ref) =>
-    UpdateCategoryGroupOrderUseCase(ref.watch(categoryGroupRepositoryProvider));
 
 @riverpod
 TransactionRepository transactionRepository(Ref ref) =>
@@ -1202,8 +1132,6 @@ AuthSyncService authSyncService(Ref ref) => AuthSyncService(
   outboxDao: ref.watch(outboxDaoProvider),
   accountDao: ref.watch(accountDaoProvider),
   categoryDao: ref.watch(categoryDaoProvider),
-  categoryGroupDao: ref.watch(categoryGroupDaoProvider),
-  categoryGroupLinkDao: ref.watch(categoryGroupLinkDaoProvider),
   tagDao: ref.watch(tagDaoProvider),
   transactionDao: ref.watch(transactionDaoProvider),
   transactionTagsDao: ref.watch(transactionTagsDaoProvider),
@@ -1218,12 +1146,6 @@ AuthSyncService authSyncService(Ref ref) => AuthSyncService(
   profileDao: ref.watch(profileDaoProvider),
   accountRemoteDataSource: ref.watch(accountRemoteDataSourceProvider),
   categoryRemoteDataSource: ref.watch(categoryRemoteDataSourceProvider),
-  categoryGroupRemoteDataSource: ref.watch(
-    categoryGroupRemoteDataSourceProvider,
-  ),
-  categoryGroupLinkRemoteDataSource: ref.watch(
-    categoryGroupLinkRemoteDataSourceProvider,
-  ),
   tagRemoteDataSource: ref.watch(tagRemoteDataSourceProvider),
   transactionRemoteDataSource: ref.watch(transactionRemoteDataSourceProvider),
   transactionTagRemoteDataSource: ref.watch(

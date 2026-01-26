@@ -169,9 +169,8 @@ void main() {
 
     final Map<String?, AnalyticsCategoryTotalsRow> byCategory =
         <String?, AnalyticsCategoryTotalsRow>{
-          for (final AnalyticsCategoryTotalsRow row in rows)
-            row.categoryId: row,
-        };
+      for (final AnalyticsCategoryTotalsRow row in rows) row.categoryId: row,
+    };
 
     expect(byCategory['c1']!.income.minor, BigInt.from(230000));
     expect(byCategory['c1']!.expense.minor, BigInt.zero);
@@ -235,8 +234,8 @@ void main() {
 
       final Map<String, MonthlyCashflowTotalsRow> byMonth =
           <String, MonthlyCashflowTotalsRow>{
-            for (final MonthlyCashflowTotalsRow row in rows) row.monthKey: row,
-          };
+        for (final MonthlyCashflowTotalsRow row in rows) row.monthKey: row,
+      };
 
       expect(byMonth['2025-01']!.income.minor, BigInt.from(200000));
       expect(byMonth['2025-01']!.expense.minor, BigInt.from(150000));
@@ -292,8 +291,8 @@ void main() {
 
       final Map<String, MonthlyBalanceTotalsRow> byMonth =
           <String, MonthlyBalanceTotalsRow>{
-            for (final MonthlyBalanceTotalsRow row in rows) row.monthKey: row,
-          };
+        for (final MonthlyBalanceTotalsRow row in rows) row.monthKey: row,
+      };
 
       expect(byMonth['2025-01']!.maxBalance.minor, BigInt.from(210000));
       expect(byMonth['2025-02']!.maxBalance.minor, BigInt.from(130000));

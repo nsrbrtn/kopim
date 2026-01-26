@@ -14,16 +14,10 @@ import 'package:kopim/core/widgets/kopim_text_field.dart';
 import 'package:kopim/core/widgets/phosphor_icon_picker.dart';
 import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
-import 'package:kopim/features/categories/domain/entities/category_group.dart';
-import 'package:kopim/features/categories/domain/entities/category_group_link.dart';
 import 'package:kopim/features/categories/domain/entities/category_tree_node.dart';
 import 'package:kopim/features/categories/presentation/controllers/categories_list_controller.dart';
-import 'package:kopim/features/categories/presentation/controllers/category_groups_controller.dart';
 import 'package:kopim/features/categories/presentation/controllers/category_form_controller.dart';
-import 'package:kopim/features/categories/presentation/models/category_group_section.dart';
-import 'package:kopim/features/categories/presentation/screens/edit_category_group_screen.dart';
 import 'package:kopim/features/categories/presentation/utils/category_color_palette.dart';
-import 'package:kopim/features/categories/presentation/utils/category_grouping.dart';
 import 'package:kopim/features/categories/presentation/utils/category_gradients.dart';
 import 'package:kopim/features/tags/presentation/screens/manage_tags_tab.dart';
 import 'package:kopim/l10n/app_localizations.dart';
@@ -114,19 +108,12 @@ class _ManageCategoriesScreenState extends ConsumerState<ManageCategoriesScreen>
   @override
   Widget build(BuildContext context) {
     final AppLocalizations strings = AppLocalizations.of(context)!;
-    final AsyncValue<List<Category>> categoriesAsync = ref.watch(
-      manageCategoriesProvider,
-    );
-    final AsyncValue<List<CategoryGroup>> groupsAsync = ref.watch(
-      categoryGroupsProvider,
-    );
-    final AsyncValue<List<CategoryGroupLink>> linksAsync = ref.watch(
-      categoryGroupLinksProvider,
+    final AsyncValue<List<CategoryTreeNode>> treeAsync = ref.watch(
+      manageCategoryTreeProvider,
     );
 
-    final List<Category> categories =
-        categoriesAsync.asData?.value ?? const <Category>[];
-    final List<CategoryTreeNode> tree = buildCategoryTree(categories);
+    final List<CategoryTreeNode> tree =
+        treeAsync.asData?.value ?? const <CategoryTreeNode>[];
     final List<Category> rootCategories = tree
         .map((CategoryTreeNode node) => node.category)
         .toList();
@@ -166,345 +153,46 @@ class _ManageCategoriesScreenState extends ConsumerState<ManageCategoriesScreen>
         child: TabBarView(
           controller: _tabController,
           children: <Widget>[
-            _buildCategoriesTab(
-              context,
-              strings: strings,
-              categoriesAsync: categoriesAsync,
-              groupsAsync: groupsAsync,
-              linksAsync: linksAsync,
-              rootCategories: rootCategories,
-              tree: tree,
+            treeAsync.when(
+              data: (List<CategoryTreeNode> nodes) {
+                if (nodes.isEmpty) {
+                  return _EmptyCategoriesView(
+                    message: strings.manageCategoriesEmpty,
+                  );
+                }
+                return _CategoryTreeList(
+                  tree: nodes,
+                  strings: strings,
+                  swipeHintDx: _swipeHintDx,
+                  onEditCategory: (Category category) => _showCategoryEditor(
+                    context,
+                    ref,
+                    strings: strings,
+                    parents: rootCategories,
+                    category: category,
+                  ),
+                  onAddSubcategory: (Category parent) => _showCategoryEditor(
+                    context,
+                    ref,
+                    strings: strings,
+                    parents: rootCategories,
+                    defaultParentId: parent.id,
+                  ),
+                  onDeleteCategory: (Category category) => _deleteCategoryFlow(
+                    context,
+                    ref,
+                    strings: strings,
+                    category: category,
+                  ),
+                );
+              },
+              error: (Object error, StackTrace? stackTrace) => _ErrorView(
+                message: strings.manageCategoriesListError(error.toString()),
+              ),
+              loading: () => const Center(child: CircularProgressIndicator()),
             ),
             const ManageTagsTab(),
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCategoriesTab(
-    BuildContext context, {
-    required AppLocalizations strings,
-    required AsyncValue<List<Category>> categoriesAsync,
-    required AsyncValue<List<CategoryGroup>> groupsAsync,
-    required AsyncValue<List<CategoryGroupLink>> linksAsync,
-    required List<Category> rootCategories,
-    required List<CategoryTreeNode> tree,
-  }) {
-    final Object? error =
-        categoriesAsync.error ?? groupsAsync.error ?? linksAsync.error;
-    if (error != null) {
-      return _ErrorView(
-        message: strings.manageCategoriesListError(error.toString()),
-      );
-    }
-    if (categoriesAsync.isLoading ||
-        groupsAsync.isLoading ||
-        linksAsync.isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
-    final List<Category> categories =
-        categoriesAsync.asData?.value ?? const <Category>[];
-    if (categories.isEmpty) {
-      return Column(
-        children: <Widget>[
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-            child: FilledButton.tonalIcon(
-              onPressed: () =>
-                  Navigator.of(context).push(EditCategoryGroupScreen.route()),
-              icon: const Icon(Icons.add),
-              label: Text(strings.manageCategoryGroupAddAction),
-            ),
-          ),
-          Expanded(
-            child: _EmptyCategoriesView(message: strings.manageCategoriesEmpty),
-          ),
-        ],
-      );
-    }
-
-    final List<CategoryGroup> groups =
-        groupsAsync.asData?.value ?? const <CategoryGroup>[];
-    final List<CategoryGroupLink> links =
-        linksAsync.asData?.value ?? const <CategoryGroupLink>[];
-
-    if (groups.isEmpty) {
-      return Column(
-        children: <Widget>[
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-            child: FilledButton.tonalIcon(
-              onPressed: () =>
-                  Navigator.of(context).push(EditCategoryGroupScreen.route()),
-              icon: const Icon(Icons.add),
-              label: Text(strings.manageCategoryGroupAddAction),
-            ),
-          ),
-          Expanded(
-            child: _CategoryTreeList(
-              tree: tree,
-              strings: strings,
-              swipeHintDx: _swipeHintDx,
-              onEditCategory: (Category category) => _showCategoryEditor(
-                context,
-                ref,
-                strings: strings,
-                parents: rootCategories,
-                category: category,
-              ),
-              onAddSubcategory: (Category parent) => _showCategoryEditor(
-                context,
-                ref,
-                strings: strings,
-                parents: rootCategories,
-                defaultParentId: parent.id,
-              ),
-              onDeleteCategory: (Category category) => _deleteCategoryFlow(
-                context,
-                ref,
-                strings: strings,
-                category: category,
-              ),
-            ),
-          ),
-        ],
-      );
-    }
-
-    final List<CategoryGroupSection> sections = buildCategoryGroupSections(
-      categories: categories,
-      groups: groups,
-      links: links,
-      favoritesTitle: strings.manageCategoryGroupFavoritesTitle,
-      otherTitle: strings.manageCategoryGroupOtherTitle,
-    );
-
-    return _CategoryGroupsView(
-      strings: strings,
-      sections: sections,
-      onAddGroup: () =>
-          Navigator.of(context).push(EditCategoryGroupScreen.route()),
-      onEditGroup: (CategoryGroup group) => Navigator.of(
-        context,
-      ).push(EditCategoryGroupScreen.route(group: group)),
-      onReorderGroups: (List<String> orderedIds) =>
-          ref.read(updateCategoryGroupOrderUseCaseProvider).call(orderedIds),
-      onEditCategory: (Category category) => _showCategoryEditor(
-        context,
-        ref,
-        strings: strings,
-        parents: rootCategories,
-        category: category,
-      ),
-      onAddSubcategory: (Category parent) => _showCategoryEditor(
-        context,
-        ref,
-        strings: strings,
-        parents: rootCategories,
-        defaultParentId: parent.id,
-      ),
-      onDeleteCategory: (Category category) => _deleteCategoryFlow(
-        context,
-        ref,
-        strings: strings,
-        category: category,
-      ),
-    );
-  }
-}
-
-class _CategoryGroupsView extends StatelessWidget {
-  const _CategoryGroupsView({
-    required this.strings,
-    required this.sections,
-    required this.onAddGroup,
-    required this.onEditGroup,
-    required this.onReorderGroups,
-    required this.onEditCategory,
-    required this.onAddSubcategory,
-    required this.onDeleteCategory,
-  });
-
-  final AppLocalizations strings;
-  final List<CategoryGroupSection> sections;
-  final VoidCallback onAddGroup;
-  final ValueChanged<CategoryGroup> onEditGroup;
-  final ValueChanged<List<String>> onReorderGroups;
-  final Future<void> Function(Category) onEditCategory;
-  final Future<void> Function(Category) onAddSubcategory;
-  final Future<bool> Function(Category) onDeleteCategory;
-
-  @override
-  Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
-    final KopimLayout layout = theme.kopimLayout;
-    CategoryGroupSection? findSection(
-      bool Function(CategoryGroupSection section) test,
-    ) {
-      for (final CategoryGroupSection section in sections) {
-        if (test(section)) {
-          return section;
-        }
-      }
-      return null;
-    }
-
-    final List<CategoryGroupSection> userSections = sections
-        .where((CategoryGroupSection section) => section.group != null)
-        .toList(growable: false);
-    final CategoryGroupSection? favoritesSection = findSection(
-      (CategoryGroupSection section) => section.isFavorites,
-    );
-    final CategoryGroupSection? otherSection = findSection(
-      (CategoryGroupSection section) => section.isOther,
-    );
-
-    return CustomScrollView(
-      slivers: <Widget>[
-        SliverToBoxAdapter(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-            child: FilledButton.tonalIcon(
-              onPressed: onAddGroup,
-              icon: const Icon(Icons.add),
-              label: Text(strings.manageCategoryGroupAddAction),
-            ),
-          ),
-        ),
-        if (favoritesSection != null)
-          SliverToBoxAdapter(
-            child: _CategoryGroupSectionTile(
-              section: favoritesSection,
-              strings: strings,
-              onEditGroup: null,
-              onEditCategory: onEditCategory,
-              onAddSubcategory: onAddSubcategory,
-              onDeleteCategory: onDeleteCategory,
-            ),
-          ),
-        if (userSections.isNotEmpty)
-          SliverReorderableList(
-            itemBuilder: (BuildContext context, int index) {
-              final CategoryGroupSection section = userSections[index];
-              return _CategoryGroupSectionTile(
-                key: ValueKey<String>('group:${section.id}'),
-                section: section,
-                strings: strings,
-                dragIndex: index,
-                onEditGroup: section.group == null
-                    ? null
-                    : () => onEditGroup(section.group!),
-                onEditCategory: onEditCategory,
-                onAddSubcategory: onAddSubcategory,
-                onDeleteCategory: onDeleteCategory,
-              );
-            },
-            itemCount: userSections.length,
-            onReorder: (int oldIndex, int newIndex) {
-              final List<CategoryGroupSection> reordered =
-                  List<CategoryGroupSection>.from(userSections);
-              if (newIndex > oldIndex) {
-                newIndex -= 1;
-              }
-              final CategoryGroupSection moved = reordered.removeAt(oldIndex);
-              reordered.insert(newIndex, moved);
-              onReorderGroups(
-                reordered
-                    .map((CategoryGroupSection section) => section.group!.id)
-                    .toList(growable: false),
-              );
-            },
-          ),
-        if (otherSection != null)
-          SliverToBoxAdapter(
-            child: _CategoryGroupSectionTile(
-              section: otherSection,
-              strings: strings,
-              onEditGroup: null,
-              onEditCategory: onEditCategory,
-              onAddSubcategory: onAddSubcategory,
-              onDeleteCategory: onDeleteCategory,
-            ),
-          ),
-        SliverToBoxAdapter(child: SizedBox(height: layout.spacing.section * 2)),
-      ],
-    );
-  }
-}
-
-class _CategoryGroupSectionTile extends StatelessWidget {
-  const _CategoryGroupSectionTile({
-    super.key,
-    required this.section,
-    required this.strings,
-    required this.onEditGroup,
-    required this.onEditCategory,
-    required this.onAddSubcategory,
-    required this.onDeleteCategory,
-    this.dragIndex,
-  });
-
-  final CategoryGroupSection section;
-  final AppLocalizations strings;
-  final VoidCallback? onEditGroup;
-  final Future<void> Function(Category) onEditCategory;
-  final Future<void> Function(Category) onAddSubcategory;
-  final Future<bool> Function(Category) onDeleteCategory;
-  final int? dragIndex;
-
-  @override
-  Widget build(BuildContext context) {
-    final List<CategoryTreeNode> tree = buildCategoryTree(section.categories);
-    final bool hasCategories = tree.isNotEmpty;
-    final Widget content = hasCategories
-        ? _CategoryTreeList(
-            tree: tree,
-            strings: strings,
-            swipeHintDx: const AlwaysStoppedAnimation<double>(0),
-            onEditCategory: onEditCategory,
-            onAddSubcategory: onAddSubcategory,
-            onDeleteCategory: onDeleteCategory,
-            padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
-            shrinkWrap: true,
-            scrollable: false,
-            keyPrefix: 'group:${section.id}:',
-          )
-        : Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-            child: Text(
-              strings.manageCategoryGroupEmpty,
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-          );
-
-    final Widget? dragHandle = dragIndex == null
-        ? null
-        : ReorderableDragStartListener(
-            index: dragIndex!,
-            child: const Icon(Icons.drag_handle),
-          );
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      child: Card(
-        clipBehavior: Clip.antiAlias,
-        child: ExpansionTile(
-          tilePadding: const EdgeInsets.symmetric(horizontal: 16),
-          title: Row(
-            children: <Widget>[
-              Expanded(child: Text(section.title)),
-              if (onEditGroup != null)
-                IconButton(
-                  icon: const Icon(Icons.edit_outlined),
-                  tooltip: strings.manageCategoryGroupEditAction,
-                  onPressed: onEditGroup,
-                ),
-              if (dragHandle != null) dragHandle,
-            ],
-          ),
-          children: <Widget>[content],
         ),
       ),
     );
@@ -609,10 +297,6 @@ class _CategoryTreeList extends StatelessWidget {
     required this.onEditCategory,
     required this.onAddSubcategory,
     required this.onDeleteCategory,
-    this.padding,
-    this.shrinkWrap = false,
-    this.scrollable = true,
-    this.keyPrefix = '',
   });
 
   final List<CategoryTreeNode> tree;
@@ -621,10 +305,6 @@ class _CategoryTreeList extends StatelessWidget {
   final Future<void> Function(Category) onEditCategory;
   final Future<void> Function(Category) onAddSubcategory;
   final Future<bool> Function(Category) onDeleteCategory;
-  final EdgeInsetsGeometry? padding;
-  final bool shrinkWrap;
-  final bool scrollable;
-  final String keyPrefix;
 
   @override
   Widget build(BuildContext context) {
@@ -634,16 +314,13 @@ class _CategoryTreeList extends StatelessWidget {
         KopimFloatingActionButton.defaultSize + layout.spacing.section * 2;
 
     return ListView.separated(
-      padding: padding ?? EdgeInsets.fromLTRB(12, 8, 12, bottomPadding),
-      shrinkWrap: shrinkWrap,
-      physics: scrollable ? null : const NeverScrollableScrollPhysics(),
+      padding: EdgeInsets.fromLTRB(12, 8, 12, bottomPadding),
       itemCount: tree.length,
       itemBuilder: (BuildContext context, int index) {
         final CategoryTreeNode node = tree[index];
         final Widget tile = _SwipeableCategoryTile(
           radius: 12,
           categoryId: node.category.id,
-          keyPrefix: keyPrefix,
           strings: strings,
           onEdit: () => onEditCategory(node.category),
           onDelete: () => onDeleteCategory(node.category),
@@ -653,7 +330,6 @@ class _CategoryTreeList extends StatelessWidget {
             onEditCategory: onEditCategory,
             onAddSubcategory: onAddSubcategory,
             onDeleteCategory: onDeleteCategory,
-            keyPrefix: keyPrefix,
           ),
         );
         if (index != 0) return tile;
@@ -678,7 +354,6 @@ class _SwipeableCategoryTile extends StatelessWidget {
   const _SwipeableCategoryTile({
     required this.radius,
     required this.categoryId,
-    required this.keyPrefix,
     required this.strings,
     required this.onEdit,
     required this.onDelete,
@@ -687,7 +362,6 @@ class _SwipeableCategoryTile extends StatelessWidget {
 
   final double radius;
   final String categoryId;
-  final String keyPrefix;
   final AppLocalizations strings;
   final Future<void> Function() onEdit;
   final Future<bool> Function() onDelete;
@@ -701,7 +375,7 @@ class _SwipeableCategoryTile extends StatelessWidget {
     return ClipRRect(
       borderRadius: borderRadius,
       child: Dismissible(
-        key: ValueKey<String>('${keyPrefix}category:$categoryId'),
+        key: ValueKey<String>('category:$categoryId'),
         direction: DismissDirection.horizontal,
         background: _SwipeBackground(
           color: theme.colorScheme.primaryContainer,
@@ -780,7 +454,6 @@ class _CategoryNodeCard extends StatelessWidget {
     required this.onEditCategory,
     required this.onAddSubcategory,
     required this.onDeleteCategory,
-    required this.keyPrefix,
   });
 
   final CategoryTreeNode node;
@@ -788,18 +461,16 @@ class _CategoryNodeCard extends StatelessWidget {
   final Future<void> Function(Category) onEditCategory;
   final Future<void> Function(Category) onAddSubcategory;
   final Future<bool> Function(Category) onDeleteCategory;
-  final String keyPrefix;
 
   @override
   Widget build(BuildContext context) {
     return _CategoryCard(
-      key: ValueKey<String>('${keyPrefix}category-card:${node.category.id}'),
+      key: ValueKey<String>('category-card:${node.category.id}'),
       node: node,
       strings: strings,
       onEditCategory: onEditCategory,
       onAddSubcategory: onAddSubcategory,
       onDeleteCategory: onDeleteCategory,
-      keyPrefix: keyPrefix,
     );
   }
 }
@@ -812,7 +483,6 @@ class _CategoryCard extends StatefulWidget {
     required this.onEditCategory,
     required this.onAddSubcategory,
     required this.onDeleteCategory,
-    required this.keyPrefix,
   });
 
   final CategoryTreeNode node;
@@ -820,7 +490,6 @@ class _CategoryCard extends StatefulWidget {
   final Future<void> Function(Category) onEditCategory;
   final Future<void> Function(Category) onAddSubcategory;
   final Future<bool> Function(Category) onDeleteCategory;
-  final String keyPrefix;
 
   @override
   State<_CategoryCard> createState() => _CategoryCardState();
@@ -962,7 +631,6 @@ class _CategoryCardState extends State<_CategoryCard> {
                                     strings: widget.strings,
                                     onEdit: widget.onEditCategory,
                                     onDelete: widget.onDeleteCategory,
-                                    keyPrefix: widget.keyPrefix,
                                   ),
                                   if (index != widget.node.children.length - 1)
                                     const SizedBox(height: 8),
@@ -987,14 +655,12 @@ class _SubcategoryTile extends StatelessWidget {
     required this.strings,
     required this.onEdit,
     required this.onDelete,
-    required this.keyPrefix,
   });
 
   final CategoryTreeNode node;
   final AppLocalizations strings;
   final Future<void> Function(Category) onEdit;
   final Future<bool> Function(Category) onDelete;
-  final String keyPrefix;
 
   @override
   Widget build(BuildContext context) {
@@ -1006,7 +672,6 @@ class _SubcategoryTile extends StatelessWidget {
     return _SwipeableCategoryTile(
       radius: 12,
       categoryId: category.id,
-      keyPrefix: keyPrefix,
       strings: strings,
       onEdit: () => onEdit(category),
       onDelete: () => onDelete(category),

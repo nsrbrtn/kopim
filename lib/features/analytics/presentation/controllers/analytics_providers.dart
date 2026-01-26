@@ -244,7 +244,9 @@ analyticsCategoryTransactionsProvider =
         );
       }
 
-      final AnalyticsDateWindow window = ref.watch(analyticsDateWindowProvider);
+      final AnalyticsDateWindow window = ref.watch(
+        analyticsDateWindowProvider,
+      );
       final List<String> sortedAccountIds = ref
           .watch(analyticsSelectedAccountIdsProvider)
           .ids;

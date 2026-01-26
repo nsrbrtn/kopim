@@ -66,36 +66,6 @@ class Categories extends Table {
   Set<Column<Object>> get primaryKey => <Column<Object>>{id};
 }
 
-@DataClassName('CategoryGroupRow')
-class CategoryGroups extends Table {
-  TextColumn get id => text().withLength(min: 1, max: 50)();
-  TextColumn get name => text().withLength(min: 1, max: 100)();
-  IntColumn get sortOrder =>
-      integer().named('sort_order').withDefault(const Constant<int>(0))();
-  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
-  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
-  BoolColumn get isDeleted =>
-      boolean().withDefault(const Constant<bool>(false))();
-
-  @override
-  Set<Column<Object>> get primaryKey => <Column<Object>>{id};
-}
-
-@DataClassName('CategoryGroupLinkRow')
-class CategoryGroupLinks extends Table {
-  TextColumn get groupId =>
-      text().named('group_id').references(CategoryGroups, #id)();
-  TextColumn get categoryId =>
-      text().named('category_id').references(Categories, #id)();
-  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
-  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
-  BoolColumn get isDeleted =>
-      boolean().withDefault(const Constant<bool>(false))();
-
-  @override
-  Set<Column<Object>> get primaryKey => <Column<Object>>{groupId, categoryId};
-}
-
 @DataClassName('TagRow')
 class Tags extends Table {
   TextColumn get id => text().withLength(min: 1, max: 50)();
@@ -349,8 +319,6 @@ class CreditCards extends Table {
   tables: <Type>[
     Accounts,
     Categories,
-    CategoryGroups,
-    CategoryGroupLinks,
     Tags,
     Transactions,
     TransactionTags,
@@ -373,7 +341,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.connect(DatabaseConnection super.connection);
 
   @override
-  int get schemaVersion => 36;
+  int get schemaVersion => 35;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -468,27 +436,6 @@ class AppDatabase extends _$AppDatabase {
           'categories_parent_idx',
           'CREATE INDEX IF NOT EXISTS categories_parent_idx '
               'ON categories(parent_id)',
-        ),
-      );
-      await m.createIndex(
-        Index(
-          'category_groups_name_unique',
-          'CREATE UNIQUE INDEX IF NOT EXISTS category_groups_name_unique '
-              'ON category_groups(name)',
-        ),
-      );
-      await m.createIndex(
-        Index(
-          'category_group_links_group_idx',
-          'CREATE INDEX IF NOT EXISTS category_group_links_group_idx '
-              'ON category_group_links(group_id)',
-        ),
-      );
-      await m.createIndex(
-        Index(
-          'category_group_links_category_idx',
-          'CREATE INDEX IF NOT EXISTS category_group_links_category_idx '
-              'ON category_group_links(category_id)',
         ),
       );
       await m.createIndex(
@@ -919,31 +866,6 @@ LEFT JOIN accounts acc ON up.account_id = acc.id
             'categories_parent_idx',
             'CREATE INDEX IF NOT EXISTS categories_parent_idx '
                 'ON categories(parent_id)',
-          ),
-        );
-      }
-      if (from < 36) {
-        await m.createTable(categoryGroups);
-        await m.createTable(categoryGroupLinks);
-        await m.createIndex(
-          Index(
-            'category_groups_name_unique',
-            'CREATE UNIQUE INDEX IF NOT EXISTS category_groups_name_unique '
-                'ON category_groups(name)',
-          ),
-        );
-        await m.createIndex(
-          Index(
-            'category_group_links_group_idx',
-            'CREATE INDEX IF NOT EXISTS category_group_links_group_idx '
-                'ON category_group_links(group_id)',
-          ),
-        );
-        await m.createIndex(
-          Index(
-            'category_group_links_category_idx',
-            'CREATE INDEX IF NOT EXISTS category_group_links_category_idx '
-                'ON category_group_links(category_id)',
           ),
         );
       }

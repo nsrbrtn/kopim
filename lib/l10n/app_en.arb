@@ -320,10 +320,6 @@
   "@manageCategoriesAddAction": {
     "description": "Tooltip for the button that starts creating a new category"
   },
-  "manageCategoryGroupAddAction": "Add group",
-  "@manageCategoryGroupAddAction": {
-    "description": "Tooltip for the button that starts creating a new category group"
-  },
   "manageCategoriesCreateSubAction": "Create subcategory",
   "@manageCategoriesCreateSubAction": {
     "description": "Action label to create a subcategory from the manage categories menu"
@@ -368,22 +364,6 @@
   "@manageCategoriesEmpty": {
     "description": "Empty state message when there are no categories"
   },
-  "manageCategoryGroupFavoritesTitle": "Favorites",
-  "@manageCategoryGroupFavoritesTitle": {
-    "description": "Title for the favorites category group"
-  },
-  "manageCategoryGroupOtherTitle": "Other",
-  "@manageCategoryGroupOtherTitle": {
-    "description": "Title for categories without a group"
-  },
-  "manageCategoryGroupEmpty": "No categories in this group.",
-  "@manageCategoryGroupEmpty": {
-    "description": "Hint for an empty category group"
-  },
-  "manageCategoryGroupEditAction": "Edit group",
-  "@manageCategoryGroupEditAction": {
-    "description": "Tooltip for editing a category group"
-  },
   "manageCategoriesListError": "Unable to load categories: {error}",
   "@manageCategoriesListError": {
     "description": "Error message shown when categories stream fails",
@@ -401,33 +381,13 @@
   "@manageCategoriesEditTitle": {
     "description": "Title for the sheet used to edit an existing category"
   },
-  "manageCategoryGroupCreateTitle": "New group",
-  "@manageCategoryGroupCreateTitle": {
-    "description": "Title for creating a new category group"
-  },
-  "manageCategoryGroupEditTitle": "Edit group",
-  "@manageCategoryGroupEditTitle": {
-    "description": "Title for editing a category group"
-  },
   "manageCategoriesNameLabel": "Name",
   "@manageCategoriesNameLabel": {
     "description": "Label for the category name field"
   },
-  "manageCategoryGroupNameLabel": "Group name",
-  "@manageCategoryGroupNameLabel": {
-    "description": "Label for the group name field"
-  },
   "manageCategoriesNameRequired": "Please enter a name.",
   "@manageCategoriesNameRequired": {
     "description": "Validation error when the category name is empty"
-  },
-  "manageCategoryGroupNameRequired": "Please enter a group name.",
-  "@manageCategoryGroupNameRequired": {
-    "description": "Validation error when the group name is empty"
-  },
-  "manageCategoryGroupCategoriesHint": "Select categories for the group. Subcategories are added automatically.",
-  "@manageCategoryGroupCategoriesHint": {
-    "description": "Hint shown on the group edit screen"
   },
   "manageCategoriesTypeLabel": "Type",
   "@manageCategoriesTypeLabel": {
@@ -621,10 +581,6 @@
   "@manageCategoriesSaveCta": {
     "description": "Button label for saving a category"
   },
-  "manageCategoryGroupSaveCta": "Save group",
-  "@manageCategoryGroupSaveCta": {
-    "description": "Button label for saving a group"
-  },
   "manageCategoriesSaveError": "Unable to save category: {error}",
   "@manageCategoriesSaveError": {
     "description": "Error message shown when saving a category fails",
@@ -634,22 +590,9 @@
       }
     }
   },
-  "manageCategoryGroupSaveError": "Unable to save group: {error}",
-  "@manageCategoryGroupSaveError": {
-    "description": "Error message shown when saving a group fails",
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
   "manageCategoriesDuplicateNameError": "A category with this name already exists, please choose another name",
   "@manageCategoriesDuplicateNameError": {
     "description": "Error message shown when saving a category with a duplicate name"
-  },
-  "manageCategoryGroupDuplicateNameError": "A group with this name already exists, please choose another name",
-  "@manageCategoryGroupDuplicateNameError": {
-    "description": "Error message shown when saving a group with a duplicate name"
   },
   "manageCategoriesSuccessCreate": "Category created successfully.",
   "@manageCategoriesSuccessCreate": {
@@ -663,17 +606,9 @@
   "@manageCategoriesDeleteAction": {
     "description": "Label for the delete category action"
   },
-  "manageCategoryGroupDeleteAction": "Delete group",
-  "@manageCategoryGroupDeleteAction": {
-    "description": "Label for the delete group action"
-  },
   "manageCategoriesDeleteConfirmTitle": "Delete category",
   "@manageCategoriesDeleteConfirmTitle": {
     "description": "Title for the delete category confirmation dialog"
-  },
-  "manageCategoryGroupDeleteConfirmTitle": "Delete group",
-  "@manageCategoryGroupDeleteConfirmTitle": {
-    "description": "Title for the delete group confirmation dialog"
   },
   "manageCategoriesDeleteConfirmMessage": "Are you sure you want to delete the category \"{name}\"? All subcategories will also be removed.",
   "@manageCategoriesDeleteConfirmMessage": {
@@ -684,14 +619,6 @@
       }
     }
   },
-  "manageCategoryGroupDeleteConfirmMessage": "Delete the group and move categories to \"Other\"?",
-  "@manageCategoryGroupDeleteConfirmMessage": {
-    "description": "Confirmation message shown before deleting a group"
-  },
-  "manageCategoryGroupDeleteConfirmAction": "Delete",
-  "@manageCategoryGroupDeleteConfirmAction": {
-    "description": "Confirmation action label for deleting a group"
-  },
   "manageCategoriesDeleteSuccess": "Category deleted successfully.",
   "@manageCategoriesDeleteSuccess": {
     "description": "Snackbar message shown when a category is deleted"
@@ -699,15 +626,6 @@
   "manageCategoriesDeleteError": "Unable to delete category: {error}",
   "@manageCategoriesDeleteError": {
     "description": "Error message shown when deleting a category fails",
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
-  "manageCategoryGroupDeleteError": "Unable to delete group: {error}",
-  "@manageCategoryGroupDeleteError": {
-    "description": "Error message shown when deleting a group fails",
     "placeholders": {
       "error": {
         "type": "String"
