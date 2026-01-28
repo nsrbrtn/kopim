@@ -8,4 +8,6 @@ abstract class UpcomingPaymentsRepository {
   Stream<List<UpcomingPayment>> watchAll();
 
   Future<UpcomingPayment?> getById(String id);
+
+  Future<UpcomingPayment?> getByCategoryId(String categoryId);
 }

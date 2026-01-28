@@ -75,6 +75,10 @@ class _EmptyTransactionRepository implements TransactionRepository {
       const <TransactionEntity>[];
 
   @override
+  Future<TransactionEntity?> findLatestByCategoryId(String categoryId) async =>
+      null;
+
+  @override
   Future<TransactionEntity?> findById(String id) async => null;
 
   @override

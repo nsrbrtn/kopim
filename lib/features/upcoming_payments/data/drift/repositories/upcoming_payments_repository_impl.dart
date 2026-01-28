@@ -57,6 +57,11 @@ class UpcomingPaymentsRepositoryImpl implements UpcomingPaymentsRepository {
     return _dao.getById(id);
   }
 
+  @override
+  Future<UpcomingPayment?> getByCategoryId(String categoryId) {
+    return _dao.getByCategoryId(categoryId);
+  }
+
   Map<String, dynamic> _mapPayload(UpcomingPayment payment) {
     final Map<String, dynamic> json = payment.toJson();
     json['amountMinor'] = payment.amountMinor?.toString();

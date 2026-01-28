@@ -67,6 +67,23 @@ class UpcomingPaymentsDao {
     return _mapper.mapRowToEntity(row);
   }
 
+  Future<UpcomingPayment?> getByCategoryId(String categoryId) async {
+    final SimpleSelectStatement<
+      db.$UpcomingPaymentsTable,
+      db.UpcomingPaymentRow
+    >
+    query = _db.select(_db.upcomingPayments)
+      ..where(
+        (db.$UpcomingPaymentsTable tbl) => tbl.categoryId.equals(categoryId),
+      )
+      ..limit(1);
+    final db.UpcomingPaymentRow? row = await query.getSingleOrNull();
+    if (row == null) {
+      return null;
+    }
+    return _mapper.mapRowToEntity(row);
+  }
+
   Future<void> upsert(UpcomingPayment payment) async {
     _validate(payment);
     await _db

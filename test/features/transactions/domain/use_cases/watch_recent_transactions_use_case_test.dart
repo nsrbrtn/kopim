@@ -105,6 +105,11 @@ class _InMemoryTransactionRepository implements TransactionRepository {
   }
 
   @override
+  Future<TransactionEntity?> findLatestByCategoryId(String categoryId) {
+    throw UnimplementedError();
+  }
+
+  @override
   Future<void> softDelete(String id) {
     throw UnimplementedError();
   }

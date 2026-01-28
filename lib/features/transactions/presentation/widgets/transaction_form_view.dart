@@ -14,6 +14,7 @@ import 'package:kopim/core/utils/text_input_formatters.dart';
 import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
+import 'package:kopim/features/categories/domain/services/category_hierarchy.dart';
 import 'package:kopim/features/categories/presentation/utils/category_gradients.dart';
 import 'package:kopim/features/categories/presentation/widgets/category_chip.dart';
 import 'package:kopim/features/tags/domain/entities/tag.dart';
@@ -1244,6 +1245,7 @@ class _CategoryDropdownFieldState
   bool _showAll = false;
   late final TextEditingController _searchController;
   String _query = '';
+  String? _expandedParentId;
   List<Category> _cachedHeaderCategories = const <Category>[];
   List<Category> _cachedOtherCategories = const <Category>[];
   List<Widget> _headerChipWidgets = const <Widget>[];
@@ -1272,7 +1274,9 @@ class _CategoryDropdownFieldState
   void _onSearchChanged() {
     setState(() {
       _query = _searchController.text;
-      _showAll = true;
+      if (_query.trim().isNotEmpty) {
+        _expandedParentId = null;
+      }
     });
   }
 
@@ -1293,6 +1297,7 @@ class _CategoryDropdownFieldState
     setState(() {
       _query = '';
       _showAll = false;
+      _expandedParentId = null;
     });
   }
 
@@ -1302,10 +1307,23 @@ class _CategoryDropdownFieldState
     });
   }
 
-  void _selectCategory(String? categoryId) {
-    ref.read(_formProvider.notifier).updateCategory(categoryId);
+  void _handleCategoryTap({
+    required Category category,
+    required bool isParent,
+    required bool hasChildren,
+    required bool allowExpand,
+  }) {
+    ref.read(_formProvider.notifier).updateCategory(category.id);
     FocusManager.instance.primaryFocus?.unfocus();
     setState(() {
+      if (allowExpand && isParent) {
+        if (hasChildren) {
+          _expandedParentId =
+              _expandedParentId == category.id ? null : category.id;
+        } else {
+          _expandedParentId = null;
+        }
+      }
       _showAll = false;
     });
   }
@@ -1340,6 +1358,9 @@ class _CategoryDropdownFieldState
     required String? selectedCategoryId,
     required bool showFavoritesInHeader,
     required bool showOtherCategories,
+    required CategoryHierarchy hierarchy,
+    required Set<String> rootIds,
+    required bool allowExpand,
   }) {
     final bool headerChanged = !_areCategoryListsEqual(
       headerCategories,
@@ -1364,8 +1385,13 @@ class _CategoryDropdownFieldState
     _cachedSelectedCategoryId = selectedCategoryId;
     _headerChipWidgets = headerCategories
         .map(
-          (Category category) =>
-              _buildCategoryChip(category, selectedCategoryId),
+          (Category category) => _buildCategoryChip(
+            category,
+            selectedCategoryId,
+            isParent: rootIds.contains(category.id),
+            hasChildren: hierarchy.childrenOf(category.id).isNotEmpty,
+            allowExpand: allowExpand,
+          ),
         )
         .toList(growable: false);
 
@@ -1373,8 +1399,13 @@ class _CategoryDropdownFieldState
       _cachedOtherCategories = otherCategories;
       _otherChipWidgets = otherCategories
           .map(
-            (Category category) =>
-                _buildCategoryChip(category, selectedCategoryId),
+            (Category category) => _buildCategoryChip(
+              category,
+              selectedCategoryId,
+              isParent: rootIds.contains(category.id),
+              hasChildren: hierarchy.childrenOf(category.id).isNotEmpty,
+              allowExpand: allowExpand,
+            ),
           )
           .toList(growable: false);
     } else {
@@ -1391,6 +1422,30 @@ class _CategoryDropdownFieldState
         .map((Category category) => category.id)
         .toList();
     return const ListEquality<String>().equals(firstIds, secondIds);
+  }
+
+  List<Category> _expandParentsWithChildren({
+    required List<Category> parents,
+    required CategoryHierarchy hierarchy,
+    required String? expandedParentId,
+  }) {
+    if (expandedParentId == null) {
+      return parents;
+    }
+    final List<Category> result = <Category>[];
+    for (final Category parent in parents) {
+      result.add(parent);
+      if (parent.id != expandedParentId) {
+        continue;
+      }
+      for (final String childId in hierarchy.childrenOf(parent.id)) {
+        final Category? child = hierarchy.byId[childId];
+        if (child != null) {
+          result.add(child);
+        }
+      }
+    }
+    return result;
   }
 
   @override
@@ -1454,20 +1509,26 @@ class _CategoryDropdownFieldState
     );
     final List<TagEntity> tags = tagsAsync.asData?.value ?? const <TagEntity>[];
     final String normalizedQuery = _query.trim().toLowerCase();
-    final List<Category> filtered = categories
+    final bool hasQuery = normalizedQuery.isNotEmpty;
+    final List<Category> typeCategories = categories
         .where(
           (Category category) =>
-              category.type.toLowerCase() == type.storageValue &&
-              (normalizedQuery.isEmpty ||
-                  category.name.toLowerCase().contains(normalizedQuery)),
+              category.type.toLowerCase() == type.storageValue,
         )
         .toList(growable: false);
-    final List<Category> favoriteCategories = filtered
-        .where((Category category) => category.isFavorite)
-        .toList(growable: false);
+    final CategoryHierarchy hierarchy = CategoryHierarchy(typeCategories);
+    final Set<String> rootIds = hierarchy.rootIds.toSet();
+    final List<Category> matchingCategories = hasQuery
+        ? typeCategories
+            .where(
+              (Category category) =>
+                  category.name.toLowerCase().contains(normalizedQuery),
+            )
+            .toList(growable: false)
+        : typeCategories;
     Category? selectedCategory;
     if (selectedCategoryId != null) {
-      for (final Category category in filtered) {
+      for (final Category category in matchingCategories) {
         if (category.id == selectedCategoryId) {
           selectedCategory = category;
           break;
@@ -1475,22 +1536,33 @@ class _CategoryDropdownFieldState
       }
     }
     final bool hasSelection = selectedCategory != null;
-    final bool showFavoritesInHeader = !hasSelection || _showAll;
+    final List<Category> favoriteParents = hasQuery
+        ? const <Category>[]
+        : typeCategories
+            .where(
+              (Category category) =>
+                  category.isFavorite && rootIds.contains(category.id),
+            )
+            .toList(growable: false);
+    final bool showFavoritesInHeader =
+        !hasQuery && (!hasSelection || _showAll);
     final List<Category> headerFavorites = <Category>[
-      for (final Category category in favoriteCategories)
+      for (final Category category in favoriteParents)
         if (!hasSelection || category.id != selectedCategoryId) category,
     ];
-    final List<Category> otherCategories = filtered
-        .where((Category category) {
-          if (category.isFavorite) {
-            return false;
-          }
-          if (!hasSelection) {
-            return true;
-          }
-          return category.id != selectedCategory!.id;
-        })
-        .toList(growable: false);
+    final List<Category> otherParents = hasQuery
+        ? const <Category>[]
+        : typeCategories
+            .where((Category category) {
+              if (!rootIds.contains(category.id) || category.isFavorite) {
+                return false;
+              }
+              if (!hasSelection) {
+                return true;
+              }
+              return category.id != selectedCategory!.id;
+            })
+            .toList(growable: false);
     final String buttonLabel = _showAll
         ? strings.addTransactionHideCategories
         : strings.addTransactionShowAllCategories;
@@ -1498,16 +1570,51 @@ class _CategoryDropdownFieldState
       if (selectedCategory != null) selectedCategory,
       if (showFavoritesInHeader) ...headerFavorites,
     ];
-    final bool showOtherCategories = _showAll && otherCategories.isNotEmpty;
-    final List<Category> otherDisplayCategories = showOtherCategories
-        ? otherCategories
+    final List<Category> searchResults = hasQuery
+        ? matchingCategories
+            .where(
+              (Category category) =>
+                  !hasSelection || category.id != selectedCategoryId,
+            )
+            .toList(growable: false)
         : const <Category>[];
+    final bool showOtherCategories = hasQuery
+        ? searchResults.isNotEmpty
+        : (_showAll && otherParents.isNotEmpty);
+    final bool allowExpand = !hasQuery;
+    final List<Category> headerDisplayCategories = allowExpand
+        ? _expandParentsWithChildren(
+            parents: headerCategories,
+            hierarchy: hierarchy,
+            expandedParentId: _expandedParentId,
+          )
+        : headerCategories;
+    final List<Category> otherDisplayCategories = hasQuery
+        ? searchResults
+        : showOtherCategories
+        ? _expandParentsWithChildren(
+            parents: otherParents,
+            hierarchy: hierarchy,
+            expandedParentId: _expandedParentId,
+          )
+        : const <Category>[];
+    final Set<String> headerIds = headerDisplayCategories
+        .map((Category category) => category.id)
+        .toSet();
+    final List<Category> dedupedOtherCategories = otherDisplayCategories
+        .where((Category category) => !headerIds.contains(category.id))
+        .toList(growable: false);
+    final bool showDedupedOther =
+        showOtherCategories && dedupedOtherCategories.isNotEmpty;
     _updateCategoryChipCache(
-      headerCategories: headerCategories,
-      otherCategories: otherDisplayCategories,
+      headerCategories: headerDisplayCategories,
+      otherCategories: dedupedOtherCategories,
       selectedCategoryId: selectedCategoryId,
       showFavoritesInHeader: showFavoritesInHeader,
-      showOtherCategories: showOtherCategories,
+      showOtherCategories: showDedupedOther,
+      hierarchy: hierarchy,
+      rootIds: rootIds,
+      allowExpand: allowExpand,
     );
 
     return Container(
@@ -1538,9 +1645,11 @@ class _CategoryDropdownFieldState
           Align(
             alignment: Alignment.centerRight,
             child: TextButton(
-              onPressed: otherCategories.isEmpty && favoriteCategories.isEmpty
-                  ? null
-                  : _toggleShowAll,
+              onPressed:
+                  hasQuery ||
+                          (otherParents.isEmpty && favoriteParents.isEmpty)
+                      ? null
+                      : _toggleShowAll,
               style: TextButton.styleFrom(
                 padding: EdgeInsets.zero,
                 minimumSize: const Size(126, 20),
@@ -1559,17 +1668,21 @@ class _CategoryDropdownFieldState
           Wrap(
             spacing: spacing.between,
             runSpacing: spacing.between,
+            alignment: WrapAlignment.center,
+            runAlignment: WrapAlignment.center,
             children: _headerChipWidgets,
           ),
-          if (showOtherCategories) ...<Widget>[
+          if (showDedupedOther) ...<Widget>[
             SizedBox(height: spacing.between),
             Wrap(
               spacing: spacing.between,
               runSpacing: spacing.between,
+              alignment: WrapAlignment.center,
+              runAlignment: WrapAlignment.center,
               children: _otherChipWidgets,
             ),
           ],
-          if (filtered.isEmpty)
+          if (matchingCategories.isEmpty)
             Padding(
               padding: const EdgeInsets.only(top: 16),
               child: Text(
@@ -1630,7 +1743,13 @@ class _CategoryDropdownFieldState
     );
   }
 
-  Widget _buildCategoryChip(Category category, String? selectedCategoryId) {
+  Widget _buildCategoryChip(
+    Category category,
+    String? selectedCategoryId, {
+    required bool isParent,
+    required bool hasChildren,
+    required bool allowExpand,
+  }) {
     final bool selected = category.id == selectedCategoryId;
     final IconData? iconData = resolvePhosphorIconData(category.icon);
     final CategoryColorStyle colorStyle = resolveCategoryColorStyle(
@@ -1645,7 +1764,12 @@ class _CategoryDropdownFieldState
       iconBackgroundGradient: colorStyle.backgroundGradient,
       backgroundColor: theme.colorScheme.surfaceContainerHigh,
       selected: selected,
-      onTap: () => _selectCategory(category.id),
+      onTap: () => _handleCategoryTap(
+        category: category,
+        isParent: isParent,
+        hasChildren: hasChildren,
+        allowExpand: allowExpand,
+      ),
     );
   }
 }

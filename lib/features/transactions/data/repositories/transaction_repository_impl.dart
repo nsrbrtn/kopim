@@ -220,6 +220,14 @@ class TransactionRepositoryImpl implements TransactionRepository {
   }
 
   @override
+  Future<TransactionEntity?> findLatestByCategoryId(String categoryId) async {
+    final db.TransactionRow? row = await _transactionDao
+        .findLatestByCategoryId(categoryId);
+    if (row == null) return null;
+    return _mapToDomain(row);
+  }
+
+  @override
   Future<TransactionEntity?> findById(String id) async {
     final db.TransactionRow? row = await _transactionDao.findById(id);
     if (row == null) return null;

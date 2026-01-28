@@ -156,6 +156,7 @@ import 'package:kopim/features/credits/domain/use_cases/delete_credit_card_use_c
 import 'package:kopim/features/credits/domain/use_cases/delete_credit_use_case.dart';
 import 'package:kopim/features/credits/domain/use_cases/delete_debt_use_case.dart';
 import 'package:kopim/features/credits/domain/use_cases/get_credit_card_by_account_id_use_case.dart';
+import 'package:kopim/features/credits/domain/use_cases/sync_credit_payment_schedule_use_case.dart';
 import 'package:kopim/features/credits/domain/use_cases/update_credit_card_use_case.dart';
 import 'package:kopim/features/credits/domain/use_cases/update_credit_use_case.dart';
 import 'package:kopim/features/credits/domain/use_cases/update_debt_use_case.dart';
@@ -175,6 +176,8 @@ import 'package:kopim/features/upcoming_payments/data/sources/remote/payment_rem
 import 'package:kopim/features/upcoming_payments/data/sources/remote/upcoming_payment_remote_data_source.dart';
 import 'package:kopim/features/upcoming_payments/domain/repositories/payment_reminders_repository.dart';
 import 'package:kopim/features/upcoming_payments/domain/repositories/upcoming_payments_repository.dart';
+import 'package:kopim/features/upcoming_payments/domain/services/schedule_policy.dart';
+import 'package:kopim/features/upcoming_payments/domain/services/time_service.dart';
 import 'package:kopim/features/credits/data/sources/local/credit_dao.dart';
 import 'package:kopim/features/credits/data/sources/local/debt_dao.dart';
 import 'package:kopim/features/credits/data/sources/local/credit_card_dao.dart';
@@ -724,6 +727,20 @@ DeleteCreditUseCase deleteCreditUseCase(Ref ref) => DeleteCreditUseCase(
 WatchCreditsUseCase watchCreditsUseCase(Ref ref) =>
     WatchCreditsUseCase(ref.watch(creditRepositoryProvider));
 
+final rp.Provider<SyncCreditPaymentScheduleUseCase>
+syncCreditPaymentScheduleUseCaseProvider =
+    rp.Provider<SyncCreditPaymentScheduleUseCase>((rp.Ref ref) {
+      return SyncCreditPaymentScheduleUseCase(
+        creditRepository: ref.watch(creditRepositoryProvider),
+        transactionRepository: ref.watch(transactionRepositoryProvider),
+        upcomingPaymentsRepository: ref.watch(
+          upcomingPaymentsRepositoryProvider,
+        ),
+        schedulePolicy: const SchedulePolicy(),
+        timeService: const SystemTimeService(),
+      );
+    });
+
 @riverpod
 WatchCreditCardsUseCase watchCreditCardsUseCase(Ref ref) =>
     WatchCreditCardsUseCase(ref.watch(creditCardRepositoryProvider));
@@ -945,6 +962,9 @@ final rp.Provider<AddTransactionUseCase> addTransactionUseCaseProvider =
         onTransactionCreatedUseCase: ref.watch(
           onTransactionCreatedUseCaseProvider,
         ),
+        syncCreditPaymentScheduleUseCase: ref.watch(
+          syncCreditPaymentScheduleUseCaseProvider,
+        ),
       );
     });
 
@@ -953,6 +973,9 @@ final rp.Provider<UpdateTransactionUseCase> updateTransactionUseCaseProvider =
       return UpdateTransactionUseCase(
         transactionRepository: ref.watch(transactionRepositoryProvider),
         accountRepository: ref.watch(accountRepositoryProvider),
+        syncCreditPaymentScheduleUseCase: ref.watch(
+          syncCreditPaymentScheduleUseCaseProvider,
+        ),
       );
     });
 
@@ -963,12 +986,18 @@ final rp.Provider<DeleteTransactionUseCase> deleteTransactionUseCaseProvider =
         onTransactionDeletedUseCase: ref.watch(
           onTransactionDeletedUseCaseProvider,
         ),
+        syncCreditPaymentScheduleUseCase: ref.watch(
+          syncCreditPaymentScheduleUseCaseProvider,
+        ),
       );
     });
 
 @riverpod
 WatchAccountTransactionsUseCase watchAccountTransactionsUseCase(Ref ref) =>
-    WatchAccountTransactionsUseCase(ref.watch(transactionRepositoryProvider));
+    WatchAccountTransactionsUseCase(
+      transactionRepository: ref.watch(transactionRepositoryProvider),
+      creditRepository: ref.watch(creditRepositoryProvider),
+    );
 
 @riverpod
 WatchRecentTransactionsUseCase watchRecentTransactionsUseCase(Ref ref) =>

@@ -95,6 +95,16 @@ class InMemoryUpcomingPaymentsRepository implements UpcomingPaymentsRepository {
   Future<UpcomingPayment?> getById(String id) async => _store[id];
 
   @override
+  Future<UpcomingPayment?> getByCategoryId(String categoryId) async {
+    for (final UpcomingPayment payment in _store.values) {
+      if (payment.categoryId == categoryId) {
+        return payment;
+      }
+    }
+    return null;
+  }
+
+  @override
   Future<void> upsert(UpcomingPayment payment) async {
     _store[payment.id] = payment;
     _notify();

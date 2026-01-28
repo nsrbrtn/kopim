@@ -85,6 +85,11 @@ class _FakeTransactionRepository implements TransactionRepository {
   }
 
   @override
+  Future<TransactionEntity?> findLatestByCategoryId(String categoryId) {
+    throw UnimplementedError();
+  }
+
+  @override
   Future<TransactionEntity?> findById(String id) {
     throw UnimplementedError();
   }

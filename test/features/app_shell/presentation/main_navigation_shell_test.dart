@@ -157,6 +157,10 @@ class _StreamTransactionRepository implements TransactionRepository {
   Future<TransactionEntity?> findById(String id) => throw UnimplementedError();
 
   @override
+  Future<TransactionEntity?> findLatestByCategoryId(String categoryId) =>
+      throw UnimplementedError();
+
+  @override
   Future<List<TransactionEntity>> loadTransactions() =>
       throw UnimplementedError();
 

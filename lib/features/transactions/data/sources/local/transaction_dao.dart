@@ -690,6 +690,27 @@ GROUP BY month_key, scale
         .insertOnConflictUpdate(_mapToCompanion(transaction));
   }
 
+  Future<db.TransactionRow?> findLatestByCategoryId(String categoryId) {
+    final SimpleSelectStatement<db.$TransactionsTable, db.TransactionRow>
+    query = _db.select(_db.transactions)
+      ..where(
+        (db.$TransactionsTable tbl) =>
+            tbl.isDeleted.equals(false) & tbl.categoryId.equals(categoryId),
+      )
+      ..orderBy(<OrderClauseGenerator<db.$TransactionsTable>>[
+        (db.$TransactionsTable tbl) => OrderingTerm(
+          expression: tbl.date,
+          mode: OrderingMode.desc,
+        ),
+        (db.$TransactionsTable tbl) => OrderingTerm(
+          expression: tbl.updatedAt,
+          mode: OrderingMode.desc,
+        ),
+      ])
+      ..limit(1);
+    return query.getSingleOrNull();
+  }
+
   Future<void> upsertAll(List<TransactionEntity> transactions) async {
     if (transactions.isEmpty) return;
     await _db.transaction(() async {

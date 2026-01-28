@@ -6,18 +6,22 @@ import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
 import 'package:kopim/features/transactions/domain/entities/update_transaction_request.dart';
 import 'package:kopim/features/transactions/domain/repositories/transaction_repository.dart';
+import 'package:kopim/features/credits/domain/use_cases/sync_credit_payment_schedule_use_case.dart';
 
 class UpdateTransactionUseCase {
   UpdateTransactionUseCase({
     required TransactionRepository transactionRepository,
     required AccountRepository accountRepository,
+    SyncCreditPaymentScheduleUseCase? syncCreditPaymentScheduleUseCase,
     DateTime Function()? clock,
   }) : _transactionRepository = transactionRepository,
        _accountRepository = accountRepository,
+       _syncCreditPaymentScheduleUseCase = syncCreditPaymentScheduleUseCase,
        _clock = clock ?? DateTime.now;
 
   final TransactionRepository _transactionRepository;
   final AccountRepository _accountRepository;
+  final SyncCreditPaymentScheduleUseCase? _syncCreditPaymentScheduleUseCase;
   final DateTime Function() _clock;
 
   Future<void> call(UpdateTransactionRequest request) async {
@@ -84,5 +88,11 @@ class UpdateTransactionUseCase {
     );
 
     await _transactionRepository.upsert(updatedTransaction);
+    if (_syncCreditPaymentScheduleUseCase != null) {
+      await _syncCreditPaymentScheduleUseCase.call(
+        previous: existing,
+        current: updatedTransaction,
+      );
+    }
   }
 }

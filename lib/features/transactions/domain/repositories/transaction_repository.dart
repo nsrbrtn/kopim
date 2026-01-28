@@ -43,6 +43,7 @@ abstract class TransactionRepository {
     List<String> accountIds,
   });
   Future<List<TransactionEntity>> loadTransactions();
+  Future<TransactionEntity?> findLatestByCategoryId(String categoryId);
   Future<TransactionEntity?> findById(String id);
   Future<void> upsert(TransactionEntity transaction);
   Future<void> softDelete(String id);

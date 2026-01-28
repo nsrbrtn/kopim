@@ -10,6 +10,7 @@ import 'package:kopim/features/profile/domain/entities/user_progress.dart';
 import 'package:kopim/features/profile/domain/events/profile_domain_event.dart';
 import 'package:kopim/features/profile/domain/models/profile_command_result.dart';
 import 'package:kopim/features/profile/domain/usecases/on_transaction_created_use_case.dart';
+import 'package:kopim/features/credits/domain/use_cases/sync_credit_payment_schedule_use_case.dart';
 import 'package:uuid/uuid.dart';
 import 'package:kopim/features/transactions/domain/models/transaction_command_result.dart';
 
@@ -18,11 +19,13 @@ class AddTransactionUseCase {
     required TransactionRepository transactionRepository,
     required AccountRepository accountRepository,
     OnTransactionCreatedUseCase? onTransactionCreatedUseCase,
+    SyncCreditPaymentScheduleUseCase? syncCreditPaymentScheduleUseCase,
     String Function()? idGenerator,
     DateTime Function()? clock,
   }) : _transactionRepository = transactionRepository,
        _accountRepository = accountRepository,
        _onTransactionCreatedUseCase = onTransactionCreatedUseCase,
+       _syncCreditPaymentScheduleUseCase = syncCreditPaymentScheduleUseCase,
        _generateId = idGenerator ?? _defaultIdGenerator,
        _clock = clock ?? _defaultClock;
 
@@ -33,6 +36,7 @@ class AddTransactionUseCase {
   final TransactionRepository _transactionRepository;
   final AccountRepository _accountRepository;
   final OnTransactionCreatedUseCase? _onTransactionCreatedUseCase;
+  final SyncCreditPaymentScheduleUseCase? _syncCreditPaymentScheduleUseCase;
   final String Function() _generateId;
   final DateTime Function() _clock;
 
@@ -83,6 +87,9 @@ class AddTransactionUseCase {
     }
 
     await _transactionRepository.upsert(transaction);
+    if (_syncCreditPaymentScheduleUseCase != null) {
+      await _syncCreditPaymentScheduleUseCase.call(current: transaction);
+    }
 
     final List<ProfileDomainEvent> events = <ProfileDomainEvent>[];
     if (_onTransactionCreatedUseCase != null) {
