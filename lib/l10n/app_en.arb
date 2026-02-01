@@ -56,6 +56,47 @@
   "creditsPaymentDayLabel": "Payment day (1-31)",
   "creditsNextPaymentLabel": "Next payment",
   "creditsRemainingPaymentsLabel": "Remaining",
+  "creditDetailsNextPaymentInDays": "{days, plural, =0 {Today} one {In {days} day} other {In {days} days}}",
+  "@creditDetailsNextPaymentInDays": {
+    "description": "Badge with days until next credit payment"
+  },
+  "creditDetailsDueDate": "Due by {date}",
+  "@creditDetailsDueDate": {
+    "description": "Label with next payment due date",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "creditDetailsPayAction": "Pay",
+  "@creditDetailsPayAction": {
+    "description": "Action button to pay the next credit payment"
+  },
+  "creditDetailsScheduleTitle": "Payment schedule",
+  "@creditDetailsScheduleTitle": {
+    "description": "Title for the payment schedule block"
+  },
+  "creditDetailsScheduleRemaining": "Remaining {current} of {total}",
+  "@creditDetailsScheduleRemaining": {
+    "description": "Label for remaining payments",
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "creditDetailsHistoryTitle": "Transaction history",
+  "@creditDetailsHistoryTitle": {
+    "description": "Header for credit transaction history"
+  },
+  "creditDetailsInterestLabel": "Interest",
+  "@creditDetailsInterestLabel": {
+    "description": "Filter label for interest transactions"
+  },
   "creditsSegmentCredits": "Loans",
   "creditsSegmentDebts": "Debts",
   "creditsDeleteTitle": "Delete loan?",
@@ -2494,6 +2535,26 @@
   "accountDetailsTitle": "Account details",
   "@accountDetailsTitle": {
     "description": "Title for the account details screen"
+  },
+  "accountDetailsTotalBalanceTitle": "Total balance",
+  "@accountDetailsTotalBalanceTitle": {
+    "description": "Title for total balance block on the account details screen"
+  },
+  "accountDetailsPeriodTotalLabel": "Period total",
+  "@accountDetailsPeriodTotalLabel": {
+    "description": "Label for period total on the account details screen"
+  },
+  "accountDetailsPeriodMonth": "Month",
+  "@accountDetailsPeriodMonth": {
+    "description": "Segment label for month period"
+  },
+  "accountDetailsPeriodQuarter": "Quarter",
+  "@accountDetailsPeriodQuarter": {
+    "description": "Segment label for quarter period"
+  },
+  "accountDetailsPeriodYear": "Year",
+  "@accountDetailsPeriodYear": {
+    "description": "Segment label for year period"
   },
   "accountDetailsEditTooltip": "Edit account",
   "@accountDetailsEditTooltip": {

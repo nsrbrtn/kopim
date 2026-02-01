@@ -8,13 +8,22 @@
 | Параметр | Тип | Описание | По умолчанию |
 |----------|-----|----------|--------------|
 | `progress` | `BudgetProgress` | Данные о прогрессе выполнения бюджета | *обязательный* |
-| `onTap` | `VoidCallback?` | Коллбэк при нажатии на карточку | `null` |
+| `categorySpend` | `List<BudgetCategorySpend>` | Список категорий с тратами | *обязательный* |
+| `onOpenDetails` | `VoidCallback` | Открыть экран деталей бюджета | *обязательный* |
+| `onEdit` | `VoidCallback` | Открыть редактирование бюджета | *обязательный* |
+| `onDelete` | `VoidCallback` | Удаление бюджета | *обязательный* |
+| `showDetailsButton` | `bool` | Показывать кнопку «Details» внутри карточки | `true` |
+| `onTap` | `VoidCallback?` | Коллбэк при нажатии на карточку, когда выключено раскрытие | `null` |
+| `enableExpansion` | `bool` | Разрешить раскрытие карточки и показ детализации | `true` |
 
 ## События и коллбэки
 
 | Событие | Описание |
 |---------|----------|
-| `onTap()` | Вызывается при нажатии на карточку (обычно используется для навигации к деталям бюджета) |
+| `onOpenDetails()` | Открытие экрана деталей бюджета |
+| `onEdit()` | Переход к редактированию |
+| `onDelete()` | Запрос на удаление |
+| `onTap()` | Вызывается при нажатии на карточку, когда `enableExpansion = false` |
 
 ## Особенности поведения
 
@@ -22,7 +31,7 @@
 - **Автоматическое определение превышения**: если потрачено больше лимита, метрика "Остаток" меняется на "Превышено" с красным цветом
 - **Ограничение прогресса**: коэффициент использования ограничен диапазоном [0, 2] для корректной визуализации
 - **Адаптивное форматирование**: суммы отображаются с учётом локали пользователя
-- **Интерактивность**: карточка имеет эффект нажатия (InkWell) при наличии `onTap`
+- **Интерактивность**: карточка раскрывается по тапу, либо открывает детали при `enableExpansion = false`
 
 ## Структура BudgetProgress
 
@@ -40,26 +49,18 @@ class BudgetProgress {
 
 ```dart
 BudgetCard(
-  progress: BudgetProgress(
-    budget: Budget(
-      id: '1',
-      title: 'Продукты',
-      amount: 30000.0,
-      // ...
-    ),
-    spent: 22500.0,
-    remaining: 7500.0,
-    utilization: 0.75,  // 75%
-    isExceeded: false,
-  ),
-  onTap: () {
+  progress: progress,
+  categorySpend: categorySpend,
+  onOpenDetails: () {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => BudgetDetailScreen(budgetId: '1'),
+        builder: (_) => BudgetOverviewScreen(budgetId: progress.budget.id),
       ),
     );
   },
+  onEdit: () => openEdit(),
+  onDelete: () => confirmDelete(),
 )
 ```
 
@@ -67,24 +68,19 @@ BudgetCard(
 
 ```dart
 BudgetCard(
-  progress: BudgetProgress(
-    budget: Budget(
-      id: '2',
-      title: 'Развлечения',
-      amount: 10000.0,
-    ),
-    spent: 12500.0,
-    remaining: -2500.0,
-    utilization: 1.25,  // 125%
-    isExceeded: true,
-  ),
-  onTap: () => print('Открыть детали бюджета'),
+  progress: progress,
+  categorySpend: categorySpend,
+  enableExpansion: false,
+  showDetailsButton: false,
+  onTap: () => openDetails(),
+  onOpenDetails: () => openDetails(),
+  onEdit: () => openEdit(),
+  onDelete: () => confirmDelete(),
 )
 // В этом случае вместо "Остаток: 7500₽" будет "Превышено: 2500₽" красным цветом
 ```
 
 ## Связанные файлы
 
-- Исходный код: [`budget_card.dart`](file:///home/artem/StudioProjects/kopim/lib/features/budgets/presentation/widgets/budget_card.dart#L10-L84)
+- Исходный код: `lib/features/budgets/presentation/widgets/budget_card.dart`
 - Компонент прогресса: `BudgetProgressIndicator` (используется внутри)
-- Вспомогательный виджет: [`_BudgetMetric`](file:///home/artem/StudioProjects/kopim/lib/features/budgets/presentation/widgets/budget_card.dart#L86-L115) (приватный, используется для отображения метрик)

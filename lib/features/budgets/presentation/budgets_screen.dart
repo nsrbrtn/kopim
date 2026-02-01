@@ -14,7 +14,7 @@ import 'package:kopim/features/budgets/domain/use_cases/compute_budget_progress_
 import 'package:kopim/features/budgets/presentation/controllers/budgets_providers.dart';
 import 'package:kopim/features/budgets/presentation/models/budget_category_spend.dart';
 import 'package:kopim/features/budgets/presentation/widgets/budget_card.dart';
-import 'package:kopim/features/budgets/presentation/budget_detail_screen.dart';
+import 'package:kopim/features/budgets/presentation/budget_overview_screen.dart';
 import 'package:kopim/features/budgets/presentation/budget_form_screen.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
@@ -184,11 +184,21 @@ NavigationTabContent buildBudgetsTabContent(
               BudgetCard(
                 progress: progress,
                 categorySpend: spendByCategory,
+                enableExpansion: false,
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (BuildContext context) =>
+                          BudgetOverviewScreen(budgetId: progress.budget.id),
+                    ),
+                  );
+                },
+                showDetailsButton: false,
                 onOpenDetails: () {
                   Navigator.of(context).push(
                     MaterialPageRoute<void>(
                       builder: (BuildContext context) =>
-                          BudgetDetailScreen(budgetId: progress.budget.id),
+                          BudgetOverviewScreen(budgetId: progress.budget.id),
                     ),
                   );
                 },

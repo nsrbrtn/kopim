@@ -6,6 +6,7 @@ import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
+import 'package:kopim/features/transactions/domain/models/transaction_category_totals.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'account_details_providers.freezed.dart';
@@ -24,6 +25,8 @@ abstract class AccountTransactionsFilter with _$AccountTransactionsFilter {
   bool get hasActiveFilters =>
       dateRange != null || type != null || categoryId != null;
 }
+
+enum AccountDetailsPeriod { month, quarter, year }
 
 @freezed
 abstract class AccountTransactionSummary with _$AccountTransactionSummary {
@@ -58,6 +61,42 @@ Stream<List<TransactionEntity>> accountTransactions(Ref ref, String accountId) {
 }
 
 @riverpod
+class AccountDetailsPeriodController extends _$AccountDetailsPeriodController {
+  @override
+  AccountDetailsPeriod build(String accountId) {
+    return AccountDetailsPeriod.month;
+  }
+
+  void set(AccountDetailsPeriod period) {
+    state = period;
+  }
+}
+
+@riverpod
+DateTimeRange accountDetailsPeriodRange(Ref ref, String accountId) {
+  final AccountDetailsPeriod period = ref.watch(
+    accountDetailsPeriodControllerProvider(accountId),
+  );
+  return _resolvePeriodRange(DateTime.now(), period);
+}
+
+@riverpod
+Stream<List<TransactionCategoryTotals>> accountTopCategoryTotals(
+  Ref ref, {
+  required String accountId,
+  required DateTime start,
+  required DateTime end,
+}) {
+  return ref
+      .watch(transactionRepositoryProvider)
+      .watchAnalyticsCategoryTotals(
+        start: start,
+        end: end.add(const Duration(days: 1)),
+        accountId: accountId,
+      );
+}
+
+@riverpod
 Stream<List<Category>> accountCategories(Ref ref) {
   return ref.watch(watchCategoriesUseCaseProvider).call();
 }
@@ -67,10 +106,14 @@ AsyncValue<AccountTransactionSummary> accountTransactionSummary(
   Ref ref,
   String accountId,
 ) {
+  final DateTimeRange range = ref.watch(
+    accountDetailsPeriodRangeProvider(accountId),
+  );
   return ref
       .watch(accountTransactionsProvider(accountId))
       .whenData(
-        (List<TransactionEntity> transactions) => _computeSummary(transactions),
+        (List<TransactionEntity> transactions) =>
+            _computeSummary(transactions, range: range),
       );
 }
 
@@ -107,6 +150,9 @@ AsyncValue<List<TransactionEntity>> filteredAccountTransactions(
   final AccountTransactionsFilter filter = ref.watch(
     accountTransactionsFilterControllerProvider(accountId),
   );
+  final DateTimeRange range = ref.watch(
+    accountDetailsPeriodRangeProvider(accountId),
+  );
   final AsyncValue<List<TransactionEntity>> transactionsAsync = ref.watch(
     accountTransactionsProvider(accountId),
   );
@@ -117,20 +163,11 @@ AsyncValue<List<TransactionEntity>> filteredAccountTransactions(
     ) {
       final bool matchesType =
           filter.type == null || transaction.type == filter.type!.storageValue;
-      final bool matchesCategory =
-          filter.categoryId == null ||
-          transaction.categoryId == filter.categoryId;
-      final bool matchesDate;
-      if (filter.dateRange == null) {
-        matchesDate = true;
-      } else {
-        final DateTimeRange range = filter.dateRange!;
-        final DateTime endInclusive = range.end.add(const Duration(days: 1));
-        matchesDate =
-            !_isBefore(transaction.date, range.start) &&
-            transaction.date.isBefore(endInclusive);
-      }
-      return matchesType && matchesCategory && matchesDate;
+      final DateTime endInclusive = range.end.add(const Duration(days: 1));
+      final bool matchesDate =
+          !_isBefore(transaction.date, range.start) &&
+          transaction.date.isBefore(endInclusive);
+      return matchesType && matchesDate;
     });
     return List<TransactionEntity>.unmodifiable(filtered.toList());
   });
@@ -150,11 +187,20 @@ AccountEntity? _findAccount(List<AccountEntity> accounts, String id) {
 }
 
 AccountTransactionSummary _computeSummary(
-  List<TransactionEntity> transactions,
-) {
+  List<TransactionEntity> transactions, {
+  DateTimeRange? range,
+}) {
   final MoneyAccumulator income = MoneyAccumulator();
   final MoneyAccumulator expense = MoneyAccumulator();
+  final DateTime? start = range?.start;
+  final DateTime? endInclusive = range?.end.add(const Duration(days: 1));
   for (final TransactionEntity transaction in transactions) {
+    if (start != null && endInclusive != null) {
+      if (transaction.date.isBefore(start) ||
+          !transaction.date.isBefore(endInclusive)) {
+        continue;
+      }
+    }
     if (transaction.type == TransactionType.income.storageValue) {
       income.add(transaction.amountValue.abs());
     } else if (transaction.type == TransactionType.expense.storageValue) {
@@ -165,4 +211,23 @@ AccountTransactionSummary _computeSummary(
     totalIncome: MoneyAmount(minor: income.minor, scale: income.scale),
     totalExpense: MoneyAmount(minor: expense.minor, scale: expense.scale),
   );
+}
+
+DateTimeRange _resolvePeriodRange(DateTime now, AccountDetailsPeriod period) {
+  final DateTime date = DateTime(now.year, now.month, now.day);
+  switch (period) {
+    case AccountDetailsPeriod.month:
+      return DateTimeRange(
+        start: DateTime(date.year, date.month, 1),
+        end: date,
+      );
+    case AccountDetailsPeriod.quarter:
+      final int quarterStartMonth = ((date.month - 1) ~/ 3) * 3 + 1;
+      return DateTimeRange(
+        start: DateTime(date.year, quarterStartMonth, 1),
+        end: date,
+      );
+    case AccountDetailsPeriod.year:
+      return DateTimeRange(start: DateTime(date.year, 1, 1), end: date);
+  }
 }

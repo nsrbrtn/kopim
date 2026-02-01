@@ -23,6 +23,7 @@ abstract class UpcomingPayment with _$UpcomingPayment {
     required bool isActive,
     int? nextRunAtMs,
     int? nextNotifyAtMs,
+    String? lastGeneratedPeriod,
     required int createdAtMs,
     required int updatedAtMs,
   }) = _UpcomingPayment;
@@ -49,6 +50,7 @@ abstract class UpcomingPayment with _$UpcomingPayment {
       isActive: json['isActive'] as bool? ?? true,
       nextRunAtMs: (json['nextRunAtMs'] as num?)?.toInt(),
       nextNotifyAtMs: (json['nextNotifyAtMs'] as num?)?.toInt(),
+      lastGeneratedPeriod: json['lastGeneratedPeriod'] as String?,
       createdAtMs: (json['createdAtMs'] as num?)?.toInt() ?? 0,
       updatedAtMs: (json['updatedAtMs'] as num?)?.toInt() ?? 0,
     );
@@ -70,6 +72,7 @@ abstract class UpcomingPayment with _$UpcomingPayment {
       'isActive': isActive,
       'nextRunAtMs': nextRunAtMs,
       'nextNotifyAtMs': nextNotifyAtMs,
+      'lastGeneratedPeriod': lastGeneratedPeriod,
       'createdAtMs': createdAtMs,
       'updatedAtMs': updatedAtMs,
     }..removeWhere((String key, Object? value) => value == null);

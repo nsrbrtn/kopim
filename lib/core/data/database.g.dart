@@ -2900,6 +2900,17 @@ class $TransactionsTable extends Transactions
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _idempotencyKeyMeta = const VerificationMeta(
+    'idempotencyKey',
+  );
+  @override
+  late final GeneratedColumn<String> idempotencyKey = GeneratedColumn<String>(
+    'idempotency_key',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _savingGoalIdMeta = const VerificationMeta(
     'savingGoalId',
   );
@@ -2963,6 +2974,7 @@ class $TransactionsTable extends Transactions
     date,
     note,
     type,
+    idempotencyKey,
     savingGoalId,
     createdAt,
     updatedAt,
@@ -3056,6 +3068,15 @@ class $TransactionsTable extends Transactions
     } else if (isInserting) {
       context.missing(_typeMeta);
     }
+    if (data.containsKey('idempotency_key')) {
+      context.handle(
+        _idempotencyKeyMeta,
+        idempotencyKey.isAcceptableOrUnknown(
+          data['idempotency_key']!,
+          _idempotencyKeyMeta,
+        ),
+      );
+    }
     if (data.containsKey('saving_goal_id')) {
       context.handle(
         _savingGoalIdMeta,
@@ -3132,6 +3153,10 @@ class $TransactionsTable extends Transactions
         DriftSqlType.string,
         data['${effectivePrefix}type'],
       )!,
+      idempotencyKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}idempotency_key'],
+      ),
       savingGoalId: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}saving_goal_id'],
@@ -3168,6 +3193,7 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
   final DateTime date;
   final String? note;
   final String type;
+  final String? idempotencyKey;
   final String? savingGoalId;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -3183,6 +3209,7 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
     required this.date,
     this.note,
     required this.type,
+    this.idempotencyKey,
     this.savingGoalId,
     required this.createdAt,
     required this.updatedAt,
@@ -3207,6 +3234,9 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
       map['note'] = Variable<String>(note);
     }
     map['type'] = Variable<String>(type);
+    if (!nullToAbsent || idempotencyKey != null) {
+      map['idempotency_key'] = Variable<String>(idempotencyKey);
+    }
     if (!nullToAbsent || savingGoalId != null) {
       map['saving_goal_id'] = Variable<String>(savingGoalId);
     }
@@ -3232,6 +3262,9 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
       date: Value(date),
       note: note == null && nullToAbsent ? const Value.absent() : Value(note),
       type: Value(type),
+      idempotencyKey: idempotencyKey == null && nullToAbsent
+          ? const Value.absent()
+          : Value(idempotencyKey),
       savingGoalId: savingGoalId == null && nullToAbsent
           ? const Value.absent()
           : Value(savingGoalId),
@@ -3259,6 +3292,7 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
       date: serializer.fromJson<DateTime>(json['date']),
       note: serializer.fromJson<String?>(json['note']),
       type: serializer.fromJson<String>(json['type']),
+      idempotencyKey: serializer.fromJson<String?>(json['idempotencyKey']),
       savingGoalId: serializer.fromJson<String?>(json['savingGoalId']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
@@ -3279,6 +3313,7 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
       'date': serializer.toJson<DateTime>(date),
       'note': serializer.toJson<String?>(note),
       'type': serializer.toJson<String>(type),
+      'idempotencyKey': serializer.toJson<String?>(idempotencyKey),
       'savingGoalId': serializer.toJson<String?>(savingGoalId),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
@@ -3297,6 +3332,7 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
     DateTime? date,
     Value<String?> note = const Value.absent(),
     String? type,
+    Value<String?> idempotencyKey = const Value.absent(),
     Value<String?> savingGoalId = const Value.absent(),
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -3314,6 +3350,9 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
     date: date ?? this.date,
     note: note.present ? note.value : this.note,
     type: type ?? this.type,
+    idempotencyKey: idempotencyKey.present
+        ? idempotencyKey.value
+        : this.idempotencyKey,
     savingGoalId: savingGoalId.present ? savingGoalId.value : this.savingGoalId,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
@@ -3339,6 +3378,9 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
       date: data.date.present ? data.date.value : this.date,
       note: data.note.present ? data.note.value : this.note,
       type: data.type.present ? data.type.value : this.type,
+      idempotencyKey: data.idempotencyKey.present
+          ? data.idempotencyKey.value
+          : this.idempotencyKey,
       savingGoalId: data.savingGoalId.present
           ? data.savingGoalId.value
           : this.savingGoalId,
@@ -3361,6 +3403,7 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
           ..write('date: $date, ')
           ..write('note: $note, ')
           ..write('type: $type, ')
+          ..write('idempotencyKey: $idempotencyKey, ')
           ..write('savingGoalId: $savingGoalId, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
@@ -3381,6 +3424,7 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
     date,
     note,
     type,
+    idempotencyKey,
     savingGoalId,
     createdAt,
     updatedAt,
@@ -3400,6 +3444,7 @@ class TransactionRow extends DataClass implements Insertable<TransactionRow> {
           other.date == this.date &&
           other.note == this.note &&
           other.type == this.type &&
+          other.idempotencyKey == this.idempotencyKey &&
           other.savingGoalId == this.savingGoalId &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
@@ -3417,6 +3462,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionRow> {
   final Value<DateTime> date;
   final Value<String?> note;
   final Value<String> type;
+  final Value<String?> idempotencyKey;
   final Value<String?> savingGoalId;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
@@ -3433,6 +3479,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionRow> {
     this.date = const Value.absent(),
     this.note = const Value.absent(),
     this.type = const Value.absent(),
+    this.idempotencyKey = const Value.absent(),
     this.savingGoalId = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
@@ -3450,6 +3497,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionRow> {
     required DateTime date,
     this.note = const Value.absent(),
     required String type,
+    this.idempotencyKey = const Value.absent(),
     this.savingGoalId = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
@@ -3471,6 +3519,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionRow> {
     Expression<DateTime>? date,
     Expression<String>? note,
     Expression<String>? type,
+    Expression<String>? idempotencyKey,
     Expression<String>? savingGoalId,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
@@ -3488,6 +3537,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionRow> {
       if (date != null) 'date': date,
       if (note != null) 'note': note,
       if (type != null) 'type': type,
+      if (idempotencyKey != null) 'idempotency_key': idempotencyKey,
       if (savingGoalId != null) 'saving_goal_id': savingGoalId,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
@@ -3507,6 +3557,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionRow> {
     Value<DateTime>? date,
     Value<String?>? note,
     Value<String>? type,
+    Value<String?>? idempotencyKey,
     Value<String?>? savingGoalId,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
@@ -3524,6 +3575,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionRow> {
       date: date ?? this.date,
       note: note ?? this.note,
       type: type ?? this.type,
+      idempotencyKey: idempotencyKey ?? this.idempotencyKey,
       savingGoalId: savingGoalId ?? this.savingGoalId,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -3565,6 +3617,9 @@ class TransactionsCompanion extends UpdateCompanion<TransactionRow> {
     if (type.present) {
       map['type'] = Variable<String>(type.value);
     }
+    if (idempotencyKey.present) {
+      map['idempotency_key'] = Variable<String>(idempotencyKey.value);
+    }
     if (savingGoalId.present) {
       map['saving_goal_id'] = Variable<String>(savingGoalId.value);
     }
@@ -3596,6 +3651,7 @@ class TransactionsCompanion extends UpdateCompanion<TransactionRow> {
           ..write('date: $date, ')
           ..write('note: $note, ')
           ..write('type: $type, ')
+          ..write('idempotencyKey: $idempotencyKey, ')
           ..write('savingGoalId: $savingGoalId, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
@@ -7208,6 +7264,17 @@ class $UpcomingPaymentsTable extends UpcomingPayments
     type: DriftSqlType.int,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _lastGeneratedPeriodMeta =
+      const VerificationMeta('lastGeneratedPeriod');
+  @override
+  late final GeneratedColumn<String> lastGeneratedPeriod =
+      GeneratedColumn<String>(
+        'last_generated_period',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -7247,6 +7314,7 @@ class $UpcomingPaymentsTable extends UpcomingPayments
     isActive,
     nextRunAt,
     nextNotifyAt,
+    lastGeneratedPeriod,
     createdAt,
     updatedAt,
   ];
@@ -7379,6 +7447,15 @@ class $UpcomingPaymentsTable extends UpcomingPayments
         ),
       );
     }
+    if (data.containsKey('last_generated_period')) {
+      context.handle(
+        _lastGeneratedPeriodMeta,
+        lastGeneratedPeriod.isAcceptableOrUnknown(
+          data['last_generated_period']!,
+          _lastGeneratedPeriodMeta,
+        ),
+      );
+    }
     if (data.containsKey('created_at')) {
       context.handle(
         _createdAtMeta,
@@ -7464,6 +7541,10 @@ class $UpcomingPaymentsTable extends UpcomingPayments
         DriftSqlType.int,
         data['${effectivePrefix}next_notify_at'],
       ),
+      lastGeneratedPeriod: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}last_generated_period'],
+      ),
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}created_at'],
@@ -7498,6 +7579,7 @@ class UpcomingPaymentRow extends DataClass
   final bool isActive;
   final int? nextRunAt;
   final int? nextNotifyAt;
+  final String? lastGeneratedPeriod;
   final int createdAt;
   final int updatedAt;
   const UpcomingPaymentRow({
@@ -7516,6 +7598,7 @@ class UpcomingPaymentRow extends DataClass
     required this.isActive,
     this.nextRunAt,
     this.nextNotifyAt,
+    this.lastGeneratedPeriod,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -7543,6 +7626,9 @@ class UpcomingPaymentRow extends DataClass
     if (!nullToAbsent || nextNotifyAt != null) {
       map['next_notify_at'] = Variable<int>(nextNotifyAt);
     }
+    if (!nullToAbsent || lastGeneratedPeriod != null) {
+      map['last_generated_period'] = Variable<String>(lastGeneratedPeriod);
+    }
     map['created_at'] = Variable<int>(createdAt);
     map['updated_at'] = Variable<int>(updatedAt);
     return map;
@@ -7569,6 +7655,9 @@ class UpcomingPaymentRow extends DataClass
       nextNotifyAt: nextNotifyAt == null && nullToAbsent
           ? const Value.absent()
           : Value(nextNotifyAt),
+      lastGeneratedPeriod: lastGeneratedPeriod == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastGeneratedPeriod),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
     );
@@ -7595,6 +7684,9 @@ class UpcomingPaymentRow extends DataClass
       isActive: serializer.fromJson<bool>(json['isActive']),
       nextRunAt: serializer.fromJson<int?>(json['nextRunAt']),
       nextNotifyAt: serializer.fromJson<int?>(json['nextNotifyAt']),
+      lastGeneratedPeriod: serializer.fromJson<String?>(
+        json['lastGeneratedPeriod'],
+      ),
       createdAt: serializer.fromJson<int>(json['createdAt']),
       updatedAt: serializer.fromJson<int>(json['updatedAt']),
     );
@@ -7618,6 +7710,7 @@ class UpcomingPaymentRow extends DataClass
       'isActive': serializer.toJson<bool>(isActive),
       'nextRunAt': serializer.toJson<int?>(nextRunAt),
       'nextNotifyAt': serializer.toJson<int?>(nextNotifyAt),
+      'lastGeneratedPeriod': serializer.toJson<String?>(lastGeneratedPeriod),
       'createdAt': serializer.toJson<int>(createdAt),
       'updatedAt': serializer.toJson<int>(updatedAt),
     };
@@ -7639,6 +7732,7 @@ class UpcomingPaymentRow extends DataClass
     bool? isActive,
     Value<int?> nextRunAt = const Value.absent(),
     Value<int?> nextNotifyAt = const Value.absent(),
+    Value<String?> lastGeneratedPeriod = const Value.absent(),
     int? createdAt,
     int? updatedAt,
   }) => UpcomingPaymentRow(
@@ -7657,6 +7751,9 @@ class UpcomingPaymentRow extends DataClass
     isActive: isActive ?? this.isActive,
     nextRunAt: nextRunAt.present ? nextRunAt.value : this.nextRunAt,
     nextNotifyAt: nextNotifyAt.present ? nextNotifyAt.value : this.nextNotifyAt,
+    lastGeneratedPeriod: lastGeneratedPeriod.present
+        ? lastGeneratedPeriod.value
+        : this.lastGeneratedPeriod,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
   );
@@ -7691,6 +7788,9 @@ class UpcomingPaymentRow extends DataClass
       nextNotifyAt: data.nextNotifyAt.present
           ? data.nextNotifyAt.value
           : this.nextNotifyAt,
+      lastGeneratedPeriod: data.lastGeneratedPeriod.present
+          ? data.lastGeneratedPeriod.value
+          : this.lastGeneratedPeriod,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
@@ -7714,6 +7814,7 @@ class UpcomingPaymentRow extends DataClass
           ..write('isActive: $isActive, ')
           ..write('nextRunAt: $nextRunAt, ')
           ..write('nextNotifyAt: $nextNotifyAt, ')
+          ..write('lastGeneratedPeriod: $lastGeneratedPeriod, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -7737,6 +7838,7 @@ class UpcomingPaymentRow extends DataClass
     isActive,
     nextRunAt,
     nextNotifyAt,
+    lastGeneratedPeriod,
     createdAt,
     updatedAt,
   );
@@ -7759,6 +7861,7 @@ class UpcomingPaymentRow extends DataClass
           other.isActive == this.isActive &&
           other.nextRunAt == this.nextRunAt &&
           other.nextNotifyAt == this.nextNotifyAt &&
+          other.lastGeneratedPeriod == this.lastGeneratedPeriod &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt);
 }
@@ -7779,6 +7882,7 @@ class UpcomingPaymentsCompanion extends UpdateCompanion<UpcomingPaymentRow> {
   final Value<bool> isActive;
   final Value<int?> nextRunAt;
   final Value<int?> nextNotifyAt;
+  final Value<String?> lastGeneratedPeriod;
   final Value<int> createdAt;
   final Value<int> updatedAt;
   final Value<int> rowid;
@@ -7798,6 +7902,7 @@ class UpcomingPaymentsCompanion extends UpdateCompanion<UpcomingPaymentRow> {
     this.isActive = const Value.absent(),
     this.nextRunAt = const Value.absent(),
     this.nextNotifyAt = const Value.absent(),
+    this.lastGeneratedPeriod = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -7818,6 +7923,7 @@ class UpcomingPaymentsCompanion extends UpdateCompanion<UpcomingPaymentRow> {
     this.isActive = const Value.absent(),
     this.nextRunAt = const Value.absent(),
     this.nextNotifyAt = const Value.absent(),
+    this.lastGeneratedPeriod = const Value.absent(),
     required int createdAt,
     required int updatedAt,
     this.rowid = const Value.absent(),
@@ -7845,6 +7951,7 @@ class UpcomingPaymentsCompanion extends UpdateCompanion<UpcomingPaymentRow> {
     Expression<bool>? isActive,
     Expression<int>? nextRunAt,
     Expression<int>? nextNotifyAt,
+    Expression<String>? lastGeneratedPeriod,
     Expression<int>? createdAt,
     Expression<int>? updatedAt,
     Expression<int>? rowid,
@@ -7865,6 +7972,8 @@ class UpcomingPaymentsCompanion extends UpdateCompanion<UpcomingPaymentRow> {
       if (isActive != null) 'is_active': isActive,
       if (nextRunAt != null) 'next_run_at': nextRunAt,
       if (nextNotifyAt != null) 'next_notify_at': nextNotifyAt,
+      if (lastGeneratedPeriod != null)
+        'last_generated_period': lastGeneratedPeriod,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (rowid != null) 'rowid': rowid,
@@ -7887,6 +7996,7 @@ class UpcomingPaymentsCompanion extends UpdateCompanion<UpcomingPaymentRow> {
     Value<bool>? isActive,
     Value<int?>? nextRunAt,
     Value<int?>? nextNotifyAt,
+    Value<String?>? lastGeneratedPeriod,
     Value<int>? createdAt,
     Value<int>? updatedAt,
     Value<int>? rowid,
@@ -7907,6 +8017,7 @@ class UpcomingPaymentsCompanion extends UpdateCompanion<UpcomingPaymentRow> {
       isActive: isActive ?? this.isActive,
       nextRunAt: nextRunAt ?? this.nextRunAt,
       nextNotifyAt: nextNotifyAt ?? this.nextNotifyAt,
+      lastGeneratedPeriod: lastGeneratedPeriod ?? this.lastGeneratedPeriod,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       rowid: rowid ?? this.rowid,
@@ -7961,6 +8072,11 @@ class UpcomingPaymentsCompanion extends UpdateCompanion<UpcomingPaymentRow> {
     if (nextNotifyAt.present) {
       map['next_notify_at'] = Variable<int>(nextNotifyAt.value);
     }
+    if (lastGeneratedPeriod.present) {
+      map['last_generated_period'] = Variable<String>(
+        lastGeneratedPeriod.value,
+      );
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<int>(createdAt.value);
     }
@@ -7991,6 +8107,7 @@ class UpcomingPaymentsCompanion extends UpdateCompanion<UpcomingPaymentRow> {
           ..write('isActive: $isActive, ')
           ..write('nextRunAt: $nextRunAt, ')
           ..write('nextNotifyAt: $nextNotifyAt, ')
+          ..write('lastGeneratedPeriod: $lastGeneratedPeriod, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('rowid: $rowid')
@@ -13290,6 +13407,7 @@ typedef $$TransactionsTableCreateCompanionBuilder =
       required DateTime date,
       Value<String?> note,
       required String type,
+      Value<String?> idempotencyKey,
       Value<String?> savingGoalId,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
@@ -13308,6 +13426,7 @@ typedef $$TransactionsTableUpdateCompanionBuilder =
       Value<DateTime> date,
       Value<String?> note,
       Value<String> type,
+      Value<String?> idempotencyKey,
       Value<String?> savingGoalId,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
@@ -13484,6 +13603,11 @@ class $$TransactionsTableFilterComposer
 
   ColumnFilters<String> get type => $composableBuilder(
     column: $table.type,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get idempotencyKey => $composableBuilder(
+    column: $table.idempotencyKey,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -13689,6 +13813,11 @@ class $$TransactionsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get idempotencyKey => $composableBuilder(
+    column: $table.idempotencyKey,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -13830,6 +13959,11 @@ class $$TransactionsTableAnnotationComposer
 
   GeneratedColumn<String> get type =>
       $composableBuilder(column: $table.type, builder: (column) => column);
+
+  GeneratedColumn<String> get idempotencyKey => $composableBuilder(
+    column: $table.idempotencyKey,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
@@ -14029,6 +14163,7 @@ class $$TransactionsTableTableManager
                 Value<DateTime> date = const Value.absent(),
                 Value<String?> note = const Value.absent(),
                 Value<String> type = const Value.absent(),
+                Value<String?> idempotencyKey = const Value.absent(),
                 Value<String?> savingGoalId = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
@@ -14045,6 +14180,7 @@ class $$TransactionsTableTableManager
                 date: date,
                 note: note,
                 type: type,
+                idempotencyKey: idempotencyKey,
                 savingGoalId: savingGoalId,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
@@ -14063,6 +14199,7 @@ class $$TransactionsTableTableManager
                 required DateTime date,
                 Value<String?> note = const Value.absent(),
                 required String type,
+                Value<String?> idempotencyKey = const Value.absent(),
                 Value<String?> savingGoalId = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
@@ -14079,6 +14216,7 @@ class $$TransactionsTableTableManager
                 date: date,
                 note: note,
                 type: type,
+                idempotencyKey: idempotencyKey,
                 savingGoalId: savingGoalId,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
@@ -16643,6 +16781,7 @@ typedef $$UpcomingPaymentsTableCreateCompanionBuilder =
       Value<bool> isActive,
       Value<int?> nextRunAt,
       Value<int?> nextNotifyAt,
+      Value<String?> lastGeneratedPeriod,
       required int createdAt,
       required int updatedAt,
       Value<int> rowid,
@@ -16664,6 +16803,7 @@ typedef $$UpcomingPaymentsTableUpdateCompanionBuilder =
       Value<bool> isActive,
       Value<int?> nextRunAt,
       Value<int?> nextNotifyAt,
+      Value<String?> lastGeneratedPeriod,
       Value<int> createdAt,
       Value<int> updatedAt,
       Value<int> rowid,
@@ -16792,6 +16932,11 @@ class $$UpcomingPaymentsTableFilterComposer
 
   ColumnFilters<int> get nextNotifyAt => $composableBuilder(
     column: $table.nextNotifyAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get lastGeneratedPeriod => $composableBuilder(
+    column: $table.lastGeneratedPeriod,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -16926,6 +17071,11 @@ class $$UpcomingPaymentsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get lastGeneratedPeriod => $composableBuilder(
+    column: $table.lastGeneratedPeriod,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -17043,6 +17193,11 @@ class $$UpcomingPaymentsTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<String> get lastGeneratedPeriod => $composableBuilder(
+    column: $table.lastGeneratedPeriod,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<int> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
@@ -17141,6 +17296,7 @@ class $$UpcomingPaymentsTableTableManager
                 Value<bool> isActive = const Value.absent(),
                 Value<int?> nextRunAt = const Value.absent(),
                 Value<int?> nextNotifyAt = const Value.absent(),
+                Value<String?> lastGeneratedPeriod = const Value.absent(),
                 Value<int> createdAt = const Value.absent(),
                 Value<int> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -17160,6 +17316,7 @@ class $$UpcomingPaymentsTableTableManager
                 isActive: isActive,
                 nextRunAt: nextRunAt,
                 nextNotifyAt: nextNotifyAt,
+                lastGeneratedPeriod: lastGeneratedPeriod,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 rowid: rowid,
@@ -17181,6 +17338,7 @@ class $$UpcomingPaymentsTableTableManager
                 Value<bool> isActive = const Value.absent(),
                 Value<int?> nextRunAt = const Value.absent(),
                 Value<int?> nextNotifyAt = const Value.absent(),
+                Value<String?> lastGeneratedPeriod = const Value.absent(),
                 required int createdAt,
                 required int updatedAt,
                 Value<int> rowid = const Value.absent(),
@@ -17200,6 +17358,7 @@ class $$UpcomingPaymentsTableTableManager
                 isActive: isActive,
                 nextRunAt: nextRunAt,
                 nextNotifyAt: nextNotifyAt,
+                lastGeneratedPeriod: lastGeneratedPeriod,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 rowid: rowid,

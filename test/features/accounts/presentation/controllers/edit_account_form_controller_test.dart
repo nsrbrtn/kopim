@@ -82,6 +82,10 @@ class _EmptyTransactionRepository implements TransactionRepository {
   Future<TransactionEntity?> findById(String id) async => null;
 
   @override
+  Future<TransactionEntity?> findByIdempotencyKey(String idempotencyKey) async =>
+      null;
+
+  @override
   Future<void> upsert(TransactionEntity transaction) async {}
 
   @override

@@ -28,6 +28,7 @@ class UpcomingPaymentMapper {
       isActive: row.isActive,
       nextRunAtMs: row.nextRunAt,
       nextNotifyAtMs: row.nextNotifyAt,
+      lastGeneratedPeriod: row.lastGeneratedPeriod,
       createdAtMs: row.createdAt,
       updatedAtMs: row.updatedAt,
     );
@@ -51,6 +52,7 @@ class UpcomingPaymentMapper {
       isActive: Value<bool>(payment.isActive),
       nextRunAt: Value<int?>(payment.nextRunAtMs),
       nextNotifyAt: Value<int?>(payment.nextNotifyAtMs),
+      lastGeneratedPeriod: Value<String?>(payment.lastGeneratedPeriod),
       createdAt: Value<int>(payment.createdAtMs),
       updatedAt: Value<int>(payment.updatedAtMs),
     );

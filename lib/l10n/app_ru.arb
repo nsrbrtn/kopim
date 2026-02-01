@@ -56,6 +56,47 @@
   "creditsPaymentDayLabel": "День платежа (1-31)",
   "creditsNextPaymentLabel": "Следующий платеж",
   "creditsRemainingPaymentsLabel": "Осталось",
+  "creditDetailsNextPaymentInDays": "{days, plural, =0 {Сегодня} one {Через {days} день} few {Через {days} дня} many {Через {days} дней} other {Через {days} дня}}",
+  "@creditDetailsNextPaymentInDays": {
+    "description": "Бейдж с количеством дней до ближайшего платежа по кредиту"
+  },
+  "creditDetailsDueDate": "До {date}",
+  "@creditDetailsDueDate": {
+    "description": "Подпись с датой ближайшего платежа",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "creditDetailsPayAction": "Оплатить",
+  "@creditDetailsPayAction": {
+    "description": "Кнопка оплаты ближайшего платежа по кредиту"
+  },
+  "creditDetailsScheduleTitle": "График платежей",
+  "@creditDetailsScheduleTitle": {
+    "description": "Заголовок блока графика платежей"
+  },
+  "creditDetailsScheduleRemaining": "Осталось {current} из {total}",
+  "@creditDetailsScheduleRemaining": {
+    "description": "Подпись количества оставшихся платежей",
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "creditDetailsHistoryTitle": "История операций",
+  "@creditDetailsHistoryTitle": {
+    "description": "Заголовок истории операций по кредиту"
+  },
+  "creditDetailsInterestLabel": "Проценты",
+  "@creditDetailsInterestLabel": {
+    "description": "Фильтр по процентам в истории операций"
+  },
   "creditsSegmentCredits": "Кредиты",
   "creditsSegmentDebts": "Долги",
   "creditsDeleteTitle": "Удалить кредит?",
@@ -2494,6 +2535,26 @@
   "accountDetailsTitle": "Счёт",
   "@accountDetailsTitle": {
     "description": "Заголовок экрана деталей счёта"
+  },
+  "accountDetailsTotalBalanceTitle": "Общий баланс",
+  "@accountDetailsTotalBalanceTitle": {
+    "description": "Заголовок блока общего баланса на экране счёта"
+  },
+  "accountDetailsPeriodTotalLabel": "Итог периода",
+  "@accountDetailsPeriodTotalLabel": {
+    "description": "Подпись итога периода на экране счёта"
+  },
+  "accountDetailsPeriodMonth": "Месяц",
+  "@accountDetailsPeriodMonth": {
+    "description": "Подпись сегмента периода: месяц"
+  },
+  "accountDetailsPeriodQuarter": "Квартал",
+  "@accountDetailsPeriodQuarter": {
+    "description": "Подпись сегмента периода: квартал"
+  },
+  "accountDetailsPeriodYear": "Год",
+  "@accountDetailsPeriodYear": {
+    "description": "Подпись сегмента периода: год"
   },
   "accountDetailsEditTooltip": "Настройки счёта",
   "@accountDetailsEditTooltip": {

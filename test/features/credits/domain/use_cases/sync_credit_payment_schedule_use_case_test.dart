@@ -277,6 +277,11 @@ class _InMemoryTransactionRepository implements TransactionRepository {
   }
 
   @override
+  Future<TransactionEntity?> findByIdempotencyKey(String idempotencyKey) {
+    throw UnimplementedError();
+  }
+
+  @override
   Future<void> softDelete(String id) {
     throw UnimplementedError();
   }

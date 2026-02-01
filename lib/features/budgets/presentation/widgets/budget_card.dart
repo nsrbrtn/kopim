@@ -18,6 +18,8 @@ class BudgetCard extends StatefulWidget {
     required this.onEdit,
     required this.onDelete,
     this.showDetailsButton = true,
+    this.onTap,
+    this.enableExpansion = true,
     super.key,
   });
 
@@ -27,6 +29,8 @@ class BudgetCard extends StatefulWidget {
   final VoidCallback onEdit;
   final VoidCallback onDelete;
   final bool showDetailsButton;
+  final VoidCallback? onTap;
+  final bool enableExpansion;
 
   @override
   State<BudgetCard> createState() => _BudgetCardState();
@@ -138,45 +142,64 @@ class _BudgetCardState extends State<BudgetCard> {
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: KopimExpandableSectionPlayful(
-        header: titleRow,
-        bottomHeader: statsColumn,
-        initiallyExpanded: false,
-        onChanged: (bool expanded) {
-          setState(() {
-            _isExpanded = expanded;
-          });
-        },
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            if (widget.showDetailsButton) ...<Widget>[
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton(
-                  onPressed: widget.onOpenDetails,
-                  style: TextButton.styleFrom(
-                    foregroundColor: theme.colorScheme.primary,
-                    textStyle: theme.textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w500,
-                      letterSpacing: 0.1,
+      child: widget.enableExpansion
+          ? KopimExpandableSectionPlayful(
+              header: titleRow,
+              bottomHeader: statsColumn,
+              initiallyExpanded: false,
+              onChanged: (bool expanded) {
+                setState(() {
+                  _isExpanded = expanded;
+                });
+              },
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  if (widget.showDetailsButton) ...<Widget>[
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: widget.onOpenDetails,
+                        style: TextButton.styleFrom(
+                          foregroundColor: theme.colorScheme.primary,
+                          textStyle: theme.textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w500,
+                            letterSpacing: 0.1,
+                          ),
+                        ),
+                        child: Text(strings.budgetsDetailsButton),
+                      ),
                     ),
+                    SizedBox(height: spacing.section),
+                  ],
+                  BudgetCategorySpendingView(
+                    data: widget.categorySpend,
+                    localeName: strings.localeName,
+                    strings: strings,
+                    wrapWithContainers: false,
+                    padding: EdgeInsets.zero,
                   ),
-                  child: Text(strings.budgetsDetailsButton),
+                ],
+              ),
+            )
+          : Material(
+              color: theme.colorScheme.surfaceContainer,
+              borderRadius: BorderRadius.circular(28),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(28),
+                onTap: widget.onTap ?? widget.onOpenDetails,
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: <Widget>[
+                      titleRow,
+                      statsColumn,
+                    ],
+                  ),
                 ),
               ),
-              SizedBox(height: spacing.section),
-            ],
-            BudgetCategorySpendingView(
-              data: widget.categorySpend,
-              localeName: strings.localeName,
-              strings: strings,
-              wrapWithContainers: false,
-              padding: EdgeInsets.zero,
             ),
-          ],
-        ),
-      ),
     );
   }
 }

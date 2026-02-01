@@ -232,6 +232,8 @@ Future<void> _executeUpcomingPaymentsWorkflow({
     await _handleUpcomingPayment(
       payment: payment,
       addTransaction: addTransaction,
+      transactionRepository: transactionRepository,
+      upcomingRepository: upcomingRepository,
       eventRecorder: eventRecorder,
       notifications: notifications,
       recalcUseCase: recalcUseCase,
@@ -265,6 +267,8 @@ Future<void> _executeUpcomingPaymentsWorkflow({
 Future<void> _handleUpcomingPayment({
   required UpcomingPayment payment,
   required AddTransactionUseCase addTransaction,
+  required TransactionRepository transactionRepository,
+  required UpcomingPaymentsRepository upcomingRepository,
   required ProfileEventRecorder eventRecorder,
   required NotificationsGateway notifications,
   required RecalcUpcomingPaymentUC recalcUseCase,
@@ -279,27 +283,58 @@ Future<void> _handleUpcomingPayment({
     final int? dueMs = current.nextRunAtMs;
     if (dueMs != null && current.autoPost) {
       final DateTime dueLocal = timeService.toLocal(dueMs);
+      final String periodKey = _buildPeriodKey(dueLocal);
+      final String idempotencyKey = _buildIdempotencyKey(
+        paymentId: current.id,
+        dueLocal: dueLocal,
+      );
       final MoneyAmount amount = current.amountValue;
       final TransactionType type = amount.minor >= BigInt.zero
           ? TransactionType.expense
           : TransactionType.income;
-      final AddTransactionRequest request = AddTransactionRequest(
-        accountId: current.accountId,
-        categoryId: current.categoryId,
-        amount: amount.abs(),
-        date: dueLocal.toUtc(),
-        note: current.note?.isNotEmpty == true
-            ? current.note
-            : 'Автоплатёж "${current.title}"',
-        type: type,
-      );
+      bool shouldMarkGenerated = false;
       try {
-        final TransactionCommandResult<TransactionEntity> result =
-            await addTransaction(request);
-        await eventRecorder.record(result.profileEvents);
-        logger.logInfo('Автоплатёж ${current.id} обработан транзакцией');
+        if (current.lastGeneratedPeriod != periodKey) {
+          final TransactionEntity? existing = await transactionRepository
+              .findByIdempotencyKey(idempotencyKey);
+          if (existing == null) {
+            final AddTransactionRequest request = AddTransactionRequest(
+              accountId: current.accountId,
+              categoryId: current.categoryId,
+              amount: amount.abs(),
+              date: dueLocal.toUtc(),
+              note: current.note?.isNotEmpty == true
+                  ? current.note
+                  : 'Автоплатёж "${current.title}"',
+              type: type,
+              idempotencyKey: idempotencyKey,
+            );
+            final TransactionCommandResult<TransactionEntity> result =
+                await addTransaction(request);
+            await eventRecorder.record(result.profileEvents);
+            logger.logInfo('Автоплатёж ${current.id} обработан транзакцией');
+            shouldMarkGenerated = true;
+          } else {
+            logger.logInfo(
+              'Автоплатёж ${current.id} пропущен: найден idempotencyKey',
+            );
+            shouldMarkGenerated = true;
+          }
+        } else {
+          logger.logInfo(
+            'Автоплатёж ${current.id} пропущен: период уже обработан',
+          );
+        }
       } catch (error) {
         logger.logError('Ошибка автоплатежа ${current.id}: $error');
+      }
+      if (shouldMarkGenerated && current.lastGeneratedPeriod != periodKey) {
+        final int updatedAtMs = timeService.nowMs();
+        current = current.copyWith(
+          lastGeneratedPeriod: periodKey,
+          updatedAtMs: updatedAtMs,
+        );
+        await upcomingRepository.upsert(current);
       }
     }
     final UpcomingPayment? recalculated = await recalcUseCase(
@@ -430,6 +465,22 @@ Future<void> _handleReminder({
 }
 
 int _hashId(String value) => value.hashCode & 0x7fffffff;
+
+String _buildPeriodKey(DateTime localDate) {
+  final String year = localDate.year.toString().padLeft(4, '0');
+  final String month = localDate.month.toString().padLeft(2, '0');
+  return '$year-$month';
+}
+
+String _buildIdempotencyKey({
+  required String paymentId,
+  required DateTime dueLocal,
+}) {
+  final String year = dueLocal.year.toString().padLeft(4, '0');
+  final String month = dueLocal.month.toString().padLeft(2, '0');
+  final String day = dueLocal.day.toString().padLeft(2, '0');
+  return 'upcoming:$paymentId:$year-$month-$day';
+}
 
 tz.TZDateTime? _buildPaymentScheduleTime({
   required UpcomingPayment payment,

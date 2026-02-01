@@ -684,6 +684,17 @@ GROUP BY month_key, scale
     return query.getSingleOrNull();
   }
 
+  Future<db.TransactionRow?> findByIdempotencyKey(String idempotencyKey) {
+    final SimpleSelectStatement<db.$TransactionsTable, db.TransactionRow>
+    query = _db.select(_db.transactions)
+      ..where(
+        (db.$TransactionsTable tbl) =>
+            tbl.idempotencyKey.equals(idempotencyKey),
+      )
+      ..limit(1);
+    return query.getSingleOrNull();
+  }
+
   Future<void> upsert(TransactionEntity transaction) {
     return _db
         .into(_db.transactions)
@@ -747,6 +758,7 @@ GROUP BY month_key, scale
       transferAccountId: Value<String?>(transaction.transferAccountId),
       categoryId: Value<String?>(transaction.categoryId),
       savingGoalId: Value<String?>(transaction.savingGoalId),
+      idempotencyKey: Value<String?>(transaction.idempotencyKey),
       amount: Value<double>(money.toDouble()),
       amountMinor: Value<String>(amount.minor.toString()),
       amountScale: Value<int>(amount.scale),
@@ -766,6 +778,7 @@ GROUP BY month_key, scale
       transferAccountId: row.transferAccountId,
       categoryId: row.categoryId,
       savingGoalId: row.savingGoalId,
+      idempotencyKey: row.idempotencyKey,
       amountMinor: BigInt.parse(row.amountMinor),
       amountScale: row.amountScale,
       date: row.date,

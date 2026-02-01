@@ -129,6 +129,7 @@ class SyncService {
     _isSyncing = true;
     _updateStatus();
     try {
+      await _outboxDao.deleteByEntityType('category_group');
       final List<db.OutboxEntryRow> pendingEntries = await _outboxDao
           .fetchPending(limit: 100);
       if (pendingEntries.isEmpty) return;

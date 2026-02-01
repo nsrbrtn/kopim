@@ -43,6 +43,9 @@ class UpcomingPayments extends Table {
 
   IntColumn get nextNotifyAt => integer().nullable()();
 
+  TextColumn get lastGeneratedPeriod =>
+      text().named('last_generated_period').nullable()();
+
   IntColumn get createdAt => integer()();
 
   IntColumn get updatedAt => integer()();

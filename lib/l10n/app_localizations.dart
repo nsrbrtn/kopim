@@ -248,6 +248,48 @@ abstract class AppLocalizations {
   /// **'Remaining'**
   String get creditsRemainingPaymentsLabel;
 
+  /// Badge with days until next credit payment
+  ///
+  /// In en, this message translates to:
+  /// **'{days, plural, =0 {Today} one {In {days} day} other {In {days} days}}'**
+  String creditDetailsNextPaymentInDays(num days);
+
+  /// Label with next payment due date
+  ///
+  /// In en, this message translates to:
+  /// **'Due by {date}'**
+  String creditDetailsDueDate(String date);
+
+  /// Action button to pay the next credit payment
+  ///
+  /// In en, this message translates to:
+  /// **'Pay'**
+  String get creditDetailsPayAction;
+
+  /// Title for the payment schedule block
+  ///
+  /// In en, this message translates to:
+  /// **'Payment schedule'**
+  String get creditDetailsScheduleTitle;
+
+  /// Label for remaining payments
+  ///
+  /// In en, this message translates to:
+  /// **'Remaining {current} of {total}'**
+  String creditDetailsScheduleRemaining(int current, int total);
+
+  /// Header for credit transaction history
+  ///
+  /// In en, this message translates to:
+  /// **'Transaction history'**
+  String get creditDetailsHistoryTitle;
+
+  /// Filter label for interest transactions
+  ///
+  /// In en, this message translates to:
+  /// **'Interest'**
+  String get creditDetailsInterestLabel;
+
   /// No description provided for @creditsSegmentCredits.
   ///
   /// In en, this message translates to:
@@ -3449,6 +3491,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Account details'**
   String get accountDetailsTitle;
+
+  /// Title for total balance block on the account details screen
+  ///
+  /// In en, this message translates to:
+  /// **'Total balance'**
+  String get accountDetailsTotalBalanceTitle;
+
+  /// Label for period total on the account details screen
+  ///
+  /// In en, this message translates to:
+  /// **'Period total'**
+  String get accountDetailsPeriodTotalLabel;
+
+  /// Segment label for month period
+  ///
+  /// In en, this message translates to:
+  /// **'Month'**
+  String get accountDetailsPeriodMonth;
+
+  /// Segment label for quarter period
+  ///
+  /// In en, this message translates to:
+  /// **'Quarter'**
+  String get accountDetailsPeriodQuarter;
+
+  /// Segment label for year period
+  ///
+  /// In en, this message translates to:
+  /// **'Year'**
+  String get accountDetailsPeriodYear;
 
   /// Tooltip for the settings icon on the account details screen
   ///

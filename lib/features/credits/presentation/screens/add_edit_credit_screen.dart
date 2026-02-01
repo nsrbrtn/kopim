@@ -11,6 +11,7 @@ import 'package:kopim/features/credits/domain/entities/credit_entity.dart';
 import 'package:kopim/core/widgets/kopim_text_field.dart';
 import 'package:kopim/core/widgets/phosphor_icon_picker.dart';
 import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
+import 'package:kopim/features/credits/domain/utils/credit_calculations.dart';
 import 'package:kopim/features/accounts/presentation/widgets/account_color_selector.dart';
 import 'package:kopim/features/upcoming_payments/presentation/screens/edit_upcoming_payment_screen.dart';
 
@@ -192,9 +193,11 @@ class _AddEditCreditScreenState extends ConsumerState<AddEditCreditScreen> {
             );
 
         if (mounted) {
-          final double amount =
-              (credit.totalAmountValue.toDouble()) /
-              (int.tryParse(_termController.text) ?? 1);
+          final double amount = calculateAnnuityMonthlyPayment(
+            principal: credit.totalAmountValue.abs().toDouble(),
+            annualInterestRate: credit.interestRate,
+            termMonths: credit.termMonths,
+          );
 
           final EditUpcomingPaymentScreenArgs
           args = EditUpcomingPaymentScreenArgs(

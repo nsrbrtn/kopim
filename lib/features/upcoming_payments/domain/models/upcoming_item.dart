@@ -13,6 +13,7 @@ abstract class UpcomingItem with _$UpcomingItem {
     required String title,
     required MoneyAmount amount,
     required int whenMs,
+    String? categoryId,
     String? note,
   }) = _UpcomingItem;
 }

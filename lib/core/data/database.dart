@@ -99,6 +99,8 @@ class Transactions extends Table {
   DateTimeColumn get date => dateTime()();
   TextColumn get note => text().nullable()();
   TextColumn get type => text().withLength(min: 1, max: 50)();
+  TextColumn get idempotencyKey =>
+      text().named('idempotency_key').nullable()();
   TextColumn get savingGoalId => text().nullable().customConstraint(
     'REFERENCES saving_goals(id) ON DELETE SET NULL',
   )();
@@ -341,7 +343,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.connect(DatabaseConnection super.connection);
 
   @override
-  int get schemaVersion => 35;
+  int get schemaVersion => 36;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -408,6 +410,13 @@ class AppDatabase extends _$AppDatabase {
           'transactions_transfer_account_idx',
           'CREATE INDEX IF NOT EXISTS transactions_transfer_account_idx '
               'ON transactions(transfer_account_id)',
+        ),
+      );
+      await m.createIndex(
+        Index(
+          'transactions_idempotency_key_unique',
+          'CREATE UNIQUE INDEX IF NOT EXISTS transactions_idempotency_key_unique '
+              'ON transactions(idempotency_key)',
         ),
       );
       await m.createIndex(
@@ -868,6 +877,25 @@ LEFT JOIN accounts acc ON up.account_id = acc.id
                 'ON categories(parent_id)',
           ),
         );
+      }
+      if (from < 36) {
+        if (!await _columnExists('transactions', 'idempotency_key')) {
+          await m.addColumn(transactions, transactions.idempotencyKey);
+        }
+        await m.createIndex(
+          Index(
+            'transactions_idempotency_key_unique',
+            'CREATE UNIQUE INDEX IF NOT EXISTS transactions_idempotency_key_unique '
+                'ON transactions(idempotency_key)',
+          ),
+        );
+        if (await _tableExists('upcoming_payments') &&
+            !await _columnExists(
+              'upcoming_payments',
+              'last_generated_period',
+            )) {
+          await m.addColumn(upcomingPayments, upcomingPayments.lastGeneratedPeriod);
+        }
       }
       if (from < 3) {
         await m.createTable(profiles);

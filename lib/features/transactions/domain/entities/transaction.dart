@@ -14,6 +14,7 @@ abstract class TransactionEntity with _$TransactionEntity {
     String? transferAccountId,
     String? categoryId,
     String? savingGoalId,
+    String? idempotencyKey,
     @JsonKey(includeFromJson: false, includeToJson: false) BigInt? amountMinor,
     @JsonKey(includeFromJson: false, includeToJson: false) int? amountScale,
     required DateTime date,

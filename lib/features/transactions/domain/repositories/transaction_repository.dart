@@ -45,6 +45,7 @@ abstract class TransactionRepository {
   Future<List<TransactionEntity>> loadTransactions();
   Future<TransactionEntity?> findLatestByCategoryId(String categoryId);
   Future<TransactionEntity?> findById(String id);
+  Future<TransactionEntity?> findByIdempotencyKey(String idempotencyKey);
   Future<void> upsert(TransactionEntity transaction);
   Future<void> softDelete(String id);
 }

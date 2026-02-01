@@ -164,7 +164,7 @@ class _CreditsList extends ConsumerWidget {
                   child: CreditCard(
                     credit: credit,
                     onTap: () {
-                      context.push('/credits/edit', extra: credit);
+                      context.push('/credits/details', extra: credit);
                     },
                   ),
                 );

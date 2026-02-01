@@ -80,6 +80,7 @@ class SyncDataSanitizer {
 
     final List<UpcomingPayment> sanitized = <UpcomingPayment>[];
     int skippedCount = 0;
+    int sanitizedCount = 0;
 
     for (final UpcomingPayment payment in payments) {
       if (!validAccountIds.contains(payment.accountId)) {
@@ -92,7 +93,40 @@ class SyncDataSanitizer {
         continue;
       }
 
-      sanitized.add(payment);
+      UpcomingPayment normalized = payment;
+      bool changed = false;
+
+      if (payment.amountValue.minor == BigInt.zero) {
+        skippedCount++;
+        continue;
+      }
+      if (payment.amountValue.minor.isNegative) {
+        normalized = normalized.copyWith(
+          amountMinor: payment.amountValue.minor.abs(),
+        );
+        changed = true;
+      }
+
+      if (payment.dayOfMonth < 1 || payment.dayOfMonth > 31) {
+        final int clampedDay = payment.dayOfMonth.clamp(1, 31);
+        normalized = normalized.copyWith(dayOfMonth: clampedDay);
+        changed = true;
+      }
+
+      if (payment.notifyDaysBefore < 0) {
+        normalized = normalized.copyWith(notifyDaysBefore: 0);
+        changed = true;
+      }
+
+      if (!_isValidHhmm(payment.notifyTimeHhmm)) {
+        normalized = normalized.copyWith(notifyTimeHhmm: '12:00');
+        changed = true;
+      }
+
+      if (changed) {
+        sanitizedCount++;
+      }
+      sanitized.add(normalized);
     }
 
     if (skippedCount > 0) {
@@ -100,8 +134,25 @@ class SyncDataSanitizer {
         'SyncDataSanitizer: skipped $skippedCount recurring payments due to missing accounts or categories.',
       );
     }
+    if (sanitizedCount > 0) {
+      logger.logInfo(
+        'SyncDataSanitizer: sanitized $sanitizedCount recurring payments (normalized invalid fields).',
+      );
+    }
 
     return sanitized;
+  }
+
+  bool _isValidHhmm(String value) {
+    if (value.length != 5 || value[2] != ':') {
+      return false;
+    }
+    final int? hour = int.tryParse(value.substring(0, 2));
+    final int? minute = int.tryParse(value.substring(3, 5));
+    if (hour == null || minute == null) {
+      return false;
+    }
+    return hour >= 0 && hour <= 23 && minute >= 0 && minute <= 59;
   }
 
   List<TransactionTagEntity> sanitizeTransactionTags({

@@ -67,6 +67,13 @@ class OutboxDao {
     return query.watch();
   }
 
+  Future<void> deleteByEntityType(String entityType) async {
+    await (_db.delete(_db.outboxEntries)..where(
+          (db.$OutboxEntriesTable tbl) => tbl.entityType.equals(entityType),
+        ))
+        .go();
+  }
+
   Future<List<db.OutboxEntryRow>> fetchPending({int limit = 50}) {
     final SimpleSelectStatement<db.$OutboxEntriesTable, db.OutboxEntryRow>
     query = _db.select(_db.outboxEntries)

@@ -74,6 +74,7 @@ class UpcomingPaymentRemoteDataSource {
       'isActive': payment.isActive,
       'nextRunAtMs': payment.nextRunAtMs,
       'nextNotifyAtMs': payment.nextNotifyAtMs,
+      'lastGeneratedPeriod': payment.lastGeneratedPeriod,
       'createdAtMs': payment.createdAtMs,
       'updatedAtMs': payment.updatedAtMs,
     }..removeWhere((String key, Object? value) => value == null);
@@ -98,6 +99,7 @@ class UpcomingPaymentRemoteDataSource {
       isActive: data['isActive'] as bool? ?? true,
       nextRunAtMs: (data['nextRunAtMs'] as num?)?.toInt(),
       nextNotifyAtMs: (data['nextNotifyAtMs'] as num?)?.toInt(),
+      lastGeneratedPeriod: data['lastGeneratedPeriod'] as String?,
       createdAtMs: (data['createdAtMs'] as num?)?.toInt() ?? 0,
       updatedAtMs: (data['updatedAtMs'] as num?)?.toInt() ?? 0,
     );

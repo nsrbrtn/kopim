@@ -24,10 +24,12 @@ import 'package:kopim/features/credits/domain/entities/debt_entity.dart';
 import 'package:kopim/features/credits/presentation/screens/credits_screen.dart';
 import 'package:kopim/features/credits/presentation/screens/add_edit_credit_screen.dart';
 import 'package:kopim/features/credits/presentation/screens/add_edit_debt_screen.dart';
+import 'package:kopim/features/credits/presentation/screens/credit_details_screen.dart';
 import 'package:kopim/features/profile/presentation/screens/profile_screen.dart';
 import 'package:kopim/features/profile/presentation/screens/sign_in_screen.dart';
 import 'package:kopim/features/savings/presentation/screens/savings_list_screen.dart';
 import 'package:kopim/features/transactions/presentation/add_transaction_screen.dart';
+import 'package:kopim/features/transactions/presentation/controllers/transaction_draft_controller.dart';
 import 'package:kopim/features/transactions/presentation/screens/all_transactions_screen.dart';
 import 'package:kopim/features/upcoming_payments/presentation/screens/edit_payment_reminder_screen.dart';
 import 'package:kopim/features/upcoming_payments/presentation/screens/edit_upcoming_payment_screen.dart';
@@ -118,7 +120,11 @@ final Provider<GoRouter> appRouterProvider = Provider<GoRouter>((Ref ref) {
         path: AddTransactionScreen.routeName,
         parentNavigatorKey: _rootNavigatorKey,
         builder: (BuildContext context, GoRouterState state) {
-          return const AddTransactionScreen();
+          final TransactionFormArgs? formArgs =
+              state.extra as TransactionFormArgs?;
+          return AddTransactionScreen(
+            formArgs: formArgs ?? const TransactionFormArgs(),
+          );
         },
       ),
       GoRoute(
@@ -181,6 +187,17 @@ final Provider<GoRouter> appRouterProvider = Provider<GoRouter>((Ref ref) {
         builder: (BuildContext context, GoRouterState state) {
           final CreditEntity? credit = state.extra as CreditEntity?;
           return AddEditCreditScreen(credit: credit);
+        },
+      ),
+      GoRoute(
+        path: CreditDetailsScreen.routeName,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (BuildContext context, GoRouterState state) {
+          final CreditEntity? credit = state.extra as CreditEntity?;
+          if (credit == null) {
+            return const CreditsScreen();
+          }
+          return CreditDetailsScreen(credit: credit);
         },
       ),
       GoRoute(

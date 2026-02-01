@@ -8,7 +8,7 @@ import 'package:kopim/core/config/theme_extensions.dart';
 import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
 import 'package:kopim/features/budgets/domain/entities/budget.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_progress.dart';
-import 'package:kopim/features/budgets/presentation/budget_detail_screen.dart';
+import 'package:kopim/features/budgets/presentation/budget_overview_screen.dart';
 import 'package:kopim/features/budgets/presentation/controllers/budgets_providers.dart';
 import 'package:kopim/features/budgets/presentation/widgets/budget_progress_indicator.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
@@ -196,7 +196,7 @@ class HomeBudgetProgressCard extends ConsumerWidget {
       data: (BudgetProgress progress) => () {
         Navigator.of(context).push(
           MaterialPageRoute<void>(
-            builder: (_) => BudgetDetailScreen(budgetId: progress.budget.id),
+            builder: (_) => BudgetOverviewScreen(budgetId: progress.budget.id),
           ),
         );
       },

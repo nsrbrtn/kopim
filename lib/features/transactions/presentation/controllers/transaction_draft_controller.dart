@@ -21,21 +21,39 @@ import 'package:kopim/features/transactions/domain/use_cases/add_transaction_use
 import 'package:kopim/features/transactions/domain/use_cases/update_transaction_use_case.dart';
 
 class TransactionFormArgs {
-  const TransactionFormArgs({this.initialTransaction, this.defaultAccountId});
+  const TransactionFormArgs({
+    this.initialTransaction,
+    this.defaultAccountId,
+    this.initialAmount,
+    this.initialCategoryId,
+    this.initialType,
+  });
 
   final TransactionEntity? initialTransaction;
   final String? defaultAccountId;
+  final String? initialAmount;
+  final String? initialCategoryId;
+  final TransactionType? initialType;
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     return other is TransactionFormArgs &&
         other.initialTransaction == initialTransaction &&
-        other.defaultAccountId == defaultAccountId;
+        other.defaultAccountId == defaultAccountId &&
+        other.initialAmount == initialAmount &&
+        other.initialCategoryId == initialCategoryId &&
+        other.initialType == initialType;
   }
 
   @override
-  int get hashCode => Object.hash(initialTransaction, defaultAccountId);
+  int get hashCode => Object.hash(
+    initialTransaction,
+    defaultAccountId,
+    initialAmount,
+    initialCategoryId,
+    initialType,
+  );
 }
 
 enum TransactionDraftError { accountMissing, transactionMissing, unknown }
@@ -242,6 +260,21 @@ class TransactionDraftController extends StateNotifier<TransactionDraftState> {
       resetDraft(defaultAccountId: args.defaultAccountId);
     } else if (state.accountId == null && args.defaultAccountId != null) {
       state = state.copyWith(accountId: args.defaultAccountId);
+    }
+
+    final String? amount = args.initialAmount?.trim();
+    final String? categoryId = args.initialCategoryId?.trim();
+    if (amount != null && amount.isNotEmpty ||
+        categoryId != null && categoryId.isNotEmpty ||
+        args.initialType != null) {
+      state = state.copyWith(
+        amount: (amount != null && amount.isNotEmpty) ? amount : state.amount,
+        categoryId:
+            (categoryId != null && categoryId.isNotEmpty)
+                ? categoryId
+                : state.categoryId,
+        type: args.initialType ?? state.type,
+      );
     }
   }
 

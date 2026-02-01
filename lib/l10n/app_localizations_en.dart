@@ -87,6 +87,40 @@ class AppLocalizationsEn extends AppLocalizations {
   String get creditsRemainingPaymentsLabel => 'Remaining';
 
   @override
+  String creditDetailsNextPaymentInDays(num days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'In $days days',
+      one: 'In $days day',
+      zero: 'Today',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String creditDetailsDueDate(String date) {
+    return 'Due by $date';
+  }
+
+  @override
+  String get creditDetailsPayAction => 'Pay';
+
+  @override
+  String get creditDetailsScheduleTitle => 'Payment schedule';
+
+  @override
+  String creditDetailsScheduleRemaining(int current, int total) {
+    return 'Remaining $current of $total';
+  }
+
+  @override
+  String get creditDetailsHistoryTitle => 'Transaction history';
+
+  @override
+  String get creditDetailsInterestLabel => 'Interest';
+
+  @override
   String get creditsSegmentCredits => 'Loans';
 
   @override
@@ -1943,6 +1977,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get accountDetailsTitle => 'Account details';
+
+  @override
+  String get accountDetailsTotalBalanceTitle => 'Total balance';
+
+  @override
+  String get accountDetailsPeriodTotalLabel => 'Period total';
+
+  @override
+  String get accountDetailsPeriodMonth => 'Month';
+
+  @override
+  String get accountDetailsPeriodQuarter => 'Quarter';
+
+  @override
+  String get accountDetailsPeriodYear => 'Year';
 
   @override
   String get accountDetailsEditTooltip => 'Edit account';

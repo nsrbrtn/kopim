@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-import 'package:kopim/core/utils/helpers.dart';
 import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
+import 'package:kopim/features/categories/presentation/utils/category_gradients.dart';
 import 'package:kopim/features/upcoming_payments/domain/entities/upcoming_payment.dart';
 import 'package:kopim/features/upcoming_payments/domain/services/time_service.dart';
 import 'package:kopim/l10n/app_localizations.dart';
@@ -55,9 +55,12 @@ class UpcomingPaymentListItem extends StatelessWidget {
     final String primaryLabel = nextDate != null
         ? dateFormat.format(nextDate)
         : strings.upcomingPaymentsMonthlySummary(payment.dayOfMonth);
+    final CategoryColorStyle colorStyle = resolveCategoryColorStyle(
+      category?.color,
+    );
+    final Gradient? iconBackgroundGradient = colorStyle.backgroundGradient;
     final Color iconBackground =
-        parseHexColor(category?.color) ??
-        theme.colorScheme.surfaceContainerHigh;
+        colorStyle.sampleColor ?? theme.colorScheme.surfaceContainerHigh;
     final Color iconForeground = theme.colorScheme.shadow;
 
     return Padding(
@@ -78,7 +81,10 @@ class UpcomingPaymentListItem extends StatelessWidget {
                   width: 48,
                   height: 48,
                   decoration: BoxDecoration(
-                    color: iconBackground,
+                    color: iconBackgroundGradient == null
+                        ? iconBackground
+                        : null,
+                    gradient: iconBackgroundGradient,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Center(

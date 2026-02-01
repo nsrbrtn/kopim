@@ -108,6 +108,7 @@ class ListHomeUpcomingItemsUC {
           title: payment.title,
           amount: payment.amountValue,
           whenMs: runAt,
+          categoryId: payment.categoryId,
           note: payment.note,
         ),
       );

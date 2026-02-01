@@ -88,6 +88,42 @@ class AppLocalizationsRu extends AppLocalizations {
   String get creditsRemainingPaymentsLabel => 'Осталось';
 
   @override
+  String creditDetailsNextPaymentInDays(num days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'Через $days дня',
+      many: 'Через $days дней',
+      few: 'Через $days дня',
+      one: 'Через $days день',
+      zero: 'Сегодня',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String creditDetailsDueDate(String date) {
+    return 'До $date';
+  }
+
+  @override
+  String get creditDetailsPayAction => 'Оплатить';
+
+  @override
+  String get creditDetailsScheduleTitle => 'График платежей';
+
+  @override
+  String creditDetailsScheduleRemaining(int current, int total) {
+    return 'Осталось $current из $total';
+  }
+
+  @override
+  String get creditDetailsHistoryTitle => 'История операций';
+
+  @override
+  String get creditDetailsInterestLabel => 'Проценты';
+
+  @override
   String get creditsSegmentCredits => 'Кредиты';
 
   @override
@@ -1966,6 +2002,21 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get accountDetailsTitle => 'Счёт';
+
+  @override
+  String get accountDetailsTotalBalanceTitle => 'Общий баланс';
+
+  @override
+  String get accountDetailsPeriodTotalLabel => 'Итог периода';
+
+  @override
+  String get accountDetailsPeriodMonth => 'Месяц';
+
+  @override
+  String get accountDetailsPeriodQuarter => 'Квартал';
+
+  @override
+  String get accountDetailsPeriodYear => 'Год';
 
   @override
   String get accountDetailsEditTooltip => 'Настройки счёта';

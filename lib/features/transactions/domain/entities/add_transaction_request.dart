@@ -7,6 +7,7 @@ class AddTransactionRequest {
     this.transferAccountId,
     this.categoryId,
     this.savingGoalId,
+    this.idempotencyKey,
     required this.amount,
     required this.date,
     this.note,
@@ -17,6 +18,7 @@ class AddTransactionRequest {
   final String? transferAccountId;
   final String? categoryId;
   final String? savingGoalId;
+  final String? idempotencyKey;
   final MoneyAmount amount;
   final DateTime date;
   final String? note;

@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$UpcomingItem {
 
- UpcomingItemType get type; String get id; String get title; MoneyAmount get amount; int get whenMs; String? get note;
+ UpcomingItemType get type; String get id; String get title; MoneyAmount get amount; int get whenMs; String? get categoryId; String? get note;
 /// Create a copy of UpcomingItem
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $UpcomingItemCopyWith<UpcomingItem> get copyWith => _$UpcomingItemCopyWithImpl<U
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is UpcomingItem&&(identical(other.type, type) || other.type == type)&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.whenMs, whenMs) || other.whenMs == whenMs)&&(identical(other.note, note) || other.note == note));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is UpcomingItem&&(identical(other.type, type) || other.type == type)&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.whenMs, whenMs) || other.whenMs == whenMs)&&(identical(other.categoryId, categoryId) || other.categoryId == categoryId)&&(identical(other.note, note) || other.note == note));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,type,id,title,amount,whenMs,note);
+int get hashCode => Object.hash(runtimeType,type,id,title,amount,whenMs,categoryId,note);
 
 @override
 String toString() {
-  return 'UpcomingItem(type: $type, id: $id, title: $title, amount: $amount, whenMs: $whenMs, note: $note)';
+  return 'UpcomingItem(type: $type, id: $id, title: $title, amount: $amount, whenMs: $whenMs, categoryId: $categoryId, note: $note)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $UpcomingItemCopyWith<$Res>  {
   factory $UpcomingItemCopyWith(UpcomingItem value, $Res Function(UpcomingItem) _then) = _$UpcomingItemCopyWithImpl;
 @useResult
 $Res call({
- UpcomingItemType type, String id, String title, MoneyAmount amount, int whenMs, String? note
+ UpcomingItemType type, String id, String title, MoneyAmount amount, int whenMs, String? categoryId, String? note
 });
 
 
@@ -62,14 +62,15 @@ class _$UpcomingItemCopyWithImpl<$Res>
 
 /// Create a copy of UpcomingItem
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? type = null,Object? id = null,Object? title = null,Object? amount = null,Object? whenMs = null,Object? note = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? type = null,Object? id = null,Object? title = null,Object? amount = null,Object? whenMs = null,Object? categoryId = freezed,Object? note = freezed,}) {
   return _then(_self.copyWith(
 type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as UpcomingItemType,id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String,amount: null == amount ? _self.amount : amount // ignore: cast_nullable_to_non_nullable
 as MoneyAmount,whenMs: null == whenMs ? _self.whenMs : whenMs // ignore: cast_nullable_to_non_nullable
-as int,note: freezed == note ? _self.note : note // ignore: cast_nullable_to_non_nullable
+as int,categoryId: freezed == categoryId ? _self.categoryId : categoryId // ignore: cast_nullable_to_non_nullable
+as String?,note: freezed == note ? _self.note : note // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }
@@ -155,10 +156,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( UpcomingItemType type,  String id,  String title,  MoneyAmount amount,  int whenMs,  String? note)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( UpcomingItemType type,  String id,  String title,  MoneyAmount amount,  int whenMs,  String? categoryId,  String? note)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _UpcomingItem() when $default != null:
-return $default(_that.type,_that.id,_that.title,_that.amount,_that.whenMs,_that.note);case _:
+return $default(_that.type,_that.id,_that.title,_that.amount,_that.whenMs,_that.categoryId,_that.note);case _:
   return orElse();
 
 }
@@ -176,10 +177,10 @@ return $default(_that.type,_that.id,_that.title,_that.amount,_that.whenMs,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( UpcomingItemType type,  String id,  String title,  MoneyAmount amount,  int whenMs,  String? note)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( UpcomingItemType type,  String id,  String title,  MoneyAmount amount,  int whenMs,  String? categoryId,  String? note)  $default,) {final _that = this;
 switch (_that) {
 case _UpcomingItem():
-return $default(_that.type,_that.id,_that.title,_that.amount,_that.whenMs,_that.note);case _:
+return $default(_that.type,_that.id,_that.title,_that.amount,_that.whenMs,_that.categoryId,_that.note);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -196,10 +197,10 @@ return $default(_that.type,_that.id,_that.title,_that.amount,_that.whenMs,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( UpcomingItemType type,  String id,  String title,  MoneyAmount amount,  int whenMs,  String? note)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( UpcomingItemType type,  String id,  String title,  MoneyAmount amount,  int whenMs,  String? categoryId,  String? note)?  $default,) {final _that = this;
 switch (_that) {
 case _UpcomingItem() when $default != null:
-return $default(_that.type,_that.id,_that.title,_that.amount,_that.whenMs,_that.note);case _:
+return $default(_that.type,_that.id,_that.title,_that.amount,_that.whenMs,_that.categoryId,_that.note);case _:
   return null;
 
 }
@@ -211,7 +212,7 @@ return $default(_that.type,_that.id,_that.title,_that.amount,_that.whenMs,_that.
 
 
 class _UpcomingItem implements UpcomingItem {
-  const _UpcomingItem({required this.type, required this.id, required this.title, required this.amount, required this.whenMs, this.note});
+  const _UpcomingItem({required this.type, required this.id, required this.title, required this.amount, required this.whenMs, this.categoryId, this.note});
   
 
 @override final  UpcomingItemType type;
@@ -219,6 +220,7 @@ class _UpcomingItem implements UpcomingItem {
 @override final  String title;
 @override final  MoneyAmount amount;
 @override final  int whenMs;
+@override final  String? categoryId;
 @override final  String? note;
 
 /// Create a copy of UpcomingItem
@@ -231,16 +233,16 @@ _$UpcomingItemCopyWith<_UpcomingItem> get copyWith => __$UpcomingItemCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _UpcomingItem&&(identical(other.type, type) || other.type == type)&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.whenMs, whenMs) || other.whenMs == whenMs)&&(identical(other.note, note) || other.note == note));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _UpcomingItem&&(identical(other.type, type) || other.type == type)&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.whenMs, whenMs) || other.whenMs == whenMs)&&(identical(other.categoryId, categoryId) || other.categoryId == categoryId)&&(identical(other.note, note) || other.note == note));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,type,id,title,amount,whenMs,note);
+int get hashCode => Object.hash(runtimeType,type,id,title,amount,whenMs,categoryId,note);
 
 @override
 String toString() {
-  return 'UpcomingItem(type: $type, id: $id, title: $title, amount: $amount, whenMs: $whenMs, note: $note)';
+  return 'UpcomingItem(type: $type, id: $id, title: $title, amount: $amount, whenMs: $whenMs, categoryId: $categoryId, note: $note)';
 }
 
 
@@ -251,7 +253,7 @@ abstract mixin class _$UpcomingItemCopyWith<$Res> implements $UpcomingItemCopyWi
   factory _$UpcomingItemCopyWith(_UpcomingItem value, $Res Function(_UpcomingItem) _then) = __$UpcomingItemCopyWithImpl;
 @override @useResult
 $Res call({
- UpcomingItemType type, String id, String title, MoneyAmount amount, int whenMs, String? note
+ UpcomingItemType type, String id, String title, MoneyAmount amount, int whenMs, String? categoryId, String? note
 });
 
 
@@ -268,14 +270,15 @@ class __$UpcomingItemCopyWithImpl<$Res>
 
 /// Create a copy of UpcomingItem
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? type = null,Object? id = null,Object? title = null,Object? amount = null,Object? whenMs = null,Object? note = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? type = null,Object? id = null,Object? title = null,Object? amount = null,Object? whenMs = null,Object? categoryId = freezed,Object? note = freezed,}) {
   return _then(_UpcomingItem(
 type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as UpcomingItemType,id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String,amount: null == amount ? _self.amount : amount // ignore: cast_nullable_to_non_nullable
 as MoneyAmount,whenMs: null == whenMs ? _self.whenMs : whenMs // ignore: cast_nullable_to_non_nullable
-as int,note: freezed == note ? _self.note : note // ignore: cast_nullable_to_non_nullable
+as int,categoryId: freezed == categoryId ? _self.categoryId : categoryId // ignore: cast_nullable_to_non_nullable
+as String?,note: freezed == note ? _self.note : note // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }

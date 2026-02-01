@@ -235,6 +235,15 @@ class TransactionRepositoryImpl implements TransactionRepository {
   }
 
   @override
+  Future<TransactionEntity?> findByIdempotencyKey(String idempotencyKey) async {
+    final db.TransactionRow? row = await _transactionDao.findByIdempotencyKey(
+      idempotencyKey,
+    );
+    if (row == null) return null;
+    return _mapToDomain(row);
+  }
+
+  @override
   Future<void> upsert(TransactionEntity transaction) async {
     final DateTime now = _utcNow();
     final TransactionEntity toPersist = transaction.copyWith(updatedAt: now);
@@ -420,6 +429,7 @@ class TransactionRepositoryImpl implements TransactionRepository {
     json['updatedAt'] = transaction.updatedAt.toIso8601String();
     json['date'] = transaction.date.toIso8601String();
     json['savingGoalId'] = transaction.savingGoalId;
+    json['idempotencyKey'] = transaction.idempotencyKey;
     json['amountMinor'] = transaction.amountMinor?.toString();
     json['amountScale'] = transaction.amountScale;
     return json;
@@ -459,6 +469,7 @@ class TransactionRepositoryImpl implements TransactionRepository {
       transferAccountId: row.transferAccountId,
       categoryId: row.categoryId,
       savingGoalId: row.savingGoalId,
+      idempotencyKey: row.idempotencyKey,
       amountMinor: BigInt.parse(row.amountMinor),
       amountScale: row.amountScale,
       date: row.date,

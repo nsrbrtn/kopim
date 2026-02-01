@@ -152,6 +152,11 @@ class _FakeTransactionRepository implements TransactionRepository {
   }
 
   @override
+  Future<TransactionEntity?> findByIdempotencyKey(String idempotencyKey) {
+    throw UnimplementedError();
+  }
+
+  @override
   Future<void> upsert(TransactionEntity transaction) {
     throw UnimplementedError();
   }

@@ -374,6 +374,11 @@ class _InMemoryTransactionRepository implements TransactionRepository {
   }
 
   @override
+  Future<TransactionEntity?> findByIdempotencyKey(String idempotencyKey) {
+    throw UnimplementedError();
+  }
+
+  @override
   Future<TransactionEntity?> findLatestByCategoryId(String categoryId) {
     throw UnimplementedError();
   }
@@ -468,6 +473,11 @@ class _RecordingWatchRecentTransactionsUseCase
 class _DummyTransactionRepository implements TransactionRepository {
   @override
   Future<TransactionEntity?> findById(String id) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<TransactionEntity?> findByIdempotencyKey(String idempotencyKey) {
     throw UnimplementedError();
   }
 

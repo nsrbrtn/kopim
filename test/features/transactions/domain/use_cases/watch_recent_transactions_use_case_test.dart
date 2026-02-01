@@ -100,6 +100,11 @@ class _InMemoryTransactionRepository implements TransactionRepository {
   }
 
   @override
+  Future<TransactionEntity?> findByIdempotencyKey(String idempotencyKey) {
+    throw UnimplementedError();
+  }
+
+  @override
   Future<List<TransactionEntity>> loadTransactions() {
     throw UnimplementedError();
   }

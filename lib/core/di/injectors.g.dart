@@ -4812,7 +4812,7 @@ final class WatchAccountTransactionsUseCaseProvider
 }
 
 String _$watchAccountTransactionsUseCaseHash() =>
-    r'9bfa7fea3e97b0a6baf894f5a30912f8e5582211';
+    r'83c83164d3ce8065d619efc0bc7d16990fe9d70a';
 
 @ProviderFor(watchRecentTransactionsUseCase)
 const watchRecentTransactionsUseCaseProvider =

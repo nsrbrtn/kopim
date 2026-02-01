@@ -12,6 +12,7 @@ import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/accounts/domain/use_cases/add_account_use_case.dart';
 import 'package:kopim/features/accounts/presentation/account_details_screen.dart';
+import 'package:kopim/features/accounts/presentation/controllers/account_details_providers.dart';
 import 'package:kopim/features/accounts/presentation/accounts_add_screen.dart';
 import 'package:kopim/features/accounts/presentation/utils/account_card_gradients.dart';
 import 'package:kopim/features/app_shell/presentation/models/navigation_tab_content.dart';
@@ -21,6 +22,7 @@ import 'package:kopim/features/categories/presentation/utils/category_gradients.
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/features/credits/domain/entities/credit_card_entity.dart';
 import 'package:kopim/features/credits/domain/entities/credit_entity.dart';
+import 'package:kopim/features/credits/presentation/screens/credit_details_screen.dart';
 import 'package:kopim/features/tags/domain/entities/tag.dart';
 import 'package:kopim/features/credits/domain/utils/credit_card_calculations.dart';
 import 'package:kopim/core/domain/icons/phosphor_icon_descriptor.dart';
@@ -1026,64 +1028,90 @@ class _AccountCard extends ConsumerWidget {
       palette: palette,
     );
 
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: borderRadius,
-        onTap: () {
-          context.push(
-            AccountDetailsScreenArgs(accountId: account.id).location,
-          );
-        },
-        child: Ink(
-          decoration: BoxDecoration(
-            color: gradient == null ? palette.background : null,
-            gradient: gradient?.toGradient(),
-            borderRadius: borderRadius,
-          ),
-          child: Stack(
-            children: <Widget>[
-              Padding(
-                padding: const EdgeInsets.all(24),
-                child: switch (account.type) {
-                  'credit' => _CreditCardContent(
-                    account: account,
-                    strings: strings,
-                    currencyFormat: currencyFormat,
-                    palette: palette,
-                    labelStyle: labelStyle,
-                    balanceStyle: balanceStyle,
-                    summaryTextStyle: summaryTextStyle,
-                    summaryHeaderStyle: summaryHeaderStyle,
-                    accountIcon: accountIcon,
-                  ),
-                  'credit_card' => _CreditCardAccountContent(
-                    account: account,
-                    strings: strings,
-                    currencyFormat: currencyFormat,
-                    labelStyle: labelStyle,
-                    balanceStyle: balanceStyle,
-                    summaryTextStyle: summaryTextStyle,
-                    accountIcon: accountIcon,
-                    palette: palette,
-                    fallback: standardContent,
-                  ),
-                  _ => standardContent,
-                },
-              ),
-              Positioned(
-                right: 16,
-                top: 16,
-                child: _AccountHideButton(
-                  account: account,
-                  color: palette.support,
+    Widget buildCard(VoidCallback onTap) {
+      return Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: borderRadius,
+          onTap: onTap,
+          child: Ink(
+            decoration: BoxDecoration(
+              color: gradient == null ? palette.background : null,
+              gradient: gradient?.toGradient(),
+              borderRadius: borderRadius,
+            ),
+            child: Stack(
+              children: <Widget>[
+                Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: switch (account.type) {
+                    'credit' => _CreditCardContent(
+                      account: account,
+                      strings: strings,
+                      currencyFormat: currencyFormat,
+                      palette: palette,
+                      labelStyle: labelStyle,
+                      balanceStyle: balanceStyle,
+                      summaryTextStyle: summaryTextStyle,
+                      summaryHeaderStyle: summaryHeaderStyle,
+                      accountIcon: accountIcon,
+                    ),
+                    'credit_card' => _CreditCardAccountContent(
+                      account: account,
+                      strings: strings,
+                      currencyFormat: currencyFormat,
+                      labelStyle: labelStyle,
+                      balanceStyle: balanceStyle,
+                      summaryTextStyle: summaryTextStyle,
+                      accountIcon: accountIcon,
+                      palette: palette,
+                      fallback: standardContent,
+                    ),
+                    _ => standardContent,
+                  },
                 ),
-              ),
-            ],
+                Positioned(
+                  right: 16,
+                  top: 16,
+                  child: _AccountHideButton(
+                    account: account,
+                    color: palette.support,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
-      ),
-    );
+      );
+    }
+
+    if (account.type == 'credit') {
+      final Stream<List<CreditEntity>> creditsAsync = ref
+          .watch(watchCreditsUseCaseProvider)
+          .call();
+      return StreamBuilder<List<CreditEntity>>(
+        stream: creditsAsync,
+        builder:
+            (BuildContext context, AsyncSnapshot<List<CreditEntity>> snapshot) {
+              final CreditEntity? credit = snapshot.data?.firstWhereOrNull(
+                (CreditEntity item) => item.accountId == account.id,
+              );
+              return buildCard(() {
+                if (credit != null) {
+                  context.push(CreditDetailsScreen.routeName, extra: credit);
+                  return;
+                }
+                context.push(
+                  AccountDetailsScreenArgs(accountId: account.id).location,
+                );
+              });
+            },
+      );
+    }
+
+    return buildCard(() {
+      context.push(AccountDetailsScreenArgs(accountId: account.id).location);
+    });
   }
 }
 
@@ -1416,6 +1444,12 @@ class _CreditCardContent extends ConsumerWidget {
     final Stream<List<CreditEntity>> creditsAsync = ref
         .watch(watchCreditsUseCaseProvider)
         .call();
+    final AsyncValue<List<TransactionEntity>> transactionsAsync = ref.watch(
+      accountTransactionsProvider(account.id),
+    );
+    final AsyncValue<List<Category>> categoriesAsync = ref.watch(
+      accountCategoriesProvider,
+    );
 
     return StreamBuilder<List<CreditEntity>>(
       stream: creditsAsync,
@@ -1429,8 +1463,23 @@ class _CreditCardContent extends ConsumerWidget {
               return const SizedBox();
             }
 
+            final List<Category> categories =
+                categoriesAsync.asData?.value ?? const <Category>[];
+            final Map<String, Category> categoriesById = <String, Category>{
+              for (final Category category in categories) category.id: category,
+            };
+            final List<TransactionEntity> transactions =
+                transactionsAsync.asData?.value ?? const <TransactionEntity>[];
+            final int paidPayments = _countPaidPayments(
+              transactions: transactions,
+              categoriesById: categoriesById,
+              creditCategoryId: credit.categoryId,
+            );
             final DateTime nextPaymentDate = _calculateNextPaymentDate(credit);
-            final int remainingPayments = _calculateRemainingPayments(credit);
+            final int remainingPayments = _calculateRemainingPayments(
+              credit: credit,
+              paidPayments: paidPayments,
+            );
             final double progress =
                 (credit.totalAmountValue.toDouble() +
                         account.balanceAmount.toDouble())
@@ -1523,29 +1572,59 @@ class _CreditCardContent extends ConsumerWidget {
   }
 
   DateTime _calculateNextPaymentDate(CreditEntity credit) {
-    final DateTime now = DateTime.now();
+    final DateTime now = DateUtils.dateOnly(DateTime.now());
     final int paymentDay = credit.paymentDay;
 
-    // Пробуем текущий месяц
-    DateTime candidate = DateTime(now.year, now.month, paymentDay);
-
-    // Если дата уже прошла, берем следующий месяц
-    if (candidate.isBefore(now) || candidate.isAtSameMomentAs(now)) {
-      candidate = DateTime(now.year, now.month + 1, paymentDay);
+    final int currentMaxDay = DateUtils.getDaysInMonth(now.year, now.month);
+    final int currentDay = paymentDay.clamp(1, currentMaxDay);
+    final DateTime currentCandidate = DateTime(now.year, now.month, currentDay);
+    if (!currentCandidate.isBefore(now)) {
+      return currentCandidate;
     }
 
-    return candidate;
+    final DateTime nextMonth = DateTime(now.year, now.month + 1, 1);
+    final int nextMaxDay = DateUtils.getDaysInMonth(
+      nextMonth.year,
+      nextMonth.month,
+    );
+    final int nextDay = paymentDay.clamp(1, nextMaxDay);
+    return DateTime(nextMonth.year, nextMonth.month, nextDay);
   }
 
-  int _calculateRemainingPayments(CreditEntity credit) {
-    final DateTime now = DateTime.now();
-    final int monthsPassed = _monthsBetween(credit.startDate, now);
-    final int remaining = credit.termMonths - monthsPassed;
+  int _calculateRemainingPayments({
+    required CreditEntity credit,
+    required int paidPayments,
+  }) {
+    final int remaining = credit.termMonths - paidPayments;
     return remaining > 0 ? remaining : 0;
   }
 
-  int _monthsBetween(DateTime start, DateTime end) {
-    return (end.year - start.year) * 12 + end.month - start.month;
+  int _countPaidPayments({
+    required List<TransactionEntity> transactions,
+    required Map<String, Category> categoriesById,
+    required String? creditCategoryId,
+  }) {
+    if (creditCategoryId == null || creditCategoryId.isEmpty) {
+      return 0;
+    }
+    final Iterable<TransactionEntity> paidPayments = transactions.where((
+      TransactionEntity transaction,
+    ) {
+      if (transaction.categoryId != creditCategoryId) {
+        return false;
+      }
+      if (transaction.type != TransactionType.expense.storageValue) {
+        return false;
+      }
+      final String categoryName =
+          categoriesById[transaction.categoryId]?.name ?? '';
+      final String note = transaction.note ?? '';
+      final String haystack = '$categoryName $note'.toLowerCase();
+      final bool isInterest =
+          haystack.contains('процент') || haystack.contains('interest');
+      return !isInterest;
+    });
+    return paidPayments.length;
   }
 }
 

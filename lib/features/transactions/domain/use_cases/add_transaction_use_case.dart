@@ -64,6 +64,7 @@ class AddTransactionUseCase {
       transferAccountId: request.transferAccountId,
       categoryId: type.isTransfer ? null : request.categoryId,
       savingGoalId: request.savingGoalId,
+      idempotencyKey: request.idempotencyKey,
       amountMinor: resolvedAmount.minor,
       amountScale: resolvedAmount.scale,
       date: request.date,
