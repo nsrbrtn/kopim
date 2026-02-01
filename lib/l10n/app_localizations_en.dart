@@ -1180,6 +1180,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeTransactionsUncategorized => 'Uncategorized';
 
   @override
+  String get homeTransactionsGroupedPayment => 'Credit Payment';
+
+  @override
   String get homeUpcomingPaymentsTitle => 'Recurring payments';
 
   @override

@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:kopim/features/home/domain/models/day_section.dart';
 import 'package:kopim/features/home/domain/use_cases/group_transactions_by_day_use_case.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
+import 'package:kopim/features/transactions/domain/models/feed_item.dart';
 
 void main() {
   const GroupTransactionsByDayUseCase useCase = GroupTransactionsByDayUseCase();
@@ -41,12 +42,22 @@ void main() {
     expect(sections, hasLength(2));
     expect(sections.first.date, DateTime(2024, 9, 30));
     expect(
-      sections.first.transactions.map((TransactionEntity e) => e.id),
+      sections.first.items.map(
+        (FeedItem item) => item.maybeWhen(
+          transaction: (TransactionEntity tx) => tx.id,
+          orElse: () => null,
+        ),
+      ),
       <String>['2', '1'],
     );
     expect(sections.last.date, DateTime(2024, 9, 29));
     expect(
-      sections.last.transactions.map((TransactionEntity e) => e.id),
+      sections.last.items.map(
+        (FeedItem item) => item.maybeWhen(
+          transaction: (TransactionEntity tx) => tx.id,
+          orElse: () => null,
+        ),
+      ),
       <String>['3'],
     );
   });

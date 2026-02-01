@@ -2,20 +2,26 @@ import 'dart:async';
 import 'package:kopim/core/data/database.dart' as db;
 import 'package:kopim/core/data/outbox/outbox_dao.dart';
 import 'package:kopim/features/credits/data/sources/local/credit_dao.dart';
+import 'package:kopim/features/credits/data/sources/local/credit_payment_dao.dart';
 import 'package:kopim/features/credits/domain/entities/credit_entity.dart';
+import 'package:kopim/features/credits/domain/entities/credit_payment_group.dart';
+import 'package:kopim/features/credits/domain/entities/credit_payment_schedule.dart';
 import 'package:kopim/features/credits/domain/repositories/credit_repository.dart';
 
 class CreditRepositoryImpl implements CreditRepository {
   CreditRepositoryImpl({
     required db.AppDatabase database,
     required CreditDao creditDao,
+    required CreditPaymentDao creditPaymentDao,
     required OutboxDao outboxDao,
   }) : _database = database,
        _creditDao = creditDao,
+       _creditPaymentDao = creditPaymentDao,
        _outboxDao = outboxDao;
 
   final db.AppDatabase _database;
   final CreditDao _creditDao;
+  final CreditPaymentDao _creditPaymentDao;
   final OutboxDao _outboxDao;
 
   static const String _entityType = 'credit';
@@ -113,5 +119,35 @@ class CreditRepositoryImpl implements CreditRepository {
     json['totalAmountMinor'] = credit.totalAmountMinor?.toString();
     json['totalAmountScale'] = credit.totalAmountScale;
     return json;
+  }
+
+  @override
+  Future<void> addSchedule(List<CreditPaymentScheduleEntity> schedule) async {
+    await _creditPaymentDao.insertSchedule(schedule);
+  }
+
+  @override
+  Future<List<CreditPaymentScheduleEntity>> getSchedule(String creditId) {
+    return _creditPaymentDao.getSchedule(creditId);
+  }
+
+  @override
+  Stream<List<CreditPaymentScheduleEntity>> watchSchedule(String creditId) {
+    return _creditPaymentDao.watchSchedule(creditId);
+  }
+
+  @override
+  Future<void> updateScheduleItem(CreditPaymentScheduleEntity item) async {
+    await _creditPaymentDao.updateScheduleItem(item);
+  }
+
+  @override
+  Future<void> addPaymentGroup(CreditPaymentGroupEntity group) async {
+    await _creditPaymentDao.insertPaymentGroup(group);
+  }
+
+  @override
+  Future<List<CreditPaymentGroupEntity>> getPaymentGroups(String creditId) {
+    return _creditPaymentDao.getPaymentGroups(creditId);
   }
 }

@@ -2160,6 +2160,12 @@ abstract class AppLocalizations {
   /// **'Uncategorized'**
   String get homeTransactionsUncategorized;
 
+  /// Label for grouped credit payments in the transaction feed
+  ///
+  /// In en, this message translates to:
+  /// **'Credit Payment'**
+  String get homeTransactionsGroupedPayment;
+
   /// Header for the upcoming payments widget
   ///
   /// In en, this message translates to:

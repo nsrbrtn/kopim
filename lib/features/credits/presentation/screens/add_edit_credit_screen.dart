@@ -139,6 +139,11 @@ class _AddEditCreditScreenState extends ConsumerState<AddEditCreditScreen> {
               interestRate: rate,
               termMonths: term,
               startDate: DateTime.now(),
+              firstPaymentDate: DateTime(
+                DateTime.now().year,
+                DateTime.now().month + 1,
+                paymentDay,
+              ),
               paymentDay: paymentDay,
               color: _color,
               gradientId: _gradientId,
@@ -185,6 +190,11 @@ class _AddEditCreditScreenState extends ConsumerState<AddEditCreditScreen> {
               interestRate: double.parse(_rateController.text),
               termMonths: int.parse(_termController.text),
               startDate: DateTime.now(),
+              firstPaymentDate: DateTime(
+                DateTime.now().year,
+                DateTime.now().month + 1,
+                int.parse(_paymentDayController.text),
+              ),
               paymentDay: int.parse(_paymentDayController.text),
               color: _color,
               iconName: _icon?.name,

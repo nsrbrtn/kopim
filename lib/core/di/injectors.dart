@@ -163,6 +163,7 @@ import 'package:kopim/features/credits/domain/use_cases/update_debt_use_case.dar
 import 'package:kopim/features/credits/domain/use_cases/watch_credit_cards_use_case.dart';
 import 'package:kopim/features/credits/domain/use_cases/watch_credits_use_case.dart';
 import 'package:kopim/features/credits/domain/use_cases/watch_debts_use_case.dart';
+import 'package:kopim/features/credits/domain/use_cases/make_credit_payment_use_case.dart';
 import 'package:kopim/features/upcoming_payments/data/services/upcoming_payments_work_scheduler.dart';
 import 'package:kopim/firebase_options.dart';
 import 'package:kopim/features/credits/data/sources/remote/credit_remote_data_source.dart';
@@ -179,6 +180,7 @@ import 'package:kopim/features/upcoming_payments/domain/repositories/upcoming_pa
 import 'package:kopim/features/upcoming_payments/domain/services/schedule_policy.dart';
 import 'package:kopim/features/upcoming_payments/domain/services/time_service.dart';
 import 'package:kopim/features/credits/data/sources/local/credit_dao.dart';
+import 'package:kopim/features/credits/data/sources/local/credit_payment_dao.dart';
 import 'package:kopim/features/credits/data/sources/local/debt_dao.dart';
 import 'package:kopim/features/credits/data/sources/local/credit_card_dao.dart';
 import 'package:kopim/features/credits/data/repositories/credit_repository_impl.dart';
@@ -460,6 +462,10 @@ ProfileDao profileDao(Ref ref) => ProfileDao(ref.watch(appDatabaseProvider));
 CreditDao creditDao(Ref ref) => CreditDao(ref.watch(appDatabaseProvider));
 
 @riverpod
+CreditPaymentDao creditPaymentDao(Ref ref) =>
+    CreditPaymentDao(ref.watch(appDatabaseProvider));
+
+@riverpod
 CreditCardDao creditCardDao(Ref ref) =>
     CreditCardDao(ref.watch(appDatabaseProvider));
 
@@ -643,6 +649,7 @@ AccountRepository accountRepository(Ref ref) => AccountRepositoryImpl(
 CreditRepository creditRepository(Ref ref) => CreditRepositoryImpl(
   database: ref.watch(appDatabaseProvider),
   creditDao: ref.watch(creditDaoProvider),
+  creditPaymentDao: ref.watch(creditPaymentDaoProvider),
   outboxDao: ref.watch(outboxDaoProvider),
 );
 
@@ -686,6 +693,7 @@ WatchHomeOverviewSummaryUseCase watchHomeOverviewSummaryUseCase(Ref ref) =>
 AddCreditUseCase addCreditUseCase(Ref ref) => AddCreditUseCase(
   creditRepository: ref.watch(creditRepositoryProvider),
   accountRepository: ref.watch(accountRepositoryProvider),
+  transactionRepository: ref.watch(transactionRepositoryProvider),
   saveCategoryUseCase: ref.watch(saveCategoryUseCaseProvider),
   uuid: ref.watch(uuidGeneratorProvider),
 );
@@ -722,6 +730,14 @@ DeleteCreditUseCase deleteCreditUseCase(Ref ref) => DeleteCreditUseCase(
   ref.watch(deleteAccountUseCaseProvider),
   ref.watch(deleteCategoryUseCaseProvider),
 );
+
+@riverpod
+MakeCreditPaymentUseCase makeCreditPaymentUseCase(Ref ref) =>
+    MakeCreditPaymentUseCase(
+      creditRepository: ref.watch(creditRepositoryProvider),
+      transactionRepository: ref.watch(transactionRepositoryProvider),
+      uuid: ref.watch(uuidGeneratorProvider),
+    );
 
 @riverpod
 WatchCreditsUseCase watchCreditsUseCase(Ref ref) =>

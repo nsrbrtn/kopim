@@ -12,6 +12,8 @@ abstract class CreditEntity with _$CreditEntity {
     required String id,
     required String accountId,
     String? categoryId,
+    String? interestCategoryId,
+    String? feesCategoryId,
     @JsonKey(includeFromJson: false, includeToJson: false)
     BigInt? totalAmountMinor,
     @JsonKey(includeFromJson: false, includeToJson: false)
@@ -19,6 +21,7 @@ abstract class CreditEntity with _$CreditEntity {
     required double interestRate,
     required int termMonths,
     required DateTime startDate,
+    DateTime? firstPaymentDate,
     @Default(1) int paymentDay,
     required DateTime createdAt,
     required DateTime updatedAt,

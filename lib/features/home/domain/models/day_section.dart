@@ -1,5 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:kopim/features/transactions/domain/entities/transaction.dart';
+import 'package:kopim/features/transactions/domain/models/feed_item.dart';
 
 part 'day_section.freezed.dart';
 
@@ -7,6 +7,6 @@ part 'day_section.freezed.dart';
 abstract class DaySection with _$DaySection {
   const factory DaySection({
     required DateTime date,
-    required List<TransactionEntity> transactions,
+    required List<FeedItem> items,
   }) = _DaySection;
 }

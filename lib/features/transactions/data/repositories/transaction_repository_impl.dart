@@ -430,6 +430,7 @@ class TransactionRepositoryImpl implements TransactionRepository {
     json['date'] = transaction.date.toIso8601String();
     json['savingGoalId'] = transaction.savingGoalId;
     json['idempotencyKey'] = transaction.idempotencyKey;
+    json['groupId'] = transaction.groupId;
     json['amountMinor'] = transaction.amountMinor?.toString();
     json['amountScale'] = transaction.amountScale;
     return json;
@@ -470,6 +471,7 @@ class TransactionRepositoryImpl implements TransactionRepository {
       categoryId: row.categoryId,
       savingGoalId: row.savingGoalId,
       idempotencyKey: row.idempotencyKey,
+      groupId: row.groupId,
       amountMinor: BigInt.parse(row.amountMinor),
       amountScale: row.amountScale,
       date: row.date,

@@ -6,11 +6,11 @@ class Money {
   });
 
   factory Money.fromMinor(
-    int minor, {
+    BigInt minor, {
     required String currency,
     required int scale,
   }) {
-    return Money(minor: BigInt.from(minor), currency: currency, scale: scale);
+    return Money(minor: minor, currency: currency, scale: scale);
   }
 
   factory Money.fromDecimalString(

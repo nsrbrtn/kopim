@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$DaySection {
 
- DateTime get date; List<TransactionEntity> get transactions;
+ DateTime get date; List<FeedItem> get items;
 /// Create a copy of DaySection
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $DaySectionCopyWith<DaySection> get copyWith => _$DaySectionCopyWithImpl<DaySect
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is DaySection&&(identical(other.date, date) || other.date == date)&&const DeepCollectionEquality().equals(other.transactions, transactions));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is DaySection&&(identical(other.date, date) || other.date == date)&&const DeepCollectionEquality().equals(other.items, items));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,date,const DeepCollectionEquality().hash(transactions));
+int get hashCode => Object.hash(runtimeType,date,const DeepCollectionEquality().hash(items));
 
 @override
 String toString() {
-  return 'DaySection(date: $date, transactions: $transactions)';
+  return 'DaySection(date: $date, items: $items)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $DaySectionCopyWith<$Res>  {
   factory $DaySectionCopyWith(DaySection value, $Res Function(DaySection) _then) = _$DaySectionCopyWithImpl;
 @useResult
 $Res call({
- DateTime date, List<TransactionEntity> transactions
+ DateTime date, List<FeedItem> items
 });
 
 
@@ -62,11 +62,11 @@ class _$DaySectionCopyWithImpl<$Res>
 
 /// Create a copy of DaySection
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? date = null,Object? transactions = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? date = null,Object? items = null,}) {
   return _then(_self.copyWith(
 date: null == date ? _self.date : date // ignore: cast_nullable_to_non_nullable
-as DateTime,transactions: null == transactions ? _self.transactions : transactions // ignore: cast_nullable_to_non_nullable
-as List<TransactionEntity>,
+as DateTime,items: null == items ? _self.items : items // ignore: cast_nullable_to_non_nullable
+as List<FeedItem>,
   ));
 }
 
@@ -151,10 +151,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( DateTime date,  List<TransactionEntity> transactions)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( DateTime date,  List<FeedItem> items)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _DaySection() when $default != null:
-return $default(_that.date,_that.transactions);case _:
+return $default(_that.date,_that.items);case _:
   return orElse();
 
 }
@@ -172,10 +172,10 @@ return $default(_that.date,_that.transactions);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( DateTime date,  List<TransactionEntity> transactions)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( DateTime date,  List<FeedItem> items)  $default,) {final _that = this;
 switch (_that) {
 case _DaySection():
-return $default(_that.date,_that.transactions);case _:
+return $default(_that.date,_that.items);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -192,10 +192,10 @@ return $default(_that.date,_that.transactions);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( DateTime date,  List<TransactionEntity> transactions)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( DateTime date,  List<FeedItem> items)?  $default,) {final _that = this;
 switch (_that) {
 case _DaySection() when $default != null:
-return $default(_that.date,_that.transactions);case _:
+return $default(_that.date,_that.items);case _:
   return null;
 
 }
@@ -207,15 +207,15 @@ return $default(_that.date,_that.transactions);case _:
 
 
 class _DaySection implements DaySection {
-  const _DaySection({required this.date, required final  List<TransactionEntity> transactions}): _transactions = transactions;
+  const _DaySection({required this.date, required final  List<FeedItem> items}): _items = items;
   
 
 @override final  DateTime date;
- final  List<TransactionEntity> _transactions;
-@override List<TransactionEntity> get transactions {
-  if (_transactions is EqualUnmodifiableListView) return _transactions;
+ final  List<FeedItem> _items;
+@override List<FeedItem> get items {
+  if (_items is EqualUnmodifiableListView) return _items;
   // ignore: implicit_dynamic_type
-  return EqualUnmodifiableListView(_transactions);
+  return EqualUnmodifiableListView(_items);
 }
 
 
@@ -229,16 +229,16 @@ _$DaySectionCopyWith<_DaySection> get copyWith => __$DaySectionCopyWithImpl<_Day
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DaySection&&(identical(other.date, date) || other.date == date)&&const DeepCollectionEquality().equals(other._transactions, _transactions));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DaySection&&(identical(other.date, date) || other.date == date)&&const DeepCollectionEquality().equals(other._items, _items));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,date,const DeepCollectionEquality().hash(_transactions));
+int get hashCode => Object.hash(runtimeType,date,const DeepCollectionEquality().hash(_items));
 
 @override
 String toString() {
-  return 'DaySection(date: $date, transactions: $transactions)';
+  return 'DaySection(date: $date, items: $items)';
 }
 
 
@@ -249,7 +249,7 @@ abstract mixin class _$DaySectionCopyWith<$Res> implements $DaySectionCopyWith<$
   factory _$DaySectionCopyWith(_DaySection value, $Res Function(_DaySection) _then) = __$DaySectionCopyWithImpl;
 @override @useResult
 $Res call({
- DateTime date, List<TransactionEntity> transactions
+ DateTime date, List<FeedItem> items
 });
 
 
@@ -266,11 +266,11 @@ class __$DaySectionCopyWithImpl<$Res>
 
 /// Create a copy of DaySection
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? date = null,Object? transactions = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? date = null,Object? items = null,}) {
   return _then(_DaySection(
 date: null == date ? _self.date : date // ignore: cast_nullable_to_non_nullable
-as DateTime,transactions: null == transactions ? _self._transactions : transactions // ignore: cast_nullable_to_non_nullable
-as List<TransactionEntity>,
+as DateTime,items: null == items ? _self._items : items // ignore: cast_nullable_to_non_nullable
+as List<FeedItem>,
   ));
 }
 

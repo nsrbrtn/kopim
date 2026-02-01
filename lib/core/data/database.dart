@@ -99,8 +99,7 @@ class Transactions extends Table {
   DateTimeColumn get date => dateTime()();
   TextColumn get note => text().nullable()();
   TextColumn get type => text().withLength(min: 1, max: 50)();
-  TextColumn get idempotencyKey =>
-      text().named('idempotency_key').nullable()();
+  TextColumn get idempotencyKey => text().named('idempotency_key').nullable()();
   TextColumn get savingGoalId => text().nullable().customConstraint(
     'REFERENCES saving_goals(id) ON DELETE SET NULL',
   )();
@@ -108,6 +107,10 @@ class Transactions extends Table {
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
   BoolColumn get isDeleted =>
       boolean().withDefault(const Constant<bool>(false))();
+  TextColumn get groupId => text()
+      .named('group_id')
+      .nullable()
+      .references(CreditPaymentGroups, #id, onDelete: KeyAction.setNull)();
 
   @override
   Set<Column<Object>> get primaryKey => <Column<Object>>{id};
@@ -289,6 +292,89 @@ class Credits extends Table {
   BoolColumn get isDeleted =>
       boolean().withDefault(const Constant<bool>(false))();
 
+  // New Credit Flow Fields (v37)
+  DateTimeColumn get issueDate => dateTime().nullable()();
+  RealColumn get issueAmount => real().nullable()();
+  TextColumn get issueAmountMinor => text()
+      .named('issue_amount_minor')
+      .withDefault(const Constant<String>('0'))();
+  IntColumn get issueAmountScale => integer()
+      .named('issue_amount_scale')
+      .withDefault(const Constant<int>(2))();
+  TextColumn get targetAccountId => text().nullable().references(
+    Accounts,
+    #id,
+    onDelete: KeyAction.setNull,
+  )();
+  TextColumn get interestCategoryId => text().nullable().references(
+    Categories,
+    #id,
+    onDelete: KeyAction.setNull,
+  )();
+  TextColumn get feesCategoryId => text().nullable().references(
+    Categories,
+    #id,
+    onDelete: KeyAction.setNull,
+  )();
+  DateTimeColumn get firstPaymentDate => dateTime().nullable()();
+
+  @override
+  Set<Column<Object>> get primaryKey => <Column<Object>>{id};
+}
+
+@DataClassName('CreditPaymentScheduleRow')
+class CreditPaymentSchedules extends Table {
+  TextColumn get id => text().withLength(min: 1, max: 50)();
+  TextColumn get creditId =>
+      text().references(Credits, #id, onDelete: KeyAction.cascade)();
+  TextColumn get periodKey => text().withLength(min: 7, max: 7)();
+  DateTimeColumn get dueDate => dateTime()();
+  TextColumn get status => text().withLength(min: 1, max: 20)();
+  TextColumn get principalAmountMinor =>
+      text().named('principal_amount_minor')();
+  TextColumn get interestAmountMinor => text().named('interest_amount_minor')();
+  TextColumn get totalAmountMinor => text().named('total_amount_minor')();
+  IntColumn get amountScale =>
+      integer().named('amount_scale').withDefault(const Constant<int>(2))();
+  TextColumn get principalPaidMinor => text()
+      .named('principal_paid_minor')
+      .withDefault(const Constant<String>('0'))();
+  TextColumn get interestPaidMinor => text()
+      .named('interest_paid_minor')
+      .withDefault(const Constant<String>('0'))();
+  DateTimeColumn get paidAt => dateTime().nullable()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column<Object>> get primaryKey => <Column<Object>>{id};
+}
+
+@DataClassName('CreditPaymentGroupRow')
+class CreditPaymentGroups extends Table {
+  TextColumn get id => text().withLength(min: 1, max: 50)();
+  TextColumn get creditId =>
+      text().references(Credits, #id, onDelete: KeyAction.cascade)();
+  TextColumn get sourceAccountId =>
+      text().references(Accounts, #id, onDelete: KeyAction.cascade)();
+  TextColumn get scheduleItemId => text().nullable().references(
+    CreditPaymentSchedules,
+    #id,
+    onDelete: KeyAction.setNull,
+  )();
+  DateTimeColumn get paidAt => dateTime()();
+  TextColumn get totalOutflowMinor => text().named('total_outflow_minor')();
+  IntColumn get totalOutflowScale => integer()
+      .named('total_outflow_scale')
+      .withDefault(const Constant<int>(2))();
+  TextColumn get principalPaidMinor => text().named('principal_paid_minor')();
+  TextColumn get interestPaidMinor => text().named('interest_paid_minor')();
+  TextColumn get feesPaidMinor => text().named('fees_paid_minor')();
+  TextColumn get note => text().nullable()();
+  TextColumn get idempotencyKey => text().nullable()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+
   @override
   Set<Column<Object>> get primaryKey => <Column<Object>>{id};
 }
@@ -335,6 +421,8 @@ class CreditCards extends Table {
     Debts,
     Credits,
     CreditCards,
+    CreditPaymentSchedules,
+    CreditPaymentGroups,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -343,7 +431,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.connect(DatabaseConnection super.connection);
 
   @override
-  int get schemaVersion => 36;
+  int get schemaVersion => 37;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -894,7 +982,10 @@ LEFT JOIN accounts acc ON up.account_id = acc.id
               'upcoming_payments',
               'last_generated_period',
             )) {
-          await m.addColumn(upcomingPayments, upcomingPayments.lastGeneratedPeriod);
+          await m.addColumn(
+            upcomingPayments,
+            upcomingPayments.lastGeneratedPeriod,
+          );
         }
       }
       if (from < 3) {
@@ -1159,6 +1250,62 @@ LEFT JOIN accounts acc ON up.account_id = acc.id
             'transaction_tags_tag_idx',
             'CREATE INDEX IF NOT EXISTS transaction_tags_tag_idx '
                 'ON transaction_tags(tag_id)',
+          ),
+        );
+      }
+      if (from < 37) {
+        // Create new tables
+        await m.createTable(creditPaymentSchedules);
+        await m.createTable(creditPaymentGroups);
+
+        // Add columns to Credits
+        if (!await _columnExists('credits', 'issue_date')) {
+          await m.addColumn(credits, credits.issueDate);
+        }
+        if (!await _columnExists('credits', 'issue_amount')) {
+          await m.addColumn(credits, credits.issueAmount);
+        }
+        if (!await _columnExists('credits', 'issue_amount_minor')) {
+          await m.addColumn(credits, credits.issueAmountMinor);
+        }
+        if (!await _columnExists('credits', 'issue_amount_scale')) {
+          await m.addColumn(credits, credits.issueAmountScale);
+        }
+        if (!await _columnExists('credits', 'target_account_id')) {
+          await m.addColumn(credits, credits.targetAccountId);
+        }
+        if (!await _columnExists('credits', 'interest_category_id')) {
+          await m.addColumn(credits, credits.interestCategoryId);
+        }
+        if (!await _columnExists('credits', 'fees_category_id')) {
+          await m.addColumn(credits, credits.feesCategoryId);
+        }
+        if (!await _columnExists('credits', 'first_payment_date')) {
+          await m.addColumn(credits, credits.firstPaymentDate);
+        }
+
+        // Add groupId to Transactions
+        if (!await _columnExists('transactions', 'group_id')) {
+          await m.addColumn(transactions, transactions.groupId);
+        }
+
+        // Create indexes for new tables/fields
+        await m.createIndex(
+          Index(
+            'transactions_group_idx',
+            'CREATE INDEX IF NOT EXISTS transactions_group_idx ON transactions(group_id)',
+          ),
+        );
+        await m.createIndex(
+          Index(
+            'payment_groups_credit_idx',
+            'CREATE INDEX IF NOT EXISTS payment_groups_credit_idx ON credit_payment_groups(credit_id)',
+          ),
+        );
+        await m.createIndex(
+          Index(
+            'payment_schedules_credit_period_idx',
+            'CREATE INDEX IF NOT EXISTS payment_schedules_credit_period_idx ON credit_payment_schedules(credit_id, period_key)',
           ),
         );
       }

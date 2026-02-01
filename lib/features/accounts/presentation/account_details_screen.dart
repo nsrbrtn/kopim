@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:kopim/core/config/theme_extensions.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/core/formatting/currency_symbols.dart';
+import 'package:kopim/core/money/money.dart';
 import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/core/widgets/animated_fab.dart';
 import 'package:kopim/core/widgets/kopim_glass_fab.dart';
@@ -16,14 +17,16 @@ import 'package:kopim/features/accounts/presentation/edit_account_screen.dart';
 import 'package:kopim/features/accounts/presentation/widgets/account_transaction_list_tile.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/categories/presentation/utils/category_gradients.dart';
-import 'package:kopim/features/home/domain/models/day_section.dart';
-import 'package:kopim/features/home/domain/use_cases/group_transactions_by_day_use_case.dart';
+import 'package:kopim/features/transactions/presentation/widgets/transaction_tile_formatters.dart';
+import 'package:kopim/features/credits/presentation/widgets/grouped_credit_payment_tile.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
+import 'package:kopim/features/transactions/domain/models/feed_item.dart';
+import 'package:kopim/features/home/domain/use_cases/group_transactions_by_day_use_case.dart';
+import 'package:kopim/features/home/domain/models/day_section.dart';
 import 'package:kopim/features/transactions/domain/models/transaction_category_totals.dart';
 import 'package:kopim/features/transactions/presentation/add_transaction_screen.dart';
 import 'package:kopim/features/transactions/presentation/controllers/transaction_draft_controller.dart';
-import 'package:kopim/features/transactions/presentation/widgets/transaction_tile_formatters.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
@@ -851,17 +854,34 @@ class _AccountTransactionsSection extends StatelessWidget {
               dateFormat: headerFormat,
               strings: strings,
             ),
-            netAmount: _calculateDayNet(sections[i].transactions),
+            netAmount: _calculateDayNet(sections[i].items),
             moneyFormat: moneyFormat,
             currencyScale: currencyScale,
           ),
           const SizedBox(height: 8),
-          for (final TransactionEntity transaction in sections[i].transactions)
-            AccountTransactionListTile(
-              transaction: transaction,
-              category: categoriesById[transaction.categoryId],
-              currencySymbol: currencySymbol,
-              strings: strings,
+          for (final FeedItem item in sections[i].items)
+            item.when(
+              transaction: (TransactionEntity transaction) =>
+                  AccountTransactionListTile(
+                transaction: transaction,
+                category: categoriesById[transaction.categoryId],
+                currencySymbol: currencySymbol,
+                strings: strings,
+              ),
+              groupedCreditPayment:
+                  (
+                    String groupId,
+                    String creditId,
+                    List<TransactionEntity> transactions,
+                    Money totalOutflow,
+                    DateTime date,
+                    String? note,
+                  ) =>
+                      GroupedCreditPaymentTile(
+                        group: item as GroupedCreditPaymentFeedItem,
+                        currencySymbol: currencySymbol,
+                        strings: strings,
+                      ),
             ),
         ],
       ],
@@ -1212,15 +1232,31 @@ double _resolveAxisInterval(int pointsLength) {
   return (pointsLength / 6).ceilToDouble();
 }
 
-double _calculateDayNet(List<TransactionEntity> transactions) {
+double _calculateDayNet(List<FeedItem> items) {
   double income = 0;
   double expense = 0;
-  for (final TransactionEntity transaction in transactions) {
-    if (transaction.type == TransactionType.income.storageValue) {
-      income += transaction.amountValue.abs().toDouble();
-    } else if (transaction.type == TransactionType.expense.storageValue) {
-      expense += transaction.amountValue.abs().toDouble();
-    }
+  for (final FeedItem item in items) {
+    item.when(
+      transaction: (TransactionEntity transaction) {
+        if (transaction.type == TransactionType.income.storageValue) {
+          income += transaction.amountValue.abs().toDouble();
+        } else if (transaction.type == TransactionType.expense.storageValue) {
+          expense += transaction.amountValue.abs().toDouble();
+        }
+      },
+      groupedCreditPayment:
+          (
+            String groupId,
+            String creditId,
+            List<TransactionEntity> transactions,
+            Money totalOutflow,
+            DateTime date,
+            String? note,
+          ) {
+            // Grouped credit payments are always expenses (outflows) for net calculation purposes here
+            expense += totalOutflow.toDouble();
+          },
+    );
   }
   return income - expense;
 }

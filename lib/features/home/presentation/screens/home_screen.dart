@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/misc.dart' show StreamProviderFamily;
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:collection/collection.dart';
+import 'package:kopim/core/money/money.dart';
 import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/accounts/domain/use_cases/add_account_use_case.dart';
@@ -50,6 +51,8 @@ import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
 import 'package:kopim/features/transactions/presentation/controllers/transaction_sheet_controller.dart';
 import 'package:kopim/features/transactions/presentation/widgets/transaction_editor.dart';
+import 'package:kopim/features/transactions/domain/models/feed_item.dart';
+import 'package:kopim/features/credits/presentation/widgets/grouped_credit_payment_tile.dart';
 import 'package:kopim/features/transactions/presentation/widgets/transaction_tile_formatters.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 import 'package:kopim/core/formatting/currency_symbols.dart';
@@ -1769,10 +1772,28 @@ List<_TransactionSliverEntry> _buildTransactionEntries(
       dateFormat: headerFormat,
       strings: strings,
     );
-    final double netAmount = _calculateDayNet(section.transactions);
+    final double netAmount = _calculateDayNet(section.items);
     entries.add(_TransactionHeaderEntry(title: title, netAmount: netAmount));
-    for (final TransactionEntity transaction in section.transactions) {
-      entries.add(_TransactionItemEntry(transactionId: transaction.id));
+    for (final FeedItem item in section.items) {
+      item.when(
+        transaction: (TransactionEntity transaction) => entries.add(
+          _TransactionItemEntry(transactionId: transaction.id),
+        ),
+        groupedCreditPayment:
+            (
+              String groupId,
+              String creditId,
+              List<TransactionEntity> transactions,
+              Money totalOutflow,
+              DateTime date,
+              String? note,
+            ) =>
+                entries.add(
+                  _TransactionGroupEntry(
+                    item: item as GroupedCreditPaymentFeedItem,
+                  ),
+                ),
+      );
     }
   }
   return entries;
@@ -1893,6 +1914,16 @@ class _TransactionsSectionCardState extends State<_TransactionsSectionCard> {
         widgets.add(
           _TransactionListItem(
             transactionId: entry.transactionId,
+            localeName: widget.localeName,
+            strings: widget.strings,
+          ),
+        );
+        continue;
+      }
+      if (entry is _TransactionGroupEntry) {
+        widgets.add(
+          _GroupedCreditPaymentListItem(
+            item: entry.item,
             localeName: widget.localeName,
             strings: widget.strings,
           ),
@@ -2158,6 +2189,12 @@ class _TransactionItemEntry extends _TransactionSliverEntry {
   final String transactionId;
 }
 
+class _TransactionGroupEntry extends _TransactionSliverEntry {
+  const _TransactionGroupEntry({required this.item});
+
+  final GroupedCreditPaymentFeedItem item;
+}
+
 String _formatSectionTitle({
   required DateTime date,
   required DateTime today,
@@ -2239,17 +2276,59 @@ Widget _buildTitleWithTags({
   );
 }
 
-double _calculateDayNet(List<TransactionEntity> transactions) {
+double _calculateDayNet(List<FeedItem> items) {
   double income = 0;
   double expense = 0;
-  for (final TransactionEntity transaction in transactions) {
-    if (transaction.type == TransactionType.income.storageValue) {
-      income += transaction.amountValue.abs().toDouble();
-    } else if (transaction.type == TransactionType.expense.storageValue) {
-      expense += transaction.amountValue.abs().toDouble();
-    }
+  for (final FeedItem item in items) {
+    item.when(
+      transaction: (TransactionEntity transaction) {
+        if (transaction.type == TransactionType.income.storageValue) {
+          income += transaction.amountValue.abs().toDouble();
+        } else if (transaction.type == TransactionType.expense.storageValue) {
+          expense += transaction.amountValue.abs().toDouble();
+        }
+      },
+      groupedCreditPayment:
+          (
+            String groupId,
+            String creditId,
+            List<TransactionEntity> transactions,
+            Money totalOutflow,
+            DateTime date,
+            String? note,
+          ) {
+            // Credit payments are typically expenses
+            expense += totalOutflow.toDouble().abs();
+          },
+    );
   }
   return income - expense;
+}
+
+class _GroupedCreditPaymentListItem extends ConsumerWidget {
+  const _GroupedCreditPaymentListItem({
+    required this.item,
+    required this.localeName,
+    required this.strings,
+  });
+
+  final GroupedCreditPaymentFeedItem item;
+  final String localeName;
+  final AppLocalizations strings;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    // We need to resolve currency symbol for the group
+    // For Home screen, let's use the fallback.
+    final String currencySymbol =
+        TransactionTileFormatters.fallbackCurrencySymbol(localeName);
+
+    return GroupedCreditPaymentTile(
+      group: item,
+      currencySymbol: currencySymbol,
+      strings: strings,
+    );
+  }
 }
 
 class _TransactionListItem extends ConsumerWidget {

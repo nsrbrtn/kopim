@@ -12,12 +12,19 @@ import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/accounts/presentation/controllers/account_details_providers.dart';
 import 'package:kopim/features/accounts/presentation/widgets/account_transaction_list_tile.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
+import 'package:kopim/features/credits/presentation/controllers/credit_providers.dart';
+import 'package:kopim/core/di/injectors.dart';
+import 'package:kopim/features/credits/presentation/widgets/pay_credit_sheet.dart';
+import 'package:kopim/features/transactions/domain/models/feed_item.dart';
+import 'package:kopim/features/home/domain/use_cases/group_transactions_by_day_use_case.dart';
+import 'package:kopim/features/credits/presentation/widgets/grouped_credit_payment_tile.dart';
+import 'package:kopim/core/money/money.dart';
 import 'package:kopim/features/credits/domain/entities/credit_entity.dart';
-import 'package:kopim/features/credits/domain/utils/credit_calculations.dart';
+import 'package:kopim/features/credits/domain/entities/credit_payment_schedule.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
-import 'package:kopim/features/transactions/presentation/add_transaction_screen.dart';
-import 'package:kopim/features/transactions/presentation/controllers/transaction_form_controller.dart';
+import 'package:kopim/features/home/domain/models/day_section.dart';
+import 'package:kopim/features/credits/domain/utils/credit_calculations.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
 enum _CreditHistoryFilter { all, payments, interest }
@@ -244,22 +251,7 @@ class _CreditDetailsScreenState extends ConsumerState<CreditDetailsScreen> {
                               ),
                             ],
                           ),
-                          FilledButton(
-                            onPressed: () {
-                              final TransactionFormArgs args =
-                                  TransactionFormArgs(
-                                    initialAmount: monthlyPayment
-                                        .toStringAsFixed(decimalDigits),
-                                    initialCategoryId: widget.credit.categoryId,
-                                    initialType: TransactionType.expense,
-                                  );
-                              context.push(
-                                AddTransactionScreen.routeName,
-                                extra: args,
-                              );
-                            },
-                            child: Text(strings.creditDetailsPayAction),
-                          ),
+                          _UpcomingPaymentActionButton(credit: widget.credit),
                         ],
                       ),
                       const SizedBox(height: 16),
@@ -372,15 +364,16 @@ class _CreditDetailsScreenState extends ConsumerState<CreditDetailsScreen> {
                             );
                           }
 
-                          final List<_MonthSection> sections = _groupByMonth(
-                            filtered,
-                            strings,
+                          final GroupTransactionsByDayUseCase groupUseCase = ref
+                              .watch(groupTransactionsByDayUseCaseProvider);
+                          final List<DaySection> sections = groupUseCase(
+                            transactions: filtered,
                           );
 
                           return Column(
                             children: sections
                                 .map(
-                                  (_MonthSection section) => _MonthSectionView(
+                                  (DaySection section) => _DaySectionView(
                                     section: section,
                                     currencySymbol: resolveCurrencySymbol(
                                       account.currency,
@@ -488,49 +481,6 @@ class _CreditDetailsScreenState extends ConsumerState<CreditDetailsScreen> {
         })
         .toList(growable: false);
   }
-
-  List<_MonthSection> _groupByMonth(
-    List<TransactionEntity> transactions,
-    AppLocalizations strings,
-  ) {
-    final Map<DateTime, List<TransactionEntity>> grouped =
-        <DateTime, List<TransactionEntity>>{};
-    for (final TransactionEntity transaction in transactions) {
-      final DateTime monthKey = DateTime(
-        transaction.date.year,
-        transaction.date.month,
-      );
-      grouped.putIfAbsent(monthKey, () => <TransactionEntity>[]);
-      grouped[monthKey]!.add(transaction);
-    }
-
-    final List<_MonthSection> sections = grouped.entries
-        .map((MapEntry<DateTime, List<TransactionEntity>> entry) {
-          final DateTime month = entry.key;
-          final List<TransactionEntity> items = entry.value
-            ..sort(
-              (TransactionEntity a, TransactionEntity b) =>
-                  b.date.compareTo(a.date),
-            );
-          return _MonthSection(
-            month: month,
-            title: _formatMonthTitle(month, strings),
-            items: items,
-          );
-        })
-        .toList(growable: false);
-
-    sections.sort(
-      (_MonthSection a, _MonthSection b) => b.month.compareTo(a.month),
-    );
-    return sections;
-  }
-
-  String _formatMonthTitle(DateTime month, AppLocalizations strings) {
-    final String raw = DateFormat.yMMMM(strings.localeName).format(month);
-    if (raw.isEmpty) return raw;
-    return '${raw[0].toUpperCase()}${raw.substring(1)}';
-  }
 }
 
 class _InfoCard extends StatelessWidget {
@@ -633,59 +583,99 @@ class _PaymentProgress extends StatelessWidget {
   }
 }
 
-class _MonthSection {
-  const _MonthSection({
-    required this.month,
-    required this.title,
-    required this.items,
-  });
+class _UpcomingPaymentActionButton extends ConsumerWidget {
+  const _UpcomingPaymentActionButton({required this.credit});
+  final CreditEntity credit;
 
-  final DateTime month;
-  final String title;
-  final List<TransactionEntity> items;
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final AsyncValue<CreditPaymentScheduleEntity?> nextAsync = ref.watch(
+      nextUpcomingPaymentProvider(credit.id),
+    );
+    final AppLocalizations strings = context.loc;
+
+    return nextAsync.when(
+      data: (CreditPaymentScheduleEntity? item) => FilledButton(
+        onPressed: () =>
+            PayCreditSheet.show(context, credit: credit, scheduleItem: item),
+        child: Text(strings.creditDetailsPayAction),
+      ),
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (Object _, StackTrace _) => FilledButton(
+        onPressed: () => PayCreditSheet.show(context, credit: credit),
+        child: Text(strings.creditDetailsPayAction),
+      ),
+    );
+  }
 }
 
-class _MonthSectionView extends StatelessWidget {
-  const _MonthSectionView({
+class _DaySectionView extends StatelessWidget {
+  const _DaySectionView({
     required this.section,
     required this.currencySymbol,
     required this.categoriesById,
     required this.strings,
   });
 
-  final _MonthSection section;
+  final DaySection section;
   final String currencySymbol;
   final Map<String, Category> categoriesById;
   final AppLocalizations strings;
 
   @override
   Widget build(BuildContext context) {
+    final DateTime today = DateUtils.dateOnly(DateTime.now());
+    final DateTime yesterday = today.subtract(const Duration(days: 1));
+
+    String label;
+    if (DateUtils.isSameDay(section.date, today)) {
+      label = strings.homeTransactionsTodayLabel;
+    } else if (DateUtils.isSameDay(section.date, yesterday)) {
+      label = strings.homeTransactionsYesterdayLabel;
+    } else {
+      label = DateFormat.yMMMMd(strings.localeName).format(section.date);
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         Text(
-          section.title,
+          label,
           style: Theme.of(context).textTheme.labelLarge?.copyWith(
             color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
         ),
         const SizedBox(height: 8),
-        ListView.separated(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: section.items.length,
-          separatorBuilder: (BuildContext context, int index) =>
-              const SizedBox(height: 8),
-          itemBuilder: (BuildContext context, int index) {
-            final TransactionEntity transaction = section.items[index];
-            return AccountTransactionListTile(
+        for (final FeedItem item in section.items)
+          item.when(
+            transaction: (TransactionEntity transaction) =>
+                AccountTransactionListTile(
               transaction: transaction,
               category: categoriesById[transaction.categoryId],
               currencySymbol: currencySymbol,
               strings: strings,
-            );
-          },
-        ),
+            ),
+            groupedCreditPayment:
+                (
+                  String groupId,
+                  String creditId,
+                  List<TransactionEntity> transactions,
+                  Money totalOutflow,
+                  DateTime date,
+                  String? note,
+                ) => GroupedCreditPaymentTile(
+                  group: GroupedCreditPaymentFeedItem(
+                    groupId: groupId,
+                    creditId: creditId,
+                    transactions: transactions,
+                    totalOutflow: totalOutflow,
+                    date: date,
+                    note: note,
+                  ),
+                  currencySymbol: currencySymbol,
+                  strings: strings,
+                ),
+          ),
         const SizedBox(height: 16),
       ],
     );

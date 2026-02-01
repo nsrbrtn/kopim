@@ -1489,6 +1489,10 @@
   "@homeTransactionsUncategorized": {
     "description": "Fallback text when a transaction has no category"
   },
+  "homeTransactionsGroupedPayment": "Credit Payment",
+  "@homeTransactionsGroupedPayment": {
+    "description": "Label for grouped credit payments in the transaction feed"
+  },
   "homeUpcomingPaymentsTitle": "Recurring payments",
   "@homeUpcomingPaymentsTitle": {
     "description": "Header for the upcoming payments widget"

@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$TransactionEntity {
 
- String get id; String get accountId; String? get transferAccountId; String? get categoryId; String? get savingGoalId; String? get idempotencyKey;@JsonKey(includeFromJson: false, includeToJson: false) BigInt? get amountMinor;@JsonKey(includeFromJson: false, includeToJson: false) int? get amountScale; DateTime get date; String? get note; String get type; DateTime get createdAt; DateTime get updatedAt; bool get isDeleted;
+ String get id; String get accountId; String? get transferAccountId; String? get categoryId; String? get savingGoalId; String? get idempotencyKey; String? get groupId;@JsonKey(includeFromJson: false, includeToJson: false) BigInt? get amountMinor;@JsonKey(includeFromJson: false, includeToJson: false) int? get amountScale; DateTime get date; String? get note; String get type; DateTime get createdAt; DateTime get updatedAt; bool get isDeleted;
 /// Create a copy of TransactionEntity
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $TransactionEntityCopyWith<TransactionEntity> get copyWith => _$TransactionEntit
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is TransactionEntity&&(identical(other.id, id) || other.id == id)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.transferAccountId, transferAccountId) || other.transferAccountId == transferAccountId)&&(identical(other.categoryId, categoryId) || other.categoryId == categoryId)&&(identical(other.savingGoalId, savingGoalId) || other.savingGoalId == savingGoalId)&&(identical(other.idempotencyKey, idempotencyKey) || other.idempotencyKey == idempotencyKey)&&(identical(other.amountMinor, amountMinor) || other.amountMinor == amountMinor)&&(identical(other.amountScale, amountScale) || other.amountScale == amountScale)&&(identical(other.date, date) || other.date == date)&&(identical(other.note, note) || other.note == note)&&(identical(other.type, type) || other.type == type)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.isDeleted, isDeleted) || other.isDeleted == isDeleted));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is TransactionEntity&&(identical(other.id, id) || other.id == id)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.transferAccountId, transferAccountId) || other.transferAccountId == transferAccountId)&&(identical(other.categoryId, categoryId) || other.categoryId == categoryId)&&(identical(other.savingGoalId, savingGoalId) || other.savingGoalId == savingGoalId)&&(identical(other.idempotencyKey, idempotencyKey) || other.idempotencyKey == idempotencyKey)&&(identical(other.groupId, groupId) || other.groupId == groupId)&&(identical(other.amountMinor, amountMinor) || other.amountMinor == amountMinor)&&(identical(other.amountScale, amountScale) || other.amountScale == amountScale)&&(identical(other.date, date) || other.date == date)&&(identical(other.note, note) || other.note == note)&&(identical(other.type, type) || other.type == type)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.isDeleted, isDeleted) || other.isDeleted == isDeleted));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,accountId,transferAccountId,categoryId,savingGoalId,idempotencyKey,amountMinor,amountScale,date,note,type,createdAt,updatedAt,isDeleted);
+int get hashCode => Object.hash(runtimeType,id,accountId,transferAccountId,categoryId,savingGoalId,idempotencyKey,groupId,amountMinor,amountScale,date,note,type,createdAt,updatedAt,isDeleted);
 
 @override
 String toString() {
-  return 'TransactionEntity(id: $id, accountId: $accountId, transferAccountId: $transferAccountId, categoryId: $categoryId, savingGoalId: $savingGoalId, idempotencyKey: $idempotencyKey, amountMinor: $amountMinor, amountScale: $amountScale, date: $date, note: $note, type: $type, createdAt: $createdAt, updatedAt: $updatedAt, isDeleted: $isDeleted)';
+  return 'TransactionEntity(id: $id, accountId: $accountId, transferAccountId: $transferAccountId, categoryId: $categoryId, savingGoalId: $savingGoalId, idempotencyKey: $idempotencyKey, groupId: $groupId, amountMinor: $amountMinor, amountScale: $amountScale, date: $date, note: $note, type: $type, createdAt: $createdAt, updatedAt: $updatedAt, isDeleted: $isDeleted)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $TransactionEntityCopyWith<$Res>  {
   factory $TransactionEntityCopyWith(TransactionEntity value, $Res Function(TransactionEntity) _then) = _$TransactionEntityCopyWithImpl;
 @useResult
 $Res call({
- String id, String accountId, String? transferAccountId, String? categoryId, String? savingGoalId, String? idempotencyKey,@JsonKey(includeFromJson: false, includeToJson: false) BigInt? amountMinor,@JsonKey(includeFromJson: false, includeToJson: false) int? amountScale, DateTime date, String? note, String type, DateTime createdAt, DateTime updatedAt, bool isDeleted
+ String id, String accountId, String? transferAccountId, String? categoryId, String? savingGoalId, String? idempotencyKey, String? groupId,@JsonKey(includeFromJson: false, includeToJson: false) BigInt? amountMinor,@JsonKey(includeFromJson: false, includeToJson: false) int? amountScale, DateTime date, String? note, String type, DateTime createdAt, DateTime updatedAt, bool isDeleted
 });
 
 
@@ -65,7 +65,7 @@ class _$TransactionEntityCopyWithImpl<$Res>
 
 /// Create a copy of TransactionEntity
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? accountId = null,Object? transferAccountId = freezed,Object? categoryId = freezed,Object? savingGoalId = freezed,Object? idempotencyKey = freezed,Object? amountMinor = freezed,Object? amountScale = freezed,Object? date = null,Object? note = freezed,Object? type = null,Object? createdAt = null,Object? updatedAt = null,Object? isDeleted = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? accountId = null,Object? transferAccountId = freezed,Object? categoryId = freezed,Object? savingGoalId = freezed,Object? idempotencyKey = freezed,Object? groupId = freezed,Object? amountMinor = freezed,Object? amountScale = freezed,Object? date = null,Object? note = freezed,Object? type = null,Object? createdAt = null,Object? updatedAt = null,Object? isDeleted = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
@@ -73,6 +73,7 @@ as String,transferAccountId: freezed == transferAccountId ? _self.transferAccoun
 as String?,categoryId: freezed == categoryId ? _self.categoryId : categoryId // ignore: cast_nullable_to_non_nullable
 as String?,savingGoalId: freezed == savingGoalId ? _self.savingGoalId : savingGoalId // ignore: cast_nullable_to_non_nullable
 as String?,idempotencyKey: freezed == idempotencyKey ? _self.idempotencyKey : idempotencyKey // ignore: cast_nullable_to_non_nullable
+as String?,groupId: freezed == groupId ? _self.groupId : groupId // ignore: cast_nullable_to_non_nullable
 as String?,amountMinor: freezed == amountMinor ? _self.amountMinor : amountMinor // ignore: cast_nullable_to_non_nullable
 as BigInt?,amountScale: freezed == amountScale ? _self.amountScale : amountScale // ignore: cast_nullable_to_non_nullable
 as int?,date: null == date ? _self.date : date // ignore: cast_nullable_to_non_nullable
@@ -166,10 +167,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String accountId,  String? transferAccountId,  String? categoryId,  String? savingGoalId,  String? idempotencyKey, @JsonKey(includeFromJson: false, includeToJson: false)  BigInt? amountMinor, @JsonKey(includeFromJson: false, includeToJson: false)  int? amountScale,  DateTime date,  String? note,  String type,  DateTime createdAt,  DateTime updatedAt,  bool isDeleted)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String accountId,  String? transferAccountId,  String? categoryId,  String? savingGoalId,  String? idempotencyKey,  String? groupId, @JsonKey(includeFromJson: false, includeToJson: false)  BigInt? amountMinor, @JsonKey(includeFromJson: false, includeToJson: false)  int? amountScale,  DateTime date,  String? note,  String type,  DateTime createdAt,  DateTime updatedAt,  bool isDeleted)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _TransactionEntity() when $default != null:
-return $default(_that.id,_that.accountId,_that.transferAccountId,_that.categoryId,_that.savingGoalId,_that.idempotencyKey,_that.amountMinor,_that.amountScale,_that.date,_that.note,_that.type,_that.createdAt,_that.updatedAt,_that.isDeleted);case _:
+return $default(_that.id,_that.accountId,_that.transferAccountId,_that.categoryId,_that.savingGoalId,_that.idempotencyKey,_that.groupId,_that.amountMinor,_that.amountScale,_that.date,_that.note,_that.type,_that.createdAt,_that.updatedAt,_that.isDeleted);case _:
   return orElse();
 
 }
@@ -187,10 +188,10 @@ return $default(_that.id,_that.accountId,_that.transferAccountId,_that.categoryI
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String accountId,  String? transferAccountId,  String? categoryId,  String? savingGoalId,  String? idempotencyKey, @JsonKey(includeFromJson: false, includeToJson: false)  BigInt? amountMinor, @JsonKey(includeFromJson: false, includeToJson: false)  int? amountScale,  DateTime date,  String? note,  String type,  DateTime createdAt,  DateTime updatedAt,  bool isDeleted)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String accountId,  String? transferAccountId,  String? categoryId,  String? savingGoalId,  String? idempotencyKey,  String? groupId, @JsonKey(includeFromJson: false, includeToJson: false)  BigInt? amountMinor, @JsonKey(includeFromJson: false, includeToJson: false)  int? amountScale,  DateTime date,  String? note,  String type,  DateTime createdAt,  DateTime updatedAt,  bool isDeleted)  $default,) {final _that = this;
 switch (_that) {
 case _TransactionEntity():
-return $default(_that.id,_that.accountId,_that.transferAccountId,_that.categoryId,_that.savingGoalId,_that.idempotencyKey,_that.amountMinor,_that.amountScale,_that.date,_that.note,_that.type,_that.createdAt,_that.updatedAt,_that.isDeleted);case _:
+return $default(_that.id,_that.accountId,_that.transferAccountId,_that.categoryId,_that.savingGoalId,_that.idempotencyKey,_that.groupId,_that.amountMinor,_that.amountScale,_that.date,_that.note,_that.type,_that.createdAt,_that.updatedAt,_that.isDeleted);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -207,10 +208,10 @@ return $default(_that.id,_that.accountId,_that.transferAccountId,_that.categoryI
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String accountId,  String? transferAccountId,  String? categoryId,  String? savingGoalId,  String? idempotencyKey, @JsonKey(includeFromJson: false, includeToJson: false)  BigInt? amountMinor, @JsonKey(includeFromJson: false, includeToJson: false)  int? amountScale,  DateTime date,  String? note,  String type,  DateTime createdAt,  DateTime updatedAt,  bool isDeleted)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String accountId,  String? transferAccountId,  String? categoryId,  String? savingGoalId,  String? idempotencyKey,  String? groupId, @JsonKey(includeFromJson: false, includeToJson: false)  BigInt? amountMinor, @JsonKey(includeFromJson: false, includeToJson: false)  int? amountScale,  DateTime date,  String? note,  String type,  DateTime createdAt,  DateTime updatedAt,  bool isDeleted)?  $default,) {final _that = this;
 switch (_that) {
 case _TransactionEntity() when $default != null:
-return $default(_that.id,_that.accountId,_that.transferAccountId,_that.categoryId,_that.savingGoalId,_that.idempotencyKey,_that.amountMinor,_that.amountScale,_that.date,_that.note,_that.type,_that.createdAt,_that.updatedAt,_that.isDeleted);case _:
+return $default(_that.id,_that.accountId,_that.transferAccountId,_that.categoryId,_that.savingGoalId,_that.idempotencyKey,_that.groupId,_that.amountMinor,_that.amountScale,_that.date,_that.note,_that.type,_that.createdAt,_that.updatedAt,_that.isDeleted);case _:
   return null;
 
 }
@@ -222,7 +223,7 @@ return $default(_that.id,_that.accountId,_that.transferAccountId,_that.categoryI
 @JsonSerializable()
 
 class _TransactionEntity extends TransactionEntity {
-  const _TransactionEntity({required this.id, required this.accountId, this.transferAccountId, this.categoryId, this.savingGoalId, this.idempotencyKey, @JsonKey(includeFromJson: false, includeToJson: false) this.amountMinor, @JsonKey(includeFromJson: false, includeToJson: false) this.amountScale, required this.date, this.note, required this.type, required this.createdAt, required this.updatedAt, this.isDeleted = false}): super._();
+  const _TransactionEntity({required this.id, required this.accountId, this.transferAccountId, this.categoryId, this.savingGoalId, this.idempotencyKey, this.groupId, @JsonKey(includeFromJson: false, includeToJson: false) this.amountMinor, @JsonKey(includeFromJson: false, includeToJson: false) this.amountScale, required this.date, this.note, required this.type, required this.createdAt, required this.updatedAt, this.isDeleted = false}): super._();
   factory _TransactionEntity.fromJson(Map<String, dynamic> json) => _$TransactionEntityFromJson(json);
 
 @override final  String id;
@@ -231,6 +232,7 @@ class _TransactionEntity extends TransactionEntity {
 @override final  String? categoryId;
 @override final  String? savingGoalId;
 @override final  String? idempotencyKey;
+@override final  String? groupId;
 @override@JsonKey(includeFromJson: false, includeToJson: false) final  BigInt? amountMinor;
 @override@JsonKey(includeFromJson: false, includeToJson: false) final  int? amountScale;
 @override final  DateTime date;
@@ -253,16 +255,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TransactionEntity&&(identical(other.id, id) || other.id == id)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.transferAccountId, transferAccountId) || other.transferAccountId == transferAccountId)&&(identical(other.categoryId, categoryId) || other.categoryId == categoryId)&&(identical(other.savingGoalId, savingGoalId) || other.savingGoalId == savingGoalId)&&(identical(other.idempotencyKey, idempotencyKey) || other.idempotencyKey == idempotencyKey)&&(identical(other.amountMinor, amountMinor) || other.amountMinor == amountMinor)&&(identical(other.amountScale, amountScale) || other.amountScale == amountScale)&&(identical(other.date, date) || other.date == date)&&(identical(other.note, note) || other.note == note)&&(identical(other.type, type) || other.type == type)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.isDeleted, isDeleted) || other.isDeleted == isDeleted));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TransactionEntity&&(identical(other.id, id) || other.id == id)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.transferAccountId, transferAccountId) || other.transferAccountId == transferAccountId)&&(identical(other.categoryId, categoryId) || other.categoryId == categoryId)&&(identical(other.savingGoalId, savingGoalId) || other.savingGoalId == savingGoalId)&&(identical(other.idempotencyKey, idempotencyKey) || other.idempotencyKey == idempotencyKey)&&(identical(other.groupId, groupId) || other.groupId == groupId)&&(identical(other.amountMinor, amountMinor) || other.amountMinor == amountMinor)&&(identical(other.amountScale, amountScale) || other.amountScale == amountScale)&&(identical(other.date, date) || other.date == date)&&(identical(other.note, note) || other.note == note)&&(identical(other.type, type) || other.type == type)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.isDeleted, isDeleted) || other.isDeleted == isDeleted));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,accountId,transferAccountId,categoryId,savingGoalId,idempotencyKey,amountMinor,amountScale,date,note,type,createdAt,updatedAt,isDeleted);
+int get hashCode => Object.hash(runtimeType,id,accountId,transferAccountId,categoryId,savingGoalId,idempotencyKey,groupId,amountMinor,amountScale,date,note,type,createdAt,updatedAt,isDeleted);
 
 @override
 String toString() {
-  return 'TransactionEntity(id: $id, accountId: $accountId, transferAccountId: $transferAccountId, categoryId: $categoryId, savingGoalId: $savingGoalId, idempotencyKey: $idempotencyKey, amountMinor: $amountMinor, amountScale: $amountScale, date: $date, note: $note, type: $type, createdAt: $createdAt, updatedAt: $updatedAt, isDeleted: $isDeleted)';
+  return 'TransactionEntity(id: $id, accountId: $accountId, transferAccountId: $transferAccountId, categoryId: $categoryId, savingGoalId: $savingGoalId, idempotencyKey: $idempotencyKey, groupId: $groupId, amountMinor: $amountMinor, amountScale: $amountScale, date: $date, note: $note, type: $type, createdAt: $createdAt, updatedAt: $updatedAt, isDeleted: $isDeleted)';
 }
 
 
@@ -273,7 +275,7 @@ abstract mixin class _$TransactionEntityCopyWith<$Res> implements $TransactionEn
   factory _$TransactionEntityCopyWith(_TransactionEntity value, $Res Function(_TransactionEntity) _then) = __$TransactionEntityCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String accountId, String? transferAccountId, String? categoryId, String? savingGoalId, String? idempotencyKey,@JsonKey(includeFromJson: false, includeToJson: false) BigInt? amountMinor,@JsonKey(includeFromJson: false, includeToJson: false) int? amountScale, DateTime date, String? note, String type, DateTime createdAt, DateTime updatedAt, bool isDeleted
+ String id, String accountId, String? transferAccountId, String? categoryId, String? savingGoalId, String? idempotencyKey, String? groupId,@JsonKey(includeFromJson: false, includeToJson: false) BigInt? amountMinor,@JsonKey(includeFromJson: false, includeToJson: false) int? amountScale, DateTime date, String? note, String type, DateTime createdAt, DateTime updatedAt, bool isDeleted
 });
 
 
@@ -290,7 +292,7 @@ class __$TransactionEntityCopyWithImpl<$Res>
 
 /// Create a copy of TransactionEntity
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? accountId = null,Object? transferAccountId = freezed,Object? categoryId = freezed,Object? savingGoalId = freezed,Object? idempotencyKey = freezed,Object? amountMinor = freezed,Object? amountScale = freezed,Object? date = null,Object? note = freezed,Object? type = null,Object? createdAt = null,Object? updatedAt = null,Object? isDeleted = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? accountId = null,Object? transferAccountId = freezed,Object? categoryId = freezed,Object? savingGoalId = freezed,Object? idempotencyKey = freezed,Object? groupId = freezed,Object? amountMinor = freezed,Object? amountScale = freezed,Object? date = null,Object? note = freezed,Object? type = null,Object? createdAt = null,Object? updatedAt = null,Object? isDeleted = null,}) {
   return _then(_TransactionEntity(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
@@ -298,6 +300,7 @@ as String,transferAccountId: freezed == transferAccountId ? _self.transferAccoun
 as String?,categoryId: freezed == categoryId ? _self.categoryId : categoryId // ignore: cast_nullable_to_non_nullable
 as String?,savingGoalId: freezed == savingGoalId ? _self.savingGoalId : savingGoalId // ignore: cast_nullable_to_non_nullable
 as String?,idempotencyKey: freezed == idempotencyKey ? _self.idempotencyKey : idempotencyKey // ignore: cast_nullable_to_non_nullable
+as String?,groupId: freezed == groupId ? _self.groupId : groupId // ignore: cast_nullable_to_non_nullable
 as String?,amountMinor: freezed == amountMinor ? _self.amountMinor : amountMinor // ignore: cast_nullable_to_non_nullable
 as BigInt?,amountScale: freezed == amountScale ? _self.amountScale : amountScale // ignore: cast_nullable_to_non_nullable
 as int?,date: null == date ? _self.date : date // ignore: cast_nullable_to_non_nullable

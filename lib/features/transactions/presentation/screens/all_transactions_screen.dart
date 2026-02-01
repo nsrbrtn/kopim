@@ -5,19 +5,24 @@ import 'package:flutter_riverpod/misc.dart' show StreamProviderFamily;
 import 'package:intl/intl.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/core/formatting/currency_symbols.dart';
+import 'package:kopim/core/money/money.dart';
 import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/categories/presentation/utils/category_gradients.dart';
 import 'package:kopim/features/tags/domain/entities/tag.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
-import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
-import 'package:kopim/features/transactions/presentation/controllers/all_transactions_filter_controller.dart';
-import 'package:kopim/features/transactions/presentation/controllers/all_transactions_providers.dart';
-import 'package:kopim/features/transactions/presentation/controllers/transaction_draft_controller.dart';
-import 'package:kopim/features/transactions/presentation/widgets/transaction_editor.dart';
-import 'package:kopim/features/transactions/presentation/widgets/transaction_form_open_container.dart';
 import 'package:kopim/features/transactions/presentation/widgets/transaction_tile_formatters.dart';
+import 'package:kopim/features/transactions/domain/models/feed_item.dart';
+import 'package:kopim/features/transactions/presentation/controllers/all_transactions_providers.dart';
+import 'package:kopim/features/transactions/presentation/controllers/all_transactions_filter_controller.dart';
+import 'package:kopim/features/credits/presentation/widgets/grouped_credit_payment_tile.dart';
+import 'package:kopim/features/transactions/presentation/widgets/transaction_editor.dart';
+import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
+import 'package:kopim/features/transactions/presentation/controllers/transaction_draft_controller.dart';
+import 'package:kopim/features/transactions/presentation/widgets/transaction_form_open_container.dart';
+import 'package:kopim/features/home/domain/use_cases/group_transactions_by_day_use_case.dart';
+import 'package:kopim/features/home/domain/models/day_section.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
@@ -78,8 +83,14 @@ class AllTransactionsScreen extends ConsumerWidget {
                       message: strings.allTransactionsEmpty,
                     );
                   }
-                  return _TransactionsList(
+                  final GroupTransactionsByDayUseCase useCase = ref.watch(
+                    groupTransactionsByDayUseCaseProvider,
+                  );
+                  final List<DaySection> sections = useCase(
                     transactions: transactions,
+                  );
+                  return _TransactionsList(
+                    sections: sections,
                     strings: strings,
                     accounts: accountsMap,
                     categories: categoriesMap,
@@ -336,43 +347,141 @@ class _FiltersPanel extends ConsumerWidget {
 
 class _TransactionsList extends StatelessWidget {
   const _TransactionsList({
-    required this.transactions,
+    required this.sections,
     required this.strings,
     required this.accounts,
     required this.categories,
   });
 
-  final List<TransactionEntity> transactions;
+  final List<DaySection> sections;
   final AppLocalizations strings;
   final Map<String, AccountEntity> accounts;
   final Map<String, Category> categories;
 
   @override
   Widget build(BuildContext context) {
+    final List<_FlatItem> flatItems = <_FlatItem>[];
+    for (final DaySection section in sections) {
+      flatItems.add(_FlatItem.header(section.date));
+      for (final FeedItem item in section.items) {
+        flatItems.add(_FlatItem.feed(item));
+      }
+    }
+
     return ListView.separated(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-      itemCount: transactions.length,
+      itemCount: flatItems.length,
       separatorBuilder: (BuildContext context, int index) =>
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
       itemBuilder: (BuildContext context, int index) {
-        final TransactionEntity transaction = transactions[index];
-        final AccountEntity? account = accounts[transaction.accountId];
-        final AccountEntity? transferAccount =
-            transaction.transferAccountId == null
-            ? null
-            : accounts[transaction.transferAccountId!];
-        final Category? category = transaction.categoryId == null
-            ? null
-            : categories[transaction.categoryId!];
-        return _TransactionListTile(
-          transaction: transaction,
-          account: account,
-          transferAccount: transferAccount,
-          category: category,
-          strings: strings,
+        final _FlatItem flatItem = flatItems[index];
+        return flatItem.when(
+          header: (DateTime date) => _DayHeader(date: date, strings: strings),
+          feed: (FeedItem item) => item.when(
+            transaction: (TransactionEntity transaction) {
+              final AccountEntity? account = accounts[transaction.accountId];
+              final AccountEntity? transferAccount =
+                  transaction.transferAccountId == null
+                  ? null
+                  : accounts[transaction.transferAccountId!];
+              final Category? category = transaction.categoryId == null
+                  ? null
+                  : categories[transaction.categoryId!];
+              return _TransactionListTile(
+                transaction: transaction,
+                account: account,
+                transferAccount: transferAccount,
+                category: category,
+                strings: strings,
+              );
+            },
+            groupedCreditPayment:
+                (
+                  String groupId,
+                  String creditId,
+                  List<TransactionEntity> transactions,
+                  Money totalOutflow,
+                  DateTime date,
+                  String? note,
+                ) {
+                  final AccountEntity? account =
+                      accounts[transactions.first.accountId];
+                  final String currencySymbol = account != null
+                      ? resolveCurrencySymbol(
+                          account.currency,
+                          locale: strings.localeName,
+                        )
+                      : TransactionTileFormatters.fallbackCurrencySymbol(
+                          strings.localeName,
+                        );
+                  return GroupedCreditPaymentTile(
+                    group: item as GroupedCreditPaymentFeedItem,
+                    currencySymbol: currencySymbol,
+                    strings: strings,
+                  );
+                },
+          ),
         );
       },
     );
+  }
+}
+
+class _DayHeader extends StatelessWidget {
+  const _DayHeader({required this.date, required this.strings});
+  final DateTime date;
+  final AppLocalizations strings;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final DateTime today = DateUtils.dateOnly(DateTime.now());
+    final DateTime yesterday = today.subtract(const Duration(days: 1));
+
+    String label;
+    if (DateUtils.isSameDay(date, today)) {
+      label = strings.homeTransactionsTodayLabel;
+    } else if (DateUtils.isSameDay(date, yesterday)) {
+      label = strings.homeTransactionsYesterdayLabel;
+    } else {
+      label = DateFormat.yMMMd(strings.localeName).format(date);
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 16, bottom: 4, left: 4),
+      child: Text(
+        label,
+        style: theme.textTheme.titleSmall?.copyWith(
+          color: theme.colorScheme.onSurfaceVariant,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+}
+
+enum _FlatItemType { header, feed }
+
+class _FlatItem {
+  const _FlatItem._(this.type, {this.date, this.item});
+  const _FlatItem.header(DateTime date)
+      : this._(_FlatItemType.header, date: date);
+  const _FlatItem.feed(FeedItem item) : this._(_FlatItemType.feed, item: item);
+
+  final _FlatItemType type;
+  final DateTime? date;
+  final FeedItem? item;
+
+  T when<T>({
+    required T Function(DateTime date) header,
+    required T Function(FeedItem item) feed,
+  }) {
+    switch (type) {
+      case _FlatItemType.header:
+        return header(date!);
+      case _FlatItemType.feed:
+        return feed(item!);
+    }
   }
 }
 

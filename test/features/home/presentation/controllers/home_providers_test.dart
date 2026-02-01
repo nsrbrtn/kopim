@@ -10,6 +10,7 @@ import 'package:kopim/features/home/presentation/controllers/home_providers.dart
 import 'package:kopim/features/home/presentation/controllers/home_transactions_filter_controller.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
+import 'package:kopim/features/transactions/domain/models/feed_item.dart';
 import 'package:riverpod/riverpod.dart' as riverpod;
 
 void _noop<T>(T? previous, T next) {}
@@ -230,7 +231,7 @@ void main() {
         container,
       );
       final int totalAll = allSections
-          .map((DaySection section) => section.transactions.length)
+          .map((DaySection section) => section.items.length)
           .fold<int>(0, (int prev, int count) => prev + count);
       expect(totalAll, 2);
 
@@ -242,15 +243,18 @@ void main() {
         container,
       );
       final int totalIncome = incomeSections
-          .map((DaySection section) => section.transactions.length)
+          .map((DaySection section) => section.items.length)
           .fold<int>(0, (int prev, int count) => prev + count);
 
       expect(totalIncome, 1);
       expect(
         incomeSections.every(
-          (DaySection section) => section.transactions.every(
-            (TransactionEntity tx) =>
-                tx.type == TransactionType.income.storageValue,
+          (DaySection section) => section.items.every(
+            (item) => item.maybeWhen(
+              transaction: (tx) =>
+                  tx.type == TransactionType.income.storageValue,
+              orElse: () => false,
+            ),
           ),
         ),
         isTrue,
