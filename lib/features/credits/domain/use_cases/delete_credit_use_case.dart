@@ -21,9 +21,18 @@ class DeleteCreditUseCase {
     // 2. Удаляем связанный счет
     await _deleteAccountUseCase(credit.accountId);
 
-    // 3. Удаляем связанную категорию, если она есть
-    if (credit.categoryId != null) {
-      await _deleteCategoryUseCase(credit.categoryId!);
+    // 3. Удаляем связанные категории, если они есть
+    final Set<String> categoryIds = <String>{
+      if (credit.categoryId != null && credit.categoryId!.isNotEmpty)
+        credit.categoryId!,
+      if (credit.interestCategoryId != null &&
+          credit.interestCategoryId!.isNotEmpty)
+        credit.interestCategoryId!,
+      if (credit.feesCategoryId != null && credit.feesCategoryId!.isNotEmpty)
+        credit.feesCategoryId!,
+    };
+    for (final String categoryId in categoryIds) {
+      await _deleteCategoryUseCase(categoryId);
     }
   }
 }

@@ -19,6 +19,7 @@ abstract class Category with _$Category {
     required DateTime updatedAt,
     @Default(false) bool isDeleted,
     @Default(false) bool isSystem,
+    @Default(false) bool isHidden,
     @Default(false) bool isFavorite,
   }) = _Category;
 

@@ -1393,6 +1393,22 @@
   "@homeTransactionsTodayLabel": {
     "description": "Заголовок группы транзакций за сегодняшний день"
   },
+  "homeTransactionsGroupedPayment": "Платёж по кредиту",
+  "@homeTransactionsGroupedPayment": {
+    "description": "Заголовок сгруппированных платежей по кредиту в ленте"
+  },
+  "creditPaymentDetailsPrincipalLabel": "Основной долг",
+  "@creditPaymentDetailsPrincipalLabel": {
+    "description": "Подпись основной части платежа по кредиту"
+  },
+  "creditPaymentDetailsFeesLabel": "Комиссии",
+  "@creditPaymentDetailsFeesLabel": {
+    "description": "Подпись комиссий в деталях платежа по кредиту"
+  },
+  "creditPaymentDetailsOtherLabel": "Прочее",
+  "@creditPaymentDetailsOtherLabel": {
+    "description": "Подпись прочих сумм в деталях платежа по кредиту"
+  },
   "homeOverviewTotalBalanceLabel": "Общий баланс",
   "@homeOverviewTotalBalanceLabel": {
     "description": "Заголовок общего баланса на виджете обзора"

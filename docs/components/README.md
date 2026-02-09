@@ -35,6 +35,7 @@
 - [BudgetCard](BudgetCard.md) — карточка бюджета с прогресс-индикатором
 - [BudgetMetric](BudgetMetric.md) — метрика бюджета (лейбл + значение)
 - [DebtCard](DebtCard.md) — карточка долга с суммой, счетом и датой платежа
+- [CreditPaymentDetailsScreen](CreditPaymentDetailsScreen.md) — экран деталей группового платежа по кредиту
 - [HomeOverviewSummaryCard](HomeOverviewSummaryCard.md) — карточка сводки на главном экране
 - [ReminderListItem](ReminderListItem.md) — элемент списка напоминаний
 - [GlowingAccountCard](GlowingAccountCard.md) — анимированная подсветка-змейка вокруг карточки счёта

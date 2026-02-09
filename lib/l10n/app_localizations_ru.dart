@@ -1190,7 +1190,16 @@ class AppLocalizationsRu extends AppLocalizations {
   String get homeTransactionsUncategorized => 'Без категории';
 
   @override
-  String get homeTransactionsGroupedPayment => 'Credit Payment';
+  String get homeTransactionsGroupedPayment => 'Платёж по кредиту';
+
+  @override
+  String get creditPaymentDetailsPrincipalLabel => 'Основной долг';
+
+  @override
+  String get creditPaymentDetailsFeesLabel => 'Комиссии';
+
+  @override
+  String get creditPaymentDetailsOtherLabel => 'Прочее';
 
   @override
   String get homeUpcomingPaymentsTitle => 'Предстоящие платежи';

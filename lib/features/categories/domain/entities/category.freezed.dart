@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Category {
 
- String get id; String get name; String get type; PhosphorIconDescriptor? get icon; String? get color; String? get parentId; DateTime get createdAt; DateTime get updatedAt; bool get isDeleted; bool get isSystem; bool get isFavorite;
+ String get id; String get name; String get type; PhosphorIconDescriptor? get icon; String? get color; String? get parentId; DateTime get createdAt; DateTime get updatedAt; bool get isDeleted; bool get isSystem; bool get isHidden; bool get isFavorite;
 /// Create a copy of Category
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $CategoryCopyWith<Category> get copyWith => _$CategoryCopyWithImpl<Category>(thi
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Category&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.type, type) || other.type == type)&&(identical(other.icon, icon) || other.icon == icon)&&(identical(other.color, color) || other.color == color)&&(identical(other.parentId, parentId) || other.parentId == parentId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.isDeleted, isDeleted) || other.isDeleted == isDeleted)&&(identical(other.isSystem, isSystem) || other.isSystem == isSystem)&&(identical(other.isFavorite, isFavorite) || other.isFavorite == isFavorite));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Category&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.type, type) || other.type == type)&&(identical(other.icon, icon) || other.icon == icon)&&(identical(other.color, color) || other.color == color)&&(identical(other.parentId, parentId) || other.parentId == parentId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.isDeleted, isDeleted) || other.isDeleted == isDeleted)&&(identical(other.isSystem, isSystem) || other.isSystem == isSystem)&&(identical(other.isHidden, isHidden) || other.isHidden == isHidden)&&(identical(other.isFavorite, isFavorite) || other.isFavorite == isFavorite));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,type,icon,color,parentId,createdAt,updatedAt,isDeleted,isSystem,isFavorite);
+int get hashCode => Object.hash(runtimeType,id,name,type,icon,color,parentId,createdAt,updatedAt,isDeleted,isSystem,isHidden,isFavorite);
 
 @override
 String toString() {
-  return 'Category(id: $id, name: $name, type: $type, icon: $icon, color: $color, parentId: $parentId, createdAt: $createdAt, updatedAt: $updatedAt, isDeleted: $isDeleted, isSystem: $isSystem, isFavorite: $isFavorite)';
+  return 'Category(id: $id, name: $name, type: $type, icon: $icon, color: $color, parentId: $parentId, createdAt: $createdAt, updatedAt: $updatedAt, isDeleted: $isDeleted, isSystem: $isSystem, isHidden: $isHidden, isFavorite: $isFavorite)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $CategoryCopyWith<$Res>  {
   factory $CategoryCopyWith(Category value, $Res Function(Category) _then) = _$CategoryCopyWithImpl;
 @useResult
 $Res call({
- String id, String name, String type, PhosphorIconDescriptor? icon, String? color, String? parentId, DateTime createdAt, DateTime updatedAt, bool isDeleted, bool isSystem, bool isFavorite
+ String id, String name, String type, PhosphorIconDescriptor? icon, String? color, String? parentId, DateTime createdAt, DateTime updatedAt, bool isDeleted, bool isSystem, bool isHidden, bool isFavorite
 });
 
 
@@ -65,7 +65,7 @@ class _$CategoryCopyWithImpl<$Res>
 
 /// Create a copy of Category
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? type = null,Object? icon = freezed,Object? color = freezed,Object? parentId = freezed,Object? createdAt = null,Object? updatedAt = null,Object? isDeleted = null,Object? isSystem = null,Object? isFavorite = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? type = null,Object? icon = freezed,Object? color = freezed,Object? parentId = freezed,Object? createdAt = null,Object? updatedAt = null,Object? isDeleted = null,Object? isSystem = null,Object? isHidden = null,Object? isFavorite = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -77,6 +77,7 @@ as String?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore:
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,isDeleted: null == isDeleted ? _self.isDeleted : isDeleted // ignore: cast_nullable_to_non_nullable
 as bool,isSystem: null == isSystem ? _self.isSystem : isSystem // ignore: cast_nullable_to_non_nullable
+as bool,isHidden: null == isHidden ? _self.isHidden : isHidden // ignore: cast_nullable_to_non_nullable
 as bool,isFavorite: null == isFavorite ? _self.isFavorite : isFavorite // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
@@ -175,10 +176,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  String type,  PhosphorIconDescriptor? icon,  String? color,  String? parentId,  DateTime createdAt,  DateTime updatedAt,  bool isDeleted,  bool isSystem,  bool isFavorite)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  String type,  PhosphorIconDescriptor? icon,  String? color,  String? parentId,  DateTime createdAt,  DateTime updatedAt,  bool isDeleted,  bool isSystem,  bool isHidden,  bool isFavorite)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Category() when $default != null:
-return $default(_that.id,_that.name,_that.type,_that.icon,_that.color,_that.parentId,_that.createdAt,_that.updatedAt,_that.isDeleted,_that.isSystem,_that.isFavorite);case _:
+return $default(_that.id,_that.name,_that.type,_that.icon,_that.color,_that.parentId,_that.createdAt,_that.updatedAt,_that.isDeleted,_that.isSystem,_that.isHidden,_that.isFavorite);case _:
   return orElse();
 
 }
@@ -196,10 +197,10 @@ return $default(_that.id,_that.name,_that.type,_that.icon,_that.color,_that.pare
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  String type,  PhosphorIconDescriptor? icon,  String? color,  String? parentId,  DateTime createdAt,  DateTime updatedAt,  bool isDeleted,  bool isSystem,  bool isFavorite)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  String type,  PhosphorIconDescriptor? icon,  String? color,  String? parentId,  DateTime createdAt,  DateTime updatedAt,  bool isDeleted,  bool isSystem,  bool isHidden,  bool isFavorite)  $default,) {final _that = this;
 switch (_that) {
 case _Category():
-return $default(_that.id,_that.name,_that.type,_that.icon,_that.color,_that.parentId,_that.createdAt,_that.updatedAt,_that.isDeleted,_that.isSystem,_that.isFavorite);case _:
+return $default(_that.id,_that.name,_that.type,_that.icon,_that.color,_that.parentId,_that.createdAt,_that.updatedAt,_that.isDeleted,_that.isSystem,_that.isHidden,_that.isFavorite);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -216,10 +217,10 @@ return $default(_that.id,_that.name,_that.type,_that.icon,_that.color,_that.pare
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  String type,  PhosphorIconDescriptor? icon,  String? color,  String? parentId,  DateTime createdAt,  DateTime updatedAt,  bool isDeleted,  bool isSystem,  bool isFavorite)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  String type,  PhosphorIconDescriptor? icon,  String? color,  String? parentId,  DateTime createdAt,  DateTime updatedAt,  bool isDeleted,  bool isSystem,  bool isHidden,  bool isFavorite)?  $default,) {final _that = this;
 switch (_that) {
 case _Category() when $default != null:
-return $default(_that.id,_that.name,_that.type,_that.icon,_that.color,_that.parentId,_that.createdAt,_that.updatedAt,_that.isDeleted,_that.isSystem,_that.isFavorite);case _:
+return $default(_that.id,_that.name,_that.type,_that.icon,_that.color,_that.parentId,_that.createdAt,_that.updatedAt,_that.isDeleted,_that.isSystem,_that.isHidden,_that.isFavorite);case _:
   return null;
 
 }
@@ -231,7 +232,7 @@ return $default(_that.id,_that.name,_that.type,_that.icon,_that.color,_that.pare
 @JsonSerializable()
 
 class _Category extends Category {
-  const _Category({required this.id, required this.name, required this.type, this.icon, this.color, this.parentId, required this.createdAt, required this.updatedAt, this.isDeleted = false, this.isSystem = false, this.isFavorite = false}): super._();
+  const _Category({required this.id, required this.name, required this.type, this.icon, this.color, this.parentId, required this.createdAt, required this.updatedAt, this.isDeleted = false, this.isSystem = false, this.isHidden = false, this.isFavorite = false}): super._();
   factory _Category.fromJson(Map<String, dynamic> json) => _$CategoryFromJson(json);
 
 @override final  String id;
@@ -244,6 +245,7 @@ class _Category extends Category {
 @override final  DateTime updatedAt;
 @override@JsonKey() final  bool isDeleted;
 @override@JsonKey() final  bool isSystem;
+@override@JsonKey() final  bool isHidden;
 @override@JsonKey() final  bool isFavorite;
 
 /// Create a copy of Category
@@ -259,16 +261,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Category&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.type, type) || other.type == type)&&(identical(other.icon, icon) || other.icon == icon)&&(identical(other.color, color) || other.color == color)&&(identical(other.parentId, parentId) || other.parentId == parentId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.isDeleted, isDeleted) || other.isDeleted == isDeleted)&&(identical(other.isSystem, isSystem) || other.isSystem == isSystem)&&(identical(other.isFavorite, isFavorite) || other.isFavorite == isFavorite));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Category&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.type, type) || other.type == type)&&(identical(other.icon, icon) || other.icon == icon)&&(identical(other.color, color) || other.color == color)&&(identical(other.parentId, parentId) || other.parentId == parentId)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.isDeleted, isDeleted) || other.isDeleted == isDeleted)&&(identical(other.isSystem, isSystem) || other.isSystem == isSystem)&&(identical(other.isHidden, isHidden) || other.isHidden == isHidden)&&(identical(other.isFavorite, isFavorite) || other.isFavorite == isFavorite));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,type,icon,color,parentId,createdAt,updatedAt,isDeleted,isSystem,isFavorite);
+int get hashCode => Object.hash(runtimeType,id,name,type,icon,color,parentId,createdAt,updatedAt,isDeleted,isSystem,isHidden,isFavorite);
 
 @override
 String toString() {
-  return 'Category(id: $id, name: $name, type: $type, icon: $icon, color: $color, parentId: $parentId, createdAt: $createdAt, updatedAt: $updatedAt, isDeleted: $isDeleted, isSystem: $isSystem, isFavorite: $isFavorite)';
+  return 'Category(id: $id, name: $name, type: $type, icon: $icon, color: $color, parentId: $parentId, createdAt: $createdAt, updatedAt: $updatedAt, isDeleted: $isDeleted, isSystem: $isSystem, isHidden: $isHidden, isFavorite: $isFavorite)';
 }
 
 
@@ -279,7 +281,7 @@ abstract mixin class _$CategoryCopyWith<$Res> implements $CategoryCopyWith<$Res>
   factory _$CategoryCopyWith(_Category value, $Res Function(_Category) _then) = __$CategoryCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String name, String type, PhosphorIconDescriptor? icon, String? color, String? parentId, DateTime createdAt, DateTime updatedAt, bool isDeleted, bool isSystem, bool isFavorite
+ String id, String name, String type, PhosphorIconDescriptor? icon, String? color, String? parentId, DateTime createdAt, DateTime updatedAt, bool isDeleted, bool isSystem, bool isHidden, bool isFavorite
 });
 
 
@@ -296,7 +298,7 @@ class __$CategoryCopyWithImpl<$Res>
 
 /// Create a copy of Category
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? type = null,Object? icon = freezed,Object? color = freezed,Object? parentId = freezed,Object? createdAt = null,Object? updatedAt = null,Object? isDeleted = null,Object? isSystem = null,Object? isFavorite = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? type = null,Object? icon = freezed,Object? color = freezed,Object? parentId = freezed,Object? createdAt = null,Object? updatedAt = null,Object? isDeleted = null,Object? isSystem = null,Object? isHidden = null,Object? isFavorite = null,}) {
   return _then(_Category(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -308,6 +310,7 @@ as String?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore:
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,isDeleted: null == isDeleted ? _self.isDeleted : isDeleted // ignore: cast_nullable_to_non_nullable
 as bool,isSystem: null == isSystem ? _self.isSystem : isSystem // ignore: cast_nullable_to_non_nullable
+as bool,isHidden: null == isHidden ? _self.isHidden : isHidden // ignore: cast_nullable_to_non_nullable
 as bool,isFavorite: null == isFavorite ? _self.isFavorite : isFavorite // ignore: cast_nullable_to_non_nullable
 as bool,
   ));

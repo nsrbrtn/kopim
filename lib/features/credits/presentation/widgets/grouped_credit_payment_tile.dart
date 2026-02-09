@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:kopim/core/money/money_utils.dart';
+import 'package:kopim/features/credits/presentation/screens/credit_payment_details_screen.dart';
 import 'package:kopim/features/transactions/domain/models/feed_item.dart';
 import 'package:kopim/features/transactions/presentation/widgets/transaction_tile_formatters.dart';
 import 'package:kopim/l10n/app_localizations.dart';
@@ -25,85 +27,96 @@ class GroupedCreditPaymentTile extends StatelessWidget {
       currencySymbol,
       decimalDigits: group.totalOutflow.scale,
     );
-
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 4),
-      elevation: 0,
-      color: theme.colorScheme.secondaryContainer.withValues(alpha: 0.3),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(18),
-        side: BorderSide(
-          color: theme.colorScheme.secondary.withValues(alpha: 0.2),
-          width: 1,
-        ),
-      ),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(18),
-        onTap: () {
-          // Future: Open payment details
-        },
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(8, 8, 16, 8),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: <Widget>[
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.secondaryContainer,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Center(
-                  child: Icon(
-                    Icons.account_balance,
-                    size: 24,
-                    color: theme.colorScheme.onSecondaryContainer,
-                  ),
-                ),
+    final String summaryLabel = _buildSummaryLabel();
+    final Widget content = Padding(
+      padding: const EdgeInsets.fromLTRB(8, 8, 16, 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: <Widget>[
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primaryContainer,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Center(
+              child: Icon(
+                Icons.account_balance,
+                size: 24,
+                color: theme.colorScheme.onPrimaryContainer,
               ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    Text(
-                      strings.homeTransactionsGroupedPayment,
-                      style: theme.textTheme.labelMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: theme.colorScheme.onSurface,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      _buildSummaryLabel(),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Text(
-                TransactionTileFormatters.formatAmount(
-                  formatter: moneyFormat,
-                  amount: MoneyAmount(
-                    minor: group.totalOutflow.minor,
-                    scale: group.totalOutflow.scale,
-                  ),
-                ),
-                style: theme.textTheme.titleLarge?.copyWith(
-                  color: theme.colorScheme.onSurface,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
+            ),
           ),
-        ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Text(
+                  strings.homeTransactionsGroupedPayment,
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    fontWeight: FontWeight.w500,
+                    color: theme.colorScheme.onSurface,
+                  ),
+                ),
+                if (summaryLabel.isNotEmpty) ...<Widget>[
+                  const SizedBox(height: 2),
+                  Text(
+                    summaryLabel,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          Text(
+            TransactionTileFormatters.formatAmount(
+              formatter: moneyFormat,
+              amount: MoneyAmount(
+                minor: group.totalOutflow.minor,
+                scale: group.totalOutflow.scale,
+              ),
+            ),
+            style: theme.textTheme.titleLarge?.copyWith(
+              color: theme.colorScheme.onSurface,
+              fontWeight: FontWeight.w400,
+            ),
+          ),
+        ],
       ),
+    );
+
+    Widget buildCard({VoidCallback? onTap}) {
+      return Card(
+        margin: const EdgeInsets.symmetric(vertical: 4),
+        elevation: 0,
+        color: theme.colorScheme.surfaceContainerHigh,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        surfaceTintColor: Colors.transparent,
+        child: InkWell(
+          borderRadius: const BorderRadius.all(Radius.circular(18)),
+          onTap: onTap,
+          child: content,
+        ),
+      );
+    }
+
+    return buildCard(
+      onTap: () {
+        context.push(
+          CreditPaymentDetailsScreen.routeName,
+          extra: CreditPaymentDetailsScreenArgs(
+            group: group,
+            currencySymbol: currencySymbol,
+          ),
+        );
+      },
     );
   }
 
@@ -111,7 +124,6 @@ class GroupedCreditPaymentTile extends StatelessWidget {
     if (group.note != null && group.note!.isNotEmpty) {
       return group.note!;
     }
-    // Count different types of transactions if possible or just use a generic label
-    return 'Interest, principal and fees'; // Placeholder localization
+    return '';
   }
 }

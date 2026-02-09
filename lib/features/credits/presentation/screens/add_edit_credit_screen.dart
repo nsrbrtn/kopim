@@ -8,6 +8,7 @@ import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/core/utils/context_extensions.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/credits/domain/entities/credit_entity.dart';
+import 'package:kopim/core/widgets/kopim_dropdown_field.dart';
 import 'package:kopim/core/widgets/kopim_text_field.dart';
 import 'package:kopim/core/widgets/phosphor_icon_picker.dart';
 import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
@@ -33,6 +34,8 @@ class _AddEditCreditScreenState extends ConsumerState<AddEditCreditScreen> {
   final TextEditingController _termController = TextEditingController();
   final TextEditingController _paymentDayController = TextEditingController();
   bool _isHidden = false;
+  bool _isAlreadyIssued = false;
+  String? _selectedIssueAccountId;
   PhosphorIconDescriptor? _icon;
   String? _color;
   String? _gradientId;
@@ -43,6 +46,7 @@ class _AddEditCreditScreenState extends ConsumerState<AddEditCreditScreen> {
   bool _rateError = false;
   bool _termError = false;
   bool _paymentDayError = false;
+  bool _issueAccountError = false;
 
   @override
   void initState() {
@@ -109,12 +113,19 @@ class _AddEditCreditScreenState extends ConsumerState<AddEditCreditScreen> {
       _termError = term == null || term <= 0;
       final int? day = int.tryParse(_paymentDayController.text);
       _paymentDayError = day == null || day < 1 || day > 31;
+      if (widget.credit == null) {
+        _issueAccountError =
+            !_isAlreadyIssued && _selectedIssueAccountId == null;
+      } else {
+        _issueAccountError = false;
+      }
     });
     return !(_nameError ||
         _amountError ||
         _rateError ||
         _termError ||
-        _paymentDayError);
+        _paymentDayError ||
+        _issueAccountError);
   }
 
   Future<void> _save() async {
@@ -145,6 +156,9 @@ class _AddEditCreditScreenState extends ConsumerState<AddEditCreditScreen> {
                 paymentDay,
               ),
               paymentDay: paymentDay,
+              targetAccountId:
+                  _isAlreadyIssued ? null : _selectedIssueAccountId,
+              isAlreadyIssued: _isAlreadyIssued,
               color: _color,
               gradientId: _gradientId,
               iconName: _icon?.name,
@@ -196,6 +210,9 @@ class _AddEditCreditScreenState extends ConsumerState<AddEditCreditScreen> {
                 int.parse(_paymentDayController.text),
               ),
               paymentDay: int.parse(_paymentDayController.text),
+              targetAccountId:
+                  _isAlreadyIssued ? null : _selectedIssueAccountId,
+              isAlreadyIssued: _isAlreadyIssued,
               color: _color,
               iconName: _icon?.name,
               iconStyle: _icon?.style.name,
@@ -263,6 +280,9 @@ class _AddEditCreditScreenState extends ConsumerState<AddEditCreditScreen> {
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
+    final Stream<List<AccountEntity>> accountsAsync = ref
+        .watch(watchAccountsUseCaseProvider)
+        .call();
 
     return Scaffold(
       appBar: AppBar(
@@ -304,129 +324,221 @@ class _AddEditCreditScreenState extends ConsumerState<AddEditCreditScreen> {
       ),
       body: Form(
         key: _formKey,
-        child: ListView(
-          padding: const EdgeInsets.all(24),
-          children: <Widget>[
-            KopimTextField(
-              controller: _nameController,
-              placeholder: context.loc.creditsNameLabel,
-              prefixIcon: const Icon(Icons.edit_outlined),
-              hasError: _nameError,
-            ),
-            const SizedBox(height: 16),
-            KopimTextField(
-              controller: _amountController,
-              placeholder: context.loc.creditsAmountLabel,
-              prefixIcon: const Icon(Icons.account_balance_outlined),
-              keyboardType: TextInputType.number,
-              hasError: _amountError,
-            ),
-            const SizedBox(height: 16),
-            KopimTextField(
-              controller: _rateController,
-              placeholder: context.loc.creditsInterestRateLabel,
-              prefixIcon: const Icon(Icons.percent_outlined),
-              keyboardType: TextInputType.number,
-              hasError: _rateError,
-            ),
-            const SizedBox(height: 16),
-            KopimTextField(
-              controller: _termController,
-              placeholder: context.loc.creditsTermMonthsLabel,
-              prefixIcon: const Icon(Icons.calendar_today_outlined),
-              keyboardType: TextInputType.number,
-              hasError: _termError,
-            ),
-            const SizedBox(height: 16),
-            KopimTextField(
-              controller: _paymentDayController,
-              placeholder: context.loc.creditsPaymentDayLabel,
-              prefixIcon: const Icon(Icons.event_outlined),
-              keyboardType: TextInputType.number,
-              hasError: _paymentDayError,
-            ),
-            const SizedBox(height: 24),
-            Text(
-              context.loc.profileThemeHeader,
-              style: theme.textTheme.labelLarge,
-            ),
-            const SizedBox(height: 8),
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: CircleAvatar(
-                backgroundColor: theme.colorScheme.surfaceContainerHighest,
-                child: _icon != null
-                    ? Icon(
-                        resolvePhosphorIconData(_icon!),
-                        color: theme.colorScheme.onSurface,
-                      )
-                    : Icon(
-                        Icons.category_outlined,
-                        color: theme.colorScheme.onSurface,
-                      ),
-              ),
-              title: Text(context.loc.manageCategoriesIconLabel),
-              subtitle: Text(_icon != null ? 'Выбрана' : 'Не выбрана'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: _selectIcon,
-            ),
-            AccountColorSelector(
-              color: _color,
-              gradientId: _gradientId,
-              enabled: true,
-              onStyleChanged: (AccountCardStyleSelection selection) {
+        child: StreamBuilder<List<AccountEntity>>(
+          stream: accountsAsync,
+          builder: (
+            BuildContext context,
+            AsyncSnapshot<List<AccountEntity>> snapshot,
+          ) {
+            final List<AccountEntity> accounts =
+                snapshot.data ?? const <AccountEntity>[];
+            final List<AccountEntity> availableIssueAccounts = accounts
+                .where((AccountEntity account) => account.type != 'credit')
+                .toList(growable: false);
+            if (_selectedIssueAccountId != null &&
+                !availableIssueAccounts.any(
+                  (AccountEntity account) =>
+                      account.id == _selectedIssueAccountId,
+                )) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (!mounted) return;
                 setState(() {
-                  _color = selection.color;
-                  _gradientId = selection.gradientId;
+                  _selectedIssueAccountId = null;
+                  _issueAccountError = false;
                 });
-              },
-            ),
-            SwitchListTile(
-              title: Text(context.loc.creditsHiddenOnDashboardLabel),
-              subtitle: Text(
-                'Счет не будет отображаться в списке счетов на главном экране',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
+              });
+            }
+            return ListView(
+              padding: const EdgeInsets.all(24),
+              children: <Widget>[
+                KopimTextField(
+                  controller: _nameController,
+                  placeholder: context.loc.creditsNameLabel,
+                  prefixIcon: const Icon(Icons.edit_outlined),
+                  hasError: _nameError,
                 ),
-              ),
-              value: _isHidden,
-              onChanged: (bool v) => setState(() => _isHidden = v),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              contentPadding: EdgeInsets.zero,
-            ),
-            const SizedBox(height: 48),
-            ElevatedButton(
-              onPressed: _save,
-              style: ElevatedButton.styleFrom(
-                minimumSize: const Size.fromHeight(56),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
+                const SizedBox(height: 16),
+                KopimTextField(
+                  controller: _amountController,
+                  placeholder: context.loc.creditsAmountLabel,
+                  prefixIcon: const Icon(Icons.account_balance_outlined),
+                  keyboardType: TextInputType.number,
+                  hasError: _amountError,
                 ),
-              ),
-              child: Text(
-                context.loc.creditsSaveAction,
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-            ),
-            if (widget.credit == null) ...<Widget>[
-              const SizedBox(height: 12),
-              OutlinedButton(
-                onPressed: _saveAndConfigurePayment,
-                style: OutlinedButton.styleFrom(
-                  minimumSize: const Size.fromHeight(56),
+                const SizedBox(height: 16),
+                KopimTextField(
+                  controller: _rateController,
+                  placeholder: context.loc.creditsInterestRateLabel,
+                  prefixIcon: const Icon(Icons.percent_outlined),
+                  keyboardType: TextInputType.number,
+                  hasError: _rateError,
+                ),
+                const SizedBox(height: 16),
+                KopimTextField(
+                  controller: _termController,
+                  placeholder: context.loc.creditsTermMonthsLabel,
+                  prefixIcon: const Icon(Icons.calendar_today_outlined),
+                  keyboardType: TextInputType.number,
+                  hasError: _termError,
+                ),
+                const SizedBox(height: 16),
+                KopimTextField(
+                  controller: _paymentDayController,
+                  placeholder: context.loc.creditsPaymentDayLabel,
+                  prefixIcon: const Icon(Icons.event_outlined),
+                  keyboardType: TextInputType.number,
+                  hasError: _paymentDayError,
+                ),
+                if (widget.credit == null) ...<Widget>[
+                  const SizedBox(height: 24),
+                  Text(
+                    'Выдача кредита',
+                    style: theme.textTheme.labelLarge,
+                  ),
+                  const SizedBox(height: 8),
+                  SwitchListTile(
+                    title: const Text('Кредит уже выдан'),
+                    subtitle: Text(
+                      'В этом случае создается отрицательный баланс на кредитном счете',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    value: _isAlreadyIssued,
+                    onChanged: (bool value) {
+                      setState(() {
+                        _isAlreadyIssued = value;
+                        if (_isAlreadyIssued) {
+                          _selectedIssueAccountId = null;
+                        }
+                        _issueAccountError = false;
+                      });
+                    },
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                  const SizedBox(height: 8),
+                  KopimDropdownField<String>(
+                    value: _selectedIssueAccountId,
+                    items: availableIssueAccounts
+                        .map(
+                          (AccountEntity account) =>
+                              DropdownMenuItem<String>(
+                                value: account.id,
+                                child: Text(account.name),
+                              ),
+                        )
+                        .toList(growable: false),
+                    label: 'Счет зачисления',
+                    hint: availableIssueAccounts.isEmpty
+                        ? 'Нет доступных счетов'
+                        : 'Выберите счет',
+                    enabled: !_isAlreadyIssued &&
+                        availableIssueAccounts.isNotEmpty,
+                    onChanged: (String value) {
+                      setState(() {
+                        _selectedIssueAccountId = value;
+                        _issueAccountError = false;
+                      });
+                    },
+                  ),
+                  if (_issueAccountError) ...<Widget>[
+                    const SizedBox(height: 8),
+                    Text(
+                      'Выберите счет для зачисления или отметьте, что кредит уже выдан',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.error,
+                      ),
+                    ),
+                  ],
+                ],
+                const SizedBox(height: 24),
+                Text(
+                  context.loc.profileThemeHeader,
+                  style: theme.textTheme.labelLarge,
+                ),
+                const SizedBox(height: 8),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: CircleAvatar(
+                    backgroundColor:
+                        theme.colorScheme.surfaceContainerHighest,
+                    child: _icon != null
+                        ? Icon(
+                            resolvePhosphorIconData(_icon!),
+                            color: theme.colorScheme.onSurface,
+                          )
+                        : Icon(
+                            Icons.category_outlined,
+                            color: theme.colorScheme.onSurface,
+                          ),
+                  ),
+                  title: Text(context.loc.manageCategoriesIconLabel),
+                  subtitle: Text(_icon != null ? 'Выбрана' : 'Не выбрана'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: _selectIcon,
+                ),
+                AccountColorSelector(
+                  color: _color,
+                  gradientId: _gradientId,
+                  enabled: true,
+                  onStyleChanged: (AccountCardStyleSelection selection) {
+                    setState(() {
+                      _color = selection.color;
+                      _gradientId = selection.gradientId;
+                    });
+                  },
+                ),
+                SwitchListTile(
+                  title: Text(context.loc.creditsHiddenOnDashboardLabel),
+                  subtitle: Text(
+                    'Счет не будет отображаться в списке счетов на главном экране',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  value: _isHidden,
+                  onChanged: (bool v) => setState(() => _isHidden = v),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),
+                  contentPadding: EdgeInsets.zero,
                 ),
-                child: const Text(
-                  'Сохранить и настроить платеж',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                const SizedBox(height: 48),
+                ElevatedButton(
+                  onPressed: _save,
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: const Size.fromHeight(56),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                  child: Text(
+                    context.loc.creditsSaveAction,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
                 ),
-              ),
-            ],
-          ],
+                if (widget.credit == null) ...<Widget>[
+                  const SizedBox(height: 12),
+                  OutlinedButton(
+                    onPressed: _saveAndConfigurePayment,
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: const Size.fromHeight(56),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                    child: const Text(
+                      'Сохранить и настроить платеж',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ],
+              ],
+            );
+          },
         ),
       ),
     );

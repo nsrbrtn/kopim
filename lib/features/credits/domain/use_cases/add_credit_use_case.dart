@@ -42,6 +42,7 @@ class AddCreditUseCase {
     required DateTime startDate,
     required DateTime firstPaymentDate,
     String? targetAccountId, // Where the money goes
+    bool isAlreadyIssued = false,
     String? color,
     String? gradientId,
     String? iconName,
@@ -66,6 +67,7 @@ class AddCreditUseCase {
         type: 'expense',
         color: color,
         isSystem: true,
+        isHidden: true,
         createdAt: now,
         updatedAt: now,
       ),
@@ -75,6 +77,7 @@ class AddCreditUseCase {
         type: 'expense',
         color: color,
         isSystem: true,
+        isHidden: true,
         createdAt: now,
         updatedAt: now,
       ),
@@ -84,6 +87,7 @@ class AddCreditUseCase {
         type: 'expense',
         color: color,
         isSystem: true,
+        isHidden: true,
         createdAt: now,
         updatedAt: now,
       ),
@@ -94,11 +98,16 @@ class AddCreditUseCase {
     }
 
     // 2. Создаем кредитный счет (Баланс 0 на старте согласно Zero Basis)
+    final bool issueWithoutAccount =
+        isAlreadyIssued && targetAccountId == null;
+    final BigInt openingMinor = issueWithoutAccount
+        ? -resolvedAmount.minor
+        : BigInt.zero;
     final AccountEntity creditAccount = AccountEntity(
       id: accountId,
       name: name,
-      balanceMinor: BigInt.zero,
-      openingBalanceMinor: BigInt.zero,
+      balanceMinor: openingMinor,
+      openingBalanceMinor: openingMinor,
       currency: currency,
       currencyScale: scale,
       type: 'credit',

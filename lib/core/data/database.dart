@@ -59,6 +59,8 @@ class Categories extends Table {
       boolean().withDefault(const Constant<bool>(false))();
   BoolColumn get isSystem =>
       boolean().withDefault(const Constant<bool>(false))();
+  BoolColumn get isHidden =>
+      boolean().withDefault(const Constant<bool>(false))();
   BoolColumn get isFavorite =>
       boolean().withDefault(const Constant<bool>(false))();
 
@@ -83,11 +85,14 @@ class Tags extends Table {
 @DataClassName('TransactionRow')
 class Transactions extends Table {
   TextColumn get id => text().withLength(min: 1, max: 50)();
+  @ReferenceName('transactionsAccount')
   TextColumn get accountId =>
       text().references(Accounts, #id, onDelete: KeyAction.cascade)();
+  @ReferenceName('transactionsTransferAccount')
   TextColumn get transferAccountId => text()
       .references(Accounts, #id, onDelete: KeyAction.setNull)
       .nullable()();
+  @ReferenceName('transactionsCategory')
   TextColumn get categoryId => text()
       .references(Categories, #id, onDelete: KeyAction.setNull)
       .nullable()();
@@ -247,6 +252,7 @@ class GoalContributions extends Table {
 @DataClassName('DebtRow')
 class Debts extends Table {
   TextColumn get id => text().withLength(min: 1, max: 50)();
+  @ReferenceName('debtAccount')
   TextColumn get accountId =>
       text().references(Accounts, #id, onDelete: KeyAction.cascade)();
   TextColumn get name => text().withLength(min: 1, max: 120).nullable()();
@@ -269,8 +275,10 @@ class Debts extends Table {
 @DataClassName('CreditRow')
 class Credits extends Table {
   TextColumn get id => text().withLength(min: 1, max: 50)();
+  @ReferenceName('creditAccount')
   TextColumn get accountId =>
       text().references(Accounts, #id, onDelete: KeyAction.cascade)();
+  @ReferenceName('creditCategory')
   TextColumn get categoryId => text().nullable().references(
     Categories,
     #id,
@@ -301,16 +309,19 @@ class Credits extends Table {
   IntColumn get issueAmountScale => integer()
       .named('issue_amount_scale')
       .withDefault(const Constant<int>(2))();
+  @ReferenceName('creditTargetAccount')
   TextColumn get targetAccountId => text().nullable().references(
     Accounts,
     #id,
     onDelete: KeyAction.setNull,
   )();
+  @ReferenceName('creditInterestCategory')
   TextColumn get interestCategoryId => text().nullable().references(
     Categories,
     #id,
     onDelete: KeyAction.setNull,
   )();
+  @ReferenceName('creditFeesCategory')
   TextColumn get feesCategoryId => text().nullable().references(
     Categories,
     #id,
@@ -355,6 +366,7 @@ class CreditPaymentGroups extends Table {
   TextColumn get id => text().withLength(min: 1, max: 50)();
   TextColumn get creditId =>
       text().references(Credits, #id, onDelete: KeyAction.cascade)();
+  @ReferenceName('creditPaymentSourceAccount')
   TextColumn get sourceAccountId =>
       text().references(Accounts, #id, onDelete: KeyAction.cascade)();
   TextColumn get scheduleItemId => text().nullable().references(
@@ -382,6 +394,7 @@ class CreditPaymentGroups extends Table {
 @DataClassName('CreditCardRow')
 class CreditCards extends Table {
   TextColumn get id => text().withLength(min: 1, max: 50)();
+  @ReferenceName('creditCardAccount')
   TextColumn get accountId =>
       text().references(Accounts, #id, onDelete: KeyAction.cascade)();
   RealColumn get creditLimit => real()();
@@ -431,7 +444,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.connect(DatabaseConnection super.connection);
 
   @override
-  int get schemaVersion => 37;
+  int get schemaVersion => 38;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -1308,6 +1321,11 @@ LEFT JOIN accounts acc ON up.account_id = acc.id
             'CREATE INDEX IF NOT EXISTS payment_schedules_credit_period_idx ON credit_payment_schedules(credit_id, period_key)',
           ),
         );
+      }
+      if (from < 38) {
+        if (!await _columnExists('categories', 'is_hidden')) {
+          await m.addColumn(categories, categories.isHidden);
+        }
       }
     },
     beforeOpen: (OpeningDetails details) async {

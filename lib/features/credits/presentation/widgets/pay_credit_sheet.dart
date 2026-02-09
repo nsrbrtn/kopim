@@ -77,8 +77,9 @@ class _PayCreditSheetState extends ConsumerState<PayCreditSheet> {
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
-    final Stream<List<AccountEntity>> accountsAsync =
-        ref.watch(watchAccountsUseCaseProvider).call();
+    final Stream<List<AccountEntity>> accountsAsync = ref
+        .watch(watchAccountsUseCaseProvider)
+        .call();
 
     return Container(
       decoration: BoxDecoration(
@@ -91,119 +92,154 @@ class _PayCreditSheetState extends ConsumerState<PayCreditSheet> {
         right: 24,
         top: 16,
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: <Widget>[
-          Center(
-            child: Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: theme.colorScheme.outlineVariant,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-          ),
-          const SizedBox(height: 24),
-          Text(
-            'Pay Credit', // TODO: Localize
-            style: theme.textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            context.loc.creditsTitle,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(height: 24),
-
-          _AmountField(
-            controller: _principalController,
-            label: 'Principal',
-            icon: Icons.account_balance_wallet,
-          ),
-          const SizedBox(height: 16),
-          _AmountField(
-            controller: _interestController,
-            label: 'Interest',
-            icon: Icons.percent,
-          ),
-          const SizedBox(height: 16),
-          _AmountField(
-            controller: _feesController,
-            label: 'Fees (Optional)',
-            icon: Icons.receipt_long,
-          ),
-          const SizedBox(height: 24),
-
-          Text('Source Account', style: theme.textTheme.labelLarge),
-          const SizedBox(height: 8),
-          StreamBuilder<List<AccountEntity>>(
-            stream: accountsAsync,
-            builder: (
-              BuildContext context,
-              AsyncSnapshot<List<AccountEntity>> snapshot,
-            ) {
-              final List<AccountEntity> accounts =
-                  snapshot.data ?? <AccountEntity>[];
-              if (accounts.isEmpty) return const SizedBox.shrink();
-
-              if (_sourceAccount == null && accounts.isNotEmpty) {
-                // Try to pick one that is not the credit account itself
-                _sourceAccount = accounts.firstWhere(
-                  (AccountEntity a) => a.id != widget.credit.accountId,
-                  orElse: () => accounts.first,
-                );
-              }
-
-              return DropdownButtonFormField<AccountEntity>(
-                key: ValueKey<String?>(_sourceAccount?.id),
-                initialValue: _sourceAccount,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
+      child: SafeArea(
+        top: false,
+        child: SingleChildScrollView(
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.outlineVariant,
+                    borderRadius: BorderRadius.circular(2),
                   ),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                 ),
-                items: accounts
-                    .map(
-                      (AccountEntity acc) => DropdownMenuItem<AccountEntity>(
-                        value: acc,
-                        child: Text(acc.name),
-                      ),
-                    )
-                    .toList(),
-                onChanged: (AccountEntity? val) =>
-                    setState(() => _sourceAccount = val),
-              );
-            },
-          ),
-
-          const SizedBox(height: 32),
-          FilledButton(
-            onPressed: _isSubmitting ? null : _submit,
-            style: FilledButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
               ),
-            ),
-            child: _isSubmitting
-                ? const SizedBox(
-                    height: 20,
-                    width: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white,
-                    ),
-                  )
-                : const Text('Confirm Payment'),
+              const SizedBox(height: 24),
+              Text(
+                'Pay Credit', // TODO: Localize
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                context.loc.creditsTitle,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              _AmountField(
+                controller: _principalController,
+                label: 'Principal',
+                icon: Icons.account_balance_wallet,
+              ),
+              const SizedBox(height: 16),
+              _AmountField(
+                controller: _interestController,
+                label: 'Interest',
+                icon: Icons.percent,
+              ),
+              const SizedBox(height: 16),
+              _AmountField(
+                controller: _feesController,
+                label: 'Fees (Optional)',
+                icon: Icons.receipt_long,
+              ),
+              const SizedBox(height: 24),
+
+              Text('Source Account', style: theme.textTheme.labelLarge),
+              const SizedBox(height: 8),
+              StreamBuilder<List<AccountEntity>>(
+                stream: accountsAsync,
+                builder:
+                    (
+                      BuildContext context,
+                      AsyncSnapshot<List<AccountEntity>> snapshot,
+                    ) {
+                      final List<AccountEntity> accounts =
+                          snapshot.data ?? <AccountEntity>[];
+                      if (accounts.isEmpty) return const SizedBox.shrink();
+
+                      final Map<String, AccountEntity> uniqueById =
+                          <String, AccountEntity>{};
+                      for (final AccountEntity account in accounts) {
+                        uniqueById.putIfAbsent(account.id, () => account);
+                      }
+                      final List<AccountEntity> uniqueAccounts = uniqueById
+                          .values
+                          .toList(growable: false);
+
+                      if (_sourceAccount == null && uniqueAccounts.isNotEmpty) {
+                        // Try to pick one that is not the credit account itself
+                        _sourceAccount = uniqueAccounts.firstWhere(
+                          (AccountEntity a) => a.id != widget.credit.accountId,
+                          orElse: () => uniqueAccounts.first,
+                        );
+                      } else if (_sourceAccount != null) {
+                        final AccountEntity? matched = uniqueAccounts
+                            .cast<AccountEntity?>()
+                            .firstWhere(
+                              (AccountEntity? a) => a?.id == _sourceAccount!.id,
+                              orElse: () => null,
+                            );
+                        if (matched != null) {
+                          _sourceAccount = matched;
+                        } else {
+                          _sourceAccount = uniqueAccounts.firstWhere(
+                            (AccountEntity a) =>
+                                a.id != widget.credit.accountId,
+                            orElse: () => uniqueAccounts.first,
+                          );
+                        }
+                      }
+
+                      return DropdownButtonFormField<AccountEntity>(
+                        key: ValueKey<String?>(_sourceAccount?.id),
+                        initialValue: _sourceAccount,
+                        decoration: InputDecoration(
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                          ),
+                        ),
+                        items: uniqueAccounts
+                            .map(
+                              (AccountEntity acc) =>
+                                  DropdownMenuItem<AccountEntity>(
+                                    value: acc,
+                                    child: Text(acc.name),
+                                  ),
+                            )
+                            .toList(),
+                        onChanged: (AccountEntity? val) =>
+                            setState(() => _sourceAccount = val),
+                      );
+                    },
+              ),
+
+              const SizedBox(height: 32),
+              FilledButton(
+                onPressed: _isSubmitting ? null : _submit,
+                style: FilledButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
+                child: _isSubmitting
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Text('Confirm Payment'),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -214,8 +250,9 @@ class _PayCreditSheetState extends ConsumerState<PayCreditSheet> {
     setState(() => _isSubmitting = true);
 
     try {
-      final MakeCreditPaymentUseCase makePayment =
-          ref.read(makeCreditPaymentUseCaseProvider);
+      final MakeCreditPaymentUseCase makePayment = ref.read(
+        makeCreditPaymentUseCaseProvider,
+      );
 
       final String currency = _sourceAccount!.currency;
       final int scale = widget.credit.totalAmountScale ?? 2;
@@ -263,7 +300,11 @@ class _PayCreditSheetState extends ConsumerState<PayCreditSheet> {
         Navigator.pop(context);
       }
     } catch (e) {
-      // TODO: Show error
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Не удалось провести платёж: $e')),
+        );
+      }
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }

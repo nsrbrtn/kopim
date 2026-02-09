@@ -4,7 +4,7 @@ import 'package:kopim/core/money/money.dart';
 part 'credit_payment_group.freezed.dart';
 
 @freezed
-class CreditPaymentGroupEntity with _$CreditPaymentGroupEntity {
+abstract class CreditPaymentGroupEntity with _$CreditPaymentGroupEntity {
   const factory CreditPaymentGroupEntity({
     required String id,
     required String creditId,

@@ -2166,6 +2166,24 @@ abstract class AppLocalizations {
   /// **'Credit Payment'**
   String get homeTransactionsGroupedPayment;
 
+  /// Label for principal part in credit payment details
+  ///
+  /// In en, this message translates to:
+  /// **'Principal'**
+  String get creditPaymentDetailsPrincipalLabel;
+
+  /// Label for fees part in credit payment details
+  ///
+  /// In en, this message translates to:
+  /// **'Fees'**
+  String get creditPaymentDetailsFeesLabel;
+
+  /// Label for other part in credit payment details
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get creditPaymentDetailsOtherLabel;
+
   /// Header for the upcoming payments widget
   ///
   /// In en, this message translates to:

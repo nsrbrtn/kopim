@@ -54,6 +54,8 @@ class _CreditDetailsScreenState extends ConsumerState<CreditDetailsScreen> {
     final AsyncValue<List<TransactionEntity>> transactionsAsync = ref.watch(
       accountTransactionsProvider(widget.credit.accountId),
     );
+    final AsyncValue<List<CreditPaymentScheduleEntity>> scheduleAsync = ref
+        .watch(creditScheduleProvider(widget.credit.id));
     final AsyncValue<List<Category>> categoriesAsync = ref.watch(
       accountCategoriesProvider,
     );
@@ -122,8 +124,12 @@ class _CreditDetailsScreenState extends ConsumerState<CreditDetailsScreen> {
             final double progress = totalDebtValue > 0
                 ? (repaidAmount / totalDebtValue)
                 : 0.0;
+            final List<CreditPaymentScheduleEntity> schedule =
+                scheduleAsync.asData?.value ??
+                const <CreditPaymentScheduleEntity>[];
             final DateTime nextPaymentDate = _calculateNextPaymentDate(
               widget.credit,
+              schedule,
             );
             final int daysUntilPayment = math.max(
               0,
@@ -140,16 +146,10 @@ class _CreditDetailsScreenState extends ConsumerState<CreditDetailsScreen> {
             final Map<String, Category> categoriesById = <String, Category>{
               for (final Category category in categories) category.id: category,
             };
-            final List<TransactionEntity> transactions =
-                transactionsAsync.asData?.value ?? const <TransactionEntity>[];
-            final int paidPayments = _countPaidPayments(
-              transactions: transactions,
-              categoriesById: categoriesById,
-              creditCategoryId: widget.credit.categoryId,
-            );
+            final int paidPayments = _countPaidScheduleItems(schedule);
             final int remainingPayments = _calculateRemainingPayments(
               credit: widget.credit,
-              paidPayments: paidPayments,
+              schedule: schedule,
             );
 
             return ListView(
@@ -398,7 +398,25 @@ class _CreditDetailsScreenState extends ConsumerState<CreditDetailsScreen> {
     );
   }
 
-  DateTime _calculateNextPaymentDate(CreditEntity credit) {
+  DateTime _calculateNextPaymentDate(
+    CreditEntity credit,
+    List<CreditPaymentScheduleEntity> schedule,
+  ) {
+    final List<CreditPaymentScheduleEntity> upcoming = schedule
+        .where(
+          (CreditPaymentScheduleEntity item) =>
+              item.status == CreditPaymentStatus.planned ||
+              item.status == CreditPaymentStatus.partiallyPaid,
+        )
+        .toList(growable: false);
+    if (upcoming.isNotEmpty) {
+      upcoming.sort(
+        (CreditPaymentScheduleEntity a, CreditPaymentScheduleEntity b) =>
+            a.dueDate.compareTo(b.dueDate),
+      );
+      return DateUtils.dateOnly(upcoming.first.dueDate);
+    }
+
     final DateTime now = DateUtils.dateOnly(DateTime.now());
     final int paymentDay = credit.paymentDay;
 
@@ -420,38 +438,22 @@ class _CreditDetailsScreenState extends ConsumerState<CreditDetailsScreen> {
 
   int _calculateRemainingPayments({
     required CreditEntity credit,
-    required int paidPayments,
+    required List<CreditPaymentScheduleEntity> schedule,
   }) {
+    if (schedule.isNotEmpty) {
+      return schedule
+          .where((CreditPaymentScheduleEntity item) => !item.status.isPaid)
+          .length;
+    }
+    final int paidPayments = _countPaidScheduleItems(schedule);
     final int remaining = credit.termMonths - paidPayments;
     return remaining > 0 ? remaining : 0;
   }
 
-  int _countPaidPayments({
-    required List<TransactionEntity> transactions,
-    required Map<String, Category> categoriesById,
-    required String? creditCategoryId,
-  }) {
-    if (creditCategoryId == null || creditCategoryId.isEmpty) {
-      return 0;
-    }
-    final Iterable<TransactionEntity> paidPayments = transactions.where((
-      TransactionEntity transaction,
-    ) {
-      if (transaction.categoryId != creditCategoryId) {
-        return false;
-      }
-      if (transaction.type != TransactionType.expense.storageValue) {
-        return false;
-      }
-      final String categoryName =
-          categoriesById[transaction.categoryId]?.name ?? '';
-      final String note = transaction.note ?? '';
-      final String haystack = '$categoryName $note'.toLowerCase();
-      final bool isInterest =
-          haystack.contains('процент') || haystack.contains('interest');
-      return !isInterest;
-    });
-    return paidPayments.length;
+  int _countPaidScheduleItems(List<CreditPaymentScheduleEntity> schedule) {
+    return schedule
+        .where((CreditPaymentScheduleEntity item) => item.status.isPaid)
+        .length;
   }
 
   List<TransactionEntity> _applyHistoryFilter(
@@ -650,11 +652,11 @@ class _DaySectionView extends StatelessWidget {
           item.when(
             transaction: (TransactionEntity transaction) =>
                 AccountTransactionListTile(
-              transaction: transaction,
-              category: categoriesById[transaction.categoryId],
-              currencySymbol: currencySymbol,
-              strings: strings,
-            ),
+                  transaction: transaction,
+                  category: categoriesById[transaction.categoryId],
+                  currencySymbol: currencySymbol,
+                  strings: strings,
+                ),
             groupedCreditPayment:
                 (
                   String groupId,

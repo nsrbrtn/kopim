@@ -1493,6 +1493,18 @@
   "@homeTransactionsGroupedPayment": {
     "description": "Label for grouped credit payments in the transaction feed"
   },
+  "creditPaymentDetailsPrincipalLabel": "Principal",
+  "@creditPaymentDetailsPrincipalLabel": {
+    "description": "Label for principal part in credit payment details"
+  },
+  "creditPaymentDetailsFeesLabel": "Fees",
+  "@creditPaymentDetailsFeesLabel": {
+    "description": "Label for fees part in credit payment details"
+  },
+  "creditPaymentDetailsOtherLabel": "Other",
+  "@creditPaymentDetailsOtherLabel": {
+    "description": "Label for other part in credit payment details"
+  },
   "homeUpcomingPaymentsTitle": "Recurring payments",
   "@homeUpcomingPaymentsTitle": {
     "description": "Header for the upcoming payments widget"

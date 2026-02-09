@@ -4,7 +4,7 @@ import 'package:kopim/core/money/money.dart';
 part 'credit_payment_schedule.freezed.dart';
 
 @freezed
-class CreditPaymentScheduleEntity with _$CreditPaymentScheduleEntity {
+abstract class CreditPaymentScheduleEntity with _$CreditPaymentScheduleEntity {
   const factory CreditPaymentScheduleEntity({
     required String id,
     required String creditId,

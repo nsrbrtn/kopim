@@ -13,7 +13,6 @@ import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/accounts/domain/use_cases/add_account_use_case.dart';
 import 'package:kopim/features/accounts/presentation/account_details_screen.dart';
-import 'package:kopim/features/accounts/presentation/controllers/account_details_providers.dart';
 import 'package:kopim/features/accounts/presentation/accounts_add_screen.dart';
 import 'package:kopim/features/accounts/presentation/utils/account_card_gradients.dart';
 import 'package:kopim/features/app_shell/presentation/models/navigation_tab_content.dart';
@@ -23,6 +22,8 @@ import 'package:kopim/features/categories/presentation/utils/category_gradients.
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/features/credits/domain/entities/credit_card_entity.dart';
 import 'package:kopim/features/credits/domain/entities/credit_entity.dart';
+import 'package:kopim/features/credits/domain/entities/credit_payment_schedule.dart';
+import 'package:kopim/features/credits/presentation/controllers/credit_providers.dart';
 import 'package:kopim/features/credits/presentation/screens/credit_details_screen.dart';
 import 'package:kopim/features/tags/domain/entities/tag.dart';
 import 'package:kopim/features/credits/domain/utils/credit_card_calculations.dart';
@@ -1058,6 +1059,7 @@ class _AccountCard extends ConsumerWidget {
                       summaryTextStyle: summaryTextStyle,
                       summaryHeaderStyle: summaryHeaderStyle,
                       accountIcon: accountIcon,
+                      fallback: standardContent,
                     ),
                     'credit_card' => _CreditCardAccountContent(
                       account: account,
@@ -1430,6 +1432,7 @@ class _CreditCardContent extends ConsumerWidget {
     required this.summaryTextStyle,
     required this.summaryHeaderStyle,
     required this.accountIcon,
+    required this.fallback,
   });
 
   final AccountEntity account;
@@ -1441,18 +1444,13 @@ class _CreditCardContent extends ConsumerWidget {
   final TextStyle summaryTextStyle;
   final TextStyle summaryHeaderStyle;
   final PhosphorIconData? accountIcon;
+  final Widget fallback;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final Stream<List<CreditEntity>> creditsAsync = ref
         .watch(watchCreditsUseCaseProvider)
         .call();
-    final AsyncValue<List<TransactionEntity>> transactionsAsync = ref.watch(
-      accountTransactionsProvider(account.id),
-    );
-    final AsyncValue<List<Category>> categoriesAsync = ref.watch(
-      accountCategoriesProvider,
-    );
 
     return StreamBuilder<List<CreditEntity>>(
       stream: creditsAsync,
@@ -1463,25 +1461,19 @@ class _CreditCardContent extends ConsumerWidget {
             );
 
             if (credit == null) {
-              return const SizedBox();
+              return fallback;
             }
 
-            final List<Category> categories =
-                categoriesAsync.asData?.value ?? const <Category>[];
-            final Map<String, Category> categoriesById = <String, Category>{
-              for (final Category category in categories) category.id: category,
-            };
-            final List<TransactionEntity> transactions =
-                transactionsAsync.asData?.value ?? const <TransactionEntity>[];
-            final int paidPayments = _countPaidPayments(
-              transactions: transactions,
-              categoriesById: categoriesById,
-              creditCategoryId: credit.categoryId,
+            final List<CreditPaymentScheduleEntity> schedule =
+                ref.watch(creditScheduleProvider(credit.id)).asData?.value ??
+                const <CreditPaymentScheduleEntity>[];
+            final DateTime nextPaymentDate = _calculateNextPaymentDate(
+              credit,
+              schedule,
             );
-            final DateTime nextPaymentDate = _calculateNextPaymentDate(credit);
             final int remainingPayments = _calculateRemainingPayments(
               credit: credit,
-              paidPayments: paidPayments,
+              schedule: schedule,
             );
             final double progress =
                 (credit.totalAmountValue.toDouble() +
@@ -1574,7 +1566,25 @@ class _CreditCardContent extends ConsumerWidget {
     );
   }
 
-  DateTime _calculateNextPaymentDate(CreditEntity credit) {
+  DateTime _calculateNextPaymentDate(
+    CreditEntity credit,
+    List<CreditPaymentScheduleEntity> schedule,
+  ) {
+    final List<CreditPaymentScheduleEntity> upcoming = schedule
+        .where(
+          (CreditPaymentScheduleEntity item) =>
+              item.status == CreditPaymentStatus.planned ||
+              item.status == CreditPaymentStatus.partiallyPaid,
+        )
+        .toList(growable: false);
+    if (upcoming.isNotEmpty) {
+      upcoming.sort(
+        (CreditPaymentScheduleEntity a, CreditPaymentScheduleEntity b) =>
+            a.dueDate.compareTo(b.dueDate),
+      );
+      return DateUtils.dateOnly(upcoming.first.dueDate);
+    }
+
     final DateTime now = DateUtils.dateOnly(DateTime.now());
     final int paymentDay = credit.paymentDay;
 
@@ -1596,38 +1606,18 @@ class _CreditCardContent extends ConsumerWidget {
 
   int _calculateRemainingPayments({
     required CreditEntity credit,
-    required int paidPayments,
+    required List<CreditPaymentScheduleEntity> schedule,
   }) {
+    if (schedule.isNotEmpty) {
+      return schedule
+          .where((CreditPaymentScheduleEntity item) => !item.status.isPaid)
+          .length;
+    }
+    final int paidPayments = schedule
+        .where((CreditPaymentScheduleEntity item) => item.status.isPaid)
+        .length;
     final int remaining = credit.termMonths - paidPayments;
     return remaining > 0 ? remaining : 0;
-  }
-
-  int _countPaidPayments({
-    required List<TransactionEntity> transactions,
-    required Map<String, Category> categoriesById,
-    required String? creditCategoryId,
-  }) {
-    if (creditCategoryId == null || creditCategoryId.isEmpty) {
-      return 0;
-    }
-    final Iterable<TransactionEntity> paidPayments = transactions.where((
-      TransactionEntity transaction,
-    ) {
-      if (transaction.categoryId != creditCategoryId) {
-        return false;
-      }
-      if (transaction.type != TransactionType.expense.storageValue) {
-        return false;
-      }
-      final String categoryName =
-          categoriesById[transaction.categoryId]?.name ?? '';
-      final String note = transaction.note ?? '';
-      final String haystack = '$categoryName $note'.toLowerCase();
-      final bool isInterest =
-          haystack.contains('процент') || haystack.contains('interest');
-      return !isInterest;
-    });
-    return paidPayments.length;
   }
 }
 
@@ -1776,9 +1766,8 @@ List<_TransactionSliverEntry> _buildTransactionEntries(
     entries.add(_TransactionHeaderEntry(title: title, netAmount: netAmount));
     for (final FeedItem item in section.items) {
       item.when(
-        transaction: (TransactionEntity transaction) => entries.add(
-          _TransactionItemEntry(transactionId: transaction.id),
-        ),
+        transaction: (TransactionEntity transaction) =>
+            entries.add(_TransactionItemEntry(transactionId: transaction.id)),
         groupedCreditPayment:
             (
               String groupId,
@@ -1787,12 +1776,11 @@ List<_TransactionSliverEntry> _buildTransactionEntries(
               Money totalOutflow,
               DateTime date,
               String? note,
-            ) =>
-                entries.add(
-                  _TransactionGroupEntry(
-                    item: item as GroupedCreditPaymentFeedItem,
-                  ),
-                ),
+            ) => entries.add(
+              _TransactionGroupEntry(
+                item: item as GroupedCreditPaymentFeedItem,
+              ),
+            ),
       );
     }
   }

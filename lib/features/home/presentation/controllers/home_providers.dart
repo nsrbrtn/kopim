@@ -1,8 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
+import 'package:kopim/features/credits/domain/entities/credit_card_entity.dart';
+import 'package:kopim/features/credits/domain/entities/credit_entity.dart';
 import 'package:kopim/features/home/domain/models/day_section.dart';
 import 'package:kopim/features/home/domain/models/home_account_monthly_summary.dart';
 import 'package:kopim/features/home/domain/models/home_overview_summary.dart';
@@ -23,7 +27,36 @@ const int kDefaultRecentTransactionsLimit = 30;
 
 @riverpod
 Stream<List<AccountEntity>> homeAccounts(Ref ref) {
-  return ref.watch(watchAccountsUseCaseProvider).call().map(_sortAccounts);
+  return _combineLatest3(
+    ref.watch(watchAccountsUseCaseProvider).call(),
+    ref.watch(watchCreditsUseCaseProvider).call(),
+    ref.watch(watchCreditCardsUseCaseProvider).call(),
+    (
+      List<AccountEntity> accounts,
+      List<CreditEntity> credits,
+      List<CreditCardEntity> creditCards,
+    ) {
+      final Set<String> creditAccountIds = <String>{
+        for (final CreditEntity credit in credits) credit.accountId,
+      };
+      final Set<String> creditCardAccountIds = <String>{
+        for (final CreditCardEntity creditCard in creditCards)
+          creditCard.accountId,
+      };
+      final List<AccountEntity> filtered = accounts
+          .where((AccountEntity account) {
+            if (account.type == 'credit') {
+              return creditAccountIds.contains(account.id);
+            }
+            if (account.type == 'credit_card') {
+              return creditCardAccountIds.contains(account.id);
+            }
+            return true;
+          })
+          .toList(growable: false);
+      return _sortAccounts(filtered);
+    },
+  );
 }
 
 @riverpod
@@ -279,4 +312,72 @@ class _IndexedAccount {
 
   final AccountEntity account;
   final int index;
+}
+
+Stream<T> _combineLatest3<A, B, C, T>(
+  Stream<A> a,
+  Stream<B> b,
+  Stream<C> c,
+  T Function(A, B, C) mapper,
+) {
+  late StreamController<T> controller;
+  A? lastA;
+  B? lastB;
+  C? lastC;
+  bool hasA = false;
+  bool hasB = false;
+  bool hasC = false;
+
+  void emitIfReady() {
+    if (hasA && hasB && hasC) {
+      controller.add(mapper(lastA as A, lastB as B, lastC as C));
+    }
+  }
+
+  controller = StreamController<T>(
+    onListen: () {
+      int doneCount = 0;
+      void handleDone() {
+        doneCount += 1;
+        if (doneCount >= 3 && !controller.isClosed) {
+          controller.close();
+        }
+      }
+
+      final StreamSubscription<A> subA = a.listen(
+        (A value) {
+          lastA = value;
+          hasA = true;
+          emitIfReady();
+        },
+        onError: controller.addError,
+        onDone: handleDone,
+      );
+      final StreamSubscription<B> subB = b.listen(
+        (B value) {
+          lastB = value;
+          hasB = true;
+          emitIfReady();
+        },
+        onError: controller.addError,
+        onDone: handleDone,
+      );
+      final StreamSubscription<C> subC = c.listen(
+        (C value) {
+          lastC = value;
+          hasC = true;
+          emitIfReady();
+        },
+        onError: controller.addError,
+        onDone: handleDone,
+      );
+      controller.onCancel = () async {
+        await subA.cancel();
+        await subB.cancel();
+        await subC.cancel();
+      };
+    },
+  );
+
+  return controller.stream;
 }

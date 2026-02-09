@@ -227,7 +227,13 @@ final StreamProvider<List<AccountEntity>> transactionFormAccountsProvider =
 
 final StreamProvider<List<Category>> transactionFormCategoriesProvider =
     StreamProvider.autoDispose<List<Category>>((Ref ref) {
-      return ref.watch(watchCategoriesUseCaseProvider).call();
+      return ref.watch(watchCategoriesUseCaseProvider).call().map((
+        List<Category> categories,
+      ) {
+        return categories
+            .where((Category category) => !category.isHidden)
+            .toList(growable: false);
+      });
     });
 
 final StreamProvider<List<TagEntity>> transactionFormTagsProvider =

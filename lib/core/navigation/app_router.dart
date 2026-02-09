@@ -25,6 +25,7 @@ import 'package:kopim/features/credits/presentation/screens/credits_screen.dart'
 import 'package:kopim/features/credits/presentation/screens/add_edit_credit_screen.dart';
 import 'package:kopim/features/credits/presentation/screens/add_edit_debt_screen.dart';
 import 'package:kopim/features/credits/presentation/screens/credit_details_screen.dart';
+import 'package:kopim/features/credits/presentation/screens/credit_payment_details_screen.dart';
 import 'package:kopim/features/profile/presentation/screens/profile_screen.dart';
 import 'package:kopim/features/profile/presentation/screens/sign_in_screen.dart';
 import 'package:kopim/features/savings/presentation/screens/savings_list_screen.dart';
@@ -198,6 +199,18 @@ final Provider<GoRouter> appRouterProvider = Provider<GoRouter>((Ref ref) {
             return const CreditsScreen();
           }
           return CreditDetailsScreen(credit: credit);
+        },
+      ),
+      GoRoute(
+        path: CreditPaymentDetailsScreen.routeName,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (BuildContext context, GoRouterState state) {
+          final CreditPaymentDetailsScreenArgs? args =
+              state.extra as CreditPaymentDetailsScreenArgs?;
+          if (args == null) {
+            return const CreditsScreen();
+          }
+          return CreditPaymentDetailsScreen(args: args);
         },
       ),
       GoRoute(

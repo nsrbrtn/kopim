@@ -1178,6 +1178,21 @@ class $CategoriesTable extends Categories
     ),
     defaultValue: const Constant<bool>(false),
   );
+  static const VerificationMeta _isHiddenMeta = const VerificationMeta(
+    'isHidden',
+  );
+  @override
+  late final GeneratedColumn<bool> isHidden = GeneratedColumn<bool>(
+    'is_hidden',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_hidden" IN (0, 1))',
+    ),
+    defaultValue: const Constant<bool>(false),
+  );
   static const VerificationMeta _isFavoriteMeta = const VerificationMeta(
     'isFavorite',
   );
@@ -1207,6 +1222,7 @@ class $CategoriesTable extends Categories
     updatedAt,
     isDeleted,
     isSystem,
+    isHidden,
     isFavorite,
   ];
   @override
@@ -1296,6 +1312,12 @@ class $CategoriesTable extends Categories
         isSystem.isAcceptableOrUnknown(data['is_system']!, _isSystemMeta),
       );
     }
+    if (data.containsKey('is_hidden')) {
+      context.handle(
+        _isHiddenMeta,
+        isHidden.isAcceptableOrUnknown(data['is_hidden']!, _isHiddenMeta),
+      );
+    }
     if (data.containsKey('is_favorite')) {
       context.handle(
         _isFavoriteMeta,
@@ -1359,6 +1381,10 @@ class $CategoriesTable extends Categories
         DriftSqlType.bool,
         data['${effectivePrefix}is_system'],
       )!,
+      isHidden: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_hidden'],
+      )!,
       isFavorite: attachedDatabase.typeMapping.read(
         DriftSqlType.bool,
         data['${effectivePrefix}is_favorite'],
@@ -1385,6 +1411,7 @@ class CategoryRow extends DataClass implements Insertable<CategoryRow> {
   final DateTime updatedAt;
   final bool isDeleted;
   final bool isSystem;
+  final bool isHidden;
   final bool isFavorite;
   const CategoryRow({
     required this.id,
@@ -1399,6 +1426,7 @@ class CategoryRow extends DataClass implements Insertable<CategoryRow> {
     required this.updatedAt,
     required this.isDeleted,
     required this.isSystem,
+    required this.isHidden,
     required this.isFavorite,
   });
   @override
@@ -1426,6 +1454,7 @@ class CategoryRow extends DataClass implements Insertable<CategoryRow> {
     map['updated_at'] = Variable<DateTime>(updatedAt);
     map['is_deleted'] = Variable<bool>(isDeleted);
     map['is_system'] = Variable<bool>(isSystem);
+    map['is_hidden'] = Variable<bool>(isHidden);
     map['is_favorite'] = Variable<bool>(isFavorite);
     return map;
   }
@@ -1452,6 +1481,7 @@ class CategoryRow extends DataClass implements Insertable<CategoryRow> {
       updatedAt: Value(updatedAt),
       isDeleted: Value(isDeleted),
       isSystem: Value(isSystem),
+      isHidden: Value(isHidden),
       isFavorite: Value(isFavorite),
     );
   }
@@ -1474,6 +1504,7 @@ class CategoryRow extends DataClass implements Insertable<CategoryRow> {
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       isDeleted: serializer.fromJson<bool>(json['isDeleted']),
       isSystem: serializer.fromJson<bool>(json['isSystem']),
+      isHidden: serializer.fromJson<bool>(json['isHidden']),
       isFavorite: serializer.fromJson<bool>(json['isFavorite']),
     );
   }
@@ -1493,6 +1524,7 @@ class CategoryRow extends DataClass implements Insertable<CategoryRow> {
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'isDeleted': serializer.toJson<bool>(isDeleted),
       'isSystem': serializer.toJson<bool>(isSystem),
+      'isHidden': serializer.toJson<bool>(isHidden),
       'isFavorite': serializer.toJson<bool>(isFavorite),
     };
   }
@@ -1510,6 +1542,7 @@ class CategoryRow extends DataClass implements Insertable<CategoryRow> {
     DateTime? updatedAt,
     bool? isDeleted,
     bool? isSystem,
+    bool? isHidden,
     bool? isFavorite,
   }) => CategoryRow(
     id: id ?? this.id,
@@ -1524,6 +1557,7 @@ class CategoryRow extends DataClass implements Insertable<CategoryRow> {
     updatedAt: updatedAt ?? this.updatedAt,
     isDeleted: isDeleted ?? this.isDeleted,
     isSystem: isSystem ?? this.isSystem,
+    isHidden: isHidden ?? this.isHidden,
     isFavorite: isFavorite ?? this.isFavorite,
   );
   CategoryRow copyWithCompanion(CategoriesCompanion data) {
@@ -1540,6 +1574,7 @@ class CategoryRow extends DataClass implements Insertable<CategoryRow> {
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       isDeleted: data.isDeleted.present ? data.isDeleted.value : this.isDeleted,
       isSystem: data.isSystem.present ? data.isSystem.value : this.isSystem,
+      isHidden: data.isHidden.present ? data.isHidden.value : this.isHidden,
       isFavorite: data.isFavorite.present
           ? data.isFavorite.value
           : this.isFavorite,
@@ -1561,6 +1596,7 @@ class CategoryRow extends DataClass implements Insertable<CategoryRow> {
           ..write('updatedAt: $updatedAt, ')
           ..write('isDeleted: $isDeleted, ')
           ..write('isSystem: $isSystem, ')
+          ..write('isHidden: $isHidden, ')
           ..write('isFavorite: $isFavorite')
           ..write(')'))
         .toString();
@@ -1580,6 +1616,7 @@ class CategoryRow extends DataClass implements Insertable<CategoryRow> {
     updatedAt,
     isDeleted,
     isSystem,
+    isHidden,
     isFavorite,
   );
   @override
@@ -1598,6 +1635,7 @@ class CategoryRow extends DataClass implements Insertable<CategoryRow> {
           other.updatedAt == this.updatedAt &&
           other.isDeleted == this.isDeleted &&
           other.isSystem == this.isSystem &&
+          other.isHidden == this.isHidden &&
           other.isFavorite == this.isFavorite);
 }
 
@@ -1614,6 +1652,7 @@ class CategoriesCompanion extends UpdateCompanion<CategoryRow> {
   final Value<DateTime> updatedAt;
   final Value<bool> isDeleted;
   final Value<bool> isSystem;
+  final Value<bool> isHidden;
   final Value<bool> isFavorite;
   final Value<int> rowid;
   const CategoriesCompanion({
@@ -1629,6 +1668,7 @@ class CategoriesCompanion extends UpdateCompanion<CategoryRow> {
     this.updatedAt = const Value.absent(),
     this.isDeleted = const Value.absent(),
     this.isSystem = const Value.absent(),
+    this.isHidden = const Value.absent(),
     this.isFavorite = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -1645,6 +1685,7 @@ class CategoriesCompanion extends UpdateCompanion<CategoryRow> {
     this.updatedAt = const Value.absent(),
     this.isDeleted = const Value.absent(),
     this.isSystem = const Value.absent(),
+    this.isHidden = const Value.absent(),
     this.isFavorite = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
@@ -1663,6 +1704,7 @@ class CategoriesCompanion extends UpdateCompanion<CategoryRow> {
     Expression<DateTime>? updatedAt,
     Expression<bool>? isDeleted,
     Expression<bool>? isSystem,
+    Expression<bool>? isHidden,
     Expression<bool>? isFavorite,
     Expression<int>? rowid,
   }) {
@@ -1679,6 +1721,7 @@ class CategoriesCompanion extends UpdateCompanion<CategoryRow> {
       if (updatedAt != null) 'updated_at': updatedAt,
       if (isDeleted != null) 'is_deleted': isDeleted,
       if (isSystem != null) 'is_system': isSystem,
+      if (isHidden != null) 'is_hidden': isHidden,
       if (isFavorite != null) 'is_favorite': isFavorite,
       if (rowid != null) 'rowid': rowid,
     });
@@ -1697,6 +1740,7 @@ class CategoriesCompanion extends UpdateCompanion<CategoryRow> {
     Value<DateTime>? updatedAt,
     Value<bool>? isDeleted,
     Value<bool>? isSystem,
+    Value<bool>? isHidden,
     Value<bool>? isFavorite,
     Value<int>? rowid,
   }) {
@@ -1713,6 +1757,7 @@ class CategoriesCompanion extends UpdateCompanion<CategoryRow> {
       updatedAt: updatedAt ?? this.updatedAt,
       isDeleted: isDeleted ?? this.isDeleted,
       isSystem: isSystem ?? this.isSystem,
+      isHidden: isHidden ?? this.isHidden,
       isFavorite: isFavorite ?? this.isFavorite,
       rowid: rowid ?? this.rowid,
     );
@@ -1757,6 +1802,9 @@ class CategoriesCompanion extends UpdateCompanion<CategoryRow> {
     if (isSystem.present) {
       map['is_system'] = Variable<bool>(isSystem.value);
     }
+    if (isHidden.present) {
+      map['is_hidden'] = Variable<bool>(isHidden.value);
+    }
     if (isFavorite.present) {
       map['is_favorite'] = Variable<bool>(isFavorite.value);
     }
@@ -1781,6 +1829,7 @@ class CategoriesCompanion extends UpdateCompanion<CategoryRow> {
           ..write('updatedAt: $updatedAt, ')
           ..write('isDeleted: $isDeleted, ')
           ..write('isSystem: $isSystem, ')
+          ..write('isHidden: $isHidden, ')
           ..write('isFavorite: $isFavorite, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -13383,11 +13432,48 @@ final class $$AccountsTableReferences
     extends BaseReferences<_$AppDatabase, $AccountsTable, AccountRow> {
   $$AccountsTableReferences(super.$_db, super.$_table, super.$_typedResult);
 
+  static MultiTypedResultKey<$CreditsTable, List<CreditRow>>
+  _creditAccountTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.credits,
+    aliasName: $_aliasNameGenerator(db.accounts.id, db.credits.accountId),
+  );
+
+  $$CreditsTableProcessedTableManager get creditAccount {
+    final manager = $$CreditsTableTableManager(
+      $_db,
+      $_db.credits,
+    ).filter((f) => f.accountId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_creditAccountTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$CreditsTable, List<CreditRow>>
+  _creditTargetAccountTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.credits,
+    aliasName: $_aliasNameGenerator(db.accounts.id, db.credits.targetAccountId),
+  );
+
+  $$CreditsTableProcessedTableManager get creditTargetAccount {
+    final manager = $$CreditsTableTableManager($_db, $_db.credits).filter(
+      (f) => f.targetAccountId.id.sqlEquals($_itemColumn<String>('id')!),
+    );
+
+    final cache = $_typedResult.readTableOrNull(
+      _creditTargetAccountTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
   static MultiTypedResultKey<
     $CreditPaymentGroupsTable,
     List<CreditPaymentGroupRow>
   >
-  _creditPaymentGroupsRefsTable(_$AppDatabase db) =>
+  _creditPaymentSourceAccountTable(_$AppDatabase db) =>
       MultiTypedResultKey.fromTable(
         db.creditPaymentGroups,
         aliasName: $_aliasNameGenerator(
@@ -13396,7 +13482,8 @@ final class $$AccountsTableReferences
         ),
       );
 
-  $$CreditPaymentGroupsTableProcessedTableManager get creditPaymentGroupsRefs {
+  $$CreditPaymentGroupsTableProcessedTableManager
+  get creditPaymentSourceAccount {
     final manager =
         $$CreditPaymentGroupsTableTableManager(
           $_db,
@@ -13406,7 +13493,51 @@ final class $$AccountsTableReferences
         );
 
     final cache = $_typedResult.readTableOrNull(
-      _creditPaymentGroupsRefsTable($_db),
+      _creditPaymentSourceAccountTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$TransactionsTable, List<TransactionRow>>
+  _transactionsAccountTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.transactions,
+    aliasName: $_aliasNameGenerator(db.accounts.id, db.transactions.accountId),
+  );
+
+  $$TransactionsTableProcessedTableManager get transactionsAccount {
+    final manager = $$TransactionsTableTableManager(
+      $_db,
+      $_db.transactions,
+    ).filter((f) => f.accountId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _transactionsAccountTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$TransactionsTable, List<TransactionRow>>
+  _transactionsTransferAccountTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.transactions,
+        aliasName: $_aliasNameGenerator(
+          db.accounts.id,
+          db.transactions.transferAccountId,
+        ),
+      );
+
+  $$TransactionsTableProcessedTableManager get transactionsTransferAccount {
+    final manager = $$TransactionsTableTableManager($_db, $_db.transactions)
+        .filter(
+          (f) => f.transferAccountId.id.sqlEquals($_itemColumn<String>('id')!),
+        );
+
+    final cache = $_typedResult.readTableOrNull(
+      _transactionsTransferAccountTable($_db),
     );
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
@@ -13436,38 +13567,38 @@ final class $$AccountsTableReferences
     );
   }
 
-  static MultiTypedResultKey<$DebtsTable, List<DebtRow>> _debtsRefsTable(
+  static MultiTypedResultKey<$DebtsTable, List<DebtRow>> _debtAccountTable(
     _$AppDatabase db,
   ) => MultiTypedResultKey.fromTable(
     db.debts,
     aliasName: $_aliasNameGenerator(db.accounts.id, db.debts.accountId),
   );
 
-  $$DebtsTableProcessedTableManager get debtsRefs {
+  $$DebtsTableProcessedTableManager get debtAccount {
     final manager = $$DebtsTableTableManager(
       $_db,
       $_db.debts,
     ).filter((f) => f.accountId.id.sqlEquals($_itemColumn<String>('id')!));
 
-    final cache = $_typedResult.readTableOrNull(_debtsRefsTable($_db));
+    final cache = $_typedResult.readTableOrNull(_debtAccountTable($_db));
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
     );
   }
 
   static MultiTypedResultKey<$CreditCardsTable, List<CreditCardRow>>
-  _creditCardsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+  _creditCardAccountTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
     db.creditCards,
     aliasName: $_aliasNameGenerator(db.accounts.id, db.creditCards.accountId),
   );
 
-  $$CreditCardsTableProcessedTableManager get creditCardsRefs {
+  $$CreditCardsTableProcessedTableManager get creditCardAccount {
     final manager = $$CreditCardsTableTableManager(
       $_db,
       $_db.creditCards,
     ).filter((f) => f.accountId.id.sqlEquals($_itemColumn<String>('id')!));
 
-    final cache = $_typedResult.readTableOrNull(_creditCardsRefsTable($_db));
+    final cache = $_typedResult.readTableOrNull(_creditCardAccountTable($_db));
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
     );
@@ -13573,7 +13704,57 @@ class $$AccountsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  Expression<bool> creditPaymentGroupsRefs(
+  Expression<bool> creditAccount(
+    Expression<bool> Function($$CreditsTableFilterComposer f) f,
+  ) {
+    final $$CreditsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.credits,
+      getReferencedColumn: (t) => t.accountId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CreditsTableFilterComposer(
+            $db: $db,
+            $table: $db.credits,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> creditTargetAccount(
+    Expression<bool> Function($$CreditsTableFilterComposer f) f,
+  ) {
+    final $$CreditsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.credits,
+      getReferencedColumn: (t) => t.targetAccountId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CreditsTableFilterComposer(
+            $db: $db,
+            $table: $db.credits,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> creditPaymentSourceAccount(
     Expression<bool> Function($$CreditPaymentGroupsTableFilterComposer f) f,
   ) {
     final $$CreditPaymentGroupsTableFilterComposer composer = $composerBuilder(
@@ -13589,6 +13770,56 @@ class $$AccountsTableFilterComposer
           }) => $$CreditPaymentGroupsTableFilterComposer(
             $db: $db,
             $table: $db.creditPaymentGroups,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> transactionsAccount(
+    Expression<bool> Function($$TransactionsTableFilterComposer f) f,
+  ) {
+    final $$TransactionsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.transactions,
+      getReferencedColumn: (t) => t.accountId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TransactionsTableFilterComposer(
+            $db: $db,
+            $table: $db.transactions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> transactionsTransferAccount(
+    Expression<bool> Function($$TransactionsTableFilterComposer f) f,
+  ) {
+    final $$TransactionsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.transactions,
+      getReferencedColumn: (t) => t.transferAccountId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TransactionsTableFilterComposer(
+            $db: $db,
+            $table: $db.transactions,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -13623,7 +13854,7 @@ class $$AccountsTableFilterComposer
     return f(composer);
   }
 
-  Expression<bool> debtsRefs(
+  Expression<bool> debtAccount(
     Expression<bool> Function($$DebtsTableFilterComposer f) f,
   ) {
     final $$DebtsTableFilterComposer composer = $composerBuilder(
@@ -13648,7 +13879,7 @@ class $$AccountsTableFilterComposer
     return f(composer);
   }
 
-  Expression<bool> creditCardsRefs(
+  Expression<bool> creditCardAccount(
     Expression<bool> Function($$CreditCardsTableFilterComposer f) f,
   ) {
     final $$CreditCardsTableFilterComposer composer = $composerBuilder(
@@ -13847,7 +14078,57 @@ class $$AccountsTableAnnotationComposer
   GeneratedColumn<String> get iconStyle =>
       $composableBuilder(column: $table.iconStyle, builder: (column) => column);
 
-  Expression<T> creditPaymentGroupsRefs<T extends Object>(
+  Expression<T> creditAccount<T extends Object>(
+    Expression<T> Function($$CreditsTableAnnotationComposer a) f,
+  ) {
+    final $$CreditsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.credits,
+      getReferencedColumn: (t) => t.accountId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CreditsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.credits,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<T> creditTargetAccount<T extends Object>(
+    Expression<T> Function($$CreditsTableAnnotationComposer a) f,
+  ) {
+    final $$CreditsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.credits,
+      getReferencedColumn: (t) => t.targetAccountId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CreditsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.credits,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<T> creditPaymentSourceAccount<T extends Object>(
     Expression<T> Function($$CreditPaymentGroupsTableAnnotationComposer a) f,
   ) {
     final $$CreditPaymentGroupsTableAnnotationComposer composer =
@@ -13870,6 +14151,56 @@ class $$AccountsTableAnnotationComposer
                     $removeJoinBuilderFromRootComposer,
               ),
         );
+    return f(composer);
+  }
+
+  Expression<T> transactionsAccount<T extends Object>(
+    Expression<T> Function($$TransactionsTableAnnotationComposer a) f,
+  ) {
+    final $$TransactionsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.transactions,
+      getReferencedColumn: (t) => t.accountId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TransactionsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.transactions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<T> transactionsTransferAccount<T extends Object>(
+    Expression<T> Function($$TransactionsTableAnnotationComposer a) f,
+  ) {
+    final $$TransactionsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.transactions,
+      getReferencedColumn: (t) => t.transferAccountId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TransactionsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.transactions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
     return f(composer);
   }
 
@@ -13898,7 +14229,7 @@ class $$AccountsTableAnnotationComposer
     return f(composer);
   }
 
-  Expression<T> debtsRefs<T extends Object>(
+  Expression<T> debtAccount<T extends Object>(
     Expression<T> Function($$DebtsTableAnnotationComposer a) f,
   ) {
     final $$DebtsTableAnnotationComposer composer = $composerBuilder(
@@ -13923,7 +14254,7 @@ class $$AccountsTableAnnotationComposer
     return f(composer);
   }
 
-  Expression<T> creditCardsRefs<T extends Object>(
+  Expression<T> creditCardAccount<T extends Object>(
     Expression<T> Function($$CreditCardsTableAnnotationComposer a) f,
   ) {
     final $$CreditCardsTableAnnotationComposer composer = $composerBuilder(
@@ -13963,10 +14294,14 @@ class $$AccountsTableTableManager
           (AccountRow, $$AccountsTableReferences),
           AccountRow,
           PrefetchHooks Function({
-            bool creditPaymentGroupsRefs,
+            bool creditAccount,
+            bool creditTargetAccount,
+            bool creditPaymentSourceAccount,
+            bool transactionsAccount,
+            bool transactionsTransferAccount,
             bool upcomingPaymentsRefs,
-            bool debtsRefs,
-            bool creditCardsRefs,
+            bool debtAccount,
+            bool creditCardAccount,
           })
         > {
   $$AccountsTableTableManager(_$AppDatabase db, $AccountsTable table)
@@ -14074,23 +14409,73 @@ class $$AccountsTableTableManager
               .toList(),
           prefetchHooksCallback:
               ({
-                creditPaymentGroupsRefs = false,
+                creditAccount = false,
+                creditTargetAccount = false,
+                creditPaymentSourceAccount = false,
+                transactionsAccount = false,
+                transactionsTransferAccount = false,
                 upcomingPaymentsRefs = false,
-                debtsRefs = false,
-                creditCardsRefs = false,
+                debtAccount = false,
+                creditCardAccount = false,
               }) {
                 return PrefetchHooks(
                   db: db,
                   explicitlyWatchedTables: [
-                    if (creditPaymentGroupsRefs) db.creditPaymentGroups,
+                    if (creditAccount) db.credits,
+                    if (creditTargetAccount) db.credits,
+                    if (creditPaymentSourceAccount) db.creditPaymentGroups,
+                    if (transactionsAccount) db.transactions,
+                    if (transactionsTransferAccount) db.transactions,
                     if (upcomingPaymentsRefs) db.upcomingPayments,
-                    if (debtsRefs) db.debts,
-                    if (creditCardsRefs) db.creditCards,
+                    if (debtAccount) db.debts,
+                    if (creditCardAccount) db.creditCards,
                   ],
                   addJoins: null,
                   getPrefetchedDataCallback: (items) async {
                     return [
-                      if (creditPaymentGroupsRefs)
+                      if (creditAccount)
+                        await $_getPrefetchedData<
+                          AccountRow,
+                          $AccountsTable,
+                          CreditRow
+                        >(
+                          currentTable: table,
+                          referencedTable: $$AccountsTableReferences
+                              ._creditAccountTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$AccountsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).creditAccount,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.accountId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (creditTargetAccount)
+                        await $_getPrefetchedData<
+                          AccountRow,
+                          $AccountsTable,
+                          CreditRow
+                        >(
+                          currentTable: table,
+                          referencedTable: $$AccountsTableReferences
+                              ._creditTargetAccountTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$AccountsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).creditTargetAccount,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.targetAccountId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (creditPaymentSourceAccount)
                         await $_getPrefetchedData<
                           AccountRow,
                           $AccountsTable,
@@ -14098,16 +14483,58 @@ class $$AccountsTableTableManager
                         >(
                           currentTable: table,
                           referencedTable: $$AccountsTableReferences
-                              ._creditPaymentGroupsRefsTable(db),
+                              ._creditPaymentSourceAccountTable(db),
                           managerFromTypedResult: (p0) =>
                               $$AccountsTableReferences(
                                 db,
                                 table,
                                 p0,
-                              ).creditPaymentGroupsRefs,
+                              ).creditPaymentSourceAccount,
                           referencedItemsForCurrentItem:
                               (item, referencedItems) => referencedItems.where(
                                 (e) => e.sourceAccountId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (transactionsAccount)
+                        await $_getPrefetchedData<
+                          AccountRow,
+                          $AccountsTable,
+                          TransactionRow
+                        >(
+                          currentTable: table,
+                          referencedTable: $$AccountsTableReferences
+                              ._transactionsAccountTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$AccountsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).transactionsAccount,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.accountId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (transactionsTransferAccount)
+                        await $_getPrefetchedData<
+                          AccountRow,
+                          $AccountsTable,
+                          TransactionRow
+                        >(
+                          currentTable: table,
+                          referencedTable: $$AccountsTableReferences
+                              ._transactionsTransferAccountTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$AccountsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).transactionsTransferAccount,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.transferAccountId == item.id,
                               ),
                           typedResults: items,
                         ),
@@ -14132,7 +14559,7 @@ class $$AccountsTableTableManager
                               ),
                           typedResults: items,
                         ),
-                      if (debtsRefs)
+                      if (debtAccount)
                         await $_getPrefetchedData<
                           AccountRow,
                           $AccountsTable,
@@ -14140,20 +14567,20 @@ class $$AccountsTableTableManager
                         >(
                           currentTable: table,
                           referencedTable: $$AccountsTableReferences
-                              ._debtsRefsTable(db),
+                              ._debtAccountTable(db),
                           managerFromTypedResult: (p0) =>
                               $$AccountsTableReferences(
                                 db,
                                 table,
                                 p0,
-                              ).debtsRefs,
+                              ).debtAccount,
                           referencedItemsForCurrentItem:
                               (item, referencedItems) => referencedItems.where(
                                 (e) => e.accountId == item.id,
                               ),
                           typedResults: items,
                         ),
-                      if (creditCardsRefs)
+                      if (creditCardAccount)
                         await $_getPrefetchedData<
                           AccountRow,
                           $AccountsTable,
@@ -14161,13 +14588,13 @@ class $$AccountsTableTableManager
                         >(
                           currentTable: table,
                           referencedTable: $$AccountsTableReferences
-                              ._creditCardsRefsTable(db),
+                              ._creditCardAccountTable(db),
                           managerFromTypedResult: (p0) =>
                               $$AccountsTableReferences(
                                 db,
                                 table,
                                 p0,
-                              ).creditCardsRefs,
+                              ).creditCardAccount,
                           referencedItemsForCurrentItem:
                               (item, referencedItems) => referencedItems.where(
                                 (e) => e.accountId == item.id,
@@ -14195,10 +14622,14 @@ typedef $$AccountsTableProcessedTableManager =
       (AccountRow, $$AccountsTableReferences),
       AccountRow,
       PrefetchHooks Function({
-        bool creditPaymentGroupsRefs,
+        bool creditAccount,
+        bool creditTargetAccount,
+        bool creditPaymentSourceAccount,
+        bool transactionsAccount,
+        bool transactionsTransferAccount,
         bool upcomingPaymentsRefs,
-        bool debtsRefs,
-        bool creditCardsRefs,
+        bool debtAccount,
+        bool creditCardAccount,
       })
     >;
 typedef $$CategoriesTableCreateCompanionBuilder =
@@ -14215,6 +14646,7 @@ typedef $$CategoriesTableCreateCompanionBuilder =
       Value<DateTime> updatedAt,
       Value<bool> isDeleted,
       Value<bool> isSystem,
+      Value<bool> isHidden,
       Value<bool> isFavorite,
       Value<int> rowid,
     });
@@ -14232,6 +14664,7 @@ typedef $$CategoriesTableUpdateCompanionBuilder =
       Value<DateTime> updatedAt,
       Value<bool> isDeleted,
       Value<bool> isSystem,
+      Value<bool> isHidden,
       Value<bool> isFavorite,
       Value<int> rowid,
     });
@@ -14240,8 +14673,70 @@ final class $$CategoriesTableReferences
     extends BaseReferences<_$AppDatabase, $CategoriesTable, CategoryRow> {
   $$CategoriesTableReferences(super.$_db, super.$_table, super.$_typedResult);
 
+  static MultiTypedResultKey<$CreditsTable, List<CreditRow>>
+  _creditCategoryTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.credits,
+    aliasName: $_aliasNameGenerator(db.categories.id, db.credits.categoryId),
+  );
+
+  $$CreditsTableProcessedTableManager get creditCategory {
+    final manager = $$CreditsTableTableManager(
+      $_db,
+      $_db.credits,
+    ).filter((f) => f.categoryId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_creditCategoryTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$CreditsTable, List<CreditRow>>
+  _creditInterestCategoryTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.credits,
+        aliasName: $_aliasNameGenerator(
+          db.categories.id,
+          db.credits.interestCategoryId,
+        ),
+      );
+
+  $$CreditsTableProcessedTableManager get creditInterestCategory {
+    final manager = $$CreditsTableTableManager($_db, $_db.credits).filter(
+      (f) => f.interestCategoryId.id.sqlEquals($_itemColumn<String>('id')!),
+    );
+
+    final cache = $_typedResult.readTableOrNull(
+      _creditInterestCategoryTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$CreditsTable, List<CreditRow>>
+  _creditFeesCategoryTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.credits,
+    aliasName: $_aliasNameGenerator(
+      db.categories.id,
+      db.credits.feesCategoryId,
+    ),
+  );
+
+  $$CreditsTableProcessedTableManager get creditFeesCategory {
+    final manager = $$CreditsTableTableManager(
+      $_db,
+      $_db.credits,
+    ).filter((f) => f.feesCategoryId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_creditFeesCategoryTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
   static MultiTypedResultKey<$TransactionsTable, List<TransactionRow>>
-  _transactionsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+  _transactionsCategoryTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
     db.transactions,
     aliasName: $_aliasNameGenerator(
       db.categories.id,
@@ -14249,13 +14744,15 @@ final class $$CategoriesTableReferences
     ),
   );
 
-  $$TransactionsTableProcessedTableManager get transactionsRefs {
+  $$TransactionsTableProcessedTableManager get transactionsCategory {
     final manager = $$TransactionsTableTableManager(
       $_db,
       $_db.transactions,
     ).filter((f) => f.categoryId.id.sqlEquals($_itemColumn<String>('id')!));
 
-    final cache = $_typedResult.readTableOrNull(_transactionsRefsTable($_db));
+    final cache = $_typedResult.readTableOrNull(
+      _transactionsCategoryTable($_db),
+    );
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
     );
@@ -14354,12 +14851,92 @@ class $$CategoriesTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<bool> get isHidden => $composableBuilder(
+    column: $table.isHidden,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<bool> get isFavorite => $composableBuilder(
     column: $table.isFavorite,
     builder: (column) => ColumnFilters(column),
   );
 
-  Expression<bool> transactionsRefs(
+  Expression<bool> creditCategory(
+    Expression<bool> Function($$CreditsTableFilterComposer f) f,
+  ) {
+    final $$CreditsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.credits,
+      getReferencedColumn: (t) => t.categoryId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CreditsTableFilterComposer(
+            $db: $db,
+            $table: $db.credits,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> creditInterestCategory(
+    Expression<bool> Function($$CreditsTableFilterComposer f) f,
+  ) {
+    final $$CreditsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.credits,
+      getReferencedColumn: (t) => t.interestCategoryId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CreditsTableFilterComposer(
+            $db: $db,
+            $table: $db.credits,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> creditFeesCategory(
+    Expression<bool> Function($$CreditsTableFilterComposer f) f,
+  ) {
+    final $$CreditsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.credits,
+      getReferencedColumn: (t) => t.feesCategoryId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CreditsTableFilterComposer(
+            $db: $db,
+            $table: $db.credits,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> transactionsCategory(
     Expression<bool> Function($$TransactionsTableFilterComposer f) f,
   ) {
     final $$TransactionsTableFilterComposer composer = $composerBuilder(
@@ -14479,6 +15056,11 @@ class $$CategoriesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<bool> get isHidden => $composableBuilder(
+    column: $table.isHidden,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<bool> get isFavorite => $composableBuilder(
     column: $table.isFavorite,
     builder: (column) => ColumnOrderings(column),
@@ -14530,12 +15112,90 @@ class $$CategoriesTableAnnotationComposer
   GeneratedColumn<bool> get isSystem =>
       $composableBuilder(column: $table.isSystem, builder: (column) => column);
 
+  GeneratedColumn<bool> get isHidden =>
+      $composableBuilder(column: $table.isHidden, builder: (column) => column);
+
   GeneratedColumn<bool> get isFavorite => $composableBuilder(
     column: $table.isFavorite,
     builder: (column) => column,
   );
 
-  Expression<T> transactionsRefs<T extends Object>(
+  Expression<T> creditCategory<T extends Object>(
+    Expression<T> Function($$CreditsTableAnnotationComposer a) f,
+  ) {
+    final $$CreditsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.credits,
+      getReferencedColumn: (t) => t.categoryId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CreditsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.credits,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<T> creditInterestCategory<T extends Object>(
+    Expression<T> Function($$CreditsTableAnnotationComposer a) f,
+  ) {
+    final $$CreditsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.credits,
+      getReferencedColumn: (t) => t.interestCategoryId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CreditsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.credits,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<T> creditFeesCategory<T extends Object>(
+    Expression<T> Function($$CreditsTableAnnotationComposer a) f,
+  ) {
+    final $$CreditsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.credits,
+      getReferencedColumn: (t) => t.feesCategoryId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CreditsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.credits,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<T> transactionsCategory<T extends Object>(
     Expression<T> Function($$TransactionsTableAnnotationComposer a) f,
   ) {
     final $$TransactionsTableAnnotationComposer composer = $composerBuilder(
@@ -14600,7 +15260,10 @@ class $$CategoriesTableTableManager
           (CategoryRow, $$CategoriesTableReferences),
           CategoryRow,
           PrefetchHooks Function({
-            bool transactionsRefs,
+            bool creditCategory,
+            bool creditInterestCategory,
+            bool creditFeesCategory,
+            bool transactionsCategory,
             bool upcomingPaymentsRefs,
           })
         > {
@@ -14629,6 +15292,7 @@ class $$CategoriesTableTableManager
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<bool> isDeleted = const Value.absent(),
                 Value<bool> isSystem = const Value.absent(),
+                Value<bool> isHidden = const Value.absent(),
                 Value<bool> isFavorite = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => CategoriesCompanion(
@@ -14644,6 +15308,7 @@ class $$CategoriesTableTableManager
                 updatedAt: updatedAt,
                 isDeleted: isDeleted,
                 isSystem: isSystem,
+                isHidden: isHidden,
                 isFavorite: isFavorite,
                 rowid: rowid,
               ),
@@ -14661,6 +15326,7 @@ class $$CategoriesTableTableManager
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<bool> isDeleted = const Value.absent(),
                 Value<bool> isSystem = const Value.absent(),
+                Value<bool> isHidden = const Value.absent(),
                 Value<bool> isFavorite = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => CategoriesCompanion.insert(
@@ -14676,6 +15342,7 @@ class $$CategoriesTableTableManager
                 updatedAt: updatedAt,
                 isDeleted: isDeleted,
                 isSystem: isSystem,
+                isHidden: isHidden,
                 isFavorite: isFavorite,
                 rowid: rowid,
               ),
@@ -14688,17 +15355,89 @@ class $$CategoriesTableTableManager
               )
               .toList(),
           prefetchHooksCallback:
-              ({transactionsRefs = false, upcomingPaymentsRefs = false}) {
+              ({
+                creditCategory = false,
+                creditInterestCategory = false,
+                creditFeesCategory = false,
+                transactionsCategory = false,
+                upcomingPaymentsRefs = false,
+              }) {
                 return PrefetchHooks(
                   db: db,
                   explicitlyWatchedTables: [
-                    if (transactionsRefs) db.transactions,
+                    if (creditCategory) db.credits,
+                    if (creditInterestCategory) db.credits,
+                    if (creditFeesCategory) db.credits,
+                    if (transactionsCategory) db.transactions,
                     if (upcomingPaymentsRefs) db.upcomingPayments,
                   ],
                   addJoins: null,
                   getPrefetchedDataCallback: (items) async {
                     return [
-                      if (transactionsRefs)
+                      if (creditCategory)
+                        await $_getPrefetchedData<
+                          CategoryRow,
+                          $CategoriesTable,
+                          CreditRow
+                        >(
+                          currentTable: table,
+                          referencedTable: $$CategoriesTableReferences
+                              ._creditCategoryTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$CategoriesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).creditCategory,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.categoryId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (creditInterestCategory)
+                        await $_getPrefetchedData<
+                          CategoryRow,
+                          $CategoriesTable,
+                          CreditRow
+                        >(
+                          currentTable: table,
+                          referencedTable: $$CategoriesTableReferences
+                              ._creditInterestCategoryTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$CategoriesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).creditInterestCategory,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.interestCategoryId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (creditFeesCategory)
+                        await $_getPrefetchedData<
+                          CategoryRow,
+                          $CategoriesTable,
+                          CreditRow
+                        >(
+                          currentTable: table,
+                          referencedTable: $$CategoriesTableReferences
+                              ._creditFeesCategoryTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$CategoriesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).creditFeesCategory,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.feesCategoryId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (transactionsCategory)
                         await $_getPrefetchedData<
                           CategoryRow,
                           $CategoriesTable,
@@ -14706,13 +15445,13 @@ class $$CategoriesTableTableManager
                         >(
                           currentTable: table,
                           referencedTable: $$CategoriesTableReferences
-                              ._transactionsRefsTable(db),
+                              ._transactionsCategoryTable(db),
                           managerFromTypedResult: (p0) =>
                               $$CategoriesTableReferences(
                                 db,
                                 table,
                                 p0,
-                              ).transactionsRefs,
+                              ).transactionsCategory,
                           referencedItemsForCurrentItem:
                               (item, referencedItems) => referencedItems.where(
                                 (e) => e.categoryId == item.id,
@@ -14760,7 +15499,13 @@ typedef $$CategoriesTableProcessedTableManager =
       $$CategoriesTableUpdateCompanionBuilder,
       (CategoryRow, $$CategoriesTableReferences),
       CategoryRow,
-      PrefetchHooks Function({bool transactionsRefs, bool upcomingPaymentsRefs})
+      PrefetchHooks Function({
+        bool creditCategory,
+        bool creditInterestCategory,
+        bool creditFeesCategory,
+        bool transactionsCategory,
+        bool upcomingPaymentsRefs,
+      })
     >;
 typedef $$TagsTableCreateCompanionBuilder =
     TagsCompanion Function({

@@ -42,8 +42,9 @@ class MakeCreditPaymentUseCase {
     // I'll add getCreditById to CreditRepository in a moment if needed.
 
     final List<CreditEntity> allCredits = await _creditRepository.getCredits();
-    final CreditEntity targetCredit =
-        allCredits.firstWhere((CreditEntity c) => c.id == creditId);
+    final CreditEntity targetCredit = allCredits.firstWhere(
+      (CreditEntity c) => c.id == creditId,
+    );
 
     final String groupId = _uuid.v4();
     final DateTime now = DateTime.now();
@@ -51,11 +52,19 @@ class MakeCreditPaymentUseCase {
     // 1. Update Schedule if needed
     String? scheduleItemId;
     if (periodKey != null) {
-      final List<CreditPaymentScheduleEntity> schedule =
-          await _creditRepository.getSchedule(creditId);
-      final CreditPaymentScheduleEntity item = schedule.firstWhere(
-        (CreditPaymentScheduleEntity s) => s.periodKey == periodKey,
-      );
+      final List<CreditPaymentScheduleEntity> schedule = await _creditRepository
+          .getSchedule(creditId);
+      final CreditPaymentScheduleEntity? item = schedule
+          .cast<CreditPaymentScheduleEntity?>()
+          .firstWhere(
+            (CreditPaymentScheduleEntity? s) => s?.periodKey == periodKey,
+            orElse: () => null,
+          );
+      if (item == null) {
+        throw StateError(
+          'Schedule item not found for creditId=$creditId and periodKey=$periodKey',
+        );
+      }
       scheduleItemId = item.id;
 
       // Update item logic (simplified: mark as paid if principal/interest fully paid)

@@ -99,6 +99,7 @@ class ExportBundleCsvEncoder {
         'updated_at',
         'is_deleted',
         'is_system',
+        'is_hidden',
         'is_favorite',
       ]);
 
@@ -114,6 +115,7 @@ class ExportBundleCsvEncoder {
         category.updatedAt.toIso8601String(),
         _bool(category.isDeleted),
         _bool(category.isSystem),
+        _bool(category.isHidden),
         _bool(category.isFavorite),
       ]);
     }

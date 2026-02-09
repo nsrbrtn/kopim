@@ -53,7 +53,10 @@ class CategoryDao {
   Future<db.CategoryRow?> findByName(String name) {
     final SimpleSelectStatement<db.$CategoriesTable, db.CategoryRow> query =
         _db.select(_db.categories)
-          ..where((db.$CategoriesTable tbl) => tbl.name.equals(name));
+          ..where(
+            (db.$CategoriesTable tbl) =>
+                tbl.name.equals(name) & tbl.isDeleted.equals(false),
+          );
     return query.getSingleOrNull();
   }
 
@@ -115,6 +118,7 @@ class CategoryDao {
       updatedAt: Value<DateTime>(category.updatedAt),
       isDeleted: Value<bool>(category.isDeleted),
       isSystem: Value<bool>(category.isSystem),
+      isHidden: Value<bool>(category.isHidden),
       isFavorite: Value<bool>(category.isFavorite),
     );
   }
@@ -140,6 +144,7 @@ class CategoryDao {
       updatedAt: row.updatedAt,
       isDeleted: row.isDeleted,
       isSystem: row.isSystem,
+      isHidden: row.isHidden,
       isFavorite: row.isFavorite,
     );
   }

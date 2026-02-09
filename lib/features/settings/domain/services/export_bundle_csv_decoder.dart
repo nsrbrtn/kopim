@@ -191,6 +191,7 @@ class ExportBundleCsvDecoder {
           updatedAt: _readDate(header.columns, row, 'updated_at'),
           isDeleted: _readBool(header.columns, row, 'is_deleted'),
           isSystem: _readBool(header.columns, row, 'is_system'),
+          isHidden: _readBool(header.columns, row, 'is_hidden'),
           isFavorite: _readBool(header.columns, row, 'is_favorite'),
         ),
       );

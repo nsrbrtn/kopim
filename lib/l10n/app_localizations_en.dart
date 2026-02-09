@@ -1183,6 +1183,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeTransactionsGroupedPayment => 'Credit Payment';
 
   @override
+  String get creditPaymentDetailsPrincipalLabel => 'Principal';
+
+  @override
+  String get creditPaymentDetailsFeesLabel => 'Fees';
+
+  @override
+  String get creditPaymentDetailsOtherLabel => 'Other';
+
+  @override
   String get homeUpcomingPaymentsTitle => 'Recurring payments';
 
   @override

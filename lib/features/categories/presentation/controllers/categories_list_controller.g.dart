@@ -49,4 +49,4 @@ final class ManageCategoryTreeProvider
 }
 
 String _$manageCategoryTreeHash() =>
-    r'46303fbc95f7c7eb71bf645f96ef4596dc1a5eeb';
+    r'c1a6ed580fbe6da0ee6d2e805e5268c82df355ae';

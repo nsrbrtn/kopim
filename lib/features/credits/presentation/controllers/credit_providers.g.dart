@@ -66,7 +66,7 @@ final class CreditScheduleProvider
   }
 }
 
-String _$creditScheduleHash() => r'd57b4390d6c194c3510b222e2c3e6aa915e91c46';
+String _$creditScheduleHash() => r'255772f2e5943fd7a0c48756fde3fe919849a5e9';
 
 final class CreditScheduleFamily extends $Family
     with
@@ -148,7 +148,7 @@ final class NextUpcomingPaymentProvider
 }
 
 String _$nextUpcomingPaymentHash() =>
-    r'4c8f1a517dd731d63620471df9dc79c9242937a3';
+    r'2eb99e3177fb461584b5045588fa17fadb133e86';
 
 final class NextUpcomingPaymentFamily extends $Family
     with
