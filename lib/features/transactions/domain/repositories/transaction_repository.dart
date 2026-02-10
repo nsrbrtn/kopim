@@ -48,4 +48,5 @@ abstract class TransactionRepository {
   Future<TransactionEntity?> findByIdempotencyKey(String idempotencyKey);
   Future<void> upsert(TransactionEntity transaction);
   Future<void> softDelete(String id);
+  Future<T> runInTransaction<T>(Future<T> Function() action);
 }

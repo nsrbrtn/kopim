@@ -10,6 +10,7 @@ import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/categories/presentation/utils/category_gradients.dart';
+import 'package:kopim/features/credits/domain/entities/credit_entity.dart';
 import 'package:kopim/features/tags/domain/entities/tag.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/presentation/widgets/transaction_tile_formatters.dart';
@@ -32,17 +33,36 @@ _allTransactionsTagsProvider = StreamProvider.autoDispose
       return ref.watch(watchTransactionTagsUseCaseProvider).call(transactionId);
     });
 
+class AllTransactionsScreenArgs {
+  const AllTransactionsScreenArgs({this.creditId});
+
+  final String? creditId;
+}
+
 class AllTransactionsScreen extends ConsumerWidget {
-  const AllTransactionsScreen({super.key});
+  const AllTransactionsScreen({this.args, super.key});
 
   static const String routeName = '/transactions/all';
+  final AllTransactionsScreenArgs? args;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final AppLocalizations strings = AppLocalizations.of(context)!;
-    final AsyncValue<List<TransactionEntity>> transactionsAsync = ref.watch(
+    final String? scopedCreditId = args?.creditId;
+    final AsyncValue<List<TransactionEntity>> baseTransactionsAsync = ref.watch(
       filteredTransactionsProvider,
     );
+    final AsyncValue<List<CreditEntity>> creditsAsync = ref.watch(
+      allTransactionsCreditsProvider,
+    );
+    final AsyncValue<List<TransactionEntity>> transactionsAsync =
+        scopedCreditId == null
+        ? baseTransactionsAsync
+        : _applyCreditFilterAsync(
+            transactionsAsync: baseTransactionsAsync,
+            creditsAsync: creditsAsync,
+            creditId: scopedCreditId,
+          );
     final AsyncValue<List<AccountEntity>> accountsAsync = ref.watch(
       allTransactionsAccountsProvider,
     );
@@ -107,6 +127,55 @@ class AllTransactionsScreen extends ConsumerWidget {
       ),
     );
   }
+}
+
+AsyncValue<List<TransactionEntity>> _applyCreditFilterAsync({
+  required AsyncValue<List<TransactionEntity>> transactionsAsync,
+  required AsyncValue<List<CreditEntity>> creditsAsync,
+  required String creditId,
+}) {
+  if (creditsAsync.hasError) {
+    return AsyncValue<List<TransactionEntity>>.error(
+      creditsAsync.error!,
+      creditsAsync.stackTrace ?? StackTrace.current,
+    );
+  }
+  if (creditsAsync.isLoading) {
+    return const AsyncValue<List<TransactionEntity>>.loading();
+  }
+  final CreditEntity? credit = creditsAsync.asData?.value
+      .cast<CreditEntity?>()
+      .firstWhere(
+        (CreditEntity? entity) => entity?.id == creditId,
+        orElse: () => null,
+      );
+  if (credit == null) {
+    return const AsyncValue<List<TransactionEntity>>.data(
+      <TransactionEntity>[],
+    );
+  }
+  return transactionsAsync.whenData(
+    (List<TransactionEntity> transactions) => transactions
+        .where(
+          (TransactionEntity transaction) =>
+              _belongsToCredit(transaction, credit),
+        )
+        .toList(growable: false),
+  );
+}
+
+bool _belongsToCredit(TransactionEntity transaction, CreditEntity credit) {
+  if (transaction.accountId == credit.accountId ||
+      transaction.transferAccountId == credit.accountId) {
+    return true;
+  }
+  final String? categoryId = transaction.categoryId;
+  if (categoryId == null || categoryId.isEmpty) {
+    return false;
+  }
+  return categoryId == credit.categoryId ||
+      categoryId == credit.interestCategoryId ||
+      categoryId == credit.feesCategoryId;
 }
 
 class _FiltersPanel extends ConsumerWidget {
@@ -465,7 +534,7 @@ enum _FlatItemType { header, feed }
 class _FlatItem {
   const _FlatItem._(this.type, {this.date, this.item});
   const _FlatItem.header(DateTime date)
-      : this._(_FlatItemType.header, date: date);
+    : this._(_FlatItemType.header, date: date);
   const _FlatItem.feed(FeedItem item) : this._(_FlatItemType.feed, item: item);
 
   final _FlatItemType type;

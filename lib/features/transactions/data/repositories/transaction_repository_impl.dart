@@ -221,8 +221,9 @@ class TransactionRepositoryImpl implements TransactionRepository {
 
   @override
   Future<TransactionEntity?> findLatestByCategoryId(String categoryId) async {
-    final db.TransactionRow? row = await _transactionDao
-        .findLatestByCategoryId(categoryId);
+    final db.TransactionRow? row = await _transactionDao.findLatestByCategoryId(
+      categoryId,
+    );
     if (row == null) return null;
     return _mapToDomain(row);
   }
@@ -304,6 +305,11 @@ class TransactionRepositoryImpl implements TransactionRepository {
         payload: payload,
       );
     });
+  }
+
+  @override
+  Future<T> runInTransaction<T>(Future<T> Function() action) {
+    return _database.transaction<T>(action);
   }
 
   Future<void> _handleSavingGoalRollback(

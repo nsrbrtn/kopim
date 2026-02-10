@@ -128,6 +128,17 @@ class _AddEditCreditScreenState extends ConsumerState<AddEditCreditScreen> {
         _issueAccountError);
   }
 
+  DateTime _resolveFirstPaymentDate(int paymentDay) {
+    final DateTime now = DateTime.now();
+    final DateTime nextMonth = DateTime(now.year, now.month + 1, 1);
+    final int maxDay = DateUtils.getDaysInMonth(
+      nextMonth.year,
+      nextMonth.month,
+    );
+    final int safeDay = paymentDay.clamp(1, maxDay);
+    return DateTime(nextMonth.year, nextMonth.month, safeDay);
+  }
+
   Future<void> _save() async {
     if (_validate()) {
       final String name = _nameController.text.trim();
@@ -150,14 +161,11 @@ class _AddEditCreditScreenState extends ConsumerState<AddEditCreditScreen> {
               interestRate: rate,
               termMonths: term,
               startDate: DateTime.now(),
-              firstPaymentDate: DateTime(
-                DateTime.now().year,
-                DateTime.now().month + 1,
-                paymentDay,
-              ),
+              firstPaymentDate: _resolveFirstPaymentDate(paymentDay),
               paymentDay: paymentDay,
-              targetAccountId:
-                  _isAlreadyIssued ? null : _selectedIssueAccountId,
+              targetAccountId: _isAlreadyIssued
+                  ? null
+                  : _selectedIssueAccountId,
               isAlreadyIssued: _isAlreadyIssued,
               color: _color,
               gradientId: _gradientId,
@@ -204,14 +212,13 @@ class _AddEditCreditScreenState extends ConsumerState<AddEditCreditScreen> {
               interestRate: double.parse(_rateController.text),
               termMonths: int.parse(_termController.text),
               startDate: DateTime.now(),
-              firstPaymentDate: DateTime(
-                DateTime.now().year,
-                DateTime.now().month + 1,
+              firstPaymentDate: _resolveFirstPaymentDate(
                 int.parse(_paymentDayController.text),
               ),
               paymentDay: int.parse(_paymentDayController.text),
-              targetAccountId:
-                  _isAlreadyIssued ? null : _selectedIssueAccountId,
+              targetAccountId: _isAlreadyIssued
+                  ? null
+                  : _selectedIssueAccountId,
               isAlreadyIssued: _isAlreadyIssued,
               color: _color,
               iconName: _icon?.name,
@@ -231,6 +238,7 @@ class _AddEditCreditScreenState extends ConsumerState<AddEditCreditScreen> {
             initialTitle: _nameController.text,
             initialAmount: amount,
             initialCategoryId: credit.categoryId,
+            initialDayOfMonth: credit.paymentDay,
             // initialAccountId намеренно не передаем, чтобы использовался основной счет по умолчанию
           );
 
@@ -326,10 +334,7 @@ class _AddEditCreditScreenState extends ConsumerState<AddEditCreditScreen> {
         key: _formKey,
         child: StreamBuilder<List<AccountEntity>>(
           stream: accountsAsync,
-          builder: (
-            BuildContext context,
-            AsyncSnapshot<List<AccountEntity>> snapshot,
-          ) {
+          builder: (BuildContext context, AsyncSnapshot<List<AccountEntity>> snapshot) {
             final List<AccountEntity> accounts =
                 snapshot.data ?? const <AccountEntity>[];
             final List<AccountEntity> availableIssueAccounts = accounts
@@ -391,10 +396,7 @@ class _AddEditCreditScreenState extends ConsumerState<AddEditCreditScreen> {
                 ),
                 if (widget.credit == null) ...<Widget>[
                   const SizedBox(height: 24),
-                  Text(
-                    'Выдача кредита',
-                    style: theme.textTheme.labelLarge,
-                  ),
+                  Text('Выдача кредита', style: theme.textTheme.labelLarge),
                   const SizedBox(height: 8),
                   SwitchListTile(
                     title: const Text('Кредит уже выдан'),
@@ -424,19 +426,18 @@ class _AddEditCreditScreenState extends ConsumerState<AddEditCreditScreen> {
                     value: _selectedIssueAccountId,
                     items: availableIssueAccounts
                         .map(
-                          (AccountEntity account) =>
-                              DropdownMenuItem<String>(
-                                value: account.id,
-                                child: Text(account.name),
-                              ),
+                          (AccountEntity account) => DropdownMenuItem<String>(
+                            value: account.id,
+                            child: Text(account.name),
+                          ),
                         )
                         .toList(growable: false),
                     label: 'Счет зачисления',
                     hint: availableIssueAccounts.isEmpty
                         ? 'Нет доступных счетов'
                         : 'Выберите счет',
-                    enabled: !_isAlreadyIssued &&
-                        availableIssueAccounts.isNotEmpty,
+                    enabled:
+                        !_isAlreadyIssued && availableIssueAccounts.isNotEmpty,
                     onChanged: (String value) {
                       setState(() {
                         _selectedIssueAccountId = value;
@@ -463,8 +464,7 @@ class _AddEditCreditScreenState extends ConsumerState<AddEditCreditScreen> {
                 ListTile(
                   contentPadding: EdgeInsets.zero,
                   leading: CircleAvatar(
-                    backgroundColor:
-                        theme.colorScheme.surfaceContainerHighest,
+                    backgroundColor: theme.colorScheme.surfaceContainerHighest,
                     child: _icon != null
                         ? Icon(
                             resolvePhosphorIconData(_icon!),

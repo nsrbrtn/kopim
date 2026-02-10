@@ -20,25 +20,20 @@ void main() {
       final DateTime now = DateTime(2026, 1, 10, 12);
       final _FixedTimeService time = _FixedTimeService(now);
       final _InMemoryUpcomingPaymentsRepository upcomingRepo =
-          _InMemoryUpcomingPaymentsRepository(
-            <UpcomingPayment>[
-              _upcomingPayment(
-                id: 'p1',
-                categoryId: 'credit_cat',
-                dayOfMonth: 15,
-              ),
-            ],
-          );
-      final _InMemoryTransactionRepository txRepo =
-          _InMemoryTransactionRepository(<TransactionEntity>[
-            _transaction(
-              id: 't1',
+          _InMemoryUpcomingPaymentsRepository(<UpcomingPayment>[
+            _upcomingPayment(
+              id: 'p1',
               categoryId: 'credit_cat',
-              date: now,
+              dayOfMonth: 15,
             ),
           ]);
-      final _InMemoryCreditRepository creditRepo =
-          _InMemoryCreditRepository(_credit(categoryId: 'credit_cat'));
+      final _InMemoryTransactionRepository txRepo =
+          _InMemoryTransactionRepository(<TransactionEntity>[
+            _transaction(id: 't1', categoryId: 'credit_cat', date: now),
+          ]);
+      final _InMemoryCreditRepository creditRepo = _InMemoryCreditRepository(
+        _credit(categoryId: 'credit_cat'),
+      );
 
       final SyncCreditPaymentScheduleUseCase useCase =
           SyncCreditPaymentScheduleUseCase(
@@ -62,15 +57,13 @@ void main() {
       final DateTime now = DateTime(2026, 1, 20, 12);
       final _FixedTimeService time = _FixedTimeService(now);
       final _InMemoryUpcomingPaymentsRepository upcomingRepo =
-          _InMemoryUpcomingPaymentsRepository(
-            <UpcomingPayment>[
-              _upcomingPayment(
-                id: 'p1',
-                categoryId: 'credit_cat',
-                dayOfMonth: 15,
-              ),
-            ],
-          );
+          _InMemoryUpcomingPaymentsRepository(<UpcomingPayment>[
+            _upcomingPayment(
+              id: 'p1',
+              categoryId: 'credit_cat',
+              dayOfMonth: 15,
+            ),
+          ]);
       final TransactionEntity deletedPayment = _transaction(
         id: 't2',
         categoryId: 'credit_cat',
@@ -84,8 +77,9 @@ void main() {
               date: DateTime(2025, 12, 10, 12),
             ),
           ]);
-      final _InMemoryCreditRepository creditRepo =
-          _InMemoryCreditRepository(_credit(categoryId: 'credit_cat'));
+      final _InMemoryCreditRepository creditRepo = _InMemoryCreditRepository(
+        _credit(categoryId: 'credit_cat'),
+      );
 
       final SyncCreditPaymentScheduleUseCase useCase =
           SyncCreditPaymentScheduleUseCase(
@@ -197,7 +191,8 @@ class _FixedTimeService implements TimeService {
   }
 }
 
-class _InMemoryUpcomingPaymentsRepository implements UpcomingPaymentsRepository {
+class _InMemoryUpcomingPaymentsRepository
+    implements UpcomingPaymentsRepository {
   _InMemoryUpcomingPaymentsRepository(this._payments);
 
   final List<UpcomingPayment> _payments;
@@ -336,6 +331,9 @@ class _InMemoryTransactionRepository implements TransactionRepository {
     required String type,
     List<String> accountIds = const <String>[],
   }) => const Stream<List<TransactionEntity>>.empty();
+
+  @override
+  Future<T> runInTransaction<T>(Future<T> Function() action) => action();
 }
 
 class _InMemoryCreditRepository implements CreditRepository {

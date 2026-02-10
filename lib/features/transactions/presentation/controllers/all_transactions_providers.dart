@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
+import 'package:kopim/features/credits/domain/entities/credit_entity.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/presentation/controllers/all_transactions_filter_controller.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -37,6 +39,11 @@ Stream<List<AccountEntity>> allTransactionsAccounts(Ref ref) {
 Stream<List<Category>> allTransactionsCategories(Ref ref) {
   return ref.watch(watchCategoriesUseCaseProvider).call();
 }
+
+final StreamProvider<List<CreditEntity>> allTransactionsCreditsProvider =
+    StreamProvider<List<CreditEntity>>((Ref ref) {
+      return ref.watch(watchCreditsUseCaseProvider).call();
+    });
 
 List<TransactionEntity> _applyFilters(
   List<TransactionEntity> transactions,

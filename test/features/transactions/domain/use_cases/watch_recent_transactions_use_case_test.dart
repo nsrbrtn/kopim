@@ -176,4 +176,7 @@ class _InMemoryTransactionRepository implements TransactionRepository {
     required String type,
     List<String> accountIds = const <String>[],
   }) => const Stream<List<TransactionEntity>>.empty();
+
+  @override
+  Future<T> runInTransaction<T>(Future<T> Function() action) => action();
 }

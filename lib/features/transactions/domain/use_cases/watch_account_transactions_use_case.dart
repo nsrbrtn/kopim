@@ -19,28 +19,32 @@ class WatchAccountTransactionsUseCase {
     return _combineLatest(
       _transactionRepository.watchRecentTransactions(),
       _creditRepository.watchCredits(),
-      (
-        List<TransactionEntity> transactions,
-        List<CreditEntity> credits,
-      ) {
+      (List<TransactionEntity> transactions, List<CreditEntity> credits) {
         final Map<String, String> creditAccountByCategoryId = <String, String>{
-          for (final CreditEntity credit in credits)
+          for (final CreditEntity credit in credits) ...<String, String>{
             if (credit.categoryId != null && credit.categoryId!.isNotEmpty)
               credit.categoryId!: credit.accountId,
-        };
-        final Iterable<TransactionEntity> filtered = transactions.where(
-          (TransactionEntity transaction) {
-            if (transaction.accountId == accountId ||
-                transaction.transferAccountId == accountId) {
-              return true;
-            }
-            final String? categoryId = transaction.categoryId;
-            if (categoryId == null || categoryId.isEmpty) {
-              return false;
-            }
-            return creditAccountByCategoryId[categoryId] == accountId;
+            if (credit.interestCategoryId != null &&
+                credit.interestCategoryId!.isNotEmpty)
+              credit.interestCategoryId!: credit.accountId,
+            if (credit.feesCategoryId != null &&
+                credit.feesCategoryId!.isNotEmpty)
+              credit.feesCategoryId!: credit.accountId,
           },
-        );
+        };
+        final Iterable<TransactionEntity> filtered = transactions.where((
+          TransactionEntity transaction,
+        ) {
+          if (transaction.accountId == accountId ||
+              transaction.transferAccountId == accountId) {
+            return true;
+          }
+          final String? categoryId = transaction.categoryId;
+          if (categoryId == null || categoryId.isEmpty) {
+            return false;
+          }
+          return creditAccountByCategoryId[categoryId] == accountId;
+        });
         return List<TransactionEntity>.unmodifiable(filtered);
       },
     );
@@ -73,16 +77,25 @@ Stream<T> _combineLatest<A, B, T>(
           controller.close();
         }
       }
-      final StreamSubscription<A> subA = a.listen((A value) {
-        lastA = value;
-        hasA = true;
-        emitIfReady();
-      }, onError: controller.addError, onDone: handleDone);
-      final StreamSubscription<B> subB = b.listen((B value) {
-        lastB = value;
-        hasB = true;
-        emitIfReady();
-      }, onError: controller.addError, onDone: handleDone);
+
+      final StreamSubscription<A> subA = a.listen(
+        (A value) {
+          lastA = value;
+          hasA = true;
+          emitIfReady();
+        },
+        onError: controller.addError,
+        onDone: handleDone,
+      );
+      final StreamSubscription<B> subB = b.listen(
+        (B value) {
+          lastB = value;
+          hasB = true;
+          emitIfReady();
+        },
+        onError: controller.addError,
+        onDone: handleDone,
+      );
       controller.onCancel = () async {
         await subA.cancel();
         await subB.cancel();

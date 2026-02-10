@@ -87,7 +87,6 @@ class UpdateCreditUseCase {
     final MoneyAmount resolvedAmount = rescaleMoneyAmount(totalAmount, scale);
     final AccountEntity updatedAccount = account.copyWith(
       name: trimmedName,
-      balanceMinor: -resolvedAmount.minor,
       currencyScale: scale,
       color: color,
       gradientId: gradientId,
@@ -98,29 +97,35 @@ class UpdateCreditUseCase {
     );
     await _accountRepository.upsert(updatedAccount);
 
-    final String? categoryId = credit.categoryId;
-    if (categoryId != null && categoryId.isNotEmpty) {
-      final Category? existingCategory = await _categoryRepository.findById(
-        categoryId,
-      );
-      if (existingCategory != null) {
-        final Category updatedCategory = existingCategory.copyWith(
-          name: 'Кредит: $trimmedName',
-          color: color,
-          icon: iconName == null
-              ? null
-              : PhosphorIconDescriptor(
-                  name: iconName,
-                  style: PhosphorIconStyle.values.firstWhere(
-                    (PhosphorIconStyle style) => style.name == iconStyle,
-                    orElse: () => PhosphorIconStyle.fill,
-                  ),
-                ),
-          updatedAt: now,
-        );
-        await _saveCategoryUseCase.call(updatedCategory);
-      }
-    }
+    final PhosphorIconDescriptor? resolvedIcon = iconName == null
+        ? null
+        : PhosphorIconDescriptor(
+            name: iconName,
+            style: PhosphorIconStyle.values.firstWhere(
+              (PhosphorIconStyle style) => style.name == iconStyle,
+              orElse: () => PhosphorIconStyle.fill,
+            ),
+          );
+    await _updateCategoryIfExists(
+      categoryId: credit.categoryId,
+      name: trimmedName,
+      color: color,
+      now: now,
+      icon: resolvedIcon,
+      preserveIconWhenNull: false,
+    );
+    await _updateCategoryIfExists(
+      categoryId: credit.interestCategoryId,
+      name: '$trimmedName (Проценты)',
+      color: color,
+      now: now,
+    );
+    await _updateCategoryIfExists(
+      categoryId: credit.feesCategoryId,
+      name: '$trimmedName (Комиссии)',
+      color: color,
+      now: now,
+    );
 
     final CreditEntity updatedCredit = credit.copyWith(
       totalAmountMinor: resolvedAmount.minor,
@@ -133,5 +138,31 @@ class UpdateCreditUseCase {
     await _creditRepository.updateCredit(updatedCredit);
 
     return updatedCredit;
+  }
+
+  Future<void> _updateCategoryIfExists({
+    required String? categoryId,
+    required String name,
+    required String? color,
+    required DateTime now,
+    PhosphorIconDescriptor? icon,
+    bool preserveIconWhenNull = true,
+  }) async {
+    if (categoryId == null || categoryId.isEmpty) {
+      return;
+    }
+    final Category? existingCategory = await _categoryRepository.findById(
+      categoryId,
+    );
+    if (existingCategory == null) {
+      return;
+    }
+    final Category updatedCategory = existingCategory.copyWith(
+      name: name,
+      color: color,
+      icon: preserveIconWhenNull ? (icon ?? existingCategory.icon) : icon,
+      updatedAt: now,
+    );
+    await _saveCategoryUseCase.call(updatedCategory);
   }
 }

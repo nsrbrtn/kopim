@@ -450,6 +450,9 @@ class _InMemoryTransactionRepository implements TransactionRepository {
     required String type,
     List<String> accountIds = const <String>[],
   }) => const Stream<List<TransactionEntity>>.empty();
+
+  @override
+  Future<T> runInTransaction<T>(Future<T> Function() action) => action();
 }
 
 class _RecordingWatchRecentTransactionsUseCase
@@ -558,4 +561,7 @@ class _DummyTransactionRepository implements TransactionRepository {
     required String type,
     List<String> accountIds = const <String>[],
   }) => const Stream<List<TransactionEntity>>.empty();
+
+  @override
+  Future<T> runInTransaction<T>(Future<T> Function() action) => action();
 }

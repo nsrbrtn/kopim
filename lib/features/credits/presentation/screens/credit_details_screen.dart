@@ -25,6 +25,7 @@ import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
 import 'package:kopim/features/home/domain/models/day_section.dart';
 import 'package:kopim/features/credits/domain/utils/credit_calculations.dart';
+import 'package:kopim/features/transactions/presentation/screens/all_transactions_screen.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
 enum _CreditHistoryFilter { all, payments, interest }
@@ -311,7 +312,12 @@ class _CreditDetailsScreenState extends ConsumerState<CreditDetailsScreen> {
                             ),
                           ),
                           TextButton(
-                            onPressed: () => context.push('/transactions/all'),
+                            onPressed: () => context.push(
+                              AllTransactionsScreen.routeName,
+                              extra: AllTransactionsScreenArgs(
+                                creditId: widget.credit.id,
+                              ),
+                            ),
                             child: Text(strings.homeTransactionsFilterAll),
                           ),
                         ],
@@ -381,6 +387,7 @@ class _CreditDetailsScreenState extends ConsumerState<CreditDetailsScreen> {
                                     ),
                                     categoriesById: categoriesById,
                                     strings: strings,
+                                    credit: widget.credit,
                                   ),
                                 )
                                 .toList(growable: false),
@@ -465,23 +472,74 @@ class _CreditDetailsScreenState extends ConsumerState<CreditDetailsScreen> {
     }
     return transactions
         .where((TransactionEntity transaction) {
-          final String categoryName =
-              categoriesById[transaction.categoryId]?.name ?? '';
-          final String note = transaction.note ?? '';
-          final String haystack = '$categoryName $note'.toLowerCase();
-          final bool isInterest =
-              haystack.contains('процент') || haystack.contains('interest');
+          final bool isInterest = _isInterestTransaction(
+            transaction,
+            categoriesById,
+          );
+          final bool isFees = _isFeesTransaction(transaction, categoriesById);
 
           if (_selectedFilter == _CreditHistoryFilter.interest) {
             return isInterest;
           }
           if (_selectedFilter == _CreditHistoryFilter.payments) {
-            return transaction.type == TransactionType.expense.storageValue &&
-                !isInterest;
+            return _isPaymentTransaction(
+              transaction,
+              isInterest: isInterest,
+              isFees: isFees,
+            );
           }
           return true;
         })
         .toList(growable: false);
+  }
+
+  bool _isInterestTransaction(
+    TransactionEntity transaction,
+    Map<String, Category> categoriesById,
+  ) {
+    if (transaction.categoryId == widget.credit.interestCategoryId) {
+      return true;
+    }
+    final String categoryName = transaction.categoryId == null
+        ? ''
+        : (categoriesById[transaction.categoryId!]?.name ?? '');
+    final String haystack = '$categoryName ${transaction.note ?? ''}'
+        .toLowerCase();
+    return haystack.contains('процент') || haystack.contains('interest');
+  }
+
+  bool _isFeesTransaction(
+    TransactionEntity transaction,
+    Map<String, Category> categoriesById,
+  ) {
+    if (transaction.categoryId == widget.credit.feesCategoryId) {
+      return true;
+    }
+    final String categoryName = transaction.categoryId == null
+        ? ''
+        : (categoriesById[transaction.categoryId!]?.name ?? '');
+    final String haystack = '$categoryName ${transaction.note ?? ''}'
+        .toLowerCase();
+    return haystack.contains('комисс') ||
+        haystack.contains('fee') ||
+        haystack.contains('fees');
+  }
+
+  bool _isPaymentTransaction(
+    TransactionEntity transaction, {
+    required bool isInterest,
+    required bool isFees,
+  }) {
+    if (isInterest || isFees) {
+      return false;
+    }
+    final bool isTransferPayment =
+        transaction.type == TransactionType.transfer.storageValue &&
+        transaction.transferAccountId == widget.credit.accountId;
+    final bool isPrincipalCategory =
+        transaction.categoryId != null &&
+        transaction.categoryId == widget.credit.categoryId;
+    return isTransferPayment || isPrincipalCategory;
   }
 }
 
@@ -617,12 +675,14 @@ class _DaySectionView extends StatelessWidget {
     required this.currencySymbol,
     required this.categoriesById,
     required this.strings,
+    required this.credit,
   });
 
   final DaySection section;
   final String currencySymbol;
   final Map<String, Category> categoriesById;
   final AppLocalizations strings;
+  final CreditEntity credit;
 
   @override
   Widget build(BuildContext context) {
@@ -676,6 +736,7 @@ class _DaySectionView extends StatelessWidget {
                   ),
                   currencySymbol: currencySymbol,
                   strings: strings,
+                  credit: credit,
                 ),
           ),
         const SizedBox(height: 16),

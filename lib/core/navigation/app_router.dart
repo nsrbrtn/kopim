@@ -256,7 +256,9 @@ final Provider<GoRouter> appRouterProvider = Provider<GoRouter>((Ref ref) {
         path: AllTransactionsScreen.routeName,
         parentNavigatorKey: _rootNavigatorKey,
         builder: (BuildContext context, GoRouterState state) {
-          return const AllTransactionsScreen();
+          final AllTransactionsScreenArgs? args =
+              state.extra as AllTransactionsScreenArgs?;
+          return AllTransactionsScreen(args: args);
         },
       ),
       GoRoute(

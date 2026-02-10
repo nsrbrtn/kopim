@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:kopim/core/money/money_utils.dart';
+import 'package:kopim/features/credits/domain/entities/credit_entity.dart';
 import 'package:kopim/features/credits/presentation/screens/credit_payment_details_screen.dart';
 import 'package:kopim/features/transactions/domain/models/feed_item.dart';
 import 'package:kopim/features/transactions/presentation/widgets/transaction_tile_formatters.dart';
@@ -13,11 +14,13 @@ class GroupedCreditPaymentTile extends StatelessWidget {
     required this.group,
     required this.currencySymbol,
     required this.strings,
+    this.credit,
   });
 
   final GroupedCreditPaymentFeedItem group;
   final String currencySymbol;
   final AppLocalizations strings;
+  final CreditEntity? credit;
 
   @override
   Widget build(BuildContext context) {
@@ -114,6 +117,7 @@ class GroupedCreditPaymentTile extends StatelessWidget {
           extra: CreditPaymentDetailsScreenArgs(
             group: group,
             currencySymbol: currencySymbol,
+            credit: credit,
           ),
         );
       },

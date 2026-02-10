@@ -112,7 +112,7 @@ class _PayCreditSheetState extends ConsumerState<PayCreditSheet> {
               ),
               const SizedBox(height: 24),
               Text(
-                'Pay Credit', // TODO: Localize
+                context.loc.creditDetailsPayAction,
                 style: theme.textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
@@ -128,24 +128,27 @@ class _PayCreditSheetState extends ConsumerState<PayCreditSheet> {
 
               _AmountField(
                 controller: _principalController,
-                label: 'Principal',
+                label: context.loc.creditPaymentDetailsPrincipalLabel,
                 icon: Icons.account_balance_wallet,
               ),
               const SizedBox(height: 16),
               _AmountField(
                 controller: _interestController,
-                label: 'Interest',
+                label: context.loc.creditDetailsInterestLabel,
                 icon: Icons.percent,
               ),
               const SizedBox(height: 16),
               _AmountField(
                 controller: _feesController,
-                label: 'Fees (Optional)',
+                label: context.loc.creditPaymentDetailsFeesLabel,
                 icon: Icons.receipt_long,
               ),
               const SizedBox(height: 24),
 
-              Text('Source Account', style: theme.textTheme.labelLarge),
+              Text(
+                context.loc.allTransactionsFiltersAccount,
+                style: theme.textTheme.labelLarge,
+              ),
               const SizedBox(height: 8),
               StreamBuilder<List<AccountEntity>>(
                 stream: accountsAsync,
@@ -235,7 +238,7 @@ class _PayCreditSheetState extends ConsumerState<PayCreditSheet> {
                           color: Colors.white,
                         ),
                       )
-                    : const Text('Confirm Payment'),
+                    : Text(context.loc.dialogConfirm),
               ),
             ],
           ),
@@ -284,6 +287,15 @@ class _PayCreditSheetState extends ConsumerState<PayCreditSheet> {
         currency: currency,
         scale: scale,
       );
+
+      if (totalOutflow.minor <= BigInt.zero) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Введите сумму платежа больше нуля')),
+          );
+        }
+        return;
+      }
 
       await makePayment(
         creditId: widget.credit.id,

@@ -35,19 +35,18 @@ class CreditPaymentDao {
   }
 
   Stream<List<CreditPaymentScheduleEntity>> watchSchedule(String creditId) {
-    return (_db.select(
-      _db.creditPaymentSchedules,
-    )..where((db.CreditPaymentSchedules tbl) =>
-            tbl.creditId.equals(creditId)))
+    return (_db.select(_db.creditPaymentSchedules)..where(
+          (db.CreditPaymentSchedules tbl) => tbl.creditId.equals(creditId),
+        ))
         .watch()
         .map((List<db.CreditPaymentScheduleRow> rows) {
-      final List<db.CreditPaymentScheduleRow> items = rows.toList()
-        ..sort(
-          (db.CreditPaymentScheduleRow a, db.CreditPaymentScheduleRow b) =>
-              a.dueDate.compareTo(b.dueDate),
-        );
-      return items.map(_mapRowToScheduleEntity).toList();
-    });
+          final List<db.CreditPaymentScheduleRow> items = rows.toList()
+            ..sort(
+              (db.CreditPaymentScheduleRow a, db.CreditPaymentScheduleRow b) =>
+                  a.dueDate.compareTo(b.dueDate),
+            );
+          return items.map(_mapRowToScheduleEntity).toList();
+        });
   }
 
   Future<void> updateScheduleItem(CreditPaymentScheduleEntity item) async {
@@ -73,6 +72,17 @@ class CreditPaymentDao {
           b.paidAt.compareTo(a.paidAt),
     ); // Descending
     return rows.map(_mapRowToGroupEntity).toList();
+  }
+
+  Future<void> deletePaymentArtifactsByCreditId(String creditId) async {
+    await (_db.delete(
+          _db.creditPaymentGroups,
+        )..where((db.CreditPaymentGroups tbl) => tbl.creditId.equals(creditId)))
+        .go();
+    await (_db.delete(_db.creditPaymentSchedules)..where(
+          (db.CreditPaymentSchedules tbl) => tbl.creditId.equals(creditId),
+        ))
+        .go();
   }
 
   db.CreditPaymentSchedulesCompanion _mapScheduleToCompanion(

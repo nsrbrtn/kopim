@@ -67,6 +67,7 @@ class CreditRepositoryImpl implements CreditRepository {
   Future<void> deleteCredit(String id) async {
     final DateTime now = DateTime.now();
     await _database.transaction(() async {
+      await _creditPaymentDao.deletePaymentArtifactsByCreditId(id);
       await _creditDao.markDeleted(id, now);
       final db.CreditRow? row = await _creditDao.findById(id);
       if (row == null) return;

@@ -174,6 +174,9 @@ class _StreamTransactionRepository implements TransactionRepository {
   @override
   Future<void> upsert(TransactionEntity transaction) =>
       throw UnimplementedError();
+
+  @override
+  Future<T> runInTransaction<T>(Future<T> Function() action) => action();
 }
 
 class _StreamCategoryRepository implements CategoryRepository {

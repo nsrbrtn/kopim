@@ -108,6 +108,9 @@ class _FakeTransactionRepository implements TransactionRepository {
   Future<void> softDelete(String id) {
     throw UnimplementedError();
   }
+
+  @override
+  Future<T> runInTransaction<T>(Future<T> Function() action) => action();
 }
 
 void main() {

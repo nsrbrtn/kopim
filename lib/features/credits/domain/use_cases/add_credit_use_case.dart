@@ -59,7 +59,7 @@ class AddCreditUseCase {
     final int scale = resolveCurrencyScale(currency);
     final MoneyAmount resolvedAmount = rescaleMoneyAmount(totalAmount, scale);
 
-    // 1. Создаем основные категории (Main, Interest, Fees)
+    // 1. Создаем основные категории (основной долг, проценты, комиссии)
     final List<Category> categoriesToCreate = <Category>[
       Category(
         id: categoryId,
@@ -73,7 +73,7 @@ class AddCreditUseCase {
       ),
       Category(
         id: interestCategoryId,
-        name: '$name (Interest)',
+        name: '$name (Проценты)',
         type: 'expense',
         color: color,
         isSystem: true,
@@ -83,7 +83,7 @@ class AddCreditUseCase {
       ),
       Category(
         id: feesCategoryId,
-        name: '$name (Fees)',
+        name: '$name (Комиссии)',
         type: 'expense',
         color: color,
         isSystem: true,
@@ -98,8 +98,7 @@ class AddCreditUseCase {
     }
 
     // 2. Создаем кредитный счет (Баланс 0 на старте согласно Zero Basis)
-    final bool issueWithoutAccount =
-        isAlreadyIssued && targetAccountId == null;
+    final bool issueWithoutAccount = isAlreadyIssued && targetAccountId == null;
     final BigInt openingMinor = issueWithoutAccount
         ? -resolvedAmount.minor
         : BigInt.zero;
@@ -153,30 +152,31 @@ class AddCreditUseCase {
           firstPaymentDate: firstPaymentDate,
         );
 
-    final List<CreditPaymentScheduleEntity> scheduleEntities =
-        scheduleItems.map((AnnuityPaymentItem item) {
-      return CreditPaymentScheduleEntity(
-        id: _uuid.v4(),
-        creditId: creditId,
-        periodKey:
-            '${item.date.year}-${item.date.month.toString().padLeft(2, '0')}',
-        dueDate: item.date,
-        status: CreditPaymentStatus.planned,
-        principalAmount: item.principalAmount,
-        interestAmount: item.interestAmount,
-        totalAmount: item.totalAmount,
-        principalPaid: Money.fromMinor(
-          BigInt.zero,
-          currency: currency,
-          scale: scale,
-        ),
-        interestPaid: Money.fromMinor(
-          BigInt.zero,
-          currency: currency,
-          scale: scale,
-        ),
-      );
-    }).toList(growable: false);
+    final List<CreditPaymentScheduleEntity> scheduleEntities = scheduleItems
+        .map((AnnuityPaymentItem item) {
+          return CreditPaymentScheduleEntity(
+            id: _uuid.v4(),
+            creditId: creditId,
+            periodKey:
+                '${item.date.year}-${item.date.month.toString().padLeft(2, '0')}',
+            dueDate: item.date,
+            status: CreditPaymentStatus.planned,
+            principalAmount: item.principalAmount,
+            interestAmount: item.interestAmount,
+            totalAmount: item.totalAmount,
+            principalPaid: Money.fromMinor(
+              BigInt.zero,
+              currency: currency,
+              scale: scale,
+            ),
+            interestPaid: Money.fromMinor(
+              BigInt.zero,
+              currency: currency,
+              scale: scale,
+            ),
+          );
+        })
+        .toList(growable: false);
 
     await _creditRepository.addSchedule(scheduleEntities);
 

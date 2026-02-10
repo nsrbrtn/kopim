@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/core/utils/context_extensions.dart';
+import 'package:kopim/features/credits/domain/entities/credit_entity.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
 import 'package:kopim/features/transactions/domain/models/feed_item.dart';
@@ -13,10 +14,12 @@ class CreditPaymentDetailsScreenArgs {
   const CreditPaymentDetailsScreenArgs({
     required this.group,
     required this.currencySymbol,
+    this.credit,
   });
 
   final GroupedCreditPaymentFeedItem group;
   final String currencySymbol;
+  final CreditEntity? credit;
 }
 
 class CreditPaymentDetailsScreen extends StatelessWidget {
@@ -37,6 +40,7 @@ class CreditPaymentDetailsScreen extends StatelessWidget {
     final DateFormat dateFormat = DateFormat.yMMMMd(context.loc.localeName);
     final _PaymentBreakdown breakdown = _buildBreakdown(
       args.group.transactions,
+      credit: args.credit,
     );
     final String? note = args.group.note;
 
@@ -164,6 +168,7 @@ class CreditPaymentDetailsScreen extends StatelessWidget {
                         child: _TransactionRow(
                           transaction: transaction,
                           formatter: moneyFormat,
+                          credit: args.credit,
                         ),
                       ),
                   ],
@@ -212,20 +217,32 @@ class _BreakdownRow extends StatelessWidget {
 }
 
 class _TransactionRow extends StatelessWidget {
-  const _TransactionRow({required this.transaction, required this.formatter});
+  const _TransactionRow({
+    required this.transaction,
+    required this.formatter,
+    this.credit,
+  });
 
   final TransactionEntity transaction;
   final NumberFormat formatter;
+  final CreditEntity? credit;
 
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
     final TransactionType type = parseTransactionType(transaction.type);
-    final String label = switch (type) {
-      TransactionType.transfer =>
+    final _BreakdownKind kind = _resolveBreakdownKind(transaction, credit);
+    final String label = switch (kind) {
+      _BreakdownKind.principal =>
         context.loc.creditPaymentDetailsPrincipalLabel,
-      TransactionType.expense => context.loc.addTransactionTypeExpense,
-      TransactionType.income => context.loc.addTransactionTypeIncome,
+      _BreakdownKind.interest => context.loc.creditDetailsInterestLabel,
+      _BreakdownKind.fees => context.loc.creditPaymentDetailsFeesLabel,
+      _BreakdownKind.other => switch (type) {
+        TransactionType.transfer =>
+          context.loc.creditPaymentDetailsPrincipalLabel,
+        TransactionType.expense => context.loc.addTransactionTypeExpense,
+        TransactionType.income => context.loc.addTransactionTypeIncome,
+      },
     };
 
     return TransactionFormOpenContainer(
@@ -314,7 +331,10 @@ class _PaymentBreakdown {
   final MoneyAmount other;
 }
 
-_PaymentBreakdown _buildBreakdown(List<TransactionEntity> transactions) {
+_PaymentBreakdown _buildBreakdown(
+  List<TransactionEntity> transactions, {
+  CreditEntity? credit,
+}) {
   int scale = 2;
   BigInt principal = BigInt.zero;
   BigInt interest = BigInt.zero;
@@ -324,24 +344,20 @@ _PaymentBreakdown _buildBreakdown(List<TransactionEntity> transactions) {
   for (final TransactionEntity transaction in transactions) {
     scale = transaction.amountScale ?? scale;
     final BigInt amount = transaction.amountValue.abs().minor;
-    final TransactionType type = parseTransactionType(transaction.type);
-    final String note = (transaction.note ?? '').toLowerCase();
-
-    if (type == TransactionType.transfer) {
-      principal += amount;
-      continue;
+    switch (_resolveBreakdownKind(transaction, credit)) {
+      case _BreakdownKind.principal:
+        principal += amount;
+        break;
+      case _BreakdownKind.interest:
+        interest += amount;
+        break;
+      case _BreakdownKind.fees:
+        fees += amount;
+        break;
+      case _BreakdownKind.other:
+        other += amount;
+        break;
     }
-    if (note.contains('interest') || note.contains('процент')) {
-      interest += amount;
-      continue;
-    }
-    if (note.contains('fee') ||
-        note.contains('fees') ||
-        note.contains('комисс')) {
-      fees += amount;
-      continue;
-    }
-    other += amount;
   }
 
   return _PaymentBreakdown(
@@ -350,4 +366,39 @@ _PaymentBreakdown _buildBreakdown(List<TransactionEntity> transactions) {
     fees: MoneyAmount(minor: fees, scale: scale),
     other: MoneyAmount(minor: other, scale: scale),
   );
+}
+
+enum _BreakdownKind { principal, interest, fees, other }
+
+_BreakdownKind _resolveBreakdownKind(
+  TransactionEntity transaction,
+  CreditEntity? credit,
+) {
+  final String? categoryId = transaction.categoryId;
+  if (credit != null && categoryId != null && categoryId.isNotEmpty) {
+    if (categoryId == credit.interestCategoryId) {
+      return _BreakdownKind.interest;
+    }
+    if (categoryId == credit.feesCategoryId) {
+      return _BreakdownKind.fees;
+    }
+    if (categoryId == credit.categoryId) {
+      return _BreakdownKind.principal;
+    }
+  }
+
+  final TransactionType type = parseTransactionType(transaction.type);
+  final String note = (transaction.note ?? '').toLowerCase();
+  if (type == TransactionType.transfer) {
+    return _BreakdownKind.principal;
+  }
+  if (note.contains('interest') || note.contains('процент')) {
+    return _BreakdownKind.interest;
+  }
+  if (note.contains('fee') ||
+      note.contains('fees') ||
+      note.contains('комисс')) {
+    return _BreakdownKind.fees;
+  }
+  return _BreakdownKind.other;
 }

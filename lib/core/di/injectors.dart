@@ -729,6 +729,7 @@ DeleteCreditUseCase deleteCreditUseCase(Ref ref) => DeleteCreditUseCase(
   ref.watch(creditRepositoryProvider),
   ref.watch(deleteAccountUseCaseProvider),
   ref.watch(deleteCategoryUseCaseProvider),
+  ref.watch(upcomingPaymentsRepositoryProvider),
 );
 
 @riverpod
