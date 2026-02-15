@@ -17,6 +17,7 @@
 ### Графики и визуализация
 - [AnalyticsBarChart](AnalyticsBarChart.md) — столбчатая диаграмма для аналитики
 - [AnalyticsDonutChart](AnalyticsDonutChart.md) — круговая диаграмма с интерактивной подсветкой
+- [AnalyticsCreditDebtOperationsWidget](AnalyticsCreditDebtOperationsWidget.md) — блок операций по кредитам и долгам под диаграммой категорий
 - [MonthlyCashflowBarChartWidget](MonthlyCashflowBarChartWidget.md) — сравнение доходов и расходов по месяцам
 - [TotalMoneyChartWidget](TotalMoneyChartWidget.md) — график динамики общего баланса
 

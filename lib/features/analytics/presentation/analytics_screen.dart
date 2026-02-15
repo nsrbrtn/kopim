@@ -1452,8 +1452,11 @@ class _TopCategoriesPage extends StatefulWidget {
   State<_TopCategoriesPage> createState() => _TopCategoriesPageState();
 }
 
+enum _CategoriesChartMode { donut, bar }
+
 class _TopCategoriesPageState extends State<_TopCategoriesPage> {
   String? _highlightKey;
+  _CategoriesChartMode _chartMode = _CategoriesChartMode.donut;
 
   @override
   Widget build(BuildContext context) {
@@ -1553,6 +1556,18 @@ class _TopCategoriesPageState extends State<_TopCategoriesPage> {
             isIncome: widget.data.isIncome,
             focusedItem: focusedItem,
           ),
+          const SizedBox(height: 16),
+          _CategoriesChartModeToggle(
+            mode: _chartMode,
+            onModeChanged: (_CategoriesChartMode mode) {
+              if (_chartMode == mode) {
+                return;
+              }
+              setState(() {
+                _chartMode = mode;
+              });
+            },
+          ),
           const SizedBox(height: 32),
           LayoutBuilder(
             builder: (BuildContext context, BoxConstraints constraints) {
@@ -1571,27 +1586,46 @@ class _TopCategoriesPageState extends State<_TopCategoriesPage> {
                   .clamp(240.0, screenSize.width)
                   .toDouble();
 
+              final Widget chartWidget =
+                  _chartMode == _CategoriesChartMode.donut
+                  ? AnalyticsDonutChart(
+                      items: displayItems,
+                      backgroundColor: backgroundColor,
+                      totalAmount: displayTotal,
+                      selectedIndex: selectedIndex,
+                      animate: false,
+                      onSegmentSelected: (int index) {
+                        if (index >= 0 && index < displayItems.length) {
+                          setState(() {
+                            final String key = displayItems[index].key;
+                            _highlightKey = _highlightKey == key ? null : key;
+                          });
+                        }
+                      },
+                    )
+                  : AnalyticsBarChart(
+                      items: displayItems,
+                      backgroundColor: backgroundColor,
+                      totalAmount: displayTotal,
+                      selectedIndex: selectedIndex,
+                      animate: false,
+                      onBarSelected: (int index) {
+                        if (index >= 0 && index < displayItems.length) {
+                          setState(() {
+                            final String key = displayItems[index].key;
+                            _highlightKey = _highlightKey == key ? null : key;
+                          });
+                        }
+                      },
+                    );
+
               final Widget chart = RepaintBoundary(
                 child: SizedBox(
                   height: chartExtent,
                   child: Stack(
                     alignment: Alignment.center,
                     children: <Widget>[
-                      AnalyticsDonutChart(
-                        items: displayItems,
-                        backgroundColor: backgroundColor,
-                        totalAmount: displayTotal,
-                        selectedIndex: selectedIndex,
-                        animate: false,
-                        onSegmentSelected: (int index) {
-                          if (index >= 0 && index < displayItems.length) {
-                            setState(() {
-                              final String key = displayItems[index].key;
-                              _highlightKey = _highlightKey == key ? null : key;
-                            });
-                          }
-                        },
-                      ),
+                      chartWidget,
                       Positioned.fill(
                         child: SwipeHintArrows(
                           canGoPreviousRange: widget.canGoPreviousRange,
@@ -1626,6 +1660,15 @@ class _TopCategoriesPageState extends State<_TopCategoriesPage> {
             highlightedKey: _highlightKey,
             onToggle: _handleToggle,
           ),
+          if (!widget.data.isIncome)
+            Padding(
+              padding: const EdgeInsets.only(top: 24),
+              child: _CreditDebtOperationsSection(
+                currencyFormat: widget.currencyFormat,
+                accountsById: widget.accountsById,
+                strings: widget.strings,
+              ),
+            ),
           AnimatedSize(
             alignment: Alignment.topCenter,
             duration: const Duration(milliseconds: 220),
@@ -1835,6 +1878,361 @@ class _CategoryTransactionsSelection {
   final String title;
   final List<String> categoryIds;
   final bool includeUncategorized;
+}
+
+class _CreditDebtOperationsSection extends ConsumerWidget {
+  const _CreditDebtOperationsSection({
+    required this.currencyFormat,
+    required this.accountsById,
+    required this.strings,
+  });
+
+  final NumberFormat currencyFormat;
+  final Map<String, AccountEntity> accountsById;
+  final AppLocalizations strings;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final AsyncValue<CreditDebtOperationsOverview> overviewAsync = ref.watch(
+      analyticsCreditDebtOperationsProvider,
+    );
+    final ThemeData theme = Theme.of(context);
+    final ColorScheme colors = theme.colorScheme;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: colors.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(22),
+      ),
+      child: overviewAsync.when(
+        data: (CreditDebtOperationsOverview overview) {
+          if (overview.isEmpty) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(
+                  'Операции по кредитам и долгам',
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'За выбранный период операций не найдено.',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colors.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            );
+          }
+
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Text(
+                'Операции по кредитам и долгам',
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: colors.onSurface,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: <Widget>[
+                  _DebtMetricChip(
+                    icon: Icons.keyboard_double_arrow_down_rounded,
+                    label: 'Погашение тела',
+                    value: currencyFormat.format(
+                      overview.principalRepayment.toDouble(),
+                    ),
+                  ),
+                  _DebtMetricChip(
+                    icon: Icons.receipt_long_outlined,
+                    label: 'Проценты и комиссии',
+                    value: currencyFormat.format(
+                      overview.serviceExpense.toDouble(),
+                    ),
+                  ),
+                  _DebtMetricChip(
+                    icon: Icons.keyboard_double_arrow_up_rounded,
+                    label: 'Новые займы',
+                    value: currencyFormat.format(
+                      overview.principalInflow.toDouble(),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Text(
+                'Отток по долгам: ${currencyFormat.format(overview.totalOutflow.toDouble())}',
+                style: theme.textTheme.labelLarge?.copyWith(
+                  color: colors.onSurfaceVariant,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 12),
+              _CreditDebtOperationList(
+                items: overview.items,
+                accountsById: accountsById,
+                localeName: strings.localeName,
+                currencyFormat: currencyFormat,
+              ),
+            ],
+          );
+        },
+        loading: () => const Padding(
+          padding: EdgeInsets.symmetric(vertical: 24),
+          child: Center(child: CircularProgressIndicator()),
+        ),
+        error: (Object error, StackTrace stackTrace) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Text(
+                'Операции по кредитам и долгам',
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                error.toString(),
+                style: theme.textTheme.bodySmall?.copyWith(color: colors.error),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _DebtMetricChip extends StatelessWidget {
+  const _DebtMetricChip({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  final IconData icon;
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final ColorScheme colors = theme.colorScheme;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: colors.surfaceContainerHighest.withValues(alpha: 0.65),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          Icon(icon, size: 16, color: colors.primary),
+          const SizedBox(width: 6),
+          Text(
+            '$label: $value',
+            style: theme.textTheme.labelMedium?.copyWith(
+              color: colors.onSurface,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CreditDebtOperationList extends StatelessWidget {
+  const _CreditDebtOperationList({
+    required this.items,
+    required this.accountsById,
+    required this.localeName,
+    required this.currencyFormat,
+  });
+
+  final List<CreditDebtOperationItem> items;
+  final Map<String, AccountEntity> accountsById;
+  final String localeName;
+  final NumberFormat currencyFormat;
+
+  @override
+  Widget build(BuildContext context) {
+    final List<CreditDebtOperationItem> visibleItems = items.take(5).toList();
+    final ThemeData theme = Theme.of(context);
+    final ColorScheme colors = theme.colorScheme;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Text(
+          'Последние операции',
+          style: theme.textTheme.labelLarge?.copyWith(
+            color: colors.onSurface,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 8),
+        ListView.separated(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: visibleItems.length,
+          separatorBuilder: (_, _) => const SizedBox(height: 8),
+          itemBuilder: (BuildContext context, int index) {
+            final CreditDebtOperationItem item = visibleItems[index];
+            return _CreditDebtOperationTile(
+              item: item,
+              accountsById: accountsById,
+              localeName: localeName,
+              currencyFormat: currencyFormat,
+            );
+          },
+        ),
+      ],
+    );
+  }
+}
+
+class _CreditDebtOperationTile extends StatelessWidget {
+  const _CreditDebtOperationTile({
+    required this.item,
+    required this.accountsById,
+    required this.localeName,
+    required this.currencyFormat,
+  });
+
+  final CreditDebtOperationItem item;
+  final Map<String, AccountEntity> accountsById;
+  final String localeName;
+  final NumberFormat currencyFormat;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final ColorScheme colors = theme.colorScheme;
+    final TransactionEntity transaction = item.transaction;
+    final AccountEntity? fromAccount = accountsById[transaction.accountId];
+    final AccountEntity? toAccount = transaction.transferAccountId == null
+        ? null
+        : accountsById[transaction.transferAccountId!];
+    final String flow = _buildFlowText(
+      sourceName: fromAccount?.name ?? 'Счёт',
+      targetName: toAccount?.name,
+    );
+    final String subtitle =
+        '${DateFormat.yMMMd(localeName).format(transaction.date)} • $flow';
+    final String amountText = currencyFormat.format(
+      transaction.amountValue.toDouble(),
+    );
+    final bool isNeutral = !item.isInflow && !item.isOutflow;
+    final String signedAmount = isNeutral
+        ? amountText
+        : item.isInflow
+        ? '+$amountText'
+        : '-$amountText';
+    final Color amountColor = isNeutral
+        ? colors.onSurfaceVariant
+        : item.isInflow
+        ? colors.primary
+        : colors.error;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: colors.surfaceContainer.withValues(alpha: 0.72),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Row(
+        children: <Widget>[
+          Container(
+            width: 30,
+            height: 30,
+            decoration: BoxDecoration(
+              color: _resolveBadgeColor(item.kind, colors),
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: Icon(
+              _resolveBadgeIcon(item.kind),
+              size: 16,
+              color: colors.onPrimary,
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(
+                  _resolveOperationLabel(item.kind),
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: colors.onSurface,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  subtitle,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colors.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            signedAmount,
+            style: theme.textTheme.labelLarge?.copyWith(
+              color: amountColor,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+Color _resolveBadgeColor(CreditDebtOperationKind kind, ColorScheme colors) {
+  return switch (kind) {
+    CreditDebtOperationKind.principalRepayment => colors.error,
+    CreditDebtOperationKind.serviceExpense => colors.error,
+    CreditDebtOperationKind.principalInflow => colors.primary,
+    CreditDebtOperationKind.debtTransfer => colors.secondary,
+  };
+}
+
+IconData _resolveBadgeIcon(CreditDebtOperationKind kind) {
+  return switch (kind) {
+    CreditDebtOperationKind.principalRepayment => Icons.trending_down_rounded,
+    CreditDebtOperationKind.serviceExpense => Icons.percent_rounded,
+    CreditDebtOperationKind.principalInflow => Icons.trending_up_rounded,
+    CreditDebtOperationKind.debtTransfer => Icons.swap_horiz_rounded,
+  };
+}
+
+String _resolveOperationLabel(CreditDebtOperationKind kind) {
+  return switch (kind) {
+    CreditDebtOperationKind.principalRepayment => 'Погашение тела',
+    CreditDebtOperationKind.serviceExpense => 'Проценты и комиссии',
+    CreditDebtOperationKind.principalInflow => 'Получение кредита/долга',
+    CreditDebtOperationKind.debtTransfer => 'Перевод между долгами',
+  };
+}
+
+String _buildFlowText({required String sourceName, String? targetName}) {
+  if (targetName == null || targetName.isEmpty) {
+    return sourceName;
+  }
+  return '$sourceName -> $targetName';
 }
 
 class _CategoryTransactionsSection extends ConsumerWidget {
@@ -2215,6 +2613,102 @@ class _CategoryBreakdownList extends StatelessWidget {
             );
           })
           .toList(growable: false),
+    );
+  }
+}
+
+class _CategoriesChartModeToggle extends StatelessWidget {
+  const _CategoriesChartModeToggle({
+    required this.mode,
+    required this.onModeChanged,
+  });
+
+  final _CategoriesChartMode mode;
+  final ValueChanged<_CategoriesChartMode> onModeChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final ColorScheme colors = theme.colorScheme;
+    return Container(
+      decoration: BoxDecoration(
+        color: colors.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      padding: const EdgeInsets.all(4),
+      child: Row(
+        children: <Widget>[
+          Expanded(
+            child: _ChartModeButton(
+              icon: Icons.donut_large,
+              label: 'Круг',
+              selected: mode == _CategoriesChartMode.donut,
+              onTap: () => onModeChanged(_CategoriesChartMode.donut),
+            ),
+          ),
+          Expanded(
+            child: _ChartModeButton(
+              icon: Icons.bar_chart_rounded,
+              label: 'Столбцы',
+              selected: mode == _CategoriesChartMode.bar,
+              onTap: () => onModeChanged(_CategoriesChartMode.bar),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ChartModeButton extends StatelessWidget {
+  const _ChartModeButton({
+    required this.icon,
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final ColorScheme colors = theme.colorScheme;
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(999),
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+          decoration: BoxDecoration(
+            color: selected ? colors.primary : Colors.transparent,
+            borderRadius: BorderRadius.circular(999),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Icon(
+                icon,
+                size: 16,
+                color: selected ? colors.onPrimary : colors.onSurfaceVariant,
+              ),
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: theme.textTheme.labelLarge?.copyWith(
+                  color: selected ? colors.onPrimary : colors.onSurfaceVariant,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

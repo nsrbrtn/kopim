@@ -45,6 +45,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
           formArgs: widget.formArgs,
           onSuccess: (TransactionFormResult result) {
             if (!context.mounted) return;
+            Tooltip.dismissAllToolTips();
             Navigator.of(context).pop(result);
           },
           showSubmitButton: false,
@@ -66,6 +67,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
               onPressed: isSubmitting
                   ? null
                   : () async {
+                      Tooltip.dismissAllToolTips();
                       FocusManager.instance.primaryFocus?.unfocus();
                       await Future<void>.delayed(Duration.zero);
                       if (!(_formKey.currentState?.validate() ?? false)) {

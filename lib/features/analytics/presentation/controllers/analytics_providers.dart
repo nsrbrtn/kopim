@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart' show immutable, listEquals;
 import 'package:flutter/material.dart' show DateTimeRange, DateUtils;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -12,6 +14,7 @@ import 'package:kopim/features/analytics/presentation/models/monthly_cashflow_da
 import 'package:kopim/features/analytics/presentation/controllers/analytics_filter_controller.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/core/money/money_utils.dart';
+import 'package:kopim/features/credits/domain/entities/credit_entity.dart';
 import 'package:kopim/features/transactions/domain/models/monthly_balance_totals.dart';
 import 'package:kopim/features/transactions/domain/models/monthly_cashflow_totals.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
@@ -244,9 +247,7 @@ analyticsCategoryTransactionsProvider =
         );
       }
 
-      final AnalyticsDateWindow window = ref.watch(
-        analyticsDateWindowProvider,
-      );
+      final AnalyticsDateWindow window = ref.watch(analyticsDateWindowProvider);
       final List<String> sortedAccountIds = ref
           .watch(analyticsSelectedAccountIdsProvider)
           .ids;
@@ -361,7 +362,361 @@ final StreamProvider<List<MonthlyCashflowData>> monthlyCashflowDataProvider =
           .distinct(_listEqualsMonthlyCashflow);
     });
 
+enum CreditDebtOperationKind {
+  principalRepayment,
+  principalInflow,
+  serviceExpense,
+  debtTransfer,
+}
+
+@immutable
+class CreditDebtOperationItem {
+  const CreditDebtOperationItem({
+    required this.transaction,
+    required this.kind,
+    this.liabilityAccountId,
+  });
+
+  final TransactionEntity transaction;
+  final CreditDebtOperationKind kind;
+  final String? liabilityAccountId;
+
+  bool get isOutflow =>
+      kind == CreditDebtOperationKind.principalRepayment ||
+      kind == CreditDebtOperationKind.serviceExpense;
+
+  bool get isInflow => kind == CreditDebtOperationKind.principalInflow;
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) {
+      return true;
+    }
+    return other is CreditDebtOperationItem &&
+        other.transaction == transaction &&
+        other.kind == kind &&
+        other.liabilityAccountId == liabilityAccountId;
+  }
+
+  @override
+  int get hashCode => Object.hash(transaction, kind, liabilityAccountId);
+}
+
+@immutable
+class CreditDebtOperationsOverview {
+  const CreditDebtOperationsOverview({
+    required this.principalRepayment,
+    required this.principalInflow,
+    required this.serviceExpense,
+    required this.totalOutflow,
+    required this.items,
+  });
+
+  final MoneyAmount principalRepayment;
+  final MoneyAmount principalInflow;
+  final MoneyAmount serviceExpense;
+  final MoneyAmount totalOutflow;
+  final List<CreditDebtOperationItem> items;
+
+  bool get isEmpty =>
+      principalRepayment.minor <= BigInt.zero &&
+      principalInflow.minor <= BigInt.zero &&
+      serviceExpense.minor <= BigInt.zero &&
+      items.isEmpty;
+
+  static CreditDebtOperationsOverview empty() {
+    const int scale = 2;
+    final MoneyAmount zero = MoneyAmount(minor: BigInt.zero, scale: scale);
+    return CreditDebtOperationsOverview(
+      principalRepayment: zero,
+      principalInflow: zero,
+      serviceExpense: zero,
+      totalOutflow: zero,
+      items: const <CreditDebtOperationItem>[],
+    );
+  }
+}
+
+final StreamProvider<CreditDebtOperationsOverview>
+analyticsCreditDebtOperationsProvider =
+    StreamProvider<CreditDebtOperationsOverview>((Ref ref) {
+      final AnalyticsDateWindow window = ref.watch(analyticsDateWindowProvider);
+      final SortedIds selectedAccountIds = ref.watch(
+        analyticsSelectedAccountIdsProvider,
+      );
+
+      return _combineLatest3<
+            List<TransactionEntity>,
+            List<AccountEntity>,
+            List<CreditEntity>,
+            CreditDebtOperationsOverview
+          >(
+            ref.watch(watchRecentTransactionsUseCaseProvider).call(limit: 0),
+            ref.watch(watchAccountsUseCaseProvider).call(),
+            ref.watch(watchCreditsUseCaseProvider).call(),
+            (
+              List<TransactionEntity> transactions,
+              List<AccountEntity> accounts,
+              List<CreditEntity> credits,
+            ) {
+              return _buildCreditDebtOperationsOverview(
+                transactions: transactions,
+                accounts: accounts,
+                credits: credits,
+                dateWindow: window,
+                selectedAccountIds: selectedAccountIds,
+              );
+            },
+          )
+          .distinct(_creditDebtOverviewEquals);
+    });
+
+CreditDebtOperationsOverview _buildCreditDebtOperationsOverview({
+  required List<TransactionEntity> transactions,
+  required List<AccountEntity> accounts,
+  required List<CreditEntity> credits,
+  required AnalyticsDateWindow dateWindow,
+  required SortedIds selectedAccountIds,
+}) {
+  final Set<String> liabilityTypes = <String>{'credit', 'credit_card', 'debt'};
+  final Set<String> liabilityAccountIds = accounts
+      .where((AccountEntity account) => liabilityTypes.contains(account.type))
+      .map((AccountEntity account) => account.id)
+      .toSet();
+
+  if (liabilityAccountIds.isEmpty) {
+    return CreditDebtOperationsOverview.empty();
+  }
+
+  final Map<String, String> serviceCategoryToLiabilityAccount =
+      <String, String>{};
+  for (final CreditEntity credit in credits) {
+    final String accountId = credit.accountId;
+    final String? interestCategoryId = credit.interestCategoryId;
+    if (interestCategoryId != null && interestCategoryId.isNotEmpty) {
+      serviceCategoryToLiabilityAccount[interestCategoryId] = accountId;
+    }
+    final String? feesCategoryId = credit.feesCategoryId;
+    if (feesCategoryId != null && feesCategoryId.isNotEmpty) {
+      serviceCategoryToLiabilityAccount[feesCategoryId] = accountId;
+    }
+  }
+
+  final MoneyAccumulator principalRepayment = MoneyAccumulator();
+  final MoneyAccumulator principalInflow = MoneyAccumulator();
+  final MoneyAccumulator serviceExpense = MoneyAccumulator();
+  final List<CreditDebtOperationItem> items = <CreditDebtOperationItem>[];
+
+  bool touchesSelectedAccounts(TransactionEntity transaction) {
+    if (selectedAccountIds.isEmpty) {
+      return true;
+    }
+    if (selectedAccountIds.set.contains(transaction.accountId)) {
+      return true;
+    }
+    final String? transferAccountId = transaction.transferAccountId;
+    if (transferAccountId == null) {
+      return false;
+    }
+    return selectedAccountIds.set.contains(transferAccountId);
+  }
+
+  bool inDateWindow(DateTime date) {
+    if (date.isBefore(dateWindow.start)) {
+      return false;
+    }
+    return date.isBefore(dateWindow.endExclusive);
+  }
+
+  for (final TransactionEntity transaction in transactions) {
+    if (!touchesSelectedAccounts(transaction) ||
+        !inDateWindow(transaction.date)) {
+      continue;
+    }
+    final MoneyAmount amount = transaction.amountValue;
+    if (amount.minor <= BigInt.zero) {
+      continue;
+    }
+
+    final TransactionType type = parseTransactionType(transaction.type);
+    if (type == TransactionType.transfer) {
+      final bool sourceIsLiability = liabilityAccountIds.contains(
+        transaction.accountId,
+      );
+      final String? transferAccountId = transaction.transferAccountId;
+      final bool targetIsLiability =
+          transferAccountId != null &&
+          liabilityAccountIds.contains(transferAccountId);
+
+      if (!sourceIsLiability && targetIsLiability) {
+        principalRepayment.add(amount);
+        items.add(
+          CreditDebtOperationItem(
+            transaction: transaction,
+            kind: CreditDebtOperationKind.principalRepayment,
+            liabilityAccountId: transferAccountId,
+          ),
+        );
+        continue;
+      }
+      if (sourceIsLiability && !targetIsLiability) {
+        principalInflow.add(amount);
+        items.add(
+          CreditDebtOperationItem(
+            transaction: transaction,
+            kind: CreditDebtOperationKind.principalInflow,
+            liabilityAccountId: transaction.accountId,
+          ),
+        );
+        continue;
+      }
+      if (sourceIsLiability || targetIsLiability) {
+        items.add(
+          CreditDebtOperationItem(
+            transaction: transaction,
+            kind: CreditDebtOperationKind.debtTransfer,
+            liabilityAccountId: sourceIsLiability
+                ? transaction.accountId
+                : transferAccountId,
+          ),
+        );
+      }
+      continue;
+    }
+
+    if (type == TransactionType.expense) {
+      final String? categoryId = transaction.categoryId;
+      if (categoryId == null) {
+        continue;
+      }
+      final String? linkedLiabilityAccountId =
+          serviceCategoryToLiabilityAccount[categoryId];
+      if (linkedLiabilityAccountId == null) {
+        continue;
+      }
+      serviceExpense.add(amount);
+      items.add(
+        CreditDebtOperationItem(
+          transaction: transaction,
+          kind: CreditDebtOperationKind.serviceExpense,
+          liabilityAccountId: linkedLiabilityAccountId,
+        ),
+      );
+    }
+  }
+
+  items.sort((CreditDebtOperationItem a, CreditDebtOperationItem b) {
+    return b.transaction.date.compareTo(a.transaction.date);
+  });
+
+  final MoneyAmount principalRepaymentAmount = MoneyAmount(
+    minor: principalRepayment.minor,
+    scale: principalRepayment.scale,
+  );
+  final MoneyAmount serviceExpenseAmount = MoneyAmount(
+    minor: serviceExpense.minor,
+    scale: serviceExpense.scale,
+  );
+
+  final MoneyAccumulator totalOutflow = MoneyAccumulator();
+  totalOutflow.add(principalRepaymentAmount);
+  totalOutflow.add(serviceExpenseAmount);
+
+  return CreditDebtOperationsOverview(
+    principalRepayment: principalRepaymentAmount,
+    principalInflow: MoneyAmount(
+      minor: principalInflow.minor,
+      scale: principalInflow.scale,
+    ),
+    serviceExpense: serviceExpenseAmount,
+    totalOutflow: MoneyAmount(
+      minor: totalOutflow.minor,
+      scale: totalOutflow.scale,
+    ),
+    items: List<CreditDebtOperationItem>.unmodifiable(items),
+  );
+}
+
+bool _creditDebtOverviewEquals(
+  CreditDebtOperationsOverview previous,
+  CreditDebtOperationsOverview next,
+) {
+  return previous.principalRepayment == next.principalRepayment &&
+      previous.principalInflow == next.principalInflow &&
+      previous.serviceExpense == next.serviceExpense &&
+      previous.totalOutflow == next.totalOutflow &&
+      listEquals(previous.items, next.items);
+}
+
 int _monthKey(DateTime monthStart) => monthStart.year * 100 + monthStart.month;
+
+Stream<T> _combineLatest3<A, B, C, T>(
+  Stream<A> a,
+  Stream<B> b,
+  Stream<C> c,
+  T Function(A, B, C) mapper,
+) {
+  late StreamController<T> controller;
+  A? lastA;
+  B? lastB;
+  C? lastC;
+  bool hasA = false;
+  bool hasB = false;
+  bool hasC = false;
+
+  void emitIfReady() {
+    if (hasA && hasB && hasC) {
+      controller.add(mapper(lastA as A, lastB as B, lastC as C));
+    }
+  }
+
+  controller = StreamController<T>(
+    onListen: () {
+      int doneCount = 0;
+      void handleDone() {
+        doneCount += 1;
+        if (doneCount >= 3 && !controller.isClosed) {
+          controller.close();
+        }
+      }
+
+      final StreamSubscription<A> subA = a.listen(
+        (A value) {
+          lastA = value;
+          hasA = true;
+          emitIfReady();
+        },
+        onError: controller.addError,
+        onDone: handleDone,
+      );
+      final StreamSubscription<B> subB = b.listen(
+        (B value) {
+          lastB = value;
+          hasB = true;
+          emitIfReady();
+        },
+        onError: controller.addError,
+        onDone: handleDone,
+      );
+      final StreamSubscription<C> subC = c.listen(
+        (C value) {
+          lastC = value;
+          hasC = true;
+          emitIfReady();
+        },
+        onError: controller.addError,
+        onDone: handleDone,
+      );
+      controller.onCancel = () async {
+        await subA.cancel();
+        await subB.cancel();
+        await subC.cancel();
+      };
+    },
+  );
+
+  return controller.stream;
+}
 
 bool _listEqualsAccounts(
   List<AccountEntity> first,

@@ -104,6 +104,7 @@ class _TransactionFormOverlayState
                           autofocusAmount: true,
                           showSubmitButton: false,
                           onSuccess: (TransactionFormResult result) {
+                            Tooltip.dismissAllToolTips();
                             _closeWithUnfocus(ref);
                             ref
                                 .read(formProvider.notifier)
