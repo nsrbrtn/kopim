@@ -4,6 +4,7 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/analytics/domain/models/monthly_balance_data.dart';
 import 'package:kopim/features/analytics/presentation/widgets/total_money_chart_widget.dart';
+import 'package:kopim/l10n/app_localizations.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
 void main() {
@@ -29,6 +30,8 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
           body: TotalMoneyChartWidget(
             data: data,
@@ -43,11 +46,14 @@ void main() {
 
     await tester.pumpAndSettle();
 
+    final BuildContext context = tester.element(find.byType(Scaffold));
+    final AppLocalizations strings = AppLocalizations.of(context)!;
+
     // Verify chart is present
     expect(find.byType(SfCartesianChart), findsOneWidget);
 
     // Verify title
-    expect(find.text('Денег всего'), findsOneWidget);
+    expect(find.text(strings.analyticsTotalMoneyWidgetTitle), findsOneWidget);
 
     // Verify selected month balance is shown
     expect(find.text('2K ₽'), findsOneWidget);
@@ -66,6 +72,8 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
           body: TotalMoneyChartWidget(
             data: data,
@@ -99,4 +107,41 @@ void main() {
     expect(chart.series[0], isA<SplineSeries<MonthlyBalanceData, String>>());
     expect(chart.series[1], isA<ScatterSeries<MonthlyBalanceData, String>>());
   });
+
+  testWidgets(
+    'TotalMoneyChartWidget uses closest available month when selected is out of range',
+    (WidgetTester tester) async {
+      final List<MonthlyBalanceData> data = <MonthlyBalanceData>[
+        MonthlyBalanceData(
+          month: DateTime(2025, 1),
+          totalBalance: MoneyAmount(minor: BigInt.from(100000), scale: 2),
+        ),
+        MonthlyBalanceData(
+          month: DateTime(2025, 2),
+          totalBalance: MoneyAmount(minor: BigInt.from(250000), scale: 2),
+        ),
+      ];
+
+      await tester.pumpWidget(
+        MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: TotalMoneyChartWidget(
+              data: data,
+              currencySymbol: '₽',
+              selectedMonth: DateTime(2030, 1),
+              onMonthSelected: (_) {},
+              localeName: 'en',
+            ),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(find.text('February'), findsOneWidget);
+      expect(find.text('2.5K ₽'), findsOneWidget);
+    },
+  );
 }

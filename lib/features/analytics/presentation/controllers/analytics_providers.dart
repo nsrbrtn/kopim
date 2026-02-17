@@ -19,6 +19,7 @@ import 'package:kopim/features/transactions/domain/models/monthly_balance_totals
 import 'package:kopim/features/transactions/domain/models/monthly_cashflow_totals.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
+import 'package:kopim/features/transactions/domain/repositories/transaction_repository.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'analytics_providers.g.dart';
@@ -444,21 +445,66 @@ analyticsCreditDebtOperationsProvider =
       final SortedIds selectedAccountIds = ref.watch(
         analyticsSelectedAccountIdsProvider,
       );
+      final TransactionRepository transactionRepository = ref.watch(
+        transactionRepositoryProvider,
+      );
 
-      return _combineLatest3<
+      final Stream<List<TransactionEntity>> transferTransactionsStream =
+          transactionRepository
+              .watchCategoryTransactions(
+                start: window.start,
+                end: window.endExclusive,
+                categoryIds: const <String>[],
+                includeUncategorized: true,
+                type: TransactionType.transfer.storageValue,
+                accountIds: const <String>[],
+              )
+              .distinct(_listEqualsTransactions);
+
+      final Stream<List<TransactionEntity>> serviceExpenseTransactionsStream =
+          _switchLatest<List<CreditEntity>, List<TransactionEntity>>(
+            ref.watch(watchCreditsUseCaseProvider).call(),
+            (List<CreditEntity> credits) {
+              final List<String> serviceCategoryIds = _serviceCategoryIds(
+                credits,
+              );
+              if (serviceCategoryIds.isEmpty) {
+                return Stream<List<TransactionEntity>>.value(
+                  const <TransactionEntity>[],
+                );
+              }
+              return transactionRepository.watchCategoryTransactions(
+                start: window.start,
+                end: window.endExclusive,
+                categoryIds: serviceCategoryIds,
+                includeUncategorized: false,
+                type: TransactionType.expense.storageValue,
+                accountIds: selectedAccountIds.ids,
+              );
+            },
+          ).distinct(_listEqualsTransactions);
+
+      return _combineLatest4<
+            List<TransactionEntity>,
             List<TransactionEntity>,
             List<AccountEntity>,
             List<CreditEntity>,
             CreditDebtOperationsOverview
           >(
-            ref.watch(watchRecentTransactionsUseCaseProvider).call(limit: 0),
+            transferTransactionsStream,
+            serviceExpenseTransactionsStream,
             ref.watch(watchAccountsUseCaseProvider).call(),
             ref.watch(watchCreditsUseCaseProvider).call(),
             (
-              List<TransactionEntity> transactions,
+              List<TransactionEntity> transferTransactions,
+              List<TransactionEntity> serviceExpenseTransactions,
               List<AccountEntity> accounts,
               List<CreditEntity> credits,
             ) {
+              final List<TransactionEntity> transactions = <TransactionEntity>[
+                ...transferTransactions,
+                ...serviceExpenseTransactions,
+              ];
               return _buildCreditDebtOperationsOverview(
                 transactions: transactions,
                 accounts: accounts,
@@ -650,23 +696,42 @@ bool _creditDebtOverviewEquals(
 
 int _monthKey(DateTime monthStart) => monthStart.year * 100 + monthStart.month;
 
-Stream<T> _combineLatest3<A, B, C, T>(
+List<String> _serviceCategoryIds(List<CreditEntity> credits) {
+  final Set<String> unique = <String>{};
+  for (final CreditEntity credit in credits) {
+    final String? interestCategoryId = credit.interestCategoryId;
+    if (interestCategoryId != null && interestCategoryId.isNotEmpty) {
+      unique.add(interestCategoryId);
+    }
+    final String? feesCategoryId = credit.feesCategoryId;
+    if (feesCategoryId != null && feesCategoryId.isNotEmpty) {
+      unique.add(feesCategoryId);
+    }
+  }
+  final List<String> sorted = unique.toList(growable: false)..sort();
+  return sorted;
+}
+
+Stream<T> _combineLatest4<A, B, C, D, T>(
   Stream<A> a,
   Stream<B> b,
   Stream<C> c,
-  T Function(A, B, C) mapper,
+  Stream<D> d,
+  T Function(A, B, C, D) mapper,
 ) {
   late StreamController<T> controller;
   A? lastA;
   B? lastB;
   C? lastC;
+  D? lastD;
   bool hasA = false;
   bool hasB = false;
   bool hasC = false;
+  bool hasD = false;
 
   void emitIfReady() {
-    if (hasA && hasB && hasC) {
-      controller.add(mapper(lastA as A, lastB as B, lastC as C));
+    if (hasA && hasB && hasC && hasD) {
+      controller.add(mapper(lastA as A, lastB as B, lastC as C, lastD as D));
     }
   }
 
@@ -675,7 +740,7 @@ Stream<T> _combineLatest3<A, B, C, T>(
       int doneCount = 0;
       void handleDone() {
         doneCount += 1;
-        if (doneCount >= 3 && !controller.isClosed) {
+        if (doneCount >= 4 && !controller.isClosed) {
           controller.close();
         }
       }
@@ -707,11 +772,63 @@ Stream<T> _combineLatest3<A, B, C, T>(
         onError: controller.addError,
         onDone: handleDone,
       );
+      final StreamSubscription<D> subD = d.listen(
+        (D value) {
+          lastD = value;
+          hasD = true;
+          emitIfReady();
+        },
+        onError: controller.addError,
+        onDone: handleDone,
+      );
       controller.onCancel = () async {
         await subA.cancel();
         await subB.cancel();
         await subC.cancel();
+        await subD.cancel();
       };
+    },
+  );
+
+  return controller.stream;
+}
+
+Stream<R> _switchLatest<T, R>(Stream<T> source, Stream<R> Function(T) mapper) {
+  late StreamController<R> controller;
+  StreamSubscription<T>? outerSub;
+  StreamSubscription<R>? innerSub;
+  bool sourceDone = false;
+
+  Future<void> maybeClose() async {
+    if (sourceDone && innerSub == null && !controller.isClosed) {
+      await controller.close();
+    }
+  }
+
+  controller = StreamController<R>(
+    onListen: () {
+      outerSub = source.listen(
+        (T value) async {
+          await innerSub?.cancel();
+          innerSub = mapper(value).listen(
+            controller.add,
+            onError: controller.addError,
+            onDone: () async {
+              innerSub = null;
+              await maybeClose();
+            },
+          );
+        },
+        onError: controller.addError,
+        onDone: () async {
+          sourceDone = true;
+          await maybeClose();
+        },
+      );
+    },
+    onCancel: () async {
+      await innerSub?.cancel();
+      await outerSub?.cancel();
     },
   );
 

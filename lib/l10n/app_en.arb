@@ -2137,6 +2137,165 @@
       }
     }
   },
+  "analyticsTabCategoriesSpending": "Spending by category",
+  "@analyticsTabCategoriesSpending": {
+    "description": "Tab label for category spending view on analytics screen"
+  },
+  "analyticsTabStatistics": "Statistics",
+  "@analyticsTabStatistics": {
+    "description": "Tab label for statistics view on analytics screen"
+  },
+  "analyticsFilterPresetThisMonth": "This month",
+  "@analyticsFilterPresetThisMonth": {
+    "description": "Preset label for this month in analytics filters"
+  },
+  "analyticsFilterPresetLast30Days": "Last 30 days",
+  "@analyticsFilterPresetLast30Days": {
+    "description": "Preset label for last 30 days in analytics filters"
+  },
+  "analyticsFilterPresetPickDate": "Pick date",
+  "@analyticsFilterPresetPickDate": {
+    "description": "Preset label for custom date range in analytics filters"
+  },
+  "analyticsFilterPresetBudgets": "Budgets",
+  "@analyticsFilterPresetBudgets": {
+    "description": "Stub filter label for budgets on analytics screen"
+  },
+  "analyticsBudgetsStubTitle": "Budgets are in progress",
+  "@analyticsBudgetsStubTitle": {
+    "description": "Title of budgets stub bottom sheet on analytics screen"
+  },
+  "analyticsBudgetsStubBody": "Budget filter will appear later. For now this chip is a placeholder.",
+  "@analyticsBudgetsStubBody": {
+    "description": "Description of budgets stub bottom sheet on analytics screen"
+  },
+  "analyticsDialogClose": "Got it",
+  "@analyticsDialogClose": {
+    "description": "Generic confirmation action in analytics info dialogs"
+  },
+  "analyticsMonthPickerYearSubtitle": "{year}",
+  "@analyticsMonthPickerYearSubtitle": {
+    "description": "Year subtitle in analytics month picker",
+    "placeholders": {
+      "year": {
+        "type": "int"
+      }
+    }
+  },
+  "analyticsAccountsPickerTitle": "Accounts for analytics",
+  "@analyticsAccountsPickerTitle": {
+    "description": "Title of account picker on analytics screen"
+  },
+  "analyticsAccountsPickerReset": "Reset",
+  "@analyticsAccountsPickerReset": {
+    "description": "Reset action in analytics account picker"
+  },
+  "analyticsAccountsPickerApply": "Apply",
+  "@analyticsAccountsPickerApply": {
+    "description": "Apply action in analytics account picker"
+  },
+  "analyticsAccountsSelectedOneFallback": "1 account selected",
+  "@analyticsAccountsSelectedOneFallback": {
+    "description": "Fallback label when one account is selected but account name is unavailable"
+  },
+  "analyticsAccountsSelectedMany": "{count} accounts selected",
+  "@analyticsAccountsSelectedMany": {
+    "description": "Label for selected accounts count in analytics quick selector",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "analyticsCategorySelectedFallback": "Category selected",
+  "@analyticsCategorySelectedFallback": {
+    "description": "Fallback label when selected category is unavailable"
+  },
+  "analyticsInfoTitle": "What analytics shows",
+  "@analyticsInfoTitle": {
+    "description": "Title for analytics info bottom sheet"
+  },
+  "analyticsInfoBody": "The donut chart and category list show how expenses or income are distributed in the selected period. Choose a period, month, or accounts to focus on specific data.",
+  "@analyticsInfoBody": {
+    "description": "Body text for analytics info bottom sheet"
+  },
+  "analyticsDebtOperationsTitle": "Credit and debt operations",
+  "@analyticsDebtOperationsTitle": {
+    "description": "Section title for credit and debt operations in analytics"
+  },
+  "analyticsDebtOperationsEmpty": "No operations found for the selected period.",
+  "@analyticsDebtOperationsEmpty": {
+    "description": "Empty state for credit and debt operations section"
+  },
+  "analyticsDebtMetricPrincipalRepayment": "Principal repayment",
+  "@analyticsDebtMetricPrincipalRepayment": {
+    "description": "Metric label for principal repayment amount in analytics debt section"
+  },
+  "analyticsDebtMetricServiceExpense": "Interest and fees",
+  "@analyticsDebtMetricServiceExpense": {
+    "description": "Metric label for interest and fees amount in analytics debt section"
+  },
+  "analyticsDebtMetricPrincipalInflow": "New loans",
+  "@analyticsDebtMetricPrincipalInflow": {
+    "description": "Metric label for principal inflow amount in analytics debt section"
+  },
+  "analyticsDebtOutflowLabel": "Debt outflow: {amount}",
+  "@analyticsDebtOutflowLabel": {
+    "description": "Summary label for total debt outflow in analytics debt section",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "analyticsDebtRecentOperationsTitle": "Recent operations",
+  "@analyticsDebtRecentOperationsTitle": {
+    "description": "Title for recent operations list in analytics debt section"
+  },
+  "analyticsDebtAccountFallback": "Account",
+  "@analyticsDebtAccountFallback": {
+    "description": "Fallback account name in analytics debt operation tile"
+  },
+  "analyticsDebtOperationPrincipalRepayment": "Principal repayment",
+  "@analyticsDebtOperationPrincipalRepayment": {
+    "description": "Operation label for principal repayment in analytics debt operation tile"
+  },
+  "analyticsDebtOperationServiceExpense": "Interest and fees",
+  "@analyticsDebtOperationServiceExpense": {
+    "description": "Operation label for service expense in analytics debt operation tile"
+  },
+  "analyticsDebtOperationPrincipalInflow": "Loan inflow",
+  "@analyticsDebtOperationPrincipalInflow": {
+    "description": "Operation label for principal inflow in analytics debt operation tile"
+  },
+  "analyticsDebtOperationTransfer": "Transfer between debts",
+  "@analyticsDebtOperationTransfer": {
+    "description": "Operation label for debt transfer in analytics debt operation tile"
+  },
+  "analyticsCashflowWidgetTitle": "Money balance",
+  "@analyticsCashflowWidgetTitle": {
+    "description": "Title for monthly cashflow chart widget"
+  },
+  "analyticsCashflowWidgetInfoTitle": "About this widget",
+  "@analyticsCashflowWidgetInfoTitle": {
+    "description": "Title for monthly cashflow chart help dialog"
+  },
+  "analyticsCashflowWidgetInfoBody": "Income and expenses are calculated by month. Net is income minus expenses for the selected month. For the current month, data up to today is included.",
+  "@analyticsCashflowWidgetInfoBody": {
+    "description": "Description for monthly cashflow chart help dialog"
+  },
+  "analyticsTotalMoneyWidgetTitle": "Total money",
+  "@analyticsTotalMoneyWidgetTitle": {
+    "description": "Title for total money chart widget"
+  },
+  "analyticsTotalMoneyWidgetInfoTitle": "About this chart",
+  "@analyticsTotalMoneyWidgetInfoTitle": {
+    "description": "Title for total money chart help dialog"
+  },
+  "analyticsTotalMoneyWidgetInfoBody": "This chart shows the maximum amount of money you had across your accounts during each month. Only selected accounts are included.",
+  "@analyticsTotalMoneyWidgetInfoBody": {
+    "description": "Description for total money chart help dialog"
+  },
   "addTransactionTitle": "Add transaction",
   "@addTransactionTitle": {
     "description": "Title for add transaction screen"

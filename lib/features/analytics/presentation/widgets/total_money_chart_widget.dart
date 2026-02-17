@@ -2,6 +2,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:kopim/features/analytics/domain/models/monthly_balance_data.dart';
+import 'package:kopim/l10n/app_localizations.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
 class TotalMoneyChartWidget extends StatefulWidget {
@@ -29,6 +30,7 @@ class _TotalMoneyChartWidgetState extends State<TotalMoneyChartWidget> {
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
     final ColorScheme colors = theme.colorScheme;
+    final AppLocalizations strings = AppLocalizations.of(context)!;
 
     if (widget.data.isEmpty) {
       return const SizedBox.shrink();
@@ -41,9 +43,13 @@ class _TotalMoneyChartWidgetState extends State<TotalMoneyChartWidget> {
           d.month.month == widget.selectedMonth.month,
     );
 
-    // Если данные не найдены (например, выбрана дата вне диапазона графика),
-    // берем последние доступные (текущий месяц) или первые.
-    final MonthlyBalanceData displayData = selectedData ?? widget.data.first;
+    // Если выбранный месяц вне диапазона, показываем ближайший доступный.
+    final MonthlyBalanceData displayData =
+        selectedData ??
+        _findClosestMonthData(
+          data: widget.data,
+          selectedMonth: widget.selectedMonth,
+        );
 
     // Найти минимальное и максимальное значение для настройки осей
     final double minBalance = widget.data
@@ -94,7 +100,7 @@ class _TotalMoneyChartWidgetState extends State<TotalMoneyChartWidget> {
           Row(
             children: <Widget>[
               Text(
-                'Денег всего',
+                strings.analyticsTotalMoneyWidgetTitle,
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w600,
                   color: colors.onSurface,
@@ -112,14 +118,14 @@ class _TotalMoneyChartWidgetState extends State<TotalMoneyChartWidget> {
                     context: context,
                     builder: (BuildContext context) {
                       return AlertDialog(
-                        title: const Text('О графике'),
-                        content: const Text(
-                          'Этот график показывает максимальную сумму денег, которая была у вас на счетах в течение каждого месяца. Учитываются только выбранные счета.',
+                        title: Text(strings.analyticsTotalMoneyWidgetInfoTitle),
+                        content: Text(
+                          strings.analyticsTotalMoneyWidgetInfoBody,
                         ),
                         actions: <Widget>[
                           TextButton(
                             onPressed: () => Navigator.of(context).pop(),
-                            child: const Text('Понятно'),
+                            child: Text(strings.analyticsDialogClose),
                           ),
                         ],
                       );
@@ -181,31 +187,31 @@ class _TotalMoneyChartWidgetState extends State<TotalMoneyChartWidget> {
                 maximum: yMax,
               ),
               annotations: <CartesianChartAnnotation>[
-                if (selectedData != null)
-                  CartesianChartAnnotation(
-                    widget: Container(
-                      width: 20,
-                      height: 20,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        boxShadow: <BoxShadow>[
-                          BoxShadow(
-                            color: colors.primary.withValues(alpha: 0.5),
-                            blurRadius: 10,
-                            spreadRadius: 2.5,
-                          ),
-                        ],
-                      ),
+                CartesianChartAnnotation(
+                  widget: Container(
+                    width: 20,
+                    height: 20,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      boxShadow: <BoxShadow>[
+                        BoxShadow(
+                          color: colors.primary.withValues(alpha: 0.5),
+                          blurRadius: 10,
+                          spreadRadius: 2.5,
+                        ),
+                      ],
                     ),
-                    coordinateUnit: CoordinateUnit.point,
-                    x: selectedData.monthLabel,
-                    y: selectedData.totalBalance.toDouble(),
                   ),
+                  coordinateUnit: CoordinateUnit.point,
+                  x: _monthLabel(displayData.month, widget.localeName),
+                  y: displayData.totalBalance.toDouble(),
+                ),
               ],
               series: <CartesianSeries<MonthlyBalanceData, String>>[
                 SplineSeries<MonthlyBalanceData, String>(
                   dataSource: widget.data,
-                  xValueMapper: (MonthlyBalanceData d, _) => d.monthLabel,
+                  xValueMapper: (MonthlyBalanceData d, _) =>
+                      _monthLabel(d.month, widget.localeName),
                   yValueMapper: (MonthlyBalanceData d, _) =>
                       d.totalBalance.toDouble(),
                   color: colors.primary,
@@ -233,7 +239,8 @@ class _TotalMoneyChartWidgetState extends State<TotalMoneyChartWidget> {
                 // Прозрачная серия для увеличения зоны нажатия
                 ScatterSeries<MonthlyBalanceData, String>(
                   dataSource: widget.data,
-                  xValueMapper: (MonthlyBalanceData d, _) => d.monthLabel,
+                  xValueMapper: (MonthlyBalanceData d, _) =>
+                      _monthLabel(d.month, widget.localeName),
                   yValueMapper: (MonthlyBalanceData d, _) =>
                       d.totalBalance.toDouble(),
                   color: Colors.transparent,
@@ -262,6 +269,34 @@ class _TotalMoneyChartWidgetState extends State<TotalMoneyChartWidget> {
       ),
     );
   }
+}
+
+MonthlyBalanceData _findClosestMonthData({
+  required List<MonthlyBalanceData> data,
+  required DateTime selectedMonth,
+}) {
+  final int selectedOrdinal = _monthOrdinal(selectedMonth);
+  MonthlyBalanceData closest = data.first;
+  int minDistance = (_monthOrdinal(closest.month) - selectedOrdinal).abs();
+
+  for (int i = 1; i < data.length; i++) {
+    final MonthlyBalanceData candidate = data[i];
+    final int distance = (_monthOrdinal(candidate.month) - selectedOrdinal)
+        .abs();
+    if (distance < minDistance) {
+      closest = candidate;
+      minDistance = distance;
+    }
+  }
+
+  return closest;
+}
+
+int _monthOrdinal(DateTime month) => month.year * 12 + month.month;
+
+String _monthLabel(DateTime month, String locale) {
+  final String raw = DateFormat.MMM(locale).format(month);
+  return raw.replaceAll('.', '');
 }
 
 extension StringExtension on String {

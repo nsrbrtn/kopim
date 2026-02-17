@@ -13,22 +13,4 @@ class MonthlyCashflowData {
   final double expense;
 
   double get net => income - expense;
-
-  String get monthLabel {
-    const List<String> monthNames = <String>[
-      'Янв',
-      'Фев',
-      'Мар',
-      'Апр',
-      'Май',
-      'Июн',
-      'Июл',
-      'Авг',
-      'Сен',
-      'Окт',
-      'Ноя',
-      'Дек',
-    ];
-    return monthNames[month.month - 1];
-  }
 }

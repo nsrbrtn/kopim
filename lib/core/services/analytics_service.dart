@@ -18,11 +18,11 @@ class AnalyticsService {
           parameters: _sanitizeParameters(params),
         );
       }
-    } catch (error) {
+    } catch (error, stackTrace) {
       // Analytics errors should not crash the app
       // This is especially important on web where throttling can throw exceptions
+      await Sentry.captureException(error, stackTrace: stackTrace);
     }
-    await Sentry.captureMessage('Event: $name');
   }
 
   Map<String, Object>? _sanitizeParameters(Map<String, dynamic>? params) {

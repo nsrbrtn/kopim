@@ -26,6 +26,7 @@ import 'package:kopim/l10n/app_localizations.dart';
 
 const String _othersCategoryKey = '_others';
 const String _uncategorizedCategoryKey = '_uncategorized';
+const Object _clearCategorySelection = Object();
 
 class AnalyticsScreen extends ConsumerWidget {
   const AnalyticsScreen({super.key});
@@ -215,7 +216,7 @@ class _AnalyticsBody extends ConsumerWidget {
                   borderRadius: BorderRadius.circular(14),
                   child: InkWell(
                     borderRadius: BorderRadius.circular(14),
-                    onTap: () => _showAnalyticsInfo(context),
+                    onTap: () => _showAnalyticsInfo(context, strings),
                     child: SizedBox(
                       width: 40,
                       height: 40,
@@ -242,11 +243,13 @@ class _AnalyticsBody extends ConsumerWidget {
                           pinned: true,
                           delegate: _AnalyticsTabsHeaderDelegate(
                             backgroundColor: theme.scaffoldBackgroundColor,
-                            tabBar: const TabBar(
+                            tabBar: TabBar(
                               isScrollable: true,
                               tabs: <Widget>[
-                                Tab(text: 'Траты по категориям'),
-                                Tab(text: 'Статистика'),
+                                Tab(
+                                  text: strings.analyticsTabCategoriesSpending,
+                                ),
+                                Tab(text: strings.analyticsTabStatistics),
                               ],
                             ),
                           ),
@@ -650,14 +653,14 @@ class _AnalyticsFiltersCard extends ConsumerWidget {
             runSpacing: 10,
             children: <Widget>[
               _FilterPill(
-                label: 'Этот месяц',
+                label: strings.analyticsFilterPresetThisMonth,
                 selected: filterState.period == AnalyticsPeriodPreset.thisMonth,
                 onTap: () => ref
                     .read(analyticsFilterControllerProvider.notifier)
                     .applyThisMonth(),
               ),
               _FilterPill(
-                label: 'Последние 30 дней',
+                label: strings.analyticsFilterPresetLast30Days,
                 selected:
                     filterState.period == AnalyticsPeriodPreset.last30Days,
                 onTap: () => ref
@@ -665,7 +668,7 @@ class _AnalyticsFiltersCard extends ConsumerWidget {
                     .applyLast30Days(),
               ),
               _FilterPill(
-                label: 'Выбрать дату',
+                label: strings.analyticsFilterPresetPickDate,
                 selected:
                     filterState.period == AnalyticsPeriodPreset.customRange,
                 onTap: () async {
@@ -685,9 +688,9 @@ class _AnalyticsFiltersCard extends ConsumerWidget {
                 },
               ),
               _FilterPill(
-                label: 'Бюджеты',
+                label: strings.analyticsFilterPresetBudgets,
                 selected: false,
-                onTap: () => _showBudgetStub(context),
+                onTap: () => _showBudgetStub(context, strings),
               ),
             ],
           ),
@@ -874,6 +877,7 @@ class _AnalyticsQuickSelectors extends ConsumerWidget {
     final String categoryLabel = _resolveCategoryLabel(
       categories: categories,
       selectedId: filterState.categoryId,
+      strings: strings,
     );
 
     return Padding(
@@ -899,12 +903,14 @@ class _AnalyticsQuickSelectors extends ConsumerWidget {
             label: _resolveAccountsLabel(
               accounts: accounts,
               selectedIds: filterState.accountIds,
+              strings: strings,
             ),
             onTap: () => _openAccountsPicker(
               context: context,
               ref: ref,
               accounts: accounts,
               selected: filterState.accountIds,
+              strings: strings,
             ),
           ),
           _ActionChipTile(
@@ -915,6 +921,7 @@ class _AnalyticsQuickSelectors extends ConsumerWidget {
               ref: ref,
               categories: categories,
               selectedId: filterState.categoryId,
+              strings: strings,
             ),
           ),
         ],
@@ -923,7 +930,7 @@ class _AnalyticsQuickSelectors extends ConsumerWidget {
   }
 }
 
-void _showBudgetStub(BuildContext context) {
+void _showBudgetStub(BuildContext context, AppLocalizations strings) {
   showModalBottomSheet<void>(
     context: context,
     showDragHandle: true,
@@ -936,10 +943,13 @@ void _showBudgetStub(BuildContext context) {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            Text('Бюджеты в разработке', style: theme.textTheme.titleMedium),
+            Text(
+              strings.analyticsBudgetsStubTitle,
+              style: theme.textTheme.titleMedium,
+            ),
             const SizedBox(height: 8),
             Text(
-              'Фильтр по бюджетам появится позже. Сейчас чип служит заглушкой.',
+              strings.analyticsBudgetsStubBody,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -949,7 +959,7 @@ void _showBudgetStub(BuildContext context) {
               alignment: Alignment.centerRight,
               child: TextButton(
                 onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Понятно'),
+                child: Text(strings.analyticsDialogClose),
               ),
             ),
           ],
@@ -986,14 +996,12 @@ Future<void> _openMonthPicker({
             final DateTime month = months[index];
             final bool isSelected =
                 month.year == current.year && month.month == current.month;
+            final AppLocalizations strings = AppLocalizations.of(context)!;
             return ListTile(
-              title: Text(
-                _formatMonthShort(
-                  month,
-                  AppLocalizations.of(context)!.localeName,
-                ),
+              title: Text(_formatMonthShort(month, strings.localeName)),
+              subtitle: Text(
+                strings.analyticsMonthPickerYearSubtitle(month.year),
               ),
-              subtitle: Text('${month.year} год'),
               trailing: isSelected
                   ? Icon(Icons.check, color: theme.colorScheme.primary)
                   : null,
@@ -1015,6 +1023,7 @@ Future<void> _openAccountsPicker({
   required WidgetRef ref,
   required List<AccountEntity> accounts,
   required Set<String> selected,
+  required AppLocalizations strings,
 }) async {
   final Set<String> tempSelection = <String>{...selected};
   final ThemeData theme = Theme.of(context);
@@ -1037,7 +1046,7 @@ Future<void> _openAccountsPicker({
                   Row(
                     children: <Widget>[
                       Text(
-                        'Счета для аналитики',
+                        strings.analyticsAccountsPickerTitle,
                         style: theme.textTheme.titleMedium,
                       ),
                       const Spacer(),
@@ -1045,7 +1054,7 @@ Future<void> _openAccountsPicker({
                         onPressed: () {
                           setState(() => tempSelection.clear());
                         },
-                        child: const Text('Сбросить'),
+                        child: Text(strings.analyticsAccountsPickerReset),
                       ),
                     ],
                   ),
@@ -1077,7 +1086,7 @@ Future<void> _openAccountsPicker({
                             .setAccounts(tempSelection);
                         Navigator.of(context).pop();
                       },
-                      child: const Text('Применить'),
+                      child: Text(strings.analyticsAccountsPickerApply),
                     ),
                   ),
                 ],
@@ -1098,30 +1107,32 @@ String _formatMonthShort(DateTime date, String locale) {
 String _resolveAccountsLabel({
   required List<AccountEntity> accounts,
   required Set<String> selectedIds,
+  required AppLocalizations strings,
 }) {
   if (selectedIds.isEmpty) {
-    return 'Все счета';
+    return strings.analyticsFilterAccountAll;
   }
   if (selectedIds.length == 1) {
     final AccountEntity? account = accounts.firstWhereOrNull(
       (AccountEntity item) => item.id == selectedIds.first,
     );
-    return account?.name ?? 'Выбран 1 счёт';
+    return account?.name ?? strings.analyticsAccountsSelectedOneFallback;
   }
-  return 'Выбрано ${selectedIds.length} счетов';
+  return strings.analyticsAccountsSelectedMany(selectedIds.length);
 }
 
 String _resolveCategoryLabel({
   required List<Category> categories,
   required String? selectedId,
+  required AppLocalizations strings,
 }) {
   if (selectedId == null) {
-    return 'Все категории';
+    return strings.analyticsFilterCategoryAll;
   }
   final Category? category = categories.firstWhereOrNull(
     (Category item) => item.id == selectedId,
   );
-  return category?.name ?? 'Категория выбрана';
+  return category?.name ?? strings.analyticsCategorySelectedFallback;
 }
 
 Future<void> _openCategoryPicker({
@@ -1129,10 +1140,11 @@ Future<void> _openCategoryPicker({
   required WidgetRef ref,
   required List<Category> categories,
   required String? selectedId,
+  required AppLocalizations strings,
 }) async {
   final ThemeData theme = Theme.of(context);
   final ColorScheme colors = theme.colorScheme;
-  final String? picked = await showModalBottomSheet<String?>(
+  final Object? picked = await showModalBottomSheet<Object?>(
     context: context,
     showDragHandle: true,
     backgroundColor: colors.surface,
@@ -1147,11 +1159,11 @@ Future<void> _openCategoryPicker({
             if (index == 0) {
               final bool isSelected = selectedId == null;
               return ListTile(
-                title: const Text('Все категории'),
+                title: Text(strings.analyticsFilterCategoryAll),
                 trailing: isSelected
                     ? Icon(Icons.check, color: colors.primary)
                     : null,
-                onTap: () => Navigator.of(context).pop(null),
+                onTap: () => Navigator.of(context).pop(_clearCategorySelection),
               );
             }
             final Category category = categories[index - 1];
@@ -1177,13 +1189,16 @@ Future<void> _openCategoryPicker({
     analyticsFilterControllerProvider.notifier,
   );
   if (picked == null) {
-    notifier.clearCategory();
-  } else {
-    notifier.updateCategory(picked);
+    return;
   }
+  if (picked == _clearCategorySelection) {
+    notifier.clearCategory();
+    return;
+  }
+  notifier.updateCategory(picked as String);
 }
 
-void _showAnalyticsInfo(BuildContext context) {
+void _showAnalyticsInfo(BuildContext context, AppLocalizations strings) {
   final ThemeData theme = Theme.of(context);
   final ColorScheme colors = theme.colorScheme;
   showModalBottomSheet<void>(
@@ -1198,12 +1213,12 @@ void _showAnalyticsInfo(BuildContext context) {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             Text(
-              'Что показывает аналитика',
+              strings.analyticsInfoTitle,
               style: theme.textTheme.titleMedium,
             ),
             const SizedBox(height: 8),
             Text(
-              'Круговая диаграмма и список категорий отражают распределение трат или доходов за выбранный период. Выберите период, месяц или счета, чтобы сфокусироваться на нужных данных.',
+              strings.analyticsInfoBody,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: colors.onSurfaceVariant,
               ),
@@ -1213,7 +1228,7 @@ void _showAnalyticsInfo(BuildContext context) {
               alignment: Alignment.centerRight,
               child: TextButton(
                 onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Понятно'),
+                child: Text(strings.analyticsDialogClose),
               ),
             ),
           ],
@@ -1559,6 +1574,7 @@ class _TopCategoriesPageState extends State<_TopCategoriesPage> {
           const SizedBox(height: 16),
           _CategoriesChartModeToggle(
             mode: _chartMode,
+            strings: widget.strings,
             onModeChanged: (_CategoriesChartMode mode) {
               if (_chartMode == mode) {
                 return;
@@ -1912,14 +1928,14 @@ class _CreditDebtOperationsSection extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 Text(
-                  'Операции по кредитам и долгам',
+                  strings.analyticsDebtOperationsTitle,
                   style: theme.textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'За выбранный период операций не найдено.',
+                  strings.analyticsDebtOperationsEmpty,
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: colors.onSurfaceVariant,
                   ),
@@ -1932,7 +1948,7 @@ class _CreditDebtOperationsSection extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               Text(
-                'Операции по кредитам и долгам',
+                strings.analyticsDebtOperationsTitle,
                 style: theme.textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.w700,
                   color: colors.onSurface,
@@ -1945,21 +1961,21 @@ class _CreditDebtOperationsSection extends ConsumerWidget {
                 children: <Widget>[
                   _DebtMetricChip(
                     icon: Icons.keyboard_double_arrow_down_rounded,
-                    label: 'Погашение тела',
+                    label: strings.analyticsDebtMetricPrincipalRepayment,
                     value: currencyFormat.format(
                       overview.principalRepayment.toDouble(),
                     ),
                   ),
                   _DebtMetricChip(
                     icon: Icons.receipt_long_outlined,
-                    label: 'Проценты и комиссии',
+                    label: strings.analyticsDebtMetricServiceExpense,
                     value: currencyFormat.format(
                       overview.serviceExpense.toDouble(),
                     ),
                   ),
                   _DebtMetricChip(
                     icon: Icons.keyboard_double_arrow_up_rounded,
-                    label: 'Новые займы',
+                    label: strings.analyticsDebtMetricPrincipalInflow,
                     value: currencyFormat.format(
                       overview.principalInflow.toDouble(),
                     ),
@@ -1968,7 +1984,9 @@ class _CreditDebtOperationsSection extends ConsumerWidget {
               ),
               const SizedBox(height: 10),
               Text(
-                'Отток по долгам: ${currencyFormat.format(overview.totalOutflow.toDouble())}',
+                strings.analyticsDebtOutflowLabel(
+                  currencyFormat.format(overview.totalOutflow.toDouble()),
+                ),
                 style: theme.textTheme.labelLarge?.copyWith(
                   color: colors.onSurfaceVariant,
                   fontWeight: FontWeight.w600,
@@ -1980,6 +1998,7 @@ class _CreditDebtOperationsSection extends ConsumerWidget {
                 accountsById: accountsById,
                 localeName: strings.localeName,
                 currencyFormat: currencyFormat,
+                strings: strings,
               ),
             ],
           );
@@ -1993,7 +2012,7 @@ class _CreditDebtOperationsSection extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               Text(
-                'Операции по кредитам и долгам',
+                strings.analyticsDebtOperationsTitle,
                 style: theme.textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.w700,
                 ),
@@ -2057,12 +2076,14 @@ class _CreditDebtOperationList extends StatelessWidget {
     required this.accountsById,
     required this.localeName,
     required this.currencyFormat,
+    required this.strings,
   });
 
   final List<CreditDebtOperationItem> items;
   final Map<String, AccountEntity> accountsById;
   final String localeName;
   final NumberFormat currencyFormat;
+  final AppLocalizations strings;
 
   @override
   Widget build(BuildContext context) {
@@ -2074,7 +2095,7 @@ class _CreditDebtOperationList extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         Text(
-          'Последние операции',
+          strings.analyticsDebtRecentOperationsTitle,
           style: theme.textTheme.labelLarge?.copyWith(
             color: colors.onSurface,
             fontWeight: FontWeight.w700,
@@ -2093,6 +2114,7 @@ class _CreditDebtOperationList extends StatelessWidget {
               accountsById: accountsById,
               localeName: localeName,
               currencyFormat: currencyFormat,
+              strings: strings,
             );
           },
         ),
@@ -2107,12 +2129,14 @@ class _CreditDebtOperationTile extends StatelessWidget {
     required this.accountsById,
     required this.localeName,
     required this.currencyFormat,
+    required this.strings,
   });
 
   final CreditDebtOperationItem item;
   final Map<String, AccountEntity> accountsById;
   final String localeName;
   final NumberFormat currencyFormat;
+  final AppLocalizations strings;
 
   @override
   Widget build(BuildContext context) {
@@ -2124,7 +2148,7 @@ class _CreditDebtOperationTile extends StatelessWidget {
         ? null
         : accountsById[transaction.transferAccountId!];
     final String flow = _buildFlowText(
-      sourceName: fromAccount?.name ?? 'Счёт',
+      sourceName: fromAccount?.name ?? strings.analyticsDebtAccountFallback,
       targetName: toAccount?.name,
     );
     final String subtitle =
@@ -2171,7 +2195,7 @@ class _CreditDebtOperationTile extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 Text(
-                  _resolveOperationLabel(item.kind),
+                  _resolveOperationLabel(item.kind, strings),
                   style: theme.textTheme.labelLarge?.copyWith(
                     fontWeight: FontWeight.w700,
                     color: colors.onSurface,
@@ -2219,12 +2243,19 @@ IconData _resolveBadgeIcon(CreditDebtOperationKind kind) {
   };
 }
 
-String _resolveOperationLabel(CreditDebtOperationKind kind) {
+String _resolveOperationLabel(
+  CreditDebtOperationKind kind,
+  AppLocalizations strings,
+) {
   return switch (kind) {
-    CreditDebtOperationKind.principalRepayment => 'Погашение тела',
-    CreditDebtOperationKind.serviceExpense => 'Проценты и комиссии',
-    CreditDebtOperationKind.principalInflow => 'Получение кредита/долга',
-    CreditDebtOperationKind.debtTransfer => 'Перевод между долгами',
+    CreditDebtOperationKind.principalRepayment =>
+      strings.analyticsDebtOperationPrincipalRepayment,
+    CreditDebtOperationKind.serviceExpense =>
+      strings.analyticsDebtOperationServiceExpense,
+    CreditDebtOperationKind.principalInflow =>
+      strings.analyticsDebtOperationPrincipalInflow,
+    CreditDebtOperationKind.debtTransfer =>
+      strings.analyticsDebtOperationTransfer,
   };
 }
 
@@ -2620,10 +2651,12 @@ class _CategoryBreakdownList extends StatelessWidget {
 class _CategoriesChartModeToggle extends StatelessWidget {
   const _CategoriesChartModeToggle({
     required this.mode,
+    required this.strings,
     required this.onModeChanged,
   });
 
   final _CategoriesChartMode mode;
+  final AppLocalizations strings;
   final ValueChanged<_CategoriesChartMode> onModeChanged;
 
   @override
@@ -2641,7 +2674,7 @@ class _CategoriesChartModeToggle extends StatelessWidget {
           Expanded(
             child: _ChartModeButton(
               icon: Icons.donut_large,
-              label: 'Круг',
+              label: strings.analyticsChartTypeDonut,
               selected: mode == _CategoriesChartMode.donut,
               onTap: () => onModeChanged(_CategoriesChartMode.donut),
             ),
@@ -2649,7 +2682,7 @@ class _CategoriesChartModeToggle extends StatelessWidget {
           Expanded(
             child: _ChartModeButton(
               icon: Icons.bar_chart_rounded,
-              label: 'Столбцы',
+              label: strings.analyticsChartTypeBar,
               selected: mode == _CategoriesChartMode.bar,
               onTap: () => onModeChanged(_CategoriesChartMode.bar),
             ),

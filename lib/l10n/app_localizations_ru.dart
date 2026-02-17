@@ -1699,6 +1699,125 @@ class AppLocalizationsRu extends AppLocalizations {
   }
 
   @override
+  String get analyticsTabCategoriesSpending => 'Траты по категориям';
+
+  @override
+  String get analyticsTabStatistics => 'Статистика';
+
+  @override
+  String get analyticsFilterPresetThisMonth => 'Этот месяц';
+
+  @override
+  String get analyticsFilterPresetLast30Days => 'Последние 30 дней';
+
+  @override
+  String get analyticsFilterPresetPickDate => 'Выбрать дату';
+
+  @override
+  String get analyticsFilterPresetBudgets => 'Бюджеты';
+
+  @override
+  String get analyticsBudgetsStubTitle => 'Бюджеты в разработке';
+
+  @override
+  String get analyticsBudgetsStubBody =>
+      'Фильтр по бюджетам появится позже. Сейчас чип служит заглушкой.';
+
+  @override
+  String get analyticsDialogClose => 'Понятно';
+
+  @override
+  String analyticsMonthPickerYearSubtitle(int year) {
+    return '$year год';
+  }
+
+  @override
+  String get analyticsAccountsPickerTitle => 'Счета для аналитики';
+
+  @override
+  String get analyticsAccountsPickerReset => 'Сбросить';
+
+  @override
+  String get analyticsAccountsPickerApply => 'Применить';
+
+  @override
+  String get analyticsAccountsSelectedOneFallback => 'Выбран 1 счёт';
+
+  @override
+  String analyticsAccountsSelectedMany(int count) {
+    return 'Выбрано $count счетов';
+  }
+
+  @override
+  String get analyticsCategorySelectedFallback => 'Категория выбрана';
+
+  @override
+  String get analyticsInfoTitle => 'Что показывает аналитика';
+
+  @override
+  String get analyticsInfoBody =>
+      'Круговая диаграмма и список категорий отражают распределение трат или доходов за выбранный период. Выберите период, месяц или счета, чтобы сфокусироваться на нужных данных.';
+
+  @override
+  String get analyticsDebtOperationsTitle => 'Операции по кредитам и долгам';
+
+  @override
+  String get analyticsDebtOperationsEmpty =>
+      'За выбранный период операций не найдено.';
+
+  @override
+  String get analyticsDebtMetricPrincipalRepayment => 'Погашение тела';
+
+  @override
+  String get analyticsDebtMetricServiceExpense => 'Проценты и комиссии';
+
+  @override
+  String get analyticsDebtMetricPrincipalInflow => 'Новые займы';
+
+  @override
+  String analyticsDebtOutflowLabel(String amount) {
+    return 'Отток по долгам: $amount';
+  }
+
+  @override
+  String get analyticsDebtRecentOperationsTitle => 'Последние операции';
+
+  @override
+  String get analyticsDebtAccountFallback => 'Счёт';
+
+  @override
+  String get analyticsDebtOperationPrincipalRepayment => 'Погашение тела';
+
+  @override
+  String get analyticsDebtOperationServiceExpense => 'Проценты и комиссии';
+
+  @override
+  String get analyticsDebtOperationPrincipalInflow => 'Получение кредита/долга';
+
+  @override
+  String get analyticsDebtOperationTransfer => 'Перевод между долгами';
+
+  @override
+  String get analyticsCashflowWidgetTitle => 'Остаток денег';
+
+  @override
+  String get analyticsCashflowWidgetInfoTitle => 'О виджете';
+
+  @override
+  String get analyticsCashflowWidgetInfoBody =>
+      'Доходы и расходы считаются по месяцам. Остаток — это доходы минус расходы за выбранный месяц. Для текущего месяца учитываются данные на сегодня.';
+
+  @override
+  String get analyticsTotalMoneyWidgetTitle => 'Денег всего';
+
+  @override
+  String get analyticsTotalMoneyWidgetInfoTitle => 'О графике';
+
+  @override
+  String get analyticsTotalMoneyWidgetInfoBody =>
+      'Этот график показывает максимальную сумму денег, которая была у вас на счетах в течение каждого месяца. Учитываются только выбранные счета.';
+
+  @override
   String get addTransactionTitle => 'Новая транзакция';
 
   @override

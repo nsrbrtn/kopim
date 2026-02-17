@@ -11,22 +11,4 @@ abstract class MonthlyBalanceData with _$MonthlyBalanceData {
     required DateTime month,
     required MoneyAmount totalBalance,
   }) = _MonthlyBalanceData;
-
-  String get monthLabel {
-    const List<String> monthNames = <String>[
-      'Янв',
-      'Фев',
-      'Мар',
-      'Апр',
-      'Май',
-      'Июн',
-      'Июл',
-      'Авг',
-      'Сен',
-      'Окт',
-      'Ноя',
-      'Дек',
-    ];
-    return monthNames[month.month - 1];
-  }
 }

@@ -1673,6 +1673,125 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get analyticsTabCategoriesSpending => 'Spending by category';
+
+  @override
+  String get analyticsTabStatistics => 'Statistics';
+
+  @override
+  String get analyticsFilterPresetThisMonth => 'This month';
+
+  @override
+  String get analyticsFilterPresetLast30Days => 'Last 30 days';
+
+  @override
+  String get analyticsFilterPresetPickDate => 'Pick date';
+
+  @override
+  String get analyticsFilterPresetBudgets => 'Budgets';
+
+  @override
+  String get analyticsBudgetsStubTitle => 'Budgets are in progress';
+
+  @override
+  String get analyticsBudgetsStubBody =>
+      'Budget filter will appear later. For now this chip is a placeholder.';
+
+  @override
+  String get analyticsDialogClose => 'Got it';
+
+  @override
+  String analyticsMonthPickerYearSubtitle(int year) {
+    return '$year';
+  }
+
+  @override
+  String get analyticsAccountsPickerTitle => 'Accounts for analytics';
+
+  @override
+  String get analyticsAccountsPickerReset => 'Reset';
+
+  @override
+  String get analyticsAccountsPickerApply => 'Apply';
+
+  @override
+  String get analyticsAccountsSelectedOneFallback => '1 account selected';
+
+  @override
+  String analyticsAccountsSelectedMany(int count) {
+    return '$count accounts selected';
+  }
+
+  @override
+  String get analyticsCategorySelectedFallback => 'Category selected';
+
+  @override
+  String get analyticsInfoTitle => 'What analytics shows';
+
+  @override
+  String get analyticsInfoBody =>
+      'The donut chart and category list show how expenses or income are distributed in the selected period. Choose a period, month, or accounts to focus on specific data.';
+
+  @override
+  String get analyticsDebtOperationsTitle => 'Credit and debt operations';
+
+  @override
+  String get analyticsDebtOperationsEmpty =>
+      'No operations found for the selected period.';
+
+  @override
+  String get analyticsDebtMetricPrincipalRepayment => 'Principal repayment';
+
+  @override
+  String get analyticsDebtMetricServiceExpense => 'Interest and fees';
+
+  @override
+  String get analyticsDebtMetricPrincipalInflow => 'New loans';
+
+  @override
+  String analyticsDebtOutflowLabel(String amount) {
+    return 'Debt outflow: $amount';
+  }
+
+  @override
+  String get analyticsDebtRecentOperationsTitle => 'Recent operations';
+
+  @override
+  String get analyticsDebtAccountFallback => 'Account';
+
+  @override
+  String get analyticsDebtOperationPrincipalRepayment => 'Principal repayment';
+
+  @override
+  String get analyticsDebtOperationServiceExpense => 'Interest and fees';
+
+  @override
+  String get analyticsDebtOperationPrincipalInflow => 'Loan inflow';
+
+  @override
+  String get analyticsDebtOperationTransfer => 'Transfer between debts';
+
+  @override
+  String get analyticsCashflowWidgetTitle => 'Money balance';
+
+  @override
+  String get analyticsCashflowWidgetInfoTitle => 'About this widget';
+
+  @override
+  String get analyticsCashflowWidgetInfoBody =>
+      'Income and expenses are calculated by month. Net is income minus expenses for the selected month. For the current month, data up to today is included.';
+
+  @override
+  String get analyticsTotalMoneyWidgetTitle => 'Total money';
+
+  @override
+  String get analyticsTotalMoneyWidgetInfoTitle => 'About this chart';
+
+  @override
+  String get analyticsTotalMoneyWidgetInfoBody =>
+      'This chart shows the maximum amount of money you had across your accounts during each month. Only selected accounts are included.';
+
+  @override
   String get addTransactionTitle => 'Add transaction';
 
   @override

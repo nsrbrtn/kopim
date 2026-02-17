@@ -25,6 +25,7 @@
 ### Синхронизация и данные
 
 - [**Синхронизация с Firebase**](firebase_sync.md) — механизм offline-first синхронизации между Drift и Firestore, Outbox pattern, алгоритмы слияния данных
+- [**Firebase для релиза и ротации ключей**](firebase_release_setup.md) — настройка production-проекта, генерация новых конфигов через FlutterFire CLI, безопасная ротация ключей
 - [**Web fallback**](web_fallback.md) — поведение при недоступности Firebase в браузере и ручная выгрузка данных
 
 ---

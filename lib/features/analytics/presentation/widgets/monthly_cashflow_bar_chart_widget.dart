@@ -1,7 +1,7 @@
-import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:kopim/features/analytics/presentation/models/monthly_cashflow_data.dart';
+import 'package:kopim/l10n/app_localizations.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
 const int _kVisibleMonths = 6;
@@ -52,6 +52,7 @@ class _MonthlyCashflowBarChartWidgetState
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
     final ColorScheme colors = theme.colorScheme;
+    final AppLocalizations strings = AppLocalizations.of(context)!;
 
     final List<MonthlyCashflowData> effectiveData = widget.data.isEmpty
         ? _placeholderData()
@@ -63,12 +64,10 @@ class _MonthlyCashflowBarChartWidgetState
       count: _kVisibleMonths,
     );
 
-    final MonthlyCashflowData? selectedData = effectiveData.firstWhereOrNull(
-      (MonthlyCashflowData d) =>
-          d.month.year == widget.selectedMonth.year &&
-          d.month.month == widget.selectedMonth.month,
+    final MonthlyCashflowData displayData = _findClosestMonthData(
+      data: effectiveData,
+      selectedMonth: widget.selectedMonth,
     );
-    final MonthlyCashflowData displayData = selectedData ?? effectiveData.last;
 
     double maxPositive = 0;
     for (final MonthlyCashflowData d in effectiveData) {
@@ -107,7 +106,7 @@ class _MonthlyCashflowBarChartWidgetState
           Row(
             children: <Widget>[
               Text(
-                'Остаток денег',
+                strings.analyticsCashflowWidgetTitle,
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w600,
                   color: colors.onSurface,
@@ -125,14 +124,12 @@ class _MonthlyCashflowBarChartWidgetState
                     context: context,
                     builder: (BuildContext context) {
                       return AlertDialog(
-                        title: const Text('О виджете'),
-                        content: const Text(
-                          'Доходы и расходы считаются по месяцам. Остаток — это доходы минус расходы за выбранный месяц. Для текущего месяца учитываются данные на сегодня.',
-                        ),
+                        title: Text(strings.analyticsCashflowWidgetInfoTitle),
+                        content: Text(strings.analyticsCashflowWidgetInfoBody),
                         actions: <Widget>[
                           TextButton(
                             onPressed: () => Navigator.of(context).pop(),
-                            child: const Text('Понятно'),
+                            child: Text(strings.analyticsDialogClose),
                           ),
                         ],
                       );
@@ -158,7 +155,7 @@ class _MonthlyCashflowBarChartWidgetState
             children: <Widget>[
               Expanded(
                 child: _LegendMetric(
-                  label: 'Доход',
+                  label: strings.analyticsSummaryIncomeLabel,
                   value:
                       '${compact.format(displayData.income)} ${widget.currencySymbol}',
                   valueColor: incomeColor,
@@ -167,7 +164,7 @@ class _MonthlyCashflowBarChartWidgetState
               const SizedBox(width: 12),
               Expanded(
                 child: _LegendMetric(
-                  label: 'Расход',
+                  label: strings.analyticsSummaryExpenseLabel,
                   value:
                       '${compact.format(displayData.expense)} ${widget.currencySymbol}',
                   valueColor: expenseColor,
@@ -176,7 +173,7 @@ class _MonthlyCashflowBarChartWidgetState
               const SizedBox(width: 12),
               Expanded(
                 child: _LegendMetric(
-                  label: 'Остаток',
+                  label: strings.analyticsSummaryNetLabel,
                   value:
                       '${compact.format(displayData.net)} ${widget.currencySymbol}',
                   valueColor: displayData.net >= 0
@@ -227,7 +224,8 @@ class _MonthlyCashflowBarChartWidgetState
                 series: <CartesianSeries<MonthlyCashflowData, String>>[
                   ColumnSeries<MonthlyCashflowData, String>(
                     dataSource: visibleData,
-                    xValueMapper: (MonthlyCashflowData d, _) => d.monthLabel,
+                    xValueMapper: (MonthlyCashflowData d, _) =>
+                        _monthLabel(d.month, widget.localeName),
                     yValueMapper: (MonthlyCashflowData d, _) => d.income,
                     color: incomeColor,
                     width: 0.44,
@@ -243,7 +241,8 @@ class _MonthlyCashflowBarChartWidgetState
                   ),
                   ColumnSeries<MonthlyCashflowData, String>(
                     dataSource: visibleData,
-                    xValueMapper: (MonthlyCashflowData d, _) => d.monthLabel,
+                    xValueMapper: (MonthlyCashflowData d, _) =>
+                        _monthLabel(d.month, widget.localeName),
                     yValueMapper: (MonthlyCashflowData d, _) => d.expense,
                     color: expenseColor.withValues(alpha: 0.85),
                     width: 0.44,
@@ -259,7 +258,8 @@ class _MonthlyCashflowBarChartWidgetState
                   ),
                   ColumnSeries<MonthlyCashflowData, String>(
                     dataSource: visibleData,
-                    xValueMapper: (MonthlyCashflowData d, _) => d.monthLabel,
+                    xValueMapper: (MonthlyCashflowData d, _) =>
+                        _monthLabel(d.month, widget.localeName),
                     yValueMapper: (MonthlyCashflowData d, _) =>
                         d.net > 0 ? d.net : null,
                     pointColorMapper: (MonthlyCashflowData d, _) => d.net >= 0
@@ -279,7 +279,8 @@ class _MonthlyCashflowBarChartWidgetState
                   // Прозрачная серия для увеличения зоны нажатия по месяцу.
                   ScatterSeries<MonthlyCashflowData, String>(
                     dataSource: visibleData,
-                    xValueMapper: (MonthlyCashflowData d, _) => d.monthLabel,
+                    xValueMapper: (MonthlyCashflowData d, _) =>
+                        _monthLabel(d.month, widget.localeName),
                     yValueMapper: (MonthlyCashflowData d, _) => yMax / 2,
                     color: Colors.transparent,
                     markerSettings: const MarkerSettings(
@@ -409,4 +410,32 @@ List<MonthlyCashflowData> _sliceWindow(
   final int safeStart = start.clamp(0, data.length - 1);
   final int safeEnd = (safeStart + count).clamp(0, data.length);
   return data.sublist(safeStart, safeEnd);
+}
+
+MonthlyCashflowData _findClosestMonthData({
+  required List<MonthlyCashflowData> data,
+  required DateTime selectedMonth,
+}) {
+  final int selectedOrdinal = _monthOrdinal(selectedMonth);
+  MonthlyCashflowData closest = data.first;
+  int minDistance = (_monthOrdinal(closest.month) - selectedOrdinal).abs();
+
+  for (int i = 1; i < data.length; i++) {
+    final MonthlyCashflowData candidate = data[i];
+    final int distance = (_monthOrdinal(candidate.month) - selectedOrdinal)
+        .abs();
+    if (distance < minDistance) {
+      closest = candidate;
+      minDistance = distance;
+    }
+  }
+
+  return closest;
+}
+
+int _monthOrdinal(DateTime month) => month.year * 12 + month.month;
+
+String _monthLabel(DateTime month, String locale) {
+  final String raw = DateFormat.MMM(locale).format(month);
+  return raw.replaceAll('.', '');
 }

@@ -4,6 +4,7 @@ import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kopim/core/widgets/collapsible_list/collapsible_list.dart';
 import 'package:kopim/core/widgets/kopim_text_field.dart';
+import 'package:kopim/features/app_shell/presentation/controllers/main_navigation_controller.dart';
 import 'package:kopim/features/ai/domain/entities/ai_user_query_entity.dart';
 import 'package:kopim/features/ai/presentation/controllers/assistant_session_controller.dart';
 import 'package:kopim/features/ai/presentation/models/assistant_filters.dart';
@@ -11,6 +12,7 @@ import 'package:kopim/features/ai/presentation/models/assistant_message.dart';
 import 'package:kopim/features/ai/presentation/models/assistant_session_state.dart';
 import 'package:kopim/features/app_shell/presentation/models/navigation_tab_content.dart';
 import 'package:kopim/l10n/app_localizations.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 NavigationTabContent buildAssistantTabContent(
   BuildContext context,
@@ -30,10 +32,16 @@ class AssistantScreen extends ConsumerStatefulWidget {
 }
 
 class _AssistantScreenState extends ConsumerState<AssistantScreen> {
+  static const String _kAssistantAgreementAcceptedKey =
+      'assistant.agreement.accepted.v1';
+
   late final TextEditingController _inputController;
   late final ScrollController _scrollController;
   late final FocusNode _inputFocusNode;
   ProviderSubscription<AssistantSessionState>? _subscription;
+  bool _isAgreementLoading = true;
+  bool _hasAcceptedAgreement = false;
+  bool _isAgreementFlowActive = false;
 
   @override
   void initState() {
@@ -41,6 +49,7 @@ class _AssistantScreenState extends ConsumerState<AssistantScreen> {
     _inputController = TextEditingController();
     _scrollController = ScrollController();
     _inputFocusNode = FocusNode();
+    _restoreAgreementState();
     _subscription = ref.listenManual<AssistantSessionState>(
       assistantSessionControllerProvider,
       (AssistantSessionState? previous, AssistantSessionState next) {
@@ -77,8 +86,82 @@ class _AssistantScreenState extends ConsumerState<AssistantScreen> {
     super.dispose();
   }
 
+  Future<void> _restoreAgreementState() async {
+    final SharedPreferences preferences = await SharedPreferences.getInstance();
+    final bool accepted =
+        preferences.getBool(_kAssistantAgreementAcceptedKey) ?? false;
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      _hasAcceptedAgreement = accepted;
+      _isAgreementLoading = false;
+    });
+    if (!accepted) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _ensureAgreementAccepted();
+      });
+    }
+  }
+
+  Future<void> _saveAgreementAccepted() async {
+    final SharedPreferences preferences = await SharedPreferences.getInstance();
+    await preferences.setBool(_kAssistantAgreementAcceptedKey, true);
+  }
+
+  Future<void> _ensureAgreementAccepted() async {
+    if (!mounted || _hasAcceptedAgreement || _isAgreementFlowActive) {
+      return;
+    }
+    _isAgreementFlowActive = true;
+    try {
+      final bool accepted =
+          (await Navigator.of(context).push<bool>(
+            MaterialPageRoute<bool>(
+              fullscreenDialog: true,
+              builder: (_) =>
+                  const AssistantUsageInfoScreen(requireDecision: true),
+            ),
+          )) ??
+          false;
+      if (!mounted) {
+        return;
+      }
+      if (accepted) {
+        await _saveAgreementAccepted();
+        if (!mounted) {
+          return;
+        }
+        setState(() {
+          _hasAcceptedAgreement = true;
+        });
+      } else {
+        ref.read(mainNavigationControllerProvider.notifier).setIndex(0);
+      }
+    } finally {
+      _isAgreementFlowActive = false;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (_isAgreementLoading || !_hasAcceptedAgreement) {
+      if (!_isAgreementLoading && !_isAgreementFlowActive) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _ensureAgreementAccepted();
+        });
+      }
+      return Scaffold(
+        body: SafeArea(
+          child: Center(
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+          ),
+        ),
+      );
+    }
     final AppLocalizations strings = AppLocalizations.of(context)!;
     final List<AssistantMessage> messages = ref.watch(
       assistantSessionControllerProvider.select(
@@ -375,98 +458,104 @@ class _AssistantQuickActions extends StatelessWidget {
 }
 
 class AssistantUsageInfoScreen extends StatelessWidget {
-  const AssistantUsageInfoScreen({super.key});
+  const AssistantUsageInfoScreen({super.key, this.requireDecision = false});
+
+  final bool requireDecision;
 
   @override
   Widget build(BuildContext context) {
     final AppLocalizations strings = AppLocalizations.of(context)!;
-    return Scaffold(
-      appBar: AppBar(title: Text(strings.assistantScreenTitle)),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Text(
-              'Использование ИИ-ассистента',
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'В приложении доступен ИИ-ассистент, ответы '
-              'которого формируются автоматически на основе моделей '
-              'искусственного интеллекта (через сервис OpenRouter).\n\n'
-              'Ответы могут содержать ошибки, быть неполными или '
-              'устаревшими и не являются финансовой, юридической, '
-              'налоговой или иной профессиональной консультацией. Все '
-              'решения вы принимаете самостоятельно и на свой риск.\n\n'
-              'Не вводите в чат номера карт, пароли, CVV, коды из SMS, '
-              'паспортные данные и другую чувствительную личную информацию. '
-              'Текст ваших запросов передаётся стороннему сервису для '
-              'обработки.\n\n'
-              'Продолжая, вы подтверждаете, что ознакомились с этими '
-              'условиями и согласны с ними.',
-              style: Theme.of(context).textTheme.bodyLarge,
-            ),
-            const SizedBox(height: 16),
-            TextButton(onPressed: () {}, child: const Text('Подробнее')),
-            const Spacer(),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                Expanded(
-                  child: SizedBox(
-                    height: 56,
-                    child: OutlinedButton(
-                      onPressed: () {},
-                      style: OutlinedButton.styleFrom(
-                        backgroundColor: const Color(0xFF67696A),
-                        foregroundColor: const Color(0xFFC9C6BC),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(100),
+    return PopScope(
+      canPop: !requireDecision,
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(strings.assistantScreenTitle),
+          automaticallyImplyLeading: !requireDecision,
+        ),
+        body: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Text(
+                'Использование ИИ-ассистента',
+                style: Theme.of(context).textTheme.headlineSmall,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'В приложении доступен ИИ-ассистент, ответы '
+                'которого формируются автоматически на основе моделей '
+                'искусственного интеллекта (через сервис OpenRouter).\n\n'
+                'Ответы могут содержать ошибки, быть неполными или '
+                'устаревшими и не являются финансовой, юридической, '
+                'налоговой или иной профессиональной консультацией. Все '
+                'решения вы принимаете самостоятельно и на свой риск.\n\n'
+                'Не вводите в чат номера карт, пароли, CVV, коды из SMS, '
+                'паспортные данные и другую чувствительную личную информацию. '
+                'Текст ваших запросов передаётся стороннему сервису для '
+                'обработки.\n\n'
+                'Продолжая, вы подтверждаете, что ознакомились с этими '
+                'условиями и согласны с ними.',
+                style: Theme.of(context).textTheme.bodyLarge,
+              ),
+              const Spacer(),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  Expanded(
+                    child: SizedBox(
+                      height: 56,
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.of(context).pop(false),
+                        style: OutlinedButton.styleFrom(
+                          backgroundColor: const Color(0xFF67696A),
+                          foregroundColor: const Color(0xFFC9C6BC),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(100),
+                          ),
+                          side: BorderSide.none,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 16,
+                          ),
+                          textStyle: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
-                        side: BorderSide.none,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 16,
-                        ),
-                        textStyle: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                        ),
+                        child: const Text('Отмена'),
                       ),
-                      child: const Text('Отмена'),
                     ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: SizedBox(
-                    height: 56,
-                    child: ElevatedButton(
-                      onPressed: () {},
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFAEF75F),
-                        foregroundColor: const Color(0xFF1D3700),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(100),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: SizedBox(
+                      height: 56,
+                      child: ElevatedButton(
+                        onPressed: () => Navigator.of(context).pop(true),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFAEF75F),
+                          foregroundColor: const Color(0xFF1D3700),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(100),
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 16,
+                          ),
+                          textStyle: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 16,
-                        ),
-                        textStyle: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                        ),
+                        child: const Text('Принять'),
                       ),
-                      child: const Text('Принять'),
                     ),
                   ),
-                ),
-              ],
-            ),
-          ],
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -2137,6 +2137,165 @@
       }
     }
   },
+  "analyticsTabCategoriesSpending": "Траты по категориям",
+  "@analyticsTabCategoriesSpending": {
+    "description": "Подпись вкладки трат по категориям на экране аналитики"
+  },
+  "analyticsTabStatistics": "Статистика",
+  "@analyticsTabStatistics": {
+    "description": "Подпись вкладки статистики на экране аналитики"
+  },
+  "analyticsFilterPresetThisMonth": "Этот месяц",
+  "@analyticsFilterPresetThisMonth": {
+    "description": "Подпись пресета этого месяца в фильтрах аналитики"
+  },
+  "analyticsFilterPresetLast30Days": "Последние 30 дней",
+  "@analyticsFilterPresetLast30Days": {
+    "description": "Подпись пресета последних 30 дней в фильтрах аналитики"
+  },
+  "analyticsFilterPresetPickDate": "Выбрать дату",
+  "@analyticsFilterPresetPickDate": {
+    "description": "Подпись пресета выбора периода в фильтрах аналитики"
+  },
+  "analyticsFilterPresetBudgets": "Бюджеты",
+  "@analyticsFilterPresetBudgets": {
+    "description": "Подпись заглушки фильтра бюджетов в аналитике"
+  },
+  "analyticsBudgetsStubTitle": "Бюджеты в разработке",
+  "@analyticsBudgetsStubTitle": {
+    "description": "Заголовок заглушки фильтра бюджетов в аналитике"
+  },
+  "analyticsBudgetsStubBody": "Фильтр по бюджетам появится позже. Сейчас чип служит заглушкой.",
+  "@analyticsBudgetsStubBody": {
+    "description": "Описание заглушки фильтра бюджетов в аналитике"
+  },
+  "analyticsDialogClose": "Понятно",
+  "@analyticsDialogClose": {
+    "description": "Кнопка подтверждения в информационных диалогах аналитики"
+  },
+  "analyticsMonthPickerYearSubtitle": "{year} год",
+  "@analyticsMonthPickerYearSubtitle": {
+    "description": "Подпись года в выборе месяца аналитики",
+    "placeholders": {
+      "year": {
+        "type": "int"
+      }
+    }
+  },
+  "analyticsAccountsPickerTitle": "Счета для аналитики",
+  "@analyticsAccountsPickerTitle": {
+    "description": "Заголовок выбора счетов на экране аналитики"
+  },
+  "analyticsAccountsPickerReset": "Сбросить",
+  "@analyticsAccountsPickerReset": {
+    "description": "Кнопка сброса в выборе счетов аналитики"
+  },
+  "analyticsAccountsPickerApply": "Применить",
+  "@analyticsAccountsPickerApply": {
+    "description": "Кнопка применения в выборе счетов аналитики"
+  },
+  "analyticsAccountsSelectedOneFallback": "Выбран 1 счёт",
+  "@analyticsAccountsSelectedOneFallback": {
+    "description": "Резервная подпись для одного выбранного счета, если имя недоступно"
+  },
+  "analyticsAccountsSelectedMany": "Выбрано {count} счетов",
+  "@analyticsAccountsSelectedMany": {
+    "description": "Подпись количества выбранных счетов в быстром селекторе аналитики",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "analyticsCategorySelectedFallback": "Категория выбрана",
+  "@analyticsCategorySelectedFallback": {
+    "description": "Резервная подпись для выбранной категории, если имя недоступно"
+  },
+  "analyticsInfoTitle": "Что показывает аналитика",
+  "@analyticsInfoTitle": {
+    "description": "Заголовок информационного bottom sheet аналитики"
+  },
+  "analyticsInfoBody": "Круговая диаграмма и список категорий отражают распределение трат или доходов за выбранный период. Выберите период, месяц или счета, чтобы сфокусироваться на нужных данных.",
+  "@analyticsInfoBody": {
+    "description": "Текст информационного bottom sheet аналитики"
+  },
+  "analyticsDebtOperationsTitle": "Операции по кредитам и долгам",
+  "@analyticsDebtOperationsTitle": {
+    "description": "Заголовок блока операций по кредитам и долгам в аналитике"
+  },
+  "analyticsDebtOperationsEmpty": "За выбранный период операций не найдено.",
+  "@analyticsDebtOperationsEmpty": {
+    "description": "Пустое состояние блока операций по кредитам и долгам"
+  },
+  "analyticsDebtMetricPrincipalRepayment": "Погашение тела",
+  "@analyticsDebtMetricPrincipalRepayment": {
+    "description": "Подпись метрики погашения тела долга в аналитике"
+  },
+  "analyticsDebtMetricServiceExpense": "Проценты и комиссии",
+  "@analyticsDebtMetricServiceExpense": {
+    "description": "Подпись метрики процентов и комиссий в аналитике"
+  },
+  "analyticsDebtMetricPrincipalInflow": "Новые займы",
+  "@analyticsDebtMetricPrincipalInflow": {
+    "description": "Подпись метрики новых займов в аналитике"
+  },
+  "analyticsDebtOutflowLabel": "Отток по долгам: {amount}",
+  "@analyticsDebtOutflowLabel": {
+    "description": "Подпись общей суммы оттока по долгам в аналитике",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "analyticsDebtRecentOperationsTitle": "Последние операции",
+  "@analyticsDebtRecentOperationsTitle": {
+    "description": "Заголовок списка последних операций по долгам в аналитике"
+  },
+  "analyticsDebtAccountFallback": "Счёт",
+  "@analyticsDebtAccountFallback": {
+    "description": "Резервное название счета в списке операций по долгам"
+  },
+  "analyticsDebtOperationPrincipalRepayment": "Погашение тела",
+  "@analyticsDebtOperationPrincipalRepayment": {
+    "description": "Подпись операции погашения тела в списке операций по долгам"
+  },
+  "analyticsDebtOperationServiceExpense": "Проценты и комиссии",
+  "@analyticsDebtOperationServiceExpense": {
+    "description": "Подпись операции процентов и комиссий в списке операций по долгам"
+  },
+  "analyticsDebtOperationPrincipalInflow": "Получение кредита/долга",
+  "@analyticsDebtOperationPrincipalInflow": {
+    "description": "Подпись операции получения кредита/долга в списке операций по долгам"
+  },
+  "analyticsDebtOperationTransfer": "Перевод между долгами",
+  "@analyticsDebtOperationTransfer": {
+    "description": "Подпись операции перевода между долгами в списке операций по долгам"
+  },
+  "analyticsCashflowWidgetTitle": "Остаток денег",
+  "@analyticsCashflowWidgetTitle": {
+    "description": "Заголовок виджета месячных потоков в аналитике"
+  },
+  "analyticsCashflowWidgetInfoTitle": "О виджете",
+  "@analyticsCashflowWidgetInfoTitle": {
+    "description": "Заголовок справки по виджету месячных потоков в аналитике"
+  },
+  "analyticsCashflowWidgetInfoBody": "Доходы и расходы считаются по месяцам. Остаток — это доходы минус расходы за выбранный месяц. Для текущего месяца учитываются данные на сегодня.",
+  "@analyticsCashflowWidgetInfoBody": {
+    "description": "Текст справки по виджету месячных потоков в аналитике"
+  },
+  "analyticsTotalMoneyWidgetTitle": "Денег всего",
+  "@analyticsTotalMoneyWidgetTitle": {
+    "description": "Заголовок виджета общего количества денег в аналитике"
+  },
+  "analyticsTotalMoneyWidgetInfoTitle": "О графике",
+  "@analyticsTotalMoneyWidgetInfoTitle": {
+    "description": "Заголовок справки по графику общего количества денег в аналитике"
+  },
+  "analyticsTotalMoneyWidgetInfoBody": "Этот график показывает максимальную сумму денег, которая была у вас на счетах в течение каждого месяца. Учитываются только выбранные счета.",
+  "@analyticsTotalMoneyWidgetInfoBody": {
+    "description": "Текст справки по графику общего количества денег в аналитике"
+  },
   "addTransactionTitle": "Новая транзакция",
   "@addTransactionTitle": {
     "description": "Заголовок экрана добавления транзакции"

@@ -2928,6 +2928,222 @@ abstract class AppLocalizations {
   /// **'Unable to load analytics: {error}'**
   String analyticsLoadError(String error);
 
+  /// Tab label for category spending view on analytics screen
+  ///
+  /// In en, this message translates to:
+  /// **'Spending by category'**
+  String get analyticsTabCategoriesSpending;
+
+  /// Tab label for statistics view on analytics screen
+  ///
+  /// In en, this message translates to:
+  /// **'Statistics'**
+  String get analyticsTabStatistics;
+
+  /// Preset label for this month in analytics filters
+  ///
+  /// In en, this message translates to:
+  /// **'This month'**
+  String get analyticsFilterPresetThisMonth;
+
+  /// Preset label for last 30 days in analytics filters
+  ///
+  /// In en, this message translates to:
+  /// **'Last 30 days'**
+  String get analyticsFilterPresetLast30Days;
+
+  /// Preset label for custom date range in analytics filters
+  ///
+  /// In en, this message translates to:
+  /// **'Pick date'**
+  String get analyticsFilterPresetPickDate;
+
+  /// Stub filter label for budgets on analytics screen
+  ///
+  /// In en, this message translates to:
+  /// **'Budgets'**
+  String get analyticsFilterPresetBudgets;
+
+  /// Title of budgets stub bottom sheet on analytics screen
+  ///
+  /// In en, this message translates to:
+  /// **'Budgets are in progress'**
+  String get analyticsBudgetsStubTitle;
+
+  /// Description of budgets stub bottom sheet on analytics screen
+  ///
+  /// In en, this message translates to:
+  /// **'Budget filter will appear later. For now this chip is a placeholder.'**
+  String get analyticsBudgetsStubBody;
+
+  /// Generic confirmation action in analytics info dialogs
+  ///
+  /// In en, this message translates to:
+  /// **'Got it'**
+  String get analyticsDialogClose;
+
+  /// Year subtitle in analytics month picker
+  ///
+  /// In en, this message translates to:
+  /// **'{year}'**
+  String analyticsMonthPickerYearSubtitle(int year);
+
+  /// Title of account picker on analytics screen
+  ///
+  /// In en, this message translates to:
+  /// **'Accounts for analytics'**
+  String get analyticsAccountsPickerTitle;
+
+  /// Reset action in analytics account picker
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get analyticsAccountsPickerReset;
+
+  /// Apply action in analytics account picker
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
+  String get analyticsAccountsPickerApply;
+
+  /// Fallback label when one account is selected but account name is unavailable
+  ///
+  /// In en, this message translates to:
+  /// **'1 account selected'**
+  String get analyticsAccountsSelectedOneFallback;
+
+  /// Label for selected accounts count in analytics quick selector
+  ///
+  /// In en, this message translates to:
+  /// **'{count} accounts selected'**
+  String analyticsAccountsSelectedMany(int count);
+
+  /// Fallback label when selected category is unavailable
+  ///
+  /// In en, this message translates to:
+  /// **'Category selected'**
+  String get analyticsCategorySelectedFallback;
+
+  /// Title for analytics info bottom sheet
+  ///
+  /// In en, this message translates to:
+  /// **'What analytics shows'**
+  String get analyticsInfoTitle;
+
+  /// Body text for analytics info bottom sheet
+  ///
+  /// In en, this message translates to:
+  /// **'The donut chart and category list show how expenses or income are distributed in the selected period. Choose a period, month, or accounts to focus on specific data.'**
+  String get analyticsInfoBody;
+
+  /// Section title for credit and debt operations in analytics
+  ///
+  /// In en, this message translates to:
+  /// **'Credit and debt operations'**
+  String get analyticsDebtOperationsTitle;
+
+  /// Empty state for credit and debt operations section
+  ///
+  /// In en, this message translates to:
+  /// **'No operations found for the selected period.'**
+  String get analyticsDebtOperationsEmpty;
+
+  /// Metric label for principal repayment amount in analytics debt section
+  ///
+  /// In en, this message translates to:
+  /// **'Principal repayment'**
+  String get analyticsDebtMetricPrincipalRepayment;
+
+  /// Metric label for interest and fees amount in analytics debt section
+  ///
+  /// In en, this message translates to:
+  /// **'Interest and fees'**
+  String get analyticsDebtMetricServiceExpense;
+
+  /// Metric label for principal inflow amount in analytics debt section
+  ///
+  /// In en, this message translates to:
+  /// **'New loans'**
+  String get analyticsDebtMetricPrincipalInflow;
+
+  /// Summary label for total debt outflow in analytics debt section
+  ///
+  /// In en, this message translates to:
+  /// **'Debt outflow: {amount}'**
+  String analyticsDebtOutflowLabel(String amount);
+
+  /// Title for recent operations list in analytics debt section
+  ///
+  /// In en, this message translates to:
+  /// **'Recent operations'**
+  String get analyticsDebtRecentOperationsTitle;
+
+  /// Fallback account name in analytics debt operation tile
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get analyticsDebtAccountFallback;
+
+  /// Operation label for principal repayment in analytics debt operation tile
+  ///
+  /// In en, this message translates to:
+  /// **'Principal repayment'**
+  String get analyticsDebtOperationPrincipalRepayment;
+
+  /// Operation label for service expense in analytics debt operation tile
+  ///
+  /// In en, this message translates to:
+  /// **'Interest and fees'**
+  String get analyticsDebtOperationServiceExpense;
+
+  /// Operation label for principal inflow in analytics debt operation tile
+  ///
+  /// In en, this message translates to:
+  /// **'Loan inflow'**
+  String get analyticsDebtOperationPrincipalInflow;
+
+  /// Operation label for debt transfer in analytics debt operation tile
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer between debts'**
+  String get analyticsDebtOperationTransfer;
+
+  /// Title for monthly cashflow chart widget
+  ///
+  /// In en, this message translates to:
+  /// **'Money balance'**
+  String get analyticsCashflowWidgetTitle;
+
+  /// Title for monthly cashflow chart help dialog
+  ///
+  /// In en, this message translates to:
+  /// **'About this widget'**
+  String get analyticsCashflowWidgetInfoTitle;
+
+  /// Description for monthly cashflow chart help dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Income and expenses are calculated by month. Net is income minus expenses for the selected month. For the current month, data up to today is included.'**
+  String get analyticsCashflowWidgetInfoBody;
+
+  /// Title for total money chart widget
+  ///
+  /// In en, this message translates to:
+  /// **'Total money'**
+  String get analyticsTotalMoneyWidgetTitle;
+
+  /// Title for total money chart help dialog
+  ///
+  /// In en, this message translates to:
+  /// **'About this chart'**
+  String get analyticsTotalMoneyWidgetInfoTitle;
+
+  /// Description for total money chart help dialog
+  ///
+  /// In en, this message translates to:
+  /// **'This chart shows the maximum amount of money you had across your accounts during each month. Only selected accounts are included.'**
+  String get analyticsTotalMoneyWidgetInfoBody;
+
   /// Title for add transaction screen
   ///
   /// In en, this message translates to:
