@@ -1640,11 +1640,11 @@
   "@upcomingPaymentsAddReminder": {
     "description": "Action label for creating a new payment reminder"
   },
-  "upcomingPaymentsNewPaymentTitle": "New recurring payment",
+  "upcomingPaymentsNewPaymentTitle": "New upcoming payment",
   "@upcomingPaymentsNewPaymentTitle": {
     "description": "Title for the create payment form"
   },
-  "upcomingPaymentsEditPaymentTitle": "Edit recurring payment",
+  "upcomingPaymentsEditPaymentTitle": "Edit upcoming payment",
   "@upcomingPaymentsEditPaymentTitle": {
     "description": "Title for the edit payment form"
   },
@@ -1660,6 +1660,10 @@
   "@upcomingPaymentsFieldTitle": {
     "description": "Label for the payment or reminder title field"
   },
+  "upcomingPaymentsTitlePlaceholder": "Repay debt",
+  "@upcomingPaymentsTitlePlaceholder": {
+    "description": "Placeholder for the upcoming payment title field"
+  },
   "upcomingPaymentsFieldAccount": "Account",
   "@upcomingPaymentsFieldAccount": {
     "description": "Label for selecting an account"
@@ -1672,6 +1676,10 @@
   "@upcomingPaymentsFieldAmount": {
     "description": "Label for the amount input"
   },
+  "upcomingPaymentsAmountPlaceholder": "Enter payment amount",
+  "@upcomingPaymentsAmountPlaceholder": {
+    "description": "Placeholder for the upcoming payment amount field"
+  },
   "upcomingPaymentsFieldDayOfMonth": "Day of month",
   "@upcomingPaymentsFieldDayOfMonth": {
     "description": "Label for selecting the recurring day of month"
@@ -1679,6 +1687,10 @@
   "upcomingPaymentsFieldNotifyDaysBefore": "Notify days before",
   "@upcomingPaymentsFieldNotifyDaysBefore": {
     "description": "Label for the notify days input"
+  },
+  "upcomingPaymentsFieldRemind": "Remind",
+  "@upcomingPaymentsFieldRemind": {
+    "description": "Label for enabling reminders for upcoming payment"
   },
   "upcomingPaymentsFieldNotifyTime": "Notification time",
   "@upcomingPaymentsFieldNotifyTime": {
@@ -2141,9 +2153,50 @@
   "@analyticsTabCategoriesSpending": {
     "description": "Tab label for category spending view on analytics screen"
   },
+  "analyticsOperationsByCategoryTitle": "Operations by category",
+  "@analyticsOperationsByCategoryTitle": {
+    "description": "Title of operations by category card on analytics screen"
+  },
+  "analyticsShowTransfersChip": "Show transfers",
+  "@analyticsShowTransfersChip": {
+    "description": "Chip that toggles transfers and credit payments in operations by category chart"
+  },
+  "analyticsTransfersOperationLabel": "Transfers",
+  "@analyticsTransfersOperationLabel": {
+    "description": "Label for transfer segment in operations by category chart"
+  },
+  "analyticsCreditPaymentsOperationLabel": "Credit payments",
+  "@analyticsCreditPaymentsOperationLabel": {
+    "description": "Label for credit payments segment in operations by category chart"
+  },
   "analyticsTabStatistics": "Statistics",
   "@analyticsTabStatistics": {
     "description": "Tab label for statistics view on analytics screen"
+  },
+  "analyticsCreditsTotalDebtTitle": "Total debt",
+  "@analyticsCreditsTotalDebtTitle": {
+    "description": "Title of total debt card on credits analytics tab"
+  },
+  "analyticsCreditsDebtTrendTitle": "Debt trend",
+  "@analyticsCreditsDebtTrendTitle": {
+    "description": "Title of debt trend card on credits analytics tab"
+  },
+  "analyticsCreditsDebtTrendPeriod": "6 months",
+  "@analyticsCreditsDebtTrendPeriod": {
+    "description": "Period label for debt trend chart on credits analytics tab"
+  },
+  "analyticsCreditsDeltaThisMonth": "{value} this month",
+  "@analyticsCreditsDeltaThisMonth": {
+    "description": "Label for monthly debt change value",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "analyticsCreditsDeltaUnavailable": "No data for previous month",
+  "@analyticsCreditsDeltaUnavailable": {
+    "description": "Label shown when monthly debt delta cannot be calculated"
   },
   "analyticsFilterPresetThisMonth": "This month",
   "@analyticsFilterPresetThisMonth": {
@@ -3036,9 +3089,17 @@
   "@budgetTitleLabel": {
     "description": "Label for the budget title text field"
   },
+  "budgetTitlePlaceholder": "Vacation",
+  "@budgetTitlePlaceholder": {
+    "description": "Placeholder for the budget title text field"
+  },
   "budgetAmountLabel": "Limit amount",
   "@budgetAmountLabel": {
     "description": "Label for the budget amount input"
+  },
+  "budgetAmountPlaceholder": "Enter amount",
+  "@budgetAmountPlaceholder": {
+    "description": "Placeholder for the budget amount and category limit inputs"
   },
   "budgetAmountAutoHelper": "Total is calculated from category limits.",
   "@budgetAmountAutoHelper": {
@@ -3598,5 +3659,98 @@
   "overviewScreenPlaceholder": "Overview details will appear here soon.",
   "@overviewScreenPlaceholder": {
     "description": "Overview screen placeholder text"
+  },
+  "overviewFinancialIndexTitle": "Financial index",
+  "@overviewFinancialIndexTitle": {
+    "description": "Financial index card title on overview screen"
+  },
+  "overviewFinancialIndexStatusRisk": "Financial risk",
+  "@overviewFinancialIndexStatusRisk": {
+    "description": "Financial index status for 0-39 range"
+  },
+  "overviewFinancialIndexStatusUnstable": "Unstable",
+  "@overviewFinancialIndexStatusUnstable": {
+    "description": "Financial index status for 40-59 range"
+  },
+  "overviewFinancialIndexStatusStable": "Stable",
+  "@overviewFinancialIndexStatusStable": {
+    "description": "Financial index status for 60-79 range"
+  },
+  "overviewFinancialIndexStatusGrowth": "Confident growth",
+  "@overviewFinancialIndexStatusGrowth": {
+    "description": "Financial index status for 80-100 range"
+  },
+  "overviewFinancialIndexMonthScoreChip": "{score} points this month",
+  "@overviewFinancialIndexMonthScoreChip": {
+    "description": "Chip text with current month financial index points",
+    "placeholders": {
+      "score": {
+        "type": "int"
+      }
+    }
+  },
+  "overviewFinancialIndexInfoTitle": "How the financial index is calculated",
+  "@overviewFinancialIndexInfoTitle": {
+    "description": "Popup title explaining financial index logic"
+  },
+  "overviewFinancialIndexInfoBody": "The index (0-100) is a weighted sum of 4 factors: budget control (30%), safety cushion (30%), monthly dynamics (20%), and behavioral discipline (20%). Zone color indicates state: 0-40 financial risk, 40-70 neutral, 70-100 growth.",
+  "@overviewFinancialIndexInfoBody": {
+    "description": "Popup body explaining financial index logic"
+  },
+  "overviewBalanceTitle": "Balance",
+  "@overviewBalanceTitle": {
+    "description": "Balance card title on overview screen"
+  },
+  "overviewBalanceDailyAmount": "2000 ₽",
+  "@overviewBalanceDailyAmount": {
+    "description": "Daily amount text on the balance card on overview screen"
+  },
+  "overviewBalanceDailySuffix": " per day",
+  "@overviewBalanceDailySuffix": {
+    "description": "Daily amount suffix on the balance card on overview screen"
+  },
+  "overviewBalanceIncomeInDays": "Income in 8 days",
+  "@overviewBalanceIncomeInDays": {
+    "description": "Next income label on the balance card on overview screen"
+  },
+  "overviewSafetyPillowTitle": "Safety cushion",
+  "@overviewSafetyPillowTitle": {
+    "description": "Safety cushion card title on overview screen"
+  },
+  "overviewSafetyPillowSubtitle": "7.4 / 10 months",
+  "@overviewSafetyPillowSubtitle": {
+    "description": "Safety cushion progress subtitle on overview screen"
+  },
+  "overviewBehaviorProgressTitle": "Behavioral progress",
+  "@overviewBehaviorProgressTitle": {
+    "description": "Behavioral progress card title on overview screen"
+  },
+  "overviewBehaviorProgressSubtitle": "6 days of mindful tracking in a row",
+  "@overviewBehaviorProgressSubtitle": {
+    "description": "Behavioral progress card subtitle on overview screen"
+  },
+  "overviewBehaviorProgressValue": "x6",
+  "@overviewBehaviorProgressValue": {
+    "description": "Behavioral progress card value on overview screen"
+  },
+  "overviewGoalTitle": "Goal: Vacation",
+  "@overviewGoalTitle": {
+    "description": "Goal card title on overview screen"
+  },
+  "overviewGoalProgressPercent": "68%",
+  "@overviewGoalProgressPercent": {
+    "description": "Goal progress percent on overview screen"
+  },
+  "overviewGoalInsight": "💡 Save 400 ₽ more today\nto leave a week earlier.",
+  "@overviewGoalInsight": {
+    "description": "Goal card hint text on overview screen"
+  },
+  "overviewInsightDayLabel": "Insight of the day",
+  "@overviewInsightDayLabel": {
+    "description": "Insight card label on overview screen"
+  },
+  "overviewInsightBody": "Your coffee on the way to work eats up 12%\nof your free budget.",
+  "@overviewInsightBody": {
+    "description": "Insight card body text on overview screen"
   }
 }

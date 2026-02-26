@@ -7,11 +7,11 @@
 - `onTap` (VoidCallback) — обработчик клика по карточке.
 
 ## События и коллбэки
-- `onTap` — переход на экран обзора.
+- `onTap` — переход на экран обзора `OverviewScreen`.
 
-## Настройки обзора
-- На экране обзора доступна шестеренка, где можно выбрать счета и категории для расчета и отображения в карточке обзора.
-- Настройки действуют только для виджета обзора и не влияют на аналитику или другие экраны.
+## Поведение перехода
+- По нажатию открывается экран `OverviewScreen` с карточками аналитического обзора.
+- Текущая версия экрана обзора реализована как статичный UI-макет (без подключения бизнес-логики и реальных вычислений).
 
 ## Пример использования
 ```dart
@@ -23,6 +23,7 @@ HomeOverviewSummaryCard(
 ## Связанные файлы
 - `lib/features/home/presentation/widgets/home_overview_summary_card.dart`
 - `lib/features/home/domain/use_cases/watch_home_overview_summary_use_case.dart`
+- `lib/features/overview/presentation/overview_screen.dart`
 - `lib/features/overview/presentation/overview_settings_screen.dart`
 - `lib/features/overview/presentation/controllers/overview_preferences_controller.dart`
 - `test/features/home/presentation/widgets/home_overview_summary_card_test.dart`

@@ -34,6 +34,7 @@ class AssistantScreen extends ConsumerStatefulWidget {
 class _AssistantScreenState extends ConsumerState<AssistantScreen> {
   static const String _kAssistantAgreementAcceptedKey =
       'assistant.agreement.accepted.v1';
+  static const int _kAssistantTabIndex = 2;
 
   late final TextEditingController _inputController;
   late final ScrollController _scrollController;
@@ -110,7 +111,14 @@ class _AssistantScreenState extends ConsumerState<AssistantScreen> {
   }
 
   Future<void> _ensureAgreementAccepted() async {
-    if (!mounted || _hasAcceptedAgreement || _isAgreementFlowActive) {
+    final int currentTabIndex = ref
+        .read(mainNavigationControllerProvider)
+        .currentIndex;
+    final bool isAssistantTabActive = currentTabIndex == _kAssistantTabIndex;
+    if (!mounted ||
+        _hasAcceptedAgreement ||
+        _isAgreementFlowActive ||
+        !isAssistantTabActive) {
       return;
     }
     _isAgreementFlowActive = true;
@@ -145,8 +153,16 @@ class _AssistantScreenState extends ConsumerState<AssistantScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final bool isAssistantTabActive = ref.watch(
+      mainNavigationControllerProvider.select(
+        (MainNavigationState state) =>
+            state.currentIndex == _kAssistantTabIndex,
+      ),
+    );
     if (_isAgreementLoading || !_hasAcceptedAgreement) {
-      if (!_isAgreementLoading && !_isAgreementFlowActive) {
+      if (!_isAgreementLoading &&
+          !_isAgreementFlowActive &&
+          isAssistantTabActive) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           _ensureAgreementAccepted();
         });
@@ -465,97 +481,94 @@ class AssistantUsageInfoScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final AppLocalizations strings = AppLocalizations.of(context)!;
-    return PopScope(
-      canPop: !requireDecision,
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(strings.assistantScreenTitle),
-          automaticallyImplyLeading: !requireDecision,
-        ),
-        body: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Text(
-                'Использование ИИ-ассистента',
-                style: Theme.of(context).textTheme.headlineSmall,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'В приложении доступен ИИ-ассистент, ответы '
-                'которого формируются автоматически на основе моделей '
-                'искусственного интеллекта (через сервис OpenRouter).\n\n'
-                'Ответы могут содержать ошибки, быть неполными или '
-                'устаревшими и не являются финансовой, юридической, '
-                'налоговой или иной профессиональной консультацией. Все '
-                'решения вы принимаете самостоятельно и на свой риск.\n\n'
-                'Не вводите в чат номера карт, пароли, CVV, коды из SMS, '
-                'паспортные данные и другую чувствительную личную информацию. '
-                'Текст ваших запросов передаётся стороннему сервису для '
-                'обработки.\n\n'
-                'Продолжая, вы подтверждаете, что ознакомились с этими '
-                'условиями и согласны с ними.',
-                style: Theme.of(context).textTheme.bodyLarge,
-              ),
-              const Spacer(),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  Expanded(
-                    child: SizedBox(
-                      height: 56,
-                      child: OutlinedButton(
-                        onPressed: () => Navigator.of(context).pop(false),
-                        style: OutlinedButton.styleFrom(
-                          backgroundColor: const Color(0xFF67696A),
-                          foregroundColor: const Color(0xFFC9C6BC),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(100),
-                          ),
-                          side: BorderSide.none,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 24,
-                            vertical: 16,
-                          ),
-                          textStyle: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                          ),
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(strings.assistantScreenTitle),
+        automaticallyImplyLeading: !requireDecision,
+      ),
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Text(
+              'Использование ИИ-ассистента',
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'В приложении доступен ИИ-ассистент, ответы '
+              'которого формируются автоматически на основе моделей '
+              'искусственного интеллекта (через сервис OpenRouter).\n\n'
+              'Ответы могут содержать ошибки, быть неполными или '
+              'устаревшими и не являются финансовой, юридической, '
+              'налоговой или иной профессиональной консультацией. Все '
+              'решения вы принимаете самостоятельно и на свой риск.\n\n'
+              'Не вводите в чат номера карт, пароли, CVV, коды из SMS, '
+              'паспортные данные и другую чувствительную личную информацию. '
+              'Текст ваших запросов передаётся стороннему сервису для '
+              'обработки.\n\n'
+              'Продолжая, вы подтверждаете, что ознакомились с этими '
+              'условиями и согласны с ними.',
+              style: Theme.of(context).textTheme.bodyLarge,
+            ),
+            const Spacer(),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Expanded(
+                  child: SizedBox(
+                    height: 56,
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.of(context).pop(false),
+                      style: OutlinedButton.styleFrom(
+                        backgroundColor: const Color(0xFF67696A),
+                        foregroundColor: const Color(0xFFC9C6BC),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(100),
                         ),
-                        child: const Text('Отмена'),
+                        side: BorderSide.none,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 16,
+                        ),
+                        textStyle: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
+                      child: const Text('Отмена'),
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: SizedBox(
-                      height: 56,
-                      child: ElevatedButton(
-                        onPressed: () => Navigator.of(context).pop(true),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFAEF75F),
-                          foregroundColor: const Color(0xFF1D3700),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(100),
-                          ),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 24,
-                            vertical: 16,
-                          ),
-                          textStyle: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                          ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: SizedBox(
+                    height: 56,
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.of(context).pop(true),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFAEF75F),
+                        foregroundColor: const Color(0xFF1D3700),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(100),
                         ),
-                        child: const Text('Принять'),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 16,
+                        ),
+                        textStyle: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
+                      child: const Text('Принять'),
                     ),
                   ),
-                ],
-              ),
-            ],
-          ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );

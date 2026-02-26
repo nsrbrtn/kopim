@@ -583,6 +583,72 @@ void main() {
       expect(find.text('Coffee'), findsOneWidget);
       expect(find.text('Books'), findsOneWidget);
     });
+
+    testWidgets('во вкладке кредитов отображаются карточки долга', (
+      WidgetTester tester,
+    ) async {
+      final AnalyticsFilterState filterState = AnalyticsFilterState(
+        dateRange: DateTimeRange(
+          start: DateTime(2024, 10, 1),
+          end: DateTime(2024, 10, 31),
+        ),
+      );
+
+      final AnalyticsOverview overview = AnalyticsOverview(
+        totalIncome: _amount(0),
+        totalExpense: _amount(0),
+        netBalance: _amount(0),
+        topExpenseCategories: const <AnalyticsCategoryBreakdown>[],
+        topIncomeCategories: const <AnalyticsCategoryBreakdown>[],
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: <Override>[
+            transactionRepositoryProvider.overrideWithValue(
+              _EmptyTransactionRepository(),
+            ),
+            analyticsFilterControllerProvider.overrideWith(
+              () => _FakeAnalyticsFilterController(filterState),
+            ),
+            analyticsFilteredStatsProvider(topCategoriesLimit: 5).overrideWith(
+              (Ref ref) => Stream<AnalyticsOverview>.value(overview),
+            ),
+            analyticsCategoriesProvider.overrideWith(
+              (Ref ref) => Stream<List<Category>>.value(const <Category>[]),
+            ),
+            analyticsAccountsProvider.overrideWith(
+              (Ref ref) =>
+                  Stream<List<AccountEntity>>.value(const <AccountEntity>[]),
+            ),
+            analyticsDebtOverviewProvider.overrideWith(
+              (Ref ref) => Stream<AnalyticsDebtOverview>.value(
+                AnalyticsDebtOverview.empty(),
+              ),
+            ),
+          ],
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: AnalyticsScreen(),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+      final BuildContext context = tester.element(find.byType(AnalyticsScreen));
+      final AppLocalizations strings = AppLocalizations.of(context)!;
+
+      await tester.tap(find.text(strings.creditsSegmentCredits));
+      await tester.pumpAndSettle();
+
+      expect(find.text(strings.analyticsCreditsTotalDebtTitle), findsOneWidget);
+      expect(find.text(strings.analyticsCreditsDebtTrendTitle), findsOneWidget);
+      expect(
+        find.text(strings.analyticsCreditsDebtTrendPeriod),
+        findsOneWidget,
+      );
+    });
   });
 }
 

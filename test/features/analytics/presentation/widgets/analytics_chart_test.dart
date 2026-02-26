@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:kopim/features/analytics/presentation/widgets/analytics_chart.dart';
 
 void main() {
-  testWidgets('AnalyticsDonutChart отображает иконки для сегментов ≥5%', (
+  testWidgets('AnalyticsDonutChart вызывает выбор сегмента по тапу', (
     WidgetTester tester,
   ) async {
     final List<AnalyticsChartItem> items = <AnalyticsChartItem>[
@@ -22,6 +22,7 @@ void main() {
         icon: Icons.favorite,
       ),
     ];
+    int? selected;
 
     await tester.pumpWidget(
       MaterialApp(
@@ -33,6 +34,9 @@ void main() {
               child: AnalyticsDonutChart(
                 items: items,
                 backgroundColor: Colors.grey.shade200,
+                onSegmentSelected: (int index) {
+                  selected = index;
+                },
               ),
             ),
           ),
@@ -41,11 +45,12 @@ void main() {
     );
 
     await tester.pumpAndSettle();
+    final Finder chartFinder = find.byType(AnalyticsDonutChart);
+    final Offset center = tester.getCenter(chartFinder);
+    await tester.tapAt(Offset(center.dx, center.dy - 110));
+    await tester.pump();
 
-    expect(find.byIcon(Icons.star), findsOneWidget);
-    expect(find.byIcon(Icons.favorite), findsOneWidget);
-    expect(find.text('60%'), findsOneWidget);
-    expect(find.text('40%'), findsOneWidget);
+    expect(selected, 0);
   });
 
   testWidgets('AnalyticsDonutChart avoids overflow with many slices', (
@@ -83,7 +88,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('AnalyticsDonutChart скрывает иконки для сегментов <5%', (
+  testWidgets('AnalyticsDonutChart корректно рисует очень маленькие доли', (
     WidgetTester tester,
   ) async {
     final List<AnalyticsChartItem> items = <AnalyticsChartItem>[
@@ -129,8 +134,6 @@ void main() {
 
     await tester.pumpAndSettle();
 
-    expect(find.byIcon(Icons.wallet), findsOneWidget);
-    expect(find.byIcon(Icons.warning), findsOneWidget);
-    expect(find.byIcon(Icons.close), findsNothing);
+    expect(tester.takeException(), isNull);
   });
 }

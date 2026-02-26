@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import 'package:kopim/core/widgets/kopim_dropdown_field.dart';
 import 'package:kopim/core/widgets/kopim_text_field.dart';
 import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
@@ -12,6 +13,7 @@ import 'package:kopim/features/budgets/presentation/controllers/budget_form_cont
 import 'package:kopim/features/budgets/presentation/controllers/budgets_providers.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/categories/presentation/utils/category_gradients.dart';
+import 'package:kopim/features/categories/presentation/widgets/category_chip.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
 class BudgetFormScreen extends ConsumerStatefulWidget {
@@ -117,7 +119,7 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
               const SizedBox(height: 8),
               KopimTextField(
                 controller: _titleController,
-                placeholder: strings.budgetTitleLabel,
+                placeholder: strings.budgetTitlePlaceholder,
                 onChanged: controller.setTitle,
               ),
               const SizedBox(height: 16),
@@ -132,7 +134,7 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                 keyboardType: const TextInputType.numberWithOptions(
                   decimal: true,
                 ),
-                placeholder: strings.budgetAmountLabel,
+                placeholder: strings.budgetAmountPlaceholder,
                 supportingText: state.scope == BudgetScope.byCategory
                     ? strings.budgetAmountAutoHelper
                     : currencyFormat.currencySymbol,
@@ -141,8 +143,13 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                     : controller.setAmountText,
               ),
               const SizedBox(height: 16),
-              DropdownButtonFormField<BudgetPeriod>(
-                initialValue: state.period,
+              Text(
+                strings.budgetPeriodLabelShort,
+                style: Theme.of(context).textTheme.labelLarge,
+              ),
+              const SizedBox(height: 8),
+              KopimDropdownField<BudgetPeriod>(
+                value: state.period,
                 items: BudgetPeriod.values
                     .map(
                       (BudgetPeriod period) => DropdownMenuItem<BudgetPeriod>(
@@ -150,19 +157,20 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                         child: Text(_periodLabel(strings, period)),
                       ),
                     )
-                    .toList(),
-                onChanged: (BudgetPeriod? value) {
-                  if (value != null) {
-                    controller.setPeriod(value);
-                  }
-                },
-                decoration: InputDecoration(
-                  labelText: strings.budgetPeriodLabelShort,
-                ),
+                    .toList(growable: false),
+                valueLabelBuilder: (BudgetPeriod? period) => period == null
+                    ? strings.budgetPeriodLabelShort
+                    : _periodLabel(strings, period),
+                onChanged: controller.setPeriod,
               ),
               const SizedBox(height: 16),
-              DropdownButtonFormField<BudgetScope>(
-                initialValue: state.scope,
+              Text(
+                strings.budgetScopeLabel,
+                style: Theme.of(context).textTheme.labelLarge,
+              ),
+              const SizedBox(height: 8),
+              KopimDropdownField<BudgetScope>(
+                value: state.scope,
                 items: BudgetScope.values
                     .map(
                       (BudgetScope scope) => DropdownMenuItem<BudgetScope>(
@@ -170,15 +178,11 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                         child: Text(_scopeLabel(strings, scope)),
                       ),
                     )
-                    .toList(),
-                onChanged: (BudgetScope? value) {
-                  if (value != null) {
-                    controller.setScope(value);
-                  }
-                },
-                decoration: InputDecoration(
-                  labelText: strings.budgetScopeLabel,
-                ),
+                    .toList(growable: false),
+                valueLabelBuilder: (BudgetScope? scope) => scope == null
+                    ? strings.budgetScopeLabel
+                    : _scopeLabel(strings, scope),
+                onChanged: controller.setScope,
               ),
               const SizedBox(height: 16),
               if (state.period == BudgetPeriod.custom)
@@ -213,11 +217,10 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
-                        _SelectionChips<Category>(
+                        _CategorySelectionChips(
                           title: strings.budgetCategoriesLabel,
-                          values: categories,
-                          selectedValues: state.categoryIds,
-                          labelBuilder: (Category category) => category.name,
+                          categories: categories,
+                          selectedCategoryIds: state.categoryIds,
                           onToggle: (Category category) =>
                               controller.toggleCategory(category.id),
                         ),
@@ -454,6 +457,74 @@ class _SelectionChips<T> extends StatelessWidget {
   }
 }
 
+class _CategorySelectionChips extends StatelessWidget {
+  const _CategorySelectionChips({
+    required this.title,
+    required this.categories,
+    required this.selectedCategoryIds,
+    required this.onToggle,
+  });
+
+  final String title;
+  final List<Category> categories;
+  final List<String> selectedCategoryIds;
+  final void Function(Category value) onToggle;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Text(title, style: theme.textTheme.titleSmall),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: <Widget>[
+            for (final Category category in categories)
+              _BudgetCategoryChip(
+                category: category,
+                selected: selectedCategoryIds.contains(category.id),
+                onTap: () => onToggle(category),
+              ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _BudgetCategoryChip extends StatelessWidget {
+  const _BudgetCategoryChip({
+    required this.category,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final Category category;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final IconData? iconData = resolvePhosphorIconData(category.icon);
+    final CategoryColorStyle colorStyle = resolveCategoryColorStyle(
+      category.color,
+    );
+    return CategoryChip(
+      label: category.name,
+      leading: Icon(iconData ?? Icons.category_outlined),
+      iconBackgroundColor: colorStyle.sampleColor,
+      iconBackgroundGradient: colorStyle.backgroundGradient,
+      backgroundColor: theme.colorScheme.surfaceContainerHigh,
+      selected: selected,
+      onTap: onTap,
+    );
+  }
+}
+
 class _CategoryAllocationsEditor extends StatelessWidget {
   const _CategoryAllocationsEditor({
     required this.title,
@@ -522,18 +593,27 @@ class _CategoryAllocationsEditor extends StatelessWidget {
                       ),
                       const SizedBox(width: 12),
                       Expanded(
-                        child: TextField(
-                          controller: controller,
-                          keyboardType: const TextInputType.numberWithOptions(
-                            decimal: true,
-                          ),
-                          decoration: InputDecoration(
-                            labelText: strings.budgetCategoryLimitLabel(
-                              category.name,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Text(
+                              strings.budgetCategoryLimitLabel(category.name),
+                              style: theme.textTheme.labelMedium?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
                             ),
-                          ),
-                          onChanged: (String value) =>
-                              onChanged(category.id, value),
+                            const SizedBox(height: 6),
+                            KopimTextField(
+                              controller: controller,
+                              keyboardType:
+                                  const TextInputType.numberWithOptions(
+                                    decimal: true,
+                                  ),
+                              placeholder: strings.budgetAmountPlaceholder,
+                              onChanged: (String value) =>
+                                  onChanged(category.id, value),
+                            ),
+                          ],
                         ),
                       ),
                     ],

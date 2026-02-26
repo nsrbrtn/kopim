@@ -1640,11 +1640,11 @@
   "@upcomingPaymentsAddReminder": {
     "description": "Подпись действия создания напоминания"
   },
-  "upcomingPaymentsNewPaymentTitle": "Новый повторяющийся платёж",
+  "upcomingPaymentsNewPaymentTitle": "Новый предстоящий платёж",
   "@upcomingPaymentsNewPaymentTitle": {
     "description": "Заголовок формы создания платежа"
   },
-  "upcomingPaymentsEditPaymentTitle": "Редактирование повторяющегося платежа",
+  "upcomingPaymentsEditPaymentTitle": "Редактирование предстоящего платежа",
   "@upcomingPaymentsEditPaymentTitle": {
     "description": "Заголовок формы редактирования платежа"
   },
@@ -1660,6 +1660,10 @@
   "@upcomingPaymentsFieldTitle": {
     "description": "Подпись поля названия правила или напоминания"
   },
+  "upcomingPaymentsTitlePlaceholder": "Вернуть долг",
+  "@upcomingPaymentsTitlePlaceholder": {
+    "description": "Плейсхолдер поля названия предстоящего платежа"
+  },
   "upcomingPaymentsFieldAccount": "Счёт",
   "@upcomingPaymentsFieldAccount": {
     "description": "Подпись выбора счёта"
@@ -1672,6 +1676,10 @@
   "@upcomingPaymentsFieldAmount": {
     "description": "Подпись поля суммы"
   },
+  "upcomingPaymentsAmountPlaceholder": "Введите сумму платежа",
+  "@upcomingPaymentsAmountPlaceholder": {
+    "description": "Плейсхолдер поля суммы предстоящего платежа"
+  },
   "upcomingPaymentsFieldDayOfMonth": "День месяца",
   "@upcomingPaymentsFieldDayOfMonth": {
     "description": "Подпись выбора дня месяца"
@@ -1679,6 +1687,10 @@
   "upcomingPaymentsFieldNotifyDaysBefore": "За сколько дней напомнить",
   "@upcomingPaymentsFieldNotifyDaysBefore": {
     "description": "Подпись поля количества дней до уведомления"
+  },
+  "upcomingPaymentsFieldRemind": "Напомнить",
+  "@upcomingPaymentsFieldRemind": {
+    "description": "Подпись переключателя включения напоминаний для предстоящего платежа"
   },
   "upcomingPaymentsFieldNotifyTime": "Время уведомления",
   "@upcomingPaymentsFieldNotifyTime": {
@@ -2141,9 +2153,50 @@
   "@analyticsTabCategoriesSpending": {
     "description": "Подпись вкладки трат по категориям на экране аналитики"
   },
+  "analyticsOperationsByCategoryTitle": "Операции по категориям",
+  "@analyticsOperationsByCategoryTitle": {
+    "description": "Заголовок карточки операций по категориям на экране аналитики"
+  },
+  "analyticsShowTransfersChip": "Показывать переводы",
+  "@analyticsShowTransfersChip": {
+    "description": "Чип для включения и выключения переводов и платежей по кредитам в графике операций"
+  },
+  "analyticsTransfersOperationLabel": "Переводы",
+  "@analyticsTransfersOperationLabel": {
+    "description": "Название сегмента переводов в графике операций по категориям"
+  },
+  "analyticsCreditPaymentsOperationLabel": "Платежи по кредитам",
+  "@analyticsCreditPaymentsOperationLabel": {
+    "description": "Название сегмента платежей по кредитам в графике операций по категориям"
+  },
   "analyticsTabStatistics": "Статистика",
   "@analyticsTabStatistics": {
     "description": "Подпись вкладки статистики на экране аналитики"
+  },
+  "analyticsCreditsTotalDebtTitle": "Общая сумма долга",
+  "@analyticsCreditsTotalDebtTitle": {
+    "description": "Заголовок карточки общей суммы долга во вкладке кредитов аналитики"
+  },
+  "analyticsCreditsDebtTrendTitle": "Динамика долга",
+  "@analyticsCreditsDebtTrendTitle": {
+    "description": "Заголовок карточки динамики долга во вкладке кредитов аналитики"
+  },
+  "analyticsCreditsDebtTrendPeriod": "6 месяцев",
+  "@analyticsCreditsDebtTrendPeriod": {
+    "description": "Подпись периода графика долга во вкладке кредитов аналитики"
+  },
+  "analyticsCreditsDeltaThisMonth": "{value} в этом месяце",
+  "@analyticsCreditsDeltaThisMonth": {
+    "description": "Подпись изменения долга за текущий месяц",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "analyticsCreditsDeltaUnavailable": "Нет данных за прошлый месяц",
+  "@analyticsCreditsDeltaUnavailable": {
+    "description": "Подпись, когда невозможно посчитать изменение долга за месяц"
   },
   "analyticsFilterPresetThisMonth": "Этот месяц",
   "@analyticsFilterPresetThisMonth": {
@@ -3036,9 +3089,17 @@
   "@budgetTitleLabel": {
     "description": "Подпись поля названия бюджета"
   },
+  "budgetTitlePlaceholder": "Отпуск",
+  "@budgetTitlePlaceholder": {
+    "description": "Плейсхолдер поля названия бюджета"
+  },
   "budgetAmountLabel": "Сумма лимита",
   "@budgetAmountLabel": {
     "description": "Подпись поля суммы бюджета"
+  },
+  "budgetAmountPlaceholder": "Укажите сумму",
+  "@budgetAmountPlaceholder": {
+    "description": "Плейсхолдер поля суммы бюджета и лимитов категорий"
   },
   "budgetAmountAutoHelper": "Сумма рассчитывается автоматически по лимитам категорий.",
   "@budgetAmountAutoHelper": {
@@ -3598,5 +3659,98 @@
   "overviewScreenPlaceholder": "Скоро здесь появится информация обзора.",
   "@overviewScreenPlaceholder": {
     "description": "Плейсхолдер экрана обзора"
+  },
+  "overviewFinancialIndexTitle": "Финансовый индекс",
+  "@overviewFinancialIndexTitle": {
+    "description": "Заголовок карточки финансового индекса на экране обзора"
+  },
+  "overviewFinancialIndexStatusRisk": "Финансовый риск",
+  "@overviewFinancialIndexStatusRisk": {
+    "description": "Статус финансового индекса для диапазона 0-39"
+  },
+  "overviewFinancialIndexStatusUnstable": "Нестабильно",
+  "@overviewFinancialIndexStatusUnstable": {
+    "description": "Статус финансового индекса для диапазона 40-59"
+  },
+  "overviewFinancialIndexStatusStable": "Стабильно",
+  "@overviewFinancialIndexStatusStable": {
+    "description": "Статус финансового индекса для диапазона 60-79"
+  },
+  "overviewFinancialIndexStatusGrowth": "Уверенный рост",
+  "@overviewFinancialIndexStatusGrowth": {
+    "description": "Статус финансового индекса для диапазона 80-100"
+  },
+  "overviewFinancialIndexMonthScoreChip": "{score} баллов в этом месяце",
+  "@overviewFinancialIndexMonthScoreChip": {
+    "description": "Текст чипа с баллами финансового индекса за текущий месяц",
+    "placeholders": {
+      "score": {
+        "type": "int"
+      }
+    }
+  },
+  "overviewFinancialIndexInfoTitle": "Как считается финансовый индекс",
+  "@overviewFinancialIndexInfoTitle": {
+    "description": "Заголовок попапа с объяснением логики финансового индекса"
+  },
+  "overviewFinancialIndexInfoBody": "Индекс (0-100) рассчитывается как взвешенная сумма 4 факторов: контроль бюджета (30%), подушка безопасности (30%), динамика месяца (20%) и поведенческая дисциплина (20%). Цвет зоны показывает состояние: 0-40 — финансовый риск, 40-70 — нейтрально, 70-100 — рост.",
+  "@overviewFinancialIndexInfoBody": {
+    "description": "Текст попапа с объяснением логики финансового индекса"
+  },
+  "overviewBalanceTitle": "Остаток",
+  "@overviewBalanceTitle": {
+    "description": "Заголовок карточки остатка на экране обзора"
+  },
+  "overviewBalanceDailyAmount": "2000 ₽",
+  "@overviewBalanceDailyAmount": {
+    "description": "Текст суммы в карточке остатка на экране обзора"
+  },
+  "overviewBalanceDailySuffix": " в день",
+  "@overviewBalanceDailySuffix": {
+    "description": "Суффикс дневного лимита в карточке остатка на экране обзора"
+  },
+  "overviewBalanceIncomeInDays": "Доход через 8 дней",
+  "@overviewBalanceIncomeInDays": {
+    "description": "Подпись следующего дохода в карточке остатка на экране обзора"
+  },
+  "overviewSafetyPillowTitle": "Финансовая подушка",
+  "@overviewSafetyPillowTitle": {
+    "description": "Заголовок карточки финансовой подушки на экране обзора"
+  },
+  "overviewSafetyPillowSubtitle": "7.4 / 10 мес",
+  "@overviewSafetyPillowSubtitle": {
+    "description": "Подпись прогресса финансовой подушки на экране обзора"
+  },
+  "overviewBehaviorProgressTitle": "Поведенческий прогресс",
+  "@overviewBehaviorProgressTitle": {
+    "description": "Заголовок карточки поведенческого прогресса на экране обзора"
+  },
+  "overviewBehaviorProgressSubtitle": "6 дней осознанного учета подряд",
+  "@overviewBehaviorProgressSubtitle": {
+    "description": "Подпись карточки поведенческого прогресса на экране обзора"
+  },
+  "overviewBehaviorProgressValue": "x6",
+  "@overviewBehaviorProgressValue": {
+    "description": "Значение карточки поведенческого прогресса на экране обзора"
+  },
+  "overviewGoalTitle": "Цель: Отпуск",
+  "@overviewGoalTitle": {
+    "description": "Заголовок карточки цели на экране обзора"
+  },
+  "overviewGoalProgressPercent": "68%",
+  "@overviewGoalProgressPercent": {
+    "description": "Процент прогресса цели на экране обзора"
+  },
+  "overviewGoalInsight": "💡 Отложите сегодня на 400 ₽ больше, чтобы\nпоехать на неделю раньше.",
+  "@overviewGoalInsight": {
+    "description": "Подсказка в карточке цели на экране обзора"
+  },
+  "overviewInsightDayLabel": "Инсайт дня",
+  "@overviewInsightDayLabel": {
+    "description": "Подпись карточки инсайта на экране обзора"
+  },
+  "overviewInsightBody": "Ваш кофе по пути на работу съедает 12%\nсвободного бюджета.",
+  "@overviewInsightBody": {
+    "description": "Текст карточки инсайта на экране обзора"
   }
 }

@@ -2337,13 +2337,13 @@ abstract class AppLocalizations {
   /// Title for the create payment form
   ///
   /// In en, this message translates to:
-  /// **'New recurring payment'**
+  /// **'New upcoming payment'**
   String get upcomingPaymentsNewPaymentTitle;
 
   /// Title for the edit payment form
   ///
   /// In en, this message translates to:
-  /// **'Edit recurring payment'**
+  /// **'Edit upcoming payment'**
   String get upcomingPaymentsEditPaymentTitle;
 
   /// Title for the create reminder form
@@ -2364,6 +2364,12 @@ abstract class AppLocalizations {
   /// **'Name'**
   String get upcomingPaymentsFieldTitle;
 
+  /// Placeholder for the upcoming payment title field
+  ///
+  /// In en, this message translates to:
+  /// **'Repay debt'**
+  String get upcomingPaymentsTitlePlaceholder;
+
   /// Label for selecting an account
   ///
   /// In en, this message translates to:
@@ -2382,6 +2388,12 @@ abstract class AppLocalizations {
   /// **'Amount'**
   String get upcomingPaymentsFieldAmount;
 
+  /// Placeholder for the upcoming payment amount field
+  ///
+  /// In en, this message translates to:
+  /// **'Enter payment amount'**
+  String get upcomingPaymentsAmountPlaceholder;
+
   /// Label for selecting the recurring day of month
   ///
   /// In en, this message translates to:
@@ -2393,6 +2405,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Notify days before'**
   String get upcomingPaymentsFieldNotifyDaysBefore;
+
+  /// Label for enabling reminders for upcoming payment
+  ///
+  /// In en, this message translates to:
+  /// **'Remind'**
+  String get upcomingPaymentsFieldRemind;
 
   /// Label for the notification time picker
   ///
@@ -2934,11 +2952,65 @@ abstract class AppLocalizations {
   /// **'Spending by category'**
   String get analyticsTabCategoriesSpending;
 
+  /// Title of operations by category card on analytics screen
+  ///
+  /// In en, this message translates to:
+  /// **'Operations by category'**
+  String get analyticsOperationsByCategoryTitle;
+
+  /// Chip that toggles transfers and credit payments in operations by category chart
+  ///
+  /// In en, this message translates to:
+  /// **'Show transfers'**
+  String get analyticsShowTransfersChip;
+
+  /// Label for transfer segment in operations by category chart
+  ///
+  /// In en, this message translates to:
+  /// **'Transfers'**
+  String get analyticsTransfersOperationLabel;
+
+  /// Label for credit payments segment in operations by category chart
+  ///
+  /// In en, this message translates to:
+  /// **'Credit payments'**
+  String get analyticsCreditPaymentsOperationLabel;
+
   /// Tab label for statistics view on analytics screen
   ///
   /// In en, this message translates to:
   /// **'Statistics'**
   String get analyticsTabStatistics;
+
+  /// Title of total debt card on credits analytics tab
+  ///
+  /// In en, this message translates to:
+  /// **'Total debt'**
+  String get analyticsCreditsTotalDebtTitle;
+
+  /// Title of debt trend card on credits analytics tab
+  ///
+  /// In en, this message translates to:
+  /// **'Debt trend'**
+  String get analyticsCreditsDebtTrendTitle;
+
+  /// Period label for debt trend chart on credits analytics tab
+  ///
+  /// In en, this message translates to:
+  /// **'6 months'**
+  String get analyticsCreditsDebtTrendPeriod;
+
+  /// Label for monthly debt change value
+  ///
+  /// In en, this message translates to:
+  /// **'{value} this month'**
+  String analyticsCreditsDeltaThisMonth(String value);
+
+  /// Label shown when monthly debt delta cannot be calculated
+  ///
+  /// In en, this message translates to:
+  /// **'No data for previous month'**
+  String get analyticsCreditsDeltaUnavailable;
 
   /// Preset label for this month in analytics filters
   ///
@@ -4158,11 +4230,23 @@ abstract class AppLocalizations {
   /// **'Budget title'**
   String get budgetTitleLabel;
 
+  /// Placeholder for the budget title text field
+  ///
+  /// In en, this message translates to:
+  /// **'Vacation'**
+  String get budgetTitlePlaceholder;
+
   /// Label for the budget amount input
   ///
   /// In en, this message translates to:
   /// **'Limit amount'**
   String get budgetAmountLabel;
+
+  /// Placeholder for the budget amount and category limit inputs
+  ///
+  /// In en, this message translates to:
+  /// **'Enter amount'**
+  String get budgetAmountPlaceholder;
 
   /// Helper text shown when the budget amount is computed from category allocations.
   ///
@@ -4925,6 +5009,138 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Overview details will appear here soon.'**
   String get overviewScreenPlaceholder;
+
+  /// Financial index card title on overview screen
+  ///
+  /// In en, this message translates to:
+  /// **'Financial index'**
+  String get overviewFinancialIndexTitle;
+
+  /// Financial index status for 0-39 range
+  ///
+  /// In en, this message translates to:
+  /// **'Financial risk'**
+  String get overviewFinancialIndexStatusRisk;
+
+  /// Financial index status for 40-59 range
+  ///
+  /// In en, this message translates to:
+  /// **'Unstable'**
+  String get overviewFinancialIndexStatusUnstable;
+
+  /// Financial index status for 60-79 range
+  ///
+  /// In en, this message translates to:
+  /// **'Stable'**
+  String get overviewFinancialIndexStatusStable;
+
+  /// Financial index status for 80-100 range
+  ///
+  /// In en, this message translates to:
+  /// **'Confident growth'**
+  String get overviewFinancialIndexStatusGrowth;
+
+  /// Chip text with current month financial index points
+  ///
+  /// In en, this message translates to:
+  /// **'{score} points this month'**
+  String overviewFinancialIndexMonthScoreChip(int score);
+
+  /// Popup title explaining financial index logic
+  ///
+  /// In en, this message translates to:
+  /// **'How the financial index is calculated'**
+  String get overviewFinancialIndexInfoTitle;
+
+  /// Popup body explaining financial index logic
+  ///
+  /// In en, this message translates to:
+  /// **'The index (0-100) is a weighted sum of 4 factors: budget control (30%), safety cushion (30%), monthly dynamics (20%), and behavioral discipline (20%). Zone color indicates state: 0-40 financial risk, 40-70 neutral, 70-100 growth.'**
+  String get overviewFinancialIndexInfoBody;
+
+  /// Balance card title on overview screen
+  ///
+  /// In en, this message translates to:
+  /// **'Balance'**
+  String get overviewBalanceTitle;
+
+  /// Daily amount text on the balance card on overview screen
+  ///
+  /// In en, this message translates to:
+  /// **'2000 ₽'**
+  String get overviewBalanceDailyAmount;
+
+  /// Daily amount suffix on the balance card on overview screen
+  ///
+  /// In en, this message translates to:
+  /// **' per day'**
+  String get overviewBalanceDailySuffix;
+
+  /// Next income label on the balance card on overview screen
+  ///
+  /// In en, this message translates to:
+  /// **'Income in 8 days'**
+  String get overviewBalanceIncomeInDays;
+
+  /// Safety cushion card title on overview screen
+  ///
+  /// In en, this message translates to:
+  /// **'Safety cushion'**
+  String get overviewSafetyPillowTitle;
+
+  /// Safety cushion progress subtitle on overview screen
+  ///
+  /// In en, this message translates to:
+  /// **'7.4 / 10 months'**
+  String get overviewSafetyPillowSubtitle;
+
+  /// Behavioral progress card title on overview screen
+  ///
+  /// In en, this message translates to:
+  /// **'Behavioral progress'**
+  String get overviewBehaviorProgressTitle;
+
+  /// Behavioral progress card subtitle on overview screen
+  ///
+  /// In en, this message translates to:
+  /// **'6 days of mindful tracking in a row'**
+  String get overviewBehaviorProgressSubtitle;
+
+  /// Behavioral progress card value on overview screen
+  ///
+  /// In en, this message translates to:
+  /// **'x6'**
+  String get overviewBehaviorProgressValue;
+
+  /// Goal card title on overview screen
+  ///
+  /// In en, this message translates to:
+  /// **'Goal: Vacation'**
+  String get overviewGoalTitle;
+
+  /// Goal progress percent on overview screen
+  ///
+  /// In en, this message translates to:
+  /// **'68%'**
+  String get overviewGoalProgressPercent;
+
+  /// Goal card hint text on overview screen
+  ///
+  /// In en, this message translates to:
+  /// **'💡 Save 400 ₽ more today\nto leave a week earlier.'**
+  String get overviewGoalInsight;
+
+  /// Insight card label on overview screen
+  ///
+  /// In en, this message translates to:
+  /// **'Insight of the day'**
+  String get overviewInsightDayLabel;
+
+  /// Insight card body text on overview screen
+  ///
+  /// In en, this message translates to:
+  /// **'Your coffee on the way to work eats up 12%\nof your free budget.'**
+  String get overviewInsightBody;
 }
 
 class _AppLocalizationsDelegate

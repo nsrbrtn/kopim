@@ -317,22 +317,24 @@ class _AddAccountScreenState extends ConsumerState<AddAccountScreen> {
                             state.nameError == AddAccountFieldError.emptyName,
                       ),
                     ],
+                    if (showNameField) ...<Widget>[
+                      SizedBox(height: layout.spacing.sectionLarge),
+                      _BalanceField(
+                        controller: _balanceController,
+                        isSaving: state.isSaving,
+                        strings: strings,
+                        layout: layout,
+                        colorScheme: colorScheme,
+                        theme: theme,
+                        onChanged: controller.updateBalance,
+                        placeholder: _balancePlaceholder,
+                        hasError:
+                            state.balanceError ==
+                            AddAccountFieldError.invalidBalance,
+                      ),
+                    ],
                     if (showDetails) ...<Widget>[
                       SizedBox(height: layout.spacing.sectionLarge),
-                      if (!isCreditCard)
-                        _BalanceField(
-                          controller: _balanceController,
-                          isSaving: state.isSaving,
-                          strings: strings,
-                          layout: layout,
-                          colorScheme: colorScheme,
-                          theme: theme,
-                          onChanged: controller.updateBalance,
-                          placeholder: _balancePlaceholder,
-                          hasError:
-                              state.balanceError ==
-                              AddAccountFieldError.invalidBalance,
-                        ),
                       if (isCreditCard) ...<Widget>[
                         SizedBox(height: layout.spacing.sectionLarge),
                         _CreditCardSettingsSection(

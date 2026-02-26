@@ -726,31 +726,6 @@ class _AccountsListState extends State<_AccountsList> {
     oldController.dispose();
   }
 
-  double _calculateRequiredFraction({
-    required BuildContext context,
-    required BoxConstraints constraints,
-    required String localeName,
-  }) {
-    final double maxWidth = constraints.maxWidth;
-    if (maxWidth <= 0 || _displayedAccounts.isEmpty) {
-      return 0;
-    }
-    double requiredWidth = 0;
-    for (final AccountEntity account in _displayedAccounts) {
-      final NumberFormat format = NumberFormat.currency(
-        locale: localeName,
-        symbol: resolveCurrencySymbol(account.currency, locale: localeName),
-      );
-      final double width = _AccountCardLayout.measureBalanceWidth(
-        context: context,
-        text: format.format(account.balanceAmount.toDouble()),
-      );
-      requiredWidth = math.max(requiredWidth, width);
-    }
-    requiredWidth += _AccountCardLayout.horizontalPadding;
-    return (requiredWidth / maxWidth).clamp(0, 1);
-  }
-
   @override
   Widget build(BuildContext context) {
     final bool hasHiddenAccounts = widget.hiddenAccounts.isNotEmpty;
@@ -796,6 +771,7 @@ class _AccountsListState extends State<_AccountsList> {
                       return SizedBox(
                         width: cardWidth,
                         child: _AccountCard(
+                          key: ValueKey<String>(account.id),
                           account: account,
                           strings: widget.strings,
                           currencyFormat: currencyFormat,
@@ -846,17 +822,9 @@ class _AccountsListState extends State<_AccountsList> {
         final double minScrollableFraction = isSingleAccount
             ? 1.0
             : (1 / totalItems) + 0.02;
-        final double requiredFraction = _calculateRequiredFraction(
-          context: context,
-          constraints: constraints,
-          localeName: localeName,
-        );
         final double targetFraction = math.min(
           isSingleAccount ? 1.0 : 0.98,
-          math.max(
-            baseFraction,
-            math.max(requiredFraction, minScrollableFraction),
-          ),
+          math.max(baseFraction, minScrollableFraction),
         );
         final double baseHeight = _AccountCardLayout.estimateHeight(context);
         final double cardHeight = math.max(
@@ -915,6 +883,7 @@ class _AccountsListState extends State<_AccountsList> {
                         return Padding(
                           padding: EdgeInsets.only(right: isLast ? 0 : 8),
                           child: _AccountCard(
+                            key: ValueKey<String>(account.id),
                             account: account,
                             strings: widget.strings,
                             currencyFormat: currencyFormat,
@@ -961,6 +930,7 @@ class _AccountsListState extends State<_AccountsList> {
 
 class _AccountCard extends ConsumerWidget {
   const _AccountCard({
+    super.key,
     required this.account,
     required this.strings,
     required this.currencyFormat,
@@ -1681,8 +1651,6 @@ class _AccountCardPalette {
 }
 
 class _AccountCardLayout {
-  static const double horizontalPadding = 48;
-
   static double estimateHeight(BuildContext context) {
     final ThemeData theme = Theme.of(context);
     final double label = _textHeight(
@@ -1712,23 +1680,6 @@ class _AccountCardLayout {
         summaryTitle +
         (summaryValue * 2) +
         gaps;
-  }
-
-  static double measureBalanceWidth({
-    required BuildContext context,
-    required String text,
-  }) {
-    final ThemeData theme = Theme.of(context);
-    final TextStyle style =
-        theme.textTheme.displaySmall ??
-        theme.textTheme.headlineMedium ??
-        const TextStyle(fontSize: 36, height: 44 / 36);
-    final TextPainter painter = TextPainter(
-      text: TextSpan(text: text, style: style),
-      maxLines: 1,
-      textDirection: ui.TextDirection.ltr,
-    )..layout();
-    return painter.width;
   }
 
   static double _textHeight(TextStyle style) {

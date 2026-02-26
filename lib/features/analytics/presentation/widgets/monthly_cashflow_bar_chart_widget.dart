@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:kopim/features/analytics/presentation/models/monthly_cashflow_data.dart';
+import 'package:kopim/features/analytics/presentation/widgets/analytics_filter_chip.dart';
+import 'package:kopim/features/analytics/presentation/widgets/analytics_info_button.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
@@ -14,6 +16,11 @@ class MonthlyCashflowBarChartWidget extends StatefulWidget {
     required this.selectedMonth,
     required this.onMonthSelected,
     required this.localeName,
+    required this.monthFilterLabel,
+    required this.accountFilterLabel,
+    required this.isAccountFilterActive,
+    required this.onMonthFilterTap,
+    required this.onAccountsFilterTap,
   });
 
   final List<MonthlyCashflowData> data;
@@ -21,6 +28,11 @@ class MonthlyCashflowBarChartWidget extends StatefulWidget {
   final DateTime selectedMonth;
   final ValueChanged<DateTime> onMonthSelected;
   final String localeName;
+  final String monthFilterLabel;
+  final String accountFilterLabel;
+  final bool isAccountFilterActive;
+  final VoidCallback onMonthFilterTap;
+  final VoidCallback onAccountsFilterTap;
 
   @override
   State<MonthlyCashflowBarChartWidget> createState() =>
@@ -35,7 +47,7 @@ class _MonthlyCashflowBarChartWidgetState
   void initState() {
     super.initState();
     final int dataLength = widget.data.isEmpty ? 12 : widget.data.length;
-    _windowStart = _initialWindowStart(dataLength);
+    _windowStart = _maxWindowStart(dataLength);
   }
 
   @override
@@ -57,10 +69,21 @@ class _MonthlyCashflowBarChartWidgetState
     final List<MonthlyCashflowData> effectiveData = widget.data.isEmpty
         ? _placeholderData()
         : widget.data;
+    final int maxStart = _maxWindowStart(effectiveData.length);
+    final int selectedMonthIndex = effectiveData.indexWhere(
+      (MonthlyCashflowData item) =>
+          item.month.year == widget.selectedMonth.year &&
+          item.month.month == widget.selectedMonth.month,
+    );
+    final int windowStart = _resolveWindowStartForSelection(
+      currentStart: _windowStart.clamp(0, maxStart),
+      selectedIndex: selectedMonthIndex,
+      maxStart: maxStart,
+    );
 
     final List<MonthlyCashflowData> visibleData = _sliceWindow(
       effectiveData,
-      start: _windowStart,
+      start: windowStart,
       count: _kVisibleMonths,
     );
 
@@ -69,31 +92,23 @@ class _MonthlyCashflowBarChartWidgetState
       selectedMonth: widget.selectedMonth,
     );
 
+    final NumberFormat compact = NumberFormat.compact(
+      locale: widget.localeName,
+    );
+
     double maxPositive = 0;
-    for (final MonthlyCashflowData d in effectiveData) {
+    for (final MonthlyCashflowData d in visibleData) {
       if (d.income > maxPositive) {
         maxPositive = d.income;
       }
       if (d.expense > maxPositive) {
         maxPositive = d.expense;
       }
+      if (d.net > maxPositive) {
+        maxPositive = d.net;
+      }
     }
-
-    final double yMax = maxPositive <= 0 ? 100 : maxPositive * 1.15;
-    const double yMin = 0;
-
-    final NumberFormat compact = NumberFormat.compact(
-      locale: widget.localeName,
-    );
-    final String monthName = DateFormat(
-      'LLLL',
-      widget.localeName,
-    ).format(displayData.month);
-
-    final Color incomeColor = colors.primary;
-    final Color expenseColor = colors.error;
-    final Color netPositiveColor = colors.tertiary;
-
+    final double yMax = maxPositive <= 0 ? 100 : maxPositive * 1.2;
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -105,273 +120,193 @@ class _MonthlyCashflowBarChartWidgetState
         children: <Widget>[
           Row(
             children: <Widget>[
-              Text(
-                strings.analyticsCashflowWidgetTitle,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: colors.onSurface,
+              Expanded(
+                child: Text(
+                  strings.analyticsCashflowWidgetTitle,
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    color: colors.onSurface,
+                  ),
                 ),
               ),
-              const SizedBox(width: 8),
-              IconButton(
-                icon: Icon(
-                  Icons.help_outline,
-                  size: 20,
-                  color: colors.onSurfaceVariant,
-                ),
-                onPressed: () {
-                  showDialog<void>(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return AlertDialog(
-                        title: Text(strings.analyticsCashflowWidgetInfoTitle),
-                        content: Text(strings.analyticsCashflowWidgetInfoBody),
-                        actions: <Widget>[
-                          TextButton(
-                            onPressed: () => Navigator.of(context).pop(),
-                            child: Text(strings.analyticsDialogClose),
-                          ),
-                        ],
-                      );
-                    },
-                  );
-                },
+              const AnalyticsInfoButton(
+                title: 'Остаток денег',
+                description:
+                    'График показывает траты, доходы и итоговый остаток по месяцам. '
+                    'Чипы сверху позволяют менять период и набор счетов.',
               ),
             ],
           ),
-          const SizedBox(height: 16),
-          Text(
-            _capitalize(monthName),
-            style: TextStyle(
-              fontFamily: 'Inter',
-              fontSize: 14,
-              height: 20 / 14,
-              fontWeight: FontWeight.w500,
-              color: colors.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           Row(
             children: <Widget>[
-              Expanded(
-                child: _LegendMetric(
-                  label: strings.analyticsSummaryIncomeLabel,
-                  value:
-                      '${compact.format(displayData.income)} ${widget.currencySymbol}',
-                  valueColor: incomeColor,
-                ),
+              AnalyticsFilterChip(
+                label: widget.monthFilterLabel,
+                selected: true,
+                onTap: widget.onMonthFilterTap,
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _LegendMetric(
-                  label: strings.analyticsSummaryExpenseLabel,
-                  value:
-                      '${compact.format(displayData.expense)} ${widget.currencySymbol}',
-                  valueColor: expenseColor,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _LegendMetric(
-                  label: strings.analyticsSummaryNetLabel,
-                  value:
-                      '${compact.format(displayData.net)} ${widget.currencySymbol}',
-                  valueColor: displayData.net >= 0
-                      ? colors.tertiary
-                      : colors.error,
-                ),
+              const SizedBox(width: 8),
+              AnalyticsFilterChip(
+                label: widget.accountFilterLabel,
+                selected: widget.isAccountFilterActive,
+                onTap: widget.onAccountsFilterTap,
               ),
             ],
           ),
-          const SizedBox(height: 24),
-          SizedBox(
-            height: 180,
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onHorizontalDragEnd: (DragEndDetails details) {
-                const double threshold = 150;
-                final double velocityX = details.velocity.pixelsPerSecond.dx;
-                if (velocityX.abs() < threshold) {
-                  return;
-                }
-                final bool goOlder = velocityX > 0;
-                _shiftWindow(
-                  goOlder: goOlder,
-                  dataLength: effectiveData.length,
-                );
-              },
-              child: SfCartesianChart(
-                plotAreaBorderWidth: 0,
-                margin: EdgeInsets.zero,
-                primaryXAxis: CategoryAxis(
-                  majorGridLines: const MajorGridLines(width: 0),
-                  axisLine: const AxisLine(width: 0),
-                  labelIntersectAction: AxisLabelIntersectAction.hide,
-                  labelStyle: TextStyle(
-                    fontFamily: 'Inter',
-                    fontSize: 11,
-                    height: 16 / 11,
-                    fontWeight: FontWeight.w500,
-                    letterSpacing: 0.5,
-                    color: colors.onSurfaceVariant,
-                  ),
-                ),
-                primaryYAxis: NumericAxis(
-                  isVisible: false,
-                  minimum: yMin,
-                  maximum: yMax,
-                ),
-                series: <CartesianSeries<MonthlyCashflowData, String>>[
-                  ColumnSeries<MonthlyCashflowData, String>(
-                    dataSource: visibleData,
-                    xValueMapper: (MonthlyCashflowData d, _) =>
-                        _monthLabel(d.month, widget.localeName),
-                    yValueMapper: (MonthlyCashflowData d, _) => d.income,
-                    color: incomeColor,
-                    width: 0.44,
-                    borderRadius: const BorderRadius.all(Radius.circular(6)),
-                    animationDuration: 0,
-                    onPointTap: (ChartPointDetails details) {
-                      final int? i = details.pointIndex;
-                      if (i == null || i >= visibleData.length) {
-                        return;
-                      }
-                      widget.onMonthSelected(visibleData[i].month);
-                    },
-                  ),
-                  ColumnSeries<MonthlyCashflowData, String>(
-                    dataSource: visibleData,
-                    xValueMapper: (MonthlyCashflowData d, _) =>
-                        _monthLabel(d.month, widget.localeName),
-                    yValueMapper: (MonthlyCashflowData d, _) => d.expense,
-                    color: expenseColor.withValues(alpha: 0.85),
-                    width: 0.44,
-                    borderRadius: const BorderRadius.all(Radius.circular(6)),
-                    animationDuration: 0,
-                    onPointTap: (ChartPointDetails details) {
-                      final int? i = details.pointIndex;
-                      if (i == null || i >= visibleData.length) {
-                        return;
-                      }
-                      widget.onMonthSelected(visibleData[i].month);
-                    },
-                  ),
-                  ColumnSeries<MonthlyCashflowData, String>(
-                    dataSource: visibleData,
-                    xValueMapper: (MonthlyCashflowData d, _) =>
-                        _monthLabel(d.month, widget.localeName),
-                    yValueMapper: (MonthlyCashflowData d, _) =>
-                        d.net > 0 ? d.net : null,
-                    pointColorMapper: (MonthlyCashflowData d, _) => d.net >= 0
-                        ? netPositiveColor.withValues(alpha: 0.85)
-                        : colors.error.withValues(alpha: 0.85),
-                    width: 0.44,
-                    borderRadius: const BorderRadius.all(Radius.circular(6)),
-                    animationDuration: 0,
-                    onPointTap: (ChartPointDetails details) {
-                      final int? i = details.pointIndex;
-                      if (i == null || i >= visibleData.length) {
-                        return;
-                      }
-                      widget.onMonthSelected(visibleData[i].month);
-                    },
-                  ),
-                  // Прозрачная серия для увеличения зоны нажатия по месяцу.
-                  ScatterSeries<MonthlyCashflowData, String>(
-                    dataSource: visibleData,
-                    xValueMapper: (MonthlyCashflowData d, _) =>
-                        _monthLabel(d.month, widget.localeName),
-                    yValueMapper: (MonthlyCashflowData d, _) => yMax / 2,
-                    color: Colors.transparent,
-                    markerSettings: const MarkerSettings(
-                      isVisible: true,
-                      height: 50,
-                      width: 40,
-                      shape: DataMarkerType.rectangle,
-                      borderWidth: 0,
-                      color: Colors.transparent,
-                      borderColor: Colors.transparent,
-                    ),
-                    onPointTap: (ChartPointDetails details) {
-                      final int? i = details.pointIndex;
-                      if (i == null || i >= visibleData.length) {
-                        return;
-                      }
-                      widget.onMonthSelected(visibleData[i].month);
-                    },
-                  ),
-                ],
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: <Widget>[
+              _MetricChip(
+                label: strings.analyticsSummaryExpenseLabel,
+                value:
+                    '${compact.format(displayData.expense)} ${widget.currencySymbol}',
+                background: colors.onErrorContainer,
+                foreground: colors.surface,
               ),
+              _MetricChip(
+                label: strings.analyticsSummaryIncomeLabel,
+                value:
+                    '${compact.format(displayData.income)} ${widget.currencySymbol}',
+                background: colors.onPrimaryContainer,
+                foreground: colors.onSurface,
+              ),
+              _MetricChip(
+                label: strings.analyticsSummaryNetLabel,
+                value:
+                    '${compact.format(displayData.net)} ${widget.currencySymbol}',
+                background: colors.onTertiaryContainer,
+                foreground: colors.onSurface,
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            height: 210,
+            child: SfCartesianChart(
+              plotAreaBorderWidth: 0,
+              margin: EdgeInsets.zero,
+              primaryXAxis: CategoryAxis(
+                majorGridLines: const MajorGridLines(width: 0),
+                axisLine: AxisLine(
+                  color: colors.outline.withValues(alpha: 0.6),
+                  width: 1,
+                ),
+                labelStyle: theme.textTheme.labelSmall?.copyWith(
+                  color: colors.onSurface,
+                  letterSpacing: 0.5,
+                ),
+              ),
+              primaryYAxis: NumericAxis(
+                minimum: 0,
+                maximum: yMax,
+                majorGridLines: MajorGridLines(
+                  width: 1,
+                  color: colors.outline.withValues(alpha: 0.2),
+                ),
+                axisLine: const AxisLine(width: 0),
+                majorTickLines: const MajorTickLines(size: 0),
+                numberFormat: NumberFormat.compact(locale: widget.localeName),
+                labelStyle: theme.textTheme.labelSmall?.copyWith(
+                  color: colors.surfaceContainerHighest,
+                  letterSpacing: 0.5,
+                ),
+              ),
+              series: <CartesianSeries<MonthlyCashflowData, String>>[
+                ColumnSeries<MonthlyCashflowData, String>(
+                  dataSource: visibleData,
+                  xValueMapper: (MonthlyCashflowData d, _) =>
+                      _monthLabelUpper(d.month, widget.localeName),
+                  yValueMapper: (MonthlyCashflowData d, _) => d.expense,
+                  color: colors.onErrorContainer,
+                  width: 1,
+                  spacing: 0.45,
+                  borderRadius: const BorderRadius.all(Radius.circular(6)),
+                  animationDuration: 0,
+                  onPointTap: (ChartPointDetails details) {
+                    final int? i = details.pointIndex;
+                    if (i == null || i >= visibleData.length) {
+                      return;
+                    }
+                    widget.onMonthSelected(visibleData[i].month);
+                  },
+                ),
+                ColumnSeries<MonthlyCashflowData, String>(
+                  dataSource: visibleData,
+                  xValueMapper: (MonthlyCashflowData d, _) =>
+                      _monthLabelUpper(d.month, widget.localeName),
+                  yValueMapper: (MonthlyCashflowData d, _) => d.income,
+                  color: colors.onPrimaryContainer,
+                  width: 1,
+                  spacing: 0.45,
+                  borderRadius: const BorderRadius.all(Radius.circular(6)),
+                  animationDuration: 0,
+                  onPointTap: (ChartPointDetails details) {
+                    final int? i = details.pointIndex;
+                    if (i == null || i >= visibleData.length) {
+                      return;
+                    }
+                    widget.onMonthSelected(visibleData[i].month);
+                  },
+                ),
+                ColumnSeries<MonthlyCashflowData, String>(
+                  dataSource: visibleData,
+                  xValueMapper: (MonthlyCashflowData d, _) =>
+                      _monthLabelUpper(d.month, widget.localeName),
+                  yValueMapper: (MonthlyCashflowData d, _) => d.net,
+                  color: colors.onTertiaryContainer,
+                  width: 1,
+                  spacing: 0.45,
+                  borderRadius: const BorderRadius.all(Radius.circular(6)),
+                  animationDuration: 0,
+                  onPointTap: (ChartPointDetails details) {
+                    final int? i = details.pointIndex;
+                    if (i == null || i >= visibleData.length) {
+                      return;
+                    }
+                    widget.onMonthSelected(visibleData[i].month);
+                  },
+                ),
+              ],
             ),
           ),
         ],
       ),
     );
   }
-
-  void _shiftWindow({required bool goOlder, required int dataLength}) {
-    if (dataLength <= _kVisibleMonths) {
-      return;
-    }
-    final int maxStart = _maxWindowStart(dataLength);
-    final int nextStart = goOlder
-        ? (_windowStart - 1).clamp(0, maxStart)
-        : (_windowStart + 1).clamp(0, maxStart);
-    if (nextStart == _windowStart) {
-      return;
-    }
-    setState(() {
-      _windowStart = nextStart;
-    });
-  }
 }
 
-class _LegendMetric extends StatelessWidget {
-  const _LegendMetric({
+class _MetricChip extends StatelessWidget {
+  const _MetricChip({
     required this.label,
     required this.value,
-    required this.valueColor,
+    required this.background,
+    required this.foreground,
   });
 
   final String label;
   final String value;
-  final Color valueColor;
+  final Color background;
+  final Color foreground;
 
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
-    final ColorScheme colors = theme.colorScheme;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        Text(
-          label,
-          style: theme.textTheme.labelSmall?.copyWith(
-            color: colors.onSurfaceVariant,
-            fontWeight: FontWeight.w600,
-          ),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Text(
+        '$label: $value',
+        style: theme.textTheme.labelMedium?.copyWith(
+          color: foreground,
+          fontWeight: FontWeight.w500,
         ),
-        const SizedBox(height: 6),
-        Text(
-          value,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: theme.textTheme.titleMedium?.copyWith(
-            color: valueColor,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ],
+      ),
     );
   }
-}
-
-String _capitalize(String value) {
-  if (value.isEmpty) {
-    return value;
-  }
-  return '${value[0].toUpperCase()}${value.substring(1)}';
 }
 
 List<MonthlyCashflowData> _placeholderData() {
@@ -388,15 +323,26 @@ List<MonthlyCashflowData> _placeholderData() {
   );
 }
 
-int _initialWindowStart(int dataLength) {
-  return _maxWindowStart(dataLength);
-}
-
 int _maxWindowStart(int dataLength) {
   if (dataLength <= _kVisibleMonths) {
     return 0;
   }
   return dataLength - _kVisibleMonths;
+}
+
+int _resolveWindowStartForSelection({
+  required int currentStart,
+  required int selectedIndex,
+  required int maxStart,
+}) {
+  if (selectedIndex < 0) {
+    return currentStart.clamp(0, maxStart);
+  }
+  final int currentEnd = currentStart + _kVisibleMonths - 1;
+  if (selectedIndex >= currentStart && selectedIndex <= currentEnd) {
+    return currentStart.clamp(0, maxStart);
+  }
+  return (selectedIndex - (_kVisibleMonths - 1)).clamp(0, maxStart);
 }
 
 List<MonthlyCashflowData> _sliceWindow(
@@ -438,4 +384,8 @@ int _monthOrdinal(DateTime month) => month.year * 12 + month.month;
 String _monthLabel(DateTime month, String locale) {
   final String raw = DateFormat.MMM(locale).format(month);
   return raw.replaceAll('.', '');
+}
+
+String _monthLabelUpper(DateTime month, String locale) {
+  return _monthLabel(month, locale).toUpperCase();
 }

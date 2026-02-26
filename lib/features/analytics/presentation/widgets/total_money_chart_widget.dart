@@ -1,9 +1,14 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/analytics/domain/models/monthly_balance_data.dart';
+import 'package:kopim/features/analytics/presentation/widgets/analytics_filter_chip.dart';
+import 'package:kopim/features/analytics/presentation/widgets/analytics_info_button.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
+
+const int _kVisibleTotalMonths = 6;
 
 class TotalMoneyChartWidget extends StatefulWidget {
   const TotalMoneyChartWidget({
@@ -13,6 +18,11 @@ class TotalMoneyChartWidget extends StatefulWidget {
     required this.selectedMonth,
     required this.onMonthSelected,
     required this.localeName,
+    required this.monthFilterLabel,
+    required this.accountFilterLabel,
+    required this.isAccountFilterActive,
+    required this.onMonthFilterTap,
+    required this.onAccountsFilterTap,
   });
 
   final List<MonthlyBalanceData> data;
@@ -20,72 +30,91 @@ class TotalMoneyChartWidget extends StatefulWidget {
   final DateTime selectedMonth;
   final ValueChanged<DateTime> onMonthSelected;
   final String localeName;
+  final String monthFilterLabel;
+  final String accountFilterLabel;
+  final bool isAccountFilterActive;
+  final VoidCallback onMonthFilterTap;
+  final VoidCallback onAccountsFilterTap;
 
   @override
   State<TotalMoneyChartWidget> createState() => _TotalMoneyChartWidgetState();
 }
 
 class _TotalMoneyChartWidgetState extends State<TotalMoneyChartWidget> {
+  int _windowStart = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _windowStart = _maxWindowStart(widget.data.length);
+  }
+
+  @override
+  void didUpdateWidget(covariant TotalMoneyChartWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final int maxStart = _maxWindowStart(widget.data.length);
+    if (_windowStart > maxStart) {
+      _windowStart = maxStart;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
     final ColorScheme colors = theme.colorScheme;
     final AppLocalizations strings = AppLocalizations.of(context)!;
 
-    if (widget.data.isEmpty) {
-      return const SizedBox.shrink();
-    }
+    final List<MonthlyBalanceData> effectiveData = widget.data.isEmpty
+        ? _placeholderBalanceData()
+        : widget.data;
 
-    // Найти данные для выбранного месяца
-    final MonthlyBalanceData? selectedData = widget.data.firstWhereOrNull(
+    final int maxStart = _maxWindowStart(effectiveData.length);
+    final int selectedMonthIndex = effectiveData.indexWhere(
+      (MonthlyBalanceData d) =>
+          d.month.year == widget.selectedMonth.year &&
+          d.month.month == widget.selectedMonth.month,
+    );
+    final int windowStart = _resolveWindowStartForSelection(
+      currentStart: _windowStart.clamp(0, maxStart),
+      selectedIndex: selectedMonthIndex,
+      maxStart: maxStart,
+    );
+    final List<MonthlyBalanceData> visibleData = _sliceWindow(
+      effectiveData,
+      start: windowStart,
+      count: _kVisibleTotalMonths,
+    );
+
+    final MonthlyBalanceData? selectedData = effectiveData.firstWhereOrNull(
       (MonthlyBalanceData d) =>
           d.month.year == widget.selectedMonth.year &&
           d.month.month == widget.selectedMonth.month,
     );
 
-    // Если выбранный месяц вне диапазона, показываем ближайший доступный.
     final MonthlyBalanceData displayData =
         selectedData ??
         _findClosestMonthData(
-          data: widget.data,
+          data: effectiveData,
           selectedMonth: widget.selectedMonth,
         );
 
-    // Найти минимальное и максимальное значение для настройки осей
-    final double minBalance = widget.data
-        .map((MonthlyBalanceData d) => d.totalBalance.toDouble())
-        .reduce((double a, double b) => a < b ? a : b);
-    final double maxBalance = widget.data
-        .map((MonthlyBalanceData d) => d.totalBalance.toDouble())
-        .reduce((double a, double b) => a > b ? a : b);
-
-    // Настройка отступов в пикселях
-    const double chartHeight = 160;
-    const double topPadding = 32;
-    const double bottomPadding = 16;
-    const double availableHeight = chartHeight - topPadding - bottomPadding;
-
-    final double range = maxBalance - minBalance;
-    // Если диапазон 0, задаем дефолтный
-    final double effectiveRange = range == 0
-        ? (maxBalance == 0 ? 100 : maxBalance * 0.2)
-        : range;
-
-    // Рассчитываем диапазон оси Y так, чтобы данные занимали availableHeight
-    // R = (max - min) * H / (H - Top - Bottom)
-    final double axisRange = effectiveRange * chartHeight / availableHeight;
-
-    // axisMax = max + (Top / H) * R
-    final double yMax = maxBalance + (topPadding / chartHeight) * axisRange;
-    final double yMin = yMax - axisRange;
-
-    final NumberFormat formatter = NumberFormat.compact(
+    final NumberFormat compact = NumberFormat.compact(
       locale: widget.localeName,
     );
-    final String monthName = DateFormat(
-      'LLLL',
-      widget.localeName,
-    ).format(displayData.month);
+    final String amountText =
+        '${compact.format(displayData.totalBalance.toDouble())} ${widget.currencySymbol}';
+    final double minBalance = visibleData
+        .map((MonthlyBalanceData d) => d.totalBalance.toDouble())
+        .reduce((double a, double b) => a < b ? a : b);
+    final double maxBalance = visibleData
+        .map((MonthlyBalanceData d) => d.totalBalance.toDouble())
+        .reduce((double a, double b) => a > b ? a : b);
+    final double range = (maxBalance - minBalance).abs();
+    final double yPadding = range == 0
+        ? (maxBalance.abs() * 0.2 + 1)
+        : range * 0.25;
+    final double yMin = minBalance - yPadding;
+    final double yMax = maxBalance + yPadding;
 
     return Container(
       padding: const EdgeInsets.all(24),
@@ -96,157 +125,168 @@ class _TotalMoneyChartWidgetState extends State<TotalMoneyChartWidget> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          // Title and Help
           Row(
             children: <Widget>[
-              Text(
-                strings.analyticsTotalMoneyWidgetTitle,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: colors.onSurface,
+              Expanded(
+                child: Text(
+                  strings.analyticsTotalMoneyWidgetTitle,
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    color: colors.onSurface,
+                  ),
+                ),
+              ),
+              const AnalyticsInfoButton(
+                title: 'Денег всего',
+                description:
+                    'График показывает динамику общей суммы денег по месяцам. '
+                    'Нажмите на точку, чтобы выбрать месяц для просмотра значения.',
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: <Widget>[
+              AnalyticsFilterChip(
+                label: widget.monthFilterLabel,
+                selected: true,
+                onTap: widget.onMonthFilterTap,
+              ),
+              const SizedBox(width: 8),
+              AnalyticsFilterChip(
+                label: widget.accountFilterLabel,
+                selected: widget.isAccountFilterActive,
+                onTap: widget.onAccountsFilterTap,
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            amountText,
+            style: theme.textTheme.headlineSmall?.copyWith(
+              color: colors.onSurface,
+              fontWeight: FontWeight.w400,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: <Widget>[
+              Container(
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(
+                  color: colors.primary,
+                  borderRadius: BorderRadius.circular(999),
                 ),
               ),
               const SizedBox(width: 8),
-              IconButton(
-                icon: Icon(
-                  Icons.help_outline,
-                  size: 20,
-                  color: colors.onSurfaceVariant,
-                ),
-                onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return AlertDialog(
-                        title: Text(strings.analyticsTotalMoneyWidgetInfoTitle),
-                        content: Text(
-                          strings.analyticsTotalMoneyWidgetInfoBody,
-                        ),
-                        actions: <Widget>[
-                          TextButton(
-                            onPressed: () => Navigator.of(context).pop(),
-                            child: Text(strings.analyticsDialogClose),
-                          ),
-                        ],
-                      );
-                    },
-                  );
-                },
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          // Selected Month Info
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
               Text(
-                monthName.capitalize(),
-                style: TextStyle(
-                  fontFamily: 'Inter',
-                  fontSize: 14,
-                  height: 20 / 14,
+                strings.analyticsSummaryNetLabel,
+                style: theme.textTheme.labelMedium?.copyWith(
+                  color: colors.surfaceContainerHighest,
                   fontWeight: FontWeight.w500,
-                  color: colors.onSurfaceVariant,
                 ),
               ),
-              const SizedBox(height: 4),
-              Text(
-                '${formatter.format(displayData.totalBalance.toDouble())} ${widget.currencySymbol}',
-                style: TextStyle(
-                  fontFamily: 'Onest',
-                  fontSize: 32,
-                  height: 40 / 32,
-                  fontWeight: FontWeight.w400,
-                  color: colors.onSurface,
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: colors.surfaceContainerHighest.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  strings.analyticsCreditsDebtTrendPeriod,
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    color: colors.surfaceContainerHighest,
+                  ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 8),
           SizedBox(
-            height: chartHeight,
+            height: 200,
             child: SfCartesianChart(
               plotAreaBorderWidth: 0,
               margin: EdgeInsets.zero,
               primaryXAxis: CategoryAxis(
                 majorGridLines: const MajorGridLines(width: 0),
-                axisLine: const AxisLine(width: 0),
-                labelStyle: TextStyle(
-                  fontFamily: 'Inter',
-                  fontSize: 11,
-                  height: 16 / 11,
-                  fontWeight: FontWeight.w500,
+                axisLine: AxisLine(
+                  color: colors.outline.withValues(alpha: 0.6),
+                  width: 1,
+                ),
+                labelStyle: theme.textTheme.labelSmall?.copyWith(
+                  color: colors.onSurface,
                   letterSpacing: 0.5,
-                  color: colors.onSurfaceVariant,
                 ),
               ),
               primaryYAxis: NumericAxis(
-                isVisible: false,
                 minimum: yMin,
                 maximum: yMax,
-              ),
-              annotations: <CartesianChartAnnotation>[
-                CartesianChartAnnotation(
-                  widget: Container(
-                    width: 20,
-                    height: 20,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      boxShadow: <BoxShadow>[
-                        BoxShadow(
-                          color: colors.primary.withValues(alpha: 0.5),
-                          blurRadius: 10,
-                          spreadRadius: 2.5,
-                        ),
-                      ],
-                    ),
-                  ),
-                  coordinateUnit: CoordinateUnit.point,
-                  x: _monthLabel(displayData.month, widget.localeName),
-                  y: displayData.totalBalance.toDouble(),
+                majorGridLines: MajorGridLines(
+                  width: 1,
+                  color: colors.outline.withValues(alpha: 0.2),
                 ),
-              ],
+                axisLine: const AxisLine(width: 0),
+                majorTickLines: const MajorTickLines(size: 0),
+                numberFormat: NumberFormat.compact(locale: widget.localeName),
+                labelStyle: theme.textTheme.labelSmall?.copyWith(
+                  color: colors.surfaceContainerHighest,
+                  letterSpacing: 0.5,
+                ),
+              ),
               series: <CartesianSeries<MonthlyBalanceData, String>>[
-                SplineSeries<MonthlyBalanceData, String>(
-                  dataSource: widget.data,
+                AreaSeries<MonthlyBalanceData, String>(
+                  dataSource: visibleData,
                   xValueMapper: (MonthlyBalanceData d, _) =>
-                      _monthLabel(d.month, widget.localeName),
+                      _monthLabelUpper(d.month, widget.localeName),
+                  yValueMapper: (MonthlyBalanceData d, _) =>
+                      d.totalBalance.toDouble(),
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: <Color>[
+                      colors.primary.withValues(alpha: 0.32),
+                      colors.primary.withValues(alpha: 0.02),
+                    ],
+                  ),
+                  borderWidth: 0,
+                  animationDuration: 0,
+                ),
+                SplineSeries<MonthlyBalanceData, String>(
+                  dataSource: visibleData,
+                  xValueMapper: (MonthlyBalanceData d, _) =>
+                      _monthLabelUpper(d.month, widget.localeName),
                   yValueMapper: (MonthlyBalanceData d, _) =>
                       d.totalBalance.toDouble(),
                   color: colors.primary,
                   width: 2,
-                  animationDuration: 0,
                   markerSettings: MarkerSettings(
                     isVisible: true,
-                    height: 8,
-                    width: 8,
+                    height: 6,
+                    width: 6,
                     shape: DataMarkerType.circle,
-                    borderWidth: 2,
-                    borderColor: colors.surfaceContainer,
+                    borderWidth: 0,
                     color: colors.primary,
                   ),
-                  selectionBehavior: SelectionBehavior(
-                    enable: false,
-                    selectedColor: colors.primary,
-                    unselectedColor: colors.primary.withValues(alpha: 0.5),
-                    selectedBorderColor: colors.surfaceContainer,
-                    selectedBorderWidth: 2,
-                    unselectedBorderColor: colors.surfaceContainer,
-                    unselectedBorderWidth: 2,
-                  ),
+                  animationDuration: 0,
+                  onPointTap: (ChartPointDetails details) {
+                    final int? i = details.pointIndex;
+                    if (i == null || i >= visibleData.length) {
+                      return;
+                    }
+                    widget.onMonthSelected(visibleData[i].month);
+                  },
                 ),
-                // Прозрачная серия для увеличения зоны нажатия
                 ScatterSeries<MonthlyBalanceData, String>(
-                  dataSource: widget.data,
+                  dataSource: visibleData,
                   xValueMapper: (MonthlyBalanceData d, _) =>
-                      _monthLabel(d.month, widget.localeName),
+                      _monthLabelUpper(d.month, widget.localeName),
                   yValueMapper: (MonthlyBalanceData d, _) =>
                       d.totalBalance.toDouble(),
                   color: Colors.transparent,
                   markerSettings: const MarkerSettings(
                     isVisible: true,
-                    height: 40, // Большая зона клика
+                    height: 40,
                     width: 40,
                     shape: DataMarkerType.circle,
                     borderWidth: 0,
@@ -254,12 +294,11 @@ class _TotalMoneyChartWidgetState extends State<TotalMoneyChartWidget> {
                     borderColor: Colors.transparent,
                   ),
                   onPointTap: (ChartPointDetails details) {
-                    if (details.pointIndex != null &&
-                        details.pointIndex! < widget.data.length) {
-                      widget.onMonthSelected(
-                        widget.data[details.pointIndex!].month,
-                      );
+                    final int? i = details.pointIndex;
+                    if (i == null || i >= visibleData.length) {
+                      return;
                     }
+                    widget.onMonthSelected(visibleData[i].month);
                   },
                 ),
               ],
@@ -269,6 +308,57 @@ class _TotalMoneyChartWidgetState extends State<TotalMoneyChartWidget> {
       ),
     );
   }
+}
+
+int _maxWindowStart(int dataLength) {
+  if (dataLength <= _kVisibleTotalMonths) {
+    return 0;
+  }
+  return dataLength - _kVisibleTotalMonths;
+}
+
+List<MonthlyBalanceData> _placeholderBalanceData() {
+  final DateTime now = DateTime.now();
+  final DateTime month = DateTime(now.year, now.month);
+  return List<MonthlyBalanceData>.generate(
+    _kVisibleTotalMonths,
+    (int index) => MonthlyBalanceData(
+      month: DateTime(
+        month.year,
+        month.month - (_kVisibleTotalMonths - 1 - index),
+      ),
+      totalBalance: MoneyAmount(minor: BigInt.zero, scale: 2),
+    ),
+    growable: false,
+  );
+}
+
+int _resolveWindowStartForSelection({
+  required int currentStart,
+  required int selectedIndex,
+  required int maxStart,
+}) {
+  if (selectedIndex < 0) {
+    return currentStart.clamp(0, maxStart);
+  }
+  final int currentEnd = currentStart + _kVisibleTotalMonths - 1;
+  if (selectedIndex >= currentStart && selectedIndex <= currentEnd) {
+    return currentStart.clamp(0, maxStart);
+  }
+  return (selectedIndex - (_kVisibleTotalMonths - 1)).clamp(0, maxStart);
+}
+
+List<MonthlyBalanceData> _sliceWindow(
+  List<MonthlyBalanceData> data, {
+  required int start,
+  required int count,
+}) {
+  if (data.isEmpty) {
+    return const <MonthlyBalanceData>[];
+  }
+  final int safeStart = start.clamp(0, data.length - 1);
+  final int safeEnd = (safeStart + count).clamp(0, data.length);
+  return data.sublist(safeStart, safeEnd);
 }
 
 MonthlyBalanceData _findClosestMonthData({
@@ -299,9 +389,6 @@ String _monthLabel(DateTime month, String locale) {
   return raw.replaceAll('.', '');
 }
 
-extension StringExtension on String {
-  String capitalize() {
-    if (isEmpty) return this;
-    return '${this[0].toUpperCase()}${substring(1)}';
-  }
+String _monthLabelUpper(DateTime month, String locale) {
+  return _monthLabel(month, locale).toUpperCase();
 }

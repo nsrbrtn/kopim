@@ -2,9 +2,15 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
-const double _kMinShareToShowIcon = 0.02;
-const double _kMinShareToShowPercent = 0.02;
-const double _kIconBadgeExtent = 24;
+const double _kDonutStartAngle = -math.pi / 2;
+const int _kMaxVisibleRings = 4;
+const double _kMinRingStroke = 10;
+const double _kMaxRingStrokeFactor = 0.18;
+const double _kRingGapFactor = 0.012;
+const double _kMinRingGap = 3;
+const double _kRingOuterPadding = 2;
+const double _kInnerHoleFactor = 0.08;
+const double _kMinInnerHole = 9;
 
 class AnalyticsChartItem {
   const AnalyticsChartItem({
@@ -46,8 +52,6 @@ class AnalyticsDonutChart extends StatelessWidget {
   final ValueChanged<int>? onSegmentSelected;
   final bool animate;
 
-  static const double _minLabelGap = 4;
-
   @override
   Widget build(BuildContext context) {
     if (items.isEmpty) {
@@ -76,15 +80,11 @@ class AnalyticsDonutChart extends StatelessWidget {
                           if (segments.isEmpty) {
                             return const SizedBox.shrink();
                           }
-
-                          final double strokeWidth = math.max(size * 0.12, 10);
-                          final double canvasRadius = size / 2;
-                          final Offset center = Offset(
-                            canvasRadius,
-                            canvasRadius,
-                          );
-                          final double ringRadius =
-                              canvasRadius - strokeWidth / 2;
+                          final List<_RingGeometry> ringGeometries =
+                              _buildRingGeometries(
+                                size: size,
+                                count: segments.length,
+                              );
                           final bool hasSelection =
                               selectedIndex != null &&
                               selectedIndex! >= 0 &&
@@ -92,56 +92,18 @@ class AnalyticsDonutChart extends StatelessWidget {
                           final int? highlightIndex = hasSelection
                               ? selectedIndex!
                               : null;
-                          final List<_CombinedLabel> combinedLabels =
-                              _buildCombinedLabels(
-                                segments: segments,
-                                center: center,
-                                radius: ringRadius + strokeWidth * 1.25,
-                                selectedIndex: highlightIndex,
-                                minGap: _minLabelGap,
-                                animationProgress: animationProgress,
-                              );
-
                           Widget chart = SizedBox(
                             width: size,
                             height: size,
-                            child: Stack(
-                              clipBehavior: Clip.none,
-                              alignment: Alignment.center,
-                              children: <Widget>[
-                                CustomPaint(
-                                  size: Size.square(size),
-                                  painter: _DonutChartPainter(
-                                    segments: segments,
-                                    strokeWidth: strokeWidth,
-                                    backgroundColor: backgroundColor,
-                                    selectedIndex: highlightIndex,
-                                    animationProgress: animationProgress,
-                                  ),
-                                ),
-                                for (final _CombinedLabel label
-                                    in combinedLabels)
-                                  Positioned(
-                                    left: label.position.dx,
-                                    top: label.position.dy,
-                                    child: FractionalTranslation(
-                                      translation: const Offset(-0.5, -0.5),
-                                      child: _CategoryIconBadge(
-                                        icon: label.icon,
-                                        color: label.color,
-                                        percentText: label.text,
-                                        isSelected:
-                                            highlightIndex != null &&
-                                            label.index == highlightIndex,
-                                        onTap: onSegmentSelected != null
-                                            ? () => onSegmentSelected!(
-                                                label.index,
-                                              )
-                                            : null,
-                                      ),
-                                    ),
-                                  ),
-                              ],
+                            child: CustomPaint(
+                              size: Size.square(size),
+                              painter: _DonutChartPainter(
+                                segments: segments,
+                                ringGeometries: ringGeometries,
+                                backgroundColor: backgroundColor,
+                                selectedIndex: highlightIndex,
+                                animationProgress: animationProgress,
+                              ),
                             ),
                           );
 
@@ -154,8 +116,7 @@ class AnalyticsDonutChart extends StatelessWidget {
                                   position: local,
                                   segments: segments,
                                   canvasSize: size,
-                                  ringRadius: ringRadius,
-                                  strokeWidth: strokeWidth,
+                                  ringGeometries: ringGeometries,
                                 );
                                 if (hit != null) {
                                   onSegmentSelected!(hit);
@@ -205,9 +166,21 @@ class AnalyticsDonutChart extends StatelessWidget {
     if (total <= 0) {
       return <_DonutSegment>[];
     }
-    double startAngle = -math.pi / 2;
+    final List<(int index, AnalyticsChartItem item)> sortedItems =
+        items.indexed
+            .where(
+              ((int, AnalyticsChartItem) entry) => entry.$2.absoluteAmount > 0,
+            )
+            .toList()
+          ..sort(
+            ((int, AnalyticsChartItem) a, (int, AnalyticsChartItem) b) =>
+                b.$2.absoluteAmount.compareTo(a.$2.absoluteAmount),
+          );
+    final Iterable<(int index, AnalyticsChartItem item)> visibleItems =
+        sortedItems.take(_kMaxVisibleRings);
+
     final List<_DonutSegment> segments = <_DonutSegment>[];
-    for (final AnalyticsChartItem item in items) {
+    for (final (int index, AnalyticsChartItem item) in visibleItems) {
       if (item.absoluteAmount <= 0) {
         continue;
       }
@@ -216,19 +189,15 @@ class AnalyticsDonutChart extends StatelessWidget {
         continue;
       }
       final double sweep = share * (2 * math.pi);
-      final double percentage = share * 100;
       segments.add(
         _DonutSegment(
           key: item.key,
+          sourceIndex: index,
           color: item.color,
-          startAngle: startAngle,
+          startAngle: _kDonutStartAngle,
           sweepAngle: sweep,
-          percentage: percentage,
-          icon: item.icon,
-          canShowIcon: item.icon != null && share >= _kMinShareToShowIcon,
         ),
       );
-      startAngle += sweep;
     }
     return segments;
   }
@@ -240,6 +209,7 @@ class AnalyticsBarChart extends StatelessWidget {
     required this.items,
     required this.backgroundColor,
     this.totalAmount,
+    this.amountFormatter,
     this.selectedIndex,
     this.onBarSelected,
     this.animate = true,
@@ -248,6 +218,7 @@ class AnalyticsBarChart extends StatelessWidget {
   final List<AnalyticsChartItem> items;
   final Color backgroundColor;
   final double? totalAmount;
+  final String Function(double amount)? amountFormatter;
   final int? selectedIndex;
   final ValueChanged<int>? onBarSelected;
   final bool animate;
@@ -267,126 +238,193 @@ class AnalyticsBarChart extends StatelessWidget {
     if (computedTotal <= 0) {
       return const SizedBox.shrink();
     }
+    final List<_BarChartEntry> entries =
+        List<_BarChartEntry>.generate(
+          items.length,
+          (int index) => _BarChartEntry(index: index, item: items[index]),
+        )..sort((_BarChartEntry a, _BarChartEntry b) {
+          final int byAmount = b.item.absoluteAmount.compareTo(
+            a.item.absoluteAmount,
+          );
+          if (byAmount != 0) {
+            return byAmount;
+          }
+          return a.index.compareTo(b.index);
+        });
+    final ThemeData theme = Theme.of(context);
+    final ColorScheme colors = theme.colorScheme;
 
     return Align(
       alignment: Alignment.center,
-      child: FractionallySizedBox(
-        widthFactor: 0.8,
-        child: Container(
-          decoration: BoxDecoration(
-            color: backgroundColor,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-          child: LayoutBuilder(
-            builder: (BuildContext context, BoxConstraints constraints) {
-              final double rawHeight = constraints.maxHeight.isFinite
-                  ? constraints.maxHeight
-                  : 220;
-              final double chartHeight = math.max(rawHeight, 200);
-              final double maxBarHeight = math.max(chartHeight - 48, 80);
-
-              final List<Widget> children = <Widget>[];
-              final int count = items.length;
-              for (int index = 0; index < count; index++) {
-                final AnalyticsChartItem item = items[index];
-                final double share = item.absoluteAmount <= 0
-                    ? 0
-                    : (item.absoluteAmount / computedTotal).clamp(0.0, 1.0);
-                final bool isSelected =
-                    selectedIndex != null && index == selectedIndex;
-                final double barHeight = share <= 0
-                    ? 4
-                    : math.max(maxBarHeight * share, 4);
-                final Color barColor = isSelected
-                    ? item.color
-                    : item.color.withValues(alpha: 0.7);
-                Widget bar = AnimatedContainer(
-                  duration: animate
-                      ? const Duration(milliseconds: 200)
-                      : Duration.zero,
-                  curve: Curves.easeInOut,
-                  height: barHeight,
-                  decoration: BoxDecoration(
-                    color: barColor,
-                    borderRadius: BorderRadius.circular(10),
-                    boxShadow: isSelected
-                        ? <BoxShadow>[
-                            BoxShadow(
-                              color: item.color.withValues(alpha: 0.35),
-                              blurRadius: 12,
-                              offset: const Offset(0, 4),
-                            ),
-                          ]
-                        : const <BoxShadow>[],
-                  ),
-                );
-                if (onBarSelected != null) {
-                  bar = GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () => onBarSelected!(index),
-                    child: bar,
-                  );
-                }
-
-                final bool showIcon =
-                    item.icon != null && share >= _kMinShareToShowIcon;
-
-                children.add(
-                  Expanded(
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: count > 1 ? 6 : 0,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(0, 16, 0, 16),
+        child: ListView.separated(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: entries.length,
+          separatorBuilder: (_, _) => const SizedBox(height: 10),
+          itemBuilder: (BuildContext context, int i) {
+            final _BarChartEntry entry = entries[i];
+            final AnalyticsChartItem item = entry.item;
+            final double share = item.absoluteAmount <= 0
+                ? 0
+                : (item.absoluteAmount / computedTotal).clamp(0.0, 1.0);
+            final bool isSelected =
+                selectedIndex != null && selectedIndex == entry.index;
+            final String amountText =
+                amountFormatter?.call(item.absoluteAmount) ??
+                _defaultAmount(item.absoluteAmount);
+            final String percentText = share <= 0
+                ? '0%'
+                : share * 100 >= 1
+                ? '${(share * 100).round()}%'
+                : '${(share * 100).toStringAsFixed(1)}%';
+            final Widget tile = Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Row(
+                  children: <Widget>[
+                    _HorizontalCategoryLeading(
+                      icon: item.icon ?? Icons.circle,
+                      color: item.color,
+                      title: item.title,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      '$amountText • $percentText',
+                      style: theme.textTheme.labelMedium?.copyWith(
+                        color: isSelected
+                            ? colors.onSurface
+                            : colors.onSurfaceVariant,
+                        fontWeight: isSelected
+                            ? FontWeight.w700
+                            : FontWeight.w500,
                       ),
-                      child: SizedBox(
-                        height: chartHeight,
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: <Widget>[
-                            SizedBox(
-                              height: _kIconBadgeExtent,
-                              child: Center(
-                                child: showIcon
-                                    ? _CategoryIconBadge(
-                                        icon: item.icon!,
-                                        color: item.color,
-                                        percentText: '',
-                                        isSelected: isSelected,
-                                        onTap: onBarSelected != null
-                                            ? () => onBarSelected!(index)
-                                            : null,
-                                      )
-                                    : const SizedBox.shrink(),
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Expanded(
-                              child: Align(
-                                alignment: Alignment.bottomCenter,
-                                child: FractionallySizedBox(
-                                  widthFactor: 0.6,
-                                  child: bar,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(999),
+                  child: Container(
+                    height: 8,
+                    color: backgroundColor.withValues(alpha: 0.45),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: TweenAnimationBuilder<double>(
+                        tween: Tween<double>(begin: 0, end: share),
+                        duration: animate
+                            ? const Duration(milliseconds: 380)
+                            : Duration.zero,
+                        curve: Curves.easeOutCubic,
+                        builder:
+                            (
+                              BuildContext context,
+                              double value,
+                              Widget? child,
+                            ) {
+                              return FractionallySizedBox(
+                                widthFactor: value.clamp(0.0, 1.0),
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: isSelected
+                                        ? item.color
+                                        : item.color.withValues(alpha: 0.75),
+                                    borderRadius: BorderRadius.circular(999),
+                                  ),
                                 ),
-                              ),
-                            ),
-                          ],
-                        ),
+                              );
+                            },
                       ),
                     ),
                   ),
-                );
-              }
-
-              return SizedBox(
-                height: chartHeight,
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: children,
                 ),
-              );
-            },
-          ),
+              ],
+            );
+
+            if (onBarSelected == null) {
+              return tile;
+            }
+            return Material(
+              color: Colors.transparent,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(12),
+                onTap: () => onBarSelected!(entry.index),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 2,
+                    vertical: 2,
+                  ),
+                  child: tile,
+                ),
+              ),
+            );
+          },
         ),
+      ),
+    );
+  }
+}
+
+String _defaultAmount(double amount) {
+  final double value = amount.abs();
+  if (value >= 1000000000) {
+    return '${(value / 1000000000).toStringAsFixed(1)}B';
+  }
+  if (value >= 1000000) {
+    return '${(value / 1000000).toStringAsFixed(1)}M';
+  }
+  if (value >= 1000) {
+    return '${(value / 1000).toStringAsFixed(1)}K';
+  }
+  return value.toStringAsFixed(0);
+}
+
+class _BarChartEntry {
+  const _BarChartEntry({required this.index, required this.item});
+
+  final int index;
+  final AnalyticsChartItem item;
+}
+
+class _HorizontalCategoryLeading extends StatelessWidget {
+  const _HorizontalCategoryLeading({
+    required this.icon,
+    required this.color,
+    required this.title,
+  });
+
+  final IconData icon;
+  final Color color;
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final ColorScheme colors = theme.colorScheme;
+    return Expanded(
+      child: Row(
+        children: <Widget>[
+          Container(
+            width: 24,
+            height: 24,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+            alignment: Alignment.center,
+            child: Icon(icon, size: 14, color: colors.surface),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.labelMedium?.copyWith(
+                color: colors.onSurface,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -395,36 +433,37 @@ class AnalyticsBarChart extends StatelessWidget {
 class _DonutSegment {
   const _DonutSegment({
     required this.key,
+    required this.sourceIndex,
     required this.color,
     required this.startAngle,
     required this.sweepAngle,
-    required this.percentage,
-    required this.icon,
-    required this.canShowIcon,
   });
 
   final String key;
+  final int sourceIndex;
   final Color color;
   final double startAngle;
   final double sweepAngle;
-  final double percentage;
-  final IconData? icon;
-  final bool canShowIcon;
+}
 
-  double get midAngle => startAngle + sweepAngle / 2;
+class _RingGeometry {
+  const _RingGeometry({required this.radius, required this.strokeWidth});
+
+  final double radius;
+  final double strokeWidth;
 }
 
 class _DonutChartPainter extends CustomPainter {
   _DonutChartPainter({
     required this.segments,
-    required this.strokeWidth,
+    required this.ringGeometries,
     required this.backgroundColor,
     required this.animationProgress,
     this.selectedIndex,
   });
 
   final List<_DonutSegment> segments;
-  final double strokeWidth;
+  final List<_RingGeometry> ringGeometries;
   final Color backgroundColor;
   final double animationProgress;
   final int? selectedIndex;
@@ -433,28 +472,63 @@ class _DonutChartPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final double progress = animationProgress.clamp(0.0, 1.0);
     final Offset center = size.center(Offset.zero);
-    final double radius = size.shortestSide / 2 - strokeWidth / 2;
-    final Rect rect = Rect.fromCircle(center: center, radius: radius);
-    final Paint paint = Paint()
+    final Paint trackPaint = Paint()
       ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round
-      ..strokeWidth = strokeWidth;
-
-    paint.color = backgroundColor;
-    canvas.drawArc(rect, 0, 2 * math.pi, false, paint);
+      ..strokeCap = StrokeCap.round;
+    final Paint ringPaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+    final Paint glowPaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
 
     for (int index = 0; index < segments.length; index++) {
       final _DonutSegment segment = segments[index];
-      final bool isDimmed = selectedIndex != null && index != selectedIndex;
-      paint.color = isDimmed
-          ? segment.color.withValues(alpha: 0.35)
+      final _RingGeometry geometry = ringGeometries[index];
+      final bool isSelected =
+          selectedIndex != null && segment.sourceIndex == selectedIndex;
+      final bool isDimmed = selectedIndex != null && !isSelected;
+      final Rect rect = Rect.fromCircle(
+        center: center,
+        radius: geometry.radius,
+      );
+
+      trackPaint
+        ..strokeWidth = geometry.strokeWidth
+        ..color = backgroundColor.withValues(
+          alpha: selectedIndex == null ? 0.44 : 0.3,
+        );
+      canvas.drawArc(rect, 0, 2 * math.pi, false, trackPaint);
+
+      final Color activeColor = isDimmed
+          ? segment.color.withValues(alpha: 0.33)
           : segment.color;
+      if (!isDimmed) {
+        glowPaint
+          ..strokeWidth = geometry.strokeWidth * (isSelected ? 1.0 : 0.92)
+          ..color = activeColor.withValues(alpha: isSelected ? 0.45 : 0.28)
+          ..maskFilter = MaskFilter.blur(
+            BlurStyle.normal,
+            geometry.strokeWidth * 0.75,
+          );
+        canvas.drawArc(
+          rect,
+          segment.startAngle,
+          segment.sweepAngle * progress,
+          false,
+          glowPaint,
+        );
+      }
+
+      ringPaint
+        ..strokeWidth = geometry.strokeWidth
+        ..color = activeColor;
       canvas.drawArc(
         rect,
         segment.startAngle,
         segment.sweepAngle * progress,
         false,
-        paint,
+        ringPaint,
       );
     }
   }
@@ -462,186 +536,35 @@ class _DonutChartPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _DonutChartPainter oldDelegate) {
     return oldDelegate.segments != segments ||
-        oldDelegate.strokeWidth != strokeWidth ||
+        oldDelegate.ringGeometries != ringGeometries ||
         oldDelegate.backgroundColor != backgroundColor ||
         oldDelegate.animationProgress != animationProgress ||
         oldDelegate.selectedIndex != selectedIndex;
   }
 }
 
-class _CategoryIconBadge extends StatelessWidget {
-  const _CategoryIconBadge({
-    required this.icon,
-    required this.color,
-    required this.percentText,
-    required this.isSelected,
-    this.onTap,
-  });
-
-  final IconData icon;
-  final Color color;
-  final String percentText;
-  final bool isSelected;
-  final VoidCallback? onTap;
-
-  static const double extent = _kIconBadgeExtent;
-
-  @override
-  Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
-    final Color base = isSelected ? color : color.withValues(alpha: 0.5);
-    final Color textColor = theme.colorScheme.surface.withValues(
-      alpha: isSelected ? 0.95 : 0.8,
-    );
-
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(16),
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.fromLTRB(0, 0, 4, 0),
-          decoration: BoxDecoration(
-            color: base.withValues(alpha: 0.9),
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: <BoxShadow>[
-              BoxShadow(
-                color: base.withValues(alpha: 0.25),
-                blurRadius: 10,
-                offset: const Offset(0, 6),
-              ),
-            ],
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              Container(
-                width: extent,
-                height: extent,
-                decoration: BoxDecoration(
-                  color: base,
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.18),
-                    width: 1.1,
-                  ),
-                ),
-                alignment: Alignment.center,
-                child: Icon(icon, size: 18, color: theme.colorScheme.surface),
-              ),
-              const SizedBox(width: 6),
-              Text(
-                percentText,
-                style: theme.textTheme.labelMedium?.copyWith(
-                  color: textColor,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _CombinedLabel {
-  _CombinedLabel({
-    required this.index,
-    required this.position,
-    required this.text,
-    required this.color,
-    required this.icon,
-    required this.highlighted,
-  });
-
-  final int index;
-  final Offset position;
-  final String text;
-  final Color color;
-  final IconData icon;
-  final bool highlighted;
-}
-
-List<_CombinedLabel> _buildCombinedLabels({
-  required List<_DonutSegment> segments,
-  required Offset center,
-  required double radius,
-  required int? selectedIndex,
-  required double minGap,
-  required double animationProgress,
-}) {
-  if (segments.isEmpty) {
-    return <_CombinedLabel>[];
-  }
-  final List<_CombinedLabel> labels = <_CombinedLabel>[];
-  final double clampedProgress = animationProgress.clamp(0.0, 1.0);
-  double previousY = double.negativeInfinity;
-  for (int i = 0; i < segments.length; i++) {
-    final _DonutSegment segment = segments[i];
-    final double percent = segment.percentage;
-    final bool showPercent = percent >= _kMinShareToShowPercent * 100;
-    if (!segment.canShowIcon && !showPercent) {
-      continue;
-    }
-    if (clampedProgress < 0.2) {
-      continue;
-    }
-    final double angle = segment.midAngle;
-    final double effectiveRadius = radius * clampedProgress;
-    final double dx = center.dx + math.cos(angle) * effectiveRadius;
-    double dy = center.dy + math.sin(angle) * effectiveRadius;
-
-    final double gap = (minGap * clampedProgress).clamp(2, minGap);
-    if ((dy - previousY).abs() < gap) {
-      dy = previousY + gap;
-    }
-    previousY = dy;
-
-    final bool highlighted = selectedIndex != null && selectedIndex == i;
-    final String text = showPercent && clampedProgress > 0.4
-        ? (percent >= 1
-              ? '${percent.round()}%'
-              : '${percent.toStringAsFixed(1)}%')
-        : '';
-
-    labels.add(
-      _CombinedLabel(
-        index: i,
-        position: Offset(dx, dy),
-        text: text,
-        color: segment.color,
-        icon: segment.icon ?? Icons.circle,
-        highlighted: highlighted,
-      ),
-    );
-  }
-  return labels;
-}
-
 int? _hitTestSegment({
   required Offset position,
   required List<_DonutSegment> segments,
   required double canvasSize,
-  required double ringRadius,
-  required double strokeWidth,
+  required List<_RingGeometry> ringGeometries,
 }) {
-  if (segments.isEmpty) {
+  if (segments.isEmpty || ringGeometries.length != segments.length) {
     return null;
   }
   final Offset center = Offset(canvasSize / 2, canvasSize / 2);
   final Offset vector = position - center;
   final double distance = vector.distance;
-  final double innerRadius = ringRadius - strokeWidth / 2;
-  final double outerRadius = ringRadius + strokeWidth / 2;
-  if (distance < innerRadius || distance > outerRadius) {
-    return null;
-  }
-
   double angle = math.atan2(vector.dy, vector.dx);
   angle = _normalizeAngle(angle);
 
   for (int index = 0; index < segments.length; index++) {
+    final _RingGeometry geometry = ringGeometries[index];
+    final double innerRadius = geometry.radius - geometry.strokeWidth / 2;
+    final double outerRadius = geometry.radius + geometry.strokeWidth / 2;
+    if (distance < innerRadius || distance > outerRadius) {
+      continue;
+    }
     final _DonutSegment segment = segments[index];
     final double start = _normalizeAngle(segment.startAngle);
     final double end = start + segment.sweepAngle;
@@ -650,10 +573,47 @@ int? _hitTestSegment({
       candidate += 2 * math.pi;
     }
     if (candidate >= start && candidate <= end) {
-      return index;
+      return segment.sourceIndex;
     }
   }
   return null;
+}
+
+List<_RingGeometry> _buildRingGeometries({
+  required double size,
+  required int count,
+}) {
+  if (count <= 0 || !size.isFinite || size <= 0) {
+    return const <_RingGeometry>[];
+  }
+  final double outerRadius = size / 2 - _kRingOuterPadding;
+  final double ringGap = math.max(size * _kRingGapFactor, _kMinRingGap);
+  final double minInnerHole = math.max(
+    size * _kInnerHoleFactor,
+    _kMinInnerHole,
+  );
+  final double availableThickness =
+      (outerRadius - minInnerHole - ringGap * (count - 1)).clamp(
+        _kMinRingStroke * count,
+        double.infinity,
+      );
+  final double rawStroke = availableThickness / count;
+  final double maxStroke = math.max(
+    size * _kMaxRingStrokeFactor,
+    _kMinRingStroke,
+  );
+  final double strokeWidth = rawStroke.clamp(_kMinRingStroke, maxStroke);
+  final double firstRadius = outerRadius - strokeWidth / 2;
+
+  final List<_RingGeometry> geometries = <_RingGeometry>[];
+  for (int index = 0; index < count; index++) {
+    final double radius = math.max(
+      firstRadius - index * (strokeWidth + ringGap),
+      minInnerHole + strokeWidth / 2,
+    );
+    geometries.add(_RingGeometry(radius: radius, strokeWidth: strokeWidth));
+  }
+  return geometries;
 }
 
 double _normalizeAngle(double angle) {

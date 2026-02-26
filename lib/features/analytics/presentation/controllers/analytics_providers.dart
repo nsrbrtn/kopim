@@ -136,7 +136,9 @@ final Provider<MonthlyCashflowWindow> analyticsMonthlyCashflowWindowProvider =
       };
       final DateTime start = months.first;
       final DateTime end = DateTime(currentMonth.year, currentMonth.month + 1);
-      final DateTime nowInclusive = now.add(const Duration(microseconds: 1));
+      final DateTime nowInclusive = DateUtils.dateOnly(
+        now,
+      ).add(const Duration(days: 1));
       return MonthlyCashflowWindow(
         months: months,
         monthIndexByKey: monthIndexByKey,
@@ -266,6 +268,38 @@ analyticsCategoryTransactionsProvider =
           .distinct(_listEqualsTransactions);
     });
 
+final StreamProvider<List<TransactionEntity>>
+analyticsTransferTransactionsProvider = StreamProvider<List<TransactionEntity>>(
+  (Ref ref) {
+    final AnalyticsDateWindow window = ref.watch(analyticsDateWindowProvider);
+    final SortedIds selectedAccountIds = ref.watch(
+      analyticsSelectedAccountIdsProvider,
+    );
+    return ref
+        .watch(transactionRepositoryProvider)
+        .watchTransactions()
+        .map((List<TransactionEntity> transactions) {
+          return transactions
+              .where((TransactionEntity transaction) {
+                if (parseTransactionType(transaction.type) !=
+                    TransactionType.transfer) {
+                  return false;
+                }
+                if (transaction.date.isBefore(window.start) ||
+                    !transaction.date.isBefore(window.endExclusive)) {
+                  return false;
+                }
+                if (selectedAccountIds.isEmpty) {
+                  return true;
+                }
+                return selectedAccountIds.set.contains(transaction.accountId);
+              })
+              .toList(growable: false);
+        })
+        .distinct(_listEqualsTransactions);
+  },
+);
+
 @riverpod
 Stream<List<MonthlyBalanceData>> monthlyBalanceData(Ref ref) {
   final SortedIds relevantAccountIds = ref.watch(
@@ -371,6 +405,57 @@ enum CreditDebtOperationKind {
 }
 
 @immutable
+class AnalyticsDebtTrendPoint {
+  const AnalyticsDebtTrendPoint({required this.month, required this.totalDebt});
+
+  final DateTime month;
+  final MoneyAmount totalDebt;
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) {
+      return true;
+    }
+    return other is AnalyticsDebtTrendPoint &&
+        other.month == month &&
+        other.totalDebt == totalDebt;
+  }
+
+  @override
+  int get hashCode => Object.hash(month, totalDebt);
+}
+
+@immutable
+class AnalyticsDebtOverview {
+  const AnalyticsDebtOverview({
+    required this.totalDebt,
+    required this.monthDeltaPercent,
+    required this.trend,
+  });
+
+  final MoneyAmount totalDebt;
+  final double? monthDeltaPercent;
+  final List<AnalyticsDebtTrendPoint> trend;
+
+  static AnalyticsDebtOverview empty() {
+    final DateTime now = DateTime.now();
+    final List<AnalyticsDebtTrendPoint> trend =
+        List<AnalyticsDebtTrendPoint>.generate(6, (int index) {
+          final DateTime month = DateTime(now.year, now.month - (5 - index));
+          return AnalyticsDebtTrendPoint(
+            month: month,
+            totalDebt: MoneyAmount(minor: BigInt.zero, scale: 2),
+          );
+        }, growable: false);
+    return AnalyticsDebtOverview(
+      totalDebt: MoneyAmount(minor: BigInt.zero, scale: 2),
+      monthDeltaPercent: null,
+      trend: trend,
+    );
+  }
+}
+
+@immutable
 class CreditDebtOperationItem {
   const CreditDebtOperationItem({
     required this.transaction,
@@ -451,14 +536,22 @@ analyticsCreditDebtOperationsProvider =
 
       final Stream<List<TransactionEntity>> transferTransactionsStream =
           transactionRepository
-              .watchCategoryTransactions(
-                start: window.start,
-                end: window.endExclusive,
-                categoryIds: const <String>[],
-                includeUncategorized: true,
-                type: TransactionType.transfer.storageValue,
-                accountIds: const <String>[],
-              )
+              .watchTransactions()
+              .map((List<TransactionEntity> transactions) {
+                return transactions
+                    .where((TransactionEntity transaction) {
+                      if (parseTransactionType(transaction.type) !=
+                          TransactionType.transfer) {
+                        return false;
+                      }
+                      if (transaction.date.isBefore(window.start) ||
+                          !transaction.date.isBefore(window.endExclusive)) {
+                        return false;
+                      }
+                      return true;
+                    })
+                    .toList(growable: false);
+              })
               .distinct(_listEqualsTransactions);
 
       final Stream<List<TransactionEntity>> serviceExpenseTransactionsStream =
@@ -517,6 +610,105 @@ analyticsCreditDebtOperationsProvider =
           .distinct(_creditDebtOverviewEquals);
     });
 
+final StreamProvider<AnalyticsDebtOverview>
+analyticsDebtOverviewProvider = StreamProvider<AnalyticsDebtOverview>((
+  Ref ref,
+) {
+  final TransactionRepository transactionRepository = ref.watch(
+    transactionRepositoryProvider,
+  );
+  return _combineLatest2<
+        List<TransactionEntity>,
+        List<AccountEntity>,
+        AnalyticsDebtOverview
+      >(
+        transactionRepository.watchTransactions(),
+        ref.watch(watchAccountsUseCaseProvider).call(),
+        (List<TransactionEntity> transactions, List<AccountEntity> accounts) {
+          final List<AccountEntity> liabilityAccounts = accounts
+              .where((AccountEntity account) {
+                final String normalized = normalizeAccountType(
+                  account.type,
+                ).toLowerCase();
+                return normalized == 'credit' ||
+                    normalized == 'credit_card' ||
+                    normalized == 'debt';
+              })
+              .toList(growable: false);
+          if (liabilityAccounts.isEmpty) {
+            return AnalyticsDebtOverview.empty();
+          }
+
+          final DateTime now = DateTime.now();
+          final List<DateTime> months = List<DateTime>.generate(6, (int index) {
+            return DateTime(now.year, now.month - (5 - index));
+          }, growable: false);
+
+          final List<TransactionEntity> sorted =
+              transactions.toList(growable: false)
+                ..sort((TransactionEntity a, TransactionEntity b) {
+                  return a.date.compareTo(b.date);
+                });
+
+          final List<AnalyticsDebtTrendPoint> trend = months
+              .map((DateTime month) {
+                final DateTime monthEndExclusive = DateTime(
+                  month.year,
+                  month.month + 1,
+                );
+                final MoneyAccumulator totalDebt = MoneyAccumulator();
+                for (final AccountEntity account in liabilityAccounts) {
+                  final MoneyAccumulator accountBalance = MoneyAccumulator();
+                  accountBalance.add(account.openingBalanceAmount);
+                  for (final TransactionEntity transaction in sorted) {
+                    if (!transaction.date.isBefore(monthEndExclusive)) {
+                      break;
+                    }
+                    final MoneyAmount? delta = _resolveAccountDelta(
+                      transaction: transaction,
+                      accountId: account.id,
+                    );
+                    if (delta != null) {
+                      accountBalance.add(delta);
+                    }
+                  }
+                  final BigInt debtMinor = accountBalance.minor < BigInt.zero
+                      ? -accountBalance.minor
+                      : accountBalance.minor;
+                  totalDebt.add(
+                    MoneyAmount(minor: debtMinor, scale: accountBalance.scale),
+                  );
+                }
+                return AnalyticsDebtTrendPoint(
+                  month: month,
+                  totalDebt: MoneyAmount(
+                    minor: totalDebt.minor,
+                    scale: totalDebt.scale,
+                  ),
+                );
+              })
+              .toList(growable: false);
+
+          final MoneyAmount currentDebt = trend.last.totalDebt;
+          final MoneyAmount previousDebt = trend.length >= 2
+              ? trend[trend.length - 2].totalDebt
+              : MoneyAmount(minor: BigInt.zero, scale: currentDebt.scale);
+          final double? monthDeltaPercent = previousDebt.minor > BigInt.zero
+              ? ((currentDebt.toDouble() - previousDebt.toDouble()) /
+                        previousDebt.toDouble()) *
+                    100
+              : null;
+
+          return AnalyticsDebtOverview(
+            totalDebt: currentDebt,
+            monthDeltaPercent: monthDeltaPercent,
+            trend: trend,
+          );
+        },
+      )
+      .distinct(_analyticsDebtOverviewEquals);
+});
+
 CreditDebtOperationsOverview _buildCreditDebtOperationsOverview({
   required List<TransactionEntity> transactions,
   required List<AccountEntity> accounts,
@@ -526,7 +718,11 @@ CreditDebtOperationsOverview _buildCreditDebtOperationsOverview({
 }) {
   final Set<String> liabilityTypes = <String>{'credit', 'credit_card', 'debt'};
   final Set<String> liabilityAccountIds = accounts
-      .where((AccountEntity account) => liabilityTypes.contains(account.type))
+      .where(
+        (AccountEntity account) => liabilityTypes.contains(
+          normalizeAccountType(account.type).toLowerCase(),
+        ),
+      )
       .map((AccountEntity account) => account.id)
       .toSet();
 
@@ -694,6 +890,15 @@ bool _creditDebtOverviewEquals(
       listEquals(previous.items, next.items);
 }
 
+bool _analyticsDebtOverviewEquals(
+  AnalyticsDebtOverview previous,
+  AnalyticsDebtOverview next,
+) {
+  return previous.totalDebt == next.totalDebt &&
+      previous.monthDeltaPercent == next.monthDeltaPercent &&
+      listEquals(previous.trend, next.trend);
+}
+
 int _monthKey(DateTime monthStart) => monthStart.year * 100 + monthStart.month;
 
 List<String> _serviceCategoryIds(List<CreditEntity> credits) {
@@ -833,6 +1038,94 @@ Stream<R> _switchLatest<T, R>(Stream<T> source, Stream<R> Function(T) mapper) {
   );
 
   return controller.stream;
+}
+
+Stream<T> _combineLatest2<A, B, T>(
+  Stream<A> a,
+  Stream<B> b,
+  T Function(A, B) mapper,
+) {
+  late StreamController<T> controller;
+  A? lastA;
+  B? lastB;
+  bool hasA = false;
+  bool hasB = false;
+
+  void emitIfReady() {
+    if (hasA && hasB) {
+      controller.add(mapper(lastA as A, lastB as B));
+    }
+  }
+
+  controller = StreamController<T>(
+    onListen: () {
+      int doneCount = 0;
+      void handleDone() {
+        doneCount += 1;
+        if (doneCount >= 2 && !controller.isClosed) {
+          controller.close();
+        }
+      }
+
+      final StreamSubscription<A> subA = a.listen(
+        (A value) {
+          lastA = value;
+          hasA = true;
+          emitIfReady();
+        },
+        onError: controller.addError,
+        onDone: handleDone,
+      );
+      final StreamSubscription<B> subB = b.listen(
+        (B value) {
+          lastB = value;
+          hasB = true;
+          emitIfReady();
+        },
+        onError: controller.addError,
+        onDone: handleDone,
+      );
+      controller.onCancel = () async {
+        await subA.cancel();
+        await subB.cancel();
+      };
+    },
+  );
+
+  return controller.stream;
+}
+
+MoneyAmount? _resolveAccountDelta({
+  required TransactionEntity transaction,
+  required String accountId,
+}) {
+  final MoneyAmount amount = transaction.amountValue.abs();
+  final TransactionType type = parseTransactionType(transaction.type);
+
+  if (type == TransactionType.transfer) {
+    final MoneyAccumulator delta = MoneyAccumulator();
+    if (transaction.accountId == accountId) {
+      delta.add(MoneyAmount(minor: -amount.minor, scale: amount.scale));
+    }
+    if (transaction.transferAccountId == accountId) {
+      delta.add(amount);
+    }
+    if (delta.minor == BigInt.zero) {
+      return null;
+    }
+    return MoneyAmount(minor: delta.minor, scale: delta.scale);
+  }
+
+  if (transaction.accountId != accountId) {
+    return null;
+  }
+  if (type == TransactionType.income) {
+    return amount;
+  }
+  if (type == TransactionType.expense) {
+    return MoneyAmount(minor: -amount.minor, scale: amount.scale);
+  }
+  return null;
 }
 
 bool _listEqualsAccounts(

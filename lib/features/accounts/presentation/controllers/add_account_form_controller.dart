@@ -82,7 +82,7 @@ abstract class AddAccountFormState with _$AddAccountFormState {
       paymentDueDaysError == null &&
       interestRateError == null &&
       name.trim().isNotEmpty &&
-      (resolvedType == 'credit_card' || parseBalance() != null) &&
+      parseBalance() != null &&
       resolvedType != null;
 }
 
@@ -229,17 +229,14 @@ class AddAccountFormController extends _$AddAccountFormController {
     final String? resolvedType = state.resolvedType;
     final bool isCreditCard = resolvedType == 'credit_card';
     final int currencyScale = resolveCurrencyScale(state.currency);
-    MoneyAmount? balance = parseBalanceInput(
+    final MoneyAmount? balance = parseBalanceInput(
       state.balanceInput,
       scale: currencyScale,
     );
     AddAccountFieldError? balanceError;
-    if (!isCreditCard && balance == null) {
+    if (balance == null) {
       balanceError = AddAccountFieldError.invalidBalance;
     }
-    balance ??= isCreditCard
-        ? MoneyAmount(minor: BigInt.zero, scale: currencyScale)
-        : null;
 
     if (nameError != null || balanceError != null) {
       state = state.copyWith(

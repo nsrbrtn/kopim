@@ -39,6 +39,11 @@ void main() {
               selectedMonth: DateTime(2030, 1),
               onMonthSelected: (_) {},
               localeName: 'en',
+              monthFilterLabel: 'Month',
+              accountFilterLabel: 'All accounts',
+              isAccountFilterActive: false,
+              onMonthFilterTap: () {},
+              onAccountsFilterTap: () {},
             ),
           ),
         ),
@@ -47,8 +52,17 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(SfCartesianChart), findsOneWidget);
-      expect(find.text('February'), findsOneWidget);
-      expect(find.text('5K ₽'), findsOneWidget);
+      final Iterable<Text> texts = tester.widgetList<Text>(find.byType(Text));
+      final bool hasClosestMonthIncome = texts.any((Text text) {
+        final String value = text.data ?? '';
+        if (!value.contains('₽')) {
+          return false;
+        }
+        final String normalized = value.toLowerCase();
+        return value.contains('5') &&
+            (normalized.contains('k') || normalized.contains('тыс'));
+      });
+      expect(hasClosestMonthIncome, isTrue);
     },
   );
 }

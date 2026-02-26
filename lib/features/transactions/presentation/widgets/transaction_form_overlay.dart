@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -19,6 +21,30 @@ class TransactionFormOverlay extends ConsumerStatefulWidget {
 class _TransactionFormOverlayState
     extends ConsumerState<TransactionFormOverlay> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
+  void _showSnackBarWithAutoDismiss(
+    BuildContext context, {
+    required Widget content,
+    SnackBarAction? action,
+    Duration duration = const Duration(seconds: 3),
+  }) {
+    final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar();
+    final ScaffoldFeatureController<SnackBar, SnackBarClosedReason> controller =
+        messenger.showSnackBar(
+          SnackBar(content: content, duration: duration, action: action),
+        );
+    if (action != null) {
+      unawaited(
+        Future<void>.delayed(duration).then((_) {
+          if (!mounted) {
+            return;
+          }
+          controller.close();
+        }),
+      );
+    }
+  }
 
   void _closeWithUnfocus(WidgetRef ref) {
     FocusScope.of(context).unfocus();
@@ -111,57 +137,52 @@ class _TransactionFormOverlayState
                                 .resetDraft(
                                   defaultAccountId: sheetState.defaultAccountId,
                                 );
-                            final ScaffoldMessengerState messenger =
-                                ScaffoldMessenger.of(context)
-                                  ..hideCurrentSnackBar();
                             final Widget content = Text(
                               strings.addTransactionSuccess,
                             );
                             final TransactionEntity? created =
                                 result.createdTransaction;
-                            messenger.showSnackBar(
-                              SnackBar(
-                                content: content,
-                                duration: const Duration(seconds: 3),
-                                action: created == null
-                                    ? null
-                                    : SnackBarAction(
-                                        label: strings.commonUndo,
-                                        onPressed: () {
-                                          final ScaffoldMessengerState
-                                          undoMessenger = ScaffoldMessenger.of(
-                                            context,
-                                          )..hideCurrentSnackBar();
-                                          ref
-                                              .read(
-                                                transactionActionsControllerProvider
-                                                    .notifier,
-                                              )
-                                              .deleteTransaction(created.id)
-                                              .then((bool undone) {
-                                                if (!mounted) {
-                                                  return;
-                                                }
-                                                undoMessenger
-                                                  ..hideCurrentSnackBar()
-                                                  ..showSnackBar(
-                                                    SnackBar(
-                                                      content: Text(
-                                                        undone
-                                                            ? strings
-                                                                  .addTransactionUndoSuccess
-                                                            : strings
-                                                                  .addTransactionUndoError,
-                                                      ),
-                                                      duration: const Duration(
-                                                        seconds: 3,
-                                                      ),
+                            _showSnackBarWithAutoDismiss(
+                              context,
+                              content: content,
+                              action: created == null
+                                  ? null
+                                  : SnackBarAction(
+                                      label: strings.commonUndo,
+                                      onPressed: () {
+                                        final ScaffoldMessengerState
+                                        undoMessenger = ScaffoldMessenger.of(
+                                          context,
+                                        )..hideCurrentSnackBar();
+                                        ref
+                                            .read(
+                                              transactionActionsControllerProvider
+                                                  .notifier,
+                                            )
+                                            .deleteTransaction(created.id)
+                                            .then((bool undone) {
+                                              if (!mounted) {
+                                                return;
+                                              }
+                                              undoMessenger
+                                                ..hideCurrentSnackBar()
+                                                ..showSnackBar(
+                                                  SnackBar(
+                                                    content: Text(
+                                                      undone
+                                                          ? strings
+                                                                .addTransactionUndoSuccess
+                                                          : strings
+                                                                .addTransactionUndoError,
                                                     ),
-                                                  );
-                                              });
-                                        },
-                                      ),
-                              ),
+                                                    duration: const Duration(
+                                                      seconds: 3,
+                                                    ),
+                                                  ),
+                                                );
+                                            });
+                                      },
+                                    ),
                             );
                           },
                         ),

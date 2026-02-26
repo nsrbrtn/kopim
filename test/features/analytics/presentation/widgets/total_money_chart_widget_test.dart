@@ -39,6 +39,11 @@ void main() {
             selectedMonth: now,
             onMonthSelected: (_) {},
             localeName: 'en',
+            monthFilterLabel: 'Month',
+            accountFilterLabel: 'All accounts',
+            isAccountFilterActive: false,
+            onMonthFilterTap: () {},
+            onAccountsFilterTap: () {},
           ),
         ),
       ),
@@ -59,7 +64,7 @@ void main() {
     expect(find.text('2K ₽'), findsOneWidget);
   });
 
-  testWidgets('TotalMoneyChartWidget has 2 series when data is selected', (
+  testWidgets('TotalMoneyChartWidget has 3 series when data is selected', (
     WidgetTester tester,
   ) async {
     final DateTime now = DateTime.now();
@@ -81,6 +86,11 @@ void main() {
             selectedMonth: now,
             onMonthSelected: (_) {},
             localeName: 'en',
+            monthFilterLabel: 'Month',
+            accountFilterLabel: 'All accounts',
+            isAccountFilterActive: false,
+            onMonthFilterTap: () {},
+            onAccountsFilterTap: () {},
           ),
         ),
       ),
@@ -102,10 +112,11 @@ void main() {
     }
 
     final SfCartesianChart chart = tester.widget(find.byType(SfCartesianChart));
-    // Should have SplineSeries + ScatterSeries (for glow)
-    expect(chart.series.length, 2);
-    expect(chart.series[0], isA<SplineSeries<MonthlyBalanceData, String>>());
-    expect(chart.series[1], isA<ScatterSeries<MonthlyBalanceData, String>>());
+    // Should have AreaSeries + SplineSeries + ScatterSeries (tap zone)
+    expect(chart.series.length, 3);
+    expect(chart.series[0], isA<AreaSeries<MonthlyBalanceData, String>>());
+    expect(chart.series[1], isA<SplineSeries<MonthlyBalanceData, String>>());
+    expect(chart.series[2], isA<ScatterSeries<MonthlyBalanceData, String>>());
   });
 
   testWidgets(
@@ -133,6 +144,11 @@ void main() {
               selectedMonth: DateTime(2030, 1),
               onMonthSelected: (_) {},
               localeName: 'en',
+              monthFilterLabel: 'Month',
+              accountFilterLabel: 'All accounts',
+              isAccountFilterActive: false,
+              onMonthFilterTap: () {},
+              onAccountsFilterTap: () {},
             ),
           ),
         ),
@@ -140,7 +156,6 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      expect(find.text('February'), findsOneWidget);
       expect(find.text('2.5K ₽'), findsOneWidget);
     },
   );

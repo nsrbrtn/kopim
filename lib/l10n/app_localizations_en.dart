@@ -1312,10 +1312,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get upcomingPaymentsAddReminder => 'Add reminder';
 
   @override
-  String get upcomingPaymentsNewPaymentTitle => 'New recurring payment';
+  String get upcomingPaymentsNewPaymentTitle => 'New upcoming payment';
 
   @override
-  String get upcomingPaymentsEditPaymentTitle => 'Edit recurring payment';
+  String get upcomingPaymentsEditPaymentTitle => 'Edit upcoming payment';
 
   @override
   String get upcomingPaymentsNewReminderTitle => 'New reminder';
@@ -1327,6 +1327,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get upcomingPaymentsFieldTitle => 'Name';
 
   @override
+  String get upcomingPaymentsTitlePlaceholder => 'Repay debt';
+
+  @override
   String get upcomingPaymentsFieldAccount => 'Account';
 
   @override
@@ -1336,10 +1339,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get upcomingPaymentsFieldAmount => 'Amount';
 
   @override
+  String get upcomingPaymentsAmountPlaceholder => 'Enter payment amount';
+
+  @override
   String get upcomingPaymentsFieldDayOfMonth => 'Day of month';
 
   @override
   String get upcomingPaymentsFieldNotifyDaysBefore => 'Notify days before';
+
+  @override
+  String get upcomingPaymentsFieldRemind => 'Remind';
 
   @override
   String get upcomingPaymentsFieldNotifyTime => 'Notification time';
@@ -1676,7 +1685,36 @@ class AppLocalizationsEn extends AppLocalizations {
   String get analyticsTabCategoriesSpending => 'Spending by category';
 
   @override
+  String get analyticsOperationsByCategoryTitle => 'Operations by category';
+
+  @override
+  String get analyticsShowTransfersChip => 'Show transfers';
+
+  @override
+  String get analyticsTransfersOperationLabel => 'Transfers';
+
+  @override
+  String get analyticsCreditPaymentsOperationLabel => 'Credit payments';
+
+  @override
   String get analyticsTabStatistics => 'Statistics';
+
+  @override
+  String get analyticsCreditsTotalDebtTitle => 'Total debt';
+
+  @override
+  String get analyticsCreditsDebtTrendTitle => 'Debt trend';
+
+  @override
+  String get analyticsCreditsDebtTrendPeriod => '6 months';
+
+  @override
+  String analyticsCreditsDeltaThisMonth(String value) {
+    return '$value this month';
+  }
+
+  @override
+  String get analyticsCreditsDeltaUnavailable => 'No data for previous month';
 
   @override
   String get analyticsFilterPresetThisMonth => 'This month';
@@ -2344,7 +2382,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get budgetTitleLabel => 'Budget title';
 
   @override
+  String get budgetTitlePlaceholder => 'Vacation';
+
+  @override
   String get budgetAmountLabel => 'Limit amount';
+
+  @override
+  String get budgetAmountPlaceholder => 'Enter amount';
 
   @override
   String get budgetAmountAutoHelper =>
@@ -2779,4 +2823,77 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get overviewScreenPlaceholder =>
       'Overview details will appear here soon.';
+
+  @override
+  String get overviewFinancialIndexTitle => 'Financial index';
+
+  @override
+  String get overviewFinancialIndexStatusRisk => 'Financial risk';
+
+  @override
+  String get overviewFinancialIndexStatusUnstable => 'Unstable';
+
+  @override
+  String get overviewFinancialIndexStatusStable => 'Stable';
+
+  @override
+  String get overviewFinancialIndexStatusGrowth => 'Confident growth';
+
+  @override
+  String overviewFinancialIndexMonthScoreChip(int score) {
+    return '$score points this month';
+  }
+
+  @override
+  String get overviewFinancialIndexInfoTitle =>
+      'How the financial index is calculated';
+
+  @override
+  String get overviewFinancialIndexInfoBody =>
+      'The index (0-100) is a weighted sum of 4 factors: budget control (30%), safety cushion (30%), monthly dynamics (20%), and behavioral discipline (20%). Zone color indicates state: 0-40 financial risk, 40-70 neutral, 70-100 growth.';
+
+  @override
+  String get overviewBalanceTitle => 'Balance';
+
+  @override
+  String get overviewBalanceDailyAmount => '2000 ₽';
+
+  @override
+  String get overviewBalanceDailySuffix => ' per day';
+
+  @override
+  String get overviewBalanceIncomeInDays => 'Income in 8 days';
+
+  @override
+  String get overviewSafetyPillowTitle => 'Safety cushion';
+
+  @override
+  String get overviewSafetyPillowSubtitle => '7.4 / 10 months';
+
+  @override
+  String get overviewBehaviorProgressTitle => 'Behavioral progress';
+
+  @override
+  String get overviewBehaviorProgressSubtitle =>
+      '6 days of mindful tracking in a row';
+
+  @override
+  String get overviewBehaviorProgressValue => 'x6';
+
+  @override
+  String get overviewGoalTitle => 'Goal: Vacation';
+
+  @override
+  String get overviewGoalProgressPercent => '68%';
+
+  @override
+  String get overviewGoalInsight =>
+      '💡 Save 400 ₽ more today\nto leave a week earlier.';
+
+  @override
+  String get overviewInsightDayLabel => 'Insight of the day';
+
+  @override
+  String get overviewInsightBody =>
+      'Your coffee on the way to work eats up 12%\nof your free budget.';
 }

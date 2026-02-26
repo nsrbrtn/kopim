@@ -448,6 +448,9 @@ events AS (
 ),
 running AS (
   SELECT
+    e.date AS date,
+    e.sort_order AS sort_order,
+    e.id AS id,
     strftime('%Y-%m', date, 'unixepoch') AS month_key,
     e.scale AS scale,
     (b.base_minor + SUM(delta_minor) OVER (
@@ -457,13 +460,24 @@ running AS (
     )) AS running_minor
   FROM events e
   JOIN base b ON b.scale = e.scale
+),
+ranked AS (
+  SELECT
+    month_key,
+    scale,
+    running_minor,
+    ROW_NUMBER() OVER (
+      PARTITION BY month_key, scale
+      ORDER BY date DESC, sort_order DESC, id DESC
+    ) AS row_number
+  FROM running
 )
 SELECT
   month_key,
   scale AS amount_scale,
-  MAX(running_minor) AS max_minor
-FROM running
-GROUP BY month_key, scale
+  running_minor AS max_minor
+FROM ranked
+WHERE row_number = 1
 ''',
           variables: <Variable<Object>>[
             ..._stringVariables(accountIds),
@@ -534,9 +548,7 @@ GROUP BY month_key, scale
     ];
 
     if (accountIds.isNotEmpty) {
-      sql.writeln(
-        '  AND account_id IN (${_placeholders(accountIds.length)})',
-      );
+      sql.writeln('  AND account_id IN (${_placeholders(accountIds.length)})');
       variables.addAll(_stringVariables(accountIds));
     }
 
@@ -709,14 +721,10 @@ GROUP BY month_key, scale
             tbl.isDeleted.equals(false) & tbl.categoryId.equals(categoryId),
       )
       ..orderBy(<OrderClauseGenerator<db.$TransactionsTable>>[
-        (db.$TransactionsTable tbl) => OrderingTerm(
-          expression: tbl.date,
-          mode: OrderingMode.desc,
-        ),
-        (db.$TransactionsTable tbl) => OrderingTerm(
-          expression: tbl.updatedAt,
-          mode: OrderingMode.desc,
-        ),
+        (db.$TransactionsTable tbl) =>
+            OrderingTerm(expression: tbl.date, mode: OrderingMode.desc),
+        (db.$TransactionsTable tbl) =>
+            OrderingTerm(expression: tbl.updatedAt, mode: OrderingMode.desc),
       ])
       ..limit(1);
     return query.getSingleOrNull();

@@ -1330,11 +1330,11 @@ class AppLocalizationsRu extends AppLocalizations {
   String get upcomingPaymentsAddReminder => 'Добавить напоминание';
 
   @override
-  String get upcomingPaymentsNewPaymentTitle => 'Новый повторяющийся платёж';
+  String get upcomingPaymentsNewPaymentTitle => 'Новый предстоящий платёж';
 
   @override
   String get upcomingPaymentsEditPaymentTitle =>
-      'Редактирование повторяющегося платежа';
+      'Редактирование предстоящего платежа';
 
   @override
   String get upcomingPaymentsNewReminderTitle => 'Новое напоминание';
@@ -1346,6 +1346,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get upcomingPaymentsFieldTitle => 'Название';
 
   @override
+  String get upcomingPaymentsTitlePlaceholder => 'Вернуть долг';
+
+  @override
   String get upcomingPaymentsFieldAccount => 'Счёт';
 
   @override
@@ -1355,11 +1358,17 @@ class AppLocalizationsRu extends AppLocalizations {
   String get upcomingPaymentsFieldAmount => 'Сумма';
 
   @override
+  String get upcomingPaymentsAmountPlaceholder => 'Введите сумму платежа';
+
+  @override
   String get upcomingPaymentsFieldDayOfMonth => 'День месяца';
 
   @override
   String get upcomingPaymentsFieldNotifyDaysBefore =>
       'За сколько дней напомнить';
+
+  @override
+  String get upcomingPaymentsFieldRemind => 'Напомнить';
 
   @override
   String get upcomingPaymentsFieldNotifyTime => 'Время уведомления';
@@ -1702,7 +1711,36 @@ class AppLocalizationsRu extends AppLocalizations {
   String get analyticsTabCategoriesSpending => 'Траты по категориям';
 
   @override
+  String get analyticsOperationsByCategoryTitle => 'Операции по категориям';
+
+  @override
+  String get analyticsShowTransfersChip => 'Показывать переводы';
+
+  @override
+  String get analyticsTransfersOperationLabel => 'Переводы';
+
+  @override
+  String get analyticsCreditPaymentsOperationLabel => 'Платежи по кредитам';
+
+  @override
   String get analyticsTabStatistics => 'Статистика';
+
+  @override
+  String get analyticsCreditsTotalDebtTitle => 'Общая сумма долга';
+
+  @override
+  String get analyticsCreditsDebtTrendTitle => 'Динамика долга';
+
+  @override
+  String get analyticsCreditsDebtTrendPeriod => '6 месяцев';
+
+  @override
+  String analyticsCreditsDeltaThisMonth(String value) {
+    return '$value в этом месяце';
+  }
+
+  @override
+  String get analyticsCreditsDeltaUnavailable => 'Нет данных за прошлый месяц';
 
   @override
   String get analyticsFilterPresetThisMonth => 'Этот месяц';
@@ -2369,7 +2407,13 @@ class AppLocalizationsRu extends AppLocalizations {
   String get budgetTitleLabel => 'Название бюджета';
 
   @override
+  String get budgetTitlePlaceholder => 'Отпуск';
+
+  @override
   String get budgetAmountLabel => 'Сумма лимита';
+
+  @override
+  String get budgetAmountPlaceholder => 'Укажите сумму';
 
   @override
   String get budgetAmountAutoHelper =>
@@ -2803,4 +2847,77 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get overviewScreenPlaceholder =>
       'Скоро здесь появится информация обзора.';
+
+  @override
+  String get overviewFinancialIndexTitle => 'Финансовый индекс';
+
+  @override
+  String get overviewFinancialIndexStatusRisk => 'Финансовый риск';
+
+  @override
+  String get overviewFinancialIndexStatusUnstable => 'Нестабильно';
+
+  @override
+  String get overviewFinancialIndexStatusStable => 'Стабильно';
+
+  @override
+  String get overviewFinancialIndexStatusGrowth => 'Уверенный рост';
+
+  @override
+  String overviewFinancialIndexMonthScoreChip(int score) {
+    return '$score баллов в этом месяце';
+  }
+
+  @override
+  String get overviewFinancialIndexInfoTitle =>
+      'Как считается финансовый индекс';
+
+  @override
+  String get overviewFinancialIndexInfoBody =>
+      'Индекс (0-100) рассчитывается как взвешенная сумма 4 факторов: контроль бюджета (30%), подушка безопасности (30%), динамика месяца (20%) и поведенческая дисциплина (20%). Цвет зоны показывает состояние: 0-40 — финансовый риск, 40-70 — нейтрально, 70-100 — рост.';
+
+  @override
+  String get overviewBalanceTitle => 'Остаток';
+
+  @override
+  String get overviewBalanceDailyAmount => '2000 ₽';
+
+  @override
+  String get overviewBalanceDailySuffix => ' в день';
+
+  @override
+  String get overviewBalanceIncomeInDays => 'Доход через 8 дней';
+
+  @override
+  String get overviewSafetyPillowTitle => 'Финансовая подушка';
+
+  @override
+  String get overviewSafetyPillowSubtitle => '7.4 / 10 мес';
+
+  @override
+  String get overviewBehaviorProgressTitle => 'Поведенческий прогресс';
+
+  @override
+  String get overviewBehaviorProgressSubtitle =>
+      '6 дней осознанного учета подряд';
+
+  @override
+  String get overviewBehaviorProgressValue => 'x6';
+
+  @override
+  String get overviewGoalTitle => 'Цель: Отпуск';
+
+  @override
+  String get overviewGoalProgressPercent => '68%';
+
+  @override
+  String get overviewGoalInsight =>
+      '💡 Отложите сегодня на 400 ₽ больше, чтобы\nпоехать на неделю раньше.';
+
+  @override
+  String get overviewInsightDayLabel => 'Инсайт дня';
+
+  @override
+  String get overviewInsightBody =>
+      'Ваш кофе по пути на работу съедает 12%\nсвободного бюджета.';
 }
