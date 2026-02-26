@@ -66,6 +66,7 @@ import 'package:kopim/features/categories/domain/use_cases/watch_categories_use_
 import 'package:kopim/features/categories/domain/use_cases/watch_category_tree_use_case.dart';
 import 'package:kopim/features/home/domain/use_cases/watch_home_overview_summary_use_case.dart';
 import 'package:kopim/features/overview/domain/use_cases/watch_financial_index_use_case.dart';
+import 'package:kopim/features/overview/domain/use_cases/watch_overview_daily_allowance_use_case.dart';
 import 'package:kopim/features/tags/data/repositories/tag_repository_impl.dart';
 import 'package:kopim/features/tags/data/repositories/transaction_tags_repository_impl.dart';
 import 'package:kopim/features/tags/data/sources/local/tag_dao.dart';
@@ -701,6 +702,17 @@ watchFinancialIndexUseCaseProvider = rp.Provider<WatchFinancialIndexUseCase>((
     savingGoalRepository: ref.watch(savingGoalRepositoryProvider),
   );
 });
+
+final rp.Provider<WatchOverviewDailyAllowanceUseCase>
+watchOverviewDailyAllowanceUseCaseProvider =
+    rp.Provider<WatchOverviewDailyAllowanceUseCase>((rp.Ref ref) {
+      return WatchOverviewDailyAllowanceUseCase(
+        accountRepository: ref.watch(accountRepositoryProvider),
+        upcomingPaymentsRepository: ref.watch(
+          upcomingPaymentsRepositoryProvider,
+        ),
+      );
+    });
 
 @riverpod
 AddCreditUseCase addCreditUseCase(Ref ref) => AddCreditUseCase(

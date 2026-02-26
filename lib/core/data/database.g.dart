@@ -10259,6 +10259,18 @@ class $UpcomingPaymentsTable extends UpcomingPayments
     ),
     defaultValue: const Constant<bool>(false),
   );
+  static const VerificationMeta _flowTypeMeta = const VerificationMeta(
+    'flowType',
+  );
+  @override
+  late final GeneratedColumn<String> flowType = GeneratedColumn<String>(
+    'flow_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant<String>('expense'),
+  );
   static const VerificationMeta _isActiveMeta = const VerificationMeta(
     'isActive',
   );
@@ -10343,6 +10355,7 @@ class $UpcomingPaymentsTable extends UpcomingPayments
     notifyTimeHhmm,
     note,
     autoPost,
+    flowType,
     isActive,
     nextRunAt,
     nextNotifyAt,
@@ -10458,6 +10471,12 @@ class $UpcomingPaymentsTable extends UpcomingPayments
         autoPost.isAcceptableOrUnknown(data['auto_post']!, _autoPostMeta),
       );
     }
+    if (data.containsKey('flow_type')) {
+      context.handle(
+        _flowTypeMeta,
+        flowType.isAcceptableOrUnknown(data['flow_type']!, _flowTypeMeta),
+      );
+    }
     if (data.containsKey('is_active')) {
       context.handle(
         _isActiveMeta,
@@ -10561,6 +10580,10 @@ class $UpcomingPaymentsTable extends UpcomingPayments
         DriftSqlType.bool,
         data['${effectivePrefix}auto_post'],
       )!,
+      flowType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}flow_type'],
+      )!,
       isActive: attachedDatabase.typeMapping.read(
         DriftSqlType.bool,
         data['${effectivePrefix}is_active'],
@@ -10608,6 +10631,7 @@ class UpcomingPaymentRow extends DataClass
   final String notifyTimeHhmm;
   final String? note;
   final bool autoPost;
+  final String flowType;
   final bool isActive;
   final int? nextRunAt;
   final int? nextNotifyAt;
@@ -10627,6 +10651,7 @@ class UpcomingPaymentRow extends DataClass
     required this.notifyTimeHhmm,
     this.note,
     required this.autoPost,
+    required this.flowType,
     required this.isActive,
     this.nextRunAt,
     this.nextNotifyAt,
@@ -10651,6 +10676,7 @@ class UpcomingPaymentRow extends DataClass
       map['note'] = Variable<String>(note);
     }
     map['auto_post'] = Variable<bool>(autoPost);
+    map['flow_type'] = Variable<String>(flowType);
     map['is_active'] = Variable<bool>(isActive);
     if (!nullToAbsent || nextRunAt != null) {
       map['next_run_at'] = Variable<int>(nextRunAt);
@@ -10680,6 +10706,7 @@ class UpcomingPaymentRow extends DataClass
       notifyTimeHhmm: Value(notifyTimeHhmm),
       note: note == null && nullToAbsent ? const Value.absent() : Value(note),
       autoPost: Value(autoPost),
+      flowType: Value(flowType),
       isActive: Value(isActive),
       nextRunAt: nextRunAt == null && nullToAbsent
           ? const Value.absent()
@@ -10713,6 +10740,7 @@ class UpcomingPaymentRow extends DataClass
       notifyTimeHhmm: serializer.fromJson<String>(json['notifyTimeHhmm']),
       note: serializer.fromJson<String?>(json['note']),
       autoPost: serializer.fromJson<bool>(json['autoPost']),
+      flowType: serializer.fromJson<String>(json['flowType']),
       isActive: serializer.fromJson<bool>(json['isActive']),
       nextRunAt: serializer.fromJson<int?>(json['nextRunAt']),
       nextNotifyAt: serializer.fromJson<int?>(json['nextNotifyAt']),
@@ -10739,6 +10767,7 @@ class UpcomingPaymentRow extends DataClass
       'notifyTimeHhmm': serializer.toJson<String>(notifyTimeHhmm),
       'note': serializer.toJson<String?>(note),
       'autoPost': serializer.toJson<bool>(autoPost),
+      'flowType': serializer.toJson<String>(flowType),
       'isActive': serializer.toJson<bool>(isActive),
       'nextRunAt': serializer.toJson<int?>(nextRunAt),
       'nextNotifyAt': serializer.toJson<int?>(nextNotifyAt),
@@ -10761,6 +10790,7 @@ class UpcomingPaymentRow extends DataClass
     String? notifyTimeHhmm,
     Value<String?> note = const Value.absent(),
     bool? autoPost,
+    String? flowType,
     bool? isActive,
     Value<int?> nextRunAt = const Value.absent(),
     Value<int?> nextNotifyAt = const Value.absent(),
@@ -10780,6 +10810,7 @@ class UpcomingPaymentRow extends DataClass
     notifyTimeHhmm: notifyTimeHhmm ?? this.notifyTimeHhmm,
     note: note.present ? note.value : this.note,
     autoPost: autoPost ?? this.autoPost,
+    flowType: flowType ?? this.flowType,
     isActive: isActive ?? this.isActive,
     nextRunAt: nextRunAt.present ? nextRunAt.value : this.nextRunAt,
     nextNotifyAt: nextNotifyAt.present ? nextNotifyAt.value : this.nextNotifyAt,
@@ -10815,6 +10846,7 @@ class UpcomingPaymentRow extends DataClass
           : this.notifyTimeHhmm,
       note: data.note.present ? data.note.value : this.note,
       autoPost: data.autoPost.present ? data.autoPost.value : this.autoPost,
+      flowType: data.flowType.present ? data.flowType.value : this.flowType,
       isActive: data.isActive.present ? data.isActive.value : this.isActive,
       nextRunAt: data.nextRunAt.present ? data.nextRunAt.value : this.nextRunAt,
       nextNotifyAt: data.nextNotifyAt.present
@@ -10843,6 +10875,7 @@ class UpcomingPaymentRow extends DataClass
           ..write('notifyTimeHhmm: $notifyTimeHhmm, ')
           ..write('note: $note, ')
           ..write('autoPost: $autoPost, ')
+          ..write('flowType: $flowType, ')
           ..write('isActive: $isActive, ')
           ..write('nextRunAt: $nextRunAt, ')
           ..write('nextNotifyAt: $nextNotifyAt, ')
@@ -10867,6 +10900,7 @@ class UpcomingPaymentRow extends DataClass
     notifyTimeHhmm,
     note,
     autoPost,
+    flowType,
     isActive,
     nextRunAt,
     nextNotifyAt,
@@ -10890,6 +10924,7 @@ class UpcomingPaymentRow extends DataClass
           other.notifyTimeHhmm == this.notifyTimeHhmm &&
           other.note == this.note &&
           other.autoPost == this.autoPost &&
+          other.flowType == this.flowType &&
           other.isActive == this.isActive &&
           other.nextRunAt == this.nextRunAt &&
           other.nextNotifyAt == this.nextNotifyAt &&
@@ -10911,6 +10946,7 @@ class UpcomingPaymentsCompanion extends UpdateCompanion<UpcomingPaymentRow> {
   final Value<String> notifyTimeHhmm;
   final Value<String?> note;
   final Value<bool> autoPost;
+  final Value<String> flowType;
   final Value<bool> isActive;
   final Value<int?> nextRunAt;
   final Value<int?> nextNotifyAt;
@@ -10931,6 +10967,7 @@ class UpcomingPaymentsCompanion extends UpdateCompanion<UpcomingPaymentRow> {
     this.notifyTimeHhmm = const Value.absent(),
     this.note = const Value.absent(),
     this.autoPost = const Value.absent(),
+    this.flowType = const Value.absent(),
     this.isActive = const Value.absent(),
     this.nextRunAt = const Value.absent(),
     this.nextNotifyAt = const Value.absent(),
@@ -10952,6 +10989,7 @@ class UpcomingPaymentsCompanion extends UpdateCompanion<UpcomingPaymentRow> {
     this.notifyTimeHhmm = const Value.absent(),
     this.note = const Value.absent(),
     this.autoPost = const Value.absent(),
+    this.flowType = const Value.absent(),
     this.isActive = const Value.absent(),
     this.nextRunAt = const Value.absent(),
     this.nextNotifyAt = const Value.absent(),
@@ -10980,6 +11018,7 @@ class UpcomingPaymentsCompanion extends UpdateCompanion<UpcomingPaymentRow> {
     Expression<String>? notifyTimeHhmm,
     Expression<String>? note,
     Expression<bool>? autoPost,
+    Expression<String>? flowType,
     Expression<bool>? isActive,
     Expression<int>? nextRunAt,
     Expression<int>? nextNotifyAt,
@@ -11001,6 +11040,7 @@ class UpcomingPaymentsCompanion extends UpdateCompanion<UpcomingPaymentRow> {
       if (notifyTimeHhmm != null) 'notify_time_hhmm': notifyTimeHhmm,
       if (note != null) 'note': note,
       if (autoPost != null) 'auto_post': autoPost,
+      if (flowType != null) 'flow_type': flowType,
       if (isActive != null) 'is_active': isActive,
       if (nextRunAt != null) 'next_run_at': nextRunAt,
       if (nextNotifyAt != null) 'next_notify_at': nextNotifyAt,
@@ -11025,6 +11065,7 @@ class UpcomingPaymentsCompanion extends UpdateCompanion<UpcomingPaymentRow> {
     Value<String>? notifyTimeHhmm,
     Value<String?>? note,
     Value<bool>? autoPost,
+    Value<String>? flowType,
     Value<bool>? isActive,
     Value<int?>? nextRunAt,
     Value<int?>? nextNotifyAt,
@@ -11046,6 +11087,7 @@ class UpcomingPaymentsCompanion extends UpdateCompanion<UpcomingPaymentRow> {
       notifyTimeHhmm: notifyTimeHhmm ?? this.notifyTimeHhmm,
       note: note ?? this.note,
       autoPost: autoPost ?? this.autoPost,
+      flowType: flowType ?? this.flowType,
       isActive: isActive ?? this.isActive,
       nextRunAt: nextRunAt ?? this.nextRunAt,
       nextNotifyAt: nextNotifyAt ?? this.nextNotifyAt,
@@ -11095,6 +11137,9 @@ class UpcomingPaymentsCompanion extends UpdateCompanion<UpcomingPaymentRow> {
     if (autoPost.present) {
       map['auto_post'] = Variable<bool>(autoPost.value);
     }
+    if (flowType.present) {
+      map['flow_type'] = Variable<String>(flowType.value);
+    }
     if (isActive.present) {
       map['is_active'] = Variable<bool>(isActive.value);
     }
@@ -11136,6 +11181,7 @@ class UpcomingPaymentsCompanion extends UpdateCompanion<UpcomingPaymentRow> {
           ..write('notifyTimeHhmm: $notifyTimeHhmm, ')
           ..write('note: $note, ')
           ..write('autoPost: $autoPost, ')
+          ..write('flowType: $flowType, ')
           ..write('isActive: $isActive, ')
           ..write('nextRunAt: $nextRunAt, ')
           ..write('nextNotifyAt: $nextNotifyAt, ')
@@ -22491,6 +22537,7 @@ typedef $$UpcomingPaymentsTableCreateCompanionBuilder =
       Value<String> notifyTimeHhmm,
       Value<String?> note,
       Value<bool> autoPost,
+      Value<String> flowType,
       Value<bool> isActive,
       Value<int?> nextRunAt,
       Value<int?> nextNotifyAt,
@@ -22513,6 +22560,7 @@ typedef $$UpcomingPaymentsTableUpdateCompanionBuilder =
       Value<String> notifyTimeHhmm,
       Value<String?> note,
       Value<bool> autoPost,
+      Value<String> flowType,
       Value<bool> isActive,
       Value<int?> nextRunAt,
       Value<int?> nextNotifyAt,
@@ -22630,6 +22678,11 @@ class $$UpcomingPaymentsTableFilterComposer
 
   ColumnFilters<bool> get autoPost => $composableBuilder(
     column: $table.autoPost,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get flowType => $composableBuilder(
+    column: $table.flowType,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -22769,6 +22822,11 @@ class $$UpcomingPaymentsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get flowType => $composableBuilder(
+    column: $table.flowType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<bool> get isActive => $composableBuilder(
     column: $table.isActive,
     builder: (column) => ColumnOrderings(column),
@@ -22895,6 +22953,9 @@ class $$UpcomingPaymentsTableAnnotationComposer
   GeneratedColumn<bool> get autoPost =>
       $composableBuilder(column: $table.autoPost, builder: (column) => column);
 
+  GeneratedColumn<String> get flowType =>
+      $composableBuilder(column: $table.flowType, builder: (column) => column);
+
   GeneratedColumn<bool> get isActive =>
       $composableBuilder(column: $table.isActive, builder: (column) => column);
 
@@ -23006,6 +23067,7 @@ class $$UpcomingPaymentsTableTableManager
                 Value<String> notifyTimeHhmm = const Value.absent(),
                 Value<String?> note = const Value.absent(),
                 Value<bool> autoPost = const Value.absent(),
+                Value<String> flowType = const Value.absent(),
                 Value<bool> isActive = const Value.absent(),
                 Value<int?> nextRunAt = const Value.absent(),
                 Value<int?> nextNotifyAt = const Value.absent(),
@@ -23026,6 +23088,7 @@ class $$UpcomingPaymentsTableTableManager
                 notifyTimeHhmm: notifyTimeHhmm,
                 note: note,
                 autoPost: autoPost,
+                flowType: flowType,
                 isActive: isActive,
                 nextRunAt: nextRunAt,
                 nextNotifyAt: nextNotifyAt,
@@ -23048,6 +23111,7 @@ class $$UpcomingPaymentsTableTableManager
                 Value<String> notifyTimeHhmm = const Value.absent(),
                 Value<String?> note = const Value.absent(),
                 Value<bool> autoPost = const Value.absent(),
+                Value<String> flowType = const Value.absent(),
                 Value<bool> isActive = const Value.absent(),
                 Value<int?> nextRunAt = const Value.absent(),
                 Value<int?> nextNotifyAt = const Value.absent(),
@@ -23068,6 +23132,7 @@ class $$UpcomingPaymentsTableTableManager
                 notifyTimeHhmm: notifyTimeHhmm,
                 note: note,
                 autoPost: autoPost,
+                flowType: flowType,
                 isActive: isActive,
                 nextRunAt: nextRunAt,
                 nextNotifyAt: nextNotifyAt,

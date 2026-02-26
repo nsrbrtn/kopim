@@ -14,6 +14,8 @@ _OverviewPreferences _$OverviewPreferencesFromJson(Map<String, dynamic> json) =>
       categoryIds: (json['categoryIds'] as List<dynamic>?)
           ?.map((e) => e as String)
           .toList(),
+      balanceAnchorUpcomingPaymentId:
+          json['balanceAnchorUpcomingPaymentId'] as String?,
     );
 
 Map<String, dynamic> _$OverviewPreferencesToJson(
@@ -21,4 +23,5 @@ Map<String, dynamic> _$OverviewPreferencesToJson(
 ) => <String, dynamic>{
   'accountIds': instance.accountIds,
   'categoryIds': instance.categoryIds,
+  'balanceAnchorUpcomingPaymentId': instance.balanceAnchorUpcomingPaymentId,
 };

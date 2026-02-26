@@ -4,6 +4,15 @@ import 'package:kopim/core/money/money_utils.dart';
 
 part 'upcoming_payment.freezed.dart';
 
+enum UpcomingPaymentFlowType { expense, income }
+
+UpcomingPaymentFlowType parseUpcomingPaymentFlowType(String? raw) {
+  if (raw == UpcomingPaymentFlowType.income.name) {
+    return UpcomingPaymentFlowType.income;
+  }
+  return UpcomingPaymentFlowType.expense;
+}
+
 @freezed
 abstract class UpcomingPayment with _$UpcomingPayment {
   const UpcomingPayment._();
@@ -20,6 +29,7 @@ abstract class UpcomingPayment with _$UpcomingPayment {
     required String notifyTimeHhmm,
     String? note,
     required bool autoPost,
+    @Default(UpcomingPaymentFlowType.expense) UpcomingPaymentFlowType flowType,
     required bool isActive,
     int? nextRunAtMs,
     int? nextNotifyAtMs,
@@ -47,6 +57,7 @@ abstract class UpcomingPayment with _$UpcomingPayment {
       notifyTimeHhmm: json['notifyTimeHhmm'] as String? ?? '12:00',
       note: json['note'] as String?,
       autoPost: json['autoPost'] as bool? ?? false,
+      flowType: parseUpcomingPaymentFlowType(json['flowType'] as String?),
       isActive: json['isActive'] as bool? ?? true,
       nextRunAtMs: (json['nextRunAtMs'] as num?)?.toInt(),
       nextNotifyAtMs: (json['nextNotifyAtMs'] as num?)?.toInt(),
@@ -69,6 +80,7 @@ abstract class UpcomingPayment with _$UpcomingPayment {
       'notifyTimeHhmm': notifyTimeHhmm,
       'note': note,
       'autoPost': autoPost,
+      'flowType': flowType.name,
       'isActive': isActive,
       'nextRunAtMs': nextRunAtMs,
       'nextNotifyAtMs': nextNotifyAtMs,

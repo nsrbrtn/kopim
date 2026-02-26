@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$OverviewPreferences {
 
- List<String>? get accountIds; List<String>? get categoryIds;
+ List<String>? get accountIds; List<String>? get categoryIds; String? get balanceAnchorUpcomingPaymentId;
 /// Create a copy of OverviewPreferences
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $OverviewPreferencesCopyWith<OverviewPreferences> get copyWith => _$OverviewPref
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is OverviewPreferences&&const DeepCollectionEquality().equals(other.accountIds, accountIds)&&const DeepCollectionEquality().equals(other.categoryIds, categoryIds));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is OverviewPreferences&&const DeepCollectionEquality().equals(other.accountIds, accountIds)&&const DeepCollectionEquality().equals(other.categoryIds, categoryIds)&&(identical(other.balanceAnchorUpcomingPaymentId, balanceAnchorUpcomingPaymentId) || other.balanceAnchorUpcomingPaymentId == balanceAnchorUpcomingPaymentId));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(accountIds),const DeepCollectionEquality().hash(categoryIds));
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(accountIds),const DeepCollectionEquality().hash(categoryIds),balanceAnchorUpcomingPaymentId);
 
 @override
 String toString() {
-  return 'OverviewPreferences(accountIds: $accountIds, categoryIds: $categoryIds)';
+  return 'OverviewPreferences(accountIds: $accountIds, categoryIds: $categoryIds, balanceAnchorUpcomingPaymentId: $balanceAnchorUpcomingPaymentId)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $OverviewPreferencesCopyWith<$Res>  {
   factory $OverviewPreferencesCopyWith(OverviewPreferences value, $Res Function(OverviewPreferences) _then) = _$OverviewPreferencesCopyWithImpl;
 @useResult
 $Res call({
- List<String>? accountIds, List<String>? categoryIds
+ List<String>? accountIds, List<String>? categoryIds, String? balanceAnchorUpcomingPaymentId
 });
 
 
@@ -65,11 +65,12 @@ class _$OverviewPreferencesCopyWithImpl<$Res>
 
 /// Create a copy of OverviewPreferences
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? accountIds = freezed,Object? categoryIds = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? accountIds = freezed,Object? categoryIds = freezed,Object? balanceAnchorUpcomingPaymentId = freezed,}) {
   return _then(_self.copyWith(
 accountIds: freezed == accountIds ? _self.accountIds : accountIds // ignore: cast_nullable_to_non_nullable
 as List<String>?,categoryIds: freezed == categoryIds ? _self.categoryIds : categoryIds // ignore: cast_nullable_to_non_nullable
-as List<String>?,
+as List<String>?,balanceAnchorUpcomingPaymentId: freezed == balanceAnchorUpcomingPaymentId ? _self.balanceAnchorUpcomingPaymentId : balanceAnchorUpcomingPaymentId // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 
@@ -154,10 +155,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( List<String>? accountIds,  List<String>? categoryIds)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( List<String>? accountIds,  List<String>? categoryIds,  String? balanceAnchorUpcomingPaymentId)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _OverviewPreferences() when $default != null:
-return $default(_that.accountIds,_that.categoryIds);case _:
+return $default(_that.accountIds,_that.categoryIds,_that.balanceAnchorUpcomingPaymentId);case _:
   return orElse();
 
 }
@@ -175,10 +176,10 @@ return $default(_that.accountIds,_that.categoryIds);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( List<String>? accountIds,  List<String>? categoryIds)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( List<String>? accountIds,  List<String>? categoryIds,  String? balanceAnchorUpcomingPaymentId)  $default,) {final _that = this;
 switch (_that) {
 case _OverviewPreferences():
-return $default(_that.accountIds,_that.categoryIds);case _:
+return $default(_that.accountIds,_that.categoryIds,_that.balanceAnchorUpcomingPaymentId);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -195,10 +196,10 @@ return $default(_that.accountIds,_that.categoryIds);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( List<String>? accountIds,  List<String>? categoryIds)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( List<String>? accountIds,  List<String>? categoryIds,  String? balanceAnchorUpcomingPaymentId)?  $default,) {final _that = this;
 switch (_that) {
 case _OverviewPreferences() when $default != null:
-return $default(_that.accountIds,_that.categoryIds);case _:
+return $default(_that.accountIds,_that.categoryIds,_that.balanceAnchorUpcomingPaymentId);case _:
   return null;
 
 }
@@ -210,7 +211,7 @@ return $default(_that.accountIds,_that.categoryIds);case _:
 @JsonSerializable()
 
 class _OverviewPreferences extends OverviewPreferences {
-  const _OverviewPreferences({final  List<String>? accountIds, final  List<String>? categoryIds}): _accountIds = accountIds,_categoryIds = categoryIds,super._();
+  const _OverviewPreferences({final  List<String>? accountIds, final  List<String>? categoryIds, this.balanceAnchorUpcomingPaymentId}): _accountIds = accountIds,_categoryIds = categoryIds,super._();
   factory _OverviewPreferences.fromJson(Map<String, dynamic> json) => _$OverviewPreferencesFromJson(json);
 
  final  List<String>? _accountIds;
@@ -231,6 +232,7 @@ class _OverviewPreferences extends OverviewPreferences {
   return EqualUnmodifiableListView(value);
 }
 
+@override final  String? balanceAnchorUpcomingPaymentId;
 
 /// Create a copy of OverviewPreferences
 /// with the given fields replaced by the non-null parameter values.
@@ -245,16 +247,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _OverviewPreferences&&const DeepCollectionEquality().equals(other._accountIds, _accountIds)&&const DeepCollectionEquality().equals(other._categoryIds, _categoryIds));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _OverviewPreferences&&const DeepCollectionEquality().equals(other._accountIds, _accountIds)&&const DeepCollectionEquality().equals(other._categoryIds, _categoryIds)&&(identical(other.balanceAnchorUpcomingPaymentId, balanceAnchorUpcomingPaymentId) || other.balanceAnchorUpcomingPaymentId == balanceAnchorUpcomingPaymentId));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_accountIds),const DeepCollectionEquality().hash(_categoryIds));
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_accountIds),const DeepCollectionEquality().hash(_categoryIds),balanceAnchorUpcomingPaymentId);
 
 @override
 String toString() {
-  return 'OverviewPreferences(accountIds: $accountIds, categoryIds: $categoryIds)';
+  return 'OverviewPreferences(accountIds: $accountIds, categoryIds: $categoryIds, balanceAnchorUpcomingPaymentId: $balanceAnchorUpcomingPaymentId)';
 }
 
 
@@ -265,7 +267,7 @@ abstract mixin class _$OverviewPreferencesCopyWith<$Res> implements $OverviewPre
   factory _$OverviewPreferencesCopyWith(_OverviewPreferences value, $Res Function(_OverviewPreferences) _then) = __$OverviewPreferencesCopyWithImpl;
 @override @useResult
 $Res call({
- List<String>? accountIds, List<String>? categoryIds
+ List<String>? accountIds, List<String>? categoryIds, String? balanceAnchorUpcomingPaymentId
 });
 
 
@@ -282,11 +284,12 @@ class __$OverviewPreferencesCopyWithImpl<$Res>
 
 /// Create a copy of OverviewPreferences
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? accountIds = freezed,Object? categoryIds = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? accountIds = freezed,Object? categoryIds = freezed,Object? balanceAnchorUpcomingPaymentId = freezed,}) {
   return _then(_OverviewPreferences(
 accountIds: freezed == accountIds ? _self._accountIds : accountIds // ignore: cast_nullable_to_non_nullable
 as List<String>?,categoryIds: freezed == categoryIds ? _self._categoryIds : categoryIds // ignore: cast_nullable_to_non_nullable
-as List<String>?,
+as List<String>?,balanceAnchorUpcomingPaymentId: freezed == balanceAnchorUpcomingPaymentId ? _self.balanceAnchorUpcomingPaymentId : balanceAnchorUpcomingPaymentId // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 

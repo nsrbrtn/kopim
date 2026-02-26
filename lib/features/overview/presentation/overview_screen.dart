@@ -1,7 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
+import 'package:kopim/core/money/money.dart';
+import 'package:kopim/core/money/money_utils.dart';
+import 'package:kopim/features/overview/domain/entities/overview_preferences.dart';
 import 'package:kopim/features/overview/domain/models/financial_index_models.dart';
+import 'package:kopim/features/overview/domain/models/overview_daily_allowance.dart';
 import 'package:kopim/features/overview/presentation/controllers/overview_financial_index_providers.dart';
+import 'package:kopim/features/overview/presentation/controllers/overview_preferences_controller.dart';
+import 'package:kopim/features/upcoming_payments/domain/entities/upcoming_payment.dart';
+import 'package:kopim/features/upcoming_payments/domain/providers/upcoming_payments_providers.dart';
+import 'package:kopim/features/upcoming_payments/domain/services/schedule_policy.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
 class OverviewScreen extends StatelessWidget {
@@ -11,7 +20,6 @@ class OverviewScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final AppLocalizations strings = AppLocalizations.of(context)!;
     final ThemeData theme = Theme.of(context);
     final ColorScheme colors = theme.colorScheme;
 
@@ -26,17 +34,6 @@ class OverviewScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: <Widget>[
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 10,
-                      ),
-                      child: Text(
-                        strings.analyticsTitle,
-                        style: theme.textTheme.displaySmall,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
                     _FinancialIndexCard(colors: colors, theme: theme),
                     const SizedBox(height: 8),
                     _BalanceCard(colors: colors, theme: theme),
@@ -350,15 +347,36 @@ void _showFinancialIndexInfo(BuildContext context, AppLocalizations strings) {
   );
 }
 
-class _BalanceCard extends StatelessWidget {
+class _BalanceCard extends ConsumerWidget {
   const _BalanceCard({required this.colors, required this.theme});
 
   final ColorScheme colors;
   final ThemeData theme;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final AppLocalizations strings = AppLocalizations.of(context)!;
+    final AsyncValue<OverviewDailyAllowance> allowanceAsync = ref.watch(
+      overviewDailyAllowanceProvider,
+    );
+    final OverviewDailyAllowance? allowance = allowanceAsync.maybeWhen(
+      data: (OverviewDailyAllowance value) => value,
+      orElse: () => null,
+    );
+    final bool hasAllowance = allowance != null;
+    final Money dailyMoney = Money(
+      minor: allowance?.dailyAllowance.minor.abs() ?? BigInt.zero,
+      currency: 'XXX',
+      scale: allowance?.dailyAllowance.scale ?? 2,
+    );
+    final String dailyAmount = dailyMoney.toDecimalString();
+    final String dailyPrefix =
+        hasAllowance && allowance.dailyAllowance.minor < BigInt.zero ? '-' : '';
+    final String horizonLabel = hasAllowance
+        ? (allowance.hasIncomeAnchor
+              ? strings.overviewBalanceIncomeInDaysValue(allowance.daysLeft)
+              : strings.overviewBalanceHorizonInDaysValue(allowance.daysLeft))
+        : '';
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -377,10 +395,21 @@ class _BalanceCard extends StatelessWidget {
                 ),
               ),
               const Spacer(),
-              Icon(
-                Icons.settings,
-                color: colors.surfaceContainerHighest,
-                size: 24,
+              Material(
+                color: Colors.transparent,
+                borderRadius: BorderRadius.circular(12),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(12),
+                  onTap: () => _showBalanceAnchorPicker(context, ref, strings),
+                  child: Padding(
+                    padding: const EdgeInsets.all(8),
+                    child: Icon(
+                      Icons.settings,
+                      color: colors.surfaceContainerHighest,
+                      size: 24,
+                    ),
+                  ),
+                ),
               ),
             ],
           ),
@@ -389,7 +418,7 @@ class _BalanceCard extends StatelessWidget {
             text: TextSpan(
               children: <TextSpan>[
                 TextSpan(
-                  text: strings.overviewBalanceDailyAmount,
+                  text: hasAllowance ? '$dailyPrefix$dailyAmount' : '--',
                   style: theme.textTheme.headlineSmall?.copyWith(
                     color: colors.onSurface,
                   ),
@@ -418,14 +447,156 @@ class _BalanceCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 24),
-          Text(
-            strings.overviewBalanceIncomeInDays,
-            style: theme.textTheme.labelMedium?.copyWith(
-              color: colors.onSurface,
-              fontWeight: FontWeight.w500,
+          if (horizonLabel.isNotEmpty)
+            Text(
+              horizonLabel,
+              style: theme.textTheme.labelMedium?.copyWith(
+                color: colors.onSurface,
+                fontWeight: FontWeight.w500,
+              ),
             ),
-          ),
         ],
+      ),
+    );
+  }
+}
+
+Future<void> _showBalanceAnchorPicker(
+  BuildContext context,
+  WidgetRef ref,
+  AppLocalizations strings,
+) {
+  return showModalBottomSheet<void>(
+    context: context,
+    showDragHandle: true,
+    builder: (BuildContext context) {
+      return _BalanceAnchorPickerSheet(strings: strings);
+    },
+  );
+}
+
+class _BalanceAnchorPickerSheet extends ConsumerWidget {
+  const _BalanceAnchorPickerSheet({required this.strings});
+
+  final AppLocalizations strings;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final ThemeData theme = Theme.of(context);
+    final AsyncValue<List<UpcomingPayment>> paymentsAsync = ref.watch(
+      watchUpcomingPaymentsProvider,
+    );
+    final String? selectedPaymentId = ref
+        .watch(overviewPreferencesControllerProvider)
+        .maybeWhen(
+          data: (OverviewPreferences value) =>
+              value.balanceAnchorUpcomingPaymentId,
+          orElse: () => null,
+        );
+
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Text(
+              strings.overviewBalanceAnchorSettingsTitle,
+              style: theme.textTheme.titleMedium,
+            ),
+            const SizedBox(height: 8),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              onTap: () async {
+                await ref
+                    .read(overviewPreferencesControllerProvider.notifier)
+                    .setBalanceAnchorUpcomingPaymentId(null);
+                if (context.mounted) {
+                  Navigator.of(context).pop();
+                }
+              },
+              title: Text(strings.overviewBalanceAnchorAutoOption),
+              trailing: selectedPaymentId == null
+                  ? Icon(Icons.check_rounded, color: theme.colorScheme.primary)
+                  : null,
+            ),
+            paymentsAsync.when(
+              data: (List<UpcomingPayment> payments) {
+                final DateTime now = DateTime.now();
+                final DateFormat dateFormat = DateFormat.MMMd(
+                  strings.localeName,
+                );
+                final List<UpcomingPayment> incomes = payments
+                    .where(
+                      (UpcomingPayment payment) =>
+                          payment.isActive &&
+                          payment.flowType == UpcomingPaymentFlowType.income,
+                    )
+                    .toList(growable: false);
+                if (incomes.isEmpty) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: Text(
+                      strings.overviewBalanceAnchorEmptyIncomes,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  );
+                }
+                return Column(
+                  children: incomes
+                      .map((UpcomingPayment payment) {
+                        final DateTime nextRun = const SchedulePolicy()
+                            .computeNextRunLocal(
+                              fromLocal: now,
+                              dayOfMonth: payment.dayOfMonth,
+                            );
+                        final String subtitle = dateFormat.format(nextRun);
+                        final bool isSelected = selectedPaymentId == payment.id;
+                        return ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          onTap: () async {
+                            await ref
+                                .read(
+                                  overviewPreferencesControllerProvider
+                                      .notifier,
+                                )
+                                .setBalanceAnchorUpcomingPaymentId(payment.id);
+                            if (context.mounted) {
+                              Navigator.of(context).pop();
+                            }
+                          },
+                          title: Text(payment.title),
+                          subtitle: Text(subtitle),
+                          trailing: isSelected
+                              ? Icon(
+                                  Icons.check_rounded,
+                                  color: theme.colorScheme.primary,
+                                )
+                              : null,
+                        );
+                      })
+                      .toList(growable: false),
+                );
+              },
+              loading: () => const Padding(
+                padding: EdgeInsets.symmetric(vertical: 12),
+                child: Center(child: CircularProgressIndicator()),
+              ),
+              error: (Object error, StackTrace stackTrace) => Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Text(
+                  strings.upcomingPaymentsListError(error.toString()),
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.error,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

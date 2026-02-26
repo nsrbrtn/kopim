@@ -380,10 +380,13 @@ class UpcomingNotificationsController
 
   String _buildPaymentBody(UpcomingPayment payment) {
     final String amount = _formatAmount(payment.amountValue.abs());
+    final String prefix = payment.flowType == UpcomingPaymentFlowType.income
+        ? 'Сумма к поступлению'
+        : 'Сумма к списанию';
     if (payment.note == null || payment.note!.isEmpty) {
-      return 'Сумма к списанию: $amount';
+      return '$prefix: $amount';
     }
-    return 'Сумма к списанию: $amount\n${payment.note!}';
+    return '$prefix: $amount\n${payment.note!}';
   }
 
   String _buildReminderBody(PaymentReminder reminder) {

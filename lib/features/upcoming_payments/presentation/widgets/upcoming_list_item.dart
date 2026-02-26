@@ -42,7 +42,12 @@ class UpcomingPaymentListItem extends StatelessWidget {
       symbol: (account?.currency ?? '').toUpperCase(),
     );
     final double amountAbs = payment.amountValue.abs().toDouble();
-    final Color amountColor = theme.colorScheme.onSurface;
+    final bool isIncome = payment.flowType == UpcomingPaymentFlowType.income;
+    final Color amountColor = isIncome
+        ? theme.colorScheme.primary
+        : theme.colorScheme.error;
+    final String signedAmount =
+        '${isIncome ? '+' : '-'}${formatter.format(amountAbs)}';
 
     final String secondaryLabel = payment.note?.trim().isNotEmpty == true
         ? payment.note!.trim()
@@ -130,7 +135,7 @@ class UpcomingPaymentListItem extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: <Widget>[
                     Text(
-                      formatter.format(amountAbs),
+                      signedAmount,
                       style: theme.textTheme.titleLarge?.copyWith(
                         color: amountColor,
                         fontWeight: FontWeight.w400,

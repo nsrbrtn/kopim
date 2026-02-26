@@ -10,6 +10,7 @@ abstract class OverviewPreferences with _$OverviewPreferences {
   const factory OverviewPreferences({
     List<String>? accountIds,
     List<String>? categoryIds,
+    String? balanceAnchorUpcomingPaymentId,
   }) = _OverviewPreferences;
 
   factory OverviewPreferences.fromJson(Map<String, dynamic> json) =>

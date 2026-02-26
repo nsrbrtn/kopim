@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$CreateUpcomingPaymentInput {
 
- String? get id; String get title; String get accountId; String get categoryId; MoneyAmount get amount; int get dayOfMonth; int get notifyDaysBefore; String get notifyTimeHhmm; String? get note; bool get autoPost;
+ String? get id; String get title; String get accountId; String get categoryId; MoneyAmount get amount; UpcomingPaymentFlowType get flowType; int get dayOfMonth; int get notifyDaysBefore; String get notifyTimeHhmm; String? get note; bool get autoPost;
 /// Create a copy of CreateUpcomingPaymentInput
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $CreateUpcomingPaymentInputCopyWith<CreateUpcomingPaymentInput> get copyWith => 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CreateUpcomingPaymentInput&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.categoryId, categoryId) || other.categoryId == categoryId)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.dayOfMonth, dayOfMonth) || other.dayOfMonth == dayOfMonth)&&(identical(other.notifyDaysBefore, notifyDaysBefore) || other.notifyDaysBefore == notifyDaysBefore)&&(identical(other.notifyTimeHhmm, notifyTimeHhmm) || other.notifyTimeHhmm == notifyTimeHhmm)&&(identical(other.note, note) || other.note == note)&&(identical(other.autoPost, autoPost) || other.autoPost == autoPost));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CreateUpcomingPaymentInput&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.categoryId, categoryId) || other.categoryId == categoryId)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.flowType, flowType) || other.flowType == flowType)&&(identical(other.dayOfMonth, dayOfMonth) || other.dayOfMonth == dayOfMonth)&&(identical(other.notifyDaysBefore, notifyDaysBefore) || other.notifyDaysBefore == notifyDaysBefore)&&(identical(other.notifyTimeHhmm, notifyTimeHhmm) || other.notifyTimeHhmm == notifyTimeHhmm)&&(identical(other.note, note) || other.note == note)&&(identical(other.autoPost, autoPost) || other.autoPost == autoPost));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,title,accountId,categoryId,amount,dayOfMonth,notifyDaysBefore,notifyTimeHhmm,note,autoPost);
+int get hashCode => Object.hash(runtimeType,id,title,accountId,categoryId,amount,flowType,dayOfMonth,notifyDaysBefore,notifyTimeHhmm,note,autoPost);
 
 @override
 String toString() {
-  return 'CreateUpcomingPaymentInput(id: $id, title: $title, accountId: $accountId, categoryId: $categoryId, amount: $amount, dayOfMonth: $dayOfMonth, notifyDaysBefore: $notifyDaysBefore, notifyTimeHhmm: $notifyTimeHhmm, note: $note, autoPost: $autoPost)';
+  return 'CreateUpcomingPaymentInput(id: $id, title: $title, accountId: $accountId, categoryId: $categoryId, amount: $amount, flowType: $flowType, dayOfMonth: $dayOfMonth, notifyDaysBefore: $notifyDaysBefore, notifyTimeHhmm: $notifyTimeHhmm, note: $note, autoPost: $autoPost)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $CreateUpcomingPaymentInputCopyWith<$Res>  {
   factory $CreateUpcomingPaymentInputCopyWith(CreateUpcomingPaymentInput value, $Res Function(CreateUpcomingPaymentInput) _then) = _$CreateUpcomingPaymentInputCopyWithImpl;
 @useResult
 $Res call({
- String? id, String title, String accountId, String categoryId, MoneyAmount amount, int dayOfMonth, int notifyDaysBefore, String notifyTimeHhmm, String? note, bool autoPost
+ String? id, String title, String accountId, String categoryId, MoneyAmount amount, UpcomingPaymentFlowType flowType, int dayOfMonth, int notifyDaysBefore, String notifyTimeHhmm, String? note, bool autoPost
 });
 
 
@@ -62,14 +62,15 @@ class _$CreateUpcomingPaymentInputCopyWithImpl<$Res>
 
 /// Create a copy of CreateUpcomingPaymentInput
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = freezed,Object? title = null,Object? accountId = null,Object? categoryId = null,Object? amount = null,Object? dayOfMonth = null,Object? notifyDaysBefore = null,Object? notifyTimeHhmm = null,Object? note = freezed,Object? autoPost = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = freezed,Object? title = null,Object? accountId = null,Object? categoryId = null,Object? amount = null,Object? flowType = null,Object? dayOfMonth = null,Object? notifyDaysBefore = null,Object? notifyTimeHhmm = null,Object? note = freezed,Object? autoPost = null,}) {
   return _then(_self.copyWith(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String?,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
 as String,categoryId: null == categoryId ? _self.categoryId : categoryId // ignore: cast_nullable_to_non_nullable
 as String,amount: null == amount ? _self.amount : amount // ignore: cast_nullable_to_non_nullable
-as MoneyAmount,dayOfMonth: null == dayOfMonth ? _self.dayOfMonth : dayOfMonth // ignore: cast_nullable_to_non_nullable
+as MoneyAmount,flowType: null == flowType ? _self.flowType : flowType // ignore: cast_nullable_to_non_nullable
+as UpcomingPaymentFlowType,dayOfMonth: null == dayOfMonth ? _self.dayOfMonth : dayOfMonth // ignore: cast_nullable_to_non_nullable
 as int,notifyDaysBefore: null == notifyDaysBefore ? _self.notifyDaysBefore : notifyDaysBefore // ignore: cast_nullable_to_non_nullable
 as int,notifyTimeHhmm: null == notifyTimeHhmm ? _self.notifyTimeHhmm : notifyTimeHhmm // ignore: cast_nullable_to_non_nullable
 as String,note: freezed == note ? _self.note : note // ignore: cast_nullable_to_non_nullable
@@ -159,10 +160,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? id,  String title,  String accountId,  String categoryId,  MoneyAmount amount,  int dayOfMonth,  int notifyDaysBefore,  String notifyTimeHhmm,  String? note,  bool autoPost)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? id,  String title,  String accountId,  String categoryId,  MoneyAmount amount,  UpcomingPaymentFlowType flowType,  int dayOfMonth,  int notifyDaysBefore,  String notifyTimeHhmm,  String? note,  bool autoPost)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _CreateUpcomingPaymentInput() when $default != null:
-return $default(_that.id,_that.title,_that.accountId,_that.categoryId,_that.amount,_that.dayOfMonth,_that.notifyDaysBefore,_that.notifyTimeHhmm,_that.note,_that.autoPost);case _:
+return $default(_that.id,_that.title,_that.accountId,_that.categoryId,_that.amount,_that.flowType,_that.dayOfMonth,_that.notifyDaysBefore,_that.notifyTimeHhmm,_that.note,_that.autoPost);case _:
   return orElse();
 
 }
@@ -180,10 +181,10 @@ return $default(_that.id,_that.title,_that.accountId,_that.categoryId,_that.amou
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? id,  String title,  String accountId,  String categoryId,  MoneyAmount amount,  int dayOfMonth,  int notifyDaysBefore,  String notifyTimeHhmm,  String? note,  bool autoPost)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? id,  String title,  String accountId,  String categoryId,  MoneyAmount amount,  UpcomingPaymentFlowType flowType,  int dayOfMonth,  int notifyDaysBefore,  String notifyTimeHhmm,  String? note,  bool autoPost)  $default,) {final _that = this;
 switch (_that) {
 case _CreateUpcomingPaymentInput():
-return $default(_that.id,_that.title,_that.accountId,_that.categoryId,_that.amount,_that.dayOfMonth,_that.notifyDaysBefore,_that.notifyTimeHhmm,_that.note,_that.autoPost);case _:
+return $default(_that.id,_that.title,_that.accountId,_that.categoryId,_that.amount,_that.flowType,_that.dayOfMonth,_that.notifyDaysBefore,_that.notifyTimeHhmm,_that.note,_that.autoPost);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -200,10 +201,10 @@ return $default(_that.id,_that.title,_that.accountId,_that.categoryId,_that.amou
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? id,  String title,  String accountId,  String categoryId,  MoneyAmount amount,  int dayOfMonth,  int notifyDaysBefore,  String notifyTimeHhmm,  String? note,  bool autoPost)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? id,  String title,  String accountId,  String categoryId,  MoneyAmount amount,  UpcomingPaymentFlowType flowType,  int dayOfMonth,  int notifyDaysBefore,  String notifyTimeHhmm,  String? note,  bool autoPost)?  $default,) {final _that = this;
 switch (_that) {
 case _CreateUpcomingPaymentInput() when $default != null:
-return $default(_that.id,_that.title,_that.accountId,_that.categoryId,_that.amount,_that.dayOfMonth,_that.notifyDaysBefore,_that.notifyTimeHhmm,_that.note,_that.autoPost);case _:
+return $default(_that.id,_that.title,_that.accountId,_that.categoryId,_that.amount,_that.flowType,_that.dayOfMonth,_that.notifyDaysBefore,_that.notifyTimeHhmm,_that.note,_that.autoPost);case _:
   return null;
 
 }
@@ -215,7 +216,7 @@ return $default(_that.id,_that.title,_that.accountId,_that.categoryId,_that.amou
 
 
 class _CreateUpcomingPaymentInput implements CreateUpcomingPaymentInput {
-  const _CreateUpcomingPaymentInput({this.id, required this.title, required this.accountId, required this.categoryId, required this.amount, required this.dayOfMonth, required this.notifyDaysBefore, required this.notifyTimeHhmm, this.note, required this.autoPost});
+  const _CreateUpcomingPaymentInput({this.id, required this.title, required this.accountId, required this.categoryId, required this.amount, this.flowType = UpcomingPaymentFlowType.expense, required this.dayOfMonth, required this.notifyDaysBefore, required this.notifyTimeHhmm, this.note, required this.autoPost});
   
 
 @override final  String? id;
@@ -223,6 +224,7 @@ class _CreateUpcomingPaymentInput implements CreateUpcomingPaymentInput {
 @override final  String accountId;
 @override final  String categoryId;
 @override final  MoneyAmount amount;
+@override@JsonKey() final  UpcomingPaymentFlowType flowType;
 @override final  int dayOfMonth;
 @override final  int notifyDaysBefore;
 @override final  String notifyTimeHhmm;
@@ -239,16 +241,16 @@ _$CreateUpcomingPaymentInputCopyWith<_CreateUpcomingPaymentInput> get copyWith =
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CreateUpcomingPaymentInput&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.categoryId, categoryId) || other.categoryId == categoryId)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.dayOfMonth, dayOfMonth) || other.dayOfMonth == dayOfMonth)&&(identical(other.notifyDaysBefore, notifyDaysBefore) || other.notifyDaysBefore == notifyDaysBefore)&&(identical(other.notifyTimeHhmm, notifyTimeHhmm) || other.notifyTimeHhmm == notifyTimeHhmm)&&(identical(other.note, note) || other.note == note)&&(identical(other.autoPost, autoPost) || other.autoPost == autoPost));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CreateUpcomingPaymentInput&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.categoryId, categoryId) || other.categoryId == categoryId)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.flowType, flowType) || other.flowType == flowType)&&(identical(other.dayOfMonth, dayOfMonth) || other.dayOfMonth == dayOfMonth)&&(identical(other.notifyDaysBefore, notifyDaysBefore) || other.notifyDaysBefore == notifyDaysBefore)&&(identical(other.notifyTimeHhmm, notifyTimeHhmm) || other.notifyTimeHhmm == notifyTimeHhmm)&&(identical(other.note, note) || other.note == note)&&(identical(other.autoPost, autoPost) || other.autoPost == autoPost));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,title,accountId,categoryId,amount,dayOfMonth,notifyDaysBefore,notifyTimeHhmm,note,autoPost);
+int get hashCode => Object.hash(runtimeType,id,title,accountId,categoryId,amount,flowType,dayOfMonth,notifyDaysBefore,notifyTimeHhmm,note,autoPost);
 
 @override
 String toString() {
-  return 'CreateUpcomingPaymentInput(id: $id, title: $title, accountId: $accountId, categoryId: $categoryId, amount: $amount, dayOfMonth: $dayOfMonth, notifyDaysBefore: $notifyDaysBefore, notifyTimeHhmm: $notifyTimeHhmm, note: $note, autoPost: $autoPost)';
+  return 'CreateUpcomingPaymentInput(id: $id, title: $title, accountId: $accountId, categoryId: $categoryId, amount: $amount, flowType: $flowType, dayOfMonth: $dayOfMonth, notifyDaysBefore: $notifyDaysBefore, notifyTimeHhmm: $notifyTimeHhmm, note: $note, autoPost: $autoPost)';
 }
 
 
@@ -259,7 +261,7 @@ abstract mixin class _$CreateUpcomingPaymentInputCopyWith<$Res> implements $Crea
   factory _$CreateUpcomingPaymentInputCopyWith(_CreateUpcomingPaymentInput value, $Res Function(_CreateUpcomingPaymentInput) _then) = __$CreateUpcomingPaymentInputCopyWithImpl;
 @override @useResult
 $Res call({
- String? id, String title, String accountId, String categoryId, MoneyAmount amount, int dayOfMonth, int notifyDaysBefore, String notifyTimeHhmm, String? note, bool autoPost
+ String? id, String title, String accountId, String categoryId, MoneyAmount amount, UpcomingPaymentFlowType flowType, int dayOfMonth, int notifyDaysBefore, String notifyTimeHhmm, String? note, bool autoPost
 });
 
 
@@ -276,14 +278,15 @@ class __$CreateUpcomingPaymentInputCopyWithImpl<$Res>
 
 /// Create a copy of CreateUpcomingPaymentInput
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = freezed,Object? title = null,Object? accountId = null,Object? categoryId = null,Object? amount = null,Object? dayOfMonth = null,Object? notifyDaysBefore = null,Object? notifyTimeHhmm = null,Object? note = freezed,Object? autoPost = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = freezed,Object? title = null,Object? accountId = null,Object? categoryId = null,Object? amount = null,Object? flowType = null,Object? dayOfMonth = null,Object? notifyDaysBefore = null,Object? notifyTimeHhmm = null,Object? note = freezed,Object? autoPost = null,}) {
   return _then(_CreateUpcomingPaymentInput(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String?,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String,accountId: null == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
 as String,categoryId: null == categoryId ? _self.categoryId : categoryId // ignore: cast_nullable_to_non_nullable
 as String,amount: null == amount ? _self.amount : amount // ignore: cast_nullable_to_non_nullable
-as MoneyAmount,dayOfMonth: null == dayOfMonth ? _self.dayOfMonth : dayOfMonth // ignore: cast_nullable_to_non_nullable
+as MoneyAmount,flowType: null == flowType ? _self.flowType : flowType // ignore: cast_nullable_to_non_nullable
+as UpcomingPaymentFlowType,dayOfMonth: null == dayOfMonth ? _self.dayOfMonth : dayOfMonth // ignore: cast_nullable_to_non_nullable
 as int,notifyDaysBefore: null == notifyDaysBefore ? _self.notifyDaysBefore : notifyDaysBefore // ignore: cast_nullable_to_non_nullable
 as int,notifyTimeHhmm: null == notifyTimeHhmm ? _self.notifyTimeHhmm : notifyTimeHhmm // ignore: cast_nullable_to_non_nullable
 as String,note: freezed == note ? _self.note : note // ignore: cast_nullable_to_non_nullable

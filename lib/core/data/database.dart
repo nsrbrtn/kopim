@@ -444,7 +444,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.connect(DatabaseConnection super.connection);
 
   @override
-  int get schemaVersion => 38;
+  int get schemaVersion => 39;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -999,6 +999,12 @@ LEFT JOIN accounts acc ON up.account_id = acc.id
             upcomingPayments,
             upcomingPayments.lastGeneratedPeriod,
           );
+        }
+      }
+      if (from < 39) {
+        if (await _tableExists('upcoming_payments') &&
+            !await _columnExists('upcoming_payments', 'flow_type')) {
+          await m.addColumn(upcomingPayments, upcomingPayments.flowType);
         }
       }
       if (from < 3) {

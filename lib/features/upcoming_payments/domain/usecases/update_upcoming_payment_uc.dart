@@ -18,6 +18,7 @@ abstract class UpdateUpcomingPaymentInput with _$UpdateUpcomingPaymentInput {
     String? accountId,
     String? categoryId,
     MoneyAmount? amount,
+    UpcomingPaymentFlowType? flowType,
     int? dayOfMonth,
     int? notifyDaysBefore,
     String? notifyTimeHhmm,
@@ -53,6 +54,7 @@ class UpdateUpcomingPaymentUC {
     final String accountId = input.accountId ?? current.accountId;
     final String categoryId = input.categoryId ?? current.categoryId;
     final MoneyAmount amount = input.amount ?? current.amountValue;
+    final UpcomingPaymentFlowType flowType = input.flowType ?? current.flowType;
     final int dayOfMonth = input.dayOfMonth ?? current.dayOfMonth;
     final int notifyDaysBefore =
         input.notifyDaysBefore ?? current.notifyDaysBefore;
@@ -96,6 +98,7 @@ class UpdateUpcomingPaymentUC {
       notifyTimeHhmm: notifyTimeHhmm,
       note: note,
       autoPost: autoPost,
+      flowType: flowType,
       isActive: isActive,
       nextRunAtMs: _time.toEpochMs(nextRunLocal),
       nextNotifyAtMs: _time.toEpochMs(nextNotifyLocal),

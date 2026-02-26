@@ -39,7 +39,7 @@ final class OverviewPreferencesControllerProvider
 }
 
 String _$overviewPreferencesControllerHash() =>
-    r'21194f60045120e0ca0fc1f007bdfa109db1cf9c';
+    r'bad1f64864aa8efcc588472dcef0eb4357c00ec2';
 
 abstract class _$OverviewPreferencesController
     extends $AsyncNotifier<OverviewPreferences> {

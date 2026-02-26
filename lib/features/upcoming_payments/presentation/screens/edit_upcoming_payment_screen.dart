@@ -97,6 +97,7 @@ class _EditUpcomingPaymentScreenState
 
   bool _autoPost = false;
   bool _remindEnabled = false;
+  UpcomingPaymentFlowType _selectedFlowType = UpcomingPaymentFlowType.expense;
   String? _selectedAccountId;
   int _selectedAccountScale = 2;
   String? _selectedCategoryId;
@@ -264,7 +265,25 @@ class _EditUpcomingPaymentScreenState
         )
         .id;
     _syncSelectedAccountScale(accounts);
-    _selectedCategoryId ??= categories.first.id;
+    final String expectedCategoryType =
+        _selectedFlowType == UpcomingPaymentFlowType.income
+        ? 'income'
+        : 'expense';
+    final List<Category> filteredCategories = categories
+        .where(
+          (Category category) =>
+              category.type.toLowerCase() == expectedCategoryType,
+        )
+        .toList(growable: false);
+    final List<Category> selectableCategories = filteredCategories.isNotEmpty
+        ? filteredCategories
+        : categories;
+    final bool selectedCategoryAllowed = selectableCategories.any(
+      (Category category) => category.id == _selectedCategoryId,
+    );
+    if (!selectedCategoryAllowed) {
+      _selectedCategoryId = selectableCategories.first.id;
+    }
     final ColorScheme colors = theme.colorScheme;
     final KopimLayout layout = context.kopimLayout;
     final bool isEditing =
@@ -338,6 +357,59 @@ class _EditUpcomingPaymentScreenState
                   ),
                   SizedBox(height: layout.spacing.section),
                   _LabeledField(
+                    label: strings.addTransactionTypeLabel,
+                    theme: theme,
+                    colors: colors,
+                    layout: layout,
+                    field: Theme(
+                      data: theme.copyWith(
+                        colorScheme: colors.copyWith(
+                          surfaceContainer: colors.surfaceContainerHigh,
+                        ),
+                      ),
+                      child: KopimDropdownField<String>(
+                        value: _selectedFlowType.name,
+                        enabled: !_isSubmitting,
+                        items: <DropdownMenuItem<String>>[
+                          DropdownMenuItem<String>(
+                            value: UpcomingPaymentFlowType.expense.name,
+                            child: Text(strings.addTransactionTypeExpense),
+                          ),
+                          DropdownMenuItem<String>(
+                            value: UpcomingPaymentFlowType.income.name,
+                            child: Text(strings.addTransactionTypeIncome),
+                          ),
+                        ],
+                        onChanged: (String value) {
+                          final UpcomingPaymentFlowType nextType =
+                              parseUpcomingPaymentFlowType(value);
+                          final String nextCategoryType =
+                              nextType == UpcomingPaymentFlowType.income
+                              ? 'income'
+                              : 'expense';
+                          final List<Category> nextCategories = categories
+                              .where(
+                                (Category category) =>
+                                    category.type.toLowerCase() ==
+                                    nextCategoryType,
+                              )
+                              .toList(growable: false);
+                          setState(() {
+                            _selectedFlowType = nextType;
+                            if (nextCategories.isNotEmpty &&
+                                nextCategories.every(
+                                  (Category category) =>
+                                      category.id != _selectedCategoryId,
+                                )) {
+                              _selectedCategoryId = nextCategories.first.id;
+                            }
+                          });
+                        },
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: layout.spacing.section),
+                  _LabeledField(
                     label: strings.upcomingPaymentsFieldCategory,
                     theme: theme,
                     colors: colors,
@@ -351,7 +423,7 @@ class _EditUpcomingPaymentScreenState
                       child: KopimDropdownField<String>(
                         value: _selectedCategoryId,
                         enabled: !_isSubmitting,
-                        items: categories
+                        items: selectableCategories
                             .map(
                               (Category category) => DropdownMenuItem<String>(
                                 value: category.id,
@@ -572,6 +644,7 @@ class _EditUpcomingPaymentScreenState
     _noteController.text = payment.note ?? '';
     _autoPost = payment.autoPost;
     _remindEnabled = remindEnabled;
+    _selectedFlowType = payment.flowType;
     _selectedAccountId = payment.accountId;
     _selectedCategoryId = payment.categoryId;
     _appliedInitial = true;
@@ -619,6 +692,7 @@ class _EditUpcomingPaymentScreenState
             accountId: accountId,
             categoryId: categoryId,
             amount: amount,
+            flowType: _selectedFlowType,
             dayOfMonth: dayOfMonth,
             notifyDaysBefore: notifyDays,
             notifyTimeHhmm: notifyTime,
@@ -640,6 +714,7 @@ class _EditUpcomingPaymentScreenState
             accountId: accountId,
             categoryId: categoryId,
             amount: amount,
+            flowType: _selectedFlowType,
             dayOfMonth: dayOfMonth,
             notifyDaysBefore: notifyDays,
             notifyTimeHhmm: notifyTime,
@@ -750,6 +825,7 @@ class _EditUpcomingPaymentScreenState
       'account': _shortId(payment.accountId),
       'category': _shortId(payment.categoryId),
       'amount': payment.amountValue.toDouble(),
+      'flowType': payment.flowType.name,
       'autoPost': payment.autoPost ? 1 : 0,
       'result': success ? 'success' : 'error',
     };

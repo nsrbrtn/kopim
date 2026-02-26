@@ -36,6 +36,10 @@ class UpcomingPayments extends Table {
   BoolColumn get autoPost =>
       boolean().withDefault(const Constant<bool>(false))();
 
+  TextColumn get flowType => text()
+      .named('flow_type')
+      .withDefault(const Constant<String>('expense'))();
+
   BoolColumn get isActive =>
       boolean().withDefault(const Constant<bool>(true))();
 

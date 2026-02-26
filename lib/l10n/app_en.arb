@@ -3713,6 +3713,36 @@
   "@overviewBalanceIncomeInDays": {
     "description": "Next income label on the balance card on overview screen"
   },
+  "overviewBalanceIncomeInDaysValue": "Income in {days} d.",
+  "@overviewBalanceIncomeInDaysValue": {
+    "description": "Label with days until next income on the balance card on overview screen",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "overviewBalanceHorizonInDaysValue": "Plan for {days} d.",
+  "@overviewBalanceHorizonInDaysValue": {
+    "description": "Fallback horizon label with days on the balance card when income is absent",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "overviewBalanceAnchorSettingsTitle": "Anchor income for calculation",
+  "@overviewBalanceAnchorSettingsTitle": {
+    "description": "Title of the settings form for selecting upcoming income anchor for balance card"
+  },
+  "overviewBalanceAnchorAutoOption": "Auto (nearest income)",
+  "@overviewBalanceAnchorAutoOption": {
+    "description": "Automatic selection option for nearest income in balance card settings"
+  },
+  "overviewBalanceAnchorEmptyIncomes": "No upcoming incomes available.",
+  "@overviewBalanceAnchorEmptyIncomes": {
+    "description": "Message shown when there are no upcoming incomes to choose in balance card settings"
+  },
   "overviewSafetyPillowTitle": "Safety cushion",
   "@overviewSafetyPillowTitle": {
     "description": "Safety cushion card title on overview screen"

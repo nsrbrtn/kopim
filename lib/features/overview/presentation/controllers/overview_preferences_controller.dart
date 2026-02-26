@@ -39,6 +39,14 @@ class OverviewPreferencesController extends _$OverviewPreferencesController {
     await _persist(updated, previous: current);
   }
 
+  Future<void> setBalanceAnchorUpcomingPaymentId(String? paymentId) async {
+    final OverviewPreferences current = await future;
+    final OverviewPreferences updated = current.copyWith(
+      balanceAnchorUpcomingPaymentId: paymentId,
+    );
+    await _persist(updated, previous: current);
+  }
+
   List<String>? _normalizeSelection(
     Set<String> selectedIds,
     List<String> allIds,

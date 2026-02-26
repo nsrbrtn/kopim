@@ -289,9 +289,10 @@ Future<void> _handleUpcomingPayment({
         dueLocal: dueLocal,
       );
       final MoneyAmount amount = current.amountValue;
-      final TransactionType type = amount.minor >= BigInt.zero
-          ? TransactionType.expense
-          : TransactionType.income;
+      final TransactionType type =
+          current.flowType == UpcomingPaymentFlowType.income
+          ? TransactionType.income
+          : TransactionType.expense;
       bool shouldMarkGenerated = false;
       try {
         if (current.lastGeneratedPeriod != periodKey) {
@@ -305,6 +306,8 @@ Future<void> _handleUpcomingPayment({
               date: dueLocal.toUtc(),
               note: current.note?.isNotEmpty == true
                   ? current.note
+                  : current.flowType == UpcomingPaymentFlowType.income
+                  ? 'Автодоход "${current.title}"'
                   : 'Автоплатёж "${current.title}"',
               type: type,
               idempotencyKey: idempotencyKey,
@@ -500,10 +503,13 @@ tz.TZDateTime? _buildPaymentScheduleTime({
 
 String _paymentBody(UpcomingPayment payment) {
   final String amount = _formatAmount(payment.amountValue.abs());
+  final String prefix = payment.flowType == UpcomingPaymentFlowType.income
+      ? 'Сумма к поступлению'
+      : 'Сумма к списанию';
   if (payment.note == null || payment.note!.isEmpty) {
-    return 'Сумма к списанию: $amount';
+    return '$prefix: $amount';
   }
-  return 'Сумма к списанию: $amount\n${payment.note!}';
+  return '$prefix: $amount\n${payment.note!}';
 }
 
 String _reminderBody(PaymentReminder reminder) {

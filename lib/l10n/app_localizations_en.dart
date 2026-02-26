@@ -2865,6 +2865,27 @@ class AppLocalizationsEn extends AppLocalizations {
   String get overviewBalanceIncomeInDays => 'Income in 8 days';
 
   @override
+  String overviewBalanceIncomeInDaysValue(int days) {
+    return 'Income in $days d.';
+  }
+
+  @override
+  String overviewBalanceHorizonInDaysValue(int days) {
+    return 'Plan for $days d.';
+  }
+
+  @override
+  String get overviewBalanceAnchorSettingsTitle =>
+      'Anchor income for calculation';
+
+  @override
+  String get overviewBalanceAnchorAutoOption => 'Auto (nearest income)';
+
+  @override
+  String get overviewBalanceAnchorEmptyIncomes =>
+      'No upcoming incomes available.';
+
+  @override
   String get overviewSafetyPillowTitle => 'Safety cushion';
 
   @override

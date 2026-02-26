@@ -3713,6 +3713,36 @@
   "@overviewBalanceIncomeInDays": {
     "description": "Подпись следующего дохода в карточке остатка на экране обзора"
   },
+  "overviewBalanceIncomeInDaysValue": "Доход через {days} дн.",
+  "@overviewBalanceIncomeInDaysValue": {
+    "description": "Подпись с количеством дней до ближайшего дохода в карточке остатка на экране обзора",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "overviewBalanceHorizonInDaysValue": "План на {days} дн.",
+  "@overviewBalanceHorizonInDaysValue": {
+    "description": "Подпись с количеством дней горизонта в карточке остатка, когда доходов не найдено",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "overviewBalanceAnchorSettingsTitle": "До какого дохода считать",
+  "@overviewBalanceAnchorSettingsTitle": {
+    "description": "Заголовок формы настройки опорного предстоящего дохода для карточки остатка"
+  },
+  "overviewBalanceAnchorAutoOption": "Авто (ближайший доход)",
+  "@overviewBalanceAnchorAutoOption": {
+    "description": "Опция автоматического выбора ближайшего дохода в настройке карточки остатка"
+  },
+  "overviewBalanceAnchorEmptyIncomes": "Нет предстоящих доходов для выбора.",
+  "@overviewBalanceAnchorEmptyIncomes": {
+    "description": "Сообщение, когда в настройке карточки остатка нет предстоящих доходов"
+  },
   "overviewSafetyPillowTitle": "Финансовая подушка",
   "@overviewSafetyPillowTitle": {
     "description": "Заголовок карточки финансовой подушки на экране обзора"

@@ -2889,6 +2889,26 @@ class AppLocalizationsRu extends AppLocalizations {
   String get overviewBalanceIncomeInDays => 'Доход через 8 дней';
 
   @override
+  String overviewBalanceIncomeInDaysValue(int days) {
+    return 'Доход через $days дн.';
+  }
+
+  @override
+  String overviewBalanceHorizonInDaysValue(int days) {
+    return 'План на $days дн.';
+  }
+
+  @override
+  String get overviewBalanceAnchorSettingsTitle => 'До какого дохода считать';
+
+  @override
+  String get overviewBalanceAnchorAutoOption => 'Авто (ближайший доход)';
+
+  @override
+  String get overviewBalanceAnchorEmptyIncomes =>
+      'Нет предстоящих доходов для выбора.';
+
+  @override
   String get overviewSafetyPillowTitle => 'Финансовая подушка';
 
   @override

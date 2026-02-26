@@ -5082,6 +5082,36 @@ abstract class AppLocalizations {
   /// **'Income in 8 days'**
   String get overviewBalanceIncomeInDays;
 
+  /// Label with days until next income on the balance card on overview screen
+  ///
+  /// In en, this message translates to:
+  /// **'Income in {days} d.'**
+  String overviewBalanceIncomeInDaysValue(int days);
+
+  /// Fallback horizon label with days on the balance card when income is absent
+  ///
+  /// In en, this message translates to:
+  /// **'Plan for {days} d.'**
+  String overviewBalanceHorizonInDaysValue(int days);
+
+  /// Title of the settings form for selecting upcoming income anchor for balance card
+  ///
+  /// In en, this message translates to:
+  /// **'Anchor income for calculation'**
+  String get overviewBalanceAnchorSettingsTitle;
+
+  /// Automatic selection option for nearest income in balance card settings
+  ///
+  /// In en, this message translates to:
+  /// **'Auto (nearest income)'**
+  String get overviewBalanceAnchorAutoOption;
+
+  /// Message shown when there are no upcoming incomes to choose in balance card settings
+  ///
+  /// In en, this message translates to:
+  /// **'No upcoming incomes available.'**
+  String get overviewBalanceAnchorEmptyIncomes;
+
   /// Safety cushion card title on overview screen
   ///
   /// In en, this message translates to:
