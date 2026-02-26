@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$SavingGoal {
 
- String get id; String get userId; String get name; int get targetAmount; int get currentAmount; String? get note; DateTime get createdAt; DateTime get updatedAt; DateTime? get archivedAt;
+ String get id; String get userId; String get name; String? get accountId; int get targetAmount; int get currentAmount; String? get note; DateTime get createdAt; DateTime get updatedAt; DateTime? get archivedAt;
 /// Create a copy of SavingGoal
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $SavingGoalCopyWith<SavingGoal> get copyWith => _$SavingGoalCopyWithImpl<SavingG
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SavingGoal&&(identical(other.id, id) || other.id == id)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.name, name) || other.name == name)&&(identical(other.targetAmount, targetAmount) || other.targetAmount == targetAmount)&&(identical(other.currentAmount, currentAmount) || other.currentAmount == currentAmount)&&(identical(other.note, note) || other.note == note)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.archivedAt, archivedAt) || other.archivedAt == archivedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SavingGoal&&(identical(other.id, id) || other.id == id)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.name, name) || other.name == name)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.targetAmount, targetAmount) || other.targetAmount == targetAmount)&&(identical(other.currentAmount, currentAmount) || other.currentAmount == currentAmount)&&(identical(other.note, note) || other.note == note)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.archivedAt, archivedAt) || other.archivedAt == archivedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,userId,name,targetAmount,currentAmount,note,createdAt,updatedAt,archivedAt);
+int get hashCode => Object.hash(runtimeType,id,userId,name,accountId,targetAmount,currentAmount,note,createdAt,updatedAt,archivedAt);
 
 @override
 String toString() {
-  return 'SavingGoal(id: $id, userId: $userId, name: $name, targetAmount: $targetAmount, currentAmount: $currentAmount, note: $note, createdAt: $createdAt, updatedAt: $updatedAt, archivedAt: $archivedAt)';
+  return 'SavingGoal(id: $id, userId: $userId, name: $name, accountId: $accountId, targetAmount: $targetAmount, currentAmount: $currentAmount, note: $note, createdAt: $createdAt, updatedAt: $updatedAt, archivedAt: $archivedAt)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $SavingGoalCopyWith<$Res>  {
   factory $SavingGoalCopyWith(SavingGoal value, $Res Function(SavingGoal) _then) = _$SavingGoalCopyWithImpl;
 @useResult
 $Res call({
- String id, String userId, String name, int targetAmount, int currentAmount, String? note, DateTime createdAt, DateTime updatedAt, DateTime? archivedAt
+ String id, String userId, String name, String? accountId, int targetAmount, int currentAmount, String? note, DateTime createdAt, DateTime updatedAt, DateTime? archivedAt
 });
 
 
@@ -65,12 +65,13 @@ class _$SavingGoalCopyWithImpl<$Res>
 
 /// Create a copy of SavingGoal
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? userId = null,Object? name = null,Object? targetAmount = null,Object? currentAmount = null,Object? note = freezed,Object? createdAt = null,Object? updatedAt = null,Object? archivedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? userId = null,Object? name = null,Object? accountId = freezed,Object? targetAmount = null,Object? currentAmount = null,Object? note = freezed,Object? createdAt = null,Object? updatedAt = null,Object? archivedAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,userId: null == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
-as String,targetAmount: null == targetAmount ? _self.targetAmount : targetAmount // ignore: cast_nullable_to_non_nullable
+as String,accountId: freezed == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
+as String?,targetAmount: null == targetAmount ? _self.targetAmount : targetAmount // ignore: cast_nullable_to_non_nullable
 as int,currentAmount: null == currentAmount ? _self.currentAmount : currentAmount // ignore: cast_nullable_to_non_nullable
 as int,note: freezed == note ? _self.note : note // ignore: cast_nullable_to_non_nullable
 as String?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
@@ -161,10 +162,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String userId,  String name,  int targetAmount,  int currentAmount,  String? note,  DateTime createdAt,  DateTime updatedAt,  DateTime? archivedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String userId,  String name,  String? accountId,  int targetAmount,  int currentAmount,  String? note,  DateTime createdAt,  DateTime updatedAt,  DateTime? archivedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SavingGoal() when $default != null:
-return $default(_that.id,_that.userId,_that.name,_that.targetAmount,_that.currentAmount,_that.note,_that.createdAt,_that.updatedAt,_that.archivedAt);case _:
+return $default(_that.id,_that.userId,_that.name,_that.accountId,_that.targetAmount,_that.currentAmount,_that.note,_that.createdAt,_that.updatedAt,_that.archivedAt);case _:
   return orElse();
 
 }
@@ -182,10 +183,10 @@ return $default(_that.id,_that.userId,_that.name,_that.targetAmount,_that.curren
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String userId,  String name,  int targetAmount,  int currentAmount,  String? note,  DateTime createdAt,  DateTime updatedAt,  DateTime? archivedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String userId,  String name,  String? accountId,  int targetAmount,  int currentAmount,  String? note,  DateTime createdAt,  DateTime updatedAt,  DateTime? archivedAt)  $default,) {final _that = this;
 switch (_that) {
 case _SavingGoal():
-return $default(_that.id,_that.userId,_that.name,_that.targetAmount,_that.currentAmount,_that.note,_that.createdAt,_that.updatedAt,_that.archivedAt);case _:
+return $default(_that.id,_that.userId,_that.name,_that.accountId,_that.targetAmount,_that.currentAmount,_that.note,_that.createdAt,_that.updatedAt,_that.archivedAt);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -202,10 +203,10 @@ return $default(_that.id,_that.userId,_that.name,_that.targetAmount,_that.curren
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String userId,  String name,  int targetAmount,  int currentAmount,  String? note,  DateTime createdAt,  DateTime updatedAt,  DateTime? archivedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String userId,  String name,  String? accountId,  int targetAmount,  int currentAmount,  String? note,  DateTime createdAt,  DateTime updatedAt,  DateTime? archivedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _SavingGoal() when $default != null:
-return $default(_that.id,_that.userId,_that.name,_that.targetAmount,_that.currentAmount,_that.note,_that.createdAt,_that.updatedAt,_that.archivedAt);case _:
+return $default(_that.id,_that.userId,_that.name,_that.accountId,_that.targetAmount,_that.currentAmount,_that.note,_that.createdAt,_that.updatedAt,_that.archivedAt);case _:
   return null;
 
 }
@@ -217,12 +218,13 @@ return $default(_that.id,_that.userId,_that.name,_that.targetAmount,_that.curren
 @JsonSerializable()
 
 class _SavingGoal extends SavingGoal {
-  const _SavingGoal({required this.id, required this.userId, required this.name, required this.targetAmount, required this.currentAmount, this.note, required this.createdAt, required this.updatedAt, this.archivedAt}): super._();
+  const _SavingGoal({required this.id, required this.userId, required this.name, this.accountId, required this.targetAmount, required this.currentAmount, this.note, required this.createdAt, required this.updatedAt, this.archivedAt}): super._();
   factory _SavingGoal.fromJson(Map<String, dynamic> json) => _$SavingGoalFromJson(json);
 
 @override final  String id;
 @override final  String userId;
 @override final  String name;
+@override final  String? accountId;
 @override final  int targetAmount;
 @override final  int currentAmount;
 @override final  String? note;
@@ -243,16 +245,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SavingGoal&&(identical(other.id, id) || other.id == id)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.name, name) || other.name == name)&&(identical(other.targetAmount, targetAmount) || other.targetAmount == targetAmount)&&(identical(other.currentAmount, currentAmount) || other.currentAmount == currentAmount)&&(identical(other.note, note) || other.note == note)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.archivedAt, archivedAt) || other.archivedAt == archivedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SavingGoal&&(identical(other.id, id) || other.id == id)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.name, name) || other.name == name)&&(identical(other.accountId, accountId) || other.accountId == accountId)&&(identical(other.targetAmount, targetAmount) || other.targetAmount == targetAmount)&&(identical(other.currentAmount, currentAmount) || other.currentAmount == currentAmount)&&(identical(other.note, note) || other.note == note)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.archivedAt, archivedAt) || other.archivedAt == archivedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,userId,name,targetAmount,currentAmount,note,createdAt,updatedAt,archivedAt);
+int get hashCode => Object.hash(runtimeType,id,userId,name,accountId,targetAmount,currentAmount,note,createdAt,updatedAt,archivedAt);
 
 @override
 String toString() {
-  return 'SavingGoal(id: $id, userId: $userId, name: $name, targetAmount: $targetAmount, currentAmount: $currentAmount, note: $note, createdAt: $createdAt, updatedAt: $updatedAt, archivedAt: $archivedAt)';
+  return 'SavingGoal(id: $id, userId: $userId, name: $name, accountId: $accountId, targetAmount: $targetAmount, currentAmount: $currentAmount, note: $note, createdAt: $createdAt, updatedAt: $updatedAt, archivedAt: $archivedAt)';
 }
 
 
@@ -263,7 +265,7 @@ abstract mixin class _$SavingGoalCopyWith<$Res> implements $SavingGoalCopyWith<$
   factory _$SavingGoalCopyWith(_SavingGoal value, $Res Function(_SavingGoal) _then) = __$SavingGoalCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String userId, String name, int targetAmount, int currentAmount, String? note, DateTime createdAt, DateTime updatedAt, DateTime? archivedAt
+ String id, String userId, String name, String? accountId, int targetAmount, int currentAmount, String? note, DateTime createdAt, DateTime updatedAt, DateTime? archivedAt
 });
 
 
@@ -280,12 +282,13 @@ class __$SavingGoalCopyWithImpl<$Res>
 
 /// Create a copy of SavingGoal
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? userId = null,Object? name = null,Object? targetAmount = null,Object? currentAmount = null,Object? note = freezed,Object? createdAt = null,Object? updatedAt = null,Object? archivedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? userId = null,Object? name = null,Object? accountId = freezed,Object? targetAmount = null,Object? currentAmount = null,Object? note = freezed,Object? createdAt = null,Object? updatedAt = null,Object? archivedAt = freezed,}) {
   return _then(_SavingGoal(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,userId: null == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
-as String,targetAmount: null == targetAmount ? _self.targetAmount : targetAmount // ignore: cast_nullable_to_non_nullable
+as String,accountId: freezed == accountId ? _self.accountId : accountId // ignore: cast_nullable_to_non_nullable
+as String?,targetAmount: null == targetAmount ? _self.targetAmount : targetAmount // ignore: cast_nullable_to_non_nullable
 as int,currentAmount: null == currentAmount ? _self.currentAmount : currentAmount // ignore: cast_nullable_to_non_nullable
 as int,note: freezed == note ? _self.note : note // ignore: cast_nullable_to_non_nullable
 as String?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable

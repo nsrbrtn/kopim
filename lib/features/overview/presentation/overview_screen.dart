@@ -2,15 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:kopim/core/money/money.dart';
-import 'package:kopim/core/money/money_utils.dart';
-import 'package:kopim/features/overview/domain/entities/overview_preferences.dart';
 import 'package:kopim/features/overview/domain/models/financial_index_models.dart';
+import 'package:kopim/features/overview/domain/models/overview_behavior_progress.dart';
 import 'package:kopim/features/overview/domain/models/overview_daily_allowance.dart';
+import 'package:kopim/features/overview/domain/models/overview_safety_cushion.dart';
 import 'package:kopim/features/overview/presentation/controllers/overview_financial_index_providers.dart';
-import 'package:kopim/features/overview/presentation/controllers/overview_preferences_controller.dart';
-import 'package:kopim/features/upcoming_payments/domain/entities/upcoming_payment.dart';
-import 'package:kopim/features/upcoming_payments/domain/providers/upcoming_payments_providers.dart';
-import 'package:kopim/features/upcoming_payments/domain/services/schedule_policy.dart';
+import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
+import 'package:kopim/features/savings/presentation/screens/add_edit_goal_screen.dart';
+import 'package:kopim/features/savings/presentation/screens/contribute_screen.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
 class OverviewScreen extends StatelessWidget {
@@ -37,14 +36,12 @@ class OverviewScreen extends StatelessWidget {
                     _FinancialIndexCard(colors: colors, theme: theme),
                     const SizedBox(height: 8),
                     _BalanceCard(colors: colors, theme: theme),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 8),
                     _SafetyPillowCard(colors: colors, theme: theme),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 8),
                     _BehaviorProgressCard(colors: colors, theme: theme),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 8),
                     _GoalCard(colors: colors, theme: theme),
-                    const SizedBox(height: 16),
-                    _InsightCard(colors: colors, theme: theme),
                   ],
                 ),
               ),
@@ -135,7 +132,7 @@ class _FinancialIndexCard extends ConsumerWidget {
                     width: 40,
                     height: 40,
                     child: Icon(
-                      Icons.help_outline_outlined,
+                      Icons.question_mark,
                       color: colors.onSurfaceVariant,
                     ),
                   ),
@@ -394,23 +391,6 @@ class _BalanceCard extends ConsumerWidget {
                   color: colors.onSurface,
                 ),
               ),
-              const Spacer(),
-              Material(
-                color: Colors.transparent,
-                borderRadius: BorderRadius.circular(12),
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(12),
-                  onTap: () => _showBalanceAnchorPicker(context, ref, strings),
-                  child: Padding(
-                    padding: const EdgeInsets.all(8),
-                    child: Icon(
-                      Icons.settings,
-                      color: colors.surfaceContainerHighest,
-                      size: 24,
-                    ),
-                  ),
-                ),
-              ),
             ],
           ),
           const SizedBox(height: 24),
@@ -461,156 +441,39 @@ class _BalanceCard extends ConsumerWidget {
   }
 }
 
-Future<void> _showBalanceAnchorPicker(
-  BuildContext context,
-  WidgetRef ref,
-  AppLocalizations strings,
-) {
-  return showModalBottomSheet<void>(
-    context: context,
-    showDragHandle: true,
-    builder: (BuildContext context) {
-      return _BalanceAnchorPickerSheet(strings: strings);
-    },
-  );
-}
-
-class _BalanceAnchorPickerSheet extends ConsumerWidget {
-  const _BalanceAnchorPickerSheet({required this.strings});
-
-  final AppLocalizations strings;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final ThemeData theme = Theme.of(context);
-    final AsyncValue<List<UpcomingPayment>> paymentsAsync = ref.watch(
-      watchUpcomingPaymentsProvider,
-    );
-    final String? selectedPaymentId = ref
-        .watch(overviewPreferencesControllerProvider)
-        .maybeWhen(
-          data: (OverviewPreferences value) =>
-              value.balanceAnchorUpcomingPaymentId,
-          orElse: () => null,
-        );
-
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Text(
-              strings.overviewBalanceAnchorSettingsTitle,
-              style: theme.textTheme.titleMedium,
-            ),
-            const SizedBox(height: 8),
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              onTap: () async {
-                await ref
-                    .read(overviewPreferencesControllerProvider.notifier)
-                    .setBalanceAnchorUpcomingPaymentId(null);
-                if (context.mounted) {
-                  Navigator.of(context).pop();
-                }
-              },
-              title: Text(strings.overviewBalanceAnchorAutoOption),
-              trailing: selectedPaymentId == null
-                  ? Icon(Icons.check_rounded, color: theme.colorScheme.primary)
-                  : null,
-            ),
-            paymentsAsync.when(
-              data: (List<UpcomingPayment> payments) {
-                final DateTime now = DateTime.now();
-                final DateFormat dateFormat = DateFormat.MMMd(
-                  strings.localeName,
-                );
-                final List<UpcomingPayment> incomes = payments
-                    .where(
-                      (UpcomingPayment payment) =>
-                          payment.isActive &&
-                          payment.flowType == UpcomingPaymentFlowType.income,
-                    )
-                    .toList(growable: false);
-                if (incomes.isEmpty) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    child: Text(
-                      strings.overviewBalanceAnchorEmptyIncomes,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  );
-                }
-                return Column(
-                  children: incomes
-                      .map((UpcomingPayment payment) {
-                        final DateTime nextRun = const SchedulePolicy()
-                            .computeNextRunLocal(
-                              fromLocal: now,
-                              dayOfMonth: payment.dayOfMonth,
-                            );
-                        final String subtitle = dateFormat.format(nextRun);
-                        final bool isSelected = selectedPaymentId == payment.id;
-                        return ListTile(
-                          contentPadding: EdgeInsets.zero,
-                          onTap: () async {
-                            await ref
-                                .read(
-                                  overviewPreferencesControllerProvider
-                                      .notifier,
-                                )
-                                .setBalanceAnchorUpcomingPaymentId(payment.id);
-                            if (context.mounted) {
-                              Navigator.of(context).pop();
-                            }
-                          },
-                          title: Text(payment.title),
-                          subtitle: Text(subtitle),
-                          trailing: isSelected
-                              ? Icon(
-                                  Icons.check_rounded,
-                                  color: theme.colorScheme.primary,
-                                )
-                              : null,
-                        );
-                      })
-                      .toList(growable: false),
-                );
-              },
-              loading: () => const Padding(
-                padding: EdgeInsets.symmetric(vertical: 12),
-                child: Center(child: CircularProgressIndicator()),
-              ),
-              error: (Object error, StackTrace stackTrace) => Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                child: Text(
-                  strings.upcomingPaymentsListError(error.toString()),
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.error,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _SafetyPillowCard extends StatelessWidget {
+class _SafetyPillowCard extends ConsumerWidget {
   const _SafetyPillowCard({required this.colors, required this.theme});
 
   final ColorScheme colors;
   final ThemeData theme;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final AppLocalizations strings = AppLocalizations.of(context)!;
+    final AsyncValue<OverviewSafetyCushion> safetyAsync = ref.watch(
+      overviewSafetyCushionProvider,
+    );
+    final OverviewSafetyCushion? safety = safetyAsync.maybeWhen(
+      data: (OverviewSafetyCushion value) => value,
+      orElse: () => null,
+    );
+    final bool isLoading = safetyAsync.isLoading && safety == null;
+    final NumberFormat decimalFormatter = NumberFormat.decimalPatternDigits(
+      locale: Localizations.localeOf(context).toLanguageTag(),
+      decimalDigits: 1,
+    );
+    final String subtitle = safety == null
+        ? (isLoading
+              ? strings.overviewSafetyPillowSubtitleLoading
+              : strings.overviewSafetyPillowSubtitleUnavailable)
+        : strings.overviewSafetyPillowSubtitleProgress(
+            decimalFormatter.format(safety.monthsCovered),
+            decimalFormatter.format(safety.targetMonths),
+          );
+    final Color progressColor = safety == null
+        ? colors.outline
+        : _zoneColorForScore(safety.safetyScore, colors);
+
     return _MetricCard(
       colors: colors,
       theme: theme,
@@ -618,10 +481,10 @@ class _SafetyPillowCard extends StatelessWidget {
       iconColor: colors.inversePrimary,
       iconBackground: colors.inversePrimary.withValues(alpha: 0.10),
       title: strings.overviewSafetyPillowTitle,
-      subtitle: strings.overviewSafetyPillowSubtitle,
+      subtitle: subtitle,
       value: null,
-      progress: 0.74,
-      progressColor: colors.inversePrimary,
+      progress: safety?.progress ?? 0,
+      progressColor: progressColor,
       progressTrackColor: colors.surfaceContainerHighest.withValues(
         alpha: 0.25,
       ),
@@ -629,25 +492,50 @@ class _SafetyPillowCard extends StatelessWidget {
   }
 }
 
-class _BehaviorProgressCard extends StatelessWidget {
+class _BehaviorProgressCard extends ConsumerWidget {
   const _BehaviorProgressCard({required this.colors, required this.theme});
 
   final ColorScheme colors;
   final ThemeData theme;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final AppLocalizations strings = AppLocalizations.of(context)!;
+    final AsyncValue<OverviewBehaviorProgress> behaviorAsync = ref.watch(
+      overviewBehaviorProgressProvider,
+    );
+    final OverviewBehaviorProgress? behavior = behaviorAsync.maybeWhen(
+      data: (OverviewBehaviorProgress value) => value,
+      orElse: () => null,
+    );
+    final bool isLoading = behaviorAsync.isLoading && behavior == null;
+    final String subtitle = behavior == null
+        ? (isLoading
+              ? strings.overviewBehaviorProgressSubtitleLoading
+              : strings.overviewBehaviorProgressSubtitleUnavailable)
+        : strings.overviewBehaviorProgressSubtitleStreak(behavior.streakDays);
+    final String value = behavior == null
+        ? strings.overviewBehaviorProgressValuePlaceholder
+        : strings.overviewBehaviorProgressValueMultiplier(behavior.streakDays);
+    final int score = behavior?.disciplineScore ?? 0;
+    final Color metricColor = behavior == null
+        ? colors.outline
+        : _zoneColorForScore(score, colors);
     return _MetricCard(
       colors: colors,
       theme: theme,
       icon: Icons.local_fire_department_outlined,
-      iconColor: colors.error,
-      iconBackground: colors.error.withValues(alpha: 0.12),
+      iconColor: metricColor,
+      iconBackground: metricColor.withValues(alpha: 0.12),
       title: strings.overviewBehaviorProgressTitle,
-      subtitle: strings.overviewBehaviorProgressSubtitle,
-      value: strings.overviewBehaviorProgressValue,
-      valueColor: colors.error,
+      subtitle: subtitle,
+      value: value,
+      valueColor: metricColor,
+      progress: behavior?.progress ?? 0,
+      progressColor: metricColor,
+      progressTrackColor: colors.surfaceContainerHighest.withValues(
+        alpha: 0.25,
+      ),
     );
   }
 }
@@ -767,15 +655,223 @@ class _MetricCard extends StatelessWidget {
   }
 }
 
-class _GoalCard extends StatelessWidget {
+class _GoalCard extends ConsumerWidget {
   const _GoalCard({required this.colors, required this.theme});
 
   final ColorScheme colors;
   final ThemeData theme;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final AppLocalizations strings = AppLocalizations.of(context)!;
+    final AsyncValue<List<SavingGoal>> goalsAsync = ref.watch(
+      overviewSavingGoalsProvider,
+    );
+    final NumberFormat currencyFormat = NumberFormat.simpleCurrency(
+      locale: Localizations.localeOf(context).toString(),
+    );
+
+    return goalsAsync.when(
+      data: (List<SavingGoal> goals) {
+        final List<SavingGoal> active = goals
+            .where((SavingGoal goal) => !goal.isArchived)
+            .toList(growable: false);
+        if (active.isEmpty) {
+          return _buildEmptyCard(context, strings);
+        }
+        active.sort((SavingGoal a, SavingGoal b) {
+          final int aRemaining = (a.targetAmount - a.currentAmount).clamp(
+            0,
+            a.targetAmount,
+          );
+          final int bRemaining = (b.targetAmount - b.currentAmount).clamp(
+            0,
+            b.targetAmount,
+          );
+          final int byRemaining = aRemaining.compareTo(bRemaining);
+          if (byRemaining != 0) {
+            return byRemaining;
+          }
+          return b.updatedAt.compareTo(a.updatedAt);
+        });
+        return _buildGoalsListCard(
+          context: context,
+          strings: strings,
+          goals: active,
+          currencyFormat: currencyFormat,
+        );
+      },
+      loading: () => _buildSingleGoalCard(
+        context: context,
+        strings: strings,
+        title: strings.overviewGoalLoadingTitle,
+        progress: null,
+        percentLabel: strings.overviewGoalLoadingPercent,
+        insight: strings.overviewGoalLoadingInsight,
+        actionLabel: null,
+      ),
+      error: (_, _) => _buildEmptyCard(context, strings),
+    );
+  }
+
+  Widget _buildEmptyCard(BuildContext context, AppLocalizations strings) {
+    return _buildSingleGoalCard(
+      context: context,
+      strings: strings,
+      title: strings.overviewGoalEmptyTitle,
+      progress: 0,
+      percentLabel: strings.overviewGoalProgressPercentDynamic(0),
+      insight: strings.overviewGoalEmptyInsight,
+      actionLabel: strings.overviewGoalCreateAction,
+      onActionTap: () {
+        Navigator.of(context).push(AddEditGoalScreen.route(goal: null));
+      },
+    );
+  }
+
+  Widget _buildGoalsListCard({
+    required BuildContext context,
+    required AppLocalizations strings,
+    required List<SavingGoal> goals,
+    required NumberFormat currencyFormat,
+  }) {
+    final List<Widget> tiles = goals
+        .take(3)
+        .map((SavingGoal goal) {
+          final int remaining = (goal.targetAmount - goal.currentAmount).clamp(
+            0,
+            goal.targetAmount,
+          );
+          final double progress = goal.targetAmount <= 0
+              ? 0
+              : (goal.currentAmount / goal.targetAmount).clamp(0, 1);
+          final int percent = (progress * 100).round().clamp(0, 100);
+          final String amountLabel = currencyFormat.format(remaining / 100);
+          return Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: colors.primary.withValues(alpha: 0.05),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: Text(
+                        strings.overviewGoalTitleDynamic(goal.name),
+                        style: theme.textTheme.labelLarge?.copyWith(
+                          color: colors.onSurface,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    Text(
+                      strings.overviewGoalProgressPercentDynamic(percent),
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: colors.primary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(9999),
+                  child: LinearProgressIndicator(
+                    value: progress,
+                    minHeight: 6,
+                    valueColor: AlwaysStoppedAnimation<Color>(colors.primary),
+                    backgroundColor: colors.secondaryContainer,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  strings.overviewGoalInsightRemaining(amountLabel),
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: colors.primary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton.icon(
+                    onPressed: () {
+                      Navigator.of(context).push(ContributeScreen.route(goal));
+                    },
+                    icon: const Icon(Icons.savings_outlined),
+                    label: Text(strings.overviewGoalContributeAction),
+                  ),
+                ),
+              ],
+            ),
+          );
+        })
+        .toList(growable: false);
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: colors.surfaceContainer,
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Row(
+            children: <Widget>[
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: colors.primary.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Icon(
+                  Icons.flight_takeoff_rounded,
+                  color: colors.primary,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Text(
+                  strings.overviewGoalEmptyTitle,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: colors.onSurface,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          ...tiles.expand(
+            (Widget tile) => <Widget>[tile, const SizedBox(height: 8)],
+          ),
+          if (goals.length > 3)
+            Text(
+              '+${goals.length - 3}',
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: colors.onSurfaceVariant,
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSingleGoalCard({
+    required BuildContext context,
+    required AppLocalizations strings,
+    required String title,
+    required String percentLabel,
+    required String insight,
+    double? progress,
+    String? actionLabel,
+    VoidCallback? onActionTap,
+  }) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -807,7 +903,7 @@ class _GoalCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     Text(
-                      strings.overviewGoalTitle,
+                      title,
                       style: theme.textTheme.titleMedium?.copyWith(
                         color: colors.onSurface,
                       ),
@@ -819,7 +915,7 @@ class _GoalCard extends StatelessWidget {
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(9999),
                             child: LinearProgressIndicator(
-                              value: 0.68,
+                              value: progress,
                               minHeight: 6,
                               valueColor: AlwaysStoppedAnimation<Color>(
                                 colors.primary,
@@ -830,7 +926,7 @@ class _GoalCard extends StatelessWidget {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          strings.overviewGoalProgressPercent,
+                          percentLabel,
                           style: theme.textTheme.labelSmall?.copyWith(
                             color: colors.primary,
                             fontWeight: FontWeight.w600,
@@ -853,79 +949,24 @@ class _GoalCard extends StatelessWidget {
               border: Border.all(color: colors.primary.withValues(alpha: 0.12)),
             ),
             child: Text(
-              strings.overviewGoalInsight,
+              insight,
               style: theme.textTheme.labelSmall?.copyWith(
                 color: colors.primary,
                 fontWeight: FontWeight.w500,
               ),
             ),
           ),
-        ],
-      ),
-    );
-  }
-}
-
-class _InsightCard extends StatelessWidget {
-  const _InsightCard({required this.colors, required this.theme});
-
-  final ColorScheme colors;
-  final ThemeData theme;
-
-  @override
-  Widget build(BuildContext context) {
-    final AppLocalizations strings = AppLocalizations.of(context)!;
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(24),
-        gradient: LinearGradient(
-          colors: <Color>[
-            colors.tertiary.withValues(alpha: 0.45),
-            colors.tertiary.withValues(alpha: 0.65),
-          ],
-        ),
-      ),
-      child: Stack(
-        children: <Widget>[
-          Positioned(
-            right: -6,
-            bottom: -8,
-            child: Icon(
-              Icons.auto_awesome,
-              size: 90,
-              color: colors.onSurface.withValues(alpha: 0.08),
+          if (actionLabel != null && onActionTap != null) ...<Widget>[
+            const SizedBox(height: 12),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton.icon(
+                onPressed: onActionTap,
+                icon: const Icon(Icons.savings_outlined),
+                label: Text(actionLabel),
+              ),
             ),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Row(
-                children: <Widget>[
-                  Icon(
-                    Icons.lightbulb_outline_rounded,
-                    size: 14,
-                    color: colors.primary,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    strings.overviewInsightDayLabel,
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: colors.primary,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Text(
-                strings.overviewInsightBody,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: colors.onSurface,
-                ),
-              ),
-            ],
-          ),
+          ],
         ],
       ),
     );

@@ -15,7 +15,7 @@ class AddContributionUseCase {
   Future<SavingGoal> call({
     required String goalId,
     required Money amount,
-    String? sourceAccountId,
+    required String sourceAccountId,
     String? note,
   }) async {
     if (amount.minorUnits <= 0) {
@@ -23,6 +23,14 @@ class AddContributionUseCase {
         amount.minorUnits,
         'amount',
         'Contribution amount must be greater than zero',
+      );
+    }
+    final String sourceId = sourceAccountId.trim();
+    if (sourceId.isEmpty) {
+      throw ArgumentError.value(
+        sourceAccountId,
+        'sourceAccountId',
+        'Source account is required',
       );
     }
     final SavingGoal? goal = await _repository.findById(goalId);
@@ -52,7 +60,7 @@ class AddContributionUseCase {
       appliedDelta: appliedDelta,
       newCurrentAmount: cappedAmount,
       contributedAt: now,
-      sourceAccountId: sourceAccountId,
+      sourceAccountId: sourceId,
       contributionNote: trimmedNote,
     );
     return updatedGoal;

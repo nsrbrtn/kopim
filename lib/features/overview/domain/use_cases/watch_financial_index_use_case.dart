@@ -11,7 +11,9 @@ import 'package:kopim/features/budgets/domain/entities/budget_scope.dart';
 import 'package:kopim/features/budgets/domain/repositories/budget_repository.dart';
 import 'package:kopim/features/budgets/domain/use_cases/compute_budget_progress_use_case.dart';
 import 'package:kopim/features/overview/domain/models/financial_index_models.dart';
+import 'package:kopim/features/overview/domain/services/behavior_discipline_calculator.dart';
 import 'package:kopim/features/overview/domain/services/financial_index_calculator.dart';
+import 'package:kopim/features/overview/domain/services/safety_cushion_calculator.dart';
 import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
 import 'package:kopim/features/savings/domain/repositories/saving_goal_repository.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
@@ -282,41 +284,12 @@ double _computeSafetyScore({
   required List<SavingGoal> savingGoals,
   required DateTime reference,
 }) {
-  final MoneyAccumulator liquidAssets = MoneyAccumulator();
-  for (final AccountEntity account in accounts) {
-    if (account.isDeleted || _isLiabilityType(account.type)) {
-      continue;
-    }
-    liquidAssets.add(account.balanceAmount);
-  }
-
-  final double avgMonthlyExpense3m = _averageMonthlyExpenses(
+  return SafetyCushionCalculator.calculate(
+    accounts: accounts,
     transactions: transactions,
-    reference: reference,
-    months: 3,
-  );
-  const double targetMonths = 6;
-
-  if (avgMonthlyExpense3m <= 0 && liquidAssets.toDouble() <= 0) {
-    return 50;
-  }
-
-  final double monthsCoveredRaw =
-      liquidAssets.toDouble() / math.max(avgMonthlyExpense3m, 1);
-  final double monthsCovered = _clampDouble(monthsCoveredRaw, 0, 12);
-  final double reserveProgress = _resolveReserveProgress(
     savingGoals: savingGoals,
-    monthsCovered: monthsCovered,
-    targetMonths: targetMonths,
-  );
-
-  final double coverageScore = _clampDouble(
-    (monthsCovered / targetMonths) * 100,
-    0,
-    100,
-  );
-  final double goalScore = _clampDouble(reserveProgress * 100, 0, 100);
-  return (coverageScore * 0.7 + goalScore * 0.3).roundToDouble();
+    reference: reference,
+  ).safetyScore.toDouble();
 }
 
 double _computeDynamicsScore({
@@ -382,35 +355,10 @@ double _computeDisciplineScore({
   required List<TransactionEntity> transactions,
   required DateTime reference,
 }) {
-  final DateTime today = _dateOnly(reference);
-  final DateTime start = today.subtract(const Duration(days: 29));
-  final DateTime endExclusive = today.add(const Duration(days: 1));
-
-  final Set<int> activeDays = <int>{};
-  for (final TransactionEntity tx in transactions) {
-    if (tx.date.isBefore(start) || !tx.date.isBefore(endExclusive)) {
-      continue;
-    }
-    activeDays.add(_dayKey(tx.date));
-  }
-
-  final double consistencyScore = _clampDouble(
-    (activeDays.length / 30) * 100,
-    0,
-    100,
-  );
-
-  int streakDays = 0;
-  for (int offset = 0; offset < 30; offset += 1) {
-    final DateTime day = today.subtract(Duration(days: offset));
-    if (!activeDays.contains(_dayKey(day))) {
-      break;
-    }
-    streakDays += 1;
-  }
-
-  final double streakScore = _clampDouble((streakDays / 14) * 100, 0, 100);
-  return (consistencyScore * 0.6 + streakScore * 0.4).roundToDouble();
+  return BehaviorDisciplineCalculator.calculate(
+    transactions: transactions,
+    reference: reference,
+  ).disciplineScore.toDouble();
 }
 
 List<AccountEntity> _scopeAccounts({
@@ -452,20 +400,6 @@ List<TransactionEntity> _scopeTransactions({
       .toList(growable: false);
 }
 
-double _averageMonthlyExpenses({
-  required List<TransactionEntity> transactions,
-  required DateTime reference,
-  required int months,
-}) {
-  double total = 0;
-  for (int i = 0; i < months; i += 1) {
-    final DateTime start = DateTime(reference.year, reference.month - i);
-    final DateTime end = DateTime(start.year, start.month + 1);
-    total += _sumExpense(transactions: transactions, start: start, end: end);
-  }
-  return total / months;
-}
-
 double _sumExpense({
   required List<TransactionEntity> transactions,
   required DateTime start,
@@ -482,38 +416,6 @@ double _sumExpense({
     sum.add(tx.amountValue.abs());
   }
   return sum.toDouble();
-}
-
-double _resolveReserveProgress({
-  required List<SavingGoal> savingGoals,
-  required double monthsCovered,
-  required double targetMonths,
-}) {
-  final List<SavingGoal> active = savingGoals
-      .where((SavingGoal goal) => !goal.isArchived)
-      .toList(growable: false);
-  if (active.isEmpty) {
-    return _clampDouble(monthsCovered / targetMonths, 0, 1);
-  }
-
-  int totalTarget = 0;
-  int totalCurrent = 0;
-  for (final SavingGoal goal in active) {
-    totalTarget += goal.targetAmount;
-    totalCurrent += goal.currentAmount;
-  }
-
-  if (totalTarget <= 0) {
-    return _clampDouble(monthsCovered / targetMonths, 0, 1);
-  }
-  return _clampDouble(totalCurrent / totalTarget, 0, 1);
-}
-
-bool _isLiabilityType(String accountType) {
-  final String normalized = accountType.trim().toLowerCase();
-  return normalized == 'credit' ||
-      normalized == 'credit_card' ||
-      normalized == 'debt';
 }
 
 double _linearRegressionSlope(List<double> values) {
@@ -545,10 +447,6 @@ double _linearRegressionSlope(List<double> values) {
 
 DateTime _dateOnly(DateTime dateTime) {
   return DateTime(dateTime.year, dateTime.month, dateTime.day);
-}
-
-int _dayKey(DateTime dateTime) {
-  return dateTime.year * 10000 + dateTime.month * 100 + dateTime.day;
 }
 
 double _clampDouble(double value, double min, double max) {

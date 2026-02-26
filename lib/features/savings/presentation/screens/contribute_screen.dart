@@ -12,8 +12,6 @@ import 'package:kopim/features/savings/presentation/controllers/contribute_contr
 import 'package:kopim/features/savings/presentation/controllers/contribute_state.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
-const String _noAccountValue = '__no_account__';
-
 class ContributeScreen extends ConsumerStatefulWidget {
   const ContributeScreen({super.key, required this.goal});
 
@@ -88,21 +86,15 @@ class _ContributeScreenState extends ConsumerState<ContributeScreen> {
     final String remainingLabel = currencyFormat.format(
       progress.remaining.minorUnits / 100,
     );
-    final List<DropdownMenuItem<String>> accountItems =
-        <DropdownMenuItem<String>>[
-          DropdownMenuItem<String>(
-            value: _noAccountValue,
-            child: Text(strings.savingsNoAccountOption),
+    final List<DropdownMenuItem<String>> accountItems = state.accounts
+        .map(
+          (AccountEntity account) => DropdownMenuItem<String>(
+            value: account.id,
+            child: Text(account.name),
           ),
-          ...state.accounts.map(
-            (AccountEntity account) => DropdownMenuItem<String>(
-              value: account.id,
-              child: Text(account.name),
-            ),
-          ),
-        ];
-    final String selectedAccountValue =
-        state.selectedAccountId ?? _noAccountValue;
+        )
+        .toList(growable: false);
+    final String? selectedAccountValue = state.selectedAccountId;
     return Scaffold(
       appBar: AppBar(
         title: Text(strings.savingsContributeTitle(widget.goal.name)),
@@ -164,8 +156,11 @@ class _ContributeScreenState extends ConsumerState<ContributeScreen> {
                 enabled: accountItems.isNotEmpty,
                 onChanged: (String value) => ref
                     .read(contributeControllerProvider(widget.goal).notifier)
-                    .selectAccount(value == _noAccountValue ? null : value),
+                    .selectAccount(value),
               ),
+              if (state.sourceAccountError != null &&
+                  state.sourceAccountError!.isNotEmpty)
+                _FieldErrorText(message: state.sourceAccountError!),
               const SizedBox(height: 16),
               KopimTextField(
                 controller: _noteController,

@@ -2889,17 +2889,37 @@ class AppLocalizationsEn extends AppLocalizations {
   String get overviewSafetyPillowTitle => 'Safety cushion';
 
   @override
-  String get overviewSafetyPillowSubtitle => '7.4 / 10 months';
+  String overviewSafetyPillowSubtitleProgress(String covered, String target) {
+    return '$covered / $target months';
+  }
+
+  @override
+  String get overviewSafetyPillowSubtitleLoading => 'Calculating...';
+
+  @override
+  String get overviewSafetyPillowSubtitleUnavailable => 'No data';
 
   @override
   String get overviewBehaviorProgressTitle => 'Behavioral progress';
 
   @override
-  String get overviewBehaviorProgressSubtitle =>
-      '6 days of mindful tracking in a row';
+  String overviewBehaviorProgressSubtitleStreak(int days) {
+    return '$days days of mindful tracking in a row';
+  }
 
   @override
-  String get overviewBehaviorProgressValue => 'x6';
+  String get overviewBehaviorProgressSubtitleLoading => 'Calculating...';
+
+  @override
+  String get overviewBehaviorProgressSubtitleUnavailable => 'No data';
+
+  @override
+  String overviewBehaviorProgressValueMultiplier(int streak) {
+    return 'x$streak';
+  }
+
+  @override
+  String get overviewBehaviorProgressValuePlaceholder => 'x--';
 
   @override
   String get overviewGoalTitle => 'Goal: Vacation';
@@ -2910,6 +2930,44 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get overviewGoalInsight =>
       '💡 Save 400 ₽ more today\nto leave a week earlier.';
+
+  @override
+  String overviewGoalTitleDynamic(String goalName) {
+    return 'Goal: $goalName';
+  }
+
+  @override
+  String overviewGoalProgressPercentDynamic(int percent) {
+    return '$percent%';
+  }
+
+  @override
+  String overviewGoalInsightRemaining(String amount) {
+    return '$amount left to reach the goal';
+  }
+
+  @override
+  String get overviewGoalContributeAction => 'Contribute';
+
+  @override
+  String get overviewGoalCreateAction => 'Create goal';
+
+  @override
+  String get overviewGoalEmptyTitle => 'Saving goals';
+
+  @override
+  String get overviewGoalEmptyInsight =>
+      'Add a saving goal to track progress on the overview screen.';
+
+  @override
+  String get overviewGoalLoadingTitle => 'Loading goals';
+
+  @override
+  String get overviewGoalLoadingPercent => '--';
+
+  @override
+  String get overviewGoalLoadingInsight =>
+      'Collecting your saving goals data...';
 
   @override
   String get overviewInsightDayLabel => 'Insight of the day';

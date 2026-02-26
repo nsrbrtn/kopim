@@ -3747,21 +3747,59 @@
   "@overviewSafetyPillowTitle": {
     "description": "Safety cushion card title on overview screen"
   },
-  "overviewSafetyPillowSubtitle": "7.4 / 10 months",
-  "@overviewSafetyPillowSubtitle": {
-    "description": "Safety cushion progress subtitle on overview screen"
+  "overviewSafetyPillowSubtitleProgress": "{covered} / {target} months",
+  "@overviewSafetyPillowSubtitleProgress": {
+    "description": "Safety cushion progress subtitle on overview screen",
+    "placeholders": {
+      "covered": {
+        "type": "String"
+      },
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "overviewSafetyPillowSubtitleLoading": "Calculating...",
+  "@overviewSafetyPillowSubtitleLoading": {
+    "description": "Safety cushion subtitle while loading"
+  },
+  "overviewSafetyPillowSubtitleUnavailable": "No data",
+  "@overviewSafetyPillowSubtitleUnavailable": {
+    "description": "Safety cushion subtitle when data is unavailable"
   },
   "overviewBehaviorProgressTitle": "Behavioral progress",
   "@overviewBehaviorProgressTitle": {
     "description": "Behavioral progress card title on overview screen"
   },
-  "overviewBehaviorProgressSubtitle": "6 days of mindful tracking in a row",
-  "@overviewBehaviorProgressSubtitle": {
-    "description": "Behavioral progress card subtitle on overview screen"
+  "overviewBehaviorProgressSubtitleStreak": "{days} days of mindful tracking in a row",
+  "@overviewBehaviorProgressSubtitleStreak": {
+    "description": "Behavioral progress card subtitle with streak value",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
   },
-  "overviewBehaviorProgressValue": "x6",
-  "@overviewBehaviorProgressValue": {
-    "description": "Behavioral progress card value on overview screen"
+  "overviewBehaviorProgressSubtitleLoading": "Calculating...",
+  "@overviewBehaviorProgressSubtitleLoading": {
+    "description": "Behavioral progress subtitle while loading"
+  },
+  "overviewBehaviorProgressSubtitleUnavailable": "No data",
+  "@overviewBehaviorProgressSubtitleUnavailable": {
+    "description": "Behavioral progress subtitle when data is unavailable"
+  },
+  "overviewBehaviorProgressValueMultiplier": "x{streak}",
+  "@overviewBehaviorProgressValueMultiplier": {
+    "description": "Behavioral progress card value with streak",
+    "placeholders": {
+      "streak": {
+        "type": "int"
+      }
+    }
+  },
+  "overviewBehaviorProgressValuePlaceholder": "x--",
+  "@overviewBehaviorProgressValuePlaceholder": {
+    "description": "Behavioral progress card value when data is unavailable"
   },
   "overviewGoalTitle": "Goal: Vacation",
   "@overviewGoalTitle": {
@@ -3774,6 +3812,61 @@
   "overviewGoalInsight": "💡 Save 400 ₽ more today\nto leave a week earlier.",
   "@overviewGoalInsight": {
     "description": "Goal card hint text on overview screen"
+  },
+  "overviewGoalTitleDynamic": "Goal: {goalName}",
+  "@overviewGoalTitleDynamic": {
+    "description": "Dynamic goal card title on overview screen",
+    "placeholders": {
+      "goalName": {
+        "type": "String"
+      }
+    }
+  },
+  "overviewGoalProgressPercentDynamic": "{percent}%",
+  "@overviewGoalProgressPercentDynamic": {
+    "description": "Dynamic goal progress percent",
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "overviewGoalInsightRemaining": "{amount} left to reach the goal",
+  "@overviewGoalInsightRemaining": {
+    "description": "Goal card hint with remaining amount",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "overviewGoalContributeAction": "Contribute",
+  "@overviewGoalContributeAction": {
+    "description": "Goal contribution action on overview card"
+  },
+  "overviewGoalCreateAction": "Create goal",
+  "@overviewGoalCreateAction": {
+    "description": "Create goal action when no goals exist"
+  },
+  "overviewGoalEmptyTitle": "Saving goals",
+  "@overviewGoalEmptyTitle": {
+    "description": "Goal card title when no goals exist"
+  },
+  "overviewGoalEmptyInsight": "Add a saving goal to track progress on the overview screen.",
+  "@overviewGoalEmptyInsight": {
+    "description": "Goal card hint when no goals exist"
+  },
+  "overviewGoalLoadingTitle": "Loading goals",
+  "@overviewGoalLoadingTitle": {
+    "description": "Goal card title while loading"
+  },
+  "overviewGoalLoadingPercent": "--",
+  "@overviewGoalLoadingPercent": {
+    "description": "Goal card percent while loading"
+  },
+  "overviewGoalLoadingInsight": "Collecting your saving goals data...",
+  "@overviewGoalLoadingInsight": {
+    "description": "Goal card hint while loading"
   },
   "overviewInsightDayLabel": "Insight of the day",
   "@overviewInsightDayLabel": {

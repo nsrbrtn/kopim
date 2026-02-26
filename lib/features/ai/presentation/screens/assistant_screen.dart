@@ -253,7 +253,7 @@ class _AssistantScreenState extends ConsumerState<AssistantScreen> {
                               borderRadius: BorderRadius.circular(14),
                             ),
                             child: Icon(
-                              Icons.help_outline,
+                              Icons.question_mark,
                               color: theme.colorScheme.onSurfaceVariant,
                             ),
                           ),

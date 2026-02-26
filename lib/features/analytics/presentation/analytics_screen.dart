@@ -121,23 +121,6 @@ class _AnalyticsBody extends ConsumerWidget {
                   strings.analyticsTitle,
                   style: Theme.of(context).textTheme.displaySmall,
                 ),
-                const Spacer(),
-                Material(
-                  color: Colors.transparent,
-                  borderRadius: BorderRadius.circular(14),
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(14),
-                    onTap: () => _showAnalyticsInfo(context, strings),
-                    child: SizedBox(
-                      width: 40,
-                      height: 40,
-                      child: Icon(
-                        Icons.help_outline_outlined,
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ),
-                ),
               ],
             ),
           ),
@@ -160,8 +143,7 @@ class _AnalyticsBody extends ConsumerWidget {
                               dividerColor: Colors.transparent,
                               indicatorColor: Colors.transparent,
                               labelColor: theme.colorScheme.primary,
-                              unselectedLabelColor:
-                                  theme.colorScheme.outlineVariant,
+                              unselectedLabelColor: theme.colorScheme.outline,
                               labelStyle: theme.textTheme.labelLarge?.copyWith(
                                 fontWeight: FontWeight.w600,
                               ),
@@ -637,7 +619,7 @@ class _CreditsDebtAnalyticsContent extends StatelessWidget {
                     child: Text(
                       strings.analyticsCreditsDebtTrendPeriod,
                       style: theme.textTheme.labelMedium?.copyWith(
-                        color: colors.surfaceContainerHighest,
+                        color: colors.outline,
                       ),
                     ),
                   ),
@@ -656,7 +638,7 @@ class _CreditsDebtAnalyticsContent extends StatelessWidget {
                       width: 1,
                     ),
                     labelStyle: theme.textTheme.labelSmall?.copyWith(
-                      color: colors.surfaceContainerHighest,
+                      color: colors.outline,
                     ),
                   ),
                   primaryYAxis: NumericAxis(
@@ -670,7 +652,7 @@ class _CreditsDebtAnalyticsContent extends StatelessWidget {
                     majorTickLines: const MajorTickLines(size: 0),
                     numberFormat: compactFormat,
                     labelStyle: theme.textTheme.labelSmall?.copyWith(
-                      color: colors.surfaceContainerHighest,
+                      color: colors.outline,
                     ),
                   ),
                   series: <CartesianSeries<AnalyticsDebtTrendPoint, String>>[
@@ -1207,46 +1189,6 @@ Future<void> _openCategoryPicker({
     return;
   }
   notifier.updateCategory(picked as String);
-}
-
-void _showAnalyticsInfo(BuildContext context, AppLocalizations strings) {
-  final ThemeData theme = Theme.of(context);
-  final ColorScheme colors = theme.colorScheme;
-  showModalBottomSheet<void>(
-    context: context,
-    showDragHandle: true,
-    backgroundColor: colors.surface,
-    builder: (BuildContext context) {
-      return Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Text(
-              strings.analyticsInfoTitle,
-              style: theme.textTheme.titleMedium,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              strings.analyticsInfoBody,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: colors.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: 12),
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: Text(strings.analyticsDialogClose),
-              ),
-            ),
-          ],
-        ),
-      );
-    },
-  );
 }
 
 class _TopCategoriesPager extends StatefulWidget {

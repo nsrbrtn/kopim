@@ -223,6 +223,12 @@ class SavingGoals extends Table {
   TextColumn get id => text().withLength(min: 1, max: 50)();
   TextColumn get userId => text().withLength(min: 1, max: 64)();
   TextColumn get name => text().withLength(min: 1, max: 120)();
+  @ReferenceName('savingGoalAccount')
+  TextColumn get accountId => text().nullable().references(
+    Accounts,
+    #id,
+    onDelete: KeyAction.setNull,
+  )();
   IntColumn get targetAmount => integer()();
   IntColumn get currentAmount =>
       integer().withDefault(const Constant<int>(0))();
@@ -444,7 +450,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.connect(DatabaseConnection super.connection);
 
   @override
-  int get schemaVersion => 39;
+  int get schemaVersion => 40;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -1007,6 +1013,12 @@ LEFT JOIN accounts acc ON up.account_id = acc.id
           await m.addColumn(upcomingPayments, upcomingPayments.flowType);
         }
       }
+      if (from < 40) {
+        if (!await _columnExists('saving_goals', 'account_id')) {
+          await m.addColumn(savingGoals, savingGoals.accountId);
+        }
+        await _backfillSavingGoalAccounts(m);
+      }
       if (from < 3) {
         await m.createTable(profiles);
       }
@@ -1393,5 +1405,105 @@ LEFT JOIN accounts acc ON up.account_id = acc.id
       // ignore: fallback to default scale
     }
     return 2;
+  }
+
+  Future<void> _backfillSavingGoalAccounts(Migrator m) async {
+    final List<QueryRow> goals = await m.database.customSelect('''
+SELECT id, name, current_amount, created_at, updated_at
+FROM saving_goals
+WHERE account_id IS NULL OR account_id = ''
+''').get();
+    if (goals.isEmpty) {
+      return;
+    }
+
+    final List<QueryRow> accountIdsRows = await m.database
+        .customSelect('SELECT id FROM accounts')
+        .get();
+    final Set<String> existingAccountIds = accountIdsRows
+        .map((QueryRow row) => row.read<String>('id'))
+        .toSet();
+
+    final QueryRow? seedAccount = await m.database.customSelect('''
+SELECT id, currency, currency_scale
+FROM accounts
+WHERE is_deleted = 0
+ORDER BY is_primary DESC, created_at ASC
+LIMIT 1
+''').getSingleOrNull();
+
+    final String baseCurrency = seedAccount?.read<String>('currency') ?? 'USD';
+    final int baseScale =
+        seedAccount?.read<int?>('currency_scale') ??
+        resolveCurrencyScale(baseCurrency);
+
+    for (final QueryRow row in goals) {
+      final String goalId = row.read<String>('id');
+      final String goalName = row.read<String>('name');
+      final int currentAmount = row.read<int>('current_amount');
+      final DateTime createdAt = row.read<DateTime>('created_at');
+      final DateTime updatedAt = row.read<DateTime>('updated_at');
+      final int createdAtMs = createdAt.millisecondsSinceEpoch;
+      final int updatedAtMs = updatedAt.millisecondsSinceEpoch;
+      final String accountId = _buildSavingGoalAccountId(
+        goalId: goalId,
+        occupiedIds: existingAccountIds,
+      );
+      existingAccountIds.add(accountId);
+
+      final double balance = currentAmount / 100.0;
+      await m.database.customStatement(
+        '''
+INSERT INTO accounts (
+  id, name, balance, balance_minor, opening_balance, opening_balance_minor,
+  currency, currency_scale, type, color, gradient_id, created_at, updated_at,
+  is_deleted, is_primary, is_hidden, icon_name, icon_style
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 1, NULL, NULL)
+''',
+        <Object?>[
+          accountId,
+          'Копилка: $goalName',
+          balance,
+          currentAmount.toString(),
+          balance,
+          currentAmount.toString(),
+          baseCurrency,
+          baseScale,
+          'savings',
+          null,
+          null,
+          createdAtMs,
+          updatedAtMs,
+        ],
+      );
+      await m.database.customStatement(
+        'UPDATE saving_goals SET account_id = ? WHERE id = ?',
+        <Object?>[accountId, goalId],
+      );
+    }
+  }
+
+  String _buildSavingGoalAccountId({
+    required String goalId,
+    required Set<String> occupiedIds,
+  }) {
+    final String sanitized = goalId.replaceAll(RegExp(r'[^a-zA-Z0-9_]'), '_');
+    String base = 'sg_$sanitized';
+    if (base.length > 50) {
+      base = base.substring(0, 50);
+    }
+    if (!occupiedIds.contains(base)) {
+      return base;
+    }
+    for (int i = 1; i < 10000; i++) {
+      final String suffix = '_$i';
+      final int maxBaseLength = 50 - suffix.length;
+      final String candidate =
+          '${base.substring(0, base.length > maxBaseLength ? maxBaseLength : base.length)}$suffix';
+      if (!occupiedIds.contains(candidate)) {
+        return candidate;
+      }
+    }
+    return 'sg_${DateTime.now().microsecondsSinceEpoch}';
   }
 }

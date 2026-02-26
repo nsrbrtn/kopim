@@ -5,7 +5,8 @@
 import 'package:flutter/material.dart';
 import '../dto/kopim_theme_tokens.dart';
 
-const KopimThemeTokenBundle kopimThemeTokens = KopimThemeTokenBundle(
+const KopimThemeTokenBundle kopimThemeTokens =
+KopimThemeTokenBundle(
   lightColors: KopimSystemColorTokens(
     background: Color(0xFFF7FBEA),
     error: Color(0xFFBA1A1A),
@@ -42,13 +43,13 @@ const KopimThemeTokenBundle kopimThemeTokens = KopimThemeTokenBundle(
     secondaryFixed: Color(0xFFCAEEA1),
     secondaryFixedDim: Color(0xFFAED287),
     shadow: Color(0xFF000000),
-    surface: Color(0xFFFCF8F8),
+    surface: Color(0xFFFFFFFF),
     surfaceBright: Color(0xFFFCF8F8),
-    surfaceContainer: Color(0xFFF1EDEC),
-    surfaceContainerHigh: Color(0xFFEBE7E7),
-    surfaceContainerHighest: Color(0xFFE5E2E1),
-    surfaceContainerLow: Color(0xFFF7F3F2),
-    surfaceContainerLowest: Color(0xFFFFFFFF),
+    surfaceContainer: Color(0xFFDFE8D1),
+    surfaceContainerHigh: Color(0xFFCED8BE),
+    surfaceContainerHighest: Color(0xFFB3BDA6),
+    surfaceContainerLow: Color(0xFFECF5E2),
+    surfaceContainerLowest: Color(0xFFFBFFF3),
     surfaceDim: Color(0xFFDDD9D9),
     surfaceTint: Color(0xFF3D6A00),
     surfaceVariant: Color(0xFFE6E2D7),
@@ -96,9 +97,9 @@ const KopimThemeTokenBundle kopimThemeTokens = KopimThemeTokenBundle(
     surface: Color(0xFF101010),
     surfaceBright: Color(0xFF757575),
     surfaceContainer: Color(0xFF1A1A1A),
-    surfaceContainerHigh: Color(0xFF323232),
-    surfaceContainerHighest: Color(0xFF67696A),
-    surfaceContainerLow: Color(0xFF141414),
+    surfaceContainerHigh: Color(0xFF2A2A2A),
+    surfaceContainerHighest: Color(0xFF3E3E3E),
+    surfaceContainerLow: Color(0xFF131313),
     surfaceContainerLowest: Color(0xFF0C0C0C),
     surfaceDim: Color(0xFF141313),
     surfaceTint: Color(0xFF93DA46),
@@ -288,4 +289,5 @@ const KopimThemeTokenBundle kopimThemeTokens = KopimThemeTokenBundle(
       standard: Cubic(0.2, 0.0, 0.0, 1.0),
     ),
   ),
-);
+)
+;

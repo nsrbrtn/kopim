@@ -182,7 +182,7 @@ class _TotalMoneyChartWidgetState extends State<TotalMoneyChartWidget> {
               Text(
                 strings.analyticsSummaryNetLabel,
                 style: theme.textTheme.labelMedium?.copyWith(
-                  color: colors.surfaceContainerHighest,
+                  color: colors.outline,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -196,7 +196,7 @@ class _TotalMoneyChartWidgetState extends State<TotalMoneyChartWidget> {
                 child: Text(
                   strings.analyticsCreditsDebtTrendPeriod,
                   style: theme.textTheme.labelMedium?.copyWith(
-                    color: colors.surfaceContainerHighest,
+                    color: colors.outline,
                   ),
                 ),
               ),
@@ -230,7 +230,7 @@ class _TotalMoneyChartWidgetState extends State<TotalMoneyChartWidget> {
                 majorTickLines: const MajorTickLines(size: 0),
                 numberFormat: NumberFormat.compact(locale: widget.localeName),
                 labelStyle: theme.textTheme.labelSmall?.copyWith(
-                  color: colors.surfaceContainerHighest,
+                  color: colors.outline,
                   letterSpacing: 0.5,
                 ),
               ),

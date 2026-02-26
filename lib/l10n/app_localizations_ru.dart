@@ -2912,17 +2912,37 @@ class AppLocalizationsRu extends AppLocalizations {
   String get overviewSafetyPillowTitle => 'Финансовая подушка';
 
   @override
-  String get overviewSafetyPillowSubtitle => '7.4 / 10 мес';
+  String overviewSafetyPillowSubtitleProgress(String covered, String target) {
+    return '$covered / $target мес';
+  }
+
+  @override
+  String get overviewSafetyPillowSubtitleLoading => 'Расчёт...';
+
+  @override
+  String get overviewSafetyPillowSubtitleUnavailable => 'Нет данных';
 
   @override
   String get overviewBehaviorProgressTitle => 'Поведенческий прогресс';
 
   @override
-  String get overviewBehaviorProgressSubtitle =>
-      '6 дней осознанного учета подряд';
+  String overviewBehaviorProgressSubtitleStreak(int days) {
+    return '$days дней осознанного учета подряд';
+  }
 
   @override
-  String get overviewBehaviorProgressValue => 'x6';
+  String get overviewBehaviorProgressSubtitleLoading => 'Расчёт...';
+
+  @override
+  String get overviewBehaviorProgressSubtitleUnavailable => 'Нет данных';
+
+  @override
+  String overviewBehaviorProgressValueMultiplier(int streak) {
+    return 'x$streak';
+  }
+
+  @override
+  String get overviewBehaviorProgressValuePlaceholder => 'x--';
 
   @override
   String get overviewGoalTitle => 'Цель: Отпуск';
@@ -2933,6 +2953,44 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get overviewGoalInsight =>
       '💡 Отложите сегодня на 400 ₽ больше, чтобы\nпоехать на неделю раньше.';
+
+  @override
+  String overviewGoalTitleDynamic(String goalName) {
+    return 'Цель: $goalName';
+  }
+
+  @override
+  String overviewGoalProgressPercentDynamic(int percent) {
+    return '$percent%';
+  }
+
+  @override
+  String overviewGoalInsightRemaining(String amount) {
+    return 'До цели осталось $amount';
+  }
+
+  @override
+  String get overviewGoalContributeAction => 'Пополнить';
+
+  @override
+  String get overviewGoalCreateAction => 'Создать цель';
+
+  @override
+  String get overviewGoalEmptyTitle => 'Цели накоплений';
+
+  @override
+  String get overviewGoalEmptyInsight =>
+      'Добавьте цель накоплений, чтобы отслеживать прогресс на обзоре.';
+
+  @override
+  String get overviewGoalLoadingTitle => 'Загрузка целей';
+
+  @override
+  String get overviewGoalLoadingPercent => '--';
+
+  @override
+  String get overviewGoalLoadingInsight =>
+      'Собираем данные по целям накоплений...';
 
   @override
   String get overviewInsightDayLabel => 'Инсайт дня';

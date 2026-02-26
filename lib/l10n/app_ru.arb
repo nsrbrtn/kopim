@@ -3747,21 +3747,59 @@
   "@overviewSafetyPillowTitle": {
     "description": "Заголовок карточки финансовой подушки на экране обзора"
   },
-  "overviewSafetyPillowSubtitle": "7.4 / 10 мес",
-  "@overviewSafetyPillowSubtitle": {
-    "description": "Подпись прогресса финансовой подушки на экране обзора"
+  "overviewSafetyPillowSubtitleProgress": "{covered} / {target} мес",
+  "@overviewSafetyPillowSubtitleProgress": {
+    "description": "Подпись прогресса финансовой подушки на экране обзора",
+    "placeholders": {
+      "covered": {
+        "type": "String"
+      },
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "overviewSafetyPillowSubtitleLoading": "Расчёт...",
+  "@overviewSafetyPillowSubtitleLoading": {
+    "description": "Подпись карточки финансовой подушки во время загрузки"
+  },
+  "overviewSafetyPillowSubtitleUnavailable": "Нет данных",
+  "@overviewSafetyPillowSubtitleUnavailable": {
+    "description": "Подпись карточки финансовой подушки при ошибке или отсутствии данных"
   },
   "overviewBehaviorProgressTitle": "Поведенческий прогресс",
   "@overviewBehaviorProgressTitle": {
     "description": "Заголовок карточки поведенческого прогресса на экране обзора"
   },
-  "overviewBehaviorProgressSubtitle": "6 дней осознанного учета подряд",
-  "@overviewBehaviorProgressSubtitle": {
-    "description": "Подпись карточки поведенческого прогресса на экране обзора"
+  "overviewBehaviorProgressSubtitleStreak": "{days} дней осознанного учета подряд",
+  "@overviewBehaviorProgressSubtitleStreak": {
+    "description": "Подпись карточки поведенческого прогресса со стриком",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
   },
-  "overviewBehaviorProgressValue": "x6",
-  "@overviewBehaviorProgressValue": {
-    "description": "Значение карточки поведенческого прогресса на экране обзора"
+  "overviewBehaviorProgressSubtitleLoading": "Расчёт...",
+  "@overviewBehaviorProgressSubtitleLoading": {
+    "description": "Подпись карточки поведенческого прогресса во время загрузки"
+  },
+  "overviewBehaviorProgressSubtitleUnavailable": "Нет данных",
+  "@overviewBehaviorProgressSubtitleUnavailable": {
+    "description": "Подпись карточки поведенческого прогресса при ошибке или отсутствии данных"
+  },
+  "overviewBehaviorProgressValueMultiplier": "x{streak}",
+  "@overviewBehaviorProgressValueMultiplier": {
+    "description": "Значение карточки поведенческого прогресса со стриком",
+    "placeholders": {
+      "streak": {
+        "type": "int"
+      }
+    }
+  },
+  "overviewBehaviorProgressValuePlaceholder": "x--",
+  "@overviewBehaviorProgressValuePlaceholder": {
+    "description": "Значение карточки поведенческого прогресса при отсутствии данных"
   },
   "overviewGoalTitle": "Цель: Отпуск",
   "@overviewGoalTitle": {
@@ -3774,6 +3812,61 @@
   "overviewGoalInsight": "💡 Отложите сегодня на 400 ₽ больше, чтобы\nпоехать на неделю раньше.",
   "@overviewGoalInsight": {
     "description": "Подсказка в карточке цели на экране обзора"
+  },
+  "overviewGoalTitleDynamic": "Цель: {goalName}",
+  "@overviewGoalTitleDynamic": {
+    "description": "Динамический заголовок карточки цели на экране обзора",
+    "placeholders": {
+      "goalName": {
+        "type": "String"
+      }
+    }
+  },
+  "overviewGoalProgressPercentDynamic": "{percent}%",
+  "@overviewGoalProgressPercentDynamic": {
+    "description": "Динамический процент прогресса цели",
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "overviewGoalInsightRemaining": "До цели осталось {amount}",
+  "@overviewGoalInsightRemaining": {
+    "description": "Подсказка карточки цели с оставшейся суммой",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "overviewGoalContributeAction": "Пополнить",
+  "@overviewGoalContributeAction": {
+    "description": "Действие пополнения цели на карточке overview"
+  },
+  "overviewGoalCreateAction": "Создать цель",
+  "@overviewGoalCreateAction": {
+    "description": "Действие создания цели, когда целей нет"
+  },
+  "overviewGoalEmptyTitle": "Цели накоплений",
+  "@overviewGoalEmptyTitle": {
+    "description": "Заголовок карточки цели при пустом списке целей"
+  },
+  "overviewGoalEmptyInsight": "Добавьте цель накоплений, чтобы отслеживать прогресс на обзоре.",
+  "@overviewGoalEmptyInsight": {
+    "description": "Подсказка карточки цели при пустом списке"
+  },
+  "overviewGoalLoadingTitle": "Загрузка целей",
+  "@overviewGoalLoadingTitle": {
+    "description": "Заголовок карточки цели в состоянии загрузки"
+  },
+  "overviewGoalLoadingPercent": "--",
+  "@overviewGoalLoadingPercent": {
+    "description": "Процент прогресса карточки цели в состоянии загрузки"
+  },
+  "overviewGoalLoadingInsight": "Собираем данные по целям накоплений...",
+  "@overviewGoalLoadingInsight": {
+    "description": "Подсказка карточки цели в состоянии загрузки"
   },
   "overviewInsightDayLabel": "Инсайт дня",
   "@overviewInsightDayLabel": {

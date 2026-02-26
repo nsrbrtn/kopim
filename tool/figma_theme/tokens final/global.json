@@ -98,7 +98,7 @@
           "type": "color"
         },
         "surface": {
-          "value": "#fcf8f8",
+          "value": "#ffffff",
           "type": "color",
           "description": "Surface / On Surface\n\nRegular text:\nLevel AA - ✅ Pass\nLevel AAA - ✅ Pass\n\nLarge text:\nLevel AA - ✅ Pass\nLevel AAA - ✅ Pass\n\nIcons:\nLevel AA - ✅ Pass\nLevel AAA - ✅ Pass"
         },
@@ -200,23 +200,23 @@
           "type": "color"
         },
         "surface-container-lowest": {
-          "value": "#ffffff",
+          "value": "#fbfff3",
           "type": "color"
         },
         "surface-container-low": {
-          "value": "#f7f3f2",
+          "value": "#ecf5e2",
           "type": "color"
         },
         "surface-container": {
-          "value": "#f1edec",
+          "value": "#dfe8d1",
           "type": "color"
         },
         "surface-container-high": {
-          "value": "#ebe7e7",
+          "value": "#ced8be",
           "type": "color"
         },
         "surface-container-highest": {
-          "value": "#e5e2e1",
+          "value": "#b3bda6",
           "type": "color"
         }
       },
@@ -379,7 +379,7 @@
           "type": "color"
         },
         "surface-container-low": {
-          "value": "#141414",
+          "value": "#131313",
           "type": "color"
         },
         "surface-container": {
@@ -387,11 +387,11 @@
           "type": "color"
         },
         "surface-container-high": {
-          "value": "#323232",
+          "value": "#2A2A2A",
           "type": "color"
         },
         "surface-container-highest": {
-          "value": "#67696A",
+          "value": "#3E3E3E",
           "type": "color"
         },
         "secondary": {

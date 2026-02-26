@@ -4757,7 +4757,7 @@ final class SavingGoalRepositoryProvider
 }
 
 String _$savingGoalRepositoryHash() =>
-    r'933b603d14710ee6fa023cbb15272fadc2ba82b5';
+    r'86dd9239bbc3aa5ab3a88cb70fc38194e9951e0a';
 
 @ProviderFor(upcomingPaymentsRepository)
 const upcomingPaymentsRepositoryProvider =

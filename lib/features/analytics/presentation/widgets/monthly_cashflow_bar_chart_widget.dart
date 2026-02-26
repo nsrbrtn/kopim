@@ -208,7 +208,7 @@ class _MonthlyCashflowBarChartWidgetState
                 majorTickLines: const MajorTickLines(size: 0),
                 numberFormat: NumberFormat.compact(locale: widget.localeName),
                 labelStyle: theme.textTheme.labelSmall?.copyWith(
-                  color: colors.surfaceContainerHighest,
+                  color: colors.outline,
                   letterSpacing: 0.5,
                 ),
               ),

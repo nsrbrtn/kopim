@@ -817,7 +817,7 @@ class _CreditCardField extends StatelessWidget {
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(),
                 icon: Icon(
-                  Icons.help_outline,
+                  Icons.question_mark,
                   size: 16,
                   color: colorScheme.onSurfaceVariant,
                 ),

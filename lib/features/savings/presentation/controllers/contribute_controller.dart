@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:collection/collection.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:kopim/core/di/injectors.dart';
@@ -33,6 +34,7 @@ class ContributeController extends _$ContributeController {
     state = state.copyWith(
       amountInput: value,
       amountError: null,
+      sourceAccountError: null,
       success: false,
     );
   }
@@ -42,20 +44,66 @@ class ContributeController extends _$ContributeController {
   }
 
   void selectAccount(String? accountId) {
-    state = state.copyWith(selectedAccountId: accountId, success: false);
+    state = state.copyWith(
+      selectedAccountId: accountId,
+      sourceAccountError: null,
+      success: false,
+    );
   }
 
   Future<void> submit() async {
+    final String? sourceAccountId = state.selectedAccountId;
+    if (sourceAccountId == null || sourceAccountId.isEmpty) {
+      state = state.copyWith(
+        sourceAccountError: 'Выберите счет списания',
+        success: false,
+      );
+      return;
+    }
     final String normalized = state.amountInput.replaceAll(',', '.');
     final double? parsed = double.tryParse(normalized);
     if (parsed == null || parsed <= 0) {
       state = state.copyWith(amountError: 'Введите сумму больше нуля');
       return;
     }
+    final AccountEntity? sourceAccount = state.accounts
+        .where((AccountEntity account) => account.id == sourceAccountId)
+        .firstOrNull;
+    if (sourceAccount == null) {
+      state = state.copyWith(
+        sourceAccountError: 'Счет списания недоступен',
+        success: false,
+      );
+      return;
+    }
+    final String? goalCurrency = state.goalAccountCurrency;
+    if (goalCurrency == null || goalCurrency.isEmpty) {
+      state = state.copyWith(
+        sourceAccountError: 'Счет копилки недоступен',
+        success: false,
+      );
+      return;
+    }
+    if (sourceAccount.currency != goalCurrency) {
+      state = state.copyWith(
+        sourceAccountError: 'Валюты счетов не совпадают',
+        success: false,
+      );
+      return;
+    }
     final Money amount = Money.fromDouble(parsed);
+    final BigInt sourceBalance = sourceAccount.balanceMinor ?? BigInt.zero;
+    if (sourceBalance < BigInt.from(amount.minorUnits)) {
+      state = state.copyWith(
+        sourceAccountError: 'Недостаточно средств на счете',
+        success: false,
+      );
+      return;
+    }
     state = state.copyWith(
       isSubmitting: true,
       amountError: null,
+      sourceAccountError: null,
       errorMessage: null,
     );
     try {
@@ -65,7 +113,7 @@ class ContributeController extends _$ContributeController {
       await addContribution(
         goalId: state.goal.id,
         amount: amount,
-        sourceAccountId: state.selectedAccountId,
+        sourceAccountId: sourceAccountId,
         note: state.note,
       );
       state = state.copyWith(
@@ -90,10 +138,18 @@ class ContributeController extends _$ContributeController {
       watchAccountsUseCaseProvider,
     );
     _subscription = watchAccounts().listen((List<AccountEntity> accounts) {
+      final AccountEntity? goalAccount =
+          (state.goal.accountId == null || state.goal.accountId!.isEmpty)
+          ? null
+          : accounts.where((AccountEntity account) {
+              return account.id == state.goal.accountId;
+            }).firstOrNull;
       final List<AccountEntity> filtered = accounts
           .where(
             (AccountEntity account) =>
-                normalizeAccountType(account.type).toLowerCase() != 'credit',
+                isCashAccountType(account.type) &&
+                !account.isHidden &&
+                account.id != state.goal.accountId,
           )
           .toList(growable: false);
       final String? previousSelected = state.selectedAccountId;
@@ -125,6 +181,7 @@ class ContributeController extends _$ContributeController {
       state = state.copyWith(
         accounts: filtered,
         selectedAccountId: nextSelected,
+        goalAccountCurrency: goalAccount?.currency,
       );
     });
   }

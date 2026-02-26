@@ -11,6 +11,7 @@ abstract class SavingGoal with _$SavingGoal {
     required String id,
     required String userId,
     required String name,
+    String? accountId,
     required int targetAmount,
     required int currentAmount,
     String? note,

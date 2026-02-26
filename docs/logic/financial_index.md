@@ -48,6 +48,10 @@
 ## Реализация в коде (этап 3)
 - Use case-агрегатор факторов и серии по месяцам:
   `lib/features/overview/domain/use_cases/watch_financial_index_use_case.dart`
+- Общий расчет safety-фактора:
+  `lib/features/overview/domain/services/safety_cushion_calculator.dart`
+- Общий расчет дисциплины:
+  `lib/features/overview/domain/services/behavior_discipline_calculator.dart`
 - Unit-тесты use case:
   `test/features/overview/domain/use_cases/watch_financial_index_use_case_test.dart`
 

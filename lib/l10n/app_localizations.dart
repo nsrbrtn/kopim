@@ -5121,8 +5121,20 @@ abstract class AppLocalizations {
   /// Safety cushion progress subtitle on overview screen
   ///
   /// In en, this message translates to:
-  /// **'7.4 / 10 months'**
-  String get overviewSafetyPillowSubtitle;
+  /// **'{covered} / {target} months'**
+  String overviewSafetyPillowSubtitleProgress(String covered, String target);
+
+  /// Safety cushion subtitle while loading
+  ///
+  /// In en, this message translates to:
+  /// **'Calculating...'**
+  String get overviewSafetyPillowSubtitleLoading;
+
+  /// Safety cushion subtitle when data is unavailable
+  ///
+  /// In en, this message translates to:
+  /// **'No data'**
+  String get overviewSafetyPillowSubtitleUnavailable;
 
   /// Behavioral progress card title on overview screen
   ///
@@ -5130,17 +5142,35 @@ abstract class AppLocalizations {
   /// **'Behavioral progress'**
   String get overviewBehaviorProgressTitle;
 
-  /// Behavioral progress card subtitle on overview screen
+  /// Behavioral progress card subtitle with streak value
   ///
   /// In en, this message translates to:
-  /// **'6 days of mindful tracking in a row'**
-  String get overviewBehaviorProgressSubtitle;
+  /// **'{days} days of mindful tracking in a row'**
+  String overviewBehaviorProgressSubtitleStreak(int days);
 
-  /// Behavioral progress card value on overview screen
+  /// Behavioral progress subtitle while loading
   ///
   /// In en, this message translates to:
-  /// **'x6'**
-  String get overviewBehaviorProgressValue;
+  /// **'Calculating...'**
+  String get overviewBehaviorProgressSubtitleLoading;
+
+  /// Behavioral progress subtitle when data is unavailable
+  ///
+  /// In en, this message translates to:
+  /// **'No data'**
+  String get overviewBehaviorProgressSubtitleUnavailable;
+
+  /// Behavioral progress card value with streak
+  ///
+  /// In en, this message translates to:
+  /// **'x{streak}'**
+  String overviewBehaviorProgressValueMultiplier(int streak);
+
+  /// Behavioral progress card value when data is unavailable
+  ///
+  /// In en, this message translates to:
+  /// **'x--'**
+  String get overviewBehaviorProgressValuePlaceholder;
 
   /// Goal card title on overview screen
   ///
@@ -5159,6 +5189,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'💡 Save 400 ₽ more today\nto leave a week earlier.'**
   String get overviewGoalInsight;
+
+  /// Dynamic goal card title on overview screen
+  ///
+  /// In en, this message translates to:
+  /// **'Goal: {goalName}'**
+  String overviewGoalTitleDynamic(String goalName);
+
+  /// Dynamic goal progress percent
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}%'**
+  String overviewGoalProgressPercentDynamic(int percent);
+
+  /// Goal card hint with remaining amount
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} left to reach the goal'**
+  String overviewGoalInsightRemaining(String amount);
+
+  /// Goal contribution action on overview card
+  ///
+  /// In en, this message translates to:
+  /// **'Contribute'**
+  String get overviewGoalContributeAction;
+
+  /// Create goal action when no goals exist
+  ///
+  /// In en, this message translates to:
+  /// **'Create goal'**
+  String get overviewGoalCreateAction;
+
+  /// Goal card title when no goals exist
+  ///
+  /// In en, this message translates to:
+  /// **'Saving goals'**
+  String get overviewGoalEmptyTitle;
+
+  /// Goal card hint when no goals exist
+  ///
+  /// In en, this message translates to:
+  /// **'Add a saving goal to track progress on the overview screen.'**
+  String get overviewGoalEmptyInsight;
+
+  /// Goal card title while loading
+  ///
+  /// In en, this message translates to:
+  /// **'Loading goals'**
+  String get overviewGoalLoadingTitle;
+
+  /// Goal card percent while loading
+  ///
+  /// In en, this message translates to:
+  /// **'--'**
+  String get overviewGoalLoadingPercent;
+
+  /// Goal card hint while loading
+  ///
+  /// In en, this message translates to:
+  /// **'Collecting your saving goals data...'**
+  String get overviewGoalLoadingInsight;
 
   /// Insight card label on overview screen
   ///

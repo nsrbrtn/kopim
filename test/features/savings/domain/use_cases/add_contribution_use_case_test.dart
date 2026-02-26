@@ -91,27 +91,19 @@ void main() {
     expect(persisted.currentAmount, 800);
   });
 
-  test('skips transaction when source account not provided', () async {
+  test('throws when source account not provided', () async {
     when(
       () => repository.findById('goal-1'),
     ).thenAnswer((_) async => _buildGoal(current: 200, target: 500));
 
-    final SavingGoal updated = await useCase(
-      goalId: 'goal-1',
-      amount: Money.fromMinorUnits(200),
-    );
-
-    expect(updated.currentAmount, 400);
-    verify(
-      () => repository.addContribution(
-        goal: any(named: 'goal'),
-        appliedDelta: 200,
-        newCurrentAmount: 400,
-        contributedAt: fixedNow,
-        sourceAccountId: null,
-        contributionNote: null,
+    expect(
+      () => useCase(
+        goalId: 'goal-1',
+        amount: Money.fromMinorUnits(200),
+        sourceAccountId: ' ',
       ),
-    ).called(1);
+      throwsArgumentError,
+    );
   });
 
   test('throws when goal is archived', () async {
@@ -120,7 +112,11 @@ void main() {
     ).thenAnswer((_) async => _buildGoal(archivedAt: DateTime.utc(2024, 1, 2)));
 
     expect(
-      () => useCase(goalId: 'goal-1', amount: Money.fromMinorUnits(100)),
+      () => useCase(
+        goalId: 'goal-1',
+        amount: Money.fromMinorUnits(100),
+        sourceAccountId: 'acc-1',
+      ),
       throwsStateError,
     );
   });
@@ -131,7 +127,11 @@ void main() {
     ).thenAnswer((_) async => _buildGoal(current: 1000, target: 1000));
 
     expect(
-      () => useCase(goalId: 'goal-1', amount: Money.fromMinorUnits(100)),
+      () => useCase(
+        goalId: 'goal-1',
+        amount: Money.fromMinorUnits(100),
+        sourceAccountId: 'acc-1',
+      ),
       throwsStateError,
     );
   });
@@ -140,14 +140,22 @@ void main() {
     when(() => repository.findById('missing')).thenAnswer((_) async => null);
 
     expect(
-      () => useCase(goalId: 'missing', amount: Money.fromMinorUnits(50)),
+      () => useCase(
+        goalId: 'missing',
+        amount: Money.fromMinorUnits(50),
+        sourceAccountId: 'acc-1',
+      ),
       throwsStateError,
     );
   });
 
   test('throws when contribution amount is not positive', () async {
     expect(
-      () => useCase(goalId: 'goal-1', amount: Money.fromMinorUnits(0)),
+      () => useCase(
+        goalId: 'goal-1',
+        amount: Money.fromMinorUnits(0),
+        sourceAccountId: 'acc-1',
+      ),
       throwsArgumentError,
     );
   });

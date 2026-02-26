@@ -1,16 +1,11 @@
-import 'package:drift/drift.dart' show Value;
 import 'package:kopim/core/data/database.dart' as db;
 import 'package:kopim/core/data/outbox/outbox_dao.dart';
-import 'package:kopim/core/domain/icons/phosphor_icon_descriptor.dart';
 import 'package:kopim/core/services/analytics_service.dart';
 import 'package:kopim/core/services/logger_service.dart';
 import 'package:kopim/features/accounts/data/sources/local/account_dao.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
-import 'package:kopim/features/categories/data/sources/local/category_dao.dart';
-import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/core/money/currency_scale.dart';
 import 'package:kopim/core/money/money.dart';
-import 'package:kopim/features/credits/data/sources/local/credit_dao.dart';
 import 'package:kopim/features/savings/data/sources/local/goal_contribution_dao.dart';
 import 'package:kopim/features/savings/data/sources/local/saving_goal_dao.dart';
 import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
@@ -25,9 +20,7 @@ class SavingGoalRepositoryImpl implements SavingGoalRepository {
   SavingGoalRepositoryImpl({
     required db.AppDatabase database,
     required SavingGoalDao savingGoalDao,
-    required CategoryDao categoryDao,
     required AccountDao accountDao,
-    required CreditDao creditDao,
     required TransactionDao transactionDao,
     required GoalContributionDao goalContributionDao,
     required OutboxDao outboxDao,
@@ -37,9 +30,7 @@ class SavingGoalRepositoryImpl implements SavingGoalRepository {
     DateTime Function()? clock,
   }) : _database = database,
        _savingGoalDao = savingGoalDao,
-       _categoryDao = categoryDao,
        _accountDao = accountDao,
-       _creditDao = creditDao,
        _transactionDao = transactionDao,
        _contributionDao = goalContributionDao,
        _outboxDao = outboxDao,
@@ -49,54 +40,12 @@ class SavingGoalRepositoryImpl implements SavingGoalRepository {
        _clock = clock ?? DateTime.now;
 
   static const String _goalEntityType = 'saving_goal';
-  static const String _categoryEntityType = 'category';
   static const String _transactionEntityType = 'transaction';
   static const String _accountEntityType = 'account';
-  static const PhosphorIconDescriptor _defaultSavingsIcon =
-      PhosphorIconDescriptor(name: 'piggy-bank', style: PhosphorIconStyle.bold);
-  static const List<String> _categoryPalette = <String>[
-    '#D6D58E',
-    '#DBF227',
-    '#9FC131',
-    '#005C53',
-    '#042940',
-    '#BDA523',
-    '#E3C75F',
-    '#CC8D1A',
-    '#164C45',
-    '#16232E',
-    '#E3371E',
-    '#FF7A48',
-    '#0593A2',
-    '#103778',
-    '#151F30',
-    '#66796B',
-    '#BA8E7A',
-    '#EFDFCC',
-    '#D7A184',
-    '#D4C2AD',
-    '#293241',
-    '#EE6B4D',
-    '#DFFBFC',
-    '#9BC0D9',
-    '#3D5B81',
-    '#F26363',
-    '#F29F80',
-    '#F2D0A7',
-    '#171559',
-    '#D94169',
-    '#F5F549',
-    '#EFB7FF',
-    '#00F4CC',
-    '#4F81F7',
-    '#3A356E',
-  ];
 
   final db.AppDatabase _database;
   final SavingGoalDao _savingGoalDao;
-  final CategoryDao _categoryDao;
   final AccountDao _accountDao;
-  final CreditDao _creditDao;
   final TransactionDao _transactionDao;
   final GoalContributionDao _contributionDao;
   final OutboxDao _outboxDao;
@@ -131,9 +80,10 @@ class SavingGoalRepositoryImpl implements SavingGoalRepository {
   @override
   Future<void> create(SavingGoal goal) async {
     final DateTime now = _clock().toUtc();
-    final SavingGoal toPersist = goal.copyWith(updatedAt: now);
+    SavingGoal? persistedGoal;
     await _database.transaction(() async {
-      await _ensureSystemCategory(name: toPersist.name, timestamp: now);
+      final SavingGoal withAccount = await _ensureGoalAccount(goal, now);
+      final SavingGoal toPersist = withAccount.copyWith(updatedAt: now);
       await _savingGoalDao.upsert(toPersist);
       await _outboxDao.enqueue(
         entityType: _goalEntityType,
@@ -141,7 +91,9 @@ class SavingGoalRepositoryImpl implements SavingGoalRepository {
         operation: OutboxOperation.upsert,
         payload: _mapGoalPayload(toPersist),
       );
+      persistedGoal = toPersist;
     });
+    final SavingGoal toPersist = persistedGoal ?? goal;
     await _analyticsService.logEvent('savings_goal_create', <String, dynamic>{
       'goalId': toPersist.id,
       'target': toPersist.targetAmount,
@@ -152,16 +104,21 @@ class SavingGoalRepositoryImpl implements SavingGoalRepository {
   @override
   Future<void> update(SavingGoal goal) async {
     final DateTime now = _clock().toUtc();
-    final SavingGoal toPersist = goal.copyWith(updatedAt: now);
+    SavingGoal? persistedGoal;
     await _database.transaction(() async {
+      final SavingGoal withAccount = await _ensureGoalAccount(goal, now);
+      final SavingGoal toPersist = withAccount.copyWith(updatedAt: now);
       await _savingGoalDao.upsert(toPersist);
+      await _syncGoalAccountName(goal: toPersist, timestamp: now);
       await _outboxDao.enqueue(
         entityType: _goalEntityType,
         entityId: toPersist.id,
         operation: OutboxOperation.upsert,
         payload: _mapGoalPayload(toPersist),
       );
+      persistedGoal = toPersist;
     });
+    final SavingGoal toPersist = persistedGoal ?? goal;
     await _analyticsService.logEvent('savings_goal_update', <String, dynamic>{
       'goalId': toPersist.id,
       'target': toPersist.targetAmount,
@@ -196,71 +153,80 @@ class SavingGoalRepositoryImpl implements SavingGoalRepository {
     required int appliedDelta,
     required int newCurrentAmount,
     required DateTime contributedAt,
-    String? sourceAccountId,
+    required String sourceAccountId,
     String? contributionNote,
   }) async {
     final DateTime timestamp = contributedAt.toUtc();
     final SavingGoal persisted = await _database.transaction(() async {
+      final SavingGoal ensuredGoal = await _ensureGoalAccount(goal, timestamp);
+      final String? goalAccountId = ensuredGoal.accountId;
+      if (goalAccountId == null || goalAccountId.isEmpty) {
+        throw StateError('Saving goal account is not configured');
+      }
       final SavingGoal updatedGoal = goal.copyWith(
+        accountId: goalAccountId,
         currentAmount: newCurrentAmount,
         updatedAt: timestamp,
       );
-      final String categoryId = await _ensureSystemCategory(
-        name: goal.name,
-        timestamp: timestamp,
+      final String accountId = sourceAccountId;
+      final db.AccountRow? sourceAccountRow = await _accountDao.findById(
+        accountId,
       );
-      final String? accountId =
-          (sourceAccountId != null && sourceAccountId.isNotEmpty)
-          ? sourceAccountId
-          : null;
-      if (accountId != null) {
-        final db.AccountRow? accountRow = await _accountDao.findById(accountId);
-        if (accountRow == null) {
-          throw StateError('Account not found for contribution');
-        }
-        final double amountDouble = appliedDelta / 100;
-        final int scale = resolveCurrencyScale(accountRow.currency);
-        final Money money = Money.fromDouble(
-          amountDouble.abs(),
-          currency: accountRow.currency,
-          scale: scale,
-        );
-        final TransactionEntity transaction = TransactionEntity(
-          id: _uuid.v4(),
-          accountId: accountId,
-          categoryId: categoryId,
-          savingGoalId: goal.id,
-          amountMinor: money.minor,
-          amountScale: scale,
-          date: timestamp,
-          note: _composeContributionNote(goal.name, contributionNote),
-          type: 'expense',
-          createdAt: timestamp,
-          updatedAt: timestamp,
-        );
-        await _transactionDao.upsert(transaction);
-        await _outboxDao.enqueue(
-          entityType: _transactionEntityType,
-          entityId: transaction.id,
-          operation: OutboxOperation.upsert,
-          payload: _mapTransactionPayload(transaction),
-        );
-        final db.CreditRow? creditRow = await _creditDao.findByCategoryId(
-          categoryId,
-        );
-        final Map<String, MoneyAmount> effect = buildTransactionEffect(
-          transaction: transaction,
-          creditAccountId: creditRow?.accountId,
-        );
-        await _applyAccountEffect(effect, timestamp);
-        await _contributionDao.insert(
-          id: _uuid.v4(),
-          goalId: goal.id,
-          transactionId: transaction.id,
-          amount: appliedDelta,
-          createdAt: timestamp,
-        );
+      if (sourceAccountRow == null) {
+        throw StateError('Account not found for contribution');
       }
+      final db.AccountRow? goalAccountRow = await _accountDao.findById(
+        goalAccountId,
+      );
+      if (goalAccountRow == null) {
+        throw StateError('Saving goal account not found');
+      }
+      if (accountId == goalAccountId) {
+        throw StateError('Source and target accounts must be different');
+      }
+      if (sourceAccountRow.currency != goalAccountRow.currency) {
+        throw StateError('Source and saving goal currencies must match');
+      }
+      final double amountDouble = appliedDelta / 100;
+      final int scale = resolveCurrencyScale(sourceAccountRow.currency);
+      final Money money = Money.fromDouble(
+        amountDouble.abs(),
+        currency: sourceAccountRow.currency,
+        scale: scale,
+      );
+      final TransactionEntity transaction = TransactionEntity(
+        id: _uuid.v4(),
+        accountId: accountId,
+        transferAccountId: goalAccountId,
+        categoryId: null,
+        savingGoalId: goal.id,
+        amountMinor: money.minor,
+        amountScale: scale,
+        date: timestamp,
+        note: _composeContributionNote(goal.name, contributionNote),
+        type: 'transfer',
+        createdAt: timestamp,
+        updatedAt: timestamp,
+      );
+      await _transactionDao.upsert(transaction);
+      await _outboxDao.enqueue(
+        entityType: _transactionEntityType,
+        entityId: transaction.id,
+        operation: OutboxOperation.upsert,
+        payload: _mapTransactionPayload(transaction),
+      );
+      final Map<String, MoneyAmount> effect = buildTransactionEffect(
+        transaction: transaction,
+        creditAccountId: null,
+      );
+      await _applyAccountEffect(effect, timestamp);
+      await _contributionDao.insert(
+        id: _uuid.v4(),
+        goalId: goal.id,
+        transactionId: transaction.id,
+        amount: appliedDelta,
+        createdAt: timestamp,
+      );
       await _savingGoalDao.upsert(updatedGoal);
       await _outboxDao.enqueue(
         entityType: _goalEntityType,
@@ -275,8 +241,7 @@ class SavingGoalRepositoryImpl implements SavingGoalRepository {
         .logEvent('savings_goal_contribution', <String, dynamic>{
           'goalId': persisted.id,
           'amount': appliedDelta,
-          if (sourceAccountId != null && sourceAccountId.isNotEmpty)
-            'sourceAccountId': sourceAccountId,
+          'sourceAccountId': sourceAccountId,
         });
     final String logNote =
         contributionNote != null && contributionNote.isNotEmpty
@@ -288,56 +253,88 @@ class SavingGoalRepositoryImpl implements SavingGoalRepository {
     return persisted;
   }
 
-  Future<String> _ensureSystemCategory({
-    required String name,
-    required DateTime timestamp,
-  }) async {
-    final db.CategoryRow? existing = await _categoryDao.findByName(name);
-    if (existing != null) {
-      if (existing.isDeleted || !existing.isSystem) {
-        await (_database.update(_database.categories)
-              ..where((db.$CategoriesTable tbl) => tbl.id.equals(existing.id)))
-            .write(
-              db.CategoriesCompanion(
-                isDeleted: const Value<bool>(false),
-                isSystem: const Value<bool>(true),
-                updatedAt: Value<DateTime>(timestamp),
-              ),
-            );
+  Future<SavingGoal> _ensureGoalAccount(
+    SavingGoal goal,
+    DateTime timestamp,
+  ) async {
+    if (goal.accountId != null && goal.accountId!.isNotEmpty) {
+      final db.AccountRow? existing = await _accountDao.findById(
+        goal.accountId!,
+      );
+      if (existing != null) {
+        return goal;
       }
-      return existing.id;
     }
-    final Category category = Category(
-      id: _uuid.v4(),
-      name: name,
-      type: 'expense',
-      icon: _defaultSavingsIcon,
-      color: _pickColorForName(name),
-      parentId: null,
+
+    final db.AccountRow? primaryAccount = await _findPrimaryActiveAccount();
+    final String currency = primaryAccount?.currency ?? 'USD';
+    final int scale =
+        primaryAccount?.currencyScale ?? resolveCurrencyScale(currency);
+    final String accountId =
+        goal.accountId != null && goal.accountId!.isNotEmpty
+        ? goal.accountId!
+        : _uuid.v4();
+    final int initialMinor = goal.currentAmount;
+    final AccountEntity account = AccountEntity(
+      id: accountId,
+      name: 'Копилка: ${goal.name}',
+      balanceMinor: BigInt.from(initialMinor),
+      openingBalanceMinor: BigInt.from(initialMinor),
+      currency: currency,
+      currencyScale: scale,
+      type: 'savings',
       createdAt: timestamp,
       updatedAt: timestamp,
       isDeleted: false,
-      isSystem: true,
+      isPrimary: false,
+      isHidden: false,
     );
-    await _categoryDao.upsert(category);
+    await _accountDao.upsert(account);
     await _outboxDao.enqueue(
-      entityType: _categoryEntityType,
-      entityId: category.id,
+      entityType: _accountEntityType,
+      entityId: account.id,
       operation: OutboxOperation.upsert,
-      payload: _mapCategoryPayload(category),
+      payload: _mapAccountPayload(account),
     );
-    return category.id;
+    return goal.copyWith(accountId: account.id);
   }
 
-  String _pickColorForName(String name) {
-    if (name.isEmpty) {
-      return _categoryPalette.first;
+  Future<db.AccountRow?> _findPrimaryActiveAccount() async {
+    final List<db.AccountRow> accounts = await _accountDao.getActiveAccounts();
+    for (final db.AccountRow row in accounts) {
+      if (row.isPrimary) {
+        return row;
+      }
     }
-    final int hash = name.toLowerCase().runes.fold<int>(
-      0,
-      (int value, int rune) => (value * 31 + rune) & 0x7fffffff,
+    return accounts.isNotEmpty ? accounts.first : null;
+  }
+
+  Future<void> _syncGoalAccountName({
+    required SavingGoal goal,
+    required DateTime timestamp,
+  }) async {
+    final String? accountId = goal.accountId;
+    if (accountId == null || accountId.isEmpty) {
+      return;
+    }
+    final db.AccountRow? row = await _accountDao.findById(accountId);
+    if (row == null || row.isDeleted) {
+      return;
+    }
+    final String expectedName = 'Копилка: ${goal.name}';
+    if (row.name == expectedName) {
+      return;
+    }
+    final AccountEntity updated = _mapAccountRow(
+      row,
+    ).copyWith(name: expectedName, updatedAt: timestamp);
+    await _accountDao.upsert(updated);
+    await _outboxDao.enqueue(
+      entityType: _accountEntityType,
+      entityId: updated.id,
+      operation: OutboxOperation.upsert,
+      payload: _mapAccountPayload(updated),
     );
-    return _categoryPalette[hash % _categoryPalette.length];
   }
 
   String _composeContributionNote(String goalName, String? note) {
@@ -353,15 +350,6 @@ class SavingGoalRepositoryImpl implements SavingGoalRepository {
     json['createdAt'] = goal.createdAt.toIso8601String();
     json['updatedAt'] = goal.updatedAt.toIso8601String();
     json['archivedAt'] = goal.archivedAt?.toIso8601String();
-    return json;
-  }
-
-  Map<String, dynamic> _mapCategoryPayload(Category category) {
-    final Map<String, dynamic> json = category.toJson();
-    json['iconName'] = category.icon?.name;
-    json['iconStyle'] = category.icon?.style.label;
-    json['createdAt'] = category.createdAt.toIso8601String();
-    json['updatedAt'] = category.updatedAt.toIso8601String();
     return json;
   }
 

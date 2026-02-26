@@ -66,7 +66,10 @@ import 'package:kopim/features/categories/domain/use_cases/watch_categories_use_
 import 'package:kopim/features/categories/domain/use_cases/watch_category_tree_use_case.dart';
 import 'package:kopim/features/home/domain/use_cases/watch_home_overview_summary_use_case.dart';
 import 'package:kopim/features/overview/domain/use_cases/watch_financial_index_use_case.dart';
+import 'package:kopim/features/overview/domain/use_cases/watch_overview_behavior_progress_use_case.dart';
 import 'package:kopim/features/overview/domain/use_cases/watch_overview_daily_allowance_use_case.dart';
+import 'package:kopim/features/overview/domain/use_cases/watch_overview_goal_focus_use_case.dart';
+import 'package:kopim/features/overview/domain/use_cases/watch_overview_safety_cushion_use_case.dart';
 import 'package:kopim/features/tags/data/repositories/tag_repository_impl.dart';
 import 'package:kopim/features/tags/data/repositories/transaction_tags_repository_impl.dart';
 import 'package:kopim/features/tags/data/sources/local/tag_dao.dart';
@@ -714,6 +717,33 @@ watchOverviewDailyAllowanceUseCaseProvider =
       );
     });
 
+final rp.Provider<WatchOverviewSafetyCushionUseCase>
+watchOverviewSafetyCushionUseCaseProvider =
+    rp.Provider<WatchOverviewSafetyCushionUseCase>((rp.Ref ref) {
+      return WatchOverviewSafetyCushionUseCase(
+        accountRepository: ref.watch(accountRepositoryProvider),
+        transactionRepository: ref.watch(transactionRepositoryProvider),
+        savingGoalRepository: ref.watch(savingGoalRepositoryProvider),
+      );
+    });
+
+final rp.Provider<WatchOverviewBehaviorProgressUseCase>
+watchOverviewBehaviorProgressUseCaseProvider =
+    rp.Provider<WatchOverviewBehaviorProgressUseCase>((rp.Ref ref) {
+      return WatchOverviewBehaviorProgressUseCase(
+        accountRepository: ref.watch(accountRepositoryProvider),
+        transactionRepository: ref.watch(transactionRepositoryProvider),
+      );
+    });
+
+final rp.Provider<WatchOverviewGoalFocusUseCase>
+watchOverviewGoalFocusUseCaseProvider =
+    rp.Provider<WatchOverviewGoalFocusUseCase>((rp.Ref ref) {
+      return WatchOverviewGoalFocusUseCase(
+        savingGoalRepository: ref.watch(savingGoalRepositoryProvider),
+      );
+    });
+
 @riverpod
 AddCreditUseCase addCreditUseCase(Ref ref) => AddCreditUseCase(
   creditRepository: ref.watch(creditRepositoryProvider),
@@ -969,9 +999,7 @@ OverviewPreferencesRepository overviewPreferencesRepository(Ref ref) {
 SavingGoalRepository savingGoalRepository(Ref ref) => SavingGoalRepositoryImpl(
   database: ref.watch(appDatabaseProvider),
   savingGoalDao: ref.watch(savingGoalDaoProvider),
-  categoryDao: ref.watch(categoryDaoProvider),
   accountDao: ref.watch(accountDaoProvider),
-  creditDao: ref.watch(creditDaoProvider),
   transactionDao: ref.watch(transactionDaoProvider),
   goalContributionDao: ref.watch(goalContributionDaoProvider),
   outboxDao: ref.watch(outboxDaoProvider),

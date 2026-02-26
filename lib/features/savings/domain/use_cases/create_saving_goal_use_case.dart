@@ -49,10 +49,12 @@ class CreateSavingGoalUseCase {
       throw StateError('Saving goal name already exists');
     }
     final DateTime now = _clock().toUtc();
+    final String goalId = _uuid.v4();
     final SavingGoal goal = SavingGoal(
-      id: _uuid.v4(),
+      id: goalId,
       userId: userId,
       name: trimmedName,
+      accountId: _uuid.v4(),
       targetAmount: target.minorUnits,
       currentAmount: 0,
       note: note?.trim().isEmpty ?? true ? null : note!.trim(),
