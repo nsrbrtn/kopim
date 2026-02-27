@@ -34,7 +34,41 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileGeneralSettingsTooltip => 'General settings';
 
   @override
+  String get profileSettingsTitle => 'Profile settings';
+
+  @override
   String get profileMenuTitle => 'Menu';
+
+  @override
+  String profileGreeting(String name) {
+    return 'Hi, $name';
+  }
+
+  @override
+  String get profileActivityTitle => 'Activity';
+
+  @override
+  String profileProgressToNextLevel(int level) {
+    return 'Progress to Level $level';
+  }
+
+  @override
+  String get profileDataSecurityTitle => 'Data & Security';
+
+  @override
+  String get profileBackupTitle => 'Online sync';
+
+  @override
+  String get profileBackupEnabled => 'Enabled';
+
+  @override
+  String get profileBackupDisabled => 'Disabled';
+
+  @override
+  String get profileExportDataFullCta => 'Export data (CSV/PDF)';
+
+  @override
+  String get profileSignOutFullCta => 'Sign out of profile';
 
   @override
   String get creditsTitle => 'Loans & Debts';
@@ -1055,6 +1089,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeTitle => 'Home';
 
   @override
+  String get homeQuickAddTransactionTitle => 'Quick transaction';
+
+  @override
+  String get homeLogoSemanticLabel => 'Kopim';
+
+  @override
   String get homeProfileTooltip => 'Profile';
 
   @override
@@ -1251,6 +1291,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeUpcomingPaymentsMore => 'More';
+
+  @override
+  String get homeUpcomingPaymentsOverflowIndicator => '...';
 
   @override
   String get homeUpcomingPaymentsBadgePaymentsLabel => 'Payments';

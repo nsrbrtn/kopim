@@ -34,7 +34,6 @@ import 'package:kopim/features/home/domain/models/home_account_monthly_summary.d
 import 'package:kopim/features/home/presentation/controllers/home_dashboard_preferences_controller.dart';
 import 'package:kopim/features/home/presentation/controllers/home_transactions_filter_controller.dart';
 import 'package:kopim/features/home/presentation/widgets/home_budget_progress_card.dart';
-import 'package:kopim/features/home/presentation/widgets/home_gamification_widget.dart';
 import 'package:kopim/features/home/presentation/widgets/home_overview_summary_card.dart';
 import 'package:kopim/features/home/presentation/widgets/home_savings_overview_card.dart';
 import 'package:kopim/features/home/presentation/widgets/home_upcoming_items_card.dart';
@@ -80,6 +79,16 @@ final StreamProviderFamily<List<TagEntity>, String>
 _homeTransactionTagsProvider = StreamProvider.autoDispose
     .family<List<TagEntity>, String>((Ref ref, String transactionId) {
       return ref.watch(watchTransactionTagsUseCaseProvider).call(transactionId);
+    });
+
+final StreamProvider<List<CreditEntity>> _homeCreditsProvider =
+    StreamProvider.autoDispose<List<CreditEntity>>((Ref ref) {
+      return ref.watch(watchCreditsUseCaseProvider).call();
+    });
+
+final StreamProvider<List<CreditCardEntity>> _homeCreditCardsProvider =
+    StreamProvider.autoDispose<List<CreditCardEntity>>((Ref ref) {
+      return ref.watch(watchCreditCardsUseCaseProvider).call();
     });
 
 NavigationTabContent buildHomeTabContent(BuildContext context, WidgetRef ref) {
@@ -178,9 +187,6 @@ class _HomeBody extends ConsumerWidget {
             final bool showSecondaryPanel =
                 MediaQuery.sizeOf(context).width >=
                 kMainNavigationRailBreakpoint;
-            final bool showGamificationHeader =
-                user != null &&
-                (dashboardPreferences?.showGamificationWidget ?? false);
 
             slivers.add(
               _HomePinnedTitleAppBar(strings: strings, userId: user?.uid),
@@ -201,10 +207,6 @@ class _HomeBody extends ConsumerWidget {
                 ),
               );
               nextTopPadding = 8;
-            }
-
-            if (showGamificationHeader) {
-              addBoxSection(HomeGamificationWidget(userId: user.uid));
             }
 
             addBoxSection(
@@ -493,7 +495,7 @@ class _HomePinnedTitleAppBar extends ConsumerWidget {
         'assets/icons/logo_dark.png',
         height: 24,
         fit: BoxFit.contain,
-        semanticLabel: 'Копим',
+        semanticLabel: strings.homeLogoSemanticLabel,
       ),
       actions: <Widget>[
         const Center(child: SyncStatusIndicator()),
@@ -558,7 +560,8 @@ class _AddTransactionButton extends ConsumerWidget {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
     return AnimatedFab(
       child: KopimGlassFab(
-        icon: Icon(Icons.add, color: colorScheme.primary),
+        icon: Icon(Icons.add, size: 48, color: colorScheme.primary),
+        enableShadow: false,
         foregroundColor: colorScheme.primary,
         onPressed: () =>
             ref.read(transactionSheetControllerProvider.notifier).openForAdd(),
@@ -692,15 +695,53 @@ class _AccountsListState extends State<_AccountsList> {
 
   int get _totalItems => _displayedAccounts.length;
 
+  int _resolveActivePage(int maxIndex) {
+    if (maxIndex <= 0) {
+      return 0;
+    }
+    if (!_pageController.hasClients) {
+      return _currentPage.clamp(0, maxIndex);
+    }
+
+    final ScrollPosition position = _pageController.position;
+    if (position.maxScrollExtent <= 0) {
+      return 0;
+    }
+    if (position.pixels >= position.maxScrollExtent - 1) {
+      return maxIndex;
+    }
+    final double progress = (position.pixels / position.maxScrollExtent).clamp(
+      0.0,
+      1.0,
+    );
+    return (progress * maxIndex).round().clamp(0, maxIndex);
+  }
+
+  void _handlePageScroll() {
+    if (!mounted) {
+      return;
+    }
+    final int maxIndex = math.max(0, _totalItems - 1);
+    final int activePage = _resolveActivePage(maxIndex);
+    if (activePage == _currentPage) {
+      return;
+    }
+    setState(() {
+      _currentPage = activePage;
+    });
+  }
+
   @override
   void initState() {
     super.initState();
     _viewportFraction = _totalItems == 1 ? 1.0 : 0.65;
     _pageController = PageController(viewportFraction: _viewportFraction);
+    _pageController.addListener(_handlePageScroll);
   }
 
   @override
   void dispose() {
+    _pageController.removeListener(_handlePageScroll);
     _pageController.dispose();
     super.dispose();
   }
@@ -718,12 +759,32 @@ class _AccountsListState extends State<_AccountsList> {
       viewportFraction: fraction,
       initialPage: initialPage,
     );
+    oldController.removeListener(_handlePageScroll);
+    newController.addListener(_handlePageScroll);
     setState(() {
       _viewportFraction = fraction;
       _pageController = newController;
       _currentPage = initialPage;
     });
     oldController.dispose();
+  }
+
+  Map<String, NumberFormat> _buildCurrencyFormats({
+    required List<AccountEntity> accounts,
+    required String localeName,
+    int? decimalDigits,
+  }) {
+    final Map<String, NumberFormat> formats = <String, NumberFormat>{};
+    for (final AccountEntity account in accounts) {
+      formats.putIfAbsent(account.currency, () {
+        return TransactionTileFormatters.currency(
+          localeName,
+          resolveCurrencySymbol(account.currency, locale: localeName),
+          decimalDigits: decimalDigits,
+        );
+      });
+    }
+    return formats;
   }
 
   @override
@@ -736,6 +797,7 @@ class _AccountsListState extends State<_AccountsList> {
     final ThemeData theme = Theme.of(context);
     final String localeName = widget.strings.localeName;
     final int totalItems = _totalItems;
+    final List<AccountEntity> displayedAccounts = _displayedAccounts;
 
     if (totalItems == 0 && hasHiddenAccounts) {
       return const SizedBox.shrink();
@@ -746,7 +808,11 @@ class _AccountsListState extends State<_AccountsList> {
         builder: (BuildContext context, BoxConstraints constraints) {
           final double cardHeight = _AccountCardLayout.estimateHeight(context);
           final double cardWidth = math.min(360, constraints.maxWidth * 0.6);
-          final List<AccountEntity> displayedAccounts = _displayedAccounts;
+          final Map<String, NumberFormat> currencyFormats =
+              _buildCurrencyFormats(
+                accounts: displayedAccounts,
+                localeName: localeName,
+              );
           return SizedBox(
             height: cardHeight,
             child: Stack(
@@ -761,13 +827,8 @@ class _AccountsListState extends State<_AccountsList> {
                         const SizedBox(width: 12),
                     itemBuilder: (BuildContext context, int index) {
                       final AccountEntity account = displayedAccounts[index];
-                      final NumberFormat currencyFormat = NumberFormat.currency(
-                        locale: localeName,
-                        symbol: resolveCurrencySymbol(
-                          account.currency,
-                          locale: localeName,
-                        ),
-                      );
+                      final NumberFormat currencyFormat =
+                          currencyFormats[account.currency]!;
                       return SizedBox(
                         width: cardWidth,
                         child: _AccountCard(
@@ -801,15 +862,7 @@ class _AccountsListState extends State<_AccountsList> {
     }
 
     final int maxIndex = math.max(0, totalItems - 1);
-    final int activePage = _currentPage.clamp(0, maxIndex);
-    if (_currentPage != activePage) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
-        setState(() {
-          _currentPage = activePage;
-        });
-      });
-    }
+    final int activePage = _resolveActivePage(maxIndex);
 
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
@@ -838,7 +891,11 @@ class _AccountsListState extends State<_AccountsList> {
           });
         }
 
-        final List<AccountEntity> displayedAccounts = _displayedAccounts;
+        final Map<String, NumberFormat> currencyFormats = _buildCurrencyFormats(
+          accounts: displayedAccounts,
+          localeName: localeName,
+          decimalDigits: 0,
+        );
         return Column(
           children: <Widget>[
             SizedBox(
@@ -853,22 +910,10 @@ class _AccountsListState extends State<_AccountsList> {
                       physics: const BouncingScrollPhysics(),
                       padEnds: false,
                       itemCount: totalItems,
-                      onPageChanged: (int index) {
-                        setState(() {
-                          _currentPage = index;
-                        });
-                      },
                       itemBuilder: (BuildContext context, int index) {
                         final AccountEntity account = displayedAccounts[index];
                         final NumberFormat currencyFormat =
-                            NumberFormat.currency(
-                              locale: localeName,
-                              symbol: resolveCurrencySymbol(
-                                account.currency,
-                                locale: localeName,
-                              ),
-                              decimalDigits: 0,
-                            );
+                            currencyFormats[account.currency]!;
                         final HomeAccountMonthlySummary summary =
                             widget.monthlySummaries[account.id] ??
                             HomeAccountMonthlySummary(
@@ -947,6 +992,7 @@ class _AccountCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final ThemeData theme = Theme.of(context);
+    final Color carouselContentColor = theme.colorScheme.scrim;
     final Color? accountColor = parseHexColor(account.color);
     final AccountCardGradient? gradient = resolveAccountCardGradient(
       account.gradientId,
@@ -964,7 +1010,7 @@ class _AccountCard extends ConsumerWidget {
         (theme.textTheme.labelSmall ??
                 const TextStyle(fontSize: 11, height: 1.45))
             .copyWith(
-              color: palette.support,
+              color: carouselContentColor,
               letterSpacing: 0.5,
               fontWeight: FontWeight.w500,
             );
@@ -974,7 +1020,7 @@ class _AccountCard extends ConsumerWidget {
                 const TextStyle(fontSize: 36, height: 44 / 36))
             .copyWith(
               fontWeight: FontWeight.w500,
-              color: palette.emphasis,
+              color: carouselContentColor,
               letterSpacing: 0.1,
             );
     final TextStyle summaryTextStyle =
@@ -982,12 +1028,12 @@ class _AccountCard extends ConsumerWidget {
                 theme.textTheme.titleMedium ??
                 const TextStyle(fontSize: 14))
             .copyWith(
-              color: palette.emphasis,
+              color: carouselContentColor,
               fontWeight: FontWeight.w600,
               letterSpacing: 0.1,
             );
     final TextStyle summaryHeaderStyle = labelStyle.copyWith(
-      color: palette.summaryLabel,
+      color: carouselContentColor,
     );
     final Widget standardContent = _StandardAccountContent(
       account: account,
@@ -999,12 +1045,13 @@ class _AccountCard extends ConsumerWidget {
       summaryTextStyle: summaryTextStyle,
       summaryHeaderStyle: summaryHeaderStyle,
       accountIcon: accountIcon,
+      contentColor: carouselContentColor,
       palette: palette,
     );
 
     Widget buildCard(VoidCallback onTap) {
       return Material(
-        color: Colors.transparent,
+        color: theme.colorScheme.surface.withValues(alpha: 0),
         child: InkWell(
           borderRadius: borderRadius,
           onTap: onTap,
@@ -1029,6 +1076,7 @@ class _AccountCard extends ConsumerWidget {
                       summaryTextStyle: summaryTextStyle,
                       summaryHeaderStyle: summaryHeaderStyle,
                       accountIcon: accountIcon,
+                      contentColor: carouselContentColor,
                       fallback: standardContent,
                     ),
                     'credit_card' => _CreditCardAccountContent(
@@ -1039,6 +1087,7 @@ class _AccountCard extends ConsumerWidget {
                       balanceStyle: balanceStyle,
                       summaryTextStyle: summaryTextStyle,
                       accountIcon: accountIcon,
+                      contentColor: carouselContentColor,
                       palette: palette,
                       fallback: standardContent,
                     ),
@@ -1050,7 +1099,7 @@ class _AccountCard extends ConsumerWidget {
                   top: 16,
                   child: _AccountHideButton(
                     account: account,
-                    color: palette.support,
+                    color: carouselContentColor,
                   ),
                 ),
               ],
@@ -1061,27 +1110,20 @@ class _AccountCard extends ConsumerWidget {
     }
 
     if (account.type == 'credit') {
-      final Stream<List<CreditEntity>> creditsAsync = ref
-          .watch(watchCreditsUseCaseProvider)
-          .call();
-      return StreamBuilder<List<CreditEntity>>(
-        stream: creditsAsync,
-        builder:
-            (BuildContext context, AsyncSnapshot<List<CreditEntity>> snapshot) {
-              final CreditEntity? credit = snapshot.data?.firstWhereOrNull(
-                (CreditEntity item) => item.accountId == account.id,
-              );
-              return buildCard(() {
-                if (credit != null) {
-                  context.push(CreditDetailsScreen.routeName, extra: credit);
-                  return;
-                }
-                context.push(
-                  AccountDetailsScreenArgs(accountId: account.id).location,
-                );
-              });
-            },
-      );
+      final CreditEntity? credit = ref
+          .watch(_homeCreditsProvider)
+          .asData
+          ?.value
+          .firstWhereOrNull(
+            (CreditEntity item) => item.accountId == account.id,
+          );
+      return buildCard(() {
+        if (credit != null) {
+          context.push(CreditDetailsScreen.routeName, extra: credit);
+          return;
+        }
+        context.push(AccountDetailsScreenArgs(accountId: account.id).location);
+      });
     }
 
     return buildCard(() {
@@ -1224,6 +1266,7 @@ class _StandardAccountContent extends StatelessWidget {
     required this.summaryTextStyle,
     required this.summaryHeaderStyle,
     required this.accountIcon,
+    required this.contentColor,
     required this.palette,
   });
 
@@ -1236,6 +1279,7 @@ class _StandardAccountContent extends StatelessWidget {
   final TextStyle summaryTextStyle;
   final TextStyle summaryHeaderStyle;
   final PhosphorIconData? accountIcon;
+  final Color contentColor;
   final _AccountCardPalette palette;
 
   @override
@@ -1247,7 +1291,7 @@ class _StandardAccountContent extends StatelessWidget {
         Row(
           children: <Widget>[
             if (accountIcon != null)
-              _AccountIconBadge(icon: accountIcon!, color: palette.emphasis),
+              _AccountIconBadge(icon: accountIcon!, color: contentColor),
             if (accountIcon != null) const SizedBox(width: 8),
             Expanded(
               child: Text(
@@ -1297,6 +1341,7 @@ class _CreditCardAccountContent extends ConsumerWidget {
     required this.balanceStyle,
     required this.summaryTextStyle,
     required this.accountIcon,
+    required this.contentColor,
     required this.palette,
     required this.fallback,
   });
@@ -1308,85 +1353,67 @@ class _CreditCardAccountContent extends ConsumerWidget {
   final TextStyle balanceStyle;
   final TextStyle summaryTextStyle;
   final PhosphorIconData? accountIcon;
+  final Color contentColor;
   final _AccountCardPalette palette;
   final Widget fallback;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final Stream<List<CreditCardEntity>> creditCardsAsync = ref
-        .watch(watchCreditCardsUseCaseProvider)
-        .call();
+    final CreditCardEntity? creditCard = ref
+        .watch(_homeCreditCardsProvider)
+        .asData
+        ?.value
+        .firstWhereOrNull(
+          (CreditCardEntity item) => item.accountId == account.id,
+        );
+    if (creditCard == null) {
+      return fallback;
+    }
 
-    return StreamBuilder<List<CreditCardEntity>>(
-      stream: creditCardsAsync,
-      builder:
-          (
-            BuildContext context,
-            AsyncSnapshot<List<CreditCardEntity>> snapshot,
-          ) {
-            final CreditCardEntity? creditCard = snapshot.data
-                ?.firstWhereOrNull(
-                  (CreditCardEntity item) => item.accountId == account.id,
-                );
-            if (creditCard == null) {
-              return fallback;
-            }
+    final MoneyAmount availableLimit = calculateCreditCardAvailableLimit(
+      creditLimit: creditCard.creditLimitValue,
+      balance: account.balanceAmount,
+    );
+    final MoneyAmount debt = calculateCreditCardDebt(account.balanceAmount);
+    final TextStyle debtStyle = summaryTextStyle.copyWith(
+      color: palette.support,
+      fontWeight: FontWeight.w500,
+    );
+    final TextStyle limitLabelStyle = labelStyle.copyWith(
+      color: palette.support,
+    );
 
-            final MoneyAmount availableLimit =
-                calculateCreditCardAvailableLimit(
-                  creditLimit: creditCard.creditLimitValue,
-                  balance: account.balanceAmount,
-                );
-            final MoneyAmount debt = calculateCreditCardDebt(
-              account.balanceAmount,
-            );
-            final TextStyle debtStyle = summaryTextStyle.copyWith(
-              color: palette.support,
-              fontWeight: FontWeight.w500,
-            );
-            final TextStyle limitLabelStyle = labelStyle.copyWith(
-              color: palette.support,
-            );
-
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Row(
-                  children: <Widget>[
-                    if (accountIcon != null)
-                      _AccountIconBadge(
-                        icon: accountIcon!,
-                        color: palette.emphasis,
-                      ),
-                    if (accountIcon != null) const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        account.name,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: labelStyle,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  strings.creditCardAvailableLimitLabel,
-                  style: limitLabelStyle,
-                ),
-                const SizedBox(height: 4),
-                _AccountBalanceText(
-                  text: currencyFormat.format(availableLimit.toDouble()),
-                  style: balanceStyle,
-                ),
-                const SizedBox(height: 10),
-                Text(strings.creditCardSpentLabel, style: limitLabelStyle),
-                const SizedBox(height: 4),
-                Text(currencyFormat.format(debt.toDouble()), style: debtStyle),
-              ],
-            );
-          },
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Row(
+          children: <Widget>[
+            if (accountIcon != null)
+              _AccountIconBadge(icon: accountIcon!, color: contentColor),
+            if (accountIcon != null) const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                account.name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: labelStyle,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Text(strings.creditCardAvailableLimitLabel, style: limitLabelStyle),
+        const SizedBox(height: 4),
+        _AccountBalanceText(
+          text: currencyFormat.format(availableLimit.toDouble()),
+          style: balanceStyle,
+        ),
+        const SizedBox(height: 10),
+        Text(strings.creditCardSpentLabel, style: limitLabelStyle),
+        const SizedBox(height: 4),
+        Text(currencyFormat.format(debt.toDouble()), style: debtStyle),
+      ],
     );
   }
 }
@@ -1402,6 +1429,7 @@ class _CreditCardContent extends ConsumerWidget {
     required this.summaryTextStyle,
     required this.summaryHeaderStyle,
     required this.accountIcon,
+    required this.contentColor,
     required this.fallback,
   });
 
@@ -1414,125 +1442,110 @@ class _CreditCardContent extends ConsumerWidget {
   final TextStyle summaryTextStyle;
   final TextStyle summaryHeaderStyle;
   final PhosphorIconData? accountIcon;
+  final Color contentColor;
   final Widget fallback;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final Stream<List<CreditEntity>> creditsAsync = ref
-        .watch(watchCreditsUseCaseProvider)
-        .call();
+    final CreditEntity? credit = ref
+        .watch(_homeCreditsProvider)
+        .asData
+        ?.value
+        .firstWhereOrNull((CreditEntity item) => item.accountId == account.id);
 
-    return StreamBuilder<List<CreditEntity>>(
-      stream: creditsAsync,
-      builder:
-          (BuildContext context, AsyncSnapshot<List<CreditEntity>> snapshot) {
-            final CreditEntity? credit = snapshot.data?.firstWhereOrNull(
-              (CreditEntity item) => item.accountId == account.id,
-            );
+    if (credit == null) {
+      return fallback;
+    }
 
-            if (credit == null) {
-              return fallback;
-            }
+    final List<CreditPaymentScheduleEntity> schedule =
+        ref.watch(creditScheduleProvider(credit.id)).asData?.value ??
+        const <CreditPaymentScheduleEntity>[];
+    final DateTime nextPaymentDate = _calculateNextPaymentDate(
+      credit,
+      schedule,
+    );
+    final int remainingPayments = _calculateRemainingPayments(
+      credit: credit,
+      schedule: schedule,
+    );
+    final double progress =
+        (credit.totalAmountValue.toDouble() + account.balanceAmount.toDouble())
+            .abs() /
+        credit.totalAmountValue.toDouble();
 
-            final List<CreditPaymentScheduleEntity> schedule =
-                ref.watch(creditScheduleProvider(credit.id)).asData?.value ??
-                const <CreditPaymentScheduleEntity>[];
-            final DateTime nextPaymentDate = _calculateNextPaymentDate(
-              credit,
-              schedule,
-            );
-            final int remainingPayments = _calculateRemainingPayments(
-              credit: credit,
-              schedule: schedule,
-            );
-            final double progress =
-                (credit.totalAmountValue.toDouble() +
-                        account.balanceAmount.toDouble())
-                    .abs() /
-                credit.totalAmountValue.toDouble();
-
-            return Column(
-              mainAxisSize: MainAxisSize.min,
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: <Widget>[
+            Expanded(
+              child: Row(
+                children: <Widget>[
+                  if (accountIcon != null)
+                    _AccountIconBadge(icon: accountIcon!, color: contentColor),
+                  if (accountIcon != null) const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      account.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: labelStyle,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        _AccountBalanceText(
+          text: currencyFormat.format(account.balanceAmount.toDouble().abs()),
+          style: balanceStyle,
+        ),
+        const SizedBox(height: 16),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(4),
+          child: LinearProgressIndicator(
+            value: progress.clamp(0.0, 1.0),
+            backgroundColor: contentColor.withValues(alpha: 0.16),
+            valueColor: AlwaysStoppedAnimation<Color>(contentColor),
+            minHeight: 6,
+          ),
+        ),
+        const SizedBox(height: 16),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: <Widget>[
+            Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
-                    Expanded(
-                      child: Row(
-                        children: <Widget>[
-                          if (accountIcon != null)
-                            _AccountIconBadge(
-                              icon: accountIcon!,
-                              color: palette.emphasis,
-                            ),
-                          if (accountIcon != null) const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              account.name,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: labelStyle,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+                Text(
+                  strings.creditsNextPaymentLabel,
+                  style: summaryHeaderStyle,
                 ),
-                const SizedBox(height: 8),
-                _AccountBalanceText(
-                  text: currencyFormat.format(
-                    account.balanceAmount.toDouble().abs(),
-                  ),
-                  style: balanceStyle,
-                ),
-                const SizedBox(height: 16),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
-                  child: LinearProgressIndicator(
-                    value: progress.clamp(0.0, 1.0),
-                    backgroundColor: palette.support.withValues(alpha: 0.2),
-                    valueColor: AlwaysStoppedAnimation<Color>(palette.emphasis),
-                    minHeight: 6,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Text(
-                          strings.creditsNextPaymentLabel,
-                          style: summaryHeaderStyle,
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          DateFormat.yMd(
-                            strings.localeName,
-                          ).format(nextPaymentDate),
-                          style: summaryTextStyle,
-                        ),
-                      ],
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: <Widget>[
-                        Text(
-                          strings.creditsRemainingPaymentsLabel,
-                          style: summaryHeaderStyle,
-                        ),
-                        const SizedBox(height: 4),
-                        Text('$remainingPayments', style: summaryTextStyle),
-                      ],
-                    ),
-                  ],
+                const SizedBox(height: 4),
+                Text(
+                  DateFormat.yMd(strings.localeName).format(nextPaymentDate),
+                  style: summaryTextStyle,
                 ),
               ],
-            );
-          },
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: <Widget>[
+                Text(
+                  strings.creditsRemainingPaymentsLabel,
+                  style: summaryHeaderStyle,
+                ),
+                const SizedBox(height: 4),
+                Text('$remainingPayments', style: summaryTextStyle),
+              ],
+            ),
+          ],
+        ),
+      ],
     );
   }
 
@@ -1631,11 +1644,11 @@ class _AccountCardPalette {
       background,
     );
     final Color emphasis = brightness == Brightness.dark
-        ? Colors.white
-        : Colors.black87;
+        ? colorScheme.surface
+        : colorScheme.onSurface;
     final Color support = brightness == Brightness.dark
-        ? Colors.white70
-        : Colors.black54;
+        ? colorScheme.surface.withValues(alpha: 0.78)
+        : colorScheme.onSurfaceVariant;
     return _AccountCardPalette(
       background: background,
       emphasis: emphasis,
@@ -1800,7 +1813,8 @@ class _TransactionsSectionCardState extends State<_TransactionsSectionCard> {
         ) ??
         const TextStyle(fontSize: 14, height: 20 / 14);
     final bool hasTransactions = _entries.any(
-      (_TransactionSliverEntry entry) => entry is _TransactionItemEntry,
+      (_TransactionSliverEntry entry) =>
+          entry is _TransactionItemEntry || entry is _TransactionGroupEntry,
     );
     if (!hasTransactions) {
       return _EmptyMessage(message: widget.strings.homeTransactionsEmpty);
@@ -2353,14 +2367,7 @@ class _TransactionListItem extends ConsumerWidget {
       categoryData.color,
     );
     final Color? categoryColor = categoryStyle.sampleColor;
-    final Color avatarIconColor = isTransfer
-        ? theme.colorScheme.onPrimaryContainer
-        : categoryColor != null
-        ? (ThemeData.estimateBrightnessForColor(categoryColor) ==
-                  Brightness.dark
-              ? Colors.white
-              : Colors.black87)
-        : theme.colorScheme.onSurfaceVariant;
+    final Color avatarIconColor = theme.colorScheme.scrim;
     final Color avatarBackground = isTransfer
         ? theme.colorScheme.primaryContainer
         : categoryColor ?? theme.colorScheme.surfaceContainerHighest;
@@ -2395,7 +2402,7 @@ class _TransactionListItem extends ConsumerWidget {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(18),
           ),
-          surfaceTintColor: Colors.transparent,
+          surfaceTintColor: theme.colorScheme.surface.withValues(alpha: 0),
           child: InkWell(
             borderRadius: const BorderRadius.all(Radius.circular(18)),
             onTap: () => ref

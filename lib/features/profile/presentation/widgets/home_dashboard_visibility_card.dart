@@ -7,7 +7,6 @@ class HomeDashboardVisibilityCard extends StatefulWidget {
     super.key,
     required this.strings,
     required this.preferences,
-    required this.onToggleGamification,
     required this.onToggleBudget,
     required this.onToggleRecurring,
     required this.onToggleSavings,
@@ -15,7 +14,6 @@ class HomeDashboardVisibilityCard extends StatefulWidget {
 
   final AppLocalizations strings;
   final HomeDashboardPreferences preferences;
-  final ValueChanged<bool> onToggleGamification;
   final ValueChanged<bool> onToggleBudget;
   final ValueChanged<bool> onToggleRecurring;
   final ValueChanged<bool> onToggleSavings;
@@ -28,11 +26,6 @@ class HomeDashboardVisibilityCard extends StatefulWidget {
 class _HomeDashboardVisibilityCardState
     extends State<HomeDashboardVisibilityCard> {
   List<_DashboardToggleConfig> get _toggles => <_DashboardToggleConfig>[
-    _DashboardToggleConfig(
-      label: widget.strings.settingsHomeGamificationTitle,
-      value: widget.preferences.showGamificationWidget,
-      onChanged: widget.onToggleGamification,
-    ),
     _DashboardToggleConfig(
       label: widget.strings.settingsHomeBudgetTitle,
       value: widget.preferences.showBudgetWidget,

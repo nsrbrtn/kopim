@@ -19,6 +19,7 @@ import 'package:kopim/features/profile/presentation/controllers/auth_controller.
 import 'package:kopim/features/profile/presentation/screens/general_settings_screen.dart';
 import 'package:kopim/features/profile/presentation/screens/menu_screen.dart';
 import 'package:kopim/features/profile/presentation/screens/profile_management_screen.dart';
+import 'package:kopim/features/profile/presentation/screens/profile_settings_screen.dart';
 import 'package:kopim/features/credits/domain/entities/credit_entity.dart';
 import 'package:kopim/features/credits/domain/entities/debt_entity.dart';
 import 'package:kopim/features/credits/presentation/screens/credits_screen.dart';
@@ -140,6 +141,13 @@ final Provider<GoRouter> appRouterProvider = Provider<GoRouter>((Ref ref) {
         parentNavigatorKey: _rootNavigatorKey,
         builder: (BuildContext context, GoRouterState state) {
           return const GeneralSettingsScreen();
+        },
+      ),
+      GoRoute(
+        path: ProfileSettingsScreen.routeName,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (BuildContext context, GoRouterState state) {
+          return const ProfileSettingsScreen();
         },
       ),
       GoRoute(

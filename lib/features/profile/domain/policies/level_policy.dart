@@ -15,11 +15,11 @@ class SimpleLevelPolicy implements LevelPolicy {
 
   static const List<int> _thresholds = <int>[0, 100, 500, 2000, 5000];
   static const Map<int, String> _titles = <int, String>{
-    1: 'Птенец Тоторо',
-    2: 'Ученик Кодамы',
-    3: 'Путник по Небу Лапуты',
-    4: 'Ходящий по Замкам',
-    5: 'Дракон Реки',
+    1: 'Уровень 1',
+    2: 'Уровень 2',
+    3: 'Уровень 3',
+    4: 'Уровень 4',
+    5: 'Уровень 5',
   };
 
   @override

@@ -29,9 +29,59 @@
   "@profileGeneralSettingsTooltip": {
     "description": "Подсказка для перехода на экран общих настроек"
   },
+  "profileSettingsTitle": "Настройки профиля",
+  "@profileSettingsTitle": {
+    "description": "Заголовок экрана настроек профиля"
+  },
   "profileMenuTitle": "Меню",
   "@profileMenuTitle": {
     "description": "Заголовок экрана меню"
+  },
+  "profileGreeting": "Привет, {name}",
+  "@profileGreeting": {
+    "description": "Приветствие на экране профиля",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "profileActivityTitle": "Активность",
+  "@profileActivityTitle": {
+    "description": "Заголовок секции активности на экране профиля"
+  },
+  "profileProgressToNextLevel": "Прогресс до Уровня {level}",
+  "@profileProgressToNextLevel": {
+    "description": "Подпись прогресса до следующего уровня",
+    "placeholders": {
+      "level": {
+        "type": "int"
+      }
+    }
+  },
+  "profileDataSecurityTitle": "Данные и безопасность",
+  "@profileDataSecurityTitle": {
+    "description": "Заголовок секции данных и безопасности на профиле"
+  },
+  "profileBackupTitle": "Онлайн синхронизация",
+  "@profileBackupTitle": {
+    "description": "Название пункта резервного копирования на профиле"
+  },
+  "profileBackupEnabled": "Включена",
+  "@profileBackupEnabled": {
+    "description": "Статус включенного резервного копирования"
+  },
+  "profileBackupDisabled": "Отключена",
+  "@profileBackupDisabled": {
+    "description": "Статус отключенного резервного копирования"
+  },
+  "profileExportDataFullCta": "Экспорт данных (CSV/PDF)",
+  "@profileExportDataFullCta": {
+    "description": "Кнопка перехода к экспорту данных на профиле"
+  },
+  "profileSignOutFullCta": "Выйти из профиля",
+  "@profileSignOutFullCta": {
+    "description": "Подпись кнопки выхода на экране профиля"
   },
   "creditsTitle": "Кредиты и долги",
   "creditsAddTitle": "Добавить кредит",
@@ -1305,6 +1355,14 @@
   "@homeTitle": {
     "description": "Заголовок домашнего экрана"
   },
+  "homeQuickAddTransactionTitle": "Быстрая операция",
+  "@homeQuickAddTransactionTitle": {
+    "description": "Заголовок карточки быстрого добавления транзакции на домашнем экране"
+  },
+  "homeLogoSemanticLabel": "Копим",
+  "@homeLogoSemanticLabel": {
+    "description": "Семантическая подпись логотипа в верхней панели домашнего экрана"
+  },
   "homeProfileTooltip": "Профиль",
   "@homeProfileTooltip": {
     "description": "Подсказка к кнопке профиля на главном экране"
@@ -1577,6 +1635,10 @@
   "homeUpcomingPaymentsMore": "Больше",
   "@homeUpcomingPaymentsMore": {
     "description": "Подпись кнопки, открывающей экран предстоящих платежей из домашнего виджета"
+  },
+  "homeUpcomingPaymentsOverflowIndicator": "...",
+  "@homeUpcomingPaymentsOverflowIndicator": {
+    "description": "Индикатор переполнения в свернутом списке предстоящих платежей"
   },
   "homeUpcomingPaymentsBadgePaymentsLabel": "Платежи",
   "@homeUpcomingPaymentsBadgePaymentsLabel": {

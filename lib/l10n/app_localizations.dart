@@ -146,11 +146,71 @@ abstract class AppLocalizations {
   /// **'General settings'**
   String get profileGeneralSettingsTooltip;
 
+  /// Title for the profile settings screen
+  ///
+  /// In en, this message translates to:
+  /// **'Profile settings'**
+  String get profileSettingsTitle;
+
   /// App bar title for the menu screen
   ///
   /// In en, this message translates to:
   /// **'Menu'**
   String get profileMenuTitle;
+
+  /// Greeting label on the profile screen
+  ///
+  /// In en, this message translates to:
+  /// **'Hi, {name}'**
+  String profileGreeting(String name);
+
+  /// Title for the activity section on profile screen
+  ///
+  /// In en, this message translates to:
+  /// **'Activity'**
+  String get profileActivityTitle;
+
+  /// Label for progress to the next level
+  ///
+  /// In en, this message translates to:
+  /// **'Progress to Level {level}'**
+  String profileProgressToNextLevel(int level);
+
+  /// Title for the data and security section on profile screen
+  ///
+  /// In en, this message translates to:
+  /// **'Data & Security'**
+  String get profileDataSecurityTitle;
+
+  /// Title for backup row on profile screen
+  ///
+  /// In en, this message translates to:
+  /// **'Online sync'**
+  String get profileBackupTitle;
+
+  /// Label for enabled backup state
+  ///
+  /// In en, this message translates to:
+  /// **'Enabled'**
+  String get profileBackupEnabled;
+
+  /// Label for disabled backup state
+  ///
+  /// In en, this message translates to:
+  /// **'Disabled'**
+  String get profileBackupDisabled;
+
+  /// CTA to open data export from profile screen
+  ///
+  /// In en, this message translates to:
+  /// **'Export data (CSV/PDF)'**
+  String get profileExportDataFullCta;
+
+  /// Full sign out button label on profile screen
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out of profile'**
+  String get profileSignOutFullCta;
 
   /// No description provided for @creditsTitle.
   ///
@@ -1944,6 +2004,18 @@ abstract class AppLocalizations {
   /// **'Home'**
   String get homeTitle;
 
+  /// Title of the quick add transaction card on the home screen
+  ///
+  /// In en, this message translates to:
+  /// **'Quick transaction'**
+  String get homeQuickAddTransactionTitle;
+
+  /// Semantic label for the logo in the home app bar
+  ///
+  /// In en, this message translates to:
+  /// **'Kopim'**
+  String get homeLogoSemanticLabel;
+
   /// Tooltip for the profile action in the home app bar
   ///
   /// In en, this message translates to:
@@ -2255,6 +2327,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'More'**
   String get homeUpcomingPaymentsMore;
+
+  /// Overflow indicator in the collapsed upcoming payments row
+  ///
+  /// In en, this message translates to:
+  /// **'...'**
+  String get homeUpcomingPaymentsOverflowIndicator;
 
   /// Label for the upcoming payments badge
   ///

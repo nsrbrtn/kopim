@@ -83,9 +83,8 @@ class _HomeOverviewSummaryContent extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final String currencySymbol = NumberFormat.simpleCurrency(
-      locale: strings.localeName,
-    ).currencySymbol;
+    final String currencySymbol =
+        TransactionTileFormatters.fallbackCurrencySymbol(strings.localeName);
     final NumberFormat currencyFormat = TransactionTileFormatters.currency(
       strings.localeName,
       currencySymbol,

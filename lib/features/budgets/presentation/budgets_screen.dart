@@ -111,8 +111,8 @@ NavigationTabContent buildBudgetsTabContent(
       final ColorScheme colorScheme = Theme.of(context).colorScheme;
       return AnimatedFab(
         child: KopimGlassFab(
-          enableGradientHighlight: false,
-          icon: Icon(Icons.add, color: colorScheme.primary),
+          icon: Icon(Icons.add, size: 48, color: colorScheme.primary),
+          enableShadow: false,
           foregroundColor: colorScheme.primary,
           onPressed: () async {
             await Navigator.of(context).push(

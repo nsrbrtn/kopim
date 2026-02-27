@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:kopim/core/application/firebase_availability.dart';
+import 'package:kopim/core/application/sync_preferences_provider.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/core/services/sync_service.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
@@ -27,6 +28,10 @@ final Provider<void> syncCoordinatorProvider = Provider<void>((Ref ref) {
   }
 
   ProviderSubscription<SyncService>? syncSubscription;
+  AuthUser? currentUser = ref.watch(authControllerProvider).asData?.value;
+  bool? isOnlineSyncEnabled = ref
+      .watch(onlineSyncPreferencesControllerProvider)
+      .maybeWhen(data: (bool value) => value, orElse: () => null);
 
   void stopSync() {
     syncSubscription?.close();
@@ -34,11 +39,6 @@ final Provider<void> syncCoordinatorProvider = Provider<void>((Ref ref) {
   }
 
   Future<void> startSyncForUser(AuthUser user) async {
-    if (user.isGuest) {
-      stopSync();
-      return;
-    }
-
     syncSubscription ??= ref.listen<SyncService>(
       syncServiceProvider,
       (SyncService? previous, SyncService next) {},
@@ -62,17 +62,35 @@ final Provider<void> syncCoordinatorProvider = Provider<void>((Ref ref) {
     );
   }
 
+  void reevaluateSyncState() {
+    final AuthUser? user = currentUser;
+    final bool canSync =
+        isOnlineSyncEnabled == true && user != null && !user.isGuest;
+    if (!canSync) {
+      stopSync();
+      return;
+    }
+    unawaited(startSyncForUser(user));
+  }
+
   ref.onDispose(stopSync);
+
+  ref.listen<AsyncValue<bool>>(onlineSyncPreferencesControllerProvider, (
+    AsyncValue<bool>? previous,
+    AsyncValue<bool> next,
+  ) {
+    isOnlineSyncEnabled = next.maybeWhen(
+      data: (bool value) => value,
+      orElse: () => null,
+    );
+    reevaluateSyncState();
+  }, fireImmediately: true);
 
   ref.listen<AsyncValue<AuthUser?>>(authControllerProvider, (
     AsyncValue<AuthUser?>? previous,
     AsyncValue<AuthUser?> next,
   ) {
-    final AuthUser? user = next.asData?.value;
-    if (user == null) {
-      stopSync();
-      return;
-    }
-    unawaited(startSyncForUser(user));
+    currentUser = next.asData?.value;
+    reevaluateSyncState();
   }, fireImmediately: true);
 });

@@ -25,6 +25,7 @@ class KopimGlassFab extends StatelessWidget {
     this.foregroundColor,
     this.iconSize,
     this.enableGradientHighlight = false,
+    this.enableShadow = true,
   }) : assert(
          child != null || icon != null || label != null,
          'child, icon или label должны быть заданы',
@@ -44,6 +45,7 @@ class KopimGlassFab extends StatelessWidget {
   final Color? foregroundColor;
   final double? iconSize;
   final bool enableGradientHighlight;
+  final bool enableShadow;
 
   static const double defaultIconSizePx = 64;
 
@@ -67,7 +69,7 @@ class KopimGlassFab extends StatelessWidget {
         blurSigma: 7,
         baseOpacity: isDark ? 0.14 : 0.22,
         enableBorder: true,
-        enableShadow: true,
+        enableShadow: enableShadow,
         enableGradientHighlight: enableGradientHighlight,
         child: KopimFloatingActionButton(
           onPressed: onPressed,

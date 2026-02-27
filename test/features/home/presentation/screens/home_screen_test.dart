@@ -6,6 +6,14 @@ import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/accounts/domain/repositories/account_repository.dart';
 import 'package:kopim/features/accounts/domain/use_cases/watch_accounts_use_case.dart';
+import 'package:kopim/features/credits/domain/entities/credit_card_entity.dart';
+import 'package:kopim/features/credits/domain/entities/credit_entity.dart';
+import 'package:kopim/features/credits/domain/entities/credit_payment_group.dart';
+import 'package:kopim/features/credits/domain/entities/credit_payment_schedule.dart';
+import 'package:kopim/features/credits/domain/repositories/credit_card_repository.dart';
+import 'package:kopim/features/credits/domain/repositories/credit_repository.dart';
+import 'package:kopim/features/credits/domain/use_cases/watch_credit_cards_use_case.dart';
+import 'package:kopim/features/credits/domain/use_cases/watch_credits_use_case.dart';
 import 'package:kopim/features/home/domain/models/home_account_monthly_summary.dart';
 import 'package:kopim/features/home/presentation/controllers/home_providers.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
@@ -21,6 +29,8 @@ import 'package:kopim/features/transactions/domain/entities/transaction_type.dar
 import 'package:riverpod/src/framework.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   group('Home providers', () {
     late StreamController<List<AccountEntity>> accountsController;
     late StreamController<List<TransactionEntity>> transactionsController;
@@ -46,6 +56,16 @@ void main() {
           watchAccountMonthlyTotalsUseCaseProvider.overrideWithValue(
             WatchAccountMonthlyTotalsUseCase(
               _InMemoryTransactionRepository(transactionsController.stream),
+            ),
+          ),
+          watchCreditsUseCaseProvider.overrideWithValue(
+            _StubWatchCreditsUseCase(
+              Stream<List<CreditEntity>>.value(const <CreditEntity>[]),
+            ),
+          ),
+          watchCreditCardsUseCaseProvider.overrideWithValue(
+            _StubWatchCreditCardsUseCase(
+              Stream<List<CreditCardEntity>>.value(const <CreditCardEntity>[]),
             ),
           ),
         ],
@@ -564,4 +584,117 @@ class _DummyTransactionRepository implements TransactionRepository {
 
   @override
   Future<T> runInTransaction<T>(Future<T> Function() action) => action();
+}
+
+class _StubWatchCreditsUseCase extends WatchCreditsUseCase {
+  _StubWatchCreditsUseCase(this._stream) : super(_DummyCreditRepository());
+
+  final Stream<List<CreditEntity>> _stream;
+
+  @override
+  Stream<List<CreditEntity>> call() => _stream;
+}
+
+class _StubWatchCreditCardsUseCase extends WatchCreditCardsUseCase {
+  _StubWatchCreditCardsUseCase(this._stream)
+    : super(_DummyCreditCardRepository());
+
+  final Stream<List<CreditCardEntity>> _stream;
+
+  @override
+  Stream<List<CreditCardEntity>> call() => _stream;
+}
+
+class _DummyCreditRepository implements CreditRepository {
+  @override
+  Future<void> addCredit(CreditEntity credit) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> addPaymentGroup(CreditPaymentGroupEntity group) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> addSchedule(List<CreditPaymentScheduleEntity> schedule) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> deleteCredit(String id) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<CreditEntity?> getCreditByAccountId(String accountId) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<CreditEntity?> getCreditByCategoryId(String categoryId) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<CreditEntity>> getCredits() {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<CreditPaymentGroupEntity>> getPaymentGroups(String creditId) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<CreditPaymentScheduleEntity>> getSchedule(String creditId) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> updateCredit(CreditEntity credit) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> updateScheduleItem(CreditPaymentScheduleEntity item) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Stream<List<CreditEntity>> watchCredits() => const Stream.empty();
+
+  @override
+  Stream<List<CreditPaymentScheduleEntity>> watchSchedule(String creditId) =>
+      const Stream.empty();
+}
+
+class _DummyCreditCardRepository implements CreditCardRepository {
+  @override
+  Future<void> addCreditCard(CreditCardEntity creditCard) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> deleteCreditCard(String id) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<CreditCardEntity?> getByAccountId(String accountId) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<CreditCardEntity>> getCreditCards() {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> updateCreditCard(CreditCardEntity creditCard) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Stream<List<CreditCardEntity>> watchCreditCards() => const Stream.empty();
 }

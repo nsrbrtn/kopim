@@ -74,10 +74,7 @@ class ProfileOverviewCard extends ConsumerWidget {
                               : ((progress.totalTx - previousThreshold) /
                                         (nextThreshold - previousThreshold))
                                     .clamp(0.0, 1.0);
-                          final String badgeLabel = strings.profileLevelBadge(
-                            progress.level,
-                            progress.title,
-                          );
+                          final String badgeLabel = progress.title;
                           final String xpLabel =
                               nextThreshold == progress.totalTx
                               ? strings.profileXpMax(progress.totalTx)

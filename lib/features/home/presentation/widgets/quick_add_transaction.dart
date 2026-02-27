@@ -62,7 +62,7 @@ class QuickAddTransactionCard extends ConsumerWidget {
                 children: <Widget>[
                   Expanded(
                     child: Text(
-                      'Быстрая операция',
+                      strings.homeQuickAddTransactionTitle,
                       style: theme.textTheme.titleLarge,
                     ),
                   ),
@@ -204,7 +204,9 @@ class QuickAddTransactionCard extends ConsumerWidget {
       context: context,
       isScrollControlled: true,
       useSafeArea: false,
-      backgroundColor: Colors.transparent,
+      backgroundColor: Theme.of(
+        context,
+      ).colorScheme.surface.withValues(alpha: 0),
       builder: (BuildContext context) =>
           _QuickTransactionSheet(category: category, strings: strings),
     );
@@ -225,11 +227,11 @@ class _QuickCategoryIcon extends StatelessWidget {
     );
     final Color background =
         colorStyle.sampleColor ?? theme.colorScheme.surfaceContainerHigh;
-    const Color iconColor = Color(0xFF101010);
+    final Color iconColor = theme.colorScheme.scrim;
     final PhosphorIconData? iconData = resolvePhosphorIconData(category.icon);
 
     return Material(
-      color: Colors.transparent,
+      color: theme.colorScheme.surface.withValues(alpha: 0),
       child: InkWell(
         borderRadius: BorderRadius.circular(44),
         onTap: onTap,

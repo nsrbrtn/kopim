@@ -29,9 +29,59 @@
   "@profileGeneralSettingsTooltip": {
     "description": "Tooltip for opening the general settings screen"
   },
+  "profileSettingsTitle": "Profile settings",
+  "@profileSettingsTitle": {
+    "description": "Title for the profile settings screen"
+  },
   "profileMenuTitle": "Menu",
   "@profileMenuTitle": {
     "description": "App bar title for the menu screen"
+  },
+  "profileGreeting": "Hi, {name}",
+  "@profileGreeting": {
+    "description": "Greeting label on the profile screen",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "profileActivityTitle": "Activity",
+  "@profileActivityTitle": {
+    "description": "Title for the activity section on profile screen"
+  },
+  "profileProgressToNextLevel": "Progress to Level {level}",
+  "@profileProgressToNextLevel": {
+    "description": "Label for progress to the next level",
+    "placeholders": {
+      "level": {
+        "type": "int"
+      }
+    }
+  },
+  "profileDataSecurityTitle": "Data & Security",
+  "@profileDataSecurityTitle": {
+    "description": "Title for the data and security section on profile screen"
+  },
+  "profileBackupTitle": "Online sync",
+  "@profileBackupTitle": {
+    "description": "Title for backup row on profile screen"
+  },
+  "profileBackupEnabled": "Enabled",
+  "@profileBackupEnabled": {
+    "description": "Label for enabled backup state"
+  },
+  "profileBackupDisabled": "Disabled",
+  "@profileBackupDisabled": {
+    "description": "Label for disabled backup state"
+  },
+  "profileExportDataFullCta": "Export data (CSV/PDF)",
+  "@profileExportDataFullCta": {
+    "description": "CTA to open data export from profile screen"
+  },
+  "profileSignOutFullCta": "Sign out of profile",
+  "@profileSignOutFullCta": {
+    "description": "Full sign out button label on profile screen"
   },
   "creditsTitle": "Loans & Debts",
   "creditsAddTitle": "Add loan",
@@ -1305,6 +1355,14 @@
   "@homeTitle": {
     "description": "Title for the home screen"
   },
+  "homeQuickAddTransactionTitle": "Quick transaction",
+  "@homeQuickAddTransactionTitle": {
+    "description": "Title of the quick add transaction card on the home screen"
+  },
+  "homeLogoSemanticLabel": "Kopim",
+  "@homeLogoSemanticLabel": {
+    "description": "Semantic label for the logo in the home app bar"
+  },
   "homeProfileTooltip": "Profile",
   "@homeProfileTooltip": {
     "description": "Tooltip for the profile action in the home app bar"
@@ -1577,6 +1635,10 @@
   "homeUpcomingPaymentsMore": "More",
   "@homeUpcomingPaymentsMore": {
     "description": "Button label that opens the upcoming payments screen from the home widget"
+  },
+  "homeUpcomingPaymentsOverflowIndicator": "...",
+  "@homeUpcomingPaymentsOverflowIndicator": {
+    "description": "Overflow indicator in the collapsed upcoming payments row"
   },
   "homeUpcomingPaymentsBadgePaymentsLabel": "Payments",
   "@homeUpcomingPaymentsBadgePaymentsLabel": {

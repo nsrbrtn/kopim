@@ -15,6 +15,7 @@ class KopimDropdownField<T> extends StatefulWidget {
     this.duration = const Duration(milliseconds: 260),
     this.enabled = true,
     this.valueLabelBuilder,
+    this.fillColor,
   });
 
   final List<DropdownMenuItem<T>> items;
@@ -26,6 +27,7 @@ class KopimDropdownField<T> extends StatefulWidget {
   final Duration duration;
   final bool enabled;
   final String Function(T?)? valueLabelBuilder;
+  final Color? fillColor;
 
   @override
   State<KopimDropdownField<T>> createState() => _KopimDropdownFieldState<T>();
@@ -216,7 +218,7 @@ class _KopimDropdownFieldState<T> extends State<KopimDropdownField<T>>
       scale: scale,
       child: Container(
         decoration: BoxDecoration(
-          color: colors.surfaceContainer,
+          color: widget.fillColor ?? colors.surfaceContainer,
           borderRadius: BorderRadius.circular(28),
         ),
         clipBehavior: Clip.antiAlias,

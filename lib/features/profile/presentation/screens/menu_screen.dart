@@ -126,12 +126,6 @@ class MenuScreen extends ConsumerWidget {
                         child: HomeDashboardVisibilityCard(
                           strings: strings,
                           preferences: preferences,
-                          onToggleGamification: (bool value) => ref
-                              .read(
-                                homeDashboardPreferencesControllerProvider
-                                    .notifier,
-                              )
-                              .setShowGamification(value),
                           onToggleBudget: (bool value) => ref
                               .read(
                                 homeDashboardPreferencesControllerProvider

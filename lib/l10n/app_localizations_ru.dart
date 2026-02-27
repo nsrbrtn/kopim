@@ -35,7 +35,41 @@ class AppLocalizationsRu extends AppLocalizations {
   String get profileGeneralSettingsTooltip => 'Генеральные настройки';
 
   @override
+  String get profileSettingsTitle => 'Настройки профиля';
+
+  @override
   String get profileMenuTitle => 'Меню';
+
+  @override
+  String profileGreeting(String name) {
+    return 'Привет, $name';
+  }
+
+  @override
+  String get profileActivityTitle => 'Активность';
+
+  @override
+  String profileProgressToNextLevel(int level) {
+    return 'Прогресс до Уровня $level';
+  }
+
+  @override
+  String get profileDataSecurityTitle => 'Данные и безопасность';
+
+  @override
+  String get profileBackupTitle => 'Онлайн синхронизация';
+
+  @override
+  String get profileBackupEnabled => 'Включена';
+
+  @override
+  String get profileBackupDisabled => 'Отключена';
+
+  @override
+  String get profileExportDataFullCta => 'Экспорт данных (CSV/PDF)';
+
+  @override
+  String get profileSignOutFullCta => 'Выйти из профиля';
 
   @override
   String get creditsTitle => 'Кредиты и долги';
@@ -1064,6 +1098,12 @@ class AppLocalizationsRu extends AppLocalizations {
   String get homeTitle => 'Домашний экран';
 
   @override
+  String get homeQuickAddTransactionTitle => 'Быстрая операция';
+
+  @override
+  String get homeLogoSemanticLabel => 'Копим';
+
+  @override
   String get homeProfileTooltip => 'Профиль';
 
   @override
@@ -1264,6 +1304,9 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get homeUpcomingPaymentsMore => 'Больше';
+
+  @override
+  String get homeUpcomingPaymentsOverflowIndicator => '...';
 
   @override
   String get homeUpcomingPaymentsBadgePaymentsLabel => 'Платежи';

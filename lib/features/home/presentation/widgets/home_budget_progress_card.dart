@@ -13,7 +13,6 @@ import 'package:kopim/features/budgets/presentation/controllers/budgets_provider
 import 'package:kopim/features/budgets/presentation/widgets/budget_progress_indicator.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/categories/presentation/utils/category_gradients.dart';
-import 'package:kopim/features/categories/presentation/widgets/category_chip.dart';
 import 'package:kopim/features/home/domain/entities/home_dashboard_preferences.dart';
 import 'package:kopim/features/home/presentation/controllers/home_dashboard_preferences_controller.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
@@ -469,19 +468,12 @@ class _BudgetCategoryChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
+    final ColorScheme colors = theme.colorScheme;
     final Category category = breakdown.category;
     final CategoryColorStyle colorStyle = resolveCategoryColorStyle(
       category.color,
     );
-    final Color? baseColor = colorStyle.sampleColor;
-    final Color backgroundColor =
-        baseColor ?? theme.colorScheme.surfaceContainerHighest;
-    final Brightness brightness = ThemeData.estimateBrightnessForColor(
-      backgroundColor,
-    );
-    final Color foregroundColor = brightness == Brightness.dark
-        ? Colors.white
-        : Colors.black87;
+    final Color markerColor = colorStyle.sampleColor ?? colors.primary;
     final PhosphorIconData? iconData = resolvePhosphorIconData(category.icon);
     final AppLocalizations strings = AppLocalizations.of(context)!;
     final NumberFormat percentFormat = NumberFormat.decimalPattern(
@@ -492,19 +484,51 @@ class _BudgetCategoryChip extends StatelessWidget {
     final TextStyle? basePercentStyle =
         theme.textTheme.labelSmall ?? theme.textTheme.bodySmall;
 
-    return CategoryChip(
-      label: category.name,
-      backgroundColor: backgroundColor,
-      foregroundColor: foregroundColor,
-      iconBackgroundColor: backgroundColor,
-      iconBackgroundGradient: colorStyle.backgroundGradient,
-      leading: Icon(iconData ?? PhosphorIconsLight.tag, size: 16),
-      trailing: Text(
-        percentText,
-        style: basePercentStyle?.copyWith(
-          color: foregroundColor.withValues(alpha: 0.88),
-          fontWeight: FontWeight.w600,
-        ),
+    return Container(
+      height: 40,
+      padding: const EdgeInsets.only(left: 4, right: 8),
+      decoration: BoxDecoration(
+        color: colors.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(32),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: markerColor,
+              borderRadius: BorderRadius.circular(9999),
+            ),
+            alignment: Alignment.center,
+            child: Icon(
+              iconData ?? PhosphorIconsLight.tag,
+              size: 16,
+              color: colors.scrim,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            category.name,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.labelMedium?.copyWith(
+              fontWeight: FontWeight.w500,
+              letterSpacing: 0.5,
+              color: colors.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(width: 6),
+          Text(
+            percentText,
+            style: basePercentStyle?.copyWith(
+              color: colors.onSurface,
+              letterSpacing: 0.1,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
       ),
     );
   }

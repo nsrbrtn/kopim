@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -12,6 +13,8 @@ import 'package:kopim/features/upcoming_payments/domain/models/upcoming_item.dar
 import 'package:kopim/features/upcoming_payments/domain/providers/upcoming_payments_providers.dart';
 import 'package:kopim/features/upcoming_payments/domain/services/time_service.dart';
 import 'package:kopim/features/upcoming_payments/domain/usecases/mark_reminder_done_uc.dart';
+import 'package:kopim/features/upcoming_payments/presentation/screens/edit_upcoming_payment_screen.dart';
+import 'package:kopim/features/transactions/presentation/widgets/transaction_tile_formatters.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
 class HomeUpcomingItemsCard extends ConsumerStatefulWidget {
@@ -33,8 +36,7 @@ class HomeUpcomingItemsCard extends ConsumerStatefulWidget {
       _HomeUpcomingItemsCardState();
 }
 
-class _HomeUpcomingItemsCardState
-    extends ConsumerState<HomeUpcomingItemsCard> {
+class _HomeUpcomingItemsCardState extends ConsumerState<HomeUpcomingItemsCard> {
   bool _isExpanded = false;
 
   void _toggleExpanded() {
@@ -53,16 +55,10 @@ class _HomeUpcomingItemsCardState
       homeCategoriesProvider,
     );
     final Map<String, Category> categories = <String, Category>{
-      for (final Category category in categoriesAsync.value ?? const <Category>[])
+      for (final Category category
+          in categoriesAsync.value ?? const <Category>[])
         category.id: category,
     };
-    final int paymentCount = widget.items
-        .where((UpcomingItem item) => item.type == UpcomingItemType.paymentRule)
-        .length;
-    final int reminderCount = widget.items
-        .where((UpcomingItem item) => item.type == UpcomingItemType.reminder)
-        .length;
-
     Widget content;
     if (!hasItems) {
       content = Padding(
@@ -73,6 +69,16 @@ class _HomeUpcomingItemsCardState
         ),
       );
     } else if (_isExpanded) {
+      final DateFormat compactDateFormat = DateFormat(
+        'd MMM',
+        widget.strings.localeName,
+      );
+      final String currencySymbol =
+          TransactionTileFormatters.fallbackCurrencySymbol(
+            widget.strings.localeName,
+          );
+      final Map<int, NumberFormat> amountFormatsByScale = <int, NumberFormat>{};
+
       content = Column(
         children: <Widget>[
           for (final UpcomingItem item in widget.items)
@@ -83,6 +89,15 @@ class _HomeUpcomingItemsCardState
                 strings: widget.strings,
                 timeService: widget.timeService,
                 category: categories[item.categoryId],
+                dateFormat: compactDateFormat,
+                amountFormat: amountFormatsByScale.putIfAbsent(
+                  item.amount.scale,
+                  () => TransactionTileFormatters.currency(
+                    widget.strings.localeName,
+                    currencySymbol,
+                    decimalDigits: item.amount.scale,
+                  ),
+                ),
               ),
             ),
           const SizedBox(height: 12),
@@ -99,53 +114,50 @@ class _HomeUpcomingItemsCardState
       content = SizedBox(
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 8),
-          child: _UpcomingSummaryBadges(
-            paymentCount: paymentCount,
-            reminderCount: reminderCount,
+          child: _UpcomingCollapsedItemsRow(
+            items: widget.items,
+            categories: categories,
             strings: widget.strings,
-            theme: theme,
+            timeService: widget.timeService,
           ),
         ),
       );
     }
 
-    final TextStyle? headerStyle = theme.textTheme.titleLarge?.copyWith(
-      color: theme.colorScheme.onSurface,
-      fontWeight: FontWeight.w600,
-    );
-    return Container(
-      margin: EdgeInsets.zero,
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainer,
-        borderRadius: borderRadius,
-      ),
+    return Material(
+      color: theme.colorScheme.surfaceContainer,
+      borderRadius: borderRadius,
       child: Padding(
         padding: const EdgeInsets.fromLTRB(20, 20, 12, 20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: <Widget>[
-                Expanded(
-                  child: Text(
-                    widget.strings.homeUpcomingPaymentsTitle,
-                    style: headerStyle,
+            InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: hasItems ? _toggleExpanded : null,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: <Widget>[
+                  Expanded(
+                    child: Text(
+                      widget.strings.homeUpcomingPaymentsTitle,
+                      style: theme.textTheme.titleLarge,
+                    ),
                   ),
-                ),
-                IconButton(
-                  onPressed: hasItems ? _toggleExpanded : null,
-                  tooltip: _isExpanded
-                      ? widget.strings.homeUpcomingPaymentsCollapse
-                      : widget.strings.homeUpcomingPaymentsExpand,
-                  icon: AnimatedRotation(
-                    duration: const Duration(milliseconds: 220),
-                    turns: _isExpanded ? 0.5 : 0,
-                    child: const Icon(Icons.expand_more),
+                  IconButton(
+                    onPressed: hasItems ? _toggleExpanded : null,
+                    tooltip: _isExpanded
+                        ? widget.strings.homeUpcomingPaymentsCollapse
+                        : widget.strings.homeUpcomingPaymentsExpand,
+                    icon: AnimatedRotation(
+                      duration: const Duration(milliseconds: 220),
+                      turns: _isExpanded ? 0.5 : 0,
+                      child: const Icon(Icons.expand_more),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
             const SizedBox(height: 4),
             content,
@@ -156,50 +168,23 @@ class _HomeUpcomingItemsCardState
   }
 }
 
-class _UpcomingSummaryBadges extends StatelessWidget {
-  const _UpcomingSummaryBadges({
-    required this.paymentCount,
-    required this.reminderCount,
+class _UpcomingCollapsedItemsRow extends StatelessWidget {
+  const _UpcomingCollapsedItemsRow({
+    required this.items,
+    required this.categories,
     required this.strings,
-    required this.theme,
+    required this.timeService,
   });
 
-  final int paymentCount;
-  final int reminderCount;
+  final List<UpcomingItem> items;
+  final Map<String, Category> categories;
   final AppLocalizations strings;
-  final ThemeData theme;
+  final TimeService timeService;
 
   @override
   Widget build(BuildContext context) {
-    final List<Widget> badges = <Widget>[];
-    if (paymentCount > 0) {
-      badges.add(
-        _UpcomingBadge(
-          count: paymentCount,
-          icon: Icons.event_repeat,
-          color: theme.colorScheme.primary,
-          label: strings.homeUpcomingPaymentsBadgePaymentsLabel,
-          semanticsLabel: strings.homeUpcomingPaymentsBadgePaymentsSemantics(
-            paymentCount,
-          ),
-        ),
-      );
-    }
-    if (reminderCount > 0) {
-      badges.add(
-        _UpcomingBadge(
-          count: reminderCount,
-          icon: Icons.alarm,
-          color: theme.colorScheme.secondary,
-          label: strings.homeUpcomingPaymentsBadgeRemindersLabel,
-          semanticsLabel: strings.homeUpcomingPaymentsBadgeRemindersSemantics(
-            reminderCount,
-          ),
-        ),
-      );
-    }
-
-    if (badges.isEmpty) {
+    final ThemeData theme = Theme.of(context);
+    if (items.isEmpty) {
       return Text(
         strings.homeUpcomingPaymentsEmpty,
         style: theme.textTheme.bodyMedium?.copyWith(
@@ -208,55 +193,154 @@ class _UpcomingSummaryBadges extends StatelessWidget {
       );
     }
 
-    return Wrap(spacing: 12, runSpacing: 8, children: badges);
+    const int previewLimit = 6;
+    final DateFormat dateFormat = DateFormat('d MMM', strings.localeName);
+    final List<UpcomingItem> previewItems = items
+        .take(previewLimit)
+        .toList(growable: false);
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: <Widget>[
+          for (final UpcomingItem item in previewItems)
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: _UpcomingCollapsedItemTile(
+                item: item,
+                category: categories[item.categoryId],
+                strings: strings,
+                timeService: timeService,
+                dateFormat: dateFormat,
+              ),
+            ),
+          if (items.length > previewLimit)
+            _UpcomingCollapsedMoreBadge(
+              count: items.length - previewLimit,
+              strings: strings,
+            ),
+        ],
+      ),
+    );
   }
 }
 
-class _UpcomingBadge extends StatelessWidget {
-  const _UpcomingBadge({
-    required this.count,
-    required this.icon,
-    required this.color,
-    required this.label,
-    required this.semanticsLabel,
+class _UpcomingCollapsedItemTile extends StatelessWidget {
+  const _UpcomingCollapsedItemTile({
+    required this.item,
+    required this.category,
+    required this.strings,
+    required this.timeService,
+    required this.dateFormat,
   });
 
-  final int count;
-  final IconData icon;
-  final Color color;
-  final String label;
-  final String semanticsLabel;
+  final UpcomingItem item;
+  final Category? category;
+  final AppLocalizations strings;
+  final TimeService timeService;
+  final DateFormat dateFormat;
 
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
-    final Color badgeTextColor =
-        ThemeData.estimateBrightnessForColor(color) == Brightness.dark
-        ? Colors.white
-        : Colors.black;
+    final DateTime whenLocal = timeService.toLocal(item.whenMs);
+    final bool isReminder = item.type == UpcomingItemType.reminder;
+    final CategoryColorStyle categoryStyle = resolveCategoryColorStyle(
+      category?.color,
+    );
+    final PhosphorIconData? iconData = resolvePhosphorIconData(category?.icon);
+    final IconData fallbackIcon = isReminder ? Icons.alarm : Icons.event_repeat;
+    final Color tileColor = theme.colorScheme.surfaceContainerHigh;
 
-    return Semantics(
-      label: semanticsLabel,
-      child: ExcludeSemantics(
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            Badge.count(
-              count: count,
-              backgroundColor: color,
-              textColor: badgeTextColor,
-              child: Icon(icon, color: color),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        Container(
+          width: 56,
+          height: 56,
+          decoration: BoxDecoration(
+            color: tileColor,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: theme.colorScheme.outlineVariant.withValues(alpha: 0.35),
             ),
-            const SizedBox(width: 4),
-            Text(
-              label,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-                color: theme.colorScheme.onSurface,
+          ),
+          child: Center(
+            child: _CategoryIcon(
+              iconData: iconData,
+              fallbackIcon: fallbackIcon,
+              backgroundColor: categoryStyle.color,
+              backgroundGradient: categoryStyle.backgroundGradient,
+              sampleColor: categoryStyle.sampleColor,
+              size: 34,
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        ),
+        const SizedBox(height: 4),
+        SizedBox(
+          width: 56,
+          child: Text(
+            dateFormat.format(whenLocal),
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _UpcomingCollapsedMoreBadge extends StatelessWidget {
+  const _UpcomingCollapsedMoreBadge({
+    required this.count,
+    required this.strings,
+  });
+
+  final int count;
+  final AppLocalizations strings;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    return SizedBox(
+      width: 56,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surfaceContainerHigh,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: theme.colorScheme.outlineVariant.withValues(alpha: 0.35),
               ),
             ),
-          ],
-        ),
+            alignment: Alignment.center,
+            child: Text(
+              '+$count',
+              style: theme.textTheme.titleSmall?.copyWith(
+                color: theme.colorScheme.onSurface,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            strings.homeUpcomingPaymentsOverflowIndicator,
+            textAlign: TextAlign.center,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -268,23 +352,21 @@ class _UpcomingCompactCard extends ConsumerWidget {
     required this.strings,
     required this.timeService,
     required this.category,
+    required this.dateFormat,
+    required this.amountFormat,
   });
 
   final UpcomingItem item;
   final AppLocalizations strings;
   final TimeService timeService;
   final Category? category;
+  final DateFormat dateFormat;
+  final NumberFormat amountFormat;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final ThemeData theme = Theme.of(context);
     final DateTime whenLocal = timeService.toLocal(item.whenMs);
-    final DateFormat dateFormat = DateFormat('d MMM', strings.localeName);
-    final NumberFormat amountFormat = NumberFormat.currency(
-      locale: strings.localeName,
-      symbol: '',
-      decimalDigits: item.amount.scale,
-    );
     final String amountText = amountFormat
         .format(item.amount.abs().toDouble())
         .trim();
@@ -325,77 +407,95 @@ class _UpcomingCompactCard extends ConsumerWidget {
     final PhosphorIconData? iconData = resolvePhosphorIconData(category?.icon);
     final IconData fallbackIcon = isReminder ? Icons.alarm : Icons.category;
 
-    return Container(
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHigh,
+    final bool canOpenPaymentEditor = item.type == UpcomingItemType.paymentRule;
+    final EditUpcomingPaymentScreenArgs paymentArgs =
+        EditUpcomingPaymentScreenArgs(paymentId: item.id);
+
+    return Material(
+      color: theme.colorScheme.surfaceContainerHigh,
+      borderRadius: BorderRadius.circular(20),
+      child: InkWell(
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.35),
-        ),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          _CategoryIcon(
-            iconData: iconData,
-            fallbackIcon: fallbackIcon,
-            backgroundColor: categoryStyle.color,
-            backgroundGradient: categoryStyle.backgroundGradient,
-            sampleColor: categoryStyle.sampleColor,
-            size: 34,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text(
-                  dateFormat.format(whenLocal),
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  item.title,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: theme.colorScheme.onSurface,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
+        onTap: canOpenPaymentEditor
+            ? () => context.push(paymentArgs.location, extra: paymentArgs)
+            : null,
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: theme.colorScheme.outlineVariant.withValues(alpha: 0.35),
             ),
           ),
-          const SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              Text(
-                amountText,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  color: theme.colorScheme.onSurface,
-                  fontWeight: FontWeight.w600,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+              _CategoryIcon(
+                iconData: iconData,
+                fallbackIcon: fallbackIcon,
+                backgroundColor: categoryStyle.color,
+                backgroundGradient: categoryStyle.backgroundGradient,
+                sampleColor: categoryStyle.sampleColor,
+                size: 34,
+                borderRadius: BorderRadius.circular(12),
               ),
-              if (isReminder)
-                IconButton(
-                  onPressed: markReminderDone,
-                  icon: const Icon(Icons.check_circle_outline),
-                  color: theme.colorScheme.onSurfaceVariant,
-                  tooltip: strings.upcomingPaymentsReminderMarkPaidTooltip,
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      dateFormat.format(whenLocal),
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      item.title,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: theme.colorScheme.onSurface,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
                 ),
+              ),
+              const SizedBox(width: 12),
+              SizedBox(
+                width: 104,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    Text(
+                      amountText,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color: theme.colorScheme.onSurface,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if (isReminder)
+                      IconButton(
+                        onPressed: markReminderDone,
+                        icon: const Icon(Icons.check_circle_outline),
+                        color: theme.colorScheme.onSurfaceVariant,
+                        tooltip:
+                            strings.upcomingPaymentsReminderMarkPaidTooltip,
+                      ),
+                  ],
+                ),
+              ),
             ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -425,17 +525,7 @@ class _CategoryIcon extends StatelessWidget {
     final ThemeData theme = Theme.of(context);
     final Color avatarBackground =
         backgroundColor ?? theme.colorScheme.surfaceContainerHighest;
-    final Color resolvedSample =
-        sampleColor ??
-        backgroundColor ??
-        theme.colorScheme.surfaceContainerHigh;
-    final Color avatarForeground =
-        (sampleColor != null || backgroundColor != null)
-        ? (ThemeData.estimateBrightnessForColor(resolvedSample) ==
-                  Brightness.dark
-              ? Colors.white
-              : Colors.black87)
-        : theme.colorScheme.onSurface;
+    final Color avatarForeground = theme.colorScheme.scrim;
 
     return Container(
       width: size,
