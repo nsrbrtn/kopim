@@ -10,6 +10,14 @@ Future<bool> deleteTransactionWithFeedback({
   required String transactionId,
   required AppLocalizations strings,
 }) async {
+  final ProviderContainer container = ProviderScope.containerOf(
+    context,
+    listen: false,
+  );
+  final TransactionActionsController notifier = container.read(
+    transactionActionsControllerProvider.notifier,
+  );
+
   final bool? confirmed = await showDialog<bool>(
     context: context,
     builder: (BuildContext dialogContext) {
@@ -34,10 +42,8 @@ Future<bool> deleteTransactionWithFeedback({
     return false;
   }
 
-  final bool deleted = await ref
-      .read(transactionActionsControllerProvider.notifier)
-      .deleteTransaction(transactionId);
-  final AsyncValue<void> actionState = ref.read(
+  final bool deleted = await notifier.deleteTransaction(transactionId);
+  final AsyncValue<void> actionState = container.read(
     transactionActionsControllerProvider,
   );
   if (deleted) {
@@ -64,7 +70,7 @@ Future<bool> deleteTransactionWithFeedback({
         );
     }
   }
-  ref.read(transactionActionsControllerProvider.notifier).reset();
+  notifier.reset();
   return deleted;
 }
 

@@ -61,9 +61,14 @@ class AccountTransactionListTile extends ConsumerWidget {
     final String tagLabel = tags.map((TagEntity tag) => tag.name).join(', ');
     final String categoryName =
         category?.name ?? strings.homeTransactionsUncategorized;
-    final String title = isTransfer
-        ? strings.addTransactionTypeTransfer
-        : categoryName;
+    final bool isCreditTransferByCategory =
+        isTransfer &&
+        category?.name != null &&
+        category?.parentId != null &&
+        (category?.isSystem ?? false);
+    final String title = isCreditTransferByCategory
+        ? categoryName
+        : (isTransfer ? strings.addTransactionTypeTransfer : categoryName);
     final PhosphorIconData? categoryIcon = resolvePhosphorIconData(
       category?.icon,
     );

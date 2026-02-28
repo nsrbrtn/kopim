@@ -2275,11 +2275,31 @@ class _GroupedCreditPaymentListItem extends ConsumerWidget {
     // For Home screen, let's use the fallback.
     final String currencySymbol =
         TransactionTileFormatters.fallbackCurrencySymbol(localeName);
+    final TransactionEntity? principalTx = item.transactions.firstWhereOrNull(
+      (TransactionEntity tx) =>
+          tx.type == TransactionType.transfer.storageValue &&
+          tx.transferAccountId != null,
+    );
+    final String? creditAccountId = principalTx?.transferAccountId;
+    final AccountEntity? creditAccount = creditAccountId == null
+        ? null
+        : ref.watch(homeAccountByIdProvider(creditAccountId));
+    final PhosphorIconData? creditIcon =
+        creditAccount?.iconName == null || creditAccount!.iconName!.isEmpty
+        ? null
+        : resolvePhosphorIconData(
+            PhosphorIconDescriptor(
+              name: creditAccount.iconName!,
+              style: PhosphorIconStyleX.fromName(creditAccount.iconStyle),
+            ),
+          );
 
     return GroupedCreditPaymentTile(
       group: item,
       currencySymbol: currencySymbol,
       strings: strings,
+      title: creditAccount?.name,
+      leadingIcon: creditIcon,
     );
   }
 }
@@ -2346,20 +2366,36 @@ class _TransactionListItem extends ConsumerWidget {
       decimalDigits: transaction.amountScale ?? 2,
     );
 
-    final ({String? name, PhosphorIconDescriptor? icon, String? color})
+    final ({
+      String? name,
+      PhosphorIconDescriptor? icon,
+      String? color,
+      String? parentId,
+      bool isSystem,
+    })
     categoryData = categoryId == null
-        ? (name: null, icon: null, color: null)
+        ? (name: null, icon: null, color: null, parentId: null, isSystem: false)
         : ref.watch(
             homeCategoryByIdProvider(categoryId).select(
-              (Category? cat) =>
-                  (name: cat?.name, icon: cat?.icon, color: cat?.color),
+              (Category? cat) => (
+                name: cat?.name,
+                icon: cat?.icon,
+                color: cat?.color,
+                parentId: cat?.parentId,
+                isSystem: cat?.isSystem ?? false,
+              ),
             ),
           );
     final String categoryName =
         categoryData.name ?? strings.homeTransactionsUncategorized;
-    final String title = isTransfer
-        ? strings.addTransactionTypeTransfer
-        : categoryName;
+    final bool isCreditTransferByCategory =
+        isTransfer &&
+        categoryData.name != null &&
+        categoryData.parentId != null &&
+        categoryData.isSystem;
+    final String title = isCreditTransferByCategory
+        ? categoryName
+        : (isTransfer ? strings.addTransactionTypeTransfer : categoryName);
     final PhosphorIconData? categoryIcon = resolvePhosphorIconData(
       categoryData.icon,
     );

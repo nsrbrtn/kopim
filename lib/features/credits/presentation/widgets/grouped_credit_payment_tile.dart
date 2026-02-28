@@ -15,12 +15,16 @@ class GroupedCreditPaymentTile extends StatelessWidget {
     required this.currencySymbol,
     required this.strings,
     this.credit,
+    this.title,
+    this.leadingIcon,
   });
 
   final GroupedCreditPaymentFeedItem group;
   final String currencySymbol;
   final AppLocalizations strings;
   final CreditEntity? credit;
+  final String? title;
+  final IconData? leadingIcon;
 
   @override
   Widget build(BuildContext context) {
@@ -31,6 +35,8 @@ class GroupedCreditPaymentTile extends StatelessWidget {
       decimalDigits: group.totalOutflow.scale,
     );
     final String summaryLabel = _buildSummaryLabel();
+    final String resolvedTitle =
+        title ?? strings.homeTransactionsGroupedPayment;
     final Widget content = Padding(
       padding: const EdgeInsets.fromLTRB(8, 8, 16, 8),
       child: Row(
@@ -45,7 +51,7 @@ class GroupedCreditPaymentTile extends StatelessWidget {
             ),
             child: Center(
               child: Icon(
-                Icons.account_balance,
+                leadingIcon ?? Icons.account_balance,
                 size: 24,
                 color: theme.colorScheme.onPrimaryContainer,
               ),
@@ -58,7 +64,7 @@ class GroupedCreditPaymentTile extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 Text(
-                  strings.homeTransactionsGroupedPayment,
+                  resolvedTitle,
                   style: theme.textTheme.labelMedium?.copyWith(
                     fontWeight: FontWeight.w500,
                     color: theme.colorScheme.onSurface,

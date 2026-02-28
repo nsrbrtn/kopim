@@ -1,10 +1,12 @@
 import 'package:kopim/core/money/money.dart';
 import 'package:kopim/core/money/currency_scale.dart';
 import 'package:kopim/core/money/money_utils.dart';
+import 'package:kopim/core/domain/icons/phosphor_icon_descriptor.dart';
 import 'package:kopim/core/utils/annuity_calculator.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/accounts/domain/repositories/account_repository.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
+import 'package:kopim/features/categories/domain/repositories/category_repository.dart';
 import 'package:kopim/features/categories/domain/use_cases/save_category_use_case.dart';
 import 'package:kopim/features/credits/domain/entities/credit_entity.dart';
 import 'package:kopim/features/credits/domain/entities/credit_payment_schedule.dart';
@@ -18,20 +20,27 @@ class AddCreditUseCase {
   AddCreditUseCase({
     required CreditRepository creditRepository,
     required AccountRepository accountRepository,
+    required CategoryRepository categoryRepository,
     required TransactionRepository transactionRepository,
     required SaveCategoryUseCase saveCategoryUseCase,
     required Uuid uuid,
   }) : _creditRepository = creditRepository,
        _accountRepository = accountRepository,
+       _categoryRepository = categoryRepository,
        _transactionRepository = transactionRepository,
        _saveCategoryUseCase = saveCategoryUseCase,
        _uuid = uuid;
 
   final CreditRepository _creditRepository;
   final AccountRepository _accountRepository;
+  final CategoryRepository _categoryRepository;
   final TransactionRepository _transactionRepository;
   final SaveCategoryUseCase _saveCategoryUseCase;
   final Uuid _uuid;
+  static const String _creditRootCategoryName = 'Кредиты и долги';
+  static const String _creditRootCategoryColor = '#4F86F7';
+  static const PhosphorIconDescriptor _creditRootCategoryIcon =
+      PhosphorIconDescriptor(name: 'bank', style: PhosphorIconStyle.fill);
 
   Future<CreditEntity> call({
     required String name,
@@ -58,36 +67,92 @@ class AddCreditUseCase {
     final DateTime now = DateTime.now();
     final int scale = resolveCurrencyScale(currency);
     final MoneyAmount resolvedAmount = rescaleMoneyAmount(totalAmount, scale);
+    final PhosphorIconDescriptor creditCategoryIcon = iconName != null
+        ? PhosphorIconDescriptor(
+            name: iconName,
+            style: PhosphorIconStyleX.fromName(iconStyle),
+          )
+        : const PhosphorIconDescriptor(
+            name: 'bank',
+            style: PhosphorIconStyle.fill,
+          );
 
-    // 1. Создаем основные категории (основной долг, проценты, комиссии)
+    // 1. Создаем/переиспользуем родительскую системную категорию кредитов.
+    final Category? existingRoot = await _categoryRepository.findByName(
+      _creditRootCategoryName,
+    );
+    final String rootCategoryId = existingRoot?.id ?? _uuid.v4();
+    if (existingRoot == null) {
+      await _saveCategoryUseCase.call(
+        Category(
+          id: rootCategoryId,
+          name: _creditRootCategoryName,
+          type: 'expense',
+          color: _creditRootCategoryColor,
+          icon: _creditRootCategoryIcon,
+          isSystem: true,
+          isHidden: false,
+          createdAt: now,
+          updatedAt: now,
+        ),
+      );
+    } else if (existingRoot.isDeleted ||
+        existingRoot.isHidden ||
+        !existingRoot.isSystem ||
+        existingRoot.parentId != null ||
+        existingRoot.type != 'expense' ||
+        existingRoot.color != _creditRootCategoryColor ||
+        existingRoot.icon != _creditRootCategoryIcon) {
+      await _saveCategoryUseCase.call(
+        existingRoot.copyWith(
+          type: 'expense',
+          color: _creditRootCategoryColor,
+          icon: _creditRootCategoryIcon,
+          parentId: null,
+          isDeleted: false,
+          isSystem: true,
+          isHidden: false,
+          updatedAt: now,
+        ),
+      );
+    }
+
+    // 2. Создаем основные категории кредита (долг, проценты, комиссии)
+    final String baseName = name.trim();
     final List<Category> categoriesToCreate = <Category>[
       Category(
         id: categoryId,
-        name: name,
+        name: '$baseName — долг',
         type: 'expense',
         color: color,
+        icon: creditCategoryIcon,
+        parentId: rootCategoryId,
         isSystem: true,
-        isHidden: true,
+        isHidden: false,
         createdAt: now,
         updatedAt: now,
       ),
       Category(
         id: interestCategoryId,
-        name: '$name (Проценты)',
+        name: '$baseName — проценты',
         type: 'expense',
         color: color,
+        icon: creditCategoryIcon,
+        parentId: rootCategoryId,
         isSystem: true,
-        isHidden: true,
+        isHidden: false,
         createdAt: now,
         updatedAt: now,
       ),
       Category(
         id: feesCategoryId,
-        name: '$name (Комиссии)',
+        name: '$baseName — комиссии',
         type: 'expense',
         color: color,
+        icon: creditCategoryIcon,
+        parentId: rootCategoryId,
         isSystem: true,
-        isHidden: true,
+        isHidden: false,
         createdAt: now,
         updatedAt: now,
       ),
@@ -97,7 +162,7 @@ class AddCreditUseCase {
       await _saveCategoryUseCase.call(cat);
     }
 
-    // 2. Создаем кредитный счет (Баланс 0 на старте согласно Zero Basis)
+    // 3. Создаем кредитный счет (Баланс 0 на старте согласно Zero Basis)
     final bool issueWithoutAccount = isAlreadyIssued && targetAccountId == null;
     final BigInt openingMinor = issueWithoutAccount
         ? -resolvedAmount.minor
@@ -120,7 +185,7 @@ class AddCreditUseCase {
     );
     await _accountRepository.upsert(creditAccount);
 
-    // 3. Создаем запись о кредите
+    // 4. Создаем запись о кредите
     final CreditEntity credit = CreditEntity(
       id: creditId,
       accountId: accountId,
@@ -139,7 +204,7 @@ class AddCreditUseCase {
     );
     await _creditRepository.addCredit(credit);
 
-    // 4. Генерируем график платежей
+    // 5. Генерируем график платежей
     final List<AnnuityPaymentItem> scheduleItems =
         AnnuityCalculator.generateSchedule(
           principal: Money.fromMinor(
@@ -180,7 +245,7 @@ class AddCreditUseCase {
 
     await _creditRepository.addSchedule(scheduleEntities);
 
-    // 5. Регистрируем выдачу кредита (Перевод с кредитного счета на целевой)
+    // 6. Регистрируем выдачу кредита (Перевод с кредитного счета на целевой)
     if (targetAccountId != null) {
       final String txId = _uuid.v4();
       final TransactionEntity disbursementTx = TransactionEntity(

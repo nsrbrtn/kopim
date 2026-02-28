@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:kopim/core/config/theme_extensions.dart';
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/analytics/domain/models/analytics_category_breakdown.dart';
@@ -28,6 +29,7 @@ const String _othersCategoryKey = '_others';
 const String _uncategorizedCategoryKey = '_uncategorized';
 const String _transfersCategoryKey = '_transfers';
 const String _creditPaymentsCategoryKey = '_credit_payments';
+const String _creditPaymentAccountKeyPrefix = '_credit_payment_account:';
 const Object _clearCategorySelection = Object();
 const Object _customDateRangeSelection = Object();
 
@@ -1714,7 +1716,7 @@ class _MonthArrowButton extends StatelessWidget {
 
 class _TopCategoriesPageState extends ConsumerState<_TopCategoriesPage> {
   String? _highlightKey;
-  _CategoriesChartMode _chartMode = _CategoriesChartMode.donut;
+  _CategoriesChartMode _chartMode = _CategoriesChartMode.bar;
   _OperationsBreakdownMode _breakdownMode = _OperationsBreakdownMode.expense;
   bool _showTransfers = true;
 
@@ -1733,14 +1735,80 @@ class _TopCategoriesPageState extends ConsumerState<_TopCategoriesPage> {
               sum + transaction.amountValue.toDouble(),
         ) ??
         0;
+    final List<TransactionEntity> transferTransactions =
+        transfersAsync.value ?? const <TransactionEntity>[];
     final double creditPaymentsTotal =
         creditDebtAsync.value?.totalOutflow.toDouble() ?? 0;
+    final List<CreditDebtOperationItem> creditPaymentItems =
+        (creditDebtAsync.value?.items ?? const <CreditDebtOperationItem>[])
+            .where((CreditDebtOperationItem item) => item.isOutflow)
+            .toList(growable: false);
+    final Map<String, double> serviceExpenseByCategory = <String, double>{};
+    for (final CreditDebtOperationItem item in creditPaymentItems) {
+      if (item.kind != CreditDebtOperationKind.serviceExpense) {
+        continue;
+      }
+      final String? categoryId = item.transaction.categoryId;
+      if (categoryId == null || categoryId.isEmpty) {
+        continue;
+      }
+      serviceExpenseByCategory.update(
+        categoryId,
+        (double value) => value + item.transaction.amountValue.abs().toDouble(),
+        ifAbsent: () => item.transaction.amountValue.abs().toDouble(),
+      );
+    }
+    final Map<String, MoneyAccumulator> creditPaymentByAccount =
+        <String, MoneyAccumulator>{};
+    for (final CreditDebtOperationItem item in creditPaymentItems) {
+      final String? liabilityAccountId = item.liabilityAccountId;
+      if (liabilityAccountId == null || liabilityAccountId.isEmpty) {
+        continue;
+      }
+      creditPaymentByAccount
+          .putIfAbsent(liabilityAccountId, MoneyAccumulator.new)
+          .add(item.transaction.amountValue.abs());
+    }
+    final List<AnalyticsChartItem> creditPaymentChildren =
+        creditPaymentByAccount.entries
+            .map((MapEntry<String, MoneyAccumulator> entry) {
+              final AccountEntity? account = widget.accountsById[entry.key];
+              final double amount = MoneyAmount(
+                minor: entry.value.minor,
+                scale: entry.value.scale,
+              ).toDouble();
+              return AnalyticsChartItem(
+                key: '$_creditPaymentAccountKeyPrefix${entry.key}',
+                title:
+                    account?.name ??
+                    widget.strings.analyticsDebtAccountFallback,
+                amount: amount,
+                color: Theme.of(
+                  context,
+                ).colorScheme.tertiary.withValues(alpha: 0.8),
+                icon: Icons.credit_card_rounded,
+              );
+            })
+            .where((AnalyticsChartItem item) => item.amount > 0)
+            .toList(growable: false)
+          ..sort((AnalyticsChartItem a, AnalyticsChartItem b) {
+            return b.amount.compareTo(a.amount);
+          });
     final _TopCategoriesPageData baseData =
         _breakdownMode == _OperationsBreakdownMode.expense
         ? widget.expenseData
         : widget.incomeData;
+    final List<AnalyticsChartItem> baseItems =
+        _breakdownMode == _OperationsBreakdownMode.expense &&
+            serviceExpenseByCategory.isNotEmpty
+        ? _excludeChartAmounts(baseData.items, serviceExpenseByCategory)
+        : baseData.items;
+    final double baseTotal = baseItems.fold<double>(
+      0,
+      (double sum, AnalyticsChartItem item) => sum + item.absoluteAmount,
+    );
     final List<AnalyticsChartItem> chartItems = <AnalyticsChartItem>[
-      ...baseData.items,
+      ...baseItems,
       if (_breakdownMode == _OperationsBreakdownMode.expense &&
           _showTransfers &&
           transfersTotal > 0)
@@ -1760,10 +1828,11 @@ class _TopCategoriesPageState extends ConsumerState<_TopCategoriesPage> {
           amount: creditPaymentsTotal,
           color: Theme.of(context).colorScheme.tertiary,
           icon: Icons.credit_card_rounded,
+          children: creditPaymentChildren,
         ),
     ];
     final double capturedTotal =
-        baseData.total +
+        baseTotal +
         (_breakdownMode == _OperationsBreakdownMode.expense && _showTransfers
             ? transfersTotal + creditPaymentsTotal
             : 0);
@@ -1893,7 +1962,11 @@ class _TopCategoriesPageState extends ConsumerState<_TopCategoriesPage> {
         }
       }
       final _CategoryTransactionsSelection? selection =
-          _resolveTransactionsSelection(focusedItem);
+          _resolveTransactionsSelection(
+            focusedItem,
+            transferTransactions: transferTransactions,
+            creditPaymentItems: creditPaymentItems,
+          );
 
       content = Column(
         mainAxisSize: MainAxisSize.min,
@@ -2049,6 +2122,8 @@ class _TopCategoriesPageState extends ConsumerState<_TopCategoriesPage> {
                           : TransactionType.expense,
                       categoriesById: widget.categoriesById,
                       accountsById: widget.accountsById,
+                      transferTransactions: transferTransactions,
+                      creditPaymentItems: creditPaymentItems,
                       strings: widget.strings,
                     ),
                   ),
@@ -2075,21 +2150,42 @@ class _TopCategoriesPageState extends ConsumerState<_TopCategoriesPage> {
   }
 
   _CategoryTransactionsSelection? _resolveTransactionsSelection(
-    AnalyticsChartItem? focusedItem,
-  ) {
+    AnalyticsChartItem? focusedItem, {
+    required List<TransactionEntity> transferTransactions,
+    required List<CreditDebtOperationItem> creditPaymentItems,
+  }) {
     if (focusedItem == null) {
       return null;
     }
-    if (focusedItem.key == _transfersCategoryKey ||
-        focusedItem.key == _creditPaymentsCategoryKey) {
-      return null;
+    if (focusedItem.key == _transfersCategoryKey) {
+      if (transferTransactions.isEmpty) {
+        return null;
+      }
+      return _CategoryTransactionsSelection.transfers(title: focusedItem.title);
+    }
+    if (focusedItem.key == _creditPaymentsCategoryKey) {
+      if (creditPaymentItems.isEmpty) {
+        return null;
+      }
+      return _CategoryTransactionsSelection.creditPayments(
+        title: focusedItem.title,
+      );
+    }
+    final String? liabilityAccountId = _parseCreditPaymentAccountId(
+      focusedItem.key,
+    );
+    if (liabilityAccountId != null) {
+      return _CategoryTransactionsSelection.creditPayments(
+        title: focusedItem.title,
+        liabilityAccountId: liabilityAccountId,
+      );
     }
     final _SelectionPayload payload = _collectSelectionPayload(focusedItem);
     if (payload.categoryIds.isEmpty && !payload.includeUncategorized) {
       return null;
     }
     final String title = _resolveSelectionTitle(focusedItem);
-    return _CategoryTransactionsSelection(
+    return _CategoryTransactionsSelection.category(
       title: title,
       categoryIds: payload.categoryIds.toList()..sort(),
       includeUncategorized: payload.includeUncategorized,
@@ -2187,6 +2283,17 @@ class _TopCategoriesPageState extends ConsumerState<_TopCategoriesPage> {
   }
 }
 
+String? _parseCreditPaymentAccountId(String key) {
+  if (!key.startsWith(_creditPaymentAccountKeyPrefix)) {
+    return null;
+  }
+  final String id = key.substring(_creditPaymentAccountKeyPrefix.length);
+  if (id.isEmpty) {
+    return null;
+  }
+  return id;
+}
+
 class _SelectionPayload {
   const _SelectionPayload({
     required this.categoryIds,
@@ -2237,16 +2344,103 @@ AnalyticsChartItem? _findItemInTree(AnalyticsChartItem item, String key) {
   return null;
 }
 
+List<AnalyticsChartItem> _excludeChartAmounts(
+  List<AnalyticsChartItem> items,
+  Map<String, double> excludedByKey,
+) {
+  return items
+      .map((AnalyticsChartItem item) => _excludeChartItem(item, excludedByKey))
+      .whereType<AnalyticsChartItem>()
+      .toList(growable: false);
+}
+
+AnalyticsChartItem? _excludeChartItem(
+  AnalyticsChartItem item,
+  Map<String, double> excludedByKey,
+) {
+  final double originalChildrenTotal = item.children.fold<double>(
+    0,
+    (double sum, AnalyticsChartItem child) => sum + child.absoluteAmount,
+  );
+  final double ownAmount = (item.absoluteAmount - originalChildrenTotal).clamp(
+    0,
+    double.infinity,
+  );
+  final List<AnalyticsChartItem> children = item.children
+      .map(
+        (AnalyticsChartItem child) => _excludeChartItem(child, excludedByKey),
+      )
+      .whereType<AnalyticsChartItem>()
+      .toList(growable: false);
+  final double keptChildrenTotal = children.fold<double>(
+    0,
+    (double sum, AnalyticsChartItem child) => sum + child.absoluteAmount,
+  );
+  final double ownExcluded = excludedByKey[item.key] ?? 0;
+  final double ownKept = (ownAmount - ownExcluded).clamp(0, double.infinity);
+  final double newAmount = ownKept + keptChildrenTotal;
+  if (newAmount <= 0) {
+    return null;
+  }
+  return AnalyticsChartItem(
+    key: item.key,
+    title: item.title,
+    amount: newAmount,
+    color: item.color,
+    icon: item.icon,
+    children: children,
+  );
+}
+
 class _CategoryTransactionsSelection {
-  const _CategoryTransactionsSelection({
+  const _CategoryTransactionsSelection._({
+    required this.kind,
     required this.title,
     required this.categoryIds,
     required this.includeUncategorized,
+    this.liabilityAccountId,
   });
 
+  factory _CategoryTransactionsSelection.category({
+    required String title,
+    required List<String> categoryIds,
+    required bool includeUncategorized,
+  }) {
+    return _CategoryTransactionsSelection._(
+      kind: _SelectionKind.category,
+      title: title,
+      categoryIds: categoryIds,
+      includeUncategorized: includeUncategorized,
+    );
+  }
+
+  factory _CategoryTransactionsSelection.creditPayments({
+    required String title,
+    String? liabilityAccountId,
+  }) {
+    return _CategoryTransactionsSelection._(
+      kind: _SelectionKind.creditPayments,
+      title: title,
+      categoryIds: const <String>[],
+      includeUncategorized: false,
+      liabilityAccountId: liabilityAccountId,
+    );
+  }
+
+  factory _CategoryTransactionsSelection.transfers({required String title}) {
+    return _CategoryTransactionsSelection._(
+      kind: _SelectionKind.transfers,
+      title: title,
+      categoryIds: const <String>[],
+      includeUncategorized: false,
+    );
+  }
+
+  final _SelectionKind kind;
   final String title;
   final List<String> categoryIds;
   final bool includeUncategorized;
+  final String? liabilityAccountId;
 }
 
 class _CategoryTransactionsSection extends ConsumerWidget {
@@ -2255,6 +2449,8 @@ class _CategoryTransactionsSection extends ConsumerWidget {
     required this.type,
     required this.categoriesById,
     required this.accountsById,
+    required this.transferTransactions,
+    required this.creditPaymentItems,
     required this.strings,
   });
 
@@ -2262,10 +2458,31 @@ class _CategoryTransactionsSection extends ConsumerWidget {
   final TransactionType type;
   final Map<String, Category> categoriesById;
   final Map<String, AccountEntity> accountsById;
+  final List<TransactionEntity> transferTransactions;
+  final List<CreditDebtOperationItem> creditPaymentItems;
   final AppLocalizations strings;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    if (selection.kind == _SelectionKind.transfers) {
+      return _TransferTransactionsSection(
+        selection: selection,
+        categoriesById: categoriesById,
+        accountsById: accountsById,
+        transferTransactions: transferTransactions,
+        strings: strings,
+      );
+    }
+    if (selection.kind == _SelectionKind.creditPayments) {
+      return _CreditPaymentsTransactionsSection(
+        selection: selection,
+        categoriesById: categoriesById,
+        accountsById: accountsById,
+        creditPaymentItems: creditPaymentItems,
+        strings: strings,
+      );
+    }
+
     final AnalyticsCategoryTransactionsFilter filter =
         AnalyticsCategoryTransactionsFilter(
           categoryIds: selection.categoryIds,
@@ -2343,6 +2560,165 @@ class _CategoryTransactionsSection extends ConsumerWidget {
     );
   }
 }
+
+class _TransferTransactionsSection extends StatelessWidget {
+  const _TransferTransactionsSection({
+    required this.selection,
+    required this.categoriesById,
+    required this.accountsById,
+    required this.transferTransactions,
+    required this.strings,
+  });
+
+  final _CategoryTransactionsSelection selection;
+  final Map<String, Category> categoriesById;
+  final Map<String, AccountEntity> accountsById;
+  final List<TransactionEntity> transferTransactions;
+  final AppLocalizations strings;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(22),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Text(
+            strings.analyticsCategoryTransactionsTitle(selection.title),
+            style: theme.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: theme.colorScheme.onSurface,
+            ),
+          ),
+          const SizedBox(height: 12),
+          if (transferTransactions.isEmpty)
+            Text(
+              strings.analyticsCategoryTransactionsEmpty,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            )
+          else
+            ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: transferTransactions.length,
+              separatorBuilder: (BuildContext context, int index) =>
+                  const SizedBox(height: 4),
+              itemBuilder: (BuildContext context, int index) {
+                final TransactionEntity transaction =
+                    transferTransactions[index];
+                final AccountEntity? account =
+                    accountsById[transaction.accountId];
+                final Category? category = transaction.categoryId == null
+                    ? null
+                    : categoriesById[transaction.categoryId!];
+                return TransactionListTile(
+                  transaction: transaction,
+                  category: category,
+                  currency: account?.currency ?? '',
+                  accountName: account?.name,
+                  strings: strings,
+                );
+              },
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CreditPaymentsTransactionsSection extends StatelessWidget {
+  const _CreditPaymentsTransactionsSection({
+    required this.selection,
+    required this.categoriesById,
+    required this.accountsById,
+    required this.creditPaymentItems,
+    required this.strings,
+  });
+
+  final _CategoryTransactionsSelection selection;
+  final Map<String, Category> categoriesById;
+  final Map<String, AccountEntity> accountsById;
+  final List<CreditDebtOperationItem> creditPaymentItems;
+  final AppLocalizations strings;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final String? liabilityAccountId = selection.liabilityAccountId;
+    final List<TransactionEntity> transactions = creditPaymentItems
+        .where((CreditDebtOperationItem item) {
+          if (!item.isOutflow) {
+            return false;
+          }
+          if (liabilityAccountId == null) {
+            return true;
+          }
+          return item.liabilityAccountId == liabilityAccountId;
+        })
+        .map((CreditDebtOperationItem item) => item.transaction)
+        .toList(growable: false);
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(22),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Text(
+            strings.analyticsCategoryTransactionsTitle(selection.title),
+            style: theme.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: theme.colorScheme.onSurface,
+            ),
+          ),
+          const SizedBox(height: 12),
+          if (transactions.isEmpty)
+            Text(
+              strings.analyticsCategoryTransactionsEmpty,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            )
+          else
+            ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: transactions.length,
+              separatorBuilder: (BuildContext context, int index) =>
+                  const SizedBox(height: 4),
+              itemBuilder: (BuildContext context, int index) {
+                final TransactionEntity transaction = transactions[index];
+                final AccountEntity? account =
+                    accountsById[transaction.accountId];
+                final Category? category = transaction.categoryId == null
+                    ? null
+                    : categoriesById[transaction.categoryId!];
+                return TransactionListTile(
+                  transaction: transaction,
+                  category: category,
+                  currency: account?.currency ?? '',
+                  accountName: account?.name,
+                  strings: strings,
+                );
+              },
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+enum _SelectionKind { category, transfers, creditPayments }
 
 class _EmptyMonthChart extends StatelessWidget {
   const _EmptyMonthChart({required this.items, required this.color});

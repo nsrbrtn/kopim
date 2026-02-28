@@ -24,6 +24,7 @@ import 'package:kopim/features/credits/domain/entities/credit_payment_schedule.d
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
 import 'package:kopim/features/home/domain/models/day_section.dart';
+import 'package:kopim/features/credits/domain/utils/credit_payment_amounts.dart';
 import 'package:kopim/features/credits/domain/utils/credit_calculations.dart';
 import 'package:kopim/features/transactions/presentation/screens/all_transactions_screen.dart';
 import 'package:kopim/l10n/app_localizations.dart';
@@ -128,19 +129,22 @@ class _CreditDetailsScreenState extends ConsumerState<CreditDetailsScreen> {
             final List<CreditPaymentScheduleEntity> schedule =
                 scheduleAsync.asData?.value ??
                 const <CreditPaymentScheduleEntity>[];
-            final DateTime nextPaymentDate = _calculateNextPaymentDate(
-              widget.credit,
-              schedule,
-            );
+            final CreditPaymentScheduleEntity? nextScheduleItem =
+                _nextUpcomingScheduleItem(schedule);
+            final DateTime nextPaymentDate = nextScheduleItem != null
+                ? DateUtils.dateOnly(nextScheduleItem.dueDate)
+                : _calculateNextPaymentDate(widget.credit);
             final int daysUntilPayment = math.max(
               0,
               nextPaymentDate.difference(DateTime.now()).inDays,
             );
-            final double monthlyPayment = calculateAnnuityMonthlyPayment(
-              principal: totalDebtValue,
-              annualInterestRate: widget.credit.interestRate,
-              termMonths: widget.credit.termMonths,
-            );
+            final double monthlyPayment = nextScheduleItem != null
+                ? remainingTotalAmount(nextScheduleItem).toDouble()
+                : calculateAnnuityMonthlyPayment(
+                    principal: totalDebtValue,
+                    annualInterestRate: widget.credit.interestRate,
+                    termMonths: widget.credit.termMonths,
+                  );
 
             final List<Category> categories =
                 categoriesAsync.asData?.value ?? const <Category>[];
@@ -194,8 +198,7 @@ class _CreditDetailsScreenState extends ConsumerState<CreditDetailsScreen> {
                         child: LinearProgressIndicator(
                           value: progress.clamp(0.0, 1.0),
                           minHeight: 8,
-                          backgroundColor:
-                              theme.colorScheme.surfaceContainerHighest,
+                          backgroundColor: theme.colorScheme.surfaceContainer,
                           valueColor: AlwaysStoppedAnimation<Color>(
                             theme.colorScheme.primary,
                           ),
@@ -259,7 +262,7 @@ class _CreditDetailsScreenState extends ConsumerState<CreditDetailsScreen> {
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: theme.colorScheme.surfaceContainerHighest,
+                          color: theme.colorScheme.surfaceContainer,
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: Column(
@@ -405,25 +408,7 @@ class _CreditDetailsScreenState extends ConsumerState<CreditDetailsScreen> {
     );
   }
 
-  DateTime _calculateNextPaymentDate(
-    CreditEntity credit,
-    List<CreditPaymentScheduleEntity> schedule,
-  ) {
-    final List<CreditPaymentScheduleEntity> upcoming = schedule
-        .where(
-          (CreditPaymentScheduleEntity item) =>
-              item.status == CreditPaymentStatus.planned ||
-              item.status == CreditPaymentStatus.partiallyPaid,
-        )
-        .toList(growable: false);
-    if (upcoming.isNotEmpty) {
-      upcoming.sort(
-        (CreditPaymentScheduleEntity a, CreditPaymentScheduleEntity b) =>
-            a.dueDate.compareTo(b.dueDate),
-      );
-      return DateUtils.dateOnly(upcoming.first.dueDate);
-    }
-
+  DateTime _calculateNextPaymentDate(CreditEntity credit) {
     final DateTime now = DateUtils.dateOnly(DateTime.now());
     final int paymentDay = credit.paymentDay;
 
@@ -441,6 +426,26 @@ class _CreditDetailsScreenState extends ConsumerState<CreditDetailsScreen> {
     );
     final int nextDay = paymentDay.clamp(1, nextMaxDay);
     return DateTime(nextMonth.year, nextMonth.month, nextDay);
+  }
+
+  CreditPaymentScheduleEntity? _nextUpcomingScheduleItem(
+    List<CreditPaymentScheduleEntity> schedule,
+  ) {
+    final List<CreditPaymentScheduleEntity> upcoming = schedule
+        .where(
+          (CreditPaymentScheduleEntity item) =>
+              item.status == CreditPaymentStatus.planned ||
+              item.status == CreditPaymentStatus.partiallyPaid,
+        )
+        .toList(growable: false);
+    if (upcoming.isEmpty) {
+      return null;
+    }
+    upcoming.sort(
+      (CreditPaymentScheduleEntity a, CreditPaymentScheduleEntity b) =>
+          a.dueDate.compareTo(b.dueDate),
+    );
+    return upcoming.first;
   }
 
   int _calculateRemainingPayments({
@@ -553,7 +558,7 @@ class _InfoCard extends StatelessWidget {
     final ThemeData theme = Theme.of(context);
     return Card(
       elevation: 0,
-      color: theme.colorScheme.surfaceContainerHigh,
+      color: theme.colorScheme.surfaceContainer,
       margin: EdgeInsets.zero,
       surfaceTintColor: Colors.transparent,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),

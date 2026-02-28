@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/core/formatting/currency_symbols.dart';
 import 'package:kopim/core/money/money.dart';
+import 'package:kopim/core/domain/icons/phosphor_icon_descriptor.dart';
 import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
@@ -80,6 +81,24 @@ class AllTransactionsScreen extends ConsumerWidget {
           in categoriesAsync.asData?.value ?? const <Category>[])
         category.id: category,
     };
+    final List<CreditEntity> credits =
+        creditsAsync.asData?.value ?? const <CreditEntity>[];
+    final Map<String, CreditEntity> creditsByAccountId = <String, CreditEntity>{
+      for (final CreditEntity credit in credits) credit.accountId: credit,
+    };
+    final Map<String, CreditEntity> creditsByCategoryId =
+        <String, CreditEntity>{
+          for (final CreditEntity credit in credits) ...<String, CreditEntity>{
+            if (credit.categoryId != null && credit.categoryId!.isNotEmpty)
+              credit.categoryId!: credit,
+            if (credit.interestCategoryId != null &&
+                credit.interestCategoryId!.isNotEmpty)
+              credit.interestCategoryId!: credit,
+            if (credit.feesCategoryId != null &&
+                credit.feesCategoryId!.isNotEmpty)
+              credit.feesCategoryId!: credit,
+          },
+        };
 
     return Scaffold(
       appBar: AppBar(title: Text(strings.allTransactionsTitle)),
@@ -114,6 +133,8 @@ class AllTransactionsScreen extends ConsumerWidget {
                     strings: strings,
                     accounts: accountsMap,
                     categories: categoriesMap,
+                    creditsByAccountId: creditsByAccountId,
+                    creditsByCategoryId: creditsByCategoryId,
                   );
                 },
                 loading: () => const Center(child: CircularProgressIndicator()),
@@ -420,12 +441,16 @@ class _TransactionsList extends StatelessWidget {
     required this.strings,
     required this.accounts,
     required this.categories,
+    required this.creditsByAccountId,
+    required this.creditsByCategoryId,
   });
 
   final List<DaySection> sections;
   final AppLocalizations strings;
   final Map<String, AccountEntity> accounts;
   final Map<String, Category> categories;
+  final Map<String, CreditEntity> creditsByAccountId;
+  final Map<String, CreditEntity> creditsByCategoryId;
 
   @override
   Widget build(BuildContext context) {
@@ -461,6 +486,9 @@ class _TransactionsList extends StatelessWidget {
                 account: account,
                 transferAccount: transferAccount,
                 category: category,
+                allAccounts: accounts,
+                creditByAccountId: creditsByAccountId,
+                creditByCategoryId: creditsByCategoryId,
                 strings: strings,
               );
             },
@@ -473,6 +501,18 @@ class _TransactionsList extends StatelessWidget {
                   DateTime date,
                   String? note,
                 ) {
+                  final CreditEntity? credit = _resolveCreditForGroup(
+                    transactions: transactions,
+                    creditByAccountId: creditsByAccountId,
+                    creditByCategoryId: creditsByCategoryId,
+                  );
+                  final AccountEntity? creditAccount = credit == null
+                      ? null
+                      : accounts[credit.accountId];
+                  final PhosphorIconData? creditIcon = _resolveCreditIcon(
+                    credit: credit,
+                    accountsById: accounts,
+                  );
                   final AccountEntity? account =
                       accounts[transactions.first.accountId];
                   final String currencySymbol = account != null
@@ -487,6 +527,9 @@ class _TransactionsList extends StatelessWidget {
                     group: item as GroupedCreditPaymentFeedItem,
                     currencySymbol: currencySymbol,
                     strings: strings,
+                    credit: credit,
+                    title: creditAccount?.name,
+                    leadingIcon: creditIcon,
                   );
                 },
           ),
@@ -560,6 +603,9 @@ class _TransactionListTile extends ConsumerWidget {
     required this.account,
     required this.transferAccount,
     required this.category,
+    required this.allAccounts,
+    required this.creditByAccountId,
+    required this.creditByCategoryId,
     required this.strings,
   });
 
@@ -567,6 +613,9 @@ class _TransactionListTile extends ConsumerWidget {
   final AccountEntity? account;
   final AccountEntity? transferAccount;
   final Category? category;
+  final Map<String, AccountEntity> allAccounts;
+  final Map<String, CreditEntity> creditByAccountId;
+  final Map<String, CreditEntity> creditByCategoryId;
   final AppLocalizations strings;
 
   @override
@@ -597,6 +646,12 @@ class _TransactionListTile extends ConsumerWidget {
     final String tagLabel = tags.map((TagEntity tag) => tag.name).join(', ');
     final bool isExpense =
         transaction.type == TransactionType.expense.storageValue;
+    final CreditEntity? credit = _resolveCreditForTransaction(
+      transaction: transaction,
+      creditByAccountId: creditByAccountId,
+      creditByCategoryId: creditByCategoryId,
+    );
+    final bool isCreditOperation = credit != null;
     final Color amountColor = isTransfer
         ? theme.colorScheme.onSurface
         : (isExpense ? theme.colorScheme.error : theme.colorScheme.primary);
@@ -616,9 +671,13 @@ class _TransactionListTile extends ConsumerWidget {
         : theme.colorScheme.onSurfaceVariant;
     final String categoryName =
         category?.name ?? strings.homeTransactionsUncategorized;
-    final String title = isTransfer
-        ? strings.addTransactionTypeTransfer
-        : categoryName;
+    final String title = isCreditOperation
+        ? _resolveCreditTitle(
+            transaction: transaction,
+            credit: credit,
+            accountsById: allAccounts,
+          )
+        : (isTransfer ? strings.addTransactionTypeTransfer : categoryName);
     final String? note = transaction.note?.trim();
     final DateFormat dateFormat = DateFormat.yMMMd(strings.localeName);
     final String? accountName = account?.name;
@@ -631,6 +690,11 @@ class _TransactionListTile extends ConsumerWidget {
       dateFormat.format(transaction.date),
     ];
     final String subtitle = subtitleParts.join(' • ');
+
+    final PhosphorIconData? creditIconData = _resolveCreditIcon(
+      credit: credit,
+      accountsById: allAccounts,
+    );
 
     return Dismissible(
       key: ValueKey<String>(transaction.id),
@@ -665,7 +729,9 @@ class _TransactionListTile extends ConsumerWidget {
                         shape: BoxShape.circle,
                         gradient: isTransfer ? null : categoryGradient,
                         color: isTransfer
-                            ? theme.colorScheme.primaryContainer
+                            ? (isCreditOperation
+                                  ? theme.colorScheme.tertiaryContainer
+                                  : theme.colorScheme.primaryContainer)
                             : (categoryGradient == null
                                   ? (categoryColor ??
                                         theme
@@ -675,7 +741,8 @@ class _TransactionListTile extends ConsumerWidget {
                       ),
                       alignment: Alignment.center,
                       child: Icon(
-                        iconData ??
+                        creditIconData ??
+                            iconData ??
                             (isTransfer
                                 ? Icons.swap_horiz
                                 : Icons.category_outlined),
@@ -733,6 +800,91 @@ class _TransactionListTile extends ConsumerWidget {
       ),
     );
   }
+}
+
+CreditEntity? _resolveCreditForTransaction({
+  required TransactionEntity transaction,
+  required Map<String, CreditEntity> creditByAccountId,
+  required Map<String, CreditEntity> creditByCategoryId,
+}) {
+  final CreditEntity? byTransferAccount = transaction.transferAccountId == null
+      ? null
+      : creditByAccountId[transaction.transferAccountId!];
+  if (byTransferAccount != null) {
+    return byTransferAccount;
+  }
+  final CreditEntity? byAccount = creditByAccountId[transaction.accountId];
+  if (byAccount != null) {
+    return byAccount;
+  }
+  final String? categoryId = transaction.categoryId;
+  if (categoryId == null || categoryId.isEmpty) {
+    return null;
+  }
+  return creditByCategoryId[categoryId];
+}
+
+CreditEntity? _resolveCreditForGroup({
+  required List<TransactionEntity> transactions,
+  required Map<String, CreditEntity> creditByAccountId,
+  required Map<String, CreditEntity> creditByCategoryId,
+}) {
+  for (final TransactionEntity transaction in transactions) {
+    final CreditEntity? credit = _resolveCreditForTransaction(
+      transaction: transaction,
+      creditByAccountId: creditByAccountId,
+      creditByCategoryId: creditByCategoryId,
+    );
+    if (credit != null) {
+      return credit;
+    }
+  }
+  return null;
+}
+
+String _resolveCreditTitle({
+  required TransactionEntity transaction,
+  required CreditEntity credit,
+  required Map<String, AccountEntity> accountsById,
+}) {
+  final String creditName = accountsById[credit.accountId]?.name ?? 'Кредит';
+  final bool isTransfer =
+      transaction.type == TransactionType.transfer.storageValue;
+  if (isTransfer) {
+    return '$creditName — долг';
+  }
+  if (credit.interestCategoryId != null &&
+      transaction.categoryId == credit.interestCategoryId) {
+    return '$creditName — проценты';
+  }
+  if (credit.feesCategoryId != null &&
+      transaction.categoryId == credit.feesCategoryId) {
+    return '$creditName — комиссии';
+  }
+  return '$creditName — долг';
+}
+
+PhosphorIconData? _resolveCreditIcon({
+  required CreditEntity? credit,
+  required Map<String, AccountEntity> accountsById,
+}) {
+  if (credit == null) {
+    return null;
+  }
+  final AccountEntity? creditAccount = accountsById[credit.accountId];
+  final String? iconName = creditAccount?.iconName;
+  if (iconName == null || iconName.isEmpty) {
+    return null;
+  }
+  final PhosphorIconDescriptor descriptor = PhosphorIconDescriptor(
+    name: iconName,
+    style: PhosphorIconStyle.values.firstWhere(
+      (PhosphorIconStyle style) =>
+          style.name == (creditAccount?.iconStyle ?? ''),
+      orElse: () => PhosphorIconStyle.fill,
+    ),
+  );
+  return resolvePhosphorIconData(descriptor);
 }
 
 class _TransactionsEmpty extends StatelessWidget {

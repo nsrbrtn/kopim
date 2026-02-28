@@ -1,4 +1,5 @@
 import 'package:kopim/core/money/money_utils.dart';
+import 'package:kopim/core/domain/icons/phosphor_icon_descriptor.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/categories/domain/repositories/category_repository.dart';
 import 'package:kopim/features/categories/domain/use_cases/save_category_use_case.dart';
@@ -24,6 +25,14 @@ class AddDebtUseCase {
 
   static const String returnDebtCategoryName = 'Возврат долга';
   static const String receivedDebtCategoryName = 'Получение одолженных денег';
+  static const String _returnDebtColor = '#F59E0B';
+  static const String _receivedDebtColor = '#10B981';
+  static const PhosphorIconDescriptor _returnDebtIcon = PhosphorIconDescriptor(
+    name: 'arrowCounterClockwise',
+    style: PhosphorIconStyle.fill,
+  );
+  static const PhosphorIconDescriptor _receivedDebtIcon =
+      PhosphorIconDescriptor(name: 'handCoins', style: PhosphorIconStyle.fill);
 
   Future<DebtEntity> call({
     required String accountId,
@@ -36,11 +45,15 @@ class AddDebtUseCase {
     await _ensureSystemCategory(
       name: returnDebtCategoryName,
       type: 'expense',
+      color: _returnDebtColor,
+      icon: _returnDebtIcon,
       timestamp: now,
     );
     await _ensureSystemCategory(
       name: receivedDebtCategoryName,
       type: 'income',
+      color: _receivedDebtColor,
+      icon: _receivedDebtIcon,
       timestamp: now,
     );
     final DebtEntity debt = DebtEntity(
@@ -61,13 +74,21 @@ class AddDebtUseCase {
   Future<Category> _ensureSystemCategory({
     required String name,
     required String type,
+    required String color,
+    required PhosphorIconDescriptor icon,
     required DateTime timestamp,
   }) async {
     final Category? existing = await _categoryRepository.findByName(name);
     if (existing != null) {
-      if (existing.isDeleted || !existing.isSystem || existing.type != type) {
+      if (existing.isDeleted ||
+          !existing.isSystem ||
+          existing.type != type ||
+          existing.color != color ||
+          existing.icon != icon) {
         final Category restored = existing.copyWith(
           type: type,
+          color: color,
+          icon: icon,
           isDeleted: false,
           isSystem: true,
           updatedAt: timestamp,
@@ -81,6 +102,8 @@ class AddDebtUseCase {
       id: _uuid.v4(),
       name: name,
       type: type,
+      color: color,
+      icon: icon,
       createdAt: timestamp,
       updatedAt: timestamp,
       isDeleted: false,

@@ -53,10 +53,7 @@ class CategoryDao {
   Future<db.CategoryRow?> findByName(String name) {
     final SimpleSelectStatement<db.$CategoriesTable, db.CategoryRow> query =
         _db.select(_db.categories)
-          ..where(
-            (db.$CategoriesTable tbl) =>
-                tbl.name.equals(name) & tbl.isDeleted.equals(false),
-          );
+          ..where((db.$CategoriesTable tbl) => tbl.name.equals(name));
     return query.getSingleOrNull();
   }
 

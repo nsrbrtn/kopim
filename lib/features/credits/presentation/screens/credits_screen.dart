@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:kopim/core/widgets/kopim_segmented_control.dart';
 import 'package:kopim/core/utils/context_extensions.dart';
+import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
+import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/credits/domain/entities/credit_entity.dart';
 import 'package:kopim/features/credits/domain/entities/debt_entity.dart';
 import 'package:kopim/features/credits/presentation/widgets/credit_card.dart';
@@ -20,16 +22,22 @@ class CreditsScreen extends ConsumerStatefulWidget {
 
 class _CreditsScreenState extends ConsumerState<CreditsScreen> {
   _CreditsTab _selectedTab = _CreditsTab.credits;
+  late final Stream<List<CreditEntity>> _creditsStream;
+  late final Stream<List<DebtEntity>> _debtsStream;
+  late final Stream<List<AccountEntity>> _accountsStream;
+  late final Stream<List<Category>> _categoriesStream;
+
+  @override
+  void initState() {
+    super.initState();
+    _creditsStream = ref.read(watchCreditsUseCaseProvider).call();
+    _debtsStream = ref.read(watchDebtsUseCaseProvider).call();
+    _accountsStream = ref.read(watchAccountsUseCaseProvider).call();
+    _categoriesStream = ref.read(watchCategoriesUseCaseProvider).call();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final Stream<List<CreditEntity>> creditsAsync = ref
-        .watch(watchCreditsUseCaseProvider)
-        .call();
-    final Stream<List<DebtEntity>> debtsAsync = ref
-        .watch(watchDebtsUseCaseProvider)
-        .call();
-
     return Scaffold(
       appBar: AppBar(title: Text(context.loc.creditsTitle)),
       body: Column(
@@ -58,8 +66,15 @@ class _CreditsScreenState extends ConsumerState<CreditsScreen> {
           const SizedBox(height: 8),
           Expanded(
             child: _selectedTab == _CreditsTab.credits
-                ? _CreditsList(creditsAsync: creditsAsync)
-                : _DebtsList(debtsAsync: debtsAsync),
+                ? _CreditsList(
+                    creditsAsync: _creditsStream,
+                    accountsAsync: _accountsStream,
+                    categoriesAsync: _categoriesStream,
+                  )
+                : _DebtsList(
+                    debtsAsync: _debtsStream,
+                    accountsAsync: _accountsStream,
+                  ),
           ),
         ],
       ),
@@ -76,9 +91,15 @@ class _CreditsScreenState extends ConsumerState<CreditsScreen> {
 }
 
 class _CreditsList extends ConsumerWidget {
-  const _CreditsList({required this.creditsAsync});
+  const _CreditsList({
+    required this.creditsAsync,
+    required this.accountsAsync,
+    required this.categoriesAsync,
+  });
 
   final Stream<List<CreditEntity>> creditsAsync;
+  final Stream<List<AccountEntity>> accountsAsync;
+  final Stream<List<Category>> categoriesAsync;
 
   Future<bool> _confirmDelete(BuildContext context) async {
     final bool? result = await showDialog<bool>(
@@ -109,7 +130,8 @@ class _CreditsList extends ConsumerWidget {
       stream: creditsAsync,
       builder:
           (BuildContext context, AsyncSnapshot<List<CreditEntity>> snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
+            if (!snapshot.hasData &&
+                snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());
             }
             final List<CreditEntity> credits =
@@ -137,38 +159,106 @@ class _CreditsList extends ConsumerWidget {
                 ),
               );
             }
-            return ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: credits.length,
-              itemBuilder: (BuildContext context, int index) {
-                final CreditEntity credit = credits[index];
-                return Dismissible(
-                  key: Key(credit.id),
-                  direction: DismissDirection.endToStart,
-                  confirmDismiss: (_) => _confirmDelete(context),
-                  background: Container(
-                    alignment: Alignment.centerRight,
-                    padding: const EdgeInsets.only(right: 20),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.error,
-                      borderRadius: BorderRadius.circular(24),
-                    ),
-                    child: const Icon(
-                      Icons.delete_outline,
-                      color: Colors.white,
-                    ),
-                  ),
-                  onDismissed: (DismissDirection direction) {
-                    ref.read(deleteCreditUseCaseProvider).call(credit);
+            return StreamBuilder<List<AccountEntity>>(
+              stream: accountsAsync,
+              builder:
+                  (
+                    BuildContext context,
+                    AsyncSnapshot<List<AccountEntity>> accountsSnapshot,
+                  ) {
+                    if (!accountsSnapshot.hasData &&
+                        accountsSnapshot.connectionState ==
+                            ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    final Map<String, AccountEntity> accountsById =
+                        <String, AccountEntity>{
+                          for (final AccountEntity account
+                              in (accountsSnapshot.data ?? <AccountEntity>[]))
+                            account.id: account,
+                        };
+                    return StreamBuilder<List<Category>>(
+                      stream: categoriesAsync,
+                      builder:
+                          (
+                            BuildContext context,
+                            AsyncSnapshot<List<Category>> categoriesSnapshot,
+                          ) {
+                            if (!categoriesSnapshot.hasData &&
+                                categoriesSnapshot.connectionState ==
+                                    ConnectionState.waiting) {
+                              return const Center(
+                                child: CircularProgressIndicator(),
+                              );
+                            }
+                            final Map<String, Category> categoriesById =
+                                <String, Category>{
+                                  for (final Category category
+                                      in (categoriesSnapshot.data ??
+                                          <Category>[]))
+                                    category.id: category,
+                                };
+                            return ListView.builder(
+                              padding: const EdgeInsets.all(16),
+                              itemCount: credits.length,
+                              itemBuilder: (BuildContext context, int index) {
+                                final CreditEntity credit = credits[index];
+                                final AccountEntity account =
+                                    accountsById[credit.accountId] ??
+                                    AccountEntity(
+                                      id: '',
+                                      name: '',
+                                      balanceMinor: BigInt.zero,
+                                      openingBalanceMinor: BigInt.zero,
+                                      currency: 'RUB',
+                                      currencyScale: 2,
+                                      type: 'credit',
+                                      createdAt: DateTime.now(),
+                                      updatedAt: DateTime.now(),
+                                    );
+                                return Dismissible(
+                                  key: Key(credit.id),
+                                  direction: DismissDirection.endToStart,
+                                  confirmDismiss: (_) =>
+                                      _confirmDelete(context),
+                                  background: Container(
+                                    alignment: Alignment.centerRight,
+                                    padding: const EdgeInsets.only(right: 20),
+                                    decoration: BoxDecoration(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.error,
+                                      borderRadius: BorderRadius.circular(24),
+                                    ),
+                                    child: const Icon(
+                                      Icons.delete_outline,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  onDismissed: (DismissDirection direction) {
+                                    ref
+                                        .read(deleteCreditUseCaseProvider)
+                                        .call(credit);
+                                  },
+                                  child: CreditCard(
+                                    credit: credit,
+                                    account: account,
+                                    category: credit.categoryId == null
+                                        ? null
+                                        : categoriesById[credit.categoryId!],
+                                    onTap: () {
+                                      context.push(
+                                        '/credits/details',
+                                        extra: credit,
+                                      );
+                                    },
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                    );
                   },
-                  child: CreditCard(
-                    credit: credit,
-                    onTap: () {
-                      context.push('/credits/details', extra: credit);
-                    },
-                  ),
-                );
-              },
             );
           },
     );
@@ -176,9 +266,10 @@ class _CreditsList extends ConsumerWidget {
 }
 
 class _DebtsList extends ConsumerWidget {
-  const _DebtsList({required this.debtsAsync});
+  const _DebtsList({required this.debtsAsync, required this.accountsAsync});
 
   final Stream<List<DebtEntity>> debtsAsync;
+  final Stream<List<AccountEntity>> accountsAsync;
 
   Future<bool> _confirmDelete(BuildContext context) async {
     final bool? result = await showDialog<bool>(
@@ -209,7 +300,8 @@ class _DebtsList extends ConsumerWidget {
       stream: debtsAsync,
       builder:
           (BuildContext context, AsyncSnapshot<List<DebtEntity>> snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
+            if (!snapshot.hasData &&
+                snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());
             }
             final List<DebtEntity> debts = snapshot.data ?? <DebtEntity>[];
@@ -236,38 +328,72 @@ class _DebtsList extends ConsumerWidget {
                 ),
               );
             }
-            return ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: debts.length,
-              itemBuilder: (BuildContext context, int index) {
-                final DebtEntity debt = debts[index];
-                return Dismissible(
-                  key: Key(debt.id),
-                  direction: DismissDirection.endToStart,
-                  confirmDismiss: (_) => _confirmDelete(context),
-                  background: Container(
-                    alignment: Alignment.centerRight,
-                    padding: const EdgeInsets.only(right: 20),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.error,
-                      borderRadius: BorderRadius.circular(24),
-                    ),
-                    child: const Icon(
-                      Icons.delete_outline,
-                      color: Colors.white,
-                    ),
-                  ),
-                  onDismissed: (DismissDirection direction) {
-                    ref.read(deleteDebtUseCaseProvider).call(debt);
+            return StreamBuilder<List<AccountEntity>>(
+              stream: accountsAsync,
+              builder:
+                  (
+                    BuildContext context,
+                    AsyncSnapshot<List<AccountEntity>> accountsSnapshot,
+                  ) {
+                    if (!accountsSnapshot.hasData &&
+                        accountsSnapshot.connectionState ==
+                            ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    final Map<String, AccountEntity> accountsById =
+                        <String, AccountEntity>{
+                          for (final AccountEntity account
+                              in (accountsSnapshot.data ?? <AccountEntity>[]))
+                            account.id: account,
+                        };
+                    return ListView.builder(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: debts.length,
+                      itemBuilder: (BuildContext context, int index) {
+                        final DebtEntity debt = debts[index];
+                        final AccountEntity account =
+                            accountsById[debt.accountId] ??
+                            AccountEntity(
+                              id: '',
+                              name: '',
+                              balanceMinor: BigInt.zero,
+                              openingBalanceMinor: BigInt.zero,
+                              currency: 'RUB',
+                              currencyScale: 2,
+                              type: 'cash',
+                              createdAt: DateTime.now(),
+                              updatedAt: DateTime.now(),
+                            );
+                        return Dismissible(
+                          key: Key(debt.id),
+                          direction: DismissDirection.endToStart,
+                          confirmDismiss: (_) => _confirmDelete(context),
+                          background: Container(
+                            alignment: Alignment.centerRight,
+                            padding: const EdgeInsets.only(right: 20),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).colorScheme.error,
+                              borderRadius: BorderRadius.circular(24),
+                            ),
+                            child: const Icon(
+                              Icons.delete_outline,
+                              color: Colors.white,
+                            ),
+                          ),
+                          onDismissed: (DismissDirection direction) {
+                            ref.read(deleteDebtUseCaseProvider).call(debt);
+                          },
+                          child: DebtCard(
+                            debt: debt,
+                            account: account,
+                            onTap: () {
+                              context.push('/credits/debts/edit', extra: debt);
+                            },
+                          ),
+                        );
+                      },
+                    );
                   },
-                  child: DebtCard(
-                    debt: debt,
-                    onTap: () {
-                      context.push('/credits/debts/edit', extra: debt);
-                    },
-                  ),
-                );
-              },
             );
           },
     );

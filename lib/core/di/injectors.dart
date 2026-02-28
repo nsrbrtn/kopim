@@ -748,6 +748,7 @@ watchOverviewGoalFocusUseCaseProvider =
 AddCreditUseCase addCreditUseCase(Ref ref) => AddCreditUseCase(
   creditRepository: ref.watch(creditRepositoryProvider),
   accountRepository: ref.watch(accountRepositoryProvider),
+  categoryRepository: ref.watch(categoryRepositoryProvider),
   transactionRepository: ref.watch(transactionRepositoryProvider),
   saveCategoryUseCase: ref.watch(saveCategoryUseCaseProvider),
   uuid: ref.watch(uuidGeneratorProvider),

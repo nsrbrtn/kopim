@@ -1,6 +1,3 @@
-import 'dart:convert';
-import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -8,6 +5,7 @@ import 'package:intl/intl.dart';
 
 import 'package:kopim/core/application/sync_preferences_provider.dart';
 import 'package:kopim/core/di/injectors.dart';
+import 'package:kopim/core/utils/avatar_image_provider_resolver.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
 import 'package:kopim/features/profile/domain/entities/profile.dart';
 import 'package:kopim/features/profile/domain/entities/user_progress.dart';
@@ -289,9 +287,8 @@ class _ProfileAvatar extends StatelessWidget {
     final ThemeData theme = Theme.of(context);
     final Color borderColor = theme.colorScheme.primary;
     final Color backgroundColor = theme.colorScheme.surface;
-    final ImageProvider<Object>? imageProvider = _resolveImageProvider(
-      photoUrl,
-    );
+    final ImageProvider<Object>? imageProvider =
+        AvatarImageProviderResolver.resolve(photoUrl);
     final bool isUploading = avatarState.isLoading;
 
     return Container(
@@ -764,32 +761,6 @@ String _mapAvatarError(AppLocalizations strings, Object? error) {
     return strings.profileAvatarUploadError;
   }
   return strings.profileAvatarUploadError;
-}
-
-ImageProvider<Object>? _resolveImageProvider(String? photoUrl) {
-  if (photoUrl == null || photoUrl.isEmpty) {
-    return null;
-  }
-  if (photoUrl.startsWith('assets/')) {
-    return AssetImage(photoUrl);
-  }
-  if (photoUrl.startsWith('asset:')) {
-    return AssetImage(photoUrl.substring('asset:'.length));
-  }
-  if (photoUrl.startsWith('data:image/')) {
-    final int commaIndex = photoUrl.indexOf(',');
-    if (commaIndex == -1) {
-      return null;
-    }
-    final String encoded = photoUrl.substring(commaIndex + 1);
-    try {
-      final Uint8List bytes = base64Decode(encoded);
-      return MemoryImage(bytes);
-    } catch (_) {
-      return null;
-    }
-  }
-  return NetworkImage(photoUrl);
 }
 
 void _showAvatarActionSheet(

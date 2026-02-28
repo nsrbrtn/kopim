@@ -6,6 +6,7 @@ import 'package:kopim/core/utils/context_extensions.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/credits/domain/entities/credit_entity.dart';
 import 'package:kopim/features/credits/domain/entities/credit_payment_schedule.dart';
+import 'package:kopim/features/credits/domain/utils/credit_payment_amounts.dart';
 import 'package:kopim/features/credits/domain/use_cases/make_credit_payment_use_case.dart';
 
 class PayCreditSheet extends ConsumerStatefulWidget {
@@ -48,22 +49,15 @@ class _PayCreditSheetState extends ConsumerState<PayCreditSheet> {
   void initState() {
     super.initState();
     final CreditPaymentScheduleEntity? item = widget.scheduleItem;
-
-    // Initialize with planned amounts or zero
-    _principalController = TextEditingController(
-      text: (item?.principalAmount.minor ?? BigInt.zero) > BigInt.zero
-          ? item!.principalAmount.toDecimalString()
-          : '0',
-    );
-    _interestController = TextEditingController(
-      text: (item?.interestAmount.minor ?? BigInt.zero) > BigInt.zero
-          ? item!.interestAmount.toDecimalString()
-          : '0',
-    );
+    final String principalText = item == null
+        ? '0'
+        : remainingPrincipalAmount(item).toDecimalString();
+    final String interestText = item == null
+        ? '0'
+        : remainingInterestAmount(item).toDecimalString();
+    _principalController = TextEditingController(text: principalText);
+    _interestController = TextEditingController(text: interestText);
     _feesController = TextEditingController(text: '0');
-
-    // Default source account (if we had a primary one or previous one)
-    // For now, it will be selected by user.
   }
 
   @override
