@@ -18,6 +18,26 @@ class AnnuityPaymentItem {
 }
 
 class AnnuityCalculator {
+  /// Calculates monthly annuity payment amount using PMT formula.
+  static double calculateMonthlyPayment({
+    required double principal,
+    required double annualInterestRatePercent,
+    required int termMonths,
+  }) {
+    if (termMonths <= 0 || principal <= 0) {
+      return 0.0;
+    }
+
+    final double monthlyRate = annualInterestRatePercent / 12 / 100;
+    if (monthlyRate == 0) {
+      return principal / termMonths;
+    }
+
+    return principal *
+        monthlyRate /
+        (1 - pow(1 + monthlyRate, -termMonths));
+  }
+
   /// Generates an annuity schedule.
   static List<AnnuityPaymentItem> generateSchedule({
     required Money principal,
@@ -31,16 +51,11 @@ class AnnuityCalculator {
 
     final double monthlyRate = annualInterestRatePercent / 12 / 100;
     final double principalDouble = principal.toDouble();
-    double monthlyPaymentDouble;
-
-    // PMT Formula: P * r * (1+r)^n / ((1+r)^n - 1)
-    if (monthlyRate == 0) {
-      monthlyPaymentDouble = principalDouble / termMonths;
-    } else {
-      monthlyPaymentDouble = principalDouble *
-          monthlyRate /
-          (1 - pow(1 + monthlyRate, -termMonths));
-    }
+    final double monthlyPaymentDouble = calculateMonthlyPayment(
+      principal: principalDouble,
+      annualInterestRatePercent: annualInterestRatePercent,
+      termMonths: termMonths,
+    );
 
     // Round PMT to currency scale (e.g. pennies)
     final Money monthlyPayment = Money.fromDouble(

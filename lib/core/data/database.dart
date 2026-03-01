@@ -451,7 +451,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.connect(DatabaseConnection super.connection);
 
   @override
-  int get schemaVersion => 41;
+  int get schemaVersion => 43;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -536,6 +536,13 @@ class AppDatabase extends _$AppDatabase {
       );
       await m.createIndex(
         Index(
+          'credit_payment_groups_idempotency_key_unique',
+          'CREATE UNIQUE INDEX IF NOT EXISTS credit_payment_groups_idempotency_key_unique '
+              'ON credit_payment_groups(idempotency_key)',
+        ),
+      );
+      await m.createIndex(
+        Index(
           'transaction_tags_transaction_idx',
           'CREATE INDEX IF NOT EXISTS transaction_tags_transaction_idx '
               'ON transaction_tags(transaction_id)',
@@ -602,6 +609,13 @@ class AppDatabase extends _$AppDatabase {
           'credit_cards_account_id_idx',
           'CREATE INDEX IF NOT EXISTS credit_cards_account_id_idx '
               'ON credit_cards(account_id)',
+        ),
+      );
+      await m.createIndex(
+        Index(
+          'payment_schedules_credit_period_unique',
+          'CREATE UNIQUE INDEX IF NOT EXISTS payment_schedules_credit_period_unique '
+              'ON credit_payment_schedules(credit_id, period_key)',
         ),
       );
     },
@@ -1039,6 +1053,28 @@ LEFT JOIN accounts acc ON up.account_id = acc.id
           ),
         );
       }
+      if (from < 42) {
+        await m.createIndex(
+          Index(
+            'credit_payment_groups_idempotency_key_unique',
+            'CREATE UNIQUE INDEX IF NOT EXISTS credit_payment_groups_idempotency_key_unique '
+                'ON credit_payment_groups(idempotency_key)',
+          ),
+        );
+      }
+      if (from < 43) {
+        await _deduplicateCreditPaymentSchedulesByPeriod(m);
+        await m.database.customStatement(
+          'DROP INDEX IF EXISTS payment_schedules_credit_period_idx',
+        );
+        await m.createIndex(
+          Index(
+            'payment_schedules_credit_period_unique',
+            'CREATE UNIQUE INDEX IF NOT EXISTS payment_schedules_credit_period_unique '
+                'ON credit_payment_schedules(credit_id, period_key)',
+          ),
+        );
+      }
       if (from < 3) {
         await m.createTable(profiles);
       }
@@ -1415,6 +1451,54 @@ LEFT JOIN accounts acc ON up.account_id = acc.id
       variables: <Variable<String>>[Variable<String>(table)],
     ).getSingleOrNull();
     return row != null;
+  }
+
+  Future<void> _deduplicateCreditPaymentSchedulesByPeriod(Migrator m) async {
+    if (!await _tableExists('credit_payment_schedules')) {
+      return;
+    }
+    final bool hasGroupsTable = await _tableExists('credit_payment_groups');
+    final List<QueryRow> duplicates = await m.database.customSelect('''
+SELECT credit_id, period_key
+FROM credit_payment_schedules
+GROUP BY credit_id, period_key
+HAVING COUNT(*) > 1
+''').get();
+    for (final QueryRow duplicate in duplicates) {
+      final String creditId = duplicate.read<String>('credit_id');
+      final String periodKey = duplicate.read<String>('period_key');
+      final List<QueryRow> rows = await m.database
+          .customSelect(
+            '''
+SELECT id
+FROM credit_payment_schedules
+WHERE credit_id = ?1 AND period_key = ?2
+ORDER BY updated_at DESC, created_at DESC, id DESC
+''',
+            variables: <Variable<Object>>[
+              Variable<String>(creditId),
+              Variable<String>(periodKey),
+            ],
+          )
+          .get();
+      if (rows.length < 2) {
+        continue;
+      }
+      final String keepId = rows.first.read<String>('id');
+      for (final QueryRow row in rows.skip(1)) {
+        final String removeId = row.read<String>('id');
+        if (hasGroupsTable) {
+          await m.database.customStatement(
+            'UPDATE credit_payment_groups SET schedule_item_id = ?1 WHERE schedule_item_id = ?2',
+            <Object?>[keepId, removeId],
+          );
+        }
+        await m.database.customStatement(
+          'DELETE FROM credit_payment_schedules WHERE id = ?1',
+          <Object?>[removeId],
+        );
+      }
+    }
   }
 
   static Future<int> _resolveDefaultCurrencyScale(Migrator m) async {

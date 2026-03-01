@@ -40,6 +40,9 @@ class MakeCreditPaymentUseCase {
     String? idempotencyKey,
     String? periodKey, // To link with schedule
   }) async {
+    final String? normalizedIdempotencyKey = _normalizeId(idempotencyKey);
+    final String effectiveIdempotencyKey =
+        normalizedIdempotencyKey ?? 'credit-payment:${_uuid.v4()}';
     if (principalPaid.minor < BigInt.zero ||
         interestPaid.minor < BigInt.zero ||
         feesPaid.minor < BigInt.zero) {
@@ -48,8 +51,46 @@ class MakeCreditPaymentUseCase {
     if (totalOutflow.minor <= BigInt.zero) {
       throw ArgumentError('Сумма платежа должна быть больше нуля');
     }
+    _ensureSameMoneyContext(
+      reference: totalOutflow,
+      value: principalPaid,
+      fieldName: 'principalPaid',
+    );
+    _ensureSameMoneyContext(
+      reference: totalOutflow,
+      value: interestPaid,
+      fieldName: 'interestPaid',
+    );
+    _ensureSameMoneyContext(
+      reference: totalOutflow,
+      value: feesPaid,
+      fieldName: 'feesPaid',
+    );
+    final BigInt expectedOutflowMinor =
+        principalPaid.minor + interestPaid.minor + feesPaid.minor;
+    if (expectedOutflowMinor != totalOutflow.minor) {
+      throw ArgumentError(
+        'Сумма totalOutflow должна быть равна principal + interest + fees',
+      );
+    }
 
     await _transactionRepository.runInTransaction<void>(() async {
+      if (normalizedIdempotencyKey != null) {
+        final bool alreadyProcessed =
+            await _creditRepository.findPaymentGroupByIdempotencyKey(
+              creditId: creditId,
+              idempotencyKey: normalizedIdempotencyKey,
+            ) !=
+            null;
+        if (alreadyProcessed) {
+          return;
+        }
+      }
+      final bool sourceAccountExists =
+          await _accountRepository.findById(sourceAccountId) != null;
+      if (!sourceAccountExists) {
+        throw StateError('Счет списания не найден: $sourceAccountId');
+      }
       final List<CreditEntity> allCredits = await _creditRepository
           .getCredits();
       final CreditEntity targetCredit = allCredits.firstWhere(
@@ -70,8 +111,9 @@ class MakeCreditPaymentUseCase {
       final String groupId = _uuid.v4();
       final DateTime now = DateTime.now();
 
-      // 1. Update Schedule if needed
+      // 1. Resolve Schedule item if needed
       String? scheduleItemId;
+      CreditPaymentScheduleEntity? updatedScheduleItem;
       if (periodKey != null) {
         final List<CreditPaymentScheduleEntity> schedule =
             await _creditRepository.getSchedule(creditId);
@@ -103,7 +145,7 @@ class MakeCreditPaymentUseCase {
             updatedPrincipalPaid.minor >= item.principalAmount.minor &&
             updatedInterestPaid.minor >= item.interestAmount.minor;
 
-        final CreditPaymentScheduleEntity updatedItem = item.copyWith(
+        updatedScheduleItem = item.copyWith(
           principalPaid: updatedPrincipalPaid,
           interestPaid: updatedInterestPaid,
           status: isFullyPaid
@@ -111,8 +153,6 @@ class MakeCreditPaymentUseCase {
               : CreditPaymentStatus.partiallyPaid,
           paidAt: isFullyPaid ? paidAt : item.paidAt,
         );
-
-        await _creditRepository.updateScheduleItem(updatedItem);
       }
 
       // 2. Create Payment Group
@@ -127,12 +167,26 @@ class MakeCreditPaymentUseCase {
         interestPaid: interestPaid,
         feesPaid: feesPaid,
         note: note,
-        idempotencyKey: idempotencyKey,
+        idempotencyKey: effectiveIdempotencyKey,
       );
-      await _creditRepository.addPaymentGroup(group);
+      final bool groupInserted = await _creditRepository
+          .addPaymentGroupIfAbsent(group);
+      if (!groupInserted) {
+        return;
+      }
 
-      // 3. Transaction: Principal (Transfer)
+      // 3. Update Schedule
+      if (updatedScheduleItem != null) {
+        await _creditRepository.updateScheduleItem(updatedScheduleItem);
+      }
+
+      // 4. Transaction: Principal (Transfer)
       if (principalPaid.minor > BigInt.zero) {
+        if (principalTransferAccountId == null) {
+          throw StateError(
+            'Не найден счет кредита для перевода основного долга: creditId=$creditId',
+          );
+        }
         final String txId = _uuid.v4();
         final TransactionEntity principalTx = TransactionEntity(
           id: txId,
@@ -144,6 +198,7 @@ class MakeCreditPaymentUseCase {
           groupId: groupId,
           amountMinor: principalPaid.minor,
           amountScale: principalPaid.scale,
+          idempotencyKey: '$effectiveIdempotencyKey:principal',
           date: paidAt,
           type: 'transfer',
           note: note ?? 'Платёж по кредиту: основной долг',
@@ -153,7 +208,7 @@ class MakeCreditPaymentUseCase {
         await _transactionRepository.upsert(principalTx);
       }
 
-      // 4. Transaction: Interest (Expense)
+      // 5. Transaction: Interest (Expense)
       if (interestPaid.minor > BigInt.zero) {
         final String txId = _uuid.v4();
         final TransactionEntity interestTx = TransactionEntity(
@@ -163,6 +218,7 @@ class MakeCreditPaymentUseCase {
           groupId: groupId,
           amountMinor: interestPaid.minor,
           amountScale: interestPaid.scale,
+          idempotencyKey: '$effectiveIdempotencyKey:interest',
           date: paidAt,
           type: 'expense',
           note: note ?? 'Платёж по кредиту: проценты',
@@ -172,7 +228,7 @@ class MakeCreditPaymentUseCase {
         await _transactionRepository.upsert(interestTx);
       }
 
-      // 5. Transaction: Fees (Expense)
+      // 6. Transaction: Fees (Expense)
       if (feesPaid.minor > BigInt.zero) {
         final String txId = _uuid.v4();
         final TransactionEntity feesTx = TransactionEntity(
@@ -182,6 +238,7 @@ class MakeCreditPaymentUseCase {
           groupId: groupId,
           amountMinor: feesPaid.minor,
           amountScale: feesPaid.scale,
+          idempotencyKey: '$effectiveIdempotencyKey:fees',
           date: paidAt,
           type: 'expense',
           note: note ?? 'Платёж по кредиту: комиссии',
@@ -217,5 +274,18 @@ class MakeCreditPaymentUseCase {
       return null;
     }
     return trimmed;
+  }
+
+  void _ensureSameMoneyContext({
+    required Money reference,
+    required Money value,
+    required String fieldName,
+  }) {
+    if (value.currency != reference.currency ||
+        value.scale != reference.scale) {
+      throw ArgumentError(
+        '$fieldName должен совпадать по currency/scale с totalOutflow',
+      );
+    }
   }
 }

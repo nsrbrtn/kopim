@@ -242,9 +242,70 @@
   "@profileManageCategoriesCta": {
     "description": "Button label that opens the category management screen from the profile settings"
   },
+  "profileMenuCategoriesTagsCta": "Categories and tags",
+  "@profileMenuCategoriesTagsCta": {
+    "description": "Menu item label for categories and tags on the menu screen"
+  },
   "profileUpcomingPaymentsCta": "Recurring payments",
   "@profileUpcomingPaymentsCta": {
     "description": "Button label that opens the upcoming payments screen from the profile settings"
+  },
+  "profileAboutAppCta": "About app",
+  "@profileAboutAppCta": {
+    "description": "Button label that opens app information from the menu screen"
+  },
+  "profileTelegramGroupCta": "Telegram group",
+  "@profileTelegramGroupCta": {
+    "description": "Button label that opens the Telegram group from the menu screen"
+  },
+  "profileMadeInLabel": "Made by",
+  "@profileMadeInLabel": {
+    "description": "Prefix label before the Qmodo logo in the menu footer"
+  },
+  "profileTelegramOpenError": "Couldn't open Telegram link.",
+  "@profileTelegramOpenError": {
+    "description": "Error message shown when Telegram link cannot be opened"
+  },
+  "profileAboutAppLegalese": "Made by Qmodo",
+  "@profileAboutAppLegalese": {
+    "description": "Legal line in the About app dialog"
+  },
+  "profileAboutDescription": "Kopim is an app for simple and mindful personal finance tracking.\nWe help you see your money clearly and manage it calmly.",
+  "@profileAboutDescription": {
+    "description": "Application description on the About app screen"
+  },
+  "profileAboutEmailCta": "Write to us by email",
+  "@profileAboutEmailCta": {
+    "description": "Email contact button on the About app screen"
+  },
+  "profileAboutPrivacyPolicyCta": "Privacy policy",
+  "@profileAboutPrivacyPolicyCta": {
+    "description": "Privacy policy button on the About app screen"
+  },
+  "profileAboutTermsCta": "User agreement",
+  "@profileAboutTermsCta": {
+    "description": "User agreement button on the About app screen"
+  },
+  "profileAboutVersion": "App version {version}",
+  "@profileAboutVersion": {
+    "description": "App version label on the About app screen",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "profileAboutPlaceholderMessage": "Section coming soon.",
+  "@profileAboutPlaceholderMessage": {
+    "description": "Placeholder message for policy and agreement actions"
+  },
+  "profileAboutEmailOpenError": "Couldn't open your email app.",
+  "@profileAboutEmailOpenError": {
+    "description": "Error shown when mailto cannot be opened"
+  },
+  "profileWebsiteOpenError": "Couldn't open qmodo.ru.",
+  "@profileWebsiteOpenError": {
+    "description": "Error shown when website cannot be opened from the menu"
   },
   "profileExportDataCta": "Export data",
   "@profileExportDataCta": {
@@ -373,6 +434,10 @@
   "settingsHomeSectionTitle": "Home screen",
   "@settingsHomeSectionTitle": {
     "description": "Section header for home screen configuration"
+  },
+  "profileMenuHomeSettingsCta": "Home settings",
+  "@profileMenuHomeSettingsCta": {
+    "description": "Menu item label for home settings on the menu screen"
   },
   "settingsHomeGamificationTitle": "Gamification widget",
   "@settingsHomeGamificationTitle": {

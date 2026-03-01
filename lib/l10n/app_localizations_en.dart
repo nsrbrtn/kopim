@@ -265,7 +265,52 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileManageCategoriesCta => 'Manage categories and tags';
 
   @override
+  String get profileMenuCategoriesTagsCta => 'Categories and tags';
+
+  @override
   String get profileUpcomingPaymentsCta => 'Recurring payments';
+
+  @override
+  String get profileAboutAppCta => 'About app';
+
+  @override
+  String get profileTelegramGroupCta => 'Telegram group';
+
+  @override
+  String get profileMadeInLabel => 'Made by';
+
+  @override
+  String get profileTelegramOpenError => 'Couldn\'t open Telegram link.';
+
+  @override
+  String get profileAboutAppLegalese => 'Made by Qmodo';
+
+  @override
+  String get profileAboutDescription =>
+      'Kopim is an app for simple and mindful personal finance tracking.\nWe help you see your money clearly and manage it calmly.';
+
+  @override
+  String get profileAboutEmailCta => 'Write to us by email';
+
+  @override
+  String get profileAboutPrivacyPolicyCta => 'Privacy policy';
+
+  @override
+  String get profileAboutTermsCta => 'User agreement';
+
+  @override
+  String profileAboutVersion(String version) {
+    return 'App version $version';
+  }
+
+  @override
+  String get profileAboutPlaceholderMessage => 'Section coming soon.';
+
+  @override
+  String get profileAboutEmailOpenError => 'Couldn\'t open your email app.';
+
+  @override
+  String get profileWebsiteOpenError => 'Couldn\'t open qmodo.ru.';
 
   @override
   String get profileExportDataCta => 'Export data';
@@ -353,6 +398,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsHomeSectionTitle => 'Home screen';
+
+  @override
+  String get profileMenuHomeSettingsCta => 'Home settings';
 
   @override
   String get settingsHomeGamificationTitle => 'Gamification widget';

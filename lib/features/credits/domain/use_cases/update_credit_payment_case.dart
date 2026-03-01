@@ -11,12 +11,16 @@ class UpdateCreditPaymentUseCase {
     required Money totalOutflow,
     String? note,
   }) async {
-    // 1. Find the group
-    // Note: Need a way to find group by ID in repository.
-    // Adding getPaymentGroupByGroupId to CreditRepository might be needed if not present.
-    // For now, I'll assume it exists or use getPaymentGroups and filter.
-
-    // I'll update CreditPaymentUseCase to use filtered groups for now.
-    // In a real app, adding findGroupById to DAO/Repo is better.
+    // TODO(credits-audit): Либо реализовать, либо удалить мертвый код.
+    // TODO(credits-audit): 1) Найти payment group по groupId.
+    // TODO(credits-audit): 2) Провалидировать суммы:
+    // - totalOutflow = principal + interest + fees
+    // - суммы неотрицательные
+    // - единый currency/scale
+    // TODO(credits-audit): 3) В одной транзакции обновить:
+    // - payment group
+    // - связанные transaction rows (principal/interest/fees)
+    // - schedule item (если есть связь с периодом).
+    // TODO(credits-audit): 4) Добавить unit/integration тесты сценариев редактирования.
   }
 }

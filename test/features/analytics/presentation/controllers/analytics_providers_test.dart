@@ -415,6 +415,11 @@ class _StaticCreditRepository implements CreditRepository {
   Future<void> addPaymentGroup(CreditPaymentGroupEntity group) async {}
 
   @override
+  Future<bool> addPaymentGroupIfAbsent(CreditPaymentGroupEntity group) async {
+    return true;
+  }
+
+  @override
   Future<void> addSchedule(List<CreditPaymentScheduleEntity> schedule) async {}
 
   @override
@@ -448,6 +453,14 @@ class _StaticCreditRepository implements CreditRepository {
     String creditId,
   ) async {
     return const <CreditPaymentGroupEntity>[];
+  }
+
+  @override
+  Future<CreditPaymentGroupEntity?> findPaymentGroupByIdempotencyKey({
+    required String creditId,
+    required String idempotencyKey,
+  }) async {
+    return null;
   }
 
   @override

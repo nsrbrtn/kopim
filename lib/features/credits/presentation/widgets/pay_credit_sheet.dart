@@ -250,9 +250,21 @@ class _PayCreditSheetState extends ConsumerState<PayCreditSheet> {
       final MakeCreditPaymentUseCase makePayment = ref.read(
         makeCreditPaymentUseCaseProvider,
       );
+      final AccountEntity? creditAccount = await ref
+          .read(accountRepositoryProvider)
+          .findById(widget.credit.accountId);
+      if (creditAccount == null) {
+        throw StateError('Кредитный счет не найден');
+      }
+      if (creditAccount.currency != _sourceAccount!.currency) {
+        throw StateError(
+          'Валюта счета списания должна совпадать с валютой кредитного счета',
+        );
+      }
 
-      final String currency = _sourceAccount!.currency;
-      final int scale = widget.credit.totalAmountScale ?? 2;
+      final String currency = creditAccount.currency;
+      final int scale =
+          widget.credit.totalAmountScale ?? creditAccount.currencyScale ?? 2;
 
       final Money principal = _principalController.text.isEmpty
           ? Money.fromMinor(BigInt.zero, currency: currency, scale: scale)

@@ -7,6 +7,7 @@ import 'package:kopim/core/money/currency_scale.dart';
 import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/core/utils/context_extensions.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
+import 'package:kopim/features/accounts/domain/repositories/account_repository.dart';
 import 'package:kopim/features/credits/domain/entities/credit_entity.dart';
 import 'package:kopim/core/widgets/kopim_dropdown_field.dart';
 import 'package:kopim/core/widgets/kopim_text_field.dart';
@@ -97,8 +98,10 @@ class _AddEditCreditScreenState extends ConsumerState<AddEditCreditScreen> {
     super.dispose();
   }
 
-  bool _validate() {
-    final int scale = resolveCurrencyScale('RUB');
+  Future<bool> _validate() async {
+    final ({String currency, int scale}) moneyContext =
+        await _resolveMoneyContext();
+    final int scale = moneyContext.scale;
     setState(() {
       _nameError = _nameController.text.trim().isEmpty;
       final MoneyAmount? amount = tryParseMoneyAmount(
@@ -128,6 +131,58 @@ class _AddEditCreditScreenState extends ConsumerState<AddEditCreditScreen> {
         _issueAccountError);
   }
 
+  Future<({String currency, int scale})> _resolveMoneyContext() async {
+    final AccountRepository accountRepository = ref.read(
+      accountRepositoryProvider,
+    );
+    if (widget.credit != null) {
+      final AccountEntity? creditAccount = await accountRepository.findById(
+        widget.credit!.accountId,
+      );
+      if (creditAccount != null) {
+        return (
+          currency: creditAccount.currency,
+          scale:
+              creditAccount.currencyScale ??
+              resolveCurrencyScale(creditAccount.currency),
+        );
+      }
+    }
+    if (!_isAlreadyIssued && _selectedIssueAccountId != null) {
+      final AccountEntity? issueAccount = await accountRepository.findById(
+        _selectedIssueAccountId!,
+      );
+      if (issueAccount != null) {
+        return (
+          currency: issueAccount.currency,
+          scale:
+              issueAccount.currencyScale ??
+              resolveCurrencyScale(issueAccount.currency),
+        );
+      }
+    }
+    final List<AccountEntity> accounts = await accountRepository.loadAccounts();
+    final List<AccountEntity> active = accounts
+        .where((AccountEntity account) => !account.isDeleted)
+        .toList(growable: false);
+    if (active.isNotEmpty) {
+      final AccountEntity selected = active.firstWhere(
+        (AccountEntity account) => account.isPrimary,
+        orElse: () => active.first,
+      );
+      return (
+        currency: selected.currency,
+        scale:
+            selected.currencyScale ?? resolveCurrencyScale(selected.currency),
+      );
+    }
+    const String fallbackCurrency = 'RUB';
+    return (
+      currency: fallbackCurrency,
+      scale: resolveCurrencyScale(fallbackCurrency),
+    );
+  }
+
   DateTime _resolveFirstPaymentDate(int paymentDay) {
     final DateTime now = DateTime.now();
     final DateTime nextMonth = DateTime(now.year, now.month + 1, 1);
@@ -140,9 +195,11 @@ class _AddEditCreditScreenState extends ConsumerState<AddEditCreditScreen> {
   }
 
   Future<void> _save() async {
-    if (_validate()) {
+    if (await _validate()) {
       final String name = _nameController.text.trim();
-      final int scale = resolveCurrencyScale('RUB');
+      final ({String currency, int scale}) moneyContext =
+          await _resolveMoneyContext();
+      final int scale = moneyContext.scale;
       final MoneyAmount amount = tryParseMoneyAmount(
         input: _amountController.text,
         scale: scale,
@@ -157,7 +214,7 @@ class _AddEditCreditScreenState extends ConsumerState<AddEditCreditScreen> {
             .call(
               name: name,
               totalAmount: amount,
-              currency: 'RUB', // TODO: Брать из настроек
+              currency: moneyContext.currency,
               interestRate: rate,
               termMonths: term,
               startDate: DateTime.now(),
@@ -195,10 +252,12 @@ class _AddEditCreditScreenState extends ConsumerState<AddEditCreditScreen> {
   }
 
   Future<void> _saveAndConfigurePayment() async {
-    if (_validate()) {
+    if (await _validate()) {
       final String name = _nameController.text.trim();
       if (widget.credit == null) {
-        final int scale = resolveCurrencyScale('RUB');
+        final ({String currency, int scale}) moneyContext =
+            await _resolveMoneyContext();
+        final int scale = moneyContext.scale;
         final CreditEntity credit = await ref
             .read(addCreditUseCaseProvider)
             .call(
@@ -208,7 +267,7 @@ class _AddEditCreditScreenState extends ConsumerState<AddEditCreditScreen> {
                 scale: scale,
                 useAbs: true,
               )!,
-              currency: 'RUB', // TODO: Брать из настроек
+              currency: moneyContext.currency,
               interestRate: double.parse(_rateController.text),
               termMonths: int.parse(_termController.text),
               startDate: DateTime.now(),

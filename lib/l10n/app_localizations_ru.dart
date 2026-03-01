@@ -267,7 +267,53 @@ class AppLocalizationsRu extends AppLocalizations {
   String get profileManageCategoriesCta => 'Управлять категориями и тэгами';
 
   @override
+  String get profileMenuCategoriesTagsCta => 'Категории и тэги';
+
+  @override
   String get profileUpcomingPaymentsCta => 'Повторяющиеся платежи';
+
+  @override
+  String get profileAboutAppCta => 'О приложении';
+
+  @override
+  String get profileTelegramGroupCta => 'Группа в Telegram';
+
+  @override
+  String get profileMadeInLabel => 'Сделано в';
+
+  @override
+  String get profileTelegramOpenError => 'Не удалось открыть ссылку Telegram.';
+
+  @override
+  String get profileAboutAppLegalese => 'Сделано в Qmodo';
+
+  @override
+  String get profileAboutDescription =>
+      'Копим — приложение для простого и осознанного учёта личных финансов.\nМы помогаем вам видеть свои деньги ясно и управлять ими спокойно.';
+
+  @override
+  String get profileAboutEmailCta => 'Написать нам на почту';
+
+  @override
+  String get profileAboutPrivacyPolicyCta => 'Политика конфиденциальности';
+
+  @override
+  String get profileAboutTermsCta => 'Пользовательское соглашение';
+
+  @override
+  String profileAboutVersion(String version) {
+    return 'Версия приложения $version';
+  }
+
+  @override
+  String get profileAboutPlaceholderMessage => 'Раздел скоро появится.';
+
+  @override
+  String get profileAboutEmailOpenError =>
+      'Не удалось открыть почтовый клиент.';
+
+  @override
+  String get profileWebsiteOpenError => 'Не удалось открыть сайт qmodo.ru.';
 
   @override
   String get profileExportDataCta => 'Экспортировать данные';
@@ -355,6 +401,9 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get settingsHomeSectionTitle => 'Домашний экран';
+
+  @override
+  String get profileMenuHomeSettingsCta => 'Настройки главной';
 
   @override
   String get settingsHomeGamificationTitle => 'Виджет геймификации';

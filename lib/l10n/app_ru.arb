@@ -242,9 +242,70 @@
   "@profileManageCategoriesCta": {
     "description": "Подпись кнопки, открывающей экран управления категориями из настроек профиля"
   },
+  "profileMenuCategoriesTagsCta": "Категории и тэги",
+  "@profileMenuCategoriesTagsCta": {
+    "description": "Подпись пункта категорий и тэгов на экране меню"
+  },
   "profileUpcomingPaymentsCta": "Повторяющиеся платежи",
   "@profileUpcomingPaymentsCta": {
     "description": "Подпись кнопки, открывающей экран предстоящих платежей из настроек профиля"
+  },
+  "profileAboutAppCta": "О приложении",
+  "@profileAboutAppCta": {
+    "description": "Подпись кнопки, открывающей информацию о приложении в меню"
+  },
+  "profileTelegramGroupCta": "Группа в Telegram",
+  "@profileTelegramGroupCta": {
+    "description": "Подпись кнопки перехода в группу Telegram на экране меню"
+  },
+  "profileMadeInLabel": "Сделано в",
+  "@profileMadeInLabel": {
+    "description": "Подпись перед логотипом Qmodo внизу экрана меню"
+  },
+  "profileTelegramOpenError": "Не удалось открыть ссылку Telegram.",
+  "@profileTelegramOpenError": {
+    "description": "Ошибка при невозможности открыть ссылку Telegram"
+  },
+  "profileAboutAppLegalese": "Сделано в Qmodo",
+  "@profileAboutAppLegalese": {
+    "description": "Юридическая подпись в диалоге 'О приложении'"
+  },
+  "profileAboutDescription": "Копим — приложение для простого и осознанного учёта личных финансов.\nМы помогаем вам видеть свои деньги ясно и управлять ими спокойно.",
+  "@profileAboutDescription": {
+    "description": "Описание приложения на экране 'О приложении'"
+  },
+  "profileAboutEmailCta": "Написать нам на почту",
+  "@profileAboutEmailCta": {
+    "description": "Кнопка связи по почте на экране 'О приложении'"
+  },
+  "profileAboutPrivacyPolicyCta": "Политика конфиденциальности",
+  "@profileAboutPrivacyPolicyCta": {
+    "description": "Кнопка политики конфиденциальности на экране 'О приложении'"
+  },
+  "profileAboutTermsCta": "Пользовательское соглашение",
+  "@profileAboutTermsCta": {
+    "description": "Кнопка пользовательского соглашения на экране 'О приложении'"
+  },
+  "profileAboutVersion": "Версия приложения {version}",
+  "@profileAboutVersion": {
+    "description": "Подпись версии приложения на экране 'О приложении'",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "profileAboutPlaceholderMessage": "Раздел скоро появится.",
+  "@profileAboutPlaceholderMessage": {
+    "description": "Сообщение-заглушка для политики и соглашения"
+  },
+  "profileAboutEmailOpenError": "Не удалось открыть почтовый клиент.",
+  "@profileAboutEmailOpenError": {
+    "description": "Ошибка, если не удалось открыть mailto-ссылку"
+  },
+  "profileWebsiteOpenError": "Не удалось открыть сайт qmodo.ru.",
+  "@profileWebsiteOpenError": {
+    "description": "Ошибка, если не удалось открыть сайт Qmodo из меню"
   },
   "profileExportDataCta": "Экспортировать данные",
   "@profileExportDataCta": {
@@ -373,6 +434,10 @@
   "settingsHomeSectionTitle": "Домашний экран",
   "@settingsHomeSectionTitle": {
     "description": "Заголовок секции настроек домашнего экрана"
+  },
+  "profileMenuHomeSettingsCta": "Настройки главной",
+  "@profileMenuHomeSettingsCta": {
+    "description": "Подпись пункта настроек главной на экране меню"
   },
   "settingsHomeGamificationTitle": "Виджет геймификации",
   "@settingsHomeGamificationTitle": {

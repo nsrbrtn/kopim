@@ -7,6 +7,7 @@ import 'package:kopim/core/theme/domain/app_theme_mode.dart';
 import 'package:kopim/features/categories/presentation/screens/manage_categories_screen.dart';
 import 'package:kopim/features/home/domain/entities/home_dashboard_preferences.dart';
 import 'package:kopim/features/home/presentation/controllers/home_dashboard_preferences_controller.dart';
+import 'package:kopim/features/profile/presentation/screens/about_app_screen.dart';
 import 'package:kopim/features/profile/presentation/screens/general_settings_screen.dart';
 import 'package:kopim/features/profile/presentation/screens/menu_screen.dart';
 import 'package:kopim/features/settings/domain/repositories/export_file_saver.dart';
@@ -65,8 +66,18 @@ void main() {
     final BuildContext context = tester.element(find.byType(MenuScreen));
     final AppLocalizations strings = AppLocalizations.of(context)!;
 
-    expect(find.text(strings.profileManageCategoriesCta), findsOneWidget);
+    expect(find.text(strings.profileMenuCategoriesTagsCta), findsOneWidget);
+    expect(find.text(strings.profileMenuHomeSettingsCta), findsOneWidget);
     expect(find.text(strings.profileUpcomingPaymentsCta), findsOneWidget);
+    expect(
+      find.text(strings.profileAboutAppCta, skipOffstage: false),
+      findsOneWidget,
+    );
+    expect(
+      find.text(strings.profileTelegramGroupCta, skipOffstage: false),
+      findsOneWidget,
+    );
+    expect(find.text(strings.profileMadeInLabel), findsOneWidget);
   });
 
   testWidgets('navigates to management screens', (WidgetTester tester) async {
@@ -100,7 +111,7 @@ void main() {
     final BuildContext context = tester.element(find.byType(MenuScreen));
     final AppLocalizations strings = AppLocalizations.of(context)!;
 
-    await tester.tap(find.text(strings.profileManageCategoriesCta));
+    await tester.tap(find.text(strings.profileMenuCategoriesTagsCta));
     await tester.pumpAndSettle();
 
     expect(
@@ -145,6 +156,36 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(GeneralSettingsScreen), findsOneWidget);
+  });
+
+  testWidgets('opens about screen from menu item', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: overrides,
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: const MenuScreen(),
+          routes: <String, WidgetBuilder>{
+            AboutAppScreen.routeName: (_) => const AboutAppScreen(),
+          },
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    final BuildContext context = tester.element(find.byType(MenuScreen));
+    final AppLocalizations strings = AppLocalizations.of(context)!;
+
+    final Finder menuList = find.byType(ListView).first;
+    await tester.fling(menuList, const Offset(0, -700), 1000);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(strings.profileAboutAppCta));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(AboutAppScreen), findsOneWidget);
+    expect(find.text(strings.profileAboutEmailCta), findsOneWidget);
   });
 }
 

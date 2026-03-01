@@ -560,11 +560,95 @@ abstract class AppLocalizations {
   /// **'Manage categories and tags'**
   String get profileManageCategoriesCta;
 
+  /// Menu item label for categories and tags on the menu screen
+  ///
+  /// In en, this message translates to:
+  /// **'Categories and tags'**
+  String get profileMenuCategoriesTagsCta;
+
   /// Button label that opens the upcoming payments screen from the profile settings
   ///
   /// In en, this message translates to:
   /// **'Recurring payments'**
   String get profileUpcomingPaymentsCta;
+
+  /// Button label that opens app information from the menu screen
+  ///
+  /// In en, this message translates to:
+  /// **'About app'**
+  String get profileAboutAppCta;
+
+  /// Button label that opens the Telegram group from the menu screen
+  ///
+  /// In en, this message translates to:
+  /// **'Telegram group'**
+  String get profileTelegramGroupCta;
+
+  /// Prefix label before the Qmodo logo in the menu footer
+  ///
+  /// In en, this message translates to:
+  /// **'Made by'**
+  String get profileMadeInLabel;
+
+  /// Error message shown when Telegram link cannot be opened
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t open Telegram link.'**
+  String get profileTelegramOpenError;
+
+  /// Legal line in the About app dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Made by Qmodo'**
+  String get profileAboutAppLegalese;
+
+  /// Application description on the About app screen
+  ///
+  /// In en, this message translates to:
+  /// **'Kopim is an app for simple and mindful personal finance tracking.\nWe help you see your money clearly and manage it calmly.'**
+  String get profileAboutDescription;
+
+  /// Email contact button on the About app screen
+  ///
+  /// In en, this message translates to:
+  /// **'Write to us by email'**
+  String get profileAboutEmailCta;
+
+  /// Privacy policy button on the About app screen
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy policy'**
+  String get profileAboutPrivacyPolicyCta;
+
+  /// User agreement button on the About app screen
+  ///
+  /// In en, this message translates to:
+  /// **'User agreement'**
+  String get profileAboutTermsCta;
+
+  /// App version label on the About app screen
+  ///
+  /// In en, this message translates to:
+  /// **'App version {version}'**
+  String profileAboutVersion(String version);
+
+  /// Placeholder message for policy and agreement actions
+  ///
+  /// In en, this message translates to:
+  /// **'Section coming soon.'**
+  String get profileAboutPlaceholderMessage;
+
+  /// Error shown when mailto cannot be opened
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t open your email app.'**
+  String get profileAboutEmailOpenError;
+
+  /// Error shown when website cannot be opened from the menu
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t open qmodo.ru.'**
+  String get profileWebsiteOpenError;
 
   /// Button that starts the user data export flow
   ///
@@ -707,6 +791,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Home screen'**
   String get settingsHomeSectionTitle;
+
+  /// Menu item label for home settings on the menu screen
+  ///
+  /// In en, this message translates to:
+  /// **'Home settings'**
+  String get profileMenuHomeSettingsCta;
 
   /// Switch label for enabling the gamification widget
   ///

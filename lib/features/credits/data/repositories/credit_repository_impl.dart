@@ -7,6 +7,7 @@ import 'package:kopim/features/credits/domain/entities/credit_entity.dart';
 import 'package:kopim/features/credits/domain/entities/credit_payment_group.dart';
 import 'package:kopim/features/credits/domain/entities/credit_payment_schedule.dart';
 import 'package:kopim/features/credits/domain/repositories/credit_repository.dart';
+import 'package:kopim/features/credits/domain/validators/credit_payment_schedule_validator.dart';
 
 class CreditRepositoryImpl implements CreditRepository {
   CreditRepositoryImpl({
@@ -14,15 +15,19 @@ class CreditRepositoryImpl implements CreditRepository {
     required CreditDao creditDao,
     required CreditPaymentDao creditPaymentDao,
     required OutboxDao outboxDao,
+    CreditPaymentScheduleValidator? scheduleValidator,
   }) : _database = database,
        _creditDao = creditDao,
        _creditPaymentDao = creditPaymentDao,
-       _outboxDao = outboxDao;
+       _outboxDao = outboxDao,
+       _scheduleValidator =
+           scheduleValidator ?? const CreditPaymentScheduleValidator();
 
   final db.AppDatabase _database;
   final CreditDao _creditDao;
   final CreditPaymentDao _creditPaymentDao;
   final OutboxDao _outboxDao;
+  final CreditPaymentScheduleValidator _scheduleValidator;
 
   static const String _entityType = 'credit';
 
@@ -124,6 +129,9 @@ class CreditRepositoryImpl implements CreditRepository {
 
   @override
   Future<void> addSchedule(List<CreditPaymentScheduleEntity> schedule) async {
+    for (final CreditPaymentScheduleEntity item in schedule) {
+      _scheduleValidator.validate(item);
+    }
     await _creditPaymentDao.insertSchedule(schedule);
   }
 
@@ -139,6 +147,7 @@ class CreditRepositoryImpl implements CreditRepository {
 
   @override
   Future<void> updateScheduleItem(CreditPaymentScheduleEntity item) async {
+    _scheduleValidator.validate(item);
     await _creditPaymentDao.updateScheduleItem(item);
   }
 
@@ -148,7 +157,23 @@ class CreditRepositoryImpl implements CreditRepository {
   }
 
   @override
+  Future<bool> addPaymentGroupIfAbsent(CreditPaymentGroupEntity group) {
+    return _creditPaymentDao.insertPaymentGroupIfAbsent(group);
+  }
+
+  @override
   Future<List<CreditPaymentGroupEntity>> getPaymentGroups(String creditId) {
     return _creditPaymentDao.getPaymentGroups(creditId);
+  }
+
+  @override
+  Future<CreditPaymentGroupEntity?> findPaymentGroupByIdempotencyKey({
+    required String creditId,
+    required String idempotencyKey,
+  }) {
+    return _creditPaymentDao.findPaymentGroupByIdempotencyKey(
+      creditId: creditId,
+      idempotencyKey: idempotencyKey,
+    );
   }
 }

@@ -20,6 +20,7 @@ class CreditPaymentDao {
   }
 
   Future<List<CreditPaymentScheduleEntity>> getSchedule(String creditId) async {
+    final String currency = await _resolveCreditCurrency(creditId);
     final List<db.CreditPaymentScheduleRow> rows =
         await (_db.select(_db.creditPaymentSchedules)..where(
               (db.CreditPaymentSchedules tbl) => tbl.creditId.equals(creditId),
@@ -31,7 +32,12 @@ class CreditPaymentDao {
           a.dueDate.compareTo(b.dueDate),
     );
 
-    return rows.map(_mapRowToScheduleEntity).toList();
+    return rows
+        .map(
+          (db.CreditPaymentScheduleRow row) =>
+              _mapRowToScheduleEntity(row, currency: currency),
+        )
+        .toList();
   }
 
   Stream<List<CreditPaymentScheduleEntity>> watchSchedule(String creditId) {
@@ -39,13 +45,19 @@ class CreditPaymentDao {
           (db.CreditPaymentSchedules tbl) => tbl.creditId.equals(creditId),
         ))
         .watch()
-        .map((List<db.CreditPaymentScheduleRow> rows) {
+        .asyncMap((List<db.CreditPaymentScheduleRow> rows) async {
+          final String currency = await _resolveCreditCurrency(creditId);
           final List<db.CreditPaymentScheduleRow> items = rows.toList()
             ..sort(
               (db.CreditPaymentScheduleRow a, db.CreditPaymentScheduleRow b) =>
                   a.dueDate.compareTo(b.dueDate),
             );
-          return items.map(_mapRowToScheduleEntity).toList();
+          return items
+              .map(
+                (db.CreditPaymentScheduleRow row) =>
+                    _mapRowToScheduleEntity(row, currency: currency),
+              )
+              .toList();
         });
   }
 
@@ -59,9 +71,19 @@ class CreditPaymentDao {
     await _db.into(_db.creditPaymentGroups).insert(_mapGroupToCompanion(group));
   }
 
+  Future<bool> insertPaymentGroupIfAbsent(
+    CreditPaymentGroupEntity group,
+  ) async {
+    final int insertedRowId = await _db
+        .into(_db.creditPaymentGroups)
+        .insert(_mapGroupToCompanion(group), mode: InsertMode.insertOrIgnore);
+    return insertedRowId > 0;
+  }
+
   Future<List<CreditPaymentGroupEntity>> getPaymentGroups(
     String creditId,
   ) async {
+    final String currency = await _resolveCreditCurrency(creditId);
     final List<db.CreditPaymentGroupRow> rows =
         await (_db.select(_db.creditPaymentGroups)..where(
               (db.CreditPaymentGroups tbl) => tbl.creditId.equals(creditId),
@@ -71,7 +93,30 @@ class CreditPaymentDao {
       (db.CreditPaymentGroupRow a, db.CreditPaymentGroupRow b) =>
           b.paidAt.compareTo(a.paidAt),
     ); // Descending
-    return rows.map(_mapRowToGroupEntity).toList();
+    return rows
+        .map(
+          (db.CreditPaymentGroupRow row) =>
+              _mapRowToGroupEntity(row, currency: currency),
+        )
+        .toList();
+  }
+
+  Future<CreditPaymentGroupEntity?> findPaymentGroupByIdempotencyKey({
+    required String creditId,
+    required String idempotencyKey,
+  }) async {
+    final String currency = await _resolveCreditCurrency(creditId);
+    final db.CreditPaymentGroupRow? row =
+        await (_db.select(_db.creditPaymentGroups)..where(
+              (db.CreditPaymentGroups tbl) =>
+                  tbl.creditId.equals(creditId) &
+                  tbl.idempotencyKey.equals(idempotencyKey),
+            ))
+            .getSingleOrNull();
+    if (row == null) {
+      return null;
+    }
+    return _mapRowToGroupEntity(row, currency: currency);
   }
 
   Future<void> deletePaymentArtifactsByCreditId(String creditId) async {
@@ -108,16 +153,10 @@ class CreditPaymentDao {
   }
 
   CreditPaymentScheduleEntity _mapRowToScheduleEntity(
-    db.CreditPaymentScheduleRow row,
-  ) {
+    db.CreditPaymentScheduleRow row, {
+    required String currency,
+  }) {
     final int scale = row.amountScale;
-    const String currency = 'XXX'; // Or fetch credit currency?
-    // Schedule assumes same currency as credit.
-    // Money object usually needs currency.
-    // For now use 'XXX' or we need to join with Credits table to get currency?
-    // Or just store currency in Schedule?
-    // Plan V3 says "Currency Scale" stored.
-    // I'll stick to 'XXX' and caller resolves currency or reuse scale.
 
     return CreditPaymentScheduleEntity(
       id: row.id,
@@ -174,9 +213,11 @@ class CreditPaymentDao {
     );
   }
 
-  CreditPaymentGroupEntity _mapRowToGroupEntity(db.CreditPaymentGroupRow row) {
+  CreditPaymentGroupEntity _mapRowToGroupEntity(
+    db.CreditPaymentGroupRow row, {
+    required String currency,
+  }) {
     final int scale = row.totalOutflowScale;
-    const String currency = 'XXX';
 
     return CreditPaymentGroupEntity(
       id: row.id,
@@ -207,5 +248,21 @@ class CreditPaymentDao {
       note: row.note,
       idempotencyKey: row.idempotencyKey,
     );
+  }
+
+  Future<String> _resolveCreditCurrency(String creditId) async {
+    final QueryRow? row = await _db
+        .customSelect(
+          '''
+SELECT a.currency AS currency
+FROM credits c
+LEFT JOIN accounts a ON a.id = c.account_id
+WHERE c.id = ?
+LIMIT 1
+''',
+          variables: <Variable<Object>>[Variable<String>(creditId)],
+        )
+        .getSingleOrNull();
+    return row?.read<String?>('currency') ?? 'XXX';
   }
 }

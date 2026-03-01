@@ -9,6 +9,7 @@ import 'package:kopim/features/profile/presentation/controllers/avatar_controlle
 import 'package:kopim/features/categories/presentation/screens/manage_categories_screen.dart';
 import 'package:kopim/features/upcoming_payments/presentation/screens/upcoming_payments_screen.dart';
 import 'package:kopim/features/profile/presentation/screens/menu_screen.dart';
+import 'package:kopim/features/profile/presentation/screens/about_app_screen.dart';
 import 'package:kopim/features/profile/presentation/widgets/profile_management_body.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
@@ -87,6 +88,11 @@ class _ProfileTabNavigatorState extends State<_ProfileTabNavigator> {
           case UpcomingPaymentsScreen.routeName:
             return MaterialPageRoute<void>(
               builder: (_) => const UpcomingPaymentsScreen(),
+              settings: settings,
+            );
+          case AboutAppScreen.routeName:
+            return MaterialPageRoute<void>(
+              builder: (_) => const AboutAppScreen(),
               settings: settings,
             );
           default:

@@ -1,4 +1,4 @@
-import 'dart:math' as math;
+import 'package:kopim/core/utils/annuity_calculator.dart';
 
 /// Calculates the monthly annuity payment.
 ///
@@ -12,19 +12,9 @@ double calculateAnnuityMonthlyPayment({
   required double annualInterestRate,
   required int termMonths,
 }) {
-  if (termMonths <= 0) return 0.0;
-  if (principal <= 0) return 0.0;
-  
-  if (annualInterestRate <= 0) {
-    return principal / termMonths;
-  }
-
-  final double monthlyRate = annualInterestRate / 12 / 100;
-  
-  // Formula: P * (i * (1+i)^n) / ((1+i)^n - 1)
-  final double ratePower = math.pow(1 + monthlyRate, termMonths).toDouble();
-  
-  final double payment = principal * (monthlyRate * ratePower) / (ratePower - 1);
-  
-  return payment;
+  return AnnuityCalculator.calculateMonthlyPayment(
+    principal: principal,
+    annualInterestRatePercent: annualInterestRate,
+    termMonths: termMonths,
+  );
 }

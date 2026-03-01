@@ -617,6 +617,11 @@ class _DummyCreditRepository implements CreditRepository {
   }
 
   @override
+  Future<bool> addPaymentGroupIfAbsent(CreditPaymentGroupEntity group) {
+    throw UnimplementedError();
+  }
+
+  @override
   Future<void> addSchedule(List<CreditPaymentScheduleEntity> schedule) {
     throw UnimplementedError();
   }
@@ -643,6 +648,14 @@ class _DummyCreditRepository implements CreditRepository {
 
   @override
   Future<List<CreditPaymentGroupEntity>> getPaymentGroups(String creditId) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<CreditPaymentGroupEntity?> findPaymentGroupByIdempotencyKey({
+    required String creditId,
+    required String idempotencyKey,
+  }) {
     throw UnimplementedError();
   }
 

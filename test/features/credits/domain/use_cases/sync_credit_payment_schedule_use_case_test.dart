@@ -1,5 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kopim/features/credits/domain/entities/credit_entity.dart';
+import 'package:kopim/features/credits/domain/entities/credit_payment_group.dart';
+import 'package:kopim/features/credits/domain/entities/credit_payment_schedule.dart';
 import 'package:kopim/features/credits/domain/repositories/credit_repository.dart';
 import 'package:kopim/features/credits/domain/use_cases/sync_credit_payment_schedule_use_case.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
@@ -375,6 +377,49 @@ class _InMemoryCreditRepository implements CreditRepository {
 
   @override
   Future<void> deleteCredit(String id) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> addSchedule(List<CreditPaymentScheduleEntity> schedule) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<CreditPaymentScheduleEntity>> getSchedule(String creditId) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Stream<List<CreditPaymentScheduleEntity>> watchSchedule(String creditId) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> updateScheduleItem(CreditPaymentScheduleEntity item) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> addPaymentGroup(CreditPaymentGroupEntity group) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<bool> addPaymentGroupIfAbsent(CreditPaymentGroupEntity group) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<CreditPaymentGroupEntity>> getPaymentGroups(String creditId) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<CreditPaymentGroupEntity?> findPaymentGroupByIdempotencyKey({
+    required String creditId,
+    required String idempotencyKey,
+  }) {
     throw UnimplementedError();
   }
 }
