@@ -20,6 +20,7 @@ class AuthErrorMapper {
       case 'too-many-requests':
         return strings.authErrorTooManyRequests;
       case 'invalid-credential':
+      case 'requires-recent-login':
         return strings.authErrorInvalidCredentials;
       case 'network-request-failed':
       case 'network_error':

@@ -17,6 +17,62 @@
     "description": "Подсказка над кнопкой регистрации для анонимных пользователей"
   },
   "profileSectionAccount": "Учетная запись",
+  "profileCredentialsSectionTitle": "Логин и пароль",
+  "@profileCredentialsSectionTitle": {
+    "description": "Заголовок секции логина и пароля в настройках профиля"
+  },
+  "profileCredentialsAnonymousHint": "Для изменения логина и пароля войдите в аккаунт.",
+  "@profileCredentialsAnonymousHint": {
+    "description": "Подсказка для анонимного пользователя в секции логина и пароля"
+  },
+  "profileCredentialsChangeLoginCta": "Изменить логин",
+  "@profileCredentialsChangeLoginCta": {
+    "description": "Кнопка изменения логина в настройках профиля"
+  },
+  "profileCredentialsChangePasswordCta": "Изменить пароль",
+  "@profileCredentialsChangePasswordCta": {
+    "description": "Кнопка изменения пароля в настройках профиля"
+  },
+  "profileCredentialsChangeLoginTitle": "Изменение логина",
+  "@profileCredentialsChangeLoginTitle": {
+    "description": "Заголовок диалога изменения логина"
+  },
+  "profileCredentialsChangePasswordTitle": "Изменение пароля",
+  "@profileCredentialsChangePasswordTitle": {
+    "description": "Заголовок диалога изменения пароля"
+  },
+  "profileCredentialsNewLoginLabel": "Новый логин (email)",
+  "@profileCredentialsNewLoginLabel": {
+    "description": "Подпись поля нового логина"
+  },
+  "profileCredentialsCurrentPasswordLabel": "Текущий пароль",
+  "@profileCredentialsCurrentPasswordLabel": {
+    "description": "Подпись поля текущего пароля"
+  },
+  "profileCredentialsNewPasswordLabel": "Новый пароль",
+  "@profileCredentialsNewPasswordLabel": {
+    "description": "Подпись поля нового пароля"
+  },
+  "profileCredentialsConfirmPasswordLabel": "Подтвердите новый пароль",
+  "@profileCredentialsConfirmPasswordLabel": {
+    "description": "Подпись поля подтверждения нового пароля"
+  },
+  "profileCredentialsValidationRequired": "Заполните это поле",
+  "@profileCredentialsValidationRequired": {
+    "description": "Ошибка валидации обязательного поля в диалогах изменения учетных данных"
+  },
+  "profileCredentialsValidationPasswordMatch": "Пароли не совпадают",
+  "@profileCredentialsValidationPasswordMatch": {
+    "description": "Ошибка валидации подтверждения нового пароля"
+  },
+  "profileCredentialsLoginUpdated": "Логин обновлен",
+  "@profileCredentialsLoginUpdated": {
+    "description": "Сообщение об успешном обновлении логина"
+  },
+  "profileCredentialsPasswordUpdated": "Пароль обновлен",
+  "@profileCredentialsPasswordUpdated": {
+    "description": "Сообщение об успешном обновлении пароля"
+  },
   "profileAppearanceSection": "Внешний вид",
   "@profileAppearanceSection": {
     "description": "Заголовок секции настроек внешнего вида на экране профиля"
@@ -395,7 +451,7 @@
   "@settingsHomeBudgetPickerClear": {
     "description": "Подпись действия очистки выбранного бюджета"
   },
-  "profileManageCategoriesTitle": "Управление категориями и тэгами",
+  "profileManageCategoriesTitle": "Категории и тэги",
   "@profileManageCategoriesTitle": {
     "description": "Заголовок экрана управления категориями"
   },

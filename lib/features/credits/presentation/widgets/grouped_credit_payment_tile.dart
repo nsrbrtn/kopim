@@ -32,7 +32,7 @@ class GroupedCreditPaymentTile extends StatelessWidget {
     final NumberFormat moneyFormat = TransactionTileFormatters.currency(
       strings.localeName,
       currencySymbol,
-      decimalDigits: group.totalOutflow.scale,
+      decimalDigits: 0,
     );
     final String summaryLabel = _buildSummaryLabel();
     final String resolvedTitle =

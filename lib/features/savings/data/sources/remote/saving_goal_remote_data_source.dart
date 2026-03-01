@@ -46,6 +46,9 @@ class SavingGoalRemoteDataSource {
       'userId': goal.userId,
       'name': goal.name,
       'accountId': goal.accountId,
+      'targetDate': goal.targetDate != null
+          ? Timestamp.fromDate(goal.targetDate!.toUtc())
+          : null,
       'targetAmount': goal.targetAmount,
       'currentAmount': goal.currentAmount,
       'note': goal.note,
@@ -64,6 +67,7 @@ class SavingGoalRemoteDataSource {
       userId: data['userId'] as String? ?? '',
       name: data['name'] as String? ?? '',
       accountId: data['accountId'] as String?,
+      targetDate: _parseOptionalTimestamp(data['targetDate']),
       targetAmount: (data['targetAmount'] as num?)?.toInt() ?? 0,
       currentAmount: (data['currentAmount'] as num?)?.toInt() ?? 0,
       note: data['note'] as String?,

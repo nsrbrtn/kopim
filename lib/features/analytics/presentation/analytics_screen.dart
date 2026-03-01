@@ -235,10 +235,7 @@ class _AnalyticsBody extends ConsumerWidget {
                       ),
                     ),
                     _AnalyticsCreditsTabView(strings: strings),
-                    _AnalyticsPlaceholderTabView(
-                      title: strings.homeNavSavings,
-                      strings: strings,
-                    ),
+                    _AnalyticsSavingsTabView(strings: strings),
                   ],
                 ),
               ),
@@ -486,6 +483,68 @@ class _AnalyticsCreditsTabView extends ConsumerWidget {
   }
 }
 
+class _AnalyticsSavingsTabView extends ConsumerStatefulWidget {
+  const _AnalyticsSavingsTabView({required this.strings});
+
+  final AppLocalizations strings;
+
+  @override
+  ConsumerState<_AnalyticsSavingsTabView> createState() =>
+      _AnalyticsSavingsTabViewState();
+}
+
+class _AnalyticsSavingsTabViewState
+    extends ConsumerState<_AnalyticsSavingsTabView> {
+  AnalyticsSavingsTrendGranularity _granularity =
+      AnalyticsSavingsTrendGranularity.day;
+
+  @override
+  Widget build(BuildContext context) {
+    final AsyncValue<AnalyticsSavingsTrendOverview> trendAsync = ref.watch(
+      analyticsSavingsTrendProvider(_granularity),
+    );
+
+    return CustomScrollView(
+      slivers: <Widget>[
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(8, 8, 8, 16),
+          sliver: SliverToBoxAdapter(
+            child: trendAsync.when(
+              data: (AnalyticsSavingsTrendOverview overview) {
+                return _SavingsTrendContent(
+                  overview: overview,
+                  strings: widget.strings,
+                  granularity: _granularity,
+                  onGranularityChanged:
+                      (AnalyticsSavingsTrendGranularity value) {
+                        if (_granularity == value) {
+                          return;
+                        }
+                        setState(() {
+                          _granularity = value;
+                        });
+                      },
+                );
+              },
+              loading: () => const Padding(
+                padding: EdgeInsets.only(top: 32),
+                child: Center(child: CircularProgressIndicator()),
+              ),
+              error: (Object error, StackTrace stackTrace) {
+                return _AnalyticsError(
+                  message: error.toString(),
+                  strings: widget.strings,
+                );
+              },
+            ),
+          ),
+        ),
+        const SliverToBoxAdapter(child: SizedBox(height: 80)),
+      ],
+    );
+  }
+}
+
 class _CreditsDebtAnalyticsContent extends StatelessWidget {
   const _CreditsDebtAnalyticsContent({
     required this.overview,
@@ -702,30 +761,275 @@ class _CreditsDebtAnalyticsContent extends StatelessWidget {
   }
 }
 
-class _AnalyticsPlaceholderTabView extends StatelessWidget {
-  const _AnalyticsPlaceholderTabView({
-    required this.title,
+class _SavingsTrendContent extends StatelessWidget {
+  const _SavingsTrendContent({
+    required this.overview,
     required this.strings,
+    required this.granularity,
+    required this.onGranularityChanged,
   });
 
-  final String title;
+  final AnalyticsSavingsTrendOverview overview;
   final AppLocalizations strings;
+  final AnalyticsSavingsTrendGranularity granularity;
+  final ValueChanged<AnalyticsSavingsTrendGranularity> onGranularityChanged;
 
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24),
-        child: Text(
-          '$title: ${strings.analyticsTopCategoriesEmpty}',
-          textAlign: TextAlign.center,
-          style: theme.textTheme.bodyMedium?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
+    final ColorScheme colors = theme.colorScheme;
+    final NumberFormat amountFormat = NumberFormat.simpleCurrency(
+      locale: strings.localeName,
+      decimalDigits: 0,
+    );
+    final NumberFormat compactFormat = NumberFormat.compact(
+      locale: strings.localeName,
+    );
+
+    final List<AnalyticsSavingsTrendPoint> trendPoints = overview.points;
+    final double maxValue = trendPoints
+        .map((AnalyticsSavingsTrendPoint point) => point.amount.toDouble())
+        .fold<double>(
+          0,
+          (double prev, double next) => next > prev ? next : prev,
+        );
+    final double yMax = maxValue <= 0 ? 1 : maxValue * 1.12;
+
+    final String totalCurrentLabel = amountFormat.format(
+      overview.totalCurrent.toDouble(),
+    );
+    final String totalTargetLabel = amountFormat.format(
+      overview.totalTarget.toDouble(),
+    );
+    final String totalContributedLabel = amountFormat.format(
+      overview.totalContributed.toDouble(),
+    );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: colors.surfaceContainer,
+            borderRadius: BorderRadius.circular(32),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Text(
+                strings.homeNavSavings,
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  color: colors.onSurface,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                totalCurrentLabel,
+                style: theme.textTheme.displayMedium?.copyWith(
+                  color: colors.onSurface,
+                  fontWeight: FontWeight.w300,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Цель: $totalTargetLabel',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: colors.outline,
+                ),
+              ),
+              const SizedBox(height: 8),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(999),
+                child: LinearProgressIndicator(
+                  value: overview.progressRatio,
+                  minHeight: 8,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Активных копилок: ${overview.activeGoals}',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: colors.outline,
+                ),
+              ),
+            ],
           ),
         ),
-      ),
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: colors.surfaceContainer,
+            borderRadius: BorderRadius.circular(32),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Row(
+                children: <Widget>[
+                  Expanded(
+                    child: Text(
+                      'Тренд накоплений',
+                      style: theme.textTheme.headlineSmall?.copyWith(
+                        color: colors.onSurface,
+                      ),
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: colors.surfaceContainerHighest.withValues(
+                        alpha: 0.2,
+                      ),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      '30 дней',
+                      style: theme.textTheme.labelMedium?.copyWith(
+                        color: colors.outline,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 8,
+                children: <Widget>[
+                  _TrendGranularityChip(
+                    label: 'Дни',
+                    selected:
+                        granularity == AnalyticsSavingsTrendGranularity.day,
+                    onTap: () => onGranularityChanged(
+                      AnalyticsSavingsTrendGranularity.day,
+                    ),
+                  ),
+                  _TrendGranularityChip(
+                    label: 'Недели',
+                    selected:
+                        granularity == AnalyticsSavingsTrendGranularity.week,
+                    onTap: () => onGranularityChanged(
+                      AnalyticsSavingsTrendGranularity.week,
+                    ),
+                  ),
+                  _TrendGranularityChip(
+                    label: 'Месяцы',
+                    selected:
+                        granularity == AnalyticsSavingsTrendGranularity.month,
+                    onTap: () => onGranularityChanged(
+                      AnalyticsSavingsTrendGranularity.month,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Пополнено за период: $totalContributedLabel',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  color: colors.onSurface,
+                ),
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                height: 260,
+                child: SfCartesianChart(
+                  plotAreaBorderWidth: 0,
+                  margin: EdgeInsets.zero,
+                  primaryXAxis: CategoryAxis(
+                    majorGridLines: const MajorGridLines(width: 0),
+                    axisLine: AxisLine(
+                      color: colors.outline.withValues(alpha: 0.25),
+                      width: 1,
+                    ),
+                    labelStyle: theme.textTheme.labelSmall?.copyWith(
+                      color: colors.outline,
+                    ),
+                  ),
+                  primaryYAxis: NumericAxis(
+                    minimum: 0,
+                    maximum: yMax,
+                    majorGridLines: MajorGridLines(
+                      color: colors.outline.withValues(alpha: 0.2),
+                      width: 1,
+                    ),
+                    axisLine: const AxisLine(width: 0),
+                    majorTickLines: const MajorTickLines(size: 0),
+                    numberFormat: compactFormat,
+                    labelStyle: theme.textTheme.labelSmall?.copyWith(
+                      color: colors.outline,
+                    ),
+                  ),
+                  series: <CartesianSeries<AnalyticsSavingsTrendPoint, String>>[
+                    AreaSeries<AnalyticsSavingsTrendPoint, String>(
+                      dataSource: trendPoints,
+                      xValueMapper: (AnalyticsSavingsTrendPoint point, _) =>
+                          _formatSavingsPointLabel(
+                            point.periodStart,
+                            granularity,
+                            strings.localeName,
+                          ),
+                      yValueMapper: (AnalyticsSavingsTrendPoint point, _) =>
+                          point.amount.toDouble(),
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: <Color>[
+                          colors.primary.withValues(alpha: 0.32),
+                          colors.primary.withValues(alpha: 0.02),
+                        ],
+                      ),
+                      borderWidth: 0,
+                      animationDuration: 0,
+                    ),
+                    SplineSeries<AnalyticsSavingsTrendPoint, String>(
+                      dataSource: trendPoints,
+                      xValueMapper: (AnalyticsSavingsTrendPoint point, _) =>
+                          _formatSavingsPointLabel(
+                            point.periodStart,
+                            granularity,
+                            strings.localeName,
+                          ),
+                      yValueMapper: (AnalyticsSavingsTrendPoint point, _) =>
+                          point.amount.toDouble(),
+                      color: colors.primary,
+                      width: 3,
+                      markerSettings: MarkerSettings(
+                        isVisible: true,
+                        width: 6,
+                        height: 6,
+                        color: colors.primary,
+                      ),
+                      animationDuration: 0,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
+  }
+}
+
+class _TrendGranularityChip extends StatelessWidget {
+  const _TrendGranularityChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return AnalyticsFilterChip(label: label, selected: selected, onTap: onTap);
   }
 }
 
@@ -1078,6 +1382,22 @@ Future<void> _openAccountsPicker({
 String _formatMonthShort(DateTime date, String locale) {
   final String raw = DateFormat.MMM(locale).format(date);
   return raw.replaceAll('.', '').toLowerCase();
+}
+
+String _formatSavingsPointLabel(
+  DateTime date,
+  AnalyticsSavingsTrendGranularity granularity,
+  String locale,
+) {
+  switch (granularity) {
+    case AnalyticsSavingsTrendGranularity.day:
+      return DateFormat.Md(locale).format(date);
+    case AnalyticsSavingsTrendGranularity.week:
+      final DateTime end = date.add(const Duration(days: 6));
+      return '${DateFormat.Md(locale).format(date)}-${DateFormat.Md(locale).format(end)}';
+    case AnalyticsSavingsTrendGranularity.month:
+      return _formatMonthShort(date, locale);
+  }
 }
 
 String _resolveDateChipLabel({

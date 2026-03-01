@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:kopim/features/profile/presentation/widgets/profile_account_settings_card.dart';
+import 'package:kopim/features/profile/presentation/widgets/profile_credentials_settings_card.dart';
 import 'package:kopim/features/profile/presentation/widgets/profile_theme_preferences_card.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
@@ -20,6 +21,8 @@ class ProfileSettingsScreen extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           children: const <Widget>[
             _ProfileSettingsSection(child: ProfileAccountSettingsCard()),
+            SizedBox(height: 16),
+            _ProfileSettingsSection(child: ProfileCredentialsSettingsCard()),
             SizedBox(height: 16),
             _ProfileSettingsSection(child: ProfileThemePreferencesCard()),
           ],

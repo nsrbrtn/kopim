@@ -42,7 +42,7 @@ class CreditPaymentDetailsScreen extends StatelessWidget {
       args.group.transactions,
       credit: args.credit,
     );
-    final String? note = args.group.note;
+    final String? note = _resolveDisplayNote(args.group.note);
 
     return Scaffold(
       appBar: AppBar(title: Text(context.loc.homeTransactionsGroupedPayment)),
@@ -51,8 +51,9 @@ class CreditPaymentDetailsScreen extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
           children: <Widget>[
             Card(
+              margin: EdgeInsets.zero,
               elevation: 0,
-              color: theme.colorScheme.surfaceContainerHigh,
+              color: theme.colorScheme.surfaceContainer,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
               ),
@@ -98,8 +99,9 @@ class CreditPaymentDetailsScreen extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Card(
+              margin: EdgeInsets.zero,
               elevation: 0,
-              color: theme.colorScheme.surfaceContainerHigh,
+              color: theme.colorScheme.surfaceContainer,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
               ),
@@ -143,8 +145,9 @@ class CreditPaymentDetailsScreen extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Card(
+              margin: EdgeInsets.zero,
               elevation: 0,
-              color: theme.colorScheme.surfaceContainerHigh,
+              color: theme.colorScheme.surfaceContainer,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
               ),
@@ -180,6 +183,29 @@ class CreditPaymentDetailsScreen extends StatelessWidget {
       ),
     );
   }
+}
+
+String? _resolveDisplayNote(String? note) {
+  if (note == null) {
+    return null;
+  }
+  final String normalized = note.trim();
+  if (normalized.isEmpty) {
+    return null;
+  }
+  if (_isSystemCreditPaymentNote(normalized)) {
+    return null;
+  }
+  return normalized;
+}
+
+bool _isSystemCreditPaymentNote(String note) {
+  final String normalized = note.trim().toLowerCase().replaceAll('ё', 'е');
+  const List<String> hiddenSystemNotePatterns = <String>[
+    'платеж по кредиту: проценты',
+    'платеж по кредиту: основной долг',
+  ];
+  return hiddenSystemNotePatterns.any(normalized.contains);
 }
 
 class _BreakdownRow extends StatelessWidget {
@@ -287,13 +313,23 @@ class _TransactionRow extends StatelessWidget {
                           ),
                         ),
                         if ((transaction.note ?? '').isNotEmpty)
-                          Text(
-                            transaction.note!,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
+                          Builder(
+                            builder: (BuildContext context) {
+                              final String? displayNote = _resolveDisplayNote(
+                                transaction.note,
+                              );
+                              if (displayNote == null) {
+                                return const SizedBox.shrink();
+                              }
+                              return Text(
+                                displayNote,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
+                              );
+                            },
                           ),
                       ],
                     ),

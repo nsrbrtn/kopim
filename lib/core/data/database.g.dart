@@ -2310,6 +2310,17 @@ class $SavingGoalsTable extends SavingGoals
       'REFERENCES accounts (id) ON DELETE SET NULL',
     ),
   );
+  static const VerificationMeta _targetDateMeta = const VerificationMeta(
+    'targetDate',
+  );
+  @override
+  late final GeneratedColumn<DateTime> targetDate = GeneratedColumn<DateTime>(
+    'target_date',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _targetAmountMeta = const VerificationMeta(
     'targetAmount',
   );
@@ -2383,6 +2394,7 @@ class $SavingGoalsTable extends SavingGoals
     userId,
     name,
     accountId,
+    targetDate,
     targetAmount,
     currentAmount,
     note,
@@ -2427,6 +2439,12 @@ class $SavingGoalsTable extends SavingGoals
       context.handle(
         _accountIdMeta,
         accountId.isAcceptableOrUnknown(data['account_id']!, _accountIdMeta),
+      );
+    }
+    if (data.containsKey('target_date')) {
+      context.handle(
+        _targetDateMeta,
+        targetDate.isAcceptableOrUnknown(data['target_date']!, _targetDateMeta),
       );
     }
     if (data.containsKey('target_amount')) {
@@ -2498,6 +2516,10 @@ class $SavingGoalsTable extends SavingGoals
         DriftSqlType.string,
         data['${effectivePrefix}account_id'],
       ),
+      targetDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}target_date'],
+      ),
       targetAmount: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}target_amount'],
@@ -2536,6 +2558,7 @@ class SavingGoalRow extends DataClass implements Insertable<SavingGoalRow> {
   final String userId;
   final String name;
   final String? accountId;
+  final DateTime? targetDate;
   final int targetAmount;
   final int currentAmount;
   final String? note;
@@ -2547,6 +2570,7 @@ class SavingGoalRow extends DataClass implements Insertable<SavingGoalRow> {
     required this.userId,
     required this.name,
     this.accountId,
+    this.targetDate,
     required this.targetAmount,
     required this.currentAmount,
     this.note,
@@ -2562,6 +2586,9 @@ class SavingGoalRow extends DataClass implements Insertable<SavingGoalRow> {
     map['name'] = Variable<String>(name);
     if (!nullToAbsent || accountId != null) {
       map['account_id'] = Variable<String>(accountId);
+    }
+    if (!nullToAbsent || targetDate != null) {
+      map['target_date'] = Variable<DateTime>(targetDate);
     }
     map['target_amount'] = Variable<int>(targetAmount);
     map['current_amount'] = Variable<int>(currentAmount);
@@ -2584,6 +2611,9 @@ class SavingGoalRow extends DataClass implements Insertable<SavingGoalRow> {
       accountId: accountId == null && nullToAbsent
           ? const Value.absent()
           : Value(accountId),
+      targetDate: targetDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(targetDate),
       targetAmount: Value(targetAmount),
       currentAmount: Value(currentAmount),
       note: note == null && nullToAbsent ? const Value.absent() : Value(note),
@@ -2605,6 +2635,7 @@ class SavingGoalRow extends DataClass implements Insertable<SavingGoalRow> {
       userId: serializer.fromJson<String>(json['userId']),
       name: serializer.fromJson<String>(json['name']),
       accountId: serializer.fromJson<String?>(json['accountId']),
+      targetDate: serializer.fromJson<DateTime?>(json['targetDate']),
       targetAmount: serializer.fromJson<int>(json['targetAmount']),
       currentAmount: serializer.fromJson<int>(json['currentAmount']),
       note: serializer.fromJson<String?>(json['note']),
@@ -2621,6 +2652,7 @@ class SavingGoalRow extends DataClass implements Insertable<SavingGoalRow> {
       'userId': serializer.toJson<String>(userId),
       'name': serializer.toJson<String>(name),
       'accountId': serializer.toJson<String?>(accountId),
+      'targetDate': serializer.toJson<DateTime?>(targetDate),
       'targetAmount': serializer.toJson<int>(targetAmount),
       'currentAmount': serializer.toJson<int>(currentAmount),
       'note': serializer.toJson<String?>(note),
@@ -2635,6 +2667,7 @@ class SavingGoalRow extends DataClass implements Insertable<SavingGoalRow> {
     String? userId,
     String? name,
     Value<String?> accountId = const Value.absent(),
+    Value<DateTime?> targetDate = const Value.absent(),
     int? targetAmount,
     int? currentAmount,
     Value<String?> note = const Value.absent(),
@@ -2646,6 +2679,7 @@ class SavingGoalRow extends DataClass implements Insertable<SavingGoalRow> {
     userId: userId ?? this.userId,
     name: name ?? this.name,
     accountId: accountId.present ? accountId.value : this.accountId,
+    targetDate: targetDate.present ? targetDate.value : this.targetDate,
     targetAmount: targetAmount ?? this.targetAmount,
     currentAmount: currentAmount ?? this.currentAmount,
     note: note.present ? note.value : this.note,
@@ -2659,6 +2693,9 @@ class SavingGoalRow extends DataClass implements Insertable<SavingGoalRow> {
       userId: data.userId.present ? data.userId.value : this.userId,
       name: data.name.present ? data.name.value : this.name,
       accountId: data.accountId.present ? data.accountId.value : this.accountId,
+      targetDate: data.targetDate.present
+          ? data.targetDate.value
+          : this.targetDate,
       targetAmount: data.targetAmount.present
           ? data.targetAmount.value
           : this.targetAmount,
@@ -2681,6 +2718,7 @@ class SavingGoalRow extends DataClass implements Insertable<SavingGoalRow> {
           ..write('userId: $userId, ')
           ..write('name: $name, ')
           ..write('accountId: $accountId, ')
+          ..write('targetDate: $targetDate, ')
           ..write('targetAmount: $targetAmount, ')
           ..write('currentAmount: $currentAmount, ')
           ..write('note: $note, ')
@@ -2697,6 +2735,7 @@ class SavingGoalRow extends DataClass implements Insertable<SavingGoalRow> {
     userId,
     name,
     accountId,
+    targetDate,
     targetAmount,
     currentAmount,
     note,
@@ -2712,6 +2751,7 @@ class SavingGoalRow extends DataClass implements Insertable<SavingGoalRow> {
           other.userId == this.userId &&
           other.name == this.name &&
           other.accountId == this.accountId &&
+          other.targetDate == this.targetDate &&
           other.targetAmount == this.targetAmount &&
           other.currentAmount == this.currentAmount &&
           other.note == this.note &&
@@ -2725,6 +2765,7 @@ class SavingGoalsCompanion extends UpdateCompanion<SavingGoalRow> {
   final Value<String> userId;
   final Value<String> name;
   final Value<String?> accountId;
+  final Value<DateTime?> targetDate;
   final Value<int> targetAmount;
   final Value<int> currentAmount;
   final Value<String?> note;
@@ -2737,6 +2778,7 @@ class SavingGoalsCompanion extends UpdateCompanion<SavingGoalRow> {
     this.userId = const Value.absent(),
     this.name = const Value.absent(),
     this.accountId = const Value.absent(),
+    this.targetDate = const Value.absent(),
     this.targetAmount = const Value.absent(),
     this.currentAmount = const Value.absent(),
     this.note = const Value.absent(),
@@ -2750,6 +2792,7 @@ class SavingGoalsCompanion extends UpdateCompanion<SavingGoalRow> {
     required String userId,
     required String name,
     this.accountId = const Value.absent(),
+    this.targetDate = const Value.absent(),
     required int targetAmount,
     this.currentAmount = const Value.absent(),
     this.note = const Value.absent(),
@@ -2766,6 +2809,7 @@ class SavingGoalsCompanion extends UpdateCompanion<SavingGoalRow> {
     Expression<String>? userId,
     Expression<String>? name,
     Expression<String>? accountId,
+    Expression<DateTime>? targetDate,
     Expression<int>? targetAmount,
     Expression<int>? currentAmount,
     Expression<String>? note,
@@ -2779,6 +2823,7 @@ class SavingGoalsCompanion extends UpdateCompanion<SavingGoalRow> {
       if (userId != null) 'user_id': userId,
       if (name != null) 'name': name,
       if (accountId != null) 'account_id': accountId,
+      if (targetDate != null) 'target_date': targetDate,
       if (targetAmount != null) 'target_amount': targetAmount,
       if (currentAmount != null) 'current_amount': currentAmount,
       if (note != null) 'note': note,
@@ -2794,6 +2839,7 @@ class SavingGoalsCompanion extends UpdateCompanion<SavingGoalRow> {
     Value<String>? userId,
     Value<String>? name,
     Value<String?>? accountId,
+    Value<DateTime?>? targetDate,
     Value<int>? targetAmount,
     Value<int>? currentAmount,
     Value<String?>? note,
@@ -2807,6 +2853,7 @@ class SavingGoalsCompanion extends UpdateCompanion<SavingGoalRow> {
       userId: userId ?? this.userId,
       name: name ?? this.name,
       accountId: accountId ?? this.accountId,
+      targetDate: targetDate ?? this.targetDate,
       targetAmount: targetAmount ?? this.targetAmount,
       currentAmount: currentAmount ?? this.currentAmount,
       note: note ?? this.note,
@@ -2831,6 +2878,9 @@ class SavingGoalsCompanion extends UpdateCompanion<SavingGoalRow> {
     }
     if (accountId.present) {
       map['account_id'] = Variable<String>(accountId.value);
+    }
+    if (targetDate.present) {
+      map['target_date'] = Variable<DateTime>(targetDate.value);
     }
     if (targetAmount.present) {
       map['target_amount'] = Variable<int>(targetAmount.value);
@@ -2863,6 +2913,7 @@ class SavingGoalsCompanion extends UpdateCompanion<SavingGoalRow> {
           ..write('userId: $userId, ')
           ..write('name: $name, ')
           ..write('accountId: $accountId, ')
+          ..write('targetDate: $targetDate, ')
           ..write('targetAmount: $targetAmount, ')
           ..write('currentAmount: $currentAmount, ')
           ..write('note: $note, ')
@@ -16030,6 +16081,7 @@ typedef $$SavingGoalsTableCreateCompanionBuilder =
       required String userId,
       required String name,
       Value<String?> accountId,
+      Value<DateTime?> targetDate,
       required int targetAmount,
       Value<int> currentAmount,
       Value<String?> note,
@@ -16044,6 +16096,7 @@ typedef $$SavingGoalsTableUpdateCompanionBuilder =
       Value<String> userId,
       Value<String> name,
       Value<String?> accountId,
+      Value<DateTime?> targetDate,
       Value<int> targetAmount,
       Value<int> currentAmount,
       Value<String?> note,
@@ -16143,6 +16196,11 @@ class $$SavingGoalsTableFilterComposer
 
   ColumnFilters<String> get name => $composableBuilder(
     column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get targetDate => $composableBuilder(
+    column: $table.targetDate,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -16274,6 +16332,11 @@ class $$SavingGoalsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<DateTime> get targetDate => $composableBuilder(
+    column: $table.targetDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get targetAmount => $composableBuilder(
     column: $table.targetAmount,
     builder: (column) => ColumnOrderings(column),
@@ -16345,6 +16408,11 @@ class $$SavingGoalsTableAnnotationComposer
 
   GeneratedColumn<String> get name =>
       $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get targetDate => $composableBuilder(
+    column: $table.targetDate,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<int> get targetAmount => $composableBuilder(
     column: $table.targetAmount,
@@ -16481,6 +16549,7 @@ class $$SavingGoalsTableTableManager
                 Value<String> userId = const Value.absent(),
                 Value<String> name = const Value.absent(),
                 Value<String?> accountId = const Value.absent(),
+                Value<DateTime?> targetDate = const Value.absent(),
                 Value<int> targetAmount = const Value.absent(),
                 Value<int> currentAmount = const Value.absent(),
                 Value<String?> note = const Value.absent(),
@@ -16493,6 +16562,7 @@ class $$SavingGoalsTableTableManager
                 userId: userId,
                 name: name,
                 accountId: accountId,
+                targetDate: targetDate,
                 targetAmount: targetAmount,
                 currentAmount: currentAmount,
                 note: note,
@@ -16507,6 +16577,7 @@ class $$SavingGoalsTableTableManager
                 required String userId,
                 required String name,
                 Value<String?> accountId = const Value.absent(),
+                Value<DateTime?> targetDate = const Value.absent(),
                 required int targetAmount,
                 Value<int> currentAmount = const Value.absent(),
                 Value<String?> note = const Value.absent(),
@@ -16519,6 +16590,7 @@ class $$SavingGoalsTableTableManager
                 userId: userId,
                 name: name,
                 accountId: accountId,
+                targetDate: targetDate,
                 targetAmount: targetAmount,
                 currentAmount: currentAmount,
                 note: note,

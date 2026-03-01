@@ -160,6 +160,57 @@ class AuthRepositoryImpl implements AuthRepository {
     });
   }
 
+  @override
+  Future<AuthUser> updateEmail({
+    required String newEmail,
+    required String currentPassword,
+  }) {
+    return _guard<AuthUser>('updateEmail', () async {
+      final User? user = _firebaseAuth.currentUser;
+      if (user == null || user.email == null) {
+        throw const AuthFailure(
+          code: 'no-current-user',
+          message: 'No active session available for updating email.',
+        );
+      }
+
+      final AuthCredential credential = EmailAuthProvider.credential(
+        email: user.email!,
+        password: currentPassword,
+      );
+      await user.reauthenticateWithCredential(credential);
+      await user.verifyBeforeUpdateEmail(newEmail);
+      await user.reload();
+
+      final User refreshed = _firebaseAuth.currentUser ?? user;
+      return _mapFirebaseUser(refreshed) ??
+          (throw AuthFailure.unknown('Unable to map user after email update.'));
+    });
+  }
+
+  @override
+  Future<void> updatePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) {
+    return _guardVoid('updatePassword', () async {
+      final User? user = _firebaseAuth.currentUser;
+      if (user == null || user.email == null) {
+        throw const AuthFailure(
+          code: 'no-current-user',
+          message: 'No active session available for updating password.',
+        );
+      }
+
+      final AuthCredential credential = EmailAuthProvider.credential(
+        email: user.email!,
+        password: currentPassword,
+      );
+      await user.reauthenticateWithCredential(credential);
+      await user.updatePassword(newPassword);
+    });
+  }
+
   Future<AuthUser> _signInWithEmail(String email, String password) async {
     final UserCredential credential = await _firebaseAuth
         .signInWithEmailAndPassword(email: email, password: password);

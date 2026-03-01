@@ -70,10 +70,6 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
     );
     final AppLocalizations strings = AppLocalizations.of(context)!;
     _syncCategoryControllers(state);
-    final NumberFormat currencyFormat = NumberFormat.simpleCurrency(
-      locale: strings.localeName,
-    );
-
     ref.listen<BudgetFormState>(budgetFormControllerProvider(params: params), (
       BudgetFormState? previous,
       BudgetFormState next,
@@ -137,7 +133,7 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                 placeholder: strings.budgetAmountPlaceholder,
                 supportingText: state.scope == BudgetScope.byCategory
                     ? strings.budgetAmountAutoHelper
-                    : currencyFormat.currencySymbol,
+                    : null,
                 onChanged: state.scope == BudgetScope.byCategory
                     ? null
                     : controller.setAmountText,

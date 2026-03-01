@@ -229,6 +229,7 @@ class SavingGoals extends Table {
     #id,
     onDelete: KeyAction.setNull,
   )();
+  DateTimeColumn get targetDate => dateTime().nullable()();
   IntColumn get targetAmount => integer()();
   IntColumn get currentAmount =>
       integer().withDefault(const Constant<int>(0))();
@@ -450,7 +451,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.connect(DatabaseConnection super.connection);
 
   @override
-  int get schemaVersion => 40;
+  int get schemaVersion => 41;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -468,6 +469,13 @@ class AppDatabase extends _$AppDatabase {
           'saving_goals_status_updated_idx',
           'CREATE INDEX IF NOT EXISTS saving_goals_status_updated_idx '
               'ON saving_goals(archived_at, updated_at DESC)',
+        ),
+      );
+      await m.createIndex(
+        Index(
+          'saving_goals_account_idx',
+          'CREATE INDEX IF NOT EXISTS saving_goals_account_idx '
+              'ON saving_goals(account_id)',
         ),
       );
       await m.createIndex(
@@ -1019,6 +1027,18 @@ LEFT JOIN accounts acc ON up.account_id = acc.id
         }
         await _backfillSavingGoalAccounts(m);
       }
+      if (from < 41) {
+        if (!await _columnExists('saving_goals', 'target_date')) {
+          await m.addColumn(savingGoals, savingGoals.targetDate);
+        }
+        await m.createIndex(
+          Index(
+            'saving_goals_account_idx',
+            'CREATE INDEX IF NOT EXISTS saving_goals_account_idx '
+                'ON saving_goals(account_id)',
+          ),
+        );
+      }
       if (from < 3) {
         await m.createTable(profiles);
       }
@@ -1062,6 +1082,13 @@ LEFT JOIN accounts acc ON up.account_id = acc.id
             'saving_goals_status_updated_idx',
             'CREATE INDEX IF NOT EXISTS saving_goals_status_updated_idx '
                 'ON saving_goals(archived_at, updated_at DESC)',
+          ),
+        );
+        await m.createIndex(
+          Index(
+            'saving_goals_account_idx',
+            'CREATE INDEX IF NOT EXISTS saving_goals_account_idx '
+                'ON saving_goals(account_id)',
           ),
         );
       }

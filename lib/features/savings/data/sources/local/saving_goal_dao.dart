@@ -64,6 +64,22 @@ class SavingGoalDao {
     return _mapRowToEntity(row);
   }
 
+  Future<SavingGoal?> findByAccountId(String accountId) async {
+    final String normalized = accountId.trim();
+    if (normalized.isEmpty) {
+      return null;
+    }
+    final db.SavingGoalRow? row =
+        await (_db.select(_db.savingGoals)..where(
+              (db.$SavingGoalsTable tbl) => tbl.accountId.equals(normalized),
+            ))
+            .getSingleOrNull();
+    if (row == null) {
+      return null;
+    }
+    return _mapRowToEntity(row);
+  }
+
   Future<void> upsert(SavingGoal goal) async {
     await _db
         .into(_db.savingGoals)
@@ -99,6 +115,7 @@ class SavingGoalDao {
       userId: Value<String>(goal.userId),
       name: Value<String>(goal.name),
       accountId: Value<String?>(goal.accountId),
+      targetDate: Value<DateTime?>(goal.targetDate),
       targetAmount: Value<int>(goal.targetAmount),
       currentAmount: Value<int>(goal.currentAmount),
       note: Value<String?>(goal.note),
@@ -114,6 +131,7 @@ class SavingGoalDao {
       userId: row.userId,
       name: row.name,
       accountId: row.accountId,
+      targetDate: row.targetDate,
       targetAmount: row.targetAmount,
       currentAmount: row.currentAmount,
       note: row.note,

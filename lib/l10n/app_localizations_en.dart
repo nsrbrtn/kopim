@@ -25,6 +25,51 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileSectionAccount => 'Account';
 
   @override
+  String get profileCredentialsSectionTitle => 'Login and Password';
+
+  @override
+  String get profileCredentialsAnonymousHint =>
+      'Sign in to change your login and password.';
+
+  @override
+  String get profileCredentialsChangeLoginCta => 'Change login';
+
+  @override
+  String get profileCredentialsChangePasswordCta => 'Change password';
+
+  @override
+  String get profileCredentialsChangeLoginTitle => 'Change login';
+
+  @override
+  String get profileCredentialsChangePasswordTitle => 'Change password';
+
+  @override
+  String get profileCredentialsNewLoginLabel => 'New login (email)';
+
+  @override
+  String get profileCredentialsCurrentPasswordLabel => 'Current password';
+
+  @override
+  String get profileCredentialsNewPasswordLabel => 'New password';
+
+  @override
+  String get profileCredentialsConfirmPasswordLabel => 'Confirm new password';
+
+  @override
+  String get profileCredentialsValidationRequired =>
+      'Please fill in this field';
+
+  @override
+  String get profileCredentialsValidationPasswordMatch =>
+      'Passwords do not match';
+
+  @override
+  String get profileCredentialsLoginUpdated => 'Login updated';
+
+  @override
+  String get profileCredentialsPasswordUpdated => 'Password updated';
+
+  @override
   String get profileAppearanceSection => 'Appearance';
 
   @override
@@ -368,7 +413,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsHomeBudgetPickerClear => 'Clear selection';
 
   @override
-  String get profileManageCategoriesTitle => 'Manage categories and tags';
+  String get profileManageCategoriesTitle => 'Categories and tags';
 
   @override
   String get manageCategoriesTabCategories => 'Categories';

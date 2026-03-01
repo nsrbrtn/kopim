@@ -12,6 +12,7 @@ abstract class EditGoalState with _$EditGoalState {
     String? nameError,
     String? targetError,
     String? note,
+    DateTime? targetDate,
     @Default(false) bool isSaving,
     @Default(false) bool submissionSuccess,
     String? errorMessage,

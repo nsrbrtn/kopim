@@ -18,4 +18,14 @@ abstract class AuthRepository {
   Future<AuthUser> signInAnonymously();
 
   Future<void> sendPasswordResetEmail(String email);
+
+  Future<AuthUser> updateEmail({
+    required String newEmail,
+    required String currentPassword,
+  });
+
+  Future<void> updatePassword({
+    required String currentPassword,
+    required String newPassword,
+  });
 }

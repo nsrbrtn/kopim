@@ -258,14 +258,36 @@ class SavingGoalRepositoryImpl implements SavingGoalRepository {
     DateTime timestamp,
   ) async {
     if (goal.accountId != null && goal.accountId!.isNotEmpty) {
+      final SavingGoal? linkedGoal = await _savingGoalDao.findByAccountId(
+        goal.accountId!,
+      );
+      if (linkedGoal != null && linkedGoal.id != goal.id) {
+        final String freshAccountId = _uuid.v4();
+        _logger.logInfo(
+          'Обнаружен конфликт accountId у копилки ${goal.id}; создан новый счет $freshAccountId',
+        );
+        return _createGoalAccount(
+          goal.copyWith(accountId: freshAccountId),
+          timestamp,
+        );
+      }
       final db.AccountRow? existing = await _accountDao.findById(
         goal.accountId!,
       );
-      if (existing != null) {
+      if (existing != null &&
+          existing.type == 'savings' &&
+          !existing.isDeleted) {
         return goal;
       }
     }
 
+    return _createGoalAccount(goal, timestamp);
+  }
+
+  Future<SavingGoal> _createGoalAccount(
+    SavingGoal goal,
+    DateTime timestamp,
+  ) async {
     final db.AccountRow? primaryAccount = await _findPrimaryActiveAccount();
     final String currency = primaryAccount?.currency ?? 'USD';
     final int scale =
@@ -350,6 +372,7 @@ class SavingGoalRepositoryImpl implements SavingGoalRepository {
     json['createdAt'] = goal.createdAt.toIso8601String();
     json['updatedAt'] = goal.updatedAt.toIso8601String();
     json['archivedAt'] = goal.archivedAt?.toIso8601String();
+    json['targetDate'] = goal.targetDate?.toIso8601String();
     return json;
   }
 

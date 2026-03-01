@@ -144,6 +144,53 @@ class AuthController extends _$AuthController {
     }
   }
 
+  Future<void> updateEmail({
+    required String newEmail,
+    required String currentPassword,
+  }) async {
+    _exitOfflineMode();
+    final AuthUser? previousUser = state.value;
+    state = const AsyncValue<AuthUser?>.loading();
+    try {
+      final AuthUser user = await ref
+          .read(authRepositoryProvider)
+          .updateEmail(newEmail: newEmail, currentPassword: currentPassword);
+      state = AsyncValue<AuthUser?>.data(user);
+    } on AuthFailure catch (failure) {
+      state = AsyncValue<AuthUser?>.data(previousUser);
+      ref
+          .read(loggerServiceProvider)
+          .logError('updateEmail failed: ${failure.message}', failure);
+      rethrow;
+    }
+  }
+
+  Future<void> updatePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    _exitOfflineMode();
+    final AuthUser? previousUser = state.value;
+    state = const AsyncValue<AuthUser?>.loading();
+    try {
+      await ref
+          .read(authRepositoryProvider)
+          .updatePassword(
+            currentPassword: currentPassword,
+            newPassword: newPassword,
+          );
+      state = AsyncValue<AuthUser?>.data(
+        ref.read(authRepositoryProvider).currentUser ?? previousUser,
+      );
+    } on AuthFailure catch (failure) {
+      state = AsyncValue<AuthUser?>.data(previousUser);
+      ref
+          .read(loggerServiceProvider)
+          .logError('updatePassword failed: ${failure.message}', failure);
+      rethrow;
+    }
+  }
+
   void _enterOfflineMode() {
     _offlineMode = true;
   }

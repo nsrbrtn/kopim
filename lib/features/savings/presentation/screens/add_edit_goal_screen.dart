@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
 import 'package:kopim/core/widgets/kopim_text_field.dart';
 import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
@@ -132,6 +133,8 @@ class _AddEditGoalScreenState extends ConsumerState<AddEditGoalScreen> {
                 if (state.targetError != null && state.targetError!.isNotEmpty)
                   _FieldErrorText(message: state.targetError!),
                 const SizedBox(height: 16),
+                _TargetDateField(state: state, goal: widget.goal),
+                const SizedBox(height: 16),
                 KopimTextField(
                   controller: _noteController,
                   placeholder: strings.savingsNoteLabel,
@@ -167,6 +170,58 @@ class _AddEditGoalScreenState extends ConsumerState<AddEditGoalScreen> {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _TargetDateField extends ConsumerWidget {
+  const _TargetDateField({required this.state, required this.goal});
+
+  final EditGoalState state;
+  final SavingGoal? goal;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final ThemeData theme = Theme.of(context);
+    final DateTime? targetDate = state.targetDate;
+    final String label = targetDate == null
+        ? 'Дата цели не выбрана'
+        : DateFormat.yMMMMd(
+            Localizations.localeOf(context).toString(),
+          ).format(targetDate);
+    return Row(
+      children: <Widget>[
+        Expanded(child: Text(label, style: theme.textTheme.bodyMedium)),
+        const SizedBox(width: 8),
+        OutlinedButton(
+          onPressed: () async {
+            final DateTime now = DateTime.now();
+            final DateTime initial = targetDate ?? now;
+            final DateTime? picked = await showDatePicker(
+              context: context,
+              initialDate: initial,
+              firstDate: DateTime(now.year - 1, 1, 1),
+              lastDate: DateTime(now.year + 20, 12, 31),
+            );
+            if (picked == null) {
+              return;
+            }
+            ref
+                .read(editGoalControllerProvider(goal).notifier)
+                .updateTargetDate(picked);
+          },
+          child: const Text('Выбрать дату'),
+        ),
+        if (targetDate != null) ...<Widget>[
+          const SizedBox(width: 8),
+          OutlinedButton(
+            onPressed: () => ref
+                .read(editGoalControllerProvider(goal).notifier)
+                .updateTargetDate(null),
+            child: const Text('Очистить'),
+          ),
+        ],
+      ],
     );
   }
 }

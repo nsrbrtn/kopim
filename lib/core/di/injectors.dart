@@ -793,6 +793,8 @@ MakeCreditPaymentUseCase makeCreditPaymentUseCase(Ref ref) =>
     MakeCreditPaymentUseCase(
       creditRepository: ref.watch(creditRepositoryProvider),
       transactionRepository: ref.watch(transactionRepositoryProvider),
+      accountRepository: ref.watch(accountRepositoryProvider),
+      categoryRepository: ref.watch(categoryRepositoryProvider),
       uuid: ref.watch(uuidGeneratorProvider),
     );
 
@@ -1182,6 +1184,8 @@ SyncService syncService(Ref ref) {
       transactionTagRemoteDataSourceProvider,
     ),
     transactionRemoteDataSource: ref.watch(transactionRemoteDataSourceProvider),
+    creditRemoteDataSource: ref.watch(creditRemoteDataSourceProvider),
+    creditCardRemoteDataSource: ref.watch(creditCardRemoteDataSourceProvider),
     debtRemoteDataSource: ref.watch(debtRemoteDataSourceProvider),
     profileRemoteDataSource: ref.watch(profileRemoteDataSourceProvider),
     budgetRemoteDataSource: ref.watch(budgetRemoteDataSourceProvider),

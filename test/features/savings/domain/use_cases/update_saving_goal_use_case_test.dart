@@ -39,16 +39,19 @@ void main() {
   });
 
   test('updates goal with trimmed fields', () async {
+    final DateTime targetDate = DateTime(2027, 5, 20, 8, 0);
     final SavingGoal updated = await useCase(
       goal: _goal(),
       name: '  New name  ',
       target: Money.fromMinorUnits(2500),
       note: '  Focus on flights  ',
+      targetDate: targetDate,
     );
 
     expect(updated.name, 'New name');
     expect(updated.targetAmount, 2500);
     expect(updated.note, 'Focus on flights');
+    expect(updated.targetDate, DateTime.utc(2027, 5, 20));
     expect(updated.updatedAt, fixedNow);
 
     verify(() => repository.update(updated)).called(1);

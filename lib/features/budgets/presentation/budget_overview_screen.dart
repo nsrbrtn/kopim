@@ -679,6 +679,7 @@ class _TrendChart extends StatelessWidget {
 
     return SizedBox(
       height: 120,
+      width: double.infinity,
       child: CustomPaint(
         painter: _TrendChartPainter(
           points: points,

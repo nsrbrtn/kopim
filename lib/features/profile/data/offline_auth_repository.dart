@@ -62,6 +62,22 @@ class OfflineAuthRepository implements AuthRepository {
     return _unsupportedVoid('sendPasswordResetEmail');
   }
 
+  @override
+  Future<AuthUser> updateEmail({
+    required String newEmail,
+    required String currentPassword,
+  }) {
+    return _unsupported('updateEmail');
+  }
+
+  @override
+  Future<void> updatePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) {
+    return _unsupportedVoid('updatePassword');
+  }
+
   Future<AuthUser> _unsupported(String action) {
     _logger.logError('Auth действие недоступно в офлайн-режиме: $action');
     throw const AuthFailure(

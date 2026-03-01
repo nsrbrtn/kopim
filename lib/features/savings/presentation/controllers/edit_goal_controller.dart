@@ -23,6 +23,7 @@ class EditGoalController extends _$EditGoalController {
       name: goal.name,
       targetInput: target.toStringAsFixed(2),
       note: goal.note,
+      targetDate: goal.targetDate,
     );
   }
 
@@ -36,6 +37,10 @@ class EditGoalController extends _$EditGoalController {
 
   void updateNote(String value) {
     state = state.copyWith(note: value);
+  }
+
+  void updateTargetDate(DateTime? value) {
+    state = state.copyWith(targetDate: value);
   }
 
   Future<void> submit() async {
@@ -60,7 +65,12 @@ class EditGoalController extends _$EditGoalController {
         final CreateSavingGoalUseCase create = ref.read(
           createSavingGoalUseCaseProvider,
         );
-        await create(name: trimmedName, target: targetMoney, note: trimmedNote);
+        await create(
+          name: trimmedName,
+          target: targetMoney,
+          note: trimmedNote,
+          targetDate: state.targetDate,
+        );
       } else {
         final UpdateSavingGoalUseCase update = ref.read(
           updateSavingGoalUseCaseProvider,
@@ -70,6 +80,7 @@ class EditGoalController extends _$EditGoalController {
           name: trimmedName,
           target: targetMoney,
           note: trimmedNote,
+          targetDate: state.targetDate,
         );
       }
       state = state.copyWith(

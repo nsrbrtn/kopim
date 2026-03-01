@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$EditGoalState {
 
- SavingGoal? get original; String get name; String get targetInput; String? get nameError; String? get targetError; String? get note; bool get isSaving; bool get submissionSuccess; String? get errorMessage;
+ SavingGoal? get original; String get name; String get targetInput; String? get nameError; String? get targetError; String? get note; DateTime? get targetDate; bool get isSaving; bool get submissionSuccess; String? get errorMessage;
 /// Create a copy of EditGoalState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $EditGoalStateCopyWith<EditGoalState> get copyWith => _$EditGoalStateCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is EditGoalState&&(identical(other.original, original) || other.original == original)&&(identical(other.name, name) || other.name == name)&&(identical(other.targetInput, targetInput) || other.targetInput == targetInput)&&(identical(other.nameError, nameError) || other.nameError == nameError)&&(identical(other.targetError, targetError) || other.targetError == targetError)&&(identical(other.note, note) || other.note == note)&&(identical(other.isSaving, isSaving) || other.isSaving == isSaving)&&(identical(other.submissionSuccess, submissionSuccess) || other.submissionSuccess == submissionSuccess)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is EditGoalState&&(identical(other.original, original) || other.original == original)&&(identical(other.name, name) || other.name == name)&&(identical(other.targetInput, targetInput) || other.targetInput == targetInput)&&(identical(other.nameError, nameError) || other.nameError == nameError)&&(identical(other.targetError, targetError) || other.targetError == targetError)&&(identical(other.note, note) || other.note == note)&&(identical(other.targetDate, targetDate) || other.targetDate == targetDate)&&(identical(other.isSaving, isSaving) || other.isSaving == isSaving)&&(identical(other.submissionSuccess, submissionSuccess) || other.submissionSuccess == submissionSuccess)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,original,name,targetInput,nameError,targetError,note,isSaving,submissionSuccess,errorMessage);
+int get hashCode => Object.hash(runtimeType,original,name,targetInput,nameError,targetError,note,targetDate,isSaving,submissionSuccess,errorMessage);
 
 @override
 String toString() {
-  return 'EditGoalState(original: $original, name: $name, targetInput: $targetInput, nameError: $nameError, targetError: $targetError, note: $note, isSaving: $isSaving, submissionSuccess: $submissionSuccess, errorMessage: $errorMessage)';
+  return 'EditGoalState(original: $original, name: $name, targetInput: $targetInput, nameError: $nameError, targetError: $targetError, note: $note, targetDate: $targetDate, isSaving: $isSaving, submissionSuccess: $submissionSuccess, errorMessage: $errorMessage)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $EditGoalStateCopyWith<$Res>  {
   factory $EditGoalStateCopyWith(EditGoalState value, $Res Function(EditGoalState) _then) = _$EditGoalStateCopyWithImpl;
 @useResult
 $Res call({
- SavingGoal? original, String name, String targetInput, String? nameError, String? targetError, String? note, bool isSaving, bool submissionSuccess, String? errorMessage
+ SavingGoal? original, String name, String targetInput, String? nameError, String? targetError, String? note, DateTime? targetDate, bool isSaving, bool submissionSuccess, String? errorMessage
 });
 
 
@@ -62,7 +62,7 @@ class _$EditGoalStateCopyWithImpl<$Res>
 
 /// Create a copy of EditGoalState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? original = freezed,Object? name = null,Object? targetInput = null,Object? nameError = freezed,Object? targetError = freezed,Object? note = freezed,Object? isSaving = null,Object? submissionSuccess = null,Object? errorMessage = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? original = freezed,Object? name = null,Object? targetInput = null,Object? nameError = freezed,Object? targetError = freezed,Object? note = freezed,Object? targetDate = freezed,Object? isSaving = null,Object? submissionSuccess = null,Object? errorMessage = freezed,}) {
   return _then(_self.copyWith(
 original: freezed == original ? _self.original : original // ignore: cast_nullable_to_non_nullable
 as SavingGoal?,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -70,7 +70,8 @@ as String,targetInput: null == targetInput ? _self.targetInput : targetInput // 
 as String,nameError: freezed == nameError ? _self.nameError : nameError // ignore: cast_nullable_to_non_nullable
 as String?,targetError: freezed == targetError ? _self.targetError : targetError // ignore: cast_nullable_to_non_nullable
 as String?,note: freezed == note ? _self.note : note // ignore: cast_nullable_to_non_nullable
-as String?,isSaving: null == isSaving ? _self.isSaving : isSaving // ignore: cast_nullable_to_non_nullable
+as String?,targetDate: freezed == targetDate ? _self.targetDate : targetDate // ignore: cast_nullable_to_non_nullable
+as DateTime?,isSaving: null == isSaving ? _self.isSaving : isSaving // ignore: cast_nullable_to_non_nullable
 as bool,submissionSuccess: null == submissionSuccess ? _self.submissionSuccess : submissionSuccess // ignore: cast_nullable_to_non_nullable
 as bool,errorMessage: freezed == errorMessage ? _self.errorMessage : errorMessage // ignore: cast_nullable_to_non_nullable
 as String?,
@@ -170,10 +171,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( SavingGoal? original,  String name,  String targetInput,  String? nameError,  String? targetError,  String? note,  bool isSaving,  bool submissionSuccess,  String? errorMessage)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( SavingGoal? original,  String name,  String targetInput,  String? nameError,  String? targetError,  String? note,  DateTime? targetDate,  bool isSaving,  bool submissionSuccess,  String? errorMessage)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _EditGoalState() when $default != null:
-return $default(_that.original,_that.name,_that.targetInput,_that.nameError,_that.targetError,_that.note,_that.isSaving,_that.submissionSuccess,_that.errorMessage);case _:
+return $default(_that.original,_that.name,_that.targetInput,_that.nameError,_that.targetError,_that.note,_that.targetDate,_that.isSaving,_that.submissionSuccess,_that.errorMessage);case _:
   return orElse();
 
 }
@@ -191,10 +192,10 @@ return $default(_that.original,_that.name,_that.targetInput,_that.nameError,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( SavingGoal? original,  String name,  String targetInput,  String? nameError,  String? targetError,  String? note,  bool isSaving,  bool submissionSuccess,  String? errorMessage)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( SavingGoal? original,  String name,  String targetInput,  String? nameError,  String? targetError,  String? note,  DateTime? targetDate,  bool isSaving,  bool submissionSuccess,  String? errorMessage)  $default,) {final _that = this;
 switch (_that) {
 case _EditGoalState():
-return $default(_that.original,_that.name,_that.targetInput,_that.nameError,_that.targetError,_that.note,_that.isSaving,_that.submissionSuccess,_that.errorMessage);case _:
+return $default(_that.original,_that.name,_that.targetInput,_that.nameError,_that.targetError,_that.note,_that.targetDate,_that.isSaving,_that.submissionSuccess,_that.errorMessage);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -211,10 +212,10 @@ return $default(_that.original,_that.name,_that.targetInput,_that.nameError,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( SavingGoal? original,  String name,  String targetInput,  String? nameError,  String? targetError,  String? note,  bool isSaving,  bool submissionSuccess,  String? errorMessage)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( SavingGoal? original,  String name,  String targetInput,  String? nameError,  String? targetError,  String? note,  DateTime? targetDate,  bool isSaving,  bool submissionSuccess,  String? errorMessage)?  $default,) {final _that = this;
 switch (_that) {
 case _EditGoalState() when $default != null:
-return $default(_that.original,_that.name,_that.targetInput,_that.nameError,_that.targetError,_that.note,_that.isSaving,_that.submissionSuccess,_that.errorMessage);case _:
+return $default(_that.original,_that.name,_that.targetInput,_that.nameError,_that.targetError,_that.note,_that.targetDate,_that.isSaving,_that.submissionSuccess,_that.errorMessage);case _:
   return null;
 
 }
@@ -226,7 +227,7 @@ return $default(_that.original,_that.name,_that.targetInput,_that.nameError,_tha
 
 
 class _EditGoalState implements EditGoalState {
-  const _EditGoalState({this.original, this.name = '', this.targetInput = '', this.nameError, this.targetError, this.note, this.isSaving = false, this.submissionSuccess = false, this.errorMessage});
+  const _EditGoalState({this.original, this.name = '', this.targetInput = '', this.nameError, this.targetError, this.note, this.targetDate, this.isSaving = false, this.submissionSuccess = false, this.errorMessage});
   
 
 @override final  SavingGoal? original;
@@ -235,6 +236,7 @@ class _EditGoalState implements EditGoalState {
 @override final  String? nameError;
 @override final  String? targetError;
 @override final  String? note;
+@override final  DateTime? targetDate;
 @override@JsonKey() final  bool isSaving;
 @override@JsonKey() final  bool submissionSuccess;
 @override final  String? errorMessage;
@@ -249,16 +251,16 @@ _$EditGoalStateCopyWith<_EditGoalState> get copyWith => __$EditGoalStateCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _EditGoalState&&(identical(other.original, original) || other.original == original)&&(identical(other.name, name) || other.name == name)&&(identical(other.targetInput, targetInput) || other.targetInput == targetInput)&&(identical(other.nameError, nameError) || other.nameError == nameError)&&(identical(other.targetError, targetError) || other.targetError == targetError)&&(identical(other.note, note) || other.note == note)&&(identical(other.isSaving, isSaving) || other.isSaving == isSaving)&&(identical(other.submissionSuccess, submissionSuccess) || other.submissionSuccess == submissionSuccess)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _EditGoalState&&(identical(other.original, original) || other.original == original)&&(identical(other.name, name) || other.name == name)&&(identical(other.targetInput, targetInput) || other.targetInput == targetInput)&&(identical(other.nameError, nameError) || other.nameError == nameError)&&(identical(other.targetError, targetError) || other.targetError == targetError)&&(identical(other.note, note) || other.note == note)&&(identical(other.targetDate, targetDate) || other.targetDate == targetDate)&&(identical(other.isSaving, isSaving) || other.isSaving == isSaving)&&(identical(other.submissionSuccess, submissionSuccess) || other.submissionSuccess == submissionSuccess)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,original,name,targetInput,nameError,targetError,note,isSaving,submissionSuccess,errorMessage);
+int get hashCode => Object.hash(runtimeType,original,name,targetInput,nameError,targetError,note,targetDate,isSaving,submissionSuccess,errorMessage);
 
 @override
 String toString() {
-  return 'EditGoalState(original: $original, name: $name, targetInput: $targetInput, nameError: $nameError, targetError: $targetError, note: $note, isSaving: $isSaving, submissionSuccess: $submissionSuccess, errorMessage: $errorMessage)';
+  return 'EditGoalState(original: $original, name: $name, targetInput: $targetInput, nameError: $nameError, targetError: $targetError, note: $note, targetDate: $targetDate, isSaving: $isSaving, submissionSuccess: $submissionSuccess, errorMessage: $errorMessage)';
 }
 
 
@@ -269,7 +271,7 @@ abstract mixin class _$EditGoalStateCopyWith<$Res> implements $EditGoalStateCopy
   factory _$EditGoalStateCopyWith(_EditGoalState value, $Res Function(_EditGoalState) _then) = __$EditGoalStateCopyWithImpl;
 @override @useResult
 $Res call({
- SavingGoal? original, String name, String targetInput, String? nameError, String? targetError, String? note, bool isSaving, bool submissionSuccess, String? errorMessage
+ SavingGoal? original, String name, String targetInput, String? nameError, String? targetError, String? note, DateTime? targetDate, bool isSaving, bool submissionSuccess, String? errorMessage
 });
 
 
@@ -286,7 +288,7 @@ class __$EditGoalStateCopyWithImpl<$Res>
 
 /// Create a copy of EditGoalState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? original = freezed,Object? name = null,Object? targetInput = null,Object? nameError = freezed,Object? targetError = freezed,Object? note = freezed,Object? isSaving = null,Object? submissionSuccess = null,Object? errorMessage = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? original = freezed,Object? name = null,Object? targetInput = null,Object? nameError = freezed,Object? targetError = freezed,Object? note = freezed,Object? targetDate = freezed,Object? isSaving = null,Object? submissionSuccess = null,Object? errorMessage = freezed,}) {
   return _then(_EditGoalState(
 original: freezed == original ? _self.original : original // ignore: cast_nullable_to_non_nullable
 as SavingGoal?,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -294,7 +296,8 @@ as String,targetInput: null == targetInput ? _self.targetInput : targetInput // 
 as String,nameError: freezed == nameError ? _self.nameError : nameError // ignore: cast_nullable_to_non_nullable
 as String?,targetError: freezed == targetError ? _self.targetError : targetError // ignore: cast_nullable_to_non_nullable
 as String?,note: freezed == note ? _self.note : note // ignore: cast_nullable_to_non_nullable
-as String?,isSaving: null == isSaving ? _self.isSaving : isSaving // ignore: cast_nullable_to_non_nullable
+as String?,targetDate: freezed == targetDate ? _self.targetDate : targetDate // ignore: cast_nullable_to_non_nullable
+as DateTime?,isSaving: null == isSaving ? _self.isSaving : isSaving // ignore: cast_nullable_to_non_nullable
 as bool,submissionSuccess: null == submissionSuccess ? _self.submissionSuccess : submissionSuccess // ignore: cast_nullable_to_non_nullable
 as bool,errorMessage: freezed == errorMessage ? _self.errorMessage : errorMessage // ignore: cast_nullable_to_non_nullable
 as String?,

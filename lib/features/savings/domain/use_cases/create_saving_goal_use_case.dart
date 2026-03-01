@@ -25,6 +25,7 @@ class CreateSavingGoalUseCase {
     required String name,
     required Money target,
     String? note,
+    DateTime? targetDate,
   }) async {
     final String trimmedName = name.trim();
     if (trimmedName.isEmpty) {
@@ -55,6 +56,9 @@ class CreateSavingGoalUseCase {
       userId: userId,
       name: trimmedName,
       accountId: _uuid.v4(),
+      targetDate: targetDate == null
+          ? null
+          : DateTime.utc(targetDate.year, targetDate.month, targetDate.day),
       targetAmount: target.minorUnits,
       currentAmount: 0,
       note: note?.trim().isEmpty ?? true ? null : note!.trim(),

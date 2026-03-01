@@ -17,6 +17,62 @@
     "description": "Message shown above the register button for anonymous users"
   },
   "profileSectionAccount": "Account",
+  "profileCredentialsSectionTitle": "Login and Password",
+  "@profileCredentialsSectionTitle": {
+    "description": "Title of login and password section in profile settings"
+  },
+  "profileCredentialsAnonymousHint": "Sign in to change your login and password.",
+  "@profileCredentialsAnonymousHint": {
+    "description": "Hint shown to anonymous users in credentials section"
+  },
+  "profileCredentialsChangeLoginCta": "Change login",
+  "@profileCredentialsChangeLoginCta": {
+    "description": "CTA for changing login in profile settings"
+  },
+  "profileCredentialsChangePasswordCta": "Change password",
+  "@profileCredentialsChangePasswordCta": {
+    "description": "CTA for changing password in profile settings"
+  },
+  "profileCredentialsChangeLoginTitle": "Change login",
+  "@profileCredentialsChangeLoginTitle": {
+    "description": "Dialog title for login change"
+  },
+  "profileCredentialsChangePasswordTitle": "Change password",
+  "@profileCredentialsChangePasswordTitle": {
+    "description": "Dialog title for password change"
+  },
+  "profileCredentialsNewLoginLabel": "New login (email)",
+  "@profileCredentialsNewLoginLabel": {
+    "description": "Label for new login input"
+  },
+  "profileCredentialsCurrentPasswordLabel": "Current password",
+  "@profileCredentialsCurrentPasswordLabel": {
+    "description": "Label for current password input"
+  },
+  "profileCredentialsNewPasswordLabel": "New password",
+  "@profileCredentialsNewPasswordLabel": {
+    "description": "Label for new password input"
+  },
+  "profileCredentialsConfirmPasswordLabel": "Confirm new password",
+  "@profileCredentialsConfirmPasswordLabel": {
+    "description": "Label for confirm password input"
+  },
+  "profileCredentialsValidationRequired": "Please fill in this field",
+  "@profileCredentialsValidationRequired": {
+    "description": "Validation error for required fields in credentials dialogs"
+  },
+  "profileCredentialsValidationPasswordMatch": "Passwords do not match",
+  "@profileCredentialsValidationPasswordMatch": {
+    "description": "Validation error when confirm password does not match"
+  },
+  "profileCredentialsLoginUpdated": "Login updated",
+  "@profileCredentialsLoginUpdated": {
+    "description": "Message shown after successful login update"
+  },
+  "profileCredentialsPasswordUpdated": "Password updated",
+  "@profileCredentialsPasswordUpdated": {
+    "description": "Message shown after successful password update"
+  },
   "profileAppearanceSection": "Appearance",
   "@profileAppearanceSection": {
     "description": "Section title for appearance settings in profile management"
@@ -395,7 +451,7 @@
   "@settingsHomeBudgetPickerClear": {
     "description": "Action label for removing the selected budget"
   },
-  "profileManageCategoriesTitle": "Manage categories and tags",
+  "profileManageCategoriesTitle": "Categories and tags",
   "@profileManageCategoriesTitle": {
     "description": "Title for the category management screen"
   },

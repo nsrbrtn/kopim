@@ -17,6 +17,7 @@ class UpdateSavingGoalUseCase {
     String? name,
     Money? target,
     String? note,
+    DateTime? targetDate,
   }) async {
     final String updatedName = name?.trim().isNotEmpty ?? false
         ? name!.trim()
@@ -39,6 +40,9 @@ class UpdateSavingGoalUseCase {
     final SavingGoal updatedGoal = goal.copyWith(
       name: updatedName,
       targetAmount: updatedTarget,
+      targetDate: targetDate == null
+          ? goal.targetDate
+          : DateTime.utc(targetDate.year, targetDate.month, targetDate.day),
       note: note?.trim().isNotEmpty ?? false ? note!.trim() : null,
       updatedAt: now,
     );

@@ -108,8 +108,7 @@ class _KopimTextFieldState extends State<KopimTextField> {
       vertical: layout.spacing.between,
     );
 
-    final Color placeholderColor =
-        widget.placeholderColor ?? colors.surfaceContainerHighest;
+    final Color placeholderColor = widget.placeholderColor ?? colors.outline;
     final TextStyle effectiveTextStyle =
         widget.textStyle ??
         theme.textTheme.bodyLarge?.copyWith(color: colors.onSurface) ??
@@ -154,7 +153,7 @@ class _KopimTextFieldState extends State<KopimTextField> {
           style: effectiveTextStyle,
           decoration: InputDecoration(
             filled: true,
-            fillColor: widget.fillColor ?? colors.surfaceContainerLowest,
+            fillColor: widget.fillColor ?? colors.surfaceContainerHigh,
             hintText: widget.placeholder,
             hintStyle: hintStyle,
             prefixIcon: widget.prefixIcon,

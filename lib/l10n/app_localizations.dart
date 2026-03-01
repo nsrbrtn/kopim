@@ -128,6 +128,90 @@ abstract class AppLocalizations {
   /// **'Account'**
   String get profileSectionAccount;
 
+  /// Title of login and password section in profile settings
+  ///
+  /// In en, this message translates to:
+  /// **'Login and Password'**
+  String get profileCredentialsSectionTitle;
+
+  /// Hint shown to anonymous users in credentials section
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to change your login and password.'**
+  String get profileCredentialsAnonymousHint;
+
+  /// CTA for changing login in profile settings
+  ///
+  /// In en, this message translates to:
+  /// **'Change login'**
+  String get profileCredentialsChangeLoginCta;
+
+  /// CTA for changing password in profile settings
+  ///
+  /// In en, this message translates to:
+  /// **'Change password'**
+  String get profileCredentialsChangePasswordCta;
+
+  /// Dialog title for login change
+  ///
+  /// In en, this message translates to:
+  /// **'Change login'**
+  String get profileCredentialsChangeLoginTitle;
+
+  /// Dialog title for password change
+  ///
+  /// In en, this message translates to:
+  /// **'Change password'**
+  String get profileCredentialsChangePasswordTitle;
+
+  /// Label for new login input
+  ///
+  /// In en, this message translates to:
+  /// **'New login (email)'**
+  String get profileCredentialsNewLoginLabel;
+
+  /// Label for current password input
+  ///
+  /// In en, this message translates to:
+  /// **'Current password'**
+  String get profileCredentialsCurrentPasswordLabel;
+
+  /// Label for new password input
+  ///
+  /// In en, this message translates to:
+  /// **'New password'**
+  String get profileCredentialsNewPasswordLabel;
+
+  /// Label for confirm password input
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm new password'**
+  String get profileCredentialsConfirmPasswordLabel;
+
+  /// Validation error for required fields in credentials dialogs
+  ///
+  /// In en, this message translates to:
+  /// **'Please fill in this field'**
+  String get profileCredentialsValidationRequired;
+
+  /// Validation error when confirm password does not match
+  ///
+  /// In en, this message translates to:
+  /// **'Passwords do not match'**
+  String get profileCredentialsValidationPasswordMatch;
+
+  /// Message shown after successful login update
+  ///
+  /// In en, this message translates to:
+  /// **'Login updated'**
+  String get profileCredentialsLoginUpdated;
+
+  /// Message shown after successful password update
+  ///
+  /// In en, this message translates to:
+  /// **'Password updated'**
+  String get profileCredentialsPasswordUpdated;
+
   /// Section title for appearance settings in profile management
   ///
   /// In en, this message translates to:
@@ -723,7 +807,7 @@ abstract class AppLocalizations {
   /// Title for the category management screen
   ///
   /// In en, this message translates to:
-  /// **'Manage categories and tags'**
+  /// **'Categories and tags'**
   String get profileManageCategoriesTitle;
 
   /// Tab label for the categories list

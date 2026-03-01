@@ -34,58 +34,20 @@ class ManageCategoriesScreen extends ConsumerStatefulWidget {
 }
 
 class _ManageCategoriesScreenState extends ConsumerState<ManageCategoriesScreen>
-    with TickerProviderStateMixin {
-  late final AnimationController _swipeHintController;
-  late final Animation<double> _swipeHintDx;
+    with SingleTickerProviderStateMixin {
   late final TabController _tabController;
-  bool _didPlaySwipeHint = false;
 
   @override
   void initState() {
     super.initState();
-    _swipeHintController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1100),
-    );
     _tabController = TabController(length: 2, vsync: this)
       ..addListener(_handleTabChange);
-    _swipeHintDx = TweenSequence<double>(<TweenSequenceItem<double>>[
-      TweenSequenceItem<double>(
-        tween: Tween<double>(
-          begin: 0,
-          end: -18,
-        ).chain(CurveTween(curve: Curves.easeOutCubic)),
-        weight: 1,
-      ),
-      TweenSequenceItem<double>(
-        tween: Tween<double>(
-          begin: -18,
-          end: 0,
-        ).chain(CurveTween(curve: Curves.easeInCubic)),
-        weight: 1,
-      ),
-      TweenSequenceItem<double>(
-        tween: Tween<double>(
-          begin: 0,
-          end: 18,
-        ).chain(CurveTween(curve: Curves.easeOutCubic)),
-        weight: 1,
-      ),
-      TweenSequenceItem<double>(
-        tween: Tween<double>(
-          begin: 18,
-          end: 0,
-        ).chain(CurveTween(curve: Curves.easeInCubic)),
-        weight: 1,
-      ),
-    ]).animate(_swipeHintController);
   }
 
   @override
   void dispose() {
     _tabController.removeListener(_handleTabChange);
     _tabController.dispose();
-    _swipeHintController.dispose();
     super.dispose();
   }
 
@@ -94,15 +56,6 @@ class _ManageCategoriesScreenState extends ConsumerState<ManageCategoriesScreen>
       return;
     }
     setState(() {});
-  }
-
-  void _scheduleSwipeHintIfNeeded(bool hasCategories) {
-    if (_didPlaySwipeHint || !hasCategories) return;
-    _didPlaySwipeHint = true;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      unawaited(_swipeHintController.forward(from: 0));
-    });
   }
 
   @override
@@ -117,8 +70,6 @@ class _ManageCategoriesScreenState extends ConsumerState<ManageCategoriesScreen>
     final List<Category> rootCategories = tree
         .map((CategoryTreeNode node) => node.category)
         .toList();
-    _scheduleSwipeHintIfNeeded(tree.isNotEmpty);
-
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
     final bool isTagsTab = _tabController.index == 1;
     return Scaffold(
@@ -163,25 +114,11 @@ class _ManageCategoriesScreenState extends ConsumerState<ManageCategoriesScreen>
                 return _CategoryTreeList(
                   tree: nodes,
                   strings: strings,
-                  swipeHintDx: _swipeHintDx,
                   onEditCategory: (Category category) => _showCategoryEditor(
                     context,
                     ref,
                     strings: strings,
                     parents: rootCategories,
-                    category: category,
-                  ),
-                  onAddSubcategory: (Category parent) => _showCategoryEditor(
-                    context,
-                    ref,
-                    strings: strings,
-                    parents: rootCategories,
-                    defaultParentId: parent.id,
-                  ),
-                  onDeleteCategory: (Category category) => _deleteCategoryFlow(
-                    context,
-                    ref,
-                    strings: strings,
                     category: category,
                   ),
                 );
@@ -293,18 +230,12 @@ class _CategoryTreeList extends StatelessWidget {
   const _CategoryTreeList({
     required this.tree,
     required this.strings,
-    required this.swipeHintDx,
     required this.onEditCategory,
-    required this.onAddSubcategory,
-    required this.onDeleteCategory,
   });
 
   final List<CategoryTreeNode> tree;
   final AppLocalizations strings;
-  final Animation<double> swipeHintDx;
   final Future<void> Function(Category) onEditCategory;
-  final Future<void> Function(Category) onAddSubcategory;
-  final Future<bool> Function(Category) onDeleteCategory;
 
   @override
   Widget build(BuildContext context) {
@@ -312,36 +243,18 @@ class _CategoryTreeList extends StatelessWidget {
     final KopimLayout layout = theme.kopimLayout;
     final double bottomPadding =
         KopimFloatingActionButton.defaultSize + layout.spacing.section * 2;
+    final List<_FlattenedCategoryItem> items = _flattenCategoryTree(tree);
 
     return ListView.separated(
       padding: EdgeInsets.fromLTRB(12, 8, 12, bottomPadding),
-      itemCount: tree.length,
+      itemCount: items.length,
       itemBuilder: (BuildContext context, int index) {
-        final CategoryTreeNode node = tree[index];
-        final Widget tile = _SwipeableCategoryTile(
-          radius: 12,
-          categoryId: node.category.id,
+        final _FlattenedCategoryItem item = items[index];
+        return _CategoryListTile(
+          key: ValueKey<String>('category-tile:${item.category.id}'),
+          item: item,
           strings: strings,
-          onEdit: () => onEditCategory(node.category),
-          onDelete: () => onDeleteCategory(node.category),
-          child: _CategoryNodeCard(
-            node: node,
-            strings: strings,
-            onEditCategory: onEditCategory,
-            onAddSubcategory: onAddSubcategory,
-            onDeleteCategory: onDeleteCategory,
-          ),
-        );
-        if (index != 0) return tile;
-        return AnimatedBuilder(
-          animation: swipeHintDx,
-          builder: (BuildContext context, Widget? child) {
-            return Transform.translate(
-              offset: Offset(swipeHintDx.value, 0),
-              child: child,
-            );
-          },
-          child: tile,
+          onEdit: () => onEditCategory(item.category),
         );
       },
       separatorBuilder: (BuildContext context, int index) =>
@@ -350,357 +263,114 @@ class _CategoryTreeList extends StatelessWidget {
   }
 }
 
-class _SwipeableCategoryTile extends StatelessWidget {
-  const _SwipeableCategoryTile({
-    required this.radius,
-    required this.categoryId,
+class _FlattenedCategoryItem {
+  const _FlattenedCategoryItem({required this.category, required this.depth});
+
+  final Category category;
+  final int depth;
+}
+
+List<_FlattenedCategoryItem> _flattenCategoryTree(List<CategoryTreeNode> tree) {
+  final List<_FlattenedCategoryItem> items = <_FlattenedCategoryItem>[];
+  void visit(CategoryTreeNode node, int depth) {
+    items.add(_FlattenedCategoryItem(category: node.category, depth: depth));
+    for (final CategoryTreeNode child in node.children) {
+      visit(child, depth + 1);
+    }
+  }
+
+  for (final CategoryTreeNode node in tree) {
+    visit(node, 0);
+  }
+  return items;
+}
+
+class _CategoryListTile extends StatelessWidget {
+  const _CategoryListTile({
+    super.key,
+    required this.item,
     required this.strings,
     required this.onEdit,
-    required this.onDelete,
-    required this.child,
   });
 
-  final double radius;
-  final String categoryId;
+  final _FlattenedCategoryItem item;
   final AppLocalizations strings;
   final Future<void> Function() onEdit;
-  final Future<bool> Function() onDelete;
-  final Widget child;
 
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
-    final BorderRadius borderRadius = BorderRadius.circular(radius);
-
-    return ClipRRect(
-      borderRadius: borderRadius,
-      child: Dismissible(
-        key: ValueKey<String>('category:$categoryId'),
-        direction: DismissDirection.horizontal,
-        background: _SwipeBackground(
-          color: theme.colorScheme.primaryContainer,
-          foregroundColor: theme.colorScheme.onPrimaryContainer,
-          icon: Icons.edit_outlined,
-          label: strings.manageCategoriesEditAction,
-          alignment: Alignment.centerLeft,
-        ),
-        secondaryBackground: _SwipeBackground(
-          color: theme.colorScheme.errorContainer,
-          foregroundColor: theme.colorScheme.onErrorContainer,
-          icon: Icons.delete_outline,
-          label: strings.manageCategoriesDeleteAction,
-          alignment: Alignment.centerRight,
-        ),
-        confirmDismiss: (DismissDirection direction) async {
-          if (direction == DismissDirection.startToEnd) {
-            await onEdit();
-            return false;
-          }
-          if (direction == DismissDirection.endToStart) {
-            await onDelete();
-            return false;
-          }
-          return false;
-        },
-        child: child,
-      ),
-    );
-  }
-}
-
-class _SwipeBackground extends StatelessWidget {
-  const _SwipeBackground({
-    required this.color,
-    required this.foregroundColor,
-    required this.icon,
-    required this.label,
-    required this.alignment,
-  });
-
-  final Color color;
-  final Color foregroundColor;
-  final IconData icon;
-  final String label;
-  final Alignment alignment;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: color,
-      alignment: alignment,
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          Icon(icon, color: foregroundColor),
-          const SizedBox(width: 8),
-          Text(
-            label,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: foregroundColor,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _CategoryNodeCard extends StatelessWidget {
-  const _CategoryNodeCard({
-    required this.node,
-    required this.strings,
-    required this.onEditCategory,
-    required this.onAddSubcategory,
-    required this.onDeleteCategory,
-  });
-
-  final CategoryTreeNode node;
-  final AppLocalizations strings;
-  final Future<void> Function(Category) onEditCategory;
-  final Future<void> Function(Category) onAddSubcategory;
-  final Future<bool> Function(Category) onDeleteCategory;
-
-  @override
-  Widget build(BuildContext context) {
-    return _CategoryCard(
-      key: ValueKey<String>('category-card:${node.category.id}'),
-      node: node,
-      strings: strings,
-      onEditCategory: onEditCategory,
-      onAddSubcategory: onAddSubcategory,
-      onDeleteCategory: onDeleteCategory,
-    );
-  }
-}
-
-class _CategoryCard extends StatefulWidget {
-  const _CategoryCard({
-    super.key,
-    required this.node,
-    required this.strings,
-    required this.onEditCategory,
-    required this.onAddSubcategory,
-    required this.onDeleteCategory,
-  });
-
-  final CategoryTreeNode node;
-  final AppLocalizations strings;
-  final Future<void> Function(Category) onEditCategory;
-  final Future<void> Function(Category) onAddSubcategory;
-  final Future<bool> Function(Category) onDeleteCategory;
-
-  @override
-  State<_CategoryCard> createState() => _CategoryCardState();
-}
-
-class _CategoryCardState extends State<_CategoryCard> {
-  bool _isExpanded = false;
-
-  void _toggleExpanded() {
-    setState(() => _isExpanded = !_isExpanded);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
-    final Category category = widget.node.category;
-    final bool hasChildren = widget.node.children.isNotEmpty;
-    final bool isExpanded = hasChildren && _isExpanded;
-
+    final Category category = item.category;
+    final bool isSubcategory = item.depth > 0;
+    final IconData? iconData = resolvePhosphorIconData(category.icon);
     final CategoryColorStyle colorStyle = resolveCategoryColorStyle(
       category.color,
     );
-    final IconData? iconData = resolvePhosphorIconData(category.icon);
-    final List<String> metadata = _buildMetadata(category, widget.strings);
+    final List<String> metadata = _buildMetadata(category, strings);
+    final double horizontalIndent = 12 + (item.depth * 16);
+    final double leftContentPadding = isSubcategory ? 8 : horizontalIndent;
+    final double iconSize = isSubcategory ? 40 : 48;
+    final TextStyle? titleStyle =
+        (isSubcategory
+                ? theme.textTheme.labelMedium
+                : theme.textTheme.labelLarge)
+            ?.copyWith(color: theme.colorScheme.onSurface);
 
-    final EdgeInsets contentPadding = isExpanded
-        ? const EdgeInsets.all(8)
-        : const EdgeInsets.fromLTRB(8, 8, 16, 8);
-
-    return Material(
-      color: theme.colorScheme.surfaceContainer,
-      borderRadius: BorderRadius.circular(20),
+    final Widget tile = Material(
+      color: isSubcategory
+          ? theme.colorScheme.surfaceContainerHigh
+          : theme.colorScheme.surfaceContainer,
+      borderRadius: BorderRadius.circular(isSubcategory ? 16 : 20),
       child: InkWell(
-        borderRadius: BorderRadius.circular(20),
-        onTap: hasChildren ? _toggleExpanded : null,
+        borderRadius: BorderRadius.circular(isSubcategory ? 16 : 20),
+        onTap: onEdit,
         child: Padding(
-          padding: contentPadding,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+          padding: EdgeInsets.fromLTRB(leftContentPadding, 8, 8, 8),
+          child: Row(
             children: <Widget>[
-              ConstrainedBox(
-                constraints: const BoxConstraints(minHeight: 48),
-                child: Row(
+              _CategoryIcon(
+                iconData: iconData,
+                backgroundColor: colorStyle.color,
+                backgroundGradient: colorStyle.backgroundGradient,
+                sampleColor: colorStyle.sampleColor,
+                size: iconSize,
+                borderRadius: BorderRadius.circular(isSubcategory ? 10 : 12),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
-                    _CategoryIcon(
-                      iconData: iconData,
-                      backgroundColor: colorStyle.color,
-                      backgroundGradient: colorStyle.backgroundGradient,
-                      sampleColor: colorStyle.sampleColor,
-                      size: 48,
-                      borderRadius: BorderRadius.circular(12),
+                    Text(
+                      category.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: titleStyle,
                     ),
-                    const SizedBox(width: 24),
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 4),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: <Widget>[
-                            Text(
-                              category.name,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: theme.textTheme.labelLarge?.copyWith(
-                                color: theme.colorScheme.onSurface,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              metadata.join(' · '),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: theme.textTheme.labelSmall?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                          ],
-                        ),
+                    const SizedBox(height: 2),
+                    Text(
+                      metadata.join(' · '),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
                       ),
-                    ),
-                    const SizedBox(width: 8),
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: <Widget>[
-                        IconButton(
-                          icon: const Icon(Icons.add),
-                          tooltip: widget
-                              .strings
-                              .manageCategoriesAddSubcategoryAction,
-                          onPressed: () =>
-                              unawaited(widget.onAddSubcategory(category)),
-                        ),
-                        if (hasChildren)
-                          IconButton(
-                            icon: AnimatedRotation(
-                              turns: isExpanded ? 0.5 : 0,
-                              duration: const Duration(milliseconds: 150),
-                              child: const Icon(Icons.keyboard_arrow_down),
-                            ),
-                            tooltip: isExpanded
-                                ? MaterialLocalizations.of(
-                                    context,
-                                  ).expandedIconTapHint
-                                : MaterialLocalizations.of(
-                                    context,
-                                  ).collapsedIconTapHint,
-                            onPressed: _toggleExpanded,
-                          ),
-                      ],
                     ),
                   ],
                 ),
-              ),
-              AnimatedSize(
-                duration: const Duration(milliseconds: 180),
-                curve: Curves.easeInOut,
-                alignment: Alignment.topCenter,
-                child: !isExpanded
-                    ? const SizedBox.shrink()
-                    : Column(
-                        children: <Widget>[
-                          const SizedBox(height: 16),
-                          Container(
-                            decoration: BoxDecoration(
-                              color: theme.colorScheme.surfaceContainerHigh,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            padding: const EdgeInsets.all(4),
-                            child: Column(
-                              children: <Widget>[
-                                for (
-                                  int index = 0;
-                                  index < widget.node.children.length;
-                                  index++
-                                ) ...<Widget>[
-                                  _SubcategoryTile(
-                                    node: widget.node.children[index],
-                                    strings: widget.strings,
-                                    onEdit: widget.onEditCategory,
-                                    onDelete: widget.onDeleteCategory,
-                                  ),
-                                  if (index != widget.node.children.length - 1)
-                                    const SizedBox(height: 8),
-                                ],
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
               ),
             ],
           ),
         ),
       ),
     );
-  }
-}
-
-class _SubcategoryTile extends StatelessWidget {
-  const _SubcategoryTile({
-    required this.node,
-    required this.strings,
-    required this.onEdit,
-    required this.onDelete,
-  });
-
-  final CategoryTreeNode node;
-  final AppLocalizations strings;
-  final Future<void> Function(Category) onEdit;
-  final Future<bool> Function(Category) onDelete;
-
-  @override
-  Widget build(BuildContext context) {
-    final Category category = node.category;
-    final IconData? iconData = resolvePhosphorIconData(category.icon);
-    final CategoryColorStyle colorStyle = resolveCategoryColorStyle(
-      category.color,
-    );
-    return _SwipeableCategoryTile(
-      radius: 12,
-      categoryId: category.id,
-      strings: strings,
-      onEdit: () => onEdit(category),
-      onDelete: () => onDelete(category),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4),
-        child: Row(
-          children: <Widget>[
-            _CategoryIcon(
-              iconData: iconData,
-              backgroundColor: colorStyle.color,
-              backgroundGradient: colorStyle.backgroundGradient,
-              sampleColor: colorStyle.sampleColor,
-              size: 40,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            const SizedBox(width: 24),
-            Expanded(
-              child: Text(
-                category.name,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
+    if (!isSubcategory) {
+      return tile;
+    }
+    return Align(
+      alignment: Alignment.centerRight,
+      child: FractionallySizedBox(widthFactor: 0.9, child: tile),
     );
   }
 }
@@ -985,6 +655,22 @@ class _CategoryEditorSheetState extends ConsumerState<_CategoryEditorSheet> {
       );
     }
 
+    Future<void> deleteCategory() async {
+      final Category? category = state.initialCategory;
+      if (category == null) {
+        return;
+      }
+      final bool didDelete = await _deleteCategoryFlow(
+        context,
+        ref,
+        strings: strings,
+        category: category,
+      );
+      if (didDelete && context.mounted) {
+        Navigator.of(context).pop(false);
+      }
+    }
+
     final bool isFormComplete =
         state.name.trim().isNotEmpty &&
         (state.icon?.isNotEmpty ?? false) &&
@@ -1107,34 +793,45 @@ class _CategoryEditorSheetState extends ConsumerState<_CategoryEditorSheet> {
             const SizedBox(height: 16),
             if (!state.isNew &&
                 state.initialCategory?.parentId == null) ...<Widget>[
-              OutlinedButton.icon(
+              TextButton.icon(
                 onPressed: addSubcategory,
                 icon: const Icon(Icons.subdirectory_arrow_right_outlined),
                 label: Text(strings.manageCategoriesAddSubcategoryAction),
               ),
               const SizedBox(height: 24),
             ],
-            FilledButton.icon(
-              style: FilledButton.styleFrom(
-                minimumSize: const Size.fromHeight(56),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 16,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                if (!state.isNew)
+                  FloatingActionButton(
+                    heroTag: 'category-editor-delete-fab',
+                    tooltip: strings.manageCategoriesDeleteAction,
+                    onPressed: state.isSaving ? null : deleteCategory,
+                    backgroundColor: theme.colorScheme.errorContainer,
+                    foregroundColor: theme.colorScheme.onErrorContainer,
+                    child: const Icon(Icons.delete_outline),
+                  )
+                else
+                  const SizedBox(width: 56, height: 56),
+                FloatingActionButton(
+                  heroTag: 'category-editor-save-fab',
+                  tooltip: strings.manageCategoriesSaveCta,
+                  onPressed: canSubmit ? controller.submit : null,
+                  backgroundColor: theme.colorScheme.primary,
+                  foregroundColor: theme.colorScheme.onPrimary,
+                  child: state.isSaving
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Icon(Icons.save),
                 ),
-                shape: const StadiumBorder(),
-                textStyle: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              onPressed: canSubmit ? controller.submit : null,
-              icon: state.isSaving
-                  ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.save),
-              label: Text(strings.manageCategoriesSaveCta),
+              ],
             ),
             if (state.errorMessage != null) ...<Widget>[
               const SizedBox(height: 12),

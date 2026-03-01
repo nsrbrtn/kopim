@@ -26,6 +26,50 @@ class AppLocalizationsRu extends AppLocalizations {
   String get profileSectionAccount => 'Учетная запись';
 
   @override
+  String get profileCredentialsSectionTitle => 'Логин и пароль';
+
+  @override
+  String get profileCredentialsAnonymousHint =>
+      'Для изменения логина и пароля войдите в аккаунт.';
+
+  @override
+  String get profileCredentialsChangeLoginCta => 'Изменить логин';
+
+  @override
+  String get profileCredentialsChangePasswordCta => 'Изменить пароль';
+
+  @override
+  String get profileCredentialsChangeLoginTitle => 'Изменение логина';
+
+  @override
+  String get profileCredentialsChangePasswordTitle => 'Изменение пароля';
+
+  @override
+  String get profileCredentialsNewLoginLabel => 'Новый логин (email)';
+
+  @override
+  String get profileCredentialsCurrentPasswordLabel => 'Текущий пароль';
+
+  @override
+  String get profileCredentialsNewPasswordLabel => 'Новый пароль';
+
+  @override
+  String get profileCredentialsConfirmPasswordLabel =>
+      'Подтвердите новый пароль';
+
+  @override
+  String get profileCredentialsValidationRequired => 'Заполните это поле';
+
+  @override
+  String get profileCredentialsValidationPasswordMatch => 'Пароли не совпадают';
+
+  @override
+  String get profileCredentialsLoginUpdated => 'Логин обновлен';
+
+  @override
+  String get profileCredentialsPasswordUpdated => 'Пароль обновлен';
+
+  @override
   String get profileAppearanceSection => 'Внешний вид';
 
   @override
@@ -371,7 +415,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get settingsHomeBudgetPickerClear => 'Сбросить выбор';
 
   @override
-  String get profileManageCategoriesTitle => 'Управление категориями и тэгами';
+  String get profileManageCategoriesTitle => 'Категории и тэги';
 
   @override
   String get manageCategoriesTabCategories => 'Категории';

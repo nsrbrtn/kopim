@@ -59,15 +59,18 @@ void main() {
   test(
     'creates goal with trimmed values and delegates to repository',
     () async {
+      final DateTime targetDate = DateTime(2026, 12, 31, 14, 30);
       final SavingGoal result = await useCase(
         name: '  Vacation  ',
         target: Money.fromMinorUnits(5000),
         note: '  Beach house  ',
+        targetDate: targetDate,
       );
 
       expect(result.name, 'Vacation');
       expect(result.note, 'Beach house');
       expect(result.targetAmount, 5000);
+      expect(result.targetDate, DateTime.utc(2026, 12, 31));
       expect(result.createdAt, fixedNow);
       expect(result.updatedAt, fixedNow);
 

@@ -3081,7 +3081,7 @@ final class AddCreditUseCaseProvider
   }
 }
 
-String _$addCreditUseCaseHash() => r'5f5e423425a7174ca648df66267a52b9badd0f67';
+String _$addCreditUseCaseHash() => r'feb1f019d298ae8ec8092340bfc0b6348841df88';
 
 @ProviderFor(addCreditCardUseCase)
 const addCreditCardUseCaseProvider = AddCreditCardUseCaseProvider._();
@@ -3372,7 +3372,7 @@ final class MakeCreditPaymentUseCaseProvider
 }
 
 String _$makeCreditPaymentUseCaseHash() =>
-    r'4a49861d6e4c0c25344d87472351bc2347e99e0f';
+    r'94a22d929bcd70b4b792ffb824147d82956786ef';
 
 @ProviderFor(watchCreditsUseCase)
 const watchCreditsUseCaseProvider = WatchCreditsUseCaseProvider._();
@@ -5687,7 +5687,7 @@ final class SyncServiceProvider
   }
 }
 
-String _$syncServiceHash() => r'ca0e6d617566c9787663b27cd576e445154bd028';
+String _$syncServiceHash() => r'590d679c21a7585b66075cabbf6ab7eb5e68b593';
 
 @ProviderFor(authRepository)
 const authRepositoryProvider = AuthRepositoryProvider._();

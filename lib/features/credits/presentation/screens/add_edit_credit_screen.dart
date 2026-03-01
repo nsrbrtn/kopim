@@ -354,6 +354,29 @@ class _AddEditCreditScreenState extends ConsumerState<AddEditCreditScreen> {
             ),
         ],
       ),
+      bottomNavigationBar: SafeArea(
+        minimum: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            if (widget.credit == null) ...<Widget>[
+              TextButton(
+                onPressed: _saveAndConfigurePayment,
+                child: const Text('Сохранить и настроить платеж'),
+              ),
+              const SizedBox(height: 16),
+            ],
+            FilledButton(
+              onPressed: _save,
+              style: FilledButton.styleFrom(
+                minimumSize: const Size.fromHeight(56),
+              ),
+              child: Text(context.loc.creditsSaveAction),
+            ),
+          ],
+        ),
+      ),
       body: Form(
         key: _formKey,
         child: StreamBuilder<List<AccountEntity>>(
@@ -445,38 +468,39 @@ class _AddEditCreditScreenState extends ConsumerState<AddEditCreditScreen> {
                     ),
                     contentPadding: EdgeInsets.zero,
                   ),
-                  const SizedBox(height: 8),
-                  KopimDropdownField<String>(
-                    value: _selectedIssueAccountId,
-                    items: availableIssueAccounts
-                        .map(
-                          (AccountEntity account) => DropdownMenuItem<String>(
-                            value: account.id,
-                            child: Text(account.name),
-                          ),
-                        )
-                        .toList(growable: false),
-                    label: 'Счет зачисления',
-                    hint: availableIssueAccounts.isEmpty
-                        ? 'Нет доступных счетов'
-                        : 'Выберите счет',
-                    enabled:
-                        !_isAlreadyIssued && availableIssueAccounts.isNotEmpty,
-                    onChanged: (String value) {
-                      setState(() {
-                        _selectedIssueAccountId = value;
-                        _issueAccountError = false;
-                      });
-                    },
-                  ),
-                  if (_issueAccountError) ...<Widget>[
+                  if (!_isAlreadyIssued) ...<Widget>[
                     const SizedBox(height: 8),
-                    Text(
-                      'Выберите счет для зачисления или отметьте, что кредит уже выдан',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.error,
-                      ),
+                    KopimDropdownField<String>(
+                      value: _selectedIssueAccountId,
+                      items: availableIssueAccounts
+                          .map(
+                            (AccountEntity account) => DropdownMenuItem<String>(
+                              value: account.id,
+                              child: Text(account.name),
+                            ),
+                          )
+                          .toList(growable: false),
+                      label: 'Счет зачисления',
+                      hint: availableIssueAccounts.isEmpty
+                          ? 'Нет доступных счетов'
+                          : 'Выберите счет',
+                      enabled: availableIssueAccounts.isNotEmpty,
+                      onChanged: (String value) {
+                        setState(() {
+                          _selectedIssueAccountId = value;
+                          _issueAccountError = false;
+                        });
+                      },
                     ),
+                    if (_issueAccountError) ...<Widget>[
+                      const SizedBox(height: 8),
+                      Text(
+                        'Выберите счет для зачисления или отметьте, что кредит уже выдан',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.error,
+                        ),
+                      ),
+                    ],
                   ],
                 ],
                 const SizedBox(height: 24),
@@ -515,51 +539,7 @@ class _AddEditCreditScreenState extends ConsumerState<AddEditCreditScreen> {
                     });
                   },
                 ),
-                SwitchListTile(
-                  title: Text(context.loc.creditsHiddenOnDashboardLabel),
-                  subtitle: Text(
-                    'Счет не будет отображаться в списке счетов на главном экране',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                  value: _isHidden,
-                  onChanged: (bool v) => setState(() => _isHidden = v),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  contentPadding: EdgeInsets.zero,
-                ),
-                const SizedBox(height: 48),
-                ElevatedButton(
-                  onPressed: _save,
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: const Size.fromHeight(56),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                  ),
-                  child: Text(
-                    context.loc.creditsSaveAction,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                ),
-                if (widget.credit == null) ...<Widget>[
-                  const SizedBox(height: 12),
-                  OutlinedButton(
-                    onPressed: _saveAndConfigurePayment,
-                    style: OutlinedButton.styleFrom(
-                      minimumSize: const Size.fromHeight(56),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                    ),
-                    child: const Text(
-                      'Сохранить и настроить платеж',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ],
+                const SizedBox(height: 24),
               ],
             );
           },

@@ -15,6 +15,7 @@ import 'package:kopim/features/analytics/presentation/controllers/analytics_filt
 import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/credits/domain/entities/credit_entity.dart';
+import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
 import 'package:kopim/features/transactions/domain/models/monthly_balance_totals.dart';
 import 'package:kopim/features/transactions/domain/models/monthly_cashflow_totals.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
@@ -221,6 +222,68 @@ class AnalyticsDateWindow {
   final DateTime endExclusive;
 }
 
+enum AnalyticsSavingsTrendGranularity { day, week, month }
+
+@immutable
+class AnalyticsSavingsTrendPoint {
+  const AnalyticsSavingsTrendPoint({
+    required this.periodStart,
+    required this.amount,
+  });
+
+  final DateTime periodStart;
+  final MoneyAmount amount;
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) {
+      return true;
+    }
+    return other is AnalyticsSavingsTrendPoint &&
+        other.periodStart == periodStart &&
+        other.amount == amount;
+  }
+
+  @override
+  int get hashCode => Object.hash(periodStart, amount);
+}
+
+@immutable
+class AnalyticsSavingsTrendOverview {
+  const AnalyticsSavingsTrendOverview({
+    required this.granularity,
+    required this.windowStart,
+    required this.windowEndExclusive,
+    required this.points,
+    required this.totalContributed,
+    required this.totalCurrent,
+    required this.totalTarget,
+    required this.activeGoals,
+  });
+
+  final AnalyticsSavingsTrendGranularity granularity;
+  final DateTime windowStart;
+  final DateTime windowEndExclusive;
+  final List<AnalyticsSavingsTrendPoint> points;
+  final MoneyAmount totalContributed;
+  final MoneyAmount totalCurrent;
+  final MoneyAmount totalTarget;
+  final int activeGoals;
+
+  double get progressRatio {
+    if (totalTarget.minor <= BigInt.zero) {
+      return 0;
+    }
+    return (totalCurrent.toDouble() / totalTarget.toDouble()).clamp(0, 1);
+  }
+}
+
+final Provider<int> analyticsSavingsTrendWindowDaysProvider = Provider<int>((
+  Ref ref,
+) {
+  return 30;
+});
+
 final Provider<AnalyticsDateWindow> analyticsDateWindowProvider =
     Provider<AnalyticsDateWindow>((Ref ref) {
       final DateTimeRange range = ref.watch(
@@ -233,6 +296,45 @@ final Provider<AnalyticsDateWindow> analyticsDateWindowProvider =
         range.end,
       ).add(const Duration(days: 1));
       return AnalyticsDateWindow(start: start, endExclusive: endExclusive);
+    });
+
+final StreamProviderFamily<
+  AnalyticsSavingsTrendOverview,
+  AnalyticsSavingsTrendGranularity
+>
+analyticsSavingsTrendProvider =
+    StreamProvider.family<
+      AnalyticsSavingsTrendOverview,
+      AnalyticsSavingsTrendGranularity
+    >((Ref ref, AnalyticsSavingsTrendGranularity granularity) {
+      final int windowDays = ref.watch(analyticsSavingsTrendWindowDaysProvider);
+      final DateTime nowExclusive = DateUtils.dateOnly(
+        DateTime.now(),
+      ).add(const Duration(days: 1));
+      final DateTime windowStart = DateUtils.dateOnly(
+        nowExclusive.subtract(Duration(days: windowDays)),
+      );
+
+      return _combineLatest2<
+            List<SavingGoal>,
+            List<TransactionEntity>,
+            AnalyticsSavingsTrendOverview
+          >(
+            ref
+                .watch(watchSavingGoalsUseCaseProvider)
+                .call(includeArchived: false),
+            ref.watch(transactionRepositoryProvider).watchTransactions(),
+            (List<SavingGoal> goals, List<TransactionEntity> transactions) {
+              return _buildSavingsTrendOverview(
+                goals: goals,
+                transactions: transactions,
+                granularity: granularity,
+                windowStart: windowStart,
+                windowEndExclusive: nowExclusive,
+              );
+            },
+          )
+          .distinct(_analyticsSavingsTrendOverviewEquals);
     });
 
 final StreamProviderFamily<
@@ -897,6 +999,160 @@ bool _analyticsDebtOverviewEquals(
   return previous.totalDebt == next.totalDebt &&
       previous.monthDeltaPercent == next.monthDeltaPercent &&
       listEquals(previous.trend, next.trend);
+}
+
+AnalyticsSavingsTrendOverview _buildSavingsTrendOverview({
+  required List<SavingGoal> goals,
+  required List<TransactionEntity> transactions,
+  required AnalyticsSavingsTrendGranularity granularity,
+  required DateTime windowStart,
+  required DateTime windowEndExclusive,
+}) {
+  final MoneyAccumulator totalCurrentAccumulator = MoneyAccumulator();
+  final MoneyAccumulator totalTargetAccumulator = MoneyAccumulator();
+  for (final SavingGoal goal in goals) {
+    totalCurrentAccumulator.add(
+      MoneyAmount(minor: BigInt.from(goal.currentAmount), scale: 2),
+    );
+    totalTargetAccumulator.add(
+      MoneyAmount(minor: BigInt.from(goal.targetAmount), scale: 2),
+    );
+  }
+
+  final List<DateTime> buckets = _buildSavingsBuckets(
+    granularity: granularity,
+    start: windowStart,
+    endExclusive: windowEndExclusive,
+  );
+  final Map<int, MoneyAccumulator> totalsByBucket = <int, MoneyAccumulator>{
+    for (final DateTime bucket in buckets)
+      _savingsBucketKey(bucket): MoneyAccumulator(),
+  };
+
+  final MoneyAccumulator totalContributedAccumulator = MoneyAccumulator();
+
+  for (final TransactionEntity transaction in transactions) {
+    if (transaction.savingGoalId == null || transaction.savingGoalId!.isEmpty) {
+      continue;
+    }
+    if (parseTransactionType(transaction.type) != TransactionType.transfer) {
+      continue;
+    }
+    final DateTime transactionDate = DateUtils.dateOnly(transaction.date);
+    if (transactionDate.isBefore(windowStart) ||
+        !transactionDate.isBefore(windowEndExclusive)) {
+      continue;
+    }
+    final DateTime bucketStart = _savingsBucketStart(
+      transactionDate,
+      granularity,
+    );
+    final int key = _savingsBucketKey(bucketStart);
+    final MoneyAmount amount = transaction.amountValue.abs();
+    totalsByBucket.putIfAbsent(key, MoneyAccumulator.new).add(amount);
+    totalContributedAccumulator.add(amount);
+  }
+
+  final List<AnalyticsSavingsTrendPoint> points = buckets
+      .map((DateTime bucket) {
+        final MoneyAccumulator bucketAmount =
+            totalsByBucket[_savingsBucketKey(bucket)] ?? MoneyAccumulator();
+        return AnalyticsSavingsTrendPoint(
+          periodStart: bucket,
+          amount: MoneyAmount(
+            minor: bucketAmount.minor,
+            scale: bucketAmount.scale,
+          ),
+        );
+      })
+      .toList(growable: false);
+
+  return AnalyticsSavingsTrendOverview(
+    granularity: granularity,
+    windowStart: windowStart,
+    windowEndExclusive: windowEndExclusive,
+    points: points,
+    totalContributed: MoneyAmount(
+      minor: totalContributedAccumulator.minor,
+      scale: totalContributedAccumulator.scale,
+    ),
+    totalCurrent: MoneyAmount(
+      minor: totalCurrentAccumulator.minor,
+      scale: totalCurrentAccumulator.scale,
+    ),
+    totalTarget: MoneyAmount(
+      minor: totalTargetAccumulator.minor,
+      scale: totalTargetAccumulator.scale,
+    ),
+    activeGoals: goals.length,
+  );
+}
+
+List<DateTime> _buildSavingsBuckets({
+  required AnalyticsSavingsTrendGranularity granularity,
+  required DateTime start,
+  required DateTime endExclusive,
+}) {
+  if (!start.isBefore(endExclusive)) {
+    return <DateTime>[];
+  }
+
+  final DateTime alignedStart = _savingsBucketStart(start, granularity);
+  final List<DateTime> buckets = <DateTime>[];
+  DateTime current = alignedStart;
+  while (current.isBefore(endExclusive)) {
+    buckets.add(current);
+    current = _nextSavingsBucketStart(current, granularity);
+  }
+  return buckets;
+}
+
+DateTime _savingsBucketStart(
+  DateTime value,
+  AnalyticsSavingsTrendGranularity granularity,
+) {
+  switch (granularity) {
+    case AnalyticsSavingsTrendGranularity.day:
+      return DateTime(value.year, value.month, value.day);
+    case AnalyticsSavingsTrendGranularity.week:
+      final DateTime dateOnly = DateTime(value.year, value.month, value.day);
+      final int delta = dateOnly.weekday - DateTime.monday;
+      return dateOnly.subtract(Duration(days: delta));
+    case AnalyticsSavingsTrendGranularity.month:
+      return DateTime(value.year, value.month);
+  }
+}
+
+DateTime _nextSavingsBucketStart(
+  DateTime value,
+  AnalyticsSavingsTrendGranularity granularity,
+) {
+  switch (granularity) {
+    case AnalyticsSavingsTrendGranularity.day:
+      return value.add(const Duration(days: 1));
+    case AnalyticsSavingsTrendGranularity.week:
+      return value.add(const Duration(days: 7));
+    case AnalyticsSavingsTrendGranularity.month:
+      return DateTime(value.year, value.month + 1);
+  }
+}
+
+int _savingsBucketKey(DateTime value) {
+  return value.year * 10000 + value.month * 100 + value.day;
+}
+
+bool _analyticsSavingsTrendOverviewEquals(
+  AnalyticsSavingsTrendOverview previous,
+  AnalyticsSavingsTrendOverview next,
+) {
+  return previous.granularity == next.granularity &&
+      previous.windowStart == next.windowStart &&
+      previous.windowEndExclusive == next.windowEndExclusive &&
+      previous.totalContributed == next.totalContributed &&
+      previous.totalCurrent == next.totalCurrent &&
+      previous.totalTarget == next.totalTarget &&
+      previous.activeGoals == next.activeGoals &&
+      listEquals(previous.points, next.points);
 }
 
 int _monthKey(DateTime monthStart) => monthStart.year * 100 + monthStart.month;

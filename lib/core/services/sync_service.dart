@@ -15,6 +15,10 @@ import 'package:kopim/features/budgets/domain/entities/budget.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_instance.dart';
 import 'package:kopim/features/categories/data/sources/remote/category_remote_data_source.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
+import 'package:kopim/features/credits/data/sources/remote/credit_card_remote_data_source.dart';
+import 'package:kopim/features/credits/data/sources/remote/credit_remote_data_source.dart';
+import 'package:kopim/features/credits/domain/entities/credit_card_entity.dart';
+import 'package:kopim/features/credits/domain/entities/credit_entity.dart';
 import 'package:kopim/features/credits/data/sources/remote/debt_remote_data_source.dart';
 import 'package:kopim/features/credits/domain/entities/debt_entity.dart';
 import 'package:kopim/features/savings/data/sources/remote/saving_goal_remote_data_source.dart';
@@ -41,6 +45,8 @@ class SyncService {
     required TagRemoteDataSource tagRemoteDataSource,
     required TransactionTagRemoteDataSource transactionTagRemoteDataSource,
     required TransactionRemoteDataSource transactionRemoteDataSource,
+    required CreditRemoteDataSource creditRemoteDataSource,
+    required CreditCardRemoteDataSource creditCardRemoteDataSource,
     required DebtRemoteDataSource debtRemoteDataSource,
     required ProfileRemoteDataSource profileRemoteDataSource,
     required BudgetRemoteDataSource budgetRemoteDataSource,
@@ -57,6 +63,8 @@ class SyncService {
        _tagRemoteDataSource = tagRemoteDataSource,
        _transactionTagRemoteDataSource = transactionTagRemoteDataSource,
        _transactionRemoteDataSource = transactionRemoteDataSource,
+       _creditRemoteDataSource = creditRemoteDataSource,
+       _creditCardRemoteDataSource = creditCardRemoteDataSource,
        _debtRemoteDataSource = debtRemoteDataSource,
        _profileRemoteDataSource = profileRemoteDataSource,
        _budgetRemoteDataSource = budgetRemoteDataSource,
@@ -74,6 +82,8 @@ class SyncService {
   final TagRemoteDataSource _tagRemoteDataSource;
   final TransactionTagRemoteDataSource _transactionTagRemoteDataSource;
   final TransactionRemoteDataSource _transactionRemoteDataSource;
+  final CreditRemoteDataSource _creditRemoteDataSource;
+  final CreditCardRemoteDataSource _creditCardRemoteDataSource;
   final DebtRemoteDataSource _debtRemoteDataSource;
   final ProfileRemoteDataSource _profileRemoteDataSource;
   final BudgetRemoteDataSource _budgetRemoteDataSource;
@@ -198,6 +208,20 @@ class SyncService {
             payload,
           );
           await _dispatchTransaction(userId, transaction, operation);
+          break;
+        case 'credit':
+          final CreditEntity credit = _applyCreditMoney(
+            CreditEntity.fromJson(payload),
+            payload,
+          );
+          await _dispatchCredit(userId, credit, operation);
+          break;
+        case 'credit_card':
+          final CreditCardEntity creditCard = _applyCreditCardMoney(
+            CreditCardEntity.fromJson(payload),
+            payload,
+          );
+          await _dispatchCreditCard(userId, creditCard, operation);
           break;
         case 'debt':
           final DebtEntity debt = _applyDebtMoney(
@@ -355,6 +379,40 @@ class SyncService {
     );
   }
 
+  Future<void> _dispatchCredit(
+    String userId,
+    CreditEntity credit,
+    OutboxOperation operation,
+  ) {
+    if (operation == OutboxOperation.delete) {
+      return _creditRemoteDataSource.delete(
+        userId,
+        credit.copyWith(isDeleted: true),
+      );
+    }
+    return _creditRemoteDataSource.upsert(
+      userId,
+      credit.copyWith(isDeleted: false),
+    );
+  }
+
+  Future<void> _dispatchCreditCard(
+    String userId,
+    CreditCardEntity creditCard,
+    OutboxOperation operation,
+  ) {
+    if (operation == OutboxOperation.delete) {
+      return _creditCardRemoteDataSource.delete(
+        userId,
+        creditCard.copyWith(isDeleted: true),
+      );
+    }
+    return _creditCardRemoteDataSource.upsert(
+      userId,
+      creditCard.copyWith(isDeleted: false),
+    );
+  }
+
   Future<void> _dispatchProfile(
     String userId,
     Profile profile,
@@ -488,6 +546,26 @@ class SyncService {
     return debt.copyWith(
       amountMinor: _readBigInt(payload['amountMinor']),
       amountScale: _readInt(payload['amountScale']),
+    );
+  }
+
+  CreditEntity _applyCreditMoney(
+    CreditEntity credit,
+    Map<String, dynamic> payload,
+  ) {
+    return credit.copyWith(
+      totalAmountMinor: _readBigInt(payload['totalAmountMinor']),
+      totalAmountScale: _readInt(payload['totalAmountScale']),
+    );
+  }
+
+  CreditCardEntity _applyCreditCardMoney(
+    CreditCardEntity creditCard,
+    Map<String, dynamic> payload,
+  ) {
+    return creditCard.copyWith(
+      creditLimitMinor: _readBigInt(payload['creditLimitMinor']),
+      creditLimitScale: _readInt(payload['creditLimitScale']),
     );
   }
 

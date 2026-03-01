@@ -1,5 +1,6 @@
 import 'package:kopim/core/money/money.dart';
-
+import 'package:kopim/features/accounts/domain/repositories/account_repository.dart';
+import 'package:kopim/features/categories/domain/repositories/category_repository.dart';
 import 'package:kopim/features/credits/domain/entities/credit_payment_group.dart';
 import 'package:kopim/features/credits/domain/entities/credit_payment_schedule.dart';
 import 'package:kopim/features/credits/domain/entities/credit_entity.dart';
@@ -12,13 +13,19 @@ class MakeCreditPaymentUseCase {
   MakeCreditPaymentUseCase({
     required CreditRepository creditRepository,
     required TransactionRepository transactionRepository,
+    required AccountRepository accountRepository,
+    required CategoryRepository categoryRepository,
     required Uuid uuid,
   }) : _creditRepository = creditRepository,
        _transactionRepository = transactionRepository,
+       _accountRepository = accountRepository,
+       _categoryRepository = categoryRepository,
        _uuid = uuid;
 
   final CreditRepository _creditRepository;
   final TransactionRepository _transactionRepository;
+  final AccountRepository _accountRepository;
+  final CategoryRepository _categoryRepository;
   final Uuid _uuid;
 
   Future<void> call({
@@ -47,6 +54,17 @@ class MakeCreditPaymentUseCase {
           .getCredits();
       final CreditEntity targetCredit = allCredits.firstWhere(
         (CreditEntity c) => c.id == creditId,
+      );
+      final String? principalTransferAccountId =
+          await _resolveExistingTransferAccountId(targetCredit.accountId);
+      final String? principalCategoryId = await _resolveExistingCategoryId(
+        targetCredit.categoryId,
+      );
+      final String? interestCategoryId = await _resolveExistingCategoryId(
+        targetCredit.interestCategoryId,
+      );
+      final String? feesCategoryId = await _resolveExistingCategoryId(
+        targetCredit.feesCategoryId,
       );
 
       final String groupId = _uuid.v4();
@@ -119,8 +137,10 @@ class MakeCreditPaymentUseCase {
         final TransactionEntity principalTx = TransactionEntity(
           id: txId,
           accountId: sourceAccountId,
-          transferAccountId: targetCredit.accountId,
-          categoryId: targetCredit.categoryId,
+          transferAccountId: principalTransferAccountId,
+          // Для transfer категория опциональна: если категория отсутствует,
+          // безопасно сохраняем без categoryId.
+          categoryId: principalCategoryId,
           groupId: groupId,
           amountMinor: principalPaid.minor,
           amountScale: principalPaid.scale,
@@ -139,7 +159,7 @@ class MakeCreditPaymentUseCase {
         final TransactionEntity interestTx = TransactionEntity(
           id: txId,
           accountId: sourceAccountId,
-          categoryId: targetCredit.interestCategoryId,
+          categoryId: interestCategoryId,
           groupId: groupId,
           amountMinor: interestPaid.minor,
           amountScale: interestPaid.scale,
@@ -158,7 +178,7 @@ class MakeCreditPaymentUseCase {
         final TransactionEntity feesTx = TransactionEntity(
           id: txId,
           accountId: sourceAccountId,
-          categoryId: targetCredit.feesCategoryId,
+          categoryId: feesCategoryId,
           groupId: groupId,
           amountMinor: feesPaid.minor,
           amountScale: feesPaid.scale,
@@ -171,5 +191,31 @@ class MakeCreditPaymentUseCase {
         await _transactionRepository.upsert(feesTx);
       }
     });
+  }
+
+  Future<String?> _resolveExistingTransferAccountId(String? accountId) async {
+    final String? normalized = _normalizeId(accountId);
+    if (normalized == null) {
+      return null;
+    }
+    final bool exists = await _accountRepository.findById(normalized) != null;
+    return exists ? normalized : null;
+  }
+
+  Future<String?> _resolveExistingCategoryId(String? categoryId) async {
+    final String? normalized = _normalizeId(categoryId);
+    if (normalized == null) {
+      return null;
+    }
+    final bool exists = await _categoryRepository.findById(normalized) != null;
+    return exists ? normalized : null;
+  }
+
+  String? _normalizeId(String? id) {
+    final String? trimmed = id?.trim();
+    if (trimmed == null || trimmed.isEmpty) {
+      return null;
+    }
+    return trimmed;
   }
 }

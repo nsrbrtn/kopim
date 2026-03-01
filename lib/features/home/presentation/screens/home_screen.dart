@@ -1035,11 +1035,22 @@ class _AccountCard extends ConsumerWidget {
     final TextStyle summaryHeaderStyle = labelStyle.copyWith(
       color: carouselContentColor,
     );
+    final SavingGoal? savingGoal = account.type == 'savings'
+        ? ref
+              .watch(homeSavingGoalsProvider)
+              .asData
+              ?.value
+              .firstWhereOrNull(
+                (SavingGoal item) =>
+                    item.accountId == account.id && !item.isArchived,
+              )
+        : null;
     final Widget standardContent = _StandardAccountContent(
       account: account,
       strings: strings,
       currencyFormat: currencyFormat,
       summary: summary,
+      savingGoal: savingGoal,
       labelStyle: labelStyle,
       balanceStyle: balanceStyle,
       summaryTextStyle: summaryTextStyle,
@@ -1261,6 +1272,7 @@ class _StandardAccountContent extends StatelessWidget {
     required this.strings,
     required this.currencyFormat,
     required this.summary,
+    required this.savingGoal,
     required this.labelStyle,
     required this.balanceStyle,
     required this.summaryTextStyle,
@@ -1274,6 +1286,7 @@ class _StandardAccountContent extends StatelessWidget {
   final AppLocalizations strings;
   final NumberFormat currencyFormat;
   final HomeAccountMonthlySummary summary;
+  final SavingGoal? savingGoal;
   final TextStyle labelStyle;
   final TextStyle balanceStyle;
   final TextStyle summaryTextStyle;
@@ -1284,6 +1297,27 @@ class _StandardAccountContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool isSavings = account.type == 'savings' && savingGoal != null;
+    final double savingsProgress = isSavings
+        ? (savingGoal!.targetAmount <= 0
+                  ? 0
+                  : (savingGoal!.currentAmount / savingGoal!.targetAmount))
+              .clamp(0.0, 1.0)
+              .toDouble()
+        : 0.0;
+    final String savingsProgressLabel = isSavings
+        ? '${(savingsProgress * 100).toStringAsFixed(0)}%'
+        : '';
+    final String savingsTargetLabel = isSavings
+        ? currencyFormat.format(savingGoal!.targetAmount / 100)
+        : '';
+    final String savingsTargetDateLabel = isSavings
+        ? (savingGoal!.targetDate == null
+              ? 'Срок не задан'
+              : DateFormat.yMd(
+                  Localizations.localeOf(context).toString(),
+                ).format(savingGoal!.targetDate!))
+        : '';
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1308,25 +1342,25 @@ class _StandardAccountContent extends StatelessWidget {
           text: currencyFormat.format(account.balanceAmount.toDouble()),
           style: balanceStyle,
         ),
-        const SizedBox(height: 16),
-        Text(strings.analyticsCurrentMonthTitle, style: summaryHeaderStyle),
-        const SizedBox(height: 8),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            _AccountMonthlyValue(
-              label: strings.homeAccountMonthlyIncomeLabel,
-              value: currencyFormat.format(summary.income.toDouble()),
-              textStyle: summaryTextStyle,
+        if (isSavings) ...<Widget>[
+          const SizedBox(height: 12),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: LinearProgressIndicator(
+              value: savingsProgress,
+              backgroundColor: contentColor.withValues(alpha: 0.16),
+              valueColor: AlwaysStoppedAnimation<Color>(contentColor),
+              minHeight: 6,
             ),
-            const SizedBox(height: 4),
-            _AccountMonthlyValue(
-              label: strings.homeAccountMonthlyExpenseLabel,
-              value: currencyFormat.format(summary.expense.toDouble()),
-              textStyle: summaryTextStyle,
-            ),
-          ],
-        ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Прогресс: $savingsProgressLabel · Цель: $savingsTargetLabel',
+            style: summaryTextStyle,
+          ),
+          const SizedBox(height: 4),
+          Text('Дата цели: $savingsTargetDateLabel', style: summaryHeaderStyle),
+        ],
       ],
     );
   }
@@ -1604,23 +1638,6 @@ class _CreditCardContent extends ConsumerWidget {
   }
 }
 
-class _AccountMonthlyValue extends StatelessWidget {
-  const _AccountMonthlyValue({
-    required this.label,
-    required this.value,
-    required this.textStyle,
-  });
-
-  final String label;
-  final String value;
-  final TextStyle textStyle;
-
-  @override
-  Widget build(BuildContext context) {
-    return Text('$label: $value', style: textStyle, softWrap: true);
-  }
-}
-
 class _AccountCardPalette {
   const _AccountCardPalette({
     required this.background,
@@ -1800,7 +1817,7 @@ class _TransactionsSectionCardState extends State<_TransactionsSectionCard> {
     final NumberFormat moneyFormat = TransactionTileFormatters.currency(
       widget.localeName,
       TransactionTileFormatters.fallbackCurrencySymbol(widget.localeName),
-      decimalDigits: 2,
+      decimalDigits: 0,
     );
     final TextStyle dateStyle =
         theme.textTheme.titleMedium?.copyWith(
@@ -2363,7 +2380,7 @@ class _TransactionListItem extends ConsumerWidget {
     final NumberFormat moneyFormat = TransactionTileFormatters.currency(
       localeName,
       currencySymbol,
-      decimalDigits: transaction.amountScale ?? 2,
+      decimalDigits: 0,
     );
 
     final ({

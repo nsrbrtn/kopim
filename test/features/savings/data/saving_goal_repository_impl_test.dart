@@ -109,6 +109,43 @@ void main() {
   });
 
   test(
+    'create re-provisions account when accountId already linked to another goal',
+    () async {
+      final SavingGoal first = SavingGoal(
+        id: 'goal-a',
+        userId: 'user-1',
+        name: 'First',
+        accountId: 'shared-acc',
+        targetAmount: 10_000,
+        currentAmount: 0,
+        createdAt: now,
+        updatedAt: now,
+      );
+      await repository.create(first);
+      final SavingGoal? firstStored = await savingGoalDao.findById(first.id);
+      expect(firstStored, isNotNull);
+      expect(firstStored!.accountId, 'shared-acc');
+
+      final SavingGoal second = SavingGoal(
+        id: 'goal-b',
+        userId: 'user-1',
+        name: 'Second',
+        accountId: 'shared-acc',
+        targetAmount: 12_000,
+        currentAmount: 0,
+        createdAt: now,
+        updatedAt: now,
+      );
+      await repository.create(second);
+
+      final SavingGoal? secondStored = await savingGoalDao.findById(second.id);
+      expect(secondStored, isNotNull);
+      expect(secondStored!.accountId, isNotNull);
+      expect(secondStored.accountId, isNot('shared-acc'));
+    },
+  );
+
+  test(
     'addContribution persists transaction, updates goal and account',
     () async {
       final AccountEntity account = AccountEntity(
