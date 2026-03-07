@@ -85,6 +85,11 @@ class AddTransactionUseCase {
       if (targetAccount == null) {
         throw StateError('Account not found for id $targetAccountId');
       }
+      if (targetAccount.currency != account.currency) {
+        throw StateError(
+          'Cross-currency transfer is not supported without FX conversion',
+        );
+      }
     }
 
     await _transactionRepository.upsert(transaction);

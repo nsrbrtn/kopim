@@ -95,6 +95,11 @@ class _FakeTransactionRepository implements TransactionRepository {
   }
 
   @override
+  Future<List<TransactionEntity>> findByGroupId(String groupId) {
+    throw UnimplementedError();
+  }
+
+  @override
   Future<TransactionEntity?> findByIdempotencyKey(String idempotencyKey) {
     throw UnimplementedError();
   }

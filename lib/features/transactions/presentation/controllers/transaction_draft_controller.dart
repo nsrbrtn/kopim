@@ -4,7 +4,7 @@ import 'package:riverpod/riverpod.dart';
 import 'package:riverpod/legacy.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
-import 'package:kopim/features/accounts/domain/repositories/account_repository.dart';
+import 'package:kopim/features/accounts/domain/use_cases/get_account_by_id_use_case.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/core/services/logger_service.dart';
 import 'package:kopim/core/money/currency_scale.dart';
@@ -252,8 +252,8 @@ class TransactionDraftController extends StateNotifier<TransactionDraftState> {
     : super(const TransactionDraftState(hasInitialized: false));
 
   final Ref ref;
-  late final AccountRepository _accountRepository = ref.read(
-    accountRepositoryProvider,
+  late final GetAccountByIdUseCase _getAccountByIdUseCase = ref.read(
+    getAccountByIdUseCaseProvider,
   );
 
   void applyArgs(TransactionFormArgs args) {
@@ -275,10 +275,9 @@ class TransactionDraftController extends StateNotifier<TransactionDraftState> {
         args.initialType != null) {
       state = state.copyWith(
         amount: (amount != null && amount.isNotEmpty) ? amount : state.amount,
-        categoryId:
-            (categoryId != null && categoryId.isNotEmpty)
-                ? categoryId
-                : state.categoryId,
+        categoryId: (categoryId != null && categoryId.isNotEmpty)
+            ? categoryId
+            : state.categoryId,
         type: args.initialType ?? state.type,
       );
     }
@@ -415,7 +414,7 @@ class TransactionDraftController extends StateNotifier<TransactionDraftState> {
     state = state.copyWith(isSubmitting: true, clearError: true);
 
     try {
-      final AccountEntity? account = await _accountRepository.findById(
+      final AccountEntity? account = await _getAccountByIdUseCase(
         state.accountId!,
       );
       if (account == null) {
@@ -510,7 +509,7 @@ class TransactionDraftController extends StateNotifier<TransactionDraftState> {
   }
 
   Future<void> _updateAccountScale(String accountId) async {
-    final AccountEntity? account = await _accountRepository.findById(accountId);
+    final AccountEntity? account = await _getAccountByIdUseCase(accountId);
     if (account == null) return;
     final int scale =
         account.currencyScale ?? resolveCurrencyScale(account.currency);

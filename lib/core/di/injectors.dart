@@ -44,6 +44,7 @@ import 'package:kopim/features/accounts/data/sources/remote/account_remote_data_
 import 'package:kopim/features/accounts/domain/repositories/account_repository.dart';
 import 'package:kopim/features/accounts/domain/use_cases/add_account_use_case.dart';
 import 'package:kopim/features/accounts/domain/use_cases/delete_account_use_case.dart';
+import 'package:kopim/features/accounts/domain/use_cases/get_account_by_id_use_case.dart';
 import 'package:kopim/features/accounts/domain/use_cases/watch_accounts_use_case.dart';
 import 'package:kopim/features/budgets/data/repositories/budget_repository_impl.dart';
 import 'package:kopim/features/budgets/data/sources/local/budget_dao.dart';
@@ -169,6 +170,7 @@ import 'package:kopim/features/credits/domain/use_cases/watch_credit_cards_use_c
 import 'package:kopim/features/credits/domain/use_cases/watch_credits_use_case.dart';
 import 'package:kopim/features/credits/domain/use_cases/watch_debts_use_case.dart';
 import 'package:kopim/features/credits/domain/use_cases/make_credit_payment_use_case.dart';
+import 'package:kopim/features/credits/domain/use_cases/update_credit_payment_case.dart';
 import 'package:kopim/features/upcoming_payments/data/services/upcoming_payments_work_scheduler.dart';
 import 'package:kopim/firebase_options.dart';
 import 'package:kopim/features/credits/data/sources/remote/credit_remote_data_source.dart';
@@ -682,6 +684,11 @@ AddAccountUseCase addAccountUseCase(Ref ref) =>
 DeleteAccountUseCase deleteAccountUseCase(Ref ref) =>
     DeleteAccountUseCase(ref.watch(accountRepositoryProvider));
 
+final rp.Provider<GetAccountByIdUseCase> getAccountByIdUseCaseProvider =
+    rp.Provider<GetAccountByIdUseCase>((rp.Ref ref) {
+      return GetAccountByIdUseCase(ref.watch(accountRepositoryProvider));
+    });
+
 @riverpod
 WatchAccountsUseCase watchAccountsUseCase(Ref ref) =>
     WatchAccountsUseCase(ref.watch(accountRepositoryProvider));
@@ -797,6 +804,17 @@ MakeCreditPaymentUseCase makeCreditPaymentUseCase(Ref ref) =>
       categoryRepository: ref.watch(categoryRepositoryProvider),
       uuid: ref.watch(uuidGeneratorProvider),
     );
+
+final rp.Provider<UpdateCreditPaymentUseCase>
+updateCreditPaymentUseCaseProvider = rp.Provider<UpdateCreditPaymentUseCase>((
+  rp.Ref ref,
+) {
+  return UpdateCreditPaymentUseCase(
+    creditRepository: ref.watch(creditRepositoryProvider),
+    transactionRepository: ref.watch(transactionRepositoryProvider),
+    uuid: ref.watch(uuidGeneratorProvider),
+  );
+});
 
 @riverpod
 WatchCreditsUseCase watchCreditsUseCase(Ref ref) =>

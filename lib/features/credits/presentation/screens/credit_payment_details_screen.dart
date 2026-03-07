@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:kopim/core/money/money.dart';
 import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/core/utils/context_extensions.dart';
 import 'package:kopim/features/credits/domain/entities/credit_entity.dart';
+import 'package:kopim/features/credits/domain/entities/credit_payment_group.dart';
+import 'package:kopim/features/credits/presentation/widgets/pay_credit_sheet.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
 import 'package:kopim/features/transactions/domain/models/feed_item.dart';
-import 'package:kopim/features/transactions/presentation/controllers/transaction_draft_controller.dart';
-import 'package:kopim/features/transactions/presentation/widgets/transaction_form_open_container.dart';
 import 'package:kopim/features/transactions/presentation/widgets/transaction_tile_formatters.dart';
 
 class CreditPaymentDetailsScreenArgs {
@@ -169,6 +170,7 @@ class CreditPaymentDetailsScreen extends StatelessWidget {
                       Padding(
                         padding: const EdgeInsets.only(bottom: 8),
                         child: _TransactionRow(
+                          group: args.group,
                           transaction: transaction,
                           formatter: moneyFormat,
                           credit: args.credit,
@@ -244,11 +246,13 @@ class _BreakdownRow extends StatelessWidget {
 
 class _TransactionRow extends StatelessWidget {
   const _TransactionRow({
+    required this.group,
     required this.transaction,
     required this.formatter,
     this.credit,
   });
 
+  final GroupedCreditPaymentFeedItem group;
   final TransactionEntity transaction;
   final NumberFormat formatter;
   final CreditEntity? credit;
@@ -271,86 +275,127 @@ class _TransactionRow extends StatelessWidget {
       },
     };
 
-    return TransactionFormOpenContainer(
-      formArgs: TransactionFormArgs(initialTransaction: transaction),
-      closedBuilder: (BuildContext context, VoidCallback openContainer) {
-        return Material(
-          color: theme.colorScheme.surfaceContainer,
-          borderRadius: BorderRadius.circular(14),
-          child: InkWell(
-            borderRadius: BorderRadius.circular(14),
-            onTap: openContainer,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              child: Row(
-                children: <Widget>[
-                  Container(
-                    width: 36,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.primaryContainer,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Icon(
-                      type == TransactionType.transfer
-                          ? Icons.swap_horiz
-                          : Icons.receipt_long,
-                      size: 18,
-                      color: theme.colorScheme.onPrimaryContainer,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Text(
-                          label,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        if ((transaction.note ?? '').isNotEmpty)
-                          Builder(
-                            builder: (BuildContext context) {
-                              final String? displayNote = _resolveDisplayNote(
-                                transaction.note,
-                              );
-                              if (displayNote == null) {
-                                return const SizedBox.shrink();
-                              }
-                              return Text(
-                                displayNote,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  color: theme.colorScheme.onSurfaceVariant,
-                                ),
-                              );
-                            },
-                          ),
-                      ],
-                    ),
-                  ),
-                  Text(
-                    TransactionTileFormatters.formatAmount(
-                      formatter: formatter,
-                      amount: transaction.amountValue,
-                    ),
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
+    return Material(
+      color: theme.colorScheme.surfaceContainer,
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: credit == null
+            ? null
+            : () => PayCreditSheet.show(
+                context,
+                credit: credit!,
+                paymentGroup: _toPaymentGroup(group, credit!),
               ),
-            ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          child: Row(
+            children: <Widget>[
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  type == TransactionType.transfer
+                      ? Icons.swap_horiz
+                      : Icons.receipt_long,
+                  size: 18,
+                  color: theme.colorScheme.onPrimaryContainer,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    if ((transaction.note ?? '').isNotEmpty)
+                      Builder(
+                        builder: (BuildContext context) {
+                          final String? displayNote = _resolveDisplayNote(
+                            transaction.note,
+                          );
+                          if (displayNote == null) {
+                            return const SizedBox.shrink();
+                          }
+                          return Text(
+                            displayNote,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          );
+                        },
+                      ),
+                  ],
+                ),
+              ),
+              Text(
+                TransactionTileFormatters.formatAmount(
+                  formatter: formatter,
+                  amount: transaction.amountValue,
+                ),
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
           ),
-        );
-      },
+        ),
+      ),
     );
   }
+}
+
+CreditPaymentGroupEntity _toPaymentGroup(
+  GroupedCreditPaymentFeedItem group,
+  CreditEntity credit,
+) {
+  final _PaymentBreakdown breakdown = _buildBreakdown(
+    group.transactions,
+    credit: credit,
+  );
+  final TransactionEntity first = group.transactions.first;
+  return CreditPaymentGroupEntity(
+    id: group.groupId,
+    creditId: credit.id,
+    sourceAccountId: first.accountId,
+    paidAt: group.date,
+    totalOutflow: Money.fromMinor(
+      group.totalOutflow.minor,
+      currency: 'XXX',
+      scale: group.totalOutflow.scale,
+    ),
+    principalPaid: Money.fromMinor(
+      breakdown.principal.minor,
+      currency: 'XXX',
+      scale: breakdown.principal.scale,
+    ),
+    interestPaid: Money.fromMinor(
+      breakdown.interest.minor,
+      currency: 'XXX',
+      scale: breakdown.interest.scale,
+    ),
+    feesPaid: Money.fromMinor(
+      breakdown.fees.minor,
+      currency: 'XXX',
+      scale: breakdown.fees.scale,
+    ),
+    note: _resolveDisplayNote(group.note),
+    scheduleItemId: null,
+    idempotencyKey: null,
+  );
 }
 
 class _PaymentBreakdown {

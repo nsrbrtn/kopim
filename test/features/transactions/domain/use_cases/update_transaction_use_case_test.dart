@@ -239,6 +239,48 @@ void main() {
 
     verify(() => transactionRepository.upsert(any())).called(1);
   });
+
+  test(
+    'rejects transfer update between accounts with different currencies',
+    () async {
+      const String sourceId = 'acc-1';
+      const String newTargetId = 'acc-3';
+      final TransactionEntity original = existingTransaction(
+        id: 'tx-5',
+        accountId: sourceId,
+        transferAccountId: 'acc-2',
+        amount: 40,
+        type: TransactionType.transfer,
+      );
+      final AccountEntity sourceAccount = account(id: sourceId, balance: 200);
+      final AccountEntity newTargetAccount = account(
+        id: newTargetId,
+        balance: 30,
+      ).copyWith(currency: 'EUR');
+
+      when(
+        () => transactionRepository.findById(original.id),
+      ).thenAnswer((_) async => original);
+      when(
+        () => accountRepository.findById(sourceId),
+      ).thenAnswer((_) async => sourceAccount);
+      when(
+        () => accountRepository.findById(newTargetId),
+      ).thenAnswer((_) async => newTargetAccount);
+
+      final UpdateTransactionRequest request = UpdateTransactionRequest(
+        transactionId: original.id,
+        accountId: sourceId,
+        transferAccountId: newTargetId,
+        amount: _amount(60),
+        date: DateTime.utc(2024, 2, 8),
+        type: TransactionType.transfer,
+      );
+
+      await expectLater(() => useCase(request), throwsStateError);
+      verifyNever(() => transactionRepository.upsert(any()));
+    },
+  );
 }
 
 MoneyAmount _amount(int value, {int scale = 2}) {

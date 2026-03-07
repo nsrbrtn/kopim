@@ -187,10 +187,9 @@ class SavingGoalRepositoryImpl implements SavingGoalRepository {
       if (sourceAccountRow.currency != goalAccountRow.currency) {
         throw StateError('Source and saving goal currencies must match');
       }
-      final double amountDouble = appliedDelta / 100;
-      final int scale = resolveCurrencyScale(sourceAccountRow.currency);
-      final Money money = Money.fromDouble(
-        amountDouble.abs(),
+      final int scale = sourceAccountRow.currencyScale;
+      final Money money = Money.fromMinor(
+        BigInt.from(appliedDelta).abs(),
         currency: sourceAccountRow.currency,
         scale: scale,
       );

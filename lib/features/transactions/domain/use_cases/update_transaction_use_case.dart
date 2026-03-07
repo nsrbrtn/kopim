@@ -66,6 +66,11 @@ class UpdateTransactionUseCase {
       if (targetAccount == null) {
         throw StateError('Account not found for id $targetAccountId');
       }
+      if (targetAccount.currency != updatedAccount.currency) {
+        throw StateError(
+          'Cross-currency transfer is not supported without FX conversion',
+        );
+      }
     }
 
     final int scale =

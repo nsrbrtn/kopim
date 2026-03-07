@@ -177,6 +177,30 @@ void main() {
     expect(transaction.type, TransactionType.transfer.storageValue);
     expect(createdResult.value.type, TransactionType.transfer.storageValue);
   });
+
+  test('rejects transfer between accounts with different currencies', () async {
+    final AccountEntity source = account0(balance: 200);
+    final AccountEntity target = account0(
+      balance: 40,
+    ).copyWith(id: 'acc-2', currency: 'EUR');
+    when(
+      () => accountRepository.findById(source.id),
+    ).thenAnswer((_) async => source);
+    when(
+      () => accountRepository.findById(target.id),
+    ).thenAnswer((_) async => target);
+
+    final AddTransactionRequest request = AddTransactionRequest(
+      accountId: source.id,
+      transferAccountId: target.id,
+      amount: _amount(50),
+      date: fixedNow,
+      type: TransactionType.transfer,
+    );
+
+    await expectLater(() => useCase(request), throwsStateError);
+    verifyNever(() => transactionRepository.upsert(any()));
+  });
 }
 
 MoneyAmount _amount(int value, {int scale = 2}) {

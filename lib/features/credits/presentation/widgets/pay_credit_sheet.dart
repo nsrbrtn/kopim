@@ -5,31 +5,39 @@ import 'package:kopim/core/money/money.dart';
 import 'package:kopim/core/utils/context_extensions.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/credits/domain/entities/credit_entity.dart';
+import 'package:kopim/features/credits/domain/entities/credit_payment_group.dart';
 import 'package:kopim/features/credits/domain/entities/credit_payment_schedule.dart';
 import 'package:kopim/features/credits/domain/utils/credit_payment_amounts.dart';
 import 'package:kopim/features/credits/domain/use_cases/make_credit_payment_use_case.dart';
+import 'package:kopim/features/credits/domain/use_cases/update_credit_payment_case.dart';
 
 class PayCreditSheet extends ConsumerStatefulWidget {
   const PayCreditSheet({
     required this.credit,
-    required this.scheduleItem,
+    this.scheduleItem,
+    this.paymentGroup,
     super.key,
   });
 
   final CreditEntity credit;
   final CreditPaymentScheduleEntity? scheduleItem;
+  final CreditPaymentGroupEntity? paymentGroup;
 
   static Future<void> show(
     BuildContext context, {
     required CreditEntity credit,
     CreditPaymentScheduleEntity? scheduleItem,
+    CreditPaymentGroupEntity? paymentGroup,
   }) {
     return showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) =>
-          PayCreditSheet(credit: credit, scheduleItem: scheduleItem),
+      builder: (_) => PayCreditSheet(
+        credit: credit,
+        scheduleItem: scheduleItem,
+        paymentGroup: paymentGroup,
+      ),
     );
   }
 
@@ -41,23 +49,33 @@ class _PayCreditSheetState extends ConsumerState<PayCreditSheet> {
   late final TextEditingController _principalController;
   late final TextEditingController _interestController;
   late final TextEditingController _feesController;
+  late final TextEditingController _noteController;
 
   AccountEntity? _sourceAccount;
   bool _isSubmitting = false;
 
+  bool get _isEditing => widget.paymentGroup != null;
+
   @override
   void initState() {
     super.initState();
+    final CreditPaymentGroupEntity? group = widget.paymentGroup;
     final CreditPaymentScheduleEntity? item = widget.scheduleItem;
-    final String principalText = item == null
+    final String principalText = group != null
+        ? group.principalPaid.toDecimalString()
+        : item == null
         ? '0'
         : remainingPrincipalAmount(item).toDecimalString();
-    final String interestText = item == null
+    final String interestText = group != null
+        ? group.interestPaid.toDecimalString()
+        : item == null
         ? '0'
         : remainingInterestAmount(item).toDecimalString();
+    final String feesText = group?.feesPaid.toDecimalString() ?? '0';
     _principalController = TextEditingController(text: principalText);
     _interestController = TextEditingController(text: interestText);
-    _feesController = TextEditingController(text: '0');
+    _feesController = TextEditingController(text: feesText);
+    _noteController = TextEditingController(text: group?.note ?? '');
   }
 
   @override
@@ -65,6 +83,7 @@ class _PayCreditSheetState extends ConsumerState<PayCreditSheet> {
     _principalController.dispose();
     _interestController.dispose();
     _feesController.dispose();
+    _noteController.dispose();
     super.dispose();
   }
 
@@ -106,7 +125,9 @@ class _PayCreditSheetState extends ConsumerState<PayCreditSheet> {
               ),
               const SizedBox(height: 24),
               Text(
-                context.loc.creditDetailsPayAction,
+                _isEditing
+                    ? context.loc.creditsEditTitle
+                    : context.loc.creditDetailsPayAction,
                 style: theme.textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
@@ -138,6 +159,13 @@ class _PayCreditSheetState extends ConsumerState<PayCreditSheet> {
                 icon: Icons.receipt_long,
               ),
               const SizedBox(height: 24),
+              _AmountField(
+                controller: _noteController,
+                label: context.loc.addTransactionNoteLabel,
+                icon: Icons.sticky_note_2_outlined,
+                keyboardType: TextInputType.text,
+              ),
+              const SizedBox(height: 24),
 
               Text(
                 context.loc.allTransactionsFiltersAccount,
@@ -165,9 +193,20 @@ class _PayCreditSheetState extends ConsumerState<PayCreditSheet> {
                           .toList(growable: false);
 
                       if (_sourceAccount == null && uniqueAccounts.isNotEmpty) {
-                        // Try to pick one that is not the credit account itself
+                        final String? preferredId =
+                            widget.paymentGroup?.sourceAccountId;
+                        if (preferredId != null) {
+                          _sourceAccount = uniqueAccounts
+                              .cast<AccountEntity?>()
+                              .firstWhere(
+                                (AccountEntity? a) => a?.id == preferredId,
+                                orElse: () => null,
+                              );
+                        }
                         _sourceAccount = uniqueAccounts.firstWhere(
-                          (AccountEntity a) => a.id != widget.credit.accountId,
+                          (AccountEntity a) =>
+                              a.id == _sourceAccount?.id ||
+                              a.id != widget.credit.accountId,
                           orElse: () => uniqueAccounts.first,
                         );
                       } else if (_sourceAccount != null) {
@@ -208,8 +247,10 @@ class _PayCreditSheetState extends ConsumerState<PayCreditSheet> {
                                   ),
                             )
                             .toList(),
-                        onChanged: (AccountEntity? val) =>
-                            setState(() => _sourceAccount = val),
+                        onChanged: _isEditing
+                            ? null
+                            : (AccountEntity? val) =>
+                                  setState(() => _sourceAccount = val),
                       );
                     },
               ),
@@ -247,9 +288,6 @@ class _PayCreditSheetState extends ConsumerState<PayCreditSheet> {
     setState(() => _isSubmitting = true);
 
     try {
-      final MakeCreditPaymentUseCase makePayment = ref.read(
-        makeCreditPaymentUseCaseProvider,
-      );
       final AccountEntity? creditAccount = await ref
           .read(accountRepositoryProvider)
           .findById(widget.credit.accountId);
@@ -293,6 +331,9 @@ class _PayCreditSheetState extends ConsumerState<PayCreditSheet> {
         currency: currency,
         scale: scale,
       );
+      final String? note = _noteController.text.trim().isEmpty
+          ? null
+          : _noteController.text.trim();
 
       if (totalOutflow.minor <= BigInt.zero) {
         if (mounted) {
@@ -303,16 +344,34 @@ class _PayCreditSheetState extends ConsumerState<PayCreditSheet> {
         return;
       }
 
-      await makePayment(
-        creditId: widget.credit.id,
-        periodKey: widget.scheduleItem?.periodKey,
-        sourceAccountId: _sourceAccount!.id,
-        principalPaid: principal,
-        interestPaid: interest,
-        feesPaid: fees,
-        totalOutflow: totalOutflow,
-        paidAt: DateTime.now(),
-      );
+      if (_isEditing) {
+        final UpdateCreditPaymentUseCase updatePayment = ref.read(
+          updateCreditPaymentUseCaseProvider,
+        );
+        await updatePayment(
+          groupId: widget.paymentGroup!.id,
+          principalPaid: principal,
+          interestPaid: interest,
+          feesPaid: fees,
+          totalOutflow: totalOutflow,
+          note: note,
+        );
+      } else {
+        final MakeCreditPaymentUseCase makePayment = ref.read(
+          makeCreditPaymentUseCaseProvider,
+        );
+        await makePayment(
+          creditId: widget.credit.id,
+          periodKey: widget.scheduleItem?.periodKey,
+          sourceAccountId: _sourceAccount!.id,
+          principalPaid: principal,
+          interestPaid: interest,
+          feesPaid: fees,
+          totalOutflow: totalOutflow,
+          paidAt: DateTime.now(),
+          note: note,
+        );
+      }
 
       if (mounted) {
         Navigator.pop(context);
@@ -334,18 +393,20 @@ class _AmountField extends StatelessWidget {
     required this.controller,
     required this.label,
     required this.icon,
+    this.keyboardType = const TextInputType.numberWithOptions(decimal: true),
   });
 
   final TextEditingController controller;
   final String label;
   final IconData icon;
+  final TextInputType keyboardType;
 
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
     return TextFormField(
       controller: controller,
-      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+      keyboardType: keyboardType,
       decoration: InputDecoration(
         labelText: label,
         prefixIcon: Icon(icon, size: 20),

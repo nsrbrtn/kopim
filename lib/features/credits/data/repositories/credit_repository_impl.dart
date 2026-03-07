@@ -162,8 +162,18 @@ class CreditRepositoryImpl implements CreditRepository {
   }
 
   @override
+  Future<void> updatePaymentGroup(CreditPaymentGroupEntity group) {
+    return _creditPaymentDao.updatePaymentGroup(group);
+  }
+
+  @override
   Future<List<CreditPaymentGroupEntity>> getPaymentGroups(String creditId) {
     return _creditPaymentDao.getPaymentGroups(creditId);
+  }
+
+  @override
+  Future<CreditPaymentGroupEntity?> findPaymentGroupById(String groupId) {
+    return _creditPaymentDao.findPaymentGroupById(groupId);
   }
 
   @override

@@ -274,6 +274,14 @@ class _InMemoryTransactionRepository implements TransactionRepository {
   }
 
   @override
+  Future<List<TransactionEntity>> findByGroupId(String groupId) async =>
+      transactions
+          .where(
+            (TransactionEntity transaction) => transaction.groupId == groupId,
+          )
+          .toList(growable: false);
+
+  @override
   Future<TransactionEntity?> findByIdempotencyKey(String idempotencyKey) {
     throw UnimplementedError();
   }
@@ -411,7 +419,17 @@ class _InMemoryCreditRepository implements CreditRepository {
   }
 
   @override
+  Future<void> updatePaymentGroup(CreditPaymentGroupEntity group) {
+    throw UnimplementedError();
+  }
+
+  @override
   Future<List<CreditPaymentGroupEntity>> getPaymentGroups(String creditId) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<CreditPaymentGroupEntity?> findPaymentGroupById(String groupId) {
     throw UnimplementedError();
   }
 

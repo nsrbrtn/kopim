@@ -1,5 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kopim/core/di/injectors.dart';
+import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
+import 'package:kopim/features/accounts/domain/use_cases/get_account_by_id_use_case.dart';
 import 'package:kopim/features/profile/domain/events/profile_domain_event.dart';
 import 'package:kopim/features/profile/presentation/services/profile_event_recorder.dart';
 import 'package:kopim/features/tags/domain/entities/tag.dart';
@@ -24,6 +26,9 @@ class _MockAddTransactionUseCase extends Mock
 
 class _MockUpdateTransactionUseCase extends Mock
     implements UpdateTransactionUseCase {}
+
+class _MockGetAccountByIdUseCase extends Mock
+    implements GetAccountByIdUseCase {}
 
 class _MockProfileEventRecorder extends Mock implements ProfileEventRecorder {}
 
@@ -58,6 +63,7 @@ void main() {
   late ProviderContainer container;
   late _MockAddTransactionUseCase addUseCase;
   late _MockUpdateTransactionUseCase updateUseCase;
+  late _MockGetAccountByIdUseCase getAccountByIdUseCase;
   late _MockProfileEventRecorder eventRecorder;
   late TransactionTagsRepository tagsRepository;
 
@@ -84,14 +90,19 @@ void main() {
   setUp(() {
     addUseCase = _MockAddTransactionUseCase();
     updateUseCase = _MockUpdateTransactionUseCase();
+    getAccountByIdUseCase = _MockGetAccountByIdUseCase();
     eventRecorder = _MockProfileEventRecorder();
     tagsRepository = _EmptyTransactionTagsRepository();
     when(() => eventRecorder.record(any())).thenAnswer((_) async {});
+    when(() => getAccountByIdUseCase(any())).thenAnswer((_) async {
+      return _accountEntity();
+    });
     container = ProviderContainer(
       // ignore: always_specify_types, the Override type is internal to riverpod
       overrides: [
         addTransactionUseCaseProvider.overrideWithValue(addUseCase),
         updateTransactionUseCaseProvider.overrideWithValue(updateUseCase),
+        getAccountByIdUseCaseProvider.overrideWithValue(getAccountByIdUseCase),
         profileEventRecorderProvider.overrideWithValue(eventRecorder),
         getTransactionTagIdsUseCaseProvider.overrideWithValue(
           GetTransactionTagIdsUseCase(tagsRepository),
@@ -242,4 +253,23 @@ void main() {
 
 MoneyAmount _amount(double value, {int scale = 2}) {
   return resolveMoneyAmount(amount: value, scale: scale);
+}
+
+AccountEntity _accountEntity({
+  String id = 'acc-1',
+  String currency = 'USD',
+  int? currencyScale = 2,
+}) {
+  final DateTime now = DateTime.utc(2024, 1, 1);
+  return AccountEntity(
+    id: id,
+    name: 'Cash',
+    balanceMinor: BigInt.from(100000),
+    currency: currency,
+    currencyScale: currencyScale,
+    type: 'wallet',
+    createdAt: now,
+    updatedAt: now,
+    isDeleted: false,
+  );
 }

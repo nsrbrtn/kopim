@@ -236,6 +236,14 @@ class TransactionRepositoryImpl implements TransactionRepository {
   }
 
   @override
+  Future<List<TransactionEntity>> findByGroupId(String groupId) async {
+    final List<db.TransactionRow> rows = await _transactionDao.findByGroupId(
+      groupId,
+    );
+    return rows.map(_mapToDomain).toList(growable: false);
+  }
+
+  @override
   Future<TransactionEntity?> findByIdempotencyKey(String idempotencyKey) async {
     final db.TransactionRow? row = await _transactionDao.findByIdempotencyKey(
       idempotencyKey,

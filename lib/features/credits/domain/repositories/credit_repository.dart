@@ -18,7 +18,9 @@ abstract class CreditRepository {
   Future<void> updateScheduleItem(CreditPaymentScheduleEntity item);
   Future<void> addPaymentGroup(CreditPaymentGroupEntity group);
   Future<bool> addPaymentGroupIfAbsent(CreditPaymentGroupEntity group);
+  Future<void> updatePaymentGroup(CreditPaymentGroupEntity group);
   Future<List<CreditPaymentGroupEntity>> getPaymentGroups(String creditId);
+  Future<CreditPaymentGroupEntity?> findPaymentGroupById(String groupId);
   Future<CreditPaymentGroupEntity?> findPaymentGroupByIdempotencyKey({
     required String creditId,
     required String idempotencyKey,

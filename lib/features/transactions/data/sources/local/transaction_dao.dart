@@ -696,6 +696,20 @@ WHERE row_number = 1
     return query.getSingleOrNull();
   }
 
+  Future<List<db.TransactionRow>> findByGroupId(String groupId) {
+    final SimpleSelectStatement<db.$TransactionsTable, db.TransactionRow>
+    query = _db.select(_db.transactions)
+      ..where(
+        (db.$TransactionsTable tbl) =>
+            tbl.groupId.equals(groupId) & tbl.isDeleted.equals(false),
+      )
+      ..orderBy(<OrderClauseGenerator<db.$TransactionsTable>>[
+        (db.$TransactionsTable tbl) =>
+            OrderingTerm(expression: tbl.createdAt, mode: OrderingMode.asc),
+      ]);
+    return query.get();
+  }
+
   Future<db.TransactionRow?> findByIdempotencyKey(String idempotencyKey) {
     final SimpleSelectStatement<db.$TransactionsTable, db.TransactionRow>
     query = _db.select(_db.transactions)

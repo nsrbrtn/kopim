@@ -684,9 +684,20 @@ class _TransferAccountSection extends ConsumerWidget {
         (TransactionDraftState state) => state.transferAccountId,
       ),
     );
+    final AccountEntity? sourceAccount = sourceAccountId == null
+        ? null
+        : accounts.cast<AccountEntity?>().firstWhere(
+            (AccountEntity? account) => account?.id == sourceAccountId,
+            orElse: () => null,
+          );
 
     final List<AccountEntity> targetAccounts = accounts
-        .where((AccountEntity account) => account.id != sourceAccountId)
+        .where(
+          (AccountEntity account) =>
+              account.id != sourceAccountId &&
+              (sourceAccount == null ||
+                  account.currency == sourceAccount.currency),
+        )
         .toList(growable: false);
     final String? resolvedTransferId =
         selectedTransferId != null &&
@@ -1318,8 +1329,9 @@ class _CategoryDropdownFieldState
     setState(() {
       if (allowExpand && isParent) {
         if (hasChildren) {
-          _expandedParentId =
-              _expandedParentId == category.id ? null : category.id;
+          _expandedParentId = _expandedParentId == category.id
+              ? null
+              : category.id;
         } else {
           _expandedParentId = null;
         }
@@ -1520,11 +1532,11 @@ class _CategoryDropdownFieldState
     final Set<String> rootIds = hierarchy.rootIds.toSet();
     final List<Category> matchingCategories = hasQuery
         ? typeCategories
-            .where(
-              (Category category) =>
-                  category.name.toLowerCase().contains(normalizedQuery),
-            )
-            .toList(growable: false)
+              .where(
+                (Category category) =>
+                    category.name.toLowerCase().contains(normalizedQuery),
+              )
+              .toList(growable: false)
         : typeCategories;
     Category? selectedCategory;
     if (selectedCategoryId != null) {
@@ -1539,13 +1551,12 @@ class _CategoryDropdownFieldState
     final List<Category> favoriteParents = hasQuery
         ? const <Category>[]
         : typeCategories
-            .where(
-              (Category category) =>
-                  category.isFavorite && rootIds.contains(category.id),
-            )
-            .toList(growable: false);
-    final bool showFavoritesInHeader =
-        !hasQuery && (!hasSelection || _showAll);
+              .where(
+                (Category category) =>
+                    category.isFavorite && rootIds.contains(category.id),
+              )
+              .toList(growable: false);
+    final bool showFavoritesInHeader = !hasQuery && (!hasSelection || _showAll);
     final List<Category> headerFavorites = <Category>[
       for (final Category category in favoriteParents)
         if (!hasSelection || category.id != selectedCategoryId) category,
@@ -1553,16 +1564,16 @@ class _CategoryDropdownFieldState
     final List<Category> otherParents = hasQuery
         ? const <Category>[]
         : typeCategories
-            .where((Category category) {
-              if (!rootIds.contains(category.id) || category.isFavorite) {
-                return false;
-              }
-              if (!hasSelection) {
-                return true;
-              }
-              return category.id != selectedCategory!.id;
-            })
-            .toList(growable: false);
+              .where((Category category) {
+                if (!rootIds.contains(category.id) || category.isFavorite) {
+                  return false;
+                }
+                if (!hasSelection) {
+                  return true;
+                }
+                return category.id != selectedCategory!.id;
+              })
+              .toList(growable: false);
     final String buttonLabel = _showAll
         ? strings.addTransactionHideCategories
         : strings.addTransactionShowAllCategories;
@@ -1572,11 +1583,11 @@ class _CategoryDropdownFieldState
     ];
     final List<Category> searchResults = hasQuery
         ? matchingCategories
-            .where(
-              (Category category) =>
-                  !hasSelection || category.id != selectedCategoryId,
-            )
-            .toList(growable: false)
+              .where(
+                (Category category) =>
+                    !hasSelection || category.id != selectedCategoryId,
+              )
+              .toList(growable: false)
         : const <Category>[];
     final bool showOtherCategories = hasQuery
         ? searchResults.isNotEmpty
@@ -1646,10 +1657,9 @@ class _CategoryDropdownFieldState
             alignment: Alignment.centerRight,
             child: TextButton(
               onPressed:
-                  hasQuery ||
-                          (otherParents.isEmpty && favoriteParents.isEmpty)
-                      ? null
-                      : _toggleShowAll,
+                  hasQuery || (otherParents.isEmpty && favoriteParents.isEmpty)
+                  ? null
+                  : _toggleShowAll,
               style: TextButton.styleFrom(
                 padding: EdgeInsets.zero,
                 minimumSize: const Size(126, 20),

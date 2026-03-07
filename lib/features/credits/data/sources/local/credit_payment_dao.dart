@@ -80,6 +80,12 @@ class CreditPaymentDao {
     return insertedRowId > 0;
   }
 
+  Future<void> updatePaymentGroup(CreditPaymentGroupEntity group) async {
+    await _db
+        .update(_db.creditPaymentGroups)
+        .replace(_mapGroupToCompanion(group));
+  }
+
   Future<List<CreditPaymentGroupEntity>> getPaymentGroups(
     String creditId,
   ) async {
@@ -99,6 +105,18 @@ class CreditPaymentDao {
               _mapRowToGroupEntity(row, currency: currency),
         )
         .toList();
+  }
+
+  Future<CreditPaymentGroupEntity?> findPaymentGroupById(String groupId) async {
+    final db.CreditPaymentGroupRow? row =
+        await (_db.select(_db.creditPaymentGroups)
+              ..where((db.CreditPaymentGroups tbl) => tbl.id.equals(groupId)))
+            .getSingleOrNull();
+    if (row == null) {
+      return null;
+    }
+    final String currency = await _resolveCreditCurrency(row.creditId);
+    return _mapRowToGroupEntity(row, currency: currency);
   }
 
   Future<CreditPaymentGroupEntity?> findPaymentGroupByIdempotencyKey({

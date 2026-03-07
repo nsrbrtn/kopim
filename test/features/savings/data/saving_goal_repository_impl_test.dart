@@ -223,6 +223,69 @@ void main() {
     },
   );
 
+  test(
+    'addContribution respects account currencyScale when it is not 2',
+    () async {
+      final AccountEntity account = AccountEntity(
+        id: 'acc-scale-3',
+        name: 'JPY-like 3dp',
+        balanceMinor: BigInt.from(123456),
+        currency: 'BHD',
+        currencyScale: 3,
+        type: 'checking',
+        createdAt: now,
+        updatedAt: now,
+      );
+      await accountDao.upsert(account);
+
+      final SavingGoal goal = SavingGoal(
+        id: 'goal-scale-3',
+        userId: 'user-1',
+        name: 'Trip',
+        targetAmount: 20_000,
+        currentAmount: 0,
+        createdAt: now,
+        updatedAt: now,
+      );
+      await repository.create(goal);
+      final SavingGoal stored = (await savingGoalDao.findById(goal.id))!;
+
+      final SavingGoal updated = await repository.addContribution(
+        goal: stored,
+        appliedDelta: 1_234,
+        newCurrentAmount: 1_234,
+        contributedAt: now,
+        sourceAccountId: account.id,
+        contributionNote: null,
+      );
+
+      final db.TransactionRow txRow =
+          await (database.select(database.transactions)..where(
+                (db.$TransactionsTable tbl) => tbl.savingGoalId.equals(goal.id),
+              ))
+              .getSingle();
+      expect(txRow.amountMinor, '1234');
+      expect(txRow.amountScale, 3);
+      expect(txRow.amount, closeTo(1.234, 1e-9));
+
+      final db.AccountRow sourceRow =
+          await (database.select(database.accounts)
+                ..where((db.$AccountsTable tbl) => tbl.id.equals(account.id)))
+              .getSingle();
+      expect(sourceRow.balanceMinor, '122222');
+      expect(sourceRow.balance, closeTo(122.222, 1e-9));
+
+      final db.AccountRow goalRow =
+          await (database.select(database.accounts)..where(
+                (db.$AccountsTable tbl) =>
+                    tbl.id.equals(updated.accountId ?? ''),
+              ))
+              .getSingle();
+      expect(goalRow.balanceMinor, '1234');
+      expect(goalRow.balance, closeTo(1.234, 1e-9));
+    },
+  );
+
   test('softDelete on transaction rolls back saving goal progress', () async {
     final AccountEntity account = AccountEntity(
       id: 'acc-2',
