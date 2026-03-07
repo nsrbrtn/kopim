@@ -232,6 +232,11 @@ class _TransactionRepositoryFake implements TransactionRepository {
   }
 
   @override
+  Future<List<TransactionEntity>> findByGroupId(String groupId) async {
+    return const <TransactionEntity>[];
+  }
+
+  @override
   Future<TransactionEntity?> findByIdempotencyKey(String idempotencyKey) {
     throw UnimplementedError();
   }

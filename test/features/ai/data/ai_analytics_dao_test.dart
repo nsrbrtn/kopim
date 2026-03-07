@@ -309,15 +309,9 @@ void main() {
 
     expect(result, hasLength(2));
     expect(result.first.displayName, 'Продукты');
-    expect(
-      result.first.totalExpense,
-      MoneyAmount(minor: BigInt.from(12000), scale: 2),
-    );
+    expect(_matchesAmount(result.first.totalExpense, 12000, 2), isTrue);
     expect(result[1].displayName, 'Транспорт');
-    expect(
-      result[1].totalExpense,
-      MoneyAmount(minor: BigInt.from(8000), scale: 2),
-    );
+    expect(_matchesAmount(result[1].totalExpense, 8000, 2), isTrue);
   });
 
   test(
@@ -355,10 +349,7 @@ void main() {
 
       expect(result, hasLength(1));
       expect(result.first.displayName, 'Зарплата');
-      expect(
-        result.first.totalIncome,
-        MoneyAmount(minor: BigInt.from(120000), scale: 2),
-      );
+      expect(_matchesAmount(result.first.totalIncome, 120000, 2), isTrue);
     },
   );
 
@@ -383,11 +374,8 @@ void main() {
     expect(result, hasLength(1));
     final BudgetInstanceAggregate aggregate = result.first;
     expect(aggregate.budgetId, 'b1');
-    expect(
-      aggregate.allocated,
-      MoneyAmount(minor: BigInt.from(50000), scale: 2),
-    );
-    expect(aggregate.spent, MoneyAmount(minor: BigInt.from(20000), scale: 2));
+    expect(_matchesAmount(aggregate.allocated, 50000, 2), isTrue);
+    expect(_matchesAmount(aggregate.spent, 20000, 2), isTrue);
     expect(aggregate.periodStart, DateTime(2024, 2, 1));
     expect(aggregate.periodEnd, DateTime(2024, 2, 29));
   });

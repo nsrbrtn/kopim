@@ -22,6 +22,14 @@ import 'package:kopim/features/categories/domain/repositories/category_repositor
 import 'package:kopim/features/categories/domain/use_cases/watch_categories_use_case.dart';
 import 'package:kopim/features/categories/domain/use_cases/watch_category_tree_use_case.dart';
 import 'package:kopim/features/categories/presentation/controllers/categories_list_controller.dart';
+import 'package:kopim/features/credits/domain/entities/credit_card_entity.dart';
+import 'package:kopim/features/credits/domain/entities/credit_entity.dart';
+import 'package:kopim/features/credits/domain/entities/credit_payment_group.dart';
+import 'package:kopim/features/credits/domain/entities/credit_payment_schedule.dart';
+import 'package:kopim/features/credits/domain/repositories/credit_card_repository.dart';
+import 'package:kopim/features/credits/domain/repositories/credit_repository.dart';
+import 'package:kopim/features/credits/domain/use_cases/watch_credit_cards_use_case.dart';
+import 'package:kopim/features/credits/domain/use_cases/watch_credits_use_case.dart';
 import 'package:kopim/features/home/domain/entities/home_dashboard_preferences.dart';
 import 'package:kopim/features/home/presentation/controllers/home_dashboard_preferences_controller.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
@@ -157,6 +165,10 @@ class _StreamTransactionRepository implements TransactionRepository {
   Future<TransactionEntity?> findById(String id) => throw UnimplementedError();
 
   @override
+  Future<List<TransactionEntity>> findByGroupId(String groupId) async =>
+      const <TransactionEntity>[];
+
+  @override
   Future<TransactionEntity?> findByIdempotencyKey(String idempotencyKey) =>
       throw UnimplementedError();
 
@@ -252,6 +264,117 @@ class _FakeSavingGoalRepository implements SavingGoalRepository {
       Stream<List<SavingGoal>>.value(const <SavingGoal>[]);
 }
 
+class _StubWatchCreditsUseCase extends WatchCreditsUseCase {
+  _StubWatchCreditsUseCase(this._stream) : super(_EmptyCreditRepository());
+
+  final Stream<List<CreditEntity>> _stream;
+
+  @override
+  Stream<List<CreditEntity>> call() => _stream;
+}
+
+class _StubWatchCreditCardsUseCase extends WatchCreditCardsUseCase {
+  _StubWatchCreditCardsUseCase(this._stream)
+    : super(_EmptyCreditCardRepository());
+
+  final Stream<List<CreditCardEntity>> _stream;
+
+  @override
+  Stream<List<CreditCardEntity>> call() => _stream;
+}
+
+class _EmptyCreditRepository implements CreditRepository {
+  @override
+  Future<void> addCredit(CreditEntity credit) async {}
+
+  @override
+  Future<void> addPaymentGroup(CreditPaymentGroupEntity group) async {}
+
+  @override
+  Future<bool> addPaymentGroupIfAbsent(CreditPaymentGroupEntity group) async {
+    return false;
+  }
+
+  @override
+  Future<void> addSchedule(List<CreditPaymentScheduleEntity> schedule) async {}
+
+  @override
+  Future<void> deleteCredit(String id) async {}
+
+  @override
+  Future<CreditEntity?> getCreditByAccountId(String accountId) async => null;
+
+  @override
+  Future<CreditEntity?> getCreditByCategoryId(String categoryId) async => null;
+
+  @override
+  Future<List<CreditEntity>> getCredits() async => const <CreditEntity>[];
+
+  @override
+  Future<List<CreditPaymentGroupEntity>> getPaymentGroups(
+    String creditId,
+  ) async {
+    return const <CreditPaymentGroupEntity>[];
+  }
+
+  @override
+  Future<CreditPaymentGroupEntity?> findPaymentGroupById(String groupId) async {
+    return null;
+  }
+
+  @override
+  Future<CreditPaymentGroupEntity?> findPaymentGroupByIdempotencyKey({
+    required String creditId,
+    required String idempotencyKey,
+  }) async {
+    return null;
+  }
+
+  @override
+  Future<List<CreditPaymentScheduleEntity>> getSchedule(String creditId) async {
+    return const <CreditPaymentScheduleEntity>[];
+  }
+
+  @override
+  Future<void> updateCredit(CreditEntity credit) async {}
+
+  @override
+  Future<void> updatePaymentGroup(CreditPaymentGroupEntity group) async {}
+
+  @override
+  Future<void> updateScheduleItem(CreditPaymentScheduleEntity item) async {}
+
+  @override
+  Stream<List<CreditEntity>> watchCredits() =>
+      const Stream<List<CreditEntity>>.empty();
+
+  @override
+  Stream<List<CreditPaymentScheduleEntity>> watchSchedule(String creditId) =>
+      const Stream<List<CreditPaymentScheduleEntity>>.empty();
+}
+
+class _EmptyCreditCardRepository implements CreditCardRepository {
+  @override
+  Future<void> addCreditCard(CreditCardEntity creditCard) async {}
+
+  @override
+  Future<void> deleteCreditCard(String id) async {}
+
+  @override
+  Future<CreditCardEntity?> getByAccountId(String accountId) async => null;
+
+  @override
+  Future<List<CreditCardEntity>> getCreditCards() async =>
+      const <CreditCardEntity>[];
+
+  @override
+  Future<void> updateCreditCard(CreditCardEntity creditCard) async {}
+
+  @override
+  Stream<List<CreditCardEntity>> watchCreditCards() =>
+      const Stream<List<CreditCardEntity>>.empty();
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -305,6 +428,16 @@ void main() {
         transactionRepositoryProvider.overrideWithValue(transactionRepository),
         watchRecentTransactionsUseCaseProvider.overrideWithValue(
           WatchRecentTransactionsUseCase(transactionRepository),
+        ),
+        watchCreditsUseCaseProvider.overrideWithValue(
+          _StubWatchCreditsUseCase(
+            Stream<List<CreditEntity>>.value(const <CreditEntity>[]),
+          ),
+        ),
+        watchCreditCardsUseCaseProvider.overrideWithValue(
+          _StubWatchCreditCardsUseCase(
+            Stream<List<CreditCardEntity>>.value(const <CreditCardEntity>[]),
+          ),
         ),
         watchMonthlyAnalyticsUseCaseProvider.overrideWithValue(
           WatchMonthlyAnalyticsUseCase(
@@ -449,14 +582,6 @@ void main() {
       ),
       findsOneWidget,
     );
-    expect(
-      find.descendant(
-        of: find.byType(MenuScreen),
-        matching: find.text(strings.profileManageCategoriesCta),
-      ),
-      findsOneWidget,
-    );
-
     await tester.tap(find.text('Home'));
     await tester.pump(const Duration(milliseconds: 300));
 

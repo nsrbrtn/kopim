@@ -35,28 +35,55 @@ void main() {
 
     // Case 1: Integer Date in Range (Dec 15 2025)
     await db.customStatement(
-      'INSERT INTO transactions (id, account_id, category_id, amount, date, type) VALUES (?, ?, ?, ?, ?, ?)',
-      <Object?>['tx1', 'acc1', 'cat1', 100.0, 1765756800, 'expense'],
+      'INSERT INTO transactions (id, account_id, category_id, amount, amount_minor, amount_scale, date, type) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      <Object?>[
+        'tx1',
+        'acc1',
+        'cat1',
+        100.0,
+        '10000',
+        2,
+        1765756800,
+        'expense',
+      ],
     );
 
     // Case 2: String Date in Range (Dec 20 2025)
     // ISO String format without T, typical for SQLite datetime output, or with T
     await db.customStatement(
-      'INSERT INTO transactions (id, account_id, category_id, amount, date, type) VALUES (?, ?, ?, ?, ?, ?)',
-      <Object?>['tx2', 'acc1', 'cat1', 200.0, '2025-12-20 10:00:00', 'expense'],
+      'INSERT INTO transactions (id, account_id, category_id, amount, amount_minor, amount_scale, date, type) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      <Object?>[
+        'tx2',
+        'acc1',
+        'cat1',
+        200.0,
+        '20000',
+        2,
+        '2025-12-20 10:00:00',
+        'expense',
+      ],
     );
 
     // Case 3: Integer Date OUT of Range (Nov 15 2025)
     // 1763164800 = 2025-11-15
     await db.customStatement(
-      'INSERT INTO transactions (id, account_id, category_id, amount, date, type) VALUES (?, ?, ?, ?, ?, ?)',
-      <Object?>['tx3', 'acc1', 'cat1', 50.0, 1763164800, 'expense'],
+      'INSERT INTO transactions (id, account_id, category_id, amount, amount_minor, amount_scale, date, type) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      <Object?>['tx3', 'acc1', 'cat1', 50.0, '5000', 2, 1763164800, 'expense'],
     );
 
     // Case 4: String Date OUT of Range (Jan 15 2026)
     await db.customStatement(
-      'INSERT INTO transactions (id, account_id, category_id, amount, date, type) VALUES (?, ?, ?, ?, ?, ?)',
-      <Object?>['tx4', 'acc1', 'cat1', 50.0, '2026-01-15 10:00:00', 'expense'],
+      'INSERT INTO transactions (id, account_id, category_id, amount, amount_minor, amount_scale, date, type) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      <Object?>[
+        'tx4',
+        'acc1',
+        'cat1',
+        50.0,
+        '5000',
+        2,
+        '2026-01-15 10:00:00',
+        'expense',
+      ],
     );
 
     // 2. Define Filter for Dec 2025
@@ -81,7 +108,7 @@ void main() {
     final MonthlyExpenseAggregate december = results.first;
     expect(december.month, DateTime(2025, 12, 1));
     expect(
-      december.totalExpense,
+      december.totalExpense.toDouble(),
       300.0,
       reason: 'Should sum both INT and STRING date transactions',
     );
@@ -90,6 +117,6 @@ void main() {
     final List<CategoryExpenseAggregate> categories = await dao
         .getTopCategories(filter);
     expect(categories.length, 1);
-    expect(categories.first.totalExpense, 300.0);
+    expect(categories.first.totalExpense.toDouble(), 300.0);
   });
 }

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kopim/core/application/sync_preferences_provider.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_progress.dart';
 import 'package:kopim/features/budgets/presentation/controllers/budgets_providers.dart';
@@ -13,16 +14,21 @@ import 'package:kopim/features/home/domain/entities/home_dashboard_preferences.d
 import 'package:kopim/features/home/presentation/controllers/home_dashboard_preferences_controller.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
 import 'package:kopim/features/profile/domain/entities/profile.dart';
+import 'package:kopim/features/profile/domain/entities/user_progress.dart';
 import 'package:kopim/features/profile/domain/events/profile_domain_event.dart';
 import 'package:kopim/features/profile/domain/models/profile_command_result.dart';
 import 'package:kopim/features/profile/domain/usecases/update_profile_use_case.dart';
 import 'package:kopim/features/profile/presentation/controllers/auth_controller.dart';
+import 'package:kopim/features/profile/presentation/controllers/profile_activity_days_provider.dart';
 import 'package:kopim/features/profile/presentation/controllers/profile_controller.dart';
-import 'package:kopim/features/profile/presentation/screens/menu_screen.dart';
-import 'package:kopim/features/profile/presentation/screens/profile_screen.dart';
 import 'package:kopim/features/profile/presentation/services/profile_event_recorder.dart';
 import 'package:kopim/features/profile/presentation/controllers/user_progress_controller.dart';
-import 'package:kopim/features/profile/domain/entities/user_progress.dart';
+import 'package:kopim/features/profile/presentation/screens/menu_screen.dart';
+import 'package:kopim/features/profile/presentation/screens/profile_screen.dart';
+import 'package:kopim/features/settings/domain/repositories/export_file_saver.dart';
+import 'package:kopim/features/settings/domain/use_cases/import_user_data_result.dart';
+import 'package:kopim/features/settings/presentation/controllers/export_user_data_controller.dart';
+import 'package:kopim/features/settings/presentation/controllers/import_user_data_controller.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -66,6 +72,26 @@ class _FakeProfileController extends ProfileController {
 
   @override
   FutureOr<Profile?> build(String uid) => _profile;
+}
+
+class _FakeOnlineSyncPreferencesController
+    extends OnlineSyncPreferencesController {
+  @override
+  Future<bool> build() async => true;
+}
+
+class _FakeExportUserDataController extends ExportUserDataController {
+  @override
+  AsyncValue<ExportFileSaveResult?> build() {
+    return const AsyncValue<ExportFileSaveResult?>.data(null);
+  }
+}
+
+class _FakeImportUserDataController extends ImportUserDataController {
+  @override
+  AsyncValue<ImportUserDataResult?> build() {
+    return const AsyncValue<ImportUserDataResult?>.data(null);
+  }
 }
 
 void main() {
@@ -124,12 +150,24 @@ void main() {
               ),
             ),
           ),
+          profileActivityDaysProvider.overrideWith(
+            (Ref ref) => Stream<Set<DateTime>>.value(const <DateTime>{}),
+          ),
+          onlineSyncPreferencesControllerProvider.overrideWith(
+            () => _FakeOnlineSyncPreferencesController(),
+          ),
+          exportUserDataControllerProvider.overrideWith(
+            () => _FakeExportUserDataController(),
+          ),
+          importUserDataControllerProvider.overrideWith(
+            () => _FakeImportUserDataController(),
+          ),
         ],
         child: MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           routes: <String, WidgetBuilder>{
-            MenuScreen.routeName: (_) => const Scaffold(),
+            MenuScreen.routeName: (_) => const Scaffold(body: Text('Menu')),
           },
           home: const ProfileScreen(),
         ),
@@ -141,6 +179,9 @@ void main() {
     await tester.tap(find.byIcon(Icons.tune));
     await tester.pumpAndSettle();
 
-    expect(find.byType(MenuScreen), findsOneWidget);
+    expect(find.text('Menu'), findsOneWidget);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
   });
 }

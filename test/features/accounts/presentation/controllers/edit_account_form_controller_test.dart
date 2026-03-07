@@ -82,6 +82,10 @@ class _EmptyTransactionRepository implements TransactionRepository {
   Future<TransactionEntity?> findById(String id) async => null;
 
   @override
+  Future<List<TransactionEntity>> findByGroupId(String groupId) async =>
+      const <TransactionEntity>[];
+
+  @override
   Future<TransactionEntity?> findByIdempotencyKey(
     String idempotencyKey,
   ) async => null;

@@ -2,7 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kopim/core/application/sync_preferences_provider.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
 import 'package:kopim/features/profile/domain/entities/profile.dart';
@@ -11,9 +13,14 @@ import 'package:kopim/features/profile/domain/policies/level_policy.dart';
 import 'package:kopim/features/profile/presentation/controllers/auth_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/avatar_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/profile_controller.dart';
+import 'package:kopim/features/profile/presentation/controllers/profile_activity_days_provider.dart';
 import 'package:kopim/features/profile/presentation/controllers/profile_form_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/user_progress_controller.dart';
 import 'package:kopim/features/profile/presentation/widgets/profile_management_body.dart';
+import 'package:kopim/features/settings/domain/repositories/export_file_saver.dart';
+import 'package:kopim/features/settings/domain/use_cases/import_user_data_result.dart';
+import 'package:kopim/features/settings/presentation/controllers/export_user_data_controller.dart';
+import 'package:kopim/features/settings/presentation/controllers/import_user_data_controller.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
 class _AuthControllerStub extends AuthController {
@@ -46,6 +53,30 @@ class _ProfileFormControllerStub extends ProfileFormController {
 class _AvatarControllerStub extends AvatarController {
   @override
   AsyncValue<void> build() => const AsyncValue<void>.data(null);
+}
+
+class _OnlineSyncPreferencesControllerStub
+    extends OnlineSyncPreferencesController {
+  _OnlineSyncPreferencesControllerStub(this._enabled);
+
+  final bool _enabled;
+
+  @override
+  Future<bool> build() async => _enabled;
+}
+
+class _ExportUserDataControllerStub extends ExportUserDataController {
+  @override
+  AsyncValue<ExportFileSaveResult?> build() {
+    return const AsyncValue<ExportFileSaveResult?>.data(null);
+  }
+}
+
+class _ImportUserDataControllerStub extends ImportUserDataController {
+  @override
+  AsyncValue<ImportUserDataResult?> build() {
+    return const AsyncValue<ImportUserDataResult?>.data(null);
+  }
 }
 
 void main() {
@@ -82,7 +113,18 @@ void main() {
     updatedAt: DateTime.utc(2024, 1, 1),
   );
 
-  testWidgets('анонимный пользователь видит предложение зарегистрироваться', (
+  Widget buildTestApp({required List<Override> overrides}) {
+    return ProviderScope(
+      overrides: overrides,
+      child: const MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(body: ProfileManagementBody()),
+      ),
+    );
+  }
+
+  testWidgets('анонимный пользователь видит профиль без CTA регистрации', (
     WidgetTester tester,
   ) async {
     final AuthUser guestUser = AuthUser(
@@ -91,9 +133,8 @@ void main() {
     );
 
     await tester.pumpWidget(
-      ProviderScope(
-        // ignore: always_specify_types
-        overrides: [
+      buildTestApp(
+        overrides: <Override>[
           authControllerProvider.overrideWith(
             () => _AuthControllerStub(guestUser),
           ),
@@ -107,25 +148,28 @@ void main() {
           userProgressProvider(guestProfile.uid).overrideWith(
             (Ref ref) => Stream<UserProgress>.value(sampleProgress),
           ),
+          profileActivityDaysProvider.overrideWith(
+            (Ref ref) => Stream<Set<DateTime>>.value(const <DateTime>{}),
+          ),
+          onlineSyncPreferencesControllerProvider.overrideWith(
+            () => _OnlineSyncPreferencesControllerStub(true),
+          ),
+          exportUserDataControllerProvider.overrideWith(
+            () => _ExportUserDataControllerStub(),
+          ),
+          importUserDataControllerProvider.overrideWith(
+            () => _ImportUserDataControllerStub(),
+          ),
           levelPolicyProvider.overrideWithValue(const SimpleLevelPolicy()),
         ],
-        child: const MaterialApp(
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          home: Scaffold(body: ProfileManagementBody()),
-        ),
       ),
     );
 
     await tester.pumpAndSettle();
 
-    expect(find.text('Register'), findsOneWidget);
-    expect(
-      find.text(
-        'Create an account to keep your data safe and enable synchronization across devices.',
-      ),
-      findsOneWidget,
-    );
+    expect(find.byType(Switch), findsOneWidget);
+    expect(tester.widget<Switch>(find.byType(Switch)).onChanged, isNull);
+    expect(find.text('Register'), findsNothing);
   });
 
   testWidgets(
@@ -137,9 +181,8 @@ void main() {
       );
 
       await tester.pumpWidget(
-        ProviderScope(
-          // ignore: always_specify_types
-          overrides: [
+        buildTestApp(
+          overrides: <Override>[
             authControllerProvider.overrideWith(
               () => _AuthControllerStub(registeredUser),
             ),
@@ -155,19 +198,28 @@ void main() {
             userProgressProvider(registeredUser.uid).overrideWith(
               (Ref ref) => Stream<UserProgress>.value(sampleProgress),
             ),
+            profileActivityDaysProvider.overrideWith(
+              (Ref ref) => Stream<Set<DateTime>>.value(const <DateTime>{}),
+            ),
+            onlineSyncPreferencesControllerProvider.overrideWith(
+              () => _OnlineSyncPreferencesControllerStub(true),
+            ),
+            exportUserDataControllerProvider.overrideWith(
+              () => _ExportUserDataControllerStub(),
+            ),
+            importUserDataControllerProvider.overrideWith(
+              () => _ImportUserDataControllerStub(),
+            ),
             levelPolicyProvider.overrideWithValue(const SimpleLevelPolicy()),
           ],
-          child: const MaterialApp(
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            home: Scaffold(body: ProfileManagementBody()),
-          ),
         ),
       );
 
       await tester.pumpAndSettle();
 
       expect(find.text('Register'), findsNothing);
+      expect(find.byType(Switch), findsOneWidget);
+      expect(tester.widget<Switch>(find.byType(Switch)).onChanged, isNotNull);
     },
   );
 }

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:riverpod/misc.dart' show Override;
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
@@ -355,6 +356,11 @@ class _FakeTransactionRepository implements TransactionRepository {
   }
 
   @override
+  Future<List<TransactionEntity>> findByGroupId(String groupId) async {
+    return const <TransactionEntity>[];
+  }
+
+  @override
   Future<TransactionEntity?> findByIdempotencyKey(String idempotencyKey) {
     throw UnimplementedError();
   }
@@ -420,6 +426,11 @@ class _StaticCreditRepository implements CreditRepository {
   }
 
   @override
+  Future<CreditPaymentGroupEntity?> findPaymentGroupById(String groupId) async {
+    return null;
+  }
+
+  @override
   Future<void> addSchedule(List<CreditPaymentScheduleEntity> schedule) async {}
 
   @override
@@ -470,6 +481,9 @@ class _StaticCreditRepository implements CreditRepository {
 
   @override
   Future<void> updateCredit(CreditEntity credit) async {}
+
+  @override
+  Future<void> updatePaymentGroup(CreditPaymentGroupEntity group) async {}
 
   @override
   Future<void> updateScheduleItem(CreditPaymentScheduleEntity item) async {}
@@ -970,7 +984,7 @@ void main() {
       );
 
       final ProviderContainer container = ProviderContainer(
-        overrides: [
+        overrides: <Override>[
           transactionRepositoryProvider.overrideWithValue(
             transactionRepository,
           ),

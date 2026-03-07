@@ -294,6 +294,8 @@ void main() {
           entityId: localBudget.id,
           operation: OutboxOperation.upsert,
           payload: localBudget.toJson()
+            ..['amountMinor'] = localBudget.amountMinor.toString()
+            ..['amountScale'] = localBudget.amountScale
             ..['startDate'] = localBudget.startDate.toIso8601String()
             ..['endDate'] = localBudget.endDate?.toIso8601String()
             ..['createdAt'] = localBudget.createdAt.toIso8601String()
@@ -419,7 +421,14 @@ void main() {
         final Budget mergedLocalBudget = storedBudgets.firstWhere(
           (Budget b) => b.id == localBudget.id,
         );
-        expect(mergedLocalBudget.amountValue, equals(localBudget.amountValue));
+        expect(
+          mergedLocalBudget.amountValue.minor,
+          equals(localBudget.amountValue.minor),
+        );
+        expect(
+          mergedLocalBudget.amountValue.scale,
+          equals(localBudget.amountValue.scale),
+        );
         expect(mergedLocalBudget.scope, equals(BudgetScope.all));
 
         final List<BudgetInstance> storedInstances = await budgetInstanceDao

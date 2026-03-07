@@ -24,6 +24,7 @@ void main() {
           id: 'a1',
           name: 'Main account',
           balanceMinor: BigInt.from(120050),
+          openingBalanceMinor: BigInt.zero,
           currency: 'USD',
           currencyScale: 2,
           type: 'checking',

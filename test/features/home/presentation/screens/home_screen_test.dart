@@ -394,6 +394,11 @@ class _InMemoryTransactionRepository implements TransactionRepository {
   }
 
   @override
+  Future<List<TransactionEntity>> findByGroupId(String groupId) async {
+    return const <TransactionEntity>[];
+  }
+
+  @override
   Future<TransactionEntity?> findByIdempotencyKey(String idempotencyKey) {
     throw UnimplementedError();
   }
@@ -497,6 +502,11 @@ class _DummyTransactionRepository implements TransactionRepository {
   @override
   Future<TransactionEntity?> findById(String id) {
     throw UnimplementedError();
+  }
+
+  @override
+  Future<List<TransactionEntity>> findByGroupId(String groupId) async {
+    return const <TransactionEntity>[];
   }
 
   @override
@@ -652,6 +662,11 @@ class _DummyCreditRepository implements CreditRepository {
   }
 
   @override
+  Future<CreditPaymentGroupEntity?> findPaymentGroupById(String groupId) async {
+    return null;
+  }
+
+  @override
   Future<CreditPaymentGroupEntity?> findPaymentGroupByIdempotencyKey({
     required String creditId,
     required String idempotencyKey,
@@ -670,16 +685,20 @@ class _DummyCreditRepository implements CreditRepository {
   }
 
   @override
+  Future<void> updatePaymentGroup(CreditPaymentGroupEntity group) async {}
+
+  @override
   Future<void> updateScheduleItem(CreditPaymentScheduleEntity item) {
     throw UnimplementedError();
   }
 
   @override
-  Stream<List<CreditEntity>> watchCredits() => const Stream.empty();
+  Stream<List<CreditEntity>> watchCredits() =>
+      const Stream<List<CreditEntity>>.empty();
 
   @override
   Stream<List<CreditPaymentScheduleEntity>> watchSchedule(String creditId) =>
-      const Stream.empty();
+      const Stream<List<CreditPaymentScheduleEntity>>.empty();
 }
 
 class _DummyCreditCardRepository implements CreditCardRepository {
@@ -709,5 +728,6 @@ class _DummyCreditCardRepository implements CreditCardRepository {
   }
 
   @override
-  Stream<List<CreditCardEntity>> watchCreditCards() => const Stream.empty();
+  Stream<List<CreditCardEntity>> watchCreditCards() =>
+      const Stream<List<CreditCardEntity>>.empty();
 }

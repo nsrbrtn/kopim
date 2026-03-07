@@ -207,7 +207,7 @@ void main() {
     final BuildContext context = tester.element(find.byType(OverviewScreen));
     final AppLocalizations strings = AppLocalizations.of(context)!;
 
-    await tester.tap(find.byIcon(Icons.help_outline_outlined).first);
+    await tester.tap(find.byIcon(Icons.question_mark).first);
     await tester.pumpAndSettle();
 
     expect(find.text(strings.overviewFinancialIndexInfoTitle), findsOneWidget);

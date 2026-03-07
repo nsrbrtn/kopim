@@ -18,11 +18,11 @@ void main() {
   });
 
   test('titles correspond to levels', () {
-    expect(policy.titleFor(1), 'Птенец Тоторо');
-    expect(policy.titleFor(2), 'Ученик Кодамы');
-    expect(policy.titleFor(3), 'Путник по Небу Лапуты');
-    expect(policy.titleFor(4), 'Ходящий по Замкам');
-    expect(policy.titleFor(5), 'Дракон Реки');
+    expect(policy.titleFor(1), 'Уровень 1');
+    expect(policy.titleFor(2), 'Уровень 2');
+    expect(policy.titleFor(3), 'Уровень 3');
+    expect(policy.titleFor(4), 'Уровень 4');
+    expect(policy.titleFor(5), 'Уровень 5');
   });
 
   test('next threshold returns closest boundary', () {

@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/accounts/presentation/controllers/account_details_providers.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
@@ -34,7 +33,7 @@ void main() {
   }
 
   group('filteredAccountTransactionsProvider', () {
-    test('applies type, category and date filters', () async {
+    test('applies type filter inside active period', () async {
       final List<TransactionEntity> transactions = <TransactionEntity>[
         transaction(
           't1',
@@ -62,6 +61,13 @@ void main() {
       final ProviderContainer container = ProviderContainer(
         // ignore: always_specify_types, the Override type is internal to riverpod
         overrides: [
+          accountDetailsPeriodRangeProvider.overrideWith((Ref ref, String id) {
+            expect(id, accountId);
+            return DateTimeRange(
+              start: now.subtract(const Duration(days: 10)),
+              end: now,
+            );
+          }),
           accountTransactionsProvider.overrideWith((Ref ref, String id) {
             expect(id, accountId);
             return Stream<List<TransactionEntity>>.value(transactions);
@@ -70,18 +76,10 @@ void main() {
       );
       addTearDown(container.dispose);
 
-      final DateTimeRange range = DateTimeRange(
-        start: now.subtract(const Duration(days: 10)),
-        end: now,
-      );
-
       final AccountTransactionsFilterController controller = container.read(
         accountTransactionsFilterControllerProvider(accountId).notifier,
       );
-      controller
-        ..setType(TransactionType.income)
-        ..setCategory('cat-1')
-        ..setDateRange(range);
+      controller.setType(TransactionType.income);
 
       final Completer<List<TransactionEntity>> completer =
           Completer<List<TransactionEntity>>();
@@ -115,6 +113,10 @@ void main() {
       final ProviderContainer container = ProviderContainer(
         // ignore: always_specify_types, the Override type is internal to riverpod
         overrides: [
+          accountDetailsPeriodRangeProvider.overrideWith((Ref ref, String id) {
+            expect(id, accountId);
+            return DateTimeRange(start: now, end: now);
+          }),
           accountTransactionsProvider.overrideWith((Ref ref, String id) {
             expect(id, accountId);
             return Stream<List<TransactionEntity>>.value(transactions);
@@ -141,15 +143,12 @@ void main() {
 
       final AccountTransactionSummary summary = await completer.future;
 
-      expect(
-        summary.totalIncome,
-        MoneyAmount(minor: BigInt.from(20000), scale: 2),
-      );
-      expect(
-        summary.totalExpense,
-        MoneyAmount(minor: BigInt.from(8000), scale: 2),
-      );
-      expect(summary.net, MoneyAmount(minor: BigInt.from(12000), scale: 2));
+      expect(summary.totalIncome.minor, BigInt.from(20000));
+      expect(summary.totalIncome.scale, 2);
+      expect(summary.totalExpense.minor, BigInt.from(8000));
+      expect(summary.totalExpense.scale, 2);
+      expect(summary.net.minor, BigInt.from(12000));
+      expect(summary.net.scale, 2);
     });
   });
 }

@@ -115,11 +115,9 @@ void main() {
 
         await tester.pumpAndSettle();
 
-        final Finder dismissible = find.byKey(
-          const ValueKey<String>('category:c1'),
+        await tester.tap(
+          find.byKey(const ValueKey<String>('category-tile:c1')),
         );
-        await tester.ensureVisible(dismissible);
-        await tester.fling(dismissible, const Offset(600, 0), 1000);
         await tester.pumpAndSettle();
 
         Container preview = tester.widget<Container>(
@@ -199,7 +197,7 @@ void main() {
       await tester.pumpAndSettle();
 
       final Finder cardFinder = find.byKey(
-        const ValueKey<String>('category-card:dark'),
+        const ValueKey<String>('category-tile:dark'),
       );
       final Finder iconFinder = find.descendant(
         of: cardFinder,
@@ -249,7 +247,7 @@ void main() {
       await tester.pumpAndSettle();
 
       final Finder cardFinder = find.byKey(
-        const ValueKey<String>('category-card:default'),
+        const ValueKey<String>('category-tile:default'),
       );
       final Finder iconFinder = find.descendant(
         of: cardFinder,

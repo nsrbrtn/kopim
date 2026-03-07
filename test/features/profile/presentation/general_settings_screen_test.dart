@@ -53,39 +53,36 @@ void main() {
     expect(find.text(strings.settingsNotificationsExactTitle), findsOneWidget);
   });
 
-  testWidgets('renders data transfer actions', (WidgetTester tester) async {
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: overrides,
-        child: const MaterialApp(
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          home: GeneralSettingsScreen(),
+  testWidgets(
+    'general settings screen no longer renders data transfer section',
+    (WidgetTester tester) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: overrides,
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: GeneralSettingsScreen(),
+          ),
         ),
-      ),
-    );
+      );
 
-    await tester.pumpAndSettle();
+      await tester.pumpAndSettle();
 
-    final BuildContext context = tester.element(
-      find.byType(GeneralSettingsScreen),
-    );
-    final AppLocalizations strings = AppLocalizations.of(context)!;
+      final BuildContext context = tester.element(
+        find.byType(GeneralSettingsScreen),
+      );
+      final AppLocalizations strings = AppLocalizations.of(context)!;
 
-    expect(
-      find.text(strings.profileGeneralSettingsManagementSection),
-      findsOneWidget,
-    );
-
-    await tester.tap(
-      find.text(strings.profileGeneralSettingsManagementSection),
-    );
-    await tester.pumpAndSettle();
-
-    expect(find.text(strings.profileExportDataCta), findsWidgets);
-    expect(find.text(strings.profileImportDataCta), findsWidgets);
-    expect(find.text(strings.profileDataTransferFormatLabel), findsOneWidget);
-  });
+      expect(
+        find.text(strings.profileGeneralSettingsManagementSection),
+        findsNothing,
+      );
+      expect(find.text(strings.profileExportDataCta), findsNothing);
+      expect(find.text(strings.profileImportDataCta), findsNothing);
+      expect(find.text(strings.profileDataTransferFormatLabel), findsNothing);
+    },
+  );
 }
 
 class _FakeExactAlarmController extends ExactAlarmController {

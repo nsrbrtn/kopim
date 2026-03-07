@@ -47,6 +47,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(CircleAvatar), findsOneWidget);
-    expect(find.textContaining('Level'), findsOneWidget);
+    expect(find.byType(Chip), findsOneWidget);
+    expect(find.text('Ученик Кодамы'), findsOneWidget);
   });
 }

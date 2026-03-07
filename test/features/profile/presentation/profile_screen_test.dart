@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod/src/framework.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kopim/core/application/sync_preferences_provider.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_progress.dart';
 import 'package:kopim/features/budgets/presentation/controllers/budgets_providers.dart';
@@ -19,6 +20,7 @@ import 'package:kopim/features/profile/domain/models/profile_command_result.dart
 import 'package:kopim/features/profile/domain/usecases/update_profile_use_case.dart';
 import 'package:kopim/features/profile/presentation/controllers/auth_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/avatar_controller.dart';
+import 'package:kopim/features/profile/presentation/controllers/profile_activity_days_provider.dart';
 import 'package:kopim/features/profile/presentation/controllers/profile_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/user_progress_controller.dart';
 import 'package:kopim/features/profile/presentation/screens/menu_screen.dart';
@@ -58,6 +60,12 @@ class _FakeHomeDashboardPreferencesController
   Future<HomeDashboardPreferences> build() async {
     return const HomeDashboardPreferences();
   }
+}
+
+class _FakeOnlineSyncPreferencesController
+    extends OnlineSyncPreferencesController {
+  @override
+  Future<bool> build() async => true;
 }
 
 class _SignOutSpyAuthController extends AuthController {
@@ -139,6 +147,12 @@ void main() {
             (Ref ref) => _StubUpdateProfileUseCase(),
           ),
           profileEventRecorderProvider.overrideWithValue(eventRecorder),
+          onlineSyncPreferencesControllerProvider.overrideWith(
+            () => _FakeOnlineSyncPreferencesController(),
+          ),
+          profileActivityDaysProvider.overrideWith(
+            (Ref ref) => Stream<Set<DateTime>>.value(const <DateTime>{}),
+          ),
           manageCategoryTreeProvider.overrideWith(
             (Ref ref) => Stream<List<CategoryTreeNode>>.value(
               const <CategoryTreeNode>[],
@@ -160,20 +174,8 @@ void main() {
 
     expect(find.text(strings.profileTitle), findsOneWidget);
 
-    final Finder accountSection = find.text(strings.profileSectionAccount);
-    await tester.ensureVisible(accountSection);
-    await tester.tap(accountSection, warnIfMissed: false);
-    await tester.pumpAndSettle();
-
-    final TextField nameField = tester
-        .widgetList<TextField>(find.byType(TextField))
-        .firstWhere(
-          (TextField field) => field.controller?.text == hydratedProfile.name,
-        );
-    expect(nameField.controller?.text, equals('Alice'));
-
-    expect(find.text('EUR'), findsWidgets);
-    expect(find.text('RU'), findsWidgets);
+    expect(find.text(strings.profileGreeting('Alice')), findsOneWidget);
+    expect(find.byTooltip(strings.profileSettingsTitle), findsOneWidget);
   });
 
   testWidgets('shows sign-in prompt when user is absent', (
@@ -196,6 +198,12 @@ void main() {
             (Ref ref) => _StubUpdateProfileUseCase(),
           ),
           profileEventRecorderProvider.overrideWithValue(eventRecorder),
+          onlineSyncPreferencesControllerProvider.overrideWith(
+            () => _FakeOnlineSyncPreferencesController(),
+          ),
+          profileActivityDaysProvider.overrideWith(
+            (Ref ref) => Stream<Set<DateTime>>.value(const <DateTime>{}),
+          ),
           manageCategoryTreeProvider.overrideWith(
             (Ref ref) => Stream<List<CategoryTreeNode>>.value(
               const <CategoryTreeNode>[],
@@ -246,6 +254,12 @@ void main() {
             (Ref ref) => _StubUpdateProfileUseCase(),
           ),
           profileEventRecorderProvider.overrideWithValue(eventRecorder),
+          onlineSyncPreferencesControllerProvider.overrideWith(
+            () => _FakeOnlineSyncPreferencesController(),
+          ),
+          profileActivityDaysProvider.overrideWith(
+            (Ref ref) => Stream<Set<DateTime>>.value(const <DateTime>{}),
+          ),
           manageCategoryTreeProvider.overrideWith(
             (Ref ref) => Stream<List<CategoryTreeNode>>.value(
               const <CategoryTreeNode>[],
@@ -310,6 +324,12 @@ void main() {
             (Ref ref) => _StubUpdateProfileUseCase(),
           ),
           profileEventRecorderProvider.overrideWithValue(eventRecorder),
+          onlineSyncPreferencesControllerProvider.overrideWith(
+            () => _FakeOnlineSyncPreferencesController(),
+          ),
+          profileActivityDaysProvider.overrideWith(
+            (Ref ref) => Stream<Set<DateTime>>.value(const <DateTime>{}),
+          ),
           manageCategoryTreeProvider.overrideWith(
             (Ref ref) => Stream<List<CategoryTreeNode>>.value(
               const <CategoryTreeNode>[],
@@ -329,12 +349,7 @@ void main() {
     final BuildContext context = tester.element(find.byType(ProfileScreen));
     final AppLocalizations strings = AppLocalizations.of(context)!;
 
-    final Finder accountSection = find.text(strings.profileSectionAccount);
-    await tester.ensureVisible(accountSection);
-    await tester.tap(accountSection, warnIfMissed: false);
-    await tester.pumpAndSettle();
-
-    final Finder signOutButton = find.text(strings.profileSignOutCta);
+    final Finder signOutButton = find.text(strings.profileSignOutFullCta);
 
     await tester.ensureVisible(signOutButton);
     await tester.tap(signOutButton, warnIfMissed: false);
