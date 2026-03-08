@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Поддержка Kopim</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #eef3ee;
+        --surface: rgba(255, 255, 255, 0.93);
+        --text: #1f2521;
+        --muted: #566259;
+        --accent: #2d5b44;
+        --accent-soft: rgba(45, 91, 68, 0.08);
+        --border: rgba(45, 91, 68, 0.14);
+        --shadow: 0 20px 60px rgba(31, 37, 33, 0.08);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: Onest, Inter, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+        background:
+          radial-gradient(circle at top right, rgba(207, 226, 213, 0.76), transparent 34%),
+          linear-gradient(180deg, #f7f8f4 0%, var(--bg) 100%);
+        color: var(--text);
+      }
+
+      main {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 40px 20px 80px;
+      }
+
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 28px;
+        box-shadow: var(--shadow);
+        padding: 32px;
+        backdrop-filter: blur(14px);
+      }
+
+      h1,
+      h2 {
+        margin: 0 0 16px;
+        line-height: 1.15;
+      }
+
+      h1 {
+        font-size: clamp(2rem, 4vw, 3.4rem);
+      }
+
+      h2 {
+        font-size: 1.25rem;
+        margin-top: 32px;
+      }
+
+      p,
+      li {
+        font-size: 1rem;
+        line-height: 1.7;
+      }
+
+      ul {
+        padding-left: 20px;
+      }
+
+      a {
+        color: var(--accent);
+      }
+
+      .lead,
+      .meta {
+        color: var(--muted);
+      }
+
+      .meta {
+        margin-top: 12px;
+        font-size: 0.95rem;
+      }
+
+      .contact {
+        margin-top: 24px;
+        padding: 18px 20px;
+        border-radius: 20px;
+        background: var(--accent-soft);
+      }
+
+      .contact strong {
+        display: block;
+        margin-bottom: 8px;
+      }
+
+      @media (max-width: 640px) {
+        main {
+          padding: 24px 16px 48px;
+        }
+
+        .card {
+          padding: 24px;
+          border-radius: 24px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="card">
+        <h1>Поддержка Kopim</h1>
+        <p class="lead">
+          На этой странице собраны контакты и базовая информация для вопросов по
+          работе приложения Kopim.
+        </p>
+        <p class="meta">Дата последнего обновления: 8 марта 2026 года</p>
+
+        <div class="contact">
+          <strong>Связаться с поддержкой</strong>
+          <p>
+            Email:
+            <a href="mailto:qmodo@qmodo.ru">qmodo@qmodo.ru</a>
+          </p>
+          <p>
+            При обращении укажите модель устройства, версию приложения и краткое
+            описание проблемы. Это ускорит разбор запроса.
+          </p>
+        </div>
+
+        <h2>1. С чем можно обращаться</h2>
+        <ul>
+          <li>ошибки входа, регистрации и восстановления доступа;</li>
+          <li>вопросы по синхронизации данных между устройствами;</li>
+          <li>сбои, зависания и некорректная работа экранов;</li>
+          <li>вопросы по удалению аккаунта и обработке данных;</li>
+          <li>замечания по функциональности, UX и пожелания к продукту.</li>
+        </ul>
+
+        <h2>2. Что приложить к обращению</h2>
+        <p>Чтобы мы быстрее нашли причину проблемы, по возможности приложите:</p>
+        <ul>
+          <li>email, привязанный к аккаунту;</li>
+          <li>версию приложения и номер сборки;</li>
+          <li>платформу и версию ОС;</li>
+          <li>скриншот или короткое описание шагов, после которых возникла проблема.</li>
+        </ul>
+
+        <h2>3. Частые вопросы</h2>
+        <p>
+          <strong>Как удалить аккаунт?</strong><br />
+          Используйте встроенную функцию в приложении в разделе профиля или
+          инструкцию на странице
+          <a href="/delete-account.html">удаления аккаунта</a>.
+        </p>
+        <p>
+          <strong>Где посмотреть правила и политику?</strong><br />
+          Документы доступны на страницах
+          <a href="/privacy.html">политики конфиденциальности</a> и
+          <a href="/terms.html">пользовательского соглашения</a>.
+        </p>
+        <p>
+          <strong>Почему уведомления могут приходить не всегда вовремя?</strong><br />
+          На напоминания влияют настройки уведомлений, ограничения энергосбережения
+          и системная политика устройства.
+        </p>
+
+        <h2>4. Срок ответа</h2>
+        <p>
+          Мы стараемся отвечать в разумный срок. Время обработки может зависеть
+          от сложности проблемы и необходимости дополнительной диагностики.
+        </p>
+      </section>
+    </main>
+  </body>
+</html>

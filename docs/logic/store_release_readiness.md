@@ -26,6 +26,7 @@
   - `https://kopim.site/privacy.html`
   - `https://kopim.site/terms.html`
   - `https://kopim.site/delete-account.html`
+  - `https://kopim.site/support.html`
 - На экране `О приложении` legal-ссылки уже открывают реальные `https`-страницы.
 - В профиле внутри секции `Учетная запись` уже реализовано удаление аккаунта с подтверждением через кодовое слово и текущий пароль.
 - Для production уже есть отдельный entrypoint `lib/main_prod.dart`, который делегирует в общий bootstrap из `lib/main.dart`.
@@ -136,7 +137,7 @@
 - `Privacy Policy` уже опубликована на `https://kopim.site/privacy.html`.
 - `Terms of Use` уже опубликованы на `https://kopim.site/terms.html`.
 - `Account Deletion` страница уже опубликована на `https://kopim.site/delete-account.html`.
-- В приложении уже есть переходы на legal-страницы из экрана `О приложении`.
+- В приложении уже есть переходы на legal-страницы и support page из экрана `О приложении`.
 - На экране `О приложении` уже показывается реальная пара `version + build number` из build metadata.
 - В приложении уже есть in-app flow удаления аккаунта из `Профиль -> Учетная запись`.
 
@@ -161,6 +162,7 @@
 2. Экран `О приложении`:
    - версия берется из `PackageInfo.fromPlatform()`;
    - UI показывает фактические `version + build number`.
+   - support page открывается по `supportUrl`.
 3. Domain use case удаления аккаунта:
    - re-auth через текущий пароль;
    - удаление Firebase Auth user;
@@ -196,7 +198,7 @@
    - технических формулировок.
 4. Проверить email/support links:
    - `mailto:qmodo@qmodo.ru` должен открываться корректно;
-   - желательно добавить еще `support URL` на сайт.
+   - `supportUrl` должен вести на `https://kopim.site/support.html`.
 
 ### Блок D. Permissions и privacy surface
 
@@ -341,7 +343,7 @@ flutter build ipa --release --target lib/main_prod.dart
 - full description;
 - keywords;
 - support email;
-- support URL;
+- support URL: `https://kopim.site/support.html`;
 - marketing URL;
 - privacy policy URL;
 - terms of use URL;
@@ -527,6 +529,8 @@ flutter build ipa --release --target lib/main_prod.dart
 9. Синхронизация после перезапуска.
 10. Работа без сети и последующий resync.
 11. Экспорт данных.
+    - проверить, что backup включает `saving goals`;
+    - проверить импорт legacy backup без падения на `savingGoalId`.
 12. Удаление аккаунта.
 13. Переходы на privacy policy, terms, support.
 
@@ -549,7 +553,7 @@ flutter build ipa --release --target lib/main_prod.dart
 ### Этап 2. Store assets и legal
 
 1. Подготовить иконку, feature graphic, screenshots.
-2. Опубликовать privacy policy, terms, support page, account deletion page.
+2. Проверить, что `privacy`, `terms`, `support`, `account deletion` доступны на `kopim.site`.
 3. Подготовить описания приложения на нужных языках.
 
 ### Этап 3. Внутреннее тестирование
@@ -587,7 +591,7 @@ flutter build ipa --release --target lib/main_prod.dart
 ### P1. Сильно желательно
 
 1. Подготовить RU/EN store metadata.
-2. Подготовить отдельную support page на `kopim.site`, если нужен не только корневой URL.
+2. Support page уже подготовлена: `https://kopim.site/support.html`.
 3. Проверить весь onboarding/empty states на отсутствие заглушек.
 4. Пройти release smoke-test на реальных устройствах.
 5. Финально вычитать `Privacy Policy`, `Terms` и `Delete Account` под store review и реальные реквизиты.

@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
+import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
 import 'package:kopim/features/settings/domain/entities/export_bundle.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/settings/domain/entities/exported_file.dart';
@@ -26,6 +27,9 @@ class ExportBundleJsonEncoder {
           .toList(growable: false),
       'categories': bundle.categories
           .map((Category category) => category.toJson())
+          .toList(growable: false),
+      'savingGoals': bundle.savingGoals
+          .map((SavingGoal goal) => goal.toJson())
           .toList(growable: false),
     };
 
@@ -80,6 +84,8 @@ class ExportBundleJsonEncoder {
       'transferAccountId': transaction.transferAccountId,
       'categoryId': transaction.categoryId,
       'savingGoalId': transaction.savingGoalId,
+      'idempotencyKey': transaction.idempotencyKey,
+      'groupId': transaction.groupId,
       'amount': amount.toDouble(),
       'amountMinor': amount.minor.toString(),
       'amountScale': amount.scale,

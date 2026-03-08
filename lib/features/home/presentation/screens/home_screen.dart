@@ -1318,6 +1318,12 @@ class _StandardAccountContent extends StatelessWidget {
                   Localizations.localeOf(context).toString(),
                 ).format(savingGoal!.targetDate!))
         : '';
+    final String monthlyIncomeLabel = strings.homeOverviewIncomeValue(
+      currencyFormat.format(summary.income.toDouble()),
+    );
+    final String monthlyExpenseLabel = strings.homeOverviewExpenseValue(
+      currencyFormat.format(summary.expense.toDouble()),
+    );
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1342,6 +1348,32 @@ class _StandardAccountContent extends StatelessWidget {
           text: currencyFormat.format(account.balanceAmount.toDouble()),
           style: balanceStyle,
         ),
+        if (!isSavings) ...<Widget>[
+          const SizedBox(height: 8),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Text(
+                strings.homeAccountMonthlySummaryLabel,
+                style: summaryHeaderStyle,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                monthlyIncomeLabel,
+                style: summaryTextStyle,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 4),
+              Text(
+                monthlyExpenseLabel,
+                style: summaryTextStyle,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ],
         if (isSavings) ...<Widget>[
           const SizedBox(height: 12),
           ClipRRect(

@@ -57,7 +57,7 @@ class AboutAppScreen extends ConsumerWidget {
         privacyPolicyUrl: 'https://kopim.site/privacy.html',
         termsOfUseUrl: 'https://kopim.site/terms.html',
         accountDeletionUrl: 'https://kopim.site/delete-account.html',
-        supportUrl: 'https://kopim.site',
+        supportUrl: 'https://kopim.site/support.html',
       ),
     );
     final String versionLabel = packageInfoAsync.maybeWhen(
@@ -88,6 +88,12 @@ class AboutAppScreen extends ConsumerWidget {
                       title: strings.profileAboutEmailCta,
                       icon: Icons.mail_outline_rounded,
                       onTap: () => _openEmail(context),
+                    ),
+                    const SizedBox(height: 8),
+                    _AboutActionCard(
+                      title: strings.profileAboutSupportCta,
+                      icon: Icons.support_agent_rounded,
+                      onTap: () => _openWebsite(context, legalConfig.supportUrl),
                     ),
                     const SizedBox(height: 8),
                     _AboutActionCard(

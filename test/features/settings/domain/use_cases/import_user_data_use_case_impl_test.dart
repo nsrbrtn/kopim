@@ -5,6 +5,7 @@ import 'package:mocktail/mocktail.dart';
 
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
+import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
 import 'package:kopim/features/settings/domain/entities/export_bundle.dart';
 import 'package:kopim/features/settings/domain/entities/data_transfer_format.dart';
 import 'package:kopim/features/settings/domain/entities/picked_import_file.dart';
@@ -93,6 +94,18 @@ void main() {
           updatedAt: DateTime.utc(2024, 1, 1),
         ),
       ],
+      savingGoals: <SavingGoal>[
+        SavingGoal(
+          id: 'sg1',
+          userId: 'u1',
+          name: 'Vacation',
+          accountId: 'a1',
+          targetAmount: 50000,
+          currentAmount: 1200,
+          createdAt: DateTime.utc(2024, 1, 2),
+          updatedAt: DateTime.utc(2024, 1, 3),
+        ),
+      ],
       transactions: <TransactionEntity>[
         TransactionEntity(
           id: 't1',
@@ -113,13 +126,12 @@ void main() {
     ).thenAnswer((_) async => pickedFile);
     when(() => decoder.decode(pickedFile.bytes)).thenReturn(bundle);
     when(
-      () => repository.upsertAccounts(bundle.accounts),
-    ).thenAnswer((_) async {});
-    when(
-      () => repository.upsertCategories(bundle.categories),
-    ).thenAnswer((_) async {});
-    when(
-      () => repository.upsertTransactions(bundle.transactions),
+      () => repository.importData(
+        accounts: bundle.accounts,
+        categories: bundle.categories,
+        savingGoals: bundle.savingGoals,
+        transactions: bundle.transactions,
+      ),
     ).thenAnswer((_) async {});
 
     final ImportUserDataResult result = await useCase(
@@ -137,9 +149,14 @@ void main() {
       failure: (_) => fail('Should not fail'),
     );
 
-    verify(() => repository.upsertAccounts(bundle.accounts)).called(1);
-    verify(() => repository.upsertCategories(bundle.categories)).called(1);
-    verify(() => repository.upsertTransactions(bundle.transactions)).called(1);
+    verify(
+      () => repository.importData(
+        accounts: bundle.accounts,
+        categories: bundle.categories,
+        savingGoals: bundle.savingGoals,
+        transactions: bundle.transactions,
+      ),
+    ).called(1);
   });
 
   test('uses csv decoder by default', () async {
@@ -157,13 +174,12 @@ void main() {
     ).thenAnswer((_) async => pickedFile);
     when(() => csvDecoder.decode(pickedFile.bytes)).thenReturn(bundle);
     when(
-      () => repository.upsertAccounts(bundle.accounts),
-    ).thenAnswer((_) async {});
-    when(
-      () => repository.upsertCategories(bundle.categories),
-    ).thenAnswer((_) async {});
-    when(
-      () => repository.upsertTransactions(bundle.transactions),
+      () => repository.importData(
+        accounts: bundle.accounts,
+        categories: bundle.categories,
+        savingGoals: bundle.savingGoals,
+        transactions: bundle.transactions,
+      ),
     ).thenAnswer((_) async {});
 
     final ImportUserDataResult result = await useCase(
@@ -210,7 +226,12 @@ void main() {
     ).thenAnswer((_) async => pickedFile);
     when(() => decoder.decode(pickedFile.bytes)).thenReturn(bundle);
     when(
-      () => repository.upsertAccounts(bundle.accounts),
+      () => repository.importData(
+        accounts: bundle.accounts,
+        categories: bundle.categories,
+        savingGoals: bundle.savingGoals,
+        transactions: bundle.transactions,
+      ),
     ).thenThrow(Exception('db error'));
 
     final ImportUserDataResult result = await useCase(
@@ -219,4 +240,167 @@ void main() {
 
     expect(result, const ImportUserDataResult.failure('Exception: db error'));
   });
+
+  test('clears missing saving goal references for legacy backups', () async {
+    final PickedImportFile pickedFile = PickedImportFile(
+      fileName: 'backup.json',
+      bytes: Uint8List(0),
+    );
+    final TransactionEntity legacyTransaction = TransactionEntity(
+      id: 't1',
+      accountId: 'a1',
+      categoryId: 'c1',
+      savingGoalId: 'missing-goal',
+      amountMinor: BigInt.from(1200),
+      amountScale: 2,
+      date: DateTime.utc(2024, 1, 3),
+      type: 'expense',
+      createdAt: DateTime.utc(2024, 1, 3),
+      updatedAt: DateTime.utc(2024, 1, 3),
+    );
+    final ExportBundle bundle = ExportBundle(
+      schemaVersion: '1.1.0',
+      generatedAt: DateTime.utc(2024, 1, 1),
+      accounts: <AccountEntity>[
+        AccountEntity(
+          id: 'a1',
+          name: 'Main',
+          balanceMinor: BigInt.from(10000),
+          currency: 'USD',
+          currencyScale: 2,
+          type: 'checking',
+          createdAt: DateTime.utc(2024, 1, 1),
+          updatedAt: DateTime.utc(2024, 1, 2),
+        ),
+      ],
+      categories: <Category>[
+        Category(
+          id: 'c1',
+          name: 'Food',
+          type: 'expense',
+          createdAt: DateTime.utc(2024, 1, 1),
+          updatedAt: DateTime.utc(2024, 1, 1),
+        ),
+      ],
+      transactions: <TransactionEntity>[legacyTransaction],
+    );
+
+    when(
+      () => filePicker.pickFile(DataTransferFormat.json),
+    ).thenAnswer((_) async => pickedFile);
+    when(() => decoder.decode(pickedFile.bytes)).thenReturn(bundle);
+    when(
+      () => repository.importData(
+        accounts: bundle.accounts,
+        categories: bundle.categories,
+        savingGoals: bundle.savingGoals,
+        transactions: <TransactionEntity>[
+          legacyTransaction.copyWith(savingGoalId: null),
+        ],
+      ),
+    ).thenAnswer((_) async {});
+
+    final ImportUserDataResult result = await useCase(
+      const ImportUserDataParams(format: DataTransferFormat.json),
+    );
+
+    expect(result, isA<ImportUserDataResultSuccess>());
+    verify(
+      () => repository.importData(
+        accounts: bundle.accounts,
+        categories: bundle.categories,
+        savingGoals: bundle.savingGoals,
+        transactions: <TransactionEntity>[
+          legacyTransaction.copyWith(savingGoalId: null),
+        ],
+      ),
+    ).called(1);
+  });
+
+  test(
+    'skips transactions with missing source account and clears broken refs',
+    () async {
+      final PickedImportFile pickedFile = PickedImportFile(
+        fileName: 'backup.json',
+        bytes: Uint8List(0),
+      );
+      final TransactionEntity validTransaction = TransactionEntity(
+        id: 't-valid',
+        accountId: 'a1',
+        transferAccountId: 'missing-transfer',
+        categoryId: 'missing-category',
+        amountMinor: BigInt.from(500),
+        amountScale: 2,
+        date: DateTime.utc(2024, 1, 3),
+        type: 'expense',
+        createdAt: DateTime.utc(2024, 1, 3),
+        updatedAt: DateTime.utc(2024, 1, 3),
+      );
+      final TransactionEntity brokenTransaction = TransactionEntity(
+        id: 't-broken',
+        accountId: 'missing-account',
+        amountMinor: BigInt.from(700),
+        amountScale: 2,
+        date: DateTime.utc(2024, 1, 4),
+        type: 'expense',
+        createdAt: DateTime.utc(2024, 1, 4),
+        updatedAt: DateTime.utc(2024, 1, 4),
+      );
+      final ExportBundle bundle = ExportBundle(
+        schemaVersion: '1.1.0',
+        generatedAt: DateTime.utc(2024, 1, 1),
+        accounts: <AccountEntity>[
+          AccountEntity(
+            id: 'a1',
+            name: 'Main',
+            balanceMinor: BigInt.from(10000),
+            currency: 'USD',
+            currencyScale: 2,
+            type: 'checking',
+            createdAt: DateTime.utc(2024, 1, 1),
+            updatedAt: DateTime.utc(2024, 1, 2),
+          ),
+        ],
+        categories: <Category>[],
+        transactions: <TransactionEntity>[validTransaction, brokenTransaction],
+      );
+
+      when(
+        () => filePicker.pickFile(DataTransferFormat.json),
+      ).thenAnswer((_) async => pickedFile);
+      when(() => decoder.decode(pickedFile.bytes)).thenReturn(bundle);
+      when(
+        () => repository.importData(
+          accounts: bundle.accounts,
+          categories: bundle.categories,
+          savingGoals: bundle.savingGoals,
+          transactions: <TransactionEntity>[
+            validTransaction.copyWith(
+              transferAccountId: null,
+              categoryId: null,
+            ),
+          ],
+        ),
+      ).thenAnswer((_) async {});
+
+      final ImportUserDataResult result = await useCase(
+        const ImportUserDataParams(format: DataTransferFormat.json),
+      );
+
+      expect(result, isA<ImportUserDataResultSuccess>());
+      verify(
+        () => repository.importData(
+          accounts: bundle.accounts,
+          categories: bundle.categories,
+          savingGoals: bundle.savingGoals,
+          transactions: <TransactionEntity>[
+            validTransaction.copyWith(
+              transferAccountId: null,
+              categoryId: null,
+            ),
+          ],
+        ),
+      ).called(1);
+    },
+  );
 }

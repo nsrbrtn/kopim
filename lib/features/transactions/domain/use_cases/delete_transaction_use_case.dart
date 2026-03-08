@@ -29,15 +29,33 @@ class DeleteTransactionUseCase {
     }
 
     await _transactionRepository.softDelete(transactionId);
-    if (_syncCreditPaymentScheduleUseCase != null) {
-      await _syncCreditPaymentScheduleUseCase.call(previous: existing);
-    }
     final List<ProfileDomainEvent> events = <ProfileDomainEvent>[];
-    if (_onTransactionDeletedUseCase != null) {
-      final ProfileCommandResult<UserProgress> progressResult =
-          await _onTransactionDeletedUseCase.call();
-      events.addAll(progressResult.events);
-    }
+    await _runBestEffortSideEffects(existing, events);
     return TransactionCommandResult<void>(value: null, profileEvents: events);
+  }
+
+  Future<void> _runBestEffortSideEffects(
+    TransactionEntity existing,
+    List<ProfileDomainEvent> events,
+  ) async {
+    try {
+      if (_syncCreditPaymentScheduleUseCase != null) {
+        await _syncCreditPaymentScheduleUseCase.call(previous: existing);
+      }
+    } on Object {
+      // Удаление уже выполнено локально; сбой вторичного sync не должен
+      // откатывать UX удаления.
+    }
+
+    try {
+      if (_onTransactionDeletedUseCase != null) {
+        final ProfileCommandResult<UserProgress> progressResult =
+            await _onTransactionDeletedUseCase.call();
+        events.addAll(progressResult.events);
+      }
+    } on Object {
+      // Прогресс пользователя можно пересчитать позже, но транзакция уже
+      // удалена и не должна оставаться в UI как "неудаленная".
+    }
   }
 }

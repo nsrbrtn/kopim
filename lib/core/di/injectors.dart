@@ -402,6 +402,7 @@ ExportDataRepository exportDataRepository(Ref ref) => ExportDataRepositoryImpl(
   accountDao: ref.watch(accountDaoProvider),
   transactionDao: ref.watch(transactionDaoProvider),
   categoryDao: ref.watch(categoryDaoProvider),
+  savingGoalDao: ref.watch(savingGoalDaoProvider),
 );
 
 @riverpod
@@ -435,10 +436,13 @@ ExportUserDataUseCase exportUserDataUseCase(Ref ref) =>
 
 @riverpod
 ImportDataRepository importDataRepository(Ref ref) => ImportDataRepositoryImpl(
+  database: ref.watch(appDatabaseProvider),
   accountDao: ref.watch(accountDaoProvider),
   categoryDao: ref.watch(categoryDaoProvider),
   creditDao: ref.watch(creditDaoProvider),
+  savingGoalDao: ref.watch(savingGoalDaoProvider),
   transactionDao: ref.watch(transactionDaoProvider),
+  outboxDao: ref.watch(outboxDaoProvider),
 );
 
 @riverpod

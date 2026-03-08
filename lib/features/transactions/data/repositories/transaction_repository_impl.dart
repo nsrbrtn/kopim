@@ -296,13 +296,7 @@ class TransactionRepositoryImpl implements TransactionRepository {
       final db.TransactionRow? row = await _transactionDao.findById(id);
       if (row == null) return;
       final TransactionEntity previous = _mapToDomain(row);
-      await _applyAccountBalanceChanges(
-        previous: previous,
-        current: null,
-        updatedAt: now,
-      );
       await _transactionDao.markDeleted(id, now);
-      await _handleSavingGoalRollback(row, now);
       final Map<String, dynamic> payload = _mapTransactionPayload(
         previous.copyWith(isDeleted: true, updatedAt: now),
       );
@@ -312,7 +306,32 @@ class TransactionRepositoryImpl implements TransactionRepository {
         operation: OutboxOperation.delete,
         payload: payload,
       );
+      await _runDeleteSideEffectsBestEffort(previous: previous, row: row, now: now);
     });
+  }
+
+  Future<void> _runDeleteSideEffectsBestEffort({
+    required TransactionEntity previous,
+    required db.TransactionRow row,
+    required DateTime now,
+  }) async {
+    try {
+      await _applyAccountBalanceChanges(
+        previous: previous,
+        current: null,
+        updatedAt: now,
+      );
+    } on Object {
+      // Импортированные legacy-данные могут содержать битые account refs.
+      // В таком случае не блокируем фактическое удаление транзакции.
+    }
+
+    try {
+      await _handleSavingGoalRollback(row, now);
+    } on Object {
+      // Если rollback накопления не удался из-за неполного legacy-состояния,
+      // транзакция все равно должна считаться удаленной.
+    }
   }
 
   @override

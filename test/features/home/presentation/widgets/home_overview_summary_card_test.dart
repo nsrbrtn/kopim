@@ -67,9 +67,34 @@ void main() {
 
       expect(find.text('Total balance'), findsOneWidget);
       expect(find.text('Top expenses'), findsOneWidget);
+      expect(find.byIcon(Icons.arrow_outward), findsOneWidget);
       expect(find.textContaining('Income:'), findsOneWidget);
       expect(find.textContaining('Expense:'), findsWidgets);
       expect(find.text('Food'), findsOneWidget);
+    });
+
+    testWidgets('renders empty top expenses state', (
+      WidgetTester tester,
+    ) async {
+      final HomeOverviewSummary summary = HomeOverviewSummary(
+        totalBalance: MoneyAmount(minor: BigInt.from(128987), scale: 2),
+        todayIncome: MoneyAmount(minor: BigInt.from(12000), scale: 2),
+        todayExpense: MoneyAmount(minor: BigInt.from(8000), scale: 2),
+      );
+
+      await pumpOverviewCard(
+        tester,
+        overrides: <Override>[
+          homeOverviewSummaryProvider.overrideWith(
+            (Ref ref) => Stream<HomeOverviewSummary>.value(summary),
+          ),
+          homeCategoriesProvider.overrideWith(
+            (Ref ref) => Stream<List<Category>>.value(const <Category>[]),
+          ),
+        ],
+      );
+
+      expect(find.text('No expenses yet'), findsOneWidget);
     });
   });
 }

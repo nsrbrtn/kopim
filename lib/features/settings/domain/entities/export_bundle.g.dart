@@ -27,6 +27,11 @@ _ExportBundle _$ExportBundleFromJson(Map<String, dynamic> json) =>
               ?.map((e) => Category.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const <Category>[],
+      savingGoals:
+          (json['savingGoals'] as List<dynamic>?)
+              ?.map((e) => SavingGoal.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const <SavingGoal>[],
     );
 
 Map<String, dynamic> _$ExportBundleToJson(_ExportBundle instance) =>
@@ -36,4 +41,5 @@ Map<String, dynamic> _$ExportBundleToJson(_ExportBundle instance) =>
       'accounts': instance.accounts,
       'transactions': instance.transactions,
       'categories': instance.categories,
+      'savingGoals': instance.savingGoals,
     };

@@ -4,6 +4,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kopim/features/transactions/presentation/controllers/transaction_actions_controller.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
+String _buildDeleteErrorMessage({
+  required String transactionId,
+  required AppLocalizations strings,
+  Object? error,
+}) {
+  final String details = error?.toString().trim() ?? '';
+  if (details.isEmpty) {
+    return '${strings.transactionDeleteError} (id: $transactionId)';
+  }
+  return 'Не удалось удалить транзакцию (id: $transactionId): $details';
+}
+
 Future<bool> deleteTransactionWithFeedback({
   required BuildContext context,
   required WidgetRef ref,
@@ -64,8 +76,14 @@ Future<bool> deleteTransactionWithFeedback({
         ..hideCurrentSnackBar()
         ..showSnackBar(
           SnackBar(
-            duration: const Duration(seconds: 3),
-            content: Text(error?.toString() ?? strings.transactionDeleteError),
+            duration: const Duration(seconds: 8),
+            content: Text(
+              _buildDeleteErrorMessage(
+                transactionId: transactionId,
+                strings: strings,
+                error: error,
+              ),
+            ),
           ),
         );
     }

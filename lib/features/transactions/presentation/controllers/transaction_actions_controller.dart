@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter_riverpod/misc.dart' show KeepAliveLink;
+import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:kopim/core/di/injectors.dart';
@@ -10,13 +10,12 @@ import 'package:kopim/features/transactions/domain/use_cases/delete_transaction_
 
 part 'transaction_actions_controller.g.dart';
 
-@riverpod
+@Riverpod(keepAlive: true)
 class TransactionActionsController extends _$TransactionActionsController {
   @override
   AsyncValue<void> build() => const AsyncData<void>(null);
 
   Future<bool> deleteTransaction(String transactionId) async {
-    final KeepAliveLink link = ref.keepAlive();
     try {
       state = const AsyncLoading<void>();
       final DeleteTransactionUseCase useCase = ref.read(
@@ -38,10 +37,11 @@ class TransactionActionsController extends _$TransactionActionsController {
       if (!ref.mounted) {
         return false;
       }
+      debugPrint(
+        'Ошибка удаления транзакции $transactionId: $error\n$stackTrace',
+      );
       state = AsyncError<void>(error, stackTrace);
       return false;
-    } finally {
-      link.close();
     }
   }
 

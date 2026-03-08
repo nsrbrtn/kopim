@@ -20,7 +20,8 @@ mixin _$ExportBundle {
  DateTime get generatedAt;/// Набор локальных счетов.
  List<AccountEntity> get accounts;/// Набор локальных транзакций.
  List<TransactionEntity> get transactions;/// Набор локальных категорий.
- List<Category> get categories;
+ List<Category> get categories;/// Набор локальных целей накоплений.
+ List<SavingGoal> get savingGoals;
 /// Create a copy of ExportBundle
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -33,16 +34,16 @@ $ExportBundleCopyWith<ExportBundle> get copyWith => _$ExportBundleCopyWithImpl<E
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ExportBundle&&(identical(other.schemaVersion, schemaVersion) || other.schemaVersion == schemaVersion)&&(identical(other.generatedAt, generatedAt) || other.generatedAt == generatedAt)&&const DeepCollectionEquality().equals(other.accounts, accounts)&&const DeepCollectionEquality().equals(other.transactions, transactions)&&const DeepCollectionEquality().equals(other.categories, categories));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ExportBundle&&(identical(other.schemaVersion, schemaVersion) || other.schemaVersion == schemaVersion)&&(identical(other.generatedAt, generatedAt) || other.generatedAt == generatedAt)&&const DeepCollectionEquality().equals(other.accounts, accounts)&&const DeepCollectionEquality().equals(other.transactions, transactions)&&const DeepCollectionEquality().equals(other.categories, categories)&&const DeepCollectionEquality().equals(other.savingGoals, savingGoals));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,schemaVersion,generatedAt,const DeepCollectionEquality().hash(accounts),const DeepCollectionEquality().hash(transactions),const DeepCollectionEquality().hash(categories));
+int get hashCode => Object.hash(runtimeType,schemaVersion,generatedAt,const DeepCollectionEquality().hash(accounts),const DeepCollectionEquality().hash(transactions),const DeepCollectionEquality().hash(categories),const DeepCollectionEquality().hash(savingGoals));
 
 @override
 String toString() {
-  return 'ExportBundle(schemaVersion: $schemaVersion, generatedAt: $generatedAt, accounts: $accounts, transactions: $transactions, categories: $categories)';
+  return 'ExportBundle(schemaVersion: $schemaVersion, generatedAt: $generatedAt, accounts: $accounts, transactions: $transactions, categories: $categories, savingGoals: $savingGoals)';
 }
 
 
@@ -53,7 +54,7 @@ abstract mixin class $ExportBundleCopyWith<$Res>  {
   factory $ExportBundleCopyWith(ExportBundle value, $Res Function(ExportBundle) _then) = _$ExportBundleCopyWithImpl;
 @useResult
 $Res call({
- String schemaVersion, DateTime generatedAt, List<AccountEntity> accounts, List<TransactionEntity> transactions, List<Category> categories
+ String schemaVersion, DateTime generatedAt, List<AccountEntity> accounts, List<TransactionEntity> transactions, List<Category> categories, List<SavingGoal> savingGoals
 });
 
 
@@ -70,14 +71,15 @@ class _$ExportBundleCopyWithImpl<$Res>
 
 /// Create a copy of ExportBundle
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? schemaVersion = null,Object? generatedAt = null,Object? accounts = null,Object? transactions = null,Object? categories = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? schemaVersion = null,Object? generatedAt = null,Object? accounts = null,Object? transactions = null,Object? categories = null,Object? savingGoals = null,}) {
   return _then(_self.copyWith(
 schemaVersion: null == schemaVersion ? _self.schemaVersion : schemaVersion // ignore: cast_nullable_to_non_nullable
 as String,generatedAt: null == generatedAt ? _self.generatedAt : generatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,accounts: null == accounts ? _self.accounts : accounts // ignore: cast_nullable_to_non_nullable
 as List<AccountEntity>,transactions: null == transactions ? _self.transactions : transactions // ignore: cast_nullable_to_non_nullable
 as List<TransactionEntity>,categories: null == categories ? _self.categories : categories // ignore: cast_nullable_to_non_nullable
-as List<Category>,
+as List<Category>,savingGoals: null == savingGoals ? _self.savingGoals : savingGoals // ignore: cast_nullable_to_non_nullable
+as List<SavingGoal>,
   ));
 }
 
@@ -162,10 +164,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String schemaVersion,  DateTime generatedAt,  List<AccountEntity> accounts,  List<TransactionEntity> transactions,  List<Category> categories)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String schemaVersion,  DateTime generatedAt,  List<AccountEntity> accounts,  List<TransactionEntity> transactions,  List<Category> categories,  List<SavingGoal> savingGoals)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ExportBundle() when $default != null:
-return $default(_that.schemaVersion,_that.generatedAt,_that.accounts,_that.transactions,_that.categories);case _:
+return $default(_that.schemaVersion,_that.generatedAt,_that.accounts,_that.transactions,_that.categories,_that.savingGoals);case _:
   return orElse();
 
 }
@@ -183,10 +185,10 @@ return $default(_that.schemaVersion,_that.generatedAt,_that.accounts,_that.trans
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String schemaVersion,  DateTime generatedAt,  List<AccountEntity> accounts,  List<TransactionEntity> transactions,  List<Category> categories)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String schemaVersion,  DateTime generatedAt,  List<AccountEntity> accounts,  List<TransactionEntity> transactions,  List<Category> categories,  List<SavingGoal> savingGoals)  $default,) {final _that = this;
 switch (_that) {
 case _ExportBundle():
-return $default(_that.schemaVersion,_that.generatedAt,_that.accounts,_that.transactions,_that.categories);case _:
+return $default(_that.schemaVersion,_that.generatedAt,_that.accounts,_that.transactions,_that.categories,_that.savingGoals);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -203,10 +205,10 @@ return $default(_that.schemaVersion,_that.generatedAt,_that.accounts,_that.trans
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String schemaVersion,  DateTime generatedAt,  List<AccountEntity> accounts,  List<TransactionEntity> transactions,  List<Category> categories)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String schemaVersion,  DateTime generatedAt,  List<AccountEntity> accounts,  List<TransactionEntity> transactions,  List<Category> categories,  List<SavingGoal> savingGoals)?  $default,) {final _that = this;
 switch (_that) {
 case _ExportBundle() when $default != null:
-return $default(_that.schemaVersion,_that.generatedAt,_that.accounts,_that.transactions,_that.categories);case _:
+return $default(_that.schemaVersion,_that.generatedAt,_that.accounts,_that.transactions,_that.categories,_that.savingGoals);case _:
   return null;
 
 }
@@ -218,7 +220,7 @@ return $default(_that.schemaVersion,_that.generatedAt,_that.accounts,_that.trans
 @JsonSerializable()
 
 class _ExportBundle extends ExportBundle {
-  const _ExportBundle({required this.schemaVersion, required this.generatedAt, final  List<AccountEntity> accounts = const <AccountEntity>[], final  List<TransactionEntity> transactions = const <TransactionEntity>[], final  List<Category> categories = const <Category>[]}): _accounts = accounts,_transactions = transactions,_categories = categories,super._();
+  const _ExportBundle({required this.schemaVersion, required this.generatedAt, final  List<AccountEntity> accounts = const <AccountEntity>[], final  List<TransactionEntity> transactions = const <TransactionEntity>[], final  List<Category> categories = const <Category>[], final  List<SavingGoal> savingGoals = const <SavingGoal>[]}): _accounts = accounts,_transactions = transactions,_categories = categories,_savingGoals = savingGoals,super._();
   factory _ExportBundle.fromJson(Map<String, dynamic> json) => _$ExportBundleFromJson(json);
 
 /// Версия схемы экспортируемых данных.
@@ -252,6 +254,15 @@ class _ExportBundle extends ExportBundle {
   return EqualUnmodifiableListView(_categories);
 }
 
+/// Набор локальных целей накоплений.
+ final  List<SavingGoal> _savingGoals;
+/// Набор локальных целей накоплений.
+@override@JsonKey() List<SavingGoal> get savingGoals {
+  if (_savingGoals is EqualUnmodifiableListView) return _savingGoals;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_savingGoals);
+}
+
 
 /// Create a copy of ExportBundle
 /// with the given fields replaced by the non-null parameter values.
@@ -266,16 +277,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ExportBundle&&(identical(other.schemaVersion, schemaVersion) || other.schemaVersion == schemaVersion)&&(identical(other.generatedAt, generatedAt) || other.generatedAt == generatedAt)&&const DeepCollectionEquality().equals(other._accounts, _accounts)&&const DeepCollectionEquality().equals(other._transactions, _transactions)&&const DeepCollectionEquality().equals(other._categories, _categories));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ExportBundle&&(identical(other.schemaVersion, schemaVersion) || other.schemaVersion == schemaVersion)&&(identical(other.generatedAt, generatedAt) || other.generatedAt == generatedAt)&&const DeepCollectionEquality().equals(other._accounts, _accounts)&&const DeepCollectionEquality().equals(other._transactions, _transactions)&&const DeepCollectionEquality().equals(other._categories, _categories)&&const DeepCollectionEquality().equals(other._savingGoals, _savingGoals));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,schemaVersion,generatedAt,const DeepCollectionEquality().hash(_accounts),const DeepCollectionEquality().hash(_transactions),const DeepCollectionEquality().hash(_categories));
+int get hashCode => Object.hash(runtimeType,schemaVersion,generatedAt,const DeepCollectionEquality().hash(_accounts),const DeepCollectionEquality().hash(_transactions),const DeepCollectionEquality().hash(_categories),const DeepCollectionEquality().hash(_savingGoals));
 
 @override
 String toString() {
-  return 'ExportBundle(schemaVersion: $schemaVersion, generatedAt: $generatedAt, accounts: $accounts, transactions: $transactions, categories: $categories)';
+  return 'ExportBundle(schemaVersion: $schemaVersion, generatedAt: $generatedAt, accounts: $accounts, transactions: $transactions, categories: $categories, savingGoals: $savingGoals)';
 }
 
 
@@ -286,7 +297,7 @@ abstract mixin class _$ExportBundleCopyWith<$Res> implements $ExportBundleCopyWi
   factory _$ExportBundleCopyWith(_ExportBundle value, $Res Function(_ExportBundle) _then) = __$ExportBundleCopyWithImpl;
 @override @useResult
 $Res call({
- String schemaVersion, DateTime generatedAt, List<AccountEntity> accounts, List<TransactionEntity> transactions, List<Category> categories
+ String schemaVersion, DateTime generatedAt, List<AccountEntity> accounts, List<TransactionEntity> transactions, List<Category> categories, List<SavingGoal> savingGoals
 });
 
 
@@ -303,14 +314,15 @@ class __$ExportBundleCopyWithImpl<$Res>
 
 /// Create a copy of ExportBundle
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? schemaVersion = null,Object? generatedAt = null,Object? accounts = null,Object? transactions = null,Object? categories = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? schemaVersion = null,Object? generatedAt = null,Object? accounts = null,Object? transactions = null,Object? categories = null,Object? savingGoals = null,}) {
   return _then(_ExportBundle(
 schemaVersion: null == schemaVersion ? _self.schemaVersion : schemaVersion // ignore: cast_nullable_to_non_nullable
 as String,generatedAt: null == generatedAt ? _self.generatedAt : generatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,accounts: null == accounts ? _self._accounts : accounts // ignore: cast_nullable_to_non_nullable
 as List<AccountEntity>,transactions: null == transactions ? _self._transactions : transactions // ignore: cast_nullable_to_non_nullable
 as List<TransactionEntity>,categories: null == categories ? _self._categories : categories // ignore: cast_nullable_to_non_nullable
-as List<Category>,
+as List<Category>,savingGoals: null == savingGoals ? _self._savingGoals : savingGoals // ignore: cast_nullable_to_non_nullable
+as List<SavingGoal>,
   ));
 }
 

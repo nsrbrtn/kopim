@@ -323,6 +323,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileAboutEmailCta => 'Write to us by email';
 
   @override
+  String get profileAboutSupportCta => 'Support';
+
+  @override
   String get profileAboutPrivacyPolicyCta => 'Privacy policy';
 
   @override
@@ -1273,6 +1276,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeAccountMonthlyExpenseLabel => 'Expense';
+
+  @override
+  String get homeAccountMonthlySummaryLabel => 'This month';
 
   @override
   String get homeTransactionsTodayLabel => 'Today';

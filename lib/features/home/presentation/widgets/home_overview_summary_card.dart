@@ -4,11 +4,13 @@ import 'package:intl/intl.dart';
 import 'package:kopim/core/config/theme_extensions.dart';
 import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
-import 'package:kopim/features/categories/presentation/utils/category_gradients.dart';
 import 'package:kopim/features/home/domain/models/home_overview_summary.dart';
 import 'package:kopim/features/home/presentation/controllers/home_providers.dart';
 import 'package:kopim/features/transactions/presentation/widgets/transaction_tile_formatters.dart';
 import 'package:kopim/l10n/app_localizations.dart';
+
+const Color _overviewHighlightSurface = Color(0xFFD7FFD0);
+const Color _overviewCategoryIconSurface = Color(0xFFE8FF94);
 
 class HomeOverviewSummaryCard extends ConsumerWidget {
   const HomeOverviewSummaryCard({required this.onTap, super.key});
@@ -24,10 +26,13 @@ class HomeOverviewSummaryCard extends ConsumerWidget {
       homeOverviewSummaryProvider,
     );
 
-    final BorderRadius outerRadius = BorderRadius.circular(layout.radius.xxl);
+    const BorderRadius outerRadius = BorderRadius.all(Radius.circular(28));
+    final Color cardBackground = theme.brightness == Brightness.dark
+        ? theme.colorScheme.surfaceContainer
+        : theme.colorScheme.secondaryContainer;
 
     return Material(
-      color: theme.colorScheme.surfaceContainer,
+      color: cardBackground,
       borderRadius: outerRadius,
       child: InkWell(
         borderRadius: outerRadius,
@@ -83,6 +88,7 @@ class _HomeOverviewSummaryContent extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final bool isDarkTheme = theme.brightness == Brightness.dark;
     final String currencySymbol =
         TransactionTileFormatters.fallbackCurrencySymbol(strings.localeName);
     final NumberFormat currencyFormat = TransactionTileFormatters.currency(
@@ -113,139 +119,233 @@ class _HomeOverviewSummaryContent extends ConsumerWidget {
         : strings.homeOverviewExpenseValue(
             currencyFormat.format(topExpense.amount.toDouble()),
           );
-    final CategoryColorStyle categoryStyle = resolveCategoryColorStyle(
-      topCategory?.color,
-    );
-    final Color iconForeground =
-        categoryStyle.sampleColor ?? theme.colorScheme.onSurfaceVariant;
+    final Color amountForeground = isDarkTheme
+        ? theme.colorScheme.scrim
+        : theme.colorScheme.onSurface;
+    final Color cornerArrowColor = isDarkTheme
+        ? _overviewHighlightSurface
+        : theme.colorScheme.tertiary;
+    final TextStyle balanceLabelStyle =
+        theme.textTheme.labelSmall?.copyWith(
+          color: theme.colorScheme.onPrimaryContainer,
+        ) ??
+        TextStyle(color: theme.colorScheme.onPrimaryContainer);
+    final TextStyle amountStyle =
+        theme.textTheme.titleSmall?.copyWith(color: amountForeground) ??
+        TextStyle(color: amountForeground);
+    final TextStyle cardTitleStyle =
+        theme.textTheme.labelSmall?.copyWith(
+          color: theme.colorScheme.onPrimaryContainer,
+        ) ??
+        TextStyle(color: theme.colorScheme.onPrimaryContainer);
+    final TextStyle categoryLabelStyle =
+        theme.textTheme.labelSmall?.copyWith(color: amountForeground) ??
+        TextStyle(color: amountForeground);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: <Widget>[
-        _OverviewSurface(
-          layout: layout,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: <Widget>[
-              Text(
-                strings.homeOverviewTotalBalanceLabel,
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: theme.colorScheme.onSurface,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                balanceLabel,
-                style: theme.textTheme.displayMedium?.copyWith(
-                  color: theme.colorScheme.onSurface,
-                ),
-              ),
-            ],
-          ),
-        ),
-        SizedBox(height: layout.spacing.between),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+    return LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints constraints) {
+        final double cardWidth = constraints.maxWidth;
+        final double minHeroWidth = cardWidth < 220 ? cardWidth : 220;
+        final double heroWidth = (cardWidth * 0.75).clamp(
+          minHeroWidth,
+          cardWidth,
+        );
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            Expanded(
-              child: _OverviewSurface(
-                padding: const EdgeInsets.all(16),
-                layout: layout,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Align(
-                      alignment: Alignment.center,
-                      child: Text(
-                        strings.homeTransactionsTodayLabel,
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: theme.colorScheme.outline,
+            SizedBox(
+              height: 104,
+              child: Stack(
+                children: <Widget>[
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: SizedBox(
+                      width: heroWidth,
+                      child: _OverviewSurface(
+                        backgroundColor: _overviewHighlightSurface,
+                        borderRadius: const BorderRadius.all(
+                          Radius.circular(24),
                         ),
-                        textAlign: TextAlign.center,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 16,
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: <Widget>[
+                            Text(
+                              strings.homeOverviewTotalBalanceLabel,
+                              style: balanceLabelStyle,
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 4),
+                            Expanded(
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Text(
+                                  balanceLabel,
+                                  style: theme.textTheme.displayMedium
+                                      ?.copyWith(color: amountForeground),
+                                  maxLines: 1,
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    Text(incomeLabel, style: theme.textTheme.titleSmall),
-                    const SizedBox(height: 8),
-                    Text(expenseLabel, style: theme.textTheme.titleSmall),
-                  ],
-                ),
+                  ),
+                  PositionedDirectional(
+                    top: 4,
+                    end: 4,
+                    child: SizedBox(
+                      width: 48,
+                      height: 48,
+                      child: Center(
+                        child: Icon(
+                          Icons.arrow_outward,
+                          color: cornerArrowColor,
+                          size: layout.iconSizes.xl,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-            SizedBox(width: layout.spacing.between),
-            Expanded(
-              child: _OverviewSurface(
-                padding: const EdgeInsets.all(16),
-                layout: layout,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Align(
-                      alignment: Alignment.center,
-                      child: Text(
-                        strings.homeOverviewTopExpensesLabel,
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: theme.colorScheme.outline,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    if (topExpense == null)
-                      Text(
-                        strings.homeOverviewTopExpensesEmpty,
-                        style: theme.textTheme.titleSmall,
-                      )
-                    else
-                      Row(
+            SizedBox(height: layout.spacing.between),
+            SizedBox(
+              height: 100,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  Expanded(
+                    flex: 2,
+                    child: _OverviewSurface(
+                      backgroundColor: _overviewHighlightSurface,
+                      borderRadius: const BorderRadius.all(Radius.circular(24)),
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
+                          Text(
+                            strings.homeTransactionsTodayLabel,
+                            style: cardTitleStyle,
+                          ),
+                          const SizedBox(height: 8),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.center,
                               children: <Widget>[
-                                Row(
-                                  children: <Widget>[
-                                    Icon(
-                                      resolvePhosphorIconData(
-                                            topCategory?.icon,
-                                          ) ??
-                                          Icons.category_outlined,
-                                      color: iconForeground,
-                                      size: layout.iconSizes.md,
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Expanded(
-                                      child: Text(
-                                        topCategoryName,
-                                        style: theme.textTheme.labelSmall
-                                            ?.copyWith(
-                                              color:
-                                                  theme.colorScheme.onSurface,
-                                            ),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 8),
                                 Text(
-                                  topCategoryAmount,
-                                  style: theme.textTheme.titleSmall,
+                                  incomeLabel,
+                                  style: amountStyle,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  expenseLabel,
+                                  style: amountStyle,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ],
                             ),
                           ),
                         ],
                       ),
-                  ],
-                ),
+                    ),
+                  ),
+                  SizedBox(width: layout.spacing.between),
+                  Expanded(
+                    flex: 3,
+                    child: _OverviewSurface(
+                      backgroundColor: _overviewHighlightSurface,
+                      borderRadius: const BorderRadius.all(Radius.circular(24)),
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Text(
+                            strings.homeOverviewTopExpensesLabel,
+                            style: cardTitleStyle,
+                          ),
+                          const SizedBox(height: 8),
+                          Expanded(
+                            child: topExpense == null
+                                ? Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: Text(
+                                      strings.homeOverviewTopExpensesEmpty,
+                                      style: amountStyle,
+                                    ),
+                                  )
+                                : Row(
+                                    children: <Widget>[
+                                      DecoratedBox(
+                                        decoration: BoxDecoration(
+                                          color: _overviewCategoryIconSurface,
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                        ),
+                                        child: SizedBox(
+                                          width: 48,
+                                          height: 48,
+                                          child: Center(
+                                            child: Icon(
+                                              resolvePhosphorIconData(
+                                                    topCategory?.icon,
+                                                  ) ??
+                                                  Icons.category_outlined,
+                                              color: amountForeground,
+                                              size: layout.iconSizes.md,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: <Widget>[
+                                            Text(
+                                              topCategoryName,
+                                              style: categoryLabelStyle,
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              topCategoryAmount,
+                                              style: amountStyle,
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
-        ),
-      ],
+        );
+      },
     );
   }
 }
@@ -253,24 +353,25 @@ class _HomeOverviewSummaryContent extends ConsumerWidget {
 class _OverviewSurface extends StatelessWidget {
   const _OverviewSurface({
     required this.child,
-    required this.layout,
+    required this.backgroundColor,
+    this.borderRadius = const BorderRadius.all(Radius.circular(24)),
     this.padding,
   });
 
   final Widget child;
-  final KopimLayout layout;
+  final Color backgroundColor;
+  final BorderRadius borderRadius;
   final EdgeInsets? padding;
 
   @override
   Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHigh,
-        borderRadius: BorderRadius.circular(layout.radius.card),
+        color: backgroundColor,
+        borderRadius: borderRadius,
       ),
       child: Padding(
-        padding: padding ?? EdgeInsets.all(layout.spacing.between),
+        padding: padding ?? const EdgeInsets.all(16),
         child: child,
       ),
     );

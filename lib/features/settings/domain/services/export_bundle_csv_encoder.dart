@@ -5,6 +5,7 @@ import 'package:kopim/core/domain/icons/phosphor_icon_descriptor.dart';
 import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
+import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
 import 'package:kopim/features/settings/domain/entities/export_bundle.dart';
 import 'package:kopim/features/settings/domain/entities/exported_file.dart';
 import 'package:kopim/features/settings/domain/services/csv_codec.dart';
@@ -23,6 +24,7 @@ class ExportBundleCsvEncoder {
 
     _addAccounts(rows, bundle.accounts);
     _addCategories(rows, bundle.categories);
+    _addSavingGoals(rows, bundle.savingGoals);
     _addTransactions(rows, bundle.transactions);
 
     final String csv = CsvCodec.encode(rows);
@@ -130,8 +132,11 @@ class ExportBundleCsvEncoder {
       ..add(<String>[
         'id',
         'account_id',
+        'transfer_account_id',
         'category_id',
         'saving_goal_id',
+        'idempotency_key',
+        'group_id',
         'amount',
         'amount_minor',
         'amount_scale',
@@ -148,8 +153,11 @@ class ExportBundleCsvEncoder {
       rows.add(<String>[
         transaction.id,
         transaction.accountId,
+        transaction.transferAccountId ?? '',
         transaction.categoryId ?? '',
         transaction.savingGoalId ?? '',
+        transaction.idempotencyKey ?? '',
+        transaction.groupId ?? '',
         amount.toDouble().toString(),
         amount.minor.toString(),
         amount.scale.toString(),
@@ -159,6 +167,40 @@ class ExportBundleCsvEncoder {
         transaction.createdAt.toIso8601String(),
         transaction.updatedAt.toIso8601String(),
         _bool(transaction.isDeleted),
+      ]);
+    }
+  }
+
+  void _addSavingGoals(List<List<String>> rows, List<SavingGoal> goals) {
+    rows
+      ..add(<String>['#saving_goals'])
+      ..add(<String>[
+        'id',
+        'user_id',
+        'name',
+        'account_id',
+        'target_date',
+        'target_amount',
+        'current_amount',
+        'note',
+        'created_at',
+        'updated_at',
+        'archived_at',
+      ]);
+
+    for (final SavingGoal goal in goals) {
+      rows.add(<String>[
+        goal.id,
+        goal.userId,
+        goal.name,
+        goal.accountId ?? '',
+        goal.targetDate?.toIso8601String() ?? '',
+        goal.targetAmount.toString(),
+        goal.currentAmount.toString(),
+        goal.note ?? '',
+        goal.createdAt.toIso8601String(),
+        goal.updatedAt.toIso8601String(),
+        goal.archivedAt?.toIso8601String() ?? '',
       ]);
     }
   }

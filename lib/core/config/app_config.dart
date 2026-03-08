@@ -30,7 +30,7 @@ const String _kDefaultPrivacyPolicyUrl = 'https://kopim.site/privacy.html';
 const String _kDefaultTermsUrl = 'https://kopim.site/terms.html';
 const String _kDefaultAccountDeletionUrl =
     'https://kopim.site/delete-account.html';
-const String _kDefaultSupportUrl = 'https://kopim.site';
+const String _kDefaultSupportUrl = 'https://kopim.site/support.html';
 const String _kRemoteConfigKeyName = 'ai_openrouter_api_key';
 const String _kRemoteConfigModelName = 'ai_openrouter_model';
 const String _kRemoteConfigBaseUrl = 'ai_openrouter_base_url';

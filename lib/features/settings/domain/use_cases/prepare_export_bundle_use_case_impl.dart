@@ -1,5 +1,6 @@
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
+import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
 import 'package:kopim/features/settings/domain/entities/export_bundle.dart';
 import 'package:kopim/features/settings/domain/repositories/export_data_repository.dart';
 import 'package:kopim/features/settings/domain/use_cases/prepare_export_bundle_use_case.dart';
@@ -19,7 +20,7 @@ class PrepareExportBundleUseCaseImpl implements PrepareExportBundleUseCase {
   final DateTime Function() _clock;
   final String _schemaVersion;
 
-  static const String _defaultSchemaVersion = '1.1.0';
+  static const String _defaultSchemaVersion = '1.2.0';
 
   @override
   Future<ExportBundle> call() async {
@@ -31,10 +32,13 @@ class PrepareExportBundleUseCaseImpl implements PrepareExportBundleUseCase {
         .fetchTransactions();
     final Future<List<Category>> categoriesFuture = _repository
         .fetchCategories();
+    final Future<List<SavingGoal>> savingGoalsFuture = _repository
+        .fetchSavingGoals();
 
     final List<AccountEntity> accounts = await accountsFuture;
     final List<TransactionEntity> transactions = await transactionsFuture;
     final List<Category> categories = await categoriesFuture;
+    final List<SavingGoal> savingGoals = await savingGoalsFuture;
 
     return ExportBundle(
       schemaVersion: _schemaVersion,
@@ -42,6 +46,7 @@ class PrepareExportBundleUseCaseImpl implements PrepareExportBundleUseCase {
       accounts: accounts,
       transactions: transactions,
       categories: categories,
+      savingGoals: savingGoals,
     );
   }
 }

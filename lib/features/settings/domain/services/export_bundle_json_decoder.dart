@@ -5,6 +5,7 @@ import 'package:kopim/core/money/currency_scale.dart';
 import 'package:kopim/core/money/money.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
+import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
 import 'package:kopim/features/settings/domain/entities/export_bundle.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 
@@ -45,6 +46,9 @@ class ExportBundleJsonDecoder {
       jsonMap['transactions'],
     );
     final List<Category> categories = _parseCategories(jsonMap['categories']);
+    final List<SavingGoal> savingGoals = _parseSavingGoals(
+      jsonMap['savingGoals'],
+    );
 
     return ExportBundle(
       schemaVersion: schemaVersion,
@@ -52,6 +56,7 @@ class ExportBundleJsonDecoder {
       accounts: accounts,
       transactions: transactions,
       categories: categories,
+      savingGoals: savingGoals,
     );
   }
 
@@ -124,6 +129,8 @@ class ExportBundleJsonDecoder {
             transferAccountId: _readOptionalString(data, 'transferAccountId'),
             categoryId: _readOptionalString(data, 'categoryId'),
             savingGoalId: _readOptionalString(data, 'savingGoalId'),
+            idempotencyKey: _readOptionalString(data, 'idempotencyKey'),
+            groupId: _readOptionalString(data, 'groupId'),
             amountMinor: resolvedMinor,
             amountScale: scale,
             date: _readDate(data, 'date'),
@@ -142,6 +149,17 @@ class ExportBundleJsonDecoder {
     return raw
         .whereType<Map<String, Object?>>()
         .map(Category.fromJson)
+        .toList(growable: false);
+  }
+
+  List<SavingGoal> _parseSavingGoals(Object? raw) {
+    if (raw is! List) return const <SavingGoal>[];
+    return raw
+        .whereType<Map<String, Object?>>()
+        .map(
+          (Map<String, Object?> data) =>
+              SavingGoal.fromJson(Map<String, dynamic>.from(data)),
+        )
         .toList(growable: false);
   }
 

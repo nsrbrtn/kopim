@@ -58,6 +58,11 @@ enum OutboxOperation {
 - Напоминания (`payment_reminder`)
 - Профиль пользователя (`profile`)
 
+**Импорт бэкапа:**
+- Импорт CSV/JSON не ограничивается локальной записью в Drift.
+- После успешного импорта `accounts`, `categories`, `saving_goals` и `transactions` сразу ставятся в `outbox_entries` как `upsert`.
+- Это гарантирует, что импортированные данные могут уйти в Firebase тем же штатным pipeline, что и обычные локальные изменения.
+
 ### 2. SyncService (Фоновая синхронизация)
 
 **Файл:** [`sync_service.dart`](file:///home/artem/StudioProjects/kopim/lib/core/services/sync_service.dart)

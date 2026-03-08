@@ -319,6 +319,10 @@
   "@profileAboutEmailCta": {
     "description": "Email contact button on the About app screen"
   },
+  "profileAboutSupportCta": "Support",
+  "@profileAboutSupportCta": {
+    "description": "Support page button on the About app screen"
+  },
   "profileAboutPrivacyPolicyCta": "Privacy policy",
   "@profileAboutPrivacyPolicyCta": {
     "description": "Privacy policy button on the About app screen"
@@ -1608,6 +1612,10 @@
   "homeAccountMonthlyExpenseLabel": "Expense",
   "@homeAccountMonthlyExpenseLabel": {
     "description": "Label for monthly expenses shown on the home screen account card"
+  },
+  "homeAccountMonthlySummaryLabel": "This month",
+  "@homeAccountMonthlySummaryLabel": {
+    "description": "Section title for monthly summary on the home screen account card"
   },
   "homeTransactionsTodayLabel": "Today",
   "@homeTransactionsTodayLabel": {

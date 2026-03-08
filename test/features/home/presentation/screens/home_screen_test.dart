@@ -1,9 +1,15 @@
 import 'dart:async';
 
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kopim/core/application/sync_status_provider.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/core/money/money_utils.dart';
+import 'package:kopim/core/services/sync_status.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
+import 'package:kopim/features/app_shell/presentation/models/navigation_tab_content.dart';
+import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/accounts/domain/repositories/account_repository.dart';
 import 'package:kopim/features/accounts/domain/use_cases/watch_accounts_use_case.dart';
 import 'package:kopim/features/credits/domain/entities/credit_card_entity.dart';
@@ -14,8 +20,17 @@ import 'package:kopim/features/credits/domain/repositories/credit_card_repositor
 import 'package:kopim/features/credits/domain/repositories/credit_repository.dart';
 import 'package:kopim/features/credits/domain/use_cases/watch_credit_cards_use_case.dart';
 import 'package:kopim/features/credits/domain/use_cases/watch_credits_use_case.dart';
+import 'package:kopim/features/home/domain/models/day_section.dart';
 import 'package:kopim/features/home/domain/models/home_account_monthly_summary.dart';
+import 'package:kopim/features/home/domain/models/home_overview_summary.dart';
+import 'package:kopim/features/home/domain/entities/home_dashboard_preferences.dart';
+import 'package:kopim/features/home/presentation/controllers/home_dashboard_preferences_controller.dart';
 import 'package:kopim/features/home/presentation/controllers/home_providers.dart';
+import 'package:kopim/features/home/presentation/screens/home_screen.dart';
+import 'package:kopim/features/overview/domain/entities/overview_preferences.dart';
+import 'package:kopim/features/overview/presentation/controllers/overview_preferences_controller.dart';
+import 'package:kopim/features/profile/domain/entities/auth_user.dart';
+import 'package:kopim/features/profile/presentation/controllers/auth_controller.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/models/account_monthly_totals.dart';
 import 'package:kopim/features/transactions/domain/models/budget_expense_totals.dart';
@@ -26,6 +41,10 @@ import 'package:kopim/features/transactions/domain/repositories/transaction_repo
 import 'package:kopim/features/transactions/domain/use_cases/watch_recent_transactions_use_case.dart';
 import 'package:kopim/features/transactions/domain/use_cases/watch_account_monthly_totals_use_case.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
+import 'package:kopim/features/upcoming_payments/domain/models/upcoming_item.dart';
+import 'package:kopim/features/upcoming_payments/domain/providers/upcoming_payments_providers.dart';
+import 'package:kopim/features/upcoming_payments/domain/services/time_service.dart';
+import 'package:kopim/l10n/app_localizations.dart';
 import 'package:riverpod/src/framework.dart';
 
 void main() {
@@ -270,6 +289,133 @@ void main() {
       },
     );
   });
+
+  group('Home screen', () {
+    Future<void> pumpHomeBody(
+      WidgetTester tester, {
+      required List<Override> overrides,
+    }) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: overrides,
+          child: MaterialApp(
+            locale: const Locale('ru'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Consumer(
+              builder: (BuildContext context, WidgetRef ref, Widget? child) {
+                final NavigationTabContent content = buildHomeTabContent(
+                  context,
+                  ref,
+                );
+                return Scaffold(body: content.bodyBuilder(context, ref));
+              },
+            ),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('renders monthly income and expense under account balance', (
+      WidgetTester tester,
+    ) async {
+      final DateTime now = DateTime.now();
+      final AccountEntity account = AccountEntity(
+        id: 'cash-1',
+        name: 'Основной счет',
+        balanceMinor: BigInt.from(128987),
+        currency: 'RUB',
+        currencyScale: 2,
+        type: 'cash',
+        createdAt: now,
+        updatedAt: now,
+      );
+
+      await pumpHomeBody(
+        tester,
+        overrides: <Override>[
+          authControllerProvider.overrideWith(() => _FakeAuthController(null)),
+          homeDashboardPreferencesControllerProvider.overrideWith(
+            () => _FakeHomeDashboardPreferencesController(),
+          ),
+          overviewPreferencesControllerProvider.overrideWith(
+            () => _FakeOverviewPreferencesController(),
+          ),
+          syncStatusProvider.overrideWith(
+            (Ref ref) => Stream<SyncStatus>.value(SyncStatus.offline),
+          ),
+          timeServiceProvider.overrideWith(
+            (Ref ref) => const SystemTimeService(),
+          ),
+          homeAccountsProvider.overrideWith(
+            (Ref ref) =>
+                Stream<List<AccountEntity>>.value(<AccountEntity>[account]),
+          ),
+          homeAccountMonthlySummariesProvider.overrideWith(
+            (Ref ref) => Stream<Map<String, HomeAccountMonthlySummary>>.value(
+              <String, HomeAccountMonthlySummary>{
+                account.id: HomeAccountMonthlySummary(
+                  income: MoneyAmount(minor: BigInt.from(12000), scale: 2),
+                  expense: MoneyAmount(minor: BigInt.from(8000), scale: 2),
+                ),
+              },
+            ),
+          ),
+          homeOverviewSummaryProvider.overrideWith(
+            (Ref ref) => Stream<HomeOverviewSummary>.value(
+              HomeOverviewSummary(
+                totalBalance: MoneyAmount(minor: BigInt.from(128987), scale: 2),
+                todayIncome: MoneyAmount(minor: BigInt.zero, scale: 2),
+                todayExpense: MoneyAmount(minor: BigInt.zero, scale: 2),
+              ),
+            ),
+          ),
+          homeCategoriesProvider.overrideWith(
+            (Ref ref) => Stream<List<Category>>.value(const <Category>[]),
+          ),
+          homeGroupedTransactionsProvider.overrideWith(
+            (Ref ref) =>
+                const AsyncValue<List<DaySection>>.data(<DaySection>[]),
+          ),
+          homeUpcomingItemsProvider(limit: 6).overrideWith(
+            (Ref ref) =>
+                Stream<List<UpcomingItem>>.value(const <UpcomingItem>[]),
+          ),
+        ],
+      );
+
+      expect(find.text('Основной счет'), findsOneWidget);
+      expect(find.text('В этом месяце'), findsOneWidget);
+      expect(find.textContaining('Доход:'), findsWidgets);
+      expect(find.textContaining('Расход:'), findsWidgets);
+    });
+  });
+}
+
+class _FakeAuthController extends AuthController {
+  _FakeAuthController(this._user);
+
+  final AuthUser? _user;
+
+  @override
+  FutureOr<AuthUser?> build() => _user;
+}
+
+class _FakeHomeDashboardPreferencesController
+    extends HomeDashboardPreferencesController {
+  @override
+  Future<HomeDashboardPreferences> build() async {
+    return const HomeDashboardPreferences();
+  }
+}
+
+class _FakeOverviewPreferencesController extends OverviewPreferencesController {
+  @override
+  Future<OverviewPreferences> build() async {
+    return const OverviewPreferences();
+  }
 }
 
 AccountEntity _account(String id) {

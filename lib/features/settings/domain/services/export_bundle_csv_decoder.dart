@@ -6,6 +6,7 @@ import 'package:kopim/core/money/money.dart';
 import 'package:kopim/core/domain/icons/phosphor_icon_descriptor.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
+import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
 import 'package:kopim/features/settings/domain/entities/export_bundle.dart';
 import 'package:kopim/features/settings/domain/services/csv_codec.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
@@ -33,6 +34,7 @@ class ExportBundleCsvDecoder {
     DateTime? generatedAt;
     final List<AccountEntity> accounts = <AccountEntity>[];
     final List<Category> categories = <Category>[];
+    final List<SavingGoal> savingGoals = <SavingGoal>[];
     final List<TransactionEntity> transactions = <TransactionEntity>[];
 
     int index = 0;
@@ -66,6 +68,9 @@ class ExportBundleCsvDecoder {
         case '#categories':
           index = _parseCategories(rows, index + 1, categories);
           break;
+        case '#saving_goals':
+          index = _parseSavingGoals(rows, index + 1, savingGoals);
+          break;
         case '#transactions':
           index = _parseTransactions(rows, index + 1, transactions);
           break;
@@ -87,6 +92,7 @@ class ExportBundleCsvDecoder {
       generatedAt: generatedAt,
       accounts: accounts,
       categories: categories,
+      savingGoals: savingGoals,
       transactions: transactions,
     );
   }
@@ -232,8 +238,19 @@ class ExportBundleCsvDecoder {
         return TransactionEntity(
           id: _readRequired(header.columns, row, 'id'),
           accountId: _readRequired(header.columns, row, 'account_id'),
+          transferAccountId: _readOptional(
+            header.columns,
+            row,
+            'transfer_account_id',
+          ),
           categoryId: _readOptional(header.columns, row, 'category_id'),
           savingGoalId: _readOptional(header.columns, row, 'saving_goal_id'),
+          idempotencyKey: _readOptional(
+            header.columns,
+            row,
+            'idempotency_key',
+          ),
+          groupId: _readOptional(header.columns, row, 'group_id'),
           amountMinor: resolvedMinor,
           amountScale: scale,
           date: _readDate(header.columns, row, 'date'),
@@ -244,6 +261,47 @@ class ExportBundleCsvDecoder {
           isDeleted: _readBool(header.columns, row, 'is_deleted'),
         );
       }());
+      index += 1;
+    }
+    return index;
+  }
+
+  int _parseSavingGoals(
+    List<List<String>> rows,
+    int startIndex,
+    List<SavingGoal> savingGoals,
+  ) {
+    final _SectionHeader header = _readHeader(
+      rows,
+      startIndex,
+      '#saving_goals',
+    );
+    int index = header.nextIndex;
+    while (index < rows.length && !_isSectionMarker(rows[index])) {
+      final List<String> row = rows[index];
+      if (_isEmptyRow(row)) {
+        index += 1;
+        continue;
+      }
+      savingGoals.add(
+        SavingGoal(
+          id: _readRequired(header.columns, row, 'id'),
+          userId: _readRequired(header.columns, row, 'user_id'),
+          name: _readRequired(header.columns, row, 'name'),
+          accountId: _readOptional(header.columns, row, 'account_id'),
+          targetDate: _readOptionalDate(header.columns, row, 'target_date'),
+          targetAmount: _readRequiredInt(header.columns, row, 'target_amount'),
+          currentAmount: _readRequiredInt(
+            header.columns,
+            row,
+            'current_amount',
+          ),
+          note: _readOptional(header.columns, row, 'note'),
+          createdAt: _readDate(header.columns, row, 'created_at'),
+          updatedAt: _readDate(header.columns, row, 'updated_at'),
+          archivedAt: _readOptionalDate(header.columns, row, 'archived_at'),
+        ),
+      );
       index += 1;
     }
     return index;
@@ -358,6 +416,23 @@ class ExportBundleCsvDecoder {
       return null;
     }
     return int.tryParse(raw.trim());
+  }
+
+  int _readRequiredInt(Map<String, int> columns, List<String> row, String key) {
+    final String raw = _readRequired(columns, row, key);
+    return int.parse(raw.trim());
+  }
+
+  DateTime? _readOptionalDate(
+    Map<String, int> columns,
+    List<String> row,
+    String key,
+  ) {
+    final String? raw = _readOptional(columns, row, key);
+    if (raw == null) {
+      return null;
+    }
+    return DateTime.parse(raw);
   }
 
   BigInt? _readOptionalBigInt(

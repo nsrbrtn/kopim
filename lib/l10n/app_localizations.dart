@@ -668,6 +668,12 @@ abstract class AppLocalizations {
   /// **'Write to us by email'**
   String get profileAboutEmailCta;
 
+  /// Support page button on the About app screen
+  ///
+  /// In en, this message translates to:
+  /// **'Support'**
+  String get profileAboutSupportCta;
+
   /// Privacy policy button on the About app screen
   ///
   /// In en, this message translates to:
@@ -2339,6 +2345,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Expense'**
   String get homeAccountMonthlyExpenseLabel;
+
+  /// Section title for monthly summary on the home screen account card
+  ///
+  /// In en, this message translates to:
+  /// **'This month'**
+  String get homeAccountMonthlySummaryLabel;
 
   /// Section header label for transactions happening today
   ///

@@ -195,6 +195,42 @@ void main() {
     expect(updated!.balance, closeTo(100, 1e-9));
   });
 
+  test('softDelete still marks transaction deleted when source account is missing', () async {
+    final TransactionEntity brokenImportedTransaction = TransactionEntity(
+      id: 'tx-broken-delete',
+      accountId: 'missing-account',
+      amountMinor: BigInt.from(4000),
+      amountScale: 2,
+      date: now,
+      type: TransactionType.expense.storageValue,
+      createdAt: now,
+      updatedAt: now,
+    );
+
+    await database.customStatement('PRAGMA foreign_keys = OFF');
+    await transactionDao.upsert(brokenImportedTransaction);
+    await database.customStatement('PRAGMA foreign_keys = ON');
+
+    await repository.softDelete(brokenImportedTransaction.id);
+
+    final db.TransactionRow? updated = await transactionDao.findById(
+      brokenImportedTransaction.id,
+    );
+    expect(updated, isNotNull);
+    expect(updated!.isDeleted, isTrue);
+
+    final List<db.OutboxEntryRow> entries = await outboxDao.fetchPending();
+    expect(
+      entries.any(
+        (db.OutboxEntryRow row) =>
+            row.entityType == 'transaction' &&
+            row.entityId == brokenImportedTransaction.id &&
+            row.operation == 'delete',
+      ),
+      isTrue,
+    );
+  });
+
   test('upsert stores updatedAt in UTC in outbox payload', () async {
     await seedAccount(id: 'acc-1', balance: 100);
 

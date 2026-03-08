@@ -319,6 +319,10 @@
   "@profileAboutEmailCta": {
     "description": "Кнопка связи по почте на экране 'О приложении'"
   },
+  "profileAboutSupportCta": "Поддержка",
+  "@profileAboutSupportCta": {
+    "description": "Кнопка страницы поддержки на экране 'О приложении'"
+  },
   "profileAboutPrivacyPolicyCta": "Политика конфиденциальности",
   "@profileAboutPrivacyPolicyCta": {
     "description": "Кнопка политики конфиденциальности на экране 'О приложении'"
@@ -1608,6 +1612,10 @@
   "homeAccountMonthlyExpenseLabel": "Расход",
   "@homeAccountMonthlyExpenseLabel": {
     "description": "Подпись для месячных расходов на карточке счёта"
+  },
+  "homeAccountMonthlySummaryLabel": "В этом месяце",
+  "@homeAccountMonthlySummaryLabel": {
+    "description": "Заголовок блока месячной сводки на карточке счёта"
   },
   "homeTransactionsTodayLabel": "Сегодня",
   "@homeTransactionsTodayLabel": {
