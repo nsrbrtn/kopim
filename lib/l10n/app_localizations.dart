@@ -212,6 +212,60 @@ abstract class AppLocalizations {
   /// **'Password updated'**
   String get profileCredentialsPasswordUpdated;
 
+  /// Delete account button in profile settings
+  ///
+  /// In en, this message translates to:
+  /// **'Delete account'**
+  String get profileDeleteAccountCta;
+
+  /// Delete account dialog title
+  ///
+  /// In en, this message translates to:
+  /// **'Delete account?'**
+  String get profileDeleteAccountTitle;
+
+  /// Delete account dialog description
+  ///
+  /// In en, this message translates to:
+  /// **'Your account and related cloud data will be deleted. To confirm, enter the confirmation phrase and your current password.'**
+  String get profileDeleteAccountDescription;
+
+  /// Confirmation field label for account deletion
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm deletion'**
+  String get profileDeleteAccountConfirmLabel;
+
+  /// Hint for the account deletion confirmation field
+  ///
+  /// In en, this message translates to:
+  /// **'Type {phrase}'**
+  String profileDeleteAccountConfirmHint(String phrase);
+
+  /// Current password label in delete account dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Current password'**
+  String get profileDeleteAccountPasswordLabel;
+
+  /// Destructive action label for account deletion
+  ///
+  /// In en, this message translates to:
+  /// **'Delete permanently'**
+  String get profileDeleteAccountAction;
+
+  /// Success message after account deletion
+  ///
+  /// In en, this message translates to:
+  /// **'Account deleted'**
+  String get profileDeleteAccountSuccess;
+
+  /// Confirmation phrase for account deletion
+  ///
+  /// In en, this message translates to:
+  /// **'DELETE'**
+  String get profileDeleteAccountPhrase;
+
   /// Section title for appearance settings in profile management
   ///
   /// In en, this message translates to:

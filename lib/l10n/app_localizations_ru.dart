@@ -70,6 +70,36 @@ class AppLocalizationsRu extends AppLocalizations {
   String get profileCredentialsPasswordUpdated => 'Пароль обновлен';
 
   @override
+  String get profileDeleteAccountCta => 'Удалить аккаунт';
+
+  @override
+  String get profileDeleteAccountTitle => 'Удалить аккаунт?';
+
+  @override
+  String get profileDeleteAccountDescription =>
+      'Аккаунт и связанные облачные данные будут удалены. Для подтверждения введите кодовое слово и текущий пароль.';
+
+  @override
+  String get profileDeleteAccountConfirmLabel => 'Подтвердите удаление';
+
+  @override
+  String profileDeleteAccountConfirmHint(String phrase) {
+    return 'Введите $phrase';
+  }
+
+  @override
+  String get profileDeleteAccountPasswordLabel => 'Текущий пароль';
+
+  @override
+  String get profileDeleteAccountAction => 'Удалить навсегда';
+
+  @override
+  String get profileDeleteAccountSuccess => 'Аккаунт удален';
+
+  @override
+  String get profileDeleteAccountPhrase => 'УДАЛИТЬ';
+
+  @override
   String get profileAppearanceSection => 'Внешний вид';
 
   @override

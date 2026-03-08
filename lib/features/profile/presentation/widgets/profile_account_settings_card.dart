@@ -5,10 +5,12 @@ import 'package:kopim/core/widgets/kopim_dropdown_field.dart';
 import 'package:kopim/core/widgets/kopim_text_field.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
 import 'package:kopim/features/profile/domain/entities/profile.dart';
+import 'package:kopim/features/profile/domain/failures/auth_failure.dart';
 import 'package:kopim/features/profile/presentation/controllers/auth_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/profile_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/profile_form_controller.dart';
 import 'package:kopim/features/profile/presentation/screens/sign_in_screen.dart';
+import 'package:kopim/features/profile/presentation/utils/auth_error_mapper.dart';
 import 'package:kopim/features/profile/presentation/widgets/settings_button_theme.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
@@ -37,6 +39,7 @@ class ProfileAccountSettingsCard extends ConsumerWidget {
           uid: user.uid,
           profileAsync: profileAsync,
           isAnonymous: user.isAnonymous,
+          email: user.email,
         );
       },
     );
@@ -48,11 +51,13 @@ class _ProfileAccountForm extends ConsumerStatefulWidget {
     required this.uid,
     required this.profileAsync,
     required this.isAnonymous,
+    required this.email,
   });
 
   final String uid;
   final AsyncValue<Profile?> profileAsync;
   final bool isAnonymous;
+  final String? email;
 
   @override
   ConsumerState<_ProfileAccountForm> createState() =>
@@ -244,6 +249,20 @@ class _ProfileAccountFormState extends ConsumerState<_ProfileAccountForm> {
                 : const Icon(Icons.save_outlined),
             label: Text(strings.profileSaveCta),
           ),
+          if (!widget.isAnonymous) ...<Widget>[
+            const SizedBox(height: 12),
+            OutlinedButton.icon(
+              onPressed: isSaving
+                  ? null
+                  : () => _showDeleteAccountDialog(context, ref, strings),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: theme.colorScheme.error,
+                side: BorderSide(color: theme.colorScheme.error),
+              ),
+              icon: const Icon(Icons.delete_forever_outlined),
+              label: Text(strings.profileDeleteAccountCta),
+            ),
+          ],
           if (widget.profileAsync.isLoading) ...<Widget>[
             const SizedBox(height: 12),
             const _CenteredProgress(size: 20),
@@ -251,6 +270,160 @@ class _ProfileAccountFormState extends ConsumerState<_ProfileAccountForm> {
         ],
       ),
     );
+  }
+
+  Future<void> _showDeleteAccountDialog(
+    BuildContext context,
+    WidgetRef ref,
+    AppLocalizations strings,
+  ) async {
+    final TextEditingController confirmationController =
+        TextEditingController();
+    final TextEditingController passwordController = TextEditingController();
+    final String confirmationPhrase = strings.profileDeleteAccountPhrase;
+    bool isSubmitting = false;
+    String? errorText;
+
+    await showDialog<void>(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return StatefulBuilder(
+          builder:
+              (
+                BuildContext dialogBodyContext,
+                void Function(void Function()) setState,
+              ) {
+                final bool canSubmit =
+                    confirmationController.text.trim() == confirmationPhrase &&
+                    passwordController.text.isNotEmpty &&
+                    !isSubmitting;
+
+                return AlertDialog(
+                  title: Text(strings.profileDeleteAccountTitle),
+                  content: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text(strings.profileDeleteAccountDescription),
+                      if (widget.email != null && widget.email!.isNotEmpty) ...<
+                        Widget
+                      >[
+                        const SizedBox(height: 8),
+                        Text(
+                          widget.email!,
+                          style: Theme.of(
+                            dialogBodyContext,
+                          ).textTheme.bodySmall?.copyWith(
+                            color: Theme.of(
+                              dialogBodyContext,
+                            ).colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: confirmationController,
+                        onChanged: (_) => setState(() {}),
+                        decoration: InputDecoration(
+                          labelText: strings.profileDeleteAccountConfirmLabel,
+                          helperText: strings.profileDeleteAccountConfirmHint(
+                            confirmationPhrase,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: passwordController,
+                        obscureText: true,
+                        onChanged: (_) => setState(() {}),
+                        decoration: InputDecoration(
+                          labelText: strings.profileDeleteAccountPasswordLabel,
+                        ),
+                      ),
+                      if (errorText != null) ...<Widget>[
+                        const SizedBox(height: 12),
+                        Text(
+                          errorText!,
+                          style: Theme.of(dialogBodyContext)
+                              .textTheme
+                              .bodySmall
+                              ?.copyWith(
+                                color: Theme.of(
+                                  dialogBodyContext,
+                                ).colorScheme.error,
+                              ),
+                        ),
+                      ],
+                    ],
+                  ),
+                  actions: <Widget>[
+                    TextButton(
+                      onPressed: isSubmitting
+                          ? null
+                          : () => Navigator.of(dialogContext).pop(),
+                      child: Text(strings.cancelButtonLabel),
+                    ),
+                    FilledButton(
+                      onPressed: canSubmit
+                          ? () async {
+                              setState(() {
+                                isSubmitting = true;
+                                errorText = null;
+                              });
+                              try {
+                                await ref
+                                    .read(authControllerProvider.notifier)
+                                    .deleteAccount(
+                                      currentPassword:
+                                          passwordController.text.trim(),
+                                    );
+                                if (!dialogBodyContext.mounted) {
+                                  return;
+                                }
+                                Navigator.of(dialogContext).pop();
+                                ScaffoldMessenger.of(dialogBodyContext)
+                                  ..hideCurrentSnackBar()
+                                  ..showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        strings.profileDeleteAccountSuccess,
+                                      ),
+                                    ),
+                                  );
+                              } on AuthFailure catch (failure) {
+                                setState(() {
+                                  isSubmitting = false;
+                                  errorText = AuthErrorMapper.map(
+                                    failure.code,
+                                    strings,
+                                  );
+                                });
+                              }
+                            }
+                          : null,
+                      style: FilledButton.styleFrom(
+                        backgroundColor:
+                            Theme.of(dialogBodyContext).colorScheme.error,
+                        foregroundColor:
+                            Theme.of(dialogBodyContext).colorScheme.onError,
+                      ),
+                      child: isSubmitting
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : Text(strings.profileDeleteAccountAction),
+                    ),
+                  ],
+                );
+              },
+        );
+      },
+    );
+
+    confirmationController.dispose();
+    passwordController.dispose();
   }
 }
 

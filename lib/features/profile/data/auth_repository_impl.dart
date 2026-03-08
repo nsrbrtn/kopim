@@ -74,6 +74,21 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<void> deleteCurrentUser() {
+    return _guardVoid('deleteCurrentUser', () async {
+      final User? user = _firebaseAuth.currentUser;
+      if (user == null) {
+        throw const AuthFailure(
+          code: 'no-current-user',
+          message: 'No active session available for account deletion.',
+        );
+      }
+      await user.delete();
+      _localFallbackUser = null;
+    });
+  }
+
+  @override
   Future<AuthUser> reauthenticate(SignInRequest request) {
     const String label = 'email';
 

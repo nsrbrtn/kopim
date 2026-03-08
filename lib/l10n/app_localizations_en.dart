@@ -70,6 +70,36 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileCredentialsPasswordUpdated => 'Password updated';
 
   @override
+  String get profileDeleteAccountCta => 'Delete account';
+
+  @override
+  String get profileDeleteAccountTitle => 'Delete account?';
+
+  @override
+  String get profileDeleteAccountDescription =>
+      'Your account and related cloud data will be deleted. To confirm, enter the confirmation phrase and your current password.';
+
+  @override
+  String get profileDeleteAccountConfirmLabel => 'Confirm deletion';
+
+  @override
+  String profileDeleteAccountConfirmHint(String phrase) {
+    return 'Type $phrase';
+  }
+
+  @override
+  String get profileDeleteAccountPasswordLabel => 'Current password';
+
+  @override
+  String get profileDeleteAccountAction => 'Delete permanently';
+
+  @override
+  String get profileDeleteAccountSuccess => 'Account deleted';
+
+  @override
+  String get profileDeleteAccountPhrase => 'DELETE';
+
+  @override
   String get profileAppearanceSection => 'Appearance';
 
   @override

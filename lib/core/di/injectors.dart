@@ -16,6 +16,7 @@ import 'package:kopim/core/data/database.dart';
 import 'package:kopim/core/data/database/database_factory.dart';
 import 'package:kopim/core/data/outbox/outbox_dao.dart';
 import 'package:kopim/core/config/app_config.dart';
+import 'package:kopim/core/config/firebase_environment.dart';
 import 'package:kopim/core/utils/web_platform_utils.dart';
 import 'package:kopim/core/services/ai_assistant_service.dart';
 import 'package:kopim/core/services/analytics_service.dart';
@@ -106,12 +107,15 @@ import 'package:kopim/features/profile/data/remote/avatar_remote_data_source.dar
 import 'package:kopim/features/profile/data/remote/profile_remote_data_source.dart';
 import 'package:kopim/features/profile/data/remote/user_progress_remote_data_source.dart';
 import 'package:kopim/features/profile/data/services/profile_sync_error_reporter_logger.dart';
+import 'package:kopim/features/profile/data/user_account_cleanup_repository_impl.dart';
 import 'package:kopim/features/profile/data/user_progress_repository_impl.dart';
 import 'package:kopim/features/profile/domain/repositories/profile_repository.dart';
 import 'package:kopim/features/profile/domain/policies/level_policy.dart';
 import 'package:kopim/features/profile/domain/repositories/profile_avatar_repository.dart';
+import 'package:kopim/features/profile/domain/repositories/user_account_cleanup_repository.dart';
 import 'package:kopim/features/profile/domain/repositories/user_progress_repository.dart';
 import 'package:kopim/features/profile/domain/services/profile_sync_error_reporter.dart';
+import 'package:kopim/features/profile/domain/usecases/delete_user_account_use_case.dart';
 import 'package:kopim/features/profile/domain/usecases/on_transaction_created_use_case.dart';
 import 'package:kopim/features/profile/domain/usecases/on_transaction_deleted_use_case.dart';
 import 'package:kopim/features/profile/domain/usecases/recompute_user_progress_use_case.dart';
@@ -172,7 +176,6 @@ import 'package:kopim/features/credits/domain/use_cases/watch_debts_use_case.dar
 import 'package:kopim/features/credits/domain/use_cases/make_credit_payment_use_case.dart';
 import 'package:kopim/features/credits/domain/use_cases/update_credit_payment_case.dart';
 import 'package:kopim/features/upcoming_payments/data/services/upcoming_payments_work_scheduler.dart';
-import 'package:kopim/firebase_options.dart';
 import 'package:kopim/features/credits/data/sources/remote/credit_remote_data_source.dart';
 import 'package:kopim/features/credits/data/sources/remote/debt_remote_data_source.dart';
 import 'package:kopim/features/credits/data/sources/remote/credit_card_remote_data_source.dart';
@@ -223,7 +226,7 @@ Future<void> firebaseInitialization(Ref ref) async {
 
   final FirebaseOptions options;
   try {
-    options = DefaultFirebaseOptions.currentPlatform;
+    options = FirebaseEnvironmentConfig.currentPlatformOptions;
   } catch (error, _) {
     if (isWebIosSafari) {
       Future<void>.microtask(
@@ -1137,6 +1140,16 @@ ProfileAvatarRepository profileAvatarRepository(Ref ref) =>
       remoteDataSource: ref.watch(avatarRemoteDataSourceProvider),
     );
 
+final rp.Provider<UserAccountCleanupRepository>
+userAccountCleanupRepositoryProvider =
+    rp.Provider<UserAccountCleanupRepository>((rp.Ref ref) {
+      return UserAccountCleanupRepositoryImpl(
+        firestore: ref.watch(firestoreProvider),
+        database: ref.watch(appDatabaseProvider),
+        profileAvatarRepository: ref.watch(profileAvatarRepositoryProvider),
+      );
+    });
+
 @riverpod
 UserProgressRepository userProgressRepository(Ref ref) {
   final UserProgressRepositoryImpl repository = UserProgressRepositoryImpl(
@@ -1190,6 +1203,14 @@ UpdateProfileAvatarUseCase updateProfileAvatarUseCase(Ref ref) =>
       avatarRepository: ref.watch(profileAvatarRepositoryProvider),
       profileRepository: ref.watch(profileRepositoryProvider),
     );
+
+final rp.Provider<DeleteUserAccountUseCase> deleteUserAccountUseCaseProvider =
+    rp.Provider<DeleteUserAccountUseCase>((rp.Ref ref) {
+      return DeleteUserAccountUseCase(
+        authRepository: ref.watch(authRepositoryProvider),
+        cleanupRepository: ref.watch(userAccountCleanupRepositoryProvider),
+      );
+    });
 
 @riverpod
 SyncService syncService(Ref ref) {

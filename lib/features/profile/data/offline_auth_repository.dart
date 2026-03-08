@@ -58,6 +58,11 @@ class OfflineAuthRepository implements AuthRepository {
   }
 
   @override
+  Future<void> deleteCurrentUser() {
+    return _unsupportedVoid('deleteCurrentUser');
+  }
+
+  @override
   Future<void> sendPasswordResetEmail(String email) {
     return _unsupportedVoid('sendPasswordResetEmail');
   }

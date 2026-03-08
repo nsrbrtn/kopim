@@ -1,7 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 
+import 'package:kopim/core/config/firebase_environment.dart';
 import 'package:kopim/core/services/logger_service.dart';
-import 'package:kopim/firebase_options.dart';
 
 /// Гарантирует, что Firebase инициализирован перед обращением к сервисам.
 Future<void> ensureFirebaseInitialized({LoggerService? logger}) async {
@@ -11,7 +11,7 @@ Future<void> ensureFirebaseInitialized({LoggerService? logger}) async {
 
   try {
     await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
+      options: FirebaseEnvironmentConfig.currentPlatformOptions,
     );
   } on FirebaseException catch (error) {
     if (error.code == 'duplicate-app') {

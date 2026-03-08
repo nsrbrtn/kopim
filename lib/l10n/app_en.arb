@@ -73,6 +73,47 @@
   "@profileCredentialsPasswordUpdated": {
     "description": "Message shown after successful password update"
   },
+  "profileDeleteAccountCta": "Delete account",
+  "@profileDeleteAccountCta": {
+    "description": "Delete account button in profile settings"
+  },
+  "profileDeleteAccountTitle": "Delete account?",
+  "@profileDeleteAccountTitle": {
+    "description": "Delete account dialog title"
+  },
+  "profileDeleteAccountDescription": "Your account and related cloud data will be deleted. To confirm, enter the confirmation phrase and your current password.",
+  "@profileDeleteAccountDescription": {
+    "description": "Delete account dialog description"
+  },
+  "profileDeleteAccountConfirmLabel": "Confirm deletion",
+  "@profileDeleteAccountConfirmLabel": {
+    "description": "Confirmation field label for account deletion"
+  },
+  "profileDeleteAccountConfirmHint": "Type {phrase}",
+  "@profileDeleteAccountConfirmHint": {
+    "description": "Hint for the account deletion confirmation field",
+    "placeholders": {
+      "phrase": {
+        "type": "String"
+      }
+    }
+  },
+  "profileDeleteAccountPasswordLabel": "Current password",
+  "@profileDeleteAccountPasswordLabel": {
+    "description": "Current password label in delete account dialog"
+  },
+  "profileDeleteAccountAction": "Delete permanently",
+  "@profileDeleteAccountAction": {
+    "description": "Destructive action label for account deletion"
+  },
+  "profileDeleteAccountSuccess": "Account deleted",
+  "@profileDeleteAccountSuccess": {
+    "description": "Success message after account deletion"
+  },
+  "profileDeleteAccountPhrase": "DELETE",
+  "@profileDeleteAccountPhrase": {
+    "description": "Confirmation phrase for account deletion"
+  },
   "profileAppearanceSection": "Appearance",
   "@profileAppearanceSection": {
     "description": "Section title for appearance settings in profile management"

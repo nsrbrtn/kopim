@@ -475,9 +475,10 @@ flutter test
 
 # Билд для продакшена (учитываем flavors)
 По умолчанию для dev/CI используем flavor `dev`.
-flutter build apk --release --flavor prod   # Android (prod)
+Прод-release target: `lib/main_prod.dart`.
+flutter build apk --release --flavor prod --target lib/main_prod.dart   # Android (prod)
 flutter build apk --debug --flavor dev      # Android (dev)
-flutter build ios --release       # iOS
+flutter build ios --release --target lib/main_prod.dart       # iOS
 flutter build web --release       # Web
 ```
 

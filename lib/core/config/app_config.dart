@@ -26,6 +26,11 @@ const double _kDefaultAiRetryMultiplier = 1.8;
 const int _kDefaultAiMaxRetries = 2;
 const String _kDefaultAiModel = '@preset/kopim';
 const String _kDefaultAiBaseUrl = 'https://openrouter.ai/api/v1';
+const String _kDefaultPrivacyPolicyUrl = 'https://kopim.site/privacy.html';
+const String _kDefaultTermsUrl = 'https://kopim.site/terms.html';
+const String _kDefaultAccountDeletionUrl =
+    'https://kopim.site/delete-account.html';
+const String _kDefaultSupportUrl = 'https://kopim.site';
 const String _kRemoteConfigKeyName = 'ai_openrouter_api_key';
 const String _kRemoteConfigModelName = 'ai_openrouter_model';
 const String _kRemoteConfigBaseUrl = 'ai_openrouter_base_url';
@@ -40,12 +45,45 @@ const String _kRemoteConfigRetryMultiplier = 'ai_openrouter_retry_multiplier';
 
 /// Глобальная конфигурация приложения.
 class AppConfig {
-  const AppConfig({required this.generativeAi});
+  const AppConfig({required this.generativeAi, required this.legal});
 
   final GenerativeAiConfig generativeAi;
+  final LegalConfig legal;
 
-  AppConfig copyWith({GenerativeAiConfig? generativeAi}) {
-    return AppConfig(generativeAi: generativeAi ?? this.generativeAi);
+  AppConfig copyWith({GenerativeAiConfig? generativeAi, LegalConfig? legal}) {
+    return AppConfig(
+      generativeAi: generativeAi ?? this.generativeAi,
+      legal: legal ?? this.legal,
+    );
+  }
+}
+
+/// Публичные ссылки приложения для legal/support секций.
+class LegalConfig {
+  const LegalConfig({
+    required this.privacyPolicyUrl,
+    required this.termsOfUseUrl,
+    required this.accountDeletionUrl,
+    required this.supportUrl,
+  });
+
+  final String privacyPolicyUrl;
+  final String termsOfUseUrl;
+  final String accountDeletionUrl;
+  final String supportUrl;
+
+  LegalConfig copyWith({
+    String? privacyPolicyUrl,
+    String? termsOfUseUrl,
+    String? accountDeletionUrl,
+    String? supportUrl,
+  }) {
+    return LegalConfig(
+      privacyPolicyUrl: privacyPolicyUrl ?? this.privacyPolicyUrl,
+      termsOfUseUrl: termsOfUseUrl ?? this.termsOfUseUrl,
+      accountDeletionUrl: accountDeletionUrl ?? this.accountDeletionUrl,
+      supportUrl: supportUrl ?? this.supportUrl,
+    );
   }
 }
 
@@ -211,7 +249,10 @@ final FutureProvider<AppConfig> appConfigProvider = FutureProvider<AppConfig>((
   );
 
   if (availability.isAvailable == false) {
-    return AppConfig(generativeAi: _buildDefaultGenerativeAiConfig());
+    return AppConfig(
+      generativeAi: _buildDefaultGenerativeAiConfig(),
+      legal: _buildLegalConfig(),
+    );
   }
 
   final FirebaseRemoteConfig remoteConfig = ref.watch(
@@ -239,7 +280,7 @@ final FutureProvider<AppConfig> appConfigProvider = FutureProvider<AppConfig>((
   final GenerativeAiConfig generativeAi = _buildGenerativeAiConfig(
     remoteConfig,
   );
-  return AppConfig(generativeAi: generativeAi);
+  return AppConfig(generativeAi: generativeAi, legal: _buildLegalConfig());
 });
 
 final FutureProvider<GenerativeAiConfig> generativeAiConfigProvider =
@@ -348,5 +389,31 @@ GenerativeAiConfig _buildDefaultGenerativeAiConfig() {
     retryMultiplier: _kDefaultAiRetryMultiplier,
     referer: envReferer.isNotEmpty ? envReferer : null,
     appTitle: envTitle.isNotEmpty ? envTitle : null,
+  );
+}
+
+LegalConfig _buildLegalConfig() {
+  const String envPrivacyPolicyUrl = String.fromEnvironment(
+    'KOPIM_PRIVACY_POLICY_URL',
+    defaultValue: _kDefaultPrivacyPolicyUrl,
+  );
+  const String envTermsUrl = String.fromEnvironment(
+    'KOPIM_TERMS_URL',
+    defaultValue: _kDefaultTermsUrl,
+  );
+  const String envAccountDeletionUrl = String.fromEnvironment(
+    'KOPIM_ACCOUNT_DELETION_URL',
+    defaultValue: _kDefaultAccountDeletionUrl,
+  );
+  const String envSupportUrl = String.fromEnvironment(
+    'KOPIM_SUPPORT_URL',
+    defaultValue: _kDefaultSupportUrl,
+  );
+
+  return const LegalConfig(
+    privacyPolicyUrl: envPrivacyPolicyUrl,
+    termsOfUseUrl: envTermsUrl,
+    accountDeletionUrl: envAccountDeletionUrl,
+    supportUrl: envSupportUrl,
   );
 }

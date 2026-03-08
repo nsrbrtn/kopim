@@ -9,6 +9,7 @@ import 'package:kopim/features/profile/domain/entities/sign_in_request.dart';
 import 'package:kopim/features/profile/domain/entities/sign_up_request.dart';
 import 'package:kopim/features/profile/domain/failures/auth_failure.dart';
 import 'package:kopim/features/profile/domain/repositories/auth_repository.dart';
+import 'package:kopim/features/profile/domain/usecases/delete_user_account_use_case.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'auth_controller.g.dart';
@@ -187,6 +188,27 @@ class AuthController extends _$AuthController {
       ref
           .read(loggerServiceProvider)
           .logError('updatePassword failed: ${failure.message}', failure);
+      rethrow;
+    }
+  }
+
+  Future<void> deleteAccount({required String currentPassword}) async {
+    _exitOfflineMode();
+    final AuthUser? previousUser = state.value;
+    state = const AsyncValue<AuthUser?>.loading();
+    try {
+      final DeleteUserAccountUseCase deleteUserAccountUseCase = ref.read(
+        deleteUserAccountUseCaseProvider,
+      );
+      await deleteUserAccountUseCase(currentPassword: currentPassword);
+      state = const AsyncValue<AuthUser?>.data(null);
+      _initialSyncTriggered = false;
+      _upcomingPaymentsWorkScheduled = false;
+    } on AuthFailure catch (failure) {
+      state = AsyncValue<AuthUser?>.data(previousUser);
+      ref
+          .read(loggerServiceProvider)
+          .logError('deleteAccount failed: ${failure.message}', failure);
       rethrow;
     }
   }

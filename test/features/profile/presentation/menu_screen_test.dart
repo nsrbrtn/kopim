@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
+import 'package:kopim/core/application/firebase_availability.dart';
 import 'package:kopim/core/theme/application/theme_mode_controller.dart';
 import 'package:kopim/core/theme/domain/app_theme_mode.dart';
 import 'package:kopim/features/categories/presentation/screens/manage_categories_screen.dart';
@@ -47,6 +48,9 @@ void main() {
       () => _FakeImportUserDataController(),
     ),
     themeModeControllerProvider.overrideWith(() => _FakeThemeModeController()),
+    firebaseAvailabilityProvider.overrideWith(
+      () => _UnavailableFirebaseAvailabilityNotifier(),
+    ),
   ];
 
   testWidgets('displays management actions', (WidgetTester tester) async {
@@ -233,4 +237,11 @@ class _FakeThemeModeController extends ThemeModeController {
   Future<void> setMode(AppThemeMode mode) async {
     state = mode;
   }
+}
+
+class _UnavailableFirebaseAvailabilityNotifier
+    extends FirebaseAvailabilityNotifier {
+  @override
+  FirebaseAvailabilityState build() =>
+      const FirebaseAvailabilityState.unavailable('test');
 }

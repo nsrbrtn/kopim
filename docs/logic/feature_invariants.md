@@ -113,6 +113,7 @@ UI:
 
 - При входе — запуск логики синхронизации локальных данных с облаком.
 - После LWW merge аккаунтов баланс пересчитывается из транзакций (minor‑units), `account.balance` — derived.
+- Любая новая пользовательская Firestore-коллекция или подколлекция по пути `users/{uid}/...` должна в той же задаче добавляться в cleaner удаления аккаунта (`UserAccountCleanupRepositoryImpl`), чтобы account deletion не оставлял orphaned user data.
 
 Performance:
 

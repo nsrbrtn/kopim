@@ -1,14 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'package:kopim/core/config/app_config.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
-class AboutAppScreen extends StatelessWidget {
+final FutureProvider<PackageInfo> packageInfoProvider =
+    FutureProvider<PackageInfo>((Ref ref) {
+      return PackageInfo.fromPlatform();
+    });
+
+class AboutAppScreen extends ConsumerWidget {
   const AboutAppScreen({super.key});
 
   static const String routeName = '/settings/about';
   static final Uri _emailUri = Uri(scheme: 'mailto', path: 'qmodo@qmodo.ru');
-  static const String _appVersion = '1.0.1';
 
   Future<void> _openEmail(BuildContext context) async {
     final bool launched = await launchUrl(_emailUri);
@@ -21,17 +28,42 @@ class AboutAppScreen extends StatelessWidget {
     ).showSnackBar(SnackBar(content: Text(strings.profileAboutEmailOpenError)));
   }
 
-  void _showPlaceholder(BuildContext context) {
-    final AppLocalizations strings = AppLocalizations.of(context)!;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(strings.profileAboutPlaceholderMessage)),
+  Future<void> _openWebsite(BuildContext context, String url) async {
+    final Uri uri = Uri.parse(url);
+    final bool launched = await launchUrl(
+      uri,
+      mode: LaunchMode.externalApplication,
     );
+    if (launched || !context.mounted) {
+      return;
+    }
+    final AppLocalizations strings = AppLocalizations.of(context)!;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(strings.profileWebsiteOpenError)));
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final AppLocalizations strings = AppLocalizations.of(context)!;
     final ThemeData theme = Theme.of(context);
+    final AsyncValue<AppConfig> appConfigAsync = ref.watch(appConfigProvider);
+    final AsyncValue<PackageInfo> packageInfoAsync = ref.watch(
+      packageInfoProvider,
+    );
+    final LegalConfig legalConfig = appConfigAsync.maybeWhen(
+      data: (AppConfig config) => config.legal,
+      orElse: () => const LegalConfig(
+        privacyPolicyUrl: 'https://kopim.site/privacy.html',
+        termsOfUseUrl: 'https://kopim.site/terms.html',
+        accountDeletionUrl: 'https://kopim.site/delete-account.html',
+        supportUrl: 'https://kopim.site',
+      ),
+    );
+    final String versionLabel = packageInfoAsync.maybeWhen(
+      data: (PackageInfo info) => '${info.version} (${info.buildNumber})',
+      orElse: () => '1.0.1 (1)',
+    );
 
     return Scaffold(
       appBar: AppBar(title: Text(strings.profileAboutAppCta)),
@@ -60,19 +92,21 @@ class AboutAppScreen extends StatelessWidget {
                     const SizedBox(height: 8),
                     _AboutActionCard(
                       title: strings.profileAboutPrivacyPolicyCta,
-                      onTap: () => _showPlaceholder(context),
+                      onTap: () =>
+                          _openWebsite(context, legalConfig.privacyPolicyUrl),
                     ),
                     const SizedBox(height: 8),
                     _AboutActionCard(
                       title: strings.profileAboutTermsCta,
-                      onTap: () => _showPlaceholder(context),
+                      onTap: () =>
+                          _openWebsite(context, legalConfig.termsOfUseUrl),
                     ),
                   ],
                 ),
               ),
               const SizedBox(height: 8),
               Text(
-                strings.profileAboutVersion(_appVersion),
+                strings.profileAboutVersion(versionLabel),
                 style: theme.textTheme.bodyLarge?.copyWith(
                   color: theme.colorScheme.outline,
                 ),

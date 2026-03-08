@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kopim/core/application/firebase_availability.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/core/services/auth_sync_service.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
@@ -9,6 +10,7 @@ import 'package:kopim/features/profile/domain/entities/sign_in_request.dart';
 import 'package:kopim/features/profile/domain/entities/sign_up_request.dart';
 import 'package:kopim/features/profile/domain/failures/auth_failure.dart';
 import 'package:kopim/features/profile/domain/repositories/auth_repository.dart';
+import 'package:kopim/features/profile/domain/repositories/user_account_cleanup_repository.dart';
 import 'package:kopim/features/profile/presentation/controllers/auth_controller.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:riverpod/src/framework.dart';
@@ -16,6 +18,18 @@ import 'package:riverpod/src/framework.dart';
 class MockConnectivity extends Mock implements Connectivity {}
 
 class MockAuthSyncService extends Mock implements AuthSyncService {}
+
+class FakeUserAccountCleanupRepository implements UserAccountCleanupRepository {
+  Future<void> Function(String uid)? onDeleteUserData;
+
+  @override
+  Future<void> deleteUserData(String uid) async {
+    final Future<void> Function(String uid)? handler = onDeleteUserData;
+    if (handler != null) {
+      await handler(uid);
+    }
+  }
+}
 
 class FakeAuthRepository implements AuthRepository {
   FakeAuthRepository({this.initialUser});
@@ -49,9 +63,27 @@ class FakeAuthRepository implements AuthRepository {
   @override
   Future<void> signOut() => Future<void>.error(UnimplementedError());
 
+  Future<void> Function()? onDeleteCurrentUser;
+  Future<AuthUser> Function(SignInRequest request)? onReauthenticate;
+
   @override
-  Future<AuthUser> reauthenticate(SignInRequest request) =>
-      Future<AuthUser>.error(UnimplementedError());
+  Future<void> deleteCurrentUser() {
+    final Future<void> Function()? handler = onDeleteCurrentUser;
+    if (handler != null) {
+      return handler();
+    }
+    return Future<void>.error(UnimplementedError());
+  }
+
+  @override
+  Future<AuthUser> reauthenticate(SignInRequest request) {
+    final Future<AuthUser> Function(SignInRequest request)? handler =
+        onReauthenticate;
+    if (handler != null) {
+      return handler(request);
+    }
+    return Future<AuthUser>.error(UnimplementedError());
+  }
 
   @override
   Future<AuthUser> signInAnonymously() async {
@@ -91,6 +123,7 @@ void main() {
   late FakeAuthRepository authRepository;
   late MockConnectivity connectivity;
   late MockAuthSyncService authSyncService;
+  late FakeUserAccountCleanupRepository cleanupRepository;
   late ProviderContainer container;
 
   setUpAll(() {
@@ -110,6 +143,7 @@ void main() {
     authRepository = FakeAuthRepository();
     connectivity = MockConnectivity();
     authSyncService = MockAuthSyncService();
+    cleanupRepository = FakeUserAccountCleanupRepository();
 
     when(
       () => connectivity.checkConnectivity(),
@@ -127,10 +161,12 @@ void main() {
     container = ProviderContainer(
       overrides: <Override>[
         authRepositoryProvider.overrideWithValue(authRepository),
+        userAccountCleanupRepositoryProvider.overrideWithValue(cleanupRepository),
         connectivityProvider.overrideWithValue(connectivity),
         authSyncServiceProvider.overrideWithValue(authSyncService),
       ],
     );
+    container.read(firebaseAvailabilityProvider.notifier).setUnavailable('test');
   });
 
   tearDown(() {
@@ -167,10 +203,16 @@ void main() {
       final ProviderContainer localContainer = ProviderContainer(
         overrides: <Override>[
           authRepositoryProvider.overrideWithValue(localAuthRepository),
+          userAccountCleanupRepositoryProvider.overrideWithValue(
+            cleanupRepository,
+          ),
           connectivityProvider.overrideWithValue(onlineConnectivity),
           authSyncServiceProvider.overrideWithValue(authSyncService),
         ],
       );
+      localContainer
+          .read(firebaseAvailabilityProvider.notifier)
+          .setUnavailable('test');
 
       addTearDown(() {
         localAuthRepository.dispose();
@@ -224,5 +266,42 @@ void main() {
     final AsyncValue<AuthUser?> state = container.read(authControllerProvider);
     expect(state.hasError, isFalse);
     expect(state.value, equals(user));
+  });
+
+  test('deleteAccount clears auth state after successful deletion', () async {
+    authRepository.initialUser = const AuthUser(
+      uid: 'user-123',
+      email: 'user@example.com',
+      isAnonymous: false,
+    );
+    authRepository.onReauthenticate = (SignInRequest request) async {
+      expect(
+        request,
+        const SignInRequest.email(
+          email: 'user@example.com',
+          password: 'secret123',
+        ),
+      );
+      return authRepository.initialUser!;
+    };
+    cleanupRepository.onDeleteUserData = (String uid) async {
+      expect(uid, 'user-123');
+    };
+    authRepository.onDeleteCurrentUser = () async {
+      authRepository.initialUser = null;
+      authRepository._controller.add(null);
+    };
+
+    final AuthController controller = container.read(
+      authControllerProvider.notifier,
+    );
+
+    final AuthUser? user = await container.read(authControllerProvider.future);
+    expect(user?.uid, 'user-123');
+
+    await controller.deleteAccount(currentPassword: 'secret123');
+
+    final AsyncValue<AuthUser?> state = container.read(authControllerProvider);
+    expect(state.value, isNull);
   });
 }

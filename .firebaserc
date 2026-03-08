@@ -1,5 +1,7 @@
 {
   "projects": {
-    "default": "device-streaming-74c1af8e"
+    "default": "device-streaming-74c1af8e",
+    "dev": "device-streaming-74c1af8e",
+    "prod": "kopim-prod"
   }
 }

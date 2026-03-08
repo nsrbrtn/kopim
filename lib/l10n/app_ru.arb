@@ -73,6 +73,47 @@
   "@profileCredentialsPasswordUpdated": {
     "description": "Сообщение об успешном обновлении пароля"
   },
+  "profileDeleteAccountCta": "Удалить аккаунт",
+  "@profileDeleteAccountCta": {
+    "description": "Кнопка удаления аккаунта в настройках профиля"
+  },
+  "profileDeleteAccountTitle": "Удалить аккаунт?",
+  "@profileDeleteAccountTitle": {
+    "description": "Заголовок диалога удаления аккаунта"
+  },
+  "profileDeleteAccountDescription": "Аккаунт и связанные облачные данные будут удалены. Для подтверждения введите кодовое слово и текущий пароль.",
+  "@profileDeleteAccountDescription": {
+    "description": "Описание в диалоге удаления аккаунта"
+  },
+  "profileDeleteAccountConfirmLabel": "Подтвердите удаление",
+  "@profileDeleteAccountConfirmLabel": {
+    "description": "Подпись поля подтверждающего текста при удалении аккаунта"
+  },
+  "profileDeleteAccountConfirmHint": "Введите {phrase}",
+  "@profileDeleteAccountConfirmHint": {
+    "description": "Подсказка для поля подтверждения удаления аккаунта",
+    "placeholders": {
+      "phrase": {
+        "type": "String"
+      }
+    }
+  },
+  "profileDeleteAccountPasswordLabel": "Текущий пароль",
+  "@profileDeleteAccountPasswordLabel": {
+    "description": "Подпись поля текущего пароля в диалоге удаления аккаунта"
+  },
+  "profileDeleteAccountAction": "Удалить навсегда",
+  "@profileDeleteAccountAction": {
+    "description": "Подпись destructive-кнопки удаления аккаунта"
+  },
+  "profileDeleteAccountSuccess": "Аккаунт удален",
+  "@profileDeleteAccountSuccess": {
+    "description": "Сообщение об успешном удалении аккаунта"
+  },
+  "profileDeleteAccountPhrase": "УДАЛИТЬ",
+  "@profileDeleteAccountPhrase": {
+    "description": "Кодовое слово для подтверждения удаления аккаунта"
+  },
   "profileAppearanceSection": "Внешний вид",
   "@profileAppearanceSection": {
     "description": "Заголовок секции настроек внешнего вида на экране профиля"

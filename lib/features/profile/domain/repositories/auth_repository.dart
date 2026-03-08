@@ -13,6 +13,8 @@ abstract class AuthRepository {
 
   Future<void> signOut();
 
+  Future<void> deleteCurrentUser();
+
   Future<AuthUser> reauthenticate(SignInRequest request);
 
   Future<AuthUser> signInAnonymously();
