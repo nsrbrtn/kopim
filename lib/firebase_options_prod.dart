@@ -47,7 +47,7 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyBTtQ9pdY1gDx3fgJEejokZ2UGRbHYZYj0',
+    apiKey: 'AIzaSyBT3VtuZQqe4NQpcCYA6t5xdDJeGRuVB5M',
     appId: '1:228213546937:web:d0dd6142a848fa1ced2068',
     messagingSenderId: '228213546937',
     projectId: 'kopim-prod',
@@ -57,7 +57,7 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyAQHRmaDiXfARRkwmpEzHogLafzke11hZs',
+    apiKey: 'AIzaSyC0ngj9jHeheHr_y6lqtO5BX7PHpxQ72MU',
     appId: '1:228213546937:android:9b3a8e5f83ca29d7ed2068',
     messagingSenderId: '228213546937',
     projectId: 'kopim-prod',
@@ -65,11 +65,12 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyDfywnkfj731ffQhMySbvBonofiVspbR4s',
+    apiKey: 'AIzaSyAC32nNc86fHV-tDsZc0qCI4nJpcd-_t3g',
     appId: '1:228213546937:ios:b727392ddecd40cded2068',
     messagingSenderId: '228213546937',
     projectId: 'kopim-prod',
     storageBucket: 'kopim-prod.firebasestorage.app',
     iosBundleId: 'qmodo.ru.kopim',
   );
+
 }

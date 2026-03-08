@@ -133,7 +133,12 @@ macos/Flutter/ephemeral/
 # Firebase related (игнор sensitive configs; используйте firebase_options.dart с env)
 google-services.json
 **/ios/Runner/GoogleService-Info.plist
+**/google-services_old.json
+**/GoogleService-Info_old.plist
+**/*_old.json
+**/*_old.plist
 firebase.json  # Если с secrets
+firebase.hosting.json
 .firebase
 .firebaserc
 # Sentry related
@@ -184,3 +189,6 @@ firestore.rules
 .firebase/hosting.YnVpbGQvd2Vi.cache
 
 .tmp_anr/
+
+# Agent локальные артефакты
+.agent/exec_plans/
