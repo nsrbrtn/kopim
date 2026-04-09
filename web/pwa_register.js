@@ -9,7 +9,7 @@
 
   let hasReloaded = false;
 
-  const register = async () => {
+  const registerAppServiceWorker = async () => {
     try {
       const workerUrl = new URL('service_worker.js', window.location.href);
       const registration = await navigator.serviceWorker.register(workerUrl);
@@ -35,6 +35,28 @@
     } catch (error) {
       console.error('[kopim-sw] Ошибка регистрации service worker', error);
     }
+  };
+
+  const registerFirebaseMessagingWorker = async () => {
+    try {
+      const workerUrl = new URL(
+        'firebase-messaging-sw.js',
+        window.location.href,
+      );
+      await navigator.serviceWorker.register(workerUrl, {
+        scope: '/firebase-cloud-messaging-push-scope',
+      });
+    } catch (error) {
+      console.error(
+        '[kopim-sw] Ошибка регистрации Firebase Messaging service worker',
+        error,
+      );
+    }
+  };
+
+  const register = async () => {
+    await registerAppServiceWorker();
+    await registerFirebaseMessagingWorker();
   };
 
   if (document.readyState === 'complete') {
