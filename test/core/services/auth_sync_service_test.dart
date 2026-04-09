@@ -404,6 +404,85 @@ void main() {
       },
     );
 
+    test('processes all pending outbox batches before remote merge', () async {
+      final AuthSyncService service = buildService();
+      const String userId = 'batch-user';
+
+      await firestore
+          .collection('users')
+          .doc(userId)
+          .collection('profile')
+          .doc('profile')
+          .set(<String, dynamic>{
+            'uid': userId,
+            'name': 'Batch User',
+            'currency': 'RUB',
+            'locale': 'ru',
+            'updatedAt': Timestamp.fromDate(DateTime.utc(2024, 1, 1)),
+          });
+
+      for (int i = 0; i < 501; i++) {
+        final DateTime updatedAt = DateTime.utc(2024, 1, 1).add(
+          Duration(minutes: i),
+        );
+        final AccountEntity account = AccountEntity(
+          id: 'acc-$i',
+          name: 'Account $i',
+          balanceMinor: BigInt.from(i),
+          openingBalanceMinor: BigInt.from(i),
+          currency: 'RUB',
+          currencyScale: 2,
+          type: 'checking',
+          createdAt: DateTime.utc(2024, 1, 1),
+          updatedAt: updatedAt,
+          isDeleted: false,
+        );
+
+        await outboxDao.enqueue(
+          entityType: 'account',
+          entityId: account.id,
+          operation: OutboxOperation.upsert,
+          payload: account.toJson()
+            ..['updatedAt'] = updatedAt.toIso8601String()
+            ..['createdAt'] = account.createdAt.toIso8601String()
+            ..['balanceMinor'] = account.balanceMinor.toString()
+            ..['openingBalanceMinor'] = account.openingBalanceMinor.toString()
+            ..['currencyScale'] = 2,
+        );
+      }
+
+      final AuthUser authUser = AuthUser(
+        uid: userId,
+        email: 'batch@kopim.app',
+        displayName: 'Batch',
+        photoUrl: null,
+        isAnonymous: false,
+        emailVerified: true,
+        creationTime: DateTime.utc(2024, 1, 1),
+        lastSignInTime: DateTime.utc(2024, 1, 2),
+      );
+
+      await service.synchronizeOnLogin(user: authUser, previousUser: null);
+
+      final DocumentSnapshot<Map<String, dynamic>> lastRemoteDoc =
+          await firestore
+              .collection('users')
+              .doc(userId)
+              .collection('accounts')
+              .doc('acc-500')
+              .get();
+      final List<AccountEntity> localAccounts = await accountDao
+          .getAllAccounts();
+      final List<db.OutboxEntryRow> pendingEntries = await outboxDao.fetchPending(
+        limit: 10,
+      );
+
+      expect(lastRemoteDoc.exists, isTrue);
+      expect(lastRemoteDoc.data()?['id'], 'acc-500');
+      expect(localAccounts, hasLength(501));
+      expect(pendingEntries, isEmpty);
+    });
+
     test('пересчитывает баланс после LWW merge на основе транзакций', () async {
       final AuthSyncService service = buildService();
       const String userId = 'user-2';

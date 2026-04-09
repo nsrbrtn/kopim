@@ -5,6 +5,8 @@ class AppSplashPlaceholder extends StatelessWidget {
 
   static const Color _lightBackground = Color(0xFFFFFFFF);
   static const Color _darkBackground = Color(0xFF121212);
+  static const double _logoWidth = 300;
+  static const double _logoHeight = 56;
 
   @override
   Widget build(BuildContext context) {
@@ -24,8 +26,16 @@ class AppSplashPlaceholder extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
                 ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 280),
-                  child: Image.asset(logoAsset, fit: BoxFit.contain),
+                  constraints: const BoxConstraints(
+                    maxWidth: _logoWidth,
+                    maxHeight: _logoHeight,
+                  ),
+                  child: Image.asset(
+                    logoAsset,
+                    width: _logoWidth,
+                    height: _logoHeight,
+                    fit: BoxFit.contain,
+                  ),
                 ),
                 const SizedBox(height: 24),
                 const SizedBox(

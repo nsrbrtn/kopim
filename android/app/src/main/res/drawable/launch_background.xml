@@ -8,6 +8,6 @@
             android:insetTop="24dp"
             android:insetRight="24dp"
             android:insetBottom="24dp"
-            android:drawable="@drawable/ic_launcher_foreground" />
+            android:drawable="@drawable/splash_logo" />
     </item>
 </layer-list>

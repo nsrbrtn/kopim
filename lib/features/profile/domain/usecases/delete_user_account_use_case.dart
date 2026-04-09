@@ -29,7 +29,8 @@ class DeleteUserAccountUseCase {
         password: currentPassword,
       ),
     );
-    await _cleanupRepository.deleteUserData(authUser.uid);
+    await _cleanupRepository.deleteRemoteUserData(authUser.uid);
     await _authRepository.deleteCurrentUser();
+    await _cleanupRepository.deleteLocalUserData();
   }
 }

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -156,6 +157,10 @@ class _EditPaymentReminderScreenState
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
+                  if (kIsWeb) ...<Widget>[
+                    _WebReminderNotice(localeName: strings.localeName),
+                    SizedBox(height: layout.spacing.section),
+                  ],
                   _LabeledField(
                     label: strings.upcomingPaymentsFieldTitle,
                     theme: theme,
@@ -533,6 +538,56 @@ class _EditPaymentReminderScreenState
     final DateFormat dateFormat = DateFormat.yMMMMd(locale);
     final DateFormat timeFormat = DateFormat.Hm(locale);
     return '${dateFormat.format(value)} - ${timeFormat.format(value)}';
+  }
+}
+
+class _WebReminderNotice extends StatelessWidget {
+  const _WebReminderNotice({required this.localeName});
+
+  final String localeName;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final bool isRu = localeName.startsWith('ru');
+    final String title = isRu ? 'Подсказка для web' : 'Web reminder note';
+    final String body = isRu
+        ? 'Напоминание сохранится, но не будет приходить в фоне или при закрытом приложении.'
+        : 'The reminder will be saved, but it will not be delivered in the background or when the app is closed.';
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.secondaryContainer,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Icon(
+            Icons.info_outline,
+            color: theme.colorScheme.onSecondaryContainer,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(title, style: theme.textTheme.titleSmall),
+                const SizedBox(height: 4),
+                Text(
+                  body,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSecondaryContainer,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 

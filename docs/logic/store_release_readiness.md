@@ -1,6 +1,7 @@
 # План выпуска Kopim в App Store и Google Play
 
 Дата подготовки: 2026-03-07
+Последнее обновление: 2026-04-09
 
 ## Цель документа
 
@@ -13,6 +14,172 @@
 - что мониторить после публикации.
 
 Документ привязан к текущему состоянию репозитория на `2026-03-07`.
+
+## Текущая оценка на 2026-04-09
+
+По состоянию на `2026-04-09` кодовая база выглядит достаточно зрелой для перехода от активной разработки к выпускному проходу:
+
+- `flutter analyze` проходит без ошибок;
+- `flutter test --reporter expanded` проходит полностью;
+- в проекте уже есть production entrypoint, legal URL, account deletion flow и покрытие ключевых доменных сценариев;
+- основной риск сместился с реализации фич на release readiness, store policy compliance и проверку production-контура на реальных сборках.
+
+Вывод:
+
+- в первую очередь нужно не расширять функциональность, а закрыть выпускные риски;
+- ближайший приоритет проекта: довести `Android` и `iOS` release pipeline до состояния release candidate;
+- новые фичи и UX-polish имеет смысл брать только после прохождения release smoke-checklist.
+
+## Что делать сейчас в первую очередь
+
+Ниже зафиксирован рекомендуемый порядок работ на ближайший выпускной цикл.
+
+### Приоритет 0. Завершить текущий release-проход в рабочем дереве
+
+Почему это первое:
+
+- в репозитории уже есть незавершенные изменения в `AndroidManifest`, `Info.plist`, splash assets, exact alarm UX, account deletion cleanup и release-документации;
+- это выглядит как активный релизный проход, который нужно либо довести до конца, либо стабилизировать и разделить на отдельные задачи;
+- пока это не сделано, сложно считать текущее состояние проекта фиксированной release-точкой.
+
+Что сделать:
+
+1. Разобрать все незавершенные release-related изменения и подтвердить их целевое состояние.
+2. Убедиться, что изменения по `exact alarm`, account deletion и platform assets не конфликтуют друг с другом.
+3. Зафиксировать результат как отдельный стабильный этап перед дальнейшей подготовкой к стору.
+
+Критерий завершения:
+
+- нет неясных release-изменений в рабочем дереве;
+- все текущие правки либо завершены и проверены, либо вынесены в отдельные явные задачи.
+
+### Приоритет 1. Закрыть production pipeline и release-конфигурацию
+
+Это главный технический приоритет.
+
+Что сделать:
+
+1. Проверить и зафиксировать production-команды сборки для:
+   - `flutter build appbundle --release --flavor prod --target lib/main_prod.dart`
+   - `flutter build ipa --release --target lib/main_prod.dart`
+2. Подтвердить, что production-сборка действительно использует production Firebase и production legal/support URLs.
+3. Проверить Android release signing, `versionCode`, Crashlytics mapping upload и `prod` flavor.
+4. Проверить iOS signing, `CFBundleIdentifier`, `CFBundleShortVersionString`, `CFBundleVersion`, production `GoogleService-Info.plist`, capabilities и privacy declarations.
+5. Явно решить, нужен ли отдельный iOS production pipeline или текущая схема достаточна.
+
+Критерий завершения:
+
+- Android release build собирается локально без ручных обходов;
+- iOS release build/archive собирается по задокументированному сценарию;
+- подтверждено, что `main_prod.dart` и production Firebase реально используются в release-сборке.
+
+### Приоритет 2. Закрыть store policy и privacy surface
+
+Это главный продуктово-регуляторный риск для первого релиза.
+
+Что сделать:
+
+1. Провести финальную ревизию Android permissions:
+   - где permission запрашивается;
+   - какая пользовательская ценность;
+   - можно ли выпустить без него.
+2. Подготовить обоснование для `SCHEDULE_EXACT_ALARM`, `POST_NOTIFICATIONS`, `CAMERA`, `RECEIVE_BOOT_COMPLETED`.
+3. Сверить `Privacy Policy`, `Terms`, `Support`, `Delete Account` URL с фактическим UX в приложении и будущими store forms.
+4. Собрать фактическую карту данных для `Google Play Data Safety` и `App Store Privacy` по реальному использованию:
+   - Firebase Analytics;
+   - Crashlytics;
+   - Auth;
+   - Firestore;
+   - Storage;
+   - Messaging;
+   - Sentry.
+5. Перепроверить account deletion flow как store-blocker сценарий.
+
+Критерий завершения:
+
+- по каждому permission и data flow есть конкретный ответ, а не предположение;
+- все legal/privacy URL согласованы между приложением, сайтом и store metadata;
+- account deletion можно уверенно показывать в review как рабочий сценарий.
+
+### Приоритет 3. Прогнать release candidate на реальных устройствах
+
+После конфигурации и policy-подготовки нужно подтвердить, что выпускной контур работает не только в тестах.
+
+Что сделать:
+
+1. Собрать Android release candidate и проверить его на реальном устройстве.
+2. Собрать iOS/TestFlight build и проверить его на реальном iPhone.
+3. Пройти минимум следующие сценарии:
+   - first launch;
+   - sign up / sign in;
+   - sync;
+   - создание и редактирование транзакций;
+   - upcoming payments и reminders;
+   - permissions flow;
+   - backup/export/import;
+   - account deletion.
+4. Отдельно проверить web fallback для reminders и точные уведомления на Android.
+
+Критерий завершения:
+
+- есть короткий smoke-report по Android и iOS;
+- нет blocker-багов в базовом пользовательском пути;
+- release candidate можно отдавать в TestFlight и Internal Testing.
+
+### Приоритет 4. Подготовить store materials и metadata
+
+Это следующий слой после технической стабилизации.
+
+Что сделать:
+
+1. Подготовить store screenshots без debug-артефактов и заглушек.
+2. Подготовить icon master и `feature graphic` для Google Play.
+3. Подготовить:
+   - app name;
+   - short description;
+   - full description;
+   - subtitle/promotional text;
+   - keywords;
+   - release notes;
+   - support/legal/privacy links.
+4. При необходимости подготовить отдельные `RU` и `EN` наборы материалов.
+
+Критерий завершения:
+
+- все поля для App Store Connect и Google Play Console можно заполнить без дополнительных блокеров;
+- медиа и тексты соответствуют реальному текущему продукту.
+
+## Краткий план на ближайшую неделю
+
+### День 1
+
+- завершить и стабилизировать текущий release-проход в рабочем дереве;
+- зафиксировать итог по exact alarm, account deletion и platform configs.
+
+### День 2
+
+- собрать и задокументировать production pipeline для Android;
+- проверить production Firebase, signing и release build.
+
+### День 3
+
+- собрать и задокументировать production pipeline для iOS;
+- закрыть вопросы по signing, plist и privacy declarations.
+
+### День 4
+
+- заполнить permission/privacy/data safety matrix;
+- сверить legal/support/delete-account UX и URL.
+
+### День 5
+
+- прогнать manual smoke-test release candidate на Android и iPhone;
+- собрать список blocker/minor issues.
+
+### После этого
+
+- готовить store assets и metadata;
+- только затем возвращаться к новым фичам или крупному UX-polish.
 
 ## Что уже есть в проекте
 
@@ -31,6 +198,7 @@
 - В профиле внутри секции `Учетная запись` уже реализовано удаление аккаунта с подтверждением через кодовое слово и текущий пароль.
 - Для production уже есть отдельный entrypoint `lib/main_prod.dart`, который делегирует в общий bootstrap из `lib/main.dart`.
 - Firebase-конфиги разделены по окружениям: `main.dart` использует dev/test Firebase, `main_prod.dart` использует `Kopim-prod`.
+- На web reminder-flow остается доступным, но UI должен явно предупреждать, что напоминания не будут надежно приходить в фоне и при закрытом приложении.
 
 Связанный документ:
 
@@ -49,11 +217,11 @@
 
 - `POST_NOTIFICATIONS`
 - `RECEIVE_BOOT_COMPLETED`
+- `SCHEDULE_EXACT_ALARM`
 - `INTERNET`
 - `ACCESS_NETWORK_STATE`
 - `CAMERA`
 - Удалены из manifest как лишние или слишком рискованные для review:
-  - `SCHEDULE_EXACT_ALARM`
   - `READ_MEDIA_IMAGES`
   - `READ_EXTERNAL_STORAGE`
 
@@ -78,9 +246,9 @@
    - оставляем;
    - user value: съемка аватара прямо из приложения.
 6. `SCHEDULE_EXACT_ALARM`:
-   - удален;
-   - приложение уже умеет fallback на `inexact` scheduling;
-   - это снижает риск policy-проблем в `Google Play`.
+   - возвращен в manifest;
+   - пользователь может открыть системный экран exact alarm из настроек приложения;
+   - без него приложение умеет fallback на `inexact`, но для точных напоминаний теперь поддерживается opt-in сценарий.
 7. `READ_MEDIA_IMAGES` и `READ_EXTERNAL_STORAGE`:
    - удалены;
    - текущий avatar/gallery flow идет через `image_picker`, а для текущего сценария постоянный доступ к медиатеке не нужен;
@@ -204,10 +372,10 @@
 
 Статус на `2026-03-07` после ревизии Android permissions:
 
-- оставлены только `POST_NOTIFICATIONS`, `RECEIVE_BOOT_COMPLETED`, `INTERNET`, `ACCESS_NETWORK_STATE`, `CAMERA`;
-- `SCHEDULE_EXACT_ALARM` убран из manifest;
+- оставлены `POST_NOTIFICATIONS`, `RECEIVE_BOOT_COMPLETED`, `SCHEDULE_EXACT_ALARM`, `INTERNET`, `ACCESS_NETWORK_STATE`, `CAMERA`;
+- `SCHEDULE_EXACT_ALARM` возвращен в manifest и вынесен в явный opt-in flow на экране настроек;
 - `READ_MEDIA_IMAGES` и `READ_EXTERNAL_STORAGE` убраны из manifest;
-- отдельный UI для exact alarm permission убран из настроек, чтобы не держать мертвую release-настройку.
+- в настройках снова есть отдельный UI для включения точных напоминаний через системный экран Android.
 
 Нужно пройтись по каждому permission и ответить на 3 вопроса:
 
@@ -220,7 +388,7 @@
 - `CAMERA`: оставлен, потому что аватар действительно можно снять с камеры.
 - `POST_NOTIFICATIONS`: оставлен, потому что локальные уведомления и напоминания реально используются.
 - `RECEIVE_BOOT_COMPLETED`: оставлен, потому что после reboot нужно восстанавливать уведомления и фоновые задачи.
-- `SCHEDULE_EXACT_ALARM`: удален, приложение переведено на более безопасный release-подход без sensitive permission.
+- `SCHEDULE_EXACT_ALARM`: возвращен, потому что пользователю нужен opt-in сценарий для точных напоминаний без дрейфа по времени.
 - `READ_MEDIA_IMAGES`: удален.
 - `READ_EXTERNAL_STORAGE`: удален.
 

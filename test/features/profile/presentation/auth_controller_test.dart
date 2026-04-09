@@ -20,13 +20,22 @@ class MockConnectivity extends Mock implements Connectivity {}
 class MockAuthSyncService extends Mock implements AuthSyncService {}
 
 class FakeUserAccountCleanupRepository implements UserAccountCleanupRepository {
-  Future<void> Function(String uid)? onDeleteUserData;
+  Future<void> Function(String uid)? onDeleteRemoteUserData;
+  Future<void> Function()? onDeleteLocalUserData;
 
   @override
-  Future<void> deleteUserData(String uid) async {
-    final Future<void> Function(String uid)? handler = onDeleteUserData;
+  Future<void> deleteRemoteUserData(String uid) async {
+    final Future<void> Function(String uid)? handler = onDeleteRemoteUserData;
     if (handler != null) {
       await handler(uid);
+    }
+  }
+
+  @override
+  Future<void> deleteLocalUserData() async {
+    final Future<void> Function()? handler = onDeleteLocalUserData;
+    if (handler != null) {
+      await handler();
     }
   }
 }
@@ -284,10 +293,16 @@ void main() {
       );
       return authRepository.initialUser!;
     };
-    cleanupRepository.onDeleteUserData = (String uid) async {
+    final List<String> calls = <String>[];
+    cleanupRepository.onDeleteRemoteUserData = (String uid) async {
       expect(uid, 'user-123');
+      calls.add('remote');
+    };
+    cleanupRepository.onDeleteLocalUserData = () async {
+      calls.add('local');
     };
     authRepository.onDeleteCurrentUser = () async {
+      calls.add('auth');
       authRepository.initialUser = null;
       authRepository._controller.add(null);
     };
@@ -303,5 +318,49 @@ void main() {
 
     final AsyncValue<AuthUser?> state = container.read(authControllerProvider);
     expect(state.value, isNull);
+    expect(calls, equals(<String>['remote', 'auth', 'local']));
   });
+
+  test(
+    'deleteAccount does not clear local data when auth deletion fails',
+    () async {
+      authRepository.initialUser = const AuthUser(
+        uid: 'user-123',
+        email: 'user@example.com',
+        isAnonymous: false,
+      );
+      final List<String> calls = <String>[];
+      authRepository.onReauthenticate = (SignInRequest request) async {
+        return authRepository.initialUser!;
+      };
+      cleanupRepository.onDeleteRemoteUserData = (String uid) async {
+        calls.add('remote');
+      };
+      cleanupRepository.onDeleteLocalUserData = () async {
+        calls.add('local');
+      };
+      authRepository.onDeleteCurrentUser = () async {
+        calls.add('auth');
+        throw const AuthFailure(
+          code: 'delete-failed',
+          message: 'cannot delete user',
+        );
+      };
+
+      final AuthController controller = container.read(
+        authControllerProvider.notifier,
+      );
+
+      await container.read(authControllerProvider.future);
+
+      await expectLater(
+        controller.deleteAccount(currentPassword: 'secret123'),
+        throwsA(isA<AuthFailure>()),
+      );
+
+      final AsyncValue<AuthUser?> state = container.read(authControllerProvider);
+      expect(state.value?.uid, 'user-123');
+      expect(calls, equals(<String>['remote', 'auth']));
+    },
+  );
 }

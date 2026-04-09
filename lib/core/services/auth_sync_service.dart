@@ -205,8 +205,7 @@ class AuthSyncService {
 
     List<db.OutboxEntryRow> preparedEntries = <db.OutboxEntryRow>[];
     try {
-      preparedEntries = await _preparePendingEntries();
-      await _applyOutboxToFirestore(user.uid, preparedEntries);
+      preparedEntries = await _applyAllPendingOutbox(user.uid);
       final _RemoteSnapshot remoteSnapshot = await _fetchRemoteSnapshot(
         user.uid,
       );
@@ -274,6 +273,22 @@ class AuthSyncService {
       }
       return prepared;
     });
+  }
+
+  Future<List<db.OutboxEntryRow>> _applyAllPendingOutbox(String userId) async {
+    final List<db.OutboxEntryRow> preparedEntries = <db.OutboxEntryRow>[];
+    while (true) {
+      final List<db.OutboxEntryRow> batch = await _preparePendingEntries();
+      if (batch.isEmpty) {
+        break;
+      }
+      await _applyOutboxToFirestore(userId, batch);
+      preparedEntries.addAll(batch);
+      if (batch.length < _outboxBatchSize) {
+        break;
+      }
+    }
+    return preparedEntries;
   }
 
   Future<void> _applyOutboxToFirestore(

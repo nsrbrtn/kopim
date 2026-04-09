@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -176,21 +177,33 @@ class PaymentRemindersList extends ConsumerWidget {
     );
     final TimeService timeService = ref.watch(timeServiceProvider);
     final AppLocalizations strings = AppLocalizations.of(context)!;
+    const bool isWeb = kIsWeb;
 
     return remindersAsync.when(
       data: (List<PaymentReminder> reminders) {
         if (reminders.isEmpty) {
-          return UpcomingEmptyState(
-            icon: Icons.alarm,
-            title: strings.upcomingPaymentsEmptyRemindersTitle,
-            message: strings.upcomingPaymentsEmptyRemindersDescription,
+          return Column(
+            children: <Widget>[
+              if (isWeb) const _WebReminderNotice(),
+              Expanded(
+                child: UpcomingEmptyState(
+                  icon: Icons.alarm,
+                  title: strings.upcomingPaymentsEmptyRemindersTitle,
+                  message: strings.upcomingPaymentsEmptyRemindersDescription,
+                ),
+              ),
+            ],
           );
         }
         return ListView.builder(
           padding: const EdgeInsets.symmetric(vertical: 12),
-          itemCount: reminders.length,
+          itemCount: reminders.length + (isWeb ? 1 : 0),
           itemBuilder: (BuildContext context, int index) {
-            final PaymentReminder reminder = reminders[index];
+            if (isWeb && index == 0) {
+              return const _WebReminderNotice();
+            }
+            final int reminderIndex = isWeb ? index - 1 : index;
+            final PaymentReminder reminder = reminders[reminderIndex];
             return ReminderListItem(
               reminder: reminder,
               timeService: timeService,
@@ -323,5 +336,53 @@ class PaymentRemindersList extends ConsumerWidget {
           ),
         );
     }
+  }
+}
+
+class _WebReminderNotice extends StatelessWidget {
+  const _WebReminderNotice();
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final bool isRu = AppLocalizations.of(context)!.localeName.startsWith('ru');
+    final String title = isRu ? 'Подсказка для web' : 'Web reminder note';
+    final String body = isRu
+        ? 'В веб-версии напоминания сохраняются, но не будут приходить в фоне или при закрытом приложении.'
+        : 'In the web version reminders are saved, but they will not be delivered in the background or when the app is closed.';
+
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.secondaryContainer,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Icon(
+            Icons.info_outline,
+            color: theme.colorScheme.onSecondaryContainer,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(title, style: theme.textTheme.titleSmall),
+                const SizedBox(height: 4),
+                Text(
+                  body,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSecondaryContainer,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

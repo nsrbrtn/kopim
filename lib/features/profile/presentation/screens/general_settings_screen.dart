@@ -1,7 +1,9 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:kopim/features/profile/presentation/widgets/profile_exact_alarm_preferences_card.dart';
 import 'package:kopim/features/profile/presentation/widgets/profile_theme_preferences_card.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
@@ -13,6 +15,8 @@ class GeneralSettingsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final AppLocalizations strings = AppLocalizations.of(context)!;
+    final bool showExactAlarmSettings =
+        !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
 
     return Scaffold(
       appBar: AppBar(title: Text(strings.profileGeneralSettingsTitle)),
@@ -23,6 +27,12 @@ class GeneralSettingsScreen extends ConsumerWidget {
             const _SettingsSectionContainer(
               child: ProfileThemePreferencesCard(),
             ),
+            if (showExactAlarmSettings) ...<Widget>[
+              const SizedBox(height: 16),
+              const _SettingsSectionContainer(
+                child: ProfileExactAlarmPreferencesCard(),
+              ),
+            ],
           ],
         ),
       ),

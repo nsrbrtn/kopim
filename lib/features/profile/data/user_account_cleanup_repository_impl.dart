@@ -26,7 +26,7 @@ class UserAccountCleanupRepositoryImpl implements UserAccountCleanupRepository {
     'budgets',
     'budget_instances',
     'saving_goals',
-    'upcoming_payments',
+    'recurring_payments',
     'reminders',
   ];
 
@@ -35,12 +35,7 @@ class UserAccountCleanupRepositoryImpl implements UserAccountCleanupRepository {
   final ProfileAvatarRepository _profileAvatarRepository;
 
   @override
-  Future<void> deleteUserData(String uid) async {
-    await _deleteRemoteUserData(uid);
-    await _deleteLocalUserData();
-  }
-
-  Future<void> _deleteRemoteUserData(String uid) async {
+  Future<void> deleteRemoteUserData(String uid) async {
     for (final String collectionName in _userCollections) {
       final CollectionReference<Map<String, dynamic>> collection = _firestore
           .collection('users')
@@ -78,7 +73,8 @@ class UserAccountCleanupRepositoryImpl implements UserAccountCleanupRepository {
     }
   }
 
-  Future<void> _deleteLocalUserData() async {
+  @override
+  Future<void> deleteLocalUserData() async {
     await _database.transaction(() async {
       await (_database.delete(_database.transactionTags)).go();
       await (_database.delete(_database.goalContributions)).go();

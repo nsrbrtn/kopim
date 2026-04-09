@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:kopim/core/money/money.dart';
 import 'package:kopim/features/overview/domain/models/financial_index_models.dart';
@@ -7,6 +8,7 @@ import 'package:kopim/features/overview/domain/models/overview_behavior_progress
 import 'package:kopim/features/overview/domain/models/overview_daily_allowance.dart';
 import 'package:kopim/features/overview/domain/models/overview_safety_cushion.dart';
 import 'package:kopim/features/overview/presentation/controllers/overview_financial_index_providers.dart';
+import 'package:kopim/features/overview/presentation/overview_settings_screen.dart';
 import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
 import 'package:kopim/features/savings/presentation/screens/add_edit_goal_screen.dart';
 import 'package:kopim/features/savings/presentation/screens/contribute_screen.dart';
@@ -21,8 +23,18 @@ class OverviewScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
     final ColorScheme colors = theme.colorScheme;
+    final AppLocalizations strings = AppLocalizations.of(context)!;
 
     return Scaffold(
+      appBar: AppBar(
+        actions: <Widget>[
+          IconButton(
+            tooltip: strings.overviewSettingsTooltip,
+            onPressed: () => context.push(OverviewSettingsScreen.routeName),
+            icon: const Icon(Icons.settings),
+          ),
+        ],
+      ),
       body: SafeArea(
         bottom: false,
         child: CustomScrollView(
