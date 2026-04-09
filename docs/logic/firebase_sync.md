@@ -60,7 +60,12 @@ enum OutboxOperation {
 
 **Импорт бэкапа:**
 - Импорт CSV/JSON не ограничивается локальной записью в Drift.
-- После успешного импорта `accounts`, `categories`, `saving_goals` и `transactions` сразу ставятся в `outbox_entries` как `upsert`.
+- Backup покрывает пользовательский snapshot, который участвует в sync: `accounts`, `categories`, `transactions`, `saving_goals`, `credits`, `credit_cards`, `debts`, `tags`, `transaction_tags`, `budgets`, `budget_instances`, `upcoming_payments`, `payment_reminders`.
+- Импорт выполняется как восстановление локального snapshot, а не merge поверх существующей базы: перед записью очищаются таблицы импорта (`accounts`, `categories`, `transactions`, `saving_goals`, `credits`, `credit_cards`, `debts`, `tags`, `transaction_tags`, `budgets`, `budget_instances`, `upcoming_payments`, `payment_reminders` и связанные локальные derivation-таблицы).
+- Перед destructive restore импорт проверяет `schemaVersion` и обязательные секции backup; partial/unsupported backup отклоняется до очистки локальной БД.
+- После успешного импорта все сущности из backup сразу ставятся в `outbox_entries` как `upsert`, чтобы их можно было отправить в Firestore стандартным sync-pipeline.
+- Для сущностей, которые были локально до restore, но отсутствуют в импортированном snapshot, дополнительно ставятся `delete`-маркеры в `outbox_entries`, чтобы stale remote-данные не возвращались после следующего sync.
+- Такой restore нужен, чтобы после backup/import не оставались stale-транзакции и скрытые liability-сущности, которые искажают баланс.
 - Это гарантирует, что импортированные данные могут уйти в Firebase тем же штатным pipeline, что и обычные локальные изменения.
 
 ### 2. SyncService (Фоновая синхронизация)

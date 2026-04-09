@@ -529,7 +529,8 @@ flutter build ipa --release --target lib/main_prod.dart
 9. Синхронизация после перезапуска.
 10. Работа без сети и последующий resync.
 11. Экспорт данных.
-    - проверить, что backup включает `saving goals`;
+    - проверить, что backup включает `saving goals`, `credits`, `credit cards`, `debts`, `tags`, `transaction tags`, `budgets`, `budget instances`, `upcoming payments`, `payment reminders`;
+    - проверить, что import работает как restore и не оставляет старые локальные транзакции/обязательства;
     - проверить импорт legacy backup без падения на `savingGoalId`.
 12. Удаление аккаунта.
 13. Переходы на privacy policy, terms, support.

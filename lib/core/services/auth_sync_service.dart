@@ -282,12 +282,29 @@ class AuthSyncService {
   ) async {
     if (entries.isEmpty) return;
 
+    final Map<int, Map<String, dynamic>> normalizedPayloads =
+        <int, Map<String, dynamic>>{};
+    final Map<int, bool> shouldApplyByEntryId = <int, bool>{};
+    for (final OutboxEntryRow entry in entries) {
+      final Map<String, dynamic> payload = _payloadNormalizer.normalize(
+        entry.entityType,
+        _outboxDao.decodePayload(entry),
+      );
+      normalizedPayloads[entry.id] = payload;
+      shouldApplyByEntryId[entry.id] = await _shouldApplyOutboxEntry(
+        userId: userId,
+        entry: entry,
+        payload: payload,
+      );
+    }
+
     await _firestore.runTransaction((Transaction transaction) async {
       for (final OutboxEntryRow entry in entries) {
-        final Map<String, dynamic> payload = _payloadNormalizer.normalize(
-          entry.entityType,
-          _outboxDao.decodePayload(entry),
-        );
+        final Map<String, dynamic> payload = normalizedPayloads[entry.id]!;
+        final bool shouldApply = shouldApplyByEntryId[entry.id] ?? true;
+        if (!shouldApply) {
+          continue;
+        }
         final OutboxOperation operation = OutboxOperation.values.byName(
           entry.operation,
         );
@@ -488,11 +505,19 @@ class AuthSyncService {
             break;
           case 'saving_goal':
             final SavingGoal goal = SavingGoal.fromJson(payload);
-            _savingGoalRemoteDataSource.upsertInTransaction(
-              transaction,
-              userId,
-              goal,
-            );
+            if (operation == OutboxOperation.delete) {
+              _savingGoalRemoteDataSource.deleteInTransaction(
+                transaction,
+                userId,
+                goal,
+              );
+            } else {
+              _savingGoalRemoteDataSource.upsertInTransaction(
+                transaction,
+                userId,
+                goal,
+              );
+            }
             break;
           case 'upcoming_payment':
             final UpcomingPayment payment = _applyUpcomingPaymentMoney(
@@ -539,6 +564,143 @@ class AuthSyncService {
         }
       }
     });
+  }
+
+  Future<bool> _shouldApplyOutboxEntry({
+    required String userId,
+    required db.OutboxEntryRow entry,
+    required Map<String, dynamic> payload,
+  }) async {
+    final DateTime? localUpdatedAt = _extractOutboxUpdatedAt(
+      entry.entityType,
+      payload,
+    );
+    if (localUpdatedAt == null) {
+      return true;
+    }
+    final DocumentReference<Map<String, dynamic>>? docRef = _remoteDocRef(
+      userId: userId,
+      entityType: entry.entityType,
+      entityId: entry.entityId,
+    );
+    if (docRef == null) {
+      return true;
+    }
+    final DocumentSnapshot<Map<String, dynamic>> snapshot = await docRef.get();
+    final Map<String, dynamic>? remoteData = snapshot.data();
+    if (remoteData == null) {
+      return true;
+    }
+    final DateTime? remoteUpdatedAt = _extractRemoteUpdatedAt(
+      entry.entityType,
+      remoteData,
+    );
+    if (remoteUpdatedAt == null) {
+      return true;
+    }
+    return !remoteUpdatedAt.isAfter(localUpdatedAt);
+  }
+
+  DocumentReference<Map<String, dynamic>>? _remoteDocRef({
+    required String userId,
+    required String entityType,
+    required String entityId,
+  }) {
+    final DocumentReference<Map<String, dynamic>> userRef = _firestore
+        .collection('users')
+        .doc(userId);
+    switch (entityType) {
+      case 'account':
+        return userRef.collection('accounts').doc(entityId);
+      case 'category':
+        return userRef.collection('categories').doc(entityId);
+      case 'tag':
+        return userRef.collection('tags').doc(entityId);
+      case 'transaction':
+        return userRef.collection('transactions').doc(entityId);
+      case 'transaction_tag':
+        return userRef.collection('transaction_tags').doc(entityId);
+      case 'credit':
+        return userRef.collection('credits').doc(entityId);
+      case 'credit_card':
+        return userRef.collection('credit_cards').doc(entityId);
+      case 'debt':
+        return userRef.collection('debts').doc(entityId);
+      case 'budget':
+        return userRef.collection('budgets').doc(entityId);
+      case 'budget_instance':
+        return userRef.collection('budget_instances').doc(entityId);
+      case 'saving_goal':
+        return userRef.collection('saving_goals').doc(entityId);
+      case 'upcoming_payment':
+        return userRef.collection('recurring_payments').doc(entityId);
+      case 'payment_reminder':
+        return userRef.collection('reminders').doc(entityId);
+      case 'profile':
+        return userRef.collection('profile').doc('profile');
+      default:
+        return null;
+    }
+  }
+
+  DateTime? _extractOutboxUpdatedAt(
+    String entityType,
+    Map<String, dynamic> payload,
+  ) {
+    switch (entityType) {
+      case 'upcoming_payment':
+      case 'payment_reminder':
+        final Object? millis = payload['updatedAtMs'];
+        if (millis is num) {
+          return DateTime.fromMillisecondsSinceEpoch(
+            millis.toInt(),
+            isUtc: true,
+          );
+        }
+        if (millis != null) {
+          final int? parsed = int.tryParse(millis.toString());
+          if (parsed != null) {
+            return DateTime.fromMillisecondsSinceEpoch(parsed, isUtc: true);
+          }
+        }
+        return null;
+      default:
+        return _coerceDateTime(payload['updatedAt']);
+    }
+  }
+
+  DateTime? _extractRemoteUpdatedAt(
+    String entityType,
+    Map<String, dynamic> payload,
+  ) {
+    switch (entityType) {
+      case 'upcoming_payment':
+      case 'payment_reminder':
+        final Object? millis = payload['updatedAtMs'];
+        if (millis is num) {
+          return DateTime.fromMillisecondsSinceEpoch(
+            millis.toInt(),
+            isUtc: true,
+          );
+        }
+        if (millis != null) {
+          final int? parsed = int.tryParse(millis.toString());
+          if (parsed != null) {
+            return DateTime.fromMillisecondsSinceEpoch(parsed, isUtc: true);
+          }
+        }
+        return null;
+      default:
+        return _coerceDateTime(payload['updatedAt']);
+    }
+  }
+
+  DateTime? _coerceDateTime(Object? value) {
+    if (value == null) return null;
+    if (value is Timestamp) return value.toDate().toUtc();
+    if (value is DateTime) return value.toUtc();
+    if (value is String) return DateTime.tryParse(value)?.toUtc();
+    return null;
   }
 
   AccountEntity _applyAccountMoney(

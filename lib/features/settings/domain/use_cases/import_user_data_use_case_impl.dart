@@ -1,4 +1,7 @@
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
+import 'package:kopim/features/budgets/domain/entities/budget.dart';
+import 'package:kopim/features/budgets/domain/entities/budget_category_allocation.dart';
+import 'package:kopim/features/budgets/domain/entities/budget_instance.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/settings/domain/entities/export_bundle.dart';
 import 'package:kopim/features/settings/domain/entities/picked_import_file.dart';
@@ -10,7 +13,10 @@ import 'package:kopim/features/settings/domain/services/import_file_picker.dart'
 import 'package:kopim/features/settings/domain/use_cases/import_user_data_result.dart';
 import 'package:kopim/features/settings/domain/use_cases/import_user_data_use_case.dart';
 import 'package:kopim/features/settings/domain/entities/data_transfer_format.dart';
+import 'package:kopim/features/tags/domain/entities/tag.dart';
+import 'package:kopim/features/tags/domain/entities/transaction_tag.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
+import 'package:kopim/features/upcoming_payments/domain/entities/upcoming_payment.dart';
 
 /// Реализация сценария импорта пользовательских данных из CSV/JSON-бэкапа.
 class ImportUserDataUseCaseImpl implements ImportUserDataUseCase {
@@ -47,10 +53,33 @@ class ImportUserDataUseCaseImpl implements ImportUserDataUseCase {
         bundle.transactions,
         bundle: bundle,
       );
+      final List<TransactionTagEntity> transactionTags =
+          _sanitizeTransactionTags(bundle.transactionTags, bundle: bundle);
+      final List<Budget> budgets = _sanitizeBudgets(
+        bundle.budgets,
+        bundle: bundle,
+      );
+      final List<BudgetInstance> budgetInstances = _sanitizeBudgetInstances(
+        bundle.budgetInstances,
+        budgets: budgets,
+      );
+      final List<UpcomingPayment> upcomingPayments = _sanitizeUpcomingPayments(
+        bundle.upcomingPayments,
+        bundle: bundle,
+      );
       await _repository.importData(
         accounts: bundle.accounts,
         categories: bundle.categories,
+        tags: bundle.tags,
+        transactionTags: transactionTags,
         savingGoals: bundle.savingGoals,
+        credits: bundle.credits,
+        creditCards: bundle.creditCards,
+        debts: bundle.debts,
+        budgets: budgets,
+        budgetInstances: budgetInstances,
+        upcomingPayments: upcomingPayments,
+        paymentReminders: bundle.paymentReminders,
         transactions: transactions,
       );
 
@@ -107,6 +136,93 @@ class ImportUserDataUseCaseImpl implements ImportUserDataUseCase {
             savingGoalId: savingGoalId,
           );
         })
+        .toList(growable: false);
+  }
+
+  List<TransactionTagEntity> _sanitizeTransactionTags(
+    List<TransactionTagEntity> links, {
+    required ExportBundle bundle,
+  }) {
+    final Set<String> transactionIds = bundle.transactions
+        .map((TransactionEntity transaction) => transaction.id)
+        .toSet();
+    final Set<String> tagIds = bundle.tags
+        .map((TagEntity tag) => tag.id)
+        .toSet();
+    return links
+        .where(
+          (TransactionTagEntity link) =>
+              transactionIds.contains(link.transactionId) &&
+              tagIds.contains(link.tagId),
+        )
+        .toList(growable: false);
+  }
+
+  List<Budget> _sanitizeBudgets(
+    List<Budget> budgets, {
+    required ExportBundle bundle,
+  }) {
+    final Set<String> accountIds = bundle.accounts
+        .map((AccountEntity account) => account.id)
+        .toSet();
+    final Set<String> categoryIds = bundle.categories
+        .map((Category category) => category.id)
+        .toSet();
+
+    return budgets
+        .map((Budget budget) {
+          final List<String> filteredAccounts = budget.accounts
+              .where(accountIds.contains)
+              .toList(growable: false);
+          final List<String> filteredCategories = budget.categories
+              .where(categoryIds.contains)
+              .toList(growable: false);
+          final List<BudgetCategoryAllocation> filteredAllocations = budget
+              .categoryAllocations
+              .where(
+                (BudgetCategoryAllocation allocation) =>
+                    categoryIds.contains(allocation.categoryId),
+              )
+              .toList(growable: false);
+          return budget.copyWith(
+            accounts: filteredAccounts,
+            categories: filteredCategories,
+            categoryAllocations: filteredAllocations,
+          );
+        })
+        .toList(growable: false);
+  }
+
+  List<BudgetInstance> _sanitizeBudgetInstances(
+    List<BudgetInstance> instances, {
+    required List<Budget> budgets,
+  }) {
+    final Set<String> budgetIds = budgets
+        .map((Budget budget) => budget.id)
+        .toSet();
+    return instances
+        .where(
+          (BudgetInstance instance) => budgetIds.contains(instance.budgetId),
+        )
+        .toList(growable: false);
+  }
+
+  List<UpcomingPayment> _sanitizeUpcomingPayments(
+    List<UpcomingPayment> payments, {
+    required ExportBundle bundle,
+  }) {
+    final Set<String> accountIds = bundle.accounts
+        .map((AccountEntity account) => account.id)
+        .toSet();
+    final Set<String> categoryIds = bundle.categories
+        .map((Category category) => category.id)
+        .toSet();
+    return payments
+        .where(
+          (UpcomingPayment payment) =>
+              accountIds.contains(payment.accountId) &&
+              categoryIds.contains(payment.categoryId),
+        )
         .toList(growable: false);
   }
 }

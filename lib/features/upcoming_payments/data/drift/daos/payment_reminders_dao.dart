@@ -57,6 +57,20 @@ class PaymentRemindersDao {
     return rows.map(_mapper.mapRowToEntity).toList(growable: false);
   }
 
+  Future<List<PaymentReminder>> getAllIncludingDone() async {
+    final SimpleSelectStatement<
+      db.$PaymentRemindersTable,
+      db.PaymentReminderRow
+    >
+    query = _db.select(_db.paymentReminders)
+      ..orderBy(<OrderClauseGenerator<db.$PaymentRemindersTable>>[
+        (db.$PaymentRemindersTable tbl) =>
+            OrderingTerm(expression: tbl.whenAt, mode: OrderingMode.asc),
+      ]);
+    final List<db.PaymentReminderRow> rows = await query.get();
+    return rows.map(_mapper.mapRowToEntity).toList(growable: false);
+  }
+
   Future<PaymentReminder?> getById(String id) async {
     final SimpleSelectStatement<
       db.$PaymentRemindersTable,

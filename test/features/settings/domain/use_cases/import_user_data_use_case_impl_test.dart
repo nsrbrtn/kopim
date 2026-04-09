@@ -130,6 +130,9 @@ void main() {
         accounts: bundle.accounts,
         categories: bundle.categories,
         savingGoals: bundle.savingGoals,
+        credits: bundle.credits,
+        creditCards: bundle.creditCards,
+        debts: bundle.debts,
         transactions: bundle.transactions,
       ),
     ).thenAnswer((_) async {});
@@ -154,6 +157,9 @@ void main() {
         accounts: bundle.accounts,
         categories: bundle.categories,
         savingGoals: bundle.savingGoals,
+        credits: bundle.credits,
+        creditCards: bundle.creditCards,
+        debts: bundle.debts,
         transactions: bundle.transactions,
       ),
     ).called(1);
@@ -178,6 +184,9 @@ void main() {
         accounts: bundle.accounts,
         categories: bundle.categories,
         savingGoals: bundle.savingGoals,
+        credits: bundle.credits,
+        creditCards: bundle.creditCards,
+        debts: bundle.debts,
         transactions: bundle.transactions,
       ),
     ).thenAnswer((_) async {});
@@ -230,6 +239,9 @@ void main() {
         accounts: bundle.accounts,
         categories: bundle.categories,
         savingGoals: bundle.savingGoals,
+        credits: bundle.credits,
+        creditCards: bundle.creditCards,
+        debts: bundle.debts,
         transactions: bundle.transactions,
       ),
     ).thenThrow(Exception('db error'));
@@ -294,6 +306,9 @@ void main() {
         accounts: bundle.accounts,
         categories: bundle.categories,
         savingGoals: bundle.savingGoals,
+        credits: bundle.credits,
+        creditCards: bundle.creditCards,
+        debts: bundle.debts,
         transactions: <TransactionEntity>[
           legacyTransaction.copyWith(savingGoalId: null),
         ],
@@ -310,6 +325,9 @@ void main() {
         accounts: bundle.accounts,
         categories: bundle.categories,
         savingGoals: bundle.savingGoals,
+        credits: bundle.credits,
+        creditCards: bundle.creditCards,
+        debts: bundle.debts,
         transactions: <TransactionEntity>[
           legacyTransaction.copyWith(savingGoalId: null),
         ],
@@ -374,6 +392,9 @@ void main() {
           accounts: bundle.accounts,
           categories: bundle.categories,
           savingGoals: bundle.savingGoals,
+          credits: bundle.credits,
+          creditCards: bundle.creditCards,
+          debts: bundle.debts,
           transactions: <TransactionEntity>[
             validTransaction.copyWith(
               transferAccountId: null,
@@ -393,6 +414,9 @@ void main() {
           accounts: bundle.accounts,
           categories: bundle.categories,
           savingGoals: bundle.savingGoals,
+          credits: bundle.credits,
+          creditCards: bundle.creditCards,
+          debts: bundle.debts,
           transactions: <TransactionEntity>[
             validTransaction.copyWith(
               transferAccountId: null,

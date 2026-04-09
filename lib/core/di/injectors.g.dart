@@ -817,7 +817,7 @@ final class ExportDataRepositoryProvider
 }
 
 String _$exportDataRepositoryHash() =>
-    r'b9c7ea00bc35a12f368faae7b4e4c6d843ba5cb6';
+    r'a0bb6cb222b8adc91b075ba5c31eb235dc0ae5f9';
 
 @ProviderFor(exportBundleJsonEncoder)
 const exportBundleJsonEncoderProvider = ExportBundleJsonEncoderProvider._();
@@ -1146,7 +1146,7 @@ final class ImportDataRepositoryProvider
 }
 
 String _$importDataRepositoryHash() =>
-    r'a2a8c38dea5f65b2d3b3b322f1195e76bd1d25ee';
+    r'b4ce5b2acc75fa45c27635f926c44cb9744c4bb6';
 
 @ProviderFor(importUserDataUseCase)
 const importUserDataUseCaseProvider = ImportUserDataUseCaseProvider._();

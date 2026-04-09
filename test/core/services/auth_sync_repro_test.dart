@@ -1,109 +1,29 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:drift/drift.dart' show DatabaseConnection;
-import 'package:drift/native.dart';
-import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kopim/core/data/database.dart' as db;
-import 'package:kopim/core/data/outbox/outbox_dao.dart';
-import 'package:kopim/core/services/analytics_service.dart';
 import 'package:kopim/core/services/auth_sync_service.dart';
-import 'package:kopim/core/services/logger_service.dart';
-import 'package:kopim/core/services/sync/sync_data_sanitizer.dart';
-import 'package:kopim/features/accounts/data/sources/local/account_dao.dart';
-import 'package:kopim/features/accounts/data/sources/remote/account_remote_data_source.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
-import 'package:kopim/features/budgets/data/sources/local/budget_dao.dart';
-import 'package:kopim/features/budgets/data/sources/remote/budget_instance_remote_data_source.dart';
-import 'package:kopim/features/budgets/data/sources/remote/budget_remote_data_source.dart';
-import 'package:kopim/features/categories/data/sources/local/category_dao.dart';
-import 'package:kopim/features/categories/data/sources/remote/category_remote_data_source.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
-import 'package:kopim/features/credits/data/sources/local/credit_card_dao.dart';
-import 'package:kopim/features/credits/data/sources/local/credit_dao.dart';
-import 'package:kopim/features/credits/data/sources/local/debt_dao.dart';
-import 'package:kopim/features/credits/data/sources/remote/credit_card_remote_data_source.dart';
-import 'package:kopim/features/credits/data/sources/remote/credit_remote_data_source.dart';
-import 'package:kopim/features/credits/data/sources/remote/debt_remote_data_source.dart';
-import 'package:kopim/features/profile/data/local/profile_dao.dart';
-import 'package:kopim/features/profile/data/remote/profile_remote_data_source.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
-import 'package:kopim/features/savings/data/sources/local/saving_goal_dao.dart';
-import 'package:kopim/features/savings/data/sources/remote/saving_goal_remote_data_source.dart';
 import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
-import 'package:kopim/features/tags/data/sources/local/tag_dao.dart';
-import 'package:kopim/features/tags/data/sources/local/transaction_tags_dao.dart';
-import 'package:kopim/features/tags/data/sources/remote/tag_remote_data_source.dart';
-import 'package:kopim/features/tags/data/sources/remote/transaction_tag_remote_data_source.dart';
 import 'package:kopim/features/transactions/data/sources/local/transaction_dao.dart';
-import 'package:kopim/features/transactions/data/sources/remote/transaction_remote_data_source.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
-import 'package:kopim/features/upcoming_payments/data/drift/daos/payment_reminders_dao.dart';
-import 'package:kopim/features/upcoming_payments/data/drift/daos/upcoming_payments_dao.dart';
-import 'package:kopim/features/upcoming_payments/data/sources/remote/payment_reminder_remote_data_source.dart';
-import 'package:kopim/features/upcoming_payments/data/sources/remote/upcoming_payment_remote_data_source.dart';
-import 'package:mocktail/mocktail.dart';
-
-class MockLoggerService extends Mock implements LoggerService {}
-
-class MockAnalyticsService extends Mock implements AnalyticsService {}
+import 'support/auth_sync_test_harness.dart';
 
 void main() {
-  late db.AppDatabase database;
-  late OutboxDao outboxDao;
-  late AccountDao accountDao;
-  late CategoryDao categoryDao;
+  late AuthSyncTestHarness harness;
   late TransactionDao transactionDao;
-  late CreditCardDao creditCardDao;
-  late CreditDao creditDao;
-  late DebtDao debtDao;
-  late BudgetDao budgetDao;
-  late BudgetInstanceDao budgetInstanceDao;
-  late SavingGoalDao savingGoalDao;
-  late UpcomingPaymentsDao upcomingPaymentsDao;
-  late PaymentRemindersDao paymentRemindersDao;
-  late TagDao tagDao;
-  late TransactionTagsDao transactionTagsDao;
-  late ProfileDao profileDao;
-  late FakeFirebaseFirestore firestore;
-  late MockLoggerService logger;
-  late MockAnalyticsService analytics;
-  late SyncDataSanitizer sanitizer;
+  late FirebaseFirestore firestore;
 
-  setUpAll(() {
-    registerFallbackValue(<String, dynamic>{});
-    registerFallbackValue(StackTrace.empty);
-  });
-
-  setUp(() {
-    database = db.AppDatabase.connect(
-      DatabaseConnection(NativeDatabase.memory()),
-    );
-    outboxDao = OutboxDao(database);
-    accountDao = AccountDao(database);
-    categoryDao = CategoryDao(database);
-    transactionDao = TransactionDao(database);
-    creditCardDao = CreditCardDao(database);
-    creditDao = CreditDao(database);
-    debtDao = DebtDao(database);
-    budgetDao = BudgetDao(database);
-    budgetInstanceDao = BudgetInstanceDao(database);
-    savingGoalDao = SavingGoalDao(database);
-    upcomingPaymentsDao = UpcomingPaymentsDao(database);
-    paymentRemindersDao = PaymentRemindersDao(database);
-    tagDao = TagDao(database);
-    transactionTagsDao = TransactionTagsDao(database);
-    profileDao = ProfileDao(database);
-    firestore = FakeFirebaseFirestore();
-    logger = MockLoggerService();
-    analytics = MockAnalyticsService();
-    sanitizer = SyncDataSanitizer(logger: logger);
-
-    when(() => analytics.logEvent(any(), any())).thenAnswer((_) async {});
-    when(() => analytics.reportError(any(), any())).thenReturn(null);
+  setUp(() async {
+    harness = AuthSyncTestHarness();
+    await harness.setUp();
+    transactionDao = harness.transactionDao;
+    firestore = harness.firestore;
   });
 
   tearDown(() async {
-    await database.close();
+    await harness.tearDown();
   });
 
   test(
@@ -116,50 +36,7 @@ void main() {
       // Wait, the reproduction test was designed to fail.
       // Now I should update it to expect SUCCESS because I expect my code to fix it.
 
-      final AuthSyncService service = AuthSyncService(
-        database: database,
-        outboxDao: outboxDao,
-        accountDao: accountDao,
-        categoryDao: categoryDao,
-        tagDao: tagDao,
-        transactionDao: transactionDao,
-        transactionTagsDao: transactionTagsDao,
-        creditCardDao: creditCardDao,
-        creditDao: creditDao,
-        debtDao: debtDao,
-        budgetDao: budgetDao,
-        budgetInstanceDao: budgetInstanceDao,
-        savingGoalDao: savingGoalDao,
-        upcomingPaymentsDao: upcomingPaymentsDao,
-        paymentRemindersDao: paymentRemindersDao,
-        profileDao: profileDao,
-        accountRemoteDataSource: AccountRemoteDataSource(firestore),
-        categoryRemoteDataSource: CategoryRemoteDataSource(firestore),
-        tagRemoteDataSource: TagRemoteDataSource(firestore),
-        transactionRemoteDataSource: TransactionRemoteDataSource(firestore),
-        transactionTagRemoteDataSource: TransactionTagRemoteDataSource(
-          firestore,
-        ),
-        creditCardRemoteDataSource: CreditCardRemoteDataSource(firestore),
-        creditRemoteDataSource: CreditRemoteDataSource(firestore),
-        debtRemoteDataSource: DebtRemoteDataSource(firestore),
-        budgetRemoteDataSource: BudgetRemoteDataSource(firestore),
-        budgetInstanceRemoteDataSource: BudgetInstanceRemoteDataSource(
-          firestore,
-        ),
-        savingGoalRemoteDataSource: SavingGoalRemoteDataSource(firestore),
-        upcomingPaymentRemoteDataSource: UpcomingPaymentRemoteDataSource(
-          firestore,
-        ),
-        paymentReminderRemoteDataSource: PaymentReminderRemoteDataSource(
-          firestore,
-        ),
-        profileRemoteDataSource: ProfileRemoteDataSource(firestore),
-        firestore: firestore,
-        loggerService: logger,
-        analyticsService: analytics,
-        dataSanitizer: sanitizer,
-      );
+      final AuthSyncService service = harness.buildService();
 
       const String userId = 'user-repro';
       const String accountId = 'acc_1';
@@ -264,46 +141,7 @@ void main() {
   );
 
   test('Should sanitize transaction when saving goal is missing', () async {
-    final AuthSyncService service = AuthSyncService(
-      database: database,
-      outboxDao: outboxDao,
-      accountDao: accountDao,
-      categoryDao: categoryDao,
-      tagDao: tagDao,
-      transactionDao: transactionDao,
-      transactionTagsDao: transactionTagsDao,
-      creditCardDao: creditCardDao,
-      creditDao: creditDao,
-      debtDao: debtDao,
-      budgetDao: budgetDao,
-      budgetInstanceDao: budgetInstanceDao,
-      savingGoalDao: savingGoalDao,
-      upcomingPaymentsDao: upcomingPaymentsDao,
-      paymentRemindersDao: paymentRemindersDao,
-      profileDao: profileDao,
-      accountRemoteDataSource: AccountRemoteDataSource(firestore),
-      categoryRemoteDataSource: CategoryRemoteDataSource(firestore),
-      tagRemoteDataSource: TagRemoteDataSource(firestore),
-      transactionRemoteDataSource: TransactionRemoteDataSource(firestore),
-      transactionTagRemoteDataSource: TransactionTagRemoteDataSource(firestore),
-      creditCardRemoteDataSource: CreditCardRemoteDataSource(firestore),
-      creditRemoteDataSource: CreditRemoteDataSource(firestore),
-      debtRemoteDataSource: DebtRemoteDataSource(firestore),
-      budgetRemoteDataSource: BudgetRemoteDataSource(firestore),
-      budgetInstanceRemoteDataSource: BudgetInstanceRemoteDataSource(firestore),
-      savingGoalRemoteDataSource: SavingGoalRemoteDataSource(firestore),
-      upcomingPaymentRemoteDataSource: UpcomingPaymentRemoteDataSource(
-        firestore,
-      ),
-      paymentReminderRemoteDataSource: PaymentReminderRemoteDataSource(
-        firestore,
-      ),
-      profileRemoteDataSource: ProfileRemoteDataSource(firestore),
-      firestore: firestore,
-      loggerService: logger,
-      analyticsService: analytics,
-      dataSanitizer: sanitizer,
-    );
+    final AuthSyncService service = harness.buildService();
 
     const String userId = 'user-sanitize';
     const String accId = 'acc-2';
@@ -392,46 +230,7 @@ void main() {
   });
 
   test('Should skip transaction when account is missing', () async {
-    final AuthSyncService service = AuthSyncService(
-      database: database,
-      outboxDao: outboxDao,
-      accountDao: accountDao,
-      categoryDao: categoryDao,
-      tagDao: tagDao,
-      transactionDao: transactionDao,
-      transactionTagsDao: transactionTagsDao,
-      creditCardDao: creditCardDao,
-      creditDao: creditDao,
-      debtDao: debtDao,
-      budgetDao: budgetDao,
-      budgetInstanceDao: budgetInstanceDao,
-      savingGoalDao: savingGoalDao,
-      upcomingPaymentsDao: upcomingPaymentsDao,
-      paymentRemindersDao: paymentRemindersDao,
-      profileDao: profileDao,
-      accountRemoteDataSource: AccountRemoteDataSource(firestore),
-      categoryRemoteDataSource: CategoryRemoteDataSource(firestore),
-      tagRemoteDataSource: TagRemoteDataSource(firestore),
-      transactionRemoteDataSource: TransactionRemoteDataSource(firestore),
-      transactionTagRemoteDataSource: TransactionTagRemoteDataSource(firestore),
-      creditCardRemoteDataSource: CreditCardRemoteDataSource(firestore),
-      creditRemoteDataSource: CreditRemoteDataSource(firestore),
-      debtRemoteDataSource: DebtRemoteDataSource(firestore),
-      budgetRemoteDataSource: BudgetRemoteDataSource(firestore),
-      budgetInstanceRemoteDataSource: BudgetInstanceRemoteDataSource(firestore),
-      savingGoalRemoteDataSource: SavingGoalRemoteDataSource(firestore),
-      upcomingPaymentRemoteDataSource: UpcomingPaymentRemoteDataSource(
-        firestore,
-      ),
-      paymentReminderRemoteDataSource: PaymentReminderRemoteDataSource(
-        firestore,
-      ),
-      profileRemoteDataSource: ProfileRemoteDataSource(firestore),
-      firestore: firestore,
-      loggerService: logger,
-      analyticsService: analytics,
-      dataSanitizer: sanitizer,
-    );
+    final AuthSyncService service = harness.buildService();
 
     const String userId = 'user-skip-tx';
     const String accId = 'acc-missing'; // Missing!

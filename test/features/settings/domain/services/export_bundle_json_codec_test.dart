@@ -3,7 +3,6 @@ import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:kopim/core/domain/icons/phosphor_icon_descriptor.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/budgets/domain/entities/budget.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_category_allocation.dart';
@@ -12,12 +11,9 @@ import 'package:kopim/features/budgets/domain/entities/budget_instance_status.da
 import 'package:kopim/features/budgets/domain/entities/budget_period.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_scope.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
-import 'package:kopim/features/credits/domain/entities/credit_card_entity.dart';
-import 'package:kopim/features/credits/domain/entities/credit_entity.dart';
-import 'package:kopim/features/credits/domain/entities/debt_entity.dart';
 import 'package:kopim/features/settings/domain/entities/export_bundle.dart';
-import 'package:kopim/features/settings/domain/services/export_bundle_csv_decoder.dart';
-import 'package:kopim/features/settings/domain/services/export_bundle_csv_encoder.dart';
+import 'package:kopim/features/settings/domain/services/export_bundle_json_decoder.dart';
+import 'package:kopim/features/settings/domain/services/export_bundle_json_encoder.dart';
 import 'package:kopim/features/tags/domain/entities/tag.dart';
 import 'package:kopim/features/tags/domain/entities/transaction_tag.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
@@ -25,17 +21,17 @@ import 'package:kopim/features/upcoming_payments/domain/entities/payment_reminde
 import 'package:kopim/features/upcoming_payments/domain/entities/upcoming_payment.dart';
 
 void main() {
-  const ExportBundleCsvEncoder encoder = ExportBundleCsvEncoder();
-  const ExportBundleCsvDecoder decoder = ExportBundleCsvDecoder();
+  const ExportBundleJsonEncoder encoder = ExportBundleJsonEncoder();
+  const ExportBundleJsonDecoder decoder = ExportBundleJsonDecoder();
 
-  test('encodes and decodes CSV bundle with escaped fields', () {
+  test('encodes and decodes extended JSON bundle', () {
     final ExportBundle bundle = ExportBundle(
       schemaVersion: '1.5.0',
       generatedAt: DateTime.utc(2024, 2, 10, 12, 30),
       accounts: <AccountEntity>[
         AccountEntity(
           id: 'a1',
-          name: 'Main account',
+          name: 'Hidden account',
           balanceMinor: BigInt.from(120050),
           openingBalanceMinor: BigInt.zero,
           currency: 'USD',
@@ -43,7 +39,6 @@ void main() {
           type: 'checking',
           createdAt: DateTime.utc(2024, 1, 1),
           updatedAt: DateTime.utc(2024, 2, 1),
-          isPrimary: true,
           isHidden: true,
         ),
       ],
@@ -52,13 +47,8 @@ void main() {
           id: 'c1',
           name: 'Food',
           type: 'expense',
-          icon: const PhosphorIconDescriptor(
-            name: 'fork-knife',
-            style: PhosphorIconStyle.bold,
-          ),
           createdAt: DateTime.utc(2024, 1, 1),
           updatedAt: DateTime.utc(2024, 1, 2),
-          isFavorite: true,
         ),
       ],
       tags: <TagEntity>[
@@ -78,7 +68,6 @@ void main() {
           amountMinor: BigInt.from(1240),
           amountScale: 2,
           date: DateTime.utc(2024, 2, 9),
-          note: 'Lunch, cafe\nSecond line',
           type: 'expense',
           createdAt: DateTime.utc(2024, 2, 9),
           updatedAt: DateTime.utc(2024, 2, 9),
@@ -90,46 +79,6 @@ void main() {
           tagId: 'tag-1',
           createdAt: DateTime.utc(2024, 2, 9),
           updatedAt: DateTime.utc(2024, 2, 9),
-        ),
-      ],
-      credits: <CreditEntity>[
-        CreditEntity(
-          id: 'cr1',
-          accountId: 'a1',
-          categoryId: 'c1',
-          totalAmountMinor: BigInt.from(500000),
-          totalAmountScale: 2,
-          interestRate: 11.5,
-          termMonths: 12,
-          startDate: DateTime.utc(2024, 1, 10),
-          firstPaymentDate: DateTime.utc(2024, 2, 10),
-          createdAt: DateTime.utc(2024, 1, 10),
-          updatedAt: DateTime.utc(2024, 1, 10),
-        ),
-      ],
-      creditCards: <CreditCardEntity>[
-        CreditCardEntity(
-          id: 'cc1',
-          accountId: 'a1',
-          creditLimitMinor: BigInt.from(100000),
-          creditLimitScale: 2,
-          statementDay: 5,
-          paymentDueDays: 20,
-          interestRateAnnual: 29.9,
-          createdAt: DateTime.utc(2024, 1, 5),
-          updatedAt: DateTime.utc(2024, 1, 5),
-        ),
-      ],
-      debts: <DebtEntity>[
-        DebtEntity(
-          id: 'd1',
-          accountId: 'a1',
-          name: 'Friend',
-          amountMinor: BigInt.from(15000),
-          amountScale: 2,
-          dueDate: DateTime.utc(2024, 3, 1),
-          createdAt: DateTime.utc(2024, 2, 1),
-          updatedAt: DateTime.utc(2024, 2, 1),
         ),
       ],
       budgets: <Budget>[
@@ -205,22 +154,20 @@ void main() {
     expect(decoded.accounts.single.isHidden, isTrue);
   });
 
-  test('fails when schema version is missing', () {
-    const String csv = '#kopim-export\n#generated_at,2024-01-01T00:00:00Z';
-    final Uint8List bytes = Uint8List.fromList(utf8.encode(csv));
-
-    expect(() => decoder.decode(bytes), throwsFormatException);
-  });
-
-  test('fails on partial CSV backup for current schema', () {
-    const String csv = '''
-#kopim-export
-#schema_version,1.4.0
-#generated_at,2024-01-01T00:00:00Z
-#accounts
-id,name,balance,opening_balance,balance_minor,opening_balance_minor,currency_scale,currency,type,created_at,updated_at,color,gradient_id,icon_name,icon_style,is_deleted,is_primary,is_hidden
-''';
-    final Uint8List bytes = Uint8List.fromList(utf8.encode(csv));
+  test('fails on partial JSON backup for current schema', () {
+    final Map<String, Object?> payload = <String, Object?>{
+      'schemaVersion': '1.4.0',
+      'generatedAt': '2024-01-01T00:00:00Z',
+      'accounts': <Object?>[],
+      'categories': <Object?>[],
+      'transactions': <Object?>[],
+      'savingGoals': <Object?>[],
+      'credits': <Object?>[],
+      'debts': <Object?>[],
+    };
+    final Uint8List bytes = Uint8List.fromList(
+      utf8.encode(jsonEncode(payload)),
+    );
 
     expect(
       () => decoder.decode(bytes),
@@ -228,7 +175,35 @@ id,name,balance,opening_balance,balance_minor,opening_balance_minor,currency_sca
         isA<FormatException>().having(
           (FormatException error) => error.message,
           'message',
-          contains('#categories'),
+          contains('creditCards'),
+        ),
+      ),
+    );
+  });
+
+  test('fails on newer schema version', () {
+    final Map<String, Object?> payload = <String, Object?>{
+      'schemaVersion': '9.0.0',
+      'generatedAt': '2024-01-01T00:00:00Z',
+      'accounts': <Object?>[],
+      'categories': <Object?>[],
+      'transactions': <Object?>[],
+      'savingGoals': <Object?>[],
+      'credits': <Object?>[],
+      'creditCards': <Object?>[],
+      'debts': <Object?>[],
+    };
+    final Uint8List bytes = Uint8List.fromList(
+      utf8.encode(jsonEncode(payload)),
+    );
+
+    expect(
+      () => decoder.decode(bytes),
+      throwsA(
+        isA<FormatException>().having(
+          (FormatException error) => error.message,
+          'message',
+          contains('более новую схему'),
         ),
       ),
     );

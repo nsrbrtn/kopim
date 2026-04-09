@@ -402,7 +402,16 @@ ExportDataRepository exportDataRepository(Ref ref) => ExportDataRepositoryImpl(
   accountDao: ref.watch(accountDaoProvider),
   transactionDao: ref.watch(transactionDaoProvider),
   categoryDao: ref.watch(categoryDaoProvider),
+  tagDao: ref.watch(tagDaoProvider),
+  transactionTagsDao: ref.watch(transactionTagsDaoProvider),
+  creditDao: ref.watch(creditDaoProvider),
+  creditCardDao: ref.watch(creditCardDaoProvider),
+  debtDao: ref.watch(debtDaoProvider),
+  budgetDao: ref.watch(budgetDaoProvider),
+  budgetInstanceDao: ref.watch(budgetInstanceDaoProvider),
   savingGoalDao: ref.watch(savingGoalDaoProvider),
+  upcomingPaymentsDao: ref.watch(upcomingPaymentsDaoProvider),
+  paymentRemindersDao: ref.watch(paymentRemindersDaoProvider),
 );
 
 @riverpod
@@ -439,8 +448,16 @@ ImportDataRepository importDataRepository(Ref ref) => ImportDataRepositoryImpl(
   database: ref.watch(appDatabaseProvider),
   accountDao: ref.watch(accountDaoProvider),
   categoryDao: ref.watch(categoryDaoProvider),
+  tagDao: ref.watch(tagDaoProvider),
+  transactionTagsDao: ref.watch(transactionTagsDaoProvider),
   creditDao: ref.watch(creditDaoProvider),
+  creditCardDao: ref.watch(creditCardDaoProvider),
+  debtDao: ref.watch(debtDaoProvider),
+  budgetDao: ref.watch(budgetDaoProvider),
+  budgetInstanceDao: ref.watch(budgetInstanceDaoProvider),
   savingGoalDao: ref.watch(savingGoalDaoProvider),
+  upcomingPaymentsDao: ref.watch(upcomingPaymentsDaoProvider),
+  paymentRemindersDao: ref.watch(paymentRemindersDaoProvider),
   transactionDao: ref.watch(transactionDaoProvider),
   outboxDao: ref.watch(outboxDaoProvider),
 );

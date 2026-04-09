@@ -4,10 +4,24 @@ import 'dart:typed_data';
 import 'package:kopim/core/money/currency_scale.dart';
 import 'package:kopim/core/money/money.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
+import 'package:kopim/features/budgets/domain/entities/budget.dart';
+import 'package:kopim/features/budgets/domain/entities/budget_category_allocation.dart';
+import 'package:kopim/features/budgets/domain/entities/budget_instance.dart';
+import 'package:kopim/features/budgets/domain/entities/budget_instance_status.dart';
+import 'package:kopim/features/budgets/domain/entities/budget_period.dart';
+import 'package:kopim/features/budgets/domain/entities/budget_scope.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
+import 'package:kopim/features/credits/domain/entities/credit_card_entity.dart';
+import 'package:kopim/features/credits/domain/entities/credit_entity.dart';
+import 'package:kopim/features/credits/domain/entities/debt_entity.dart';
 import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
 import 'package:kopim/features/settings/domain/entities/export_bundle.dart';
+import 'package:kopim/features/settings/domain/services/export_bundle_schema.dart';
+import 'package:kopim/features/tags/domain/entities/tag.dart';
+import 'package:kopim/features/tags/domain/entities/transaction_tag.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
+import 'package:kopim/features/upcoming_payments/domain/entities/payment_reminder.dart';
+import 'package:kopim/features/upcoming_payments/domain/entities/upcoming_payment.dart';
 
 /// Декодирует JSON-представление экспортированного бандла обратно в модель.
 class ExportBundleJsonDecoder {
@@ -35,19 +49,91 @@ class ExportBundleJsonDecoder {
     if (schemaVersion.isEmpty) {
       throw const FormatException('Не найдена версия схемы экспорта.');
     }
+    final dynamic version = ExportBundleSchema.parseAndValidate(schemaVersion);
     final String? generatedAtRaw = jsonMap['generatedAt'] as String?;
     if (generatedAtRaw == null || generatedAtRaw.isEmpty) {
       throw const FormatException('Не найдена дата генерации экспорта.');
     }
     final DateTime generatedAt = DateTime.parse(generatedAtRaw);
 
-    final List<AccountEntity> accounts = _parseAccounts(jsonMap['accounts']);
-    final List<TransactionEntity> transactions = _parseTransactions(
-      jsonMap['transactions'],
+    final List<AccountEntity> accounts = _parseAccounts(
+      _readSection(jsonMap, 'accounts'),
     );
-    final List<Category> categories = _parseCategories(jsonMap['categories']);
+    final List<TransactionEntity> transactions = _parseTransactions(
+      _readSection(jsonMap, 'transactions'),
+    );
+    final List<Category> categories = _parseCategories(
+      _readSection(jsonMap, 'categories'),
+    );
+    final List<TagEntity> tags = _parseTags(
+      _readSection(
+        jsonMap,
+        'tags',
+        required: ExportBundleSchema.requiresExtendedSnapshot(version),
+      ),
+    );
+    final List<TransactionTagEntity> transactionTags = _parseTransactionTags(
+      _readSection(
+        jsonMap,
+        'transactionTags',
+        required: ExportBundleSchema.requiresExtendedSnapshot(version),
+      ),
+    );
     final List<SavingGoal> savingGoals = _parseSavingGoals(
-      jsonMap['savingGoals'],
+      _readSection(
+        jsonMap,
+        'savingGoals',
+        required: ExportBundleSchema.requiresSavingGoals(version),
+      ),
+    );
+    final List<CreditEntity> credits = _parseCredits(
+      _readSection(
+        jsonMap,
+        'credits',
+        required: ExportBundleSchema.requiresLiabilities(version),
+      ),
+    );
+    final List<CreditCardEntity> creditCards = _parseCreditCards(
+      _readSection(
+        jsonMap,
+        'creditCards',
+        required: ExportBundleSchema.requiresLiabilities(version),
+      ),
+    );
+    final List<DebtEntity> debts = _parseDebts(
+      _readSection(
+        jsonMap,
+        'debts',
+        required: ExportBundleSchema.requiresLiabilities(version),
+      ),
+    );
+    final List<Budget> budgets = _parseBudgets(
+      _readSection(
+        jsonMap,
+        'budgets',
+        required: ExportBundleSchema.requiresExtendedSnapshot(version),
+      ),
+    );
+    final List<BudgetInstance> budgetInstances = _parseBudgetInstances(
+      _readSection(
+        jsonMap,
+        'budgetInstances',
+        required: ExportBundleSchema.requiresExtendedSnapshot(version),
+      ),
+    );
+    final List<UpcomingPayment> upcomingPayments = _parseUpcomingPayments(
+      _readSection(
+        jsonMap,
+        'upcomingPayments',
+        required: ExportBundleSchema.requiresExtendedSnapshot(version),
+      ),
+    );
+    final List<PaymentReminder> paymentReminders = _parsePaymentReminders(
+      _readSection(
+        jsonMap,
+        'paymentReminders',
+        required: ExportBundleSchema.requiresExtendedSnapshot(version),
+      ),
     );
 
     return ExportBundle(
@@ -56,7 +142,16 @@ class ExportBundleJsonDecoder {
       accounts: accounts,
       transactions: transactions,
       categories: categories,
+      tags: tags,
+      transactionTags: transactionTags,
       savingGoals: savingGoals,
+      credits: credits,
+      creditCards: creditCards,
+      debts: debts,
+      budgets: budgets,
+      budgetInstances: budgetInstances,
+      upcomingPayments: upcomingPayments,
+      paymentReminders: paymentReminders,
     );
   }
 
@@ -152,6 +247,22 @@ class ExportBundleJsonDecoder {
         .toList(growable: false);
   }
 
+  List<TagEntity> _parseTags(Object? raw) {
+    if (raw is! List) return const <TagEntity>[];
+    return raw
+        .whereType<Map<String, Object?>>()
+        .map(TagEntity.fromJson)
+        .toList(growable: false);
+  }
+
+  List<TransactionTagEntity> _parseTransactionTags(Object? raw) {
+    if (raw is! List) return const <TransactionTagEntity>[];
+    return raw
+        .whereType<Map<String, Object?>>()
+        .map(TransactionTagEntity.fromJson)
+        .toList(growable: false);
+  }
+
   List<SavingGoal> _parseSavingGoals(Object? raw) {
     if (raw is! List) return const <SavingGoal>[];
     return raw
@@ -159,6 +270,207 @@ class ExportBundleJsonDecoder {
         .map(
           (Map<String, Object?> data) =>
               SavingGoal.fromJson(Map<String, dynamic>.from(data)),
+        )
+        .toList(growable: false);
+  }
+
+  List<CreditEntity> _parseCredits(Object? raw) {
+    if (raw is! List) return const <CreditEntity>[];
+    return raw
+        .whereType<Map<String, Object?>>()
+        .map((Map<String, Object?> data) {
+          final int scale = _readInt(data['totalAmountScale']) ?? 2;
+          final double legacyAmount = _readDouble(data, 'totalAmount');
+          final BigInt? totalAmountMinor = _readBigInt(
+            data['totalAmountMinor'],
+          );
+          final BigInt resolvedMinor =
+              totalAmountMinor ??
+              Money.fromDouble(
+                legacyAmount,
+                currency: 'XXX',
+                scale: scale,
+              ).minor;
+          return CreditEntity(
+            id: _readString(data, 'id'),
+            accountId: _readString(data, 'accountId'),
+            categoryId: _readOptionalString(data, 'categoryId'),
+            interestCategoryId: _readOptionalString(data, 'interestCategoryId'),
+            feesCategoryId: _readOptionalString(data, 'feesCategoryId'),
+            totalAmountMinor: resolvedMinor,
+            totalAmountScale: scale,
+            interestRate: _readDouble(data, 'interestRate'),
+            termMonths: _readInt(data['termMonths']) ?? 0,
+            startDate: _readDate(data, 'startDate'),
+            firstPaymentDate: _readOptionalDate(data, 'firstPaymentDate'),
+            paymentDay: _readInt(data['paymentDay']) ?? 1,
+            createdAt: _readDate(data, 'createdAt'),
+            updatedAt: _readDate(data, 'updatedAt'),
+            isDeleted: _readBool(data, 'isDeleted'),
+          );
+        })
+        .toList(growable: false);
+  }
+
+  List<CreditCardEntity> _parseCreditCards(Object? raw) {
+    if (raw is! List) return const <CreditCardEntity>[];
+    return raw
+        .whereType<Map<String, Object?>>()
+        .map((Map<String, Object?> data) {
+          final int scale = _readInt(data['creditLimitScale']) ?? 2;
+          final double legacyLimit = _readDouble(data, 'creditLimit');
+          final BigInt? creditLimitMinor = _readBigInt(
+            data['creditLimitMinor'],
+          );
+          final BigInt resolvedMinor =
+              creditLimitMinor ??
+              Money.fromDouble(
+                legacyLimit,
+                currency: 'XXX',
+                scale: scale,
+              ).minor;
+          return CreditCardEntity(
+            id: _readString(data, 'id'),
+            accountId: _readString(data, 'accountId'),
+            creditLimitMinor: resolvedMinor,
+            creditLimitScale: scale,
+            statementDay: _readInt(data['statementDay']) ?? 1,
+            paymentDueDays: _readInt(data['paymentDueDays']) ?? 0,
+            interestRateAnnual: _readDouble(data, 'interestRateAnnual'),
+            createdAt: _readDate(data, 'createdAt'),
+            updatedAt: _readDate(data, 'updatedAt'),
+            isDeleted: _readBool(data, 'isDeleted'),
+          );
+        })
+        .toList(growable: false);
+  }
+
+  List<DebtEntity> _parseDebts(Object? raw) {
+    if (raw is! List) return const <DebtEntity>[];
+    return raw
+        .whereType<Map<String, Object?>>()
+        .map((Map<String, Object?> data) {
+          final int scale = _readInt(data['amountScale']) ?? 2;
+          final double legacyAmount = _readDouble(data, 'amount');
+          final BigInt? amountMinor = _readBigInt(data['amountMinor']);
+          final BigInt resolvedMinor =
+              amountMinor ??
+              Money.fromDouble(
+                legacyAmount,
+                currency: 'XXX',
+                scale: scale,
+              ).minor;
+          return DebtEntity(
+            id: _readString(data, 'id'),
+            accountId: _readString(data, 'accountId'),
+            name: _readOptionalString(data, 'name') ?? '',
+            amountMinor: resolvedMinor,
+            amountScale: scale,
+            dueDate: _readDate(data, 'dueDate'),
+            note: _readOptionalString(data, 'note'),
+            createdAt: _readDate(data, 'createdAt'),
+            updatedAt: _readDate(data, 'updatedAt'),
+            isDeleted: _readBool(data, 'isDeleted'),
+          );
+        })
+        .toList(growable: false);
+  }
+
+  List<Budget> _parseBudgets(Object? raw) {
+    if (raw is! List) return const <Budget>[];
+    return raw
+        .whereType<Map<String, Object?>>()
+        .map((Map<String, Object?> data) {
+          final int scale = _readInt(data['amountScale']) ?? 2;
+          final double legacyAmount = _readDouble(data, 'amount');
+          final BigInt? amountMinor = _readBigInt(data['amountMinor']);
+          final BigInt resolvedMinor =
+              amountMinor ??
+              Money.fromDouble(
+                legacyAmount,
+                currency: 'XXX',
+                scale: scale,
+              ).minor;
+          return Budget(
+            id: _readString(data, 'id'),
+            title: _readString(data, 'title'),
+            period: BudgetPeriodX.fromStorage(_readString(data, 'period')),
+            startDate: _readDate(data, 'startDate'),
+            endDate: _readOptionalDate(data, 'endDate'),
+            amountMinor: resolvedMinor,
+            amountScale: scale,
+            scope: BudgetScopeX.fromStorage(_readString(data, 'scope')),
+            categories: _readStringList(data['categories']),
+            accounts: _readStringList(data['accounts']),
+            categoryAllocations: _readAllocations(data['categoryAllocations']),
+            createdAt: _readDate(data, 'createdAt'),
+            updatedAt: _readDate(data, 'updatedAt'),
+            isDeleted: _readBool(data, 'isDeleted'),
+          );
+        })
+        .toList(growable: false);
+  }
+
+  List<BudgetInstance> _parseBudgetInstances(Object? raw) {
+    if (raw is! List) return const <BudgetInstance>[];
+    return raw
+        .whereType<Map<String, Object?>>()
+        .map((Map<String, Object?> data) {
+          final int scale = _readInt(data['amountScale']) ?? 2;
+          final double legacyAmount = _readDouble(data, 'amount');
+          final double legacySpent = _readDouble(data, 'spent');
+          final BigInt? amountMinor = _readBigInt(data['amountMinor']);
+          final BigInt? spentMinor = _readBigInt(data['spentMinor']);
+          final BigInt resolvedAmountMinor =
+              amountMinor ??
+              Money.fromDouble(
+                legacyAmount,
+                currency: 'XXX',
+                scale: scale,
+              ).minor;
+          final BigInt resolvedSpentMinor =
+              spentMinor ??
+              Money.fromDouble(
+                legacySpent,
+                currency: 'XXX',
+                scale: scale,
+              ).minor;
+          return BudgetInstance(
+            id: _readString(data, 'id'),
+            budgetId: _readString(data, 'budgetId'),
+            periodStart: _readDate(data, 'periodStart'),
+            periodEnd: _readDate(data, 'periodEnd'),
+            amountMinor: resolvedAmountMinor,
+            spentMinor: resolvedSpentMinor,
+            amountScale: scale,
+            status: BudgetInstanceStatusX.fromStorage(
+              _readString(data, 'status'),
+            ),
+            createdAt: _readDate(data, 'createdAt'),
+            updatedAt: _readDate(data, 'updatedAt'),
+          );
+        })
+        .toList(growable: false);
+  }
+
+  List<UpcomingPayment> _parseUpcomingPayments(Object? raw) {
+    if (raw is! List) return const <UpcomingPayment>[];
+    return raw
+        .whereType<Map<String, Object?>>()
+        .map(
+          (Map<String, Object?> data) =>
+              UpcomingPayment.fromJson(Map<String, Object?>.from(data)),
+        )
+        .toList(growable: false);
+  }
+
+  List<PaymentReminder> _parsePaymentReminders(Object? raw) {
+    if (raw is! List) return const <PaymentReminder>[];
+    return raw
+        .whereType<Map<String, Object?>>()
+        .map(
+          (Map<String, Object?> data) =>
+              PaymentReminder.fromJson(Map<String, Object?>.from(data)),
         )
         .toList(growable: false);
   }
@@ -207,6 +519,14 @@ class ExportBundleJsonDecoder {
     return DateTime.parse(raw);
   }
 
+  DateTime? _readOptionalDate(Map<String, Object?> data, String key) {
+    final String? raw = _readOptionalString(data, key);
+    if (raw == null) {
+      return null;
+    }
+    return DateTime.parse(raw);
+  }
+
   bool _readBool(Map<String, Object?> data, String key) {
     final Object? raw = data[key];
     if (raw is bool) return raw;
@@ -219,5 +539,54 @@ class ExportBundleJsonDecoder {
       return false;
     }
     throw FormatException('Некорректное значение $key: $raw.');
+  }
+
+  List<String> _readStringList(Object? value) {
+    if (value is! List) {
+      return const <String>[];
+    }
+    return value
+        .map((Object? item) => item?.toString().trim() ?? '')
+        .where((String item) => item.isNotEmpty)
+        .toList(growable: false);
+  }
+
+  List<BudgetCategoryAllocation> _readAllocations(Object? value) {
+    if (value is! List) {
+      return const <BudgetCategoryAllocation>[];
+    }
+    return value
+        .whereType<Map<String, Object?>>()
+        .map(
+          (Map<String, Object?> json) => BudgetCategoryAllocation.fromJson(
+            Map<String, dynamic>.from(json),
+          ),
+        )
+        .toList(growable: false);
+  }
+
+  Object? _readSection(
+    Map<String, Object?> jsonMap,
+    String key, {
+    bool required = true,
+  }) {
+    if (!jsonMap.containsKey(key)) {
+      if (required) {
+        throw FormatException('Отсутствует обязательная секция $key.');
+      }
+      return null;
+    }
+
+    final Object? value = jsonMap[key];
+    if (value == null) {
+      if (required) {
+        throw FormatException('Секция $key не может быть пустой.');
+      }
+      return null;
+    }
+    if (value is! List) {
+      throw FormatException('Секция $key имеет некорректный формат.');
+    }
+    return value;
   }
 }

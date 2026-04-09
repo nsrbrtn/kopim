@@ -21,6 +21,10 @@ class SavingGoalRemoteDataSource {
     return _doc(userId, goal.id).set(_mapGoal(goal), SetOptions(merge: true));
   }
 
+  Future<void> delete(String userId, SavingGoal goal) {
+    return _doc(userId, goal.id).delete();
+  }
+
   void upsertInTransaction(
     Transaction transaction,
     String userId,
@@ -31,6 +35,14 @@ class SavingGoalRemoteDataSource {
       _mapGoal(goal),
       SetOptions(merge: true),
     );
+  }
+
+  void deleteInTransaction(
+    Transaction transaction,
+    String userId,
+    SavingGoal goal,
+  ) {
+    transaction.delete(_doc(userId, goal.id));
   }
 
   Future<List<SavingGoal>> fetchAll(String userId) async {
