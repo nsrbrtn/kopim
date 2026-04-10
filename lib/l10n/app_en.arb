@@ -2876,6 +2876,10 @@
   "@addAccountTypeCreditCard": {
     "description": "Option label for credit card accounts"
   },
+  "addAccountTypeInvestment": "Investment account",
+  "@addAccountTypeInvestment": {
+    "description": "Option label for investment accounts"
+  },
   "addAccountTypeCustom": "Custom type",
   "@addAccountTypeCustom": {
     "description": "Option label for custom account types"

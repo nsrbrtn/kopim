@@ -925,7 +925,7 @@ void main() {
   );
 
   test(
-    'credit payment учитывается как outflow при custom:credit типе счета',
+    'credit payment учитывается как outflow при credit типе счета',
     () async {
       final DateTime now = DateTime.now();
       final DateTime txDate = now.subtract(const Duration(hours: 2));
@@ -973,7 +973,7 @@ void main() {
               openingBalanceMinor: BigInt.zero,
               currency: 'USD',
               currencyScale: 2,
-              type: 'custom:credit',
+              type: 'credit',
               createdAt: now,
               updatedAt: now,
             ),

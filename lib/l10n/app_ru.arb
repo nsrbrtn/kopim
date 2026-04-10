@@ -2876,6 +2876,10 @@
   "@addAccountTypeCreditCard": {
     "description": "Вариант типа счёта для кредитной карты"
   },
+  "addAccountTypeInvestment": "Инвестиционный счёт",
+  "@addAccountTypeInvestment": {
+    "description": "Вариант типа счёта для инвестиционного счёта"
+  },
   "addAccountTypeCustom": "Другой тип",
   "@addAccountTypeCustom": {
     "description": "Вариант выбора пользовательского типа счёта"

@@ -728,14 +728,9 @@ analyticsDebtOverviewProvider = StreamProvider<AnalyticsDebtOverview>((
         ref.watch(watchAccountsUseCaseProvider).call(),
         (List<TransactionEntity> transactions, List<AccountEntity> accounts) {
           final List<AccountEntity> liabilityAccounts = accounts
-              .where((AccountEntity account) {
-                final String normalized = normalizeAccountType(
-                  account.type,
-                ).toLowerCase();
-                return normalized == 'credit' ||
-                    normalized == 'credit_card' ||
-                    normalized == 'debt';
-              })
+              .where(
+                (AccountEntity account) => isLiabilityAccountType(account.type),
+              )
               .toList(growable: false);
           if (liabilityAccounts.isEmpty) {
             return AnalyticsDebtOverview.empty();
@@ -818,13 +813,8 @@ CreditDebtOperationsOverview _buildCreditDebtOperationsOverview({
   required AnalyticsDateWindow dateWindow,
   required SortedIds selectedAccountIds,
 }) {
-  final Set<String> liabilityTypes = <String>{'credit', 'credit_card', 'debt'};
   final Set<String> liabilityAccountIds = accounts
-      .where(
-        (AccountEntity account) => liabilityTypes.contains(
-          normalizeAccountType(account.type).toLowerCase(),
-        ),
-      )
+      .where((AccountEntity account) => isLiabilityAccountType(account.type))
       .map((AccountEntity account) => account.id)
       .toSet();
 

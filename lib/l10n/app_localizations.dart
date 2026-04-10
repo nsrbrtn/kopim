@@ -3942,6 +3942,12 @@ abstract class AppLocalizations {
   /// **'Credit card'**
   String get addAccountTypeCreditCard;
 
+  /// Option label for investment accounts
+  ///
+  /// In en, this message translates to:
+  /// **'Investment account'**
+  String get addAccountTypeInvestment;
+
   /// Option label for custom account types
   ///
   /// In en, this message translates to:

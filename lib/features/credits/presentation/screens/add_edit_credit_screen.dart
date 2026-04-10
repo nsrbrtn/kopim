@@ -7,6 +7,7 @@ import 'package:kopim/core/money/currency_scale.dart';
 import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/core/utils/context_extensions.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
+import 'package:kopim/features/accounts/domain/utils/account_type_utils.dart';
 import 'package:kopim/features/accounts/domain/repositories/account_repository.dart';
 import 'package:kopim/features/credits/domain/entities/credit_entity.dart';
 import 'package:kopim/core/widgets/kopim_dropdown_field.dart';
@@ -444,7 +445,9 @@ class _AddEditCreditScreenState extends ConsumerState<AddEditCreditScreen> {
             final List<AccountEntity> accounts =
                 snapshot.data ?? const <AccountEntity>[];
             final List<AccountEntity> availableIssueAccounts = accounts
-                .where((AccountEntity account) => account.type != 'credit')
+                .where(
+                  (AccountEntity account) => !isCreditAccountType(account.type),
+                )
                 .toList(growable: false);
             if (_selectedIssueAccountId != null &&
                 !availableIssueAccounts.any(

@@ -2227,6 +2227,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addAccountTypeCreditCard => 'Credit card';
 
   @override
+  String get addAccountTypeInvestment => 'Investment account';
+
+  @override
   String get addAccountTypeCustom => 'Custom type';
 
   @override

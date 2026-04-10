@@ -11,6 +11,7 @@ import 'package:collection/collection.dart';
 import 'package:kopim/core/money/money.dart';
 import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
+import 'package:kopim/features/accounts/domain/utils/account_type_utils.dart';
 import 'package:kopim/features/accounts/domain/use_cases/add_account_use_case.dart';
 import 'package:kopim/features/accounts/presentation/account_details_screen.dart';
 import 'package:kopim/features/accounts/presentation/accounts_add_screen.dart';
@@ -1035,7 +1036,8 @@ class _AccountCard extends ConsumerWidget {
     final TextStyle summaryHeaderStyle = labelStyle.copyWith(
       color: carouselContentColor,
     );
-    final SavingGoal? savingGoal = account.type == 'savings'
+    final String normalizedAccountType = normalizeAccountType(account.type);
+    final SavingGoal? savingGoal = isLegacySavingsAccountType(account.type)
         ? ref
               .watch(homeSavingGoalsProvider)
               .asData
@@ -1076,8 +1078,8 @@ class _AccountCard extends ConsumerWidget {
               children: <Widget>[
                 Padding(
                   padding: const EdgeInsets.all(24),
-                  child: switch (account.type) {
-                    'credit' => _CreditCardContent(
+                  child: switch (normalizedAccountType) {
+                    kAccountTypeCredit => _CreditCardContent(
                       account: account,
                       strings: strings,
                       currencyFormat: currencyFormat,
@@ -1090,7 +1092,7 @@ class _AccountCard extends ConsumerWidget {
                       contentColor: carouselContentColor,
                       fallback: standardContent,
                     ),
-                    'credit_card' => _CreditCardAccountContent(
+                    kAccountTypeCreditCard => _CreditCardAccountContent(
                       account: account,
                       strings: strings,
                       currencyFormat: currencyFormat,
@@ -1120,7 +1122,7 @@ class _AccountCard extends ConsumerWidget {
       );
     }
 
-    if (account.type == 'credit') {
+    if (isCreditAccountType(account.type)) {
       final CreditEntity? credit = ref
           .watch(_homeCreditsProvider)
           .asData
@@ -1297,7 +1299,8 @@ class _StandardAccountContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool isSavings = account.type == 'savings' && savingGoal != null;
+    final bool isSavings =
+        isLegacySavingsAccountType(account.type) && savingGoal != null;
     final double savingsProgress = isSavings
         ? (savingGoal!.targetAmount <= 0
                   ? 0

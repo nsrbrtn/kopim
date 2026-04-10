@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
+import 'package:kopim/features/accounts/domain/utils/account_type_utils.dart';
 import 'package:kopim/features/overview/domain/models/overview_safety_cushion.dart';
 import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
@@ -22,7 +23,7 @@ class SafetyCushionCalculator {
   }) {
     final MoneyAccumulator liquidAssets = MoneyAccumulator();
     for (final AccountEntity account in accounts) {
-      if (account.isDeleted || _isLiabilityType(account.type)) {
+      if (account.isDeleted || isLiabilityAccountType(account.type)) {
         continue;
       }
       liquidAssets.add(account.balanceAmount);
@@ -150,13 +151,6 @@ class SafetyCushionCalculator {
       return OverviewSafetyCushionState.unstable;
     }
     return OverviewSafetyCushionState.safe;
-  }
-
-  static bool _isLiabilityType(String accountType) {
-    final String normalized = accountType.trim().toLowerCase();
-    return normalized == 'credit' ||
-        normalized == 'credit_card' ||
-        normalized == 'debt';
   }
 
   static double _clampDouble(double value, double min, double max) {

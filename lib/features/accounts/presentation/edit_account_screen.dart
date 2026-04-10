@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/core/domain/icons/phosphor_icon_descriptor.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
+import 'package:kopim/features/accounts/domain/utils/account_type_utils.dart';
 import 'package:kopim/features/accounts/domain/use_cases/delete_account_use_case.dart';
 import 'package:kopim/features/accounts/presentation/controllers/edit_account_form_controller.dart';
 import 'package:kopim/features/accounts/presentation/widgets/account_color_selector.dart';
@@ -52,7 +53,6 @@ enum AccountEditResult { updated, deleted }
 class _EditAccountScreenState extends ConsumerState<EditAccountScreen> {
   late final TextEditingController _nameController;
   late final TextEditingController _balanceController;
-  late final TextEditingController _customTypeController;
   late final TextEditingController _creditLimitController;
   late final TextEditingController _statementDayController;
   late final TextEditingController _paymentDueDaysController;
@@ -93,9 +93,6 @@ class _EditAccountScreenState extends ConsumerState<EditAccountScreen> {
     );
     _nameController = TextEditingController(text: initialState.name);
     _balanceController = TextEditingController(text: initialState.balanceInput);
-    _customTypeController = TextEditingController(
-      text: initialState.customType,
-    );
     _creditLimitController = TextEditingController(
       text: initialState.creditLimitInput,
     );
@@ -108,7 +105,7 @@ class _EditAccountScreenState extends ConsumerState<EditAccountScreen> {
     _interestRateController = TextEditingController(
       text: initialState.interestRateInput,
     );
-    if (widget.account.type == 'credit_card') {
+    if (isCreditCardAccountType(widget.account.type)) {
       Future<void>.microtask(
         () => ref
             .read(editAccountFormControllerProvider(widget.account).notifier)
@@ -121,7 +118,6 @@ class _EditAccountScreenState extends ConsumerState<EditAccountScreen> {
   void dispose() {
     _nameController.dispose();
     _balanceController.dispose();
-    _customTypeController.dispose();
     _creditLimitController.dispose();
     _statementDayController.dispose();
     _paymentDueDaysController.dispose();
@@ -159,13 +155,6 @@ class _EditAccountScreenState extends ConsumerState<EditAccountScreen> {
             selection: TextSelection.collapsed(
               offset: next.balanceInput.length,
             ),
-          );
-        }
-        if (previous?.customType != next.customType &&
-            _customTypeController.text != next.customType) {
-          _customTypeController.value = _customTypeController.value.copyWith(
-            text: next.customType,
-            selection: TextSelection.collapsed(offset: next.customType.length),
           );
         }
         if (previous?.creditLimitInput != next.creditLimitInput &&
@@ -219,16 +208,15 @@ class _EditAccountScreenState extends ConsumerState<EditAccountScreen> {
     const List<String> currencyOptions = <String>['USD', 'EUR', 'RUB'];
     final Map<String, String> accountTypeLabels = <String, String>{
       'cash': strings.addAccountTypeCash,
-      'card': strings.addAccountTypeCard,
       'bank': strings.addAccountTypeBank,
       'credit_card': strings.addAccountTypeCreditCard,
+      'investment': strings.addAccountTypeInvestment,
     };
-    const String customTypeValue = '__custom__';
 
     final ThemeData theme = Theme.of(context);
     final bool showTypeError =
         state.typeError == EditAccountFieldError.emptyType;
-    final String? dropdownErrorText = showTypeError && !state.useCustomType
+    final String? dropdownErrorText = showTypeError
         ? strings.editAccountTypeRequired
         : null;
     final bool isCreditCard = state.resolvedType == 'credit_card';
@@ -298,12 +286,8 @@ class _EditAccountScreenState extends ConsumerState<EditAccountScreen> {
               ),
               const SizedBox(height: 24),
               DropdownButtonFormField<String>(
-                key: ValueKey<String>(
-                  'edit-type-${state.useCustomType ? customTypeValue : state.type}',
-                ),
-                initialValue: state.useCustomType
-                    ? customTypeValue
-                    : state.type,
+                key: ValueKey<String>('edit-type-${state.type}'),
+                initialValue: state.type.isEmpty ? null : state.type,
                 decoration: InputDecoration(
                   labelText: strings.editAccountTypeLabel,
                   errorText: dropdownErrorText,
@@ -316,10 +300,6 @@ class _EditAccountScreenState extends ConsumerState<EditAccountScreen> {
                           child: Text(entry.value),
                         ),
                   ),
-                  DropdownMenuItem<String>(
-                    value: customTypeValue,
-                    child: Text(strings.editAccountTypeCustom),
-                  ),
                 ],
                 onChanged: state.isSaving
                     ? null
@@ -327,11 +307,7 @@ class _EditAccountScreenState extends ConsumerState<EditAccountScreen> {
                         if (value == null) {
                           return;
                         }
-                        if (value == customTypeValue) {
-                          controller.enableCustomType();
-                        } else {
-                          controller.updateType(value);
-                        }
+                        controller.updateType(value);
                       },
               ),
               if (isCreditCard) ...<Widget>[
@@ -427,17 +403,11 @@ class _EditAccountScreenState extends ConsumerState<EditAccountScreen> {
               ),
               if (state.useCustomType) ...<Widget>[
                 const SizedBox(height: 16),
-                TextFormField(
-                  controller: _customTypeController,
-                  decoration: InputDecoration(
-                    labelText: strings.editAccountCustomTypeLabel,
-                    errorText: showTypeError
-                        ? strings.editAccountTypeRequired
-                        : null,
+                Text(
+                  state.customType,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
                   ),
-                  enabled: !state.isSaving,
-                  textCapitalization: TextCapitalization.sentences,
-                  onChanged: controller.updateCustomType,
                 ),
               ],
               const SizedBox(height: 16),

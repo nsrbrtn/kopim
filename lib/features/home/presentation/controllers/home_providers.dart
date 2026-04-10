@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
+import 'package:kopim/features/accounts/domain/utils/account_type_utils.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/credits/domain/entities/credit_card_entity.dart';
 import 'package:kopim/features/credits/domain/entities/credit_entity.dart';
@@ -45,10 +46,10 @@ Stream<List<AccountEntity>> homeAccounts(Ref ref) {
       };
       final List<AccountEntity> filtered = accounts
           .where((AccountEntity account) {
-            if (account.type == 'credit') {
+            if (isCreditAccountType(account.type)) {
               return creditAccountIds.contains(account.id);
             }
-            if (account.type == 'credit_card') {
+            if (isCreditCardAccountType(account.type)) {
               return creditCardAccountIds.contains(account.id);
             }
             return true;

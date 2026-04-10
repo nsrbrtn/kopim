@@ -4,6 +4,7 @@ import 'package:kopim/core/services/analytics_service.dart';
 import 'package:kopim/core/services/logger_service.dart';
 import 'package:kopim/features/accounts/data/sources/local/account_dao.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
+import 'package:kopim/features/accounts/domain/utils/account_type_utils.dart';
 import 'package:kopim/core/money/currency_scale.dart';
 import 'package:kopim/core/money/money.dart';
 import 'package:kopim/features/savings/data/sources/local/goal_contribution_dao.dart';
@@ -274,7 +275,7 @@ class SavingGoalRepositoryImpl implements SavingGoalRepository {
         goal.accountId!,
       );
       if (existing != null &&
-          existing.type == 'savings' &&
+          isLegacySavingsAccountType(existing.type) &&
           !existing.isDeleted) {
         return goal;
       }

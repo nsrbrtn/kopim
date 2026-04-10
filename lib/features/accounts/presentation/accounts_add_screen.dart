@@ -28,7 +28,6 @@ class _AddAccountScreenState extends ConsumerState<AddAccountScreen> {
   static const String _currencyPlaceholder = 'Название валюты';
   late final TextEditingController _nameController;
   late final TextEditingController _balanceController;
-  late final TextEditingController _customTypeController;
   late final TextEditingController _currencySearchController;
   late final TextEditingController _creditLimitController;
   late final TextEditingController _statementDayController;
@@ -54,7 +53,6 @@ class _AddAccountScreenState extends ConsumerState<AddAccountScreen> {
     );
     _nameController = TextEditingController(text: state.name);
     _balanceController = TextEditingController(text: state.balanceInput);
-    _customTypeController = TextEditingController(text: state.customType);
     _currencySearchController = TextEditingController();
     _creditLimitController = TextEditingController(
       text: state.creditLimitInput,
@@ -74,7 +72,6 @@ class _AddAccountScreenState extends ConsumerState<AddAccountScreen> {
   void dispose() {
     _nameController.dispose();
     _balanceController.dispose();
-    _customTypeController.dispose();
     _currencySearchController.dispose();
     _creditLimitController.dispose();
     _statementDayController.dispose();
@@ -108,13 +105,6 @@ class _AddAccountScreenState extends ConsumerState<AddAccountScreen> {
         _balanceController.value = _balanceController.value.copyWith(
           text: next.balanceInput,
           selection: TextSelection.collapsed(offset: next.balanceInput.length),
-        );
-      }
-      if (previous?.customType != next.customType &&
-          _customTypeController.text != next.customType) {
-        _customTypeController.value = _customTypeController.value.copyWith(
-          text: next.customType,
-          selection: TextSelection.collapsed(offset: next.customType.length),
         );
       }
       if (previous?.creditLimitInput != next.creditLimitInput &&
@@ -164,12 +154,11 @@ class _AddAccountScreenState extends ConsumerState<AddAccountScreen> {
 
     final Map<String, String> accountTypeLabels = <String, String>{
       'cash': strings.addAccountTypeCash,
-      'card': strings.addAccountTypeCard,
       'bank': strings.addAccountTypeBank,
       'credit_card': strings.addAccountTypeCreditCard,
+      'investment': strings.addAccountTypeInvestment,
     };
     const List<String> currencyOptions = <String>['USD', 'EUR', 'RUB'];
-    const String customTypeValue = '__custom__';
 
     final ThemeData theme = Theme.of(context);
     final ColorScheme colorScheme = theme.colorScheme;
@@ -179,9 +168,7 @@ class _AddAccountScreenState extends ConsumerState<AddAccountScreen> {
     final String? dropdownErrorText = showTypeError && !state.useCustomType
         ? strings.addAccountTypeRequired
         : null;
-    final String? selectedTypeValue = state.useCustomType
-        ? customTypeValue
-        : (state.type.isEmpty ? null : state.type);
+    final String? selectedTypeValue = state.type.isEmpty ? null : state.type;
     final bool isCreditCard = state.resolvedType == 'credit_card';
     final bool showNameField =
         state.resolvedType != null && state.currency.trim().isNotEmpty;
@@ -207,13 +194,7 @@ class _AddAccountScreenState extends ConsumerState<AddAccountScreen> {
       surfaceContainer: colorScheme.surfaceContainerHigh,
     );
 
-    void onTypeSelected(String value) {
-      if (value == customTypeValue) {
-        controller.enableCustomType();
-      } else {
-        controller.updateType(value);
-      }
-    }
+    void onTypeSelected(String value) => controller.updateType(value);
 
     return Scaffold(
       appBar: AppBar(backgroundColor: Colors.transparent, elevation: 0),
@@ -270,8 +251,6 @@ class _AddAccountScreenState extends ConsumerState<AddAccountScreen> {
                       accountTypeLabels: accountTypeLabels,
                       colorScheme: colorScheme,
                       controller: controller,
-                      customTypeController: _customTypeController,
-                      customTypeValue: customTypeValue,
                       dropdownErrorText: dropdownErrorText,
                       innerExpandableColors: innerExpandableColors,
                       isSaving: state.isSaving,
@@ -560,8 +539,6 @@ class _TypeSection extends StatelessWidget {
     required this.accountTypeLabels,
     required this.colorScheme,
     required this.controller,
-    required this.customTypeController,
-    required this.customTypeValue,
     required this.dropdownErrorText,
     required this.innerExpandableColors,
     required this.isSaving,
@@ -577,8 +554,6 @@ class _TypeSection extends StatelessWidget {
   final Map<String, String> accountTypeLabels;
   final ColorScheme colorScheme;
   final AddAccountFormController controller;
-  final TextEditingController customTypeController;
-  final String customTypeValue;
   final String? dropdownErrorText;
   final ColorScheme innerExpandableColors;
   final bool isSaving;
@@ -600,13 +575,7 @@ class _TypeSection extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            ...<MapEntry<String, String>>[
-              ...accountTypeLabels.entries,
-              MapEntry<String, String>(
-                customTypeValue,
-                strings.addAccountTypeCustom,
-              ),
-            ].map(
+            ...accountTypeLabels.entries.map(
               (MapEntry<String, String> entry) => RadioListTile<String>(
                 value: entry.key,
                 // ignore: deprecated_member_use
@@ -626,19 +595,6 @@ class _TypeSection extends StatelessWidget {
                 contentPadding: EdgeInsets.zero,
               ),
             ),
-            if (state.useCustomType) ...<Widget>[
-              SizedBox(height: layout.spacing.between),
-              KopimTextField(
-                controller: customTypeController,
-                placeholder: strings.addAccountCustomTypeLabel,
-                enabled: !isSaving,
-                textCapitalization: TextCapitalization.sentences,
-                textInputAction: TextInputAction.done,
-                onChanged: controller.updateCustomType,
-                fillColor: colorScheme.surfaceContainerHighest,
-                placeholderColor: colorScheme.onSurfaceVariant,
-              ),
-            ],
             if (showTypeError)
               Padding(
                 padding: EdgeInsets.only(top: layout.spacing.between),

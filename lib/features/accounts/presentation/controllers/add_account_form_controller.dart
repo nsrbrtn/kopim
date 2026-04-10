@@ -61,12 +61,13 @@ abstract class AddAccountFormState with _$AddAccountFormState {
       parseBalanceInput(balanceInput, scale: resolveCurrencyScale(currency));
 
   String? get resolvedType {
-    final String value = useCustomType ? customType.trim() : type.trim();
+    final String value = type.trim();
     if (value.isEmpty) {
       return null;
     }
     final String normalized = normalizeAccountType(value);
-    if (normalized.isEmpty) {
+    if (normalized.isEmpty ||
+        !isCanonicalUserCreatableAccountType(normalized)) {
       return null;
     }
     return normalized;
@@ -128,6 +129,7 @@ class AddAccountFormController extends _$AddAccountFormController {
     state = state.copyWith(
       type: value,
       useCustomType: false,
+      customType: '',
       submissionSuccess: false,
       typeError: null,
       creditLimitError: null,
@@ -138,19 +140,11 @@ class AddAccountFormController extends _$AddAccountFormController {
   }
 
   void enableCustomType() {
-    state = state.copyWith(
-      useCustomType: true,
-      submissionSuccess: false,
-      typeError: null,
-    );
+    state = state.copyWith(submissionSuccess: false, typeError: null);
   }
 
   void updateCustomType(String value) {
-    state = state.copyWith(
-      customType: value,
-      submissionSuccess: false,
-      typeError: null,
-    );
+    state = state.copyWith(submissionSuccess: false, typeError: null);
   }
 
   void updateCreditLimit(String value) {

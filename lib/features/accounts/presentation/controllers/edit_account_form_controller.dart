@@ -69,12 +69,13 @@ abstract class EditAccountFormState with _$EditAccountFormState {
       parseBalanceInput(balanceInput, scale: resolveCurrencyScale(currency));
 
   String? get resolvedType {
-    final String value = useCustomType ? customType.trim() : type.trim();
+    final String value = type.trim();
     if (value.isEmpty) {
-      return null;
+      return useCustomType ? original.type : null;
     }
     final String normalized = normalizeAccountType(value);
-    if (normalized.isEmpty) {
+    if (normalized.isEmpty ||
+        !isCanonicalUserCreatableAccountType(normalized)) {
       return null;
     }
     return normalized;
@@ -98,12 +99,6 @@ abstract class EditAccountFormState with _$EditAccountFormState {
 class EditAccountFormController extends _$EditAccountFormController {
   late final AddAccountUseCase _addAccountUseCase;
   late final TransactionRepository _transactionRepository;
-  static const Set<String> _defaultTypes = <String>{
-    'cash',
-    'card',
-    'bank',
-    'credit_card',
-  };
   late final GetCreditCardByAccountIdUseCase _getCreditCardByAccountIdUseCase;
   late final AddCreditCardUseCase _addCreditCardUseCase;
   late final UpdateCreditCardUseCase _updateCreditCardUseCase;
@@ -119,12 +114,12 @@ class EditAccountFormController extends _$EditAccountFormController {
     _addCreditCardUseCase = ref.watch(addCreditCardUseCaseProvider);
     _updateCreditCardUseCase = ref.watch(updateCreditCardUseCaseProvider);
     _deleteCreditCardUseCase = ref.watch(deleteCreditCardUseCaseProvider);
-    final bool useCustomType = !_defaultTypes.contains(
-      account.type.toLowerCase(),
+    final String normalizedType = normalizeAccountType(account.type);
+    final bool isUserCreatable = isCanonicalUserCreatableAccountType(
+      normalizedType,
     );
-    final String customType = useCustomType
-        ? stripCustomAccountPrefix(account.type)
-        : '';
+    final bool useCustomType =
+        isLegacyUnknownAccountType(account.type) && !isUserCreatable;
     final MoneyAmount balanceAmount = account.balanceAmount;
     return EditAccountFormState(
       original: account,
@@ -133,9 +128,9 @@ class EditAccountFormController extends _$EditAccountFormController {
         balanceAmount.scale,
       ),
       currency: account.currency,
-      type: useCustomType ? 'cash' : account.type,
+      type: isUserCreatable ? normalizedType : '',
       useCustomType: useCustomType,
-      customType: customType,
+      customType: account.type,
       isPrimary: account.isPrimary,
       color: account.color,
       gradientId: account.gradientId,
@@ -174,6 +169,7 @@ class EditAccountFormController extends _$EditAccountFormController {
     state = state.copyWith(
       type: value,
       useCustomType: false,
+      customType: '',
       submissionSuccess: false,
       errorMessage: null,
       typeError: null,
@@ -186,7 +182,6 @@ class EditAccountFormController extends _$EditAccountFormController {
 
   void enableCustomType() {
     state = state.copyWith(
-      useCustomType: true,
       submissionSuccess: false,
       errorMessage: null,
       typeError: null,
@@ -195,7 +190,6 @@ class EditAccountFormController extends _$EditAccountFormController {
 
   void updateCustomType(String value) {
     state = state.copyWith(
-      customType: value,
       submissionSuccess: false,
       errorMessage: null,
       typeError: null,
@@ -278,7 +272,8 @@ class EditAccountFormController extends _$EditAccountFormController {
   }
 
   Future<void> loadCreditCard() async {
-    if (state.creditCardLoaded || state.original.type != 'credit_card') {
+    if (state.creditCardLoaded ||
+        !isCreditCardAccountType(state.original.type)) {
       return;
     }
     state = state.copyWith(creditCardLoaded: true);
@@ -440,10 +435,7 @@ class EditAccountFormController extends _$EditAccountFormController {
         paymentDueDays: paymentDueDays,
         interestRateAnnual: interestRateAnnual,
       );
-      final bool updatedIsCustom = !_defaultTypes.contains(
-        updatedAccount.type.toLowerCase(),
-      );
-      final String normalizedCustom = stripCustomAccountPrefix(
+      final bool updatedIsCustom = isLegacyUnknownAccountType(
         updatedAccount.type,
       );
       state = state.copyWith(
@@ -452,9 +444,9 @@ class EditAccountFormController extends _$EditAccountFormController {
         balanceInput: resolvedBalance.toDouble().toStringAsFixed(
           resolvedBalance.scale,
         ),
-        type: updatedIsCustom ? state.type : updatedAccount.type,
+        type: updatedIsCustom ? '' : normalizeAccountType(updatedAccount.type),
         useCustomType: updatedIsCustom,
-        customType: updatedIsCustom ? normalizedCustom : '',
+        customType: updatedIsCustom ? updatedAccount.type : '',
         submissionSuccess: true,
         isPrimary: updatedAccount.isPrimary,
       );
@@ -506,8 +498,8 @@ class EditAccountFormController extends _$EditAccountFormController {
     required int? paymentDueDays,
     required double? interestRateAnnual,
   }) async {
-    final bool wasCreditCard = state.original.type == 'credit_card';
-    final bool isCreditCard = updatedAccount.type == 'credit_card';
+    final bool wasCreditCard = isCreditCardAccountType(state.original.type);
+    final bool isCreditCard = isCreditCardAccountType(updatedAccount.type);
     final String? creditCardId = state.creditCardId;
 
     if (!isCreditCard && wasCreditCard && creditCardId != null) {

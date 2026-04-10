@@ -2251,6 +2251,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get addAccountTypeCreditCard => 'Кредитная карта';
 
   @override
+  String get addAccountTypeInvestment => 'Инвестиционный счёт';
+
+  @override
   String get addAccountTypeCustom => 'Другой тип';
 
   @override

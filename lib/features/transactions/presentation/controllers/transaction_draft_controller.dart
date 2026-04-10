@@ -4,6 +4,7 @@ import 'package:riverpod/riverpod.dart';
 import 'package:riverpod/legacy.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
+import 'package:kopim/features/accounts/domain/utils/account_type_utils.dart';
 import 'package:kopim/features/accounts/domain/use_cases/get_account_by_id_use_case.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/core/services/logger_service.dart';
@@ -221,7 +222,9 @@ final StreamProvider<List<AccountEntity>> transactionFormAccountsProvider =
       return ref.watch(watchAccountsUseCaseProvider).call().map((
         List<AccountEntity> accounts,
       ) {
-        return accounts.where((AccountEntity a) => a.type != 'credit').toList();
+        return accounts
+            .where((AccountEntity a) => !isCreditAccountType(a.type))
+            .toList();
       });
     });
 
