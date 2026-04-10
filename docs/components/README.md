@@ -38,6 +38,7 @@
 - [DebtCard](DebtCard.md) — карточка долга с суммой, счетом и датой платежа
 - [CreditPaymentDetailsScreen](CreditPaymentDetailsScreen.md) — экран деталей группового платежа по кредиту
 - [HomeOverviewSummaryCard](HomeOverviewSummaryCard.md) — карточка сводки на главном экране
+- [QuickAddTransactionCard](QuickAddTransactionCard.md) — карточка быстрой операции на главном экране
 - [ReminderListItem](ReminderListItem.md) — элемент списка напоминаний
 - [GlowingAccountCard](GlowingAccountCard.md) — анимированная подсветка-змейка вокруг карточки счёта
 - [TransactionTypeSelector](TransactionTypeSelector.md) — сегментированный переключатель «расход/доход» в стиле Kopim

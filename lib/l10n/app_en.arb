@@ -1541,6 +1541,10 @@
   "@homeQuickAddTransactionTitle": {
     "description": "Title of the quick add transaction card on the home screen"
   },
+  "homeQuickAddFavoritesEmpty": "To create a quick transaction, add a category to favorites.",
+  "@homeQuickAddFavoritesEmpty": {
+    "description": "Placeholder in the quick transaction card when there are no favorite categories"
+  },
   "homeLogoSemanticLabel": "Kopim",
   "@homeLogoSemanticLabel": {
     "description": "Semantic label for the logo in the home app bar"

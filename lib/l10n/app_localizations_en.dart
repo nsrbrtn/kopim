@@ -1231,6 +1231,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeQuickAddTransactionTitle => 'Quick transaction';
 
   @override
+  String get homeQuickAddFavoritesEmpty =>
+      'To create a quick transaction, add a category to favorites.';
+
+  @override
   String get homeLogoSemanticLabel => 'Kopim';
 
   @override

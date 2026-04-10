@@ -691,7 +691,7 @@ class _TransferAccountSection extends ConsumerWidget {
             orElse: () => null,
           );
 
-    final List<AccountEntity> targetAccounts = accounts
+    final List<AccountEntity> filteredTargetAccounts = accounts
         .where(
           (AccountEntity account) =>
               account.id != sourceAccountId &&
@@ -699,6 +699,14 @@ class _TransferAccountSection extends ConsumerWidget {
                   account.currency == sourceAccount.currency),
         )
         .toList(growable: false);
+    final List<AccountEntity> targetAccounts = selectedTransferId == null
+        ? filteredTargetAccounts
+        : <AccountEntity>[
+            for (final AccountEntity account in filteredTargetAccounts)
+              if (account.id == selectedTransferId) account,
+            for (final AccountEntity account in filteredTargetAccounts)
+              if (account.id != selectedTransferId) account,
+          ];
     final String? resolvedTransferId =
         selectedTransferId != null &&
             targetAccounts.any((AccountEntity a) => a.id == selectedTransferId)

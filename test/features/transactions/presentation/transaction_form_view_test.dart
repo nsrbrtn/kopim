@@ -183,6 +183,100 @@ void main() {
   });
 
   testWidgets(
+    'в редактировании перевода счет поступления показывается первым',
+    (WidgetTester tester) async {
+      final AccountEntity sourceAccount = AccountEntity(
+        id: 'acc-usd',
+        name: 'USD Cash',
+        balanceMinor: BigInt.from(120000),
+        currency: 'USD',
+        currencyScale: 2,
+        type: 'wallet',
+        createdAt: DateTime(2023, 1, 1),
+        updatedAt: DateTime(2023, 1, 1),
+        isDeleted: false,
+      );
+      final AccountEntity firstTarget = AccountEntity(
+        id: 'acc-usd-2',
+        name: 'USD Card',
+        balanceMinor: BigInt.from(50000),
+        currency: 'USD',
+        currencyScale: 2,
+        type: 'card',
+        createdAt: DateTime(2023, 1, 1),
+        updatedAt: DateTime(2023, 1, 1),
+        isDeleted: false,
+      );
+      final AccountEntity selectedTarget = AccountEntity(
+        id: 'acc-usd-3',
+        name: 'USD Savings',
+        balanceMinor: BigInt.from(90000),
+        currency: 'USD',
+        currencyScale: 2,
+        type: 'bank',
+        createdAt: DateTime(2023, 1, 1),
+        updatedAt: DateTime(2023, 1, 1),
+        isDeleted: false,
+      );
+      final TransactionEntity transaction = TransactionEntity(
+        id: 'tx-transfer',
+        accountId: sourceAccount.id,
+        transferAccountId: selectedTarget.id,
+        amountMinor: BigInt.from(10000),
+        amountScale: 2,
+        date: DateTime(2023, 1, 2),
+        type: TransactionType.transfer.storageValue,
+        createdAt: DateTime(2023, 1, 2),
+        updatedAt: DateTime(2023, 1, 2),
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: <Override>[
+            transactionFormAccountsProvider.overrideWith(
+              (Ref ref) => Stream<List<AccountEntity>>.value(<AccountEntity>[
+                sourceAccount,
+                firstTarget,
+                selectedTarget,
+              ]),
+            ),
+            transactionFormCategoriesProvider.overrideWith(
+              (Ref ref) => const Stream<List<Category>>.empty(),
+            ),
+            transactionFormTagsProvider.overrideWith(
+              (Ref ref) => const Stream<List<TagEntity>>.empty(),
+            ),
+          ],
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: AddTransactionScreen(
+              formArgs: TransactionFormArgs(initialTransaction: transaction),
+            ),
+          ),
+        ),
+      );
+
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      final BuildContext context = tester.element(find.byType(Scaffold));
+      final AppLocalizations strings = AppLocalizations.of(context)!;
+      final Element transferSection = _findTransferSectionElement(
+        tester,
+        strings,
+      )!;
+      final List<String> texts = _collectTextValues(transferSection);
+      final int selectedIndex = texts.indexOf('USD Savings');
+      final int firstTargetIndex = texts.indexOf('USD Card');
+
+      expect(selectedIndex, isNonNegative);
+      expect(firstTargetIndex, isNonNegative);
+      expect(selectedIndex, lessThan(firstTargetIndex));
+    },
+  );
+
+  testWidgets(
     'по умолчанию форма показывает избранные и только пять обычных категорий',
     (WidgetTester tester) async {
       final AccountEntity account = _buildAccount();
@@ -306,6 +400,39 @@ AccountEntity _buildAccount() {
     updatedAt: DateTime(2023, 1, 1),
     isDeleted: false,
   );
+}
+
+Element? _findTransferSectionElement(
+  WidgetTester tester,
+  AppLocalizations strings,
+) {
+  final Element labelElement = tester.element(
+    find.text(strings.addTransactionTransferTargetLabel),
+  );
+  Element? transferSectionElement;
+  labelElement.visitAncestorElements((Element ancestor) {
+    if (ancestor.widget is Container) {
+      transferSectionElement = ancestor;
+      return false;
+    }
+    return true;
+  });
+  return transferSectionElement;
+}
+
+List<String> _collectTextValues(Element element) {
+  final List<String> texts = <String>[];
+
+  void collectTexts(Element current) {
+    final Widget widget = current.widget;
+    if (widget is Text && widget.data != null) {
+      texts.add(widget.data!);
+    }
+    current.visitChildElements(collectTexts);
+  }
+
+  collectTexts(element);
+  return texts;
 }
 
 Category _buildCategory({

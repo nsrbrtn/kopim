@@ -1240,6 +1240,10 @@ class AppLocalizationsRu extends AppLocalizations {
   String get homeQuickAddTransactionTitle => 'Быстрая операция';
 
   @override
+  String get homeQuickAddFavoritesEmpty =>
+      'Чтобы быстро создать операцию, добавьте категорию в избранное.';
+
+  @override
   String get homeLogoSemanticLabel => 'Kopim';
 
   @override

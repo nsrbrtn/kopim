@@ -18,6 +18,8 @@ import 'package:kopim/l10n/app_localizations.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
+const Duration _kQuickAddSuccessSnackBarDuration = Duration(seconds: 1);
+
 class QuickAddTransactionCard extends ConsumerWidget {
   const QuickAddTransactionCard({super.key, required this.strings});
 
@@ -84,7 +86,7 @@ class QuickAddTransactionCard extends ConsumerWidget {
 
                     if (topSelection.isEmpty) {
                       return _EmptyState(
-                        message: strings.addTransactionCategoriesLoading,
+                        message: strings.homeQuickAddFavoritesEmpty,
                       );
                     }
 
@@ -173,10 +175,7 @@ class QuickAddTransactionCard extends ConsumerWidget {
         .where((Category category) => category.isFavorite)
         .toList(growable: false);
 
-    final List<Category> selection = favorites.isNotEmpty
-        ? favorites
-        : available;
-    return selection.take(12).toList(growable: false);
+    return favorites.take(12).toList(growable: false);
   }
 
   TransactionType _mapType(String? value) {
@@ -456,7 +455,7 @@ class _QuickTransactionSheetState
     messenger.showSnackBar(
       SnackBar(
         content: Text(widget.strings.addTransactionSuccess),
-        duration: const Duration(seconds: 3),
+        duration: _kQuickAddSuccessSnackBarDuration,
         action: SnackBarAction(
           label: widget.strings.commonUndo,
           onPressed: () {

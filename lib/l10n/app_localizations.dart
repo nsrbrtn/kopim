@@ -2268,6 +2268,12 @@ abstract class AppLocalizations {
   /// **'Quick transaction'**
   String get homeQuickAddTransactionTitle;
 
+  /// Placeholder in the quick transaction card when there are no favorite categories
+  ///
+  /// In en, this message translates to:
+  /// **'To create a quick transaction, add a category to favorites.'**
+  String get homeQuickAddFavoritesEmpty;
+
   /// Semantic label for the logo in the home app bar
   ///
   /// In en, this message translates to:

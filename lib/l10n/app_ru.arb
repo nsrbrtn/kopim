@@ -1541,6 +1541,10 @@
   "@homeQuickAddTransactionTitle": {
     "description": "Заголовок карточки быстрого добавления транзакции на домашнем экране"
   },
+  "homeQuickAddFavoritesEmpty": "Чтобы быстро создать операцию, добавьте категорию в избранное.",
+  "@homeQuickAddFavoritesEmpty": {
+    "description": "Плейсхолдер в карточке быстрой операции, когда нет избранных категорий"
+  },
   "homeLogoSemanticLabel": "Kopim",
   "@homeLogoSemanticLabel": {
     "description": "Семантическая подпись логотипа в верхней панели домашнего экрана"
