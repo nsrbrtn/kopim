@@ -1253,6 +1253,8 @@ class _CategoryDropdownField extends ConsumerStatefulWidget {
 
 class _CategoryDropdownFieldState
     extends ConsumerState<_CategoryDropdownField> {
+  static const int _kDefaultVisibleRegularCategoryCount = 5;
+
   bool _showAll = false;
   late final TextEditingController _searchController;
   String _query = '';
@@ -1556,7 +1558,7 @@ class _CategoryDropdownFieldState
                     category.isFavorite && rootIds.contains(category.id),
               )
               .toList(growable: false);
-    final bool showFavoritesInHeader = !hasQuery && (!hasSelection || _showAll);
+    final bool showFavoritesInHeader = !hasQuery;
     final List<Category> headerFavorites = <Category>[
       for (final Category category in favoriteParents)
         if (!hasSelection || category.id != selectedCategoryId) category,
@@ -1574,12 +1576,21 @@ class _CategoryDropdownFieldState
                 return category.id != selectedCategory!.id;
               })
               .toList(growable: false);
+    final List<Category> previewParents = hasQuery
+        ? const <Category>[]
+        : otherParents
+              .take(_kDefaultVisibleRegularCategoryCount)
+              .toList(growable: false);
+    final int hiddenOtherParentsCount = hasQuery
+        ? 0
+        : otherParents.length - previewParents.length;
     final String buttonLabel = _showAll
         ? strings.addTransactionHideCategories
         : strings.addTransactionShowAllCategories;
     final List<Category> headerCategories = <Category>[
       if (selectedCategory != null) selectedCategory,
       if (showFavoritesInHeader) ...headerFavorites,
+      if (!hasQuery) ...previewParents,
     ];
     final List<Category> searchResults = hasQuery
         ? matchingCategories
@@ -1656,8 +1667,7 @@ class _CategoryDropdownFieldState
           Align(
             alignment: Alignment.centerRight,
             child: TextButton(
-              onPressed:
-                  hasQuery || (otherParents.isEmpty && favoriteParents.isEmpty)
+              onPressed: hasQuery || hiddenOtherParentsCount == 0
                   ? null
                   : _toggleShowAll,
               style: TextButton.styleFrom(

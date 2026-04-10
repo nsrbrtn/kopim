@@ -311,7 +311,7 @@
   "@profileAboutAppLegalese": {
     "description": "Юридическая подпись в диалоге 'О приложении'"
   },
-  "profileAboutDescription": "Копим — приложение для простого и осознанного учёта личных финансов.\nМы помогаем вам видеть свои деньги ясно и управлять ими спокойно.",
+  "profileAboutDescription": "Kopim — приложение для простого и осознанного учёта личных финансов.\nМы помогаем вам видеть свои деньги ясно и управлять ими спокойно.",
   "@profileAboutDescription": {
     "description": "Описание приложения на экране 'О приложении'"
   },
@@ -348,7 +348,7 @@
   "@profileAboutEmailOpenError": {
     "description": "Ошибка, если не удалось открыть mailto-ссылку"
   },
-  "profileWebsiteOpenError": "Не удалось открыть сайт qmodo.ru.",
+  "profileWebsiteOpenError": "Не удалось открыть сайт.",
   "@profileWebsiteOpenError": {
     "description": "Ошибка, если не удалось открыть сайт Qmodo из меню"
   },
@@ -1461,6 +1461,22 @@
   "@signInPasswordLabel": {
     "description": "Подпись к полю пароля"
   },
+  "signInEmailPlaceholder": "name@example.com",
+  "@signInEmailPlaceholder": {
+    "description": "Пример email в поле входа и регистрации"
+  },
+  "signInDisplayNamePlaceholder": "Иван Иванов",
+  "@signInDisplayNamePlaceholder": {
+    "description": "Пример имени в поле регистрации"
+  },
+  "signInForgotPasswordCta": "Забыли пароль?",
+  "@signInForgotPasswordCta": {
+    "description": "Ссылка для сброса пароля на форме входа"
+  },
+  "signInResetPasswordSuccess": "Письмо для сброса пароля отправлено на вашу почту.",
+  "@signInResetPasswordSuccess": {
+    "description": "Сообщение об успешной отправке письма для сброса пароля"
+  },
   "signInSubmitCta": "Войти",
   "@signInSubmitCta": {
     "description": "Кнопка входа"
@@ -1525,7 +1541,7 @@
   "@homeQuickAddTransactionTitle": {
     "description": "Заголовок карточки быстрого добавления транзакции на домашнем экране"
   },
-  "homeLogoSemanticLabel": "Копим",
+  "homeLogoSemanticLabel": "Kopim",
   "@homeLogoSemanticLabel": {
     "description": "Семантическая подпись логотипа в верхней панели домашнего экрана"
   },
@@ -3832,7 +3848,7 @@
   "@assistantOnboardingLimitationDataFreshness": {
     "description": "Ограничение, напоминающее о синхронизации данных"
   },
-  "assistantOnboardingLimitationSecurity": "Все расчёты выполняются внутри Kopim, данные не передаются третьим лицам.",
+  "assistantOnboardingLimitationSecurity": "Для подготовки ответа текст запроса передаётся внешнему ИИ-сервису. Не отправляйте пароли, CVV, коды из SMS и другие чувствительные данные.",
   "@assistantOnboardingLimitationSecurity": {
     "description": "Ограничение, подчёркивающее приватность"
   },

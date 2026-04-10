@@ -319,7 +319,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get profileAboutDescription =>
-      'Копим — приложение для простого и осознанного учёта личных финансов.\nМы помогаем вам видеть свои деньги ясно и управлять ими спокойно.';
+      'Kopim — приложение для простого и осознанного учёта личных финансов.\nМы помогаем вам видеть свои деньги ясно и управлять ими спокойно.';
 
   @override
   String get profileAboutEmailCta => 'Написать нам на почту';
@@ -346,7 +346,7 @@ class AppLocalizationsRu extends AppLocalizations {
       'Не удалось открыть почтовый клиент.';
 
   @override
-  String get profileWebsiteOpenError => 'Не удалось открыть сайт qmodo.ru.';
+  String get profileWebsiteOpenError => 'Не удалось открыть сайт.';
 
   @override
   String get profileExportDataCta => 'Экспортировать данные';
@@ -1177,6 +1177,19 @@ class AppLocalizationsRu extends AppLocalizations {
   String get signInPasswordLabel => 'Пароль';
 
   @override
+  String get signInEmailPlaceholder => 'name@example.com';
+
+  @override
+  String get signInDisplayNamePlaceholder => 'Иван Иванов';
+
+  @override
+  String get signInForgotPasswordCta => 'Забыли пароль?';
+
+  @override
+  String get signInResetPasswordSuccess =>
+      'Письмо для сброса пароля отправлено на вашу почту.';
+
+  @override
   String get signInSubmitCta => 'Войти';
 
   @override
@@ -1227,7 +1240,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get homeQuickAddTransactionTitle => 'Быстрая операция';
 
   @override
-  String get homeLogoSemanticLabel => 'Копим';
+  String get homeLogoSemanticLabel => 'Kopim';
 
   @override
   String get homeProfileTooltip => 'Профиль';
@@ -2968,7 +2981,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get assistantOnboardingLimitationSecurity =>
-      'Все расчёты выполняются внутри Kopim, данные не передаются третьим лицам.';
+      'Для подготовки ответа текст запроса передаётся внешнему ИИ-сервису. Не отправляйте пароли, CVV, коды из SMS и другие чувствительные данные.';
 
   @override
   String get assistantOnboardingLimitationAccuracy =>

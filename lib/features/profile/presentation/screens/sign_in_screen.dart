@@ -312,7 +312,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                   textInputAction: TextInputAction.next,
                   enabled: !isSubmitting,
                   onSubmitted: (_) => _signUpPasswordFocusNode.requestFocus(),
-                  placeholder: 'name@example.com',
+                  placeholder: strings.signInEmailPlaceholder,
                 ),
                 const SizedBox(height: 16),
 
@@ -353,11 +353,11 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                   textInputAction: TextInputAction.done,
                   enabled: !isSubmitting,
                   onSubmitted: (_) => _onSignUpSubmit(signUpController),
-                  placeholder: 'Иван Иванов',
+                  placeholder: strings.signInDisplayNamePlaceholder,
                 ),
               ] else ...<Widget>[
                 // Email
-                _buildLabel('Введите вашу почту', labelStyle),
+                _buildLabel(strings.signInEmailLabel, labelStyle),
                 const SizedBox(height: 10),
                 KopimTextField(
                   controller: _emailController,
@@ -366,7 +366,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                   textInputAction: TextInputAction.next,
                   enabled: !isSubmitting,
                   onSubmitted: (_) => _passwordFocusNode.requestFocus(),
-                  placeholder: 'name@example.com',
+                  placeholder: strings.signInEmailPlaceholder,
                   hasError: emailHasError,
                 ),
                 const SizedBox(height: 16),
@@ -375,7 +375,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: <Widget>[
-                    Text('Введите ваш пароль', style: labelStyle),
+                    Text(strings.signInPasswordLabel, style: labelStyle),
                     GestureDetector(
                       onTap: () async {
                         await controller.resetPassword();
@@ -388,16 +388,17 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                         if (latestState.errorMessage == null &&
                             !latestState.isSubmitting) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              duration: Duration(seconds: 3),
-                              content: Text(
-                                'Письмо для сброса пароля отправлено на вашу почту',
-                              ),
+                            SnackBar(
+                              duration: const Duration(seconds: 3),
+                              content: Text(strings.signInResetPasswordSuccess),
                             ),
                           );
                         }
                       },
-                      child: Text('Забыли пароль?', style: linkStyle),
+                      child: Text(
+                        strings.signInForgotPasswordCta,
+                        style: linkStyle,
+                      ),
                     ),
                   ],
                 ),

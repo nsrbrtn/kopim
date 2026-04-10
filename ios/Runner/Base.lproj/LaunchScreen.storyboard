@@ -22,8 +22,8 @@
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                         <constraints>
                             <constraint firstItem="u7O-8b-4cN" firstAttribute="centerX" secondItem="Ze5-6b-2t3" secondAttribute="centerX" id="G5Z-nw-0Tq"/>
-                            <constraint firstItem="u7O-8b-4cN" firstAttribute="width" constant="300" id="bR0-iO-Kxm"/>
-                            <constraint firstItem="u7O-8b-4cN" firstAttribute="height" constant="56" id="Zz7-vu-5wt"/>
+                            <constraint firstItem="u7O-8b-4cN" firstAttribute="width" constant="200" id="bR0-iO-Kxm"/>
+                            <constraint firstItem="u7O-8b-4cN" firstAttribute="height" constant="37" id="Zz7-vu-5wt"/>
                             <constraint firstItem="xbc-2k-c8Z" firstAttribute="top" secondItem="u7O-8b-4cN" secondAttribute="bottom" constant="24" id="Yz2-7a-7qD"/>
                         </constraints>
                     </view>
@@ -34,7 +34,7 @@
         </scene>
     </scenes>
     <resources>
-        <image name="LaunchImage" width="168" height="185"/>
+        <image name="LaunchImage" width="1229" height="229"/>
         <systemColor name="systemBackgroundColor">
             <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
         </systemColor>

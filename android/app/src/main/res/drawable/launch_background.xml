@@ -2,12 +2,9 @@
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:drawable="@color/splash_background" />
 
-    <item android:gravity="center">
-        <inset
-            android:insetLeft="24dp"
-            android:insetTop="24dp"
-            android:insetRight="24dp"
-            android:insetBottom="24dp"
-            android:drawable="@drawable/splash_logo" />
+    <item>
+        <bitmap
+            android:gravity="center"
+            android:src="@drawable/splash_logo" />
     </item>
 </layer-list>

@@ -343,7 +343,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileAboutEmailOpenError => 'Couldn\'t open your email app.';
 
   @override
-  String get profileWebsiteOpenError => 'Couldn\'t open qmodo.ru.';
+  String get profileWebsiteOpenError => 'Couldn\'t open the website.';
 
   @override
   String get profileExportDataCta => 'Export data';
@@ -1166,6 +1166,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get signInPasswordLabel => 'Password';
+
+  @override
+  String get signInEmailPlaceholder => 'name@example.com';
+
+  @override
+  String get signInDisplayNamePlaceholder => 'Alex Johnson';
+
+  @override
+  String get signInForgotPasswordCta => 'Forgot password?';
+
+  @override
+  String get signInResetPasswordSuccess =>
+      'Password reset email sent to your inbox.';
 
   @override
   String get signInSubmitCta => 'Sign in';
@@ -2944,7 +2957,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get assistantOnboardingLimitationSecurity =>
-      'Stays inside Kopim: no data is shared outside your account.';
+      'To generate a reply, your prompt text is sent to an external AI service. Do not share passwords, CVV codes, SMS codes, or other sensitive data.';
 
   @override
   String get assistantOnboardingLimitationAccuracy =>

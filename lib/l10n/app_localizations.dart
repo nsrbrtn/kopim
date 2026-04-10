@@ -707,7 +707,7 @@ abstract class AppLocalizations {
   /// Error shown when website cannot be opened from the menu
   ///
   /// In en, this message translates to:
-  /// **'Couldn\'t open qmodo.ru.'**
+  /// **'Couldn\'t open the website.'**
   String get profileWebsiteOpenError;
 
   /// Button that starts the user data export flow
@@ -2147,6 +2147,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Password'**
   String get signInPasswordLabel;
+
+  /// Example email placeholder for sign-in and sign-up
+  ///
+  /// In en, this message translates to:
+  /// **'name@example.com'**
+  String get signInEmailPlaceholder;
+
+  /// Example display name placeholder for sign-up
+  ///
+  /// In en, this message translates to:
+  /// **'Alex Johnson'**
+  String get signInDisplayNamePlaceholder;
+
+  /// Link for password reset on the sign-in form
+  ///
+  /// In en, this message translates to:
+  /// **'Forgot password?'**
+  String get signInForgotPasswordCta;
+
+  /// Confirmation shown after sending a password reset email
+  ///
+  /// In en, this message translates to:
+  /// **'Password reset email sent to your inbox.'**
+  String get signInResetPasswordSuccess;
 
   /// Primary call to action button for email/password sign-in
   ///
@@ -5241,7 +5265,7 @@ abstract class AppLocalizations {
   /// Limitation about privacy and security
   ///
   /// In en, this message translates to:
-  /// **'Stays inside Kopim: no data is shared outside your account.'**
+  /// **'To generate a reply, your prompt text is sent to an external AI service. Do not share passwords, CVV codes, SMS codes, or other sensitive data.'**
   String get assistantOnboardingLimitationSecurity;
 
   /// Limitation encouraging verification of results

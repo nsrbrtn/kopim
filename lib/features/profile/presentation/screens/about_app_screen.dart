@@ -62,7 +62,7 @@ class AboutAppScreen extends ConsumerWidget {
     );
     final String versionLabel = packageInfoAsync.maybeWhen(
       data: (PackageInfo info) => '${info.version} (${info.buildNumber})',
-      orElse: () => '1.0.1 (1)',
+      orElse: () => '—',
     );
 
     return Scaffold(
@@ -93,7 +93,8 @@ class AboutAppScreen extends ConsumerWidget {
                     _AboutActionCard(
                       title: strings.profileAboutSupportCta,
                       icon: Icons.support_agent_rounded,
-                      onTap: () => _openWebsite(context, legalConfig.supportUrl),
+                      onTap: () =>
+                          _openWebsite(context, legalConfig.supportUrl),
                     ),
                     const SizedBox(height: 8),
                     _AboutActionCard(

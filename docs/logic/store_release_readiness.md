@@ -1,7 +1,7 @@
 # План выпуска Kopim в App Store и Google Play
 
 Дата подготовки: 2026-03-07
-Последнее обновление: 2026-04-09
+Последнее обновление: 2026-04-10
 
 ## Цель документа
 
@@ -29,6 +29,541 @@
 - в первую очередь нужно не расширять функциональность, а закрыть выпускные риски;
 - ближайший приоритет проекта: довести `Android` и `iOS` release pipeline до состояния release candidate;
 - новые фичи и UX-polish имеет смысл брать только после прохождения release smoke-checklist.
+
+## Статус выполнения на 2026-04-10
+
+### Подтверждено на практике
+
+1. Android production pipeline уже собирает release-артефакт.
+
+Проверенная команда:
+
+```bash
+flutter build appbundle --release --flavor prod --target lib/main_prod.dart
+```
+
+Результат:
+
+- успешно собран `build/app/outputs/bundle/prodRelease/app-prod-release.aab`;
+- `prod` flavor работает;
+- `main_prod.dart` используется как валидный production entrypoint;
+- Android release pipeline не упирается в немедленный blocker по flavor/setup/signing.
+
+2. iOS release pipeline нельзя валидировать в текущем рабочем окружении.
+
+Фактическое состояние:
+
+- текущая машина работает под `Linux`;
+- в этом окружении локальные subcommands `flutter build ios` и `flutter build ipa` недоступны;
+- в репозитории уже есть `ios/Runner/GoogleService-Info-Dev.plist` и `ios/Runner/GoogleService-Info-Prod.plist`;
+- в `ios/Runner.xcodeproj/project.pbxproj` уже заведён `FIREBASE_PLIST_PATH` для `Debug` и `Release/Profile`;
+- iOS release-проверка должна выполняться на `macOS` runner или вручную через `Xcode`.
+
+Практический вывод:
+
+- Android можно считать подтвержденным направлением release pipeline;
+- iOS split по Firebase уже подготовлен на уровне репозитория;
+- iOS остается открытым release-блоком окружения и требует отдельного прохода на `macOS` для signing, archive и TestFlight-ready сборки.
+
+## Технический аудит pre-smoke на 2026-04-10
+
+Ниже перечислены именно те сигналы, которые выглядят релевантными для первого release smoke-pass.
+
+### Findings
+
+#### 1. AI privacy copy противоречит фактическому data flow
+
+Серьезность: `высокая`
+
+Что найдено:
+
+- на экране условий использования AI явно сказано, что запросы уходят во внешний сервис `OpenRouter`:
+  - [assistant_screen.dart](/home/artem/StudioProjects/kopim/lib/features/ai/presentation/screens/assistant_screen.dart#L500)
+- при этом в onboarding/localization есть утверждение, что данные "не передаются третьим лицам":
+  - [app_ru.arb](/home/artem/StudioProjects/kopim/lib/l10n/app_ru.arb#L3835)
+  - [app_en.arb](/home/artem/StudioProjects/kopim/lib/l10n/app_en.arb#L3835)
+- в коде также подтверждены внешние каналы:
+  - `OpenRouter`
+  - `Firebase Analytics`
+  - `Firebase Crashlytics`
+  - `Sentry`
+
+Почему это риск:
+
+- это уже не косметика, а потенциально неверное product/legal обещание;
+- перед release такой текст нельзя оставлять в текущем виде.
+
+Что делать:
+
+- синхронизировать AI onboarding copy с фактическим data flow;
+- убрать формулировку про отсутствие передачи данных третьим лицам, если она не соответствует реальному поведению.
+
+#### 2. Брендинг расходится между Android, iOS и in-app UI
+
+Серьезность: `средняя`
+
+Что найдено:
+
+- Android app name сейчас `Копим`:
+  - [strings.xml](/home/artem/StudioProjects/kopim/android/app/src/main/res/values/strings.xml#L3)
+- iOS name локализован как `Kopim` / `Копим`:
+  - [InfoPlist.strings](/home/artem/StudioProjects/kopim/ios/Runner/en.lproj/InfoPlist.strings#L1)
+  - [InfoPlist.strings](/home/artem/StudioProjects/kopim/ios/Runner/ru.lproj/InfoPlist.strings#L1)
+- внутри UI и текстов активно используется именно `Kopim`.
+
+Почему это риск:
+
+- стора и само приложение будут выглядеть как разные бренды;
+- это ухудшает восприятие продукта и делает store materials менее консистентными.
+
+Что делать:
+
+- выбрать единый release-branding для app name;
+- затем синхронизировать Android label, iOS display name и store metadata.
+
+#### 3. Пользовательские ошибки открытия сайта ссылаются на устаревший домен `qmodo.ru`
+
+Серьезность: `средняя`
+
+Что найдено:
+
+- user-facing error text все еще указывает на `qmodo.ru`:
+  - [app_ru.arb](/home/artem/StudioProjects/kopim/lib/l10n/app_ru.arb#L351)
+  - [app_en.arb](/home/artem/StudioProjects/kopim/lib/l10n/app_en.arb#L351)
+- этот текст используется и в меню, и на экране "О приложении":
+  - [menu_screen.dart](/home/artem/StudioProjects/kopim/lib/features/profile/presentation/screens/menu_screen.dart#L77)
+  - [about_app_screen.dart](/home/artem/StudioProjects/kopim/lib/features/profile/presentation/screens/about_app_screen.dart#L43)
+- при этом release/legal/support URLs уже переведены на `kopim.site`.
+
+Почему это риск:
+
+- пользователь получает неправильное сообщение об ошибке в release-сценарии;
+- это выглядит как незавершенный rebrand/migration хвост.
+
+Что делать:
+
+- обновить error copy под текущий домен или сделать ее нейтральной без упоминания конкретного URL.
+
+#### 4. Экран "О приложении" имеет stale hardcoded fallback по версии
+
+Серьезность: `средняя`
+
+Что найдено:
+
+- если `PackageInfo` не загрузится, UI покажет жестко зашитое значение `1.0.1 (1)`:
+  - [about_app_screen.dart](/home/artem/StudioProjects/kopim/lib/features/profile/presentation/screens/about_app_screen.dart#L63)
+
+Почему это риск:
+
+- в release build может отображаться устаревшая версия;
+- это плохо для support, QA и store review.
+
+Что делать:
+
+- либо убрать hardcoded fallback;
+- либо сделать fallback нейтральным (`—` / `не удалось определить версию`), а не привязанным к старому релизному номеру.
+
+#### 5. Экран авторизации содержит hardcoded и частично нелокализованные тексты
+
+Серьезность: `средняя`
+
+Что найдено:
+
+- в `SignInScreen` есть прямые русские строки и незавернутые в l10n placeholders:
+  - [sign_in_screen.dart](/home/artem/StudioProjects/kopim/lib/features/profile/presentation/screens/sign_in_screen.dart#L315)
+  - [sign_in_screen.dart](/home/artem/StudioProjects/kopim/lib/features/profile/presentation/screens/sign_in_screen.dart#L356)
+  - [sign_in_screen.dart](/home/artem/StudioProjects/kopim/lib/features/profile/presentation/screens/sign_in_screen.dart#L360)
+  - [sign_in_screen.dart](/home/artem/StudioProjects/kopim/lib/features/profile/presentation/screens/sign_in_screen.dart#L378)
+  - [sign_in_screen.dart](/home/artem/StudioProjects/kopim/lib/features/profile/presentation/screens/sign_in_screen.dart#L394)
+  - [sign_in_screen.dart](/home/artem/StudioProjects/kopim/lib/features/profile/presentation/screens/sign_in_screen.dart#L400)
+
+Почему это риск:
+
+- EN-локаль будет выглядеть незавершенной;
+- это заметный user-facing дефект на одном из самых важных экранов первого запуска.
+
+Что делать:
+
+- вынести все hardcoded строки и placeholders экрана авторизации в `l10n`.
+
+### Что не подтвердилось как активный blocker
+
+1. По быстрому поиску не видно, что `coming soon` / placeholder строки из `l10n` массово торчат в текущем UI.
+2. Аналитика и overview используют placeholder-данные в empty-chart сценариях, но это выглядит как корректный empty-state, а не как незавершенная заглушка release-уровня.
+
+### Приоритетный pre-smoke backlog по итогам аудита
+
+1. Исправить AI privacy copy.
+2. Убрать hardcoded и нелокализованные строки с auth-экранов.
+3. Синхронизировать брендинг `Kopim` / `Копим` между Android, iOS и store metadata.
+4. Убрать stale `qmodo.ru` из user-facing ошибок.
+5. Убрать stale fallback версии на экране "О приложении".
+
+### Статус исправлений после первого пакета правок на 2026-04-10
+
+Уже исправлено:
+
+1. AI privacy copy приведен в соответствие с фактическим data flow.
+   - onboarding теперь прямо сообщает, что текст запроса передается внешнему AI-сервису;
+   - предупреждение про чувствительные данные синхронизировано с экраном условий использования AI.
+2. Нелокализованные auth-строки убраны с экрана входа и регистрации.
+   - email/password labels теперь берутся из `l10n`;
+   - placeholders, CTA "Забыли пароль?" и success snackbar после reset password переведены в `l10n`.
+3. User-facing ошибка открытия сайта сделана нейтральной.
+   - сообщение больше не зашито на конкретный домен `qmodo.ru`.
+4. Fallback версии на экране "О приложении" сделан безопасным.
+   - вместо устаревшего hardcoded release number теперь показывается нейтральное `—`.
+5. Брендинг приложения синхронизирован на уровне platform labels и базовых user-facing строк.
+   - Android app label переведен на единый бренд `Kopim`;
+   - iOS display name / bundle name приведены к `Kopim`;
+   - русские строки с названием приложения в ключевых точках (`About`, semantic label логотипа) тоже приведены к `Kopim`.
+
+После этого pre-smoke backlog из аудита можно считать закрытым на уровне кода. Следующий этап уже не кодовый, а выпускной:
+
+1. Прогнать ручной Android RC smoke-pass по checklist.
+2. Подготовить final store metadata и приложить фактические privacy/data-safety ответы.
+3. Повторить iOS часть на `macOS` через `Xcode` / `TestFlight`.
+
+## Фактическая матрица permissions и data flows на 2026-04-10
+
+Ниже зафиксировано то, что подтверждается текущим кодом, а не предварительными предположениями.
+
+### Android permissions
+
+#### `POST_NOTIFICATIONS`
+
+- Где используется:
+  - локальные уведомления и напоминания через `flutter_local_notifications`;
+  - запрос разрешения делается в `lib/core/services/notifications_gateway_mobile.dart`.
+- Пользовательская ценность:
+  - напоминания о предстоящих платежах;
+  - тестовое уведомление из настроек;
+  - действия из уведомлений для reminder-flow.
+- Можно ли выпустить без него:
+  - технически да;
+  - продуктово нежелательно, потому что reminder-flow сильно теряет ценность.
+
+#### `SCHEDULE_EXACT_ALARM`
+
+- Где используется:
+  - проверка статуса и открытие системного экрана через `lib/core/services/exact_alarm_permission_service.dart`;
+  - Android bridge в `android/app/src/main/kotlin/qmodo/ru/kopim/MainActivity.kt`;
+  - UI настройки в `lib/features/profile/presentation/widgets/profile_exact_alarm_preferences_card.dart`.
+- Пользовательская ценность:
+  - точные напоминания в указанное время;
+  - более предсказуемый recurring/upcoming flow на Android.
+- Можно ли выпустить без него:
+  - да, потому что в `lib/core/services/notifications_gateway_mobile.dart` уже есть fallback на `inexact`;
+  - для store-review важно явно описывать это как opt-in сценарий.
+
+#### `RECEIVE_BOOT_COMPLETED`
+
+- Где используется:
+  - `ScheduledNotificationBootReceiver` из `flutter_local_notifications`;
+  - кастомный `RepeatBootReceiver` в `android/app/src/main/kotlin/qmodo/ru/kopim/RepeatBootReceiver.kt`.
+- Пользовательская ценность:
+  - восстановление напоминаний и фоновых задач после reboot;
+  - recurring generation и upcoming apply rules не теряются после перезагрузки устройства.
+- Можно ли выпустить без него:
+  - да, но надежность reminder-flow после reboot ухудшится.
+
+#### `CAMERA`
+
+- Где используется:
+  - camera avatar flow через `ImagePicker` в `lib/features/profile/presentation/controllers/avatar_controller.dart`.
+- Пользовательская ценность:
+  - пользователь может сделать фото для аватара прямо из приложения.
+- Можно ли выпустить без него:
+  - да, если оставить только gallery/preset avatar flow;
+  - это не ядро продукта, но нормальная вспомогательная возможность.
+
+#### `INTERNET`
+
+- Где используется:
+  - Firebase Auth, Firestore sync, Remote Config, Analytics, Crashlytics, Sentry и сетевые сервисы.
+- Пользовательская ценность:
+  - авторизация;
+  - облачная синхронизация;
+  - конфигурация и диагностика.
+- Можно ли выпустить без него:
+  - нет, если релиз сохраняет sync/account модель.
+
+#### `ACCESS_NETWORK_STATE`
+
+- Где используется:
+  - network-aware поведение и более аккуратные сетевые проверки.
+- Пользовательская ценность:
+  - корректная реакция на offline/online;
+  - меньше ложных сетевых операций.
+- Можно ли выпустить без него:
+  - теоретически да, но практический выигрыш от удаления низкий.
+
+### iOS permission keys
+
+#### `NSCameraUsageDescription`
+
+- Подтвержден в `ios/Runner/Info.plist`.
+- Нужен для camera avatar flow.
+
+#### `NSPhotoLibraryUsageDescription`
+
+- Подтвержден в `ios/Runner/Info.plist`.
+- Нужен для выбора аватара из галереи.
+
+### Карта данных и внешних сервисов
+
+#### `Firebase Auth`
+
+- Используется для email/password auth и удаления пользователя.
+- Основные точки:
+  - `lib/core/di/injectors.dart`
+  - `lib/features/profile/data/auth_repository_impl.dart`
+- Тип данных:
+  - email;
+  - user id;
+  - auth/session data.
+
+#### `Cloud Firestore`
+
+- Используется как облачный sync-layer для пользовательских сущностей.
+- Подтверждено по remote data sources в `profile`, `accounts`, `transactions`, `budgets`, `credits`, `savings`, `tags`, `upcoming_payments`.
+- Тип данных:
+  - профиль;
+  - счета;
+  - транзакции;
+  - бюджеты;
+  - накопления;
+  - кредиты и долги;
+  - теги;
+  - upcoming/reminder сущности.
+
+#### `Firebase Analytics`
+
+- Используется через `lib/core/services/analytics_service.dart`.
+- В коде реально логируются product events:
+  - profile events;
+  - savings events;
+  - auth sync events;
+  - AI events;
+  - reminder scheduling events.
+- Для store forms это означает, что analytics/app activity реально собираются.
+
+#### `Firebase Crashlytics`
+
+- Используется через `lib/core/services/analytics_service.dart` и местами напрямую.
+- Для store forms это означает, что crash logs реально собираются.
+
+#### `Sentry`
+
+- Используется как дополнительный error reporting канал в `lib/core/services/analytics_service.dart`.
+- Ошибки analytics и runtime errors тоже отправляются в Sentry.
+- Для privacy disclosures это нужно учитывать отдельно от Crashlytics.
+
+#### `Firebase Remote Config`
+
+- Используется в `lib/core/config/app_config.dart`.
+- Сейчас задействован для AI-конфига:
+  - model;
+  - base URL;
+  - timeout;
+  - retry policy;
+  - enabled flag.
+
+#### `Firebase Messaging`
+
+- В коде подтвержден web push flow в `lib/core/services/push_permission_service_web.dart`.
+- При разрешении вызываются:
+  - `requestPermission()`;
+  - `setAutoInitEnabled(true)`;
+  - `getToken()`.
+- Это означает, что для web-сценария может создаваться push token / messaging identifier.
+
+#### `Firebase Storage`
+
+- Capability присутствует в коде:
+  - `lib/features/profile/data/remote/avatar_remote_data_source.dart`.
+- Но текущий avatar flow нужно описывать аккуратно:
+  - фото из камеры/галереи сейчас сохраняются как `data URL` локально;
+  - это подтверждается `storeOfflineOnly = true` в `lib/features/profile/presentation/controllers/avatar_controller.dart`;
+  - `lib/features/profile/data/profile_repository_impl.dart` не ставит `data URL` в outbox на remote sync;
+  - preset avatars синхронизируются как asset path, а не как пользовательская фотография.
+- Практический вывод:
+  - SDK `Firebase Storage` подключен;
+  - но текущий camera/gallery flow не выглядит как обязательная облачная загрузка пользовательских фото.
+
+### Практический вывод для store forms
+
+- Для `Google Play Data Safety` уже можно уверенно декларировать:
+  - account data: да;
+  - financial/user content: да;
+  - analytics/app activity: да;
+  - crash logs: да.
+- Для фото и файлов нужен аккуратный ответ:
+  - камера и photo library используются для avatar selection;
+  - текущий camera/gallery flow не выглядит как обязательная загрузка фото в `Firebase Storage`;
+  - перед заполнением store forms это нужно финально перепроверить на реальном авторизованном сценарии.
+
+## Черновик ответов для store forms на 2026-04-10
+
+Этот раздел не заменяет финальное юридическое и консольное заполнение, но уже дает рабочий черновик ответов, основанный на текущем коде.
+
+### Google Play Data Safety: рабочий черновик
+
+#### Какие типы данных выглядят собираемыми или обрабатываемыми
+
+##### Account info
+
+- `email address`: да
+- `user ID`: да
+
+Основание:
+
+- `Firebase Auth` используется для email/password auth;
+- пользовательская запись и удаление аккаунта подтверждены в коде.
+
+##### App activity
+
+- `app interactions`: да
+- `in-app search history`: нет явных подтверждений
+- `other actions`: да, частично через продуктовые analytics events
+
+Основание:
+
+- `Firebase Analytics` логирует profile, savings, auth sync, AI и reminder-related события.
+
+##### Financial info
+
+- `financial info`: да
+
+Основание:
+
+- счета, транзакции, бюджеты, накопления, кредиты и related user entities синхронизируются через `Cloud Firestore`.
+
+##### Photos and videos
+
+- `photos`: использовать осторожный ответ
+
+Предварительная позиция:
+
+- приложение получает доступ к фото/камере для выбора аватара;
+- но текущий camera/gallery flow не выглядит как обязательная облачная загрузка пользовательских фото;
+- до финального ответа это нужно перепроверить на реальном signed-in сценарии.
+
+##### Crash logs
+
+- `crash logs`: да
+
+Основание:
+
+- используется `Firebase Crashlytics`;
+- дополнительно используется `Sentry`.
+
+##### Device or other IDs
+
+- `device or other IDs`: вероятно да, но нужно заполнить консервативно
+
+Основание:
+
+- web push flow через `Firebase Messaging` может создавать messaging token;
+- `Firebase Analytics` и `Crashlytics` обычно опираются на служебные идентификаторы SDK.
+
+#### Передаются ли данные третьим лицам
+
+Предварительный рабочий ответ:
+
+- данные передаются внешним сервисам инфраструктуры приложения:
+  - Google Firebase;
+  - Sentry.
+
+Для внутренних store-форм это обычно не означает "sale", но означает передачу внешним обработчикам/processor-сервисам.
+
+#### Собираются ли данные
+
+Предварительный рабочий ответ:
+
+- да, для account/auth;
+- да, для sync данных пользователя;
+- да, для analytics;
+- да, для crash reporting.
+
+#### Являются ли данные обязательными для работы приложения
+
+Предварительный рабочий ответ:
+
+- auth и cloud sync: да, для авторизованного сценария;
+- analytics/crash reporting: нет, это не core user-facing feature;
+- notifications/exact alarm: нет, приложение работает и без них;
+- camera/photo access: нет, это вспомогательный avatar flow.
+
+#### Шифруются ли данные при передаче
+
+Предварительный рабочий ответ:
+
+- да, по сетевым каналам Firebase/Sentry.
+
+Это нужно финально подтвердить в legal/privacy формулировках, но для store forms такой ответ выглядит ожидаемым.
+
+#### Можно ли запросить удаление данных
+
+- да
+
+Основание:
+
+- в приложении реализован in-app account deletion flow;
+- public deletion URL опубликован;
+- cleaner удаляет известные пользовательские коллекции и локальные данные.
+
+### App Store Privacy: рабочий черновик
+
+#### Data used to track you
+
+Предварительный рабочий ответ:
+
+- `No`, если в финальной ревизии не подтвердится отдельный advertising/tracking SDK.
+
+Текущее основание:
+
+- в коде не видно ad SDK;
+- нет подтверждения классического cross-app tracking сценария.
+
+#### Data linked to the user
+
+С высокой вероятностью сюда попадают:
+
+- `Contact Info`:
+  - email
+- `Identifiers`:
+  - user ID
+  - вероятные service identifiers/token flows
+- `Financial Info`:
+  - счета, транзакции, бюджеты, накопления, кредиты
+- `User Content`:
+  - профиль
+  - avatar/preset avatar state
+- `Usage Data`:
+  - analytics events
+- `Diagnostics`:
+  - crash logs, error reports
+
+#### Data not linked to the user
+
+Возможная часть diagnostics/analytics может оказаться в этой категории в зависимости от финальной конфигурации SDK и настроек консоли, но пока безопаснее считать, что analytics и sync-oriented account data связаны с пользователем.
+
+### Что еще обязательно перепроверить перед реальным заполнением форм
+
+1. Реальный signed-in сценарий avatar flow:
+   - сохраняется ли camera/gallery avatar только локально;
+   - не уходит ли пользовательское фото в `Firebase Storage` косвенно через другой путь.
+2. Web push / messaging token сценарий:
+   - нужен ли он в первом релизе;
+   - надо ли отражать его в production store forms, если основной релизный акцент на mobile.
+3. Финальные ответы по `Identifiers`:
+   - сверить с актуальными подсказками Play Console и App Store Connect в момент заполнения.
+4. Юридическая сверка текстов:
+   - `privacy.html`
+   - `terms.html`
+   - `delete-account.html`
+   - `support.html`
 
 ## Что делать сейчас в первую очередь
 
@@ -61,7 +596,7 @@
 
 1. Проверить и зафиксировать production-команды сборки для:
    - `flutter build appbundle --release --flavor prod --target lib/main_prod.dart`
-   - `flutter build ipa --release --target lib/main_prod.dart`
+   - iOS archive/build проверить отдельно на `macOS` через `Xcode` или `flutter build ios` / `flutter build ipa`
 2. Подтвердить, что production-сборка действительно использует production Firebase и production legal/support URLs.
 3. Проверить Android release signing, `versionCode`, Crashlytics mapping upload и `prod` flavor.
 4. Проверить iOS signing, `CFBundleIdentifier`, `CFBundleShortVersionString`, `CFBundleVersion`, production `GoogleService-Info.plist`, capabilities и privacy declarations.
@@ -409,11 +944,11 @@ dart format --set-exit-if-changed .
 flutter analyze
 flutter test --reporter expanded
 flutter build appbundle --release --flavor prod --target lib/main_prod.dart
-flutter build ipa --release --target lib/main_prod.dart
 ```
 
 Дополнительно стоит добавить:
 
+- iOS release/archive проверять на `macOS` через `Xcode` или `flutter build ios` / `flutter build ipa`;
 - smoke-test release-сборки на реальном Android-устройстве;
 - smoke-test TestFlight build на реальном iPhone;
 - проверку cold start;
@@ -682,33 +1217,117 @@ flutter build ipa --release --target lib/main_prod.dart
 6. Проверить dSYM upload для Crashlytics.
 7. Проверить capability для push, если push реально используется.
 
+### iOS/macOS prerequisites для отдельного прохода
+
+Так как текущая рабочая среда не позволяет локально собрать iOS release, перед macOS-проходом нужно заранее подтвердить:
+
+1. Есть доступ к `Apple Developer` и `App Store Connect` для нужной команды.
+2. В Xcode доступен корректный `Signing Team` для `qmodo.ru.kopim`.
+3. Для production target используется `ios/Runner/GoogleService-Info-Prod.plist`.
+4. Archive собирается с:
+   - `CFBundleIdentifier = qmodo.ru.kopim`
+   - актуальными `FLUTTER_BUILD_NAME` и `FLUTTER_BUILD_NUMBER`
+5. После archive можно:
+   - экспортировать build;
+   - отправить build в `TestFlight`;
+   - увидеть dSYM/Crashlytics upload без явных ошибок.
+6. Если push не входит в первый релиз, не добавлять лишние iOS capabilities только “на будущее”.
+
 ## Release-кандидат: сценарии ручной проверки
 
-Перед загрузкой в TestFlight/Internal testing пройти минимум:
+Перед загрузкой в `TestFlight` / `Internal testing` пройти минимум следующий smoke-checklist.
 
-1. Первый запуск приложения.
-2. Регистрация и вход.
-3. Анонимный режим, если он поддерживается.
-4. Создание счета.
-5. Добавление дохода, расхода и перевода.
-6. Создание накопления и пополнение.
-7. Создание кредита/долга и платеж.
-8. Локальные уведомления и напоминания.
-9. Синхронизация после перезапуска.
-10. Работа без сети и последующий resync.
-11. Экспорт данных.
-    - проверить, что backup включает `saving goals`, `credits`, `credit cards`, `debts`, `tags`, `transaction tags`, `budgets`, `budget instances`, `upcoming payments`, `payment reminders`;
-    - проверить, что import работает как restore и не оставляет старые локальные транзакции/обязательства;
-    - проверить импорт legacy backup без падения на `savingGoalId`.
-12. Удаление аккаунта.
-13. Переходы на privacy policy, terms, support.
+### Android RC checklist
 
-Отдельно проверить:
+1. Установить `app-prod-release.aab` / соответствующий internal build на реальное Android-устройство.
+2. Проверить cold start:
+   - splash отображается корректно;
+   - нет debug-banner;
+   - приложение открывается без startup error screen.
+3. Пройти first-run permissions:
+   - notifications permission;
+   - exact alarm status screen в настройках;
+   - camera/gallery avatar flow.
+4. Проверить auth:
+   - sign up;
+   - sign in;
+   - sign out;
+   - восстановление сессии после перезапуска.
+5. Проверить базовый финансовый путь:
+   - создать счет;
+   - добавить доход;
+   - добавить расход;
+   - создать перевод между счетами одной валюты.
+6. Проверить расширенные сущности:
+   - создать накопление и пополнение;
+   - создать кредит или долг;
+   - провести платеж по обязательству.
+7. Проверить upcoming/reminder flow:
+   - создать upcoming payment;
+   - создать reminder;
+   - убедиться, что планирование отрабатывает без ошибок;
+   - отправить тестовое уведомление из настроек.
+8. Проверить offline-first сценарий:
+   - отключить сеть;
+   - внести изменения локально;
+   - включить сеть;
+   - дождаться resync без потери данных.
+9. Проверить backup/import/export:
+   - export выполняется успешно;
+   - backup включает `saving goals`, `credits`, `credit cards`, `debts`, `tags`, `transaction tags`, `budgets`, `budget instances`, `upcoming payments`, `payment reminders`;
+   - import работает как restore и не оставляет старые локальные данные;
+   - legacy backup не падает на `savingGoalId`.
+10. Проверить account deletion:
+   - destructive dialog требует кодовое слово и текущий пароль;
+   - после удаления пользователь действительно выходит из аккаунта;
+   - локальные данные очищаются;
+   - повторный запуск не возвращает удаленную сессию.
+11. Проверить legal/support путь:
+   - открываются `privacy`;
+   - открываются `terms`;
+   - открывается `support`;
+   - версия и build number показываются корректно.
 
-- обновление с предыдущей версии;
-- поведение после reboot устройства для reminders;
-- корректность локали `ru`;
-- корректность сумм и валютных scale.
+### Дополнительно для Android
+
+1. Проверить поведение reminders после reboot устройства.
+2. Проверить exact alarm opt-in на Android 12+.
+3. Проверить release build на отсутствие regressions от shrink/minify.
+
+### iOS / TestFlight checklist
+
+1. Установить TestFlight build на реальный iPhone.
+2. Проверить cold start и launch screen.
+3. Проверить auth:
+   - sign up;
+   - sign in;
+   - sign out;
+   - восстановление сессии.
+4. Проверить базовый финансовый путь:
+   - счет;
+   - доход;
+   - расход;
+   - перевод.
+5. Проверить savings / credit / debt flow.
+6. Проверить upcoming/reminder UI:
+   - создание правил;
+   - отсутствие platform-specific ошибок;
+   - корректное поведение при недоступности Android-specific exact alarm flow.
+7. Проверить avatar flow:
+   - gallery selection;
+   - camera capture;
+   - отсутствие permission-crash.
+8. Проверить export/import.
+9. Проверить account deletion.
+10. Проверить legal/support links.
+
+### Общие критерии успешного smoke-test
+
+1. Нет blocker-багов в core user path.
+2. Нет падений на first launch, auth, sync, export/import, account deletion.
+3. Нет platform-specific dead-end экранов.
+4. Локаль `ru` отображается корректно.
+5. Денежные суммы и scale отображаются корректно.
 
 ## Порядок выпуска
 

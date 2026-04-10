@@ -348,7 +348,7 @@
   "@profileAboutEmailOpenError": {
     "description": "Error shown when mailto cannot be opened"
   },
-  "profileWebsiteOpenError": "Couldn't open qmodo.ru.",
+  "profileWebsiteOpenError": "Couldn't open the website.",
   "@profileWebsiteOpenError": {
     "description": "Error shown when website cannot be opened from the menu"
   },
@@ -1460,6 +1460,22 @@
   "signInPasswordLabel": "Password",
   "@signInPasswordLabel": {
     "description": "Label for password field"
+  },
+  "signInEmailPlaceholder": "name@example.com",
+  "@signInEmailPlaceholder": {
+    "description": "Example email placeholder for sign-in and sign-up"
+  },
+  "signInDisplayNamePlaceholder": "Alex Johnson",
+  "@signInDisplayNamePlaceholder": {
+    "description": "Example display name placeholder for sign-up"
+  },
+  "signInForgotPasswordCta": "Forgot password?",
+  "@signInForgotPasswordCta": {
+    "description": "Link for password reset on the sign-in form"
+  },
+  "signInResetPasswordSuccess": "Password reset email sent to your inbox.",
+  "@signInResetPasswordSuccess": {
+    "description": "Confirmation shown after sending a password reset email"
   },
   "signInSubmitCta": "Sign in",
   "@signInSubmitCta": {
@@ -3832,7 +3848,7 @@
   "@assistantOnboardingLimitationDataFreshness": {
     "description": "Limitation reminding users about data freshness"
   },
-  "assistantOnboardingLimitationSecurity": "Stays inside Kopim: no data is shared outside your account.",
+  "assistantOnboardingLimitationSecurity": "To generate a reply, your prompt text is sent to an external AI service. Do not share passwords, CVV codes, SMS codes, or other sensitive data.",
   "@assistantOnboardingLimitationSecurity": {
     "description": "Limitation about privacy and security"
   },
