@@ -13,6 +13,7 @@ import 'package:kopim/features/ai/presentation/controllers/assistant_session_con
 import 'package:kopim/features/ai/presentation/models/assistant_filters.dart';
 import 'package:kopim/features/ai/presentation/models/assistant_message.dart';
 import 'package:kopim/features/ai/presentation/models/assistant_session_state.dart';
+import 'package:kopim/features/profile/presentation/controllers/active_currency_code_provider.dart';
 import 'package:riverpod/riverpod.dart';
 import 'package:riverpod/misc.dart' show Override;
 
@@ -86,6 +87,7 @@ void main() {
       final ProviderContainer container = ProviderContainer(
         overrides: <Override>[
           _firebaseInitializedOverride,
+          activeCurrencyCodeProvider.overrideWithValue('RUB'),
           connectivityProvider.overrideWithValue(connectivity),
           askFinancialAssistantUseCaseProvider.overrideWith(
             (Ref ref) => AskFinancialAssistantUseCase(repository),
@@ -134,6 +136,7 @@ void main() {
       final ProviderContainer container = ProviderContainer(
         overrides: <Override>[
           _firebaseInitializedOverride,
+          activeCurrencyCodeProvider.overrideWithValue('RUB'),
           connectivityProvider.overrideWithValue(connectivity),
           askFinancialAssistantUseCaseProvider.overrideWith(
             (Ref ref) => AskFinancialAssistantUseCase(repository),
@@ -193,6 +196,7 @@ void main() {
         final ProviderContainer container = ProviderContainer(
           overrides: <Override>[
             _firebaseInitializedOverride,
+            activeCurrencyCodeProvider.overrideWithValue('RUB'),
             connectivityProvider.overrideWithValue(connectivity),
             askFinancialAssistantUseCaseProvider.overrideWith(
               (Ref ref) => AskFinancialAssistantUseCase(repository),
@@ -238,6 +242,7 @@ void main() {
           contains(AssistantFilter.currentMonth),
         );
         expect(queries, hasLength(1));
+        expect(queries.single.contextSignals, contains('currency:RUB'));
         expect(queries.single.contextSignals, contains('period:current_month'));
       },
     );
@@ -254,6 +259,7 @@ void main() {
       final ProviderContainer container = ProviderContainer(
         overrides: <Override>[
           _firebaseInitializedOverride,
+          activeCurrencyCodeProvider.overrideWithValue('RUB'),
           connectivityProvider.overrideWithValue(connectivity),
           askFinancialAssistantUseCaseProvider.overrideWith(
             (Ref ref) => AskFinancialAssistantUseCase(repository),
@@ -291,6 +297,7 @@ void main() {
       final ProviderContainer container = ProviderContainer(
         overrides: <Override>[
           _firebaseInitializedOverride,
+          activeCurrencyCodeProvider.overrideWithValue('RUB'),
           connectivityProvider.overrideWithValue(connectivity),
           askFinancialAssistantUseCaseProvider.overrideWith(
             (Ref ref) => AskFinancialAssistantUseCase(repository),

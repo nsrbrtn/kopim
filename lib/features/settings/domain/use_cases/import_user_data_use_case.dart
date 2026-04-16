@@ -3,7 +3,7 @@ import 'package:kopim/features/settings/domain/use_cases/import_user_data_result
 
 /// Контракт импорта пользовательских данных из экспортированного файла.
 class ImportUserDataParams {
-  const ImportUserDataParams({this.format = DataTransferFormat.csv});
+  const ImportUserDataParams({this.format = DataTransferFormat.json});
 
   final DataTransferFormat format;
 }

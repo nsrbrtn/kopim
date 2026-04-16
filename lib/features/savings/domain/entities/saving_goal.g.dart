@@ -11,6 +11,11 @@ _SavingGoal _$SavingGoalFromJson(Map<String, dynamic> json) => _SavingGoal(
   userId: json['userId'] as String,
   name: json['name'] as String,
   accountId: json['accountId'] as String?,
+  storageAccountIds:
+      (json['storageAccountIds'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList() ??
+      const <String>[],
   targetDate: json['targetDate'] == null
       ? null
       : DateTime.parse(json['targetDate'] as String),
@@ -30,6 +35,7 @@ Map<String, dynamic> _$SavingGoalToJson(_SavingGoal instance) =>
       'userId': instance.userId,
       'name': instance.name,
       'accountId': instance.accountId,
+      'storageAccountIds': instance.storageAccountIds,
       'targetDate': instance.targetDate?.toIso8601String(),
       'targetAmount': instance.targetAmount,
       'currentAmount': instance.currentAmount,

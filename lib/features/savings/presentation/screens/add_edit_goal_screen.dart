@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import 'package:kopim/core/widgets/kopim_text_field.dart';
+import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
+import 'package:kopim/features/accounts/presentation/accounts_add_screen.dart';
 import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
 import 'package:kopim/features/savings/presentation/controllers/edit_goal_controller.dart';
 import 'package:kopim/features/savings/presentation/controllers/edit_goal_state.dart';
@@ -133,6 +135,11 @@ class _AddEditGoalScreenState extends ConsumerState<AddEditGoalScreen> {
                 if (state.targetError != null && state.targetError!.isNotEmpty)
                   _FieldErrorText(message: state.targetError!),
                 const SizedBox(height: 16),
+                _StorageAccountsSection(state: state, goal: widget.goal),
+                if (state.storageAccountsError != null &&
+                    state.storageAccountsError!.isNotEmpty)
+                  _FieldErrorText(message: state.storageAccountsError!),
+                const SizedBox(height: 16),
                 _TargetDateField(state: state, goal: widget.goal),
                 const SizedBox(height: 16),
                 KopimTextField(
@@ -170,6 +177,71 @@ class _AddEditGoalScreenState extends ConsumerState<AddEditGoalScreen> {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _StorageAccountsSection extends ConsumerWidget {
+  const _StorageAccountsSection({required this.state, required this.goal});
+
+  final EditGoalState state;
+  final SavingGoal? goal;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final ThemeData theme = Theme.of(context);
+    final EditGoalController controller = ref.read(
+      editGoalControllerProvider(goal).notifier,
+    );
+    final List<AccountEntity> accounts = state.availableStorageAccounts;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Text('Счета хранения', style: theme.textTheme.titleSmall),
+        const SizedBox(height: 8),
+        Text(
+          'Выберите один или несколько счетов, на которых фактически хранится сумма цели. Если список пуст, можно создать новый счет.',
+          style: theme.textTheme.bodySmall,
+        ),
+        const SizedBox(height: 12),
+        if (accounts.isEmpty)
+          Text(
+            'Нет доступных счетов хранения.',
+            style: theme.textTheme.bodyMedium,
+          )
+        else
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: accounts
+                .map((AccountEntity account) {
+                  final bool selected = state.selectedStorageAccountIds
+                      .contains(account.id);
+                  return FilterChip(
+                    label: Text(account.name),
+                    selected: selected,
+                    onSelected: (bool value) =>
+                        controller.toggleStorageAccount(account.id, value),
+                  );
+                })
+                .toList(growable: false),
+          ),
+        const SizedBox(height: 12),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: OutlinedButton.icon(
+            onPressed: () async {
+              await Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => const AddAccountScreen(),
+                ),
+              );
+            },
+            icon: const Icon(Icons.add),
+            label: const Text('Создать новый счет'),
+          ),
+        ),
+      ],
     );
   }
 }

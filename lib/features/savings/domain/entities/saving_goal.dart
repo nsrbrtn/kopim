@@ -12,6 +12,7 @@ abstract class SavingGoal with _$SavingGoal {
     required String userId,
     required String name,
     String? accountId,
+    @Default(<String>[]) List<String> storageAccountIds,
     DateTime? targetDate,
     required int targetAmount,
     required int currentAmount,
@@ -27,4 +28,25 @@ abstract class SavingGoal with _$SavingGoal {
   bool get isArchived => archivedAt != null;
 
   int get remainingAmount => targetAmount - currentAmount;
+
+  List<String> get effectiveStorageAccountIds {
+    if (storageAccountIds.isNotEmpty) {
+      return storageAccountIds;
+    }
+    if (accountId == null || accountId!.isEmpty) {
+      return const <String>[];
+    }
+    return <String>[accountId!];
+  }
+
+  String? get primaryStorageAccountId {
+    final List<String> ids = effectiveStorageAccountIds;
+    if (ids.isEmpty) {
+      return null;
+    }
+    if (accountId != null && accountId!.isNotEmpty && ids.contains(accountId)) {
+      return accountId;
+    }
+    return ids.first;
+  }
 }

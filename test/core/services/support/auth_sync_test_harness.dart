@@ -9,6 +9,7 @@ import 'package:kopim/core/services/analytics_service.dart';
 import 'package:kopim/core/services/auth_sync_service.dart';
 import 'package:kopim/core/services/logger_service.dart';
 import 'package:kopim/core/services/sync/sync_data_sanitizer.dart';
+import 'package:kopim/features/accounts/data/services/account_type_backfill_service.dart';
 import 'package:kopim/features/accounts/data/sources/local/account_dao.dart';
 import 'package:kopim/features/accounts/data/sources/remote/account_remote_data_source.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
@@ -32,6 +33,8 @@ import 'package:kopim/features/credits/domain/entities/debt_entity.dart';
 import 'package:kopim/features/profile/data/local/profile_dao.dart';
 import 'package:kopim/features/profile/data/remote/profile_remote_data_source.dart';
 import 'package:kopim/features/profile/domain/entities/profile.dart';
+import 'package:kopim/features/profile/domain/policies/level_policy.dart';
+import 'package:kopim/features/savings/data/sources/local/goal_account_link_dao.dart';
 import 'package:kopim/features/savings/data/sources/local/saving_goal_dao.dart';
 import 'package:kopim/features/savings/data/sources/remote/saving_goal_remote_data_source.dart';
 import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
@@ -71,6 +74,7 @@ class AuthSyncTestHarness {
   late BudgetDao budgetDao;
   late BudgetInstanceDao budgetInstanceDao;
   late SavingGoalDao savingGoalDao;
+  late GoalAccountLinkDao goalAccountLinkDao;
   late UpcomingPaymentsDao upcomingPaymentsDao;
   late PaymentRemindersDao paymentRemindersDao;
   late TagDao tagDao;
@@ -79,6 +83,7 @@ class AuthSyncTestHarness {
   late FakeFirebaseFirestore firestore;
   late MockLoggerService logger;
   late MockAnalyticsService analytics;
+  late AccountTypeBackfillService accountTypeBackfillService;
   late BudgetRemoteDataSource budgetRemote;
   late BudgetInstanceRemoteDataSource budgetInstanceRemote;
   late SavingGoalRemoteDataSource savingGoalRemote;
@@ -105,6 +110,7 @@ class AuthSyncTestHarness {
     budgetDao = BudgetDao(database);
     budgetInstanceDao = BudgetInstanceDao(database);
     savingGoalDao = SavingGoalDao(database);
+    goalAccountLinkDao = GoalAccountLinkDao(database);
     upcomingPaymentsDao = UpcomingPaymentsDao(database);
     paymentRemindersDao = PaymentRemindersDao(database);
     tagDao = TagDao(database);
@@ -113,6 +119,13 @@ class AuthSyncTestHarness {
     firestore = FakeFirebaseFirestore();
     logger = MockLoggerService();
     analytics = MockAnalyticsService();
+    accountTypeBackfillService = AccountTypeBackfillService(
+      database: database,
+      accountDao: accountDao,
+      outboxDao: outboxDao,
+      loggerService: logger,
+      analyticsService: analytics,
+    );
     budgetRemote = BudgetRemoteDataSource(firestore);
     budgetInstanceRemote = BudgetInstanceRemoteDataSource(firestore);
     savingGoalRemote = SavingGoalRemoteDataSource(firestore);
@@ -134,10 +147,16 @@ class AuthSyncTestHarness {
       budgetDao: budgetDao,
       budgetInstanceDao: budgetInstanceDao,
       savingGoalDao: savingGoalDao,
+      goalAccountLinkDao: goalAccountLinkDao,
       upcomingPaymentsDao: upcomingPaymentsDao,
       paymentRemindersDao: paymentRemindersDao,
       transactionDao: transactionDao,
+      profileDao: profileDao,
       outboxDao: outboxDao,
+      levelPolicy: const SimpleLevelPolicy(),
+      loggerService: logger,
+      analyticsService: analytics,
+      accountTypeBackfillService: accountTypeBackfillService,
     );
 
     when(() => analytics.logEvent(any(), any())).thenAnswer((_) async {});
@@ -179,6 +198,7 @@ class AuthSyncTestHarness {
       budgetDao: budgetDao,
       budgetInstanceDao: budgetInstanceDao,
       savingGoalDao: savingGoalDao,
+      goalAccountLinkDao: goalAccountLinkDao,
       upcomingPaymentsDao: upcomingPaymentsDao,
       paymentRemindersDao: paymentRemindersDao,
       profileDao: profileDao,
@@ -205,6 +225,7 @@ class AuthSyncTestHarness {
       loggerService: logger,
       analyticsService: analytics,
       dataSanitizer: sanitizer,
+      accountTypeBackfillService: accountTypeBackfillService,
     );
   }
 

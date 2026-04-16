@@ -70,6 +70,8 @@ void main() {
     final BuildContext context = tester.element(find.byType(MenuScreen));
     final AppLocalizations strings = AppLocalizations.of(context)!;
 
+    expect(find.text(strings.analyticsTitle), findsNothing);
+    expect(find.text(strings.budgetsTitle), findsNothing);
     expect(find.text(strings.profileMenuCategoriesTagsCta), findsOneWidget);
     expect(find.text(strings.profileMenuHomeSettingsCta), findsOneWidget);
     expect(find.text(strings.profileUpcomingPaymentsCta), findsOneWidget);
@@ -77,11 +79,8 @@ void main() {
       find.text(strings.profileAboutAppCta, skipOffstage: false),
       findsOneWidget,
     );
-    expect(
-      find.text(strings.profileTelegramGroupCta, skipOffstage: false),
-      findsOneWidget,
-    );
     expect(find.text(strings.profileMadeInLabel), findsOneWidget);
+    expect(find.byType(BackButton), findsNothing);
   });
 
   testWidgets('navigates to management screens', (WidgetTester tester) async {
@@ -190,6 +189,48 @@ void main() {
 
     expect(find.byType(AboutAppScreen), findsOneWidget);
     expect(find.text(strings.profileAboutEmailCta), findsOneWidget);
+  });
+
+  testWidgets('shows app bar back button when opened as secondary route', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: overrides,
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          routes: <String, WidgetBuilder>{
+            MenuScreen.routeName: (_) => const MenuScreen(),
+          },
+          home: Builder(
+            builder: (BuildContext context) {
+              return Scaffold(
+                body: Center(
+                  child: FilledButton(
+                    onPressed: () =>
+                        Navigator.of(context).pushNamed(MenuScreen.routeName),
+                    child: const Text('open-menu'),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('open-menu'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(MenuScreen), findsOneWidget);
+    expect(find.byType(BackButton), findsOneWidget);
+
+    await tester.tap(find.byType(BackButton));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(MenuScreen), findsNothing);
+    expect(find.text('open-menu'), findsOneWidget);
   });
 }
 

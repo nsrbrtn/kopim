@@ -78,6 +78,7 @@ class UserAccountCleanupRepositoryImpl implements UserAccountCleanupRepository {
     await _database.transaction(() async {
       await (_database.delete(_database.transactionTags)).go();
       await (_database.delete(_database.goalContributions)).go();
+      await (_database.delete(_database.goalAccountLinks)).go();
       await (_database.delete(_database.paymentReminders)).go();
       await (_database.delete(_database.upcomingPayments)).go();
       await (_database.delete(_database.creditPaymentGroups)).go();

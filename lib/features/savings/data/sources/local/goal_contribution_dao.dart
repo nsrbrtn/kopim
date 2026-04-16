@@ -10,6 +10,7 @@ class GoalContributionDao {
     required String id,
     required String goalId,
     required String transactionId,
+    String? storageAccountId,
     required int amount,
     required DateTime createdAt,
   }) {
@@ -20,6 +21,7 @@ class GoalContributionDao {
             id: Value<String>(id),
             goalId: Value<String>(goalId),
             transactionId: Value<String>(transactionId),
+            storageAccountId: Value<String?>(storageAccountId),
             amount: Value<int>(amount),
             createdAt: Value<DateTime>(createdAt),
           ),

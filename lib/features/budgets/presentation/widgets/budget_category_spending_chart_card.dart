@@ -3,7 +3,9 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:kopim/core/config/theme_extensions.dart';
+import 'package:kopim/core/formatting/currency_symbols.dart';
 import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
+import 'package:kopim/features/profile/presentation/controllers/active_currency_code_provider.dart';
 import 'package:kopim/features/budgets/presentation/models/budget_category_spend.dart';
 import 'package:kopim/features/categories/presentation/utils/category_gradients.dart';
 import 'package:kopim/l10n/app_localizations.dart';
@@ -79,8 +81,9 @@ class BudgetCategorySpendingView extends StatelessWidget {
       return Padding(padding: resolvedPadding, child: empty);
     }
 
-    final NumberFormat currencyFormat = NumberFormat.simpleCurrency(
+    final NumberFormat currencyFormat = resolveCurrencyFormat(
       locale: localeName,
+      currencyCode: activeCurrencyCodeOf(context),
     );
     final NumberFormat percentFormat = NumberFormat.percentPattern(localeName)
       ..minimumFractionDigits = 0

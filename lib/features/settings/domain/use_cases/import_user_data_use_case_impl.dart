@@ -67,25 +67,18 @@ class ImportUserDataUseCaseImpl implements ImportUserDataUseCase {
         bundle.upcomingPayments,
         bundle: bundle,
       );
-      await _repository.importData(
-        accounts: bundle.accounts,
-        categories: bundle.categories,
-        tags: bundle.tags,
+      final ExportBundle sanitizedBundle = bundle.copyWith(
+        transactions: transactions,
         transactionTags: transactionTags,
-        savingGoals: bundle.savingGoals,
-        credits: bundle.credits,
-        creditCards: bundle.creditCards,
-        debts: bundle.debts,
         budgets: budgets,
         budgetInstances: budgetInstances,
         upcomingPayments: upcomingPayments,
-        paymentReminders: bundle.paymentReminders,
-        transactions: transactions,
       );
+      await _repository.importData(bundle: sanitizedBundle);
 
       return ImportUserDataResult.success(
-        accounts: bundle.accounts.length,
-        categories: bundle.categories.length,
+        accounts: sanitizedBundle.accounts.length,
+        categories: sanitizedBundle.categories.length,
         transactions: transactions.length,
       );
     } on FormatException catch (error) {

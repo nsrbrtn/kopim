@@ -24,7 +24,7 @@ void main() {
       expect(payment, 10000.0);
     });
 
-     test('calculates correctly for 1 month term', () {
+    test('calculates correctly for 1 month term', () {
       // 12000 principal, 12% rate (1% monthly), 1 month.
       // Payment should be 12000 + 1% = 12120.
       final double payment = calculateAnnuityMonthlyPayment(
@@ -84,33 +84,36 @@ void main() {
       }
     });
 
-    test('таблично: при одинаковой ставке меньший срок дает больший платеж', () {
-      const double principal = 250000;
-      const double rate = 12;
-      final List<int> terms = <int>[60, 36, 24, 12, 6];
+    test(
+      'таблично: при одинаковой ставке меньший срок дает больший платеж',
+      () {
+        const double principal = 250000;
+        const double rate = 12;
+        final List<int> terms = <int>[60, 36, 24, 12, 6];
 
-      double? previousPayment;
-      for (final int term in terms) {
-        final double payment = calculateAnnuityMonthlyPayment(
-          principal: principal,
-          annualInterestRate: rate,
-          termMonths: term,
-        );
-        if (previousPayment != null) {
-          expect(payment, greaterThan(previousPayment));
+        double? previousPayment;
+        for (final int term in terms) {
+          final double payment = calculateAnnuityMonthlyPayment(
+            principal: principal,
+            annualInterestRate: rate,
+            termMonths: term,
+          );
+          if (previousPayment != null) {
+            expect(payment, greaterThan(previousPayment));
+          }
+          previousPayment = payment;
         }
-        previousPayment = payment;
-      }
-    });
+      },
+    );
 
     test('инвариант: суммарные выплаты не меньше тела кредита', () {
       final List<({double principal, double rate, int term})> cases =
           <({double principal, double rate, int term})>[
-        (principal: 50000, rate: 0, term: 10),
-        (principal: 100000, rate: 7.5, term: 18),
-        (principal: 300000, rate: 12, term: 24),
-        (principal: 750000, rate: 21, term: 36),
-      ];
+            (principal: 50000, rate: 0, term: 10),
+            (principal: 100000, rate: 7.5, term: 18),
+            (principal: 300000, rate: 12, term: 24),
+            (principal: 750000, rate: 21, term: 36),
+          ];
 
       for (final ({double principal, double rate, int term}) c in cases) {
         final double payment = calculateAnnuityMonthlyPayment(
@@ -125,10 +128,10 @@ void main() {
     test('согласован с AnnuityCalculator для месячного платежа', () {
       final List<({double principal, double rate, int term})> cases =
           <({double principal, double rate, int term})>[
-        (principal: 120000, rate: 0, term: 12),
-        (principal: 250000, rate: 7.5, term: 24),
-        (principal: 500000, rate: 12, term: 36),
-      ];
+            (principal: 120000, rate: 0, term: 12),
+            (principal: 250000, rate: 7.5, term: 24),
+            (principal: 500000, rate: 12, term: 36),
+          ];
 
       for (final ({double principal, double rate, int term}) c in cases) {
         final double fromDomain = calculateAnnuityMonthlyPayment(
@@ -141,8 +144,8 @@ void main() {
           annualInterestRatePercent: c.rate,
           termMonths: c.term,
         );
-        final List<AnnuityPaymentItem> schedule = AnnuityCalculator
-            .generateSchedule(
+        final List<AnnuityPaymentItem> schedule =
+            AnnuityCalculator.generateSchedule(
               principal: Money.fromDouble(
                 c.principal,
                 currency: 'RUB',
@@ -155,10 +158,7 @@ void main() {
 
         expect(fromDomain, closeTo(fromCore, 1e-9));
         expect(schedule, isNotEmpty);
-        expect(
-          schedule.first.totalAmount.toDouble(),
-          closeTo(fromCore, 0.01),
-        );
+        expect(schedule.first.totalAmount.toDouble(), closeTo(fromCore, 0.01));
       }
     });
   });

@@ -57,6 +57,22 @@ void main() {
     verify(() => repository.update(updated)).called(1);
   });
 
+  test('updates goal storage accounts and primary account', () async {
+    final SavingGoal goal = _goal().copyWith(
+      accountId: 'legacy-account',
+      storageAccountIds: <String>['legacy-account'],
+    );
+
+    final SavingGoal updated = await useCase(
+      goal: goal,
+      storageAccountIds: <String>['acc-3', 'acc-2', 'acc-3'],
+    );
+
+    expect(updated.accountId, 'acc-3');
+    expect(updated.storageAccountIds, <String>['acc-3', 'acc-2']);
+    verify(() => repository.update(updated)).called(1);
+  });
+
   test('throws when new target is not positive', () async {
     expect(
       () => useCase(goal: _goal(), target: Money.fromMinorUnits(0)),

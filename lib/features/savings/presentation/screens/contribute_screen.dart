@@ -3,9 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import 'package:kopim/core/config/theme_extensions.dart';
+import 'package:kopim/core/formatting/currency_symbols.dart';
 import 'package:kopim/core/widgets/kopim_dropdown_field.dart';
 import 'package:kopim/core/widgets/kopim_text_field.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
+import 'package:kopim/features/profile/presentation/controllers/active_currency_code_provider.dart';
 import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
 import 'package:kopim/features/savings/domain/value_objects/goal_progress.dart';
 import 'package:kopim/features/savings/presentation/controllers/contribute_controller.dart';
@@ -80,8 +82,10 @@ class _ContributeScreenState extends ConsumerState<ContributeScreen> {
     final AppLocalizations strings = AppLocalizations.of(context)!;
     final GoalProgress progress = GoalProgress.fromGoal(widget.goal);
     final KopimLayout layout = context.kopimLayout;
-    final NumberFormat currencyFormat = NumberFormat.simpleCurrency(
+    final String currencyCode = ref.watch(activeCurrencyCodeProvider);
+    final NumberFormat currencyFormat = resolveCurrencyFormat(
       locale: Localizations.localeOf(context).toString(),
+      currencyCode: currencyCode,
     );
     final String remainingLabel = currencyFormat.format(
       progress.remaining.minorUnits / 100,
@@ -94,7 +98,17 @@ class _ContributeScreenState extends ConsumerState<ContributeScreen> {
           ),
         )
         .toList(growable: false);
+    final List<DropdownMenuItem<String>> storageAccountItems = state
+        .goalStorageAccounts
+        .map(
+          (AccountEntity account) => DropdownMenuItem<String>(
+            value: account.id,
+            child: Text(account.name),
+          ),
+        )
+        .toList(growable: false);
     final String? selectedAccountValue = state.selectedAccountId;
+    final String? selectedStorageAccountValue = state.selectedStorageAccountId;
     return Scaffold(
       appBar: AppBar(
         title: Text(strings.savingsContributeTitle(widget.goal.name)),
@@ -147,6 +161,20 @@ class _ContributeScreenState extends ConsumerState<ContributeScreen> {
               ),
               if (state.amountError != null && state.amountError!.isNotEmpty)
                 _FieldErrorText(message: state.amountError!),
+              const SizedBox(height: 16),
+              KopimDropdownField<String>(
+                value: selectedStorageAccountValue,
+                items: storageAccountItems,
+                label: 'Счет хранения цели',
+                hint: 'Выберите счет хранения',
+                enabled: storageAccountItems.isNotEmpty,
+                onChanged: (String value) => ref
+                    .read(contributeControllerProvider(widget.goal).notifier)
+                    .selectStorageAccount(value),
+              ),
+              if (state.storageAccountError != null &&
+                  state.storageAccountError!.isNotEmpty)
+                _FieldErrorText(message: state.storageAccountError!),
               const SizedBox(height: 16),
               KopimDropdownField<String>(
                 value: selectedAccountValue,

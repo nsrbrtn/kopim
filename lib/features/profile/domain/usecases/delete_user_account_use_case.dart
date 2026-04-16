@@ -24,10 +24,7 @@ class DeleteUserAccountUseCase {
     }
 
     await _authRepository.reauthenticate(
-      SignInRequest.email(
-        email: authUser.email!,
-        password: currentPassword,
-      ),
+      SignInRequest.email(email: authUser.email!, password: currentPassword),
     );
     await _cleanupRepository.deleteRemoteUserData(authUser.uid);
     await _authRepository.deleteCurrentUser();

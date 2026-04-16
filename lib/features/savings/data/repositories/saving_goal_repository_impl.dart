@@ -8,6 +8,8 @@ import 'package:kopim/features/accounts/domain/utils/account_type_utils.dart';
 import 'package:kopim/core/money/currency_scale.dart';
 import 'package:kopim/core/money/money.dart';
 import 'package:kopim/features/savings/data/sources/local/goal_contribution_dao.dart';
+import 'package:kopim/features/savings/data/sources/local/goal_account_link_dao.dart';
+import 'package:kopim/features/savings/data/mappers/saving_goal_storage_accounts_mapper.dart';
 import 'package:kopim/features/savings/data/sources/local/saving_goal_dao.dart';
 import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
 import 'package:kopim/features/savings/domain/repositories/saving_goal_repository.dart';
@@ -21,6 +23,7 @@ class SavingGoalRepositoryImpl implements SavingGoalRepository {
   SavingGoalRepositoryImpl({
     required db.AppDatabase database,
     required SavingGoalDao savingGoalDao,
+    required GoalAccountLinkDao goalAccountLinkDao,
     required AccountDao accountDao,
     required TransactionDao transactionDao,
     required GoalContributionDao goalContributionDao,
@@ -31,6 +34,7 @@ class SavingGoalRepositoryImpl implements SavingGoalRepository {
     DateTime Function()? clock,
   }) : _database = database,
        _savingGoalDao = savingGoalDao,
+       _goalAccountLinkDao = goalAccountLinkDao,
        _accountDao = accountDao,
        _transactionDao = transactionDao,
        _contributionDao = goalContributionDao,
@@ -46,6 +50,7 @@ class SavingGoalRepositoryImpl implements SavingGoalRepository {
 
   final db.AppDatabase _database;
   final SavingGoalDao _savingGoalDao;
+  final GoalAccountLinkDao _goalAccountLinkDao;
   final AccountDao _accountDao;
   final TransactionDao _transactionDao;
   final GoalContributionDao _contributionDao;
@@ -57,25 +62,40 @@ class SavingGoalRepositoryImpl implements SavingGoalRepository {
 
   @override
   Stream<List<SavingGoal>> watchGoals({required bool includeArchived}) {
-    return _savingGoalDao.watchGoals(includeArchived: includeArchived);
+    return _savingGoalDao
+        .watchGoals(includeArchived: includeArchived)
+        .asyncMap(_attachStorageAccounts);
   }
 
   @override
   Future<List<SavingGoal>> loadGoals({required bool includeArchived}) {
-    return _savingGoalDao.getGoals(includeArchived: includeArchived);
+    return _savingGoalDao
+        .getGoals(includeArchived: includeArchived)
+        .then(_attachStorageAccounts);
   }
 
   @override
-  Future<SavingGoal?> findById(String id) {
-    return _savingGoalDao.findById(id);
+  Future<SavingGoal?> findById(String id) async {
+    final SavingGoal? goal = await _savingGoalDao.findById(id);
+    if (goal == null) {
+      return null;
+    }
+    return _attachStorageAccountsToGoal(goal);
   }
 
   @override
   Future<SavingGoal?> findByName({
     required String userId,
     required String name,
-  }) {
-    return _savingGoalDao.findByName(userId: userId, name: name);
+  }) async {
+    final SavingGoal? goal = await _savingGoalDao.findByName(
+      userId: userId,
+      name: name,
+    );
+    if (goal == null) {
+      return null;
+    }
+    return _attachStorageAccountsToGoal(goal);
   }
 
   @override
@@ -84,8 +104,14 @@ class SavingGoalRepositoryImpl implements SavingGoalRepository {
     SavingGoal? persistedGoal;
     await _database.transaction(() async {
       final SavingGoal withAccount = await _ensureGoalAccount(goal, now);
-      final SavingGoal toPersist = withAccount.copyWith(updatedAt: now);
+      final SavingGoal normalized = _normalizeGoalStorageAccounts(withAccount);
+      final SavingGoal toPersist = normalized.copyWith(updatedAt: now);
       await _savingGoalDao.upsert(toPersist);
+      await _goalAccountLinkDao.replaceLinks(
+        goalId: toPersist.id,
+        accountIds: toPersist.effectiveStorageAccountIds,
+        now: now,
+      );
       await _outboxDao.enqueue(
         entityType: _goalEntityType,
         entityId: toPersist.id,
@@ -98,8 +124,12 @@ class SavingGoalRepositoryImpl implements SavingGoalRepository {
     await _analyticsService.logEvent('savings_goal_create', <String, dynamic>{
       'goalId': toPersist.id,
       'target': toPersist.targetAmount,
+      'storageAccounts': toPersist.effectiveStorageAccountIds.length,
     });
-    _logger.logInfo('Saving goal created: ${toPersist.id}');
+    _logger.logInfo(
+      'Saving goal created: ${toPersist.id}, '
+      'storage_accounts=${toPersist.effectiveStorageAccountIds.length}',
+    );
   }
 
   @override
@@ -108,8 +138,14 @@ class SavingGoalRepositoryImpl implements SavingGoalRepository {
     SavingGoal? persistedGoal;
     await _database.transaction(() async {
       final SavingGoal withAccount = await _ensureGoalAccount(goal, now);
-      final SavingGoal toPersist = withAccount.copyWith(updatedAt: now);
+      final SavingGoal normalized = _normalizeGoalStorageAccounts(withAccount);
+      final SavingGoal toPersist = normalized.copyWith(updatedAt: now);
       await _savingGoalDao.upsert(toPersist);
+      await _goalAccountLinkDao.replaceLinks(
+        goalId: toPersist.id,
+        accountIds: toPersist.effectiveStorageAccountIds,
+        now: now,
+      );
       await _syncGoalAccountName(goal: toPersist, timestamp: now);
       await _outboxDao.enqueue(
         entityType: _goalEntityType,
@@ -123,8 +159,12 @@ class SavingGoalRepositoryImpl implements SavingGoalRepository {
     await _analyticsService.logEvent('savings_goal_update', <String, dynamic>{
       'goalId': toPersist.id,
       'target': toPersist.targetAmount,
+      'storageAccounts': toPersist.effectiveStorageAccountIds.length,
     });
-    _logger.logInfo('Saving goal updated: ${toPersist.id}');
+    _logger.logInfo(
+      'Saving goal updated: ${toPersist.id}, '
+      'storage_accounts=${toPersist.effectiveStorageAccountIds.length}',
+    );
   }
 
   @override
@@ -155,17 +195,25 @@ class SavingGoalRepositoryImpl implements SavingGoalRepository {
     required int newCurrentAmount,
     required DateTime contributedAt,
     required String sourceAccountId,
+    String? storageAccountId,
     String? contributionNote,
   }) async {
     final DateTime timestamp = contributedAt.toUtc();
     final SavingGoal persisted = await _database.transaction(() async {
       final SavingGoal ensuredGoal = await _ensureGoalAccount(goal, timestamp);
-      final String? goalAccountId = ensuredGoal.accountId;
+      final SavingGoal normalizedGoal = _normalizeGoalStorageAccounts(
+        ensuredGoal,
+      );
+      final String? goalAccountId =
+          (storageAccountId != null && storageAccountId.isNotEmpty)
+          ? storageAccountId
+          : normalizedGoal.primaryStorageAccountId;
       if (goalAccountId == null || goalAccountId.isEmpty) {
         throw StateError('Saving goal account is not configured');
       }
-      final SavingGoal updatedGoal = goal.copyWith(
+      final SavingGoal updatedGoal = normalizedGoal.copyWith(
         accountId: goalAccountId,
+        storageAccountIds: normalizedGoal.effectiveStorageAccountIds,
         currentAmount: newCurrentAmount,
         updatedAt: timestamp,
       );
@@ -181,9 +229,6 @@ class SavingGoalRepositoryImpl implements SavingGoalRepository {
       );
       if (goalAccountRow == null) {
         throw StateError('Saving goal account not found');
-      }
-      if (accountId == goalAccountId) {
-        throw StateError('Source and target accounts must be different');
       }
       if (sourceAccountRow.currency != goalAccountRow.currency) {
         throw StateError('Source and saving goal currencies must match');
@@ -224,6 +269,7 @@ class SavingGoalRepositoryImpl implements SavingGoalRepository {
         id: _uuid.v4(),
         goalId: goal.id,
         transactionId: transaction.id,
+        storageAccountId: goalAccountId,
         amount: appliedDelta,
         createdAt: timestamp,
       );
@@ -242,13 +288,18 @@ class SavingGoalRepositoryImpl implements SavingGoalRepository {
           'goalId': persisted.id,
           'amount': appliedDelta,
           'sourceAccountId': sourceAccountId,
+          'storageAccountId': persisted.accountId ?? '',
+          'storageAccounts': persisted.effectiveStorageAccountIds.length,
         });
     final String logNote =
         contributionNote != null && contributionNote.isNotEmpty
         ? ' с заметкой $contributionNote'
         : '';
     _logger.logInfo(
-      'Добавлен взнос в ${persisted.id} на сумму $appliedDelta$logNote',
+      'Добавлен взнос в ${persisted.id} на сумму $appliedDelta'
+      '$logNote; source=$sourceAccountId, '
+      'storage=${persisted.accountId}, '
+      'storage_accounts=${persisted.effectiveStorageAccountIds.length}',
     );
     return persisted;
   }
@@ -257,6 +308,10 @@ class SavingGoalRepositoryImpl implements SavingGoalRepository {
     SavingGoal goal,
     DateTime timestamp,
   ) async {
+    final SavingGoal normalizedGoal = _normalizeGoalStorageAccounts(goal);
+    if (normalizedGoal.storageAccountIds.isNotEmpty) {
+      return normalizedGoal;
+    }
     if (goal.accountId != null && goal.accountId!.isNotEmpty) {
       final SavingGoal? linkedGoal = await _savingGoalDao.findByAccountId(
         goal.accountId!,
@@ -318,7 +373,38 @@ class SavingGoalRepositoryImpl implements SavingGoalRepository {
       operation: OutboxOperation.upsert,
       payload: _mapAccountPayload(account),
     );
-    return goal.copyWith(accountId: account.id);
+    return goal.copyWith(
+      accountId: account.id,
+      storageAccountIds: <String>[account.id],
+    );
+  }
+
+  SavingGoal _normalizeGoalStorageAccounts(SavingGoal goal) {
+    final List<String> ids = goal.effectiveStorageAccountIds;
+    return mapSavingGoalStorageAccounts(goal, ids);
+  }
+
+  Future<SavingGoal> _attachStorageAccountsToGoal(SavingGoal goal) async {
+    final List<String> ids = await _goalAccountLinkDao.findAccountIdsByGoalId(
+      goal.id,
+    );
+    return mapSavingGoalStorageAccounts(goal, ids);
+  }
+
+  Future<List<SavingGoal>> _attachStorageAccounts(
+    List<SavingGoal> goals,
+  ) async {
+    if (goals.isEmpty) {
+      return const <SavingGoal>[];
+    }
+    final Map<String, List<String>> idsByGoal = await _goalAccountLinkDao
+        .findAccountIdsByGoalIds(goals.map((SavingGoal goal) => goal.id));
+    return goals
+        .map(
+          (SavingGoal goal) =>
+              mapSavingGoalStorageAccounts(goal, idsByGoal[goal.id]),
+        )
+        .toList(growable: false);
   }
 
   Future<db.AccountRow?> _findPrimaryActiveAccount() async {

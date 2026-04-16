@@ -59,7 +59,7 @@ final class ContributeControllerProvider
 }
 
 String _$contributeControllerHash() =>
-    r'72f45436ad816417d88eb33f3612c84b79a02f1e';
+    r'73aee504b5ca71c7e44c516b9f12d8c938fee768';
 
 final class ContributeControllerFamily extends $Family
     with

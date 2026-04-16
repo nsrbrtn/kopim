@@ -2,10 +2,11 @@ import 'dart:async';
 
 import 'package:kopim/core/data/database.dart' as db;
 import 'package:kopim/core/data/outbox/outbox_dao.dart';
-import 'package:kopim/core/money/money_utils.dart';
+import 'package:kopim/features/accounts/data/mappers/account_sync_payload_mapper.dart';
 import 'package:kopim/features/accounts/data/sources/local/account_dao.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/accounts/domain/repositories/account_repository.dart';
+import 'package:kopim/features/accounts/domain/utils/account_type_utils.dart';
 
 class AccountRepositoryImpl implements AccountRepository {
   AccountRepositoryImpl({
@@ -46,7 +47,13 @@ class AccountRepositoryImpl implements AccountRepository {
   @override
   Future<void> upsert(AccountEntity account) async {
     final DateTime now = DateTime.now();
-    final AccountEntity toPersist = account.copyWith(updatedAt: now);
+    final AccountEntity toPersist = account.copyWith(
+      updatedAt: now,
+      typeVersion: resolveStoredAccountTypeVersion(
+        account.type,
+        currentTypeVersion: account.typeVersion,
+      ),
+    );
     await _database.transaction(() async {
       if (toPersist.isPrimary) {
         await _accountDao.clearPrimaryExcept(toPersist.id, now);
@@ -81,22 +88,7 @@ class AccountRepositoryImpl implements AccountRepository {
   }
 
   Map<String, dynamic> _mapAccountPayload(AccountEntity account) {
-    final Map<String, dynamic> json = account.toJson();
-    json['updatedAt'] = account.updatedAt.toIso8601String();
-    json['createdAt'] = account.createdAt.toIso8601String();
-    json['isPrimary'] = account.isPrimary;
-    json['color'] = account.color;
-    json['gradientId'] = account.gradientId;
-    json['iconName'] = account.iconName;
-    json['iconStyle'] = account.iconStyle;
-    final MoneyAmount balance = account.balanceAmount;
-    final MoneyAmount openingBalance = account.openingBalanceAmount;
-    json['balance'] = balance.toDouble();
-    json['openingBalance'] = openingBalance.toDouble();
-    json['balanceMinor'] = balance.minor.toString();
-    json['openingBalanceMinor'] = openingBalance.minor.toString();
-    json['currencyScale'] = account.currencyScale;
-    return json;
+    return mapAccountSyncPayload(account);
   }
 
   AccountEntity _mapToDomain(db.AccountRow row) {
@@ -108,6 +100,7 @@ class AccountRepositoryImpl implements AccountRepository {
       currency: row.currency,
       currencyScale: row.currencyScale,
       type: row.type,
+      typeVersion: row.typeVersion,
       color: row.color,
       gradientId: row.gradientId,
       createdAt: row.createdAt,

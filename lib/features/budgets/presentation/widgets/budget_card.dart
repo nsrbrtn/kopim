@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import 'package:kopim/core/config/theme_extensions.dart';
+import 'package:kopim/core/formatting/currency_symbols.dart';
 import 'package:kopim/core/widgets/collapsible_list/collapsible_list.dart';
 
 import 'package:kopim/features/budgets/domain/entities/budget_progress.dart';
 import 'package:kopim/features/budgets/presentation/models/budget_category_spend.dart';
 import 'package:kopim/features/budgets/presentation/widgets/budget_category_spending_chart_card.dart';
 import 'package:kopim/features/budgets/presentation/widgets/budget_progress_indicator.dart';
+import 'package:kopim/features/profile/presentation/controllers/active_currency_code_provider.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
-class BudgetCard extends StatefulWidget {
+class BudgetCard extends ConsumerStatefulWidget {
   const BudgetCard({
     required this.progress,
     required this.categorySpend,
@@ -33,10 +36,10 @@ class BudgetCard extends StatefulWidget {
   final bool enableExpansion;
 
   @override
-  State<BudgetCard> createState() => _BudgetCardState();
+  ConsumerState<BudgetCard> createState() => _BudgetCardState();
 }
 
-class _BudgetCardState extends State<BudgetCard> {
+class _BudgetCardState extends ConsumerState<BudgetCard> {
   bool _isExpanded = false;
 
   @override
@@ -45,8 +48,10 @@ class _BudgetCardState extends State<BudgetCard> {
     final KopimLayout layout = context.kopimLayout;
     final KopimSpacingScale spacing = layout.spacing;
     final AppLocalizations strings = AppLocalizations.of(context)!;
-    final NumberFormat currencyFormat = NumberFormat.simpleCurrency(
+    final String currencyCode = ref.watch(activeCurrencyCodeProvider);
+    final NumberFormat currencyFormat = resolveCurrencyFormat(
       locale: strings.localeName,
+      currencyCode: currencyCode,
     );
     final double limit = widget.progress.budget.amountValue.toDouble();
     final double spent = widget.progress.spent.toDouble();
@@ -192,10 +197,7 @@ class _BudgetCardState extends State<BudgetCard> {
                   padding: const EdgeInsets.all(24),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: <Widget>[
-                      titleRow,
-                      statsColumn,
-                    ],
+                    children: <Widget>[titleRow, statsColumn],
                   ),
                 ),
               ),

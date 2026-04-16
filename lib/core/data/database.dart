@@ -25,6 +25,8 @@ class Accounts extends Table {
   IntColumn get currencyScale =>
       integer().named('currency_scale').withDefault(const Constant<int>(2))();
   TextColumn get type => text().withLength(min: 1, max: 50)();
+  IntColumn get typeVersion =>
+      integer().named('type_version').withDefault(const Constant<int>(0))();
   TextColumn get color => text().nullable()();
   TextColumn get gradientId => text().nullable()();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
@@ -242,6 +244,18 @@ class SavingGoals extends Table {
   Set<Column<Object>> get primaryKey => <Column<Object>>{id};
 }
 
+@DataClassName('GoalAccountLinkRow')
+class GoalAccountLinks extends Table {
+  TextColumn get goalId =>
+      text().references(SavingGoals, #id, onDelete: KeyAction.cascade)();
+  TextColumn get accountId =>
+      text().references(Accounts, #id, onDelete: KeyAction.cascade)();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column<Object>> get primaryKey => <Column<Object>>{goalId, accountId};
+}
+
 @DataClassName('GoalContributionRow')
 class GoalContributions extends Table {
   TextColumn get id => text().withLength(min: 1, max: 50)();
@@ -249,6 +263,10 @@ class GoalContributions extends Table {
       text().references(SavingGoals, #id, onDelete: KeyAction.cascade)();
   TextColumn get transactionId =>
       text().references(Transactions, #id, onDelete: KeyAction.cascade)();
+  TextColumn get storageAccountId => text()
+      .named('storage_account_id')
+      .nullable()
+      .references(Accounts, #id, onDelete: KeyAction.setNull)();
   IntColumn get amount => integer()();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
 
@@ -435,6 +453,7 @@ class CreditCards extends Table {
     Budgets,
     BudgetInstances,
     SavingGoals,
+    GoalAccountLinks,
     GoalContributions,
     UpcomingPayments,
     PaymentReminders,
@@ -451,7 +470,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.connect(DatabaseConnection super.connection);
 
   @override
-  int get schemaVersion => 43;
+  int get schemaVersion => 45;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -490,6 +509,20 @@ class AppDatabase extends _$AppDatabase {
           'goal_contributions_goal_idx',
           'CREATE INDEX IF NOT EXISTS goal_contributions_goal_idx '
               'ON goal_contributions(goal_id)',
+        ),
+      );
+      await m.createIndex(
+        Index(
+          'goal_contributions_storage_account_idx',
+          'CREATE INDEX IF NOT EXISTS goal_contributions_storage_account_idx '
+              'ON goal_contributions(storage_account_id)',
+        ),
+      );
+      await m.createIndex(
+        Index(
+          'goal_account_links_account_idx',
+          'CREATE INDEX IF NOT EXISTS goal_account_links_account_idx '
+              'ON goal_account_links(account_id)',
         ),
       );
       await m.createIndex(
@@ -879,6 +912,37 @@ LEFT JOIN accounts acc ON up.account_id = acc.id
               <Object?>[money.minor.toString(), defaultScale, id],
             );
           }
+        }
+      }
+      if (from < 44) {
+        if (!await _columnExists('accounts', 'type_version')) {
+          await m.addColumn(accounts, accounts.typeVersion);
+        }
+      }
+      if (from < 45) {
+        await m.createTable(goalAccountLinks);
+        if (!await _columnExists('goal_contributions', 'storage_account_id')) {
+          await m.addColumn(
+            goalContributions,
+            goalContributions.storageAccountId,
+          );
+        }
+        await m.createIndex(
+          Index(
+            'goal_contributions_storage_account_idx',
+            'CREATE INDEX IF NOT EXISTS goal_contributions_storage_account_idx '
+                'ON goal_contributions(storage_account_id)',
+          ),
+        );
+        await m.createIndex(
+          Index(
+            'goal_account_links_account_idx',
+            'CREATE INDEX IF NOT EXISTS goal_account_links_account_idx '
+                'ON goal_account_links(account_id)',
+          ),
+        );
+        if (await _columnExists('saving_goals', 'account_id')) {
+          await _backfillSavingGoalAccountLinks(m);
         }
       }
       if (from < 34) {
@@ -1589,6 +1653,38 @@ INSERT INTO accounts (
       );
       await m.database.customStatement(
         'UPDATE saving_goals SET account_id = ? WHERE id = ?',
+        <Object?>[accountId, goalId],
+      );
+    }
+  }
+
+  Future<void> _backfillSavingGoalAccountLinks(Migrator m) async {
+    final List<QueryRow> rows = await m.database.customSelect('''
+SELECT id, account_id
+FROM saving_goals
+WHERE account_id IS NOT NULL AND account_id != ''
+''').get();
+
+    for (final QueryRow row in rows) {
+      final String goalId = row.read<String>('id');
+      final String accountId = row.read<String>('account_id');
+      await m.database.customStatement(
+        '''
+INSERT OR IGNORE INTO goal_account_links (goal_id, account_id, created_at)
+VALUES (?, ?, ?)
+''',
+        <Object?>[
+          goalId,
+          accountId,
+          DateTime.now().toUtc().millisecondsSinceEpoch,
+        ],
+      );
+      await m.database.customStatement(
+        '''
+UPDATE goal_contributions
+SET storage_account_id = ?
+WHERE goal_id = ? AND (storage_account_id IS NULL OR storage_account_id = '')
+''',
         <Object?>[accountId, goalId],
       );
     }

@@ -16,6 +16,7 @@ class UpdateSavingGoalUseCase {
     required SavingGoal goal,
     String? name,
     Money? target,
+    List<String>? storageAccountIds,
     String? note,
     DateTime? targetDate,
   }) async {
@@ -36,9 +37,21 @@ class UpdateSavingGoalUseCase {
     if (goal.currentAmount > updatedTarget) {
       throw StateError('Current amount exceeds new target');
     }
+    final List<String>? normalizedStorageAccountIds = storageAccountIds
+        ?.map((String value) => value.trim())
+        .where((String value) => value.isNotEmpty)
+        .toSet()
+        .toList(growable: false);
     final DateTime now = _clock().toUtc();
+    final List<String> resolvedStorageAccountIds =
+        normalizedStorageAccountIds ?? goal.storageAccountIds;
+    final String? primaryStorageAccountId = resolvedStorageAccountIds.isEmpty
+        ? goal.accountId
+        : resolvedStorageAccountIds.first;
     final SavingGoal updatedGoal = goal.copyWith(
       name: updatedName,
+      accountId: primaryStorageAccountId,
+      storageAccountIds: resolvedStorageAccountIds,
       targetAmount: updatedTarget,
       targetDate: targetDate == null
           ? goal.targetDate

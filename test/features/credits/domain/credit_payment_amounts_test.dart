@@ -71,58 +71,63 @@ void main() {
       expect(remainingTotalAmount(item).minor, BigInt.zero);
     });
 
-    test('remainingTotalAmount всегда равен сумме remaining principal + interest', () {
-      final List<CreditPaymentScheduleEntity> cases = <CreditPaymentScheduleEntity>[
-        buildItem(
-          principalPlanned: 10000,
-          principalPaid: 0,
-          interestPlanned: 2000,
-          interestPaid: 0,
-        ),
-        buildItem(
-          principalPlanned: 10000,
-          principalPaid: 2500,
-          interestPlanned: 2000,
-          interestPaid: 500,
-        ),
-        buildItem(
-          principalPlanned: 10000,
-          principalPaid: 12000,
-          interestPlanned: 2000,
-          interestPaid: 1000,
-        ),
-        buildItem(
-          principalPlanned: 10000,
-          principalPaid: 10000,
-          interestPlanned: 2000,
-          interestPaid: 2500,
-        ),
-      ];
+    test(
+      'remainingTotalAmount всегда равен сумме remaining principal + interest',
+      () {
+        final List<CreditPaymentScheduleEntity> cases =
+            <CreditPaymentScheduleEntity>[
+              buildItem(
+                principalPlanned: 10000,
+                principalPaid: 0,
+                interestPlanned: 2000,
+                interestPaid: 0,
+              ),
+              buildItem(
+                principalPlanned: 10000,
+                principalPaid: 2500,
+                interestPlanned: 2000,
+                interestPaid: 500,
+              ),
+              buildItem(
+                principalPlanned: 10000,
+                principalPaid: 12000,
+                interestPlanned: 2000,
+                interestPaid: 1000,
+              ),
+              buildItem(
+                principalPlanned: 10000,
+                principalPaid: 10000,
+                interestPlanned: 2000,
+                interestPaid: 2500,
+              ),
+            ];
 
-      for (final CreditPaymentScheduleEntity item in cases) {
-        final Money remainingPrincipal = remainingPrincipalAmount(item);
-        final Money remainingInterest = remainingInterestAmount(item);
-        final Money remainingTotal = remainingTotalAmount(item);
-        expect(
-          remainingTotal.minor,
-          remainingPrincipal.minor + remainingInterest.minor,
-        );
-      }
-    });
+        for (final CreditPaymentScheduleEntity item in cases) {
+          final Money remainingPrincipal = remainingPrincipalAmount(item);
+          final Money remainingInterest = remainingInterestAmount(item);
+          final Money remainingTotal = remainingTotalAmount(item);
+          expect(
+            remainingTotal.minor,
+            remainingPrincipal.minor + remainingInterest.minor,
+          );
+        }
+      },
+    );
 
     test('remainingTotalAmount uses total currency/scale', () {
-      final CreditPaymentScheduleEntity item = buildItem(
-        principalPlanned: 10000,
-        principalPaid: 1000,
-        interestPlanned: 2000,
-        interestPaid: 100,
-      ).copyWith(
-        totalAmount: Money.fromMinor(
-          BigInt.from(12000),
-          currency: 'USD',
-          scale: 3,
-        ),
-      );
+      final CreditPaymentScheduleEntity item =
+          buildItem(
+            principalPlanned: 10000,
+            principalPaid: 1000,
+            interestPlanned: 2000,
+            interestPaid: 100,
+          ).copyWith(
+            totalAmount: Money.fromMinor(
+              BigInt.from(12000),
+              currency: 'USD',
+              scale: 3,
+            ),
+          );
 
       final Money total = remainingTotalAmount(item);
       expect(total.currency, 'USD');

@@ -33,9 +33,7 @@ class AnnuityCalculator {
       return principal / termMonths;
     }
 
-    return principal *
-        monthlyRate /
-        (1 - pow(1 + monthlyRate, -termMonths));
+    return principal * monthlyRate / (1 - pow(1 + monthlyRate, -termMonths));
   }
 
   /// Generates an annuity schedule.
@@ -98,29 +96,31 @@ class AnnuityCalculator {
 
       balanceMinor -= principalAmountMinor;
 
-      items.add(AnnuityPaymentItem(
-        date: nextDate,
-        principalAmount: Money(
-          minor: principalAmountMinor,
-          currency: principal.currency,
-          scale: principal.scale,
+      items.add(
+        AnnuityPaymentItem(
+          date: nextDate,
+          principalAmount: Money(
+            minor: principalAmountMinor,
+            currency: principal.currency,
+            scale: principal.scale,
+          ),
+          interestAmount: Money(
+            minor: interestAmountMinor,
+            currency: principal.currency,
+            scale: principal.scale,
+          ),
+          totalAmount: Money(
+            minor: totalAmountMinor,
+            currency: principal.currency,
+            scale: principal.scale,
+          ),
+          remainingBalance: Money(
+            minor: balanceMinor,
+            currency: principal.currency,
+            scale: principal.scale,
+          ),
         ),
-        interestAmount: Money(
-          minor: interestAmountMinor,
-          currency: principal.currency,
-          scale: principal.scale,
-        ),
-        totalAmount: Money(
-          minor: totalAmountMinor,
-          currency: principal.currency,
-          scale: principal.scale,
-        ),
-        remainingBalance: Money(
-          minor: balanceMinor,
-          currency: principal.currency,
-          scale: principal.scale,
-        ),
-      ));
+      );
 
       // Calculate next date
       nextDate = _addMonthKeepingDay(firstPaymentDate, i, targetDay);

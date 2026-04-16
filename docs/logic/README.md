@@ -12,6 +12,7 @@
 
 - [**Архитектура приложения**](architecture.md) — Clean Architecture + DDD, feature-first модульность, трёхслойная структура, Riverpod DI, тестирование
 - [**Форма добавления счета**](account_add_form.md) — поведение полей и сохранение начального баланса
+- [**Таксономия типов счетов**](account_type_taxonomy.md) — canonical account types, legacy normalization, `typeVersion`, backup/import и anti-churn sync policy
 - [**Аналитика**](analytics.md) — логика работы экрана аналитики, агрегация данных и визуализация
 - [**Финансовый индекс**](financial_index.md) — формула индекса `0..100`, статусы и правила клампа
 - [**Остаток в день (Overview)**](overview_daily_allowance.md) — расчет дневного лимита до ближайшего дохода

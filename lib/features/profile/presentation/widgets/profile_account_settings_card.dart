@@ -305,19 +305,17 @@ class _ProfileAccountFormState extends ConsumerState<_ProfileAccountForm> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
                       Text(strings.profileDeleteAccountDescription),
-                      if (widget.email != null && widget.email!.isNotEmpty) ...<
-                        Widget
-                      >[
+                      if (widget.email != null &&
+                          widget.email!.isNotEmpty) ...<Widget>[
                         const SizedBox(height: 8),
                         Text(
                           widget.email!,
-                          style: Theme.of(
-                            dialogBodyContext,
-                          ).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(
-                              dialogBodyContext,
-                            ).colorScheme.onSurfaceVariant,
-                          ),
+                          style: Theme.of(dialogBodyContext).textTheme.bodySmall
+                              ?.copyWith(
+                                color: Theme.of(
+                                  dialogBodyContext,
+                                ).colorScheme.onSurfaceVariant,
+                              ),
                         ),
                       ],
                       const SizedBox(height: 16),
@@ -344,9 +342,7 @@ class _ProfileAccountFormState extends ConsumerState<_ProfileAccountForm> {
                         const SizedBox(height: 12),
                         Text(
                           errorText!,
-                          style: Theme.of(dialogBodyContext)
-                              .textTheme
-                              .bodySmall
+                          style: Theme.of(dialogBodyContext).textTheme.bodySmall
                               ?.copyWith(
                                 color: Theme.of(
                                   dialogBodyContext,
@@ -374,8 +370,8 @@ class _ProfileAccountFormState extends ConsumerState<_ProfileAccountForm> {
                                 await ref
                                     .read(authControllerProvider.notifier)
                                     .deleteAccount(
-                                      currentPassword:
-                                          passwordController.text.trim(),
+                                      currentPassword: passwordController.text
+                                          .trim(),
                                     );
                                 if (!dialogBodyContext.mounted) {
                                   return;
@@ -402,10 +398,12 @@ class _ProfileAccountFormState extends ConsumerState<_ProfileAccountForm> {
                             }
                           : null,
                       style: FilledButton.styleFrom(
-                        backgroundColor:
-                            Theme.of(dialogBodyContext).colorScheme.error,
-                        foregroundColor:
-                            Theme.of(dialogBodyContext).colorScheme.onError,
+                        backgroundColor: Theme.of(
+                          dialogBodyContext,
+                        ).colorScheme.error,
+                        foregroundColor: Theme.of(
+                          dialogBodyContext,
+                        ).colorScheme.onError,
                       ),
                       child: isSubmitting
                           ? const SizedBox(

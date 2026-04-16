@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:kopim/core/config/theme_extensions.dart';
+import 'package:kopim/core/formatting/currency_symbols.dart';
 import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
@@ -22,6 +23,7 @@ import 'package:kopim/features/categories/presentation/utils/category_gradients.
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
 import 'package:kopim/features/transactions/presentation/widgets/transaction_list_tile.dart';
+import 'package:kopim/features/profile/presentation/controllers/active_currency_code_provider.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
@@ -68,6 +70,7 @@ class _AnalyticsBody extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final AppLocalizations strings = AppLocalizations.of(context)!;
+    final String currencyCode = ref.watch(activeCurrencyCodeProvider);
     final AsyncValue<AnalyticsOverview> overviewAsync = ref.watch(
       analyticsFilteredStatsProvider(topCategoriesLimit: 5),
     );
@@ -172,6 +175,7 @@ class _AnalyticsBody extends ConsumerWidget {
                       overview: overview,
                       categories: categories,
                       accounts: accounts,
+                      currencyCode: currencyCode,
                       filterState: filterState,
                       strings: strings,
                       activeAnchor: rangeAnchor,
@@ -216,6 +220,7 @@ class _AnalyticsBody extends ConsumerWidget {
                       activeAnchor: statsAnchor,
                       filterState: filterState,
                       accounts: accounts,
+                      currencyCode: currencyCode,
                       onOpenMonthPicker: () => _openMonthPicker(
                         context: context,
                         ref: ref,
@@ -234,8 +239,14 @@ class _AnalyticsBody extends ConsumerWidget {
                         strings: strings,
                       ),
                     ),
-                    _AnalyticsCreditsTabView(strings: strings),
-                    _AnalyticsSavingsTabView(strings: strings),
+                    _AnalyticsCreditsTabView(
+                      strings: strings,
+                      currencyCode: currencyCode,
+                    ),
+                    _AnalyticsSavingsTabView(
+                      strings: strings,
+                      currencyCode: currencyCode,
+                    ),
                   ],
                 ),
               ),
@@ -291,6 +302,7 @@ class _AnalyticsCategoriesTabView extends StatelessWidget {
     required this.overview,
     required this.categories,
     required this.accounts,
+    required this.currencyCode,
     required this.filterState,
     required this.strings,
     required this.activeAnchor,
@@ -308,6 +320,7 @@ class _AnalyticsCategoriesTabView extends StatelessWidget {
   final AnalyticsOverview? overview;
   final List<Category> categories;
   final List<AccountEntity> accounts;
+  final String currencyCode;
   final AnalyticsFilterState filterState;
   final AppLocalizations strings;
   final DateTime activeAnchor;
@@ -331,8 +344,9 @@ class _AnalyticsCategoriesTabView extends StatelessWidget {
       return _AnalyticsEmpty(strings: strings);
     }
 
-    final NumberFormat currencyFormat = NumberFormat.simpleCurrency(
+    final NumberFormat currencyFormat = resolveCurrencyFormat(
       locale: strings.localeName,
+      currencyCode: currencyCode,
     );
     final Map<String, Category> categoriesById = <String, Category>{
       for (final Category category in categories) category.id: category,
@@ -381,6 +395,7 @@ class _AnalyticsStatsTabView extends StatelessWidget {
     required this.activeAnchor,
     required this.filterState,
     required this.accounts,
+    required this.currencyCode,
     required this.onOpenMonthPicker,
     required this.onOpenAccountsPicker,
   });
@@ -392,6 +407,7 @@ class _AnalyticsStatsTabView extends StatelessWidget {
   final DateTime activeAnchor;
   final AnalyticsFilterState filterState;
   final List<AccountEntity> accounts;
+  final String currencyCode;
   final VoidCallback onOpenMonthPicker;
   final VoidCallback onOpenAccountsPicker;
 
@@ -407,8 +423,9 @@ class _AnalyticsStatsTabView extends StatelessWidget {
       return _AnalyticsEmpty(strings: strings);
     }
 
-    final NumberFormat currencyFormat = NumberFormat.simpleCurrency(
+    final NumberFormat currencyFormat = resolveCurrencyFormat(
       locale: strings.localeName,
+      currencyCode: currencyCode,
     );
 
     return CustomScrollView(
@@ -442,9 +459,13 @@ class _AnalyticsStatsTabView extends StatelessWidget {
 }
 
 class _AnalyticsCreditsTabView extends ConsumerWidget {
-  const _AnalyticsCreditsTabView({required this.strings});
+  const _AnalyticsCreditsTabView({
+    required this.strings,
+    required this.currencyCode,
+  });
 
   final AppLocalizations strings;
+  final String currencyCode;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -462,6 +483,7 @@ class _AnalyticsCreditsTabView extends ConsumerWidget {
                 return _CreditsDebtAnalyticsContent(
                   overview: overview,
                   strings: strings,
+                  currencyCode: currencyCode,
                 );
               },
               loading: () => const Padding(
@@ -484,9 +506,13 @@ class _AnalyticsCreditsTabView extends ConsumerWidget {
 }
 
 class _AnalyticsSavingsTabView extends ConsumerStatefulWidget {
-  const _AnalyticsSavingsTabView({required this.strings});
+  const _AnalyticsSavingsTabView({
+    required this.strings,
+    required this.currencyCode,
+  });
 
   final AppLocalizations strings;
+  final String currencyCode;
 
   @override
   ConsumerState<_AnalyticsSavingsTabView> createState() =>
@@ -514,6 +540,7 @@ class _AnalyticsSavingsTabViewState
                 return _SavingsTrendContent(
                   overview: overview,
                   strings: widget.strings,
+                  currencyCode: widget.currencyCode,
                   granularity: _granularity,
                   onGranularityChanged:
                       (AnalyticsSavingsTrendGranularity value) {
@@ -549,17 +576,20 @@ class _CreditsDebtAnalyticsContent extends StatelessWidget {
   const _CreditsDebtAnalyticsContent({
     required this.overview,
     required this.strings,
+    required this.currencyCode,
   });
 
   final AnalyticsDebtOverview overview;
   final AppLocalizations strings;
+  final String currencyCode;
 
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
     final ColorScheme colors = theme.colorScheme;
-    final NumberFormat amountFormat = NumberFormat.simpleCurrency(
+    final NumberFormat amountFormat = resolveCurrencyFormat(
       locale: strings.localeName,
+      currencyCode: currencyCode,
       decimalDigits: 0,
     );
     final NumberFormat compactFormat = NumberFormat.compact(
@@ -765,12 +795,14 @@ class _SavingsTrendContent extends StatelessWidget {
   const _SavingsTrendContent({
     required this.overview,
     required this.strings,
+    required this.currencyCode,
     required this.granularity,
     required this.onGranularityChanged,
   });
 
   final AnalyticsSavingsTrendOverview overview;
   final AppLocalizations strings;
+  final String currencyCode;
   final AnalyticsSavingsTrendGranularity granularity;
   final ValueChanged<AnalyticsSavingsTrendGranularity> onGranularityChanged;
 
@@ -778,8 +810,9 @@ class _SavingsTrendContent extends StatelessWidget {
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
     final ColorScheme colors = theme.colorScheme;
-    final NumberFormat amountFormat = NumberFormat.simpleCurrency(
+    final NumberFormat amountFormat = resolveCurrencyFormat(
       locale: strings.localeName,
+      currencyCode: currencyCode,
       decimalDigits: 0,
     );
     final NumberFormat compactFormat = NumberFormat.compact(
@@ -1257,7 +1290,7 @@ Future<void> _openMonthPicker({
                 month.year == current.year &&
                 month.month == current.month;
             return ListTile(
-              title: Text(_formatMonthShort(month, strings.localeName)),
+              title: Text(_formatMonthFull(month, strings.localeName)),
               subtitle: Text(
                 strings.analyticsMonthPickerYearSubtitle(month.year),
               ),
@@ -1384,6 +1417,10 @@ String _formatMonthShort(DateTime date, String locale) {
   return raw.replaceAll('.', '').toLowerCase();
 }
 
+String _formatMonthFull(DateTime date, String locale) {
+  return DateFormat.MMMM(locale).format(date).toLowerCase();
+}
+
 String _formatSavingsPointLabel(
   DateTime date,
   AnalyticsSavingsTrendGranularity granularity,
@@ -1413,7 +1450,7 @@ String _resolveDateChipLabel({
     }
     return strings.analyticsFilterDateValue(start, end);
   }
-  return _formatMonthShort(
+  return _formatMonthFull(
     state.monthAnchor ?? state.dateRange.start,
     strings.localeName,
   );

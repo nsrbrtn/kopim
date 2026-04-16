@@ -72,5 +72,4 @@ class DefaultFirebaseOptions {
     storageBucket: 'kopim-prod.firebasestorage.app',
     iosBundleId: 'qmodo.ru.kopim',
   );
-
 }

@@ -16,6 +16,7 @@ class AddContributionUseCase {
     required String goalId,
     required Money amount,
     required String sourceAccountId,
+    String? storageAccountId,
     String? note,
   }) async {
     if (amount.minorUnits <= 0) {
@@ -55,12 +56,17 @@ class AddContributionUseCase {
     final String? trimmedNote = note?.trim().isNotEmpty ?? false
         ? note!.trim()
         : null;
+    final String? trimmedStorageAccountId =
+        storageAccountId?.trim().isNotEmpty ?? false
+        ? storageAccountId!.trim()
+        : null;
     final SavingGoal updatedGoal = await _repository.addContribution(
       goal: goal,
       appliedDelta: appliedDelta,
       newCurrentAmount: cappedAmount,
       contributedAt: now,
       sourceAccountId: sourceId,
+      storageAccountId: trimmedStorageAccountId,
       contributionNote: trimmedNote,
     );
     return updatedGoal;

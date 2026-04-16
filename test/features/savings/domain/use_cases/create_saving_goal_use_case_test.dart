@@ -85,6 +85,17 @@ void main() {
     },
   );
 
+  test('creates goal with explicit storage accounts', () async {
+    final SavingGoal result = await useCase(
+      name: 'Reserve',
+      target: Money.fromMinorUnits(7000),
+      storageAccountIds: <String>['acc-2', 'acc-1', 'acc-2'],
+    );
+
+    expect(result.accountId, 'acc-2');
+    expect(result.storageAccountIds, <String>['acc-2', 'acc-1']);
+  });
+
   test('throws when goal with same name exists for user', () async {
     final SavingGoal existing = _dummyGoal();
     when(

@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import 'package:kopim/core/config/theme_extensions.dart';
+import 'package:kopim/core/formatting/currency_symbols.dart';
 import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
 import 'package:kopim/features/budgets/domain/entities/budget.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_progress.dart';
@@ -15,6 +16,7 @@ import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/categories/presentation/utils/category_gradients.dart';
 import 'package:kopim/features/home/domain/entities/home_dashboard_preferences.dart';
 import 'package:kopim/features/home/presentation/controllers/home_dashboard_preferences_controller.dart';
+import 'package:kopim/features/profile/presentation/controllers/active_currency_code_provider.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -31,11 +33,13 @@ class HomeBudgetProgressCard extends ConsumerWidget {
     final AsyncValue<List<Budget>> budgetsAsync = ref.watch(
       budgetsStreamProvider,
     );
+    final String currencyCode = ref.watch(activeCurrencyCodeProvider);
 
     final String? budgetId = preferences.budgetId;
     Future<void> openBudgetPicker(List<Budget> budgets) async {
-      final NumberFormat currencyFormat = NumberFormat.simpleCurrency(
+      final NumberFormat currencyFormat = resolveCurrencyFormat(
         locale: strings.localeName,
+        currencyCode: currencyCode,
       );
       final String? selectedBudgetId = await showModalBottomSheet<String>(
         context: context,
@@ -216,8 +220,9 @@ class HomeBudgetProgressCard extends ConsumerWidget {
             const SizedBox(height: 4),
             progressAsync.when(
               data: (BudgetProgress progress) {
-                final NumberFormat currencyFormat = NumberFormat.simpleCurrency(
+                final NumberFormat currencyFormat = resolveCurrencyFormat(
                   locale: strings.localeName,
+                  currencyCode: currencyCode,
                 );
                 final double limit = progress.budget.amountValue.toDouble();
                 final double spent = progress.spent.toDouble();

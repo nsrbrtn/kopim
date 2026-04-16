@@ -3,10 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import 'package:kopim/features/analytics/presentation/analytics_screen.dart';
 import 'package:kopim/features/app_shell/presentation/widgets/main_navigation_bar.dart';
 import 'package:kopim/features/app_shell/presentation/widgets/navigation_responsive_breakpoints.dart';
-import 'package:kopim/features/budgets/presentation/budgets_screen.dart';
 import 'package:kopim/features/categories/presentation/screens/manage_categories_screen.dart';
 import 'package:kopim/features/home/domain/entities/home_dashboard_preferences.dart';
 import 'package:kopim/features/home/presentation/controllers/home_dashboard_preferences_controller.dart';
@@ -25,11 +23,7 @@ class MenuScreen extends ConsumerWidget {
   static const double _footerBottomGap = 12;
   static const double _menuItemVerticalPadding = 19;
   static const double _itemsGap = 8;
-  static final Uri _telegramGroupUri = Uri.parse(
-    'https://t.me/+TJNrnwRt_Cg5Y2Ey',
-  );
   static final Uri _qmodoWebsiteUri = Uri.parse('https://qmodo.ru');
-  static const String _telegramIconAsset = 'assets/icons/telegram.png';
   static const String _qmodoLogoLightAsset = 'assets/icons/logoqlight.png';
   static const String _qmodoLogoDarkAsset = 'assets/icons/logoqdark.png';
 
@@ -57,21 +51,6 @@ class MenuScreen extends ConsumerWidget {
 
   double _listBottomPadding(BuildContext context) {
     return _footerBottomPadding(context) + _footerHeight + 16;
-  }
-
-  Future<void> _openTelegramGroup(BuildContext context) async {
-    final bool launched = await launchUrl(
-      _telegramGroupUri,
-      mode: LaunchMode.externalApplication,
-    );
-    if (launched || !context.mounted) {
-      return;
-    }
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(AppLocalizations.of(context)!.profileTelegramOpenError),
-      ),
-    );
   }
 
   Future<void> _openQmodoWebsite(BuildContext context) async {
@@ -148,16 +127,6 @@ class MenuScreen extends ConsumerWidget {
     final ThemeData theme = Theme.of(context);
     final List<_SettingsMenuConfig> menuItems = <_SettingsMenuConfig>[
       _SettingsMenuConfig(
-        label: strings.analyticsTitle,
-        icon: Icons.bar_chart_outlined,
-        onTap: () => _pushRoute(context, AnalyticsScreen.routeName),
-      ),
-      _SettingsMenuConfig(
-        label: strings.budgetsTitle,
-        icon: Icons.pie_chart_outline,
-        onTap: () => _pushRoute(context, BudgetsScreen.routeName),
-      ),
-      _SettingsMenuConfig(
         label: strings.upcomingPaymentsTitle,
         icon: Icons.event_repeat_outlined,
         onTap: () => _pushRoute(context, UpcomingPaymentsScreen.routeName),
@@ -191,7 +160,6 @@ class MenuScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        automaticallyImplyLeading: false,
         title: Text(strings.profileMenuTitle),
         actions: <Widget>[
           IconButton(
@@ -230,12 +198,6 @@ class MenuScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: _itemsGap),
                 ],
-                const SizedBox(height: 32),
-                _TelegramGroupButton(
-                  iconAssetPath: _telegramIconAsset,
-                  title: strings.profileTelegramGroupCta,
-                  onTap: () => _openTelegramGroup(context),
-                ),
               ],
             ),
             Positioned(
@@ -251,58 +213,6 @@ class MenuScreen extends ConsumerWidget {
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _TelegramGroupButton extends StatelessWidget {
-  const _TelegramGroupButton({
-    required this.title,
-    required this.iconAssetPath,
-    required this.onTap,
-  });
-
-  final String title;
-  final String iconAssetPath;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
-    final Color textColor = theme.colorScheme.scrim;
-    return Align(
-      alignment: Alignment.center,
-      child: Material(
-        color: theme.colorScheme.primaryContainer,
-        borderRadius: BorderRadius.circular(24),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(24),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                Image.asset(
-                  iconAssetPath,
-                  width: 30,
-                  height: 30,
-                  fit: BoxFit.contain,
-                  errorBuilder: (_, _, _) =>
-                      Icon(Icons.send_rounded, color: textColor, size: 30),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  title,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    color: textColor,
-                  ),
-                ),
-              ],
-            ),
-          ),
         ),
       ),
     );

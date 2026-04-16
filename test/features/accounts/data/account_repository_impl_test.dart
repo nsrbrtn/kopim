@@ -36,7 +36,7 @@ void main() {
       balanceMinor: BigInt.zero,
       currency: 'USD',
       currencyScale: 2,
-      type: 'checking',
+      type: 'bank',
       createdAt: now,
       updatedAt: now,
       isDeleted: isDeleted,
@@ -56,6 +56,7 @@ void main() {
     expect(rows.single.name, 'Main');
     expect(rows.single.isDeleted, isFalse);
     expect(rows.single.isPrimary, isFalse);
+    expect(rows.single.typeVersion, 1);
 
     final List<db.OutboxEntryRow> outboxRows = await database
         .select(database.outboxEntries)
@@ -69,6 +70,7 @@ void main() {
     expect(payload['id'], 'acc-1');
     expect(payload['isDeleted'], false);
     expect(payload['isPrimary'], false);
+    expect(payload['typeVersion'], 1);
   });
 
   test('upsert primary account resets previous primary flags', () async {

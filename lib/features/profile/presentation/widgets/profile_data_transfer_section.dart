@@ -33,7 +33,7 @@ class _ProfileDataTransferSectionState
   bool _isExpanded = false;
   String? _exportDirectoryPath;
   bool _isPickingDirectory = false;
-  DataTransferFormat _format = DataTransferFormat.csv;
+  DataTransferFormat _format = DataTransferFormat.json;
 
   @override
   Widget build(BuildContext context) {
@@ -122,6 +122,8 @@ class _ProfileDataTransferSectionState
                       setState(() => _format = value);
                     },
                   ),
+                  const SizedBox(height: 12),
+                  _DataTransferFormatHint(format: _format),
                   const SizedBox(height: 16),
                   LayoutBuilder(
                     builder:
@@ -379,6 +381,92 @@ class _ProfileDataTransferSectionState
         controller.clearResult();
       },
       loading: () {},
+    );
+  }
+}
+
+class _DataTransferFormatHint extends StatelessWidget {
+  const _DataTransferFormatHint({required this.format});
+
+  final DataTransferFormat format;
+
+  @override
+  Widget build(BuildContext context) {
+    final AppLocalizations strings = AppLocalizations.of(context)!;
+    final ThemeData theme = Theme.of(context);
+    final bool isJson = format == DataTransferFormat.json;
+    final ColorScheme colors = theme.colorScheme;
+    final Color background = isJson
+        ? colors.secondaryContainer
+        : colors.surfaceContainerHigh;
+    final Color foreground = isJson
+        ? colors.onSecondaryContainer
+        : colors.onSurfaceVariant;
+    final IconData icon = isJson
+        ? Icons.verified_user_outlined
+        : Icons.history_toggle_off_outlined;
+    final String badge = isJson
+        ? strings.profileDataTransferFormatHintJsonBadge
+        : strings.profileDataTransferFormatHintCsvBadge;
+    final String title = isJson
+        ? strings.profileDataTransferFormatHintJsonTitle
+        : strings.profileDataTransferFormatHintCsvTitle;
+    final String body = isJson
+        ? strings.profileDataTransferFormatHintJsonBody
+        : strings.profileDataTransferFormatHintCsvBody;
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Row(
+            children: <Widget>[
+              Icon(icon, size: 18, color: foreground),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  title,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: foreground,
+                  ),
+                ),
+              ),
+              DecoratedBox(
+                decoration: BoxDecoration(
+                  color: foreground.withValues(
+                    alpha: (foreground.a * 0.12).clamp(0, 1).toDouble(),
+                  ),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
+                  child: Text(
+                    badge,
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: foreground,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            body,
+            style: theme.textTheme.bodySmall?.copyWith(color: foreground),
+          ),
+        ],
+      ),
     );
   }
 }

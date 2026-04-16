@@ -6,7 +6,10 @@ import 'package:kopim/features/budgets/domain/entities/budget_instance.dart';
 import 'package:kopim/features/credits/domain/entities/credit_card_entity.dart';
 import 'package:kopim/features/credits/domain/entities/credit_entity.dart';
 import 'package:kopim/features/credits/domain/entities/debt_entity.dart';
+import 'package:kopim/features/profile/domain/entities/profile.dart';
+import 'package:kopim/features/profile/domain/entities/user_progress.dart';
 import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
+import 'package:kopim/features/settings/domain/entities/export_bundle_integrity.dart';
 import 'package:kopim/features/tags/domain/entities/tag.dart';
 import 'package:kopim/features/tags/domain/entities/transaction_tag.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
@@ -67,6 +70,15 @@ abstract class ExportBundle with _$ExportBundle {
 
     /// Набор локальных reminders.
     @Default(<PaymentReminder>[]) List<PaymentReminder> paymentReminders,
+
+    /// Локальный профиль пользователя, если он доступен в кэше.
+    Profile? profile,
+
+    /// Снимок пользовательского прогресса на момент экспорта.
+    UserProgress? progress,
+
+    /// Метаданные целостности для каноничного JSON-экспорта.
+    ExportBundleIntegrity? integrity,
   }) = _ExportBundle;
 
   factory ExportBundle.fromJson(Map<String, Object?> json) =>

@@ -65,7 +65,7 @@
   "@profileCredentialsValidationPasswordMatch": {
     "description": "Ошибка валидации подтверждения нового пароля"
   },
-  "profileCredentialsLoginUpdated": "Логин обновлен",
+  "profileCredentialsLoginUpdated": "Ссылка для подтверждения отправлена на новый email",
   "@profileCredentialsLoginUpdated": {
     "description": "Сообщение об успешном обновлении логина"
   },
@@ -367,6 +367,30 @@
   "profileDataTransferFormatJson": "JSON",
   "@profileDataTransferFormatJson": {
     "description": "Подпись формата JSON"
+  },
+  "profileDataTransferFormatHintJsonBadge": "Рекомендуется",
+  "@profileDataTransferFormatHintJsonBadge": {
+    "description": "Короткий бейдж для JSON-формата в блоке подсказки"
+  },
+  "profileDataTransferFormatHintJsonTitle": "JSON для миграции между версиями приложения",
+  "@profileDataTransferFormatHintJsonTitle": {
+    "description": "Заголовок подсказки для JSON-формата"
+  },
+  "profileDataTransferFormatHintJsonBody": "Основной формат для переноса на новый backend. Экспорт включает профиль, прогресс и контрольные суммы, а при импорте приложение проверяет целостность данных.",
+  "@profileDataTransferFormatHintJsonBody": {
+    "description": "Описание преимуществ JSON-формата для миграции"
+  },
+  "profileDataTransferFormatHintCsvBadge": "Legacy",
+  "@profileDataTransferFormatHintCsvBadge": {
+    "description": "Короткий бейдж для CSV-формата в блоке подсказки"
+  },
+  "profileDataTransferFormatHintCsvTitle": "CSV только для совместимости и ручной проверки",
+  "@profileDataTransferFormatHintCsvTitle": {
+    "description": "Заголовок подсказки для CSV-формата"
+  },
+  "profileDataTransferFormatHintCsvBody": "Подходит, если нужен табличный экспорт или ручной разбор данных. Для миграции на новый backend лучше использовать JSON, потому что CSV не является каноничным форматом переноса.",
+  "@profileDataTransferFormatHintCsvBody": {
+    "description": "Описание ограничений CSV-формата"
   },
   "profileExportDataSuccess": "Экспорт завершён успешно.",
   "@profileExportDataSuccess": {

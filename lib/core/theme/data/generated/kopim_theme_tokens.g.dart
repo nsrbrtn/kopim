@@ -5,8 +5,7 @@
 import 'package:flutter/material.dart';
 import '../dto/kopim_theme_tokens.dart';
 
-const KopimThemeTokenBundle kopimThemeTokens =
-KopimThemeTokenBundle(
+const KopimThemeTokenBundle kopimThemeTokens = KopimThemeTokenBundle(
   lightColors: KopimSystemColorTokens(
     background: Color(0xFFF7FBEA),
     error: Color(0xFFBA1A1A),
@@ -289,5 +288,4 @@ KopimThemeTokenBundle(
       standard: Cubic(0.2, 0.0, 0.0, 1.0),
     ),
   ),
-)
-;
+);

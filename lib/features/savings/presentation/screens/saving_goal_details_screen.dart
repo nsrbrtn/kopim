@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import 'package:kopim/core/formatting/currency_symbols.dart';
 import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/categories/presentation/utils/category_gradients.dart';
@@ -15,6 +16,7 @@ import 'package:kopim/features/savings/presentation/controllers/saving_goals_con
 import 'package:kopim/features/savings/presentation/controllers/saving_goals_state.dart';
 import 'package:kopim/features/savings/presentation/screens/add_edit_goal_screen.dart';
 import 'package:kopim/features/analytics/presentation/widgets/analytics_chart.dart';
+import 'package:kopim/features/profile/presentation/controllers/active_currency_code_provider.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
 class SavingGoalDetailsScreen extends ConsumerWidget {
@@ -88,8 +90,10 @@ class _GoalDetailsContent extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final AppLocalizations strings = AppLocalizations.of(context)!;
     final GoalProgress progress = GoalProgress.fromGoal(goal);
-    final NumberFormat currencyFormat = NumberFormat.simpleCurrency(
+    final String currencyCode = ref.watch(activeCurrencyCodeProvider);
+    final NumberFormat currencyFormat = resolveCurrencyFormat(
       locale: strings.localeName,
+      currencyCode: currencyCode,
     );
 
     final AsyncValue<SavingGoalAnalytics> analyticsAsync = ref.watch(

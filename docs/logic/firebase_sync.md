@@ -60,13 +60,20 @@ enum OutboxOperation {
 
 **Импорт бэкапа:**
 - Импорт CSV/JSON не ограничивается локальной записью в Drift.
-- Backup покрывает пользовательский snapshot, который участвует в sync: `accounts`, `categories`, `transactions`, `saving_goals`, `credits`, `credit_cards`, `debts`, `tags`, `transaction_tags`, `budgets`, `budget_instances`, `upcoming_payments`, `payment_reminders`.
+- Каноничный миграционный формат — `JSON`. CSV остается форматом совместимости, но не считается основным контрактом переноса между backend/runtime поколениями.
+- Backup покрывает пользовательский snapshot, который участвует в sync: `accounts`, `categories`, `transactions`, `saving_goals`, `credits`, `credit_cards`, `debts`, `tags`, `transaction_tags`, `budgets`, `budget_instances`, `upcoming_payments`, `payment_reminders`, `profile`, `progress`.
+- Avatar binary не экспортируется. `photoUrl` профиля может переноситься как строковое поле, но это не гарантирует доступность старого Firebase Storage asset после миграции backend.
 - Импорт выполняется как восстановление локального snapshot, а не merge поверх существующей базы: перед записью очищаются таблицы импорта (`accounts`, `categories`, `transactions`, `saving_goals`, `credits`, `credit_cards`, `debts`, `tags`, `transaction_tags`, `budgets`, `budget_instances`, `upcoming_payments`, `payment_reminders` и связанные локальные derivation-таблицы).
 - Перед destructive restore импорт проверяет `schemaVersion` и обязательные секции backup; partial/unsupported backup отклоняется до очистки локальной БД.
+- JSON backup дополнительно содержит `integrity` manifest с `entityCounts`, `sectionHashes` и `contentHash`.
+- Перед экспортом выполняется validator ссылочной целостности snapshot.
+- При импорте JSON сначала сверяются `sectionHashes`/`entityCounts`/`contentHash`; mismatch отклоняется до destructive restore.
+- После записи данных в той же DB transaction выполняется post-import verification: приложение повторно собирает текущий snapshot и сверяет его с manifest. При mismatch transaction откатывается.
 - После успешного импорта все сущности из backup сразу ставятся в `outbox_entries` как `upsert`, чтобы их можно было отправить в Firestore стандартным sync-pipeline.
 - Для сущностей, которые были локально до restore, но отсутствуют в импортированном snapshot, дополнительно ставятся `delete`-маркеры в `outbox_entries`, чтобы stale remote-данные не возвращались после следующего sync.
 - Такой restore нужен, чтобы после backup/import не оставались stale-транзакции и скрытые liability-сущности, которые искажают баланс.
 - Это гарантирует, что импортированные данные могут уйти в Firebase тем же штатным pipeline, что и обычные локальные изменения.
+- Integrity manifest подтверждает целостность экспортированного файла, но не подтверждает полноту облачного state. Для полного snapshot export нужно делать после завершенного resync с Firebase.
 
 ### 2. SyncService (Фоновая синхронизация)
 

@@ -1,8 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:kopim/core/config/app_config.dart';
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/core/services/ai_assistant_service.dart';
 import 'package:kopim/core/services/analytics_service.dart';
 import 'package:kopim/core/services/logger_service.dart';
@@ -36,7 +38,8 @@ void main() {
 
   final DateTime fixedNow = DateTime(2024, 5, 15, 12, 0, 0);
 
-  setUpAll(() {
+  setUpAll(() async {
+    await initializeDateFormatting('en');
     registerFallbackValue(<AiAssistantMessage>[]);
     registerFallbackValue(
       const AiToolCall(id: 'fallback', name: 'tool', arguments: '{}'),
@@ -198,4 +201,74 @@ void main() {
     );
     expect(capturedFilter!.endDate, fixedNow);
   });
+
+  test(
+    'buildOverviewPrompt использует валюту из contextSignals, а не locale',
+    () async {
+      List<AiAssistantMessage>? capturedMessages;
+      when(
+        () => financialRepository.loadOverview(filter: any(named: 'filter')),
+      ).thenAnswer((_) async {
+        return AiFinancialOverview(
+          monthlyExpenses: <MonthlyExpenseInsight>[
+            MonthlyExpenseInsight(
+              month: DateTime(2024, 5, 1),
+              totalExpense: _amount(1234.56),
+            ),
+          ],
+          monthlyIncomes: const <MonthlyIncomeInsight>[],
+          topCategories: const <CategoryExpenseInsight>[],
+          topIncomeCategories: const <CategoryIncomeInsight>[],
+          budgetForecasts: const <BudgetForecastInsight>[],
+          generatedAt: fixedNow,
+        );
+      });
+      int answerCalls = 0;
+      when(
+        () => assistantService.generateAnswer(
+          messages: any(named: 'messages'),
+          requestOptions: any(named: 'requestOptions'),
+        ),
+      ).thenAnswer((Invocation invocation) async {
+        capturedMessages =
+            invocation.namedArguments[#messages] as List<AiAssistantMessage>;
+        answerCalls++;
+        return answerCalls == 1
+            ? buildServiceResult(content: '')
+            : buildServiceResult();
+      });
+      when(() => toolRouter.runToolCalls(any())).thenAnswer(
+        (_) async => const AiAssistantToolExecutionResult(
+          messages: <AiAssistantMessage>[],
+          logs: <AiAssistantToolCallLog>[],
+        ),
+      );
+      when(
+        () => analyticsService.logEvent(any(), any()),
+      ).thenAnswer((_) async {});
+
+      final AiUserQueryEntity query = AiUserQueryEntity(
+        id: 'q3',
+        userId: 'u1',
+        content: 'Сделай сводку',
+        contextSignals: const <String>['currency:RUB'],
+        locale: 'en',
+        intent: AiQueryIntent.analytics,
+        createdAt: fixedNow,
+      );
+
+      await repository.sendUserQuery(query);
+
+      final String prompt = capturedMessages!
+          .singleWhere((AiAssistantMessage message) => message.role == 'user')
+          .content;
+      expect(prompt, contains('₽'));
+      expect(prompt, isNot(contains('\$')));
+    },
+  );
+}
+
+MoneyAmount _amount(num value, {int scale = 2}) {
+  final double scaled = value * 100;
+  return MoneyAmount(minor: BigInt.from(scaled.round()), scale: scale);
 }

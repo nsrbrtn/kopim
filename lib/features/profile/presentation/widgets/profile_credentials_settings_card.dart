@@ -214,7 +214,10 @@ class _CredentialsBodyState extends ConsumerState<_CredentialsBody> {
                                   return;
                                 }
                                 Navigator.of(dialogContext).pop();
-                                ScaffoldMessenger.of(dialogBodyContext)
+                                if (!context.mounted) {
+                                  return;
+                                }
+                                ScaffoldMessenger.of(context)
                                   ..hideCurrentSnackBar()
                                   ..showSnackBar(
                                     SnackBar(
@@ -381,7 +384,10 @@ class _CredentialsBodyState extends ConsumerState<_CredentialsBody> {
                                   return;
                                 }
                                 Navigator.of(dialogContext).pop();
-                                ScaffoldMessenger.of(dialogBodyContext)
+                                if (!context.mounted) {
+                                  return;
+                                }
+                                ScaffoldMessenger.of(context)
                                   ..hideCurrentSnackBar()
                                   ..showSnackBar(
                                     SnackBar(

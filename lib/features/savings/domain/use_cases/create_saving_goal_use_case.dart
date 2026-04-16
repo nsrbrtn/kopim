@@ -24,6 +24,7 @@ class CreateSavingGoalUseCase {
   Future<SavingGoal> call({
     required String name,
     required Money target,
+    List<String> storageAccountIds = const <String>[],
     String? note,
     DateTime? targetDate,
   }) async {
@@ -51,11 +52,20 @@ class CreateSavingGoalUseCase {
     }
     final DateTime now = _clock().toUtc();
     final String goalId = _uuid.v4();
+    final List<String> normalizedStorageAccountIds = storageAccountIds
+        .map((String value) => value.trim())
+        .where((String value) => value.isNotEmpty)
+        .toSet()
+        .toList(growable: false);
+    final String primaryStorageAccountId = normalizedStorageAccountIds.isEmpty
+        ? _uuid.v4()
+        : normalizedStorageAccountIds.first;
     final SavingGoal goal = SavingGoal(
       id: goalId,
       userId: userId,
       name: trimmedName,
-      accountId: _uuid.v4(),
+      accountId: primaryStorageAccountId,
+      storageAccountIds: normalizedStorageAccountIds,
       targetDate: targetDate == null
           ? null
           : DateTime.utc(targetDate.year, targetDate.month, targetDate.day),

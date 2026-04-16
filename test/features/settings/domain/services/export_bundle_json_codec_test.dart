@@ -11,7 +11,11 @@ import 'package:kopim/features/budgets/domain/entities/budget_instance_status.da
 import 'package:kopim/features/budgets/domain/entities/budget_period.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_scope.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
+import 'package:kopim/features/profile/domain/entities/profile.dart';
+import 'package:kopim/features/profile/domain/entities/user_progress.dart';
+import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
 import 'package:kopim/features/settings/domain/entities/export_bundle.dart';
+import 'package:kopim/features/settings/domain/services/export_bundle_integrity_service.dart';
 import 'package:kopim/features/settings/domain/services/export_bundle_json_decoder.dart';
 import 'package:kopim/features/settings/domain/services/export_bundle_json_encoder.dart';
 import 'package:kopim/features/tags/domain/entities/tag.dart';
@@ -23,10 +27,12 @@ import 'package:kopim/features/upcoming_payments/domain/entities/upcoming_paymen
 void main() {
   const ExportBundleJsonEncoder encoder = ExportBundleJsonEncoder();
   const ExportBundleJsonDecoder decoder = ExportBundleJsonDecoder();
+  const ExportBundleIntegrityService integrityService =
+      ExportBundleIntegrityService();
 
   test('encodes and decodes extended JSON bundle', () {
-    final ExportBundle bundle = ExportBundle(
-      schemaVersion: '1.5.0',
+    final ExportBundle sourceBundle = ExportBundle(
+      schemaVersion: '1.7.0',
       generatedAt: DateTime.utc(2024, 2, 10, 12, 30),
       accounts: <AccountEntity>[
         AccountEntity(
@@ -37,6 +43,7 @@ void main() {
           currency: 'USD',
           currencyScale: 2,
           type: 'checking',
+          typeVersion: 1,
           createdAt: DateTime.utc(2024, 1, 1),
           updatedAt: DateTime.utc(2024, 2, 1),
           isHidden: true,
@@ -79,6 +86,19 @@ void main() {
           tagId: 'tag-1',
           createdAt: DateTime.utc(2024, 2, 9),
           updatedAt: DateTime.utc(2024, 2, 9),
+        ),
+      ],
+      savingGoals: <SavingGoal>[
+        SavingGoal(
+          id: 'goal-1',
+          userId: 'user-1',
+          name: 'Emergency',
+          accountId: 'a1',
+          storageAccountIds: const <String>['a1', 'a2'],
+          targetAmount: 75000,
+          currentAmount: 4000,
+          createdAt: DateTime.utc(2024, 2, 1),
+          updatedAt: DateTime.utc(2024, 2, 10),
         ),
       ],
       budgets: <Budget>[
@@ -145,6 +165,24 @@ void main() {
           updatedAtMs: 1707523200000,
         ),
       ],
+      profile: Profile(
+        uid: 'user-1',
+        name: 'Artem',
+        currency: ProfileCurrency.usd,
+        locale: 'ru',
+        photoUrl: 'https://example.com/avatar.png',
+        updatedAt: DateTime.utc(2024, 2, 10, 12, 30),
+      ),
+      progress: UserProgress(
+        totalTx: 1,
+        level: 1,
+        title: 'Уровень 1',
+        nextThreshold: 100,
+        updatedAt: DateTime.utc(2024, 2, 10, 12, 30),
+      ),
+    );
+    final ExportBundle bundle = sourceBundle.copyWith(
+      integrity: integrityService.buildIntegrity(sourceBundle),
     );
 
     final Uint8List bytes = encoder.encode(bundle).bytes;
@@ -152,6 +190,54 @@ void main() {
 
     expect(decoded, bundle);
     expect(decoded.accounts.single.isHidden, isTrue);
+    expect(decoded.savingGoals.single.storageAccountIds, <String>['a1', 'a2']);
+    expect(decoded.integrity?.contentHash, isNotEmpty);
+    expect(decoded.profile?.uid, 'user-1');
+    expect(decoded.progress?.totalTx, 1);
+  });
+
+  test('decodes legacy JSON backup without typeVersion as version zero', () {
+    final Map<String, Object?> payload = <String, Object?>{
+      'schemaVersion': '1.5.0',
+      'generatedAt': '2024-02-10T12:30:00.000Z',
+      'accounts': <Object?>[
+        <String, Object?>{
+          'id': 'a1',
+          'name': 'Legacy account',
+          'balance': 12.5,
+          'openingBalance': 10.0,
+          'balanceMinor': '1250',
+          'openingBalanceMinor': '1000',
+          'currency': 'USD',
+          'currencyScale': 2,
+          'type': 'card',
+          'createdAt': '2024-01-01T00:00:00.000Z',
+          'updatedAt': '2024-02-01T00:00:00.000Z',
+          'isDeleted': false,
+          'isPrimary': false,
+          'isHidden': false,
+        },
+      ],
+      'categories': <Object?>[],
+      'tags': <Object?>[],
+      'transactionTags': <Object?>[],
+      'transactions': <Object?>[],
+      'savingGoals': <Object?>[],
+      'credits': <Object?>[],
+      'creditCards': <Object?>[],
+      'debts': <Object?>[],
+      'budgets': <Object?>[],
+      'budgetInstances': <Object?>[],
+      'upcomingPayments': <Object?>[],
+      'paymentReminders': <Object?>[],
+    };
+
+    final ExportBundle decoded = decoder.decode(
+      Uint8List.fromList(utf8.encode(jsonEncode(payload))),
+    );
+
+    expect(decoded.accounts.single.type, 'card');
+    expect(decoded.accounts.single.typeVersion, 0);
   });
 
   test('fails on partial JSON backup for current schema', () {

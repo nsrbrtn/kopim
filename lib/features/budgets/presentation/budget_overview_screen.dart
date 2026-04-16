@@ -20,6 +20,7 @@ import 'package:kopim/features/budgets/presentation/controllers/budgets_provider
 import 'package:kopim/features/budgets/presentation/models/budget_category_spend.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/categories/presentation/utils/category_gradients.dart';
+import 'package:kopim/features/profile/presentation/controllers/active_currency_code_provider.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
 import 'package:kopim/features/transactions/presentation/widgets/transaction_list_tile.dart';
@@ -464,8 +465,10 @@ class _SummaryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
     final ColorScheme colors = theme.colorScheme;
-    final NumberFormat formatter = NumberFormat.simpleCurrency(
-      locale: AppLocalizations.of(context)!.localeName,
+    final String localeName = AppLocalizations.of(context)!.localeName;
+    final NumberFormat formatter = resolveCurrencyFormat(
+      locale: localeName,
+      currencyCode: activeCurrencyCodeOf(context),
     );
     final double ratio = summary.limit <= 0
         ? 0
@@ -982,8 +985,9 @@ class _CategoryTile extends StatelessWidget {
     final double limit = item.limit ?? 0;
     final double spent = item.spent;
     final double ratio = limit > 0 ? (spent / limit).clamp(0, 1) : 0;
-    final NumberFormat currencyFormat = NumberFormat.simpleCurrency(
+    final NumberFormat currencyFormat = resolveCurrencyFormat(
       locale: strings.localeName,
+      currencyCode: activeCurrencyCodeOf(context),
     );
 
     return Container(
@@ -1212,9 +1216,7 @@ class _UpcomingPaymentCard extends StatelessWidget {
     final PhosphorIconData? iconData = resolvePhosphorIconData(category?.icon);
     final String currencySymbol = account?.currency.isNotEmpty == true
         ? resolveCurrencySymbol(account!.currency, locale: strings.localeName)
-        : NumberFormat.simpleCurrency(
-            locale: strings.localeName,
-          ).currencySymbol;
+        : resolveFallbackCurrencySymbol(strings.localeName);
     final NumberFormat formatter = NumberFormat.currency(
       locale: strings.localeName,
       symbol: currencySymbol,

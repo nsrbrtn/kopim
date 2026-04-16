@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:kopim/core/formatting/currency_symbols.dart';
 import 'package:kopim/core/config/theme_extensions.dart';
 import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/home/domain/models/home_overview_summary.dart';
 import 'package:kopim/features/home/presentation/controllers/home_providers.dart';
+import 'package:kopim/features/profile/presentation/controllers/active_currency_code_provider.dart';
 import 'package:kopim/features/transactions/presentation/widgets/transaction_tile_formatters.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
@@ -89,8 +91,11 @@ class _HomeOverviewSummaryContent extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final bool isDarkTheme = theme.brightness == Brightness.dark;
-    final String currencySymbol =
-        TransactionTileFormatters.fallbackCurrencySymbol(strings.localeName);
+    final String currencyCode = ref.watch(activeCurrencyCodeProvider);
+    final String currencySymbol = resolveCurrencySymbol(
+      currencyCode,
+      locale: strings.localeName,
+    );
     final NumberFormat currencyFormat = TransactionTileFormatters.currency(
       strings.localeName,
       currencySymbol,

@@ -4,7 +4,7 @@
 
 ## Accounts (Счета)
 
-Сущность: `Account { id, name, balance, openingBalance, balanceMinor, openingBalanceMinor, currency, currencyScale, type }` (Freezed).
+Сущность: `Account { id, name, balance, openingBalance, balanceMinor, openingBalanceMinor, currency, currencyScale, type, typeVersion }` (Freezed).
 
 Структура:
 
@@ -15,10 +15,17 @@
 Инварианты:
 
 - Каноничная сумма — `balanceMinor/openingBalanceMinor` + `currencyScale`.
+- Каноничные пользовательские типы счета: `cash`, `bank`, `credit_card`, `investment`.
+- `legacy_unknown` используется только как internal fallback classification и не должен появляться в пользовательском selector.
+- `card` и `custom:*` считаются legacy stored types и не должны создаваться новыми клиентами.
+- `typeVersion` — marker совместимости account taxonomy:
+  - `0` для legacy raw type без backfill;
+  - `1` для canonical stored type или детерминированно backfilled записи.
 - `balanceMinor = openingBalanceMinor + сумма транзакций` (с учётом переводов).
 - `openingBalance` — стартовая база счёта; при редактировании баланса пересчитывается относительно истории транзакций.
 - Баланс — derived‑значение; пересчёт выполняется централизованно в data‑слое и обязателен для всех путей записи транзакций (use cases, sync, import).
 - Поля `balance/openingBalance` (double) обновляются как производные от minor для UI и legacy‑экспорта.
+- Для `accounts.type` merge local/remote snapshot обязан учитывать `typeVersion`, чтобы canonical stored type не откатывался обратно в legacy raw value.
 
 UI:
 
@@ -156,10 +163,11 @@ Performance:
 
 Инварианты:
 
-- Каждая цель накоплений (`saving_goal`) связана со своим счетом накоплений (`account_id`).
-- Пополнение цели выполняется только как перевод (`transaction.type = transfer`) со счета-источника на счет цели.
+- `saving_goals.account_id` хранит primary storage account для legacy-совместимости, а полный набор счетов хранения живет в `goal_account_links` и доменном `SavingGoal.storageAccountIds`.
+- Каждое пополнение цели привязано к одному конкретному счету хранения через `goal_contributions.storage_account_id`.
+- Popолнение цели создаёт транзакцию с `savingGoalId`; для обычного межсчетного сценария это `transfer`, а для allocation-only сценария `source == storage` допустим тот же `transfer` без изменения баланса счета.
 - Для пополнения запрещены переводы между разными валютами; источник и счет цели должны иметь одну валюту.
-- Прогресс цели (`currentAmount`) и запись в `goal_contributions` обновляются в одной DB-транзакции с созданием перевода.
+- Прогресс цели (`currentAmount`) и запись в `goal_contributions` обновляются в одной DB-транзакции с созданием/редактированием/удалением связанной транзакции.
 
 ## Overview (Обзор)
 

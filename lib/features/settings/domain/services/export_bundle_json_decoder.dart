@@ -14,8 +14,12 @@ import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/credits/domain/entities/credit_card_entity.dart';
 import 'package:kopim/features/credits/domain/entities/credit_entity.dart';
 import 'package:kopim/features/credits/domain/entities/debt_entity.dart';
+import 'package:kopim/features/profile/domain/entities/profile.dart';
+import 'package:kopim/features/profile/domain/entities/user_progress.dart';
 import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
 import 'package:kopim/features/settings/domain/entities/export_bundle.dart';
+import 'package:kopim/features/settings/domain/entities/export_bundle_integrity.dart';
+import 'package:kopim/features/settings/domain/services/export_bundle_integrity_service.dart';
 import 'package:kopim/features/settings/domain/services/export_bundle_schema.dart';
 import 'package:kopim/features/tags/domain/entities/tag.dart';
 import 'package:kopim/features/tags/domain/entities/transaction_tag.dart';
@@ -25,7 +29,12 @@ import 'package:kopim/features/upcoming_payments/domain/entities/upcoming_paymen
 
 /// Декодирует JSON-представление экспортированного бандла обратно в модель.
 class ExportBundleJsonDecoder {
-  const ExportBundleJsonDecoder();
+  const ExportBundleJsonDecoder({
+    ExportBundleIntegrityService? integrityService,
+  }) : _integrityService =
+           integrityService ?? const ExportBundleIntegrityService();
+
+  final ExportBundleIntegrityService _integrityService;
 
   /// Преобразует набор байтов JSON в [`ExportBundle`].
   ExportBundle decode(Uint8List bytes) {
@@ -57,19 +66,20 @@ class ExportBundleJsonDecoder {
     final DateTime generatedAt = DateTime.parse(generatedAtRaw);
 
     final List<AccountEntity> accounts = _parseAccounts(
-      _readSection(jsonMap, 'accounts'),
+      _readSection(jsonMap, 'accounts', expectedType: List),
     );
     final List<TransactionEntity> transactions = _parseTransactions(
-      _readSection(jsonMap, 'transactions'),
+      _readSection(jsonMap, 'transactions', expectedType: List),
     );
     final List<Category> categories = _parseCategories(
-      _readSection(jsonMap, 'categories'),
+      _readSection(jsonMap, 'categories', expectedType: List),
     );
     final List<TagEntity> tags = _parseTags(
       _readSection(
         jsonMap,
         'tags',
         required: ExportBundleSchema.requiresExtendedSnapshot(version),
+        expectedType: List,
       ),
     );
     final List<TransactionTagEntity> transactionTags = _parseTransactionTags(
@@ -77,6 +87,7 @@ class ExportBundleJsonDecoder {
         jsonMap,
         'transactionTags',
         required: ExportBundleSchema.requiresExtendedSnapshot(version),
+        expectedType: List,
       ),
     );
     final List<SavingGoal> savingGoals = _parseSavingGoals(
@@ -84,6 +95,7 @@ class ExportBundleJsonDecoder {
         jsonMap,
         'savingGoals',
         required: ExportBundleSchema.requiresSavingGoals(version),
+        expectedType: List,
       ),
     );
     final List<CreditEntity> credits = _parseCredits(
@@ -91,6 +103,7 @@ class ExportBundleJsonDecoder {
         jsonMap,
         'credits',
         required: ExportBundleSchema.requiresLiabilities(version),
+        expectedType: List,
       ),
     );
     final List<CreditCardEntity> creditCards = _parseCreditCards(
@@ -98,6 +111,7 @@ class ExportBundleJsonDecoder {
         jsonMap,
         'creditCards',
         required: ExportBundleSchema.requiresLiabilities(version),
+        expectedType: List,
       ),
     );
     final List<DebtEntity> debts = _parseDebts(
@@ -105,6 +119,7 @@ class ExportBundleJsonDecoder {
         jsonMap,
         'debts',
         required: ExportBundleSchema.requiresLiabilities(version),
+        expectedType: List,
       ),
     );
     final List<Budget> budgets = _parseBudgets(
@@ -112,6 +127,7 @@ class ExportBundleJsonDecoder {
         jsonMap,
         'budgets',
         required: ExportBundleSchema.requiresExtendedSnapshot(version),
+        expectedType: List,
       ),
     );
     final List<BudgetInstance> budgetInstances = _parseBudgetInstances(
@@ -119,6 +135,7 @@ class ExportBundleJsonDecoder {
         jsonMap,
         'budgetInstances',
         required: ExportBundleSchema.requiresExtendedSnapshot(version),
+        expectedType: List,
       ),
     );
     final List<UpcomingPayment> upcomingPayments = _parseUpcomingPayments(
@@ -126,6 +143,7 @@ class ExportBundleJsonDecoder {
         jsonMap,
         'upcomingPayments',
         required: ExportBundleSchema.requiresExtendedSnapshot(version),
+        expectedType: List,
       ),
     );
     final List<PaymentReminder> paymentReminders = _parsePaymentReminders(
@@ -133,10 +151,30 @@ class ExportBundleJsonDecoder {
         jsonMap,
         'paymentReminders',
         required: ExportBundleSchema.requiresExtendedSnapshot(version),
+        expectedType: List,
+      ),
+    );
+    final Profile? profile = _parseProfile(
+      _readSection(jsonMap, 'profile', required: false, expectedType: Map),
+    );
+    final UserProgress? progress = _parseProgress(
+      _readSection(
+        jsonMap,
+        'progress',
+        required: ExportBundleSchema.requiresProfileProgressIntegrity(version),
+        expectedType: Map,
+      ),
+    );
+    final ExportBundleIntegrity? integrity = _parseIntegrity(
+      _readSection(
+        jsonMap,
+        'integrity',
+        required: ExportBundleSchema.requiresProfileProgressIntegrity(version),
+        expectedType: Map,
       ),
     );
 
-    return ExportBundle(
+    final ExportBundle bundle = ExportBundle(
       schemaVersion: schemaVersion,
       generatedAt: generatedAt,
       accounts: accounts,
@@ -152,7 +190,14 @@ class ExportBundleJsonDecoder {
       budgetInstances: budgetInstances,
       upcomingPayments: upcomingPayments,
       paymentReminders: paymentReminders,
+      profile: profile,
+      progress: progress,
+      integrity: integrity,
     );
+    if (integrity != null) {
+      _integrityService.verify(bundle);
+    }
+    return bundle;
   }
 
   List<AccountEntity> _parseAccounts(Object? raw) {
@@ -189,6 +234,7 @@ class ExportBundleJsonDecoder {
             currency: currency,
             currencyScale: scale,
             type: _readString(data, 'type'),
+            typeVersion: _readInt(data['typeVersion']) ?? 0,
             createdAt: _readDate(data, 'createdAt'),
             updatedAt: _readDate(data, 'updatedAt'),
             color: _readOptionalString(data, 'color'),
@@ -475,6 +521,61 @@ class ExportBundleJsonDecoder {
         .toList(growable: false);
   }
 
+  Profile? _parseProfile(Object? raw) {
+    if (raw == null) {
+      return null;
+    }
+    if (raw is! Map<String, Object?>) {
+      throw const FormatException('Секция profile имеет некорректный формат.');
+    }
+    return Profile(
+      uid: _readString(raw, 'uid'),
+      name: _readOptionalString(raw, 'name') ?? '',
+      currency: _parseProfileCurrency(_readOptionalString(raw, 'currency')),
+      locale: _readOptionalString(raw, 'locale') ?? 'ru',
+      photoUrl: _readOptionalString(raw, 'photoUrl'),
+      updatedAt: _readDate(raw, 'updatedAt'),
+    );
+  }
+
+  UserProgress? _parseProgress(Object? raw) {
+    if (raw == null) {
+      return null;
+    }
+    if (raw is! Map<String, Object?>) {
+      throw const FormatException('Секция progress имеет некорректный формат.');
+    }
+    return UserProgress(
+      totalTx: _readInt(raw['totalTx']) ?? 0,
+      level: _readInt(raw['level']) ?? 1,
+      title: _readString(raw, 'title'),
+      nextThreshold: _readInt(raw['nextThreshold']) ?? 0,
+      updatedAt: _readDate(raw, 'updatedAt'),
+    );
+  }
+
+  ExportBundleIntegrity? _parseIntegrity(Object? raw) {
+    if (raw == null) {
+      return null;
+    }
+    if (raw is! Map<String, Object?>) {
+      throw const FormatException(
+        'Секция integrity имеет некорректный формат.',
+      );
+    }
+    return ExportBundleIntegrity.fromJson(raw);
+  }
+
+  ProfileCurrency _parseProfileCurrency(String? raw) {
+    if (raw == null || raw.isEmpty) {
+      return ProfileCurrency.rub;
+    }
+    return ProfileCurrency.values.firstWhere(
+      (ProfileCurrency currency) => currency.name == raw.toLowerCase(),
+      orElse: () => ProfileCurrency.rub,
+    );
+  }
+
   String _readString(Map<String, Object?> data, String key) {
     final String value = data[key]?.toString().trim() ?? '';
     if (value.isEmpty) {
@@ -569,6 +670,7 @@ class ExportBundleJsonDecoder {
     Map<String, Object?> jsonMap,
     String key, {
     bool required = true,
+    Type? expectedType,
   }) {
     if (!jsonMap.containsKey(key)) {
       if (required) {
@@ -584,7 +686,10 @@ class ExportBundleJsonDecoder {
       }
       return null;
     }
-    if (value is! List) {
+    if (expectedType == List && value is! List) {
+      throw FormatException('Секция $key имеет некорректный формат.');
+    }
+    if (expectedType == Map && value is! Map) {
       throw FormatException('Секция $key имеет некорректный формат.');
     }
     return value;

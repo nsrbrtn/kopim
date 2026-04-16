@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import 'package:kopim/core/config/theme_extensions.dart';
+import 'package:kopim/core/formatting/currency_symbols.dart';
+import 'package:kopim/features/profile/presentation/controllers/active_currency_code_provider.dart';
 import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
 import 'package:kopim/features/savings/domain/value_objects/goal_progress.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
-class SavingGoalCard extends StatelessWidget {
+class SavingGoalCard extends ConsumerWidget {
   const SavingGoalCard({
     super.key,
     required this.goal,
@@ -25,12 +28,14 @@ class SavingGoalCard extends StatelessWidget {
   final VoidCallback? onOpen;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final ThemeData theme = Theme.of(context);
     final AppLocalizations strings = AppLocalizations.of(context)!;
     final KopimLayout layout = context.kopimLayout;
-    final NumberFormat currencyFormat = NumberFormat.simpleCurrency(
+    final String currencyCode = ref.watch(activeCurrencyCodeProvider);
+    final NumberFormat currencyFormat = resolveCurrencyFormat(
       locale: Localizations.localeOf(context).toString(),
+      currencyCode: currencyCode,
     );
     final NumberFormat percentFormat = NumberFormat.percentPattern(
       Localizations.localeOf(context).toString(),

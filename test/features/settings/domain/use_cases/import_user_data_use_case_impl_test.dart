@@ -50,7 +50,7 @@ void main() {
 
   test('returns cancelled when user dismisses picker', () async {
     when(
-      () => filePicker.pickFile(DataTransferFormat.csv),
+      () => filePicker.pickFile(DataTransferFormat.json),
     ).thenAnswer((_) async => null);
 
     final ImportUserDataResult result = await useCase(
@@ -58,7 +58,7 @@ void main() {
     );
 
     expect(result, const ImportUserDataResult.cancelled());
-    verify(() => filePicker.pickFile(DataTransferFormat.csv)).called(1);
+    verify(() => filePicker.pickFile(DataTransferFormat.json)).called(1);
     verifyNoMoreInteractions(decoder);
     verifyNoMoreInteractions(csvDecoder);
     verifyNoMoreInteractions(repository);
@@ -125,17 +125,7 @@ void main() {
       () => filePicker.pickFile(DataTransferFormat.json),
     ).thenAnswer((_) async => pickedFile);
     when(() => decoder.decode(pickedFile.bytes)).thenReturn(bundle);
-    when(
-      () => repository.importData(
-        accounts: bundle.accounts,
-        categories: bundle.categories,
-        savingGoals: bundle.savingGoals,
-        credits: bundle.credits,
-        creditCards: bundle.creditCards,
-        debts: bundle.debts,
-        transactions: bundle.transactions,
-      ),
-    ).thenAnswer((_) async {});
+    when(() => repository.importData(bundle: bundle)).thenAnswer((_) async {});
 
     final ImportUserDataResult result = await useCase(
       const ImportUserDataParams(format: DataTransferFormat.json),
@@ -152,22 +142,12 @@ void main() {
       failure: (_) => fail('Should not fail'),
     );
 
-    verify(
-      () => repository.importData(
-        accounts: bundle.accounts,
-        categories: bundle.categories,
-        savingGoals: bundle.savingGoals,
-        credits: bundle.credits,
-        creditCards: bundle.creditCards,
-        debts: bundle.debts,
-        transactions: bundle.transactions,
-      ),
-    ).called(1);
+    verify(() => repository.importData(bundle: bundle)).called(1);
   });
 
-  test('uses csv decoder by default', () async {
+  test('uses json decoder by default', () async {
     final PickedImportFile pickedFile = PickedImportFile(
-      fileName: 'backup.csv',
+      fileName: 'backup.json',
       bytes: Uint8List(0),
     );
     final ExportBundle bundle = ExportBundle(
@@ -176,28 +156,18 @@ void main() {
     );
 
     when(
-      () => filePicker.pickFile(DataTransferFormat.csv),
+      () => filePicker.pickFile(DataTransferFormat.json),
     ).thenAnswer((_) async => pickedFile);
-    when(() => csvDecoder.decode(pickedFile.bytes)).thenReturn(bundle);
-    when(
-      () => repository.importData(
-        accounts: bundle.accounts,
-        categories: bundle.categories,
-        savingGoals: bundle.savingGoals,
-        credits: bundle.credits,
-        creditCards: bundle.creditCards,
-        debts: bundle.debts,
-        transactions: bundle.transactions,
-      ),
-    ).thenAnswer((_) async {});
+    when(() => decoder.decode(pickedFile.bytes)).thenReturn(bundle);
+    when(() => repository.importData(bundle: bundle)).thenAnswer((_) async {});
 
     final ImportUserDataResult result = await useCase(
       const ImportUserDataParams(),
     );
 
     expect(result, isA<ImportUserDataResultSuccess>());
-    verify(() => csvDecoder.decode(pickedFile.bytes)).called(1);
-    verifyNever(() => decoder.decode(pickedFile.bytes));
+    verify(() => decoder.decode(pickedFile.bytes)).called(1);
+    verifyNever(() => csvDecoder.decode(pickedFile.bytes));
   });
 
   test('returns failure when decoder throws FormatException', () async {
@@ -235,15 +205,7 @@ void main() {
     ).thenAnswer((_) async => pickedFile);
     when(() => decoder.decode(pickedFile.bytes)).thenReturn(bundle);
     when(
-      () => repository.importData(
-        accounts: bundle.accounts,
-        categories: bundle.categories,
-        savingGoals: bundle.savingGoals,
-        credits: bundle.credits,
-        creditCards: bundle.creditCards,
-        debts: bundle.debts,
-        transactions: bundle.transactions,
-      ),
+      () => repository.importData(bundle: bundle),
     ).thenThrow(Exception('db error'));
 
     final ImportUserDataResult result = await useCase(
@@ -303,15 +265,11 @@ void main() {
     when(() => decoder.decode(pickedFile.bytes)).thenReturn(bundle);
     when(
       () => repository.importData(
-        accounts: bundle.accounts,
-        categories: bundle.categories,
-        savingGoals: bundle.savingGoals,
-        credits: bundle.credits,
-        creditCards: bundle.creditCards,
-        debts: bundle.debts,
-        transactions: <TransactionEntity>[
-          legacyTransaction.copyWith(savingGoalId: null),
-        ],
+        bundle: bundle.copyWith(
+          transactions: <TransactionEntity>[
+            legacyTransaction.copyWith(savingGoalId: null),
+          ],
+        ),
       ),
     ).thenAnswer((_) async {});
 
@@ -322,15 +280,11 @@ void main() {
     expect(result, isA<ImportUserDataResultSuccess>());
     verify(
       () => repository.importData(
-        accounts: bundle.accounts,
-        categories: bundle.categories,
-        savingGoals: bundle.savingGoals,
-        credits: bundle.credits,
-        creditCards: bundle.creditCards,
-        debts: bundle.debts,
-        transactions: <TransactionEntity>[
-          legacyTransaction.copyWith(savingGoalId: null),
-        ],
+        bundle: bundle.copyWith(
+          transactions: <TransactionEntity>[
+            legacyTransaction.copyWith(savingGoalId: null),
+          ],
+        ),
       ),
     ).called(1);
   });
@@ -389,18 +343,14 @@ void main() {
       when(() => decoder.decode(pickedFile.bytes)).thenReturn(bundle);
       when(
         () => repository.importData(
-          accounts: bundle.accounts,
-          categories: bundle.categories,
-          savingGoals: bundle.savingGoals,
-          credits: bundle.credits,
-          creditCards: bundle.creditCards,
-          debts: bundle.debts,
-          transactions: <TransactionEntity>[
-            validTransaction.copyWith(
-              transferAccountId: null,
-              categoryId: null,
-            ),
-          ],
+          bundle: bundle.copyWith(
+            transactions: <TransactionEntity>[
+              validTransaction.copyWith(
+                transferAccountId: null,
+                categoryId: null,
+              ),
+            ],
+          ),
         ),
       ).thenAnswer((_) async {});
 
@@ -411,18 +361,14 @@ void main() {
       expect(result, isA<ImportUserDataResultSuccess>());
       verify(
         () => repository.importData(
-          accounts: bundle.accounts,
-          categories: bundle.categories,
-          savingGoals: bundle.savingGoals,
-          credits: bundle.credits,
-          creditCards: bundle.creditCards,
-          debts: bundle.debts,
-          transactions: <TransactionEntity>[
-            validTransaction.copyWith(
-              transferAccountId: null,
-              categoryId: null,
-            ),
-          ],
+          bundle: bundle.copyWith(
+            transactions: <TransactionEntity>[
+              validTransaction.copyWith(
+                transferAccountId: null,
+                categoryId: null,
+              ),
+            ],
+          ),
         ),
       ).called(1);
     },

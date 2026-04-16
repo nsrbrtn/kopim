@@ -48,7 +48,7 @@ final class ImportUserDataControllerProvider
 }
 
 String _$importUserDataControllerHash() =>
-    r'4bf935186c586d8781e9588d29fbb518b373beda';
+    r'5ec247193852cf5273d2d8f947d4608de0d90aad';
 
 abstract class _$ImportUserDataController
     extends $Notifier<AsyncValue<ImportUserDataResult?>> {

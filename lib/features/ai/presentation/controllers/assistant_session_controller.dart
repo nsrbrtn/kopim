@@ -15,6 +15,7 @@ import 'package:kopim/features/ai/presentation/models/assistant_filters.dart';
 import 'package:kopim/features/ai/presentation/models/assistant_message.dart';
 import 'package:kopim/features/ai/presentation/models/assistant_session_state.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
+import 'package:kopim/features/profile/presentation/controllers/active_currency_code_provider.dart';
 import 'package:kopim/features/profile/presentation/controllers/auth_controller.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:uuid/uuid.dart';
@@ -377,7 +378,9 @@ class AssistantSessionController extends _$AssistantSessionController {
   }
 
   List<String> _buildContextSignals(Set<AssistantFilter> filters) {
-    final List<String> signals = <String>[];
+    final List<String> signals = <String>[
+      'currency:${ref.read(activeCurrencyCodeProvider)}',
+    ];
     for (final AssistantFilter filter in filters) {
       switch (filter) {
         case AssistantFilter.currentMonth:

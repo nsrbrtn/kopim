@@ -390,69 +390,70 @@ void main() {
     },
   );
 
-  test('создает транзакции только для ненулевых компонент и сохраняет scale', () async {
-    final DateTime now = DateTime(2026, 3, 1);
-    await arrangeValidPaymentContext(now: now);
+  test(
+    'создает транзакции только для ненулевых компонент и сохраняет scale',
+    () async {
+      final DateTime now = DateTime(2026, 3, 1);
+      await arrangeValidPaymentContext(now: now);
 
-    await useCase.call(
-      creditId: 'credit-1',
-      sourceAccountId: 'source-1',
-      paidAt: now,
-      principalPaid: Money.fromMinor(
+      await useCase.call(
+        creditId: 'credit-1',
+        sourceAccountId: 'source-1',
+        paidAt: now,
+        principalPaid: Money.fromMinor(
+          BigInt.from(12345),
+          currency: 'RUB',
+          scale: 3,
+        ),
+        interestPaid: Money.fromMinor(BigInt.zero, currency: 'RUB', scale: 3),
+        feesPaid: Money.fromMinor(BigInt.from(55), currency: 'RUB', scale: 3),
+        totalOutflow: Money.fromMinor(
+          BigInt.from(12400),
+          currency: 'RUB',
+          scale: 3,
+        ),
+        idempotencyKey: 'manual:credit-1:scale3',
+      );
+
+      final List<TransactionEntity> createdTransactions = verify(
+        () => transactionRepository.upsert(captureAny()),
+      ).captured.cast<TransactionEntity>();
+      expect(createdTransactions, hasLength(2));
+      expect(
+        createdTransactions.map((TransactionEntity tx) => tx.idempotencyKey),
+        containsAll(<String>[
+          'manual:credit-1:scale3:principal',
+          'manual:credit-1:scale3:fees',
+        ]),
+      );
+      expect(
+        createdTransactions.every(
+          (TransactionEntity tx) => tx.amountScale == 3,
+        ),
+        isTrue,
+      );
+      expect(
+        createdTransactions
+            .where(
+              (TransactionEntity tx) =>
+                  tx.idempotencyKey == 'manual:credit-1:scale3:principal',
+            )
+            .single
+            .amountMinor,
         BigInt.from(12345),
-        currency: 'RUB',
-        scale: 3,
-      ),
-      interestPaid: Money.fromMinor(BigInt.zero, currency: 'RUB', scale: 3),
-      feesPaid: Money.fromMinor(
+      );
+      expect(
+        createdTransactions
+            .where(
+              (TransactionEntity tx) =>
+                  tx.idempotencyKey == 'manual:credit-1:scale3:fees',
+            )
+            .single
+            .amountMinor,
         BigInt.from(55),
-        currency: 'RUB',
-        scale: 3,
-      ),
-      totalOutflow: Money.fromMinor(
-        BigInt.from(12400),
-        currency: 'RUB',
-        scale: 3,
-      ),
-      idempotencyKey: 'manual:credit-1:scale3',
-    );
-
-    final List<TransactionEntity> createdTransactions = verify(
-      () => transactionRepository.upsert(captureAny()),
-    ).captured.cast<TransactionEntity>();
-    expect(createdTransactions, hasLength(2));
-    expect(
-      createdTransactions.map((TransactionEntity tx) => tx.idempotencyKey),
-      containsAll(<String>[
-        'manual:credit-1:scale3:principal',
-        'manual:credit-1:scale3:fees',
-      ]),
-    );
-    expect(
-      createdTransactions.every((TransactionEntity tx) => tx.amountScale == 3),
-      isTrue,
-    );
-    expect(
-      createdTransactions
-          .where(
-            (TransactionEntity tx) =>
-                tx.idempotencyKey == 'manual:credit-1:scale3:principal',
-          )
-          .single
-          .amountMinor,
-      BigInt.from(12345),
-    );
-    expect(
-      createdTransactions
-          .where(
-            (TransactionEntity tx) =>
-                tx.idempotencyKey == 'manual:credit-1:scale3:fees',
-          )
-          .single
-          .amountMinor,
-      BigInt.from(55),
-    );
-  });
+      );
+    },
+  );
 }
 
 AccountEntity _buildAccount({required String id}) {

@@ -96,8 +96,7 @@ class GroupTransactionsByDayUseCase {
                 Money totalOutflow,
                 DateTime date,
                 String? note,
-              ) =>
-                  date,
+              ) => date,
         );
         final DateTime dateB = b.when(
           transaction: (TransactionEntity tx) => tx.date,
@@ -109,8 +108,7 @@ class GroupTransactionsByDayUseCase {
                 Money totalOutflow,
                 DateTime date,
                 String? note,
-              ) =>
-                  date,
+              ) => date,
         );
         return dateB.compareTo(dateA);
       });

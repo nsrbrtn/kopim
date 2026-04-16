@@ -16,7 +16,7 @@ class ExportUserDataController extends _$ExportUserDataController {
 
   Future<void> export({
     String? directoryPath,
-    DataTransferFormat format = DataTransferFormat.csv,
+    DataTransferFormat format = DataTransferFormat.json,
   }) async {
     if (state.isLoading) {
       return;

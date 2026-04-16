@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:kopim/core/formatting/currency_symbols.dart';
 import 'package:kopim/core/money/money.dart';
 import 'package:kopim/features/overview/domain/models/financial_index_models.dart';
 import 'package:kopim/features/overview/domain/models/overview_behavior_progress.dart';
@@ -12,6 +13,7 @@ import 'package:kopim/features/overview/presentation/overview_settings_screen.da
 import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
 import 'package:kopim/features/savings/presentation/screens/add_edit_goal_screen.dart';
 import 'package:kopim/features/savings/presentation/screens/contribute_screen.dart';
+import 'package:kopim/features/profile/presentation/controllers/active_currency_code_provider.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
 class OverviewScreen extends StatelessWidget {
@@ -679,8 +681,10 @@ class _GoalCard extends ConsumerWidget {
     final AsyncValue<List<SavingGoal>> goalsAsync = ref.watch(
       overviewSavingGoalsProvider,
     );
-    final NumberFormat currencyFormat = NumberFormat.simpleCurrency(
+    final String currencyCode = ref.watch(activeCurrencyCodeProvider);
+    final NumberFormat currencyFormat = resolveCurrencyFormat(
       locale: Localizations.localeOf(context).toString(),
+      currencyCode: currencyCode,
     );
 
     return goalsAsync.when(

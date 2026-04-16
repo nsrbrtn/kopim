@@ -5,6 +5,8 @@ import 'package:kopim/features/budgets/domain/entities/budget_instance.dart';
 import 'package:kopim/features/credits/domain/entities/credit_card_entity.dart';
 import 'package:kopim/features/credits/domain/entities/credit_entity.dart';
 import 'package:kopim/features/credits/domain/entities/debt_entity.dart';
+import 'package:kopim/features/profile/domain/entities/profile.dart';
+import 'package:kopim/features/profile/domain/entities/user_progress.dart';
 import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
 import 'package:kopim/features/tags/domain/entities/tag.dart';
 import 'package:kopim/features/tags/domain/entities/transaction_tag.dart';
@@ -52,4 +54,10 @@ abstract class ExportDataRepository {
 
   /// Возвращает все reminders.
   Future<List<PaymentReminder>> fetchPaymentReminders();
+
+  /// Возвращает локальный профиль активного пользователя, если он доступен.
+  Future<Profile?> fetchProfile();
+
+  /// Возвращает снимок пользовательского прогресса на момент экспорта.
+  Future<UserProgress> fetchProgress();
 }

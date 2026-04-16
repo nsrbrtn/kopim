@@ -308,6 +308,8 @@ class ExportBundleCsvDecoder {
           currency: currency,
           currencyScale: scale,
           type: _readRequired(header.columns, row, 'type'),
+          typeVersion:
+              _readOptionalInt(header.columns, row, 'type_version') ?? 0,
           createdAt: _readDate(header.columns, row, 'created_at'),
           updatedAt: _readDate(header.columns, row, 'updated_at'),
           color: _readOptional(header.columns, row, 'color'),
@@ -500,12 +502,34 @@ class ExportBundleCsvDecoder {
         index += 1;
         continue;
       }
-      savingGoals.add(
-        SavingGoal(
+      savingGoals.add(() {
+        final String? accountId = _readOptional(
+          header.columns,
+          row,
+          'account_id',
+        );
+        final String? rawStorageAccountIds = _readOptional(
+          header.columns,
+          row,
+          'storage_account_ids',
+        );
+        final List<String> storageAccountIds =
+            rawStorageAccountIds == null || rawStorageAccountIds.isEmpty
+            ? (accountId == null || accountId.isEmpty)
+                  ? const <String>[]
+                  : <String>[accountId]
+            : rawStorageAccountIds
+                  .split('|')
+                  .map((String value) => value.trim())
+                  .where((String value) => value.isNotEmpty)
+                  .toSet()
+                  .toList(growable: false);
+        return SavingGoal(
           id: _readRequired(header.columns, row, 'id'),
           userId: _readRequired(header.columns, row, 'user_id'),
           name: _readRequired(header.columns, row, 'name'),
-          accountId: _readOptional(header.columns, row, 'account_id'),
+          accountId: accountId,
+          storageAccountIds: storageAccountIds,
           targetDate: _readOptionalDate(header.columns, row, 'target_date'),
           targetAmount: _readRequiredInt(header.columns, row, 'target_amount'),
           currentAmount: _readRequiredInt(
@@ -517,8 +541,8 @@ class ExportBundleCsvDecoder {
           createdAt: _readDate(header.columns, row, 'created_at'),
           updatedAt: _readDate(header.columns, row, 'updated_at'),
           archivedAt: _readOptionalDate(header.columns, row, 'archived_at'),
-        ),
-      );
+        );
+      }());
       index += 1;
     }
     return index;

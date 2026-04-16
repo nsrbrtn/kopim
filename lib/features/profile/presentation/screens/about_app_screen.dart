@@ -16,6 +16,10 @@ class AboutAppScreen extends ConsumerWidget {
 
   static const String routeName = '/settings/about';
   static final Uri _emailUri = Uri(scheme: 'mailto', path: 'qmodo@qmodo.ru');
+  static final Uri _telegramGroupUri = Uri.parse(
+    'https://t.me/+TJNrnwRt_Cg5Y2Ey',
+  );
+  static const String _telegramIconAsset = 'assets/icons/telegram.png';
 
   Future<void> _openEmail(BuildContext context) async {
     final bool launched = await launchUrl(_emailUri);
@@ -26,6 +30,21 @@ class AboutAppScreen extends ConsumerWidget {
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text(strings.profileAboutEmailOpenError)));
+  }
+
+  Future<void> _openTelegramGroup(BuildContext context) async {
+    final bool launched = await launchUrl(
+      _telegramGroupUri,
+      mode: LaunchMode.externalApplication,
+    );
+    if (launched || !context.mounted) {
+      return;
+    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(AppLocalizations.of(context)!.profileTelegramOpenError),
+      ),
+    );
   }
 
   Future<void> _openWebsite(BuildContext context, String url) async {
@@ -82,6 +101,16 @@ class AboutAppScreen extends ConsumerWidget {
                           color: theme.colorScheme.onSurface,
                         ),
                       ),
+                    ),
+                    const SizedBox(height: 8),
+                    _AboutActionCard(
+                      title: strings.profileTelegramGroupCta,
+                      trailing: Image.asset(
+                        _telegramIconAsset,
+                        width: 24,
+                        height: 24,
+                      ),
+                      onTap: () => _openTelegramGroup(context),
                     ),
                     const SizedBox(height: 8),
                     _AboutActionCard(
@@ -146,10 +175,16 @@ class _AboutCard extends StatelessWidget {
 }
 
 class _AboutActionCard extends StatelessWidget {
-  const _AboutActionCard({required this.title, this.icon, this.onTap});
+  const _AboutActionCard({
+    required this.title,
+    this.icon,
+    this.trailing,
+    this.onTap,
+  });
 
   final String title;
   final IconData? icon;
+  final Widget? trailing;
   final VoidCallback? onTap;
 
   @override
@@ -173,7 +208,9 @@ class _AboutActionCard extends StatelessWidget {
                   ),
                 ),
               ),
-              if (icon != null)
+              if (trailing != null)
+                trailing!
+              else if (icon != null)
                 Icon(icon, size: 24, color: theme.colorScheme.onSurface),
             ],
           ),

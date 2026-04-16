@@ -63,22 +63,24 @@ void main() {
 
     await repository.deleteRemoteUserData(uid);
 
-    final int recurringCount = (await firestore
-            .collection('users')
-            .doc(uid)
-            .collection('recurring_payments')
-            .get())
-        .docs
-        .length;
-    final int remindersCount = (await firestore
-            .collection('users')
-            .doc(uid)
-            .collection('reminders')
-            .get())
-        .docs
-        .length;
-    final bool userExists = (await firestore.collection('users').doc(uid).get())
-        .exists;
+    final int recurringCount =
+        (await firestore
+                .collection('users')
+                .doc(uid)
+                .collection('recurring_payments')
+                .get())
+            .docs
+            .length;
+    final int remindersCount =
+        (await firestore
+                .collection('users')
+                .doc(uid)
+                .collection('reminders')
+                .get())
+            .docs
+            .length;
+    final bool userExists =
+        (await firestore.collection('users').doc(uid).get()).exists;
 
     expect(recurringCount, 0);
     expect(remindersCount, 0);

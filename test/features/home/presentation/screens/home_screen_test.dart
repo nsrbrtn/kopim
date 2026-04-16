@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kopim/core/application/sync_status_provider.dart';
+import 'package:kopim/core/config/theme.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/core/services/sync_status.dart';
@@ -45,6 +46,7 @@ import 'package:kopim/features/upcoming_payments/domain/models/upcoming_item.dar
 import 'package:kopim/features/upcoming_payments/domain/providers/upcoming_payments_providers.dart';
 import 'package:kopim/features/upcoming_payments/domain/services/time_service.dart';
 import 'package:kopim/l10n/app_localizations.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:riverpod/src/framework.dart';
 
 void main() {
@@ -294,11 +296,15 @@ void main() {
     Future<void> pumpHomeBody(
       WidgetTester tester, {
       required List<Override> overrides,
+      ThemeMode themeMode = ThemeMode.light,
     }) async {
       await tester.pumpWidget(
         ProviderScope(
           overrides: overrides,
           child: MaterialApp(
+            theme: buildAppTheme(brightness: Brightness.light),
+            darkTheme: buildAppTheme(brightness: Brightness.dark),
+            themeMode: themeMode,
             locale: const Locale('ru'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
@@ -391,6 +397,200 @@ void main() {
       expect(find.textContaining('Доход:'), findsWidgets);
       expect(find.textContaining('Расход:'), findsWidgets);
     });
+
+    testWidgets(
+      'uses the same default account card color in light and dark themes',
+      (WidgetTester tester) async {
+        final DateTime now = DateTime.now();
+        final AccountEntity account = AccountEntity(
+          id: 'cash-1',
+          name: 'Основной счет',
+          balanceMinor: BigInt.from(128987),
+          currency: 'RUB',
+          currencyScale: 2,
+          type: 'cash',
+          createdAt: now,
+          updatedAt: now,
+        );
+
+        Future<Color?> pumpAndReadCardColor(ThemeMode themeMode) async {
+          await pumpHomeBody(
+            tester,
+            themeMode: themeMode,
+            overrides: <Override>[
+              authControllerProvider.overrideWith(
+                () => _FakeAuthController(null),
+              ),
+              homeDashboardPreferencesControllerProvider.overrideWith(
+                () => _FakeHomeDashboardPreferencesController(),
+              ),
+              overviewPreferencesControllerProvider.overrideWith(
+                () => _FakeOverviewPreferencesController(),
+              ),
+              syncStatusProvider.overrideWith(
+                (Ref ref) => Stream<SyncStatus>.value(SyncStatus.offline),
+              ),
+              timeServiceProvider.overrideWith(
+                (Ref ref) => const SystemTimeService(),
+              ),
+              homeAccountsProvider.overrideWith(
+                (Ref ref) =>
+                    Stream<List<AccountEntity>>.value(<AccountEntity>[account]),
+              ),
+              homeAccountMonthlySummariesProvider.overrideWith(
+                (
+                  Ref ref,
+                ) => Stream<Map<String, HomeAccountMonthlySummary>>.value(
+                  <String, HomeAccountMonthlySummary>{
+                    account.id: HomeAccountMonthlySummary(
+                      income: MoneyAmount(minor: BigInt.from(12000), scale: 2),
+                      expense: MoneyAmount(minor: BigInt.from(8000), scale: 2),
+                    ),
+                  },
+                ),
+              ),
+              homeOverviewSummaryProvider.overrideWith(
+                (Ref ref) => Stream<HomeOverviewSummary>.value(
+                  HomeOverviewSummary(
+                    totalBalance: MoneyAmount(
+                      minor: BigInt.from(128987),
+                      scale: 2,
+                    ),
+                    todayIncome: MoneyAmount(minor: BigInt.zero, scale: 2),
+                    todayExpense: MoneyAmount(minor: BigInt.zero, scale: 2),
+                  ),
+                ),
+              ),
+              homeCategoriesProvider.overrideWith(
+                (Ref ref) => Stream<List<Category>>.value(const <Category>[]),
+              ),
+              homeGroupedTransactionsProvider.overrideWith(
+                (Ref ref) =>
+                    const AsyncValue<List<DaySection>>.data(<DaySection>[]),
+              ),
+              homeUpcomingItemsProvider(limit: 6).overrideWith(
+                (Ref ref) =>
+                    Stream<List<UpcomingItem>>.value(const <UpcomingItem>[]),
+              ),
+            ],
+          );
+
+          final Finder cardFinder = find.ancestor(
+            of: find.text('Основной счет'),
+            matching: find.byWidgetPredicate(
+              (Widget widget) =>
+                  widget is Ink && widget.decoration is BoxDecoration,
+            ),
+          );
+          final Ink cardInk = tester.widget<Ink>(cardFinder.first);
+          final BoxDecoration decoration = cardInk.decoration! as BoxDecoration;
+          return decoration.color;
+        }
+
+        final Color? lightColor = await pumpAndReadCardColor(ThemeMode.light);
+        final Color? darkColor = await pumpAndReadCardColor(ThemeMode.dark);
+
+        expect(lightColor, isNotNull);
+        expect(darkColor, isNotNull);
+        expect(lightColor, darkColor);
+      },
+    );
+
+    testWidgets(
+      'uses darker secondary text and eye icon colors in light theme',
+      (WidgetTester tester) async {
+        final DateTime now = DateTime.now();
+        final AccountEntity account = AccountEntity(
+          id: 'cash-1',
+          name: 'Основной счет',
+          balanceMinor: BigInt.from(128987),
+          currency: 'RUB',
+          currencyScale: 2,
+          type: 'cash',
+          createdAt: now,
+          updatedAt: now,
+        );
+
+        await pumpHomeBody(
+          tester,
+          themeMode: ThemeMode.light,
+          overrides: <Override>[
+            authControllerProvider.overrideWith(
+              () => _FakeAuthController(null),
+            ),
+            homeDashboardPreferencesControllerProvider.overrideWith(
+              () => _FakeHomeDashboardPreferencesController(),
+            ),
+            overviewPreferencesControllerProvider.overrideWith(
+              () => _FakeOverviewPreferencesController(),
+            ),
+            syncStatusProvider.overrideWith(
+              (Ref ref) => Stream<SyncStatus>.value(SyncStatus.offline),
+            ),
+            timeServiceProvider.overrideWith(
+              (Ref ref) => const SystemTimeService(),
+            ),
+            homeAccountsProvider.overrideWith(
+              (Ref ref) =>
+                  Stream<List<AccountEntity>>.value(<AccountEntity>[account]),
+            ),
+            homeAccountMonthlySummariesProvider.overrideWith(
+              (Ref ref) => Stream<Map<String, HomeAccountMonthlySummary>>.value(
+                <String, HomeAccountMonthlySummary>{
+                  account.id: HomeAccountMonthlySummary(
+                    income: MoneyAmount(minor: BigInt.from(12000), scale: 2),
+                    expense: MoneyAmount(minor: BigInt.from(8000), scale: 2),
+                  ),
+                },
+              ),
+            ),
+            homeOverviewSummaryProvider.overrideWith(
+              (Ref ref) => Stream<HomeOverviewSummary>.value(
+                HomeOverviewSummary(
+                  totalBalance: MoneyAmount(
+                    minor: BigInt.from(128987),
+                    scale: 2,
+                  ),
+                  todayIncome: MoneyAmount(minor: BigInt.zero, scale: 2),
+                  todayExpense: MoneyAmount(minor: BigInt.zero, scale: 2),
+                ),
+              ),
+            ),
+            homeCategoriesProvider.overrideWith(
+              (Ref ref) => Stream<List<Category>>.value(const <Category>[]),
+            ),
+            homeGroupedTransactionsProvider.overrideWith(
+              (Ref ref) =>
+                  const AsyncValue<List<DaySection>>.data(<DaySection>[]),
+            ),
+            homeUpcomingItemsProvider(limit: 6).overrideWith(
+              (Ref ref) =>
+                  Stream<List<UpcomingItem>>.value(const <UpcomingItem>[]),
+            ),
+          ],
+        );
+
+        final BuildContext context = tester.element(find.text('Основной счет'));
+        final AppLocalizations strings = AppLocalizations.of(context)!;
+        final Color expectedMutedColor = Theme.of(
+          context,
+        ).colorScheme.onSurface;
+
+        final Text accountTypeText = tester
+            .widgetList<Text>(find.text(strings.addAccountTypeCash))
+            .first;
+        final Text incomeText = tester
+            .widgetList<Text>(find.textContaining('Доход:'))
+            .first;
+        final Icon eyeIcon = tester.widget<Icon>(
+          find.byIcon(PhosphorIcons.eyeSlash(PhosphorIconsStyle.regular)),
+        );
+
+        expect(accountTypeText.style?.color, expectedMutedColor);
+        expect(incomeText.style?.color, expectedMutedColor);
+        expect(eyeIcon.color, expectedMutedColor);
+      },
+    );
   });
 }
 

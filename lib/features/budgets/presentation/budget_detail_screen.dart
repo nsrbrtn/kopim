@@ -12,6 +12,7 @@ import 'package:kopim/features/budgets/presentation/budget_form_screen.dart';
 import 'package:kopim/features/budgets/presentation/controllers/budgets_providers.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/categories/presentation/utils/category_gradients.dart';
+import 'package:kopim/features/profile/presentation/controllers/active_currency_code_provider.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
 import 'package:kopim/features/transactions/presentation/controllers/transaction_draft_controller.dart';
@@ -472,7 +473,10 @@ class _BudgetTransactionTile extends ConsumerWidget {
         category?.name ?? strings.homeTransactionsUncategorized;
     final String currencySymbol = account.currency.isNotEmpty
         ? resolveCurrencySymbol(account.currency, locale: localeName)
-        : TransactionTileFormatters.fallbackCurrencySymbol(localeName);
+        : resolveCurrencySymbol(
+            activeCurrencyCodeOf(context),
+            locale: localeName,
+          );
     final NumberFormat moneyFormat = TransactionTileFormatters.currency(
       localeName,
       currencySymbol,

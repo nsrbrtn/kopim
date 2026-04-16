@@ -40,73 +40,71 @@ class _ProfileFormControllerStub extends ProfileFormController {
 }
 
 void main() {
-  testWidgets(
-    'удаление аккаунта требует кодовое слово и пароль',
-    (WidgetTester tester) async {
-      const AuthUser user = AuthUser(
-        uid: 'user-123',
-        email: 'user@example.com',
-        isAnonymous: false,
-      );
-      final Profile profile = Profile(
-        uid: user.uid,
-        name: 'Tester',
-        updatedAt: DateTime.utc(2024, 1, 1),
-      );
-      final ProfileFormParams params = ProfileFormParams(
-        uid: profile.uid,
-        profile: profile,
-      );
-      final ProfileFormState formState = ProfileFormState.fromProfile(
-        profile.uid,
-        profile,
-      );
-      final _DeleteAccountSpyAuthController authController =
-          _DeleteAccountSpyAuthController(user);
+  testWidgets('удаление аккаунта требует кодовое слово и пароль', (
+    WidgetTester tester,
+  ) async {
+    const AuthUser user = AuthUser(
+      uid: 'user-123',
+      email: 'user@example.com',
+      isAnonymous: false,
+    );
+    final Profile profile = Profile(
+      uid: user.uid,
+      name: 'Tester',
+      updatedAt: DateTime.utc(2024, 1, 1),
+    );
+    final ProfileFormParams params = ProfileFormParams(
+      uid: profile.uid,
+      profile: profile,
+    );
+    final ProfileFormState formState = ProfileFormState.fromProfile(
+      profile.uid,
+      profile,
+    );
+    final _DeleteAccountSpyAuthController authController =
+        _DeleteAccountSpyAuthController(user);
 
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: <Override>[
-            authControllerProvider.overrideWith(() => authController),
-            profileControllerProvider(
-              user.uid,
-            ).overrideWith(() => _ProfileControllerStub(profile)),
-            profileFormControllerProvider(
-              params,
-            ).overrideWith(() => _ProfileFormControllerStub(formState)),
-          ],
-          child: const MaterialApp(
-            locale: Locale('ru'),
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            home: Scaffold(body: ProfileAccountSettingsCard()),
-          ),
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: <Override>[
+          authControllerProvider.overrideWith(() => authController),
+          profileControllerProvider(
+            user.uid,
+          ).overrideWith(() => _ProfileControllerStub(profile)),
+          profileFormControllerProvider(
+            params,
+          ).overrideWith(() => _ProfileFormControllerStub(formState)),
+        ],
+        child: const MaterialApp(
+          locale: Locale('ru'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(body: ProfileAccountSettingsCard()),
         ),
-      );
+      ),
+    );
 
-      await tester.pumpAndSettle();
+    await tester.pumpAndSettle();
 
-      expect(find.text('Удалить аккаунт'), findsOneWidget);
+    expect(find.text('Удалить аккаунт'), findsOneWidget);
 
-      await tester.tap(find.text('Удалить аккаунт'));
-      await tester.pumpAndSettle();
+    await tester.tap(find.text('Удалить аккаунт'));
+    await tester.pumpAndSettle();
 
-      expect(find.text('Удалить аккаунт?'), findsOneWidget);
+    expect(find.text('Удалить аккаунт?'), findsOneWidget);
 
-      FilledButton deleteButton = tester.widget<FilledButton>(
-        find.widgetWithText(FilledButton, 'Удалить навсегда'),
-      );
-      expect(deleteButton.onPressed, isNull);
+    FilledButton deleteButton = tester.widget<FilledButton>(
+      find.widgetWithText(FilledButton, 'Удалить навсегда'),
+    );
+    expect(deleteButton.onPressed, isNull);
 
-      await tester.enterText(find.byType(TextField).at(1), 'УДАЛИТЬ');
-      await tester.enterText(find.byType(TextField).at(2), 'secret123');
-      await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).at(1), 'УДАЛИТЬ');
+    await tester.enterText(find.byType(TextField).at(2), 'secret123');
+    await tester.pumpAndSettle();
 
-      deleteButton = tester.widget<FilledButton>(
-        find.widgetWithText(FilledButton, 'Удалить навсегда'),
-      );
-      expect(deleteButton.onPressed, isNotNull);
-
-    },
-  );
+    deleteButton = tester.widget<FilledButton>(
+      find.widgetWithText(FilledButton, 'Удалить навсегда'),
+    );
+    expect(deleteButton.onPressed, isNotNull);
+  });
 }

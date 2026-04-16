@@ -58,6 +58,7 @@ class SavingGoalRemoteDataSource {
       'userId': goal.userId,
       'name': goal.name,
       'accountId': goal.accountId,
+      'storageAccountIds': goal.effectiveStorageAccountIds,
       'targetDate': goal.targetDate != null
           ? Timestamp.fromDate(goal.targetDate!.toUtc())
           : null,
@@ -74,11 +75,18 @@ class SavingGoalRemoteDataSource {
 
   SavingGoal _fromDocument(QueryDocumentSnapshot<Map<String, dynamic>> doc) {
     final Map<String, dynamic> data = doc.data();
+    final List<String> storageAccountIds =
+        (data['storageAccountIds'] as List<dynamic>? ?? const <dynamic>[])
+            .whereType<String>()
+            .map((String value) => value.trim())
+            .where((String value) => value.isNotEmpty)
+            .toList(growable: false);
     return SavingGoal(
       id: data['id'] as String? ?? doc.id,
       userId: data['userId'] as String? ?? '',
       name: data['name'] as String? ?? '',
       accountId: data['accountId'] as String?,
+      storageAccountIds: storageAccountIds,
       targetDate: _parseOptionalTimestamp(data['targetDate']),
       targetAmount: (data['targetAmount'] as num?)?.toInt() ?? 0,
       currentAmount: (data['currentAmount'] as num?)?.toInt() ?? 0,

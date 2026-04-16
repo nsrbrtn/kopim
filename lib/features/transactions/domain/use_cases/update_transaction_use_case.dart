@@ -35,15 +35,18 @@ class UpdateTransactionUseCase {
     final DateTime now = _clock().toUtc();
     final TransactionType previousType = parseTransactionType(existing.type);
     final TransactionType newType = request.type;
+    final bool isSavingGoalContribution = existing.savingGoalId != null;
     final String normalizedNote = request.note?.trim() ?? '';
     final String? noteValue = normalizedNote.isEmpty ? null : normalizedNote;
 
     if (newType.isTransfer &&
+        !isSavingGoalContribution &&
         (request.transferAccountId == null ||
             request.transferAccountId == request.accountId)) {
       throw StateError('Invalid transfer target account');
     }
     if (previousType.isTransfer &&
+        !isSavingGoalContribution &&
         (existing.transferAccountId == null ||
             existing.transferAccountId == existing.accountId)) {
       throw StateError('Invalid transfer source account');
@@ -57,19 +60,22 @@ class UpdateTransactionUseCase {
     }
     if (newType.isTransfer) {
       final String? targetAccountId = request.transferAccountId;
-      if (targetAccountId == null || targetAccountId == request.accountId) {
+      if (!isSavingGoalContribution &&
+          (targetAccountId == null || targetAccountId == request.accountId)) {
         throw StateError('Invalid transfer target account');
       }
-      final AccountEntity? targetAccount = await _accountRepository.findById(
-        targetAccountId,
-      );
-      if (targetAccount == null) {
-        throw StateError('Account not found for id $targetAccountId');
-      }
-      if (targetAccount.currency != updatedAccount.currency) {
-        throw StateError(
-          'Cross-currency transfer is not supported without FX conversion',
+      if (targetAccountId != null && targetAccountId.isNotEmpty) {
+        final AccountEntity? targetAccount = await _accountRepository.findById(
+          targetAccountId,
         );
+        if (targetAccount == null) {
+          throw StateError('Account not found for id $targetAccountId');
+        }
+        if (targetAccount.currency != updatedAccount.currency) {
+          throw StateError(
+            'Cross-currency transfer is not supported without FX conversion',
+          );
+        }
       }
     }
 
@@ -84,6 +90,7 @@ class UpdateTransactionUseCase {
       accountId: request.accountId,
       transferAccountId: request.transferAccountId,
       categoryId: newType.isTransfer ? null : request.categoryId,
+      savingGoalId: newType.isTransfer ? existing.savingGoalId : null,
       amountMinor: resolvedAmount.minor,
       amountScale: resolvedAmount.scale,
       date: request.date,

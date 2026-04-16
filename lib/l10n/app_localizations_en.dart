@@ -64,7 +64,8 @@ class AppLocalizationsEn extends AppLocalizations {
       'Passwords do not match';
 
   @override
-  String get profileCredentialsLoginUpdated => 'Login updated';
+  String get profileCredentialsLoginUpdated =>
+      'A verification link has been sent to the new email';
 
   @override
   String get profileCredentialsPasswordUpdated => 'Password updated';
@@ -356,6 +357,28 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get profileDataTransferFormatJson => 'JSON';
+
+  @override
+  String get profileDataTransferFormatHintJsonBadge => 'Recommended';
+
+  @override
+  String get profileDataTransferFormatHintJsonTitle =>
+      'JSON for app-to-app migration';
+
+  @override
+  String get profileDataTransferFormatHintJsonBody =>
+      'Primary format for moving data to the new backend. The export includes profile, progress, and checksums, and the app verifies data integrity during import.';
+
+  @override
+  String get profileDataTransferFormatHintCsvBadge => 'Legacy';
+
+  @override
+  String get profileDataTransferFormatHintCsvTitle =>
+      'CSV for compatibility and manual review';
+
+  @override
+  String get profileDataTransferFormatHintCsvBody =>
+      'Useful for spreadsheet export or manual inspection. For migration to the new backend, use JSON instead because CSV is not the canonical transfer format.';
 
   @override
   String get profileExportDataSuccess => 'Data exported successfully.';

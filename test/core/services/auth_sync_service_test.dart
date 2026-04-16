@@ -30,6 +30,7 @@ import 'package:kopim/features/profile/domain/failures/auth_failure.dart';
 import 'package:kopim/features/savings/data/sources/remote/saving_goal_remote_data_source.dart';
 import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
 import 'package:kopim/features/settings/data/repositories/import_data_repository_impl.dart';
+import 'package:kopim/features/settings/domain/entities/export_bundle.dart';
 import 'package:kopim/features/tags/data/sources/local/tag_dao.dart';
 import 'package:kopim/features/tags/data/sources/local/transaction_tags_dao.dart';
 import 'package:kopim/features/tags/domain/entities/tag.dart';
@@ -422,9 +423,11 @@ void main() {
           });
 
       for (int i = 0; i < 501; i++) {
-        final DateTime updatedAt = DateTime.utc(2024, 1, 1).add(
-          Duration(minutes: i),
-        );
+        final DateTime updatedAt = DateTime.utc(
+          2024,
+          1,
+          1,
+        ).add(Duration(minutes: i));
         final AccountEntity account = AccountEntity(
           id: 'acc-$i',
           name: 'Account $i',
@@ -473,9 +476,8 @@ void main() {
               .get();
       final List<AccountEntity> localAccounts = await accountDao
           .getAllAccounts();
-      final List<db.OutboxEntryRow> pendingEntries = await outboxDao.fetchPending(
-        limit: 10,
-      );
+      final List<db.OutboxEntryRow> pendingEntries = await outboxDao
+          .fetchPending(limit: 10);
 
       expect(lastRemoteDoc.exists, isTrue);
       expect(lastRemoteDoc.data()?['id'], 'acc-500');
@@ -777,19 +779,22 @@ void main() {
         );
 
         await importRepository.importData(
-          accounts: <AccountEntity>[importedAccount],
-          categories: <Category>[importedCategory],
-          tags: <TagEntity>[importedTag],
-          transactionTags: <TransactionTagEntity>[importedTransactionTag],
-          savingGoals: <SavingGoal>[],
-          credits: <CreditEntity>[],
-          creditCards: <CreditCardEntity>[],
-          debts: <DebtEntity>[],
-          budgets: <Budget>[importedBudget],
-          budgetInstances: <BudgetInstance>[importedBudgetInstance],
-          upcomingPayments: <UpcomingPayment>[importedUpcomingPayment],
-          paymentReminders: <PaymentReminder>[importedReminder],
-          transactions: <TransactionEntity>[importedTransaction],
+          bundle: ExportBundle(
+            schemaVersion: '1.7.0',
+            generatedAt: importedTime,
+            accounts: <AccountEntity>[importedAccount],
+            categories: <Category>[importedCategory],
+            tags: <TagEntity>[importedTag],
+            transactionTags: <TransactionTagEntity>[importedTransactionTag],
+            credits: const <CreditEntity>[],
+            creditCards: const <CreditCardEntity>[],
+            debts: const <DebtEntity>[],
+            budgets: <Budget>[importedBudget],
+            budgetInstances: <BudgetInstance>[importedBudgetInstance],
+            upcomingPayments: <UpcomingPayment>[importedUpcomingPayment],
+            paymentReminders: <PaymentReminder>[importedReminder],
+            transactions: <TransactionEntity>[importedTransaction],
+          ),
         );
 
         final AuthUser authUser = AuthUser(
@@ -1132,19 +1137,22 @@ void main() {
         );
 
         await importRepository.importData(
-          accounts: <AccountEntity>[importedAccount],
-          categories: <Category>[importedCategory],
-          tags: <TagEntity>[importedTag],
-          transactionTags: <TransactionTagEntity>[importedTransactionTag],
-          savingGoals: <SavingGoal>[],
-          credits: <CreditEntity>[],
-          creditCards: <CreditCardEntity>[],
-          debts: <DebtEntity>[],
-          budgets: <Budget>[importedBudget],
-          budgetInstances: <BudgetInstance>[importedBudgetInstance],
-          upcomingPayments: <UpcomingPayment>[importedUpcomingPayment],
-          paymentReminders: <PaymentReminder>[importedReminder],
-          transactions: <TransactionEntity>[importedTransaction],
+          bundle: ExportBundle(
+            schemaVersion: '1.7.0',
+            generatedAt: importedNewer,
+            accounts: <AccountEntity>[importedAccount],
+            categories: <Category>[importedCategory],
+            tags: <TagEntity>[importedTag],
+            transactionTags: <TransactionTagEntity>[importedTransactionTag],
+            credits: const <CreditEntity>[],
+            creditCards: const <CreditCardEntity>[],
+            debts: const <DebtEntity>[],
+            budgets: <Budget>[importedBudget],
+            budgetInstances: <BudgetInstance>[importedBudgetInstance],
+            upcomingPayments: <UpcomingPayment>[importedUpcomingPayment],
+            paymentReminders: <PaymentReminder>[importedReminder],
+            transactions: <TransactionEntity>[importedTransaction],
+          ),
         );
 
         final AuthUser authUser = AuthUser(
@@ -1307,6 +1315,233 @@ void main() {
     );
 
     test(
+      'merge local and remote accounts keeps higher typeVersion even when remote updatedAt is newer',
+      () async {
+        final AuthSyncService service = buildService();
+        const String userId = 'user-account-type-merge';
+        final DateTime localUpdatedAt = DateTime.utc(2024, 4, 1);
+        final DateTime remoteUpdatedAt = DateTime.utc(2024, 5, 1);
+
+        final AccountEntity localAccount = AccountEntity(
+          id: 'acc-type',
+          name: 'Local canonical',
+          balanceMinor: BigInt.from(10000),
+          openingBalanceMinor: BigInt.from(10000),
+          currency: 'USD',
+          currencyScale: 2,
+          type: 'bank',
+          typeVersion: 1,
+          createdAt: DateTime.utc(2024, 1, 1),
+          updatedAt: localUpdatedAt,
+        );
+        final AccountEntity remoteAccount = localAccount.copyWith(
+          name: 'Remote legacy',
+          type: 'card',
+          typeVersion: 0,
+          updatedAt: remoteUpdatedAt,
+        );
+
+        await accountDao.upsert(localAccount);
+        await harness.seedRemoteSnapshot(
+          userId: userId,
+          accounts: <AccountEntity>[remoteAccount],
+        );
+
+        await service.synchronizeOnLogin(
+          user: AuthUser(
+            uid: userId,
+            email: 'type-merge@kopim.app',
+            displayName: 'Type Merge',
+            photoUrl: null,
+            isAnonymous: false,
+            emailVerified: true,
+            creationTime: DateTime.utc(2024, 1, 1),
+            lastSignInTime: DateTime.utc(2024, 5, 2),
+          ),
+        );
+
+        final db.AccountRow merged =
+            await (database.select(database.accounts)..where(
+                  (db.$AccountsTable tbl) => tbl.id.equals(localAccount.id),
+                ))
+                .getSingle();
+        expect(merged.name, 'Remote legacy');
+        expect(merged.type, 'bank');
+        expect(merged.typeVersion, 1);
+        verify(
+          () => harness.analytics.logEvent(
+            'account_type_sync_observability',
+            any(),
+          ),
+        ).called(1);
+        final List<dynamic> loggerMessages = verify(
+          () => harness.logger.logInfo(captureAny()),
+        ).captured;
+        expect(
+          loggerMessages.any(
+            (dynamic value) =>
+                value.toString().contains('account type observability'),
+          ),
+          isTrue,
+        );
+      },
+    );
+
+    test(
+      'remote legacy account is backfilled locally and propagated to remote in same sync',
+      () async {
+        final AuthSyncService service = buildService();
+        const String userId = 'user-account-backfill';
+        final AccountEntity remoteLegacy = AccountEntity(
+          id: 'acc-legacy-only',
+          name: 'Remote legacy card',
+          balanceMinor: BigInt.from(25000),
+          openingBalanceMinor: BigInt.from(25000),
+          currency: 'USD',
+          currencyScale: 2,
+          type: 'card',
+          typeVersion: 0,
+          createdAt: DateTime.utc(2024, 1, 1),
+          updatedAt: DateTime.utc(2024, 6, 1),
+        );
+
+        await harness.seedRemoteSnapshot(
+          userId: userId,
+          accounts: <AccountEntity>[remoteLegacy],
+        );
+
+        await service.synchronizeOnLogin(
+          user: AuthUser(
+            uid: userId,
+            email: 'backfill@kopim.app',
+            displayName: 'Backfill',
+            photoUrl: null,
+            isAnonymous: false,
+            emailVerified: true,
+            creationTime: DateTime.utc(2024, 1, 1),
+            lastSignInTime: DateTime.utc(2024, 6, 2),
+          ),
+        );
+
+        final db.AccountRow localRow =
+            await (database.select(database.accounts)..where(
+                  (db.$AccountsTable tbl) => tbl.id.equals(remoteLegacy.id),
+                ))
+                .getSingle();
+        expect(localRow.type, 'bank');
+        expect(localRow.typeVersion, 1);
+
+        final Map<String, dynamic>? remoteData = await harness
+            .fetchRemoteDocData(
+              userId: userId,
+              entityType: 'account',
+              entityId: remoteLegacy.id,
+            );
+        expect(remoteData, isNotNull);
+        expect(remoteData!['type'], 'bank');
+        expect(remoteData['typeVersion'], 1);
+
+        verify(
+          () => harness.analytics.logEvent(
+            'account_type_backfill_sync_propagation',
+            any(),
+          ),
+        ).called(1);
+      },
+    );
+
+    test(
+      'stale outbox account payload does not overwrite remote canonical typeVersion',
+      () async {
+        final AuthSyncService service = buildService();
+        const String userId = 'user-account-type-outbox';
+        final AccountEntity remoteAccount = AccountEntity(
+          id: 'acc-type-outbox',
+          name: 'Remote canonical',
+          balanceMinor: BigInt.from(15000),
+          openingBalanceMinor: BigInt.from(15000),
+          currency: 'USD',
+          currencyScale: 2,
+          type: 'bank',
+          typeVersion: 1,
+          createdAt: DateTime.utc(2024, 1, 1),
+          updatedAt: DateTime.utc(2024, 5, 1),
+        );
+        final AccountEntity staleLocal = remoteAccount.copyWith(
+          name: 'Local legacy',
+          type: 'card',
+          typeVersion: 0,
+          updatedAt: DateTime.utc(2024, 5, 2),
+        );
+
+        await harness.seedRemoteSnapshot(
+          userId: userId,
+          accounts: <AccountEntity>[remoteAccount],
+        );
+        await outboxDao.enqueue(
+          entityType: 'account',
+          entityId: staleLocal.id,
+          operation: OutboxOperation.upsert,
+          payload: staleLocal.toJson()
+            ..['updatedAt'] = staleLocal.updatedAt.toIso8601String()
+            ..['createdAt'] = staleLocal.createdAt.toIso8601String()
+            ..['balanceMinor'] = staleLocal.balanceMinor.toString()
+            ..['openingBalanceMinor'] = staleLocal.openingBalanceMinor
+                .toString()
+            ..['currencyScale'] = staleLocal.currencyScale
+            ..['typeVersion'] = staleLocal.typeVersion,
+        );
+
+        await service.synchronizeOnLogin(
+          user: AuthUser(
+            uid: userId,
+            email: 'type-outbox@kopim.app',
+            displayName: 'Type Outbox',
+            photoUrl: null,
+            isAnonymous: false,
+            emailVerified: true,
+            creationTime: DateTime.utc(2024, 1, 1),
+            lastSignInTime: DateTime.utc(2024, 5, 3),
+          ),
+        );
+
+        final Map<String, dynamic>? remoteData = await harness
+            .fetchRemoteDocData(
+              userId: userId,
+              entityType: 'account',
+              entityId: remoteAccount.id,
+            );
+        expect(remoteData, isNotNull);
+        expect(remoteData!['type'], 'bank');
+        expect(remoteData['typeVersion'], 1);
+
+        final db.AccountRow localRow =
+            await (database.select(database.accounts)..where(
+                  (db.$AccountsTable tbl) => tbl.id.equals(remoteAccount.id),
+                ))
+                .getSingle();
+        expect(localRow.type, 'bank');
+        expect(localRow.typeVersion, 1);
+        verify(
+          () => harness.analytics.logEvent(
+            'account_type_rollback_prevented',
+            any(),
+          ),
+        ).called(1);
+        final List<dynamic> loggerMessages = verify(
+          () => harness.logger.logInfo(captureAny()),
+        ).captured;
+        expect(
+          loggerMessages.any(
+            (dynamic value) =>
+                value.toString().contains('prevented legacy rollback'),
+          ),
+          isTrue,
+        );
+      },
+    );
+
+    test(
       'restore через importData удаляет stale saving goal и синхронизирует импортированную цель',
       () async {
         final AuthSyncService service = buildService();
@@ -1319,6 +1554,17 @@ void main() {
           name: 'Goal account',
           balanceMinor: BigInt.from(50000),
           openingBalanceMinor: BigInt.from(50000),
+          currency: 'USD',
+          currencyScale: 2,
+          type: 'checking',
+          createdAt: staleTime,
+          updatedAt: staleTime,
+        );
+        final AccountEntity sharedStorageAccount = AccountEntity(
+          id: 'acc-goal-shared',
+          name: 'Shared storage',
+          balanceMinor: BigInt.from(25000),
+          openingBalanceMinor: BigInt.from(25000),
           currency: 'USD',
           currencyScale: 2,
           type: 'checking',
@@ -1347,6 +1593,7 @@ void main() {
           userId: userId,
           name: 'Imported goal',
           accountId: account.id,
+          storageAccountIds: const <String>['acc-goal', 'acc-goal-shared'],
           targetAmount: 200000,
           currentAmount: 15000,
           createdAt: importedTime,
@@ -1361,25 +1608,30 @@ void main() {
         );
 
         await accountDao.upsert(account);
+        await accountDao.upsert(sharedStorageAccount);
         await categoryDao.upsert(category);
         await harness.savingGoalDao.upsert(staleGoal);
 
         await harness.seedRemoteSnapshot(
           userId: userId,
-          accounts: <AccountEntity>[account],
+          accounts: <AccountEntity>[account, sharedStorageAccount],
           categories: <Category>[category],
           savingGoals: <SavingGoal>[staleGoal],
         );
         await harness.seedRemoteProfile(userId: userId, profile: remoteProfile);
 
         await importRepository.importData(
-          accounts: <AccountEntity>[account.copyWith(updatedAt: importedTime)],
-          categories: <Category>[category.copyWith(updatedAt: importedTime)],
-          savingGoals: <SavingGoal>[importedGoal],
-          credits: <CreditEntity>[],
-          creditCards: <CreditCardEntity>[],
-          debts: <DebtEntity>[],
-          transactions: <TransactionEntity>[],
+          bundle: ExportBundle(
+            schemaVersion: '1.7.0',
+            generatedAt: importedTime,
+            accounts: <AccountEntity>[
+              account.copyWith(updatedAt: importedTime),
+              sharedStorageAccount.copyWith(updatedAt: importedTime),
+            ],
+            categories: <Category>[category.copyWith(updatedAt: importedTime)],
+            savingGoals: <SavingGoal>[importedGoal],
+            transactions: const <TransactionEntity>[],
+          ),
         );
 
         final AuthUser authUser = AuthUser(
@@ -1402,6 +1654,12 @@ void main() {
         expect(
           (await harness.savingGoalDao.findById(importedGoal.id))?.name,
           equals(importedGoal.name),
+        );
+        expect(
+          await harness.goalAccountLinkDao.findAccountIdsByGoalId(
+            importedGoal.id,
+          ),
+          <String>['acc-goal', 'acc-goal-shared'],
         );
         expect(
           await harness.fetchRemoteDocData(
@@ -1651,13 +1909,19 @@ void main() {
         );
 
         await importRepository.importData(
-          accounts: <AccountEntity>[account.copyWith(updatedAt: importedTime)],
-          categories: <Category>[category.copyWith(updatedAt: importedTime)],
-          savingGoals: <SavingGoal>[],
-          credits: <CreditEntity>[importedCredit],
-          creditCards: <CreditCardEntity>[importedCard],
-          debts: <DebtEntity>[importedDebt],
-          transactions: <TransactionEntity>[],
+          bundle: ExportBundle(
+            schemaVersion: '1.7.0',
+            generatedAt: importedTime,
+            accounts: <AccountEntity>[
+              account.copyWith(updatedAt: importedTime),
+            ],
+            categories: <Category>[category.copyWith(updatedAt: importedTime)],
+            savingGoals: const <SavingGoal>[],
+            credits: <CreditEntity>[importedCredit],
+            creditCards: <CreditCardEntity>[importedCard],
+            debts: <DebtEntity>[importedDebt],
+            transactions: const <TransactionEntity>[],
+          ),
         );
 
         final AuthUser authUser = AuthUser(
@@ -1833,13 +2097,19 @@ void main() {
         );
 
         await importRepository.importData(
-          accounts: <AccountEntity>[account.copyWith(updatedAt: importedNewer)],
-          categories: <Category>[category.copyWith(updatedAt: importedNewer)],
-          savingGoals: <SavingGoal>[],
-          credits: <CreditEntity>[importedCredit],
-          creditCards: <CreditCardEntity>[importedCard],
-          debts: <DebtEntity>[importedDebt],
-          transactions: <TransactionEntity>[],
+          bundle: ExportBundle(
+            schemaVersion: '1.7.0',
+            generatedAt: importedNewer,
+            accounts: <AccountEntity>[
+              account.copyWith(updatedAt: importedNewer),
+            ],
+            categories: <Category>[category.copyWith(updatedAt: importedNewer)],
+            savingGoals: const <SavingGoal>[],
+            credits: <CreditEntity>[importedCredit],
+            creditCards: <CreditCardEntity>[importedCard],
+            debts: <DebtEntity>[importedDebt],
+            transactions: const <TransactionEntity>[],
+          ),
         );
 
         final AuthUser authUser = AuthUser(

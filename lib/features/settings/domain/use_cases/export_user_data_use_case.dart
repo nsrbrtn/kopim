@@ -4,7 +4,7 @@ import 'package:kopim/features/settings/domain/repositories/export_file_saver.da
 class ExportUserDataParams {
   const ExportUserDataParams({
     this.directoryPath,
-    this.format = DataTransferFormat.csv,
+    this.format = DataTransferFormat.json,
   });
 
   final String? directoryPath;

@@ -5,10 +5,14 @@ import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/credits/domain/entities/credit_card_entity.dart';
 import 'package:kopim/features/credits/domain/entities/credit_entity.dart';
 import 'package:kopim/features/credits/domain/entities/debt_entity.dart';
+import 'package:kopim/features/profile/domain/entities/profile.dart';
+import 'package:kopim/features/profile/domain/entities/user_progress.dart';
 import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
 import 'package:kopim/features/settings/domain/entities/export_bundle.dart';
 import 'package:kopim/features/settings/domain/repositories/export_data_repository.dart';
+import 'package:kopim/features/settings/domain/services/export_bundle_integrity_service.dart';
 import 'package:kopim/features/settings/domain/services/export_bundle_schema.dart';
+import 'package:kopim/features/settings/domain/services/export_bundle_validator.dart';
 import 'package:kopim/features/settings/domain/use_cases/prepare_export_bundle_use_case.dart';
 import 'package:kopim/features/tags/domain/entities/tag.dart';
 import 'package:kopim/features/tags/domain/entities/transaction_tag.dart';
@@ -22,13 +26,20 @@ class PrepareExportBundleUseCaseImpl implements PrepareExportBundleUseCase {
     required ExportDataRepository repository,
     DateTime Function()? clock,
     String? schemaVersion,
+    ExportBundleValidator? validator,
+    ExportBundleIntegrityService? integrityService,
   }) : _repository = repository,
        _clock = clock ?? DateTime.now,
-       _schemaVersion = schemaVersion ?? _defaultSchemaVersion;
+       _schemaVersion = schemaVersion ?? _defaultSchemaVersion,
+       _validator = validator ?? const ExportBundleValidator(),
+       _integrityService =
+           integrityService ?? const ExportBundleIntegrityService();
 
   final ExportDataRepository _repository;
   final DateTime Function() _clock;
   final String _schemaVersion;
+  final ExportBundleValidator _validator;
+  final ExportBundleIntegrityService _integrityService;
 
   static const String _defaultSchemaVersion = ExportBundleSchema.currentVersion;
 
@@ -58,6 +69,8 @@ class PrepareExportBundleUseCaseImpl implements PrepareExportBundleUseCase {
         .fetchUpcomingPayments();
     final Future<List<PaymentReminder>> paymentRemindersFuture = _repository
         .fetchPaymentReminders();
+    final Future<Profile?> profileFuture = _repository.fetchProfile();
+    final Future<UserProgress> progressFuture = _repository.fetchProgress();
 
     final List<AccountEntity> accounts = await accountsFuture;
     final List<TransactionEntity> transactions = await transactionsFuture;
@@ -73,8 +86,10 @@ class PrepareExportBundleUseCaseImpl implements PrepareExportBundleUseCase {
     final List<BudgetInstance> budgetInstances = await budgetInstancesFuture;
     final List<UpcomingPayment> upcomingPayments = await upcomingPaymentsFuture;
     final List<PaymentReminder> paymentReminders = await paymentRemindersFuture;
+    final Profile? profile = await profileFuture;
+    final UserProgress progress = await progressFuture;
 
-    return ExportBundle(
+    final ExportBundle bundle = ExportBundle(
       schemaVersion: _schemaVersion,
       generatedAt: generatedAt,
       accounts: accounts,
@@ -90,6 +105,10 @@ class PrepareExportBundleUseCaseImpl implements PrepareExportBundleUseCase {
       budgetInstances: budgetInstances,
       upcomingPayments: upcomingPayments,
       paymentReminders: paymentReminders,
+      profile: profile,
+      progress: progress.copyWith(updatedAt: generatedAt),
     );
+    _validator.validateOrThrow(bundle);
+    return bundle.copyWith(integrity: _integrityService.buildIntegrity(bundle));
   }
 }

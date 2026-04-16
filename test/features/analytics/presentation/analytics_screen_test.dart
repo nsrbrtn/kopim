@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart';
 import 'package:kopim/core/di/injectors.dart';
+import 'package:kopim/core/formatting/currency_symbols.dart';
 import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/analytics/domain/models/analytics_category_breakdown.dart';
@@ -19,6 +20,7 @@ import 'package:kopim/features/transactions/domain/models/monthly_balance_totals
 import 'package:kopim/features/transactions/domain/models/monthly_cashflow_totals.dart';
 import 'package:kopim/features/transactions/domain/models/transaction_category_totals.dart';
 import 'package:kopim/features/transactions/domain/repositories/transaction_repository.dart';
+import 'package:kopim/features/profile/presentation/controllers/active_currency_code_provider.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
 class _FakeAnalyticsFilterController extends AnalyticsFilterController {
@@ -191,6 +193,7 @@ void main() {
                   transportCategory,
                 ]),
               ),
+              activeCurrencyCodeProvider.overrideWithValue('RUB'),
               analyticsAccountsProvider.overrideWith(
                 (Ref ref) => Stream<List<AccountEntity>>.value(<AccountEntity>[
                   AccountEntity(
@@ -231,8 +234,9 @@ void main() {
         expect(find.text('Groceries'), findsWidgets);
         expect(find.text('Transport'), findsWidgets);
 
-        final NumberFormat currencyFormat = NumberFormat.simpleCurrency(
+        final NumberFormat currencyFormat = resolveCurrencyFormat(
           locale: strings.localeName,
+          currencyCode: 'RUB',
         );
         expect(
           find.byWidgetPredicate(
@@ -242,6 +246,7 @@ void main() {
           ),
           findsOneWidget,
         );
+        expect(find.textContaining('₽'), findsWidgets);
 
         expect(find.text(strings.analyticsTitle), findsOneWidget);
       },
@@ -322,6 +327,7 @@ void main() {
                 salaryCategory,
               ]),
             ),
+            activeCurrencyCodeProvider.overrideWithValue('RUB'),
             analyticsAccountsProvider.overrideWith(
               (Ref ref) => Stream<List<AccountEntity>>.value(<AccountEntity>[
                 AccountEntity(
@@ -419,6 +425,7 @@ void main() {
                 salaryCategory,
               ]),
             ),
+            activeCurrencyCodeProvider.overrideWithValue('RUB'),
             analyticsAccountsProvider.overrideWith(
               (Ref ref) => Stream<List<AccountEntity>>.value(<AccountEntity>[
                 AccountEntity(
@@ -562,6 +569,7 @@ void main() {
                 booksCategory,
               ]),
             ),
+            activeCurrencyCodeProvider.overrideWithValue('RUB'),
             analyticsAccountsProvider.overrideWith(
               (Ref ref) => Stream<List<AccountEntity>>.value(<AccountEntity>[
                 AccountEntity(
@@ -643,6 +651,7 @@ void main() {
               (Ref ref) =>
                   Stream<List<AccountEntity>>.value(const <AccountEntity>[]),
             ),
+            activeCurrencyCodeProvider.overrideWithValue('RUB'),
             analyticsDebtOverviewProvider.overrideWith(
               (Ref ref) => Stream<AnalyticsDebtOverview>.value(
                 AnalyticsDebtOverview.empty(),

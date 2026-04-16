@@ -47,6 +47,7 @@ void main() {
         newCurrentAmount: any(named: 'newCurrentAmount'),
         contributedAt: any(named: 'contributedAt'),
         sourceAccountId: any(named: 'sourceAccountId'),
+        storageAccountId: any(named: 'storageAccountId'),
         contributionNote: any(named: 'contributionNote'),
       ),
     ).thenAnswer((Invocation invocation) async {
@@ -83,6 +84,7 @@ void main() {
         newCurrentAmount: 1000,
         contributedAt: fixedNow,
         sourceAccountId: 'acc-1',
+        storageAccountId: null,
         contributionNote: 'Keep going',
       ),
     );

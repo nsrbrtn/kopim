@@ -203,7 +203,7 @@ abstract class AppLocalizations {
   /// Message shown after successful login update
   ///
   /// In en, this message translates to:
-  /// **'Login updated'**
+  /// **'A verification link has been sent to the new email'**
   String get profileCredentialsLoginUpdated;
 
   /// Message shown after successful password update
@@ -733,6 +733,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'JSON'**
   String get profileDataTransferFormatJson;
+
+  /// Short badge for the JSON hint card
+  ///
+  /// In en, this message translates to:
+  /// **'Recommended'**
+  String get profileDataTransferFormatHintJsonBadge;
+
+  /// Hint title for the JSON format
+  ///
+  /// In en, this message translates to:
+  /// **'JSON for app-to-app migration'**
+  String get profileDataTransferFormatHintJsonTitle;
+
+  /// Hint body describing why JSON is recommended
+  ///
+  /// In en, this message translates to:
+  /// **'Primary format for moving data to the new backend. The export includes profile, progress, and checksums, and the app verifies data integrity during import.'**
+  String get profileDataTransferFormatHintJsonBody;
+
+  /// Short badge for the CSV hint card
+  ///
+  /// In en, this message translates to:
+  /// **'Legacy'**
+  String get profileDataTransferFormatHintCsvBadge;
+
+  /// Hint title for the CSV format
+  ///
+  /// In en, this message translates to:
+  /// **'CSV for compatibility and manual review'**
+  String get profileDataTransferFormatHintCsvTitle;
+
+  /// Hint body describing the CSV limitations
+  ///
+  /// In en, this message translates to:
+  /// **'Useful for spreadsheet export or manual inspection. For migration to the new backend, use JSON instead because CSV is not the canonical transfer format.'**
+  String get profileDataTransferFormatHintCsvBody;
 
   /// Shown when export finishes without a target path
   ///

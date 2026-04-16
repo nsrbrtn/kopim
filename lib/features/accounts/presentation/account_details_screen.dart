@@ -98,130 +98,141 @@ class _AccountDetailsScreenState extends ConsumerState<AccountDetailsScreen> {
               return _ErrorMessage(message: strings.accountDetailsMissing);
             }
 
-            final AccountDetailsPeriod period = ref.watch(
-              accountDetailsPeriodControllerProvider(account.id),
-            );
-            final DateTimeRange periodRange = ref.watch(
-              accountDetailsPeriodRangeProvider(account.id),
-            );
-            final AsyncValue<List<TransactionCategoryTotals>>
-            topCategoriesAsync = ref.watch(
-              accountTopCategoryTotalsProvider(
-                accountId: account.id,
-                start: periodRange.start,
-                end: periodRange.end,
-              ),
-            );
-
-            final NumberFormat currencyFormat = NumberFormat.currency(
-              locale: strings.localeName,
-              symbol: resolveCurrencySymbol(
-                account.currency,
-                locale: strings.localeName,
-              ),
-              decimalDigits: account.currencyScale ?? 2,
-            );
-            final bool isWideLayout = MediaQuery.of(context).size.width >= 720;
-            final EdgeInsets padding = EdgeInsets.symmetric(
-              horizontal: isWideLayout
-                  ? MediaQuery.of(context).size.width * 0.15
-                  : 16,
-              vertical: 16,
-            );
-
-            final List<Category> categoriesList =
-                categoriesAsync.asData?.value ?? const <Category>[];
-            final Map<String, Category> categoriesById = <String, Category>{
-              for (final Category category in categoriesList)
-                category.id: category,
-            };
-            final AsyncValue<List<TransactionEntity>> accountTransactionsAsync =
-                ref.watch(accountTransactionsProvider(account.id));
-
-            final List<_BalanceChartPoint> balancePoints =
-                _buildBalanceChartPoints(
-                  account: account,
-                  transactions:
-                      accountTransactionsAsync.asData?.value ??
-                      const <TransactionEntity>[],
-                  period: period,
-                  range: periodRange,
-                  localeName: strings.localeName,
+            return LayoutBuilder(
+              builder: (BuildContext context, BoxConstraints constraints) {
+                final AccountDetailsPeriod period = ref.watch(
+                  accountDetailsPeriodControllerProvider(account.id),
                 );
-
-            final Widget summarySection = summaryAsync.when(
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (Object error, _) => _ErrorMessage(
-                message: strings.accountDetailsSummaryError(error.toString()),
-              ),
-              data: (AccountTransactionSummary summary) =>
-                  _AccountPeriodSummaryCard(
-                    summary: summary,
-                    currencyFormat: currencyFormat,
-                    strings: strings,
+                final DateTimeRange periodRange = ref.watch(
+                  accountDetailsPeriodRangeProvider(account.id),
+                );
+                final AsyncValue<List<TransactionCategoryTotals>>
+                topCategoriesAsync = ref.watch(
+                  accountTopCategoryTotalsProvider(
+                    accountId: account.id,
+                    start: periodRange.start,
+                    end: periodRange.end,
                   ),
-            );
+                );
 
-            final Widget transactionsSection = transactionsAsync.when(
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (Object error, _) => _ErrorMessage(
-                message: strings.accountDetailsError(error.toString()),
-              ),
-              data: (List<TransactionEntity> transactions) {
-                if (transactions.isEmpty) {
-                  return _EmptyMessage(
-                    message: strings.accountDetailsTransactionsEmpty,
-                  );
-                }
-                final GroupTransactionsByDayUseCase groupUseCase = ref.watch(
-                  groupTransactionsByDayUseCaseProvider,
+                final NumberFormat currencyFormat = NumberFormat.currency(
+                  locale: strings.localeName,
+                  symbol: resolveCurrencySymbol(
+                    account.currency,
+                    locale: strings.localeName,
+                  ),
+                  decimalDigits: account.currencyScale ?? 2,
                 );
-                final List<DaySection> sections = groupUseCase(
-                  transactions: transactions,
+                final double availableWidth = constraints.maxWidth;
+                final EdgeInsets padding = EdgeInsets.symmetric(
+                  horizontal: resolveAccountDetailsHorizontalPadding(
+                    availableWidth,
+                  ),
+                  vertical: 16,
                 );
-                return _AccountTransactionsSection(
-                  sections: sections,
-                  strings: strings,
-                  currency: account.currency,
-                  currencyScale: account.currencyScale ?? 2,
-                  categoriesById: categoriesById,
-                  accountId: account.id,
+
+                final List<Category> categoriesList =
+                    categoriesAsync.asData?.value ?? const <Category>[];
+                final Map<String, Category> categoriesById = <String, Category>{
+                  for (final Category category in categoriesList)
+                    category.id: category,
+                };
+                final AsyncValue<List<TransactionEntity>>
+                accountTransactionsAsync = ref.watch(
+                  accountTransactionsProvider(account.id),
+                );
+
+                final List<_BalanceChartPoint> balancePoints =
+                    _buildBalanceChartPoints(
+                      account: account,
+                      transactions:
+                          accountTransactionsAsync.asData?.value ??
+                          const <TransactionEntity>[],
+                      period: period,
+                      range: periodRange,
+                      localeName: strings.localeName,
+                    );
+
+                final double contentWidth = availableWidth - padding.horizontal;
+                final Widget summarySection = summaryAsync.when(
+                  loading: () =>
+                      const Center(child: CircularProgressIndicator()),
+                  error: (Object error, _) => _ErrorMessage(
+                    message: strings.accountDetailsSummaryError(
+                      error.toString(),
+                    ),
+                  ),
+                  data: (AccountTransactionSummary summary) =>
+                      _AccountPeriodSummaryCard(
+                        summary: summary,
+                        currencyFormat: currencyFormat,
+                        strings: strings,
+                        availableWidth: contentWidth,
+                      ),
+                );
+
+                final Widget transactionsSection = transactionsAsync.when(
+                  loading: () =>
+                      const Center(child: CircularProgressIndicator()),
+                  error: (Object error, _) => _ErrorMessage(
+                    message: strings.accountDetailsError(error.toString()),
+                  ),
+                  data: (List<TransactionEntity> transactions) {
+                    if (transactions.isEmpty) {
+                      return _EmptyMessage(
+                        message: strings.accountDetailsTransactionsEmpty,
+                      );
+                    }
+                    final GroupTransactionsByDayUseCase groupUseCase = ref
+                        .watch(groupTransactionsByDayUseCaseProvider);
+                    final List<DaySection> sections = groupUseCase(
+                      transactions: transactions,
+                    );
+                    return _AccountTransactionsSection(
+                      sections: sections,
+                      strings: strings,
+                      currency: account.currency,
+                      currencyScale: account.currencyScale ?? 2,
+                      categoriesById: categoriesById,
+                      accountId: account.id,
+                    );
+                  },
+                );
+
+                return ListView(
+                  padding: padding,
+                  children: <Widget>[
+                    _AccountPeriodSelector(
+                      selected: period,
+                      onChanged: (AccountDetailsPeriod value) => ref
+                          .read(
+                            accountDetailsPeriodControllerProvider(
+                              account.id,
+                            ).notifier,
+                          )
+                          .set(value),
+                      strings: strings,
+                    ),
+                    const SizedBox(height: 16),
+                    _AccountBalanceChartCard(
+                      points: balancePoints,
+                      currencyFormat: currencyFormat,
+                      strings: strings,
+                    ),
+                    const SizedBox(height: 16),
+                    summarySection,
+                    const SizedBox(height: 24),
+                    _AccountTopCategoriesSection(
+                      totalsAsync: topCategoriesAsync,
+                      categoriesById: categoriesById,
+                      currencyFormat: currencyFormat,
+                      strings: strings,
+                    ),
+                    const SizedBox(height: 24),
+                    transactionsSection,
+                  ],
                 );
               },
-            );
-
-            return ListView(
-              padding: padding,
-              children: <Widget>[
-                _AccountPeriodSelector(
-                  selected: period,
-                  onChanged: (AccountDetailsPeriod value) => ref
-                      .read(
-                        accountDetailsPeriodControllerProvider(
-                          account.id,
-                        ).notifier,
-                      )
-                      .set(value),
-                  strings: strings,
-                ),
-                const SizedBox(height: 16),
-                _AccountBalanceChartCard(
-                  points: balancePoints,
-                  currencyFormat: currencyFormat,
-                  strings: strings,
-                ),
-                const SizedBox(height: 16),
-                summarySection,
-                const SizedBox(height: 24),
-                _AccountTopCategoriesSection(
-                  totalsAsync: topCategoriesAsync,
-                  categoriesById: categoriesById,
-                  currencyFormat: currencyFormat,
-                  strings: strings,
-                ),
-                const SizedBox(height: 24),
-                transactionsSection,
-              ],
             );
           },
         ),
@@ -433,11 +444,13 @@ class _AccountPeriodSummaryCard extends StatelessWidget {
     required this.summary,
     required this.currencyFormat,
     required this.strings,
+    required this.availableWidth,
   });
 
   final AccountTransactionSummary summary;
   final NumberFormat currencyFormat;
   final AppLocalizations strings;
+  final double availableWidth;
 
   @override
   Widget build(BuildContext context) {
@@ -459,6 +472,7 @@ class _AccountPeriodSummaryCard extends StatelessWidget {
       useAbs: true,
     );
     final bool isNegative = summary.net.minor.isNegative;
+    final bool compactLayout = shouldUseCompactAccountSummary(availableWidth);
 
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
@@ -468,33 +482,55 @@ class _AccountPeriodSummaryCard extends StatelessWidget {
       ),
       child: Column(
         children: <Widget>[
-          Row(
-            children: <Widget>[
-              Expanded(
-                child: _SummaryColumn(
+          if (compactLayout)
+            Column(
+              children: <Widget>[
+                _SummaryColumn(
                   label: strings.accountDetailsIncomeLabel,
                   value: '+ $incomeLabel',
                   dotColor: colors.primary,
                 ),
-              ),
-              Container(width: 1, height: 48, color: colors.outlineVariant),
-              Expanded(
-                child: _SummaryColumn(
+                const SizedBox(height: 12),
+                Divider(color: colors.outlineVariant, height: 1),
+                const SizedBox(height: 12),
+                _SummaryColumn(
                   label: strings.accountDetailsExpenseLabel,
                   value: '- $expenseLabel',
                   dotColor: colors.tertiary,
                 ),
-              ),
-            ],
-          ),
+              ],
+            )
+          else
+            Row(
+              children: <Widget>[
+                Expanded(
+                  child: _SummaryColumn(
+                    label: strings.accountDetailsIncomeLabel,
+                    value: '+ $incomeLabel',
+                    dotColor: colors.primary,
+                  ),
+                ),
+                Container(width: 1, height: 48, color: colors.outlineVariant),
+                Expanded(
+                  child: _SummaryColumn(
+                    label: strings.accountDetailsExpenseLabel,
+                    value: '- $expenseLabel',
+                    dotColor: colors.tertiary,
+                  ),
+                ),
+              ],
+            ),
           const SizedBox(height: 12),
           Divider(color: colors.outlineVariant, height: 16),
           const SizedBox(height: 4),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+          Wrap(
+            alignment: WrapAlignment.center,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 4,
+            runSpacing: 4,
             children: <Widget>[
               Text(
-                '${strings.accountDetailsPeriodTotalLabel}: ',
+                '${strings.accountDetailsPeriodTotalLabel}:',
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: colors.onSurfaceVariant,
                 ),
@@ -542,10 +578,14 @@ class _SummaryColumn extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 8),
-            Text(
-              label,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
+            Expanded(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
               ),
             ),
           ],
@@ -553,6 +593,8 @@ class _SummaryColumn extends StatelessWidget {
         const SizedBox(height: 6),
         Text(
           value,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
           style: theme.textTheme.titleMedium?.copyWith(
             color: theme.colorScheme.onSurface,
             fontWeight: FontWeight.w600,
@@ -863,11 +905,11 @@ class _AccountTransactionsSection extends StatelessWidget {
             item.when(
               transaction: (TransactionEntity transaction) =>
                   AccountTransactionListTile(
-                transaction: transaction,
-                category: categoriesById[transaction.categoryId],
-                currencySymbol: currencySymbol,
-                strings: strings,
-              ),
+                    transaction: transaction,
+                    category: categoriesById[transaction.categoryId],
+                    currencySymbol: currencySymbol,
+                    strings: strings,
+                  ),
               groupedCreditPayment:
                   (
                     String groupId,
@@ -876,12 +918,11 @@ class _AccountTransactionsSection extends StatelessWidget {
                     Money totalOutflow,
                     DateTime date,
                     String? note,
-                  ) =>
-                      GroupedCreditPaymentTile(
-                        group: item as GroupedCreditPaymentFeedItem,
-                        currencySymbol: currencySymbol,
-                        strings: strings,
-                      ),
+                  ) => GroupedCreditPaymentTile(
+                    group: item as GroupedCreditPaymentFeedItem,
+                    currencySymbol: currencySymbol,
+                    strings: strings,
+                  ),
             ),
         ],
       ],
@@ -1175,6 +1216,21 @@ String _formatBalancePointLabel(
     case AccountDetailsPeriod.year:
       return DateFormat('MMM', localeName).format(date);
   }
+}
+
+@visibleForTesting
+double resolveAccountDetailsHorizontalPadding(double availableWidth) {
+  if (availableWidth < 720) {
+    return 16;
+  }
+
+  final double adaptivePadding = availableWidth * 0.08;
+  return adaptivePadding.clamp(24.0, 88.0).toDouble();
+}
+
+@visibleForTesting
+bool shouldUseCompactAccountSummary(double availableWidth) {
+  return availableWidth < 520;
 }
 
 List<_TopCategoryItem> _resolveTopCategories({

@@ -10,6 +10,7 @@ import 'package:intl/intl.dart';
 import 'package:collection/collection.dart';
 import 'package:kopim/core/money/money.dart';
 import 'package:kopim/core/money/money_utils.dart';
+import 'package:kopim/core/config/theme.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/accounts/domain/utils/account_type_utils.dart';
 import 'package:kopim/features/accounts/domain/use_cases/add_account_use_case.dart';
@@ -46,6 +47,7 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
 import 'package:kopim/features/profile/domain/entities/profile.dart';
+import 'package:kopim/features/profile/presentation/controllers/active_currency_code_provider.dart';
 import 'package:kopim/features/profile/presentation/controllers/auth_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/profile_controller.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
@@ -1005,6 +1007,9 @@ class _AccountCard extends ConsumerWidget {
       gradient: gradient,
       isHighlighted: isHighlighted,
     );
+    final Color secondaryContentColor = theme.brightness == Brightness.light
+        ? palette.support
+        : carouselContentColor;
     final double cardRadius = context.kopimLayout.radius.xxl;
     final BorderRadius borderRadius = BorderRadius.circular(cardRadius);
     final TextStyle labelStyle =
@@ -1029,12 +1034,12 @@ class _AccountCard extends ConsumerWidget {
                 theme.textTheme.titleMedium ??
                 const TextStyle(fontSize: 14))
             .copyWith(
-              color: carouselContentColor,
+              color: secondaryContentColor,
               fontWeight: FontWeight.w600,
               letterSpacing: 0.1,
             );
     final TextStyle summaryHeaderStyle = labelStyle.copyWith(
-      color: carouselContentColor,
+      color: secondaryContentColor,
     );
     final String normalizedAccountType = normalizeAccountType(account.type);
     final SavingGoal? savingGoal = isLegacySavingsAccountType(account.type)
@@ -1110,10 +1115,7 @@ class _AccountCard extends ConsumerWidget {
                 Positioned(
                   right: 16,
                   top: 16,
-                  child: _AccountHideButton(
-                    account: account,
-                    color: carouselContentColor,
-                  ),
+                  child: _AccountHideButton(account: account),
                 ),
               ],
             ),
@@ -1146,14 +1148,17 @@ class _AccountCard extends ConsumerWidget {
 }
 
 class _AccountHideButton extends ConsumerWidget {
-  const _AccountHideButton({required this.account, required this.color});
+  const _AccountHideButton({required this.account});
 
   final AccountEntity account;
-  final Color color;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final bool isHidden = account.isHidden;
+    final ThemeData theme = Theme.of(context);
+    final Color iconColor = theme.brightness == Brightness.light
+        ? theme.colorScheme.onSurface
+        : theme.colorScheme.surfaceContainerHighest;
     return Material(
       type: MaterialType.transparency,
       child: InkResponse(
@@ -1176,7 +1181,7 @@ class _AccountHideButton extends ConsumerWidget {
                 ? PhosphorIcons.eye(PhosphorIconsStyle.regular)
                 : PhosphorIcons.eyeSlash(PhosphorIconsStyle.regular),
             size: 16,
-            color: color,
+            color: iconColor,
           ),
         ),
       ),
@@ -1299,6 +1304,10 @@ class _StandardAccountContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final String accountTypeLabel = _localizedAccountTypeLabel(
+      strings: strings,
+      rawType: account.type,
+    );
     final bool isSavings =
         isLegacySavingsAccountType(account.type) && savingGoal != null;
     final double savingsProgress = isSavings
@@ -1314,34 +1323,50 @@ class _StandardAccountContent extends StatelessWidget {
     final String savingsTargetLabel = isSavings
         ? currencyFormat.format(savingGoal!.targetAmount / 100)
         : '';
-    final String savingsTargetDateLabel = isSavings
-        ? (savingGoal!.targetDate == null
-              ? 'Срок не задан'
-              : DateFormat.yMd(
-                  Localizations.localeOf(context).toString(),
-                ).format(savingGoal!.targetDate!))
-        : '';
     final String monthlyIncomeLabel = strings.homeOverviewIncomeValue(
       currencyFormat.format(summary.income.toDouble()),
     );
     final String monthlyExpenseLabel = strings.homeOverviewExpenseValue(
       currencyFormat.format(summary.expense.toDouble()),
     );
+    final TextStyle accountNameStyle = labelStyle.copyWith(
+      color: contentColor,
+      fontSize: 14,
+      height: 20 / 14,
+      letterSpacing: 0.1,
+    );
+    final TextStyle supportLabelStyle = summaryHeaderStyle.copyWith(
+      color: summaryHeaderStyle.color,
+    );
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
             if (accountIcon != null)
               _AccountIconBadge(icon: accountIcon!, color: contentColor),
             if (accountIcon != null) const SizedBox(width: 8),
             Expanded(
-              child: Text(
-                account.name,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: labelStyle,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  Text(
+                    account.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: accountNameStyle,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    accountTypeLabel,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: supportLabelStyle,
+                  ),
+                ],
               ),
             ),
           ],
@@ -1358,21 +1383,29 @@ class _StandardAccountContent extends StatelessWidget {
             children: <Widget>[
               Text(
                 strings.homeAccountMonthlySummaryLabel,
-                style: summaryHeaderStyle,
+                style: supportLabelStyle,
               ),
               const SizedBox(height: 8),
-              Text(
-                monthlyIncomeLabel,
-                style: summaryTextStyle,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 4),
-              Text(
-                monthlyExpenseLabel,
-                style: summaryTextStyle,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+              Row(
+                children: <Widget>[
+                  Expanded(
+                    child: Text(
+                      monthlyIncomeLabel,
+                      style: summaryTextStyle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Text(
+                      monthlyExpenseLabel,
+                      style: summaryTextStyle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -1389,15 +1422,37 @@ class _StandardAccountContent extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          Text(
-            'Прогресс: $savingsProgressLabel · Цель: $savingsTargetLabel',
-            style: summaryTextStyle,
-          ),
+          Text('Прогресс: $savingsProgressLabel', style: summaryTextStyle),
           const SizedBox(height: 4),
-          Text('Дата цели: $savingsTargetDateLabel', style: summaryHeaderStyle),
+          Text('Цель: $savingsTargetLabel', style: supportLabelStyle),
         ],
       ],
     );
+  }
+}
+
+String _localizedAccountTypeLabel({
+  required AppLocalizations strings,
+  required String rawType,
+}) {
+  switch (normalizeAccountType(rawType)) {
+    case kAccountTypeCash:
+      return strings.addAccountTypeCash;
+    case kAccountTypeBank:
+      return strings.addAccountTypeBank;
+    case kAccountTypeCreditCard:
+      return strings.addAccountTypeCreditCard;
+    case kAccountTypeInvestment:
+      return strings.addAccountTypeInvestment;
+    case kAccountTypeSavings:
+      return strings.accountTypeOther;
+    case kAccountTypeCredit:
+      return strings.addAccountTypeCreditCard;
+    case kAccountTypeDebt:
+    case kAccountTypeLegacyUnknown:
+    case '':
+    default:
+      return strings.accountTypeOther;
   }
 }
 
@@ -1687,9 +1742,12 @@ class _AccountCardPalette {
     AccountCardGradient? gradient,
     required bool isHighlighted,
   }) {
+    final ColorScheme invariantCardColorScheme = buildAppTheme(
+      brightness: Brightness.dark,
+    ).colorScheme;
     final Color defaultBackground = isHighlighted
-        ? colorScheme.primary
-        : colorScheme.tertiary;
+        ? invariantCardColorScheme.primary
+        : invariantCardColorScheme.tertiary;
     final Color background =
         gradient?.sampleColor ?? accountColor ?? defaultBackground;
     final Brightness brightness = ThemeData.estimateBrightnessForColor(
@@ -1700,7 +1758,7 @@ class _AccountCardPalette {
         : colorScheme.onSurface;
     final Color support = brightness == Brightness.dark
         ? colorScheme.surface.withValues(alpha: 0.78)
-        : colorScheme.onSurfaceVariant;
+        : colorScheme.onSurface;
     return _AccountCardPalette(
       background: background,
       emphasis: emphasis,
@@ -1721,7 +1779,12 @@ class _AccountCardLayout {
     final double label = _textHeight(
       theme.textTheme.labelSmall ?? const TextStyle(fontSize: 11, height: 1.45),
     );
-    final double header = math.max(label, _AccountIconBadge.size);
+    final double title = _textHeight(
+      (theme.textTheme.labelSmall ??
+              const TextStyle(fontSize: 11, height: 1.45))
+          .copyWith(fontSize: 14, height: 20 / 14),
+    );
+    final double header = math.max(title + 2 + label, _AccountIconBadge.size);
     final double balance = _textHeight(
       theme.textTheme.displaySmall ??
           theme.textTheme.headlineMedium ??
@@ -1737,14 +1800,18 @@ class _AccountCardLayout {
     );
 
     const double padding = 24 * 2;
-    const double gaps = 8 + 16 + 8 + 4;
+    const double gaps = 8 + 16 + 8;
+    // Карточки копилок и кредитов содержат дополнительные строки/отступы,
+    // которые не укладываются в базовую оценку стандартного счета.
+    const double contentSafetyBuffer = 12;
 
     return padding +
         header +
         balance +
         summaryTitle +
-        (summaryValue * 2) +
-        gaps;
+        summaryValue +
+        gaps +
+        contentSafetyBuffer;
   }
 
   static double _textHeight(TextStyle style) {
@@ -1849,9 +1916,13 @@ class _TransactionsSectionCardState extends State<_TransactionsSectionCard> {
 
   Widget _buildEntryList(BuildContext context) {
     final ThemeData theme = Theme.of(context);
+    final String fallbackCurrencySymbol = resolveCurrencySymbol(
+      activeCurrencyCodeOf(context),
+      locale: widget.localeName,
+    );
     final NumberFormat moneyFormat = TransactionTileFormatters.currency(
       widget.localeName,
-      TransactionTileFormatters.fallbackCurrencySymbol(widget.localeName),
+      fallbackCurrencySymbol,
       decimalDigits: 0,
     );
     final TextStyle dateStyle =
@@ -2324,9 +2395,10 @@ class _GroupedCreditPaymentListItem extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // We need to resolve currency symbol for the group
-    // For Home screen, let's use the fallback.
-    final String currencySymbol =
-        TransactionTileFormatters.fallbackCurrencySymbol(localeName);
+    final String currencySymbol = resolveCurrencySymbol(
+      activeCurrencyCodeOf(context),
+      locale: localeName,
+    );
     final TransactionEntity? principalTx = item.transactions.firstWhereOrNull(
       (TransactionEntity tx) =>
           tx.type == TransactionType.transfer.storageValue &&
@@ -2411,7 +2483,10 @@ class _TransactionListItem extends ConsumerWidget {
         : null;
     final String currencySymbol = accountData.currency != null
         ? resolveCurrencySymbol(accountData.currency!, locale: localeName)
-        : TransactionTileFormatters.fallbackCurrencySymbol(localeName);
+        : resolveCurrencySymbol(
+            activeCurrencyCodeOf(context),
+            locale: localeName,
+          );
     final NumberFormat moneyFormat = TransactionTileFormatters.currency(
       localeName,
       currencySymbol,

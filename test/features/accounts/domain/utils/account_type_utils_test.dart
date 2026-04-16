@@ -26,6 +26,41 @@ void main() {
     });
   });
 
+  group('backfill helpers', () {
+    test(
+      'resolveBackfillAccountType returns canonical stored type only for whitelist values',
+      () {
+        expect(resolveBackfillAccountType('card'), kAccountTypeBank);
+        expect(resolveBackfillAccountType('bank'), kAccountTypeBank);
+        expect(resolveBackfillAccountType('credit'), kAccountTypeCredit);
+        expect(resolveBackfillAccountType('custom:broker'), isNull);
+      },
+    );
+
+    test('shouldBackfillAccountType checks marker and mapping', () {
+      expect(shouldBackfillAccountType('card', typeVersion: 0), isTrue);
+      expect(shouldBackfillAccountType('bank', typeVersion: 0), isTrue);
+      expect(shouldBackfillAccountType('bank', typeVersion: 1), isFalse);
+      expect(
+        shouldBackfillAccountType('custom:broker', typeVersion: 0),
+        isFalse,
+      );
+    });
+
+    test(
+      'resolveStoredAccountTypeVersion promotes only deterministic stored types',
+      () {
+        expect(resolveStoredAccountTypeVersion('bank'), 1);
+        expect(resolveStoredAccountTypeVersion('card'), 1);
+        expect(resolveStoredAccountTypeVersion('custom:broker'), 0);
+        expect(
+          resolveStoredAccountTypeVersion('bank', currentTypeVersion: 3),
+          3,
+        );
+      },
+    );
+  });
+
   group('account type classifiers', () {
     test('user-creatable types exclude legacy fallback', () {
       expect(isCanonicalUserCreatableAccountType('bank'), isTrue);

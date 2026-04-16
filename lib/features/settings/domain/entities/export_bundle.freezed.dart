@@ -30,7 +30,10 @@ mixin _$ExportBundle {
  List<Budget> get budgets;/// Набор локальных инстансов бюджетов.
  List<BudgetInstance> get budgetInstances;/// Набор локальных recurring payments.
  List<UpcomingPayment> get upcomingPayments;/// Набор локальных reminders.
- List<PaymentReminder> get paymentReminders;
+ List<PaymentReminder> get paymentReminders;/// Локальный профиль пользователя, если он доступен в кэше.
+ Profile? get profile;/// Снимок пользовательского прогресса на момент экспорта.
+ UserProgress? get progress;/// Метаданные целостности для каноничного JSON-экспорта.
+ ExportBundleIntegrity? get integrity;
 /// Create a copy of ExportBundle
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -43,16 +46,16 @@ $ExportBundleCopyWith<ExportBundle> get copyWith => _$ExportBundleCopyWithImpl<E
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ExportBundle&&(identical(other.schemaVersion, schemaVersion) || other.schemaVersion == schemaVersion)&&(identical(other.generatedAt, generatedAt) || other.generatedAt == generatedAt)&&const DeepCollectionEquality().equals(other.accounts, accounts)&&const DeepCollectionEquality().equals(other.transactions, transactions)&&const DeepCollectionEquality().equals(other.categories, categories)&&const DeepCollectionEquality().equals(other.tags, tags)&&const DeepCollectionEquality().equals(other.transactionTags, transactionTags)&&const DeepCollectionEquality().equals(other.savingGoals, savingGoals)&&const DeepCollectionEquality().equals(other.credits, credits)&&const DeepCollectionEquality().equals(other.creditCards, creditCards)&&const DeepCollectionEquality().equals(other.debts, debts)&&const DeepCollectionEquality().equals(other.budgets, budgets)&&const DeepCollectionEquality().equals(other.budgetInstances, budgetInstances)&&const DeepCollectionEquality().equals(other.upcomingPayments, upcomingPayments)&&const DeepCollectionEquality().equals(other.paymentReminders, paymentReminders));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ExportBundle&&(identical(other.schemaVersion, schemaVersion) || other.schemaVersion == schemaVersion)&&(identical(other.generatedAt, generatedAt) || other.generatedAt == generatedAt)&&const DeepCollectionEquality().equals(other.accounts, accounts)&&const DeepCollectionEquality().equals(other.transactions, transactions)&&const DeepCollectionEquality().equals(other.categories, categories)&&const DeepCollectionEquality().equals(other.tags, tags)&&const DeepCollectionEquality().equals(other.transactionTags, transactionTags)&&const DeepCollectionEquality().equals(other.savingGoals, savingGoals)&&const DeepCollectionEquality().equals(other.credits, credits)&&const DeepCollectionEquality().equals(other.creditCards, creditCards)&&const DeepCollectionEquality().equals(other.debts, debts)&&const DeepCollectionEquality().equals(other.budgets, budgets)&&const DeepCollectionEquality().equals(other.budgetInstances, budgetInstances)&&const DeepCollectionEquality().equals(other.upcomingPayments, upcomingPayments)&&const DeepCollectionEquality().equals(other.paymentReminders, paymentReminders)&&(identical(other.profile, profile) || other.profile == profile)&&(identical(other.progress, progress) || other.progress == progress)&&(identical(other.integrity, integrity) || other.integrity == integrity));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,schemaVersion,generatedAt,const DeepCollectionEquality().hash(accounts),const DeepCollectionEquality().hash(transactions),const DeepCollectionEquality().hash(categories),const DeepCollectionEquality().hash(tags),const DeepCollectionEquality().hash(transactionTags),const DeepCollectionEquality().hash(savingGoals),const DeepCollectionEquality().hash(credits),const DeepCollectionEquality().hash(creditCards),const DeepCollectionEquality().hash(debts),const DeepCollectionEquality().hash(budgets),const DeepCollectionEquality().hash(budgetInstances),const DeepCollectionEquality().hash(upcomingPayments),const DeepCollectionEquality().hash(paymentReminders));
+int get hashCode => Object.hash(runtimeType,schemaVersion,generatedAt,const DeepCollectionEquality().hash(accounts),const DeepCollectionEquality().hash(transactions),const DeepCollectionEquality().hash(categories),const DeepCollectionEquality().hash(tags),const DeepCollectionEquality().hash(transactionTags),const DeepCollectionEquality().hash(savingGoals),const DeepCollectionEquality().hash(credits),const DeepCollectionEquality().hash(creditCards),const DeepCollectionEquality().hash(debts),const DeepCollectionEquality().hash(budgets),const DeepCollectionEquality().hash(budgetInstances),const DeepCollectionEquality().hash(upcomingPayments),const DeepCollectionEquality().hash(paymentReminders),profile,progress,integrity);
 
 @override
 String toString() {
-  return 'ExportBundle(schemaVersion: $schemaVersion, generatedAt: $generatedAt, accounts: $accounts, transactions: $transactions, categories: $categories, tags: $tags, transactionTags: $transactionTags, savingGoals: $savingGoals, credits: $credits, creditCards: $creditCards, debts: $debts, budgets: $budgets, budgetInstances: $budgetInstances, upcomingPayments: $upcomingPayments, paymentReminders: $paymentReminders)';
+  return 'ExportBundle(schemaVersion: $schemaVersion, generatedAt: $generatedAt, accounts: $accounts, transactions: $transactions, categories: $categories, tags: $tags, transactionTags: $transactionTags, savingGoals: $savingGoals, credits: $credits, creditCards: $creditCards, debts: $debts, budgets: $budgets, budgetInstances: $budgetInstances, upcomingPayments: $upcomingPayments, paymentReminders: $paymentReminders, profile: $profile, progress: $progress, integrity: $integrity)';
 }
 
 
@@ -63,11 +66,11 @@ abstract mixin class $ExportBundleCopyWith<$Res>  {
   factory $ExportBundleCopyWith(ExportBundle value, $Res Function(ExportBundle) _then) = _$ExportBundleCopyWithImpl;
 @useResult
 $Res call({
- String schemaVersion, DateTime generatedAt, List<AccountEntity> accounts, List<TransactionEntity> transactions, List<Category> categories, List<TagEntity> tags, List<TransactionTagEntity> transactionTags, List<SavingGoal> savingGoals, List<CreditEntity> credits, List<CreditCardEntity> creditCards, List<DebtEntity> debts, List<Budget> budgets, List<BudgetInstance> budgetInstances, List<UpcomingPayment> upcomingPayments, List<PaymentReminder> paymentReminders
+ String schemaVersion, DateTime generatedAt, List<AccountEntity> accounts, List<TransactionEntity> transactions, List<Category> categories, List<TagEntity> tags, List<TransactionTagEntity> transactionTags, List<SavingGoal> savingGoals, List<CreditEntity> credits, List<CreditCardEntity> creditCards, List<DebtEntity> debts, List<Budget> budgets, List<BudgetInstance> budgetInstances, List<UpcomingPayment> upcomingPayments, List<PaymentReminder> paymentReminders, Profile? profile, UserProgress? progress, ExportBundleIntegrity? integrity
 });
 
 
-
+$ProfileCopyWith<$Res>? get profile;$UserProgressCopyWith<$Res>? get progress;$ExportBundleIntegrityCopyWith<$Res>? get integrity;
 
 }
 /// @nodoc
@@ -80,7 +83,7 @@ class _$ExportBundleCopyWithImpl<$Res>
 
 /// Create a copy of ExportBundle
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? schemaVersion = null,Object? generatedAt = null,Object? accounts = null,Object? transactions = null,Object? categories = null,Object? tags = null,Object? transactionTags = null,Object? savingGoals = null,Object? credits = null,Object? creditCards = null,Object? debts = null,Object? budgets = null,Object? budgetInstances = null,Object? upcomingPayments = null,Object? paymentReminders = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? schemaVersion = null,Object? generatedAt = null,Object? accounts = null,Object? transactions = null,Object? categories = null,Object? tags = null,Object? transactionTags = null,Object? savingGoals = null,Object? credits = null,Object? creditCards = null,Object? debts = null,Object? budgets = null,Object? budgetInstances = null,Object? upcomingPayments = null,Object? paymentReminders = null,Object? profile = freezed,Object? progress = freezed,Object? integrity = freezed,}) {
   return _then(_self.copyWith(
 schemaVersion: null == schemaVersion ? _self.schemaVersion : schemaVersion // ignore: cast_nullable_to_non_nullable
 as String,generatedAt: null == generatedAt ? _self.generatedAt : generatedAt // ignore: cast_nullable_to_non_nullable
@@ -97,10 +100,49 @@ as List<DebtEntity>,budgets: null == budgets ? _self.budgets : budgets // ignore
 as List<Budget>,budgetInstances: null == budgetInstances ? _self.budgetInstances : budgetInstances // ignore: cast_nullable_to_non_nullable
 as List<BudgetInstance>,upcomingPayments: null == upcomingPayments ? _self.upcomingPayments : upcomingPayments // ignore: cast_nullable_to_non_nullable
 as List<UpcomingPayment>,paymentReminders: null == paymentReminders ? _self.paymentReminders : paymentReminders // ignore: cast_nullable_to_non_nullable
-as List<PaymentReminder>,
+as List<PaymentReminder>,profile: freezed == profile ? _self.profile : profile // ignore: cast_nullable_to_non_nullable
+as Profile?,progress: freezed == progress ? _self.progress : progress // ignore: cast_nullable_to_non_nullable
+as UserProgress?,integrity: freezed == integrity ? _self.integrity : integrity // ignore: cast_nullable_to_non_nullable
+as ExportBundleIntegrity?,
   ));
 }
+/// Create a copy of ExportBundle
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$ProfileCopyWith<$Res>? get profile {
+    if (_self.profile == null) {
+    return null;
+  }
 
+  return $ProfileCopyWith<$Res>(_self.profile!, (value) {
+    return _then(_self.copyWith(profile: value));
+  });
+}/// Create a copy of ExportBundle
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$UserProgressCopyWith<$Res>? get progress {
+    if (_self.progress == null) {
+    return null;
+  }
+
+  return $UserProgressCopyWith<$Res>(_self.progress!, (value) {
+    return _then(_self.copyWith(progress: value));
+  });
+}/// Create a copy of ExportBundle
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$ExportBundleIntegrityCopyWith<$Res>? get integrity {
+    if (_self.integrity == null) {
+    return null;
+  }
+
+  return $ExportBundleIntegrityCopyWith<$Res>(_self.integrity!, (value) {
+    return _then(_self.copyWith(integrity: value));
+  });
+}
 }
 
 
@@ -182,10 +224,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String schemaVersion,  DateTime generatedAt,  List<AccountEntity> accounts,  List<TransactionEntity> transactions,  List<Category> categories,  List<TagEntity> tags,  List<TransactionTagEntity> transactionTags,  List<SavingGoal> savingGoals,  List<CreditEntity> credits,  List<CreditCardEntity> creditCards,  List<DebtEntity> debts,  List<Budget> budgets,  List<BudgetInstance> budgetInstances,  List<UpcomingPayment> upcomingPayments,  List<PaymentReminder> paymentReminders)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String schemaVersion,  DateTime generatedAt,  List<AccountEntity> accounts,  List<TransactionEntity> transactions,  List<Category> categories,  List<TagEntity> tags,  List<TransactionTagEntity> transactionTags,  List<SavingGoal> savingGoals,  List<CreditEntity> credits,  List<CreditCardEntity> creditCards,  List<DebtEntity> debts,  List<Budget> budgets,  List<BudgetInstance> budgetInstances,  List<UpcomingPayment> upcomingPayments,  List<PaymentReminder> paymentReminders,  Profile? profile,  UserProgress? progress,  ExportBundleIntegrity? integrity)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ExportBundle() when $default != null:
-return $default(_that.schemaVersion,_that.generatedAt,_that.accounts,_that.transactions,_that.categories,_that.tags,_that.transactionTags,_that.savingGoals,_that.credits,_that.creditCards,_that.debts,_that.budgets,_that.budgetInstances,_that.upcomingPayments,_that.paymentReminders);case _:
+return $default(_that.schemaVersion,_that.generatedAt,_that.accounts,_that.transactions,_that.categories,_that.tags,_that.transactionTags,_that.savingGoals,_that.credits,_that.creditCards,_that.debts,_that.budgets,_that.budgetInstances,_that.upcomingPayments,_that.paymentReminders,_that.profile,_that.progress,_that.integrity);case _:
   return orElse();
 
 }
@@ -203,10 +245,10 @@ return $default(_that.schemaVersion,_that.generatedAt,_that.accounts,_that.trans
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String schemaVersion,  DateTime generatedAt,  List<AccountEntity> accounts,  List<TransactionEntity> transactions,  List<Category> categories,  List<TagEntity> tags,  List<TransactionTagEntity> transactionTags,  List<SavingGoal> savingGoals,  List<CreditEntity> credits,  List<CreditCardEntity> creditCards,  List<DebtEntity> debts,  List<Budget> budgets,  List<BudgetInstance> budgetInstances,  List<UpcomingPayment> upcomingPayments,  List<PaymentReminder> paymentReminders)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String schemaVersion,  DateTime generatedAt,  List<AccountEntity> accounts,  List<TransactionEntity> transactions,  List<Category> categories,  List<TagEntity> tags,  List<TransactionTagEntity> transactionTags,  List<SavingGoal> savingGoals,  List<CreditEntity> credits,  List<CreditCardEntity> creditCards,  List<DebtEntity> debts,  List<Budget> budgets,  List<BudgetInstance> budgetInstances,  List<UpcomingPayment> upcomingPayments,  List<PaymentReminder> paymentReminders,  Profile? profile,  UserProgress? progress,  ExportBundleIntegrity? integrity)  $default,) {final _that = this;
 switch (_that) {
 case _ExportBundle():
-return $default(_that.schemaVersion,_that.generatedAt,_that.accounts,_that.transactions,_that.categories,_that.tags,_that.transactionTags,_that.savingGoals,_that.credits,_that.creditCards,_that.debts,_that.budgets,_that.budgetInstances,_that.upcomingPayments,_that.paymentReminders);case _:
+return $default(_that.schemaVersion,_that.generatedAt,_that.accounts,_that.transactions,_that.categories,_that.tags,_that.transactionTags,_that.savingGoals,_that.credits,_that.creditCards,_that.debts,_that.budgets,_that.budgetInstances,_that.upcomingPayments,_that.paymentReminders,_that.profile,_that.progress,_that.integrity);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -223,10 +265,10 @@ return $default(_that.schemaVersion,_that.generatedAt,_that.accounts,_that.trans
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String schemaVersion,  DateTime generatedAt,  List<AccountEntity> accounts,  List<TransactionEntity> transactions,  List<Category> categories,  List<TagEntity> tags,  List<TransactionTagEntity> transactionTags,  List<SavingGoal> savingGoals,  List<CreditEntity> credits,  List<CreditCardEntity> creditCards,  List<DebtEntity> debts,  List<Budget> budgets,  List<BudgetInstance> budgetInstances,  List<UpcomingPayment> upcomingPayments,  List<PaymentReminder> paymentReminders)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String schemaVersion,  DateTime generatedAt,  List<AccountEntity> accounts,  List<TransactionEntity> transactions,  List<Category> categories,  List<TagEntity> tags,  List<TransactionTagEntity> transactionTags,  List<SavingGoal> savingGoals,  List<CreditEntity> credits,  List<CreditCardEntity> creditCards,  List<DebtEntity> debts,  List<Budget> budgets,  List<BudgetInstance> budgetInstances,  List<UpcomingPayment> upcomingPayments,  List<PaymentReminder> paymentReminders,  Profile? profile,  UserProgress? progress,  ExportBundleIntegrity? integrity)?  $default,) {final _that = this;
 switch (_that) {
 case _ExportBundle() when $default != null:
-return $default(_that.schemaVersion,_that.generatedAt,_that.accounts,_that.transactions,_that.categories,_that.tags,_that.transactionTags,_that.savingGoals,_that.credits,_that.creditCards,_that.debts,_that.budgets,_that.budgetInstances,_that.upcomingPayments,_that.paymentReminders);case _:
+return $default(_that.schemaVersion,_that.generatedAt,_that.accounts,_that.transactions,_that.categories,_that.tags,_that.transactionTags,_that.savingGoals,_that.credits,_that.creditCards,_that.debts,_that.budgets,_that.budgetInstances,_that.upcomingPayments,_that.paymentReminders,_that.profile,_that.progress,_that.integrity);case _:
   return null;
 
 }
@@ -238,7 +280,7 @@ return $default(_that.schemaVersion,_that.generatedAt,_that.accounts,_that.trans
 @JsonSerializable()
 
 class _ExportBundle extends ExportBundle {
-  const _ExportBundle({required this.schemaVersion, required this.generatedAt, final  List<AccountEntity> accounts = const <AccountEntity>[], final  List<TransactionEntity> transactions = const <TransactionEntity>[], final  List<Category> categories = const <Category>[], final  List<TagEntity> tags = const <TagEntity>[], final  List<TransactionTagEntity> transactionTags = const <TransactionTagEntity>[], final  List<SavingGoal> savingGoals = const <SavingGoal>[], final  List<CreditEntity> credits = const <CreditEntity>[], final  List<CreditCardEntity> creditCards = const <CreditCardEntity>[], final  List<DebtEntity> debts = const <DebtEntity>[], final  List<Budget> budgets = const <Budget>[], final  List<BudgetInstance> budgetInstances = const <BudgetInstance>[], final  List<UpcomingPayment> upcomingPayments = const <UpcomingPayment>[], final  List<PaymentReminder> paymentReminders = const <PaymentReminder>[]}): _accounts = accounts,_transactions = transactions,_categories = categories,_tags = tags,_transactionTags = transactionTags,_savingGoals = savingGoals,_credits = credits,_creditCards = creditCards,_debts = debts,_budgets = budgets,_budgetInstances = budgetInstances,_upcomingPayments = upcomingPayments,_paymentReminders = paymentReminders,super._();
+  const _ExportBundle({required this.schemaVersion, required this.generatedAt, final  List<AccountEntity> accounts = const <AccountEntity>[], final  List<TransactionEntity> transactions = const <TransactionEntity>[], final  List<Category> categories = const <Category>[], final  List<TagEntity> tags = const <TagEntity>[], final  List<TransactionTagEntity> transactionTags = const <TransactionTagEntity>[], final  List<SavingGoal> savingGoals = const <SavingGoal>[], final  List<CreditEntity> credits = const <CreditEntity>[], final  List<CreditCardEntity> creditCards = const <CreditCardEntity>[], final  List<DebtEntity> debts = const <DebtEntity>[], final  List<Budget> budgets = const <Budget>[], final  List<BudgetInstance> budgetInstances = const <BudgetInstance>[], final  List<UpcomingPayment> upcomingPayments = const <UpcomingPayment>[], final  List<PaymentReminder> paymentReminders = const <PaymentReminder>[], this.profile, this.progress, this.integrity}): _accounts = accounts,_transactions = transactions,_categories = categories,_tags = tags,_transactionTags = transactionTags,_savingGoals = savingGoals,_credits = credits,_creditCards = creditCards,_debts = debts,_budgets = budgets,_budgetInstances = budgetInstances,_upcomingPayments = upcomingPayments,_paymentReminders = paymentReminders,super._();
   factory _ExportBundle.fromJson(Map<String, dynamic> json) => _$ExportBundleFromJson(json);
 
 /// Версия схемы экспортируемых данных.
@@ -362,6 +404,12 @@ class _ExportBundle extends ExportBundle {
   return EqualUnmodifiableListView(_paymentReminders);
 }
 
+/// Локальный профиль пользователя, если он доступен в кэше.
+@override final  Profile? profile;
+/// Снимок пользовательского прогресса на момент экспорта.
+@override final  UserProgress? progress;
+/// Метаданные целостности для каноничного JSON-экспорта.
+@override final  ExportBundleIntegrity? integrity;
 
 /// Create a copy of ExportBundle
 /// with the given fields replaced by the non-null parameter values.
@@ -376,16 +424,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ExportBundle&&(identical(other.schemaVersion, schemaVersion) || other.schemaVersion == schemaVersion)&&(identical(other.generatedAt, generatedAt) || other.generatedAt == generatedAt)&&const DeepCollectionEquality().equals(other._accounts, _accounts)&&const DeepCollectionEquality().equals(other._transactions, _transactions)&&const DeepCollectionEquality().equals(other._categories, _categories)&&const DeepCollectionEquality().equals(other._tags, _tags)&&const DeepCollectionEquality().equals(other._transactionTags, _transactionTags)&&const DeepCollectionEquality().equals(other._savingGoals, _savingGoals)&&const DeepCollectionEquality().equals(other._credits, _credits)&&const DeepCollectionEquality().equals(other._creditCards, _creditCards)&&const DeepCollectionEquality().equals(other._debts, _debts)&&const DeepCollectionEquality().equals(other._budgets, _budgets)&&const DeepCollectionEquality().equals(other._budgetInstances, _budgetInstances)&&const DeepCollectionEquality().equals(other._upcomingPayments, _upcomingPayments)&&const DeepCollectionEquality().equals(other._paymentReminders, _paymentReminders));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ExportBundle&&(identical(other.schemaVersion, schemaVersion) || other.schemaVersion == schemaVersion)&&(identical(other.generatedAt, generatedAt) || other.generatedAt == generatedAt)&&const DeepCollectionEquality().equals(other._accounts, _accounts)&&const DeepCollectionEquality().equals(other._transactions, _transactions)&&const DeepCollectionEquality().equals(other._categories, _categories)&&const DeepCollectionEquality().equals(other._tags, _tags)&&const DeepCollectionEquality().equals(other._transactionTags, _transactionTags)&&const DeepCollectionEquality().equals(other._savingGoals, _savingGoals)&&const DeepCollectionEquality().equals(other._credits, _credits)&&const DeepCollectionEquality().equals(other._creditCards, _creditCards)&&const DeepCollectionEquality().equals(other._debts, _debts)&&const DeepCollectionEquality().equals(other._budgets, _budgets)&&const DeepCollectionEquality().equals(other._budgetInstances, _budgetInstances)&&const DeepCollectionEquality().equals(other._upcomingPayments, _upcomingPayments)&&const DeepCollectionEquality().equals(other._paymentReminders, _paymentReminders)&&(identical(other.profile, profile) || other.profile == profile)&&(identical(other.progress, progress) || other.progress == progress)&&(identical(other.integrity, integrity) || other.integrity == integrity));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,schemaVersion,generatedAt,const DeepCollectionEquality().hash(_accounts),const DeepCollectionEquality().hash(_transactions),const DeepCollectionEquality().hash(_categories),const DeepCollectionEquality().hash(_tags),const DeepCollectionEquality().hash(_transactionTags),const DeepCollectionEquality().hash(_savingGoals),const DeepCollectionEquality().hash(_credits),const DeepCollectionEquality().hash(_creditCards),const DeepCollectionEquality().hash(_debts),const DeepCollectionEquality().hash(_budgets),const DeepCollectionEquality().hash(_budgetInstances),const DeepCollectionEquality().hash(_upcomingPayments),const DeepCollectionEquality().hash(_paymentReminders));
+int get hashCode => Object.hash(runtimeType,schemaVersion,generatedAt,const DeepCollectionEquality().hash(_accounts),const DeepCollectionEquality().hash(_transactions),const DeepCollectionEquality().hash(_categories),const DeepCollectionEquality().hash(_tags),const DeepCollectionEquality().hash(_transactionTags),const DeepCollectionEquality().hash(_savingGoals),const DeepCollectionEquality().hash(_credits),const DeepCollectionEquality().hash(_creditCards),const DeepCollectionEquality().hash(_debts),const DeepCollectionEquality().hash(_budgets),const DeepCollectionEquality().hash(_budgetInstances),const DeepCollectionEquality().hash(_upcomingPayments),const DeepCollectionEquality().hash(_paymentReminders),profile,progress,integrity);
 
 @override
 String toString() {
-  return 'ExportBundle(schemaVersion: $schemaVersion, generatedAt: $generatedAt, accounts: $accounts, transactions: $transactions, categories: $categories, tags: $tags, transactionTags: $transactionTags, savingGoals: $savingGoals, credits: $credits, creditCards: $creditCards, debts: $debts, budgets: $budgets, budgetInstances: $budgetInstances, upcomingPayments: $upcomingPayments, paymentReminders: $paymentReminders)';
+  return 'ExportBundle(schemaVersion: $schemaVersion, generatedAt: $generatedAt, accounts: $accounts, transactions: $transactions, categories: $categories, tags: $tags, transactionTags: $transactionTags, savingGoals: $savingGoals, credits: $credits, creditCards: $creditCards, debts: $debts, budgets: $budgets, budgetInstances: $budgetInstances, upcomingPayments: $upcomingPayments, paymentReminders: $paymentReminders, profile: $profile, progress: $progress, integrity: $integrity)';
 }
 
 
@@ -396,11 +444,11 @@ abstract mixin class _$ExportBundleCopyWith<$Res> implements $ExportBundleCopyWi
   factory _$ExportBundleCopyWith(_ExportBundle value, $Res Function(_ExportBundle) _then) = __$ExportBundleCopyWithImpl;
 @override @useResult
 $Res call({
- String schemaVersion, DateTime generatedAt, List<AccountEntity> accounts, List<TransactionEntity> transactions, List<Category> categories, List<TagEntity> tags, List<TransactionTagEntity> transactionTags, List<SavingGoal> savingGoals, List<CreditEntity> credits, List<CreditCardEntity> creditCards, List<DebtEntity> debts, List<Budget> budgets, List<BudgetInstance> budgetInstances, List<UpcomingPayment> upcomingPayments, List<PaymentReminder> paymentReminders
+ String schemaVersion, DateTime generatedAt, List<AccountEntity> accounts, List<TransactionEntity> transactions, List<Category> categories, List<TagEntity> tags, List<TransactionTagEntity> transactionTags, List<SavingGoal> savingGoals, List<CreditEntity> credits, List<CreditCardEntity> creditCards, List<DebtEntity> debts, List<Budget> budgets, List<BudgetInstance> budgetInstances, List<UpcomingPayment> upcomingPayments, List<PaymentReminder> paymentReminders, Profile? profile, UserProgress? progress, ExportBundleIntegrity? integrity
 });
 
 
-
+@override $ProfileCopyWith<$Res>? get profile;@override $UserProgressCopyWith<$Res>? get progress;@override $ExportBundleIntegrityCopyWith<$Res>? get integrity;
 
 }
 /// @nodoc
@@ -413,7 +461,7 @@ class __$ExportBundleCopyWithImpl<$Res>
 
 /// Create a copy of ExportBundle
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? schemaVersion = null,Object? generatedAt = null,Object? accounts = null,Object? transactions = null,Object? categories = null,Object? tags = null,Object? transactionTags = null,Object? savingGoals = null,Object? credits = null,Object? creditCards = null,Object? debts = null,Object? budgets = null,Object? budgetInstances = null,Object? upcomingPayments = null,Object? paymentReminders = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? schemaVersion = null,Object? generatedAt = null,Object? accounts = null,Object? transactions = null,Object? categories = null,Object? tags = null,Object? transactionTags = null,Object? savingGoals = null,Object? credits = null,Object? creditCards = null,Object? debts = null,Object? budgets = null,Object? budgetInstances = null,Object? upcomingPayments = null,Object? paymentReminders = null,Object? profile = freezed,Object? progress = freezed,Object? integrity = freezed,}) {
   return _then(_ExportBundle(
 schemaVersion: null == schemaVersion ? _self.schemaVersion : schemaVersion // ignore: cast_nullable_to_non_nullable
 as String,generatedAt: null == generatedAt ? _self.generatedAt : generatedAt // ignore: cast_nullable_to_non_nullable
@@ -430,11 +478,50 @@ as List<DebtEntity>,budgets: null == budgets ? _self._budgets : budgets // ignor
 as List<Budget>,budgetInstances: null == budgetInstances ? _self._budgetInstances : budgetInstances // ignore: cast_nullable_to_non_nullable
 as List<BudgetInstance>,upcomingPayments: null == upcomingPayments ? _self._upcomingPayments : upcomingPayments // ignore: cast_nullable_to_non_nullable
 as List<UpcomingPayment>,paymentReminders: null == paymentReminders ? _self._paymentReminders : paymentReminders // ignore: cast_nullable_to_non_nullable
-as List<PaymentReminder>,
+as List<PaymentReminder>,profile: freezed == profile ? _self.profile : profile // ignore: cast_nullable_to_non_nullable
+as Profile?,progress: freezed == progress ? _self.progress : progress // ignore: cast_nullable_to_non_nullable
+as UserProgress?,integrity: freezed == integrity ? _self.integrity : integrity // ignore: cast_nullable_to_non_nullable
+as ExportBundleIntegrity?,
   ));
 }
 
+/// Create a copy of ExportBundle
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$ProfileCopyWith<$Res>? get profile {
+    if (_self.profile == null) {
+    return null;
+  }
 
+  return $ProfileCopyWith<$Res>(_self.profile!, (value) {
+    return _then(_self.copyWith(profile: value));
+  });
+}/// Create a copy of ExportBundle
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$UserProgressCopyWith<$Res>? get progress {
+    if (_self.progress == null) {
+    return null;
+  }
+
+  return $UserProgressCopyWith<$Res>(_self.progress!, (value) {
+    return _then(_self.copyWith(progress: value));
+  });
+}/// Create a copy of ExportBundle
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$ExportBundleIntegrityCopyWith<$Res>? get integrity {
+    if (_self.integrity == null) {
+    return null;
+  }
+
+  return $ExportBundleIntegrityCopyWith<$Res>(_self.integrity!, (value) {
+    return _then(_self.copyWith(integrity: value));
+  });
+}
 }
 
 // dart format on

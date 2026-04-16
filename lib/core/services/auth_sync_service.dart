@@ -16,9 +16,11 @@ import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/core/services/analytics_service.dart';
 import 'package:kopim/core/services/logger_service.dart';
 import 'package:kopim/core/services/sync/sync_data_sanitizer.dart';
+import 'package:kopim/features/accounts/data/services/account_type_backfill_service.dart';
 import 'package:kopim/features/accounts/data/sources/local/account_dao.dart';
 import 'package:kopim/features/accounts/data/sources/remote/account_remote_data_source.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
+import 'package:kopim/features/accounts/domain/utils/account_type_utils.dart';
 import 'package:kopim/features/budgets/data/sources/local/budget_dao.dart';
 import 'package:kopim/features/budgets/data/sources/remote/budget_instance_remote_data_source.dart';
 import 'package:kopim/features/budgets/data/sources/remote/budget_remote_data_source.dart';
@@ -26,6 +28,8 @@ import 'package:kopim/features/budgets/domain/entities/budget.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_instance.dart';
 import 'package:kopim/features/categories/data/sources/local/category_dao.dart';
 import 'package:kopim/features/categories/data/sources/remote/category_remote_data_source.dart';
+import 'package:kopim/features/savings/data/mappers/saving_goal_storage_accounts_mapper.dart';
+import 'package:kopim/features/savings/data/sources/local/goal_account_link_dao.dart';
 import 'package:kopim/features/savings/data/sources/local/saving_goal_dao.dart';
 import 'package:kopim/features/savings/data/sources/remote/saving_goal_remote_data_source.dart';
 import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
@@ -76,6 +80,7 @@ class AuthSyncService {
     required BudgetDao budgetDao,
     required BudgetInstanceDao budgetInstanceDao,
     required SavingGoalDao savingGoalDao,
+    required GoalAccountLinkDao goalAccountLinkDao,
     required UpcomingPaymentsDao upcomingPaymentsDao,
     required PaymentRemindersDao paymentRemindersDao,
     required AccountRemoteDataSource accountRemoteDataSource,
@@ -97,6 +102,7 @@ class AuthSyncService {
     required LoggerService loggerService,
     required AnalyticsService analyticsService,
     required SyncDataSanitizer dataSanitizer,
+    AccountTypeBackfillService? accountTypeBackfillService,
     OutboxPayloadNormalizer payloadNormalizer = const OutboxPayloadNormalizer(),
   }) : _database = database,
        _outboxDao = outboxDao,
@@ -111,6 +117,7 @@ class AuthSyncService {
        _budgetDao = budgetDao,
        _budgetInstanceDao = budgetInstanceDao,
        _savingGoalDao = savingGoalDao,
+       _goalAccountLinkDao = goalAccountLinkDao,
        _upcomingPaymentsDao = upcomingPaymentsDao,
        _paymentRemindersDao = paymentRemindersDao,
        _profileDao = profileDao,
@@ -131,6 +138,7 @@ class AuthSyncService {
        _firestore = firestore,
        _logger = loggerService,
        _analyticsService = analyticsService,
+       _accountTypeBackfillService = accountTypeBackfillService,
        _dataSanitizer = dataSanitizer,
        _payloadNormalizer = payloadNormalizer;
 
@@ -149,6 +157,7 @@ class AuthSyncService {
   final BudgetDao _budgetDao;
   final BudgetInstanceDao _budgetInstanceDao;
   final SavingGoalDao _savingGoalDao;
+  final GoalAccountLinkDao _goalAccountLinkDao;
   final UpcomingPaymentsDao _upcomingPaymentsDao;
   final PaymentRemindersDao _paymentRemindersDao;
   final AccountRemoteDataSource _accountRemoteDataSource;
@@ -169,6 +178,7 @@ class AuthSyncService {
   final FirebaseFirestore _firestore;
   final LoggerService _logger;
   final AnalyticsService _analyticsService;
+  final AccountTypeBackfillService? _accountTypeBackfillService;
   final OutboxPayloadNormalizer _payloadNormalizer;
   final SyncDataSanitizer _dataSanitizer;
 
@@ -214,6 +224,14 @@ class AuthSyncService {
         processedEntries: preparedEntries,
         user: user,
       );
+      final List<db.OutboxEntryRow> backfillEntries =
+          await _runDeferredAccountTypeBackfill(user.uid);
+      if (backfillEntries.isNotEmpty) {
+        preparedEntries = <db.OutboxEntryRow>[
+          ...preparedEntries,
+          ...backfillEntries,
+        ];
+      }
       await _analyticsService.logEvent('auth_sync_success', <String, dynamic>{
         ...syncContext,
         'pendingEntries': preparedEntries.length,
@@ -260,6 +278,51 @@ class AuthSyncService {
     } finally {
       _inProgress = false;
     }
+  }
+
+  Future<List<db.OutboxEntryRow>> _runDeferredAccountTypeBackfill(
+    String userId,
+  ) async {
+    if (_accountTypeBackfillService == null) {
+      return const <db.OutboxEntryRow>[];
+    }
+    final AccountTypeBackfillResult result = await _accountTypeBackfillService
+        .run();
+    if (result.updatedCount == 0) {
+      _logger.logInfo(
+        'AuthSyncService: deferred account type backfill has nothing to migrate.',
+      );
+      return const <db.OutboxEntryRow>[];
+    }
+    _logger.logInfo(
+      'AuthSyncService: deferred account type backfill updated '
+      '${result.updatedCount} account(s); propagating canonical types to sync.',
+    );
+    await _analyticsService
+        .logEvent('account_type_backfill_sync_propagation', <String, dynamic>{
+          'updated': result.updatedCount,
+          'scanned': result.scannedCount,
+          'skippedUnknown': result.skippedUnknownCount,
+          'skippedUpToDate': result.skippedUpToDateCount,
+        });
+    return _applyAllPendingOutbox(userId);
+  }
+
+  Future<List<SavingGoal>> _loadLocalSavingGoalsWithStorageAccounts() async {
+    final List<SavingGoal> goals = await _savingGoalDao.getGoals(
+      includeArchived: true,
+    );
+    if (goals.isEmpty) {
+      return const <SavingGoal>[];
+    }
+    final Map<String, List<String>> idsByGoal = await _goalAccountLinkDao
+        .findAccountIdsByGoalIds(goals.map((SavingGoal goal) => goal.id));
+    return goals
+        .map(
+          (SavingGoal goal) =>
+              mapSavingGoalStorageAccounts(goal, idsByGoal[goal.id]),
+        )
+        .toList(growable: false);
   }
 
   Future<List<db.OutboxEntryRow>> _preparePendingEntries() async {
@@ -606,6 +669,29 @@ class AuthSyncService {
     if (remoteData == null) {
       return true;
     }
+    if (entry.entityType == 'account') {
+      final int localTypeVersion = _extractAccountTypeVersion(payload);
+      final int remoteTypeVersion = _extractAccountTypeVersion(remoteData);
+      if (localTypeVersion > remoteTypeVersion) {
+        _logger.logInfo(
+          'AuthSyncService: local account typeVersion wins for '
+          '${entry.entityId} (local=$localTypeVersion, remote=$remoteTypeVersion).',
+        );
+        return true;
+      }
+      if (localTypeVersion < remoteTypeVersion) {
+        _logger.logInfo(
+          'AuthSyncService: prevented legacy rollback for account '
+          '${entry.entityId} (local=$localTypeVersion, remote=$remoteTypeVersion).',
+        );
+        await _analyticsService
+            .logEvent('account_type_rollback_prevented', <String, dynamic>{
+              'localTypeVersion': localTypeVersion,
+              'remoteTypeVersion': remoteTypeVersion,
+            });
+        return false;
+      }
+    }
     final DateTime? remoteUpdatedAt = _extractRemoteUpdatedAt(
       entry.entityType,
       remoteData,
@@ -718,6 +804,10 @@ class AuthSyncService {
     return null;
   }
 
+  int _extractAccountTypeVersion(Map<String, dynamic> payload) {
+    return _readInt(payload['typeVersion']) ?? 0;
+  }
+
   AccountEntity _applyAccountMoney(
     AccountEntity account,
     Map<String, dynamic> payload,
@@ -726,6 +816,7 @@ class AuthSyncService {
       balanceMinor: _readBigInt(payload['balanceMinor']),
       openingBalanceMinor: _readBigInt(payload['openingBalanceMinor']),
       currencyScale: _readInt(payload['currencyScale']),
+      typeVersion: _extractAccountTypeVersion(payload),
     );
   }
 
@@ -863,6 +954,7 @@ class AuthSyncService {
     final List<int> processedIds = processedEntries
         .map((OutboxEntryRow entry) => entry.id)
         .toList();
+    _AccountMergeResult? accountMergeResult;
     await _database.transaction(() async {
       if (processedIds.isNotEmpty) {
         await _outboxDao.markBatchAsSent(processedIds);
@@ -893,20 +985,18 @@ class AuthSyncService {
       final List<Budget> localBudgets = await _budgetDao.getAllBudgets();
       final List<BudgetInstance> localBudgetInstances = await _budgetInstanceDao
           .getAllInstances();
-      final List<SavingGoal> localSavingGoals = await _savingGoalDao.getGoals(
-        includeArchived: true,
-      );
+      final List<SavingGoal> localSavingGoals =
+          await _loadLocalSavingGoalsWithStorageAccounts();
       final List<UpcomingPayment> localUpcomingPayments =
           await _upcomingPaymentsDao.getAll();
       final List<PaymentReminder> localPaymentReminders =
           await _paymentRemindersDao.getAll();
 
-      final List<AccountEntity> mergedAccounts = _mergeEntities<AccountEntity>(
-        local: localAccounts,
-        remote: remoteSnapshot.accounts,
-        getId: (AccountEntity entity) => entity.id,
-        getUpdatedAt: (AccountEntity entity) => entity.updatedAt,
+      accountMergeResult = _mergeAccounts(
+        localAccounts,
+        remoteSnapshot.accounts,
       );
+      final List<AccountEntity> mergedAccounts = accountMergeResult!.accounts;
       final List<Category> mergedCategories = _mergeEntities<Category>(
         local: localCategories,
         remote: remoteSnapshot.categories,
@@ -1047,6 +1137,12 @@ class AuthSyncService {
         await _debtDao.upsertAll(sanitizedDebts);
 
         await _savingGoalDao.upsertAll(mergedSavingGoals);
+        await _goalAccountLinkDao.replaceLinksByGoal(
+          accountIdsByGoalId: <String, Iterable<String>>{
+            for (final SavingGoal goal in mergedSavingGoals)
+              goal.id: goal.effectiveStorageAccountIds,
+          },
+        );
         final Set<String> validSavingGoalIds = mergedSavingGoals
             .map((SavingGoal e) => e.id)
             .toSet();
@@ -1151,6 +1247,12 @@ class AuthSyncService {
         await _profileDao.upsertInTransaction(profile);
       }
     });
+    if (accountMergeResult != null) {
+      await _emitAccountMergeObservability(
+        userId: userId,
+        result: accountMergeResult!,
+      );
+    }
   }
 
   Future<List<AccountEntity>> _recalculateBalances({
@@ -1285,6 +1387,121 @@ class AuthSyncService {
 
   String _transactionTagKey(TransactionTagEntity link) {
     return '${link.transactionId}::${link.tagId}';
+  }
+
+  _AccountMergeResult _mergeAccounts(
+    List<AccountEntity> local,
+    List<AccountEntity> remote,
+  ) {
+    final _AccountMergeObservability observability =
+        _AccountMergeObservability();
+    _collectAccountNormalizationObservability(
+      accounts: local,
+      source: 'local',
+      observability: observability,
+    );
+    _collectAccountNormalizationObservability(
+      accounts: remote,
+      source: 'remote',
+      observability: observability,
+    );
+    final Map<String, AccountEntity> merged = <String, AccountEntity>{
+      for (final AccountEntity item in local) item.id: item,
+    };
+
+    for (final AccountEntity remoteItem in remote) {
+      final AccountEntity? localItem = merged[remoteItem.id];
+      if (localItem == null) {
+        merged[remoteItem.id] = remoteItem;
+        continue;
+      }
+
+      final AccountEntity base =
+          localItem.updatedAt.isAfter(remoteItem.updatedAt)
+          ? localItem
+          : remoteItem;
+
+      if (localItem.typeVersion == remoteItem.typeVersion) {
+        if (localItem.type != remoteItem.type) {
+          observability.equalVersionTypeMismatchCount += 1;
+        }
+        merged[remoteItem.id] = base;
+        continue;
+      }
+
+      observability.typeVersionConflictCount += 1;
+      final AccountEntity typeWinner =
+          localItem.typeVersion > remoteItem.typeVersion
+          ? localItem
+          : remoteItem;
+      if (identical(typeWinner, localItem)) {
+        observability.localTypeWins += 1;
+      } else {
+        observability.remoteTypeWins += 1;
+      }
+      merged[remoteItem.id] = base.copyWith(
+        type: typeWinner.type,
+        typeVersion: typeWinner.typeVersion,
+      );
+    }
+
+    return _AccountMergeResult(
+      accounts: merged.values.toList(),
+      observability: observability,
+    );
+  }
+
+  void _collectAccountNormalizationObservability({
+    required List<AccountEntity> accounts,
+    required String source,
+    required _AccountMergeObservability observability,
+  }) {
+    for (final AccountEntity account in accounts) {
+      final String rawType = account.type.trim().toLowerCase();
+      final String normalizedType = normalizeAccountType(account.type);
+      if (normalizedType.isEmpty) {
+        continue;
+      }
+      if (normalizedType != rawType) {
+        observability.fallbackNormalizationCount += 1;
+      }
+      if (normalizedType == kAccountTypeLegacyUnknown) {
+        observability.unknownLegacyTypeCount += 1;
+        if (rawType.isNotEmpty) {
+          observability.unknownLegacyTypes.add('$source:$rawType');
+        }
+      }
+    }
+  }
+
+  Future<void> _emitAccountMergeObservability({
+    required String userId,
+    required _AccountMergeResult result,
+  }) async {
+    final _AccountMergeObservability observability = result.observability;
+    if (!observability.hasSignals) {
+      return;
+    }
+    _logger.logInfo(
+      'AuthSyncService: account type observability for $userId '
+      'fallback_normalization=${observability.fallbackNormalizationCount}, '
+      'unknown_legacy=${observability.unknownLegacyTypeCount}, '
+      'type_conflicts=${observability.typeVersionConflictCount}, '
+      'local_type_wins=${observability.localTypeWins}, '
+      'remote_type_wins=${observability.remoteTypeWins}, '
+      'equal_version_mismatches=${observability.equalVersionTypeMismatchCount}, '
+      'unknown_types=${observability.unknownLegacyTypes.join(', ')}.',
+    );
+    await _analyticsService
+        .logEvent('account_type_sync_observability', <String, dynamic>{
+          'fallbackNormalization': observability.fallbackNormalizationCount,
+          'unknownLegacy': observability.unknownLegacyTypeCount,
+          'typeConflicts': observability.typeVersionConflictCount,
+          'localTypeWins': observability.localTypeWins,
+          'remoteTypeWins': observability.remoteTypeWins,
+          'equalVersionMismatches': observability.equalVersionTypeMismatchCount,
+          'unknownTypeCount': observability.unknownLegacyTypes.length,
+        });
   }
 
   List<T> _mergeEntities<T>({
@@ -1569,6 +1786,32 @@ class _CategorySanitizationResult {
 
   final List<Category> categories;
   final Map<String, String> idMapping;
+}
+
+class _AccountMergeResult {
+  const _AccountMergeResult({
+    required this.accounts,
+    required this.observability,
+  });
+
+  final List<AccountEntity> accounts;
+  final _AccountMergeObservability observability;
+}
+
+class _AccountMergeObservability {
+  int fallbackNormalizationCount = 0;
+  int unknownLegacyTypeCount = 0;
+  int typeVersionConflictCount = 0;
+  int localTypeWins = 0;
+  int remoteTypeWins = 0;
+  int equalVersionTypeMismatchCount = 0;
+  final Set<String> unknownLegacyTypes = <String>{};
+
+  bool get hasSignals =>
+      fallbackNormalizationCount > 0 ||
+      unknownLegacyTypeCount > 0 ||
+      typeVersionConflictCount > 0 ||
+      equalVersionTypeMismatchCount > 0;
 }
 
 class _RemoteSnapshot {

@@ -22,6 +22,7 @@ import 'package:kopim/core/services/ai_assistant_service.dart';
 import 'package:kopim/core/services/analytics_service.dart';
 import 'package:kopim/core/services/auth_sync_service.dart';
 import 'package:kopim/core/services/exact_alarm_permission_service.dart';
+import 'package:kopim/core/services/firebase_runtime_guard.dart';
 import 'package:kopim/core/services/logger_service.dart';
 import 'package:kopim/core/services/notification_fallback_presenter.dart';
 import 'package:kopim/core/services/notifications_gateway.dart';
@@ -40,6 +41,7 @@ import 'package:kopim/features/ai/domain/use_cases/watch_ai_financial_overview_u
 import 'package:kopim/features/ai/domain/use_cases/watch_ai_recommendations_use_case.dart';
 import 'package:kopim/features/ai/domain/use_cases/watch_ai_analytics_use_case.dart';
 import 'package:kopim/features/accounts/data/repositories/account_repository_impl.dart';
+import 'package:kopim/features/accounts/data/services/account_type_backfill_service.dart';
 import 'package:kopim/features/accounts/data/sources/local/account_dao.dart';
 import 'package:kopim/features/accounts/data/sources/remote/account_remote_data_source.dart';
 import 'package:kopim/features/accounts/domain/repositories/account_repository.dart';
@@ -88,6 +90,7 @@ import 'package:kopim/features/tags/domain/use_cases/watch_tags_use_case.dart';
 import 'package:kopim/features/tags/domain/use_cases/watch_transaction_tags_use_case.dart';
 import 'package:kopim/features/savings/data/repositories/saving_goal_repository_impl.dart';
 import 'package:kopim/features/savings/data/sources/local/goal_contribution_dao.dart';
+import 'package:kopim/features/savings/data/sources/local/goal_account_link_dao.dart';
 import 'package:kopim/features/savings/data/sources/local/saving_goal_dao.dart';
 import 'package:kopim/features/savings/data/sources/remote/saving_goal_remote_data_source.dart';
 import 'package:kopim/features/savings/domain/repositories/saving_goal_repository.dart';
@@ -219,7 +222,11 @@ Future<void> firebaseInitialization(Ref ref) async {
   final bool isWebIosSafari = isWebSafari();
   Future<void>.microtask(availability.setUnknown);
 
-  if (_hasFirebaseAppsSafely(logger: logger, isWebIosSafari: isWebIosSafari)) {
+  if (hasFirebaseAppsSafely(
+    onError: (Object error) {
+      logger.logError('Firebase.apps недоступен', error);
+    },
+  )) {
     Future<void>.microtask(availability.setAvailable);
     return;
   }
@@ -297,26 +304,6 @@ void _handleInitError({
   }
 
   Future<void>.microtask(() => availability.setUnavailable(message));
-}
-
-/// На iOS Web доступ к Firebase.apps может падать из-за JS interop, поэтому
-/// избегаем этого вызова и всегда инициализируем Firebase вручную.
-bool _hasFirebaseAppsSafely({
-  required LoggerService logger,
-  required bool isWebIosSafari,
-}) {
-  if (isWebIosSafari) {
-    return false;
-  }
-  try {
-    return Firebase.apps.isNotEmpty;
-  } catch (error) {
-    logger.logError('Firebase.apps недоступен', error);
-    if (isWebIosSafari) {
-      return false;
-    }
-    rethrow;
-  }
 }
 
 @Riverpod(keepAlive: true)
@@ -410,8 +397,12 @@ ExportDataRepository exportDataRepository(Ref ref) => ExportDataRepositoryImpl(
   budgetDao: ref.watch(budgetDaoProvider),
   budgetInstanceDao: ref.watch(budgetInstanceDaoProvider),
   savingGoalDao: ref.watch(savingGoalDaoProvider),
+  goalAccountLinkDao: ref.watch(goalAccountLinkDaoProvider),
   upcomingPaymentsDao: ref.watch(upcomingPaymentsDaoProvider),
   paymentRemindersDao: ref.watch(paymentRemindersDaoProvider),
+  profileDao: ref.watch(profileDaoProvider),
+  authRepository: ref.watch(authRepositoryProvider),
+  levelPolicy: ref.watch(levelPolicyProvider),
 );
 
 @riverpod
@@ -456,10 +447,16 @@ ImportDataRepository importDataRepository(Ref ref) => ImportDataRepositoryImpl(
   budgetDao: ref.watch(budgetDaoProvider),
   budgetInstanceDao: ref.watch(budgetInstanceDaoProvider),
   savingGoalDao: ref.watch(savingGoalDaoProvider),
+  goalAccountLinkDao: ref.watch(goalAccountLinkDaoProvider),
   upcomingPaymentsDao: ref.watch(upcomingPaymentsDaoProvider),
   paymentRemindersDao: ref.watch(paymentRemindersDaoProvider),
   transactionDao: ref.watch(transactionDaoProvider),
+  profileDao: ref.watch(profileDaoProvider),
   outboxDao: ref.watch(outboxDaoProvider),
+  levelPolicy: ref.watch(levelPolicyProvider),
+  loggerService: ref.watch(loggerServiceProvider),
+  analyticsService: ref.watch(analyticsServiceProvider),
+  accountTypeBackfillService: ref.watch(accountTypeBackfillServiceProvider),
 );
 
 @riverpod
@@ -485,6 +482,10 @@ SavingGoalDao savingGoalDao(Ref ref) =>
 @riverpod
 GoalContributionDao goalContributionDao(Ref ref) =>
     GoalContributionDao(ref.watch(appDatabaseProvider));
+
+@riverpod
+GoalAccountLinkDao goalAccountLinkDao(Ref ref) =>
+    GoalAccountLinkDao(ref.watch(appDatabaseProvider));
 
 @riverpod
 ProfileDao profileDao(Ref ref) => ProfileDao(ref.watch(appDatabaseProvider));
@@ -675,6 +676,16 @@ AccountRepository accountRepository(Ref ref) => AccountRepositoryImpl(
   accountDao: ref.watch(accountDaoProvider),
   outboxDao: ref.watch(outboxDaoProvider),
 );
+
+@riverpod
+AccountTypeBackfillService accountTypeBackfillService(Ref ref) =>
+    AccountTypeBackfillService(
+      database: ref.watch(appDatabaseProvider),
+      accountDao: ref.watch(accountDaoProvider),
+      outboxDao: ref.watch(outboxDaoProvider),
+      loggerService: ref.watch(loggerServiceProvider),
+      analyticsService: ref.watch(analyticsServiceProvider),
+    );
 
 @riverpod
 CreditRepository creditRepository(Ref ref) => CreditRepositoryImpl(
@@ -1044,6 +1055,7 @@ OverviewPreferencesRepository overviewPreferencesRepository(Ref ref) {
 SavingGoalRepository savingGoalRepository(Ref ref) => SavingGoalRepositoryImpl(
   database: ref.watch(appDatabaseProvider),
   savingGoalDao: ref.watch(savingGoalDaoProvider),
+  goalAccountLinkDao: ref.watch(goalAccountLinkDaoProvider),
   accountDao: ref.watch(accountDaoProvider),
   transactionDao: ref.watch(transactionDaoProvider),
   goalContributionDao: ref.watch(goalContributionDaoProvider),
@@ -1305,6 +1317,7 @@ AuthSyncService authSyncService(Ref ref) => AuthSyncService(
   budgetDao: ref.watch(budgetDaoProvider),
   budgetInstanceDao: ref.watch(budgetInstanceDaoProvider),
   savingGoalDao: ref.watch(savingGoalDaoProvider),
+  goalAccountLinkDao: ref.watch(goalAccountLinkDaoProvider),
   upcomingPaymentsDao: ref.watch(upcomingPaymentsDaoProvider),
   paymentRemindersDao: ref.watch(paymentRemindersDaoProvider),
   profileDao: ref.watch(profileDaoProvider),
@@ -1334,4 +1347,5 @@ AuthSyncService authSyncService(Ref ref) => AuthSyncService(
   loggerService: ref.watch(loggerServiceProvider),
   analyticsService: ref.watch(analyticsServiceProvider),
   dataSanitizer: ref.watch(syncDataSanitizerProvider),
+  accountTypeBackfillService: ref.watch(accountTypeBackfillServiceProvider),
 );

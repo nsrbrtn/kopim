@@ -76,6 +76,17 @@ _ExportBundle _$ExportBundleFromJson(
           ?.map((e) => PaymentReminder.fromJson(e as Map<String, dynamic>))
           .toList() ??
       const <PaymentReminder>[],
+  profile: json['profile'] == null
+      ? null
+      : Profile.fromJson(json['profile'] as Map<String, dynamic>),
+  progress: json['progress'] == null
+      ? null
+      : UserProgress.fromJson(json['progress'] as Map<String, dynamic>),
+  integrity: json['integrity'] == null
+      ? null
+      : ExportBundleIntegrity.fromJson(
+          json['integrity'] as Map<String, dynamic>,
+        ),
 );
 
 Map<String, dynamic> _$ExportBundleToJson(_ExportBundle instance) =>
@@ -95,4 +106,7 @@ Map<String, dynamic> _$ExportBundleToJson(_ExportBundle instance) =>
       'budgetInstances': instance.budgetInstances,
       'upcomingPayments': instance.upcomingPayments,
       'paymentReminders': instance.paymentReminders,
+      'profile': instance.profile,
+      'progress': instance.progress,
+      'integrity': instance.integrity,
     };

@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import 'package:kopim/core/formatting/currency_symbols.dart';
 import 'package:kopim/features/home/presentation/controllers/home_providers.dart';
+import 'package:kopim/features/profile/presentation/controllers/active_currency_code_provider.dart';
 import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
 import 'package:kopim/features/savings/domain/value_objects/goal_progress.dart';
 import 'package:kopim/l10n/app_localizations.dart';
@@ -17,6 +19,7 @@ class HomeSavingsOverviewCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final ThemeData theme = Theme.of(context);
     final AppLocalizations strings = AppLocalizations.of(context)!;
+    final String currencyCode = ref.watch(activeCurrencyCodeProvider);
     final AsyncValue<List<GoalProgress>> goalsAsync = ref.watch(
       homeSavingGoalProgressProvider,
     );
@@ -32,8 +35,9 @@ class HomeSavingsOverviewCard extends ConsumerWidget {
           );
         }
 
-        final NumberFormat currencyFormat = NumberFormat.simpleCurrency(
+        final NumberFormat currencyFormat = resolveCurrencyFormat(
           locale: strings.localeName,
+          currencyCode: currencyCode,
         );
         final List<GoalProgress> visibleGoals = activeGoals
             .take(3)

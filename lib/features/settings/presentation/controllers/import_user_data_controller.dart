@@ -15,7 +15,7 @@ class ImportUserDataController extends _$ImportUserDataController {
   }
 
   Future<void> importData({
-    DataTransferFormat format = DataTransferFormat.csv,
+    DataTransferFormat format = DataTransferFormat.json,
   }) async {
     if (state.isLoading) {
       return;

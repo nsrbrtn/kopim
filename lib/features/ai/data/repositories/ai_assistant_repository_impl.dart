@@ -5,6 +5,7 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 
+import 'package:kopim/core/formatting/currency_symbols.dart';
 import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/core/services/ai_assistant_service.dart';
 import 'package:kopim/core/services/analytics_service.dart';
@@ -276,7 +277,10 @@ class AiAssistantRepositoryImpl implements AiAssistantRepository {
     required AiDataFilter filter,
   }) {
     final String locale = query.locale ?? 'ru_RU';
-    final NumberFormat currency = NumberFormat.simpleCurrency(locale: locale);
+    final NumberFormat currency = resolveCurrencyFormat(
+      locale: locale,
+      currencyCode: _resolveCurrencyCode(query),
+    );
     final NumberFormat percent = NumberFormat.percentPattern(locale);
 
     const String systemPrompt =
@@ -360,6 +364,19 @@ class AiAssistantRepositoryImpl implements AiAssistantRepository {
       AiAssistantMessage.system(systemPrompt),
       AiAssistantMessage.user(userBuffer.toString()),
     ];
+  }
+
+  String _resolveCurrencyCode(AiUserQueryEntity query) {
+    for (final String signal in query.contextSignals) {
+      if (!signal.startsWith('currency:')) {
+        continue;
+      }
+      final String code = signal.substring('currency:'.length).trim();
+      if (code.isNotEmpty) {
+        return code.toUpperCase();
+      }
+    }
+    return 'RUB';
   }
 
   List<AiAssistantMessage> _buildToolPrompt({

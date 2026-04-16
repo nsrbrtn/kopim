@@ -5,10 +5,12 @@ import 'package:intl/intl.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import 'package:kopim/core/config/theme_extensions.dart';
+import 'package:kopim/core/formatting/currency_symbols.dart';
 import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/categories/presentation/utils/category_gradients.dart';
 import 'package:kopim/features/home/presentation/controllers/home_providers.dart';
+import 'package:kopim/features/profile/presentation/controllers/active_currency_code_provider.dart';
 import 'package:kopim/features/upcoming_payments/domain/models/upcoming_item.dart';
 import 'package:kopim/features/upcoming_payments/domain/providers/upcoming_payments_providers.dart';
 import 'package:kopim/features/upcoming_payments/domain/services/time_service.dart';
@@ -73,10 +75,10 @@ class _HomeUpcomingItemsCardState extends ConsumerState<HomeUpcomingItemsCard> {
         'd MMM',
         widget.strings.localeName,
       );
-      final String currencySymbol =
-          TransactionTileFormatters.fallbackCurrencySymbol(
-            widget.strings.localeName,
-          );
+      final String currencySymbol = resolveCurrencySymbol(
+        ref.watch(activeCurrencyCodeProvider),
+        locale: widget.strings.localeName,
+      );
       final Map<int, NumberFormat> amountFormatsByScale = <int, NumberFormat>{};
 
       content = Column(

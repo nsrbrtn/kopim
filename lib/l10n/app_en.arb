@@ -65,7 +65,7 @@
   "@profileCredentialsValidationPasswordMatch": {
     "description": "Validation error when confirm password does not match"
   },
-  "profileCredentialsLoginUpdated": "Login updated",
+  "profileCredentialsLoginUpdated": "A verification link has been sent to the new email",
   "@profileCredentialsLoginUpdated": {
     "description": "Message shown after successful login update"
   },
@@ -367,6 +367,30 @@
   "profileDataTransferFormatJson": "JSON",
   "@profileDataTransferFormatJson": {
     "description": "JSON format label"
+  },
+  "profileDataTransferFormatHintJsonBadge": "Recommended",
+  "@profileDataTransferFormatHintJsonBadge": {
+    "description": "Short badge for the JSON hint card"
+  },
+  "profileDataTransferFormatHintJsonTitle": "JSON for app-to-app migration",
+  "@profileDataTransferFormatHintJsonTitle": {
+    "description": "Hint title for the JSON format"
+  },
+  "profileDataTransferFormatHintJsonBody": "Primary format for moving data to the new backend. The export includes profile, progress, and checksums, and the app verifies data integrity during import.",
+  "@profileDataTransferFormatHintJsonBody": {
+    "description": "Hint body describing why JSON is recommended"
+  },
+  "profileDataTransferFormatHintCsvBadge": "Legacy",
+  "@profileDataTransferFormatHintCsvBadge": {
+    "description": "Short badge for the CSV hint card"
+  },
+  "profileDataTransferFormatHintCsvTitle": "CSV for compatibility and manual review",
+  "@profileDataTransferFormatHintCsvTitle": {
+    "description": "Hint title for the CSV format"
+  },
+  "profileDataTransferFormatHintCsvBody": "Useful for spreadsheet export or manual inspection. For migration to the new backend, use JSON instead because CSV is not the canonical transfer format.",
+  "@profileDataTransferFormatHintCsvBody": {
+    "description": "Hint body describing the CSV limitations"
   },
   "profileExportDataSuccess": "Data exported successfully.",
   "@profileExportDataSuccess": {

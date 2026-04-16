@@ -1,7 +1,7 @@
 class ExportBundleSchema {
   const ExportBundleSchema._();
 
-  static const String currentVersion = '1.5.0';
+  static const String currentVersion = '1.7.0';
 
   static const ExportBundleSchemaVersion _minimumSupported =
       ExportBundleSchemaVersion(1, 0, 0);
@@ -11,6 +11,10 @@ class ExportBundleSchema {
       ExportBundleSchemaVersion(1, 4, 0);
   static const ExportBundleSchemaVersion _fullSnapshotExpansionIntroduced =
       ExportBundleSchemaVersion(1, 5, 0);
+  static const ExportBundleSchemaVersion _accountTypeVersionIntroduced =
+      ExportBundleSchemaVersion(1, 6, 0);
+  static const ExportBundleSchemaVersion _profileProgressIntegrityIntroduced =
+      ExportBundleSchemaVersion(1, 7, 0);
 
   static ExportBundleSchemaVersion parseAndValidate(String rawVersion) {
     final ExportBundleSchemaVersion version = ExportBundleSchemaVersion.parse(
@@ -48,6 +52,16 @@ class ExportBundleSchema {
 
   static bool requiresExtendedSnapshot(ExportBundleSchemaVersion version) {
     return version >= _fullSnapshotExpansionIntroduced;
+  }
+
+  static bool requiresAccountTypeVersion(ExportBundleSchemaVersion version) {
+    return version >= _accountTypeVersionIntroduced;
+  }
+
+  static bool requiresProfileProgressIntegrity(
+    ExportBundleSchemaVersion version,
+  ) {
+    return version >= _profileProgressIntegrityIntroduced;
   }
 }
 

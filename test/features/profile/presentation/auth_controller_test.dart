@@ -170,12 +170,16 @@ void main() {
     container = ProviderContainer(
       overrides: <Override>[
         authRepositoryProvider.overrideWithValue(authRepository),
-        userAccountCleanupRepositoryProvider.overrideWithValue(cleanupRepository),
+        userAccountCleanupRepositoryProvider.overrideWithValue(
+          cleanupRepository,
+        ),
         connectivityProvider.overrideWithValue(connectivity),
         authSyncServiceProvider.overrideWithValue(authSyncService),
       ],
     );
-    container.read(firebaseAvailabilityProvider.notifier).setUnavailable('test');
+    container
+        .read(firebaseAvailabilityProvider.notifier)
+        .setUnavailable('test');
   });
 
   tearDown(() {
@@ -358,7 +362,9 @@ void main() {
         throwsA(isA<AuthFailure>()),
       );
 
-      final AsyncValue<AuthUser?> state = container.read(authControllerProvider);
+      final AsyncValue<AuthUser?> state = container.read(
+        authControllerProvider,
+      );
       expect(state.value?.uid, 'user-123');
       expect(calls, equals(<String>['remote', 'auth']));
     },

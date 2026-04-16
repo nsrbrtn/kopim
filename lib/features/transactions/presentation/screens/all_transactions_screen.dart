@@ -25,6 +25,7 @@ import 'package:kopim/features/transactions/presentation/controllers/transaction
 import 'package:kopim/features/transactions/presentation/widgets/transaction_form_open_container.dart';
 import 'package:kopim/features/home/domain/use_cases/group_transactions_by_day_use_case.dart';
 import 'package:kopim/features/home/domain/models/day_section.dart';
+import 'package:kopim/features/profile/presentation/controllers/active_currency_code_provider.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
@@ -520,8 +521,9 @@ class _TransactionsList extends StatelessWidget {
                           account.currency,
                           locale: strings.localeName,
                         )
-                      : TransactionTileFormatters.fallbackCurrencySymbol(
-                          strings.localeName,
+                      : resolveCurrencySymbol(
+                          activeCurrencyCodeOf(context),
+                          locale: strings.localeName,
                         );
                   return GroupedCreditPaymentTile(
                     group: item as GroupedCreditPaymentFeedItem,
@@ -627,7 +629,10 @@ class _TransactionListTile extends ConsumerWidget {
             accountValue.currency,
             locale: strings.localeName,
           )
-        : TransactionTileFormatters.fallbackCurrencySymbol(strings.localeName);
+        : resolveCurrencySymbol(
+            activeCurrencyCodeOf(context),
+            locale: strings.localeName,
+          );
     final NumberFormat moneyFormat = TransactionTileFormatters.currency(
       strings.localeName,
       currencySymbol,

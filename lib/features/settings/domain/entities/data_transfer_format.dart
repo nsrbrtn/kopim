@@ -2,6 +2,8 @@
 enum DataTransferFormat { csv, json }
 
 extension DataTransferFormatX on DataTransferFormat {
+  bool get isCanonicalMigrationFormat => this == DataTransferFormat.json;
+
   /// Расширение файла для выбранного формата.
   String get fileExtension {
     switch (this) {

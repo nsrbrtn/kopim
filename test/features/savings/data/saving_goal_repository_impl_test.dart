@@ -9,11 +9,13 @@ import 'package:kopim/features/accounts/data/sources/local/account_dao.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/credits/data/sources/local/credit_dao.dart';
 import 'package:kopim/features/savings/data/repositories/saving_goal_repository_impl.dart';
+import 'package:kopim/features/savings/data/sources/local/goal_account_link_dao.dart';
 import 'package:kopim/features/savings/data/sources/local/goal_contribution_dao.dart';
 import 'package:kopim/features/savings/data/sources/local/saving_goal_dao.dart';
 import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
 import 'package:kopim/features/transactions/data/repositories/transaction_repository_impl.dart';
 import 'package:kopim/features/transactions/data/sources/local/transaction_dao.dart';
+import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/repositories/transaction_repository.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:uuid/uuid.dart';
@@ -28,6 +30,7 @@ void main() {
   late AccountDao accountDao;
   late TransactionDao transactionDao;
   late CreditDao creditDao;
+  late GoalAccountLinkDao goalAccountLinkDao;
   late GoalContributionDao contributionDao;
   late OutboxDao outboxDao;
   late SavingGoalRepositoryImpl repository;
@@ -48,6 +51,7 @@ void main() {
     accountDao = AccountDao(database);
     transactionDao = TransactionDao(database);
     creditDao = CreditDao(database);
+    goalAccountLinkDao = GoalAccountLinkDao(database);
     contributionDao = GoalContributionDao(database);
     outboxDao = OutboxDao(database);
     analytics = _MockAnalyticsService();
@@ -57,6 +61,7 @@ void main() {
     repository = SavingGoalRepositoryImpl(
       database: database,
       savingGoalDao: savingGoalDao,
+      goalAccountLinkDao: goalAccountLinkDao,
       accountDao: accountDao,
       transactionDao: transactionDao,
       goalContributionDao: contributionDao,
@@ -106,11 +111,33 @@ void main() {
     expect(goalAccount!.type, 'savings');
     expect(goalAccount.isHidden, isFalse);
     verify(() => analytics.logEvent('savings_goal_create', any())).called(1);
+    final List<dynamic> loggedMessages = verify(
+      () => logger.logInfo(captureAny()),
+    ).captured;
+    expect(
+      loggedMessages.any(
+        (dynamic value) => value.toString().contains('storage_accounts=1'),
+      ),
+      isTrue,
+    );
   });
 
   test(
-    'create re-provisions account when accountId already linked to another goal',
+    'create allows linking the same storage account to multiple goals',
     () async {
+      await accountDao.upsert(
+        AccountEntity(
+          id: 'shared-acc',
+          name: 'Shared account',
+          balanceMinor: BigInt.zero,
+          currency: 'USD',
+          currencyScale: 2,
+          type: 'bank',
+          createdAt: now,
+          updatedAt: now,
+        ),
+      );
+
       final SavingGoal first = SavingGoal(
         id: 'goal-a',
         userId: 'user-1',
@@ -122,7 +149,7 @@ void main() {
         updatedAt: now,
       );
       await repository.create(first);
-      final SavingGoal? firstStored = await savingGoalDao.findById(first.id);
+      final SavingGoal? firstStored = await repository.findById(first.id);
       expect(firstStored, isNotNull);
       expect(firstStored!.accountId, 'shared-acc');
 
@@ -138,10 +165,11 @@ void main() {
       );
       await repository.create(second);
 
-      final SavingGoal? secondStored = await savingGoalDao.findById(second.id);
+      final SavingGoal? secondStored = await repository.findById(second.id);
       expect(secondStored, isNotNull);
       expect(secondStored!.accountId, isNotNull);
-      expect(secondStored.accountId, isNot('shared-acc'));
+      expect(secondStored.accountId, 'shared-acc');
+      expect(secondStored.storageAccountIds, <String>['shared-acc']);
     },
   );
 
@@ -194,6 +222,20 @@ void main() {
       expect(txRow.type, 'transfer');
       expect(txRow.categoryId, isNull);
       expect(txRow.transferAccountId, updated.accountId);
+      verify(
+        () => analytics.logEvent('savings_goal_contribution', any()),
+      ).called(1);
+      final List<dynamic> loggedMessages = verify(
+        () => logger.logInfo(captureAny()),
+      ).captured;
+      expect(
+        loggedMessages.any(
+          (dynamic value) =>
+              value.toString().contains('source=acc-1') &&
+              value.toString().contains('storage='),
+        ),
+        isTrue,
+      );
 
       final db.AccountRow? accountRow =
           await (database.select(database.accounts)
@@ -217,9 +259,7 @@ void main() {
               .getSingleOrNull();
       expect(contribution, isNotNull);
       expect(contribution!.amount, 2_500);
-      verify(
-        () => analytics.logEvent('savings_goal_contribution', any()),
-      ).called(1);
+      expect(contribution.storageAccountId, updated.accountId);
     },
   );
 
@@ -286,6 +326,64 @@ void main() {
     },
   );
 
+  test(
+    'addContribution allows allocation-only when source equals storage account',
+    () async {
+      final SavingGoal goal = SavingGoal(
+        id: 'goal-allocation-only',
+        userId: 'user-1',
+        name: 'Shared storage',
+        targetAmount: 10_000,
+        currentAmount: 0,
+        createdAt: now,
+        updatedAt: now,
+      );
+      await repository.create(goal);
+      final SavingGoal stored = (await repository.findById(goal.id))!;
+
+      final db.AccountRow sourceBefore =
+          await (database.select(database.accounts)..where(
+                (db.$AccountsTable tbl) =>
+                    tbl.id.equals(stored.accountId ?? ''),
+              ))
+              .getSingle();
+
+      final SavingGoal updated = await repository.addContribution(
+        goal: stored,
+        appliedDelta: 2_000,
+        newCurrentAmount: 2_000,
+        contributedAt: now,
+        sourceAccountId: stored.accountId!,
+        storageAccountId: stored.accountId,
+        contributionNote: 'Allocation only',
+      );
+
+      final db.TransactionRow txRow =
+          await (database.select(database.transactions)..where(
+                (db.$TransactionsTable tbl) => tbl.savingGoalId.equals(goal.id),
+              ))
+              .getSingle();
+      expect(txRow.transferAccountId, stored.accountId);
+
+      final db.AccountRow sourceAfter =
+          await (database.select(database.accounts)..where(
+                (db.$AccountsTable tbl) =>
+                    tbl.id.equals(stored.accountId ?? ''),
+              ))
+              .getSingle();
+      expect(sourceAfter.balanceMinor, sourceBefore.balanceMinor);
+
+      final db.GoalContributionRow contribution =
+          await (database.select(database.goalContributions)..where(
+                (db.$GoalContributionsTable tbl) =>
+                    tbl.transactionId.equals(txRow.id),
+              ))
+              .getSingle();
+      expect(contribution.storageAccountId, stored.accountId);
+      expect(updated.currentAmount, 2_000);
+    },
+  );
+
   test('softDelete on transaction rolls back saving goal progress', () async {
     final AccountEntity account = AccountEntity(
       id: 'acc-2',
@@ -347,5 +445,170 @@ void main() {
         .select(database.goalContributions)
         .get();
     expect(contributions, isEmpty);
+  });
+
+  test(
+    'upsert recalculates contribution amount when transaction changes',
+    () async {
+      final AccountEntity source = AccountEntity(
+        id: 'acc-update-source',
+        name: 'Cash',
+        balanceMinor: BigInt.from(50000),
+        currency: 'USD',
+        currencyScale: 2,
+        type: 'checking',
+        createdAt: now,
+        updatedAt: now,
+      );
+      await accountDao.upsert(source);
+
+      final SavingGoal goal = SavingGoal(
+        id: 'goal-update-amount',
+        userId: 'user-1',
+        name: 'Laptop',
+        targetAmount: 10_000,
+        currentAmount: 0,
+        createdAt: now,
+        updatedAt: now,
+      );
+      await repository.create(goal);
+      final SavingGoal stored = (await repository.findById(goal.id))!;
+
+      await repository.addContribution(
+        goal: stored,
+        appliedDelta: 2_000,
+        newCurrentAmount: 2_000,
+        contributedAt: now,
+        sourceAccountId: source.id,
+        contributionNote: null,
+      );
+
+      final db.TransactionRow originalRow =
+          await (database.select(database.transactions)..where(
+                (db.$TransactionsTable tbl) => tbl.savingGoalId.equals(goal.id),
+              ))
+              .getSingle();
+
+      await transactionRepository.upsert(
+        TransactionEntity(
+          id: originalRow.id,
+          accountId: originalRow.accountId,
+          transferAccountId: originalRow.transferAccountId,
+          categoryId: originalRow.categoryId,
+          savingGoalId: originalRow.savingGoalId,
+          amountMinor: BigInt.from(3_500),
+          amountScale: originalRow.amountScale,
+          date: originalRow.date,
+          note: originalRow.note,
+          type: originalRow.type,
+          createdAt: originalRow.createdAt,
+          updatedAt: originalRow.updatedAt,
+        ),
+      );
+
+      final SavingGoal refreshed = (await savingGoalDao.findById(goal.id))!;
+      expect(refreshed.currentAmount, 3_500);
+
+      final db.GoalContributionRow contribution =
+          await (database.select(database.goalContributions)..where(
+                (db.$GoalContributionsTable tbl) =>
+                    tbl.transactionId.equals(originalRow.id),
+              ))
+              .getSingle();
+      expect(contribution.amount, 3_500);
+    },
+  );
+
+  test(
+    'upsert detaches contribution when transaction is no longer linked to goal',
+    () async {
+      final AccountEntity source = AccountEntity(
+        id: 'acc-detach-source',
+        name: 'Cash',
+        balanceMinor: BigInt.from(50000),
+        currency: 'USD',
+        currencyScale: 2,
+        type: 'checking',
+        createdAt: now,
+        updatedAt: now,
+      );
+      await accountDao.upsert(source);
+
+      final SavingGoal goal = SavingGoal(
+        id: 'goal-detach',
+        userId: 'user-1',
+        name: 'Trip',
+        targetAmount: 10_000,
+        currentAmount: 0,
+        createdAt: now,
+        updatedAt: now,
+      );
+      await repository.create(goal);
+      final SavingGoal stored = (await repository.findById(goal.id))!;
+
+      await repository.addContribution(
+        goal: stored,
+        appliedDelta: 1_500,
+        newCurrentAmount: 1_500,
+        contributedAt: now,
+        sourceAccountId: source.id,
+        contributionNote: null,
+      );
+
+      final db.TransactionRow originalRow =
+          await (database.select(database.transactions)..where(
+                (db.$TransactionsTable tbl) => tbl.savingGoalId.equals(goal.id),
+              ))
+              .getSingle();
+
+      await transactionRepository.upsert(
+        TransactionEntity(
+          id: originalRow.id,
+          accountId: originalRow.accountId,
+          transferAccountId: null,
+          categoryId: null,
+          savingGoalId: null,
+          amountMinor: BigInt.from(1_500),
+          amountScale: originalRow.amountScale,
+          date: originalRow.date,
+          note: originalRow.note,
+          type: 'expense',
+          createdAt: originalRow.createdAt,
+          updatedAt: originalRow.updatedAt,
+        ),
+      );
+
+      final SavingGoal refreshed = (await savingGoalDao.findById(goal.id))!;
+      expect(refreshed.currentAmount, 0);
+
+      final List<db.GoalContributionRow> contributions =
+          await (database.select(database.goalContributions)..where(
+                (db.$GoalContributionsTable tbl) =>
+                    tbl.transactionId.equals(originalRow.id),
+              ))
+              .get();
+      expect(contributions, isEmpty);
+    },
+  );
+
+  test('create persists goal_account_links for provisioned account', () async {
+    final SavingGoal goal = SavingGoal(
+      id: 'goal-links',
+      userId: 'user-1',
+      name: 'Links',
+      targetAmount: 15_000,
+      currentAmount: 0,
+      createdAt: now,
+      updatedAt: now,
+    );
+
+    await repository.create(goal);
+
+    final SavingGoal stored = (await repository.findById(goal.id))!;
+    final List<String> accountIds = await goalAccountLinkDao
+        .findAccountIdsByGoalId(goal.id);
+
+    expect(accountIds, <String>[stored.accountId!]);
+    expect(stored.storageAccountIds, <String>[stored.accountId!]);
   });
 }

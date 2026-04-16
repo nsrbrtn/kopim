@@ -1,13 +1,14 @@
 import 'package:firebase_analytics/firebase_analytics.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
+import 'package:kopim/core/services/firebase_runtime_guard.dart';
+
 class AnalyticsService {
   const AnalyticsService();
 
-  bool get _isFirebaseReady => Firebase.apps.isNotEmpty;
+  bool get _isFirebaseReady => hasFirebaseAppsSafely();
 
   Future<void> logEvent(String name, [Map<String, dynamic>? params]) async {
     try {

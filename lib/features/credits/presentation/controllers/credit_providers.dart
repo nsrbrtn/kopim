@@ -19,8 +19,9 @@ Future<CreditPaymentScheduleEntity?> nextUpcomingPayment(
   Ref ref,
   String creditId,
 ) async {
-  final List<CreditPaymentScheduleEntity> schedule =
-      await ref.watch(creditScheduleProvider(creditId).future);
+  final List<CreditPaymentScheduleEntity> schedule = await ref.watch(
+    creditScheduleProvider(creditId).future,
+  );
   if (schedule.isEmpty) return null;
 
   // Filter for planned or partially paid items and sort by due date

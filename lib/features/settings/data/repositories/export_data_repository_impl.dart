@@ -11,6 +11,13 @@ import 'package:kopim/features/credits/data/sources/local/debt_dao.dart';
 import 'package:kopim/features/credits/domain/entities/credit_card_entity.dart';
 import 'package:kopim/features/credits/domain/entities/credit_entity.dart';
 import 'package:kopim/features/credits/domain/entities/debt_entity.dart';
+import 'package:kopim/features/profile/data/local/profile_dao.dart';
+import 'package:kopim/features/profile/domain/entities/profile.dart';
+import 'package:kopim/features/profile/domain/entities/user_progress.dart';
+import 'package:kopim/features/profile/domain/policies/level_policy.dart';
+import 'package:kopim/features/profile/domain/repositories/auth_repository.dart';
+import 'package:kopim/features/savings/data/mappers/saving_goal_storage_accounts_mapper.dart';
+import 'package:kopim/features/savings/data/sources/local/goal_account_link_dao.dart';
 import 'package:kopim/features/savings/data/sources/local/saving_goal_dao.dart';
 import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
 import 'package:kopim/features/settings/domain/repositories/export_data_repository.dart';
@@ -39,8 +46,12 @@ class ExportDataRepositoryImpl implements ExportDataRepository {
     required BudgetDao budgetDao,
     required BudgetInstanceDao budgetInstanceDao,
     required SavingGoalDao savingGoalDao,
+    required GoalAccountLinkDao goalAccountLinkDao,
     required UpcomingPaymentsDao upcomingPaymentsDao,
     required PaymentRemindersDao paymentRemindersDao,
+    required ProfileDao profileDao,
+    required AuthRepository authRepository,
+    required LevelPolicy levelPolicy,
   }) : _accountDao = accountDao,
        _transactionDao = transactionDao,
        _categoryDao = categoryDao,
@@ -52,8 +63,12 @@ class ExportDataRepositoryImpl implements ExportDataRepository {
        _budgetDao = budgetDao,
        _budgetInstanceDao = budgetInstanceDao,
        _savingGoalDao = savingGoalDao,
+       _goalAccountLinkDao = goalAccountLinkDao,
        _upcomingPaymentsDao = upcomingPaymentsDao,
-       _paymentRemindersDao = paymentRemindersDao;
+       _paymentRemindersDao = paymentRemindersDao,
+       _profileDao = profileDao,
+       _authRepository = authRepository,
+       _levelPolicy = levelPolicy;
 
   final AccountDao _accountDao;
   final TransactionDao _transactionDao;
@@ -66,8 +81,12 @@ class ExportDataRepositoryImpl implements ExportDataRepository {
   final BudgetDao _budgetDao;
   final BudgetInstanceDao _budgetInstanceDao;
   final SavingGoalDao _savingGoalDao;
+  final GoalAccountLinkDao _goalAccountLinkDao;
   final UpcomingPaymentsDao _upcomingPaymentsDao;
   final PaymentRemindersDao _paymentRemindersDao;
+  final ProfileDao _profileDao;
+  final AuthRepository _authRepository;
+  final LevelPolicy _levelPolicy;
 
   @override
   Future<List<AccountEntity>> fetchAccounts() {
@@ -97,8 +116,21 @@ class ExportDataRepositoryImpl implements ExportDataRepository {
   }
 
   @override
-  Future<List<SavingGoal>> fetchSavingGoals() {
-    return _savingGoalDao.getGoals(includeArchived: true);
+  Future<List<SavingGoal>> fetchSavingGoals() async {
+    final List<SavingGoal> goals = await _savingGoalDao.getGoals(
+      includeArchived: true,
+    );
+    if (goals.isEmpty) {
+      return const <SavingGoal>[];
+    }
+    final Map<String, List<String>> idsByGoal = await _goalAccountLinkDao
+        .findAccountIdsByGoalIds(goals.map((SavingGoal goal) => goal.id));
+    return goals
+        .map(
+          (SavingGoal goal) =>
+              mapSavingGoalStorageAccounts(goal, idsByGoal[goal.id]),
+        )
+        .toList(growable: false);
   }
 
   @override
@@ -140,5 +172,27 @@ class ExportDataRepositoryImpl implements ExportDataRepository {
   @override
   Future<List<PaymentReminder>> fetchPaymentReminders() async {
     return _paymentRemindersDao.getAllIncludingDone();
+  }
+
+  @override
+  Future<Profile?> fetchProfile() async {
+    final String? uid = _authRepository.currentUser?.uid;
+    if (uid == null) {
+      return null;
+    }
+    return _profileDao.getProfile(uid);
+  }
+
+  @override
+  Future<UserProgress> fetchProgress() async {
+    final int totalTx = await _transactionDao.countActiveTransactions();
+    final int level = _levelPolicy.levelFor(totalTx);
+    return UserProgress(
+      totalTx: totalTx,
+      level: level,
+      title: _levelPolicy.titleFor(level),
+      nextThreshold: _levelPolicy.nextThreshold(totalTx),
+      updatedAt: DateTime.now().toUtc(),
+    );
   }
 }

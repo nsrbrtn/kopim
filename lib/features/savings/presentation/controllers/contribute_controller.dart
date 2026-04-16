@@ -51,11 +51,28 @@ class ContributeController extends _$ContributeController {
     );
   }
 
+  void selectStorageAccount(String? accountId) {
+    state = state.copyWith(
+      selectedStorageAccountId: accountId,
+      storageAccountError: null,
+      sourceAccountError: null,
+      success: false,
+    );
+  }
+
   Future<void> submit() async {
     final String? sourceAccountId = state.selectedAccountId;
     if (sourceAccountId == null || sourceAccountId.isEmpty) {
       state = state.copyWith(
         sourceAccountError: 'Выберите счет списания',
+        success: false,
+      );
+      return;
+    }
+    final String? storageAccountId = state.selectedStorageAccountId;
+    if (storageAccountId == null || storageAccountId.isEmpty) {
+      state = state.copyWith(
+        storageAccountError: 'Выберите счет хранения цели',
         success: false,
       );
       return;
@@ -114,6 +131,7 @@ class ContributeController extends _$ContributeController {
         goalId: state.goal.id,
         amount: amount,
         sourceAccountId: sourceAccountId,
+        storageAccountId: storageAccountId,
         note: state.note,
       );
       state = state.copyWith(
@@ -138,20 +156,36 @@ class ContributeController extends _$ContributeController {
       watchAccountsUseCaseProvider,
     );
     _subscription = watchAccounts().listen((List<AccountEntity> accounts) {
-      final AccountEntity? goalAccount =
-          (state.goal.accountId == null || state.goal.accountId!.isEmpty)
-          ? null
-          : accounts.where((AccountEntity account) {
-              return account.id == state.goal.accountId;
-            }).firstOrNull;
+      final List<AccountEntity> goalStorageAccounts = state
+          .goal
+          .effectiveStorageAccountIds
+          .map(
+            (String accountId) => accounts.firstWhereOrNull(
+              (AccountEntity account) => account.id == accountId,
+            ),
+          )
+          .whereType<AccountEntity>()
+          .toList(growable: false);
+      final AccountEntity? goalAccount = state.selectedStorageAccountId == null
+          ? goalStorageAccounts.firstOrNull
+          : goalStorageAccounts.firstWhereOrNull(
+              (AccountEntity account) =>
+                  account.id == state.selectedStorageAccountId,
+            );
       final List<AccountEntity> filtered = accounts
           .where(
             (AccountEntity account) =>
-                isCashAccountType(account.type) &&
-                !account.isHidden &&
-                account.id != state.goal.accountId,
+                isCashAccountType(account.type) && !account.isHidden,
           )
           .toList(growable: false);
+      final String? previousStorage = state.selectedStorageAccountId;
+      String? nextStorage = previousStorage;
+      if (nextStorage == null ||
+          !goalStorageAccounts.any(
+            (AccountEntity account) => account.id == nextStorage,
+          )) {
+        nextStorage = goalStorageAccounts.firstOrNull?.id;
+      }
       final String? previousSelected = state.selectedAccountId;
       String? nextSelected = previousSelected;
       final bool selectionRemoved =
@@ -180,7 +214,9 @@ class ContributeController extends _$ContributeController {
       }
       state = state.copyWith(
         accounts: filtered,
+        goalStorageAccounts: goalStorageAccounts,
         selectedAccountId: nextSelected,
+        selectedStorageAccountId: nextStorage,
         goalAccountCurrency: goalAccount?.currency,
       );
     });

@@ -17,6 +17,7 @@ abstract class SavingGoalRepository {
     required int newCurrentAmount,
     required DateTime contributedAt,
     required String sourceAccountId,
+    String? storageAccountId,
     String? contributionNote,
   });
 }

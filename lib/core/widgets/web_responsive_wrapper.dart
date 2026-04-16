@@ -1,5 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:go_router/go_router.dart';
+
+const double kDefaultResponsiveMaxWidth = 600;
+const double kAccountDetailsResponsiveMaxWidth = 1120;
+const String _accountDetailsRoutePath = '/accounts/details';
+
+@visibleForTesting
+double resolveResponsiveMaxWidthForLocation(String? location) {
+  if (location == null || location.isEmpty) {
+    return kDefaultResponsiveMaxWidth;
+  }
+
+  final Uri? uri = Uri.tryParse(location);
+  final String path = uri?.path ?? location;
+
+  if (path == _accountDetailsRoutePath) {
+    return kAccountDetailsResponsiveMaxWidth;
+  }
+
+  return kDefaultResponsiveMaxWidth;
+}
 
 /// Виджет-обертка для ограничения ширины приложения на веб-платформе
 /// и десктопах. Позволяет избежать чрезмерного растягивания интерфейса
@@ -7,7 +28,7 @@ import 'package:flutter/foundation.dart';
 class WebResponsiveWrapper extends StatelessWidget {
   const WebResponsiveWrapper({
     required this.child,
-    this.maxWidth = 600,
+    this.maxWidth = kDefaultResponsiveMaxWidth,
     super.key,
   });
 
@@ -28,9 +49,19 @@ class WebResponsiveWrapper extends StatelessWidget {
       return child;
     }
 
+    final GoRouter? router = GoRouter.maybeOf(context);
+    final String? location = router?.routeInformationProvider.value.uri
+        .toString();
+    final double resolvedMaxWidth = resolveResponsiveMaxWidthForLocation(
+      location,
+    );
+    final double effectiveMaxWidth = resolvedMaxWidth > maxWidth
+        ? resolvedMaxWidth
+        : maxWidth;
+
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
-        if (constraints.maxWidth <= maxWidth) {
+        if (constraints.maxWidth <= effectiveMaxWidth) {
           return child;
         }
 
@@ -38,7 +69,7 @@ class WebResponsiveWrapper extends StatelessWidget {
           color: Theme.of(context).scaffoldBackgroundColor,
           child: Center(
             child: ConstrainedBox(
-              constraints: BoxConstraints(maxWidth: maxWidth),
+              constraints: BoxConstraints(maxWidth: effectiveMaxWidth),
               child: ClipRect(child: child),
             ),
           ),

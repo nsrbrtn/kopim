@@ -128,7 +128,7 @@ final class FirebaseInitializationProvider
 }
 
 String _$firebaseInitializationHash() =>
-    r'5938cd61456de7155a0399d3d5a04dcd75627ebf';
+    r'5866ea01845c9c498cd7b7e74910b3c74c815fb7';
 
 @ProviderFor(firestore)
 const firestoreProvider = FirestoreProvider._();
@@ -817,7 +817,7 @@ final class ExportDataRepositoryProvider
 }
 
 String _$exportDataRepositoryHash() =>
-    r'a0bb6cb222b8adc91b075ba5c31eb235dc0ae5f9';
+    r'c0c8b317564a4205bc4761ebed732a90ca6dca2f';
 
 @ProviderFor(exportBundleJsonEncoder)
 const exportBundleJsonEncoderProvider = ExportBundleJsonEncoderProvider._();
@@ -1146,7 +1146,7 @@ final class ImportDataRepositoryProvider
 }
 
 String _$importDataRepositoryHash() =>
-    r'b4ce5b2acc75fa45c27635f926c44cb9744c4bb6';
+    r'8ce7d664a981cd8bc2f25ba47df7c42d9d64fbb7';
 
 @ProviderFor(importUserDataUseCase)
 const importUserDataUseCaseProvider = ImportUserDataUseCaseProvider._();
@@ -1372,6 +1372,54 @@ final class GoalContributionDaoProvider
 
 String _$goalContributionDaoHash() =>
     r'360ff3a0bd79e0a04ada0feeb9648c00b2f8d97a';
+
+@ProviderFor(goalAccountLinkDao)
+const goalAccountLinkDaoProvider = GoalAccountLinkDaoProvider._();
+
+final class GoalAccountLinkDaoProvider
+    extends
+        $FunctionalProvider<
+          GoalAccountLinkDao,
+          GoalAccountLinkDao,
+          GoalAccountLinkDao
+        >
+    with $Provider<GoalAccountLinkDao> {
+  const GoalAccountLinkDaoProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'goalAccountLinkDaoProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$goalAccountLinkDaoHash();
+
+  @$internal
+  @override
+  $ProviderElement<GoalAccountLinkDao> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  GoalAccountLinkDao create(Ref ref) {
+    return goalAccountLinkDao(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(GoalAccountLinkDao value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<GoalAccountLinkDao>(value),
+    );
+  }
+}
+
+String _$goalAccountLinkDaoHash() =>
+    r'6a6e58c8b7dff736a4e9fbd50dc92d7a27c00be4';
 
 @ProviderFor(profileDao)
 const profileDaoProvider = ProfileDaoProvider._();
@@ -2748,6 +2796,55 @@ final class AccountRepositoryProvider
 }
 
 String _$accountRepositoryHash() => r'35504303f5e7045ab7c337f1041ee01cffb06875';
+
+@ProviderFor(accountTypeBackfillService)
+const accountTypeBackfillServiceProvider =
+    AccountTypeBackfillServiceProvider._();
+
+final class AccountTypeBackfillServiceProvider
+    extends
+        $FunctionalProvider<
+          AccountTypeBackfillService,
+          AccountTypeBackfillService,
+          AccountTypeBackfillService
+        >
+    with $Provider<AccountTypeBackfillService> {
+  const AccountTypeBackfillServiceProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'accountTypeBackfillServiceProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$accountTypeBackfillServiceHash();
+
+  @$internal
+  @override
+  $ProviderElement<AccountTypeBackfillService> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  AccountTypeBackfillService create(Ref ref) {
+    return accountTypeBackfillService(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(AccountTypeBackfillService value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<AccountTypeBackfillService>(value),
+    );
+  }
+}
+
+String _$accountTypeBackfillServiceHash() =>
+    r'20229259185d147fcdf74cdb7186da84591ba659';
 
 @ProviderFor(creditRepository)
 const creditRepositoryProvider = CreditRepositoryProvider._();
@@ -4757,7 +4854,7 @@ final class SavingGoalRepositoryProvider
 }
 
 String _$savingGoalRepositoryHash() =>
-    r'86dd9239bbc3aa5ab3a88cb70fc38194e9951e0a';
+    r'e396773165770c6b959617015ecd4790d516b3ae';
 
 @ProviderFor(upcomingPaymentsRepository)
 const upcomingPaymentsRepositoryProvider =
@@ -5817,4 +5914,4 @@ final class AuthSyncServiceProvider
   }
 }
 
-String _$authSyncServiceHash() => r'1249151ebf9c8423fd1aafdacb0b2dfa5754d3e4';
+String _$authSyncServiceHash() => r'd3d48f1c4b150dd527e5bcb816bf67d1bb73eef0';

@@ -1,4 +1,5 @@
 import 'package:intl/intl.dart';
+import 'package:kopim/core/formatting/currency_symbols.dart';
 import 'package:kopim/core/money/money_utils.dart';
 
 class TransactionTileFormatters {
@@ -33,10 +34,16 @@ class TransactionTileFormatters {
     );
   }
 
-  static String fallbackCurrencySymbol(String locale) {
+  static String fallbackCurrencySymbol(
+    String locale, {
+    String fallbackCurrencyCode = 'RUB',
+  }) {
     return _fallbackSymbols.putIfAbsent(
-      locale,
-      () => NumberFormat.simpleCurrency(locale: locale).currencySymbol,
+      '$locale|$fallbackCurrencyCode',
+      () => resolveFallbackCurrencySymbol(
+        locale,
+        fallbackCurrencyCode: fallbackCurrencyCode,
+      ),
     );
   }
 

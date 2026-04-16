@@ -25,6 +25,6 @@ enum CreditPaymentStatus {
   partiallyPaid,
   paid,
   skipped; // Overdue is calculated
-  
+
   bool get isPaid => this == CreditPaymentStatus.paid;
 }

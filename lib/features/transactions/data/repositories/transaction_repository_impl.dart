@@ -275,6 +275,11 @@ class TransactionRepositoryImpl implements TransactionRepository {
         operation: OutboxOperation.upsert,
         payload: _mapTransactionPayload(toPersist),
       );
+      await _reconcileSavingGoalContribution(
+        previous: previous,
+        current: toPersist,
+        updatedAt: now,
+      );
     });
   }
 
@@ -306,7 +311,11 @@ class TransactionRepositoryImpl implements TransactionRepository {
         operation: OutboxOperation.delete,
         payload: payload,
       );
-      await _runDeleteSideEffectsBestEffort(previous: previous, row: row, now: now);
+      await _runDeleteSideEffectsBestEffort(
+        previous: previous,
+        row: row,
+        now: now,
+      );
     });
   }
 
@@ -374,6 +383,136 @@ class TransactionRepositoryImpl implements TransactionRepository {
       payload: _mapGoalPayload(updatedGoal),
     );
     await _contributionDao.deleteById(contribution.id);
+  }
+
+  Future<void> _reconcileSavingGoalContribution({
+    required TransactionEntity? previous,
+    required TransactionEntity current,
+    required DateTime updatedAt,
+  }) async {
+    final db.GoalContributionRow? existingContribution = await _contributionDao
+        .findByTransactionId(current.id);
+    final _GoalContributionSnapshot? previousSnapshot =
+        _resolveContributionSnapshot(
+          transaction: previous,
+          fallbackContribution: existingContribution,
+          allowFallbackWhenMissingGoal: true,
+        );
+    final _GoalContributionSnapshot? currentSnapshot =
+        _resolveContributionSnapshot(
+          transaction: current,
+          fallbackContribution: existingContribution,
+          allowFallbackWhenMissingGoal: false,
+        );
+
+    if (previousSnapshot == currentSnapshot) {
+      return;
+    }
+
+    if (previousSnapshot != null) {
+      await _applyContributionDelta(
+        goalId: previousSnapshot.goalId,
+        delta: -previousSnapshot.amount,
+        updatedAt: updatedAt,
+      );
+    }
+
+    if (currentSnapshot != null) {
+      await _applyContributionDelta(
+        goalId: currentSnapshot.goalId,
+        delta: currentSnapshot.amount,
+        updatedAt: updatedAt,
+      );
+      await _contributionDao.insert(
+        id: existingContribution?.id ?? current.id,
+        goalId: currentSnapshot.goalId,
+        transactionId: current.id,
+        storageAccountId: currentSnapshot.storageAccountId,
+        amount: currentSnapshot.amount,
+        createdAt: existingContribution?.createdAt ?? updatedAt,
+      );
+      return;
+    }
+
+    if (existingContribution != null) {
+      await _contributionDao.deleteById(existingContribution.id);
+    } else {
+      await _contributionDao.deleteByTransactionId(current.id);
+    }
+  }
+
+  _GoalContributionSnapshot? _resolveContributionSnapshot({
+    required TransactionEntity? transaction,
+    required db.GoalContributionRow? fallbackContribution,
+    required bool allowFallbackWhenMissingGoal,
+  }) {
+    if (transaction == null || transaction.savingGoalId == null) {
+      if (!allowFallbackWhenMissingGoal) {
+        return null;
+      }
+      if (fallbackContribution == null) {
+        return null;
+      }
+      return _GoalContributionSnapshot(
+        goalId: fallbackContribution.goalId,
+        storageAccountId: fallbackContribution.storageAccountId,
+        amount: fallbackContribution.amount,
+      );
+    }
+
+    final String goalId = transaction.savingGoalId!.trim();
+    if (goalId.isEmpty) {
+      return null;
+    }
+
+    final BigInt minor = transaction.amountValue.abs().minor;
+    final int amount = minor.toInt();
+    final String? transferAccountId = transaction.transferAccountId?.trim();
+    final String storageAccountId =
+        transferAccountId != null && transferAccountId.isNotEmpty
+        ? transferAccountId
+        : transaction.accountId;
+
+    return _GoalContributionSnapshot(
+      goalId: goalId,
+      storageAccountId: storageAccountId,
+      amount: amount,
+    );
+  }
+
+  Future<void> _applyContributionDelta({
+    required String goalId,
+    required int delta,
+    required DateTime updatedAt,
+  }) async {
+    if (delta == 0) {
+      return;
+    }
+
+    final SavingGoal? goal = await _savingGoalDao.findById(goalId);
+    if (goal == null) {
+      return;
+    }
+
+    final int updatedAmount = (goal.currentAmount + delta).clamp(
+      0,
+      goal.targetAmount,
+    );
+    if (updatedAmount == goal.currentAmount) {
+      return;
+    }
+
+    final SavingGoal updatedGoal = goal.copyWith(
+      currentAmount: updatedAmount,
+      updatedAt: updatedAt,
+    );
+    await _savingGoalDao.upsert(updatedGoal);
+    await _outboxDao.enqueue(
+      entityType: _savingGoalEntityType,
+      entityId: updatedGoal.id,
+      operation: OutboxOperation.upsert,
+      payload: _mapGoalPayload(updatedGoal),
+    );
   }
 
   Future<void> _applyAccountBalanceChanges({
@@ -536,4 +675,27 @@ class TransactionRepositoryImpl implements TransactionRepository {
       iconStyle: row.iconStyle,
     );
   }
+}
+
+class _GoalContributionSnapshot {
+  const _GoalContributionSnapshot({
+    required this.goalId,
+    required this.storageAccountId,
+    required this.amount,
+  });
+
+  final String goalId;
+  final String? storageAccountId;
+  final int amount;
+
+  @override
+  bool operator ==(Object other) {
+    return other is _GoalContributionSnapshot &&
+        other.goalId == goalId &&
+        other.storageAccountId == storageAccountId &&
+        other.amount == amount;
+  }
+
+  @override
+  int get hashCode => Object.hash(goalId, storageAccountId, amount);
 }

@@ -45,8 +45,7 @@ void main() {
   setUp(() {
     transactionRepository = _MockTransactionRepository();
     onTransactionDeletedUseCase = _MockOnTransactionDeletedUseCase();
-    syncCreditPaymentScheduleUseCase =
-        _MockSyncCreditPaymentScheduleUseCase();
+    syncCreditPaymentScheduleUseCase = _MockSyncCreditPaymentScheduleUseCase();
     useCase = DeleteTransactionUseCase(
       transactionRepository: transactionRepository,
       onTransactionDeletedUseCase: onTransactionDeletedUseCase,
@@ -78,9 +77,7 @@ void main() {
     when(
       () => syncCreditPaymentScheduleUseCase.call(previous: transaction),
     ).thenAnswer((_) async {});
-    when(
-      () => onTransactionDeletedUseCase.call(),
-    ).thenAnswer(
+    when(() => onTransactionDeletedUseCase.call()).thenAnswer(
       (_) async => ProfileCommandResult<UserProgress>(
         value: UserProgress(
           title: 'Level 1',

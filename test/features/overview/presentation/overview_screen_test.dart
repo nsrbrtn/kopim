@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kopim/features/profile/presentation/controllers/active_currency_code_provider.dart';
 import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/overview/domain/models/financial_index_models.dart';
 import 'package:kopim/features/overview/domain/models/overview_behavior_progress.dart';
@@ -78,6 +79,7 @@ void main() {
               _goal(name: 'Vacation'),
             ]),
           ),
+          activeCurrencyCodeProvider.overrideWithValue('RUB'),
         ],
         child: const MaterialApp(
           locale: Locale('en'),
@@ -125,6 +127,7 @@ void main() {
       find.text(strings.overviewGoalTitleDynamic('Vacation')),
       findsOneWidget,
     );
+    expect(find.textContaining('₽'), findsWidgets);
   });
 
   testWidgets('по нажатию на иконку вопроса открывается попап логики индекса', (
@@ -192,6 +195,7 @@ void main() {
               _goal(name: 'Vacation'),
             ]),
           ),
+          activeCurrencyCodeProvider.overrideWithValue('RUB'),
         ],
         child: const MaterialApp(
           locale: Locale('en'),
@@ -259,6 +263,7 @@ void main() {
           overviewSavingGoalsProvider.overrideWith(
             (Ref ref) => Stream<List<SavingGoal>>.error(Exception('boom')),
           ),
+          activeCurrencyCodeProvider.overrideWithValue('RUB'),
         ],
         child: const MaterialApp(
           locale: Locale('en'),

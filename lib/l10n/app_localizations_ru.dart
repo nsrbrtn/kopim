@@ -64,7 +64,8 @@ class AppLocalizationsRu extends AppLocalizations {
   String get profileCredentialsValidationPasswordMatch => 'Пароли не совпадают';
 
   @override
-  String get profileCredentialsLoginUpdated => 'Логин обновлен';
+  String get profileCredentialsLoginUpdated =>
+      'Ссылка для подтверждения отправлена на новый email';
 
   @override
   String get profileCredentialsPasswordUpdated => 'Пароль обновлен';
@@ -359,6 +360,28 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get profileDataTransferFormatJson => 'JSON';
+
+  @override
+  String get profileDataTransferFormatHintJsonBadge => 'Рекомендуется';
+
+  @override
+  String get profileDataTransferFormatHintJsonTitle =>
+      'JSON для миграции между версиями приложения';
+
+  @override
+  String get profileDataTransferFormatHintJsonBody =>
+      'Основной формат для переноса на новый backend. Экспорт включает профиль, прогресс и контрольные суммы, а при импорте приложение проверяет целостность данных.';
+
+  @override
+  String get profileDataTransferFormatHintCsvBadge => 'Legacy';
+
+  @override
+  String get profileDataTransferFormatHintCsvTitle =>
+      'CSV только для совместимости и ручной проверки';
+
+  @override
+  String get profileDataTransferFormatHintCsvBody =>
+      'Подходит, если нужен табличный экспорт или ручной разбор данных. Для миграции на новый backend лучше использовать JSON, потому что CSV не является каноничным форматом переноса.';
 
   @override
   String get profileExportDataSuccess => 'Экспорт завершён успешно.';

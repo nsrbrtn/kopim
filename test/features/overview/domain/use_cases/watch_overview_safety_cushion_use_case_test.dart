@@ -345,6 +345,7 @@ class _SavingGoalRepositoryFake implements SavingGoalRepository {
     required int newCurrentAmount,
     required DateTime contributedAt,
     required String sourceAccountId,
+    String? storageAccountId,
     String? contributionNote,
   }) {
     throw UnimplementedError();

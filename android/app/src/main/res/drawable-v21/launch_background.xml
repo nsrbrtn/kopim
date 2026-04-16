@@ -2,7 +2,9 @@
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:drawable="@color/splash_background" />
 
-    <item>
+    <item
+        android:left="32dp"
+        android:right="32dp">
         <bitmap
             android:gravity="center"
             android:src="@drawable/splash_logo" />
