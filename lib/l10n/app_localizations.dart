@@ -894,6 +894,102 @@ abstract class AppLocalizations {
   /// **'Home settings'**
   String get profileMenuHomeSettingsCta;
 
+  /// Menu item for reopening the getting started checklist
+  ///
+  /// In en, this message translates to:
+  /// **'Getting started plan'**
+  String get gettingStartedMenuCta;
+
+  /// Title of the getting started card
+  ///
+  /// In en, this message translates to:
+  /// **'What to do next'**
+  String get gettingStartedTitle;
+
+  /// Subtitle of the getting started card
+  ///
+  /// In en, this message translates to:
+  /// **'Complete the basic setup to start tracking money right away.'**
+  String get gettingStartedSubtitle;
+
+  /// Subtitle shown when the getting started checklist is completed
+  ///
+  /// In en, this message translates to:
+  /// **'Basic setup is complete. You can return to any section whenever you need it.'**
+  String get gettingStartedCompletedSubtitle;
+
+  /// Action for hiding the getting started card
+  ///
+  /// In en, this message translates to:
+  /// **'Hide'**
+  String get gettingStartedHideAction;
+
+  /// Progress label for the getting started checklist
+  ///
+  /// In en, this message translates to:
+  /// **'{completed} of {total} steps'**
+  String gettingStartedProgressLabel(int completed, int total);
+
+  /// Getting started step title for account creation
+  ///
+  /// In en, this message translates to:
+  /// **'Create your first account'**
+  String get gettingStartedStepAccountTitle;
+
+  /// Getting started step description for account creation
+  ///
+  /// In en, this message translates to:
+  /// **'This is the starting point for balances and money structure.'**
+  String get gettingStartedStepAccountDescription;
+
+  /// Getting started step title for category creation
+  ///
+  /// In en, this message translates to:
+  /// **'Add a category'**
+  String get gettingStartedStepCategoryTitle;
+
+  /// Getting started step description for category creation
+  ///
+  /// In en, this message translates to:
+  /// **'Prepare at least one user category for your future transactions.'**
+  String get gettingStartedStepCategoryDescription;
+
+  /// Getting started step title for transaction creation
+  ///
+  /// In en, this message translates to:
+  /// **'Record your first transaction'**
+  String get gettingStartedStepTransactionTitle;
+
+  /// Getting started step description for transaction creation
+  ///
+  /// In en, this message translates to:
+  /// **'This unlocks the first data points on the home screen and in analytics.'**
+  String get gettingStartedStepTransactionDescription;
+
+  /// Getting started step title for profile setup
+  ///
+  /// In en, this message translates to:
+  /// **'Set up your profile'**
+  String get gettingStartedStepProfileTitle;
+
+  /// Getting started step description for profile setup
+  ///
+  /// In en, this message translates to:
+  /// **'Add your name and review personal settings to make the app feel more tailored.'**
+  String get gettingStartedStepProfileDescription;
+
+  /// Getting started step title for saving goal creation
+  ///
+  /// In en, this message translates to:
+  /// **'Create a saving goal'**
+  String get gettingStartedStepGoalTitle;
+
+  /// Getting started step description for saving goal creation
+  ///
+  /// In en, this message translates to:
+  /// **'This helps you see long-term progress, not just individual transactions.'**
+  String get gettingStartedStepGoalDescription;
+
   /// Switch label for enabling the gamification widget
   ///
   /// In en, this message translates to:

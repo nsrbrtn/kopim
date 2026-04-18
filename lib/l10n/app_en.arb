@@ -508,6 +508,78 @@
   "@profileMenuHomeSettingsCta": {
     "description": "Menu item label for home settings on the menu screen"
   },
+  "gettingStartedMenuCta": "Getting started plan",
+  "@gettingStartedMenuCta": {
+    "description": "Menu item for reopening the getting started checklist"
+  },
+  "gettingStartedTitle": "What to do next",
+  "@gettingStartedTitle": {
+    "description": "Title of the getting started card"
+  },
+  "gettingStartedSubtitle": "Complete the basic setup to start tracking money right away.",
+  "@gettingStartedSubtitle": {
+    "description": "Subtitle of the getting started card"
+  },
+  "gettingStartedCompletedSubtitle": "Basic setup is complete. You can return to any section whenever you need it.",
+  "@gettingStartedCompletedSubtitle": {
+    "description": "Subtitle shown when the getting started checklist is completed"
+  },
+  "gettingStartedHideAction": "Hide",
+  "@gettingStartedHideAction": {
+    "description": "Action for hiding the getting started card"
+  },
+  "gettingStartedProgressLabel": "{completed} of {total} steps",
+  "@gettingStartedProgressLabel": {
+    "description": "Progress label for the getting started checklist",
+    "placeholders": {
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "gettingStartedStepAccountTitle": "Create your first account",
+  "@gettingStartedStepAccountTitle": {
+    "description": "Getting started step title for account creation"
+  },
+  "gettingStartedStepAccountDescription": "This is the starting point for balances and money structure.",
+  "@gettingStartedStepAccountDescription": {
+    "description": "Getting started step description for account creation"
+  },
+  "gettingStartedStepCategoryTitle": "Add a category",
+  "@gettingStartedStepCategoryTitle": {
+    "description": "Getting started step title for category creation"
+  },
+  "gettingStartedStepCategoryDescription": "Prepare at least one user category for your future transactions.",
+  "@gettingStartedStepCategoryDescription": {
+    "description": "Getting started step description for category creation"
+  },
+  "gettingStartedStepTransactionTitle": "Record your first transaction",
+  "@gettingStartedStepTransactionTitle": {
+    "description": "Getting started step title for transaction creation"
+  },
+  "gettingStartedStepTransactionDescription": "This unlocks the first data points on the home screen and in analytics.",
+  "@gettingStartedStepTransactionDescription": {
+    "description": "Getting started step description for transaction creation"
+  },
+  "gettingStartedStepProfileTitle": "Set up your profile",
+  "@gettingStartedStepProfileTitle": {
+    "description": "Getting started step title for profile setup"
+  },
+  "gettingStartedStepProfileDescription": "Add your name and review personal settings to make the app feel more tailored.",
+  "@gettingStartedStepProfileDescription": {
+    "description": "Getting started step description for profile setup"
+  },
+  "gettingStartedStepGoalTitle": "Create a saving goal",
+  "@gettingStartedStepGoalTitle": {
+    "description": "Getting started step title for saving goal creation"
+  },
+  "gettingStartedStepGoalDescription": "This helps you see long-term progress, not just individual transactions.",
+  "@gettingStartedStepGoalDescription": {
+    "description": "Getting started step description for saving goal creation"
+  },
   "settingsHomeGamificationTitle": "Gamification widget",
   "@settingsHomeGamificationTitle": {
     "description": "Switch label for enabling the gamification widget"

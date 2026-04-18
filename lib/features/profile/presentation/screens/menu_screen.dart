@@ -7,6 +7,8 @@ import 'package:kopim/core/config/app_runtime.dart';
 import 'package:kopim/features/app_shell/presentation/widgets/main_navigation_bar.dart';
 import 'package:kopim/features/app_shell/presentation/widgets/navigation_responsive_breakpoints.dart';
 import 'package:kopim/features/categories/presentation/screens/manage_categories_screen.dart';
+import 'package:kopim/features/getting_started/presentation/controllers/getting_started_controller.dart';
+import 'package:kopim/features/getting_started/presentation/widgets/getting_started_card.dart';
 import 'package:kopim/features/home/domain/entities/home_dashboard_preferences.dart';
 import 'package:kopim/features/home/presentation/controllers/home_dashboard_preferences_controller.dart';
 import 'package:kopim/features/profile/presentation/screens/about_app_screen.dart';
@@ -142,6 +144,37 @@ class MenuScreen extends ConsumerWidget {
     );
   }
 
+  Future<void> _openGettingStartedSheet(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
+    await ref
+        .read(gettingStartedPreferencesControllerProvider.notifier)
+        .reopen();
+    if (!context.mounted) {
+      return;
+    }
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (BuildContext sheetContext) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+            child: GettingStartedCardHost(
+              forceVisible: true,
+              onRouteRequested: (String routeName) {
+                Navigator.of(sheetContext).pop();
+                _pushRoute(context, routeName);
+              },
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final AppLocalizations strings = AppLocalizations.of(context)!;
@@ -171,6 +204,11 @@ class MenuScreen extends ConsumerWidget {
         label: strings.profileMenuHomeSettingsCta,
         icon: Icons.home_outlined,
         onTap: () => _openHomeSectionSheet(context),
+      ),
+      _SettingsMenuConfig(
+        label: strings.gettingStartedMenuCta,
+        icon: Icons.checklist_rounded,
+        onTap: () => _openGettingStartedSheet(context, ref),
       ),
       if (AppRuntimeConfig.isOffline)
         _SettingsMenuConfig(

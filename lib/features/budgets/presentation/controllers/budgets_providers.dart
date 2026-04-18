@@ -271,16 +271,28 @@ AsyncValue<List<BudgetCategorySpend>> budgetCategorySpend(Ref ref) {
         MoneyAccumulator.new,
       );
       final MoneyAccumulator? spent = spentByCategory[categoryId];
-      if (spent != null) {
+      if (spent != null && explicitIds.isEmpty) {
         accumulator.add(MoneyAmount(minor: spent.minor, scale: spent.scale));
       }
-      final double? limit = explicitIds.isEmpty
-          ? resolveBudgetCategoryLimit(budget, categoryId)
-          : resolveBudgetCategoryDirectLimit(
-              budget: budget,
-              categories: categories,
-              categoryId: categoryId,
-            );
+      if (explicitIds.isNotEmpty) {
+        final double inclusiveSpent = resolveBudgetCategoryInclusiveSpent(
+          budget: budget,
+          categories: categories,
+          directSpentByCategory: <String, double>{
+            for (final MapEntry<String, MoneyAccumulator> entry
+                in spentByCategory.entries)
+              entry.key: entry.value.toDouble(),
+          },
+          categoryId: categoryId,
+        );
+        accumulator.add(
+          MoneyAmount(
+            minor: BigInt.from((inclusiveSpent * 100).round()),
+            scale: 2,
+          ),
+        );
+      }
+      final double? limit = resolveBudgetCategoryLimit(budget, categoryId);
       if (limit != null) {
         aggregateLimit[categoryId] = (aggregateLimit[categoryId] ?? 0) + limit;
       }

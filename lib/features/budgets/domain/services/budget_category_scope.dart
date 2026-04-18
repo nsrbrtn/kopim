@@ -201,3 +201,25 @@ String? resolveBudgetTransactionAllocationCategoryId({
   }
   return null;
 }
+
+double resolveBudgetCategoryInclusiveSpent({
+  required Budget budget,
+  required Iterable<Category> categories,
+  required Map<String, double> directSpentByCategory,
+  required String categoryId,
+}) {
+  double total = directSpentByCategory[categoryId] ?? 0;
+  for (final String childCategoryId in resolveBudgetExplicitChildCategoryIds(
+    budget: budget,
+    categories: categories,
+    parentCategoryId: categoryId,
+  )) {
+    total += resolveBudgetCategoryInclusiveSpent(
+      budget: budget,
+      categories: categories,
+      directSpentByCategory: directSpentByCategory,
+      categoryId: childCategoryId,
+    );
+  }
+  return total;
+}

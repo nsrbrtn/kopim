@@ -39,6 +39,7 @@ import 'package:kopim/features/home/presentation/widgets/home_budget_progress_ca
 import 'package:kopim/features/home/presentation/widgets/home_overview_summary_card.dart';
 import 'package:kopim/features/home/presentation/widgets/home_savings_overview_card.dart';
 import 'package:kopim/features/home/presentation/widgets/home_upcoming_items_card.dart';
+import 'package:kopim/features/getting_started/presentation/widgets/getting_started_card.dart';
 import 'package:kopim/core/widgets/animated_fab.dart';
 import 'package:kopim/core/widgets/kopim_glass_fab.dart';
 import 'package:kopim/features/home/presentation/widgets/quick_add_transaction.dart';
@@ -215,6 +216,14 @@ class _HomeBody extends ConsumerWidget {
             addBoxSection(
               HomeOverviewSummaryCard(
                 onTap: () => context.push(OverviewScreen.routeName),
+              ),
+            );
+
+            addBoxSection(
+              GettingStartedCardHost(
+                onRouteRequested: (String routeName) {
+                  context.push(routeName);
+                },
               ),
             );
 

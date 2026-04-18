@@ -98,14 +98,15 @@ List<BudgetCategorySpend> _computeBudgetCategorySpend({
     items.add(
       BudgetCategorySpend(
         category: category,
-        spent: spentByCategory[categoryId] ?? 0,
-        limit: explicitIds.isEmpty
-            ? resolveBudgetCategoryLimit(budget, categoryId)
-            : resolveBudgetCategoryDirectLimit(
+        spent: explicitIds.isEmpty
+            ? (spentByCategory[categoryId] ?? 0)
+            : resolveBudgetCategoryInclusiveSpent(
                 budget: budget,
                 categories: categories,
+                directSpentByCategory: spentByCategory,
                 categoryId: categoryId,
               ),
+        limit: resolveBudgetCategoryLimit(budget, categoryId),
         parentCategoryId: explicitIds.isEmpty
             ? null
             : resolveBudgetExplicitParentCategoryId(

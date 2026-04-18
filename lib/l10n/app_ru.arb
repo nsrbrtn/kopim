@@ -508,6 +508,78 @@
   "@profileMenuHomeSettingsCta": {
     "description": "Подпись пункта настроек главной на экране меню"
   },
+  "gettingStartedMenuCta": "План первого запуска",
+  "@gettingStartedMenuCta": {
+    "description": "Пункт меню для повторного открытия чеклиста первого запуска"
+  },
+  "gettingStartedTitle": "Что сделать дальше",
+  "@gettingStartedTitle": {
+    "description": "Заголовок карточки мини-онбординга"
+  },
+  "gettingStartedSubtitle": "Пройдите базовую настройку, чтобы сразу начать вести учет.",
+  "@gettingStartedSubtitle": {
+    "description": "Подзаголовок карточки мини-онбординга"
+  },
+  "gettingStartedCompletedSubtitle": "Базовая настройка завершена. При необходимости вы всегда можете вернуться в любой раздел.",
+  "@gettingStartedCompletedSubtitle": {
+    "description": "Подзаголовок для завершенного мини-онбординга"
+  },
+  "gettingStartedHideAction": "Скрыть",
+  "@gettingStartedHideAction": {
+    "description": "Кнопка скрытия карточки мини-онбординга"
+  },
+  "gettingStartedProgressLabel": "{completed} из {total} шагов",
+  "@gettingStartedProgressLabel": {
+    "description": "Подпись прогресса мини-онбординга",
+    "placeholders": {
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "gettingStartedStepAccountTitle": "Создайте первый счет",
+  "@gettingStartedStepAccountTitle": {
+    "description": "Шаг мини-онбординга для создания счета"
+  },
+  "gettingStartedStepAccountDescription": "С него начнется структура ваших денег и балансов.",
+  "@gettingStartedStepAccountDescription": {
+    "description": "Описание шага мини-онбординга для создания счета"
+  },
+  "gettingStartedStepCategoryTitle": "Добавьте категорию",
+  "@gettingStartedStepCategoryTitle": {
+    "description": "Шаг мини-онбординга для создания категории"
+  },
+  "gettingStartedStepCategoryDescription": "Подготовьте хотя бы одну пользовательскую категорию для операций.",
+  "@gettingStartedStepCategoryDescription": {
+    "description": "Описание шага мини-онбординга для создания категории"
+  },
+  "gettingStartedStepTransactionTitle": "Запишите первую транзакцию",
+  "@gettingStartedStepTransactionTitle": {
+    "description": "Шаг мини-онбординга для создания транзакции"
+  },
+  "gettingStartedStepTransactionDescription": "После этого на главном экране и в аналитике появятся первые данные.",
+  "@gettingStartedStepTransactionDescription": {
+    "description": "Описание шага мини-онбординга для создания транзакции"
+  },
+  "gettingStartedStepProfileTitle": "Заполните профиль",
+  "@gettingStartedStepProfileTitle": {
+    "description": "Шаг мини-онбординга для настройки профиля"
+  },
+  "gettingStartedStepProfileDescription": "Добавьте имя и проверьте личные настройки, чтобы приложение выглядело персональнее.",
+  "@gettingStartedStepProfileDescription": {
+    "description": "Описание шага мини-онбординга для настройки профиля"
+  },
+  "gettingStartedStepGoalTitle": "Создайте цель накопления",
+  "@gettingStartedStepGoalTitle": {
+    "description": "Шаг мини-онбординга для создания цели накопления"
+  },
+  "gettingStartedStepGoalDescription": "Так вы быстрее увидите долгосрочный прогресс, а не только отдельные операции.",
+  "@gettingStartedStepGoalDescription": {
+    "description": "Описание шага мини-онбординга для создания цели накопления"
+  },
   "settingsHomeGamificationTitle": "Виджет геймификации",
   "@settingsHomeGamificationTitle": {
     "description": "Подпись переключателя виджета геймификации"

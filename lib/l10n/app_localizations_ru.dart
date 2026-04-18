@@ -462,6 +462,63 @@ class AppLocalizationsRu extends AppLocalizations {
   String get profileMenuHomeSettingsCta => 'Настройки главной';
 
   @override
+  String get gettingStartedMenuCta => 'План первого запуска';
+
+  @override
+  String get gettingStartedTitle => 'Что сделать дальше';
+
+  @override
+  String get gettingStartedSubtitle =>
+      'Пройдите базовую настройку, чтобы сразу начать вести учет.';
+
+  @override
+  String get gettingStartedCompletedSubtitle =>
+      'Базовая настройка завершена. При необходимости вы всегда можете вернуться в любой раздел.';
+
+  @override
+  String get gettingStartedHideAction => 'Скрыть';
+
+  @override
+  String gettingStartedProgressLabel(int completed, int total) {
+    return '$completed из $total шагов';
+  }
+
+  @override
+  String get gettingStartedStepAccountTitle => 'Создайте первый счет';
+
+  @override
+  String get gettingStartedStepAccountDescription =>
+      'С него начнется структура ваших денег и балансов.';
+
+  @override
+  String get gettingStartedStepCategoryTitle => 'Добавьте категорию';
+
+  @override
+  String get gettingStartedStepCategoryDescription =>
+      'Подготовьте хотя бы одну пользовательскую категорию для операций.';
+
+  @override
+  String get gettingStartedStepTransactionTitle => 'Запишите первую транзакцию';
+
+  @override
+  String get gettingStartedStepTransactionDescription =>
+      'После этого на главном экране и в аналитике появятся первые данные.';
+
+  @override
+  String get gettingStartedStepProfileTitle => 'Заполните профиль';
+
+  @override
+  String get gettingStartedStepProfileDescription =>
+      'Добавьте имя и проверьте личные настройки, чтобы приложение выглядело персональнее.';
+
+  @override
+  String get gettingStartedStepGoalTitle => 'Создайте цель накопления';
+
+  @override
+  String get gettingStartedStepGoalDescription =>
+      'Так вы быстрее увидите долгосрочный прогресс, а не только отдельные операции.';
+
+  @override
   String get settingsHomeGamificationTitle => 'Виджет геймификации';
 
   @override

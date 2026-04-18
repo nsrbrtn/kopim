@@ -21,6 +21,10 @@ import 'package:kopim/features/credits/domain/repositories/credit_card_repositor
 import 'package:kopim/features/credits/domain/repositories/credit_repository.dart';
 import 'package:kopim/features/credits/domain/use_cases/watch_credit_cards_use_case.dart';
 import 'package:kopim/features/credits/domain/use_cases/watch_credits_use_case.dart';
+import 'package:kopim/features/getting_started/domain/entities/getting_started_preferences.dart';
+import 'package:kopim/features/getting_started/domain/entities/getting_started_progress.dart';
+import 'package:kopim/features/getting_started/domain/entities/getting_started_view_model.dart';
+import 'package:kopim/features/getting_started/presentation/controllers/getting_started_controller.dart';
 import 'package:kopim/features/home/domain/models/day_section.dart';
 import 'package:kopim/features/home/domain/models/home_account_monthly_summary.dart';
 import 'package:kopim/features/home/domain/models/home_overview_summary.dart';
@@ -300,7 +304,29 @@ void main() {
     }) async {
       await tester.pumpWidget(
         ProviderScope(
-          overrides: overrides,
+          overrides: <Override>[
+            gettingStartedViewModelProvider.overrideWithValue(
+              const AsyncValue<GettingStartedViewModel>.data(
+                GettingStartedViewModel(
+                  preferences: GettingStartedPreferences(
+                    hasActivated: false,
+                    isHidden: false,
+                  ),
+                  progress: GettingStartedProgress(
+                    hasAccounts: false,
+                    hasUserCategories: false,
+                    hasTransactions: false,
+                    hasProfileName: false,
+                    hasSavingGoal: false,
+                    hasBudget: false,
+                  ),
+                  shouldAutoActivate: false,
+                  shouldDisplayOnHome: false,
+                ),
+              ),
+            ),
+            ...overrides,
+          ],
           child: MaterialApp(
             theme: buildAppTheme(brightness: Brightness.light),
             darkTheme: buildAppTheme(brightness: Brightness.dark),

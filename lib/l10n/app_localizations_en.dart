@@ -459,6 +459,64 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileMenuHomeSettingsCta => 'Home settings';
 
   @override
+  String get gettingStartedMenuCta => 'Getting started plan';
+
+  @override
+  String get gettingStartedTitle => 'What to do next';
+
+  @override
+  String get gettingStartedSubtitle =>
+      'Complete the basic setup to start tracking money right away.';
+
+  @override
+  String get gettingStartedCompletedSubtitle =>
+      'Basic setup is complete. You can return to any section whenever you need it.';
+
+  @override
+  String get gettingStartedHideAction => 'Hide';
+
+  @override
+  String gettingStartedProgressLabel(int completed, int total) {
+    return '$completed of $total steps';
+  }
+
+  @override
+  String get gettingStartedStepAccountTitle => 'Create your first account';
+
+  @override
+  String get gettingStartedStepAccountDescription =>
+      'This is the starting point for balances and money structure.';
+
+  @override
+  String get gettingStartedStepCategoryTitle => 'Add a category';
+
+  @override
+  String get gettingStartedStepCategoryDescription =>
+      'Prepare at least one user category for your future transactions.';
+
+  @override
+  String get gettingStartedStepTransactionTitle =>
+      'Record your first transaction';
+
+  @override
+  String get gettingStartedStepTransactionDescription =>
+      'This unlocks the first data points on the home screen and in analytics.';
+
+  @override
+  String get gettingStartedStepProfileTitle => 'Set up your profile';
+
+  @override
+  String get gettingStartedStepProfileDescription =>
+      'Add your name and review personal settings to make the app feel more tailored.';
+
+  @override
+  String get gettingStartedStepGoalTitle => 'Create a saving goal';
+
+  @override
+  String get gettingStartedStepGoalDescription =>
+      'This helps you see long-term progress, not just individual transactions.';
+
+  @override
   String get settingsHomeGamificationTitle => 'Gamification widget';
 
   @override
