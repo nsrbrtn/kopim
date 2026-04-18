@@ -14,13 +14,25 @@ if (propsFile.exists()) {
 
 plugins {
     id("com.android.application")
-    // START: FlutterFire Configuration
-    id("com.google.gms.google-services")
-    id("com.google.firebase.crashlytics")
-    // END: FlutterFire Configuration
     id("kotlin-android")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
+}
+
+val requestedTaskNames = gradle.startParameter.taskNames.map { it.lowercase() }
+val hasOfflineTask = requestedTaskNames.any { it.contains("offline") }
+val hasCloudFlavorTask = requestedTaskNames.any {
+    it.contains("dev") || it.contains("stage") || it.contains("prod")
+}
+
+// Для offline-only сборок не подключаем Firebase Gradle plugins, чтобы variant
+// не требовал google-services.json и не прогонял Crashlytics processing.
+val shouldApplyFirebasePlugins =
+    requestedTaskNames.isEmpty() || !hasOfflineTask || hasCloudFlavorTask
+
+if (shouldApplyFirebasePlugins) {
+    apply(plugin = "com.google.gms.google-services")
+    apply(plugin = "com.google.firebase.crashlytics")
 }
 
 android {
@@ -68,6 +80,11 @@ android {
             applicationIdSuffix = ".dev"
             versionNameSuffix = "-dev"
         }
+        create("offline") {
+            dimension = "env"
+            applicationId = "kopim.app"
+            versionNameSuffix = "-offline"
+        }
         create("stage") {
             dimension = "env"
             applicationIdSuffix = ".stage"
@@ -86,6 +103,13 @@ android {
         }
         getByName("debug") {
             // Настройки для отладки при необходимости
+        }
+    }
+
+    sourceSets {
+        getByName("offline") {
+            manifest.srcFile("src/offline/AndroidManifest.xml")
+            res.srcDirs("src/offline/res")
         }
     }
 }

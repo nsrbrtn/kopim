@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:kopim/core/application/firebase_availability.dart';
+import 'package:kopim/core/config/app_runtime.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/core/theme/data/app_theme_factory.dart';
 import 'package:kopim/core/theme/data/dto/kopim_theme_tokens.dart';
@@ -242,6 +243,13 @@ Locale _resolveSystemFallbackLocale() {
 final FutureProvider<AppConfig> appConfigProvider = FutureProvider<AppConfig>((
   Ref ref,
 ) async {
+  if (AppRuntimeConfig.isOffline) {
+    return AppConfig(
+      generativeAi: _buildDefaultGenerativeAiConfig(),
+      legal: _buildLegalConfig(),
+    );
+  }
+
   final LoggerService logger = ref.watch(loggerServiceProvider);
   final AnalyticsService analytics = ref.watch(analyticsServiceProvider);
   final FirebaseAvailabilityState availability = ref.watch(
@@ -383,7 +391,7 @@ GenerativeAiConfig _buildDefaultGenerativeAiConfig() {
     baseUrl: envBaseUrl.isNotEmpty ? envBaseUrl : _kDefaultAiBaseUrl,
     requestTimeout: _kDefaultAiRequestTimeout,
     throttleInterval: _kDefaultAiThrottleInterval,
-    isEnabled: true,
+    isEnabled: !AppRuntimeConfig.isOffline,
     maxRetries: _kDefaultAiMaxRetries,
     retryBaseDelay: _kDefaultAiRetryBaseDelay,
     retryMultiplier: _kDefaultAiRetryMultiplier,

@@ -12,6 +12,7 @@ import 'package:riverpod/riverpod.dart' as rp;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:workmanager/workmanager.dart';
 import 'package:kopim/core/application/firebase_availability.dart';
+import 'package:kopim/core/config/app_runtime.dart';
 import 'package:kopim/core/data/database.dart';
 import 'package:kopim/core/data/database/database_factory.dart';
 import 'package:kopim/core/data/outbox/outbox_dao.dart';
@@ -215,6 +216,15 @@ AnalyticsService analyticsService(Ref ref) => const AnalyticsService();
 
 @Riverpod(keepAlive: true)
 Future<void> firebaseInitialization(Ref ref) async {
+  if (AppRuntimeConfig.isOffline) {
+    Future<void>.microtask(
+      () => ref
+          .read(firebaseAvailabilityProvider.notifier)
+          .setUnavailable('Офлайн-версия: облачные функции отключены.'),
+    );
+    return;
+  }
+
   final LoggerService logger = ref.watch(loggerServiceProvider);
   final FirebaseAvailabilityNotifier availability = ref.read(
     firebaseAvailabilityProvider.notifier,
@@ -1163,14 +1173,18 @@ ExactAlarmPermissionService exactAlarmPermissionService(Ref ref) =>
 ProfileRepository profileRepository(Ref ref) => ProfileRepositoryImpl(
   database: ref.watch(appDatabaseProvider),
   profileDao: ref.watch(profileDaoProvider),
-  remoteDataSource: ref.watch(profileRemoteDataSourceProvider),
+  remoteDataSource: AppRuntimeConfig.isOffline
+      ? null
+      : ref.watch(profileRemoteDataSourceProvider),
   outboxDao: ref.watch(outboxDaoProvider),
 );
 
 @riverpod
 ProfileAvatarRepository profileAvatarRepository(Ref ref) =>
     ProfileAvatarRepositoryImpl(
-      remoteDataSource: ref.watch(avatarRemoteDataSourceProvider),
+      remoteDataSource: AppRuntimeConfig.isOffline
+          ? null
+          : ref.watch(avatarRemoteDataSourceProvider),
     );
 
 final rp.Provider<UserAccountCleanupRepository>
@@ -1187,7 +1201,9 @@ userAccountCleanupRepositoryProvider =
 UserProgressRepository userProgressRepository(Ref ref) {
   final UserProgressRepositoryImpl repository = UserProgressRepositoryImpl(
     transactionDao: ref.watch(transactionDaoProvider),
-    remoteDataSource: ref.watch(userProgressRemoteDataSourceProvider),
+    remoteDataSource: AppRuntimeConfig.isOffline
+        ? null
+        : ref.watch(userProgressRemoteDataSourceProvider),
   );
   ref.onDispose(repository.dispose);
   return repository;
@@ -1280,6 +1296,14 @@ SyncService syncService(Ref ref) {
 
 @riverpod
 AuthRepository authRepository(Ref ref) {
+  if (AppRuntimeConfig.isOffline) {
+    final OfflineAuthRepository repository = OfflineAuthRepository(
+      loggerService: ref.watch(loggerServiceProvider),
+    );
+    ref.onDispose(repository.dispose);
+    return repository;
+  }
+
   final FirebaseAvailabilityState availability = ref.watch(
     firebaseAvailabilityProvider,
   );

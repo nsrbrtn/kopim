@@ -8,9 +8,9 @@ import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/budgets/domain/entities/budget.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_instance.dart';
-import 'package:kopim/features/budgets/domain/entities/budget_category_allocation.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_progress.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_scope.dart';
+import 'package:kopim/features/budgets/domain/services/budget_category_scope.dart';
 import 'package:kopim/features/budgets/domain/services/budget_schedule.dart';
 import 'package:kopim/features/budgets/domain/repositories/budget_repository.dart';
 import 'package:kopim/features/budgets/domain/use_cases/compute_budget_progress_use_case.dart';
@@ -99,20 +99,30 @@ AsyncValue<List<BudgetProgress>> budgetsWithProgress(Ref ref) {
   );
   final AsyncValue<Map<BudgetPeriodKey, List<BudgetExpenseTotals>>>
   totalsAsync = ref.watch(budgetExpenseTotalsProvider);
+  final AsyncValue<List<Category>> categoriesAsync = ref.watch(
+    budgetCategoriesStreamProvider,
+  );
 
-  if (budgetsAsync.isLoading || totalsAsync.isLoading) {
+  if (budgetsAsync.isLoading ||
+      totalsAsync.isLoading ||
+      categoriesAsync.isLoading) {
     return const AsyncValue<List<BudgetProgress>>.loading();
   }
 
-  final Object? error = budgetsAsync.error ?? totalsAsync.error;
+  final Object? error =
+      budgetsAsync.error ?? totalsAsync.error ?? categoriesAsync.error;
   if (error != null) {
     return AsyncValue<List<BudgetProgress>>.error(
       error,
-      budgetsAsync.stackTrace ?? totalsAsync.stackTrace ?? StackTrace.empty,
+      budgetsAsync.stackTrace ??
+          totalsAsync.stackTrace ??
+          categoriesAsync.stackTrace ??
+          StackTrace.empty,
     );
   }
 
   final List<Budget> budgets = budgetsAsync.value ?? const <Budget>[];
+  final List<Category> categories = categoriesAsync.value ?? const <Category>[];
   final ComputeBudgetProgressUseCase compute = ref.watch(
     computeBudgetProgressUseCaseProvider,
   );
@@ -132,6 +142,7 @@ AsyncValue<List<BudgetProgress>> budgetsWithProgress(Ref ref) {
             totalsByWindow[key] ?? const <BudgetExpenseTotals>[];
         final MoneyAmount spent = _sumBudgetExpenses(
           budget: budget,
+          categories: categories,
           totals: totals,
         );
         return compute.buildFromSpent(
@@ -200,9 +211,10 @@ AsyncValue<List<BudgetCategorySpend>> budgetCategorySpend(Ref ref) {
       continue;
     }
 
-    if (budget.scope == BudgetScope.byCategory &&
-        budget.categories.isEmpty &&
-        budget.categoryAllocations.isEmpty) {
+    final Set<String> scopedCategoryIds = budget.scope == BudgetScope.byCategory
+        ? resolveBudgetScopedCategoryIds(budget: budget, categories: categories)
+        : const <String>{};
+    if (budget.scope == BudgetScope.byCategory && scopedCategoryIds.isEmpty) {
       continue;
     }
 
@@ -217,20 +229,9 @@ AsyncValue<List<BudgetCategorySpend>> budgetCategorySpend(Ref ref) {
       continue;
     }
 
-    final Set<String> scopedCategoryIds = <String>{};
-    if (budget.categoryAllocations.isNotEmpty) {
-      scopedCategoryIds.addAll(
-        budget.categoryAllocations.map(
-          (BudgetCategoryAllocation allocation) => allocation.categoryId,
-        ),
-      );
-    } else if (budget.scope == BudgetScope.byCategory &&
-        budget.categories.isNotEmpty) {
-      scopedCategoryIds.addAll(budget.categories);
-    }
-
     final Map<String, MoneyAccumulator> spentByCategory =
         <String, MoneyAccumulator>{};
+    final Set<String> explicitIds = resolveBudgetExplicitCategoryIds(budget);
     for (final BudgetExpenseTotals total in totals) {
       if (budget.scope == BudgetScope.byAccount &&
           !budget.accounts.contains(total.accountId)) {
@@ -244,27 +245,44 @@ AsyncValue<List<BudgetCategorySpend>> budgetCategorySpend(Ref ref) {
           !scopedCategoryIds.contains(categoryId)) {
         continue;
       }
+      final String ownerCategoryId = budget.scope == BudgetScope.byCategory
+          ? (resolveBudgetTransactionAllocationCategoryId(
+                  budget: budget,
+                  categories: categories,
+                  categoryId: categoryId,
+                ) ??
+                categoryId)
+          : categoryId;
       spentByCategory
-          .putIfAbsent(categoryId, MoneyAccumulator.new)
+          .putIfAbsent(ownerCategoryId, MoneyAccumulator.new)
           .add(total.expense);
     }
 
-    if (spentByCategory.isEmpty) {
+    final Set<String> visibleCategoryIds = explicitIds.isEmpty
+        ? <String>{...spentByCategory.keys, ...scopedCategoryIds}
+        : <String>{...spentByCategory.keys, ...explicitIds};
+    if (visibleCategoryIds.isEmpty) {
       continue;
     }
 
-    for (final MapEntry<String, MoneyAccumulator> entry
-        in spentByCategory.entries) {
+    for (final String categoryId in visibleCategoryIds) {
       final MoneyAccumulator accumulator = aggregateSpent.putIfAbsent(
-        entry.key,
+        categoryId,
         MoneyAccumulator.new,
       );
-      accumulator.add(
-        MoneyAmount(minor: entry.value.minor, scale: entry.value.scale),
-      );
-      final double? limit = resolveBudgetCategoryLimit(budget, entry.key);
+      final MoneyAccumulator? spent = spentByCategory[categoryId];
+      if (spent != null) {
+        accumulator.add(MoneyAmount(minor: spent.minor, scale: spent.scale));
+      }
+      final double? limit = explicitIds.isEmpty
+          ? resolveBudgetCategoryLimit(budget, categoryId)
+          : resolveBudgetCategoryDirectLimit(
+              budget: budget,
+              categories: categories,
+              categoryId: categoryId,
+            );
       if (limit != null) {
-        aggregateLimit[entry.key] = (aggregateLimit[entry.key] ?? 0) + limit;
+        aggregateLimit[categoryId] = (aggregateLimit[categoryId] ?? 0) + limit;
       }
     }
   }
@@ -319,15 +337,22 @@ AsyncValue<List<TransactionEntity>> budgetTransactionsById(
   final AsyncValue<List<TransactionEntity>> transactionsAsync = ref.watch(
     budgetTransactionsStreamProvider,
   );
-  if (budgetsAsync.isLoading || transactionsAsync.isLoading) {
+  final AsyncValue<List<Category>> categoriesAsync = ref.watch(
+    budgetCategoriesStreamProvider,
+  );
+  if (budgetsAsync.isLoading ||
+      transactionsAsync.isLoading ||
+      categoriesAsync.isLoading) {
     return const AsyncValue<List<TransactionEntity>>.loading();
   }
-  final Object? error = budgetsAsync.error ?? transactionsAsync.error;
+  final Object? error =
+      budgetsAsync.error ?? transactionsAsync.error ?? categoriesAsync.error;
   if (error != null) {
     return AsyncValue<List<TransactionEntity>>.error(
       error,
       budgetsAsync.stackTrace ??
           transactionsAsync.stackTrace ??
+          categoriesAsync.stackTrace ??
           StackTrace.empty,
     );
   }
@@ -344,6 +369,7 @@ AsyncValue<List<TransactionEntity>> budgetTransactionsById(
   );
   final List<TransactionEntity> filtered = compute.filterTransactions(
     budget: budget,
+    categories: categoriesAsync.value ?? const <Category>[],
     transactions: transactionsAsync.value ?? const <TransactionEntity>[],
   );
   return AsyncValue<List<TransactionEntity>>.data(filtered);
@@ -356,28 +382,6 @@ Future<List<BudgetInstance>> budgetInstancesByBudget(
 ) async {
   final BudgetRepository repository = ref.watch(budgetRepositoryProvider);
   return repository.loadInstances(budgetId);
-}
-
-double? resolveBudgetCategoryLimit(Budget budget, String categoryId) {
-  final Iterable<BudgetCategoryAllocation> allocations = budget
-      .categoryAllocations
-      .where(
-        (BudgetCategoryAllocation allocation) =>
-            allocation.categoryId == categoryId,
-      );
-  if (allocations.isNotEmpty) {
-    return allocations.fold<double>(
-      0,
-      (double previous, BudgetCategoryAllocation allocation) =>
-          previous + allocation.limitValue.toDouble(),
-    );
-  }
-  if (budget.scope == BudgetScope.byCategory &&
-      budget.categories.length == 1 &&
-      budget.categories.first == categoryId) {
-    return budget.amountValue.toDouble();
-  }
-  return null;
 }
 
 class BudgetPeriodKey {
@@ -460,12 +464,16 @@ class _BudgetWindowBuilder {
 
 MoneyAmount _sumBudgetExpenses({
   required Budget budget,
+  required List<Category> categories,
   required List<BudgetExpenseTotals> totals,
 }) {
   if (budget.scope == BudgetScope.byAccount && budget.accounts.isEmpty) {
     return MoneyAmount(minor: BigInt.zero, scale: 2);
   }
-  if (budget.scope == BudgetScope.byCategory && budget.categories.isEmpty) {
+  final Set<String> scopedCategoryIds = budget.scope == BudgetScope.byCategory
+      ? resolveBudgetScopedCategoryIds(budget: budget, categories: categories)
+      : const <String>{};
+  if (budget.scope == BudgetScope.byCategory && scopedCategoryIds.isEmpty) {
     return MoneyAmount(minor: BigInt.zero, scale: 2);
   }
   final MoneyAccumulator accumulator = MoneyAccumulator();
@@ -476,7 +484,7 @@ MoneyAmount _sumBudgetExpenses({
     }
     if (budget.scope == BudgetScope.byCategory) {
       final String? categoryId = total.categoryId;
-      if (categoryId == null || !budget.categories.contains(categoryId)) {
+      if (categoryId == null || !scopedCategoryIds.contains(categoryId)) {
         continue;
       }
     }

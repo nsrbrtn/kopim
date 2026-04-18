@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:kopim/core/config/app_runtime.dart';
 import 'package:kopim/core/widgets/kopim_dropdown_field.dart';
 import 'package:kopim/core/widgets/kopim_text_field.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
@@ -166,7 +167,7 @@ class _ProfileAccountFormState extends ConsumerState<_ProfileAccountForm> {
               ),
             ],
           ),
-          if (widget.isAnonymous) ...<Widget>[
+          if (widget.isAnonymous && !AppRuntimeConfig.isOffline) ...<Widget>[
             const SizedBox(height: 16),
             _AnonymousUpgradeBanner(strings: strings),
           ],

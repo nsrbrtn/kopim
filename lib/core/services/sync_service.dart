@@ -4,6 +4,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:kopim/core/config/app_runtime.dart';
 import 'package:kopim/core/data/database.dart' as db;
 import 'package:kopim/core/data/outbox/outbox_dao.dart';
 import 'package:kopim/core/data/outbox/outbox_payload_normalizer.dart';
@@ -275,11 +276,13 @@ class SyncService {
       await _outboxDao.markAsSent(prepared.id);
     } catch (error, stackTrace) {
       await _outboxDao.markAsFailed(prepared.id, error.toString());
-      FirebaseCrashlytics.instance.recordError(
-        error,
-        stackTrace,
-        reason: 'sync_entry_failed',
-      );
+      if (!AppRuntimeConfig.isOffline) {
+        FirebaseCrashlytics.instance.recordError(
+          error,
+          stackTrace,
+          reason: 'sync_entry_failed',
+        );
+      }
     }
   }
 

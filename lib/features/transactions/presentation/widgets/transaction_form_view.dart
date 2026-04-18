@@ -1455,14 +1455,17 @@ class _CategoryDropdownFieldState
       return parents;
     }
     final List<Category> result = <Category>[];
+    final Set<String> seenIds = <String>{};
     for (final Category parent in parents) {
-      result.add(parent);
+      if (seenIds.add(parent.id)) {
+        result.add(parent);
+      }
       if (parent.id != expandedParentId) {
         continue;
       }
       for (final String childId in hierarchy.childrenOf(parent.id)) {
         final Category? child = hierarchy.byId[childId];
-        if (child != null) {
+        if (child != null && seenIds.add(child.id)) {
           result.add(child);
         }
       }

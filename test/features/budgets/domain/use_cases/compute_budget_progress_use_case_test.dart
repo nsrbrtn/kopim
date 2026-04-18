@@ -8,6 +8,7 @@ import 'package:kopim/features/budgets/domain/entities/budget_period.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_scope.dart';
 import 'package:kopim/features/budgets/domain/services/budget_schedule.dart';
 import 'package:kopim/features/budgets/domain/use_cases/compute_budget_progress_use_case.dart';
+import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 
 void main() {
@@ -82,6 +83,23 @@ void main() {
     });
 
     test('filters transactions by category scope', () {
+      final List<Category> categories = <Category>[
+        Category(
+          id: 'food',
+          name: 'Food',
+          type: 'expense',
+          createdAt: DateTime(2024, 1, 1),
+          updatedAt: DateTime(2024, 1, 1),
+        ),
+        Category(
+          id: 'groceries',
+          name: 'Groceries',
+          type: 'expense',
+          parentId: 'food',
+          createdAt: DateTime(2024, 1, 1),
+          updatedAt: DateTime(2024, 1, 1),
+        ),
+      ];
       final Budget budget = buildBudget(
         scope: BudgetScope.byCategory,
         categories: <String>['food'],
@@ -103,6 +121,7 @@ void main() {
 
       final List<TransactionEntity> filtered = useCase.filterTransactions(
         budget: budget,
+        categories: categories,
         transactions: transactions,
         reference: DateTime(2024, 1, 10),
       );
@@ -110,6 +129,49 @@ void main() {
       expect(filtered, hasLength(1));
       expect(filtered.single.id, 't1');
     });
+
+    test(
+      'includes child category expenses when parent category is selected',
+      () {
+        final List<Category> categories = <Category>[
+          Category(
+            id: 'food',
+            name: 'Food',
+            type: 'expense',
+            createdAt: DateTime(2024, 1, 1),
+            updatedAt: DateTime(2024, 1, 1),
+          ),
+          Category(
+            id: 'groceries',
+            name: 'Groceries',
+            type: 'expense',
+            parentId: 'food',
+            createdAt: DateTime(2024, 1, 1),
+            updatedAt: DateTime(2024, 1, 1),
+          ),
+        ];
+        final Budget budget = buildBudget(
+          scope: BudgetScope.byCategory,
+          categories: <String>['food'],
+        );
+        final BudgetProgress progress = useCase(
+          budget: budget,
+          categories: categories,
+          transactions: <TransactionEntity>[
+            tx(
+              id: 't1',
+              amount: -45,
+              categoryId: 'groceries',
+              date: DateTime(2024, 1, 6),
+            ),
+          ],
+          reference: DateTime(2024, 1, 10),
+        );
+
+        expect(progress.spent, _amount(45));
+        expect(progress.remaining, _amount(55));
+      },
+    );
 
     test('reuses existing instance when period matches', () {
       final DateTime periodStart = DateTime(2024, 2, 1);

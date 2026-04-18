@@ -41,7 +41,7 @@ final class AvatarControllerProvider
   }
 }
 
-String _$avatarControllerHash() => r'6fb568103de16bfa5cab1035c6c01f837fedceaa';
+String _$avatarControllerHash() => r'7b91d8d3d529551545f7ed42b00127660275a36e';
 
 abstract class _$AvatarController extends $Notifier<AsyncValue<void>> {
   AsyncValue<void> build();

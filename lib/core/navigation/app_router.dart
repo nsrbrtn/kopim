@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:kopim/core/application/app_startup_controller.dart';
+import 'package:kopim/core/config/app_runtime.dart';
 import 'package:kopim/core/widgets/app_splash_placeholder.dart';
 import 'package:kopim/features/accounts/presentation/account_details_screen.dart';
 import 'package:kopim/features/accounts/presentation/accounts_add_screen.dart';
@@ -356,6 +357,10 @@ class AppRouterNotifier extends ChangeNotifier {
         state.matchedLocation == MainNavigationShell.routeName;
     final bool isOnSignIn = state.matchedLocation == SignInScreen.routeName;
 
+    if (AppRuntimeConfig.isOffline && isOnSignIn) {
+      return MainNavigationShell.routeName;
+    }
+
     if (_startupState.isLoading || _startupState.hasError) {
       return isOnHome ? null : MainNavigationShell.routeName;
     }
@@ -377,6 +382,9 @@ class AppRouterNotifier extends ChangeNotifier {
 
     final AuthUser? user = _authState.asData?.value;
     if (user == null) {
+      if (AppRuntimeConfig.isOffline) {
+        return MainNavigationShell.routeName;
+      }
       if (isOnSignIn) {
         return null;
       }

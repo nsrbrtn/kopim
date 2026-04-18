@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kopim/core/application/firebase_availability.dart';
+import 'package:kopim/core/config/app_runtime.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/accounts/domain/repositories/account_repository.dart';
@@ -378,6 +380,7 @@ class _EmptyCreditCardRepository implements CreditCardRepository {
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+  final AppRuntimeFlavor originalFlavor = AppRuntimeConfig.flavor;
 
   final DateTime now = DateTime.utc(2024, 1, 1);
   final AccountEntity account = AccountEntity(
@@ -507,6 +510,10 @@ void main() {
       child: child,
     );
   }
+
+  tearDown(() {
+    AppRuntimeConfig.configure(originalFlavor);
+  });
 
   Future<void> setWindowSize(WidgetTester tester, Size size) async {
     tester.view.physicalSize = size;
@@ -763,4 +770,37 @@ void main() {
     expect(container.read(mainNavigationControllerProvider).currentIndex, 1);
     expect(container.read(mainNavigationControllerProvider).history, <int>[0]);
   });
+
+  testWidgets(
+    'offline runtime hides firebase warning banner and offline badge',
+    (WidgetTester tester) async {
+      AppRuntimeConfig.configure(AppRuntimeFlavor.offline);
+      await setWindowSize(tester, const Size(800, 1200));
+      await tester.pumpWidget(
+        buildShell(
+          MaterialApp(
+            navigatorKey: navigatorKey,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: const MainNavigationShell(),
+          ),
+        ),
+      );
+
+      final ProviderContainer container = ProviderScope.containerOf(
+        tester.element(find.byType(MainNavigationShell)),
+      );
+      container
+          .read(firebaseAvailabilityProvider.notifier)
+          .setUnavailable('Офлайн-версия: облачные функции отключены.');
+
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.text('Офлайн'), findsNothing);
+      expect(
+        find.text('Офлайн-версия: облачные функции отключены.'),
+        findsNothing,
+      );
+    },
+  );
 }

@@ -141,7 +141,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileBackupDisabled => 'Disabled';
 
   @override
-  String get profileExportDataFullCta => 'Export data (CSV/PDF)';
+  String get profileExportDataFullCta => 'Export data (CSV/JSON)';
 
   @override
   String get profileSignOutFullCta => 'Sign out of profile';
@@ -367,7 +367,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get profileDataTransferFormatHintJsonBody =>
-      'Primary format for moving data to the new backend. The export includes profile, progress, and checksums, and the app verifies data integrity during import.';
+      'Primary format for moving data between app versions. The export includes profile, progress, and checksums, and the app verifies data integrity during import.';
 
   @override
   String get profileDataTransferFormatHintCsvBadge => 'Legacy';
@@ -378,7 +378,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get profileDataTransferFormatHintCsvBody =>
-      'Useful for spreadsheet export or manual inspection. For migration to the new backend, use JSON instead because CSV is not the canonical transfer format.';
+      'Useful for manual inspection or spreadsheet export. Use JSON for the main data transfer flow between app versions.';
 
   @override
   String get profileExportDataSuccess => 'Data exported successfully.';

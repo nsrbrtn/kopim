@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/core/widgets/kopim_dropdown_field.dart';
 import 'package:kopim/core/widgets/kopim_text_field.dart';
 import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
@@ -12,9 +13,11 @@ import 'package:kopim/features/budgets/domain/entities/budget_scope.dart';
 import 'package:kopim/features/budgets/presentation/controllers/budget_form_controller.dart';
 import 'package:kopim/features/budgets/presentation/controllers/budgets_providers.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
+import 'package:kopim/features/categories/domain/services/category_hierarchy.dart';
 import 'package:kopim/features/categories/presentation/utils/category_gradients.dart';
-import 'package:kopim/features/categories/presentation/widgets/category_chip.dart';
 import 'package:kopim/l10n/app_localizations.dart';
+
+enum BudgetFormResult { saved, deleted }
 
 class BudgetFormScreen extends ConsumerStatefulWidget {
   const BudgetFormScreen({this.initialBudget, super.key});
@@ -28,7 +31,7 @@ class BudgetFormScreen extends ConsumerStatefulWidget {
 class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
   late final TextEditingController _titleController;
   late final TextEditingController _amountController;
-  final Map<String, TextEditingController> _categoryControllers =
+  final Map<String, TextEditingController> _categoryAmountControllers =
       <String, TextEditingController>{};
 
   @override
@@ -51,7 +54,7 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
     _titleController.dispose();
     _amountController.dispose();
     for (final TextEditingController controller
-        in _categoryControllers.values) {
+        in _categoryAmountControllers.values) {
       controller.dispose();
     }
     super.dispose();
@@ -69,7 +72,7 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
       budgetFormControllerProvider(params: params).notifier,
     );
     final AppLocalizations strings = AppLocalizations.of(context)!;
-    _syncCategoryControllers(state);
+
     ref.listen<BudgetFormState>(budgetFormControllerProvider(params: params), (
       BudgetFormState? previous,
       BudgetFormState next,
@@ -93,6 +96,17 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
     final AsyncValue<List<AccountEntity>> accountsAsync = ref.watch(
       budgetAccountsStreamProvider,
     );
+    final List<Category> categories =
+        categoriesAsync.value ?? const <Category>[];
+    _syncCategoryAmountControllers(state);
+
+    if (state.scope == BudgetScope.byCategory && categories.isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          controller.syncCategoryHierarchy(categories);
+        }
+      });
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -108,10 +122,7 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              Text(
-                strings.budgetTitleLabel,
-                style: Theme.of(context).textTheme.labelLarge,
-              ),
+              _SectionLabel(strings.budgetTitleLabel),
               const SizedBox(height: 8),
               KopimTextField(
                 controller: _titleController,
@@ -119,30 +130,7 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                 onChanged: controller.setTitle,
               ),
               const SizedBox(height: 16),
-              Text(
-                strings.budgetAmountLabel,
-                style: Theme.of(context).textTheme.labelLarge,
-              ),
-              const SizedBox(height: 8),
-              KopimTextField(
-                controller: _amountController,
-                readOnly: state.scope == BudgetScope.byCategory,
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
-                ),
-                placeholder: strings.budgetAmountPlaceholder,
-                supportingText: state.scope == BudgetScope.byCategory
-                    ? strings.budgetAmountAutoHelper
-                    : null,
-                onChanged: state.scope == BudgetScope.byCategory
-                    ? null
-                    : controller.setAmountText,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                strings.budgetPeriodLabelShort,
-                style: Theme.of(context).textTheme.labelLarge,
-              ),
+              _SectionLabel(strings.budgetPeriodLabelShort),
               const SizedBox(height: 8),
               KopimDropdownField<BudgetPeriod>(
                 value: state.period,
@@ -159,11 +147,25 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                     : _periodLabel(strings, period),
                 onChanged: controller.setPeriod,
               ),
+              if (state.period == BudgetPeriod.custom) ...<Widget>[
+                const SizedBox(height: 16),
+                _DatePickerTile(
+                  label: strings.budgetStartDateLabel,
+                  value: state.startDate,
+                  onSelected: (DateTime? date) {
+                    if (date != null) {
+                      controller.setStartDate(date);
+                    }
+                  },
+                ),
+                _DatePickerTile(
+                  label: strings.budgetEndDateLabel,
+                  value: state.endDate,
+                  onSelected: controller.setEndDate,
+                ),
+              ],
               const SizedBox(height: 16),
-              Text(
-                strings.budgetScopeLabel,
-                style: Theme.of(context).textTheme.labelLarge,
-              ),
+              _SectionLabel(strings.budgetScopeLabel),
               const SizedBox(height: 8),
               KopimDropdownField<BudgetScope>(
                 value: state.scope,
@@ -181,58 +183,15 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                 onChanged: controller.setScope,
               ),
               const SizedBox(height: 16),
-              if (state.period == BudgetPeriod.custom)
-                _DatePickerTile(
-                  label: strings.budgetStartDateLabel,
-                  value: state.startDate,
-                  onSelected: (DateTime? date) {
-                    if (date != null) {
-                      controller.setStartDate(date);
-                    }
-                  },
-                ),
-              if (state.period == BudgetPeriod.custom)
-                _DatePickerTile(
-                  label: strings.budgetEndDateLabel,
-                  value: state.endDate,
-                  onSelected: controller.setEndDate,
-                ),
-              const SizedBox(height: 16),
               if (state.scope == BudgetScope.byCategory)
                 categoriesAsync.when(
-                  data: (List<Category> categories) {
-                    final Map<String, Category> categoriesById =
-                        <String, Category>{
-                          for (final Category category in categories)
-                            category.id: category,
-                        };
-                    final List<Category> selectedCategories = state.categoryIds
-                        .map((String id) => categoriesById[id])
-                        .whereType<Category>()
-                        .toList(growable: false);
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        _CategorySelectionChips(
-                          title: strings.budgetCategoriesLabel,
-                          categories: categories,
-                          selectedCategoryIds: state.categoryIds,
-                          onToggle: (Category category) =>
-                              controller.toggleCategory(category.id),
-                        ),
-                        if (selectedCategories.isNotEmpty) ...<Widget>[
-                          const SizedBox(height: 16),
-                          _CategoryAllocationsEditor(
-                            title: strings.budgetCategoryAllocationsTitle,
-                            categories: selectedCategories,
-                            controllers: _categoryControllers,
-                            onChanged: controller.updateCategoryAmount,
-                            strings: strings,
-                          ),
-                        ],
-                      ],
-                    );
-                  },
+                  data: (List<Category> items) => _BudgetCategoryTreeSelector(
+                    title: strings.budgetCategoriesLabel,
+                    categories: items,
+                    selectedCategoryIds: state.categoryIds,
+                    onToggle: (Category category) =>
+                        controller.toggleCategory(category, items),
+                  ),
                   loading: () => const Center(
                     child: Padding(
                       padding: EdgeInsets.symmetric(vertical: 16),
@@ -244,6 +203,16 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                     child: Text(error.toString()),
                   ),
                 ),
+              if (state.scope == BudgetScope.byCategory) ...<Widget>[
+                const SizedBox(height: 16),
+                _BudgetCategoryAllocationSection(
+                  categories: categories,
+                  selectedCategoryIds: state.categoryIds,
+                  controllers: _categoryAmountControllers,
+                  placeholder: strings.budgetAmountPlaceholder,
+                  onChanged: controller.setCategoryAmount,
+                ),
+              ],
               if (state.scope == BudgetScope.byAccount)
                 accountsAsync.when(
                   data: (List<AccountEntity> accounts) {
@@ -267,6 +236,15 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                     child: Text(error.toString()),
                   ),
                 ),
+              if (state.scope != BudgetScope.byCategory) ...<Widget>[
+                _SectionLabel(strings.budgetAmountLabel),
+                const SizedBox(height: 8),
+                _BudgetAmountField(
+                  controller: _amountController,
+                  placeholder: strings.budgetAmountPlaceholder,
+                  onChanged: controller.setAmountText,
+                ),
+              ],
               if (state.errorMessage != null)
                 Padding(
                   padding: const EdgeInsets.only(top: 16),
@@ -278,15 +256,36 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                   ),
                 ),
               const SizedBox(height: 24),
+              if (state.initialBudget != null) ...<Widget>[
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton(
+                    onPressed: state.isSubmitting
+                        ? null
+                        : () => _deleteBudget(
+                            context,
+                            budgetId: state.initialBudget!.id,
+                            strings: strings,
+                          ),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Theme.of(context).colorScheme.error,
+                    ),
+                    child: Text(strings.deleteButtonLabel),
+                  ),
+                ),
+                const SizedBox(height: 12),
+              ],
               SizedBox(
                 width: double.infinity,
                 child: FilledButton(
                   onPressed: state.isSubmitting
                       ? null
                       : () async {
-                          final bool success = await controller.submit();
+                          final bool success = await controller.submit(
+                            categories,
+                          );
                           if (success && context.mounted) {
-                            Navigator.of(context).pop();
+                            Navigator.of(context).pop(BudgetFormResult.saved);
                           }
                         },
                   child: state.isSubmitting
@@ -305,27 +304,57 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
     );
   }
 
-  void _syncCategoryControllers(BudgetFormState state) {
-    final Set<String> ids = state.categoryIds.toSet();
-    final List<String> toRemove = _categoryControllers.keys
-        .where((String key) => !ids.contains(key))
+  void _syncCategoryAmountControllers(BudgetFormState state) {
+    final Set<String> selectedIds = state.categoryIds.toSet();
+    final List<String> staleIds = _categoryAmountControllers.keys
+        .where((String id) => !selectedIds.contains(id))
         .toList(growable: false);
-    for (final String key in toRemove) {
-      _categoryControllers.remove(key)?.dispose();
+    for (final String staleId in staleIds) {
+      _categoryAmountControllers.remove(staleId)?.dispose();
     }
-    for (final String id in ids) {
-      final String value = state.categoryAmounts[id] ?? '';
-      final TextEditingController controller =
-          _categoryControllers[id] ?? TextEditingController();
-      if (!_categoryControllers.containsKey(id)) {
-        _categoryControllers[id] = controller;
-      }
-      if (controller.text != value) {
+    for (final String categoryId in state.categoryIds) {
+      final String text = state.categoryAmounts[categoryId] ?? '';
+      final TextEditingController controller = _categoryAmountControllers
+          .putIfAbsent(categoryId, () => TextEditingController(text: text));
+      if (controller.text != text) {
         controller.value = controller.value.copyWith(
-          text: value,
-          selection: TextSelection.collapsed(offset: value.length),
+          text: text,
+          selection: TextSelection.collapsed(offset: text.length),
         );
       }
+    }
+  }
+
+  Future<void> _deleteBudget(
+    BuildContext context, {
+    required String budgetId,
+    required AppLocalizations strings,
+  }) async {
+    final bool? confirmed = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: Text(strings.budgetDeleteTitle),
+          content: Text(strings.budgetDeleteMessage),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: Text(strings.cancelButtonLabel),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: Text(strings.deleteButtonLabel),
+            ),
+          ],
+        );
+      },
+    );
+    if (confirmed != true || !context.mounted) {
+      return;
+    }
+    await ref.read(deleteBudgetUseCaseProvider).call(budgetId);
+    if (context.mounted) {
+      Navigator.of(context).pop(BudgetFormResult.deleted);
     }
   }
 
@@ -365,6 +394,39 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
   }
 }
 
+class _SectionLabel extends StatelessWidget {
+  const _SectionLabel(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(text, style: Theme.of(context).textTheme.labelLarge);
+  }
+}
+
+class _BudgetAmountField extends StatelessWidget {
+  const _BudgetAmountField({
+    required this.controller,
+    required this.placeholder,
+    required this.onChanged,
+  });
+
+  final TextEditingController controller;
+  final String placeholder;
+  final ValueChanged<String> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return KopimTextField(
+      controller: controller,
+      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+      placeholder: placeholder,
+      onChanged: onChanged,
+    );
+  }
+}
+
 class _DatePickerTile extends StatelessWidget {
   const _DatePickerTile({
     required this.label,
@@ -389,13 +451,11 @@ class _DatePickerTile extends StatelessWidget {
       trailing: const Icon(Icons.calendar_today),
       onTap: () async {
         final DateTime initial = value ?? DateTime.now();
-        final DateTime firstDate = DateTime(2000);
-        final DateTime lastDate = DateTime(2100);
         final DateTime? picked = await showDatePicker(
           context: context,
           initialDate: initial,
-          firstDate: firstDate,
-          lastDate: lastDate,
+          firstDate: DateTime(2000),
+          lastDate: DateTime(2100),
         );
         onSelected(picked);
       },
@@ -453,8 +513,8 @@ class _SelectionChips<T> extends StatelessWidget {
   }
 }
 
-class _CategorySelectionChips extends StatelessWidget {
-  const _CategorySelectionChips({
+class _BudgetCategoryTreeSelector extends StatelessWidget {
+  const _BudgetCategoryTreeSelector({
     required this.title,
     required this.categories,
     required this.selectedCategoryIds,
@@ -464,161 +524,209 @@ class _CategorySelectionChips extends StatelessWidget {
   final String title;
   final List<Category> categories;
   final List<String> selectedCategoryIds;
-  final void Function(Category value) onToggle;
+  final void Function(Category category) onToggle;
 
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
+    final List<_BudgetCategoryTreeItem> items = _buildBudgetCategoryTreeItems(
+      categories,
+    );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         Text(title, style: theme.textTheme.titleSmall),
         const SizedBox(height: 8),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: <Widget>[
-            for (final Category category in categories)
-              _BudgetCategoryChip(
-                category: category,
-                selected: selectedCategoryIds.contains(category.id),
-                onTap: () => onToggle(category),
-              ),
-          ],
-        ),
+        for (final _BudgetCategoryTreeItem item in items) ...<Widget>[
+          _BudgetCategoryTreeTile(
+            item: item,
+            selected: selectedCategoryIds.contains(item.category.id),
+            onTap: () => onToggle(item.category),
+          ),
+          const SizedBox(height: 10),
+        ],
       ],
     );
   }
 }
 
-class _BudgetCategoryChip extends StatelessWidget {
-  const _BudgetCategoryChip({
-    required this.category,
+class _BudgetCategoryAllocationSection extends StatelessWidget {
+  const _BudgetCategoryAllocationSection({
+    required this.categories,
+    required this.selectedCategoryIds,
+    required this.controllers,
+    required this.placeholder,
+    required this.onChanged,
+  });
+
+  final List<Category> categories;
+  final List<String> selectedCategoryIds;
+  final Map<String, TextEditingController> controllers;
+  final String placeholder;
+  final void Function(String categoryId, String value) onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final List<_BudgetCategoryTreeItem> selectedItems =
+        _buildBudgetCategoryTreeItems(categories)
+            .where(
+              (_BudgetCategoryTreeItem item) =>
+                  selectedCategoryIds.contains(item.category.id),
+            )
+            .toList(growable: false);
+    if (selectedItems.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Text('Лимиты по категориям', style: theme.textTheme.titleSmall),
+        const SizedBox(height: 8),
+        for (final _BudgetCategoryTreeItem item in selectedItems) ...<Widget>[
+          Padding(
+            padding: EdgeInsets.only(left: item.depth * 16),
+            child: Text(item.category.name, style: theme.textTheme.labelMedium),
+          ),
+          const SizedBox(height: 8),
+          Padding(
+            padding: EdgeInsets.only(left: item.depth * 16),
+            child: _BudgetAmountField(
+              controller: controllers[item.category.id]!,
+              placeholder: placeholder,
+              onChanged: (String value) => onChanged(item.category.id, value),
+            ),
+          ),
+          const SizedBox(height: 12),
+        ],
+      ],
+    );
+  }
+}
+
+class _BudgetCategoryTreeItem {
+  const _BudgetCategoryTreeItem({required this.category, required this.depth});
+
+  final Category category;
+  final int depth;
+}
+
+List<_BudgetCategoryTreeItem> _buildBudgetCategoryTreeItems(
+  List<Category> categories,
+) {
+  final CategoryHierarchy hierarchy = CategoryHierarchy(categories);
+  final Map<String, Category> categoriesById = <String, Category>{
+    for (final Category category in categories) category.id: category,
+  };
+  final Map<String, int> orderById = <String, int>{
+    for (int index = 0; index < categories.length; index += 1)
+      categories[index].id: index,
+  };
+  final List<_BudgetCategoryTreeItem> items = <_BudgetCategoryTreeItem>[];
+
+  void visit(String categoryId, int depth) {
+    final Category? category = categoriesById[categoryId];
+    if (category == null) {
+      return;
+    }
+    items.add(_BudgetCategoryTreeItem(category: category, depth: depth));
+    final List<String> children = hierarchy.childrenOf(categoryId).toList()
+      ..sort(
+        (String a, String b) =>
+            (orderById[a] ?? 0).compareTo(orderById[b] ?? 0),
+      );
+    for (final String childId in children) {
+      visit(childId, depth + 1);
+    }
+  }
+
+  final List<String> rootIds = hierarchy.rootIds.toList()
+    ..sort(
+      (String a, String b) => (orderById[a] ?? 0).compareTo(orderById[b] ?? 0),
+    );
+  for (final String rootId in rootIds) {
+    visit(rootId, 0);
+  }
+  return items;
+}
+
+class _BudgetCategoryTreeTile extends StatelessWidget {
+  const _BudgetCategoryTreeTile({
+    required this.item,
     required this.selected,
     required this.onTap,
   });
 
-  final Category category;
+  final _BudgetCategoryTreeItem item;
   final bool selected;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
-    final IconData? iconData = resolvePhosphorIconData(category.icon);
+    final Category category = item.category;
+    final bool isChild = item.depth > 0;
     final CategoryColorStyle colorStyle = resolveCategoryColorStyle(
       category.color,
     );
-    return CategoryChip(
-      label: category.name,
-      leading: Icon(iconData ?? Icons.category_outlined),
-      iconBackgroundColor: colorStyle.sampleColor,
-      iconBackgroundGradient: colorStyle.backgroundGradient,
-      backgroundColor: theme.colorScheme.surfaceContainerHigh,
-      selected: selected,
-      onTap: onTap,
-    );
-  }
-}
+    final IconData iconData =
+        resolvePhosphorIconData(category.icon) ?? Icons.category_outlined;
+    final double leftPadding = 12 + (item.depth * 18);
 
-class _CategoryAllocationsEditor extends StatelessWidget {
-  const _CategoryAllocationsEditor({
-    required this.title,
-    required this.categories,
-    required this.controllers,
-    required this.onChanged,
-    required this.strings,
-  });
-
-  final String title;
-  final List<Category> categories;
-  final Map<String, TextEditingController> controllers;
-  final void Function(String categoryId, String value) onChanged;
-  final AppLocalizations strings;
-
-  @override
-  Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        Text(title, style: theme.textTheme.titleSmall),
-        const SizedBox(height: 8),
-        Column(
-          children: categories
-              .map((Category category) {
-                final TextEditingController controller =
-                    controllers[category.id]!;
-                final CategoryColorStyle colorStyle = resolveCategoryColorStyle(
-                  category.color,
-                );
-                final Color? background = colorStyle.sampleColor;
-                final Gradient? categoryGradient =
-                    colorStyle.backgroundGradient;
-                final Color foreground = background != null
-                    ? (ThemeData.estimateBrightnessForColor(background) ==
-                              Brightness.dark
-                          ? Colors.white
-                          : Colors.black87)
-                    : theme.colorScheme.onSurfaceVariant;
-                final IconData? iconData = resolvePhosphorIconData(
-                  category.icon,
-                );
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: <Widget>[
-                      Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: categoryGradient,
-                          color: categoryGradient == null
-                              ? (background ??
-                                    theme.colorScheme.surfaceContainerHighest)
-                              : null,
-                        ),
-                        alignment: Alignment.center,
-                        child: Icon(
-                          iconData ?? Icons.category_outlined,
-                          size: 20,
-                          color: foreground,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            Text(
-                              strings.budgetCategoryLimitLabel(category.name),
-                              style: theme.textTheme.labelMedium?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            KopimTextField(
-                              controller: controller,
-                              keyboardType:
-                                  const TextInputType.numberWithOptions(
-                                    decimal: true,
-                                  ),
-                              placeholder: strings.budgetAmountPlaceholder,
-                              onChanged: (String value) =>
-                                  onChanged(category.id, value),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              })
-              .toList(growable: false),
+    return Material(
+      color: selected
+          ? theme.colorScheme.primary.withValues(alpha: 0.08)
+          : theme.colorScheme.surfaceContainerHigh,
+      borderRadius: BorderRadius.circular(20),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(20),
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(leftPadding, 12, 12, 12),
+          child: Row(
+            children: <Widget>[
+              Container(
+                width: isChild ? 40 : 46,
+                height: isChild ? 40 : 46,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: colorStyle.backgroundGradient == null
+                      ? colorStyle.sampleColor ??
+                            theme.colorScheme.surfaceContainerHighest
+                      : null,
+                  gradient: colorStyle.backgroundGradient,
+                ),
+                alignment: Alignment.center,
+                child: Icon(
+                  iconData,
+                  color: theme.colorScheme.onPrimary,
+                  size: isChild ? 18 : 22,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  category.name,
+                  style:
+                      (isChild
+                              ? theme.textTheme.labelMedium
+                              : theme.textTheme.labelLarge)
+                          ?.copyWith(color: theme.colorScheme.onSurface),
+                ),
+              ),
+              Icon(
+                selected
+                    ? Icons.check_circle_rounded
+                    : Icons.radio_button_unchecked_rounded,
+                color: selected
+                    ? theme.colorScheme.primary
+                    : theme.colorScheme.outline,
+              ),
+            ],
+          ),
         ),
-      ],
+      ),
     );
   }
 }

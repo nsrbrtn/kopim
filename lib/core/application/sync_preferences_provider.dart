@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:kopim/core/config/app_runtime.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 const String _kOnlineSyncEnabledKey = 'core.online_sync.enabled';
@@ -16,10 +17,15 @@ class OnlineSyncPreferencesController extends AsyncNotifier<bool> {
   Future<bool> build() async {
     _preferencesFuture = SharedPreferences.getInstance();
     final SharedPreferences prefs = await _preferencesFuture;
-    return prefs.getBool(_kOnlineSyncEnabledKey) ?? true;
+    final bool defaultValue = AppRuntimeConfig.isOffline ? false : true;
+    return prefs.getBool(_kOnlineSyncEnabledKey) ?? defaultValue;
   }
 
   Future<void> setEnabled(bool value) async {
+    if (AppRuntimeConfig.isOffline) {
+      state = const AsyncValue<bool>.data(false);
+      return;
+    }
     final bool previous = state.maybeWhen(
       data: (bool current) => current,
       orElse: () => true,

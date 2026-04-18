@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
-import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/core/formatting/currency_symbols.dart';
 import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
@@ -40,49 +39,18 @@ class BudgetDetailScreen extends ConsumerWidget {
         title: Text(strings.budgetDetailTitle),
         actions: <Widget>[
           IconButton(
-            icon: const Icon(Icons.edit),
+            icon: const Icon(Icons.settings_outlined),
             tooltip: strings.editButtonLabel,
             onPressed: progressAsync.maybeWhen(
               data: (BudgetProgress progress) => () async {
-                await Navigator.of(context).push(
-                  MaterialPageRoute<void>(
-                    builder: (BuildContext context) =>
-                        BudgetFormScreen(initialBudget: progress.budget),
-                  ),
-                );
-              },
-              orElse: () => null,
-            ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.delete),
-            tooltip: strings.deleteButtonLabel,
-            onPressed: progressAsync.maybeWhen(
-              data: (BudgetProgress progress) => () async {
-                final bool? confirmed = await showDialog<bool>(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return AlertDialog(
-                      title: Text(strings.budgetDeleteTitle),
-                      content: Text(strings.budgetDeleteMessage),
-                      actions: <Widget>[
-                        TextButton(
-                          onPressed: () => Navigator.of(context).pop(false),
-                          child: Text(strings.cancelButtonLabel),
-                        ),
-                        TextButton(
-                          onPressed: () => Navigator.of(context).pop(true),
-                          child: Text(strings.deleteButtonLabel),
-                        ),
-                      ],
+                final BudgetFormResult? result = await Navigator.of(context)
+                    .push<BudgetFormResult>(
+                      MaterialPageRoute<BudgetFormResult>(
+                        builder: (BuildContext context) =>
+                            BudgetFormScreen(initialBudget: progress.budget),
+                      ),
                     );
-                  },
-                );
-                if (confirmed != true) return;
-                await ref
-                    .read(deleteBudgetUseCaseProvider)
-                    .call(progress.budget.id);
-                if (context.mounted) {
+                if (result == BudgetFormResult.deleted && context.mounted) {
                   Navigator.of(context).pop();
                 }
               },

@@ -8,12 +8,12 @@ import 'package:kopim/features/transactions/data/sources/local/transaction_dao.d
 class UserProgressRepositoryImpl implements UserProgressRepository {
   UserProgressRepositoryImpl({
     required TransactionDao transactionDao,
-    required UserProgressRemoteDataSource remoteDataSource,
+    UserProgressRemoteDataSource? remoteDataSource,
   }) : _transactionDao = transactionDao,
        _remoteDataSource = remoteDataSource;
 
   final TransactionDao _transactionDao;
-  final UserProgressRemoteDataSource _remoteDataSource;
+  final UserProgressRemoteDataSource? _remoteDataSource;
   final StreamController<UserProgress?> _cacheController =
       StreamController<UserProgress?>.broadcast();
 
@@ -29,7 +29,11 @@ class UserProgressRepositoryImpl implements UserProgressRepository {
 
   @override
   Future<ProgressSnapshot?> fetchRemoteProgress(String uid) {
-    return _remoteDataSource.fetch(uid);
+    final UserProgressRemoteDataSource? remoteDataSource = _remoteDataSource;
+    if (remoteDataSource == null) {
+      return Future<ProgressSnapshot?>.value(null);
+    }
+    return remoteDataSource.fetch(uid);
   }
 
   @override
@@ -38,7 +42,11 @@ class UserProgressRepositoryImpl implements UserProgressRepository {
     required int totalTx,
     required DateTime updatedAt,
   }) {
-    return _remoteDataSource.upsert(
+    final UserProgressRemoteDataSource? remoteDataSource = _remoteDataSource;
+    if (remoteDataSource == null) {
+      return Future<void>.value();
+    }
+    return remoteDataSource.upsert(
       uid: uid,
       totalTx: totalTx,
       updatedAt: updatedAt,

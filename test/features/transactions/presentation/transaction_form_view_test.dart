@@ -354,6 +354,32 @@ void main() {
       expect(find.text('Категория 6'), findsNothing);
     },
   );
+
+  testWidgets('при выборе подкатегории чип не дублируется', (
+    WidgetTester tester,
+  ) async {
+    final AccountEntity account = _buildAccount();
+    final List<Category> categories = <Category>[
+      _buildCategory(id: 'food', name: 'Еда'),
+      _buildCategory(id: 'coffee', name: 'Кофе', parentId: 'food'),
+    ];
+
+    await _pumpTransactionForm(
+      tester,
+      account: account,
+      categories: categories,
+    );
+
+    await tester.tap(find.text('Еда'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    await tester.tap(find.text('Кофе'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.text('Кофе'), findsOneWidget);
+  });
 }
 
 Future<void> _pumpTransactionForm(
@@ -439,6 +465,7 @@ Category _buildCategory({
   required String id,
   required String name,
   bool isFavorite = false,
+  String? parentId,
 }) {
   return Category(
     id: id,
@@ -446,7 +473,7 @@ Category _buildCategory({
     type: 'expense',
     color: '#FF5722',
     icon: null,
-    parentId: null,
+    parentId: parentId,
     isFavorite: isFavorite,
     createdAt: DateTime(2023, 1, 1),
     updatedAt: DateTime(2023, 1, 1),

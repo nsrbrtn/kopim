@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:kopim/core/config/app_runtime.dart';
 import 'package:kopim/features/ai/presentation/screens/assistant_screen.dart';
 import 'package:kopim/features/analytics/presentation/analytics_screen.dart';
 import 'package:kopim/features/budgets/presentation/budgets_screen.dart';
@@ -12,7 +13,7 @@ import '../models/navigation_tab_content.dart';
 
 final Provider<List<NavigationTabConfig>> mainNavigationTabsProvider =
     Provider<List<NavigationTabConfig>>((Ref ref) {
-      return <NavigationTabConfig>[
+      final List<NavigationTabConfig> tabs = <NavigationTabConfig>[
         NavigationTabConfig(
           id: 'home',
           icon: Icons.home_outlined,
@@ -28,14 +29,6 @@ final Provider<List<NavigationTabConfig>> mainNavigationTabsProvider =
           labelBuilder: (BuildContext context) =>
               AppLocalizations.of(context)!.homeNavAnalytics,
           contentBuilder: buildAnalyticsTabContent,
-        ),
-        NavigationTabConfig(
-          id: 'assistant',
-          icon: Icons.smart_toy_outlined,
-          activeIcon: Icons.smart_toy,
-          labelBuilder: (BuildContext context) =>
-              AppLocalizations.of(context)!.homeNavAssistant,
-          contentBuilder: buildAssistantTabContent,
         ),
         NavigationTabConfig(
           id: 'budgets',
@@ -54,6 +47,22 @@ final Provider<List<NavigationTabConfig>> mainNavigationTabsProvider =
           contentBuilder: _buildMenuTabContent,
         ),
       ];
+
+      if (!AppRuntimeConfig.isOffline) {
+        tabs.insert(
+          2,
+          NavigationTabConfig(
+            id: 'assistant',
+            icon: Icons.smart_toy_outlined,
+            activeIcon: Icons.smart_toy,
+            labelBuilder: (BuildContext context) =>
+                AppLocalizations.of(context)!.homeNavAssistant,
+            contentBuilder: buildAssistantTabContent,
+          ),
+        );
+      }
+
+      return tabs;
     });
 
 NavigationTabContent _buildMenuTabContent(BuildContext context, WidgetRef ref) {

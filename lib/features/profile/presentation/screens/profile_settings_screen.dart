@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:kopim/core/config/app_runtime.dart';
 
 import 'package:kopim/features/profile/presentation/widgets/profile_account_settings_card.dart';
 import 'package:kopim/features/profile/presentation/widgets/profile_credentials_settings_card.dart';
@@ -19,12 +20,16 @@ class ProfileSettingsScreen extends StatelessWidget {
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(16),
-          children: const <Widget>[
-            _ProfileSettingsSection(child: ProfileAccountSettingsCard()),
-            SizedBox(height: 16),
-            _ProfileSettingsSection(child: ProfileCredentialsSettingsCard()),
-            SizedBox(height: 16),
-            _ProfileSettingsSection(child: ProfileThemePreferencesCard()),
+          children: <Widget>[
+            const _ProfileSettingsSection(child: ProfileAccountSettingsCard()),
+            if (!AppRuntimeConfig.isOffline) ...<Widget>[
+              const SizedBox(height: 16),
+              const _ProfileSettingsSection(
+                child: ProfileCredentialsSettingsCard(),
+              ),
+            ],
+            const SizedBox(height: 16),
+            const _ProfileSettingsSection(child: ProfileThemePreferencesCard()),
           ],
         ),
       ),

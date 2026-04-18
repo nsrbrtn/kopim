@@ -10,5 +10,6 @@ abstract class BudgetCategorySpend with _$BudgetCategorySpend {
     required Category category,
     required double spent,
     double? limit,
+    String? parentCategoryId,
   }) = _BudgetCategorySpend;
 }

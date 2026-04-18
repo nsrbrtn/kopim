@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:collection/collection.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/core/money/money_utils.dart';
@@ -6,7 +7,10 @@ import 'package:kopim/features/budgets/domain/entities/budget.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_category_allocation.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_period.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_scope.dart';
+import 'package:kopim/features/budgets/domain/services/budget_category_scope.dart';
 import 'package:kopim/features/budgets/domain/use_cases/save_budget_use_case.dart';
+import 'package:kopim/features/categories/domain/entities/category.dart'
+    as budget_category;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:uuid/uuid.dart';
 
@@ -53,28 +57,30 @@ class BudgetFormController extends _$BudgetFormController {
   BudgetFormState build({BudgetFormParams params = const BudgetFormParams()}) {
     final Budget? initial = params.initial;
     if (initial != null) {
-      final int scale = initial.amountScale ?? 2;
-      final Map<String, String> initialCategoryAmounts = <String, String>{
-        for (final BudgetCategoryAllocation allocation
-            in initial.categoryAllocations)
-          allocation.categoryId: allocation.limitValue
-              .toDouble()
-              .toStringAsFixed(allocation.limitValue.scale),
-      };
       final Set<String> categoryIds = <String>{
         ...initial.categories,
-        ...initialCategoryAmounts.keys,
+        ...initial.categoryAllocations.map(
+          (BudgetCategoryAllocation allocation) => allocation.categoryId,
+        ),
       };
       return BudgetFormState(
         title: initial.title,
-        amountText: initial.amountValue.toDouble().toStringAsFixed(scale),
+        amountText: initial.amountValue.toDouble().toStringAsFixed(
+          initial.amountScale ?? 2,
+        ),
         period: initial.period,
         scope: initial.scope,
         startDate: initial.startDate,
         endDate: initial.endDate,
         categoryIds: categoryIds.toList(growable: false),
         accountIds: initial.accounts,
-        categoryAmounts: initialCategoryAmounts,
+        categoryAmounts: <String, String>{
+          for (final BudgetCategoryAllocation allocation
+              in initial.categoryAllocations)
+            allocation.categoryId: allocation.limitValue
+                .toDouble()
+                .toStringAsFixed(allocation.limitScale),
+        },
         initialBudget: initial,
       );
     }
@@ -83,7 +89,7 @@ class BudgetFormController extends _$BudgetFormController {
       title: '',
       amountText: '',
       period: BudgetPeriod.monthly,
-      scope: BudgetScope.all,
+      scope: BudgetScope.byCategory,
       startDate: DateTime(now.year, now.month, now.day),
       endDate: null,
       categoryIds: const <String>[],
@@ -106,15 +112,12 @@ class BudgetFormController extends _$BudgetFormController {
   }
 
   void setScope(BudgetScope scope) {
-    final Map<String, String> categoryAmounts = state.categoryAmounts;
-    if (scope == BudgetScope.byCategory) {
-      state = state.copyWith(
-        scope: scope,
-        amountText: _formatCategoryTotal(categoryAmounts, _resolveScale()),
-      );
-    } else {
-      state = state.copyWith(scope: scope);
-    }
+    state = state.copyWith(
+      scope: scope,
+      categoryAmounts: scope == BudgetScope.byCategory
+          ? state.categoryAmounts
+          : const <String, String>{},
+    );
   }
 
   void setStartDate(DateTime date) {
@@ -127,25 +130,55 @@ class BudgetFormController extends _$BudgetFormController {
     );
   }
 
-  void toggleCategory(String categoryId) {
-    final List<String> categories = List<String>.from(state.categoryIds);
-    final Map<String, String> categoryAmounts = Map<String, String>.from(
-      state.categoryAmounts,
+  void syncCategoryHierarchy(List<budget_category.Category> categories) {
+    final Set<String> normalized = expandBudgetCategoryIds(
+      categoryIds: state.categoryIds,
+      categories: categories,
     );
-    if (categories.contains(categoryId)) {
-      categories.remove(categoryId);
-      categoryAmounts.remove(categoryId);
-    } else {
-      categories.add(categoryId);
-      categoryAmounts.putIfAbsent(categoryId, () => '');
+    if (setEquals(normalized, state.categoryIds.toSet())) {
+      return;
     }
+    final Map<String, String> normalizedAmounts = <String, String>{
+      for (final String categoryId in normalized)
+        if (state.categoryAmounts.containsKey(categoryId))
+          categoryId: state.categoryAmounts[categoryId]!,
+    };
     state = state.copyWith(
-      categoryIds: categories,
-      categoryAmounts: categoryAmounts,
-      amountText: state.scope == BudgetScope.byCategory
-          ? _formatCategoryTotal(categoryAmounts, _resolveScale())
-          : state.amountText,
+      categoryIds: normalized.toList(growable: false),
+      categoryAmounts: normalizedAmounts,
     );
+  }
+
+  void toggleCategory(
+    budget_category.Category category,
+    List<budget_category.Category> categories,
+  ) {
+    final Set<String> descendants = expandBudgetCategoryIds(
+      categoryIds: <String>[category.id],
+      categories: categories,
+    );
+    final Set<String> selected = state.categoryIds.toSet();
+    if (selected.contains(category.id)) {
+      selected.removeAll(descendants);
+    } else {
+      selected.addAll(descendants);
+    }
+    final Map<String, String> categoryAmounts = <String, String>{
+      for (final String categoryId in selected)
+        categoryId: state.categoryAmounts[categoryId] ?? '',
+    };
+    state = state.copyWith(
+      categoryIds: selected.toList(growable: false),
+      categoryAmounts: categoryAmounts,
+    );
+  }
+
+  void setCategoryAmount(String categoryId, String value) {
+    final Map<String, String> categoryAmounts = <String, String>{
+      ...state.categoryAmounts,
+      categoryId: value,
+    };
+    state = state.copyWith(categoryAmounts: categoryAmounts);
   }
 
   void toggleAccount(String accountId) {
@@ -158,63 +191,47 @@ class BudgetFormController extends _$BudgetFormController {
     state = state.copyWith(accountIds: accounts);
   }
 
-  void updateCategoryAmount(String categoryId, String value) {
-    final Map<String, String> categoryAmounts = Map<String, String>.from(
-      state.categoryAmounts,
-    );
-    categoryAmounts[categoryId] = value;
-    state = state.copyWith(
-      categoryAmounts: categoryAmounts,
-      amountText: state.scope == BudgetScope.byCategory
-          ? _formatCategoryTotal(categoryAmounts, _resolveScale())
-          : state.amountText,
-    );
-  }
-
   void clearError() {
     if (state.errorMessage != null) {
       state = state.copyWith(errorMessage: null);
     }
   }
 
-  Future<bool> submit() async {
+  Future<bool> submit(
+    List<budget_category.Category> availableCategories,
+  ) async {
     final int scale = _resolveScale();
-    MoneyAmount? amount = _parseAmount(state.amountText, scale);
-    List<BudgetCategoryAllocation> categoryAllocations =
-        const <BudgetCategoryAllocation>[];
     if (state.scope == BudgetScope.byCategory) {
       if (state.categoryIds.isEmpty) {
         state = state.copyWith(errorMessage: 'invalid_category_amount');
         return false;
       }
-      final List<BudgetCategoryAllocation> allocations =
-          <BudgetCategoryAllocation>[];
-      final MoneyAccumulator total = MoneyAccumulator();
-      for (final String categoryId in state.categoryIds) {
-        final String raw = state.categoryAmounts[categoryId] ?? '';
-        final MoneyAmount? limit = _parseAmount(raw, scale);
-        if (limit == null || limit.minor <= BigInt.zero) {
-          state = state.copyWith(errorMessage: 'invalid_category_amount');
-          return false;
-        }
-        total.add(limit);
-        allocations.add(
-          BudgetCategoryAllocation(
-            categoryId: categoryId,
-            limitMinor: limit.minor,
-            limitScale: limit.scale,
-          ),
-        );
-      }
-      categoryAllocations = allocations;
-      amount = MoneyAmount(minor: total.minor, scale: total.scale);
-    }
-    if (amount == null || amount.minor <= BigInt.zero) {
-      state = state.copyWith(errorMessage: 'invalid_amount');
-      return false;
     }
     if (state.title.trim().isEmpty) {
       state = state.copyWith(errorMessage: 'missing_title');
+      return false;
+    }
+
+    final List<BudgetCategoryAllocation> categoryAllocations =
+        state.scope == BudgetScope.byCategory
+        ? _buildCategoryAllocations(scale)
+        : const <BudgetCategoryAllocation>[];
+
+    if (state.scope == BudgetScope.byCategory &&
+        !_isCategoryAllocationTreeValid(
+          categories: availableCategories,
+          allocations: categoryAllocations,
+        )) {
+      state = state.copyWith(errorMessage: 'invalid_category_amount');
+      return false;
+    }
+
+    final MoneyAmount? amount = state.scope == BudgetScope.byCategory
+        ? null
+        : _parseAmount(state.amountText, scale);
+    if (state.scope != BudgetScope.byCategory &&
+        (amount == null || amount.minor <= BigInt.zero)) {
+      state = state.copyWith(errorMessage: 'invalid_amount');
       return false;
     }
 
@@ -223,12 +240,45 @@ class BudgetFormController extends _$BudgetFormController {
     final Uuid uuid = ref.read(uuidGeneratorProvider);
     final DateTime now = DateTime.now();
 
-    final List<String> categories = state.scope == BudgetScope.byCategory
+    final List<String> selectedCategoryIds =
+        state.scope == BudgetScope.byCategory
         ? state.categoryIds
         : const <String>[];
     final List<String> accounts = state.scope == BudgetScope.byAccount
         ? state.accountIds
         : const <String>[];
+
+    final Budget categoryBudget = Budget(
+      id: state.initialBudget?.id ?? '',
+      title: state.title.trim(),
+      period: state.period,
+      startDate: _normalizeStart(state.startDate),
+      endDate: state.endDate != null ? _normalizeStart(state.endDate!) : null,
+      amountMinor: BigInt.zero,
+      amountScale: scale,
+      scope: state.scope,
+      categories: state.categoryIds,
+      accounts: accounts,
+      categoryAllocations: categoryAllocations,
+      createdAt: state.initialBudget?.createdAt ?? now,
+      updatedAt: now,
+    );
+    final BigInt totalCategoryMinor =
+        resolveBudgetAllocationRootIds(
+          budget: categoryBudget,
+          categories: availableCategories,
+        ).fold<BigInt>(BigInt.zero, (BigInt sum, String categoryId) {
+          final BudgetCategoryAllocation? allocation = categoryAllocations
+              .where(
+                (BudgetCategoryAllocation item) =>
+                    item.categoryId == categoryId,
+              )
+              .firstOrNull;
+          return sum + (allocation?.limitMinor ?? BigInt.zero);
+        });
+    final MoneyAmount effectiveAmount = state.scope == BudgetScope.byCategory
+        ? MoneyAmount(minor: totalCategoryMinor, scale: scale)
+        : amount!;
 
     final Budget budget = state.initialBudget != null
         ? state.initialBudget!.copyWith(
@@ -239,9 +289,9 @@ class BudgetFormController extends _$BudgetFormController {
             endDate: state.endDate != null
                 ? _normalizeStart(state.endDate!)
                 : null,
-            amountMinor: amount.minor,
-            amountScale: amount.scale,
-            categories: categories,
+            amountMinor: effectiveAmount.minor,
+            amountScale: effectiveAmount.scale,
+            categories: selectedCategoryIds,
             accounts: accounts,
             categoryAllocations: categoryAllocations,
             updatedAt: now,
@@ -254,10 +304,10 @@ class BudgetFormController extends _$BudgetFormController {
             endDate: state.endDate != null
                 ? _normalizeStart(state.endDate!)
                 : null,
-            amountMinor: amount.minor,
-            amountScale: amount.scale,
+            amountMinor: effectiveAmount.minor,
+            amountScale: effectiveAmount.scale,
             scope: state.scope,
-            categories: categories,
+            categories: selectedCategoryIds,
             accounts: accounts,
             categoryAllocations: categoryAllocations,
             createdAt: now,
@@ -292,26 +342,97 @@ class BudgetFormController extends _$BudgetFormController {
     return tryParseMoneyAmount(input: sanitized, scale: scale);
   }
 
-  String _formatCategoryTotal(Map<String, String> categoryAmounts, int scale) {
-    if (categoryAmounts.isEmpty) {
-      return '';
-    }
-    final MoneyAccumulator total = MoneyAccumulator();
-    bool hasValue = false;
-    for (final String value in categoryAmounts.values) {
-      final MoneyAmount? parsed = _parseAmount(value, scale);
-      if (parsed != null && parsed.minor >= BigInt.zero) {
-        total.add(parsed);
-        hasValue = true;
-      }
-    }
-    if (!hasValue) {
-      return '';
-    }
-    return total.toDouble().toStringAsFixed(scale);
-  }
-
   int _resolveScale() {
     return state.initialBudget?.amountScale ?? 2;
+  }
+
+  List<BudgetCategoryAllocation> _buildCategoryAllocations(int scale) {
+    final List<BudgetCategoryAllocation> allocations =
+        <BudgetCategoryAllocation>[];
+    for (final String categoryId in state.categoryIds) {
+      final String raw = state.categoryAmounts[categoryId] ?? '';
+      final MoneyAmount? parsed = _parseAmount(raw, scale);
+      if (parsed == null || parsed.minor <= BigInt.zero) {
+        continue;
+      }
+      allocations.add(
+        BudgetCategoryAllocation(
+          categoryId: categoryId,
+          limitMinor: parsed.minor,
+          limitScale: parsed.scale,
+        ),
+      );
+    }
+    return allocations;
+  }
+
+  bool _isCategoryAllocationTreeValid({
+    required List<budget_category.Category> categories,
+    required List<BudgetCategoryAllocation> allocations,
+  }) {
+    if (state.scope != BudgetScope.byCategory) {
+      return true;
+    }
+    if (allocations.isEmpty) {
+      return false;
+    }
+
+    final Budget draft = Budget(
+      id: state.initialBudget?.id ?? '',
+      title: state.title.trim(),
+      period: state.period,
+      startDate: _normalizeStart(state.startDate),
+      endDate: state.endDate != null ? _normalizeStart(state.endDate!) : null,
+      amountMinor: BigInt.zero,
+      amountScale: _resolveScale(),
+      scope: state.scope,
+      categories: state.categoryIds,
+      accounts: state.accountIds,
+      categoryAllocations: allocations,
+      createdAt: state.initialBudget?.createdAt ?? DateTime.now(),
+      updatedAt: DateTime.now(),
+    );
+    final Set<String> selectedIds = state.categoryIds.toSet();
+    final Set<String> explicitIds = allocations
+        .map((BudgetCategoryAllocation allocation) => allocation.categoryId)
+        .toSet();
+
+    for (final String categoryId in selectedIds) {
+      if (explicitIds.contains(categoryId)) {
+        continue;
+      }
+      final String? explicitParentId = resolveBudgetExplicitParentCategoryId(
+        budget: draft,
+        categories: categories,
+        categoryId: categoryId,
+      );
+      if (explicitParentId == null) {
+        return false;
+      }
+    }
+
+    for (final BudgetCategoryAllocation allocation in allocations) {
+      final List<String> childAllocationIds =
+          resolveBudgetExplicitChildCategoryIds(
+            budget: draft,
+            categories: categories,
+            parentCategoryId: allocation.categoryId,
+          );
+      final BigInt allocatedToChildren = childAllocationIds.fold<BigInt>(
+        BigInt.zero,
+        (BigInt sum, String childId) {
+          final BudgetCategoryAllocation childAllocation = allocations
+              .firstWhere(
+                (BudgetCategoryAllocation item) => item.categoryId == childId,
+              );
+          return sum + childAllocation.limitMinor;
+        },
+      );
+      if (allocatedToChildren > allocation.limitMinor) {
+        return false;
+      }
+    }
+
+    return true;
   }
 }

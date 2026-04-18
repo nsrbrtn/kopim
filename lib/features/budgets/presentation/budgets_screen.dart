@@ -8,8 +8,8 @@ import 'package:kopim/core/widgets/kopim_glass_fab.dart';
 import 'package:kopim/features/app_shell/presentation/models/navigation_tab_content.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/features/budgets/domain/entities/budget.dart';
-import 'package:kopim/features/budgets/domain/entities/budget_category_allocation.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_progress.dart';
+import 'package:kopim/features/budgets/domain/services/budget_category_scope.dart';
 import 'package:kopim/features/budgets/domain/use_cases/compute_budget_progress_use_case.dart';
 import 'package:kopim/features/budgets/presentation/controllers/budgets_providers.dart';
 import 'package:kopim/features/budgets/presentation/models/budget_category_spend.dart';
@@ -48,6 +48,7 @@ List<BudgetCategorySpend> _computeBudgetCategorySpend({
 }) {
   final List<TransactionEntity> scopedTransactions = compute.filterTransactions(
     budget: budget,
+    categories: categories,
     transactions: transactions,
   );
 
@@ -60,18 +61,28 @@ List<BudgetCategorySpend> _computeBudgetCategorySpend({
     if (categoryId == null) {
       continue;
     }
-    spentByCategory[categoryId] =
-        (spentByCategory[categoryId] ?? 0) +
+    final String ownerCategoryId =
+        resolveBudgetTransactionAllocationCategoryId(
+          budget: budget,
+          categories: categories,
+          categoryId: categoryId,
+        ) ??
+        categoryId;
+    spentByCategory[ownerCategoryId] =
+        (spentByCategory[ownerCategoryId] ?? 0) +
         transaction.amountValue.abs().toDouble();
   }
 
-  final Set<String> categoryIds = <String>{
-    ...spentByCategory.keys,
-    ...budget.categories,
-    ...budget.categoryAllocations.map(
-      (BudgetCategoryAllocation allocation) => allocation.categoryId,
-    ),
-  };
+  final Set<String> explicitIds = resolveBudgetExplicitCategoryIds(budget);
+  final Set<String> categoryIds = explicitIds.isEmpty
+      ? <String>{
+          ...spentByCategory.keys,
+          ...resolveBudgetScopedCategoryIds(
+            budget: budget,
+            categories: categories,
+          ),
+        }
+      : <String>{...spentByCategory.keys, ...explicitIds};
   if (categoryIds.isEmpty) {
     return const <BudgetCategorySpend>[];
   }
@@ -88,7 +99,20 @@ List<BudgetCategorySpend> _computeBudgetCategorySpend({
       BudgetCategorySpend(
         category: category,
         spent: spentByCategory[categoryId] ?? 0,
-        limit: resolveBudgetCategoryLimit(budget, categoryId),
+        limit: explicitIds.isEmpty
+            ? resolveBudgetCategoryLimit(budget, categoryId)
+            : resolveBudgetCategoryDirectLimit(
+                budget: budget,
+                categories: categories,
+                categoryId: categoryId,
+              ),
+        parentCategoryId: explicitIds.isEmpty
+            ? null
+            : resolveBudgetExplicitParentCategoryId(
+                budget: budget,
+                categories: categories,
+                categoryId: categoryId,
+              ),
       ),
     );
   }
@@ -116,7 +140,7 @@ NavigationTabContent buildBudgetsTabContent(
           foregroundColor: colorScheme.primary,
           onPressed: () async {
             await Navigator.of(context).push(
-              MaterialPageRoute<void>(
+              MaterialPageRoute<BudgetFormResult>(
                 builder: (BuildContext context) => const BudgetFormScreen(),
               ),
             );
@@ -204,7 +228,7 @@ NavigationTabContent buildBudgetsTabContent(
                 },
                 onEdit: () async {
                   await Navigator.of(context).push(
-                    MaterialPageRoute<void>(
+                    MaterialPageRoute<BudgetFormResult>(
                       builder: (BuildContext context) =>
                           BudgetFormScreen(initialBudget: progress.budget),
                     ),

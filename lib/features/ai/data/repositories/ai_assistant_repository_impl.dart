@@ -5,6 +5,7 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 
+import 'package:kopim/core/config/app_runtime.dart';
 import 'package:kopim/core/formatting/currency_symbols.dart';
 import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/core/services/ai_assistant_service.dart';
@@ -134,7 +135,9 @@ class AiAssistantRepositoryImpl implements AiAssistantRepository {
       return entity;
     } catch (error, stackTrace) {
       _loggerService.logError('Не удалось получить ответ OpenRouter', error);
-      if (error is AiAssistantException && error.cause != null) {
+      if (!AppRuntimeConfig.isOffline &&
+          error is AiAssistantException &&
+          error.cause != null) {
         unawaited(
           FirebaseCrashlytics.instance.setCustomKey(
             'openrouter_error_body',

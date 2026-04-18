@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:kopim/core/application/firebase_availability.dart';
+import 'package:kopim/core/config/app_runtime.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/core/utils/platform_support.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
@@ -53,6 +54,12 @@ class AuthController extends _$AuthController {
         unawaited(_syncSilently(existingUser));
       }
       return existingUser;
+    }
+
+    if (AppRuntimeConfig.isOffline) {
+      final AuthUser offlineUser = await repository.signInAnonymously();
+      state = AsyncValue<AuthUser?>.data(offlineUser);
+      return offlineUser;
     }
 
     final List<ConnectivityResult> connectivityResults = await connectivity

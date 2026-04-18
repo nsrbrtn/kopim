@@ -128,7 +128,7 @@ final class FirebaseInitializationProvider
 }
 
 String _$firebaseInitializationHash() =>
-    r'5866ea01845c9c498cd7b7e74910b3c74c815fb7';
+    r'37f9a987779803ae2694b8ddaa8032d14bfe0e5c';
 
 @ProviderFor(firestore)
 const firestoreProvider = FirestoreProvider._();
@@ -5403,7 +5403,7 @@ final class ProfileRepositoryProvider
   }
 }
 
-String _$profileRepositoryHash() => r'50349dac8ba8e300957ef12232c08d9febe5ec97';
+String _$profileRepositoryHash() => r'5f695bb343e4c24ca2f56b620439c6bbbd35a4bb';
 
 @ProviderFor(profileAvatarRepository)
 const profileAvatarRepositoryProvider = ProfileAvatarRepositoryProvider._();
@@ -5451,7 +5451,7 @@ final class ProfileAvatarRepositoryProvider
 }
 
 String _$profileAvatarRepositoryHash() =>
-    r'539f637f58f3297d5d3067de950ce44eabbf6a6f';
+    r'0481fb2a0f293f529962554dc6c4c6721b09eabe';
 
 @ProviderFor(userProgressRepository)
 const userProgressRepositoryProvider = UserProgressRepositoryProvider._();
@@ -5499,7 +5499,7 @@ final class UserProgressRepositoryProvider
 }
 
 String _$userProgressRepositoryHash() =>
-    r'27ecf4905dc13c7c3c31285e5b659c5eb236a8f8';
+    r'45cd8ec50b47f83b716c24d37a2fb2d4d475b972';
 
 @ProviderFor(updateProfileUseCase)
 const updateProfileUseCaseProvider = UpdateProfileUseCaseProvider._();
@@ -5825,7 +5825,7 @@ final class AuthRepositoryProvider
   }
 }
 
-String _$authRepositoryHash() => r'39cb41cde8796e00d0e668e238d2436034e2ae50';
+String _$authRepositoryHash() => r'4d0bbf1626a7b9355346b5d195f6295372e6eb01';
 
 @ProviderFor(syncDataSanitizer)
 const syncDataSanitizerProvider = SyncDataSanitizerProvider._();

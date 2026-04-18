@@ -10,9 +10,9 @@ import 'package:kopim/l10n/app_localizations.dart';
 import 'core/application/app_startup_controller.dart';
 import 'core/application/sync_coordinator.dart';
 import 'core/config/app_config.dart';
+import 'core/config/app_runtime.dart';
 import 'core/config/firebase_environment.dart';
 import 'core/config/scroll_behavior.dart';
-import 'core/di/injectors.dart';
 import 'core/navigation/app_router.dart';
 import 'core/services/recurring_work_scheduler_mobile.dart';
 import 'core/theme/application/theme_mode_controller.dart';
@@ -22,13 +22,27 @@ import 'core/widgets/notification_fallback_listener.dart';
 import 'core/widgets/web_responsive_wrapper.dart';
 
 Future<void> main() async {
-  await runKopimApp(environment: FirebaseEnvironment.dev);
+  await runKopimApp(flavor: KopimAppFlavor.firebaseDev);
 }
 
-Future<void> runKopimApp({required FirebaseEnvironment environment}) async {
+enum KopimAppFlavor { offline, firebaseDev, firebaseProd }
+
+Future<void> runKopimApp({required KopimAppFlavor flavor}) async {
   WidgetsFlutterBinding.ensureInitialized();
   ensureRecurringWorkSchedulerLinked();
-  FirebaseEnvironmentConfig.configure(environment);
+  switch (flavor) {
+    case KopimAppFlavor.offline:
+      AppRuntimeConfig.configure(AppRuntimeFlavor.offline);
+      break;
+    case KopimAppFlavor.firebaseDev:
+      AppRuntimeConfig.configure(AppRuntimeFlavor.firebaseDev);
+      FirebaseEnvironmentConfig.configure(FirebaseEnvironment.dev);
+      break;
+    case KopimAppFlavor.firebaseProd:
+      AppRuntimeConfig.configure(AppRuntimeFlavor.firebaseProd);
+      FirebaseEnvironmentConfig.configure(FirebaseEnvironment.prod);
+      break;
+  }
 
   const bool enableProviderTimelineTracing = bool.fromEnvironment(
     'KOPIM_PROVIDER_TRACE',
@@ -41,19 +55,19 @@ Future<void> runKopimApp({required FirebaseEnvironment environment}) async {
     ],
   );
   unawaited(
-    container.read(firebaseInitializationProvider.future).catchError((
-      Object error,
-      StackTrace stackTrace,
-    ) {
-      FlutterError.reportError(
-        FlutterErrorDetails(
-          exception: error,
-          stack: stackTrace,
-          library: 'main',
-          context: ErrorDescription('while prewarming Firebase initialization'),
-        ),
-      );
-    }),
+    container
+        .read(appStartupControllerProvider.notifier)
+        .initialize()
+        .catchError((Object error, StackTrace stackTrace) {
+          FlutterError.reportError(
+            FlutterErrorDetails(
+              exception: error,
+              stack: stackTrace,
+              library: 'main',
+              context: ErrorDescription('while prewarming app startup'),
+            ),
+          );
+        }),
   );
 
   runApp(UncontrolledProviderScope(container: container, child: const MyApp()));
@@ -102,36 +116,31 @@ class MyApp extends ConsumerStatefulWidget {
 }
 
 class _MyAppState extends ConsumerState<MyApp> {
-  ProviderSubscription<AsyncValue<void>>? _firebaseInitSubscription;
+  ProviderSubscription<AppStartupResult>? _startupSubscription;
 
   @override
   void initState() {
     super.initState();
-    _firebaseInitSubscription = ref.listenManual<AsyncValue<void>>(
-      firebaseInitializationProvider,
-      (AsyncValue<void>? previous, AsyncValue<void> next) {
-        next.whenOrNull(
-          data: (_) =>
-              ref.read(appStartupControllerProvider.notifier).initialize(),
-        );
-      },
+    _startupSubscription = ref.listenManual<AppStartupResult>(
+      appStartupControllerProvider,
+      (AppStartupResult? previous, AppStartupResult next) {},
       fireImmediately: true,
     );
   }
 
   @override
   void dispose() {
-    _firebaseInitSubscription?.close();
+    _startupSubscription?.close();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final AsyncValue<void> initializationState = ref.watch(
-      firebaseInitializationProvider,
+    final AppStartupResult startupState = ref.watch(
+      appStartupControllerProvider,
     );
 
-    final Locale? appLocale = initializationState.whenOrNull(
+    final Locale? appLocale = startupState.whenOrNull(
       data: (_) => ref.watch(appLocaleProvider),
     );
     final ThemeData lightTheme = ref.watch(appThemeProvider);
@@ -148,15 +157,20 @@ class _MyAppState extends ConsumerState<MyApp> {
       debugShowCheckedModeBanner: false,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      routerConfig: initializationState.when(
+      routerConfig: startupState.when(
         data: (_) {
-          ref.watch(syncCoordinatorProvider);
+          if (!AppRuntimeConfig.isOffline) {
+            ref.watch(syncCoordinatorProvider);
+          }
           return ref.watch(appRouterProvider);
         },
         loading: () => _LoadingRouter.instance,
         error: (Object error, StackTrace stackTrace) => _ErrorRouter(
           onRetry: () {
-            ref.invalidate(firebaseInitializationProvider);
+            ref.invalidate(appStartupControllerProvider);
+            unawaited(
+              ref.read(appStartupControllerProvider.notifier).initialize(),
+            );
           },
         ).instance,
       ),
@@ -206,7 +220,7 @@ class _ErrorRouter {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: <Widget>[
                     const Text(
-                      'Не удалось инициализировать Firebase.',
+                      'Не удалось инициализировать приложение.',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 18,

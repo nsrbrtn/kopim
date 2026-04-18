@@ -11,9 +11,9 @@ import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/budgets/domain/entities/budget.dart';
-import 'package:kopim/features/budgets/domain/entities/budget_category_allocation.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_progress.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_scope.dart';
+import 'package:kopim/features/budgets/domain/services/budget_category_scope.dart';
 import 'package:kopim/features/budgets/domain/services/budget_schedule.dart';
 import 'package:kopim/features/budgets/presentation/budget_form_screen.dart';
 import 'package:kopim/features/budgets/presentation/controllers/budgets_providers.dart';
@@ -87,12 +87,16 @@ class _BudgetOverviewScreenState extends ConsumerState<BudgetOverviewScreen> {
           progressAsync.maybeWhen(
             data: (BudgetProgress progress) => TextButton(
               onPressed: () async {
-                await Navigator.of(context).push(
-                  MaterialPageRoute<void>(
-                    builder: (BuildContext context) =>
-                        BudgetFormScreen(initialBudget: progress.budget),
-                  ),
-                );
+                final BudgetFormResult? result = await Navigator.of(context)
+                    .push<BudgetFormResult>(
+                      MaterialPageRoute<BudgetFormResult>(
+                        builder: (BuildContext context) =>
+                            BudgetFormScreen(initialBudget: progress.budget),
+                      ),
+                    );
+                if (result == BudgetFormResult.deleted && context.mounted) {
+                  Navigator.of(context).pop();
+                }
               },
               child: Text(strings.editButtonLabel),
             ),
@@ -131,12 +135,14 @@ class _BudgetOverviewScreenState extends ConsumerState<BudgetOverviewScreen> {
           final List<TransactionEntity> scopedTransactions =
               _filterTransactions(
                 budget: budget,
+                categories: categories,
                 transactions: transactions,
                 range: selectedRange,
               );
           final List<TransactionEntity> cumulativeTransactions =
               _filterTransactions(
                 budget: budget,
+                categories: categories,
                 transactions: transactions,
                 range: cumulativeRange,
               );
@@ -167,6 +173,7 @@ class _BudgetOverviewScreenState extends ConsumerState<BudgetOverviewScreen> {
           );
           final _TrendDelta? trendDelta = _buildTrendDelta(
             budget: budget,
+            categories: categories,
             transactions: transactions,
             range: selectedRange,
           );
@@ -857,9 +864,20 @@ class _CategoriesSectionState extends State<_CategoriesSection> {
     final ColorScheme colors = theme.colorScheme;
 
     final List<BudgetCategorySpend> items = widget.categorySpend;
-    final List<BudgetCategorySpend> topItems = items.take(3).toList();
-    final List<BudgetCategorySpend> remainingItems = items.length > 3
-        ? items.sublist(3)
+    final Map<String, BudgetCategorySpend> itemsById =
+        <String, BudgetCategorySpend>{
+          for (final BudgetCategorySpend item in items) item.category.id: item,
+        };
+    final List<BudgetCategorySpend> rootItems = items
+        .where(
+          (BudgetCategorySpend item) =>
+              item.parentCategoryId == null ||
+              !itemsById.containsKey(item.parentCategoryId),
+        )
+        .toList(growable: false);
+    final List<BudgetCategorySpend> topItems = rootItems.take(3).toList();
+    final List<BudgetCategorySpend> remainingItems = rootItems.length > 3
+        ? rootItems.sublist(3)
         : const <BudgetCategorySpend>[];
 
     return Container(
@@ -916,26 +934,24 @@ class _CategoriesSectionState extends State<_CategoriesSection> {
                 for (final BudgetCategorySpend item in topItems)
                   _CategoryTile(
                     item: item,
+                    itemsById: itemsById,
                     transactions: widget.transactions,
                     accountsById: widget.accountsById,
                     categoriesById: widget.categoriesById,
                     strings: widget.strings,
-                    isExpanded: widget.expandedCategoryIds.contains(
-                      item.category.id,
-                    ),
+                    expandedCategoryIds: widget.expandedCategoryIds,
                     onToggle: widget.onToggleCategory,
                   ),
                 if (_showAll)
                   for (final BudgetCategorySpend item in remainingItems)
                     _CategoryTile(
                       item: item,
+                      itemsById: itemsById,
                       transactions: widget.transactions,
                       accountsById: widget.accountsById,
                       categoriesById: widget.categoriesById,
                       strings: widget.strings,
-                      isExpanded: widget.expandedCategoryIds.contains(
-                        item.category.id,
-                      ),
+                      expandedCategoryIds: widget.expandedCategoryIds,
                       onToggle: widget.onToggleCategory,
                     ),
               ].separatedBy(const SizedBox(height: 8)).toList(),
@@ -949,20 +965,22 @@ class _CategoriesSectionState extends State<_CategoriesSection> {
 class _CategoryTile extends StatelessWidget {
   const _CategoryTile({
     required this.item,
+    required this.itemsById,
     required this.transactions,
     required this.accountsById,
     required this.categoriesById,
     required this.strings,
-    required this.isExpanded,
+    required this.expandedCategoryIds,
     required this.onToggle,
   });
 
   final BudgetCategorySpend item;
+  final Map<String, BudgetCategorySpend> itemsById;
   final List<TransactionEntity> transactions;
   final Map<String, AccountEntity> accountsById;
   final Map<String, Category> categoriesById;
   final AppLocalizations strings;
-  final bool isExpanded;
+  final Set<String> expandedCategoryIds;
   final ValueChanged<String> onToggle;
 
   @override
@@ -978,9 +996,35 @@ class _CategoryTile extends StatelessWidget {
       item.category.icon,
     );
 
+    final Set<String> explicitCategoryIds = itemsById.keys.toSet();
     final List<TransactionEntity> categoryTransactions = transactions
-        .where((TransactionEntity tx) => tx.categoryId == item.category.id)
+        .where((TransactionEntity tx) {
+          final String? categoryId = tx.categoryId;
+          if (categoryId == null) {
+            return false;
+          }
+          return _resolveTransactionOwnerCategoryId(
+                categoryId: categoryId,
+                explicitCategoryIds: explicitCategoryIds,
+                categoriesById: categoriesById,
+              ) ==
+              item.category.id;
+        })
         .toList(growable: false);
+    final List<BudgetCategorySpend> childItems =
+        itemsById.values
+            .where(
+              (BudgetCategorySpend child) =>
+                  child.parentCategoryId == item.category.id,
+            )
+            .toList(growable: false)
+          ..sort((BudgetCategorySpend a, BudgetCategorySpend b) {
+            final int spentComparison = b.spent.compareTo(a.spent);
+            if (spentComparison != 0) {
+              return spentComparison;
+            }
+            return a.category.name.compareTo(b.category.name);
+          });
 
     final double limit = item.limit ?? 0;
     final double spent = item.spent;
@@ -1001,7 +1045,7 @@ class _CategoryTile extends StatelessWidget {
         collapsedShape: const RoundedRectangleBorder(),
         shape: const RoundedRectangleBorder(),
         onExpansionChanged: (_) => onToggle(item.category.id),
-        initiallyExpanded: isExpanded,
+        initiallyExpanded: expandedCategoryIds.contains(item.category.id),
         title: Row(
           children: <Widget>[
             Container(
@@ -1076,14 +1120,37 @@ class _CategoryTile extends StatelessWidget {
           ],
         ),
         children: <Widget>[
-          if (categoryTransactions.isEmpty)
+          if (childItems.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Column(
+                children: childItems
+                    .map(
+                      (BudgetCategorySpend child) => Padding(
+                        padding: const EdgeInsets.only(left: 12, bottom: 8),
+                        child: _CategoryTile(
+                          item: child,
+                          itemsById: itemsById,
+                          transactions: transactions,
+                          accountsById: accountsById,
+                          categoriesById: categoriesById,
+                          strings: strings,
+                          expandedCategoryIds: expandedCategoryIds,
+                          onToggle: onToggle,
+                        ),
+                      ),
+                    )
+                    .toList(growable: false),
+              ),
+            ),
+          if (categoryTransactions.isEmpty && childItems.isEmpty)
             Text(
               strings.analyticsCategoryTransactionsEmpty,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: colors.onSurfaceVariant,
               ),
-            )
-          else
+            ),
+          if (categoryTransactions.isNotEmpty)
             Column(
               children: categoryTransactions.map((
                 TransactionEntity transaction,
@@ -1105,6 +1172,25 @@ class _CategoryTile extends StatelessWidget {
       ),
     );
   }
+}
+
+String? _resolveTransactionOwnerCategoryId({
+  required String categoryId,
+  required Set<String> explicitCategoryIds,
+  required Map<String, Category> categoriesById,
+}) {
+  if (explicitCategoryIds.isEmpty) {
+    return categoryId;
+  }
+
+  String? currentCategoryId = categoryId;
+  while (currentCategoryId != null && currentCategoryId.isNotEmpty) {
+    if (explicitCategoryIds.contains(currentCategoryId)) {
+      return currentCategoryId;
+    }
+    currentCategoryId = categoriesById[currentCategoryId]?.parentId;
+  }
+  return null;
 }
 
 class _UpcomingPaymentsSection extends StatelessWidget {
@@ -1314,13 +1400,17 @@ _BudgetSummary _buildSummary({
 
 List<TransactionEntity> _filterTransactions({
   required Budget budget,
+  required List<Category> categories,
   required List<TransactionEntity> transactions,
   required DateTimeRange range,
 }) {
   final DateTime start = DateUtils.dateOnly(range.start);
   final DateTime end = DateUtils.dateOnly(range.end);
   return transactions
-      .where((TransactionEntity tx) => _matchesScope(budget, tx))
+      .where(
+        (TransactionEntity tx) =>
+            _matchesScope(budget, tx, categories: categories),
+      )
       .where(
         (TransactionEntity tx) =>
             !tx.date.isBefore(start) && tx.date.isBefore(end),
@@ -1328,16 +1418,24 @@ List<TransactionEntity> _filterTransactions({
       .toList(growable: false);
 }
 
-bool _matchesScope(Budget budget, TransactionEntity transaction) {
+bool _matchesScope(
+  Budget budget,
+  TransactionEntity transaction, {
+  required List<Category> categories,
+}) {
   switch (budget.scope) {
     case BudgetScope.all:
       return true;
     case BudgetScope.byCategory:
-      if (budget.categories.isEmpty) {
+      final Set<String> scopedCategoryIds = resolveBudgetScopedCategoryIds(
+        budget: budget,
+        categories: categories,
+      );
+      if (scopedCategoryIds.isEmpty) {
         return false;
       }
       final String? categoryId = transaction.categoryId;
-      return categoryId != null && budget.categories.contains(categoryId);
+      return categoryId != null && scopedCategoryIds.contains(categoryId);
     case BudgetScope.byAccount:
       if (budget.accounts.isEmpty) {
         return false;
@@ -1360,18 +1458,28 @@ List<BudgetCategorySpend> _computeCategorySpend({
     if (categoryId == null) {
       continue;
     }
-    spentByCategory[categoryId] =
-        (spentByCategory[categoryId] ?? 0) +
+    final String ownerCategoryId =
+        resolveBudgetTransactionAllocationCategoryId(
+          budget: budget,
+          categories: categories,
+          categoryId: categoryId,
+        ) ??
+        categoryId;
+    spentByCategory[ownerCategoryId] =
+        (spentByCategory[ownerCategoryId] ?? 0) +
         transaction.amountValue.abs().toDouble();
   }
 
-  final Set<String> categoryIds = <String>{
-    ...spentByCategory.keys,
-    ...budget.categories,
-    ...budget.categoryAllocations.map(
-      (BudgetCategoryAllocation allocation) => allocation.categoryId,
-    ),
-  };
+  final Set<String> explicitIds = resolveBudgetExplicitCategoryIds(budget);
+  final Set<String> categoryIds = explicitIds.isEmpty
+      ? <String>{
+          ...spentByCategory.keys,
+          ...resolveBudgetScopedCategoryIds(
+            budget: budget,
+            categories: categories,
+          ),
+        }
+      : <String>{...spentByCategory.keys, ...explicitIds};
   if (categoryIds.isEmpty) {
     return const <BudgetCategorySpend>[];
   }
@@ -1388,7 +1496,20 @@ List<BudgetCategorySpend> _computeCategorySpend({
       BudgetCategorySpend(
         category: category,
         spent: spentByCategory[categoryId] ?? 0,
-        limit: resolveBudgetCategoryLimit(budget, categoryId),
+        limit: explicitIds.isEmpty
+            ? resolveBudgetCategoryLimit(budget, categoryId)
+            : resolveBudgetCategoryDirectLimit(
+                budget: budget,
+                categories: categories,
+                categoryId: categoryId,
+              ),
+        parentCategoryId: explicitIds.isEmpty
+            ? null
+            : resolveBudgetExplicitParentCategoryId(
+                budget: budget,
+                categories: categories,
+                categoryId: categoryId,
+              ),
       ),
     );
   }
@@ -1456,6 +1577,7 @@ class _TrendDelta {
 
 _TrendDelta? _buildTrendDelta({
   required Budget budget,
+  required List<Category> categories,
   required List<TransactionEntity> transactions,
   required DateTimeRange range,
 }) {
@@ -1473,11 +1595,13 @@ _TrendDelta? _buildTrendDelta({
   );
   final List<TransactionEntity> current = _filterTransactions(
     budget: budget,
+    categories: categories,
     transactions: transactions,
     range: range,
   );
   final List<TransactionEntity> previous = _filterTransactions(
     budget: budget,
+    categories: categories,
     transactions: transactions,
     range: previousRange,
   );

@@ -172,7 +172,7 @@
   "@profileBackupDisabled": {
     "description": "Статус отключенного резервного копирования"
   },
-  "profileExportDataFullCta": "Экспорт данных (CSV/PDF)",
+  "profileExportDataFullCta": "Экспорт данных (CSV/JSON)",
   "@profileExportDataFullCta": {
     "description": "Кнопка перехода к экспорту данных на профиле"
   },
@@ -376,7 +376,7 @@
   "@profileDataTransferFormatHintJsonTitle": {
     "description": "Заголовок подсказки для JSON-формата"
   },
-  "profileDataTransferFormatHintJsonBody": "Основной формат для переноса на новый backend. Экспорт включает профиль, прогресс и контрольные суммы, а при импорте приложение проверяет целостность данных.",
+  "profileDataTransferFormatHintJsonBody": "Основной формат для переноса данных между версиями приложения. Экспорт включает профиль, прогресс и контрольные суммы, а при импорте приложение проверяет целостность данных.",
   "@profileDataTransferFormatHintJsonBody": {
     "description": "Описание преимуществ JSON-формата для миграции"
   },
@@ -388,7 +388,7 @@
   "@profileDataTransferFormatHintCsvTitle": {
     "description": "Заголовок подсказки для CSV-формата"
   },
-  "profileDataTransferFormatHintCsvBody": "Подходит, если нужен табличный экспорт или ручной разбор данных. Для миграции на новый backend лучше использовать JSON, потому что CSV не является каноничным форматом переноса.",
+  "profileDataTransferFormatHintCsvBody": "Подходит для самостоятельной проверки и табличного разбора данных. Для переноса данных между версиями приложения лучше использовать JSON.",
   "@profileDataTransferFormatHintCsvBody": {
     "description": "Описание ограничений CSV-формата"
   },

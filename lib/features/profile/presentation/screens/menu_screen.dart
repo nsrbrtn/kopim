@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'package:kopim/core/config/app_runtime.dart';
 import 'package:kopim/features/app_shell/presentation/widgets/main_navigation_bar.dart';
 import 'package:kopim/features/app_shell/presentation/widgets/navigation_responsive_breakpoints.dart';
 import 'package:kopim/features/categories/presentation/screens/manage_categories_screen.dart';
@@ -121,6 +122,26 @@ class MenuScreen extends ConsumerWidget {
     );
   }
 
+  Future<void> _showOfflineAssistantTeaser(BuildContext context) async {
+    await showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('ИИ-ассистент'),
+          content: const Text(
+            'В офлайн-версии ассистент пока недоступен. Он появится позже вместе с подпиской.',
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Понятно'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final AppLocalizations strings = AppLocalizations.of(context)!;
@@ -151,6 +172,12 @@ class MenuScreen extends ConsumerWidget {
         icon: Icons.home_outlined,
         onTap: () => _openHomeSectionSheet(context),
       ),
+      if (AppRuntimeConfig.isOffline)
+        _SettingsMenuConfig(
+          label: 'ИИ-ассистент',
+          icon: Icons.smart_toy_outlined,
+          onTap: () => _showOfflineAssistantTeaser(context),
+        ),
       _SettingsMenuConfig(
         label: strings.profileAboutAppCta,
         icon: Icons.info_outline,

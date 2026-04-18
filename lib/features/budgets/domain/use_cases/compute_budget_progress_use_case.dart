@@ -5,7 +5,9 @@ import 'package:kopim/features/budgets/domain/entities/budget.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_instance.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_progress.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_scope.dart';
+import 'package:kopim/features/budgets/domain/services/budget_category_scope.dart';
 import 'package:kopim/features/budgets/domain/services/budget_schedule.dart';
+import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
 
@@ -18,12 +20,14 @@ class ComputeBudgetProgressUseCase {
   BudgetProgress call({
     required Budget budget,
     required List<TransactionEntity> transactions,
+    List<Category> categories = const <Category>[],
     DateTime? reference,
     BudgetInstance? existingInstance,
   }) {
     final DateTime now = reference ?? DateTime.now();
     final _FilteredTransactions filtered = _filterTransactions(
       budget: budget,
+      categories: categories,
       transactions: transactions,
       reference: now,
     );
@@ -74,10 +78,12 @@ class ComputeBudgetProgressUseCase {
   List<TransactionEntity> filterTransactions({
     required Budget budget,
     required List<TransactionEntity> transactions,
+    List<Category> categories = const <Category>[],
     DateTime? reference,
   }) {
     return _filterTransactions(
       budget: budget,
+      categories: categories,
       transactions: transactions,
       reference: reference ?? DateTime.now(),
     ).transactions;
@@ -85,6 +91,7 @@ class ComputeBudgetProgressUseCase {
 
   _FilteredTransactions _filterTransactions({
     required Budget budget,
+    required List<Category> categories,
     required List<TransactionEntity> transactions,
     required DateTime reference,
   }) {
@@ -93,7 +100,10 @@ class ComputeBudgetProgressUseCase {
       reference: reference,
     );
     final List<TransactionEntity> scopedTransactions = transactions
-        .where((TransactionEntity tx) => _matchesScope(budget, tx))
+        .where(
+          (TransactionEntity tx) =>
+              _matchesScope(budget, tx, categories: categories),
+        )
         .where(
           (TransactionEntity tx) =>
               !tx.date.isBefore(period.start) && tx.date.isBefore(period.end),
@@ -105,16 +115,24 @@ class ComputeBudgetProgressUseCase {
     );
   }
 
-  bool _matchesScope(Budget budget, TransactionEntity transaction) {
+  bool _matchesScope(
+    Budget budget,
+    TransactionEntity transaction, {
+    required List<Category> categories,
+  }) {
     switch (budget.scope) {
       case BudgetScope.all:
         return true;
       case BudgetScope.byCategory:
-        if (budget.categories.isEmpty) {
+        final Set<String> scopedCategoryIds = resolveBudgetScopedCategoryIds(
+          budget: budget,
+          categories: categories,
+        );
+        if (scopedCategoryIds.isEmpty) {
           return false;
         }
         final String? categoryId = transaction.categoryId;
-        return categoryId != null && budget.categories.contains(categoryId);
+        return categoryId != null && scopedCategoryIds.contains(categoryId);
       case BudgetScope.byAccount:
         if (budget.accounts.isEmpty) {
           return false;

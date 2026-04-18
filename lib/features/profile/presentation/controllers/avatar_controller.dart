@@ -86,7 +86,7 @@ class AvatarController extends _$AvatarController {
   }) async {
     state = const AsyncValue<void>.loading();
     try {
-      const bool storeOfflineOnly = false;
+      const bool storeOfflineOnly = true;
       final ByteData data = await rootBundle.load(assetPath);
       final Uint8List bytes = data.buffer.asUint8List();
       final String contentType = _guessContentType(assetPath) ?? 'image/png';

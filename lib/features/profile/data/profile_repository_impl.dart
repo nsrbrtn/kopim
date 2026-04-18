@@ -5,6 +5,7 @@ import 'package:kopim/core/data/database.dart' as db;
 import 'package:kopim/core/data/outbox/outbox_dao.dart';
 import 'package:kopim/features/profile/data/local/profile_dao.dart';
 import 'package:kopim/features/profile/data/remote/profile_remote_data_source.dart';
+import 'package:kopim/features/profile/domain/entities/auth_user.dart';
 import 'package:kopim/features/profile/domain/entities/profile.dart';
 import 'package:kopim/features/profile/domain/repositories/profile_repository.dart';
 
@@ -14,7 +15,7 @@ class ProfileRepositoryImpl implements ProfileRepository {
   ProfileRepositoryImpl({
     required db.AppDatabase database,
     required ProfileDao profileDao,
-    required ProfileRemoteDataSource remoteDataSource,
+    ProfileRemoteDataSource? remoteDataSource,
     required OutboxDao outboxDao,
   }) : _database = database,
        _profileDao = profileDao,
@@ -25,7 +26,7 @@ class ProfileRepositoryImpl implements ProfileRepository {
 
   final db.AppDatabase _database;
   final ProfileDao _profileDao;
-  final ProfileRemoteDataSource _remoteDataSource;
+  final ProfileRemoteDataSource? _remoteDataSource;
   final OutboxDao _outboxDao;
 
   @override
@@ -37,13 +38,14 @@ class ProfileRepositoryImpl implements ProfileRepository {
   Future<Profile?> getProfile(String uid) async {
     final Profile? local = await _profileDao.getProfile(uid);
     final bool needsRemote =
-        !_isGuestUid(uid) && (local == null || _requiresRemoteRefresh(local));
+        !_isLocalOnlyUid(uid) &&
+        (local == null || _requiresRemoteRefresh(local));
 
     if (!needsRemote && local != null) {
       return local;
     }
 
-    if (_isGuestUid(uid)) {
+    if (_isLocalOnlyUid(uid)) {
       final Profile guestProfile = local ?? _emptyProfile(uid);
       if (local == null) {
         await _profileDao.upsert(guestProfile);
@@ -51,8 +53,17 @@ class ProfileRepositoryImpl implements ProfileRepository {
       return guestProfile;
     }
 
+    final ProfileRemoteDataSource? remoteDataSource = _remoteDataSource;
+    if (remoteDataSource == null) {
+      final Profile fallbackProfile = local ?? _emptyProfile(uid);
+      if (local == null) {
+        await _profileDao.upsert(fallbackProfile);
+      }
+      return fallbackProfile;
+    }
+
     try {
-      final Profile? remote = await _remoteDataSource.fetch(uid);
+      final Profile? remote = await remoteDataSource.fetch(uid);
       if (remote == null) {
         final Profile fallbackProfile = local ?? _emptyProfile(uid);
         if (local == null) {
@@ -84,7 +95,7 @@ class ProfileRepositoryImpl implements ProfileRepository {
 
     await _database.transaction(() async {
       await _profileDao.upsertInTransaction(toPersist);
-      if (!_isGuestUid(toPersist.uid) && !_isDataUrl(toPersist.photoUrl)) {
+      if (!_isLocalOnlyUid(toPersist.uid) && !_isDataUrl(toPersist.photoUrl)) {
         await _outboxDao.enqueue(
           entityType: _entityType,
           entityId: toPersist.uid,
@@ -109,7 +120,9 @@ class ProfileRepositoryImpl implements ProfileRepository {
     };
   }
 
-  bool _isGuestUid(String uid) => uid.startsWith('guest-');
+  bool _isLocalOnlyUid(String uid) =>
+      uid.startsWith(AuthUser.guestUidPrefix) ||
+      uid.startsWith(AuthUser.localUidPrefix);
 
   bool _isDataUrl(String? value) => value?.startsWith('data:') ?? false;
 

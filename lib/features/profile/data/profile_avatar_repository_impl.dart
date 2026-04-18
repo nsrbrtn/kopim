@@ -4,15 +4,18 @@ import 'package:kopim/features/profile/data/remote/avatar_remote_data_source.dar
 import 'package:kopim/features/profile/domain/repositories/profile_avatar_repository.dart';
 
 class ProfileAvatarRepositoryImpl implements ProfileAvatarRepository {
-  ProfileAvatarRepositoryImpl({
-    required AvatarRemoteDataSource remoteDataSource,
-  }) : _remoteDataSource = remoteDataSource;
+  ProfileAvatarRepositoryImpl({AvatarRemoteDataSource? remoteDataSource})
+    : _remoteDataSource = remoteDataSource;
 
-  final AvatarRemoteDataSource _remoteDataSource;
+  final AvatarRemoteDataSource? _remoteDataSource;
 
   @override
-  Future<void> delete(String uid) {
-    return _remoteDataSource.delete(uid);
+  Future<void> delete(String uid) async {
+    final AvatarRemoteDataSource? remoteDataSource = _remoteDataSource;
+    if (remoteDataSource == null) {
+      return;
+    }
+    return remoteDataSource.delete(uid);
   }
 
   @override
@@ -21,7 +24,11 @@ class ProfileAvatarRepositoryImpl implements ProfileAvatarRepository {
     required Uint8List data,
     required String contentType,
   }) {
-    return _remoteDataSource.upload(
+    final AvatarRemoteDataSource? remoteDataSource = _remoteDataSource;
+    if (remoteDataSource == null) {
+      throw StateError('Remote avatar upload is unavailable in offline mode.');
+    }
+    return remoteDataSource.upload(
       uid: uid,
       data: data,
       contentType: contentType,

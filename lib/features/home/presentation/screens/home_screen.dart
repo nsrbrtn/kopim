@@ -1008,7 +1008,7 @@ class _AccountCard extends ConsumerWidget {
       isHighlighted: isHighlighted,
     );
     final Color secondaryContentColor = theme.brightness == Brightness.light
-        ? palette.support
+        ? theme.colorScheme.onSurface
         : carouselContentColor;
     final double cardRadius = context.kopimLayout.radius.xxl;
     final BorderRadius borderRadius = BorderRadius.circular(cardRadius);
@@ -1386,24 +1386,21 @@ class _StandardAccountContent extends StatelessWidget {
                 style: supportLabelStyle,
               ),
               const SizedBox(height: 8),
-              Row(
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  Expanded(
-                    child: Text(
-                      monthlyIncomeLabel,
-                      style: summaryTextStyle,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                  Text(
+                    monthlyIncomeLabel,
+                    style: summaryTextStyle,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Text(
-                      monthlyExpenseLabel,
-                      style: summaryTextStyle,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                  const SizedBox(height: 4),
+                  Text(
+                    monthlyExpenseLabel,
+                    style: summaryTextStyle,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),

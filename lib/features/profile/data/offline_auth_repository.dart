@@ -6,16 +6,28 @@ import 'package:kopim/features/profile/domain/entities/sign_in_request.dart';
 import 'package:kopim/features/profile/domain/entities/sign_up_request.dart';
 import 'package:kopim/features/profile/domain/failures/auth_failure.dart';
 import 'package:kopim/features/profile/domain/repositories/auth_repository.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:uuid/uuid.dart';
 
 class OfflineAuthRepository implements AuthRepository {
-  OfflineAuthRepository({LoggerService? loggerService})
-    : _logger = loggerService ?? LoggerService(),
-      _controller = StreamController<AuthUser?>.broadcast() {
-    _currentUser = AuthUser.guest();
-    _controller.add(_currentUser);
+  OfflineAuthRepository({
+    LoggerService? loggerService,
+    Future<SharedPreferences>? preferences,
+    Uuid? uuid,
+  }) : _logger = loggerService ?? LoggerService(),
+       _preferencesFuture = preferences ?? SharedPreferences.getInstance(),
+       _uuid = uuid ?? const Uuid(),
+       _controller = StreamController<AuthUser?>.broadcast() {
+    unawaited(_restoreUser());
   }
 
+  static const String _kOfflineUserIdKey = 'profile.offline_user.id';
+  static const String _kOfflineUserCreatedAtKey =
+      'profile.offline_user.created_at';
+
   final LoggerService _logger;
+  final Future<SharedPreferences> _preferencesFuture;
+  final Uuid _uuid;
   final StreamController<AuthUser?> _controller;
   AuthUser? _currentUser;
 
@@ -46,7 +58,7 @@ class OfflineAuthRepository implements AuthRepository {
 
   @override
   Future<AuthUser> signInAnonymously() async {
-    _currentUser ??= AuthUser.guest();
+    _currentUser ??= await _restoreOrCreateUser();
     _controller.add(_currentUser);
     return _currentUser!;
   }
@@ -81,6 +93,43 @@ class OfflineAuthRepository implements AuthRepository {
     required String newPassword,
   }) {
     return _unsupportedVoid('updatePassword');
+  }
+
+  Future<void> _restoreUser() async {
+    try {
+      _currentUser = await _restoreOrCreateUser();
+      if (!_controller.isClosed) {
+        _controller.add(_currentUser);
+      }
+    } catch (error) {
+      _logger.logError(
+        'Не удалось восстановить локального офлайн-пользователя. Используем временный guest.',
+        error,
+      );
+      _currentUser = AuthUser.guest();
+      if (!_controller.isClosed) {
+        _controller.add(_currentUser);
+      }
+    }
+  }
+
+  Future<AuthUser> _restoreOrCreateUser() async {
+    final SharedPreferences prefs = await _preferencesFuture;
+    final String? existingId = prefs.getString(_kOfflineUserIdKey);
+    final String? storedCreatedAt = prefs.getString(_kOfflineUserCreatedAtKey);
+    final DateTime? createdAt = storedCreatedAt == null
+        ? null
+        : DateTime.tryParse(storedCreatedAt)?.toUtc();
+
+    if (existingId != null && existingId.isNotEmpty) {
+      return AuthUser.local(uid: existingId, createdAt: createdAt);
+    }
+
+    final DateTime now = DateTime.now().toUtc();
+    final String localId = '${AuthUser.localUidPrefix}${_uuid.v4()}';
+    await prefs.setString(_kOfflineUserIdKey, localId);
+    await prefs.setString(_kOfflineUserCreatedAtKey, now.toIso8601String());
+    return AuthUser.local(uid: localId, createdAt: now);
   }
 
   Future<AuthUser> _unsupported(String action) {

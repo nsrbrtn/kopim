@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:kopim/core/application/firebase_availability.dart';
+import 'package:kopim/core/config/app_runtime.dart';
 import 'package:kopim/core/config/theme_extensions.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 import 'package:kopim/features/transactions/presentation/controllers/transaction_sheet_controller.dart';
@@ -143,7 +144,9 @@ class _MainNavigationShellState extends ConsumerState<MainNavigationShell> {
     final FirebaseAvailabilityState firebaseState = ref.watch(
       firebaseAvailabilityProvider,
     );
-    final String? firebaseWarning = firebaseState.warningMessage;
+    final String? firebaseWarning = AppRuntimeConfig.isOffline
+        ? null
+        : firebaseState.warningMessage;
     final bool showFirebaseWarning =
         firebaseWarning != null && !_hideFirebaseWarning;
     final AppLocalizations strings = AppLocalizations.of(context)!;
@@ -321,7 +324,7 @@ class _MainNavigationShellState extends ConsumerState<MainNavigationShell> {
           return Stack(
             children: <Widget>[
               scaffoldWithFrozenInsets,
-              if (firebaseWarning != null)
+              if (firebaseWarning != null && !AppRuntimeConfig.isOffline)
                 const Positioned(
                   top: 0,
                   right: 0,

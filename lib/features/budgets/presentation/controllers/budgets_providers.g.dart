@@ -261,7 +261,7 @@ final class BudgetsWithProgressProvider
 }
 
 String _$budgetsWithProgressHash() =>
-    r'17ef6443ff5bab5feb692aeb2c02994c35255b40';
+    r'5f7c5397b6561aeae1d2abaf7f26f08c76ea9d86';
 
 @ProviderFor(budgetCategorySpend)
 const budgetCategorySpendProvider = BudgetCategorySpendProvider._();
@@ -310,7 +310,7 @@ final class BudgetCategorySpendProvider
 }
 
 String _$budgetCategorySpendHash() =>
-    r'd60ad1ed0cbae64df6196d073e7f26e73e5ec73d';
+    r'a9568e8e7065ab083b8d9cac44485cf181962235';
 
 @ProviderFor(budgetProgressById)
 const budgetProgressByIdProvider = BudgetProgressByIdFamily._();
@@ -463,7 +463,7 @@ final class BudgetTransactionsByIdProvider
 }
 
 String _$budgetTransactionsByIdHash() =>
-    r'abf328ad96ded79090fc64c79967638cd8e586ee';
+    r'28b6c9bc3e79ba878112c45e4f3bd636184fa4c0';
 
 final class BudgetTransactionsByIdFamily extends $Family
     with

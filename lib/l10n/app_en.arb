@@ -172,7 +172,7 @@
   "@profileBackupDisabled": {
     "description": "Label for disabled backup state"
   },
-  "profileExportDataFullCta": "Export data (CSV/PDF)",
+  "profileExportDataFullCta": "Export data (CSV/JSON)",
   "@profileExportDataFullCta": {
     "description": "CTA to open data export from profile screen"
   },
@@ -376,7 +376,7 @@
   "@profileDataTransferFormatHintJsonTitle": {
     "description": "Hint title for the JSON format"
   },
-  "profileDataTransferFormatHintJsonBody": "Primary format for moving data to the new backend. The export includes profile, progress, and checksums, and the app verifies data integrity during import.",
+  "profileDataTransferFormatHintJsonBody": "Primary format for moving data between app versions. The export includes profile, progress, and checksums, and the app verifies data integrity during import.",
   "@profileDataTransferFormatHintJsonBody": {
     "description": "Hint body describing why JSON is recommended"
   },
@@ -388,7 +388,7 @@
   "@profileDataTransferFormatHintCsvTitle": {
     "description": "Hint title for the CSV format"
   },
-  "profileDataTransferFormatHintCsvBody": "Useful for spreadsheet export or manual inspection. For migration to the new backend, use JSON instead because CSV is not the canonical transfer format.",
+  "profileDataTransferFormatHintCsvBody": "Useful for manual inspection or spreadsheet export. Use JSON for the main data transfer flow between app versions.",
   "@profileDataTransferFormatHintCsvBody": {
     "description": "Hint body describing the CSV limitations"
   },

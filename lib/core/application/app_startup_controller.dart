@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
+import 'package:kopim/core/config/app_runtime.dart';
 import 'package:kopim/core/utils/platform_support.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -42,17 +43,24 @@ class AppStartupController extends _$AppStartupController {
     state = const AsyncValue<void>.loading();
 
     try {
-      await Future.wait(<Future<void>>[
-        ref.read(firebaseInitializationProvider.future),
-        initializeLocalTimeZone(),
-      ]);
+      await initializeLocalTimeZone();
+
+      if (AppRuntimeConfig.usesFirebase) {
+        await ref.read(firebaseInitializationProvider.future);
+      } else {
+        ref
+            .read(firebaseAvailabilityProvider.notifier)
+            .setUnavailable('Офлайн-версия: облачные функции отключены.');
+      }
 
       final FirebaseAvailabilityState availability = ref.read(
         firebaseAvailabilityProvider,
       );
       final bool firebaseAvailable = availability.isAvailable != false;
 
-      if (_isRunningOnWeb) {
+      if (AppRuntimeConfig.isOffline) {
+        unawaited(_initializeBackgroundServices());
+      } else if (_isRunningOnWeb) {
         if (!firebaseAvailable) {
           state = const AsyncValue<void>.data(null);
           completer.complete();

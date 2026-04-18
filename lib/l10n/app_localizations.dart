@@ -341,7 +341,7 @@ abstract class AppLocalizations {
   /// CTA to open data export from profile screen
   ///
   /// In en, this message translates to:
-  /// **'Export data (CSV/PDF)'**
+  /// **'Export data (CSV/JSON)'**
   String get profileExportDataFullCta;
 
   /// Full sign out button label on profile screen
@@ -749,7 +749,7 @@ abstract class AppLocalizations {
   /// Hint body describing why JSON is recommended
   ///
   /// In en, this message translates to:
-  /// **'Primary format for moving data to the new backend. The export includes profile, progress, and checksums, and the app verifies data integrity during import.'**
+  /// **'Primary format for moving data between app versions. The export includes profile, progress, and checksums, and the app verifies data integrity during import.'**
   String get profileDataTransferFormatHintJsonBody;
 
   /// Short badge for the CSV hint card
@@ -767,7 +767,7 @@ abstract class AppLocalizations {
   /// Hint body describing the CSV limitations
   ///
   /// In en, this message translates to:
-  /// **'Useful for spreadsheet export or manual inspection. For migration to the new backend, use JSON instead because CSV is not the canonical transfer format.'**
+  /// **'Useful for manual inspection or spreadsheet export. Use JSON for the main data transfer flow between app versions.'**
   String get profileDataTransferFormatHintCsvBody;
 
   /// Shown when export finishes without a target path

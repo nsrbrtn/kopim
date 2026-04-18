@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kopim/core/application/sync_preferences_provider.dart';
+import 'package:kopim/core/config/app_runtime.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
 import 'package:kopim/features/profile/domain/entities/profile.dart';
@@ -80,6 +81,14 @@ class _ImportUserDataControllerStub extends ImportUserDataController {
 }
 
 void main() {
+  setUp(() {
+    AppRuntimeConfig.configure(AppRuntimeFlavor.firebaseDev);
+  });
+
+  tearDown(() {
+    AppRuntimeConfig.configure(AppRuntimeFlavor.firebaseDev);
+  });
+
   final Profile guestProfile = Profile(
     uid: 'guest-1',
     name: 'Guest',
@@ -220,6 +229,77 @@ void main() {
       expect(find.text('Register'), findsNothing);
       expect(find.byType(Switch), findsOneWidget);
       expect(tester.widget<Switch>(find.byType(Switch)).onChanged, isNotNull);
+    },
+  );
+
+  testWidgets(
+    'offline runtime скрывает logout и блокирует онлайн-синхронизацию',
+    (WidgetTester tester) async {
+      AppRuntimeConfig.configure(AppRuntimeFlavor.offline);
+      const AuthUser offlineUser = AuthUser(
+        uid: 'local-user-123',
+        isAnonymous: true,
+      );
+      final Profile offlineProfile = guestProfile.copyWith(
+        uid: offlineUser.uid,
+      );
+      final ProfileFormParams offlineParams = ProfileFormParams(
+        uid: offlineProfile.uid,
+        profile: offlineProfile,
+      );
+      final ProfileFormState offlineFormState = ProfileFormState.fromProfile(
+        offlineProfile.uid,
+        offlineProfile,
+      );
+
+      await tester.pumpWidget(
+        buildTestApp(
+          overrides: <Override>[
+            authControllerProvider.overrideWith(
+              () => _AuthControllerStub(offlineUser),
+            ),
+            profileControllerProvider(
+              offlineUser.uid,
+            ).overrideWith(() => _ProfileControllerStub(offlineProfile)),
+            profileFormControllerProvider(
+              offlineParams,
+            ).overrideWith(() => _ProfileFormControllerStub(offlineFormState)),
+            avatarControllerProvider.overrideWith(
+              () => _AvatarControllerStub(),
+            ),
+            userProgressProvider(offlineUser.uid).overrideWith(
+              (Ref ref) => Stream<UserProgress>.value(sampleProgress),
+            ),
+            profileActivityDaysProvider.overrideWith(
+              (Ref ref) => Stream<Set<DateTime>>.value(const <DateTime>{}),
+            ),
+            onlineSyncPreferencesControllerProvider.overrideWith(
+              () => _OnlineSyncPreferencesControllerStub(false),
+            ),
+            exportUserDataControllerProvider.overrideWith(
+              () => _ExportUserDataControllerStub(),
+            ),
+            importUserDataControllerProvider.overrideWith(
+              () => _ImportUserDataControllerStub(),
+            ),
+            levelPolicyProvider.overrideWithValue(const SimpleLevelPolicy()),
+          ],
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(find.text('Выйти из профиля'), findsNothing);
+      expect(find.text('Выйти из аккаунта'), findsNothing);
+      expect(find.text('Станет доступно позже'), findsOneWidget);
+      expect(
+        find.text(
+          'Онлайн-синхронизация выключена в офлайн-версии и станет доступна позже по подписке.',
+        ),
+        findsOneWidget,
+      );
+      expect(tester.widget<Switch>(find.byType(Switch)).onChanged, isNull);
+      expect(tester.widget<Switch>(find.byType(Switch)).value, isFalse);
     },
   );
 }

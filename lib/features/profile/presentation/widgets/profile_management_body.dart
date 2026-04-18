@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import 'package:kopim/core/application/sync_preferences_provider.dart';
+import 'package:kopim/core/config/app_runtime.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/core/utils/avatar_image_provider_resolver.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
@@ -17,9 +18,9 @@ import 'package:kopim/features/profile/presentation/controllers/avatar_controlle
 import 'package:kopim/features/profile/presentation/controllers/auth_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/profile_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/user_progress_controller.dart';
+import 'package:kopim/features/profile/presentation/screens/sign_in_screen.dart';
 import 'package:kopim/features/profile/presentation/screens/profile_settings_screen.dart';
 import 'package:kopim/features/profile/presentation/widgets/profile_data_transfer_section.dart';
-import 'package:kopim/features/profile/presentation/screens/sign_in_screen.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
 class ProfileManagementBody extends ConsumerWidget {
@@ -56,9 +57,10 @@ class ProfileManagementBody extends ConsumerWidget {
         );
         final bool isOnlineSyncEnabled = onlineSyncEnabledAsync.maybeWhen(
           data: (bool value) => value,
-          orElse: () => true,
+          orElse: () => AppRuntimeConfig.isOffline ? false : true,
         );
-        final bool canManageOnlineSync = !user.isAnonymous;
+        final bool canManageOnlineSync =
+            !AppRuntimeConfig.isOffline && !user.isAnonymous;
         final bool effectiveOnlineSyncEnabled =
             canManageOnlineSync && isOnlineSyncEnabled;
         ref.listen<AsyncValue<void>>(avatarControllerProvider, (
@@ -121,6 +123,7 @@ class ProfileManagementBody extends ConsumerWidget {
                     _SecuritySection(
                       isOnlineSyncEnabled: effectiveOnlineSyncEnabled,
                       canManageOnlineSync: canManageOnlineSync,
+                      isOfflineRuntime: AppRuntimeConfig.isOffline,
                       onToggleOnlineSync: () => _toggleOnlineSync(
                         context,
                         ref,
@@ -137,8 +140,10 @@ class ProfileManagementBody extends ConsumerWidget {
                         textAlign: TextAlign.center,
                       ),
                     ],
-                    const SizedBox(height: 16),
-                    _SignOutButton(onSignOut: () => _signOut(context, ref)),
+                    if (!AppRuntimeConfig.isOffline) ...<Widget>[
+                      const SizedBox(height: 16),
+                      _SignOutButton(onSignOut: () => _signOut(context, ref)),
+                    ],
                   ],
                 ),
               ),
@@ -605,11 +610,13 @@ class _SecuritySection extends StatelessWidget {
   const _SecuritySection({
     required this.isOnlineSyncEnabled,
     required this.canManageOnlineSync,
+    required this.isOfflineRuntime,
     required this.onToggleOnlineSync,
   });
 
   final bool isOnlineSyncEnabled;
   final bool canManageOnlineSync;
+  final bool isOfflineRuntime;
   final VoidCallback onToggleOnlineSync;
 
   @override
@@ -640,9 +647,11 @@ class _SecuritySection extends StatelessWidget {
               _SecurityRow(
                 icon: Icons.cloud_done_outlined,
                 label: strings.profileBackupTitle,
-                value: isOnlineSyncEnabled
-                    ? strings.profileBackupEnabled
-                    : strings.profileBackupDisabled,
+                value: isOfflineRuntime
+                    ? 'Станет доступно позже'
+                    : (isOnlineSyncEnabled
+                          ? strings.profileBackupEnabled
+                          : strings.profileBackupDisabled),
                 highlightedValue: isOnlineSyncEnabled,
                 onTap: canManageOnlineSync ? onToggleOnlineSync : null,
                 trailing: Switch(
@@ -658,6 +667,16 @@ class _SecuritySection extends StatelessWidget {
                 indent: 16,
                 endIndent: 16,
               ),
+              if (isOfflineRuntime)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                  child: Text(
+                    'Онлайн-синхронизация выключена в офлайн-версии и станет доступна позже по подписке.',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
               Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
@@ -703,19 +722,29 @@ class _SecurityRow extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             Icon(icon, color: theme.colorScheme.primary),
             const SizedBox(width: 12),
-            Expanded(child: Text(label, style: theme.textTheme.bodyMedium)),
-            if (value != null)
-              Text(
-                value!,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: highlightedValue
-                      ? theme.colorScheme.primary
-                      : theme.colorScheme.onSurfaceVariant,
-                ),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text(label, style: theme.textTheme.bodyMedium),
+                  if (value != null) ...<Widget>[
+                    const SizedBox(height: 4),
+                    Text(
+                      value!,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: highlightedValue
+                            ? theme.colorScheme.primary
+                            : theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ],
               ),
+            ),
             if (trailing != null) ...<Widget>[
               const SizedBox(width: 8),
               trailing!,

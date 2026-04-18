@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$BudgetCategorySpend {
 
- Category get category; double get spent; double? get limit;
+ Category get category; double get spent; double? get limit; String? get parentCategoryId;
 /// Create a copy of BudgetCategorySpend
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $BudgetCategorySpendCopyWith<BudgetCategorySpend> get copyWith => _$BudgetCatego
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is BudgetCategorySpend&&(identical(other.category, category) || other.category == category)&&(identical(other.spent, spent) || other.spent == spent)&&(identical(other.limit, limit) || other.limit == limit));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is BudgetCategorySpend&&(identical(other.category, category) || other.category == category)&&(identical(other.spent, spent) || other.spent == spent)&&(identical(other.limit, limit) || other.limit == limit)&&(identical(other.parentCategoryId, parentCategoryId) || other.parentCategoryId == parentCategoryId));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,category,spent,limit);
+int get hashCode => Object.hash(runtimeType,category,spent,limit,parentCategoryId);
 
 @override
 String toString() {
-  return 'BudgetCategorySpend(category: $category, spent: $spent, limit: $limit)';
+  return 'BudgetCategorySpend(category: $category, spent: $spent, limit: $limit, parentCategoryId: $parentCategoryId)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $BudgetCategorySpendCopyWith<$Res>  {
   factory $BudgetCategorySpendCopyWith(BudgetCategorySpend value, $Res Function(BudgetCategorySpend) _then) = _$BudgetCategorySpendCopyWithImpl;
 @useResult
 $Res call({
- Category category, double spent, double? limit
+ Category category, double spent, double? limit, String? parentCategoryId
 });
 
 
@@ -62,12 +62,13 @@ class _$BudgetCategorySpendCopyWithImpl<$Res>
 
 /// Create a copy of BudgetCategorySpend
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? category = null,Object? spent = null,Object? limit = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? category = null,Object? spent = null,Object? limit = freezed,Object? parentCategoryId = freezed,}) {
   return _then(_self.copyWith(
 category: null == category ? _self.category : category // ignore: cast_nullable_to_non_nullable
 as Category,spent: null == spent ? _self.spent : spent // ignore: cast_nullable_to_non_nullable
 as double,limit: freezed == limit ? _self.limit : limit // ignore: cast_nullable_to_non_nullable
-as double?,
+as double?,parentCategoryId: freezed == parentCategoryId ? _self.parentCategoryId : parentCategoryId // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 /// Create a copy of BudgetCategorySpend
@@ -161,10 +162,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( Category category,  double spent,  double? limit)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( Category category,  double spent,  double? limit,  String? parentCategoryId)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _BudgetCategorySpend() when $default != null:
-return $default(_that.category,_that.spent,_that.limit);case _:
+return $default(_that.category,_that.spent,_that.limit,_that.parentCategoryId);case _:
   return orElse();
 
 }
@@ -182,10 +183,10 @@ return $default(_that.category,_that.spent,_that.limit);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( Category category,  double spent,  double? limit)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( Category category,  double spent,  double? limit,  String? parentCategoryId)  $default,) {final _that = this;
 switch (_that) {
 case _BudgetCategorySpend():
-return $default(_that.category,_that.spent,_that.limit);case _:
+return $default(_that.category,_that.spent,_that.limit,_that.parentCategoryId);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -202,10 +203,10 @@ return $default(_that.category,_that.spent,_that.limit);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( Category category,  double spent,  double? limit)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( Category category,  double spent,  double? limit,  String? parentCategoryId)?  $default,) {final _that = this;
 switch (_that) {
 case _BudgetCategorySpend() when $default != null:
-return $default(_that.category,_that.spent,_that.limit);case _:
+return $default(_that.category,_that.spent,_that.limit,_that.parentCategoryId);case _:
   return null;
 
 }
@@ -217,12 +218,13 @@ return $default(_that.category,_that.spent,_that.limit);case _:
 
 
 class _BudgetCategorySpend implements BudgetCategorySpend {
-  const _BudgetCategorySpend({required this.category, required this.spent, this.limit});
+  const _BudgetCategorySpend({required this.category, required this.spent, this.limit, this.parentCategoryId});
   
 
 @override final  Category category;
 @override final  double spent;
 @override final  double? limit;
+@override final  String? parentCategoryId;
 
 /// Create a copy of BudgetCategorySpend
 /// with the given fields replaced by the non-null parameter values.
@@ -234,16 +236,16 @@ _$BudgetCategorySpendCopyWith<_BudgetCategorySpend> get copyWith => __$BudgetCat
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _BudgetCategorySpend&&(identical(other.category, category) || other.category == category)&&(identical(other.spent, spent) || other.spent == spent)&&(identical(other.limit, limit) || other.limit == limit));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _BudgetCategorySpend&&(identical(other.category, category) || other.category == category)&&(identical(other.spent, spent) || other.spent == spent)&&(identical(other.limit, limit) || other.limit == limit)&&(identical(other.parentCategoryId, parentCategoryId) || other.parentCategoryId == parentCategoryId));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,category,spent,limit);
+int get hashCode => Object.hash(runtimeType,category,spent,limit,parentCategoryId);
 
 @override
 String toString() {
-  return 'BudgetCategorySpend(category: $category, spent: $spent, limit: $limit)';
+  return 'BudgetCategorySpend(category: $category, spent: $spent, limit: $limit, parentCategoryId: $parentCategoryId)';
 }
 
 
@@ -254,7 +256,7 @@ abstract mixin class _$BudgetCategorySpendCopyWith<$Res> implements $BudgetCateg
   factory _$BudgetCategorySpendCopyWith(_BudgetCategorySpend value, $Res Function(_BudgetCategorySpend) _then) = __$BudgetCategorySpendCopyWithImpl;
 @override @useResult
 $Res call({
- Category category, double spent, double? limit
+ Category category, double spent, double? limit, String? parentCategoryId
 });
 
 
@@ -271,12 +273,13 @@ class __$BudgetCategorySpendCopyWithImpl<$Res>
 
 /// Create a copy of BudgetCategorySpend
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? category = null,Object? spent = null,Object? limit = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? category = null,Object? spent = null,Object? limit = freezed,Object? parentCategoryId = freezed,}) {
   return _then(_BudgetCategorySpend(
 category: null == category ? _self.category : category // ignore: cast_nullable_to_non_nullable
 as Category,spent: null == spent ? _self.spent : spent // ignore: cast_nullable_to_non_nullable
 as double,limit: freezed == limit ? _self.limit : limit // ignore: cast_nullable_to_non_nullable
-as double?,
+as double?,parentCategoryId: freezed == parentCategoryId ? _self.parentCategoryId : parentCategoryId // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 

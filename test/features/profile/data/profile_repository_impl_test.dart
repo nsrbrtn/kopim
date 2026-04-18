@@ -118,4 +118,26 @@ void main() {
 
     expect(profiles.last?.name, equals('Carol'));
   });
+
+  test(
+    'getProfile returns local fallback when remote data source is absent',
+    () async {
+      const String uid = 'local-user-1';
+      final ProfileRepositoryImpl offlineRepository = ProfileRepositoryImpl(
+        database: database,
+        profileDao: profileDao,
+        remoteDataSource: null,
+        outboxDao: outboxDao,
+      );
+
+      final Profile? profile = await offlineRepository.getProfile(uid);
+
+      expect(profile, isNotNull);
+      expect(profile!.uid, equals(uid));
+
+      final Profile? cached = await profileDao.getProfile(uid);
+      expect(cached, isNotNull);
+      expect(cached!.uid, equals(uid));
+    },
+  );
 }

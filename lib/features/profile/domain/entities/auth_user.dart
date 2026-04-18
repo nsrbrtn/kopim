@@ -21,8 +21,24 @@ abstract class AuthUser with _$AuthUser {
   factory AuthUser.guest({DateTime? createdAt}) {
     final DateTime timestamp = createdAt ?? DateTime.now().toUtc();
     return AuthUser(
-      uid: 'guest-${timestamp.millisecondsSinceEpoch}',
+      uid: '$guestUidPrefix${timestamp.millisecondsSinceEpoch}',
       isAnonymous: true,
+      emailVerified: false,
+      creationTime: timestamp,
+      lastSignInTime: timestamp,
+    );
+  }
+
+  factory AuthUser.local({
+    required String uid,
+    DateTime? createdAt,
+    String? displayName,
+  }) {
+    final DateTime timestamp = createdAt ?? DateTime.now().toUtc();
+    return AuthUser(
+      uid: uid.startsWith(localUidPrefix) ? uid : '$localUidPrefix$uid',
+      isAnonymous: true,
+      displayName: displayName,
       emailVerified: false,
       creationTime: timestamp,
       lastSignInTime: timestamp,
@@ -32,5 +48,12 @@ abstract class AuthUser with _$AuthUser {
   factory AuthUser.fromJson(Map<String, dynamic> json) =>
       _$AuthUserFromJson(json);
 
-  bool get isGuest => isAnonymous && uid.startsWith('guest-');
+  static const String guestUidPrefix = 'guest-';
+  static const String localUidPrefix = 'local-';
+
+  bool get isGuest => isAnonymous && uid.startsWith(guestUidPrefix);
+
+  bool get isLocalOnly => isAnonymous && uid.startsWith(localUidPrefix);
+
+  bool get isOfflineLocalUser => isGuest || isLocalOnly;
 }

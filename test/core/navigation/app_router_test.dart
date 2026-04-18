@@ -19,7 +19,9 @@ import 'package:kopim/features/app_shell/presentation/providers/main_navigation_
 import 'package:kopim/features/app_shell/presentation/widgets/main_navigation_shell.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
+import 'package:kopim/features/profile/domain/entities/profile.dart';
 import 'package:kopim/features/profile/presentation/controllers/auth_controller.dart';
+import 'package:kopim/features/profile/presentation/controllers/profile_controller.dart';
 import 'package:kopim/features/transactions/presentation/screens/all_transactions_screen.dart';
 import 'package:kopim/features/transactions/presentation/controllers/all_transactions_providers.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
@@ -74,6 +76,15 @@ class _FakeAnalyticsFilterController extends AnalyticsFilterController {
   AnalyticsFilterState build() => _state;
 }
 
+class _FakeProfileController extends ProfileController {
+  _FakeProfileController(this._profile);
+
+  final Profile? _profile;
+
+  @override
+  Future<Profile?> build(String uid) async => _profile;
+}
+
 Widget _emptyTabBody(BuildContext context, WidgetRef ref) =>
     const SizedBox.shrink();
 
@@ -92,6 +103,16 @@ class _TestApp extends ConsumerWidget {
 }
 
 void main() {
+  const AuthUser testUser = AuthUser(uid: 'user-123', isAnonymous: true);
+  final Profile testProfile = Profile(
+    uid: testUser.uid,
+    name: 'Test User',
+    currency: ProfileCurrency.rub,
+    locale: 'ru',
+    photoUrl: null,
+    updatedAt: DateTime.utc(2024, 1, 1),
+  );
+
   Future<void> disposeApp(WidgetTester tester) async {
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pump();
@@ -141,6 +162,9 @@ void main() {
             _FakeAppStartupController.new,
           ),
           authOverride,
+          profileControllerProvider(
+            testUser.uid,
+          ).overrideWith(() => _FakeProfileController(testProfile)),
           analyticsFilterControllerProvider.overrideWith(
             () => _FakeAnalyticsFilterController(analyticsFilterState),
           ),
@@ -179,7 +203,7 @@ void main() {
     await pumpApp(
       tester,
       authOverride: authControllerProvider.overrideWith(
-        () => _FakeAuthController(AuthUser.guest()),
+        () => _FakeAuthController(testUser),
       ),
     );
     expect(find.byType(MainNavigationShell), findsOneWidget);
@@ -190,7 +214,7 @@ void main() {
     await pumpApp(
       tester,
       authOverride: authControllerProvider.overrideWith(
-        () => _FakeAuthController(AuthUser.guest()),
+        () => _FakeAuthController(testUser),
       ),
     );
     final BuildContext context = tester.element(find.byType(MaterialApp));
@@ -208,7 +232,7 @@ void main() {
     await pumpApp(
       tester,
       authOverride: authControllerProvider.overrideWith(
-        () => _FakeAuthController(AuthUser.guest()),
+        () => _FakeAuthController(testUser),
       ),
     );
     final BuildContext context = tester.element(find.byType(MaterialApp));
@@ -239,7 +263,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 50));
     expect(find.byType(AnalyticsScreen), findsNothing);
 
-    completer.complete(AuthUser.guest());
+    completer.complete(testUser);
     await tester.pumpAndSettle();
     expect(find.byType(AnalyticsScreen), findsOneWidget);
     await disposeApp(tester);
@@ -266,7 +290,7 @@ void main() {
     final AuthController authController = container.read(
       authControllerProvider.notifier,
     );
-    (authController as _MutableAuthController).setUser(AuthUser.guest());
+    (authController as _MutableAuthController).setUser(testUser);
     await tester.pumpAndSettle();
     expect(find.byType(AnalyticsScreen), findsOneWidget);
     await disposeApp(tester);
@@ -276,7 +300,7 @@ void main() {
     await pumpApp(
       tester,
       authOverride: authControllerProvider.overrideWith(
-        () => _FakeAuthController(AuthUser.guest()),
+        () => _FakeAuthController(testUser),
       ),
     );
     final BuildContext context = tester.element(find.byType(MaterialApp));

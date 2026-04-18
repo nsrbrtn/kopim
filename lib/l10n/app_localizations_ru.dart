@@ -141,7 +141,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get profileBackupDisabled => 'Отключена';
 
   @override
-  String get profileExportDataFullCta => 'Экспорт данных (CSV/PDF)';
+  String get profileExportDataFullCta => 'Экспорт данных (CSV/JSON)';
 
   @override
   String get profileSignOutFullCta => 'Выйти из профиля';
@@ -370,7 +370,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get profileDataTransferFormatHintJsonBody =>
-      'Основной формат для переноса на новый backend. Экспорт включает профиль, прогресс и контрольные суммы, а при импорте приложение проверяет целостность данных.';
+      'Основной формат для переноса данных между версиями приложения. Экспорт включает профиль, прогресс и контрольные суммы, а при импорте приложение проверяет целостность данных.';
 
   @override
   String get profileDataTransferFormatHintCsvBadge => 'Legacy';
@@ -381,7 +381,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get profileDataTransferFormatHintCsvBody =>
-      'Подходит, если нужен табличный экспорт или ручной разбор данных. Для миграции на новый backend лучше использовать JSON, потому что CSV не является каноничным форматом переноса.';
+      'Подходит для самостоятельной проверки и табличного разбора данных. Для переноса данных между версиями приложения лучше использовать JSON.';
 
   @override
   String get profileExportDataSuccess => 'Экспорт завершён успешно.';

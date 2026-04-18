@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:kopim/core/application/firebase_availability.dart';
+import 'package:kopim/core/config/app_runtime.dart';
 import 'package:kopim/core/application/sync_preferences_provider.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/core/services/sync_service.dart';
@@ -15,7 +16,7 @@ import 'package:kopim/features/profile/presentation/controllers/auth_controller.
 /// - запускает инициализацию SyncService после появления пользователя;
 /// - останавливает SyncService при logout (через autoDispose провайдера).
 final Provider<void> syncCoordinatorProvider = Provider<void>((Ref ref) {
-  if (kIsWeb) {
+  if (kIsWeb || AppRuntimeConfig.isOffline) {
     return;
   }
 
