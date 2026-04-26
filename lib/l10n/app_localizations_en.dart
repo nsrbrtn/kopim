@@ -2308,6 +2308,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addAccountTypeCreditCard => 'Credit card';
 
   @override
+  String get addAccountTypeCredit => 'Loan';
+
+  @override
   String get addAccountTypeInvestment => 'Investment account';
 
   @override
@@ -2464,6 +2467,13 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get accountDetailsTransactionsEmpty =>
       'No transactions for this account yet.';
+
+  @override
+  String get accountDetailsTransactionsVisibleRangeEmpty =>
+      'No transactions in the visible period yet.';
+
+  @override
+  String get accountDetailsTransactionsShowMore => 'Show more';
 
   @override
   String accountDetailsBalanceLabel(String balance) {

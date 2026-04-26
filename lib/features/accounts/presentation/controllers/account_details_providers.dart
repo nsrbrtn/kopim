@@ -61,6 +61,23 @@ Stream<List<TransactionEntity>> accountTransactions(Ref ref, String accountId) {
 }
 
 @riverpod
+class AccountTransactionsVisibleMonthsController
+    extends _$AccountTransactionsVisibleMonthsController {
+  @override
+  int build(String accountId) {
+    return 1;
+  }
+
+  void showMore() {
+    state += 1;
+  }
+
+  void reset() {
+    state = 1;
+  }
+}
+
+@riverpod
 class AccountDetailsPeriodController extends _$AccountDetailsPeriodController {
   @override
   AccountDetailsPeriod build(String accountId) {
@@ -78,6 +95,14 @@ DateTimeRange accountDetailsPeriodRange(Ref ref, String accountId) {
     accountDetailsPeriodControllerProvider(accountId),
   );
   return _resolvePeriodRange(DateTime.now(), period);
+}
+
+@riverpod
+DateTimeRange accountTransactionsVisibleRange(Ref ref, String accountId) {
+  final int visibleMonths = ref.watch(
+    accountTransactionsVisibleMonthsControllerProvider(accountId),
+  );
+  return _resolveVisibleHistoryRange(DateTime.now(), visibleMonths);
 }
 
 @riverpod
@@ -118,6 +143,27 @@ AsyncValue<AccountTransactionSummary> accountTransactionSummary(
 }
 
 @riverpod
+AsyncValue<bool> canShowMoreAccountTransactions(Ref ref, String accountId) {
+  final AccountTransactionsFilter filter = ref.watch(
+    accountTransactionsFilterControllerProvider(accountId),
+  );
+  if (filter.dateRange != null) {
+    return const AsyncValue<bool>.data(false);
+  }
+  final DateTimeRange visibleRange = ref.watch(
+    accountTransactionsVisibleRangeProvider(accountId),
+  );
+  return ref
+      .watch(accountTransactionsMatchingFiltersProvider(accountId))
+      .whenData(
+        (List<TransactionEntity> transactions) => transactions.any(
+          (TransactionEntity transaction) =>
+              _isBefore(transaction.date, visibleRange.start),
+        ),
+      );
+}
+
+@riverpod
 class AccountTransactionsFilterController
     extends _$AccountTransactionsFilterController {
   @override
@@ -150,8 +196,30 @@ AsyncValue<List<TransactionEntity>> filteredAccountTransactions(
   final AccountTransactionsFilter filter = ref.watch(
     accountTransactionsFilterControllerProvider(accountId),
   );
-  final DateTimeRange range = ref.watch(
-    accountDetailsPeriodRangeProvider(accountId),
+  final DateTimeRange visibleRange = ref.watch(
+    accountTransactionsVisibleRangeProvider(accountId),
+  );
+  final DateTimeRange effectiveRange = filter.dateRange ?? visibleRange;
+  final AsyncValue<List<TransactionEntity>> transactionsAsync = ref.watch(
+    accountTransactionsMatchingFiltersProvider(accountId),
+  );
+
+  return transactionsAsync.whenData((List<TransactionEntity> transactions) {
+    final Iterable<TransactionEntity> filtered = transactions.where(
+      (TransactionEntity transaction) =>
+          _matchesDateRange(transaction.date, effectiveRange),
+    );
+    return List<TransactionEntity>.unmodifiable(filtered.toList());
+  });
+}
+
+@riverpod
+AsyncValue<List<TransactionEntity>> accountTransactionsMatchingFilters(
+  Ref ref,
+  String accountId,
+) {
+  final AccountTransactionsFilter filter = ref.watch(
+    accountTransactionsFilterControllerProvider(accountId),
   );
   final AsyncValue<List<TransactionEntity>> transactionsAsync = ref.watch(
     accountTransactionsProvider(accountId),
@@ -163,14 +231,18 @@ AsyncValue<List<TransactionEntity>> filteredAccountTransactions(
     ) {
       final bool matchesType =
           filter.type == null || transaction.type == filter.type!.storageValue;
-      final DateTime endInclusive = range.end.add(const Duration(days: 1));
-      final bool matchesDate =
-          !_isBefore(transaction.date, range.start) &&
-          transaction.date.isBefore(endInclusive);
-      return matchesType && matchesDate;
+      final bool matchesCategory =
+          filter.categoryId == null ||
+          transaction.categoryId == filter.categoryId;
+      return matchesType && matchesCategory;
     });
     return List<TransactionEntity>.unmodifiable(filtered.toList());
   });
+}
+
+bool _matchesDateRange(DateTime value, DateTimeRange range) {
+  final DateTime endExclusive = range.end.add(const Duration(days: 1));
+  return !_isBefore(value, range.start) && value.isBefore(endExclusive);
 }
 
 bool _isBefore(DateTime value, DateTime reference) {
@@ -230,4 +302,13 @@ DateTimeRange _resolvePeriodRange(DateTime now, AccountDetailsPeriod period) {
     case AccountDetailsPeriod.year:
       return DateTimeRange(start: DateTime(date.year, 1, 1), end: date);
   }
+}
+
+DateTimeRange _resolveVisibleHistoryRange(DateTime now, int visibleMonths) {
+  final DateTime date = DateTime(now.year, now.month, now.day);
+  final int normalizedVisibleMonths = visibleMonths < 1 ? 1 : visibleMonths;
+  return DateTimeRange(
+    start: DateTime(date.year, date.month - normalizedVisibleMonths + 1, 1),
+    end: date,
+  );
 }

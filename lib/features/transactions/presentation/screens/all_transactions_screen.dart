@@ -2,11 +2,14 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show StreamProviderFamily;
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/core/formatting/currency_symbols.dart';
 import 'package:kopim/core/money/money.dart';
 import 'package:kopim/core/domain/icons/phosphor_icon_descriptor.dart';
+import 'package:kopim/core/widgets/animated_fab.dart';
+import 'package:kopim/core/widgets/kopim_glass_fab.dart';
 import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
@@ -20,6 +23,7 @@ import 'package:kopim/features/transactions/presentation/controllers/all_transac
 import 'package:kopim/features/transactions/presentation/controllers/all_transactions_filter_controller.dart';
 import 'package:kopim/features/credits/presentation/widgets/grouped_credit_payment_tile.dart';
 import 'package:kopim/features/transactions/presentation/widgets/transaction_editor.dart';
+import 'package:kopim/features/transactions/presentation/add_transaction_screen.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
 import 'package:kopim/features/transactions/presentation/controllers/transaction_draft_controller.dart';
 import 'package:kopim/features/transactions/presentation/widgets/transaction_form_open_container.dart';
@@ -103,6 +107,7 @@ class AllTransactionsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(title: Text(strings.allTransactionsTitle)),
+      floatingActionButton: const _AddTransactionButton(),
       body: SafeArea(
         child: Column(
           children: <Widget>[
@@ -145,6 +150,25 @@ class AllTransactionsScreen extends ConsumerWidget {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _AddTransactionButton extends StatelessWidget {
+  const _AddTransactionButton();
+
+  @override
+  Widget build(BuildContext context) {
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+    return AnimatedFab(
+      child: KopimGlassFab(
+        icon: Icon(Icons.add, color: colorScheme.primary),
+        foregroundColor: colorScheme.primary,
+        onPressed: () => context.push(
+          AddTransactionScreen.routeName,
+          extra: const TransactionFormArgs(),
         ),
       ),
     );

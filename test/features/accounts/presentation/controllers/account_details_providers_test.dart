@@ -61,7 +61,10 @@ void main() {
       final ProviderContainer container = ProviderContainer(
         // ignore: always_specify_types, the Override type is internal to riverpod
         overrides: [
-          accountDetailsPeriodRangeProvider.overrideWith((Ref ref, String id) {
+          accountTransactionsVisibleRangeProvider.overrideWith((
+            Ref ref,
+            String id,
+          ) {
             expect(id, accountId);
             return DateTimeRange(
               start: now.subtract(const Duration(days: 10)),
@@ -99,6 +102,90 @@ void main() {
       final List<TransactionEntity> result = await completer.future;
 
       expect(result, <TransactionEntity>[transactions.first]);
+    });
+
+    test('reveals one more month of history after showMore', () async {
+      final ProviderContainer container = ProviderContainer();
+      addTearDown(container.dispose);
+
+      final DateTimeRange initialRange = container.read(
+        accountTransactionsVisibleRangeProvider(accountId),
+      );
+
+      container
+          .read(
+            accountTransactionsVisibleMonthsControllerProvider(
+              accountId,
+            ).notifier,
+          )
+          .showMore();
+
+      final DateTimeRange expandedRange = container.read(
+        accountTransactionsVisibleRangeProvider(accountId),
+      );
+
+      expect(initialRange.end, expandedRange.end);
+      expect(expandedRange.start.isBefore(initialRange.start), isTrue);
+    });
+  });
+
+  group('canShowMoreAccountTransactionsProvider', () {
+    test('returns true when there are older matching transactions', () async {
+      final List<TransactionEntity> transactions = <TransactionEntity>[
+        transaction(
+          't1',
+          type: TransactionType.expense,
+          amount: 80,
+          date: now,
+          categoryId: 'cat-2',
+        ),
+        transaction(
+          't2',
+          type: TransactionType.income,
+          amount: 75,
+          date: now.subtract(const Duration(days: 45)),
+          categoryId: 'cat-1',
+        ),
+      ];
+
+      final ProviderContainer container = ProviderContainer(
+        // ignore: always_specify_types, the Override type is internal to riverpod
+        overrides: [
+          accountTransactionsVisibleRangeProvider.overrideWith((
+            Ref ref,
+            String id,
+          ) {
+            expect(id, accountId);
+            return DateTimeRange(
+              start: now.subtract(const Duration(days: 10)),
+              end: now,
+            );
+          }),
+          accountTransactionsProvider.overrideWith((Ref ref, String id) {
+            expect(id, accountId);
+            return Stream<List<TransactionEntity>>.value(transactions);
+          }),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final Completer<bool> completer = Completer<bool>();
+      final ProviderSubscription<AsyncValue<bool>> listener = container.listen(
+        canShowMoreAccountTransactionsProvider(accountId),
+        (AsyncValue<bool>? previous, AsyncValue<bool> next) {
+          next.whenData((bool value) {
+            if (!completer.isCompleted) {
+              completer.complete(value);
+            }
+          });
+        },
+        fireImmediately: true,
+      );
+      addTearDown(listener.close);
+
+      final bool result = await completer.future;
+
+      expect(result, isTrue);
     });
   });
 

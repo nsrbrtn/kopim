@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter/services.dart';
 
 import 'package:kopim/l10n/app_localizations.dart';
 import 'core/application/app_startup_controller.dart';
@@ -22,15 +23,17 @@ import 'core/widgets/notification_fallback_listener.dart';
 import 'core/widgets/web_responsive_wrapper.dart';
 
 Future<void> main() async {
-  await runKopimApp(flavor: KopimAppFlavor.firebaseDev);
+  await runKopimApp();
 }
 
 enum KopimAppFlavor { offline, firebaseDev, firebaseProd }
 
-Future<void> runKopimApp({required KopimAppFlavor flavor}) async {
+Future<void> runKopimApp({KopimAppFlavor? flavor}) async {
   WidgetsFlutterBinding.ensureInitialized();
   ensureRecurringWorkSchedulerLinked();
-  switch (flavor) {
+  final KopimAppFlavor resolvedFlavor =
+      flavor ?? _resolveFlavorFromPlatformFlavor();
+  switch (resolvedFlavor) {
     case KopimAppFlavor.offline:
       AppRuntimeConfig.configure(AppRuntimeFlavor.offline);
       break;
@@ -71,6 +74,21 @@ Future<void> runKopimApp({required KopimAppFlavor flavor}) async {
   );
 
   runApp(UncontrolledProviderScope(container: container, child: const MyApp()));
+}
+
+KopimAppFlavor _resolveFlavorFromPlatformFlavor() {
+  switch (appFlavor) {
+    case 'offline':
+      return KopimAppFlavor.offline;
+    case 'prod':
+      return KopimAppFlavor.firebaseProd;
+    case 'dev':
+    case 'stage':
+    case null:
+      return KopimAppFlavor.firebaseDev;
+  }
+
+  return KopimAppFlavor.firebaseDev;
 }
 
 /// Отправляет события провайдеров в DevTools Timeline, чтобы понять,

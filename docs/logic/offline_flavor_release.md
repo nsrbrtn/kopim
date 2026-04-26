@@ -4,6 +4,7 @@
 
 - Для первой публикации введен отдельный `offline` flavor с entrypoint `lib/main_offline.dart`.
 - Публичный package name первого релиза в Google Play: `kopim.app`.
+- Android offline flavor теперь дополнительно определяет runtime по `appFlavor`, поэтому сборка `--flavor offline` не должна случайно поднять Firebase-контур даже если кто-то забудет `--target lib/main_offline.dart`.
 - Offline runtime работает без обязательной инициализации Firebase и без рабочего AI/cloud sync контура.
 - Пользователь получает постоянный локальный `user id` формата `local-...`, который сохраняется между перезапусками.
 - В offline runtime:
@@ -11,6 +12,7 @@
   - online sync по умолчанию выключен и недоступен для включения;
   - `ИИ-ассистент` убран из нижней навигации и показан в меню как teaser `доступно позже`;
   - logout скрыт из профиля.
+- Android display name для offline flavor теперь тоже `Kopim`, без суффикса `Offline`.
 
 ## Зачем
 
@@ -36,6 +38,12 @@ flutter build apk --flavor offline --target lib/main_offline.dart
    - есть пояснение про будущую подписку;
    - кнопка выхода отсутствует.
 6. Перезапустить приложение и убедиться, что локальный пользователь сохраняется, а данные остаются доступными.
+
+Для загрузки в `Google Play` используй `AAB`:
+
+```bash
+flutter build appbundle --flavor offline --release --target lib/main_offline.dart
+```
 
 ## Google Play / policy notes
 

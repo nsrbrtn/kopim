@@ -162,6 +162,113 @@ final class AccountTransactionsFamily extends $Family
   String toString() => r'accountTransactionsProvider';
 }
 
+@ProviderFor(AccountTransactionsVisibleMonthsController)
+const accountTransactionsVisibleMonthsControllerProvider =
+    AccountTransactionsVisibleMonthsControllerFamily._();
+
+final class AccountTransactionsVisibleMonthsControllerProvider
+    extends $NotifierProvider<AccountTransactionsVisibleMonthsController, int> {
+  const AccountTransactionsVisibleMonthsControllerProvider._({
+    required AccountTransactionsVisibleMonthsControllerFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'accountTransactionsVisibleMonthsControllerProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() =>
+      _$accountTransactionsVisibleMonthsControllerHash();
+
+  @override
+  String toString() {
+    return r'accountTransactionsVisibleMonthsControllerProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  AccountTransactionsVisibleMonthsController create() =>
+      AccountTransactionsVisibleMonthsController();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(int value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<int>(value),
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is AccountTransactionsVisibleMonthsControllerProvider &&
+        other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$accountTransactionsVisibleMonthsControllerHash() =>
+    r'0b904eeafc40d62d6d95a080866da0a02e40773b';
+
+final class AccountTransactionsVisibleMonthsControllerFamily extends $Family
+    with
+        $ClassFamilyOverride<
+          AccountTransactionsVisibleMonthsController,
+          int,
+          int,
+          int,
+          String
+        > {
+  const AccountTransactionsVisibleMonthsControllerFamily._()
+    : super(
+        retry: null,
+        name: r'accountTransactionsVisibleMonthsControllerProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  AccountTransactionsVisibleMonthsControllerProvider call(String accountId) =>
+      AccountTransactionsVisibleMonthsControllerProvider._(
+        argument: accountId,
+        from: this,
+      );
+
+  @override
+  String toString() => r'accountTransactionsVisibleMonthsControllerProvider';
+}
+
+abstract class _$AccountTransactionsVisibleMonthsController
+    extends $Notifier<int> {
+  late final _$args = ref.$arg as String;
+  String get accountId => _$args;
+
+  int build(String accountId);
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final created = build(_$args);
+    final ref = this.ref as $Ref<int, int>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<int, int>,
+              int,
+              Object?,
+              Object?
+            >;
+    element.handleValue(ref, created);
+  }
+}
+
 @ProviderFor(AccountDetailsPeriodController)
 const accountDetailsPeriodControllerProvider =
     AccountDetailsPeriodControllerFamily._();
@@ -351,6 +458,95 @@ final class AccountDetailsPeriodRangeFamily extends $Family
 
   @override
   String toString() => r'accountDetailsPeriodRangeProvider';
+}
+
+@ProviderFor(accountTransactionsVisibleRange)
+const accountTransactionsVisibleRangeProvider =
+    AccountTransactionsVisibleRangeFamily._();
+
+final class AccountTransactionsVisibleRangeProvider
+    extends
+        $FunctionalProvider<
+          DateTimeRange<DateTime>,
+          DateTimeRange<DateTime>,
+          DateTimeRange<DateTime>
+        >
+    with $Provider<DateTimeRange<DateTime>> {
+  const AccountTransactionsVisibleRangeProvider._({
+    required AccountTransactionsVisibleRangeFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'accountTransactionsVisibleRangeProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$accountTransactionsVisibleRangeHash();
+
+  @override
+  String toString() {
+    return r'accountTransactionsVisibleRangeProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $ProviderElement<DateTimeRange<DateTime>> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  DateTimeRange<DateTime> create(Ref ref) {
+    final argument = this.argument as String;
+    return accountTransactionsVisibleRange(ref, argument);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(DateTimeRange<DateTime> value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<DateTimeRange<DateTime>>(value),
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is AccountTransactionsVisibleRangeProvider &&
+        other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$accountTransactionsVisibleRangeHash() =>
+    r'24d68245b551edd490c39b7f1d7f5704d47d1507';
+
+final class AccountTransactionsVisibleRangeFamily extends $Family
+    with $FunctionalFamilyOverride<DateTimeRange<DateTime>, String> {
+  const AccountTransactionsVisibleRangeFamily._()
+    : super(
+        retry: null,
+        name: r'accountTransactionsVisibleRangeProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  AccountTransactionsVisibleRangeProvider call(String accountId) =>
+      AccountTransactionsVisibleRangeProvider._(
+        argument: accountId,
+        from: this,
+      );
+
+  @override
+  String toString() => r'accountTransactionsVisibleRangeProvider';
 }
 
 @ProviderFor(accountTopCategoryTotals)
@@ -577,6 +773,91 @@ final class AccountTransactionSummaryFamily extends $Family
   String toString() => r'accountTransactionSummaryProvider';
 }
 
+@ProviderFor(canShowMoreAccountTransactions)
+const canShowMoreAccountTransactionsProvider =
+    CanShowMoreAccountTransactionsFamily._();
+
+final class CanShowMoreAccountTransactionsProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<bool>,
+          AsyncValue<bool>,
+          AsyncValue<bool>
+        >
+    with $Provider<AsyncValue<bool>> {
+  const CanShowMoreAccountTransactionsProvider._({
+    required CanShowMoreAccountTransactionsFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'canShowMoreAccountTransactionsProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$canShowMoreAccountTransactionsHash();
+
+  @override
+  String toString() {
+    return r'canShowMoreAccountTransactionsProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $ProviderElement<AsyncValue<bool>> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  AsyncValue<bool> create(Ref ref) {
+    final argument = this.argument as String;
+    return canShowMoreAccountTransactions(ref, argument);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(AsyncValue<bool> value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<AsyncValue<bool>>(value),
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is CanShowMoreAccountTransactionsProvider &&
+        other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$canShowMoreAccountTransactionsHash() =>
+    r'b76cf05e0848cf65ffc75c547b41cbe74a568e16';
+
+final class CanShowMoreAccountTransactionsFamily extends $Family
+    with $FunctionalFamilyOverride<AsyncValue<bool>, String> {
+  const CanShowMoreAccountTransactionsFamily._()
+    : super(
+        retry: null,
+        name: r'canShowMoreAccountTransactionsProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  CanShowMoreAccountTransactionsProvider call(String accountId) =>
+      CanShowMoreAccountTransactionsProvider._(argument: accountId, from: this);
+
+  @override
+  String toString() => r'canShowMoreAccountTransactionsProvider';
+}
+
 @ProviderFor(AccountTransactionsFilterController)
 const accountTransactionsFilterControllerProvider =
     AccountTransactionsFilterControllerFamily._();
@@ -757,7 +1038,7 @@ final class FilteredAccountTransactionsProvider
 }
 
 String _$filteredAccountTransactionsHash() =>
-    r'5203f04188eb0d7a1c4da3e0a1e346132aa8ba70';
+    r'5e344f3e67ebb95232963ae37f4f94d219179ba3';
 
 final class FilteredAccountTransactionsFamily extends $Family
     with
@@ -776,4 +1057,97 @@ final class FilteredAccountTransactionsFamily extends $Family
 
   @override
   String toString() => r'filteredAccountTransactionsProvider';
+}
+
+@ProviderFor(accountTransactionsMatchingFilters)
+const accountTransactionsMatchingFiltersProvider =
+    AccountTransactionsMatchingFiltersFamily._();
+
+final class AccountTransactionsMatchingFiltersProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<TransactionEntity>>,
+          AsyncValue<List<TransactionEntity>>,
+          AsyncValue<List<TransactionEntity>>
+        >
+    with $Provider<AsyncValue<List<TransactionEntity>>> {
+  const AccountTransactionsMatchingFiltersProvider._({
+    required AccountTransactionsMatchingFiltersFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'accountTransactionsMatchingFiltersProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() =>
+      _$accountTransactionsMatchingFiltersHash();
+
+  @override
+  String toString() {
+    return r'accountTransactionsMatchingFiltersProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $ProviderElement<AsyncValue<List<TransactionEntity>>> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  AsyncValue<List<TransactionEntity>> create(Ref ref) {
+    final argument = this.argument as String;
+    return accountTransactionsMatchingFilters(ref, argument);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(AsyncValue<List<TransactionEntity>> value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<AsyncValue<List<TransactionEntity>>>(
+        value,
+      ),
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is AccountTransactionsMatchingFiltersProvider &&
+        other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$accountTransactionsMatchingFiltersHash() =>
+    r'578fcd7c4d369fa0bfa641dc04c4b376991e6b7f';
+
+final class AccountTransactionsMatchingFiltersFamily extends $Family
+    with
+        $FunctionalFamilyOverride<AsyncValue<List<TransactionEntity>>, String> {
+  const AccountTransactionsMatchingFiltersFamily._()
+    : super(
+        retry: null,
+        name: r'accountTransactionsMatchingFiltersProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  AccountTransactionsMatchingFiltersProvider call(String accountId) =>
+      AccountTransactionsMatchingFiltersProvider._(
+        argument: accountId,
+        from: this,
+      );
+
+  @override
+  String toString() => r'accountTransactionsMatchingFiltersProvider';
 }

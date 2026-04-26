@@ -83,7 +83,6 @@ android {
         create("offline") {
             dimension = "env"
             applicationId = "kopim.app"
-            versionNameSuffix = "-offline"
         }
         create("stage") {
             dimension = "env"

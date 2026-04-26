@@ -2972,6 +2972,10 @@
   "@addAccountTypeCreditCard": {
     "description": "Option label for credit card accounts"
   },
+  "addAccountTypeCredit": "Loan",
+  "@addAccountTypeCredit": {
+    "description": "Option label for loan accounts"
+  },
   "addAccountTypeInvestment": "Investment account",
   "@addAccountTypeInvestment": {
     "description": "Option label for investment accounts"
@@ -3183,6 +3187,14 @@
   "accountDetailsTransactionsEmpty": "No transactions for this account yet.",
   "@accountDetailsTransactionsEmpty": {
     "description": "Empty state shown when the account has no transactions"
+  },
+  "accountDetailsTransactionsVisibleRangeEmpty": "No transactions in the visible period yet.",
+  "@accountDetailsTransactionsVisibleRangeEmpty": {
+    "description": "Empty state shown when the account has older transactions outside the current visible history window"
+  },
+  "accountDetailsTransactionsShowMore": "Show more",
+  "@accountDetailsTransactionsShowMore": {
+    "description": "Button label that reveals older account transactions month by month"
   },
   "accountDetailsBalanceLabel": "Balance: {balance}",
   "@accountDetailsBalanceLabel": {

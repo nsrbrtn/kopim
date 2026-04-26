@@ -4074,6 +4074,12 @@ abstract class AppLocalizations {
   /// **'Credit card'**
   String get addAccountTypeCreditCard;
 
+  /// Option label for loan accounts
+  ///
+  /// In en, this message translates to:
+  /// **'Loan'**
+  String get addAccountTypeCredit;
+
   /// Option label for investment accounts
   ///
   /// In en, this message translates to:
@@ -4361,6 +4367,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No transactions for this account yet.'**
   String get accountDetailsTransactionsEmpty;
+
+  /// Empty state shown when the account has older transactions outside the current visible history window
+  ///
+  /// In en, this message translates to:
+  /// **'No transactions in the visible period yet.'**
+  String get accountDetailsTransactionsVisibleRangeEmpty;
+
+  /// Button label that reveals older account transactions month by month
+  ///
+  /// In en, this message translates to:
+  /// **'Show more'**
+  String get accountDetailsTransactionsShowMore;
 
   /// Label showing the current balance
   ///

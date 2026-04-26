@@ -141,6 +141,9 @@ class _AccountDetailsScreenState extends ConsumerState<AccountDetailsScreen> {
                 accountTransactionsAsync = ref.watch(
                   accountTransactionsProvider(account.id),
                 );
+                final AsyncValue<bool> canShowMoreTransactionsAsync = ref.watch(
+                  canShowMoreAccountTransactionsProvider(account.id),
+                );
 
                 final List<_BalanceChartPoint> balancePoints =
                     _buildBalanceChartPoints(
@@ -178,11 +181,6 @@ class _AccountDetailsScreenState extends ConsumerState<AccountDetailsScreen> {
                     message: strings.accountDetailsError(error.toString()),
                   ),
                   data: (List<TransactionEntity> transactions) {
-                    if (transactions.isEmpty) {
-                      return _EmptyMessage(
-                        message: strings.accountDetailsTransactionsEmpty,
-                      );
-                    }
                     final GroupTransactionsByDayUseCase groupUseCase = ref
                         .watch(groupTransactionsByDayUseCaseProvider);
                     final List<DaySection> sections = groupUseCase(
@@ -195,6 +193,23 @@ class _AccountDetailsScreenState extends ConsumerState<AccountDetailsScreen> {
                       currencyScale: account.currencyScale ?? 2,
                       categoriesById: categoriesById,
                       accountId: account.id,
+                      emptyMessage:
+                          transactions.isEmpty &&
+                              (canShowMoreTransactionsAsync.asData?.value ??
+                                  false)
+                          ? strings.accountDetailsTransactionsVisibleRangeEmpty
+                          : strings.accountDetailsTransactionsEmpty,
+                      showMoreLabel: strings.accountDetailsTransactionsShowMore,
+                      onShowMore:
+                          canShowMoreTransactionsAsync.asData?.value ?? false
+                          ? () => ref
+                                .read(
+                                  accountTransactionsVisibleMonthsControllerProvider(
+                                    account.id,
+                                  ).notifier,
+                                )
+                                .showMore()
+                          : null,
                     );
                   },
                 );
@@ -845,6 +860,9 @@ class _AccountTransactionsSection extends StatelessWidget {
     required this.currencyScale,
     required this.categoriesById,
     required this.accountId,
+    required this.emptyMessage,
+    required this.showMoreLabel,
+    this.onShowMore,
   });
 
   final List<DaySection> sections;
@@ -853,6 +871,9 @@ class _AccountTransactionsSection extends StatelessWidget {
   final int currencyScale;
   final Map<String, Category> categoriesById;
   final String accountId;
+  final String emptyMessage;
+  final String showMoreLabel;
+  final VoidCallback? onShowMore;
 
   @override
   Widget build(BuildContext context) {
@@ -886,44 +907,57 @@ class _AccountTransactionsSection extends StatelessWidget {
         const SizedBox(height: 12),
         _AccountTransactionsFilterBar(accountId: accountId, strings: strings),
         const SizedBox(height: 12),
-        for (int i = 0; i < sections.length; i++) ...<Widget>[
-          if (i > 0) const SizedBox(height: 20),
-          _DayHeader(
-            title: _formatSectionTitle(
-              date: sections[i].date,
-              today: today,
-              yesterday: yesterday,
-              dateFormat: headerFormat,
-              strings: strings,
+        if (sections.isEmpty)
+          _EmptyMessage(message: emptyMessage)
+        else
+          for (int i = 0; i < sections.length; i++) ...<Widget>[
+            if (i > 0) const SizedBox(height: 20),
+            _DayHeader(
+              title: _formatSectionTitle(
+                date: sections[i].date,
+                today: today,
+                yesterday: yesterday,
+                dateFormat: headerFormat,
+                strings: strings,
+              ),
+              netAmount: _calculateDayNet(sections[i].items),
+              moneyFormat: moneyFormat,
+              currencyScale: currencyScale,
             ),
-            netAmount: _calculateDayNet(sections[i].items),
-            moneyFormat: moneyFormat,
-            currencyScale: currencyScale,
+            const SizedBox(height: 8),
+            for (final FeedItem item in sections[i].items)
+              item.when(
+                transaction: (TransactionEntity transaction) =>
+                    AccountTransactionListTile(
+                      transaction: transaction,
+                      category: categoriesById[transaction.categoryId],
+                      currencySymbol: currencySymbol,
+                      strings: strings,
+                    ),
+                groupedCreditPayment:
+                    (
+                      String groupId,
+                      String creditId,
+                      List<TransactionEntity> transactions,
+                      Money totalOutflow,
+                      DateTime date,
+                      String? note,
+                    ) => GroupedCreditPaymentTile(
+                      group: item as GroupedCreditPaymentFeedItem,
+                      currencySymbol: currencySymbol,
+                      strings: strings,
+                    ),
+              ),
+          ],
+        if (onShowMore != null) ...<Widget>[
+          const SizedBox(height: 16),
+          Center(
+            child: OutlinedButton.icon(
+              onPressed: onShowMore,
+              icon: const Icon(Icons.expand_more_rounded),
+              label: Text(showMoreLabel),
+            ),
           ),
-          const SizedBox(height: 8),
-          for (final FeedItem item in sections[i].items)
-            item.when(
-              transaction: (TransactionEntity transaction) =>
-                  AccountTransactionListTile(
-                    transaction: transaction,
-                    category: categoriesById[transaction.categoryId],
-                    currencySymbol: currencySymbol,
-                    strings: strings,
-                  ),
-              groupedCreditPayment:
-                  (
-                    String groupId,
-                    String creditId,
-                    List<TransactionEntity> transactions,
-                    Money totalOutflow,
-                    DateTime date,
-                    String? note,
-                  ) => GroupedCreditPaymentTile(
-                    group: item as GroupedCreditPaymentFeedItem,
-                    currencySymbol: currencySymbol,
-                    strings: strings,
-                  ),
-            ),
         ],
       ],
     );

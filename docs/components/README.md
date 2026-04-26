@@ -52,6 +52,7 @@
 - [BudgetsEmptyState](BudgetsEmptyState.md) — пустое состояние экрана бюджетов
 - [BudgetsErrorState](BudgetsErrorState.md) — состояние ошибки экрана бюджетов
 - [SettingsSkeleton](SettingsSkeleton.md) — скелетон загрузки настроек
+- [AllTransactionsScreen](AllTransactionsScreen.md) — экран полного списка транзакций с фильтрами и FAB создания
 - [AccountDetailsScreen](AccountDetailsScreen.md) — экран обзора счёта с периодами, графиком и транзакциями
 
 ### UI-элементы настроек

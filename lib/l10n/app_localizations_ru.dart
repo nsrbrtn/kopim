@@ -2331,6 +2331,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get addAccountTypeCreditCard => 'Кредитная карта';
 
   @override
+  String get addAccountTypeCredit => 'Кредит';
+
+  @override
   String get addAccountTypeInvestment => 'Инвестиционный счёт';
 
   @override
@@ -2488,6 +2491,13 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get accountDetailsTransactionsEmpty =>
       'Для этого счёта ещё нет транзакций.';
+
+  @override
+  String get accountDetailsTransactionsVisibleRangeEmpty =>
+      'В показанном периоде транзакций нет.';
+
+  @override
+  String get accountDetailsTransactionsShowMore => 'Показать больше';
 
   @override
   String accountDetailsBalanceLabel(String balance) {

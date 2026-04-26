@@ -2972,6 +2972,10 @@
   "@addAccountTypeCreditCard": {
     "description": "Вариант типа счёта для кредитной карты"
   },
+  "addAccountTypeCredit": "Кредит",
+  "@addAccountTypeCredit": {
+    "description": "Вариант типа счёта для кредита"
+  },
   "addAccountTypeInvestment": "Инвестиционный счёт",
   "@addAccountTypeInvestment": {
     "description": "Вариант типа счёта для инвестиционного счёта"
@@ -3183,6 +3187,14 @@
   "accountDetailsTransactionsEmpty": "Для этого счёта ещё нет транзакций.",
   "@accountDetailsTransactionsEmpty": {
     "description": "Пустое состояние списка транзакций"
+  },
+  "accountDetailsTransactionsVisibleRangeEmpty": "В показанном периоде транзакций нет.",
+  "@accountDetailsTransactionsVisibleRangeEmpty": {
+    "description": "Пустое состояние списка, когда у счёта есть более старые транзакции вне текущего окна"
+  },
+  "accountDetailsTransactionsShowMore": "Показать больше",
+  "@accountDetailsTransactionsShowMore": {
+    "description": "Кнопка для раскрытия более глубокой истории транзакций счёта"
   },
   "accountDetailsBalanceLabel": "Баланс: {balance}",
   "@accountDetailsBalanceLabel": {

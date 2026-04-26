@@ -1113,6 +1113,7 @@ class _AccountCard extends ConsumerWidget {
                       labelStyle: labelStyle,
                       balanceStyle: balanceStyle,
                       summaryTextStyle: summaryTextStyle,
+                      summaryHeaderStyle: summaryHeaderStyle,
                       accountIcon: accountIcon,
                       contentColor: carouselContentColor,
                       palette: palette,
@@ -1453,7 +1454,7 @@ String _localizedAccountTypeLabel({
     case kAccountTypeSavings:
       return strings.accountTypeOther;
     case kAccountTypeCredit:
-      return strings.addAccountTypeCreditCard;
+      return strings.addAccountTypeCredit;
     case kAccountTypeDebt:
     case kAccountTypeLegacyUnknown:
     case '':
@@ -1470,6 +1471,7 @@ class _CreditCardAccountContent extends ConsumerWidget {
     required this.labelStyle,
     required this.balanceStyle,
     required this.summaryTextStyle,
+    required this.summaryHeaderStyle,
     required this.accountIcon,
     required this.contentColor,
     required this.palette,
@@ -1482,6 +1484,7 @@ class _CreditCardAccountContent extends ConsumerWidget {
   final TextStyle labelStyle;
   final TextStyle balanceStyle;
   final TextStyle summaryTextStyle;
+  final TextStyle summaryHeaderStyle;
   final PhosphorIconData? accountIcon;
   final Color contentColor;
   final _AccountCardPalette palette;
@@ -1505,12 +1508,16 @@ class _CreditCardAccountContent extends ConsumerWidget {
       balance: account.balanceAmount,
     );
     final MoneyAmount debt = calculateCreditCardDebt(account.balanceAmount);
+    final String accountTypeLabel = _localizedAccountTypeLabel(
+      strings: strings,
+      rawType: account.type,
+    );
     final TextStyle debtStyle = summaryTextStyle.copyWith(
-      color: palette.support,
+      color: summaryTextStyle.color,
       fontWeight: FontWeight.w500,
     );
-    final TextStyle limitLabelStyle = labelStyle.copyWith(
-      color: palette.support,
+    final TextStyle limitLabelStyle = summaryHeaderStyle.copyWith(
+      color: summaryHeaderStyle.color,
     );
 
     return Column(
@@ -1518,16 +1525,30 @@ class _CreditCardAccountContent extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             if (accountIcon != null)
               _AccountIconBadge(icon: accountIcon!, color: contentColor),
             if (accountIcon != null) const SizedBox(width: 8),
             Expanded(
-              child: Text(
-                account.name,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: labelStyle,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  Text(
+                    account.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: labelStyle,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    accountTypeLabel,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: summaryHeaderStyle,
+                  ),
+                ],
               ),
             ),
           ],
@@ -1590,6 +1611,10 @@ class _CreditCardContent extends ConsumerWidget {
     final List<CreditPaymentScheduleEntity> schedule =
         ref.watch(creditScheduleProvider(credit.id)).asData?.value ??
         const <CreditPaymentScheduleEntity>[];
+    final String accountTypeLabel = _localizedAccountTypeLabel(
+      strings: strings,
+      rawType: account.type,
+    );
     final DateTime nextPaymentDate = _calculateNextPaymentDate(
       credit,
       schedule,
@@ -1608,20 +1633,34 @@ class _CreditCardContent extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             Expanded(
               child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   if (accountIcon != null)
                     _AccountIconBadge(icon: accountIcon!, color: contentColor),
                   if (accountIcon != null) const SizedBox(width: 8),
                   Expanded(
-                    child: Text(
-                      account.name,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: labelStyle,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        Text(
+                          account.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: labelStyle,
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          accountTypeLabel,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: summaryHeaderStyle,
+                        ),
+                      ],
                     ),
                   ),
                 ],
