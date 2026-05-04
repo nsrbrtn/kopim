@@ -1906,14 +1906,14 @@ class _TopCategoriesTotalsRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Wrap(
-      spacing: 8,
-      runSpacing: 8,
+      spacing: 20,
+      runSpacing: 12,
       children: <Widget>[
-        _TotalBadge(
+        _TotalMetricText(
           label: AppLocalizations.of(context)!.analyticsSummaryExpenseLabel,
           amount: currencyFormat.format(expenseTotal),
         ),
-        _TotalBadge(
+        _TotalMetricText(
           label: AppLocalizations.of(context)!.analyticsSummaryIncomeLabel,
           amount: currencyFormat.format(incomeTotal),
         ),
@@ -1922,8 +1922,8 @@ class _TopCategoriesTotalsRow extends StatelessWidget {
   }
 }
 
-class _TotalBadge extends StatelessWidget {
-  const _TotalBadge({required this.label, required this.amount});
+class _TotalMetricText extends StatelessWidget {
+  const _TotalMetricText({required this.label, required this.amount});
 
   final String label;
   final String amount;
@@ -1932,18 +1932,24 @@ class _TotalBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
     final ColorScheme colors = theme.colorScheme;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: colors.surfaceContainerHigh,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Text(
-        '$label: $amount',
-        style: theme.textTheme.labelMedium?.copyWith(
-          color: colors.onSurface,
-          fontWeight: FontWeight.w500,
-        ),
+    return RichText(
+      text: TextSpan(
+        children: <InlineSpan>[
+          TextSpan(
+            text: '$label: ',
+            style: theme.textTheme.labelLarge?.copyWith(
+              color: colors.onSurfaceVariant,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          TextSpan(
+            text: amount,
+            style: theme.textTheme.titleSmall?.copyWith(
+              color: colors.onSurface,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
       ),
     );
   }

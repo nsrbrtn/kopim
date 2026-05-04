@@ -63,6 +63,7 @@ Firebase в проекте живет на двух уровнях:
 - `firebase_options_dev.dart` и `firebase_options_prod.dart` не редактируем вручную;
 - их генерирует `flutterfire configure`;
 - platform-файлы тоже не правим вручную.
+- Внутри приложения, в `Меню -> О приложении`, строка версии теперь показывает flavor-метку для Android cloud flavors: `1.0.1 (3) [dev]`, `1.0.1 (3) [stage]`, `1.0.1 (3) [prod]`.
 
 ## Шаг 0. Подготовка
 

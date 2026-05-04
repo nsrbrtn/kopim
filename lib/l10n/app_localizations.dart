@@ -4800,6 +4800,70 @@ abstract class AppLocalizations {
   /// **'{category} limit'**
   String budgetCategoryLimitLabel(String category);
 
+  /// Helper text explaining that only expense categories appear in the budget form.
+  ///
+  /// In en, this message translates to:
+  /// **'Only expense categories are shown for expense limits.'**
+  String get budgetCategoryExpensesOnlyHint;
+
+  /// Helper text explaining the inclusive parent-category limit.
+  ///
+  /// In en, this message translates to:
+  /// **'The overall limit includes the parent category itself and all of its subcategories.'**
+  String get budgetCategoryEnvelopeInfo;
+
+  /// Helper text explaining how subcategory limits work inside the parent limit.
+  ///
+  /// In en, this message translates to:
+  /// **'Subcategories are allocated within that overall limit.'**
+  String get budgetCategorySubcategoryInfo;
+
+  /// Helper text describing direct parent-category spending.
+  ///
+  /// In en, this message translates to:
+  /// **'No subcategory covers expenses recorded directly into the parent category.'**
+  String get budgetCategoryNoSubcategoryInfo;
+
+  /// Label for the remaining amount that stays on the parent category itself.
+  ///
+  /// In en, this message translates to:
+  /// **'No subcategory'**
+  String get budgetCategoryNoSubcategoryLabel;
+
+  /// Title for the validation card when child limits exceed the parent limit.
+  ///
+  /// In en, this message translates to:
+  /// **'Subcategory limits exceed the overall limit'**
+  String get budgetCategoryConflictTitle;
+
+  /// Detailed validation message when child limits exceed the parent limit.
+  ///
+  /// In en, this message translates to:
+  /// **'{parentCategory} has an overall limit of {parentAmount}, but its subcategories already total {childAmount}. The overall limit must be at least the sum of its subcategories.'**
+  String budgetCategoryConflictMessage(
+    String parentCategory,
+    String parentAmount,
+    String childAmount,
+  );
+
+  /// Action that raises the parent limit to the sum of the child limits.
+  ///
+  /// In en, this message translates to:
+  /// **'Increase overall limit'**
+  String get budgetCategoryConflictIncreaseAction;
+
+  /// Action that proportionally reduces the child-category limits.
+  ///
+  /// In en, this message translates to:
+  /// **'Reduce subcategories'**
+  String get budgetCategoryConflictReduceChildrenAction;
+
+  /// Short helper text shown under the parent-child limit conflict card.
+  ///
+  /// In en, this message translates to:
+  /// **'You can increase the overall limit or automatically reduce the subcategory limits proportionally.'**
+  String get budgetCategoryConflictDirectHint;
+
   /// Label for the selected accounts chips
   ///
   /// In en, this message translates to:
@@ -4851,8 +4915,14 @@ abstract class AppLocalizations {
   /// Validation error shown when category allocations are invalid.
   ///
   /// In en, this message translates to:
-  /// **'Enter a positive limit for each selected category.'**
+  /// **'Select an expense category and enter a limit for it or for one of its parent categories.'**
   String get budgetErrorInvalidCategoryAmount;
+
+  /// Validation error shown when child-category limits exceed the parent-category limit.
+  ///
+  /// In en, this message translates to:
+  /// **'The sum of subcategory limits cannot exceed the parent category\'s overall limit.'**
+  String get budgetErrorCategoryChildrenExceedParent;
 
   /// Validation error shown when the title is missing
   ///

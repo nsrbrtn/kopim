@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:kopim/core/config/app_config.dart';
+import 'package:kopim/core/config/app_version_label.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
 final FutureProvider<PackageInfo> packageInfoProvider =
@@ -80,7 +82,11 @@ class AboutAppScreen extends ConsumerWidget {
       ),
     );
     final String versionLabel = packageInfoAsync.maybeWhen(
-      data: (PackageInfo info) => '${info.version} (${info.buildNumber})',
+      data: (PackageInfo info) => formatAppVersionLabel(
+        version: info.version,
+        buildNumber: info.buildNumber,
+        flavor: appFlavor,
+      ),
       orElse: () => '—',
     );
 

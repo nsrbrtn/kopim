@@ -95,15 +95,27 @@ class AnalyticsDonutChart extends StatelessWidget {
                           Widget chart = SizedBox(
                             width: size,
                             height: size,
-                            child: CustomPaint(
-                              size: Size.square(size),
-                              painter: _DonutChartPainter(
-                                segments: segments,
-                                ringGeometries: ringGeometries,
-                                backgroundColor: backgroundColor,
-                                selectedIndex: highlightIndex,
-                                animationProgress: animationProgress,
-                              ),
+                            child: Stack(
+                              children: <Widget>[
+                                CustomPaint(
+                                  size: Size.square(size),
+                                  painter: _DonutChartPainter(
+                                    segments: segments,
+                                    ringGeometries: ringGeometries,
+                                    backgroundColor: backgroundColor,
+                                    selectedIndex: highlightIndex,
+                                    animationProgress: animationProgress,
+                                  ),
+                                ),
+                                ..._buildSegmentIcons(
+                                  context: context,
+                                  size: size,
+                                  segments: segments,
+                                  ringGeometries: ringGeometries,
+                                  selectedIndex: highlightIndex,
+                                  animationProgress: animationProgress,
+                                ),
+                              ],
                             ),
                           );
 
@@ -111,9 +123,8 @@ class AnalyticsDonutChart extends StatelessWidget {
                             chart = GestureDetector(
                               behavior: HitTestBehavior.opaque,
                               onTapUp: (TapUpDetails details) {
-                                final Offset local = details.localPosition;
                                 final int? hit = _hitTestSegment(
-                                  position: local,
+                                  position: details.localPosition,
                                   segments: segments,
                                   canvasSize: size,
                                   ringGeometries: ringGeometries,
@@ -134,6 +145,90 @@ class AnalyticsDonutChart extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  List<Widget> _buildSegmentIcons({
+    required BuildContext context,
+    required double size,
+    required List<_DonutSegment> segments,
+    required List<_RingGeometry> ringGeometries,
+    required int? selectedIndex,
+    required double animationProgress,
+  }) {
+    final ThemeData theme = Theme.of(context);
+    final ColorScheme colors = theme.colorScheme;
+    final double progress = animationProgress.clamp(0.0, 1.0);
+    final double center = size / 2;
+    final List<Widget> overlays = <Widget>[];
+
+    for (int index = 0; index < segments.length; index++) {
+      final _DonutSegment segment = segments[index];
+      final IconData? icon = segment.icon;
+      if (icon == null) {
+        continue;
+      }
+      final _RingGeometry geometry = ringGeometries[index];
+      final bool isSelected =
+          selectedIndex != null && segment.sourceIndex == selectedIndex;
+      final bool isDimmed = selectedIndex != null && !isSelected;
+      final double iconDiameter = (geometry.strokeWidth * 0.88).clamp(
+        18.0,
+        28.0,
+      );
+      final double iconRadius = geometry.radius;
+      final double angle =
+          segment.startAngle + (segment.sweepAngle * progress) / 2;
+      final Offset position = Offset(
+        center + math.cos(angle) * iconRadius,
+        center + math.sin(angle) * iconRadius,
+      );
+
+      overlays.add(
+        Positioned(
+          left: position.dx - iconDiameter / 2,
+          top: position.dy - iconDiameter / 2,
+          child: IgnorePointer(
+            child: AnimatedOpacity(
+              duration: const Duration(milliseconds: 180),
+              opacity: isDimmed ? 0.45 : 1,
+              child: Container(
+                width: iconDiameter,
+                height: iconDiameter,
+                decoration: BoxDecoration(
+                  color: colors.surface.withValues(
+                    alpha: isSelected ? 0.98 : 0.9,
+                  ),
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: segment.color.withValues(
+                      alpha: isSelected ? 1 : 0.5,
+                    ),
+                    width: isSelected ? 1.6 : 1,
+                  ),
+                  boxShadow: <BoxShadow>[
+                    BoxShadow(
+                      color: colors.shadow.withValues(alpha: 0.08),
+                      blurRadius: isSelected ? 10 : 6,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                alignment: Alignment.center,
+                child: Icon(
+                  icon,
+                  size: iconDiameter * 0.5,
+                  color: isDimmed
+                      ? segment.color.withValues(alpha: 0.6)
+                      : segment.color,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return overlays;
   }
 
   double _resolveSize(BoxConstraints constraints) {
@@ -194,6 +289,7 @@ class AnalyticsDonutChart extends StatelessWidget {
           key: item.key,
           sourceIndex: index,
           color: item.color,
+          icon: item.icon,
           startAngle: _kDonutStartAngle,
           sweepAngle: sweep,
         ),
@@ -435,6 +531,7 @@ class _DonutSegment {
     required this.key,
     required this.sourceIndex,
     required this.color,
+    required this.icon,
     required this.startAngle,
     required this.sweepAngle,
   });
@@ -442,6 +539,7 @@ class _DonutSegment {
   final String key;
   final int sourceIndex;
   final Color color;
+  final IconData? icon;
   final double startAngle;
   final double sweepAngle;
 }

@@ -67,6 +67,13 @@ void main() {
       createdAt: DateTime(2024, 1, 1),
       updatedAt: DateTime(2024, 1, 1),
     ),
+    Category(
+      id: 'salary',
+      name: 'Salary',
+      type: 'income',
+      createdAt: DateTime(2024, 1, 1),
+      updatedAt: DateTime(2024, 1, 1),
+    ),
   ];
 
   Widget buildTestApp({
@@ -101,7 +108,7 @@ void main() {
     );
   }
 
-  testWidgets('create screen shows category tree and category limits section', (
+  testWidgets('create screen shows unified category limits section', (
     WidgetTester tester,
   ) async {
     await tester.pumpWidget(buildTestApp());
@@ -110,29 +117,40 @@ void main() {
     expect(find.text('Название бюджета'), findsOneWidget);
     expect(find.text('Период'), findsOneWidget);
     expect(find.text('Область'), findsOneWidget);
-    expect(find.text('Категории'), findsOneWidget);
-    expect(find.text('Лимиты по категориям'), findsNothing);
+    expect(find.text('Лимиты по категориям'), findsOneWidget);
+    expect(
+      find.text(
+        'Для лимитов расходов показываются только расходные категории.',
+      ),
+      findsOneWidget,
+    );
     expect(find.text('Удалить'), findsNothing);
 
     final double titleY = tester.getTopLeft(find.text('Название бюджета')).dy;
     final double periodY = tester.getTopLeft(find.text('Период')).dy;
     final double scopeY = tester.getTopLeft(find.text('Область')).dy;
-    final double categoriesY = tester.getTopLeft(find.text('Категории')).dy;
-
-    expect(titleY, lessThan(periodY));
-    expect(periodY, lessThan(scopeY));
-    expect(scopeY, lessThan(categoriesY));
-    expect(find.text('Food'), findsOneWidget);
-    expect(find.text('Groceries'), findsOneWidget);
-
-    await tester.tap(find.text('Food'));
-    await tester.pump();
-
-    expect(find.text('Лимиты по категориям'), findsOneWidget);
     final double limitsY = tester
         .getTopLeft(find.text('Лимиты по категориям'))
         .dy;
-    expect(categoriesY, lessThan(limitsY));
+
+    expect(titleY, lessThan(periodY));
+    expect(periodY, lessThan(scopeY));
+    expect(scopeY, lessThan(limitsY));
+    expect(find.text('Food'), findsOneWidget);
+    expect(find.text('Groceries'), findsOneWidget);
+    expect(find.text('Salary'), findsNothing);
+
+    await tester.ensureVisible(find.text('Food'));
+    await tester.tap(find.text('Food'), warnIfMissed: false);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Лимит для Food'), findsOneWidget);
+    expect(
+      find.text(
+        'Общий лимит включает саму категорию и все подкатегории.',
+      ),
+      findsOneWidget,
+    );
   });
 
   testWidgets('edit screen shows delete button', (WidgetTester tester) async {

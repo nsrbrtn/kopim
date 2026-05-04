@@ -136,4 +136,47 @@ void main() {
 
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('AnalyticsDonutChart показывает иконки категорий', (
+    WidgetTester tester,
+  ) async {
+    final List<AnalyticsChartItem> items = <AnalyticsChartItem>[
+      const AnalyticsChartItem(
+        key: 'food',
+        title: 'Food',
+        amount: 70,
+        color: Colors.orange,
+        icon: Icons.restaurant,
+      ),
+      const AnalyticsChartItem(
+        key: 'transport',
+        title: 'Transport',
+        amount: 30,
+        color: Colors.blue,
+        icon: Icons.directions_car,
+      ),
+    ];
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Center(
+            child: SizedBox(
+              width: 320,
+              height: 320,
+              child: AnalyticsDonutChart(
+                items: items,
+                backgroundColor: Colors.grey.shade200,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    expect(find.byIcon(Icons.restaurant), findsOneWidget);
+    expect(find.byIcon(Icons.directions_car), findsOneWidget);
+  });
 }

@@ -1,15 +1,20 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import 'package:kopim/core/di/injectors.dart';
+import 'package:kopim/core/formatting/currency_symbols.dart';
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/core/widgets/kopim_dropdown_field.dart';
 import 'package:kopim/core/widgets/kopim_text_field.dart';
 import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/budgets/domain/entities/budget.dart';
+import 'package:kopim/features/budgets/domain/entities/budget_category_allocation.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_period.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_scope.dart';
+import 'package:kopim/features/budgets/domain/services/budget_category_scope.dart';
 import 'package:kopim/features/budgets/presentation/controllers/budget_form_controller.dart';
 import 'package:kopim/features/budgets/presentation/controllers/budgets_providers.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
@@ -96,8 +101,9 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
     final AsyncValue<List<AccountEntity>> accountsAsync = ref.watch(
       budgetAccountsStreamProvider,
     );
-    final List<Category> categories =
-        categoriesAsync.value ?? const <Category>[];
+    final List<Category> categories = _expenseCategories(
+      categoriesAsync.value ?? const <Category>[],
+    );
     _syncCategoryAmountControllers(state);
 
     if (state.scope == BudgetScope.byCategory && categories.isNotEmpty) {
@@ -185,13 +191,21 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
               const SizedBox(height: 16),
               if (state.scope == BudgetScope.byCategory)
                 categoriesAsync.when(
-                  data: (List<Category> items) => _BudgetCategoryTreeSelector(
-                    title: strings.budgetCategoriesLabel,
-                    categories: items,
-                    selectedCategoryIds: state.categoryIds,
-                    onToggle: (Category category) =>
-                        controller.toggleCategory(category, items),
-                  ),
+                  data: (List<Category> items) {
+                    final List<Category> expenseItems = _expenseCategories(
+                      items,
+                    );
+                    return _BudgetCategoryBudgetSection(
+                      state: state,
+                      categories: expenseItems,
+                      controllers: _categoryAmountControllers,
+                      placeholder: strings.budgetAmountPlaceholder,
+                      localeName: strings.localeName,
+                      onToggle: (Category category) =>
+                          controller.toggleCategory(category, expenseItems),
+                      onChanged: controller.setCategoryAmount,
+                    );
+                  },
                   loading: () => const Center(
                     child: Padding(
                       padding: EdgeInsets.symmetric(vertical: 16),
@@ -203,16 +217,6 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
                     child: Text(error.toString()),
                   ),
                 ),
-              if (state.scope == BudgetScope.byCategory) ...<Widget>[
-                const SizedBox(height: 16),
-                _BudgetCategoryAllocationSection(
-                  categories: categories,
-                  selectedCategoryIds: state.categoryIds,
-                  controllers: _categoryAmountControllers,
-                  placeholder: strings.budgetAmountPlaceholder,
-                  onChanged: controller.setCategoryAmount,
-                ),
-              ],
               if (state.scope == BudgetScope.byAccount)
                 accountsAsync.when(
                   data: (List<AccountEntity> accounts) {
@@ -248,11 +252,34 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
               if (state.errorMessage != null)
                 Padding(
                   padding: const EdgeInsets.only(top: 16),
+                  child: state.categoryLimitConflict != null
+                      ? _BudgetCategoryConflictCard(
+                          strings: strings,
+                          categories: categories,
+                          conflict: state.categoryLimitConflict!,
+                          onIncreaseParent: () =>
+                              controller.increaseParentLimitToChildSum(
+                                state.categoryLimitConflict!.parentCategoryId,
+                              ),
+                          onRebalanceChildren: () =>
+                              controller.rebalanceChildLimitsToParent(
+                                state.categoryLimitConflict!.parentCategoryId,
+                              ),
+                        )
+                      : Text(
+                          _mapError(strings, state.errorMessage!),
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.error,
+                          ),
+                        ),
+                ),
+              if (state.errorMessage != null &&
+                  state.categoryLimitConflict != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 12),
                   child: Text(
-                    _mapError(strings, state.errorMessage!),
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.error,
-                    ),
+                    strings.budgetCategoryConflictDirectHint,
+                    style: Theme.of(context).textTheme.bodySmall,
                   ),
                 ),
               const SizedBox(height: 24),
@@ -386,6 +413,8 @@ class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
         return strings.budgetErrorInvalidAmount;
       case 'missing_title':
         return strings.budgetErrorMissingTitle;
+      case 'budget_subcategory_sum_exceeds_parent':
+        return strings.budgetErrorCategoryChildrenExceedParent;
       case 'invalid_category_amount':
         return strings.budgetErrorInvalidCategoryAmount;
       default:
@@ -513,94 +542,411 @@ class _SelectionChips<T> extends StatelessWidget {
   }
 }
 
-class _BudgetCategoryTreeSelector extends StatelessWidget {
-  const _BudgetCategoryTreeSelector({
-    required this.title,
+class _BudgetCategoryBudgetSection extends StatelessWidget {
+  const _BudgetCategoryBudgetSection({
+    required this.state,
     required this.categories,
-    required this.selectedCategoryIds,
+    required this.controllers,
+    required this.placeholder,
+    required this.localeName,
     required this.onToggle,
+    required this.onChanged,
   });
 
-  final String title;
+  final BudgetFormState state;
   final List<Category> categories;
-  final List<String> selectedCategoryIds;
+  final Map<String, TextEditingController> controllers;
+  final String placeholder;
+  final String localeName;
   final void Function(Category category) onToggle;
+  final void Function(String categoryId, String value) onChanged;
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations strings = AppLocalizations.of(context)!;
     final ThemeData theme = Theme.of(context);
+    final int scale = state.initialBudget?.amountScale ?? 2;
     final List<_BudgetCategoryTreeItem> items = _buildBudgetCategoryTreeItems(
       categories,
     );
+    final Budget draftBudget = _buildDraftBudget(
+      state: state,
+      categories: categories,
+      scale: scale,
+    );
+    final NumberFormat currencyFormat = resolveCurrencyFormat(
+      locale: localeName,
+      decimalDigits: scale,
+    );
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        Text(title, style: theme.textTheme.titleSmall),
+        Text(
+          strings.budgetCategoryAllocationsTitle,
+          style: theme.textTheme.titleSmall,
+        ),
         const SizedBox(height: 8),
+        _BudgetCategoryGuidance(strings: strings),
+        const SizedBox(height: 12),
         for (final _BudgetCategoryTreeItem item in items) ...<Widget>[
-          _BudgetCategoryTreeTile(
+          _BudgetCategoryBudgetTile(
             item: item,
-            selected: selectedCategoryIds.contains(item.category.id),
+            selected: state.categoryIds.contains(item.category.id),
+            controller: controllers[item.category.id],
+            placeholder: placeholder,
+            amountLabel: strings.budgetCategoryLimitLabel(item.category.name),
+            summary: _buildCategorySummary(
+              strings: strings,
+              budget: draftBudget,
+              categories: categories,
+              categoryId: item.category.id,
+              currencyFormat: currencyFormat,
+            ),
             onTap: () => onToggle(item.category),
+            onChanged: (String value) => onChanged(item.category.id, value),
           ),
           const SizedBox(height: 10),
         ],
       ],
     );
   }
+
+  Budget _buildDraftBudget({
+    required BudgetFormState state,
+    required List<Category> categories,
+    required int scale,
+  }) {
+    final Set<String> normalizedIds = expandBudgetCategoryIds(
+      categoryIds: state.categoryIds,
+      categories: categories,
+    );
+    final List<BudgetCategoryAllocation> allocations =
+        <BudgetCategoryAllocation>[];
+    for (final String categoryId in state.categoryIds) {
+      final MoneyAmount? amount = _parseDraftAmount(
+        state.categoryAmounts[categoryId],
+        scale,
+      );
+      if (amount == null || amount.minor <= BigInt.zero) {
+        continue;
+      }
+      allocations.add(
+        BudgetCategoryAllocation(
+          categoryId: categoryId,
+          limitMinor: amount.minor,
+          limitScale: amount.scale,
+        ),
+      );
+    }
+    return Budget(
+      id: state.initialBudget?.id ?? '',
+      title: state.title,
+      period: state.period,
+      startDate: state.startDate,
+      endDate: state.endDate,
+      amountMinor: BigInt.zero,
+      amountScale: scale,
+      scope: BudgetScope.byCategory,
+      categories: normalizedIds.toList(growable: false),
+      accounts: state.accountIds,
+      categoryAllocations: allocations,
+      createdAt: state.initialBudget?.createdAt ?? state.startDate,
+      updatedAt: state.initialBudget?.updatedAt ?? state.startDate,
+    );
+  }
+
+  String? _buildCategorySummary({
+    required AppLocalizations strings,
+    required Budget budget,
+    required List<Category> categories,
+    required String categoryId,
+    required NumberFormat currencyFormat,
+  }) {
+    final Map<String, BudgetCategoryAllocation> allocations =
+        resolveBudgetAllocationMap(budget);
+    final BudgetCategoryAllocation? allocation = allocations[categoryId];
+    if (allocation == null) {
+      return null;
+    }
+    final List<String> childAllocationIds =
+        resolveBudgetExplicitChildCategoryIds(
+          budget: budget,
+          categories: categories,
+          parentCategoryId: categoryId,
+        );
+    final BigInt childLimitMinor = childAllocationIds.fold<BigInt>(
+      BigInt.zero,
+      (BigInt sum, String childId) =>
+          sum + (allocations[childId]?.limitMinor ?? BigInt.zero),
+    );
+    final BigInt remainingMinor = allocation.limitMinor - childLimitMinor;
+    final bool hasVisibleChildren = categories.any(
+      (Category item) => item.parentId == categoryId,
+    );
+    if (!hasVisibleChildren) {
+      return null;
+    }
+    return '${strings.budgetCategoryNoSubcategoryLabel}: '
+        '${currencyFormat.format(MoneyAmount(minor: remainingMinor > BigInt.zero ? remainingMinor : BigInt.zero, scale: allocation.limitScale).toDouble())}';
+  }
+
+  MoneyAmount? _parseDraftAmount(String? raw, int scale) {
+    if (raw == null) {
+      return null;
+    }
+    final String sanitized = raw
+        .trim()
+        .replaceAll(RegExp(r'\s+'), '')
+        .replaceAll(',', '.');
+    if (sanitized.isEmpty) {
+      return null;
+    }
+    return tryParseMoneyAmount(input: sanitized, scale: scale);
+  }
 }
 
-class _BudgetCategoryAllocationSection extends StatelessWidget {
-  const _BudgetCategoryAllocationSection({
-    required this.categories,
-    required this.selectedCategoryIds,
-    required this.controllers,
-    required this.placeholder,
-    required this.onChanged,
-  });
+class _BudgetCategoryGuidance extends StatelessWidget {
+  const _BudgetCategoryGuidance({required this.strings});
 
-  final List<Category> categories;
-  final List<String> selectedCategoryIds;
-  final Map<String, TextEditingController> controllers;
-  final String placeholder;
-  final void Function(String categoryId, String value) onChanged;
+  final AppLocalizations strings;
 
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
-    final List<_BudgetCategoryTreeItem> selectedItems =
-        _buildBudgetCategoryTreeItems(categories)
-            .where(
-              (_BudgetCategoryTreeItem item) =>
-                  selectedCategoryIds.contains(item.category.id),
-            )
-            .toList(growable: false);
-    if (selectedItems.isEmpty) {
-      return const SizedBox.shrink();
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        Text('Лимиты по категориям', style: theme.textTheme.titleSmall),
-        const SizedBox(height: 8),
-        for (final _BudgetCategoryTreeItem item in selectedItems) ...<Widget>[
-          Padding(
-            padding: EdgeInsets.only(left: item.depth * 16),
-            child: Text(item.category.name, style: theme.textTheme.labelMedium),
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Text(
+            strings.budgetCategoryExpensesOnlyHint,
+            style: theme.textTheme.labelLarge,
           ),
           const SizedBox(height: 8),
-          Padding(
-            padding: EdgeInsets.only(left: item.depth * 16),
-            child: _BudgetAmountField(
-              controller: controllers[item.category.id]!,
-              placeholder: placeholder,
-              onChanged: (String value) => onChanged(item.category.id, value),
+          Text(
+            strings.budgetCategoryEnvelopeInfo,
+            style: theme.textTheme.bodyMedium,
+          ),
+          const SizedBox(height: 6),
+          Text(
+            strings.budgetCategorySubcategoryInfo,
+            style: theme.textTheme.bodyMedium,
+          ),
+          const SizedBox(height: 6),
+          Text(
+            strings.budgetCategoryNoSubcategoryInfo,
+            style: theme.textTheme.bodyMedium,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _BudgetCategoryBudgetTile extends StatelessWidget {
+  const _BudgetCategoryBudgetTile({
+    required this.item,
+    required this.selected,
+    required this.placeholder,
+    required this.amountLabel,
+    required this.onTap,
+    required this.onChanged,
+    this.controller,
+    this.summary,
+  });
+
+  final _BudgetCategoryTreeItem item;
+  final bool selected;
+  final TextEditingController? controller;
+  final String placeholder;
+  final String amountLabel;
+  final VoidCallback onTap;
+  final ValueChanged<String> onChanged;
+  final String? summary;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final Category category = item.category;
+    final bool isChild = item.depth > 0;
+    final CategoryColorStyle colorStyle = resolveCategoryColorStyle(
+      category.color,
+    );
+    final IconData iconData =
+        resolvePhosphorIconData(category.icon) ?? Icons.category_outlined;
+    final double leftPadding = 12 + (item.depth * 18);
+
+    return Material(
+      color: selected
+          ? theme.colorScheme.primary.withValues(alpha: 0.08)
+          : theme.colorScheme.surfaceContainerHigh,
+      borderRadius: BorderRadius.circular(20),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(20),
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(leftPadding, 12, 12, 12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Row(
+                children: <Widget>[
+                  Container(
+                    width: isChild ? 40 : 46,
+                    height: isChild ? 40 : 46,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: colorStyle.backgroundGradient == null
+                          ? colorStyle.sampleColor ??
+                                theme.colorScheme.surfaceContainerHighest
+                          : null,
+                      gradient: colorStyle.backgroundGradient,
+                    ),
+                    alignment: Alignment.center,
+                    child: Icon(
+                      iconData,
+                      color: theme.colorScheme.onPrimary,
+                      size: isChild ? 18 : 22,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      category.name,
+                      style:
+                          (isChild
+                                  ? theme.textTheme.labelMedium
+                                  : theme.textTheme.labelLarge)
+                              ?.copyWith(color: theme.colorScheme.onSurface),
+                    ),
+                  ),
+                  Icon(
+                    selected
+                        ? Icons.check_circle_rounded
+                        : Icons.radio_button_unchecked_rounded,
+                    color: selected
+                        ? theme.colorScheme.primary
+                        : theme.colorScheme.outline,
+                  ),
+                ],
+              ),
+              if (selected) ...<Widget>[
+                const SizedBox(height: 12),
+                Text(amountLabel, style: theme.textTheme.labelMedium),
+                const SizedBox(height: 8),
+                Padding(
+                  padding: const EdgeInsets.only(right: 4),
+                  child: _BudgetAmountField(
+                    controller: controller!,
+                    placeholder: placeholder,
+                    onChanged: onChanged,
+                  ),
+                ),
+                if (summary != null) ...<Widget>[
+                  const SizedBox(height: 8),
+                  Text(summary!, style: theme.textTheme.bodySmall),
+                ],
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _BudgetCategoryConflictCard extends StatelessWidget {
+  const _BudgetCategoryConflictCard({
+    required this.strings,
+    required this.categories,
+    required this.conflict,
+    required this.onIncreaseParent,
+    required this.onRebalanceChildren,
+  });
+
+  final AppLocalizations strings;
+  final List<Category> categories;
+  final BudgetCategoryLimitConflict conflict;
+  final VoidCallback onIncreaseParent;
+  final VoidCallback onRebalanceChildren;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final NumberFormat currencyFormat = resolveCurrencyFormat(
+      locale: strings.localeName,
+      decimalDigits: conflict.scale,
+    );
+    final Category? parent = categories.firstWhereOrNull(
+      (Category item) => item.id == conflict.parentCategoryId,
+    );
+    final String parentName = parent?.name ?? strings.budgetCategoriesLabel;
+    final String parentAmount = currencyFormat.format(
+      MoneyAmount(
+        minor: conflict.parentLimitMinor,
+        scale: conflict.scale,
+      ).toDouble(),
+    );
+    final String childSumAmount = currencyFormat.format(
+      MoneyAmount(
+        minor: conflict.childLimitSumMinor,
+        scale: conflict.scale,
+      ).toDouble(),
+    );
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.errorContainer.withValues(alpha: 0.45),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: theme.colorScheme.error.withValues(alpha: 0.4),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Text(
+            strings.budgetCategoryConflictTitle,
+            style: theme.textTheme.titleSmall?.copyWith(
+              color: theme.colorScheme.onErrorContainer,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            strings.budgetCategoryConflictMessage(
+              parentName,
+              parentAmount,
+              childSumAmount,
+            ),
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onErrorContainer,
             ),
           ),
           const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: <Widget>[
+              FilledButton.tonal(
+                onPressed: onIncreaseParent,
+                child: Text(strings.budgetCategoryConflictIncreaseAction),
+              ),
+              OutlinedButton(
+                onPressed: onRebalanceChildren,
+                child: Text(strings.budgetCategoryConflictReduceChildrenAction),
+              ),
+            ],
+          ),
         ],
-      ],
+      ),
     );
   }
 }
@@ -651,82 +997,10 @@ List<_BudgetCategoryTreeItem> _buildBudgetCategoryTreeItems(
   return items;
 }
 
-class _BudgetCategoryTreeTile extends StatelessWidget {
-  const _BudgetCategoryTreeTile({
-    required this.item,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final _BudgetCategoryTreeItem item;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
-    final Category category = item.category;
-    final bool isChild = item.depth > 0;
-    final CategoryColorStyle colorStyle = resolveCategoryColorStyle(
-      category.color,
-    );
-    final IconData iconData =
-        resolvePhosphorIconData(category.icon) ?? Icons.category_outlined;
-    final double leftPadding = 12 + (item.depth * 18);
-
-    return Material(
-      color: selected
-          ? theme.colorScheme.primary.withValues(alpha: 0.08)
-          : theme.colorScheme.surfaceContainerHigh,
-      borderRadius: BorderRadius.circular(20),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(20),
-        child: Padding(
-          padding: EdgeInsets.fromLTRB(leftPadding, 12, 12, 12),
-          child: Row(
-            children: <Widget>[
-              Container(
-                width: isChild ? 40 : 46,
-                height: isChild ? 40 : 46,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: colorStyle.backgroundGradient == null
-                      ? colorStyle.sampleColor ??
-                            theme.colorScheme.surfaceContainerHighest
-                      : null,
-                  gradient: colorStyle.backgroundGradient,
-                ),
-                alignment: Alignment.center,
-                child: Icon(
-                  iconData,
-                  color: theme.colorScheme.onPrimary,
-                  size: isChild ? 18 : 22,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  category.name,
-                  style:
-                      (isChild
-                              ? theme.textTheme.labelMedium
-                              : theme.textTheme.labelLarge)
-                          ?.copyWith(color: theme.colorScheme.onSurface),
-                ),
-              ),
-              Icon(
-                selected
-                    ? Icons.check_circle_rounded
-                    : Icons.radio_button_unchecked_rounded,
-                color: selected
-                    ? theme.colorScheme.primary
-                    : theme.colorScheme.outline,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+List<Category> _expenseCategories(List<Category> categories) {
+  return categories
+      .where(
+        (Category category) => category.type.trim().toLowerCase() == 'expense',
+      )
+      .toList(growable: false);
 }

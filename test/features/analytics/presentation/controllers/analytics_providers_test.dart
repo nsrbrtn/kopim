@@ -925,6 +925,134 @@ void main() {
   );
 
   test(
+    'analyticsTransferTransactionsProvider исключает платежи по кредиту из переводов',
+    () async {
+      final DateTime now = DateTime.now();
+      final DateTime txDate = now.subtract(const Duration(hours: 2));
+      final DateTime rangeStart = DateUtils.dateOnly(now);
+      final DateTime rangeEnd = rangeStart;
+
+      final TransactionEntity creditPayment = TransactionEntity(
+        id: 'payment-1',
+        accountId: 'cash-1',
+        transferAccountId: 'credit-1',
+        amountMinor: BigInt.from(5000),
+        amountScale: 2,
+        date: txDate,
+        type: TransactionType.transfer.storageValue,
+        createdAt: txDate,
+        updatedAt: txDate,
+      );
+      final TransactionEntity regularTransfer = TransactionEntity(
+        id: 'transfer-1',
+        accountId: 'cash-1',
+        transferAccountId: 'cash-2',
+        amountMinor: BigInt.from(1200),
+        amountScale: 2,
+        date: txDate,
+        type: TransactionType.transfer.storageValue,
+        createdAt: txDate,
+        updatedAt: txDate,
+      );
+
+      final _FakeTransactionRepository transactionRepository =
+          _FakeTransactionRepository(
+            Stream<List<TransactionEntity>>.value(<TransactionEntity>[
+              creditPayment,
+              regularTransfer,
+            ]),
+            openingBalances: <String, MoneyAmount>{
+              'cash-1': MoneyAmount(minor: BigInt.zero, scale: 2),
+              'cash-2': MoneyAmount(minor: BigInt.zero, scale: 2),
+              'credit-1': MoneyAmount(minor: BigInt.zero, scale: 2),
+            },
+          );
+
+      final _StaticAccountRepository accountRepository =
+          _StaticAccountRepository(<AccountEntity>[
+            AccountEntity(
+              id: 'cash-1',
+              name: 'Cash 1',
+              balanceMinor: BigInt.zero,
+              openingBalanceMinor: BigInt.zero,
+              currency: 'USD',
+              currencyScale: 2,
+              type: 'checking',
+              createdAt: now,
+              updatedAt: now,
+            ),
+            AccountEntity(
+              id: 'cash-2',
+              name: 'Cash 2',
+              balanceMinor: BigInt.zero,
+              openingBalanceMinor: BigInt.zero,
+              currency: 'USD',
+              currencyScale: 2,
+              type: 'cash',
+              createdAt: now,
+              updatedAt: now,
+            ),
+            AccountEntity(
+              id: 'credit-1',
+              name: 'Loan',
+              balanceMinor: BigInt.zero,
+              openingBalanceMinor: BigInt.zero,
+              currency: 'USD',
+              currencyScale: 2,
+              type: 'credit',
+              createdAt: now,
+              updatedAt: now,
+            ),
+          ]);
+
+      final ProviderContainer container = ProviderContainer(
+        overrides: <Override>[
+          transactionRepositoryProvider.overrideWithValue(
+            transactionRepository,
+          ),
+          watchAccountsUseCaseProvider.overrideWithValue(
+            WatchAccountsUseCase(accountRepository),
+          ),
+          analyticsFilterControllerProvider.overrideWith(
+            () => _FakeAnalyticsFilterController(
+              AnalyticsFilterState(
+                dateRange: DateTimeRange(start: rangeStart, end: rangeEnd),
+              ),
+            ),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final Completer<List<TransactionEntity>> result =
+          Completer<List<TransactionEntity>>();
+      final ProviderSubscription<AsyncValue<List<TransactionEntity>>> sub =
+          container.listen<AsyncValue<List<TransactionEntity>>>(
+            analyticsTransferTransactionsProvider,
+            (
+              AsyncValue<List<TransactionEntity>>? previous,
+              AsyncValue<List<TransactionEntity>> next,
+            ) {
+              next.whenData((List<TransactionEntity> value) {
+                if (!result.isCompleted) {
+                  result.complete(value);
+                }
+              });
+            },
+            fireImmediately: true,
+          );
+      addTearDown(sub.close);
+
+      final List<TransactionEntity> transfers = await result.future.timeout(
+        const Duration(seconds: 2),
+      );
+
+      expect(transfers, hasLength(1));
+      expect(transfers.single.id, regularTransfer.id);
+    },
+  );
+
+  test(
     'credit payment учитывается как outflow при credit типе счета',
     () async {
       final DateTime now = DateTime.now();

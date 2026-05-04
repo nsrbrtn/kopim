@@ -1328,6 +1328,19 @@ class _CategoryDropdownFieldState
     });
   }
 
+  void _handleShowAllTap({required bool showExpandedBranch}) {
+    if (showExpandedBranch) {
+      ref.read(_formProvider.notifier).updateCategory(null);
+      FocusManager.instance.primaryFocus?.unfocus();
+      setState(() {
+        _expandedParentId = null;
+        _showAll = true;
+      });
+      return;
+    }
+    _toggleShowAll();
+  }
+
   void _handleCategoryTap({
     required Category category,
     required bool isParent,
@@ -1473,6 +1486,26 @@ class _CategoryDropdownFieldState
     return result;
   }
 
+  List<Category> _expandedCategoryBranch({
+    required CategoryHierarchy hierarchy,
+    required String expandedParentId,
+  }) {
+    final List<Category> result = <Category>[];
+    final Category? parent = hierarchy.byId[expandedParentId];
+    if (parent == null) {
+      return result;
+    }
+
+    result.add(parent);
+    for (final String childId in hierarchy.childrenOf(expandedParentId)) {
+      final Category? child = hierarchy.byId[childId];
+      if (child != null) {
+        result.add(child);
+      }
+    }
+    return result;
+  }
+
   @override
   Widget build(BuildContext context) {
     return widget.categoriesAsync.when(
@@ -1611,18 +1644,26 @@ class _CategoryDropdownFieldState
               )
               .toList(growable: false)
         : const <Category>[];
+    final bool allowExpand = !hasQuery;
+    final bool showExpandedBranch = allowExpand && _expandedParentId != null;
     final bool showOtherCategories = hasQuery
         ? searchResults.isNotEmpty
         : (_showAll && otherParents.isNotEmpty);
-    final bool allowExpand = !hasQuery;
-    final List<Category> headerDisplayCategories = allowExpand
+    final List<Category> headerDisplayCategories = showExpandedBranch
+        ? _expandedCategoryBranch(
+            hierarchy: hierarchy,
+            expandedParentId: _expandedParentId!,
+          )
+        : allowExpand
         ? _expandParentsWithChildren(
             parents: headerCategories,
             hierarchy: hierarchy,
             expandedParentId: _expandedParentId,
           )
         : headerCategories;
-    final List<Category> otherDisplayCategories = hasQuery
+    final List<Category> otherDisplayCategories = showExpandedBranch
+        ? const <Category>[]
+        : hasQuery
         ? searchResults
         : showOtherCategories
         ? _expandParentsWithChildren(
@@ -1638,7 +1679,9 @@ class _CategoryDropdownFieldState
         .where((Category category) => !headerIds.contains(category.id))
         .toList(growable: false);
     final bool showDedupedOther =
-        showOtherCategories && dedupedOtherCategories.isNotEmpty;
+        !showExpandedBranch &&
+        showOtherCategories &&
+        dedupedOtherCategories.isNotEmpty;
     _updateCategoryChipCache(
       headerCategories: headerDisplayCategories,
       otherCategories: dedupedOtherCategories,
@@ -1678,9 +1721,13 @@ class _CategoryDropdownFieldState
           Align(
             alignment: Alignment.centerRight,
             child: TextButton(
-              onPressed: hasQuery || hiddenOtherParentsCount == 0
+              onPressed:
+                  hasQuery ||
+                      (!showExpandedBranch && hiddenOtherParentsCount == 0)
                   ? null
-                  : _toggleShowAll,
+                  : () => _handleShowAllTap(
+                      showExpandedBranch: showExpandedBranch,
+                    ),
               style: TextButton.styleFrom(
                 padding: EdgeInsets.zero,
                 minimumSize: const Size(126, 20),
@@ -1791,6 +1838,15 @@ class _CategoryDropdownFieldState
     return CategoryChip(
       label: category.name,
       leading: Icon(iconData ?? Icons.category_outlined),
+      trailing: isParent && hasChildren
+          ? Icon(
+              _expandedParentId == category.id
+                  ? Icons.keyboard_arrow_up_rounded
+                  : Icons.keyboard_arrow_down_rounded,
+              color: theme.colorScheme.onSurfaceVariant,
+              size: 18,
+            )
+          : null,
       iconBackgroundColor: categoryColor,
       iconBackgroundGradient: colorStyle.backgroundGradient,
       backgroundColor: theme.colorScheme.surfaceContainerHigh,

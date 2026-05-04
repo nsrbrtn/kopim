@@ -3503,6 +3503,60 @@
       }
     }
   },
+  "budgetCategoryExpensesOnlyHint": "Only expense categories are shown for expense limits.",
+  "@budgetCategoryExpensesOnlyHint": {
+    "description": "Helper text explaining that only expense categories appear in the budget form."
+  },
+  "budgetCategoryEnvelopeInfo": "The overall limit includes the parent category itself and all of its subcategories.",
+  "@budgetCategoryEnvelopeInfo": {
+    "description": "Helper text explaining the inclusive parent-category limit."
+  },
+  "budgetCategorySubcategoryInfo": "Subcategories are allocated within that overall limit.",
+  "@budgetCategorySubcategoryInfo": {
+    "description": "Helper text explaining how subcategory limits work inside the parent limit."
+  },
+  "budgetCategoryNoSubcategoryInfo": "No subcategory covers expenses recorded directly into the parent category.",
+  "@budgetCategoryNoSubcategoryInfo": {
+    "description": "Helper text describing direct parent-category spending."
+  },
+  "budgetCategoryNoSubcategoryLabel": "No subcategory",
+  "@budgetCategoryNoSubcategoryLabel": {
+    "description": "Label for the remaining amount that stays on the parent category itself."
+  },
+  "budgetCategoryConflictTitle": "Subcategory limits exceed the overall limit",
+  "@budgetCategoryConflictTitle": {
+    "description": "Title for the validation card when child limits exceed the parent limit."
+  },
+  "budgetCategoryConflictMessage": "{parentCategory} has an overall limit of {parentAmount}, but its subcategories already total {childAmount}. The overall limit must be at least the sum of its subcategories.",
+  "@budgetCategoryConflictMessage": {
+    "description": "Detailed validation message when child limits exceed the parent limit.",
+    "placeholders": {
+      "parentCategory": {
+        "type": "String",
+        "description": "Parent category name."
+      },
+      "parentAmount": {
+        "type": "String",
+        "description": "Formatted parent-category limit."
+      },
+      "childAmount": {
+        "type": "String",
+        "description": "Formatted total of subcategory limits."
+      }
+    }
+  },
+  "budgetCategoryConflictIncreaseAction": "Increase overall limit",
+  "@budgetCategoryConflictIncreaseAction": {
+    "description": "Action that raises the parent limit to the sum of the child limits."
+  },
+  "budgetCategoryConflictReduceChildrenAction": "Reduce subcategories",
+  "@budgetCategoryConflictReduceChildrenAction": {
+    "description": "Action that proportionally reduces the child-category limits."
+  },
+  "budgetCategoryConflictDirectHint": "You can increase the overall limit or automatically reduce the subcategory limits proportionally.",
+  "@budgetCategoryConflictDirectHint": {
+    "description": "Short helper text shown under the parent-child limit conflict card."
+  },
   "budgetAccountsLabel": "Accounts",
   "@budgetAccountsLabel": {
     "description": "Label for the selected accounts chips"
@@ -3535,9 +3589,13 @@
   "@budgetErrorInvalidAmount": {
     "description": "Validation error shown when the amount is invalid"
   },
-  "budgetErrorInvalidCategoryAmount": "Enter a positive limit for each selected category.",
+  "budgetErrorInvalidCategoryAmount": "Select an expense category and enter a limit for it or for one of its parent categories.",
   "@budgetErrorInvalidCategoryAmount": {
     "description": "Validation error shown when category allocations are invalid."
+  },
+  "budgetErrorCategoryChildrenExceedParent": "The sum of subcategory limits cannot exceed the parent category's overall limit.",
+  "@budgetErrorCategoryChildrenExceedParent": {
+    "description": "Validation error shown when child-category limits exceed the parent-category limit."
   },
   "budgetErrorMissingTitle": "Enter a title for the budget.",
   "@budgetErrorMissingTitle": {

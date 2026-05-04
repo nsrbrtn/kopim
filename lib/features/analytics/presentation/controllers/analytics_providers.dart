@@ -377,27 +377,54 @@ analyticsTransferTransactionsProvider = StreamProvider<List<TransactionEntity>>(
     final SortedIds selectedAccountIds = ref.watch(
       analyticsSelectedAccountIdsProvider,
     );
-    return ref
-        .watch(transactionRepositoryProvider)
-        .watchTransactions()
-        .map((List<TransactionEntity> transactions) {
-          return transactions
-              .where((TransactionEntity transaction) {
-                if (parseTransactionType(transaction.type) !=
-                    TransactionType.transfer) {
-                  return false;
-                }
-                if (transaction.date.isBefore(window.start) ||
-                    !transaction.date.isBefore(window.endExclusive)) {
-                  return false;
-                }
-                if (selectedAccountIds.isEmpty) {
-                  return true;
-                }
-                return selectedAccountIds.set.contains(transaction.accountId);
-              })
-              .toList(growable: false);
-        })
+    return _combineLatest2<
+          List<TransactionEntity>,
+          List<AccountEntity>,
+          List<TransactionEntity>
+        >(
+          ref.watch(transactionRepositoryProvider).watchTransactions(),
+          ref.watch(watchAccountsUseCaseProvider).call(),
+          (List<TransactionEntity> transactions, List<AccountEntity> accounts) {
+            final Set<String> liabilityAccountIds = accounts
+                .where(
+                  (AccountEntity account) =>
+                      isLiabilityAccountType(account.type),
+                )
+                .map((AccountEntity account) => account.id)
+                .toSet();
+            return transactions
+                .where((TransactionEntity transaction) {
+                  if (parseTransactionType(transaction.type) !=
+                      TransactionType.transfer) {
+                    return false;
+                  }
+                  if (transaction.date.isBefore(window.start) ||
+                      !transaction.date.isBefore(window.endExclusive)) {
+                    return false;
+                  }
+                  final String? transferAccountId =
+                      transaction.transferAccountId;
+                  final bool sourceIsLiability = liabilityAccountIds.contains(
+                    transaction.accountId,
+                  );
+                  final bool targetIsLiability =
+                      transferAccountId != null &&
+                      liabilityAccountIds.contains(transferAccountId);
+                  if (sourceIsLiability || targetIsLiability) {
+                    return false;
+                  }
+                  if (selectedAccountIds.isEmpty) {
+                    return true;
+                  }
+                  if (selectedAccountIds.set.contains(transaction.accountId)) {
+                    return true;
+                  }
+                  return transferAccountId != null &&
+                      selectedAccountIds.set.contains(transferAccountId);
+                })
+                .toList(growable: false);
+          },
+        )
         .distinct(_listEqualsTransactions);
   },
 );

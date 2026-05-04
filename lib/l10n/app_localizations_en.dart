@@ -2701,6 +2701,49 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get budgetCategoryExpensesOnlyHint =>
+      'Only expense categories are shown for expense limits.';
+
+  @override
+  String get budgetCategoryEnvelopeInfo =>
+      'The overall limit includes the parent category itself and all of its subcategories.';
+
+  @override
+  String get budgetCategorySubcategoryInfo =>
+      'Subcategories are allocated within that overall limit.';
+
+  @override
+  String get budgetCategoryNoSubcategoryInfo =>
+      'No subcategory covers expenses recorded directly into the parent category.';
+
+  @override
+  String get budgetCategoryNoSubcategoryLabel => 'No subcategory';
+
+  @override
+  String get budgetCategoryConflictTitle =>
+      'Subcategory limits exceed the overall limit';
+
+  @override
+  String budgetCategoryConflictMessage(
+    String parentCategory,
+    String parentAmount,
+    String childAmount,
+  ) {
+    return '$parentCategory has an overall limit of $parentAmount, but its subcategories already total $childAmount. The overall limit must be at least the sum of its subcategories.';
+  }
+
+  @override
+  String get budgetCategoryConflictIncreaseAction => 'Increase overall limit';
+
+  @override
+  String get budgetCategoryConflictReduceChildrenAction =>
+      'Reduce subcategories';
+
+  @override
+  String get budgetCategoryConflictDirectHint =>
+      'You can increase the overall limit or automatically reduce the subcategory limits proportionally.';
+
+  @override
   String get budgetAccountsLabel => 'Accounts';
 
   @override
@@ -2726,7 +2769,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get budgetErrorInvalidCategoryAmount =>
-      'Enter a positive limit for each selected category.';
+      'Select an expense category and enter a limit for it or for one of its parent categories.';
+
+  @override
+  String get budgetErrorCategoryChildrenExceedParent =>
+      'The sum of subcategory limits cannot exceed the parent category\'s overall limit.';
 
   @override
   String get budgetErrorMissingTitle => 'Enter a title for the budget.';

@@ -81,7 +81,7 @@ void main() {
     ),
   ];
 
-  test('selecting parent category also selects descendants', () {
+  test('selecting child category also selects ancestors', () {
     final riverpod.ProviderContainer container = riverpod.ProviderContainer(
       overrides: [
         saveBudgetUseCaseProvider.overrideWithValue(
@@ -97,17 +97,13 @@ void main() {
       budgetFormControllerProvider(params: params).notifier,
     );
 
-    controller.toggleCategory(categories.first, categories);
+    controller.toggleCategory(categories[1], categories);
 
     final BudgetFormState state = container.read(
       budgetFormControllerProvider(params: params),
     );
 
-    expect(state.categoryIds.toSet(), <String>{
-      'food',
-      'groceries',
-      'restaurants',
-    });
+    expect(state.categoryIds.toSet(), <String>{'food', 'groceries'});
   });
 
   test('submit saves budget with expanded category scope', () async {
@@ -129,6 +125,8 @@ void main() {
 
     controller.setTitle('Monthly essentials');
     controller.toggleCategory(categories.first, categories);
+    controller.toggleCategory(categories[1], categories);
+    controller.toggleCategory(categories[2], categories);
     controller.setCategoryAmount('food', '10000');
     controller.setCategoryAmount('groceries', '2000');
     controller.setCategoryAmount('restaurants', '1000');
@@ -194,7 +192,8 @@ void main() {
 
     controller.setTitle('Broken category budget');
     controller.setScope(BudgetScope.byCategory);
-    controller.toggleCategory(categories.first, categories);
+    controller.toggleCategory(categories[1], categories);
+    controller.toggleCategory(categories[2], categories);
     controller.setCategoryAmount('food', '100');
     controller.setCategoryAmount('groceries', '60');
     controller.setCategoryAmount('restaurants', '50');
@@ -205,7 +204,8 @@ void main() {
     final BudgetFormState state = container.read(
       budgetFormControllerProvider(params: params),
     );
-    expect(state.errorMessage, 'invalid_category_amount');
+    expect(state.errorMessage, 'budget_subcategory_sum_exceeds_parent');
+    expect(state.categoryLimitConflict?.parentCategoryId, 'food');
     expect(repository.savedBudgets, isEmpty);
   });
 
@@ -242,11 +242,12 @@ void main() {
       expect(saved.amountValue.toDouble(), closeTo(10000, 0.0001));
       expect(saved.categoryAllocations, hasLength(1));
       expect(saved.categoryAllocations.single.categoryId, 'food');
+      expect(saved.categories.toSet(), <String>{'food'});
     },
   );
 
   test(
-    'submit fails when top-level selected category has no covering limit',
+    'submit fails when selected categories are not covered by any limit',
     () async {
       final _RecordingBudgetRepository repository =
           _RecordingBudgetRepository();
@@ -278,4 +279,79 @@ void main() {
       expect(state.errorMessage, 'invalid_category_amount');
     },
   );
+
+  test('increaseParentLimitToChildSum sets parent to child total', () async {
+    final _RecordingBudgetRepository repository = _RecordingBudgetRepository();
+    final riverpod.ProviderContainer container = riverpod.ProviderContainer(
+      overrides: [
+        saveBudgetUseCaseProvider.overrideWithValue(
+          SaveBudgetUseCase(repository: repository),
+        ),
+        uuidGeneratorProvider.overrideWithValue(const Uuid()),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    const BudgetFormParams params = BudgetFormParams();
+    final BudgetFormController controller = container.read(
+      budgetFormControllerProvider(params: params).notifier,
+    );
+
+    controller.setTitle('Broken category budget');
+    controller.toggleCategory(categories[1], categories);
+    controller.toggleCategory(categories[2], categories);
+    controller.setCategoryAmount('food', '100');
+    controller.setCategoryAmount('groceries', '60');
+    controller.setCategoryAmount('restaurants', '50');
+
+    final bool result = await controller.submit(categories);
+
+    expect(result, isFalse);
+    controller.increaseParentLimitToChildSum('food');
+
+    final BudgetFormState state = container.read(
+      budgetFormControllerProvider(params: params),
+    );
+    expect(state.categoryAmounts['food'], '110.00');
+    expect(state.errorMessage, isNull);
+    expect(state.categoryLimitConflict, isNull);
+  });
+
+  test('rebalanceChildLimitsToParent scales children to fit parent', () async {
+    final _RecordingBudgetRepository repository = _RecordingBudgetRepository();
+    final riverpod.ProviderContainer container = riverpod.ProviderContainer(
+      overrides: [
+        saveBudgetUseCaseProvider.overrideWithValue(
+          SaveBudgetUseCase(repository: repository),
+        ),
+        uuidGeneratorProvider.overrideWithValue(const Uuid()),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    const BudgetFormParams params = BudgetFormParams();
+    final BudgetFormController controller = container.read(
+      budgetFormControllerProvider(params: params).notifier,
+    );
+
+    controller.setTitle('Broken category budget');
+    controller.toggleCategory(categories[1], categories);
+    controller.toggleCategory(categories[2], categories);
+    controller.setCategoryAmount('food', '100');
+    controller.setCategoryAmount('groceries', '60');
+    controller.setCategoryAmount('restaurants', '50');
+
+    final bool result = await controller.submit(categories);
+
+    expect(result, isFalse);
+    controller.rebalanceChildLimitsToParent('food');
+
+    final BudgetFormState state = container.read(
+      budgetFormControllerProvider(params: params),
+    );
+    expect(state.categoryAmounts['groceries'], '54.55');
+    expect(state.categoryAmounts['restaurants'], '45.45');
+    expect(state.errorMessage, isNull);
+    expect(state.categoryLimitConflict, isNull);
+  });
 }

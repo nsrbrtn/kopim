@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:collection/collection.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:kopim/core/money/money.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/budgets/domain/entities/budget.dart';
@@ -33,6 +34,25 @@ class BudgetFormParams {
   int get hashCode => initial.hashCode;
 }
 
+@immutable
+class BudgetCategoryLimitConflict {
+  const BudgetCategoryLimitConflict({
+    required this.parentCategoryId,
+    required this.childCategoryIds,
+    required this.parentLimitMinor,
+    required this.childLimitSumMinor,
+    required this.scale,
+  });
+
+  final String parentCategoryId;
+  final List<String> childCategoryIds;
+  final BigInt parentLimitMinor;
+  final BigInt childLimitSumMinor;
+  final int scale;
+
+  BigInt get overflowMinor => childLimitSumMinor - parentLimitMinor;
+}
+
 @freezed
 abstract class BudgetFormState with _$BudgetFormState {
   const factory BudgetFormState({
@@ -48,6 +68,7 @@ abstract class BudgetFormState with _$BudgetFormState {
     Budget? initialBudget,
     @Default(false) bool isSubmitting,
     String? errorMessage,
+    BudgetCategoryLimitConflict? categoryLimitConflict,
   }) = _BudgetFormState;
 }
 
@@ -100,39 +121,43 @@ class BudgetFormController extends _$BudgetFormController {
   }
 
   void setTitle(String value) {
-    state = state.copyWith(title: value);
+    state = _clearCategoryValidation(state.copyWith(title: value));
   }
 
   void setAmountText(String value) {
-    state = state.copyWith(amountText: value);
+    state = _clearCategoryValidation(state.copyWith(amountText: value));
   }
 
   void setPeriod(BudgetPeriod period) {
-    state = state.copyWith(period: period);
+    state = _clearCategoryValidation(state.copyWith(period: period));
   }
 
   void setScope(BudgetScope scope) {
-    state = state.copyWith(
-      scope: scope,
-      categoryAmounts: scope == BudgetScope.byCategory
-          ? state.categoryAmounts
-          : const <String, String>{},
+    state = _clearCategoryValidation(
+      state.copyWith(
+        scope: scope,
+        categoryAmounts: scope == BudgetScope.byCategory
+            ? state.categoryAmounts
+            : const <String, String>{},
+      ),
     );
   }
 
   void setStartDate(DateTime date) {
-    state = state.copyWith(startDate: _normalizeStart(date));
+    state = _clearCategoryValidation(
+      state.copyWith(startDate: _normalizeStart(date)),
+    );
   }
 
   void setEndDate(DateTime? date) {
-    state = state.copyWith(
-      endDate: date != null ? _normalizeStart(date) : null,
+    state = _clearCategoryValidation(
+      state.copyWith(endDate: date != null ? _normalizeStart(date) : null),
     );
   }
 
   void syncCategoryHierarchy(List<budget_category.Category> categories) {
-    final Set<String> normalized = expandBudgetCategoryIds(
-      categoryIds: state.categoryIds,
+    final Set<String> normalized = _normalizeSelectedCategoryIds(
+      selectedIds: state.categoryIds,
       categories: categories,
     );
     if (setEquals(normalized, state.categoryIds.toSet())) {
@@ -143,9 +168,11 @@ class BudgetFormController extends _$BudgetFormController {
         if (state.categoryAmounts.containsKey(categoryId))
           categoryId: state.categoryAmounts[categoryId]!,
     };
-    state = state.copyWith(
-      categoryIds: normalized.toList(growable: false),
-      categoryAmounts: normalizedAmounts,
+    state = _clearCategoryValidation(
+      state.copyWith(
+        categoryIds: normalized.toList(growable: false),
+        categoryAmounts: normalizedAmounts,
+      ),
     );
   }
 
@@ -153,23 +180,36 @@ class BudgetFormController extends _$BudgetFormController {
     budget_category.Category category,
     List<budget_category.Category> categories,
   ) {
-    final Set<String> descendants = expandBudgetCategoryIds(
-      categoryIds: <String>[category.id],
-      categories: categories,
-    );
     final Set<String> selected = state.categoryIds.toSet();
     if (selected.contains(category.id)) {
-      selected.removeAll(descendants);
+      selected.removeAll(
+        expandBudgetCategoryIds(
+          categoryIds: <String>[category.id],
+          categories: categories,
+        ),
+      );
     } else {
-      selected.addAll(descendants);
+      selected.add(category.id);
+      final Map<String, budget_category.Category> categoriesById =
+          <String, budget_category.Category>{
+            for (final budget_category.Category item in categories)
+              item.id: item,
+          };
+      String? parentId = category.parentId;
+      while (parentId != null && parentId.isNotEmpty) {
+        selected.add(parentId);
+        parentId = categoriesById[parentId]?.parentId;
+      }
     }
     final Map<String, String> categoryAmounts = <String, String>{
       for (final String categoryId in selected)
         categoryId: state.categoryAmounts[categoryId] ?? '',
     };
-    state = state.copyWith(
-      categoryIds: selected.toList(growable: false),
-      categoryAmounts: categoryAmounts,
+    state = _clearCategoryValidation(
+      state.copyWith(
+        categoryIds: selected.toList(growable: false),
+        categoryAmounts: categoryAmounts,
+      ),
     );
   }
 
@@ -178,7 +218,9 @@ class BudgetFormController extends _$BudgetFormController {
       ...state.categoryAmounts,
       categoryId: value,
     };
-    state = state.copyWith(categoryAmounts: categoryAmounts);
+    state = _clearCategoryValidation(
+      state.copyWith(categoryAmounts: categoryAmounts),
+    );
   }
 
   void toggleAccount(String accountId) {
@@ -188,13 +230,60 @@ class BudgetFormController extends _$BudgetFormController {
     } else {
       accounts.add(accountId);
     }
-    state = state.copyWith(accountIds: accounts);
+    state = _clearCategoryValidation(state.copyWith(accountIds: accounts));
   }
 
   void clearError() {
-    if (state.errorMessage != null) {
-      state = state.copyWith(errorMessage: null);
+    if (state.errorMessage != null || state.categoryLimitConflict != null) {
+      state = state.copyWith(errorMessage: null, categoryLimitConflict: null);
     }
+  }
+
+  void increaseParentLimitToChildSum(String parentCategoryId) {
+    final BudgetCategoryLimitConflict? conflict = state.categoryLimitConflict;
+    if (conflict == null || conflict.parentCategoryId != parentCategoryId) {
+      return;
+    }
+    final Map<String, String> categoryAmounts = <String, String>{
+      ...state.categoryAmounts,
+      parentCategoryId: _formatMinorAmount(
+        conflict.childLimitSumMinor,
+        conflict.scale,
+      ),
+    };
+    state = state.copyWith(
+      categoryAmounts: categoryAmounts,
+      errorMessage: null,
+      categoryLimitConflict: null,
+    );
+  }
+
+  void rebalanceChildLimitsToParent(String parentCategoryId) {
+    final BudgetCategoryLimitConflict? conflict = state.categoryLimitConflict;
+    if (conflict == null || conflict.parentCategoryId != parentCategoryId) {
+      return;
+    }
+    if (conflict.parentLimitMinor <= BigInt.zero ||
+        conflict.childLimitSumMinor <= BigInt.zero ||
+        conflict.childCategoryIds.isEmpty) {
+      return;
+    }
+
+    final List<_ChildScaledLimit> scaled = _scaleChildLimitsToParent(conflict);
+    final Map<String, String> categoryAmounts = <String, String>{
+      ...state.categoryAmounts,
+    };
+    for (final _ChildScaledLimit entry in scaled) {
+      categoryAmounts[entry.categoryId] = entry.limitMinor > BigInt.zero
+          ? _formatMinorAmount(entry.limitMinor, conflict.scale)
+          : '';
+    }
+
+    state = state.copyWith(
+      categoryAmounts: categoryAmounts,
+      errorMessage: null,
+      categoryLimitConflict: null,
+    );
   }
 
   Future<bool> submit(
@@ -203,12 +292,18 @@ class BudgetFormController extends _$BudgetFormController {
     final int scale = _resolveScale();
     if (state.scope == BudgetScope.byCategory) {
       if (state.categoryIds.isEmpty) {
-        state = state.copyWith(errorMessage: 'invalid_category_amount');
+        state = state.copyWith(
+          errorMessage: 'invalid_category_amount',
+          categoryLimitConflict: null,
+        );
         return false;
       }
     }
     if (state.title.trim().isEmpty) {
-      state = state.copyWith(errorMessage: 'missing_title');
+      state = state.copyWith(
+        errorMessage: 'missing_title',
+        categoryLimitConflict: null,
+      );
       return false;
     }
 
@@ -217,13 +312,27 @@ class BudgetFormController extends _$BudgetFormController {
         ? _buildCategoryAllocations(scale)
         : const <BudgetCategoryAllocation>[];
 
-    if (state.scope == BudgetScope.byCategory &&
-        !_isCategoryAllocationTreeValid(
-          categories: availableCategories,
-          allocations: categoryAllocations,
-        )) {
-      state = state.copyWith(errorMessage: 'invalid_category_amount');
+    if (state.scope == BudgetScope.byCategory && categoryAllocations.isEmpty) {
+      state = state.copyWith(
+        errorMessage: 'invalid_category_amount',
+        categoryLimitConflict: null,
+      );
       return false;
+    }
+
+    if (state.scope == BudgetScope.byCategory) {
+      final _CategoryAllocationValidation validation =
+          _validateCategoryAllocationTree(
+            categories: availableCategories,
+            allocations: categoryAllocations,
+          );
+      if (!validation.isValid) {
+        state = state.copyWith(
+          errorMessage: validation.errorCode,
+          categoryLimitConflict: validation.conflict,
+        );
+        return false;
+      }
     }
 
     final MoneyAmount? amount = state.scope == BudgetScope.byCategory
@@ -231,11 +340,18 @@ class BudgetFormController extends _$BudgetFormController {
         : _parseAmount(state.amountText, scale);
     if (state.scope != BudgetScope.byCategory &&
         (amount == null || amount.minor <= BigInt.zero)) {
-      state = state.copyWith(errorMessage: 'invalid_amount');
+      state = state.copyWith(
+        errorMessage: 'invalid_amount',
+        categoryLimitConflict: null,
+      );
       return false;
     }
 
-    state = state.copyWith(isSubmitting: true, errorMessage: null);
+    state = state.copyWith(
+      isSubmitting: true,
+      errorMessage: null,
+      categoryLimitConflict: null,
+    );
     final SaveBudgetUseCase saveUseCase = ref.read(saveBudgetUseCaseProvider);
     final Uuid uuid = ref.read(uuidGeneratorProvider);
     final DateTime now = DateTime.now();
@@ -322,6 +438,7 @@ class BudgetFormController extends _$BudgetFormController {
       state = state.copyWith(
         isSubmitting: false,
         errorMessage: error.toString(),
+        categoryLimitConflict: null,
       );
       return false;
     }
@@ -366,15 +483,12 @@ class BudgetFormController extends _$BudgetFormController {
     return allocations;
   }
 
-  bool _isCategoryAllocationTreeValid({
+  _CategoryAllocationValidation _validateCategoryAllocationTree({
     required List<budget_category.Category> categories,
     required List<BudgetCategoryAllocation> allocations,
   }) {
     if (state.scope != BudgetScope.byCategory) {
-      return true;
-    }
-    if (allocations.isEmpty) {
-      return false;
+      return const _CategoryAllocationValidation.valid();
     }
 
     final Budget draft = Budget(
@@ -407,7 +521,9 @@ class BudgetFormController extends _$BudgetFormController {
         categoryId: categoryId,
       );
       if (explicitParentId == null) {
-        return false;
+        return const _CategoryAllocationValidation.invalid(
+          errorCode: 'invalid_category_amount',
+        );
       }
     }
 
@@ -429,10 +545,144 @@ class BudgetFormController extends _$BudgetFormController {
         },
       );
       if (allocatedToChildren > allocation.limitMinor) {
-        return false;
+        return _CategoryAllocationValidation.invalid(
+          errorCode: 'budget_subcategory_sum_exceeds_parent',
+          conflict: BudgetCategoryLimitConflict(
+            parentCategoryId: allocation.categoryId,
+            childCategoryIds: childAllocationIds,
+            parentLimitMinor: allocation.limitMinor,
+            childLimitSumMinor: allocatedToChildren,
+            scale: allocation.limitScale,
+          ),
+        );
       }
     }
 
-    return true;
+    return const _CategoryAllocationValidation.valid();
   }
+
+  Set<String> _normalizeSelectedCategoryIds({
+    required Iterable<String> selectedIds,
+    required List<budget_category.Category> categories,
+  }) {
+    final Map<String, budget_category.Category> categoriesById =
+        <String, budget_category.Category>{
+          for (final budget_category.Category category in categories)
+            category.id: category,
+        };
+    final Set<String> normalized = <String>{};
+    for (final String categoryId in selectedIds) {
+      if (!categoriesById.containsKey(categoryId)) {
+        continue;
+      }
+      normalized.add(categoryId);
+      String? parentId = categoriesById[categoryId]?.parentId;
+      while (parentId != null && parentId.isNotEmpty) {
+        if (!categoriesById.containsKey(parentId)) {
+          break;
+        }
+        normalized.add(parentId);
+        parentId = categoriesById[parentId]?.parentId;
+      }
+    }
+    return normalized;
+  }
+
+  BudgetFormState _clearCategoryValidation(BudgetFormState nextState) {
+    return nextState.copyWith(errorMessage: null, categoryLimitConflict: null);
+  }
+
+  List<_ChildScaledLimit> _scaleChildLimitsToParent(
+    BudgetCategoryLimitConflict conflict,
+  ) {
+    final List<_ChildScaledLimitSeed> seeds = <_ChildScaledLimitSeed>[];
+    BigInt allocatedMinor = BigInt.zero;
+
+    for (final String childCategoryId in conflict.childCategoryIds) {
+      final MoneyAmount? amount = _parseAmount(
+        state.categoryAmounts[childCategoryId] ?? '',
+        conflict.scale,
+      );
+      if (amount == null || amount.minor <= BigInt.zero) {
+        continue;
+      }
+      final BigInt multiplied = amount.minor * conflict.parentLimitMinor;
+      final BigInt floorValue = multiplied ~/ conflict.childLimitSumMinor;
+      final BigInt remainder = multiplied % conflict.childLimitSumMinor;
+      allocatedMinor += floorValue;
+      seeds.add(
+        _ChildScaledLimitSeed(
+          categoryId: childCategoryId,
+          floorMinor: floorValue,
+          remainderMinor: remainder,
+        ),
+      );
+    }
+
+    BigInt remainderToDistribute = conflict.parentLimitMinor - allocatedMinor;
+    seeds.sort((_ChildScaledLimitSeed a, _ChildScaledLimitSeed b) {
+      final int remainderComparison = b.remainderMinor.compareTo(
+        a.remainderMinor,
+      );
+      if (remainderComparison != 0) {
+        return remainderComparison;
+      }
+      return conflict.childCategoryIds
+          .indexOf(a.categoryId)
+          .compareTo(conflict.childCategoryIds.indexOf(b.categoryId));
+    });
+
+    final List<_ChildScaledLimit> scaled = <_ChildScaledLimit>[];
+    for (final _ChildScaledLimitSeed seed in seeds) {
+      BigInt limitMinor = seed.floorMinor;
+      if (remainderToDistribute > BigInt.zero) {
+        limitMinor += BigInt.one;
+        remainderToDistribute -= BigInt.one;
+      }
+      scaled.add(
+        _ChildScaledLimit(categoryId: seed.categoryId, limitMinor: limitMinor),
+      );
+    }
+    return scaled;
+  }
+
+  String _formatMinorAmount(BigInt minor, int scale) {
+    final Money money = Money(minor: minor, currency: 'XXX', scale: scale);
+    return money.toDecimalString();
+  }
+}
+
+class _CategoryAllocationValidation {
+  const _CategoryAllocationValidation.valid()
+    : isValid = true,
+      errorCode = null,
+      conflict = null;
+
+  const _CategoryAllocationValidation.invalid({
+    required this.errorCode,
+    this.conflict,
+  }) : isValid = false;
+
+  final bool isValid;
+  final String? errorCode;
+  final BudgetCategoryLimitConflict? conflict;
+}
+
+class _ChildScaledLimitSeed {
+  const _ChildScaledLimitSeed({
+    required this.categoryId,
+    required this.floorMinor,
+    required this.remainderMinor,
+  });
+
+  final String categoryId;
+  final BigInt floorMinor;
+  final BigInt remainderMinor;
+}
+
+class _ChildScaledLimit {
+  const _ChildScaledLimit({required this.categoryId, required this.limitMinor});
+
+  final String categoryId;
+  final BigInt limitMinor;
 }

@@ -357,7 +357,7 @@ void main() {
       expect(tester.takeException(), isNull);
     }, skip: true);
 
-    testWidgets('top categories segmented button renders without outline', (
+    testWidgets('строка итогов расходов и доходов отображается как текст', (
       WidgetTester tester,
     ) async {
       final AnalyticsFilterState filterState = AnalyticsFilterState(
@@ -452,6 +452,31 @@ void main() {
 
       await tester.pumpAndSettle();
 
+      final BuildContext context = tester.element(find.byType(AnalyticsScreen));
+      final AppLocalizations strings = AppLocalizations.of(context)!;
+
+      expect(
+        find.byWidgetPredicate(
+          (Widget widget) =>
+              widget is RichText &&
+              widget.text.toPlainText().contains(
+                '${strings.analyticsSummaryExpenseLabel}:',
+              ),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.byWidgetPredicate(
+          (Widget widget) =>
+              widget is RichText &&
+              widget.text.toPlainText().contains(
+                '${strings.analyticsSummaryIncomeLabel}:',
+              ),
+        ),
+        findsOneWidget,
+      );
+      expect(find.byIcon(Icons.arrow_downward_rounded), findsOneWidget);
+      expect(find.byIcon(Icons.arrow_upward_rounded), findsOneWidget);
       expect(find.byType(AnalyticsScreen), findsOneWidget);
       expect(tester.takeException(), isNull);
     });

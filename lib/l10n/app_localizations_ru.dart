@@ -2725,6 +2725,49 @@ class AppLocalizationsRu extends AppLocalizations {
   }
 
   @override
+  String get budgetCategoryExpensesOnlyHint =>
+      'Для лимитов расходов показываются только расходные категории.';
+
+  @override
+  String get budgetCategoryEnvelopeInfo =>
+      'Общий лимит включает саму категорию и все подкатегории.';
+
+  @override
+  String get budgetCategorySubcategoryInfo =>
+      'Подкатегории распределяются внутри общего лимита.';
+
+  @override
+  String get budgetCategoryNoSubcategoryInfo =>
+      'Без подкатегории — сюда попадают траты, внесённые прямо в родительскую категорию.';
+
+  @override
+  String get budgetCategoryNoSubcategoryLabel => 'Без подкатегории';
+
+  @override
+  String get budgetCategoryConflictTitle =>
+      'Лимиты подкатегорий не помещаются в общий лимит';
+
+  @override
+  String budgetCategoryConflictMessage(
+    String parentCategory,
+    String parentAmount,
+    String childAmount,
+  ) {
+    return 'У категории $parentCategory общий лимит $parentAmount, а сумма лимитов подкатегорий уже $childAmount. Общий лимит должен быть не меньше суммы подкатегорий.';
+  }
+
+  @override
+  String get budgetCategoryConflictIncreaseAction => 'Поднять общий лимит';
+
+  @override
+  String get budgetCategoryConflictReduceChildrenAction =>
+      'Уменьшить подкатегории';
+
+  @override
+  String get budgetCategoryConflictDirectHint =>
+      'Можно увеличить общий лимит или автоматически пропорционально уменьшить лимиты подкатегорий.';
+
+  @override
   String get budgetAccountsLabel => 'Счета';
 
   @override
@@ -2750,7 +2793,11 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get budgetErrorInvalidCategoryAmount =>
-      'Укажите положительный лимит для каждой выбранной категории.';
+      'Выберите расходную категорию и укажите лимит для неё или для её родительской категории.';
+
+  @override
+  String get budgetErrorCategoryChildrenExceedParent =>
+      'Сумма лимитов подкатегорий не должна превышать общий лимит родительской категории.';
 
   @override
   String get budgetErrorMissingTitle => 'Введите название бюджета.';

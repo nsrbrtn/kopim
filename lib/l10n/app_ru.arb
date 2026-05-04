@@ -3503,6 +3503,60 @@
       }
     }
   },
+  "budgetCategoryExpensesOnlyHint": "Для лимитов расходов показываются только расходные категории.",
+  "@budgetCategoryExpensesOnlyHint": {
+    "description": "Подсказка о том, что в форме бюджета видны только расходные категории."
+  },
+  "budgetCategoryEnvelopeInfo": "Общий лимит включает саму категорию и все подкатегории.",
+  "@budgetCategoryEnvelopeInfo": {
+    "description": "Подсказка о том, как работает общий лимит родительской категории."
+  },
+  "budgetCategorySubcategoryInfo": "Подкатегории распределяются внутри общего лимита.",
+  "@budgetCategorySubcategoryInfo": {
+    "description": "Подсказка о распределении лимита по подкатегориям."
+  },
+  "budgetCategoryNoSubcategoryInfo": "Без подкатегории — сюда попадают траты, внесённые прямо в родительскую категорию.",
+  "@budgetCategoryNoSubcategoryInfo": {
+    "description": "Подсказка о расходах без подкатегории внутри родительского лимита."
+  },
+  "budgetCategoryNoSubcategoryLabel": "Без подкатегории",
+  "@budgetCategoryNoSubcategoryLabel": {
+    "description": "Подпись остатка лимита для трат, внесенных напрямую в родительскую категорию."
+  },
+  "budgetCategoryConflictTitle": "Лимиты подкатегорий не помещаются в общий лимит",
+  "@budgetCategoryConflictTitle": {
+    "description": "Заголовок ошибки, когда сумма лимитов подкатегорий больше лимита родителя."
+  },
+  "budgetCategoryConflictMessage": "У категории {parentCategory} общий лимит {parentAmount}, а сумма лимитов подкатегорий уже {childAmount}. Общий лимит должен быть не меньше суммы подкатегорий.",
+  "@budgetCategoryConflictMessage": {
+    "description": "Сообщение об ошибке, когда лимиты подкатегорий превышают лимит родителя.",
+    "placeholders": {
+      "parentCategory": {
+        "type": "String",
+        "description": "Название родительской категории."
+      },
+      "parentAmount": {
+        "type": "String",
+        "description": "Отформатированный общий лимит родителя."
+      },
+      "childAmount": {
+        "type": "String",
+        "description": "Отформатированная сумма лимитов подкатегорий."
+      }
+    }
+  },
+  "budgetCategoryConflictIncreaseAction": "Поднять общий лимит",
+  "@budgetCategoryConflictIncreaseAction": {
+    "description": "Действие для увеличения лимита родителя до суммы подкатегорий."
+  },
+  "budgetCategoryConflictReduceChildrenAction": "Уменьшить подкатегории",
+  "@budgetCategoryConflictReduceChildrenAction": {
+    "description": "Действие для пропорционального уменьшения лимитов подкатегорий."
+  },
+  "budgetCategoryConflictDirectHint": "Можно увеличить общий лимит или автоматически пропорционально уменьшить лимиты подкатегорий.",
+  "@budgetCategoryConflictDirectHint": {
+    "description": "Короткая подсказка под карточкой конфликта лимитов."
+  },
   "budgetAccountsLabel": "Счета",
   "@budgetAccountsLabel": {
     "description": "Подпись списка выбранных счетов"
@@ -3535,9 +3589,13 @@
   "@budgetErrorInvalidAmount": {
     "description": "Ошибка валидации при неверной сумме"
   },
-  "budgetErrorInvalidCategoryAmount": "Укажите положительный лимит для каждой выбранной категории.",
+  "budgetErrorInvalidCategoryAmount": "Выберите расходную категорию и укажите лимит для неё или для её родительской категории.",
   "@budgetErrorInvalidCategoryAmount": {
     "description": "Ошибка валидации при неверных лимитах по категориям"
+  },
+  "budgetErrorCategoryChildrenExceedParent": "Сумма лимитов подкатегорий не должна превышать общий лимит родительской категории.",
+  "@budgetErrorCategoryChildrenExceedParent": {
+    "description": "Ошибка валидации, когда лимиты подкатегорий больше лимита родителя."
   },
   "budgetErrorMissingTitle": "Введите название бюджета.",
   "@budgetErrorMissingTitle": {
