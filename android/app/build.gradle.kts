@@ -121,8 +121,8 @@ dependencies {
     // Desugaring для Java 8+ API
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
 
-    // Прочие зависимости модуля app при необходимости:
-    // implementation("...")
+    // Совместимое edge-to-edge поведение для Android 15+ и более старых версий.
+    implementation("androidx.core:core:1.17.0")
 }
 
 // Включаем подробные предупреждения компилятора Java об устаревших API

@@ -30,6 +30,7 @@ enum KopimAppFlavor { offline, firebaseDev, firebaseProd }
 
 Future<void> runKopimApp({KopimAppFlavor? flavor}) async {
   WidgetsFlutterBinding.ensureInitialized();
+  await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   ensureRecurringWorkSchedulerLinked();
   final KopimAppFlavor resolvedFlavor =
       flavor ?? _resolveFlavorFromPlatformFlavor();
