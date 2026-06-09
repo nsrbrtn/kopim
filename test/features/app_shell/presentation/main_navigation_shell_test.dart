@@ -32,6 +32,10 @@ import 'package:kopim/features/credits/domain/repositories/credit_card_repositor
 import 'package:kopim/features/credits/domain/repositories/credit_repository.dart';
 import 'package:kopim/features/credits/domain/use_cases/watch_credit_cards_use_case.dart';
 import 'package:kopim/features/credits/domain/use_cases/watch_credits_use_case.dart';
+import 'package:kopim/features/getting_started/domain/entities/getting_started_preferences.dart';
+import 'package:kopim/features/getting_started/domain/entities/getting_started_progress.dart';
+import 'package:kopim/features/getting_started/domain/entities/getting_started_view_model.dart';
+import 'package:kopim/features/getting_started/presentation/controllers/getting_started_controller.dart';
 import 'package:kopim/features/home/domain/entities/home_dashboard_preferences.dart';
 import 'package:kopim/features/home/presentation/controllers/home_dashboard_preferences_controller.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
@@ -505,6 +509,27 @@ void main() {
         ),
         budgetInstancesByBudgetProvider.overrideWith(
           (Ref ref, String _) async => const <BudgetInstance>[],
+        ),
+        gettingStartedBudgetsProvider.overrideWith(
+          (Ref ref) => Stream<List<Budget>>.value(const <Budget>[]),
+        ),
+        gettingStartedViewModelProvider.overrideWith(
+          (Ref ref) =>
+              const AsyncValue<GettingStartedViewModel>.data(
+                GettingStartedViewModel(
+                  preferences: GettingStartedPreferences(),
+                  progress: GettingStartedProgress(
+                    hasAccounts: false,
+                    hasUserCategories: false,
+                    hasTransactions: false,
+                    hasProfileName: false,
+                    hasSavingGoal: false,
+                    hasBudget: false,
+                  ),
+                  shouldAutoActivate: false,
+                  shouldDisplayOnHome: false,
+                ),
+              ),
         ),
       ],
       child: child,

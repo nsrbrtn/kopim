@@ -12,6 +12,7 @@ import 'package:kopim/features/budgets/presentation/controllers/budgets_provider
 import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/home/domain/entities/home_dashboard_preferences.dart';
 import 'package:kopim/features/home/presentation/widgets/home_budget_progress_card.dart';
+import 'package:kopim/features/profile/presentation/controllers/active_currency_code_provider.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 import 'package:riverpod/src/framework.dart' show Override;
@@ -90,6 +91,7 @@ void main() {
               groceryTx,
             ]),
           ),
+          activeCurrencyCodeProvider.overrideWithValue('USD'),
         ],
       );
       addTearDown(container.dispose);
@@ -180,6 +182,7 @@ void main() {
               groceryTx,
             ]),
           ),
+          activeCurrencyCodeProvider.overrideWithValue('USD'),
         ],
       );
       addTearDown(container.dispose);

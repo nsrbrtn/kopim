@@ -6,6 +6,7 @@ import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/home/domain/models/home_overview_summary.dart';
 import 'package:kopim/features/home/presentation/controllers/home_providers.dart';
 import 'package:kopim/features/home/presentation/widgets/home_overview_summary_card.dart';
+import 'package:kopim/features/profile/presentation/controllers/active_currency_code_provider.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 import 'package:riverpod/src/framework.dart' show Override;
 
@@ -62,6 +63,7 @@ void main() {
           homeCategoriesProvider.overrideWith(
             (Ref ref) => Stream<List<Category>>.value(<Category>[food]),
           ),
+          activeCurrencyCodeProvider.overrideWithValue('USD'),
         ],
       );
 
@@ -91,6 +93,7 @@ void main() {
           homeCategoriesProvider.overrideWith(
             (Ref ref) => Stream<List<Category>>.value(const <Category>[]),
           ),
+          activeCurrencyCodeProvider.overrideWithValue('USD'),
         ],
       );
 

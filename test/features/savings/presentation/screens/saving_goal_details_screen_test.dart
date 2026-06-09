@@ -12,6 +12,7 @@ import 'package:kopim/features/savings/presentation/controllers/saving_goal_deta
 import 'package:kopim/features/savings/presentation/controllers/saving_goals_controller.dart';
 import 'package:kopim/features/savings/presentation/controllers/saving_goals_state.dart';
 import 'package:kopim/features/savings/presentation/screens/saving_goal_details_screen.dart';
+import 'package:kopim/features/profile/presentation/controllers/active_currency_code_provider.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
 class _FakeSavingGoalsController extends SavingGoalsController {
@@ -106,6 +107,7 @@ void main() {
                 foodCategory,
               ]),
             ),
+            activeCurrencyCodeProvider.overrideWithValue('USD'),
           ],
           child: MaterialApp(
             localizationsDelegates: AppLocalizations.localizationsDelegates,

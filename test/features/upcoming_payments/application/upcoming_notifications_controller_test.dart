@@ -30,7 +30,7 @@ void main() {
 
   setUpAll(() {
     tzdata.initializeTimeZones();
-    tz.setLocalLocation(tz.getLocation('UTC'));
+    tz.setLocalLocation(tz.getLocation('Etc/UTC'));
     registerFallbackValue(
       const MarkReminderDoneInput(id: 'fallback', isDone: true),
     );
