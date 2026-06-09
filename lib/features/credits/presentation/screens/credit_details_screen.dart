@@ -18,7 +18,7 @@ import 'package:kopim/features/credits/presentation/widgets/pay_credit_sheet.dar
 import 'package:kopim/features/transactions/domain/models/feed_item.dart';
 import 'package:kopim/features/home/domain/use_cases/group_transactions_by_day_use_case.dart';
 import 'package:kopim/features/credits/presentation/widgets/grouped_credit_payment_tile.dart';
-import 'package:kopim/core/money/money.dart';
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/credits/domain/entities/credit_entity.dart';
 import 'package:kopim/features/credits/domain/entities/credit_payment_schedule.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
@@ -722,21 +722,19 @@ class _DaySectionView extends StatelessWidget {
                   currencySymbol: currencySymbol,
                   strings: strings,
                 ),
-            groupedCreditPayment:
-                (
-                  String groupId,
-                  String creditId,
-                  List<TransactionEntity> transactions,
-                  Money totalOutflow,
-                  DateTime date,
-                  String? note,
-                ) => GroupedCreditPaymentTile(
-                  group: GroupedCreditPaymentFeedItem(
-                    groupId: groupId,
-                    creditId: creditId,
-                    transactions: transactions,
-                    totalOutflow: totalOutflow,
-                    date: date,
+                groupedCreditPayment:
+                    (
+                      String groupId,
+                      List<TransactionEntity> transactions,
+                      MoneyAmount totalOutflow,
+                      DateTime date,
+                      String? note,
+                    ) => GroupedCreditPaymentTile(
+                      group: GroupedCreditPaymentFeedItem(
+                        groupId: groupId,
+                        transactions: transactions,
+                        totalOutflow: totalOutflow,
+                        date: date,
                     note: note,
                   ),
                   currencySymbol: currencySymbol,

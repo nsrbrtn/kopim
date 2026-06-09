@@ -3,6 +3,9 @@ import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
 import 'package:kopim/features/savings/domain/repositories/saving_goal_repository.dart';
 
 class WatchOverviewGoalFocusUseCase {
+  // TODO(ai-audit): Use case сейчас не имеет consumers в приложении.
+  // Нужно явно решить, возвращаем ли сценарий focus goal в overview
+  // или удаляем связанный код как неиспользуемый.
   WatchOverviewGoalFocusUseCase({
     required SavingGoalRepository savingGoalRepository,
   }) : _savingGoalRepository = savingGoalRepository;

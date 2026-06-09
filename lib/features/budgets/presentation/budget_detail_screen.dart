@@ -21,6 +21,9 @@ import 'package:kopim/features/transactions/presentation/widgets/transaction_til
 import 'package:kopim/l10n/app_localizations.dart';
 
 class BudgetDetailScreen extends ConsumerWidget {
+  // TODO(ai-audit): Экран не подключен к роутингу и не имеет usage в кодовой базе.
+  // После закрытия технического аудита нужно принять явное решение:
+  // удалить как dead code или вернуть в пользовательский сценарий.
   const BudgetDetailScreen({required this.budgetId, super.key});
 
   final String budgetId;

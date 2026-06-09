@@ -6,7 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/core/formatting/currency_symbols.dart';
-import 'package:kopim/core/money/money.dart';
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/core/domain/icons/phosphor_icon_descriptor.dart';
 import 'package:kopim/core/widgets/animated_fab.dart';
 import 'package:kopim/core/widgets/kopim_glass_fab.dart';
@@ -520,9 +520,8 @@ class _TransactionsList extends StatelessWidget {
             groupedCreditPayment:
                 (
                   String groupId,
-                  String creditId,
                   List<TransactionEntity> transactions,
-                  Money totalOutflow,
+                  MoneyAmount totalOutflow,
                   DateTime date,
                   String? note,
                 ) {

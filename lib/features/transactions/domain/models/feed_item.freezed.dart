@@ -119,11 +119,11 @@ return groupedCreditPayment(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( TransactionEntity transaction)?  transaction,TResult Function( String groupId,  String creditId,  List<TransactionEntity> transactions,  Money totalOutflow,  DateTime date,  String? note)?  groupedCreditPayment,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( TransactionEntity transaction)?  transaction,TResult Function( String groupId,  List<TransactionEntity> transactions,  MoneyAmount totalOutflow,  DateTime date,  String? note)?  groupedCreditPayment,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case TransactionFeedItem() when transaction != null:
 return transaction(_that.transaction);case GroupedCreditPaymentFeedItem() when groupedCreditPayment != null:
-return groupedCreditPayment(_that.groupId,_that.creditId,_that.transactions,_that.totalOutflow,_that.date,_that.note);case _:
+return groupedCreditPayment(_that.groupId,_that.transactions,_that.totalOutflow,_that.date,_that.note);case _:
   return orElse();
 
 }
@@ -141,11 +141,11 @@ return groupedCreditPayment(_that.groupId,_that.creditId,_that.transactions,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( TransactionEntity transaction)  transaction,required TResult Function( String groupId,  String creditId,  List<TransactionEntity> transactions,  Money totalOutflow,  DateTime date,  String? note)  groupedCreditPayment,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( TransactionEntity transaction)  transaction,required TResult Function( String groupId,  List<TransactionEntity> transactions,  MoneyAmount totalOutflow,  DateTime date,  String? note)  groupedCreditPayment,}) {final _that = this;
 switch (_that) {
 case TransactionFeedItem():
 return transaction(_that.transaction);case GroupedCreditPaymentFeedItem():
-return groupedCreditPayment(_that.groupId,_that.creditId,_that.transactions,_that.totalOutflow,_that.date,_that.note);}
+return groupedCreditPayment(_that.groupId,_that.transactions,_that.totalOutflow,_that.date,_that.note);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -159,11 +159,11 @@ return groupedCreditPayment(_that.groupId,_that.creditId,_that.transactions,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( TransactionEntity transaction)?  transaction,TResult? Function( String groupId,  String creditId,  List<TransactionEntity> transactions,  Money totalOutflow,  DateTime date,  String? note)?  groupedCreditPayment,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( TransactionEntity transaction)?  transaction,TResult? Function( String groupId,  List<TransactionEntity> transactions,  MoneyAmount totalOutflow,  DateTime date,  String? note)?  groupedCreditPayment,}) {final _that = this;
 switch (_that) {
 case TransactionFeedItem() when transaction != null:
 return transaction(_that.transaction);case GroupedCreditPaymentFeedItem() when groupedCreditPayment != null:
-return groupedCreditPayment(_that.groupId,_that.creditId,_that.transactions,_that.totalOutflow,_that.date,_that.note);case _:
+return groupedCreditPayment(_that.groupId,_that.transactions,_that.totalOutflow,_that.date,_that.note);case _:
   return null;
 
 }
@@ -250,11 +250,10 @@ $TransactionEntityCopyWith<$Res> get transaction {
 
 
 class GroupedCreditPaymentFeedItem implements FeedItem {
-  const GroupedCreditPaymentFeedItem({required this.groupId, required this.creditId, required final  List<TransactionEntity> transactions, required this.totalOutflow, required this.date, this.note}): _transactions = transactions;
+  const GroupedCreditPaymentFeedItem({required this.groupId, required final  List<TransactionEntity> transactions, required this.totalOutflow, required this.date, this.note}): _transactions = transactions;
   
 
  final  String groupId;
- final  String creditId;
  final  List<TransactionEntity> _transactions;
  List<TransactionEntity> get transactions {
   if (_transactions is EqualUnmodifiableListView) return _transactions;
@@ -262,7 +261,7 @@ class GroupedCreditPaymentFeedItem implements FeedItem {
   return EqualUnmodifiableListView(_transactions);
 }
 
- final  Money totalOutflow;
+ final  MoneyAmount totalOutflow;
  final  DateTime date;
  final  String? note;
 
@@ -276,16 +275,16 @@ $GroupedCreditPaymentFeedItemCopyWith<GroupedCreditPaymentFeedItem> get copyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is GroupedCreditPaymentFeedItem&&(identical(other.groupId, groupId) || other.groupId == groupId)&&(identical(other.creditId, creditId) || other.creditId == creditId)&&const DeepCollectionEquality().equals(other._transactions, _transactions)&&(identical(other.totalOutflow, totalOutflow) || other.totalOutflow == totalOutflow)&&(identical(other.date, date) || other.date == date)&&(identical(other.note, note) || other.note == note));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is GroupedCreditPaymentFeedItem&&(identical(other.groupId, groupId) || other.groupId == groupId)&&const DeepCollectionEquality().equals(other._transactions, _transactions)&&(identical(other.totalOutflow, totalOutflow) || other.totalOutflow == totalOutflow)&&(identical(other.date, date) || other.date == date)&&(identical(other.note, note) || other.note == note));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,groupId,creditId,const DeepCollectionEquality().hash(_transactions),totalOutflow,date,note);
+int get hashCode => Object.hash(runtimeType,groupId,const DeepCollectionEquality().hash(_transactions),totalOutflow,date,note);
 
 @override
 String toString() {
-  return 'FeedItem.groupedCreditPayment(groupId: $groupId, creditId: $creditId, transactions: $transactions, totalOutflow: $totalOutflow, date: $date, note: $note)';
+  return 'FeedItem.groupedCreditPayment(groupId: $groupId, transactions: $transactions, totalOutflow: $totalOutflow, date: $date, note: $note)';
 }
 
 
@@ -296,7 +295,7 @@ abstract mixin class $GroupedCreditPaymentFeedItemCopyWith<$Res> implements $Fee
   factory $GroupedCreditPaymentFeedItemCopyWith(GroupedCreditPaymentFeedItem value, $Res Function(GroupedCreditPaymentFeedItem) _then) = _$GroupedCreditPaymentFeedItemCopyWithImpl;
 @useResult
 $Res call({
- String groupId, String creditId, List<TransactionEntity> transactions, Money totalOutflow, DateTime date, String? note
+ String groupId, List<TransactionEntity> transactions, MoneyAmount totalOutflow, DateTime date, String? note
 });
 
 
@@ -313,13 +312,12 @@ class _$GroupedCreditPaymentFeedItemCopyWithImpl<$Res>
 
 /// Create a copy of FeedItem
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') $Res call({Object? groupId = null,Object? creditId = null,Object? transactions = null,Object? totalOutflow = null,Object? date = null,Object? note = freezed,}) {
+@pragma('vm:prefer-inline') $Res call({Object? groupId = null,Object? transactions = null,Object? totalOutflow = null,Object? date = null,Object? note = freezed,}) {
   return _then(GroupedCreditPaymentFeedItem(
 groupId: null == groupId ? _self.groupId : groupId // ignore: cast_nullable_to_non_nullable
-as String,creditId: null == creditId ? _self.creditId : creditId // ignore: cast_nullable_to_non_nullable
 as String,transactions: null == transactions ? _self._transactions : transactions // ignore: cast_nullable_to_non_nullable
 as List<TransactionEntity>,totalOutflow: null == totalOutflow ? _self.totalOutflow : totalOutflow // ignore: cast_nullable_to_non_nullable
-as Money,date: null == date ? _self.date : date // ignore: cast_nullable_to_non_nullable
+as MoneyAmount,date: null == date ? _self.date : date // ignore: cast_nullable_to_non_nullable
 as DateTime,note: freezed == note ? _self.note : note // ignore: cast_nullable_to_non_nullable
 as String?,
   ));

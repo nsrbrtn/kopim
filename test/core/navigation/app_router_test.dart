@@ -18,6 +18,7 @@ import 'package:kopim/features/app_shell/presentation/models/navigation_tab_cont
 import 'package:kopim/features/app_shell/presentation/providers/main_navigation_tabs_provider.dart';
 import 'package:kopim/features/app_shell/presentation/widgets/main_navigation_shell.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
+import 'package:kopim/features/credits/domain/entities/credit_entity.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
 import 'package:kopim/features/profile/domain/entities/profile.dart';
 import 'package:kopim/features/profile/presentation/controllers/auth_controller.dart';
@@ -171,12 +172,22 @@ void main() {
           analyticsFilteredStatsProvider(topCategoriesLimit: 5).overrideWith(
             (Ref ref) => Stream<AnalyticsOverview>.value(analyticsOverview),
           ),
+          analyticsCreditDebtOperationsProvider.overrideWith(
+            (Ref ref) => Stream<CreditDebtOperationsOverview>.value(
+              CreditDebtOperationsOverview.empty(),
+            ),
+          ),
           analyticsCategoriesProvider.overrideWith(
             (Ref ref) => Stream<List<Category>>.value(const <Category>[]),
           ),
           analyticsAccountsProvider.overrideWith(
             (Ref ref) =>
                 Stream<List<AccountEntity>>.value(const <AccountEntity>[]),
+          ),
+          analyticsTransferTransactionsProvider.overrideWith(
+            (Ref ref) => Stream<List<TransactionEntity>>.value(
+              const <TransactionEntity>[],
+            ),
           ),
           filteredTransactionsProvider.overrideWithValue(
             const AsyncValue<List<TransactionEntity>>.data(
@@ -188,6 +199,10 @@ void main() {
           ),
           allTransactionsCategoriesProvider.overrideWithValue(
             const AsyncValue<List<Category>>.data(<Category>[]),
+          ),
+          allTransactionsCreditsProvider.overrideWith(
+            (Ref ref) =>
+                Stream<List<CreditEntity>>.value(const <CreditEntity>[]),
           ),
         ],
         child: const _TestApp(),

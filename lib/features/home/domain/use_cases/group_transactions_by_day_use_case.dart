@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:kopim/core/money/money.dart';
+import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/features/home/domain/models/day_section.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/models/feed_item.dart';
@@ -64,11 +64,9 @@ class GroupTransactionsByDayUseCase {
         items.add(
           FeedItem.groupedCreditPayment(
             groupId: groupId,
-            creditId: '', // To be filled or handled by UI
             transactions: txs,
-            totalOutflow: Money.fromMinor(
-              totalMinor,
-              currency: 'XXX',
+            totalOutflow: MoneyAmount(
+              minor: totalMinor,
               scale: firstTx.amountScale ?? 2,
             ),
             date: firstTx.date,
@@ -91,9 +89,8 @@ class GroupTransactionsByDayUseCase {
           groupedCreditPayment:
               (
                 String groupId,
-                String creditId,
                 List<TransactionEntity> transactions,
-                Money totalOutflow,
+                MoneyAmount totalOutflow,
                 DateTime date,
                 String? note,
               ) => date,
@@ -103,9 +100,8 @@ class GroupTransactionsByDayUseCase {
           groupedCreditPayment:
               (
                 String groupId,
-                String creditId,
                 List<TransactionEntity> transactions,
-                Money totalOutflow,
+                MoneyAmount totalOutflow,
                 DateTime date,
                 String? note,
               ) => date,

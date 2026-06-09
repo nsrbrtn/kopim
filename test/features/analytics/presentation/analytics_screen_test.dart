@@ -187,6 +187,12 @@ void main() {
                   CreditDebtOperationsOverview.empty(),
                 ),
               ),
+              analyticsTransferTransactionsProvider.overrideWith(
+                (Ref ref) =>
+                    Stream<List<TransactionEntity>>.value(
+                      const <TransactionEntity>[],
+                    ),
+              ),
               analyticsCategoriesProvider.overrideWith(
                 (Ref ref) => Stream<List<Category>>.value(<Category>[
                   foodCategory,
@@ -321,6 +327,12 @@ void main() {
                 CreditDebtOperationsOverview.empty(),
               ),
             ),
+            analyticsTransferTransactionsProvider.overrideWith(
+              (Ref ref) =>
+                  Stream<List<TransactionEntity>>.value(
+                    const <TransactionEntity>[],
+                  ),
+            ),
             analyticsCategoriesProvider.overrideWith(
               (Ref ref) => Stream<List<Category>>.value(<Category>[
                 foodCategory,
@@ -355,7 +367,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(tester.takeException(), isNull);
-    }, skip: true);
+    });
 
     testWidgets('строка итогов расходов и доходов отображается как текст', (
       WidgetTester tester,
@@ -418,6 +430,12 @@ void main() {
               (Ref ref) => Stream<CreditDebtOperationsOverview>.value(
                 CreditDebtOperationsOverview.empty(),
               ),
+            ),
+            analyticsTransferTransactionsProvider.overrideWith(
+              (Ref ref) =>
+                  Stream<List<TransactionEntity>>.value(
+                    const <TransactionEntity>[],
+                  ),
             ),
             analyticsCategoriesProvider.overrideWith(
               (Ref ref) => Stream<List<Category>>.value(<Category>[
@@ -586,6 +604,12 @@ void main() {
                 CreditDebtOperationsOverview.empty(),
               ),
             ),
+            analyticsTransferTransactionsProvider.overrideWith(
+              (Ref ref) =>
+                  Stream<List<TransactionEntity>>.value(
+                    const <TransactionEntity>[],
+                  ),
+            ),
             analyticsCategoriesProvider.overrideWith(
               (Ref ref) => Stream<List<Category>>.value(<Category>[
                 foodCategory,
@@ -668,6 +692,12 @@ void main() {
               (Ref ref) => Stream<CreditDebtOperationsOverview>.value(
                 CreditDebtOperationsOverview.empty(),
               ),
+            ),
+            analyticsTransferTransactionsProvider.overrideWith(
+              (Ref ref) =>
+                  Stream<List<TransactionEntity>>.value(
+                    const <TransactionEntity>[],
+                  ),
             ),
             analyticsCategoriesProvider.overrideWith(
               (Ref ref) => Stream<List<Category>>.value(const <Category>[]),

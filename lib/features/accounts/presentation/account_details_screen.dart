@@ -5,7 +5,6 @@ import 'package:intl/intl.dart';
 import 'package:kopim/core/config/theme_extensions.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/core/formatting/currency_symbols.dart';
-import 'package:kopim/core/money/money.dart';
 import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/core/widgets/animated_fab.dart';
 import 'package:kopim/core/widgets/kopim_glass_fab.dart';
@@ -937,9 +936,8 @@ class _AccountTransactionsSection extends StatelessWidget {
                 groupedCreditPayment:
                     (
                       String groupId,
-                      String creditId,
                       List<TransactionEntity> transactions,
-                      Money totalOutflow,
+                      MoneyAmount totalOutflow,
                       DateTime date,
                       String? note,
                     ) => GroupedCreditPaymentTile(
@@ -1337,9 +1335,8 @@ double _calculateDayNet(List<FeedItem> items) {
       groupedCreditPayment:
           (
             String groupId,
-            String creditId,
             List<TransactionEntity> transactions,
-            Money totalOutflow,
+            MoneyAmount totalOutflow,
             DateTime date,
             String? note,
           ) {

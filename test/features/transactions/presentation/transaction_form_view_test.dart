@@ -2,14 +2,127 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kopim/core/services/analytics_service.dart';
+import 'package:kopim/core/services/logger_service.dart';
+import 'package:kopim/features/accounts/domain/use_cases/get_account_by_id_use_case.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
+import 'package:kopim/features/accounts/domain/repositories/account_repository.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
+import 'package:kopim/features/profile/domain/events/profile_domain_event.dart';
+import 'package:kopim/features/profile/presentation/services/profile_event_recorder.dart';
 import 'package:kopim/features/tags/domain/entities/tag.dart';
+import 'package:kopim/features/tags/domain/entities/transaction_tag.dart';
+import 'package:kopim/features/tags/domain/repositories/transaction_tags_repository.dart';
+import 'package:kopim/features/tags/domain/use_cases/get_transaction_tag_ids_use_case.dart';
+import 'package:kopim/features/tags/domain/use_cases/set_transaction_tags_use_case.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
 import 'package:kopim/features/transactions/presentation/add_transaction_screen.dart';
 import 'package:kopim/features/transactions/presentation/controllers/transaction_form_controller.dart';
+import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/l10n/app_localizations.dart';
+
+class _StubGetAccountByIdUseCase extends GetAccountByIdUseCase {
+  _StubGetAccountByIdUseCase(this._accounts)
+    : super(_NeverUsedAccountRepository());
+
+  final Map<String, AccountEntity> _accounts;
+
+  @override
+  Future<AccountEntity?> call(String id) async => _accounts[id];
+}
+
+class _NeverUsedAccountRepository implements AccountRepository {
+  @override
+  Future<AccountEntity?> findById(String id) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<AccountEntity>> loadAccounts() {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> softDelete(String id) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> upsert(AccountEntity account) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Stream<List<AccountEntity>> watchAccounts() {
+    throw UnimplementedError();
+  }
+}
+
+class _NeverUsedTransactionTagsRepository implements TransactionTagsRepository {
+  @override
+  Future<List<TransactionTagEntity>> loadAllTransactionTags() async {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<TagEntity>> loadTagsForTransaction(String transactionId) async {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<String>> getTagIdsForTransaction(String transactionId) async {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> upsertAll(List<TransactionTagEntity> links) async {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> setTransactionTags(
+    String transactionId,
+    List<String> tagIds,
+  ) async {
+    throw UnimplementedError();
+  }
+
+  @override
+  Stream<List<TagEntity>> watchTagsForTransaction(String transactionId) {
+    throw UnimplementedError();
+  }
+}
+
+class _StubGetTransactionTagIdsUseCase extends GetTransactionTagIdsUseCase {
+  _StubGetTransactionTagIdsUseCase()
+    : super(_NeverUsedTransactionTagsRepository());
+
+  @override
+  Future<List<String>> call(String transactionId) async => const <String>[];
+}
+
+class _StubSetTransactionTagsUseCase extends SetTransactionTagsUseCase {
+  _StubSetTransactionTagsUseCase()
+    : super(_NeverUsedTransactionTagsRepository());
+
+  @override
+  Future<void> call({
+    required String transactionId,
+    required List<String> tagIds,
+  }) async {}
+}
+
+class _StubProfileEventRecorder extends ProfileEventRecorder {
+  _StubProfileEventRecorder()
+    : super(
+        analyticsService: const AnalyticsService(),
+        loggerService: LoggerService(),
+      );
+
+  @override
+  Future<void> record(Iterable<ProfileDomainEvent> events) async {}
+}
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -51,6 +164,20 @@ void main() {
           ),
           transactionFormTagsProvider.overrideWith(
             (Ref ref) => const Stream<List<TagEntity>>.empty(),
+          ),
+          getAccountByIdUseCaseProvider.overrideWithValue(
+            _StubGetAccountByIdUseCase(<String, AccountEntity>{
+              account.id: account,
+            }),
+          ),
+          getTransactionTagIdsUseCaseProvider.overrideWithValue(
+            _StubGetTransactionTagIdsUseCase(),
+          ),
+          setTransactionTagsUseCaseProvider.overrideWithValue(
+            _StubSetTransactionTagsUseCase(),
+          ),
+          profileEventRecorderProvider.overrideWithValue(
+            _StubProfileEventRecorder(),
           ),
         ],
         child: const MaterialApp(
@@ -133,6 +260,22 @@ void main() {
           ),
           transactionFormTagsProvider.overrideWith(
             (Ref ref) => const Stream<List<TagEntity>>.empty(),
+          ),
+          getAccountByIdUseCaseProvider.overrideWithValue(
+            _StubGetAccountByIdUseCase(<String, AccountEntity>{
+              usdAccount.id: usdAccount,
+              secondUsdAccount.id: secondUsdAccount,
+              eurAccount.id: eurAccount,
+            }),
+          ),
+          getTransactionTagIdsUseCaseProvider.overrideWithValue(
+            _StubGetTransactionTagIdsUseCase(),
+          ),
+          setTransactionTagsUseCaseProvider.overrideWithValue(
+            _StubSetTransactionTagsUseCase(),
+          ),
+          profileEventRecorderProvider.overrideWithValue(
+            _StubProfileEventRecorder(),
           ),
         ],
         child: const MaterialApp(
@@ -245,6 +388,22 @@ void main() {
             ),
             transactionFormTagsProvider.overrideWith(
               (Ref ref) => const Stream<List<TagEntity>>.empty(),
+            ),
+            getAccountByIdUseCaseProvider.overrideWithValue(
+              _StubGetAccountByIdUseCase(<String, AccountEntity>{
+                sourceAccount.id: sourceAccount,
+                firstTarget.id: firstTarget,
+                selectedTarget.id: selectedTarget,
+              }),
+            ),
+            getTransactionTagIdsUseCaseProvider.overrideWithValue(
+              _StubGetTransactionTagIdsUseCase(),
+            ),
+            setTransactionTagsUseCaseProvider.overrideWithValue(
+              _StubSetTransactionTagsUseCase(),
+            ),
+            profileEventRecorderProvider.overrideWithValue(
+              _StubProfileEventRecorder(),
             ),
           ],
           child: MaterialApp(
@@ -400,6 +559,20 @@ Future<void> _pumpTransactionForm(
         ),
         transactionFormTagsProvider.overrideWith(
           (Ref ref) => const Stream<List<TagEntity>>.empty(),
+        ),
+        getAccountByIdUseCaseProvider.overrideWithValue(
+          _StubGetAccountByIdUseCase(<String, AccountEntity>{
+            account.id: account,
+          }),
+        ),
+        getTransactionTagIdsUseCaseProvider.overrideWithValue(
+          _StubGetTransactionTagIdsUseCase(),
+        ),
+        setTransactionTagsUseCaseProvider.overrideWithValue(
+          _StubSetTransactionTagsUseCase(),
+        ),
+        profileEventRecorderProvider.overrideWithValue(
+          _StubProfileEventRecorder(),
         ),
       ],
       child: MaterialApp(

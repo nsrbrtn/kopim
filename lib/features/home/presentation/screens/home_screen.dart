@@ -8,7 +8,6 @@ import 'package:flutter_riverpod/misc.dart' show StreamProviderFamily;
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:collection/collection.dart';
-import 'package:kopim/core/money/money.dart';
 import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/core/config/theme.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
@@ -1899,9 +1898,8 @@ List<_TransactionSliverEntry> _buildTransactionEntries(
         groupedCreditPayment:
             (
               String groupId,
-              String creditId,
               List<TransactionEntity> transactions,
-              Money totalOutflow,
+              MoneyAmount totalOutflow,
               DateTime date,
               String? note,
             ) => entries.add(
@@ -2412,9 +2410,8 @@ double _calculateDayNet(List<FeedItem> items) {
       groupedCreditPayment:
           (
             String groupId,
-            String creditId,
             List<TransactionEntity> transactions,
-            Money totalOutflow,
+            MoneyAmount totalOutflow,
             DateTime date,
             String? note,
           ) {

@@ -120,13 +120,14 @@ class _AnalyticsBody extends ConsumerWidget {
         children: <Widget>[
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-            child: Row(
-              children: <Widget>[
-                Text(
-                  strings.analyticsTitle,
-                  style: Theme.of(context).textTheme.displaySmall,
-                ),
-              ],
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                strings.analyticsTitle,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.displaySmall,
+              ),
             ),
           ),
           const SizedBox(height: 8),
@@ -1980,24 +1981,25 @@ class _ChartBottomControls extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    final Widget toggles = Wrap(
+      spacing: 8,
+      runSpacing: 8,
       children: <Widget>[
-        Wrap(
-          spacing: 8,
-          children: <Widget>[
-            _OperationsBreakdownIconToggle(
-              mode: breakdownMode,
-              strings: strings,
-              onModeChanged: onBreakdownModeChanged,
-            ),
-            _CategoriesChartModeToggle(
-              mode: mode,
-              strings: strings,
-              onModeChanged: onModeChanged,
-            ),
-          ],
+        _OperationsBreakdownIconToggle(
+          mode: breakdownMode,
+          strings: strings,
+          onModeChanged: onBreakdownModeChanged,
         ),
-        const Spacer(),
+        _CategoriesChartModeToggle(
+          mode: mode,
+          strings: strings,
+          onModeChanged: onModeChanged,
+        ),
+      ],
+    );
+    final Widget arrows = Row(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
         _MonthArrowButton(
           icon: Icons.chevron_left_rounded,
           onTap: canGoPreviousRange ? onPreviousRange : null,
@@ -2008,6 +2010,28 @@ class _ChartBottomControls extends StatelessWidget {
           onTap: canGoNextRange ? onNextRange : null,
         ),
       ],
+    );
+
+    return LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints constraints) {
+        if (constraints.maxWidth < 320) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              toggles,
+              const SizedBox(height: 12),
+              Align(alignment: Alignment.centerRight, child: arrows),
+            ],
+          );
+        }
+        return Row(
+          children: <Widget>[
+            Expanded(child: toggles),
+            const SizedBox(width: 12),
+            arrows,
+          ],
+        );
+      },
     );
   }
 }
