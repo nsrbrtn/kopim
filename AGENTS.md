@@ -40,6 +40,8 @@ flutter pub outdated
 
 Примечание по Android:
 - Для dev/CI используем flavor `dev` (например, `flutter build apk --debug --flavor dev`).
+- Для публикации в Google Play проект фиксирует `compileSdk = 36`, `targetSdk = 35`, `minSdk = 24`.
+- Android build toolchain проекта: Gradle wrapper `8.14`, AGP `8.11.1`, Kotlin `2.2.20`, Java/Kotlin target `17`.
 
 ---
 

@@ -377,21 +377,24 @@ analyticsTransferTransactionsProvider = StreamProvider<List<TransactionEntity>>(
     final SortedIds selectedAccountIds = ref.watch(
       analyticsSelectedAccountIdsProvider,
     );
-    return _combineLatest2<
+    return _combineLatest3<
           List<TransactionEntity>,
           List<AccountEntity>,
+          List<CreditEntity>,
           List<TransactionEntity>
         >(
           ref.watch(transactionRepositoryProvider).watchTransactions(),
           ref.watch(watchAccountsUseCaseProvider).call(),
-          (List<TransactionEntity> transactions, List<AccountEntity> accounts) {
-            final Set<String> liabilityAccountIds = accounts
-                .where(
-                  (AccountEntity account) =>
-                      isLiabilityAccountType(account.type),
-                )
-                .map((AccountEntity account) => account.id)
-                .toSet();
+          ref.watch(watchCreditsUseCaseProvider).call(),
+          (
+            List<TransactionEntity> transactions,
+            List<AccountEntity> accounts,
+            List<CreditEntity> credits,
+          ) {
+            final Set<String> liabilityAccountIds = _collectLiabilityAccountIds(
+              accounts: accounts,
+              credits: credits,
+            );
             return transactions
                 .where((TransactionEntity transaction) {
                   if (parseTransactionType(transaction.type) !=
@@ -746,17 +749,28 @@ analyticsDebtOverviewProvider = StreamProvider<AnalyticsDebtOverview>((
   final TransactionRepository transactionRepository = ref.watch(
     transactionRepositoryProvider,
   );
-  return _combineLatest2<
+  return _combineLatest3<
         List<TransactionEntity>,
         List<AccountEntity>,
+        List<CreditEntity>,
         AnalyticsDebtOverview
       >(
         transactionRepository.watchTransactions(),
         ref.watch(watchAccountsUseCaseProvider).call(),
-        (List<TransactionEntity> transactions, List<AccountEntity> accounts) {
+        ref.watch(watchCreditsUseCaseProvider).call(),
+        (
+          List<TransactionEntity> transactions,
+          List<AccountEntity> accounts,
+          List<CreditEntity> credits,
+        ) {
+          final Set<String> liabilityAccountIds = _collectLiabilityAccountIds(
+            accounts: accounts,
+            credits: credits,
+          );
           final List<AccountEntity> liabilityAccounts = accounts
               .where(
-                (AccountEntity account) => isLiabilityAccountType(account.type),
+                (AccountEntity account) =>
+                    liabilityAccountIds.contains(account.id),
               )
               .toList(growable: false);
           if (liabilityAccounts.isEmpty) {
@@ -840,10 +854,10 @@ CreditDebtOperationsOverview _buildCreditDebtOperationsOverview({
   required AnalyticsDateWindow dateWindow,
   required SortedIds selectedAccountIds,
 }) {
-  final Set<String> liabilityAccountIds = accounts
-      .where((AccountEntity account) => isLiabilityAccountType(account.type))
-      .map((AccountEntity account) => account.id)
-      .toSet();
+  final Set<String> liabilityAccountIds = _collectLiabilityAccountIds(
+    accounts: accounts,
+    credits: credits,
+  );
 
   if (liabilityAccountIds.isEmpty) {
     return CreditDebtOperationsOverview.empty();
@@ -1271,6 +1285,74 @@ Stream<T> _combineLatest4<A, B, C, D, T>(
   return controller.stream;
 }
 
+Stream<T> _combineLatest3<A, B, C, T>(
+  Stream<A> a,
+  Stream<B> b,
+  Stream<C> c,
+  T Function(A, B, C) mapper,
+) {
+  late StreamController<T> controller;
+  A? lastA;
+  B? lastB;
+  C? lastC;
+  bool hasA = false;
+  bool hasB = false;
+  bool hasC = false;
+
+  void emitIfReady() {
+    if (hasA && hasB && hasC) {
+      controller.add(mapper(lastA as A, lastB as B, lastC as C));
+    }
+  }
+
+  controller = StreamController<T>(
+    onListen: () {
+      int doneCount = 0;
+      void handleDone() {
+        doneCount += 1;
+        if (doneCount >= 3 && !controller.isClosed) {
+          controller.close();
+        }
+      }
+
+      final StreamSubscription<A> subA = a.listen(
+        (A value) {
+          lastA = value;
+          hasA = true;
+          emitIfReady();
+        },
+        onError: controller.addError,
+        onDone: handleDone,
+      );
+      final StreamSubscription<B> subB = b.listen(
+        (B value) {
+          lastB = value;
+          hasB = true;
+          emitIfReady();
+        },
+        onError: controller.addError,
+        onDone: handleDone,
+      );
+      final StreamSubscription<C> subC = c.listen(
+        (C value) {
+          lastC = value;
+          hasC = true;
+          emitIfReady();
+        },
+        onError: controller.addError,
+        onDone: handleDone,
+      );
+      controller.onCancel = () async {
+        await subA.cancel();
+        await subB.cancel();
+        await subC.cancel();
+      };
+    },
+  );
+
+  return controller.stream;
+}
+
 Stream<R> _switchLatest<T, R>(Stream<T> source, Stream<R> Function(T) mapper) {
   late StreamController<R> controller;
   StreamSubscription<T>? outerSub;
@@ -1441,6 +1523,22 @@ bool _listEqualsMonthlyCashflow(
     }
   }
   return true;
+}
+
+Set<String> _collectLiabilityAccountIds({
+  required List<AccountEntity> accounts,
+  required List<CreditEntity> credits,
+}) {
+  final Set<String> accountIds = accounts
+      .where((AccountEntity account) => isLiabilityAccountType(account.type))
+      .map((AccountEntity account) => account.id)
+      .toSet();
+  for (final CreditEntity credit in credits) {
+    if (credit.accountId.isNotEmpty) {
+      accountIds.add(credit.accountId);
+    }
+  }
+  return accountIds;
 }
 
 List<String> _sortedIds(Set<String> values) {

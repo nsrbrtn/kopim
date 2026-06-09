@@ -1004,6 +1004,9 @@ void main() {
               updatedAt: now,
             ),
           ]);
+      final _StaticCreditRepository creditRepository = _StaticCreditRepository(
+        const <CreditEntity>[],
+      );
 
       final ProviderContainer container = ProviderContainer(
         overrides: <Override>[
@@ -1012,6 +1015,9 @@ void main() {
           ),
           watchAccountsUseCaseProvider.overrideWithValue(
             WatchAccountsUseCase(accountRepository),
+          ),
+          watchCreditsUseCaseProvider.overrideWithValue(
+            WatchCreditsUseCase(creditRepository),
           ),
           analyticsFilterControllerProvider.overrideWith(
             () => _FakeAnalyticsFilterController(
@@ -1049,6 +1055,265 @@ void main() {
 
       expect(transfers, hasLength(1));
       expect(transfers.single.id, regularTransfer.id);
+    },
+  );
+
+  test(
+    'analyticsTransferTransactionsProvider исключает платежи по legacy-кредиту из переводов',
+    () async {
+      final DateTime now = DateTime.now();
+      final DateTime txDate = now.subtract(const Duration(hours: 2));
+      final DateTime rangeStart = DateUtils.dateOnly(now);
+      final DateTime rangeEnd = rangeStart;
+
+      final TransactionEntity creditPayment = TransactionEntity(
+        id: 'payment-legacy',
+        accountId: 'cash-1',
+        transferAccountId: 'loan-1',
+        amountMinor: BigInt.from(7500),
+        amountScale: 2,
+        date: txDate,
+        type: TransactionType.transfer.storageValue,
+        createdAt: txDate,
+        updatedAt: txDate,
+      );
+      final TransactionEntity regularTransfer = TransactionEntity(
+        id: 'transfer-1',
+        accountId: 'cash-1',
+        transferAccountId: 'cash-2',
+        amountMinor: BigInt.from(1200),
+        amountScale: 2,
+        date: txDate,
+        type: TransactionType.transfer.storageValue,
+        createdAt: txDate,
+        updatedAt: txDate,
+      );
+
+      final _FakeTransactionRepository transactionRepository =
+          _FakeTransactionRepository(
+            Stream<List<TransactionEntity>>.value(<TransactionEntity>[
+              creditPayment,
+              regularTransfer,
+            ]),
+            openingBalances: <String, MoneyAmount>{
+              'cash-1': MoneyAmount(minor: BigInt.zero, scale: 2),
+              'cash-2': MoneyAmount(minor: BigInt.zero, scale: 2),
+              'loan-1': MoneyAmount(minor: BigInt.zero, scale: 2),
+            },
+          );
+
+      final _StaticAccountRepository accountRepository =
+          _StaticAccountRepository(<AccountEntity>[
+            AccountEntity(
+              id: 'cash-1',
+              name: 'Cash 1',
+              balanceMinor: BigInt.zero,
+              openingBalanceMinor: BigInt.zero,
+              currency: 'USD',
+              currencyScale: 2,
+              type: 'checking',
+              createdAt: now,
+              updatedAt: now,
+            ),
+            AccountEntity(
+              id: 'cash-2',
+              name: 'Cash 2',
+              balanceMinor: BigInt.zero,
+              openingBalanceMinor: BigInt.zero,
+              currency: 'USD',
+              currencyScale: 2,
+              type: 'cash',
+              createdAt: now,
+              updatedAt: now,
+            ),
+            AccountEntity(
+              id: 'loan-1',
+              name: 'Legacy loan',
+              balanceMinor: BigInt.zero,
+              openingBalanceMinor: BigInt.zero,
+              currency: 'USD',
+              currencyScale: 2,
+              type: 'loan',
+              createdAt: now,
+              updatedAt: now,
+            ),
+          ]);
+
+      final _StaticCreditRepository creditRepository =
+          _StaticCreditRepository(<CreditEntity>[
+            CreditEntity(
+              id: 'credit-1',
+              accountId: 'loan-1',
+              totalAmountMinor: BigInt.from(100000),
+              totalAmountScale: 2,
+              interestRate: 12,
+              termMonths: 12,
+              startDate: now.subtract(const Duration(days: 30)),
+              createdAt: now,
+              updatedAt: now,
+            ),
+          ]);
+
+      final ProviderContainer container = ProviderContainer(
+        overrides: <Override>[
+          transactionRepositoryProvider.overrideWithValue(
+            transactionRepository,
+          ),
+          watchAccountsUseCaseProvider.overrideWithValue(
+            WatchAccountsUseCase(accountRepository),
+          ),
+          watchCreditsUseCaseProvider.overrideWithValue(
+            WatchCreditsUseCase(creditRepository),
+          ),
+          analyticsFilterControllerProvider.overrideWith(
+            () => _FakeAnalyticsFilterController(
+              AnalyticsFilterState(
+                dateRange: DateTimeRange(start: rangeStart, end: rangeEnd),
+              ),
+            ),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final Completer<List<TransactionEntity>> result =
+          Completer<List<TransactionEntity>>();
+      final ProviderSubscription<AsyncValue<List<TransactionEntity>>> sub =
+          container.listen<AsyncValue<List<TransactionEntity>>>(
+            analyticsTransferTransactionsProvider,
+            (
+              AsyncValue<List<TransactionEntity>>? previous,
+              AsyncValue<List<TransactionEntity>> next,
+            ) {
+              next.whenData((List<TransactionEntity> value) {
+                if (!result.isCompleted) {
+                  result.complete(value);
+                }
+              });
+            },
+            fireImmediately: true,
+          );
+      addTearDown(sub.close);
+
+      final List<TransactionEntity> transfers = await result.future.timeout(
+        const Duration(seconds: 2),
+      );
+
+      expect(transfers, hasLength(1));
+      expect(transfers.single.id, regularTransfer.id);
+    },
+  );
+
+  test(
+    'analyticsDebtOverviewProvider учитывает legacy-кредитный счет из CreditEntity',
+    () async {
+      final DateTime now = DateTime.now();
+      final DateTime txDate = now.subtract(const Duration(days: 3));
+
+      final TransactionEntity creditPayment = TransactionEntity(
+        id: 'payment-legacy',
+        accountId: 'cash-1',
+        transferAccountId: 'loan-1',
+        amountMinor: BigInt.from(2500),
+        amountScale: 2,
+        date: txDate,
+        type: TransactionType.transfer.storageValue,
+        createdAt: txDate,
+        updatedAt: txDate,
+      );
+
+      final _FakeTransactionRepository transactionRepository =
+          _FakeTransactionRepository(
+            Stream<List<TransactionEntity>>.value(<TransactionEntity>[
+              creditPayment,
+            ]),
+            openingBalances: <String, MoneyAmount>{
+              'cash-1': MoneyAmount(minor: BigInt.zero, scale: 2),
+              'loan-1': MoneyAmount(minor: BigInt.from(-100000), scale: 2),
+            },
+          );
+
+      final _StaticAccountRepository accountRepository =
+          _StaticAccountRepository(<AccountEntity>[
+            AccountEntity(
+              id: 'cash-1',
+              name: 'Cash 1',
+              balanceMinor: BigInt.zero,
+              openingBalanceMinor: BigInt.zero,
+              currency: 'USD',
+              currencyScale: 2,
+              type: 'checking',
+              createdAt: now,
+              updatedAt: now,
+            ),
+            AccountEntity(
+              id: 'loan-1',
+              name: 'Legacy loan',
+              balanceMinor: BigInt.from(-97500),
+              openingBalanceMinor: BigInt.from(-100000),
+              currency: 'USD',
+              currencyScale: 2,
+              type: 'loan',
+              createdAt: now,
+              updatedAt: now,
+            ),
+          ]);
+
+      final _StaticCreditRepository creditRepository =
+          _StaticCreditRepository(<CreditEntity>[
+            CreditEntity(
+              id: 'credit-1',
+              accountId: 'loan-1',
+              totalAmountMinor: BigInt.from(100000),
+              totalAmountScale: 2,
+              interestRate: 12,
+              termMonths: 12,
+              startDate: now.subtract(const Duration(days: 30)),
+              createdAt: now,
+              updatedAt: now,
+            ),
+          ]);
+
+      final ProviderContainer container = ProviderContainer(
+        overrides: <Override>[
+          transactionRepositoryProvider.overrideWithValue(
+            transactionRepository,
+          ),
+          watchAccountsUseCaseProvider.overrideWithValue(
+            WatchAccountsUseCase(accountRepository),
+          ),
+          watchCreditsUseCaseProvider.overrideWithValue(
+            WatchCreditsUseCase(creditRepository),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final Completer<AnalyticsDebtOverview> result =
+          Completer<AnalyticsDebtOverview>();
+      final ProviderSubscription<AsyncValue<AnalyticsDebtOverview>> sub =
+          container.listen<AsyncValue<AnalyticsDebtOverview>>(
+            analyticsDebtOverviewProvider,
+            (
+              AsyncValue<AnalyticsDebtOverview>? previous,
+              AsyncValue<AnalyticsDebtOverview> next,
+            ) {
+              next.whenData((AnalyticsDebtOverview value) {
+                if (!result.isCompleted) {
+                  result.complete(value);
+                }
+              });
+            },
+            fireImmediately: true,
+          );
+      addTearDown(sub.close);
+
+      final AnalyticsDebtOverview overview = await result.future.timeout(
+        const Duration(seconds: 2),
+      );
+
+      expect(overview.totalDebt.toDouble(), closeTo(975.0, 0.001));
+      expect(overview.trend, isNotEmpty);
     },
   );
 

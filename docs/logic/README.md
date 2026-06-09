@@ -15,6 +15,7 @@
 - [**Таксономия типов счетов**](account_type_taxonomy.md) — canonical account types, legacy normalization, `typeVersion`, backup/import и anti-churn sync policy
 - [**Аналитика**](analytics.md) — логика работы экрана аналитики, агрегация данных и визуализация
 - [**Android edge-to-edge**](android_edge_to_edge.md) — правила отображения под системными барами Android 15+, inset'ы и релизные проверки
+- [**Android build toolchain**](android_build_toolchain.md) — актуальные версии Gradle/AGP/Kotlin, миграция app-level Gradle и known issues со сторонними плагинами
 - [**Финансовый индекс**](financial_index.md) — формула индекса `0..100`, статусы и правила клампа
 - [**Остаток в день (Overview)**](overview_daily_allowance.md) — расчет дневного лимита до ближайшего дохода
 - [**Финансовая подушка (Overview)**](overview_safety_cushion.md) — расчет покрытия расходов ликвидными активами

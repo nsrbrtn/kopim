@@ -14,7 +14,6 @@ if (propsFile.exists()) {
 
 plugins {
     id("com.android.application")
-    id("kotlin-android")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
 }
@@ -37,17 +36,14 @@ if (shouldApplyFirebasePlugins) {
 
 android {
     namespace = "qmodo.ru.kopim"
-    compileSdk = flutter.compileSdkVersion
+    // Явно фиксируем SDK-версии для публикации в Google Play.
+    compileSdk = 36
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
         isCoreLibraryDesugaringEnabled = true
-    }
-
-    kotlinOptions {
-        jvmTarget = "11"
     }
 
     signingConfigs {
@@ -67,8 +63,8 @@ android {
 
     defaultConfig {
         applicationId = "qmodo.ru.kopim"
-        minSdk = flutter.minSdkVersion
-        targetSdk = flutter.targetSdkVersion
+        minSdk = 24
+        targetSdk = 35
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
@@ -110,6 +106,12 @@ android {
             manifest.srcFile("src/offline/AndroidManifest.xml")
             res.srcDirs("src/offline/res")
         }
+    }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
     }
 }
 
